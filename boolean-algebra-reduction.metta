@@ -20,21 +20,49 @@
             ( (AND $a (OR $a $b)) $a)       ; a AND (a OR b)  -->  a
             ( (NOT (AND $a $b)) (OR (NOT $a) (NOT $b)) )    ; -(a AND b)  -->  (-a OR -b)
             ( (NOT (OR $a $b)) (AND (NOT $a) (NOT $b)) )    ; -(a OR b)  -->  (-a AND -b)
+            ( $exp $exp )
     
         )
     )
 )
 
 
-(= (reduce-expression $exp)
-    $exp
+
+(= (reduce-expression $term)
+    (if (== (get-metatype $term) Expression)
+        (case $term
+            (
+                ( ($op $exp1 $exp2) (
+                    (let* (
+                        ($exp1R (reduce $exp1))
+                        ($exp2R (reduce $exp2))
+                        )
+                        (if (OR (NOT (== $exp1 $exp1R)) (NOT (== $exp2 $exp2R)))
+                            (reduce-expression ($op $exp1R $exp2R))
+                            (reduce ($op $exp1 $exp2))
+                        )
+                    )
+                ) )
+
+
+
+
+
+                ;; ( ($op $exp1 $exp2) (reduce ( $term) ) )
+            )
+        )
+
+        ($term)
+    )
 )
-(= (reduce-expression ($op $exp))
-    (reduce ($op) (reduce-expression $exp))
-)
-(= (reduce-expression ($op $exp1 $exp2)) 
-    (reduce ($op (reduce-expression $exp1) (reduce-expression $exp2))
-))
+
+
+;; (= (reduce-expression ($op $exp))
+;;     (reduce ($op) (reduce-expression $exp))
+;; )
+;; (= (reduce-expression ($op $exp1 $exp2)) 
+;;     (reduce ($op (reduce-expression $exp1) (reduce-expression $exp2))
+;; ))
 
 !(reduce-expression (OR a (OR b (OR c (OR d True)))))
 !(reduce-expression (OR a  True))
