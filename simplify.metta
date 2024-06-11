@@ -1,3 +1,5 @@
+; Original lisp version: https://web.cecs.pdx.edu/~mperkows/class478-2005/tsewen-midterm.pdf
+
 (= (simplify $EXPR)
     (simplify-expr Nothing $EXPR)
 )
@@ -21,19 +23,6 @@
             ((NOT $EXPR1) (simplify-not-expr $EXPR))
             ($else (Error "Invalid boolean expression"))
         )
-        ;;; Simplifies AND expression.
-        ((and (equal (first EXPR) `and) (>= (length EXPR) 3)) (simplify-and-expr (rest
-        EXPR)))
-        ;;; Simplifies OR expression.
-        ((and (equal (first EXPR) `or) (>= (length EXPR) 3)) (simplify-or-expr (rest
-        EXPR)))
-        ;;; Simplifies NOT expression.
-        ((and (equal (first EXPR) `not) (= (length EXPR) 2)) (simplify-not-expr (rest
-        EXPR)))
-        ;;; More rules can be implemented here:
-        ;;; (...)
-        ;;; Anything else is considered to be ill-formed.
-        (T (error "~S is not a valid boolean expression or has an unknown operator." EXPR))
     )
 )
 
@@ -55,33 +44,13 @@
     )
 )
 
-;; (defun simplify-or-expr (EXPR)
-;;     ;;; Removes all 0's constants and duplicates (RULE: equivalence and absorbing).
-;;     (let ((SIMPLIFIED_EXPR (remove `NIL (remove-duplicates EXPR))))
-;;     (cond ;;; Returns with 0's constant.
-;;     ((null SIMPLIFIED_EXPR) `NIL)
-;;     ;;; Returns with 1's constant (RULE: existential closure).
-;;     ((member `T SIMPLIFIED_EXPR) `T)
-;;     ;;; Returns with the only operand.
-;;     ((null (second SIMPLIFIED_EXPR)) (first SIMPLIFIED_EXPR))
-;;     ;;; More rules can be implemented here:
-;;     ;;; (...)
-;;     ;;; Simplifies every operand recursively.
-;;     (T (cons `or (simplify-operand SIMPLIFIED_EXPR)))))
-;; )
+(= (simplify-or-expr EXPR)
+ ....
+)
 
-;; (defun simplify-not-expr (EXPR)
-;;     (cond ;;; Simplifies constants.
-;;     ((equal (first EXPR) `NIL) `T)
-;;     ((equal (first EXPR) `T) `NIL)
-;;     ;;; Simplifies double inveresions (RULE).
-;;     ((and (listp (first EXPR)) (equal (first (first EXPR)) `not)) (first (rest (first
-;;     EXPR))))
-;;     ;;; More rules can be implemented here:
-;;     ;;; (...)
-;;     ;;; Does nothing, otherwise.
-;;     (T (cons `not (simplify-operand EXPR))))
-;; )
+(= (simplify-not-expr EXPR)
+ ....
+)
 
 (= (simplify-operand $SUB_EXP)
     (let $cond (== (get-metatype $SUB_EXP) Expression)
@@ -106,16 +75,5 @@
         )
     )
 )
-;;     (cond 
-;;         ;;; Terminates with NIL.
-;;         ((null SUB_EXP) NIL)
-;;         ;;; Simpifies the rest of operads.
-;;         ((atom (first SUB_EXP)) (cons (first SUB_EXP) (simplify-operand (rest
-;;         SUB_EXP))))
-;;         ;;; Simpifies a sub-expression and the rest of operands.
-;;         (T (cons (simplify-expr NIL (first SUB_EXP)) (simplify-operand (rest
-;;         SUB_EXP))))
-;;     )
-;; ) 
 
 !(simplify (AND a True))
