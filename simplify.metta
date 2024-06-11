@@ -5,7 +5,7 @@
 )
 
 (= (simplify-expr $EXPR1 $EXPR2)
-    (let $cond  (or (NOT (== (get-metatype $EXPR2) Expression)) (== $EXPR1 $EXPR2))
+    (let $cond  (or (not (== (get-metatype $EXPR2) Expression)) (== $EXPR1 $EXPR2))
         (if $cond
             ;;; Terminates if (EXPR1 == EXPR2 || CONSTANT).
             ($EXPR2)
@@ -18,9 +18,9 @@
 (= (simplify-boolean-expr $EXPR)
     (case $EXPR
         (
-            ((AND $EXPR1 $EXPR2) (simplify-and-expr $EXPR))
-            ((OR $EXPR1 $EXPR2) (simplify-or-expr $EXPR))
-            ((NOT $EXPR1) (simplify-not-expr $EXPR))
+            ((and $EXPR1 $EXPR2) (simplify-and-expr $EXPR))
+            ((or $EXPR1 $EXPR2) (simplify-or-expr $EXPR))
+            ((not $EXPR1) (simplify-not-expr $EXPR))
             ($else (Error "Invalid boolean expression"))
         )
     )
@@ -31,11 +31,11 @@
         (if $cond
             (case $EXPR
                 (
-                    ( ($a False) False)         ; (a AND False)  -->  False
-                    ( ($a True) $a)             ; (a AND True)  -->  a
-                    ( ($a $a) $a)               ; (a AND a)  -->  a
-                    ( ($a (NOT $a)) False)      ; (a AND -a)  -->  False
-                    ( ($a (OR $a $b)) $a)       ; a AND (a OR b)  -->  a
+                    ( ($a False) False)         ; (a and False)  -->  False
+                    ( ($a True) $a)             ; (a and True)  -->  a
+                    ( ($a $a) $a)               ; (a and a)  -->  a
+                    ( ($a (not $a)) False)      ; (a and -a)  -->  False
+                    ( ($a (or $a $b)) $a)       ; a and (a or b)  -->  a
                     ( $else (simplify-operand $EXPR))
                 )
             )
@@ -44,11 +44,11 @@
     )
 )
 
-(= (simplify-or-expr EXPR)
+(= (simplify-or-expr $EXPR)
  ....
 )
 
-(= (simplify-not-expr EXPR)
+(= (simplify-not-expr $EXPR)
  ....
 )
 
@@ -58,13 +58,13 @@
             (case $EXPR
                 (
                     (($EXP1 $EXP2) 
-                        (if (NOT (== (get-metatype $EXP1) Expression))
+                        (if (not (== (get-metatype $EXP1) Expression))
                             ($EXP1 (simplify-operand $EXP2))
                             ((simplify-expr Nothing $EXPR1) (simplify-operand $EXP2))
                         )
                     )
                     ;; (($EXP1)
-                    ;;     (if (NOT (== (get-metatype $EXP1) Expression))
+                    ;;     (if (not (== (get-metatype $EXP1) Expression))
                     ;;         ($EXP1)
                     ;;         ((simplify-expr Nothing $EXPR1))
                     ;;     )
@@ -76,4 +76,4 @@
     )
 )
 
-!(simplify (AND a True))
+!(simplify (and a True))
