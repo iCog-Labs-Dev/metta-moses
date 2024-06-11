@@ -3,19 +3,19 @@
     (if (== (get-metatype $exp) Expression)
         (case $exp
             (
-                ( (OR $a True) True)            ; (a OR True)  -->  True
-                ( (AND $a False) False)         ; (a AND False)  -->  False
-                ( (OR $a False) $a)             ; (a OR False)  -->  a
-                ( (AND $a True) $a)             ; (a AND True)  -->  a
-                ( (OR $a $a) $a)                ; (a OR a)  -->  a
-                ( (AND $a $a) $a)               ; (a AND a)  -->  a
-                ( (OR $a (NOT $a)) True)        ; (a OR -a)  -->  True
-                ( (AND $a (NOT $a)) False)      ; (a AND -a)  -->  False
-                ( (OR $a (AND $a $b)) $a)       ; a OR (a AND b)  -->  a
-                ( (AND $a (OR $a $b)) $a)       ; a AND (a OR b)  -->  a
-                ( (NOT (NOT $a)) $a)            ; (-(-a))  -->  a
-                ( (NOT (AND $a $b)) (OR (NOT $a) (NOT $b)) )    ; -(a AND b)  -->  (-a OR -b)
-                ( (NOT (OR $a $b)) (AND (NOT $a) (NOT $b)) )    ; -(a OR b)  -->  (-a AND -b)
+                ( (or $a True) True)            ; (a OR True)  -->  True
+                ( (and $a False) False)         ; (a AND False)  -->  False
+                ( (or $a False) $a)             ; (a OR False)  -->  a
+                ( (and $a True) $a)             ; (a AND True)  -->  a
+                ( (or $a $a) $a)                ; (a OR a)  -->  a
+                ( (and $a $a) $a)               ; (a AND a)  -->  a
+                ( (or $a (not $a)) True)        ; (a OR -a)  -->  True
+                ( (and $a (not $a)) False)      ; (a AND -a)  -->  False
+                ( (or $a (and $a $b)) $a)       ; a OR (a AND b)  -->  a
+                ( (and $a (or $a $b)) $a)       ; a AND (a OR b)  -->  a
+                ( (not (not $a)) $a)            ; (-(-a))  -->  a
+                ( (not (and $a $b)) (or (not $a) (not $b)) )    ; -(a AND b)  -->  (-a OR -b)
+                ( (not (or $a $b)) (and (not $a) (not $b)) )    ; -(a OR b)  -->  (-a AND -b)
                 ( $exp $exp )
         
             )
@@ -25,12 +25,13 @@
    
 )
 
-;!(reduce $x)
-;!(reduce (OR a True))
+;; !(reduce $x)
+;; !(reduce a)
+;; !(reduce (or a True))
 
 (= (reduce-expression $term)
-    (let $cond (== (get-metatype $term) Expression)
-        (if $cond
+    ;; (let $cond (== (get-metatype $term) Expression)
+        (if (== (get-metatype $term) Expression)
             (case $term
                 (
                     ; If the expression has three elements (AND / OR)
@@ -38,20 +39,21 @@
                         (let* (
                             ($exp1R (reduce $exp1))
                             ($exp2R (reduce $exp2))
-                            ($e<>eR (OR (NOT (== $exp1 $exp1R)) (NOT (== $exp2 $exp2R))))
+                            ($e<>eR (or (not (== $exp1 $exp1R)) (not (== $exp2 $exp2R))))
                             )
-                            (if $e<>eR
-                                (reduce ($op (reduce-expression $exp1) (reduce-expression $exp2)))
+                            (if $e<>eR ;(or (not (== $exp1 (reduce $exp1))) (not (== $exp2 (reduce $exp2R))))
+                                (reduce-expression ($op (reduce-expression $exp1) (reduce-expression $exp2)))
                                 (reduce ($op $exp1 $exp2))
                             )
                         )
                       )
                     )
-                    ; If the expression has two elements (NOT)
+
+                    ; If the expression has two elements (not)
                     ;; ( ($op $exp1) (
                     ;;     (let* (
                     ;;         ($exp1R (reduce $exp1))
-                    ;;         ($e1<>e1R ((NOT (== $exp1 $exp1R))))
+                    ;;         ($e1<>e1R ((not (== $exp1 $exp1R))))
                     ;;         )
                     ;;         (if $e1<>e1R
                     ;;             (reduce ($op (reduce-expression $exp1)))
@@ -60,15 +62,21 @@
                     ;;     )
                     ;;   )
                     ;; )
+
+                    ($else $term)
                 )
             )
             ($term)
         )
-    )
+    ;; )
 )
 
+;; !(reduce-expression True)
+;; !(reduce-expression $x)
+;; !(reduce-expression a)
 
-!(reduce-expression (OR a (OR b (OR c (OR d True)))))
-!(reduce-expression (OR a  True))
-!(reduce-expression (OR a (OR b True)))
-!(reduce-expression (OR a (AND b (AND c (AND d False)))))
+
+!(reduce-expression (or a  True))
+;; !(reduce-expression (or a (or b True)))
+;; !(reduce-expression (or a (or b (or c (or d True)))))
+;; !(reduce-expression (or a (and b (and c (and d False)))))
