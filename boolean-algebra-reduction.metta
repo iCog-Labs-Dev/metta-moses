@@ -20,7 +20,7 @@
         
             )
         )
-        ($exp)
+        $exp
     )
    
 )
@@ -39,34 +39,23 @@
                         (let* (
                             ($exp1R (reduce $exp1))
                             ($exp2R (reduce $exp2))
-                            ($e<>eR (or (not (== $exp1 $exp1R)) (not (== $exp2 $exp2R))))
+                            ($e1<>e1R (not (== $exp1 $exp1R)))
+                            ($e2<>e2R (not (== $exp2 $exp2R)))
                             )
-                            (if $e<>eR ;(or (not (== $exp1 (reduce $exp1))) (not (== $exp2 (reduce $exp2R))))
-                                (reduce-expression ($op (reduce-expression $exp1) (reduce-expression $exp2)))
-                                (reduce ($op $exp1 $exp2))
+                            (if $e1<>e1R ;(or (not (== $exp1 (reduce $exp1))) (not (== $exp2 (reduce $exp2R))))
+                                (reduce-expression ($op (reduce-expression $exp1) $exp2))
+                                (if $e2<>e2R
+                                    (reduce-expression ($op $exp1 (reduce-expression $exp2)))
+                                    (reduce ($op $exp1 $exp2))
+                                )
                             )
                         )
                       )
                     )
-
-                    ; If the expression has two elements (not)
-                    ;; ( ($op $exp1) (
-                    ;;     (let* (
-                    ;;         ($exp1R (reduce $exp1))
-                    ;;         ($e1<>e1R ((not (== $exp1 $exp1R))))
-                    ;;         )
-                    ;;         (if $e1<>e1R
-                    ;;             (reduce ($op (reduce-expression $exp1)))
-                    ;;             (reduce ($op $exp1))
-                    ;;         )
-                    ;;     )
-                    ;;   )
-                    ;; )
-
                     ($else $term)
                 )
             )
-            ($term)
+            $term
         )
     ;; )
 )
@@ -76,7 +65,11 @@
 ;; !(reduce-expression a)
 
 
-!(reduce-expression (or a  True))
-;; !(reduce-expression (or a (or b True)))
+;; !(reduce-expression (or a  True))
+!(reduce-expression (or a (or b True)))
 ;; !(reduce-expression (or a (or b (or c (or d True)))))
 ;; !(reduce-expression (or a (and b (and c (and d False)))))
+
+;; [((((let* (($exp1R#10536 (reduce ((or (b) (True))))) ($exp2R#10537 (reduce NoValidAlternatives)) ($e1<>e1R#10538 (not (== ((or (b) (True))) $exp1R#10536))) ($e2<>e2R#10539 (not (== NoValidAlternatives $exp2R#10537)))) (if $e1<>e1R#10538 (reduce-expression (Error (reduce-expression ((or (b) (True)))) NoValidAlternatives)) (if $e2<>e2R#10539 (reduce-expression (Error ((or (b) (True))) (reduce-expression NoValidAlternatives))) (reduce (Error ((or (b) (True))) NoValidAlternatives))))))))]
+
+
