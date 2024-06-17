@@ -135,10 +135,10 @@
     ;; )
 )
 
-!(simplify (AND a True))
-!(simplify (AND a b))
-!(simplify (AND a (AND a c)))
-!(simplify (AND a (AND b False)))
+;; !(simplify (AND a True))
+;; !(simplify (AND a b))
+;; !(simplify (AND a (AND a c)))
+;; !(simplify (AND a (AND b False)))
 ;; !(simplify (AND a (AND b (AND a (AND a (AND a True))))))
 ;; !(simplify (AND a (AND b (AND a (AND a (AND a False))))))
 ;; !(simplify (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A))))))))
@@ -147,13 +147,16 @@
 ;; !(simplify (OR (AND a b) (AND a b)))
 ;; !(simplify (OR a (OR b (OR c (OR d True)))))
 ;; !(simplify (OR a (AND b (AND c (AND d False)))))
-!(simplify (OR (AND a b) (OR a True)))
+;; !(simplify (OR (AND a b) (OR a True)))
 
 ;; !(simplify (NOT a))
 ;; !(simplify (NOT (NOT a)))
 ;; !(simplify (NOT (AND a b)))     ;???
-!(simplify (NOT (OR a b)))
+;; !(simplify (NOT (OR a b)))
 ;; !(simplify (NOT (NOT (AND A B))))
 
 
-!(simplify (OR (OR (NOT A) (AND A (AND B C))) (AND A (AND (NOT B) C))))
+;; !(simplify (OR (OR (NOT A) (AND A (AND B C))) (AND B (AND (NOT B) C))))  ; Associativity drawback
+;; !(simplify (OR (OR (NOT A) (AND A (AND B C))) (AND A (AND (NOT B) B))))
+
+(!simplify (AND (OR (NOT A) C) (OR (AND (NOT A) B) (NOT C))))
