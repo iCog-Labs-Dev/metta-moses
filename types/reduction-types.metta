@@ -1,0 +1,3 @@
+(:ReductTree Atom)
+(:ReductNode Atom)
+
