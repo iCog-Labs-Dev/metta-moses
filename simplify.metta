@@ -23,6 +23,8 @@
                     ((AND $EXPR1 $EXPR2) (simplify-and-expr $EXPR))
                     ((OR $EXPR1 $EXPR2) (simplify-or-expr $EXPR))
                     ((NOT $EXPR1) (simplify-not-expr $EXPR))
+                    ((XOR $EXPR1 $EXPR2) (simplify-xor-expr $EXPR))
+                    ; (... add more operations)
                     ($else (Error "Invalid boolean expression"))
                 )
             )
@@ -31,6 +33,8 @@
         )
     ;; )
 )
+
+; #################################################################################################
 
 (= (simplify-and-expr $EXPR)
     (let $cond (== (get-metatype $EXPR) Expression)
@@ -108,6 +112,20 @@
     )
 )
 
+(= (simplify-xor-expr $EXPR)
+    (case $EXPR
+        (
+            ( (XOR $a $a) False)             ; (a XOR a)  -->  False
+            ( (XOR $a $b) True)            ; (a XOR b)  -->  True
+            ( $else (Error "Invalid OR expression"))   ;(simplify-operand $EXPR)
+        )
+    )
+)
+
+; (... add more reduction functions)
+
+; #################################################################################################
+
 (= (simplify-operand $SUB_EXP)
     ;; (let $cond (== (get-metatype $SUB_EXP) Expression)
     ;; (if $cond
@@ -151,12 +169,14 @@
 
 ;; !(simplify (NOT a))
 ;; !(simplify (NOT (NOT a)))
-;; !(simplify (NOT (AND a b)))     ;???
+;; !(simplify (NOT (AND a b)))
 ;; !(simplify (NOT (OR a b)))
 ;; !(simplify (NOT (NOT (AND A B))))
 
+;; !(simplify (XOR (OR (NOT A) C) (OR (AND (NOT A) B) (NOT C))))
+!(simplify (XOR a (AND a a)))
 
-;; !(simplify (OR (OR (NOT A) (AND A (AND B C))) (AND B (AND (NOT B) C))))  ; Associativity drawback
-;; !(simplify (OR (OR (NOT A) (AND A (AND B C))) (AND A (AND (NOT B) B))))
+;; ; Associativity drawback
+;; !(simplify (OR (OR (NOT A) (AND A (AND B C))) (AND B (AND C (NOT B)))))
+;; !(simplify (OR (OR (NOT A) (AND A (AND B C))) (AND C (AND B (NOT B)))))
 
-(!simplify (AND (OR (NOT A) C) (OR (AND (NOT A) B) (NOT C))))
