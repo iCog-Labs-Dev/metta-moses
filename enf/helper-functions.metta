@@ -50,21 +50,20 @@
 ; Function to compare two Atoms (less than or equal to)
 ;; (: atom-lte (-> Atom Atom Bool))
 (= (atom-lte $a $b)
-    (let* (
-            ($type-a (get-metatype $a))
-            ($type-b (get-metatype $b))
-        )
-        (
+    (let* ( ($type-a (get-metatype $a))
+            ($type-b (get-metatype $b)))
+        ((if (== $type-a $type-b)
+            True
             (if (== $type-a Grounded)
                 True
                 (if (and (== $type-a Symbol) (== $type-b Expression))
                     True
                     False ;; add other conditions
-                )
-            )
-        )
+                ))
+        ))
     )
 )
+
 
 ; Function to append two lists
 (: append (-> List List List))
@@ -92,3 +91,6 @@
 )
 ;; !(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
 
+
+
+; get-guard-set / dominant-set / branch-set
