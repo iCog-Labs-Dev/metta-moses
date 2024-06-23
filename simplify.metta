@@ -116,8 +116,13 @@
     (case $EXPR
         (
             ( (XOR $a $a) False)             ; (a XOR a)  -->  False
-            ( (XOR $a $b) True)            ; (a XOR b)  -->  True
-            ( $else (Error "Invalid OR expression"))   ;(simplify-operand $EXPR)
+            ;; ( (XOR $a $b) True)            ; (a XOR b)  -->  True
+            ( (XOR $a $b) 
+                (if (and (== (get-metatype $a) Symbol) (== (get-metatype $b) Symbol))
+                    True
+                    (simplify-operand $EXPR)
+            ))
+            ( $else (Error "Invalid XOR expression"))   ;(simplify-operand $EXPR)
         )
     )
 )
