@@ -48,8 +48,8 @@
 ;; ! (remove-duplicates (Cons A (Cons B (Cons B Nil))))
 
 ; Function to compare two Atoms (less than or equal to)
-;; (: atom-lte (-> Atom Atom Bool))
-(= (atom-lte $a $b)
+;; (: lte (-> Atom Atom Bool))
+(= (lte $a $b)
     (let* ( ($type-a (get-metatype $a))
             ($type-b (get-metatype $b)))
         ((if (== $type-a $type-b)
@@ -75,7 +75,8 @@
 (= (partition $_ Nil) ( Nil Nil ))
 (= (partition $pivot (Cons $x $xs))
     (let ($left $right) (partition $pivot $xs)
-        (if (<= $x $pivot)
+        ;; (if (<= $x $pivot)
+        (if (lte $x $pivot)
             ((Cons $x $left) $right)
             ($left (Cons $x $right))
         )
@@ -90,7 +91,7 @@
     )
 )
 ;; !(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
-
+;!(quickSort (Cons A (Cons True (Cons (A) Nil))))
 
 
 ; get-guard-set / dominant-set / branch-set
