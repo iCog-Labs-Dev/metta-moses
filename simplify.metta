@@ -118,7 +118,8 @@
             ( (XOR $a $a) False)             ; (a XOR a)  -->  False
             ;; ( (XOR $a $b) True)            ; (a XOR b)  -->  True
             ( (XOR $a $b) 
-                (if (and (== (get-metatype $a) Symbol) (== (get-metatype $b) Symbol))
+                (if (or (and (== (get-metatype $a) Symbol) (== (get-metatype $b) Symbol))
+                        (and (== (get-metatype $a) Grounded) (== (get-metatype $b) Grounded)))
                     True
                     (simplify-operand $EXPR)
             ))
@@ -178,8 +179,11 @@
 ;; !(simplify (NOT (OR a b)))
 ;; !(simplify (NOT (NOT (AND A B))))
 
-;; !(simplify (XOR (OR (NOT A) C) (OR (AND (NOT A) B) (NOT C))))
+!(simplify (XOR (OR (NOT A) C) (OR (AND (NOT A) B) (NOT C))))
+!(simplify (XOR (OR (NOT A) A) (OR (AND (NOT A) B) True)))
 !(simplify (XOR a (AND a a)))
+!(simplify (XOR True False))
+!(simplify (XOR True True))
 
 ;; ; Associativity drawback
 ;; !(simplify (OR (OR (NOT A) (AND A (AND B C))) (AND B (AND C (NOT B)))))
