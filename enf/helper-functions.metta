@@ -56,9 +56,12 @@
             True
             (if (== $type-a Grounded)
                 True
-                (if (and (== $type-a Symbol) (== $type-b Expression))
+                (if (and (== $type-a Symbol) (or (== $type-b Expression) (== $type-b Variable)))
                     True
-                    False ;; add other conditions
+                    (if (and (== $type-a Expression) (== $type-b Variable))
+                        True
+                        False ;; add other conditions
+                    )
                 ))
         ))
     )
@@ -71,14 +74,20 @@
 (= (append (Cons $x $xs) $ys) (Cons $x (append $xs $ys)))
 
 ; Function to partition the list
-(: partition (-> Symbol List ( List List )))
+(: partition (-> Atom List ( List List )))
 (= (partition $_ Nil) ( Nil Nil ))
 (= (partition $pivot (Cons $x $xs))
     (let ($left $right) (partition $pivot $xs)
         ;; (if (<= $x $pivot)
-        (if (lte $x $pivot)
+        (let* ( ($cond  (<= $x $pivot))
+        ;; (let* ( ($cond (lte $x $pivot))
+                (() (println! ($x "<=" $pivot "=" $cond)))
+                (() (println! ($left "---" $right)))
+            )
+        (if $cond ;(lte $x $pivot)
             ((Cons $x $left) $right)
             ($left (Cons $x $right))
+        )
         )
     )
 )
@@ -91,7 +100,65 @@
     )
 )
 ;; !(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
-;!(quickSort (Cons A (Cons True (Cons (A) Nil))))
-
+;; !(quickSort (Cons "False" (Cons "A" (Cons "True" (Cons "B" Nil)))))
+;; !(quickSort (Cons A (Cons True Nil)))
+;; !(quickSort (Cons A (Cons B Nil)))
+;; !(lte (a) $b)
 
 ; get-guard-set / dominant-set / branch-set
+
+;; (= (compare $a $b) (lte $a $b))
+;; !(compare (True) A)
+
+; Function to split a list into two halves
+;; split :: [a] -> ([a], [a])
+(: split (-> List (List List)))
+;; split [] = ([], [])
+(= (split Nil) (Nil Nil))
+;; split [x] = ([x], [])
+(= (split (Cons $x Nil)) ((Cons $x Nil) Nil))
+;; split (x:y:xs) = 
+;;     let (left, right) = split xs
+;;     in (x:left, y:right)
+(= (split (Cons $x (Cons $y $xs)))
+    (let ($left $right) (split $xs)
+        ((Cons $x $left) (Cons $y $right))
+    )
+)
+
+; Function to merge two sorted lists into one sorted list
+;; merge :: (Ord a) => [a] -> [a] -> [a]
+(: merge (-> List List List))
+;; merge [] ys = ys
+(= (merge Nil $ys) $ys)
+;; merge xs [] = xs
+(= (merge $xs Nil) $xs)
+;; merge (x:xs) (y:ys)
+;;     | x <= y    = x : merge xs (y:ys)
+;;     | otherwise = y : merge (x:xs) ys
+(= (merge (Cons $x $xs) (Cons $y $ys))
+    (if (<= $x $y)
+        (Cons $x (merge $xs (Cons $y $ys)))
+        (Cons $y (merge (Cons $x $xs) $ys))
+    )
+)
+
+; MergeSort implementation
+;; mergeSort :: (Ord a) => [a] -> [a]
+(: mergeSort (-> List List))
+;; mergeSort [] = []
+(= (mergeSort Nil) Nil)
+;; mergeSort [x] = [x]
+(= (mergeSort (Cons $x Nil)) (Cons $x Nil))
+;; mergeSort xs = 
+;;     let (left, right) = split xs
+;;     in merge (mergeSort left) (mergeSort right)
+(= (mergeSort $xs)
+    (let ($left $right) (split $xs)
+        (merge (mergeSort $left) (mergeSort $right))
+    )
+)
+
+;; main = print $ mergeSort [3, 6, 2, 7, 1, 5, 4]
+!(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
+!(quickSort (Cons 3 (Cons 6 (Cons 2 (Cons 7 (Cons 1 (Cons 5 (Cons 4 Nil))))))))
