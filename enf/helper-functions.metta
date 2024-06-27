@@ -52,7 +52,7 @@
 (= (lte $a $b)
     (let* ( ($type-a (get-metatype $a))
             ($type-b (get-metatype $b)))
-        ((if (== $type-a $type-b)
+        (if (== $type-a $type-b)
             True
             (if (== $type-a Grounded)
                 True
@@ -63,7 +63,7 @@
                         False ;; add other conditions
                     )
                 ))
-        ))
+        )
     )
 )
 
@@ -79,8 +79,8 @@
 (= (partition $pivot (Cons $x $xs))
     (let ($left $right) (partition $pivot $xs)
         ;; (if (<= $x $pivot)
-        (let* ( ($cond  (<= $x $pivot))
-        ;; (let* ( ($cond (lte $x $pivot))
+        ;; (let* ( ($cond  (<= $x $pivot))
+        (let* ( ($cond (lte $x $pivot))
                 (() (println! ($x "<=" $pivot "=" $cond)))
                 (() (println! ($left "---" $right)))
             )
@@ -106,6 +106,9 @@
 ;; !(lte (a) $b)
 
 ; get-guard-set / dominant-set / branch-set
+
+
+; #####################################################################################################################
 
 ;; (= (compare $a $b) (lte $a $b))
 ;; !(compare (True) A)
@@ -160,5 +163,5 @@
 )
 
 ;; main = print $ mergeSort [3, 6, 2, 7, 1, 5, 4]
-!(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
-!(quickSort (Cons 3 (Cons 6 (Cons 2 (Cons 7 (Cons 1 (Cons 5 (Cons 4 Nil))))))))
+;; !(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
+;; !(quickSort (Cons 3 (Cons 6 (Cons 2 (Cons 7 (Cons 1 (Cons 5 (Cons 4 Nil))))))))
