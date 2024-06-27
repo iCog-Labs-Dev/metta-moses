@@ -7,6 +7,10 @@
     a
 )
 !(assertEqual
+    (simplify (AND True a))
+    a
+)
+!(assertEqual
     (simplify (AND a b))
     (AND a b)
 )
@@ -20,7 +24,7 @@
 )
 !(assertEqual
     (simplify (AND a (AND b (AND a (AND a (AND a True))))))
-    (AND a b)
+    (AND b a)
 )
 !(assertEqual
     (simplify (AND a (AND b (AND a (AND a (AND a False))))))
@@ -32,26 +36,26 @@
 )
 
 ; ################################################## OR
-;; !(assertEqual
-;;     (simplify (OR a b))
-;;     (OR a b)
-;; )
-;; !(assertEqual
-;;     (simplify (OR (AND a b) (AND a b)))
-;;     (AND a b)
-;; )
-;; !(assertEqual
-;;     (simplify (OR a (OR b (OR c (OR d True)))))
-;;     True
-;; )
-;; !(assertEqual
-;;     (simplify (OR a (AND b (AND c (AND d False)))))
-;;     a
-;; )
-;; !(assertEqual
-;;     (simplify (OR (AND a b) (OR a True)))
-;;     True
-;; )
+!(assertEqual
+    (simplify (OR a b))
+    (OR a b)
+)
+!(assertEqual
+    (simplify (OR (AND a b) (AND a b)))
+    (AND a b)
+)
+!(assertEqual
+    (simplify (OR a (OR b (OR c (OR d True)))))
+    True
+)
+!(assertEqual
+    (simplify (OR a (AND b (AND c (AND d False)))))
+    a
+)
+!(assertEqual
+    (simplify (OR (AND a b) (OR a True)))
+    True
+)
 
 ; ################################################## NOT
 ;; !(assertEqual
@@ -97,7 +101,14 @@
 ;;     False
 ;; )
 
-;; ; Associativity drawback
-;; !(simplify (OR (OR (NOT A) (AND A (AND B C))) (AND B (AND C (NOT B)))))
-;; !(simplify (OR (OR (NOT A) (AND A (AND B C))) (AND C (AND B (NOT B)))))
+;; ; Associativity example
+
+!(assertEqual
+    (simplify (OR (OR (NOT A) (AND A (AND B C))) (AND B (AND C (NOT B)))))
+    (OR (NOT A) (AND A (AND B C)))
+)
+!(assertEqual
+    (simplify (OR (OR (NOT A) (AND A (AND B C))) (AND C (AND B (NOT B)))))
+    (OR (NOT A) (AND A (AND B C)))
+)
 
