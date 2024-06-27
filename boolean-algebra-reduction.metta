@@ -19,10 +19,16 @@
             ( (NOT (AND $a $b)) (OR (NOT $a) (NOT $b)) )    ; -(a AND b)  -->  (-a OR -b)
             ( (NOT (OR $a $b)) (AND (NOT $a) (NOT $b)) )    ; -(a OR b)  -->  (-a AND -b)
     
+
         )
+        $exp
     )
+   
 )
 
+;; !(reduce $x)
+;; !(reduce a)
+;; !(reduce (or a True))
 
 (= (reduce-expression $exp)
     $exp
@@ -33,3 +39,4 @@
 (= (reduce-expression ($op $exp1 $exp2)) 
     (reduce ($op (reduce-expression $exp1) (reduce-expression $exp2))
 ))
+
