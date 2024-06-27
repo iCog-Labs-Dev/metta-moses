@@ -1,59 +1,12 @@
 ;; !(import! &self type-defs)
 
-(: length (-> List Number))
-(= (length Nil) 0)
-(= (length (Cons $x $xs))
-    (+ 1 (length $xs))
-)
-;; ! (length (Cons A (Cons B (Cons C Nil))))
-
-(: index (-> Number List $a))
-(= (index $a Nil) Nil)
-;(= (index 0 (Cons $x $xs)) $x)
-(= (index $a (Cons $x $xs))
-    (if (== $a 0) 
-        $x
-        (index (- $a 1) $xs)
-    )
-)
-;; ! (index 2 (Cons A (Cons B (Cons C Nil))))
-
-;; (: map (-> Atom List List))
-;; (= (map $func Nil) Nil)
-;; (= (map $func (Cons $x $xs))
-;;     (Cons ($func $x) (map $func $xs))
-;; )
-;; ! (map (+ 1) (Cons 1 (Cons 2 (Cons 3 Nil))))
-
-;; (: member (-> $a List Bool))
-;; (= (member $a Nil) False)
-;; (= (member $a (Cons $x $xs))
-;;     (if (== $a $x)
-;;         True
-;;         (member $a $xs)
-;;     )
-;; )
-;; ! (member B (Cons A (Cons B (Cons C Nil))))
-
-(: remove-duplicates (-> List List))
-(= (remove-duplicates Nil) Nil)
-(= (remove-duplicates (Cons $x $xs))
-  (if (member $x $xs)
-    (remove-duplicates $xs)
-    (Cons $x (remove-duplicates $xs))
-  )
-)
-;; ! (remove-duplicates (Cons A (Cons B (Cons B Nil))))
-
-
-
 ; Function to compare two Atoms (less than or equal to)
 ;; (: lte (-> Atom Atom Bool))
 (= (lte $a $b)
     (let* ( ($type-a (get-metatype $a))
             ($type-b (get-metatype $b)))
-        (if (== $type-a $type-b)
-            True
+        ;; (if (== $type-a $type-b)
+        ;;     True
             (if (== $type-a Grounded)
                 True
                 (if (and (== $type-a Symbol) (or (== $type-b Expression) (== $type-b Variable)))
@@ -63,7 +16,7 @@
                         False ;; add other conditions
                     )
                 ))
-        )
+        ;; )
     )
 )
 
@@ -73,6 +26,9 @@
         ($OP $b $a)
     )
 )
+
+(sort (AND a b))
+(sort (AND b a))
 
 (= (member $op $expr $EXPR)
     (if (== (get-metatype $EXPR) Expression)
