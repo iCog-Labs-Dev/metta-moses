@@ -1,4 +1,4 @@
-!(import! &self helper-functions)
+!(import! &self ../utilities/helper-functions.metta)
 (: List type)
 (: Nil List)
 (: Cons (-> $a List List))
@@ -168,4 +168,4 @@
 
 ;; !(get-guard-set (AND (OR x3 x4) (NOT x2)) Nil)
 ;; !(remove-duplicates (get-guard-set (AND (OR x3 x4) (NOT x2)) Nil))
-!(get-metatype (1 2 3 4 5))
+
