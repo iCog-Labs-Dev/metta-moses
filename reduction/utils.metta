@@ -42,7 +42,7 @@
     )
 )
 
-(= (reduce-and (AND $a $b))
+(= (flatten-and (AND $a $b))
     (if (member AND $a $b)
         $b
         (if (member OR $a $b)
@@ -55,7 +55,7 @@
     )
 )
 
-(= (reduce-or (OR $a $b))
+(= (flatten-or (OR $a $b))
     (if (member OR $a $b)
         $b
         (if (member AND $a $b)
@@ -68,10 +68,10 @@
     )
 )
 
-;; !(reduce-and (AND B (AND C B)))
-;; !(reduce-and (AND B (AND C (AND E B))))
-;; !(reduce-and (AND B (AND C (NOT B))))
-;; !(reduce-and (AND B (AND C (AND E (NOT B)))))
+;; !(flatten-and (AND B (AND C B)))
+;; !(flatten-and (AND B (AND C (AND E B))))
+;; !(flatten-and (AND B (AND C (NOT B))))
+;; !(flatten-and (AND B (AND C (AND E (NOT B)))))
 
 ;; !(member AND A A)
 ;; !(member AND A (AND A B))
