@@ -1,6 +1,6 @@
 ; Original lisp version: https://web.cecs.pdx.edu/~mperkows/class478-2005/tsewen-midterm.pdf
 ;; !(import! &self type-defs)
-!(import! &self utils.metta)
+!(import! &self utils)
 
 (= (simplify $EXPR)
     (simplify-expr empty $EXPR)
@@ -39,70 +39,60 @@
 ; #################################################################################################
 
 (= (simplify-and-expr $EXPR)
-    (let $cond (== (get-metatype $EXPR) Expression)
-        (if $cond
-            (case (sort $EXPR)
-                (
-                    ;; ( (AND $a False) False)                 ; (a and False)  -->  False
-                    ( (AND False $a) False)
-                    ;; ( (AND $a True) $a)                     ; (a and True)  -->  a
-                    ( (AND True $a) $a)
-                    ( (AND $a $a) $a)                       ; (a and a)  -->  a
-                    ( (AND $a (NOT $a)) False)              ; (a and -a)  -->  False
-                    ;; ( (AND (NOT $a) $a) False)
-                    ( (AND $a (AND $a $b)) (AND $a $b))     ; (a and (a and b))  -->  (a and b)
-                    ( (AND $a (AND $b $a)) (AND $a $b))
-                    ;; ( (AND (AND $a $b) $a) (AND $b $a))
-                    ;; ( (AND (AND $b $a) $a) (AND $b $a))
-                    ( (AND $a (OR $a $b)) $a)               ; a and (a or b)  -->  a
-                    ( (AND $a (OR $b $a)) $a)
-                    ;; ( (AND (OR $a $b) $a) $a)
-                    ;; ( (AND (OR $b $a) $a) $a)
-                    ( (AND $a $b) (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
-                                    (let $_EXPR (reduce-and $EXPR)
-                                        (if (== (get-metatype $_EXPR) Expression)
-                                            (simplify-operand $_EXPR)
-                                            $_EXPR
-                                        )
+    (let $_EXPR (sort $EXPR) ;$cond (== (get-metatype $EXPR) Expression)
+        ;; (if $cond
+        (case $_EXPR
+            (
+                ( (AND False $a) False)                 ; (a and False)  -->  False             (annulment/identity law)
+                ( (AND True $a) $a)                     ; (a and True)  -->  a                  (identity law)
+                ( (AND $a (NOT $a)) False)              ; (a and -a)  -->  False                (complement law)
+                ( (AND $a $a) $a)                       ; (a and a)  -->  a                     (idempotent law)
+                ( (AND $a (AND $a $b)) (AND $a $b))     ; (a and (a and b))  -->  (a and b)     (idempotent law)
+                ( (AND $a (AND $b $a)) (AND $a $b))
+                ( (AND $a (OR $a $b)) $a)               ; a and (a or b)  -->  a                (absorption law)
+                ( (AND $a (OR $b $a)) $a)
+                ;; ( (AND $a (OR $b $c)))
+                ( (AND $a $b) (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
+                                (let $_EXPR_ (flatten-and $_EXPR)
+                                    (if (== (get-metatype $_EXPR_) Expression)
+                                        (simplify-operand $_EXPR_)
+                                        $_EXPR_
                                     )
-                                    $EXPR
-                                ))
-                    ( $else (Error "Invalid AND expression")) ;(simplify-operand $EXPR)
-                )
+                                )
+                                $_EXPR
+                            ))
+                ( $else (Error "Invalid AND expression")) ;(simplify-operand $EXPR)
             )
-            $EXPR
         )
+            ;; $_EXPR
+        ;; )
     )
 )
 
 (= (simplify-or-expr $EXPR)
-    (case (sort $EXPR)
-        (
-            ;; ( (OR $a True) True)                ; (a OR True)  -->  True
-            ( (OR True $a) True)
-            ;; ( (OR $a False) $a)                 ; (a OR False)  -->  a
-            ( (OR False $a) $a)
-            ( (OR $a $a) $a)                    ; (a OR a)  -->  a
-            ( (OR $a (NOT $a)) True)            ; (a OR -a)  -->  True
-            ;; ( (OR (NOT $a) $a) True)
-            ( (OR $a (OR $a $b)) (OR $a $b))    ; (a OR (a OR b))  -->  (a OR b)
-            ( (OR $a (OR $b $a)) (OR $a $b))
-            ;; ( (OR (OR $a $b) $a) (OR $a $b))
-            ;; ( (OR (OR $b $a) $a) (OR $a $b))
-            ( (OR $a (AND $a $b)) $a)           ; a OR (a AND b)  -->  a
-            ( (OR $a (AND $b $a)) $a)
-            ;; ( (OR (AND $a $b) $a) $a)
-            ;; ( (OR (AND $b $a) $a) $a)
-            ( (OR $a $b) (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
-                            (let $_EXPR (reduce-or $EXPR)
-                                (if (== (get-metatype $_EXPR) Expression)
-                                    (simplify-operand $_EXPR)
-                                    $_EXPR
+    (let $_EXPR (sort $EXPR)
+        (case $_EXPR
+            (
+                ( (OR True $a) True)                ; (a OR True)  -->  True
+                ( (OR False $a) $a)                 ; (a OR False)  -->  a
+                ( (OR $a $a) $a)                    ; (a OR a)  -->  a
+                ( (OR $a (NOT $a)) True)            ; (a OR -a)  -->  True
+                ( (OR $a (OR $a $b)) (OR $a $b))    ; (a OR (a OR b))  -->  (a OR b)
+                ( (OR $a (OR $b $a)) (OR $a $b))
+                ( (OR $a (AND $a $b)) $a)           ; a OR (a AND b)  -->  a
+                ( (OR $a (AND $b $a)) $a)
+                
+                ( (OR $a $b) (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
+                                (let $_EXPR_ (flatten-or $_EXPR)
+                                    (if (== (get-metatype $_EXPR_) Expression)
+                                        (simplify-operand $_EXPR_)
+                                        $_EXPR_
+                                    )
                                 )
-                            )
-                            $EXPR
-                        ))
-            ( $else (Error "Invalid OR expression"))   ;(simplify-operand $EXPR)
+                                $_EXPR
+                            ))
+                ( $else (Error "Invalid OR expression"))   ;(simplify-operand $EXPR)
+            )
         )
     )
 )
@@ -140,7 +130,7 @@
     )
 )
 
-; (... add more reduction functions)
+; (... add more reduction functions) (NAND | NOT | XNOR | IMP | BI-IMP)
 
 ; #################################################################################################
 
