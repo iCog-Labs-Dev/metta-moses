@@ -162,6 +162,7 @@
     )
 )
 
+
 ;; main = print $ mergeSort [3, 6, 2, 7, 1, 5, 4]
 ;; !(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
 ;; !(quickSort (Cons 3 (Cons 6 (Cons 2 (Cons 7 (Cons 1 (Cons 5 (Cons 4 Nil))))))))
