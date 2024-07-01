@@ -1,5 +1,5 @@
 !(register-module! ../metta-moses-reduction)
-!(import! &self  boolean-algebra-rules.metta)
+!(import! &self  metta-moses-reduction:examples:boolean-algebra-rules)
 (= (reduce $exp)
     (case $exp
         (
