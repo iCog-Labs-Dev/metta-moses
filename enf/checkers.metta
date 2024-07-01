@@ -2,7 +2,7 @@
 !(import! &self metta-moses-reduction:utilities:helper-functions)
 !(import! &self metta-moses-reduction:reduction:utils)
 
-(: get-guard-set (-> Expression List List))
+;; (: get-guard-set (-> Expression List List))
 (= (get-guard-set $exp $guard-set)(
     (case $exp (
         
@@ -24,7 +24,7 @@
         
     ))
 ))
-(: get-children (-> Expression List List))
+;; (: get-children (-> Expression List List))
 (=(get-children $exp $guard-set)(
     (if (==(get-metatype $exp) Symbol)
         Nil
