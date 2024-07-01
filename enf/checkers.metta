@@ -2,7 +2,7 @@
 !(import! &self metta-moses-reduction:utilities:helper-functions)
 !(import! &self metta-moses-reduction:reduction:utils)
 
-;; (: get-guard-set (-> Expression List List))
+
 (= (get-guard-set $exp $guard-set)(
     (case $exp (
         
@@ -24,11 +24,11 @@
         
     ))
 ))
-;; (: get-children (-> Expression List List))
-(=(get-children $exp $guard-set)(
+
+(= (get-children $exp $guard-set)(
     (if (==(get-metatype $exp) Symbol)
         Nil
-    
+    (if (==(get-metatype $exp) Expression)
         (case $exp(
             (($op $exp1 $exp2)(
                 (if (and (==(get-metatype $exp1) Symbol) (==(get-metatype $exp2) Symbol))
@@ -46,13 +46,21 @@
 
                 )
             ))
+
         ))
+    )
     
     )
 ))
 
+(= (get-branchset $exp1 ) $exp1
+    ;; (if (== (get-metatype $exp1) Symbol)
+    ;;     $exp1
+    ;; )
+)
 
 
 
+!(get-branchset x1)
 !(get-guard-set (AND (OR x1 x2) x3) Nil)
 !(get-children (AND (OR x1 x2) x3) Nil)
