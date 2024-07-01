@@ -1,6 +1,7 @@
-(: List type)
-(: Nil List)
-(: Cons (-> $a List List))
+!(import! &self type-defs)
+;; (: List type)
+;; (: Nil List)
+;; (: Cons (-> $a List List))
 
 (: length (-> List Number))
 (= (length Nil) 0)
