@@ -6,7 +6,7 @@
 (= (get-guard-set $exp $guard-set)(
     (case $exp (
         
-            ($OP $exp1 $exp2)
+            (($OP $exp1 $exp2)
                 ((if (and (== (get-metatype $exp1) Expression) (== (get-metatype $exp2) Expression)) 
                     Nil
                     (if (and (== (get-metatype $exp1) Symbol) (== (get-metatype $exp2) Symbol))
@@ -19,38 +19,35 @@
                         )
                     )
                 ))
+            )
 
         
     ))
 ))
 (: get-children (-> Expression List List))
 (=(get-children $exp $guard-set)(
-    (if (==(get-metatype $exp) Symbol)(
+    (if (==(get-metatype $exp) Symbol)
         Nil
-    )(
+    
         (case $exp(
             (($op $exp1 $exp2)(
-                (if (and (==(get-metatype $exp1) Symbol) (==(get-metatype $exp2) Symbol))(
+                (if (and (==(get-metatype $exp1) Symbol) (==(get-metatype $exp2) Symbol))
                     (append (Cons $exp1 $exp2) $guard-set)
+        
+                    (if (and (==(get-metatype $exp1) Symbol) (==(get-metatype $exp2) Expression))
+                        
+                        (append (Cons $exp1 (get-children $exp2 $guard-set)))
                     
-
-                )
-                (if (and (==(get-metatype $exp1) Symbol) (==(get-metatype $exp2) Expression))(
-                    ;; (append $guard-set $exp1)
-                    ;; (append $guard-set (get-children $exp2 $guard-set))
-                    (append (Cons $exp1 (get-children $exp2 $guard-set)))
-                )
-                (if (and (==(get-metatype $exp1) Expression) (==(get-metatype $exp2) Symbol))(
-                    ;; (append $guard-set (get-children $exp1 $guard-set))
-                    ;; (append $guard-set $exp2)
-                    (append (Cons (get-children $exp1 $guard-set) $exp2))
-                ))
-                )
+                    (if (and (==(get-metatype $exp1) Expression) (==(get-metatype $exp2) Symbol))
+                        
+                        (append (Cons (get-children $exp1 $guard-set) $exp2))
+                    )
+                    )
 
                 )
             ))
         ))
-    )
+    
     )
 ))
 
