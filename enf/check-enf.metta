@@ -1,4 +1,5 @@
-!(import! &self ../utilities/helper-functions.metta)
+!(register-module! ../../metta-moses-reduction)
+!(import! &self metta-moses-reduction:utilities:helper-functions)
 (: List type)
 (: Nil List)
 (: Cons (-> $a List List))

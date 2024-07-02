@@ -1,12 +1,10 @@
-!(register-module! ../metta-moses-reduction)
+!(register-module! ../../metta-moses-reduction)
 !(import! &self  metta-moses-reduction:examples:boolean-algebra-rules)
 (= (reduce $exp)
     (case $exp
         (
-            ;(annulment $exp)
             ( (OR $a True) True)            ; (a OR True)  -->  True
             ( (AND $a False) False)         ; (a AND False)  -->  False
-            ;(identity $exp)
             ( (OR $a False) $a)             ; (a OR False)  -->  a
             ( (AND $a True) $a)             ; (a AND True)  -->  a
             ( (OR $a $a) $a)                ; (a OR a)  -->  a
@@ -26,9 +24,7 @@
    
 )
 
-;; !(reduce $x)
-;; !(reduce a)
-;; !(reduce (or a True))
+
 
 (= (reduce-expression $exp)
     $exp
