@@ -4,8 +4,7 @@
 
 
 (= (get-guard-set $exp $guard-set)
-    (case $exp (
-        
+        (case $exp (
             (($OP $exp1 $exp2)
                 (if (and (== (get-metatype $exp1) Expression) (== (get-metatype $exp2) Expression)) 
                     Nil
@@ -54,6 +53,7 @@
             ))
 
         ))
+        (ERROR the format is invalid)
     )
     
     )
@@ -79,6 +79,7 @@
         (
             (($OP $exp1 $exp2) False)
             (($OP $exp1) (if (== $OP NOT) True (Error "Invalid NOT expression.")) )
+            ($else (Error "Invalid"))
         )
     )
 )
@@ -87,5 +88,6 @@
 
 
 !(not-checker (NOT x))
-!(get-guard-set (AND (OR x1 x2) x3) Nil)
-!(get-children (AND (OR x1 x2) x3) Nil)
+!(not-checker (NOT x a b c))
+;; !(get-guard-set (AND (OR x1 x2) x3) Nil)
+;; !(get-children (AND (OR x1 x2) x3) Nil)
