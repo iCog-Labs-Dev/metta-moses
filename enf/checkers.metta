@@ -9,7 +9,7 @@
                 (if (and (== (get-metatype $exp1) Expression) (== (get-metatype $exp2) Expression)) 
                     Nil
                     (if (and (== (get-metatype $exp1) Symbol) (== (get-metatype $exp2) Symbol))
-                        (append (Cons $exp1 $exp2) $guard-set)
+                        (append (Cons $exp1 (Cons $exp2)) $guard-set)
                         (if (and (== (get-metatype $exp1) Symbol) (== (get-metatype $exp2) Expression))
                             $exp1
                             (if (and (== (get-metatype $exp1) Expression) (== (get-metatype $exp2) Symbol))
