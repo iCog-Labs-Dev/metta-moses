@@ -15,6 +15,7 @@
                             $exp1
                             (if (and (== (get-metatype $exp1) Expression) (== (get-metatype $exp2) Symbol))
                                 $exp2
+                                (ERROR the format is wrong)
                             )
                         )
                     )
@@ -42,10 +43,11 @@
                         
                         (append (Cons $exp1 (get-children $exp2 $guard-set)))
                     
-                    (if (and (==(get-metatype $exp1) Expression) (==(get-metatype $exp2) Symbol))
-                        
-                        (append (Cons (get-children $exp1 $guard-set) $exp2))
-                    )
+                        (if (and (==(get-metatype $exp1) Expression) (==(get-metatype $exp2) Symbol))
+                            
+                            (append (Cons (get-children $exp1 $guard-set) $exp2))
+                            (ERROR The format is wrong)
+                        )
                     )
 
                 )
@@ -67,9 +69,23 @@
 
     )
 ))
+(=(get-dominant-set $exp1 $dominant-set)(
+
+)
+)
+
+(=(not-checker $exp)
+    (case $exp
+        (
+            (($OP $exp1 $exp2) False)
+            (($OP $exp1) (if (== $OP NOT) True (Error "Invalid NOT expression.")) )
+        )
+    )
+)
 
 
 
-!(get-branchset x1)
+
+!(not-checker (NOT x))
 !(get-guard-set (AND (OR x1 x2) x3) Nil)
 !(get-children (AND (OR x1 x2) x3) Nil)
