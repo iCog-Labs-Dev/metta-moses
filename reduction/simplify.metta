@@ -1,6 +1,6 @@
 ; Original lisp version: https://web.cecs.pdx.edu/~mperkows/class478-2005/tsewen-midterm.pdf
 ;; !(import! &self type-defs)
-!(import! &self utils.metta)
+!(import! &self utils)
 
 (= (simplify $EXPR)
     (simplify-expr empty $EXPR)

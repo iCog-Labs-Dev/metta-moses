@@ -1,6 +1,6 @@
-!(register-module! ../metta-moses-reduction)
+!(register-module! ../../metta-moses-reduction)
 !(import! &self  metta-moses-reduction:examples:boolean-algebra-reduction)
-!(import! &self types/reduction-types.metta)
+;;!(import! &self types/reduction-types.metta)
 (: a ReductNode)
 (: b ReductNode)
 (: c ReductNode)

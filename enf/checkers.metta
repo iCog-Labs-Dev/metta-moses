@@ -3,11 +3,11 @@
 !(import! &self metta-moses-reduction:reduction:utils)
 
 
-(= (get-guard-set $exp $guard-set)(
+(= (get-guard-set $exp $guard-set)
     (case $exp (
         
             (($OP $exp1 $exp2)
-                ((if (and (== (get-metatype $exp1) Expression) (== (get-metatype $exp2) Expression)) 
+                (if (and (== (get-metatype $exp1) Expression) (== (get-metatype $exp2) Expression)) 
                     Nil
                     (if (and (== (get-metatype $exp1) Symbol) (== (get-metatype $exp2) Symbol))
                         (append (Cons $exp1 $exp2) $guard-set)
@@ -18,18 +18,22 @@
                             )
                         )
                     )
-                ))
+                )
             )
+            (($OP $exp)(
+                (if (== NOT $exp) (NOT $exp) ERROR)
+            ))
+            ($exp $exp)
 
         
     ))
-))
+)
 
 (= (get-children $exp $guard-set)(
     (if (==(get-metatype $exp) Symbol)
         Nil
     (if (==(get-metatype $exp) Expression)
-        (case $exp(
+        (case $exp (
             (($op $exp1 $exp2)(
                 (if (and (==(get-metatype $exp1) Symbol) (==(get-metatype $exp2) Symbol))
                     (append (Cons $exp1 $exp2) $guard-set)
@@ -53,11 +57,16 @@
     )
 ))
 
-(= (get-branchset $exp1 ) $exp1
-    ;; (if (== (get-metatype $exp1) Symbol)
-    ;;     $exp1
-    ;; )
-)
+(= (get-branchset $exp1 $branch-set)
+    (case $exp1(
+        (($OP $exp1 $exp2)
+            (if (== $OP AND)
+                (get-guard-set $exp1 $branch-set)
+            )
+        )
+
+    )
+))
 
 
 
