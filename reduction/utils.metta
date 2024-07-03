@@ -1,46 +1,28 @@
-;; !(import! &self type-defs)
+!(register-module! ../utilities)
+!(import! &self utilities:list)
+!(import! &self utilities:helper-functions)
 
-; Function to compare two Atoms (less than or equal to)
-;; (: lte (-> Atom Atom Bool))
-(= (lte $a $b)
-    (let* ( ($type-a (get-metatype $a))
-            ($type-b (get-metatype $b)))
-        ;; (if (== $type-a $type-b)
-        ;;     True
-            (if (== $type-a Grounded)
-                True
-                (if (and (== $type-a Symbol) (or (== $type-b Expression) (== $type-b Variable)))
-                    True
-                    (if (and (== $type-a Expression) (== $type-b Variable))
-                        True
-                        False ;; add other conditions
-                    )
-                ))
-        ;; )
-    )
-)
-
-(= (sort ($OP $a $b))
-    (if (lte $a $b)
-        ($OP $a $b)
-        ($OP $b $a)
-    )
-)
-
-(sort (AND a b))
-(sort (AND b a))
-
-(= (member $op $expr $EXPR)
-    (if (== (get-metatype $EXPR) Expression)
-        (case $EXPR
-            (
-                ( ($op $a $b) (or (member $op $expr $a) (member $op $expr $b)) )
-                ( $else (== $expr $EXPR) )
+(= (distrubutive $exp)
+    (case $exp
+        (
+            ( (OR $a (AND $b $c))           ; (a OR (b AND c))  -->  ((a OR b) AND (a OR c))
+                (if (== (get-metatype $a) Expression)
+                    $exp
+                    (AND (OR $a $b) (OR $a $c))
+                )
             )
+            ( (AND $a (OR $b $c))           ; (a AND (b OR c))  -->  ((a AND b) OR (a AND c))
+                (if (== (get-metatype $a) Expression)
+                    $exp
+                    (OR (AND $a $b) (AND $a $c))
+                )
+            )
+            ( $else $exp)
         )
-        (== $expr $EXPR)
     )
 )
+
+; (= (flatten $exp) case ... )
 
 (= (flatten-and (AND $a $b))
     (if (member AND $a $b)
@@ -49,7 +31,10 @@
             $a
             (if (member AND (NOT $a) $b)
                 False
-                (AND $a $b)
+                ;; (if (== (get-metatype $a) Expression)
+                    ;; (AND $a $b)
+                    (distrubutive (AND $a $b))
+                ;; )
             )
         )
     )
@@ -62,7 +47,10 @@
             $a
             (if (member OR (NOT $a) $b)
                 True
-                (OR $a $b)
+                ;; (if (== (get-metatype $a) Expression)
+                    ;; (OR $a $b)
+                    (distrubutive (OR $a $b))
+                ;; )
             )
         )
     )
