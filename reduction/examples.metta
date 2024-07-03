@@ -113,32 +113,32 @@
 ;; )
 
 
-(= (distrubutive $exp)
-    (case $exp`````
-        (
-            ( (OR $a (AND $b $c))           ; (a OR (b AND c))  -->  ((a OR b) AND (a OR c))
-                (if (== (get-metatype $a) Expression)
-                    $exp
-                    (AND (OR $a $b) (OR $a $c))
-                )
-            )
-            ( (AND $a (OR $b $c))           ; (a AND (b OR c))  -->  ((a AND b) OR (a AND c))
-                (if (== (get-metatype $a) Expression)
-                    $exp
-                    (OR (AND $a $b) (AND $a $c))
-                )
-            )
-            ( $else $exp)
-        )
-    )
-)
+;; (= (distrubutive $exp)
+;;     (case $exp
+;;         (
+;;             ( (OR $a (AND $b $c))           ; (a OR (b AND c))  -->  ((a OR b) AND (a OR c))
+;;                 (if (== (get-metatype $a) Expression)
+;;                     $exp
+;;                     (AND (OR $a $b) (OR $a $c))
+;;                 )
+;;             )
+;;             ( (AND $a (OR $b $c))           ; (a AND (b OR c))  -->  ((a AND b) OR (a AND c))
+;;                 (if (== (get-metatype $a) Expression)
+;;                     $exp
+;;                     (OR (AND $a $b) (AND $a $c))
+;;                 )
+;;             )
+;;             ( $else $exp)
+;;         )
+;;     )
+;; )
 
-(= (distrubute-simplify $num $prev $exp)
-    (if (or (== $prev $exp) (< $num 0))
-        $exp
-        (distrubute-simplify (- $num 1) $exp (simplify (distrubutive $exp)))
-    )
-)
+;; (= (distrubute-simplify $num $prev $exp)
+;;     (if (or (== $prev $exp) (< $num 0))
+;;         $exp
+;;         (distrubute-simplify (- $num 1) $exp (simplify (distrubutive $exp)))
+;;     )
+;; )
 
 ;; !(simplify (AND a (OR b (AND c (OR d (AND e (NOT a)))))))
 
@@ -149,6 +149,16 @@
 
 ;; !(distrubutive (AND a (OR b (AND c (OR d (AND e (NOT a)))))))
 ;; !(simplify (OR (AND a b) (AND a (AND c (OR d (AND e (NOT a)))))))
-!(simplify (distrubutive (AND a (OR b (AND c (OR d (AND e (NOT a))))))))
+;; !(simplify (distrubutive (AND a (OR b (AND c (OR d (AND e (NOT a))))))))
 
-!(simplify (OR (OR (AND a b) (AND a (AND c d))) (AND a (AND c (AND e (NOT a))))))
+;; !(simplify (OR (OR (AND a b) (AND a (AND c d))) (AND a (AND c (AND e (NOT a))))))
+;; !(simplify (OR (AND a b) (AND a (AND c (OR d (AND e (NOT a)))))))
+!(simplify (OR (AND a b) (AND a (AND c (OR d (OR e (NOT a)))))))
+;; !(simplify (OR (AND a b) (AND a (AND c (OR d (AND e a))))))
+
+;; !(simplify (OR (AND a b) (AND a (AND c (OR d (OR e a))))))
+;; !(simplify (AND a (OR b (AND c (OR d (OR e a))))))
+;; !(simplify (OR (AND a b) (OR (AND a (AND c d)) (OR (AND a (AND c e)) (AND c a)))))
+
+
+;; (OR (AND a b) (OR (AND a (AND c d)) (AND a (AND c e))))
