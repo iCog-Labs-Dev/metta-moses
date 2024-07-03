@@ -3,17 +3,19 @@
 !(import! &self utils)
 
 (= (simplify $EXPR)
-    (simplify-expr empty $EXPR)
+    (let* ((() (println! ("Sub-Exp: " $EXPR))))
+    (simplify-expr () $EXPR)
+    )
 )
 
 (= (simplify-expr $EXPR1 $EXPR2)
-    (let $cond  (or (not (== (get-metatype $EXPR2) Expression)) (== $EXPR1 $EXPR2))
-        (if $cond
-            ;;; Terminates if (EXPR1 == EXPR2 || CONSTANT).
-            $EXPR2
-            ;;; Continues simplifying, otherwise.
-            (simplify-expr $EXPR2 (simplify-boolean-expr $EXPR2))
-        )
+    (let* ((() (println! ("Compare:" $EXPR1 $EXPR2))))
+    (if (and (== (get-metatype $EXPR2) Expression) (not (== $EXPR1 $EXPR2)))
+        ;;; Continues simplifying, otherwise.
+        (simplify-expr $EXPR2 (simplify-boolean-expr $EXPR2))
+        ;;; Terminates if (EXPR1 == EXPR2 || CONSTANT).
+        $EXPR2
+    )
     )
 )
 
@@ -47,11 +49,12 @@
                 ( (AND True $a) $a)                     ; (a and True)  -->  a                  (identity law)
                 ( (AND $a (NOT $a)) False)              ; (a and -a)  -->  False                (complement law)
                 ( (AND $a $a) $a)                       ; (a and a)  -->  a                     (idempotent law)
-                ( (AND $a (AND $a $b)) (AND $a $b))     ; (a and (a and b))  -->  (a and b)     (idempotent law)
-                ( (AND $a (AND $b $a)) (AND $a $b))
-                ( (AND $a (OR $a $b)) $a)               ; a and (a or b)  -->  a                (absorption law)
-                ( (AND $a (OR $b $a)) $a)
-                ;; ( (AND $a (OR $b $c)))
+                ;; ( (AND $a (AND $a $b)) (AND $a $b))     ; (a and (a and b))  -->  (a and b)     (idempotent law)
+                ;; ( (AND $a (AND $b $a)) (AND $a $b))
+                ;; ( (AND $a (OR $a $b)) $a)               ; a and (a or b)  -->  a                (absorption law)
+                ;; ( (AND $a (OR $b $a)) $a)
+                ;; ( (AND $a (OR $b $c)) (OR (AND $a $b) (OR $a $c)))
+
                 ( (AND $a $b) (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
                                 (let $_EXPR_ (flatten-and $_EXPR)
                                     (if (== (get-metatype $_EXPR_) Expression)
@@ -77,11 +80,12 @@
                 ( (OR False $a) $a)                 ; (a OR False)  -->  a
                 ( (OR $a $a) $a)                    ; (a OR a)  -->  a
                 ( (OR $a (NOT $a)) True)            ; (a OR -a)  -->  True
-                ( (OR $a (OR $a $b)) (OR $a $b))    ; (a OR (a OR b))  -->  (a OR b)
-                ( (OR $a (OR $b $a)) (OR $a $b))
-                ( (OR $a (AND $a $b)) $a)           ; a OR (a AND b)  -->  a
-                ( (OR $a (AND $b $a)) $a)
-                
+                ;; ( (OR $a (OR $a $b)) (OR $a $b))    ; (a OR (a OR b))  -->  (a OR b)
+                ;; ( (OR $a (OR $b $a)) (OR $a $b))
+                ;; ( (OR $a (AND $a $b)) $a)           ; a OR (a AND b)  -->  a
+                ;; ( (OR $a (AND $b $a)) $a)
+                ;; ( (OR $a (AND $b $c)) (AND (OR $a $b) (OR $a $c)))
+
                 ( (OR $a $b) (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
                                 (let $_EXPR_ (flatten-or $_EXPR)
                                     (if (== (get-metatype $_EXPR_) Expression)
@@ -137,6 +141,8 @@
 (= (simplify-operand $SUB_EXP)
     ;; (let $cond (== (get-metatype $SUB_EXP) Expression)
     ;; (if $cond
+    (let*
+        ((() (println! ("Expression: " $SUB_EXP))))
         (case $SUB_EXP
             (
                 (
@@ -156,6 +162,7 @@
                 ( $else (Error "Invalid expression"))
             )
         )
+    )
     ;;     $SUB_EXP
     ;; )
     ;; )
