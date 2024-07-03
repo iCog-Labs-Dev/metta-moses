@@ -1,7 +1,12 @@
-;; !(register-module! ../utilities)
-;; !(import! &self utilities:list)
-;; !(import! &self utilities:helper-functions)
-
+; Function to check whether an Atom exists in a list
+(: member (-> $a List Bool))
+(= (member $a Nil) False)
+(= (member $a (Cons $x $xs))
+    (if (== $a $x)
+        True
+        (member $a $xs)
+    )
+)
 (= (distrubutive $exp)
     (case $exp
         (
