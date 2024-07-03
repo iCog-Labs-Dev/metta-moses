@@ -1,6 +1,6 @@
-!(register-module! ../utilities)
-!(import! &self utilities:list)
-!(import! &self utilities:helper-functions)
+;; !(register-module! ../utilities)
+;; !(import! &self utilities:list)
+;; !(import! &self utilities:helper-functions)
 
 (= (distrubutive $exp)
     (case $exp

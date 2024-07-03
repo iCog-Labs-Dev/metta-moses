@@ -1,6 +1,6 @@
 ; Original lisp version: https://web.cecs.pdx.edu/~mperkows/class478-2005/tsewen-midterm.pdf
-;; !(import! &self type-defs)
-!(import! &self utils)
+!(register-module! ../reduction)
+!(import! &self reduction:utils)
 
 (= (simplify $EXPR)
     (let* ((() (println! ("Sub-Exp: " $EXPR))))
