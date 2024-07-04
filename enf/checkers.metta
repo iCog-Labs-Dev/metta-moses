@@ -62,21 +62,34 @@
     
     )
 ))
+;; (: get-branchset (-> Expression List List))
+;; (= (get-branchset $exp $branch-set)
+;;     (case $exp (
+;;         (($OP $exp1 $exp2)
+;;             (if (== $OP AND)
+;;                 (if (and (==(get-metatype $exp1) Expression) (not (==(get-metatype $exp2) Expression)))
+;;                     (get-branchset $exp1 (append $exp2 $branch-set))
+;;                     (if (and (not (== get-metatype $exp1) Expression) (==(get-metatype $exp2) Expression))
+;;                         (get-branchset (append $exp1 $branch-set) $exp2)
+;;                         (if (and (not (== get-metatype $exp1) Expression) (not (==(get-metatype $exp2) Expression)))
+;;                             (get-branchset (append $exp1 $branch-set) $exp2)
+;;                             (Error This shouldn't exist) 
+;;                         )
+;;                     )
+;;                 )
+;;                 ((get-branchset $exp1 guard-set) (get-branchset $exp1 guard-set))
+;;             )
+;;         )
 
-(= (get-branchset $exp1 $branch-set)
-    (case $exp1 (
-        (($OP $exp1 $exp2)
-            (if (== $OP AND)
-                (get-guard-set $exp1 $branch-set)
-            )
-        )
-
-    )
-))
+;;     )
+;; ))
 (= (get-dominant-set $exp1 $dominant-set)(
 
+    )
 )
-)
+(=(fourth-rule-checker $exp1)(
+    (if )
+))
 
 (= (not-checker $exp)
     (case $exp
@@ -87,12 +100,19 @@
         )
     )
 )
+(=(fourth-rule-checker $exp $branch-set)
+    (if ==(get-metatype $exp) 
+
+))
 
 
 
 
-!(not-checker (NOT x))
-!(not-checker (NOT x a b ))
-!(get-guard-set (AND (OR x1 x2) x3) Nil)
-!(get-guard-set (AND a1 a2) Nil)
-!(get-children (AND (OR x1 x2) x3) Nil)
+;; !(not-checker (NOT x))
+;; !(not-checker (NOT x a b ))
+;; !(get-branchset (AND (OR x1 x2) x3) Nil)
+;; !(get-guard-set (AND a1 a2) Nil)
+;; !(get-children (AND (OR x1 x2) x3) Nil)
+(=(length ...) 0)
+(=(length ...)(+ 1 (length $xs)))
+!(length (Cons A (Cons B (Cons C Nil))))
