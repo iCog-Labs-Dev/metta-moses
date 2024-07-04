@@ -2,105 +2,109 @@
 !(import! &self utils)
 !(import! &self helper-functions)
 
+; Main function to call for reducing boolean expressions
 (= (simplify $EXPR)
+    ; Print the unreduced expression (this is called recursively)
     (let* ((() (println! ("Sub-Exp: " $EXPR))))
+    ; First argument is an empty expression at first
     (simplify-expr () $EXPR)
     )
 )
 
+; Simplify expression2 is reduced and compared to expression1 (which is the unreduced expression)
 (= (simplify-expr $EXPR1 $EXPR2)
+    ; Print both expressions
     (let* ((() (println! ("Compare:" $EXPR1 $EXPR2))))
+    ; If expression2 is not a literal and if it's not the same as the unreduced expression
     (if (and (== (get-metatype $EXPR2) Expression) (not (== $EXPR1 $EXPR2)))
-        ;;; Continues simplifying, otherwise.
+        ; Continue simplifying expression2
         (simplify-expr $EXPR2 (simplify-boolean-expr $EXPR2))
-        ;;; Terminates if (EXPR1 == EXPR2 || CONSTANT).
+        ; Return expression2 because can't be further reduced
         $EXPR2
     )
     )
 )
 
+; Call reduction functions for each type of expression correspondingly
 (= (simplify-boolean-expr $EXPR)
-    ;; (let $cond (== (get-metatype $EXPR) Expression)
-        (if (== (get-metatype $EXPR) Expression); $cond
-            (case $EXPR
-                (
-                    ((AND $EXPR1 $EXPR2) (simplify-and-expr $EXPR))
-                    ((OR $EXPR1 $EXPR2) (simplify-or-expr $EXPR))
-                    ((NOT $EXPR1) (simplify-not-expr $EXPR))
-                    ((XOR $EXPR1 $EXPR2) (simplify-xor-expr $EXPR))
-                    ; (... add more operations)
-                    ($else (Error "Invalid boolean expression"))
+        (if (== (get-metatype $EXPR) Expression)
+            ; Sort the outer expression (grounded < symbol < expression)
+            (let $_EXPR (sort $EXPR)
+                (case $EXPR
+                    (
+                        ((AND $EXPR1 $EXPR2) (simplify-and-expr $EXPR))
+                        ((OR $EXPR1 $EXPR2) (simplify-or-expr $EXPR))
+                        ((NOT $EXPR1) (simplify-not-expr $EXPR))
+                        ((XOR $EXPR1 $EXPR2) (simplify-xor-expr $EXPR))
+                        ; (... add more operations)
+                        ($else (Error "Invalid boolean expression"))
+                    )
                 )
             )
-
+            ; In case we try to simplify a literal
             $EXPR
         )
-    ;; )
 )
 
 ; #################################################################################################
 
-(= (simplify-and-expr $EXPR)
-    (let $_EXPR (sort $EXPR) ;$cond (== (get-metatype $EXPR) Expression)
-        ;; (if $cond
-        (case $_EXPR
-            (
-                ( (AND False $a) False)                 ; (a and False)  -->  False             (annulment/identity law)
-                ( (AND True $a) $a)                     ; (a and True)  -->  a                  (identity law)
-                ( (AND $a (NOT $a)) False)              ; (a and -a)  -->  False                (complement law)
-                ( (AND $a $a) $a)                       ; (a and a)  -->  a                     (idempotent law)
-                ;; ( (AND $a (AND $a $b)) (AND $a $b))     ; (a and (a and b))  -->  (a and b)     (idempotent law)
-                ;; ( (AND $a (AND $b $a)) (AND $a $b))
-                ;; ( (AND $a (OR $a $b)) $a)               ; a and (a or b)  -->  a                (absorption law)
-                ;; ( (AND $a (OR $b $a)) $a)
-                ;; ( (AND $a (OR $b $c)) (OR (AND $a $b) (OR $a $c)))
+; Reduction function for AND expressions
+(= (simplify-and-expr $_EXPR)
+    (case $_EXPR
+        (
+            ( (AND False $a) False)                 ; (a and False)  -->  False             (annulment/identity law)
+            ( (AND True $a) $a)                     ; (a and True)  -->  a                  (identity law)
+            ( (AND $a (NOT $a)) False)              ; (a and -a)  -->  False                (complement law)
+            ( (AND $a $a) $a)                       ; (a and a)  -->  a                     (idempotent law)
 
-                ( (AND $a $b) (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
-                                (let $_EXPR_ (flatten-and $_EXPR)
-                                    (if (== (get-metatype $_EXPR_) Expression)
-                                        (simplify-operand $_EXPR_)
-                                        $_EXPR_
-                                    )
-                                )
-                                $_EXPR
-                            ))
-                ( $else (Error "Invalid AND expression")) ;(simplify-operand $EXPR)
+            ; For all other cases of AND expressions
+            ( (AND $a $b)
+                ; If either a or b is an expression
+                (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
+                    (let $_EXPR_ (flatten $_EXPR)
+                        (if (== (get-metatype $_EXPR_) Expression)
+                            (simplify-recursive $_EXPR_)
+                            $_EXPR_
+                        )
+                    )
+                    ; If a and b are literals
+                    $_EXPR
+                )
             )
-        )
-            ;; $_EXPR
-        ;; )
-    )
-)
-
-(= (simplify-or-expr $EXPR)
-    (let $_EXPR (sort $EXPR)
-        (case $_EXPR
-            (
-                ( (OR True $a) True)                ; (a OR True)  -->  True
-                ( (OR False $a) $a)                 ; (a OR False)  -->  a
-                ( (OR $a $a) $a)                    ; (a OR a)  -->  a
-                ( (OR $a (NOT $a)) True)            ; (a OR -a)  -->  True
-                ;; ( (OR $a (OR $a $b)) (OR $a $b))    ; (a OR (a OR b))  -->  (a OR b)
-                ;; ( (OR $a (OR $b $a)) (OR $a $b))
-                ;; ( (OR $a (AND $a $b)) $a)           ; a OR (a AND b)  -->  a
-                ;; ( (OR $a (AND $b $a)) $a)
-                ;; ( (OR $a (AND $b $c)) (AND (OR $a $b) (OR $a $c)))
-
-                ( (OR $a $b) (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
-                                (let $_EXPR_ (flatten-or $_EXPR)
-                                    (if (== (get-metatype $_EXPR_) Expression)
-                                        (simplify-operand $_EXPR_)
-                                        $_EXPR_
-                                    )
-                                )
-                                $_EXPR
-                            ))
-                ( $else (Error "Invalid OR expression"))   ;(simplify-operand $EXPR)
-            )
+            ( $else (Error "Invalid AND expression"))
         )
     )
 )
 
+; Reduction function for OR expressions
+(= (simplify-or-expr $_EXPR)
+    (case $_EXPR
+        (
+            ( (OR True $a) True)                ; (a OR True)  -->  True
+            ( (OR False $a) $a)                 ; (a OR False)  -->  a
+            ( (OR $a $a) $a)                    ; (a OR a)  -->  a
+            ( (OR $a (NOT $a)) True)            ; (a OR -a)  -->  True
+
+            ; For all other cases of OR expressions
+            ( (OR $a $b)
+                ; If either a or b is an expression
+                (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
+                    (let $_EXPR_ (flatten $_EXPR)
+                        (if (== (get-metatype $_EXPR_) Expression)
+                            (simplify-recursive $_EXPR_)
+                            $_EXPR_
+                        )
+                    )
+                    ; If a and b are literals
+                    $_EXPR
+                )
+            )
+            ( $else (Error "Invalid OR expression"))
+        )
+    )
+)
+
+; Reduction function for NOT expressions
 (= (simplify-not-expr $EXPR)
     (case $EXPR
         (
@@ -109,27 +113,30 @@
             ( (NOT (NOT $a)) $a)                            ; (-(-a))  -->  a
             ( (NOT (AND $a $b)) (OR (NOT $a) (NOT $b)) )    ; -(a AND b)  -->  (-a OR -b)
             ( (NOT (OR $a $b)) (AND (NOT $a) (NOT $b)) )    ; -(a OR b)  -->  (-a AND -b)
-            ( (NOT $a) (if (== (get-metatype $a) Expression)
-                            (simplify-operand $EXPR)
-                            $EXPR
-                        ))
-            ( $else (Error "Invalid NOT expression"))    ;(simplify-operand $EXPR)
+            ( (NOT $a) 
+                (if (== (get-metatype $a) Expression)
+                    (simplify-recursive $EXPR)
+                    $EXPR
+                )
+            )
+            ( $else (Error "Invalid NOT expression"))
         )
     )
 )
 
+; Reduction function for XOR expressions
 (= (simplify-xor-expr $EXPR)
     (case $EXPR
         (
             ( (XOR $a $a) False)             ; (a XOR a)  -->  False
-            ;; ( (XOR $a $b) True)            ; (a XOR b)  -->  True
             ( (XOR $a $b) 
                 (if (or (and (== (get-metatype $a) Symbol) (== (get-metatype $b) Symbol))
                         (and (== (get-metatype $a) Grounded) (== (get-metatype $b) Grounded)))
                     True
-                    (simplify-operand $EXPR)
-            ))
-            ( $else (Error "Invalid XOR expression"))   ;(simplify-operand $EXPR)
+                    (simplify-recursive $EXPR)
+                )
+            )
+            ( $else (Error "Invalid XOR expression"))
         )
     )
 )
@@ -138,32 +145,35 @@
 
 ; #################################################################################################
 
-(= (simplify-operand $SUB_EXP)
-    ;; (let $cond (== (get-metatype $SUB_EXP) Expression)
-    ;; (if $cond
+; Function to recursively apply reuction to sub-expressions
+(= (simplify-recursive $EXPR)
     (let*
-        ((() (println! ("Expression: " $SUB_EXP))))
-        (case $SUB_EXP
+        (
+            ; Sort the expression (grounded < symbol < expression)
+            ($_EXPR (sort $EXPR))
+            (() (println! ("Expression: " $_EXPR)))
+        )
+        (case $_EXPR
             (
                 (
-                    ($OP $EXP1 $EXP2) 
-                    (if (== (get-metatype $EXP1) Expression)
-                        ($OP (simplify $EXP1) (simplify $EXP2))
-                        ($OP $EXP1 (simplify $EXP2))
+                    ($OP $exp1 $exp2) 
+                    (if (== (get-metatype $exp1) Expression)
+                        (simplify-expr $_EXPR ($OP (simplify $exp1) (simplify $exp2)))
+                        ;; (if (== (get-metatype $exp2) Expression)
+                            (simplify-expr $_EXPR ($OP $exp1 (simplify $exp2)))
+                            ;; $_EXPR
+                        ;; )
                     )
                 )
                 (
-                    ($OP $EXP1) 
-                    (if (== (get-metatype $EXP1) Expression)
-                        ($OP (simplify $EXP1))
-                        $SUB_EXP
+                    ($OP $exp1) 
+                    (if (== (get-metatype $exp1) Expression)
+                        (simplify-expr $_EXPR ($OP (simplify $exp1)))
+                        $_EXPR
                     )
                 )
                 ( $else (Error "Invalid expression"))
             )
         )
     )
-    ;;     $SUB_EXP
-    ;; )
-    ;; )
 )
