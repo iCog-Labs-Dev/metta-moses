@@ -19,14 +19,21 @@
 )
 
 ; Fnuction to sort an outer expression
-(= (sort ($OP $a $b))
-    (if (lte $a $b)
-        ($OP $a $b)
-        ($OP $b $a)
+(= (sort $expr)
+    (case $expr
+        (
+            (($OP $a $b) 
+                (if (lte $a $b)
+                    ($OP $a $b)
+                    ($OP $b $a)
+                )
+            )
+            ($else $expr)
+        )
     )
 )
 
-(: member (-> Symbol Expression Expression Bool))
+;; (: member (-> Symbol Expression Expression Bool))
 (= (member $op $sub_exp $EXP)
     (if (== (get-metatype $EXP) Expression)
         (case $EXP
