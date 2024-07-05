@@ -38,6 +38,7 @@
     )
 )
 
+; The problem is that it doesn't reduce (OR (AND c a) (OR (AND a (AND c d)))) to (AND c a)
 (= (flatten-or (OR $a $b))
     (if (member OR $a $b)       ; (a OR (a OR b))  -->  (a OR b)        (idempotent law)
         $b
@@ -71,5 +72,5 @@
  
 ;; !(flatten (AND B (OR E (NOT B))))
 ;; !(flatten (AND B (NOT B)))
-!(flatten (AND (AND A B) (OR B (AND C (NOT A)))))
-!(flatten (AND (AND A B) (AND B (AND C (NOT (AND A B))))))
+;; !(flatten (AND (AND A B) (OR B (AND C (NOT A)))))
+;; !(flatten (AND (AND A B) (AND B (AND C (NOT (AND A B))))))
