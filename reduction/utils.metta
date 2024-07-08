@@ -1,92 +1,76 @@
-;; !(import! &self type-defs)
+!(import! &self helper-functions)
 
-; Function to compare two Atoms (less than or equal to)
-;; (: lte (-> Atom Atom Bool))
-(= (lte $a $b)
-    (let* ( ($type-a (get-metatype $a))
-            ($type-b (get-metatype $b)))
-        ;; (if (== $type-a $type-b)
-        ;;     True
-            (if (== $type-a Grounded)
-                True
-                (if (and (== $type-a Symbol) (or (== $type-b Expression) (== $type-b Variable)))
-                    True
-                    (if (and (== $type-a Expression) (== $type-b Variable))
-                        True
-                        False ;; add other conditions
-                    )
-                ))
-        ;; )
-    )
-)
-
-(= (sort ($OP $a $b))
-    (if (lte $a $b)
-        ($OP $a $b)
-        ($OP $b $a)
-    )
-)
-
-(sort (AND a b))
-(sort (AND b a))
-
-(= (member $op $expr $EXPR)
-    (if (== (get-metatype $EXPR) Expression)
-        (case $EXPR
-            (
-                ( ($op $a $b) (or (member $op $expr $a) (member $op $expr $b)) )
-                ( $else (== $expr $EXPR) )
+; Function to apply distributive property
+(= (distrubutive $exp)
+    (case $exp
+        (
+            ( (AND $a (OR $b $c))           ; (a AND (b OR c))  -->  ((a AND b) OR (a AND c))
+                (if (== (get-metatype $a) Expression)
+                    $exp
+                    (OR (AND $a $b) (AND $a $c))
+                )
             )
+            ( (OR $a (AND $b $c))           ; (a OR (b AND c))  -->  ((a OR b) AND (a OR c))
+                (if (== (get-metatype $a) Expression)
+                    $exp
+                    (AND (OR $a $b) (OR $a $c))
+                )
+            )
+            ( $else $exp)
         )
-        (== $expr $EXPR)
     )
 )
 
-(= (reduce-and (AND $a $b))
-    (if (member AND $a $b)
+
+(= (flatten-and (AND $a $b))
+    (if (member AND $a $b)       ; (a AND (a AND b))  -->  (a AND b)     (idempotent law)
         $b
-        (if (member OR $a $b)
+        (if (member OR $a $b)           ; a AND (a OR b)  -->  a                (absorption law)
             $a
-            (if (member AND (NOT $a) $b)
+            (if (member AND (NOT $a) $b)            ; (a AND ((not a) AND b))  -->  False     (annulment law)
                 False
-                (AND $a $b)
+                (if (== (get-metatype $a) Expression)
+                    (AND $a $b)
+                    (distrubutive (AND $a $b))          ; (distributive property)
+                )
             )
         )
     )
 )
 
-(= (reduce-or (OR $a $b))
-    (if (member OR $a $b)
+; The problem is that it doesn't reduce (OR (AND c a) (OR (AND a (AND c d)))) to (AND c a)
+(= (flatten-or (OR $a $b))
+    (if (member OR $a $b)       ; (a OR (a OR b))  -->  (a OR b)        (idempotent law)
         $b
-        (if (member AND $a $b)
+        (if (member AND $a $b)          ; a OR (a AND b)  -->  a                (absorption law)
             $a
-            (if (member OR (NOT $a) $b)
+            (if (member OR (NOT $a) $b)         ; (a OR ((not a) OR b))  -->  True       (annulment law)
                 True
-                (OR $a $b)
+                (if (== (get-metatype $a) Expression)
+                    (OR $a $b)
+                    (distrubutive (OR $a $b))          ; (distributive property)
+                )
             )
         )
     )
 )
 
-;; !(reduce-and (AND B (AND C B)))
-;; !(reduce-and (AND B (AND C (AND E B))))
-;; !(reduce-and (AND B (AND C (NOT B))))
-;; !(reduce-and (AND B (AND C (AND E (NOT B)))))
+(= (flatten $expr)
+    (case $expr
+        (
+            ((AND $a $b) (flatten-and $expr))
+            ((OR $a $b) (flatten-or $expr))
+            ($else $expr)
+        )
+    )
+)
 
-;; !(member AND A A)
-;; !(member AND A (AND A B))
-
-;; !(member AND (NOT A) (AND A B))
-;; !(member AND A (AND C B))
-
-;; !(member AND (NOT A) (AND (NOT A) B))
-;; !(member AND (NOT A) (NOT A))
-
-;; !(member OR A A)
-;; !(member OR A (AND A B))
-
-;; !(member OR (NOT A) (OR A B))
-;; !(member OR A (AND C B))
-
-;; !(member OR (NOT A) (AND (NOT A) B))
-;; !(member OR (NOT A) (NOT A))
+;; !(flatten (AND B (AND C B)))
+;; !(flatten (AND B (AND C (AND E B))))
+;; !(flatten (AND B (AND C (NOT B))))
+;; !(flatten (AND B (OR C (OR E (NOT B)))))
+ 
+;; !(flatten (AND B (OR E (NOT B))))
+;; !(flatten (AND B (NOT B)))
+;; !(flatten (AND (AND A B) (OR B (AND C (NOT A)))))
+;; !(flatten (AND (AND A B) (AND B (AND C (NOT (AND A B))))))
