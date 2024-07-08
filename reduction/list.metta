@@ -178,15 +178,12 @@
 ;; !(== (get-type a) (get-type a)) ; ???
 
 ;; !(equal-exp a a)
-!(equal-exp (AND a b) (AND a b))
-!(equal-exp (AND a b) (AND b a))
+;; !(equal-exp (AND a b) (AND a b))
+;; !(equal-exp (AND a b) (AND b a))
 ; The problem is that it doesn't reduce (OR (AND c a) (OR (AND a (AND c d)))) to (AND c a)
 ;; !(equal-exp (AND a b) (AND b c))
 ;; !(equal-exp (AND (OR a (NOT b)) (OR c d)) (AND (OR d c) (OR (NOT b) a)))
 
-(= (subset $list1 $list2)
-    pass
-)
 
 (= (member $op $sub_exp $EXP)
     (if (== (get-metatype $EXP) Expression)
@@ -204,3 +201,22 @@
 ; The problem is that it doesn't reduce (AND (OP c a) (OR (AND a (AND c d)))) to (AND c a)
 ;;  (OR (AND a (AND c d)) (OR (AND a (AND c e)) (AND c a)))
 ;; !(member OR (AND c a) (OR (AND a (AND c d))))
+
+(= (subset $sub_exp $exp)
+    (case $sub_exp
+        (
+            ((AND $a $b) (and (member AND $a $exp) (member AND $b $exp)))
+            ((OR $a $b) (and (member OR $a $exp) (member OR $b $exp)))
+            ((NOT $a) (member NOT $a $exp))
+        )
+    )
+)
+
+!(member AND c (AND a (AND c d)))
+!(member AND (NOT d) (AND a (AND c (NOT d))))
+!(member AND (OR b d) (AND a (AND c (OR b d))))
+
+!(member OR c (OR (AND a (AND c d))))
+!(member AND (OR b d) (AND a (AND c (OR b c))))
+
+!(subset (AND c a) (OR (AND a (AND c d))))
