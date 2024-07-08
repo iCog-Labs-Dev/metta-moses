@@ -18,14 +18,6 @@
         (index (- $a 1) $xs)
     )
 )
-;; ! (index 2 (Cons A (Cons B (Cons C Nil))))
-
-;; (: map (-> Atom List List))
-;; (= (map $func Nil) Nil)
-;; (= (map $func (Cons $x $xs))
-;;     (Cons ($func $x) (map $func $xs))
-;; )
-;; ! (map (+ 1) (Cons 1 (Cons 2 (Cons 3 Nil))))
 
 (: member (-> $a List Bool))
 (= (member $a Nil) False)
@@ -180,9 +172,17 @@
 (:cdr (-> List Atom))
 (=(cdr ()) Nil)
 (=(cdr (Cons $x $xs)) $x)
-(:union (-> List List List))
-(=(union $set1 $set2)(
+;; (:union (-> List List List))
+;; ;; (=(union $set1 $set2)(
 
+;; ;; ))
+(=(check_tree_depth $data)
+    (if (== (get-metatype $data) Expression)
+        (case $data (
+            (($OP $EXP1 $EXP2) (+ 1  (check_tree_depth $EXP1)))
+            (($OP $EXP1) 1)
+        ))
+        0
 ))
 
 
@@ -192,4 +192,5 @@
 ;;!(intersection (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 4 (Cons 5 (Cons 6 Nil)))) Nil)
 ;;!(get-type True)
 ;; !(cdr (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
+!(check_tree_depth (AND (OR x1 x2) (AND x3 x4)))
 ;; !(cons (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
