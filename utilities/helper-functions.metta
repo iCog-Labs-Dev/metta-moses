@@ -166,12 +166,19 @@
         (intersection $xs $ys $accumulator)
     )
 )
-(:cons (-> List Atom))
-(=(cons ()) Nil)
-(=(cons (Cons $x $xs)) $xs)
 (:cdr (-> List Atom))
 (=(cdr ()) Nil)
-(=(cdr (Cons $x $xs)) $x)
+(=(cdr (Cons $x $xs)) $xs)
+(:car (-> List Atom))
+(=(car ()) Nil)
+(=(car (Cons $x $xs)) $x)
+(:cons (->List List Atom))
+(=(cons $exp1 $exp2)
+        (let* (($type-exp1  (get-metatype $exp1))
+                ($type-exp2 (get-metatype $exp2))
+                        )(if (and (== $type-exp1 Expression) (== $typ-exp2 Expression))
+                                ()
+                        )))
 ;; (:union (-> List List List))
 ;; ;; (=(union $set1 $set2)(
 
@@ -183,6 +190,40 @@
             (($OP $EXP1) 1)
         ))
         0
+))
+(:get-children (-> Expression List List))
+(= (get-children $exp $guard-set)(
+    (if (==(get-metatype $exp) Symbol)
+        Nil
+    (if (==(get-metatype $exp) Expression)
+        (case $exp (
+            (($op $exp1 $exp2)(
+                (if (and (==(get-metatype $exp1) Symbol) (==(get-metatype $exp2) Symbol))
+                    (append (Cons $exp1 (Cons $exp2)) $guard-set)
+        
+                    (if (and (==(get-metatype $exp1) Symbol) (==(get-metatype $exp2) Expression))
+                        
+                        (append (Cons $exp1 (get-children $exp2 $guard-set)))
+                    
+                        (if (and (==(get-metatype $exp1) Expression) (==(get-metatype $exp2) Symbol))
+                            
+                            (append (Cons (get-children $exp1 $guard-set) $exp2))
+                            (if (and (==(get-metatype $exp1) Expression) (==(get-metatype $exp2) Expression))
+                                (append (get-children $exp1 $guard-set) (get-children $exp2 $guard-set))
+                            )
+                        )
+                    )
+
+                )
+            ))
+            ($_ (Error This shouldn't be the correct format))
+            
+
+        ))
+        (ERROR the format is invalid)
+    )
+    
+    )
 ))
 
 

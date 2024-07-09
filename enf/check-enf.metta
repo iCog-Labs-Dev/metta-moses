@@ -16,11 +16,7 @@
     )
 )
 
-;; !(check-negation (AND a b))
-;; !(check-negation (AND (NOT a) (NOT b)))
 
-;; !(check-negation (NOT (AND (NOT a) (NOT (OR b c)))))
-;; !(check-negation (NOT (AND (NOT a) (NOT (OR b c)))))
 
 ; 2. Levels of conjunction and disjunction alternate.
 (: check-alternate (-> Expression Bool))
