@@ -4,7 +4,7 @@
 (: Nil List)
 (: Cons (-> $a List List))
 
-; 1. Negation appears only in literals.
+;; 1. Negation appears only in literals.
 (: check-negation (-> Expression Bool))
 (= (check-negation $exp) 
     (case $exp

@@ -172,12 +172,15 @@
 (:car (-> List Atom))
 (=(car ()) Nil)
 (=(car (Cons $x $xs)) $x)
-(:cons (->List List Atom))
-(=(cons $exp1 $exp2)
-        (let* (($type-exp1  (get-metatype $exp1))
+(:zip (->List List Atom))
+(=(zip $exp1 $exp2)
+        (let* (($type-exp1 (get-metatype $exp1))
                 ($type-exp2 (get-metatype $exp2))
-                        )(if (and (== $type-exp1 Expression) (== $typ-exp2 Expression))
-                                ()
+                        )(if (and (== $type-exp1 Expression) (== $type-exp2 Expression))
+                                (case $exp1 $exp2(
+                                    ((()())())
+                                    (((Cons $x $xs)(Cons $y $ys))(Cons $x (Cons $y (zip $exp1 $exp2))))
+                                ))
                         )))
 ;; (:union (-> List List List))
 ;; ;; (=(union $set1 $set2)(
@@ -191,6 +194,7 @@
         ))
         0
 ))
+
 (:get-children (-> Expression List List))
 (= (get-children $exp $guard-set)(
     (if (==(get-metatype $exp) Symbol)
@@ -234,4 +238,4 @@
 ;;!(get-type True)
 ;; !(cdr (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
 !(check_tree_depth (AND (OR x1 x2) (AND x3 x4)))
-;; !(cons (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
+!(zip (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))

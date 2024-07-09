@@ -4,14 +4,14 @@
 ;;(get-guard-set (AND a1 a2) Nil)
 (=(ret-append $set1 $set2)(append $set1 $set2))
 
-(:get-guard-set (-> Expression List List))
+;;(:get-guard-set (-> Expression List List))
 (= (get-guard-set $exp $guard-set)
         (case $exp (
             (($OP $exp1 $exp2)
                 (if (and (== (get-metatype $exp1) Expression) (== (get-metatype $exp2) Expression)) 
                     (Cons Nil)
                     (if (and (== (get-metatype $exp1) Symbol) (== (get-metatype $exp2) Symbol))
-                        (append  $guard-set (Cons $exp1 (Cons $exp2)))
+                         (Cons $exp1 (Cons $exp2))
                         (if (and (== (get-metatype $exp1) Symbol) (== (get-metatype $exp2) Expression))
                             (Cons $exp1 (Cons Nil))
                             (if (and (== (get-metatype $exp1) Expression) (== (get-metatype $exp2) Symbol))
@@ -66,7 +66,7 @@
                                         (append (get-guard-set $exp1 $branch-set) (Cons $exp2 (Cons Nil)))
                                         (if (and (== $type1 Symbol)(== $type2 Expression)) 
                                             (append (get-guard-set $exp2 branch-set) $exp1)
-                                            (ERROR IT is in the wrong format)
+                                            (ERROR It is in the wrong format)
 
                                         )
                                        )
@@ -106,6 +106,14 @@
         )
     )
 )
+(= (check-alternate $exp)
+    (if (== (get-metatype $exp) Symbol) 
+        True
+        (case $exp (
+            (($op )())
+        ))
+
+))
 
 ;; (= (not-gate $exp)
 ;;     (case $exp (
@@ -123,9 +131,11 @@
 ;;  !(not-checker (NOT x))
 ;;  !(not-gate (NOT A B))
 ;;  !(not-checker (NOT x a b ))
-!(get-branchset (AND (OR x1 x2) x3) Nil)
+;;!(get-branchset (AND (OR x1 x2) x3) Nil)
+;;!(get-metatype (1 2 3 4))
 !(get-guard-set (AND a1 a2) Nil)
-!(ret-append (Cons x1 (Cons x2 (Cons x3 (Cons Nil)))) (Cons x4 (Cons x5 (Cons x6 ))))
+!(get-guard-set a1 Nil)
+;;!(ret-append (Cons x1 (Cons x2 (Cons x3 (Cons Nil)))) (Cons x4 (Cons x5 (Cons x6 ))))
 ;; !(get-children (AND (OR x1 x2) x3) Nil)
 (=(length ...) 0)
 (=(length ...)(+ 1 (length $xs)))
