@@ -1,117 +1,16 @@
-(: List type)
-(: Nil List)
-(: Cons (-> $a List List))
-
-; Function to find the length of a list
-;; (: length (-> List Number))
-;; (= (length Nil) 0)
-;; (= (length (Cons $x $xs))
-;;     (+ 1 (length $xs))
-;; )
-;; ! (length (Cons A (Cons B (Cons C Nil))))
-
-;Function to find a list element given an index
-(: index (-> Number List $a))
-(= (index $a Nil) Nil)
-;(= (index 0 (Cons $x $xs)) $x)
-(= (index $a (Cons $x $xs))
-    (if (== $a 0) 
-        $x
-        (index (- $a 1) $xs)
-    )
-)
-;; ! (index 2 (Cons A (Cons B (Cons C Nil))))
-
-; Function to apply a partial function to every element in a list
-;; (: map (-> Atom List List))
-(= (map $func Nil) Nil)
-(= (map $func (Cons $x $xs))
-    (Cons ($func $x) (map $func $xs))
-)
-;; (= (add1 $num) (+ $num 1))
-;; ! (map add1 (Cons 1 (Cons 2 (Cons 3 Nil))))
-
-; Function to check whether an Atom exists in a list
-;; (: member (-> $a List Bool))
-;; (= (member $a Nil) False)
-;; (= (member $a (Cons $x $xs))
-;;     (if (== $a $x)
-;;         True
-;;         (member $a $xs)
-;;     )
-;; )
-;; ! (member B (Cons A (Cons B (Cons C Nil))))
-
-; Function to remove duplicates from a list
-(: remove-duplicates (-> List List))
-(= (remove-duplicates Nil) Nil)
-(= (remove-duplicates (Cons $x $xs))
-  (if (member $x $xs)
-    (remove-duplicates $xs)
-    (Cons $x (remove-duplicates $xs))
-  )
-)
-;; ! (remove-duplicates (Cons A (Cons B (Cons B Nil))))
-
-; Function to append two lists
-(: append (-> List List List))
-(= (append Nil $ys) $ys)
-(= (append (Cons $x $xs) $ys) (Cons $x (append $xs $ys)))
-
-; Function to partition the list
-(: partition (-> Atom List ( List List )))
-(= (partition $_ Nil) ( Nil Nil ))
-(= (partition $pivot (Cons $x $xs))
-    (let ($left $right) (partition $pivot $xs)
-        ;; (if (<= $x $pivot)
-        ;; (let* ( ($cond  (<= $x $pivot))
-        (let* ( ($cond (lte $x $pivot))
-                (() (println! ($x "<=" $pivot "=" $cond)))
-                (() (println! ($left "---" $right)))
-            )
-        (if $cond ;(lte $x $pivot)
-            ((Cons $x $left) $right)
-            ($left (Cons $x $right))
-        )
-        )
-    )
-)
-
-; QuickSort implementation
-(: quickSort (-> List List))
-(= (quickSort Nil) Nil)
-(= (quickSort (Cons $x $xs))
-    (let ($left $right) (partition $x $xs)
-        (append (quickSort $left) (Cons $x (quickSort $right)))
-    )
-)
-;; !(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
-;; !(quickSort (Cons "False" (Cons "A" (Cons "True" (Cons "B" Nil)))))
-;; !(quickSort (Cons A (Cons True Nil)))
-;; !(quickSort (Cons A (Cons B Nil)))
-
 ; -----------------------------------------------------
 ;; (NOT a b) ~~ (AND b a)                                   || (Cons-and a (Cons-and b Nil)
 ;; (AND (OR a b) (OR c d)) ~~ (AND (OR d c) (OR b a))       || (Cons-and (Cons-or a (Cons-or b Nil)) (Cons-and (Cons-or c (Cons-or d Nil)) Nil))
 
-(= (flatten $exp)
-    (case $exp
-        (
-            ((AND $a $b) (Cons-and (flatten-and $a) (Cons-and (flatten $b) Nil)))
-            ((OR $a $b) (Cons-or (flatten $a) (Cons-or (flatten $b) Nil)))
-            ($symbol $symbol)
-        )
-    )
-)
-
-(= (length $exp)
-    (case $exp
-        (
-            (Nil 0)
-            (($Cons $x $xs) (+ 1 (length $xs)))
-        )
-    )
-)
+;; (= (flatten $exp)
+;;     (case $exp
+;;         (
+;;             ((AND $a $b) (Cons-and (flatten-and $a) (Cons-and (flatten $b) Nil)))
+;;             ((OR $a $b) (Cons-or (flatten $a) (Cons-or (flatten $b) Nil)))
+;;             ($symbol $symbol)
+;;         )
+;;     )
+;; )
 ;; ! (flatten (AND a b))
 ;; ! (flatten (AND a (AND b (AND c d))))
 ;; ! (flatten (AND a (OR b c)))
@@ -119,17 +18,27 @@
 ;; ! (flatten (NOT a))
 ;; ! (flatten (AND (NOT a) (NOT b)))
 
-(= (equal $list1 $list2)
-    (if (== (length $list1) (length $list2))
-        (case $list1
-            (Nil False)
-            ((Cons $x $xs)
 
-            )
-        )
-        False
-    )
-)
+;; (= (length $exp)
+;;     (case $exp
+;;         (
+;;             (Nil 0)
+;;             (($Cons $x $xs) (+ 1 (length $xs)))
+;;         )
+;;     )
+;; )
+
+;; (= (equal $list1 $list2)
+;;     (if (== (length $list1) (length $list2))
+;;         (case $list1
+;;             (Nil False)
+;;             ((Cons $x $xs)
+
+;;             )
+;;         )
+;;         False
+;;     )
+;; )
 
 
 (= (exp-type $exp)
@@ -202,21 +111,134 @@
 ;;  (OR (AND a (AND c d)) (OR (AND a (AND c e)) (AND c a)))
 ;; !(member OR (AND c a) (OR (AND a (AND c d))))
 
+;; !(member AND c (AND a (AND c d)))
+;; !(member AND (NOT d) (AND a (AND c (NOT d))))
+;; !(member AND (OR b d) (AND a (AND c (OR b d))))
+
+;; !(member OR c (OR (AND a (AND c d))))
+;; !(member AND (OR b d) (AND a (AND c (OR b c))))
 (= (subset $sub_exp $exp)
     (case $sub_exp
         (
             ((AND $a $b) (and (member AND $a $exp) (member AND $b $exp)))
             ((OR $a $b) (and (member OR $a $exp) (member OR $b $exp)))
             ((NOT $a) (member NOT $a $exp))
+            ($symbol (member $_ $symbol $exp))
         )
     )
 )
 
-!(member AND c (AND a (AND c d)))
-!(member AND (NOT d) (AND a (AND c (NOT d))))
-!(member AND (OR b d) (AND a (AND c (OR b d))))
 
-!(member OR c (OR (AND a (AND c d))))
-!(member AND (OR b d) (AND a (AND c (OR b c))))
+;; !(subset (AND c a) (AND a (AND c d)))
+;; !(subset (AND c a) (AND a (AND d (AND c a))))
+;; !(subset (AND c a) (AND a (AND d (OR c a))))
 
-!(subset (AND c a) (OR (AND a (AND c d))))
+
+
+;; (= (greater $num1 $num2)
+;;     (if (> $num1 $num2) $num1 $num2)
+;; )
+;; (: depth (-> Expression Number))
+;; (= (depth $exp)
+;;     (case $exp
+;;         (($op $a $b) (if (greater (depth $a)) 
+;;             (+ 1 (depth $a))
+;;             (+ 1 (depth $b))
+;;         ))
+;;         (($op $a) (+ 1 (depth $a)))
+;;         ($symbol 0)
+;;     )
+;; )
+
+;; !(depth (AND a b))
+
+
+
+((AND $a (NOT $a)) False)   ; (a and -a)  -->  False                (complement law)
+((Or $a (NOT $a)) False)   ; (a or -a)  -->  True                (complement law)
+((AND $a $a) $a)            ; (a and a)  -->  a                     (idempotent law)
+
+(member AND $a $b)          ; (a AND (a AND b))  -->  (a AND b)     (idempotent law)
+
+(member OR $a $b)           ; a AND (a OR b)  -->  a                (absorption law)
+(member AND $a $b)          ; a OR (a AND b)  -->  a                (absorption law)
+
+(member AND (NOT $a) $b)    ; (a AND ((not a) AND b))  -->  False     (annulment law)
+(member OR (NOT $a) $b)     ; (a OR ((not a) OR b))  -->  True       (annulment law)
+
+;; (= (complement $exp)
+;;     (let ($op $a (NOT $b)) $exp
+;;         (if (equal-exp $a $b)
+;;             (== $op OR) ; True if OR, False if AND
+;;             $exp
+;;         )
+;;     )
+;; )
+;; !(complement (AND (AND a b) (NOT (AND b a))))
+;; !(complement (OR (AND a b) (NOT (AND b a))))
+;; !(complement (OR (AND a b) (NOT (AND b b))))
+
+(= (complement $exp)
+    (let ($op $a $b) $exp
+        (case $a
+            (
+                (($op1 $a1 $a2)
+                    (if )
+                )
+                ((AND $a1 $a2) (or (complement ($a1 $b)) (complement ($a2 $b))))
+                ((OR $a1 $a2) (and (complement ($a1 $b)) (complement ($a2 $b))))
+                ((NOT $a1) (member $op $a1 $b))
+                ($symbol (member $op (NOT $a) $b))
+            )
+        )
+    )
+)
+!(complement (AND (AND a b) (AND (NOT a) b))) ; -a || -b --> 0
+
+
+
+!(complement (AND (AND a b) (AND (AND (NOT a) b) (OR a b)))) ; -a || -b --> 0
+!(complement (AND (OR a b) (AND (AND (NOT a) b) (OR a b))))  ; -a && -b --> 0
+
+!(complement (OR (AND a b) (OR (AND (NOT a) b) (OR (NOT a) (NOT b)))))  ; -a && -b --> 1
+!(complement (OR (OR a b) (OR (AND (NOT a) b) (OR (NOT a) b))))    ; -a || -b --> 1
+
+!(complement (AND b (AND (AND (NOT b) c) (OR a b))))
+!(complement (AND (NOT a) (AND (AND (NOT b) a) (OR a b))))
+
+(= (idempotent $exp)
+    (let ($op $a $b) $exp
+        (if (subset $a $b)
+            $b
+            $exp
+        )
+    )
+)
+;; !(idempotent (AND a (AND a b)))
+;; !(idempotent (AND (AND a b) (AND b a)))
+;; !(idempotent (OR (AND a b) (AND b a)))
+;; !(idempotent (OR (AND a b) (AND b b)))
+
+(= (absorption $exp)
+    (let ($op1 $a ($op2 $b $c)) $exp
+        (if (== $op1 $op2)
+            (idempotent $exp) ; ??
+            (if (or (member $op2 $a $b) (member $op2 $b $c)) ;(subset $a ($op2 $b $c))
+                $a
+                $exp
+            )
+        )
+    )
+)
+;; !(absorption (AND (AND a b) (OR (AND b a) c)))
+;; !(idempotent (AND (AND a b) (AND (AND b a) c)))
+
+
+
+;; (a OR ((not a) OR b))  -->  True       (annulment law)
+;; (a AND ((not a) AND b))  -->  False     (annulment law)
+(= (annulment $exp)
+    (let ($op $a ($op $b $c)) $exp
+        (pass)
+    )
+)
