@@ -5,7 +5,7 @@
 ; Main function to call for reducing boolean expressions
 (= (simplify $EXPR)
     ; Print the unreduced expression (this is called recursively)
-    (let* ((() (println! ("Sub-Exp: " $EXPR))))
+    (let* ((() (println! ("Sub-Exp:" $EXPR))))
     ; First argument is an empty expression at first
     (simplify-expr () $EXPR)
     )
@@ -61,6 +61,12 @@
             ( (AND $a $b)
                 ; If either a or b is an expression
                 (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
+                    ;; (let* 
+                    ;;     (
+                    ;;         ($EXPR_1 (idempotent $EXPR))
+                    ;;         ($EXPR_2 (identity $EXPR_1))
+                    ;;         ($_EXPR (flatten $EXPR_2))
+                    ;;     )
                     (let $_EXPR (flatten $EXPR)
                         (if (== (get-metatype $_EXPR) Expression)
                             (simplify-recursive $_EXPR)
@@ -151,7 +157,7 @@
         (
             ; Sort the expression (grounded < symbol < expression)
             ($_EXPR (sort $EXPR))
-            (() (println! ("Expression: " $_EXPR)))
+            (() (println! ("Expression:" $_EXPR)))
         )
         (case $_EXPR
             (
