@@ -60,7 +60,7 @@
 
 ;; !(append (Cons 1 (Cond 2 Nil)) (Cons 3 Nil))
 
-(=(member $elem $list)
+(= (member $elem $list)
     (case $list(
         (Nil False) ;;Checks if $x is repeated in $y
         ((Cons $x $xs)
@@ -71,7 +71,7 @@
         )
     ))
 )
-(=(member-not $elem $list)
+(= (member-not $elem $list) ;;checks if the member not member is working or not
     (case $list(
         (Nil False) ;;Checks if $x is repeated in $y
         ((Cons $x $xs)
@@ -96,9 +96,73 @@
         )
     )
 )
+(= (check-not $list)
+    (case $list
+        (
+            (Nil True)
+            ((Cons $x $xs)
+                (if (member-not $x $xs)
+                    False
+                    (check-not $xs)
+                )
+            )
+        )
+    )
+)
 
-;; (: check-branchset (-> Expression List Bool))
+
+(: check-branchset (-> Expression List Bool))
 (= (check-branchset $exp $branch-set)
+    (case $exp
+        (
+            (($op $exp1 $exp2)
+                    (let* 
+                        (
+                            ($type1 (case $exp1
+                                (
+                                    (($op1 $b $c) subtree)
+                                    
+                                    ($_ not-subtree)
+                                )
+                            ))
+                            ($type2 (case $exp2
+                                (
+                                    (($op1 $b $c) subtree)
+                                    ($_ not-subtree)
+                                )
+                            ))
+                        )
+                        (if (and (== $type1 subtree) (== $type2 subtree))
+                            (and (check-branchset $exp1 $branch-set) (check-branchset $exp2 $branch-set))
+
+                            (if (and (== $type1 subtree) (== $type2 not-subtree))
+                                (if (== $op AND)
+                                    (check-branchset $exp1 (append (Cons $exp2 Nil) $branch-set))
+                                    (check-branchset $exp1 $branch-set)
+                                ) 
+                                
+                                (if (and (== $type1 not-subtree) (== $type2 subtree))
+                                    (if (== $op AND)
+                                        (check-branchset $exp2 (append (Cons $exp1 Nil) $branch-set))
+                                        (check-branchset $exp2 $branch-set)
+                                    )
+                                    
+                                    (let $all_branchset (append (Cons $exp1 (Cons $exp2 Nil)) $branch-set)
+                                        (check-duplicate $all_branchset) 
+                                       
+                                    )
+                                )
+                            )                                           
+                        )
+                    )
+            )
+            
+            ($_ False)
+        )
+    )
+)
+
+(= (check-branchsetnot $exp $branch-set)
     (case $exp
         (
             (($op $exp1 $exp2)
@@ -108,26 +172,31 @@
                             ($type2 (get-metatype $exp2))
                         )
                         (if (and (== $type1 Expression) (== $type2 Expression))
-                            (and (check-branchset $exp1 $branch-set)
-                                    (check-branchset $exp2 $branch-set))
+                            ;; (and (check-branchsetnot $exp1 $branch-set)
+                            ;;         (check-branchsetnot $exp2 $branch-set))
 
-                            (if (and (== $type1 Expression) (== $type2 Symbol))
-                                (if (== $op AND)
-                                    (check-branchset $exp1 (append (Cons $exp2 Nil) $branch-set))
-                                    (check-branchset $exp1 $branch-set)
-                                ) 
+                            ;; (if (and (== $type1 Expression) (== $type2 Symbol))
+                            ;;     (if (== $op AND)
+                            ;;         (check-branchsetnot $exp1 (append (Cons $exp2 Nil) $branch-set))
+                            ;;         (check-branchsetnot $exp1 $branch-set)
+                            ;;     ) 
                                 
-                                (if (and (== $type1 Symbol) (== $type2 Expression))
-                                    (if (== $op AND)
-                                        (check-branchset $exp2 (append (Cons $exp1 Nil) $branch-set))
-                                        (check-branchset $exp2 $branch-set)
-                                    )
+                            ;;     (if (and (== $type1 Symbol) (== $type2 Expression))
+                            ;;         (if (== $op AND)
+                            ;;             (check-branchsetnot $exp2 (append (Cons $exp1 Nil) $branch-set))
+                            ;;             (check-branchsetnot $exp2 $branch-set)
+                            ;;         )
                                     
-                                    (let $all_branchset (append (Cons $exp1 (Cons $exp2 Nil)) $branch-set)
-                                        (check-duplicate $all_branchset)
-                                    )
+                            ;;         (let $all_branchset (append (Cons $exp1 (Cons $exp2 Nil)) $branch-set)
+                            ;;             (check-duplicate $all_branchset) 
+                            ;;         )
+                            ;;     )
+                            ;; )
+                            (case ($exp1 $exp2)
+                                (
+                                    (((Not $nested1) ($op2 $exp3 $exp4)) () )
                                 )
-                            )                                           
+                            )                                          
                         )
                     )
             )
@@ -135,29 +204,14 @@
         )
     )
 )
-
+!(check-duplicate (Cons 1 (Cons 2 (Cons 3 (Cons 3 Nil)))))
 !(check-branchset (AND a (AND b (AND d c))) Nil)
 !(check-branchset (AND a (OR a (AND b c))) Nil)
 
 !(check-branchset (AND a (OR b (AND a c))) Nil)
-!(check-branchset (AND (AND a (OR b (AND c a))) (OR e (AND f (OR g h)))) Nil)
+;; !(check-branchset (AND (AND a (OR b (AND c a))) (OR e (AND f (OR g h)))) Nil)
 
-!(check-branchset (AND (AND a (OR b (AND c (NOT a)))) (OR e (AND f (OR g h)))) Nil)
-
-
-
-;;         (Cons (get-branchset $exp1 $branch-set) (Cons (get-branchset $exp2 $branch-set)))
-;;         )
-;;     )
-;;     (($op $exp1) 
-;;             (if (== $exp1 NOT) (get-branchset $exp1 $branch-set) (ERROR The format is wrong)))
-;;     )
-
-;; ))
-;; (= (get-dominant-set $exp1 $dominant-set)(
-
-;;     )
-;; )
+;; !(check-branchset (AND (AND a (OR b (AND c (NOT a)))) (OR e (AND f (OR g h)))) Nil)
 
 
 (= (not-checker $exp)
@@ -177,14 +231,7 @@
         )
     )
 )
-(= (check-alternate $exp)
-    (if (== (get-metatype $exp) Symbol) 
-        True
-        (case $exp (
-            (($op )())
-        ))
 
-))
 
 ;; (= (not-gate $exp)
 ;;     (case $exp (

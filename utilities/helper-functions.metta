@@ -203,7 +203,7 @@
         (case $exp (
             (($op $exp1 $exp2)(
                 (if (and (==(get-metatype $exp1) Symbol) (==(get-metatype $exp2) Symbol))
-                    (append (Cons $exp1 (Cons $exp2)) $guard-set)
+                    (append (Cons $exp1 (Cons $exp2 Nil)) $guard-set)
         
                     (if (and (==(get-metatype $exp1) Symbol) (==(get-metatype $exp2) Expression))
                         
@@ -229,7 +229,7 @@
     
     )
 ))
-
+;;(= n-ary-and )
 
 ;; main = print $ mergeSort [3, 6, 2, 7, 1, 5, 4]
 ;; !(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
