@@ -83,27 +83,27 @@
     ))
 )
 
-(= (check-duplicate $list)
+(= (check-not-duplicated $list)
     (case $list
         (
             (Nil True)
             ((Cons $x $xs)
                 (if (member $x $xs)
                     False
-                    (check-duplicate $xs)
+                    (check-not-duplicated $xs)
                 )
             )
         )
     )
 )
-(= (check-not $list)
+(= (check-not-inverse-duplicated $list)
     (case $list
         (
             (Nil True)
             ((Cons $x $xs)
                 (if (member-not $x $xs)
                     False
-                    (check-not $xs)
+                    (check-not-inverse-duplicated $xs)
                 )
             )
         )
@@ -148,7 +148,7 @@
                                     )
                                     
                                     (let $all_branchset (append (Cons $exp1 (Cons $exp2 Nil)) $branch-set)
-                                        (check-duplicate $all_branchset) 
+                                        (check-not-duplicated $all_branchset) 
                                        
                                     )
                                 )
@@ -204,14 +204,17 @@
         )
     )
 )
-!(check-duplicate (Cons 1 (Cons 2 (Cons 3 (Cons 3 Nil)))))
+;; !(check-duplicate (Cons 1 (Cons 2 (Cons 3 (Cons 3 Nil)))))
 !(check-branchset (AND a (AND b (AND d c))) Nil)
 !(check-branchset (AND a (OR a (AND b c))) Nil)
 
 !(check-branchset (AND a (OR b (AND a c))) Nil)
-;; !(check-branchset (AND (AND a (OR b (AND c a))) (OR e (AND f (OR g h)))) Nil)
+!(check-branchset (AND (AND a (OR b (AND c a))) (OR e (AND f (OR g h)))) Nil)
 
 ;; !(check-branchset (AND (AND a (OR b (AND c (NOT a)))) (OR e (AND f (OR g h)))) Nil)
+!(append (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons a (Cons b (Cons c (Cons (Not a) Nil)))))
+!(check-not-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (Not a) Nil))))))))
+!(check-not-inverse-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (Not a) Nil))))))))
 
 
 (= (not-checker $exp)
