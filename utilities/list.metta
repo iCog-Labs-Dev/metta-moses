@@ -84,6 +84,7 @@
     )
 )
 ;; !(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
+!(append (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons 4 (Cons 5 Nil)))
 ;; !(quickSort (Cons "False" (Cons "A" (Cons "True" (Cons "B" Nil)))))
 ;; !(quickSort (Cons A (Cons True Nil)))
 ;; !(quickSort (Cons A (Cons B Nil)))
