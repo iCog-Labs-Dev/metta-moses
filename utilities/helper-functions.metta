@@ -170,17 +170,17 @@
 (:car (-> List Atom))
 (=(car ()) Nil)
 (=(car (Cons $x $xs)) $x)
-(:zip (->List List Atom))
-(=(zip $exp1 $exp2)
-        (let* (
-                ($type-exp1 (get-metatype $exp1))
-                ($type-exp2 (get-metatype $exp2))
-                        )(if (and (== $type-exp1 Expression) (== $type-exp2 Expression))
-                                (case $exp1 $exp2(
-                                    ((()())())
-                                    (((Cons $x $xs)(Cons $y $ys))(Cons $x (Cons $y (zip $exp1 $exp2))))
-                                ))
-                        )))
+;; (:zip (->List List Atom))
+;; (=(zip $exp1 $exp2)
+;;         (let* (
+;;                 ($type-exp1 (get-metatype $exp1))
+;;                 ($type-exp2 (get-metatype $exp2))
+;;                         )(if (and (== $type-exp1 Expression) (== $type-exp2 Expression))
+;;                                 (case $exp1 $exp2(
+;;                                     ((()())())
+;;                                     (((Cons $x $xs)(Cons $y $ys))(Cons $x (Cons $y (zip $exp1 $exp2))))
+;;                                 ))
+;;                         )))
 ;; (:union (-> List List List))
 ;; ;; (=(union $set1 $set2)(
 
@@ -195,31 +195,34 @@
 ))
 
 (:get-children (-> Expression List List))
-(= (get-children $exp $guard-set)(
+(= (get-children $exp $guard-set)
     (if (==(get-metatype $exp) Symbol)
         Nil
     (if (==(get-metatype $exp) Expression)
         (case $exp (
-            (($op $exp1 $exp2)(
-                (if (and (==(get-metatype $exp1) Symbol) (==(get-metatype $exp2) Symbol))
+            (($op $exp1 $exp2)
+                (let* (
+                    ($type1 (get-metatype $exp1))
+                    ($type2 (get-metatype $exp2))
+                )
+                (if (and (== $type1 Symbol) (== $type2 Symbol))
                     (append (Cons $exp1 (Cons $exp2 Nil)) $guard-set)
         
-                    (if (and (==(get-metatype $exp1) Symbol) (==(get-metatype $exp2) Expression))
+                    (if (and (== $type1 Symbol) (== $type2 Expression))
                         
-                        (append (Cons $exp1 (get-children $exp2 $guard-set)))
+                        (append (Cons $exp1 Nil) (get-children $exp2 $guard-set))
                     
-                        (if (and (==(get-metatype $exp1) Expression) (==(get-metatype $exp2) Symbol))
+                        (if (and (== $type1 Expression) (== $type2 Symbol))
+                            (append (Cons $exp2 Nil) (get-children $exp1 $guard-set))
+                            (append (get-children $exp1 $guard-set) (get-children $exp2 $guard-set))
                             
-                            (append (Cons (get-children $exp1 $guard-set) $exp2))
-                            (if (and (==(get-metatype $exp1) Expression) (==(get-metatype $exp2) Expression))
-                                (append (get-children $exp1 $guard-set) (get-children $exp2 $guard-set))
-                            )
                         )
                     )
 
                 )
-            ))
-            ($_ (Error This shouldn't be the correct format))
+            )
+            )
+    
             
 
         ))
@@ -227,7 +230,7 @@
     )
     
     )
-))
+)
 (:get-guard-set (-> Expression List List))
 (= (get-guard-set $exp)
         (case $exp (
@@ -286,8 +289,8 @@
         )
     )
 )
-!(n-ary-or (Cons False (Cons True (Cons False (Cons True Nil)))))
-!(n-ary-and (Cons True (Cons True (Cons False (Cons True Nil)))))
+;; !(n-ary-or (Cons False (Cons True (Cons False (Cons True Nil)))))
+;; !(n-ary-and (Cons True (Cons True (Cons False (Cons True Nil)))))
 
 ;; main = print $ mergeSort [3, 6, 2, 7, 1, 5, 4]
 ;; !(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
@@ -295,5 +298,6 @@
 ;;!(intersection (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 4 (Cons 5 (Cons 6 Nil)))) Nil)
 ;;!(get-type True)
 ;; !(cdr (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
-;;!(check_tree_depth (AND (OR x1 x2) (AND x3 x4)))
+!(get-children (AND (OR x1 x2) (AND x3 x4)) Nil)
+!(get-guard-set (AND (OR x1 x2) (AND x3 x4)))
 ;;!(zip (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
