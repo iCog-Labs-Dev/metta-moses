@@ -4,34 +4,6 @@
 ;; (get-guard-set (AND a1 a2) Nil)
 ;; (= (ret-append $set1 $set2)(append $set1 $set2))
 
-(:get-guard-set (-> Expression List List))
-(= (get-guard-set $exp)
-        (case $exp (
-            (($OP $exp1 $exp2)
-                (if (and (== (get-metatype $exp1) Expression) (== (get-metatype $exp2) Expression)) 
-                    Nil
-                    (if (and (== (get-metatype $exp1) Symbol) (== (get-metatype $exp2) Symbol))
-                        (Cons $exp1 (Cons $exp2 Nil))
-                        (if (and (== (get-metatype $exp1) Symbol) (== (get-metatype $exp2) Expression))
-                            (Cons $exp1 (Cons Nil))
-                            (Cons $exp2 (Cons Nil))
-                            
-                        )
-                    )
-                )
-            )
-            (($OP $exp)(
-                (if (== NOT $exp) ($OP $exp) ERROR)
-            ))
-            ($exp $exp)
-
-        
-    )
-)
-)
-
-
-
 
 (= (append Nil $ys) $ys)
 (= (append (Cons $x $xs) $ys) (Cons $x (append $xs $ys)))

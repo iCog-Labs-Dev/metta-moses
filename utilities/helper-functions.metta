@@ -229,6 +229,36 @@
     
     )
 ))
+(:get-guard-set (-> Expression List List))
+(= (get-guard-set $exp)
+        (case $exp (
+            (($OP $exp1 $exp2)
+            (let* (
+                    ($type1 (get-metatype $exp1))
+                    ($type2 (get-metatype $exp2)) 
+                )
+                (if (and (== $type1 Expression) (== $type2 Expression)) 
+                    Nil
+                    (if (and (== $type1 Symbol) (== $type2 Symbol))
+                        (Cons $exp1 (Cons $exp2 Nil))
+                        (if (and (== $type1 Symbol) (== $type2 Expression))
+                            (Cons $exp1 Nil)
+                            (Cons $exp2 Nil)
+                            
+                        )
+                    )
+                )
+            )
+            )
+            (($OP $exp)(
+                (if (== NOT $exp) ($OP $exp) ERROR)
+            ))
+            ($exp $exp)
+
+        
+    )
+)
+)
 ;;(= n-ary-and )
 
 ;; main = print $ mergeSort [3, 6, 2, 7, 1, 5, 4]
