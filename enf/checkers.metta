@@ -126,7 +126,7 @@
                                     )
                                     
                                     (let $all_branchset (append (Cons $exp1 (Cons $exp2 Nil)) $branch-set)
-                                        (check-not-duplicated $all_branchset) 
+                                        (and (check-not-duplicated $all_branchset) (check-not-inverse-duplicated $all_branchset))
                                        
                                     )
                                 )
@@ -189,12 +189,12 @@
 ;; !(check-branchset (AND a (OR b (AND a c))) Nil)
 ;; !(check-branchset (AND (AND a (OR b (AND c a))) (OR e (AND f (OR g h)))) Nil)
 
-;; !(check-branchset (AND (AND a (OR b (AND c (NOT a)))) (OR e (AND f (OR g h)))) Nil)
+ !(check-branchset (AND (AND a (OR b (AND c (NOT a)))) (OR e (AND f (OR g h)))) Nil)
 ;; !(append (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons a (Cons b (Cons c (Cons (NOT a) Nil)))))
 ;; !(check-not-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
-!(check-not-inverse-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
-!(member-not (NOT a) (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
-!(member-not a (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
+;; !(check-not-inverse-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
+;; !(member-not (NOT a) (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
+;; !(member-not a (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
 (= (not-checker $exp)
     (if (== (get-metatype $exp) Symbol)
         True
