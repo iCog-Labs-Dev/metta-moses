@@ -112,9 +112,7 @@
 (= (split Nil) (Nil Nil))
 ;; split [x] = ([x], [])
 (= (split (Cons $x Nil)) ((Cons $x Nil) Nil))
-;; split (x:y:xs) = 
-;;     let (left, right) = split xs
-;;     in (x:left, y:right)
+
 (= (split (Cons $x (Cons $y $xs)))
     (let ($left $right) (split $xs)
         ((Cons $x $left) (Cons $y $right))
@@ -174,7 +172,8 @@
 (=(car (Cons $x $xs)) $x)
 (:zip (->List List Atom))
 (=(zip $exp1 $exp2)
-        (let* (($type-exp1 (get-metatype $exp1))
+        (let* (
+                ($type-exp1 (get-metatype $exp1))
                 ($type-exp2 (get-metatype $exp2))
                         )(if (and (== $type-exp1 Expression) (== $type-exp2 Expression))
                                 (case $exp1 $exp2(
@@ -259,7 +258,36 @@
     )
 )
 )
-;;(= n-ary-and )
+(=(n-ary-and $exp)
+    (case $exp (
+            (Nil True)
+            ((Cons $x $xs)
+                (if (== $x True)
+                    (n-ary-and $xs)
+                    False
+                )
+            )
+
+        )
+    )
+)
+
+(=(n-ary-or $exp)
+    (case $exp (
+            (Nil False)
+            ((Cons $x $xs)
+                (if (== $x True)
+                    True
+                    (n-ary-or $xs)
+                    
+                )
+            )
+
+        )
+    )
+)
+!(n-ary-or (Cons False (Cons True (Cons False (Cons True Nil)))))
+!(n-ary-and (Cons True (Cons True (Cons False (Cons True Nil)))))
 
 ;; main = print $ mergeSort [3, 6, 2, 7, 1, 5, 4]
 ;; !(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
@@ -267,5 +295,5 @@
 ;;!(intersection (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 4 (Cons 5 (Cons 6 Nil)))) Nil)
 ;;!(get-type True)
 ;; !(cdr (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
-!(check_tree_depth (AND (OR x1 x2) (AND x3 x4)))
-!(zip (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
+;;!(check_tree_depth (AND (OR x1 x2) (AND x3 x4)))
+;;!(zip (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))

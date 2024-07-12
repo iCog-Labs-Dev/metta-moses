@@ -112,48 +112,7 @@
     )
 )
 
-(= (check-branchsetnot $exp $branch-set)
-    (case $exp
-        (
-            (($op $exp1 $exp2)
-                    (let* 
-                        (
-                            ($type1 (get-metatype $exp1))
-                            ($type2 (get-metatype $exp2))
-                        )
-                        (if (and (== $type1 Expression) (== $type2 Expression))
-                            ;; (and (check-branchsetnot $exp1 $branch-set)
-                            ;;         (check-branchsetnot $exp2 $branch-set))
 
-                            ;; (if (and (== $type1 Expression) (== $type2 Symbol))
-                            ;;     (if (== $op AND)
-                            ;;         (check-branchsetnot $exp1 (append (Cons $exp2 Nil) $branch-set))
-                            ;;         (check-branchsetnot $exp1 $branch-set)
-                            ;;     ) 
-                                
-                            ;;     (if (and (== $type1 Symbol) (== $type2 Expression))
-                            ;;         (if (== $op AND)
-                            ;;             (check-branchsetnot $exp2 (append (Cons $exp1 Nil) $branch-set))
-                            ;;             (check-branchsetnot $exp2 $branch-set)
-                            ;;         )
-                                    
-                            ;;         (let $all_branchset (append (Cons $exp1 (Cons $exp2 Nil)) $branch-set)
-                            ;;             (check-duplicate $all_branchset) 
-                            ;;         )
-                            ;;     )
-                            ;; )
-                            (case ($exp1 $exp2)
-                                (
-                                    (((Not $nested1) ($op2 $exp3 $exp4)) () )
-                                )
-                            )                                          
-                        )
-                    )
-            )
-            ($else False)
-        )
-    )
-)
 ;; !(check-duplicate (Cons 1 (Cons 2 (Cons 3 (Cons 3 Nil)))))
 ;; !(check-branchset (AND a (AND b (AND d c))) Nil)
 ;; !(check-branchset (AND a (OR a (AND b c))) Nil)
@@ -161,7 +120,7 @@
 ;; !(check-branchset (AND a (OR b (AND a c))) Nil)
 ;; !(check-branchset (AND (AND a (OR b (AND c a))) (OR e (AND f (OR g h)))) Nil)
 
- !(check-branchset (AND (AND a (OR b (AND c (NOT a)))) (OR e (AND f (OR g h)))) Nil)
+ ;;!(check-branchset (AND (AND a (OR b (AND c (NOT a)))) (OR e (AND f (OR g h)))) Nil)
 ;; !(append (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons a (Cons b (Cons c (Cons (NOT a) Nil)))))
 ;; !(check-not-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
 ;; !(check-not-inverse-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
