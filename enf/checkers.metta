@@ -4,56 +4,34 @@
 ;; (get-guard-set (AND a1 a2) Nil)
 ;; (= (ret-append $set1 $set2)(append $set1 $set2))
 
-;;(:get-guard-set (-> Expression List List))
+(:get-guard-set (-> Expression List List))
 (= (get-guard-set $exp)
         (case $exp (
             (($OP $exp1 $exp2)
                 (if (and (== (get-metatype $exp1) Expression) (== (get-metatype $exp2) Expression)) 
-                    (Cons Nil)
+                    Nil
                     (if (and (== (get-metatype $exp1) Symbol) (== (get-metatype $exp2) Symbol))
-                         (Cons $exp1 (Cons $exp2))
+                        (Cons $exp1 (Cons $exp2 Nil))
                         (if (and (== (get-metatype $exp1) Symbol) (== (get-metatype $exp2) Expression))
                             (Cons $exp1 (Cons Nil))
-                            (if (and (== (get-metatype $exp1) Expression) (== (get-metatype $exp2) Symbol))
-                                (Cons $exp2 (Cons Nil))
-                                (ERROR "the format is wrong")
-                            )
+                            (Cons $exp2 (Cons Nil))
+                            
                         )
                     )
                 )
             )
             (($OP $exp)(
-                (if (== NOT $exp) (NOT $exp) ERROR)
+                (if (== NOT $exp) ($OP $exp) ERROR)
             ))
             ($exp $exp)
 
         
-    ))
+    )
+)
 )
 
 
-;; (= (get-branchset $exp $branch-set)
-;;     (case $exp (
-;;         (($OP $exp1 $exp2)
-;;             (if (== $OP AND)
 
-;;                 (if (and (==(get-metatype $exp1) Expression) (not (==(get-metatype $exp2) Expression)))
-;;                     (get-branchset $exp1 (append $exp2 $branch-set))
-;;                     (if (and (not (== (get-metatype $exp1) Expression) (==(get-metatype $exp2) Expression))
-;;                         (get-branchset (append $exp1 $branch-set) $exp2)
-;;                         (if (and (not (== (get-metatype $exp1) Expression))) (not (==(get-metatype $exp2) Expression)))
-;;                             (get-branchset (append $exp1 $branch-set) $exp2)
-;;                             (Error This shouldn't exist) 
-;;                         )
-;;                     )
-;;                 )
-;;                 ((get-branchset $exp1 (get-branchset $exp2 guard-set)) )
-                
-;;             )
-;;         )
-
-;;     )
-;; ))
 
 (= (append Nil $ys) $ys)
 (= (append (Cons $x $xs) $ys) (Cons $x (append $xs $ys)))
@@ -77,7 +55,7 @@
         ((Cons $x $xs)
             (if (or (== (NOT $x) $elem) (== $x (NOT $elem)))
                 True
-                (member $elem $xs)
+                (member-not $elem $xs)
             )
         )
     ))
@@ -205,18 +183,18 @@
     )
 )
 ;; !(check-duplicate (Cons 1 (Cons 2 (Cons 3 (Cons 3 Nil)))))
-!(check-branchset (AND a (AND b (AND d c))) Nil)
-!(check-branchset (AND a (OR a (AND b c))) Nil)
+;; !(check-branchset (AND a (AND b (AND d c))) Nil)
+;; !(check-branchset (AND a (OR a (AND b c))) Nil)
 
-!(check-branchset (AND a (OR b (AND a c))) Nil)
-!(check-branchset (AND (AND a (OR b (AND c a))) (OR e (AND f (OR g h)))) Nil)
+;; !(check-branchset (AND a (OR b (AND a c))) Nil)
+;; !(check-branchset (AND (AND a (OR b (AND c a))) (OR e (AND f (OR g h)))) Nil)
 
 ;; !(check-branchset (AND (AND a (OR b (AND c (NOT a)))) (OR e (AND f (OR g h)))) Nil)
-!(append (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons a (Cons b (Cons c (Cons (Not a) Nil)))))
-!(check-not-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (Not a) Nil))))))))
-!(check-not-inverse-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (Not a) Nil))))))))
-
-
+;; !(append (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons a (Cons b (Cons c (Cons (NOT a) Nil)))))
+;; !(check-not-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
+!(check-not-inverse-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
+!(member-not (NOT a) (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
+!(member-not a (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
 (= (not-checker $exp)
     (if (== (get-metatype $exp) Symbol)
         True
