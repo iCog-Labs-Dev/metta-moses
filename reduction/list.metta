@@ -2,15 +2,20 @@
 ;; (NOT a b) ~~ (AND b a)                                   || (Cons-and a (Cons-and b Nil)
 ;; (AND (OR a b) (OR c d)) ~~ (AND (OR d c) (OR b a))       || (Cons-and (Cons-or a (Cons-or b Nil)) (Cons-and (Cons-or c (Cons-or d Nil)) Nil))
 
-;; (= (flatten $exp)
-;;     (case $exp
-;;         (
-;;             ((AND $a $b) (Cons-and (flatten-and $a) (Cons-and (flatten $b) Nil)))
-;;             ((OR $a $b) (Cons-or (flatten $a) (Cons-or (flatten $b) Nil)))
-;;             ($symbol $symbol)
-;;         )
-;;     )
-;; )
+(= (flatten-and $exp)
+    (let (AND $a $b) $exp
+        (Cons-and (flatten $a) (Cons-and (flatten $b) Nil))
+    )
+)
+(= (flatten $exp)
+    (case $exp
+        (
+            ((AND $a $b) (append (flatten-and $a) (Cons-and (flatten $b) Nil)))
+            ((OR $a $b) (Cons-or (flatten $a) (Cons-or (flatten $b) Nil)))
+            ($symbol $symbol)
+        )
+    )
+)
 ;; ! (flatten (AND a b))
 ;; ! (flatten (AND a (AND b (AND c d))))
 ;; ! (flatten (AND a (OR b c)))
@@ -33,6 +38,7 @@
 ;;         (case $list1
 ;;             (Nil False)
 ;;             ((Cons $x $xs)
+
 
 ;;             )
 ;;         )
@@ -178,33 +184,70 @@
 ;; !(complement (OR (AND a b) (NOT (AND b a))))
 ;; !(complement (OR (AND a b) (NOT (AND b b))))
 
+;; (= (complement $exp)
+;;     (let ($op $a $b) $exp
+;;         (case $a
+;;             (
+;;                 (($op1 $a1 $a2)
+;;                     (if )
+;;                 )
+;;                 ((AND $a1 $a2) (or (complement ($a1 $b)) (complement ($a2 $b))))
+;;                 ((OR $a1 $a2) (and (complement ($a1 $b)) (complement ($a2 $b))))
+;;                 ((NOT $a1) (member $op $a1 $b))
+;;                 ($symbol (member $op (NOT $a) $b))
+;;             )
+;;         )
+;;     )
+;; )
+;; !(complement (AND (AND a b) (AND (NOT a) b))) ; -a || -b --> 0
+
 (= (complement $exp)
-    (let ($op $a $b) $exp
-        (case $a
-            (
-                (($op1 $a1 $a2)
-                    (if )
-                )
-                ((AND $a1 $a2) (or (complement ($a1 $b)) (complement ($a2 $b))))
-                ((OR $a1 $a2) (and (complement ($a1 $b)) (complement ($a2 $b))))
-                ((NOT $a1) (member $op $a1 $b))
-                ($symbol (member $op (NOT $a) $b))
-            )
+    (case $exp
+        (
+            ((AND $a $b) (OR (complement $a) (complement $b)))
+            ((OR $a $b) (AND (complement $a) (complement $b)))
+            ((NOT $a) $a)
+            ($a (NOT $a))
         )
     )
 )
-!(complement (AND (AND a b) (AND (NOT a) b))) ; -a || -b --> 0
+; TODO: add more edge cases for complement law
+(= (complement-law $exp)
+    (let ($op $a $b) $exp
+        (if (subset (complement $a) $b)
+            (== $op OR)
+            $exp
+        )
+    )
+)
+
+;; (if (and (== (exp-type $a) AND) (== (exp-type $b) AND))
+;;     (if (or (member AND $a $exp) (member AND $b $exp))
+    
+;;     )
+;;     (if (and (== (exp-type $a) OR) (== (exp-type $b) OR))
+;;         -
+;;         -
+;;     )
+;;     ;; ((OR $a $b) (and (member OR $a $exp) (member OR $b $exp)))
+;;     ;; ((NOT $a) (member NOT $a $exp))
+;;     ;; ($symbol (member $_ $symbol $exp))            
+;; )
+
+;; !(member AND (AND a b) (AND (AND (NOT a) b) (AND a (OR a b))))
+;; !(subset (AND a b) (AND (AND (NOT a) b) (AND a (OR a b))))
+;; ;; !(subset (AND (AND a (AND b c)) (AND (AND d e) (AND f (AND g h)))) (AND (AND h (AND b (AND a g))) (AND (AND c (AND e d)) (AND f i))))
+;; !(equal-exp (AND (AND a (AND b c)) (AND (AND d e) (AND f (AND g h)))) (AND (AND h (AND b (AND a g))) (AND (AND c (AND e d)) i)))
 
 
+;; !(complement-law (AND (AND a b) (AND (AND (NOT a) b) (OR a b)))) ; -a || -b --> 0
+;; !(complement-law (AND (OR a b) (AND (AND (NOT a) b) (OR a b))))  ; -a && -b --> 0
 
-!(complement (AND (AND a b) (AND (AND (NOT a) b) (OR a b)))) ; -a || -b --> 0
-!(complement (AND (OR a b) (AND (AND (NOT a) b) (OR a b))))  ; -a && -b --> 0
+;; !(complement-law (OR (AND a b) (OR (AND (NOT a) b) (OR (NOT a) (NOT b)))))  ; -a && -b --> 1
+;; !(complement-law (OR (OR a b) (OR (AND (NOT a) b) (OR (NOT a) b))))    ; -a || -b --> 1
 
-!(complement (OR (AND a b) (OR (AND (NOT a) b) (OR (NOT a) (NOT b)))))  ; -a && -b --> 1
-!(complement (OR (OR a b) (OR (AND (NOT a) b) (OR (NOT a) b))))    ; -a || -b --> 1
-
-!(complement (AND b (AND (AND (NOT b) c) (OR a b))))
-!(complement (AND (NOT a) (AND (AND (NOT b) a) (OR a b))))
+;; !(complement-law (AND (NOT a) (AND (AND (NOT b) a) (OR a b))))
+;; !(complement-law (AND b (AND (AND (NOT b) c) (OR a b))))
 
 (= (idempotent $exp)
     (let ($op $a $b) $exp
@@ -218,6 +261,10 @@
 ;; !(idempotent (AND (AND a b) (AND b a)))
 ;; !(idempotent (OR (AND a b) (AND b a)))
 ;; !(idempotent (OR (AND a b) (AND b b)))
+; TODO: Update subset function
+!(idempotent (OR (AND (OR a b) (AND (NOT c) d)) (AND (AND d (NOT c)) (OR b a))) )
+
+;;((AND x1 x2) ()
 
 (= (absorption $exp)
     (let ($op1 $a ($op2 $b $c)) $exp
