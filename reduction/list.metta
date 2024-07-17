@@ -2,20 +2,20 @@
 ;; (NOT a b) ~~ (AND b a)                                   || (Cons-and a (Cons-and b Nil)
 ;; (AND (OR a b) (OR c d)) ~~ (AND (OR d c) (OR b a))       || (Cons-and (Cons-or a (Cons-or b Nil)) (Cons-and (Cons-or c (Cons-or d Nil)) Nil))
 
-(= (flatten-and $exp)
-    (let (AND $a $b) $exp
-        (Cons-and (flatten $a) (Cons-and (flatten $b) Nil))
-    )
-)
-(= (flatten $exp)
-    (case $exp
-        (
-            ((AND $a $b) (append (flatten-and $a) (Cons-and (flatten $b) Nil)))
-            ((OR $a $b) (Cons-or (flatten $a) (Cons-or (flatten $b) Nil)))
-            ($symbol $symbol)
-        )
-    )
-)
+;; (= (flatten-and $exp)
+;;     (let (AND $a $b) $exp
+;;         (Cons-and (flatten $a) (Cons-and (flatten $b) Nil))
+;;     )
+;; )
+;; (= (flatten $exp)
+;;     (case $exp
+;;         (
+;;             ((AND $a $b) (append (flatten-and $a) (Cons-and (flatten $b) Nil)))
+;;             ((OR $a $b) (Cons-or (flatten $a) (Cons-or (flatten $b) Nil)))
+;;             ($symbol $symbol)
+;;         )
+;;     )
+;; )
 ;; ! (flatten (AND a b))
 ;; ! (flatten (AND a (AND b (AND c d))))
 ;; ! (flatten (AND a (OR b c)))
@@ -123,6 +123,37 @@
 
 ;; !(member OR c (OR (AND a (AND c d))))
 ;; !(member AND (OR b d) (AND a (AND c (OR b c))))
+
+(= (depth $exp $init)
+    (case $exp
+        (
+            (($op $a $b)
+                (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
+                    (let* (
+                            ($depth-a (depth $a (+ $init 1)))
+                            ($depth-b (depth $b (+ $init 1)))
+                        )
+                        (if (> $depth-a $depth-b)
+                            $depth-a
+                            $depth-b
+                        )
+                    )
+                    (+ $init 1)
+                )
+            )
+            ($else $init)
+        )
+    )
+)
+;; !(depth (NOT a) 0)
+;; !(depth (AND a b) 0)
+;; !(depth (AND a (AND b c)) 0)
+;; !(depth (AND a (AND b (OR c d))) 0)
+;; !(depth (AND a (AND b (OR c (AND d (NOT e))))) 0)
+;; !(depth (AND a (AND b (OR c (AND d (NOT (AND a b)))))) 0)
+;; !(depth (AND (AND b (OR c (AND d (NOT (AND a b))))) (AND b (OR c (AND d (NOT e))))) 0)
+;; !(depth (AND (AND b c) (AND d (OR a (AND s (OR b (AND s c)))))) 0)
+
 (= (subset $sub_exp $exp)
     (case $sub_exp
         (
@@ -213,10 +244,11 @@
 )
 ; TODO: add more edge cases for complement law
 (= (complement-law $exp)
-    (let ($op $a $b) $exp
-        (if (subset (complement $a) $b)
-            (== $op OR)
-            $exp
+    (case $exp
+        (
+            ( (AND $a $b) (if (member AND (complement $a) $b) False $exp) )
+            ( (OR $a $b) (if (member OR (complement $a) $b) True $exp) )
+            ( $else $exp )
         )
     )
 )
@@ -240,7 +272,7 @@
 ;; !(equal-exp (AND (AND a (AND b c)) (AND (AND d e) (AND f (AND g h)))) (AND (AND h (AND b (AND a g))) (AND (AND c (AND e d)) i)))
 
 
-;; !(complement-law (AND (AND a b) (AND (AND (NOT a) b) (OR a b)))) ; -a || -b --> 0
+!(complement-law (AND (AND a b) (AND (AND (NOT a) (NOT b)) (OR (NOT a) (NOT b))))) ; -a || -b --> 0
 ;; !(complement-law (AND (OR a b) (AND (AND (NOT a) b) (OR a b))))  ; -a && -b --> 0
 
 ;; !(complement-law (OR (AND a b) (OR (AND (NOT a) b) (OR (NOT a) (NOT b)))))  ; -a && -b --> 1
@@ -262,7 +294,7 @@
 ;; !(idempotent (OR (AND a b) (AND b a)))
 ;; !(idempotent (OR (AND a b) (AND b b)))
 ; TODO: Update subset function
-!(idempotent (OR (AND (OR a b) (AND (NOT c) d)) (AND (AND d (NOT c)) (OR b a))) )
+;; !(idempotent (OR (AND (OR a b) (AND (NOT c) d)) (AND (AND d (NOT c)) (OR b a))) )
 
 ;;((AND x1 x2) ()
 
