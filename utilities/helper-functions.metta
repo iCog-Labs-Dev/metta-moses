@@ -151,34 +151,39 @@
         (merge (mergeSort $left) (mergeSort $right))
     )
 )
-(:intersection-set (->List List List List))
-(= (intersection-set $list1 $list2 $set)
-    (case ($list1 $list2)
-        (
-            ((Nil (Cons $y $ys)) $set)
-            (((Cons $x $xs) Nil) $set)
-            ((Nil Nil) $set)
-            (((Cons $x $xs) (Cons $y $ys))
-                (let* (
-                        ($is-x-member (member $x $ys))
-                        ($is-y-member (member $y $xs))
-                      )
-                        (if (and $is-x-member $is-y-member)
-                            (intersection-set $xs $ys (append $set (Cons $x (Cons $y Nil))))
-                            (if (== $x $y)
-                                (intersection-set $xs $ys (append $set (Cons $x Nil)))
-                                (if $x-member 
-                                    (intersection-set $xs $ys (append $set (Cons $x Nil)))
-                                    (if $y-member
-                                        (intersection-set $xs $ys (append $set (Cons $y Nil)))
-                                        (intersection-set $xs $ys $set)
-                                    )
-                                )   
+(:intersect (->List List List List))
+(= (intersect $list1 $list2 $set)
+    (let* (
+        ($type1 (get-metatype $list1))
+        ($type2 (get-metatype $list2))
+    )
+        (if (and (== $type1 Expression) (== $type2 Expression))
+            (case ($list1 $list2)
+                (
+                    (((Cons $x $xs) (Cons $y $ys))
+                        (let* (
+                                ($is-x-member (member $x $ys))
+                                ($is-y-member (member $y $xs))
                             )
+                                (if (and $is-x-member $is-y-member)
+                                    (intersect $xs $ys (append $set (Cons $x (Cons $y Nil))))
+                                    (if (== $x $y)
+                                        (intersect $xs $ys (append $set (Cons $x Nil)))
+                                        (if $x-member 
+                                            (intersect $xs $ys (append $set (Cons $x Nil)))
+                                            (if $y-member
+                                                (intersect $xs $ys (append $set (Cons $y Nil)))
+                                                (intersect $xs $ys $set)
+                                            )
+                                        )   
+                                    )
+                                )
                         )
+                    )
+                    
                 )
             )
-            
+            $set
         )
     )
 )
@@ -198,14 +203,25 @@
 (=(car ()) Nil)
 (=(car (Cons $x $xs)) $x)
 
+
 (=(check_tree_depth $data)
-    (if (== (get-metatype $data) Expression)
-        (case $data (
-            (($OP $EXP1 $EXP2) (+ 1  (check_tree_depth $EXP1)))
-            (($OP $EXP1) 1)
-        ))
-        0
-))
+    (case $data (
+            (($op $exp1 $exp2)
+                
+                 (+ 1 (max (check_tree_depth $exp1) (check_tree_depth $exp2)))
+            )
+            (($op $exp1) 1)
+            ($_ 0)
+
+        )
+    )
+)
+(=(max $first-val $second-val)
+    (if (> $first-val $second-val) $first-val $second-val
+    )
+)
+
+
 
 (:get-children (-> Expression List List))
 (= (get-children $exp $guard-set)
@@ -302,7 +318,7 @@
         )
     )
 )
-;; (=(add-three $x $y $z) (+ (+ $x $y) $z))
+
 ;; !(n-ary-or (Cons False (Cons True (Cons False (Cons True Nil)))))
 ;; !(n-ary-and (Cons True (Cons True (Cons False (Cons True Nil)))))
 
@@ -314,7 +330,8 @@
 ;; !(cdr (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
 ;; !(get-children (AND (OR x1 x2) (AND x3 x4)) Nil)
 ;; !(get-guard-set (AND (OR x1 x2) (AND x3 x4)))
-!(intersection-set (Cons a (Cons b (Cons c Nil))) (Cons c Nil) Nil)
-!(intersection (1 2 3) (1 5 6))
+;;!(intersect (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Nil)))) Nil)
+!(check_tree_depth (AND (OR x1 x2) (AND x3 x4)))
+;;!(member 1 Nil)
 ;;!(add-three 1 2 3)
 ;;!(append (Cons a (Cons b (Cons c Nil))) (Cons c Nil))
