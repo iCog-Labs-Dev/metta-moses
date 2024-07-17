@@ -192,7 +192,7 @@
 
 
 ((AND $a (NOT $a)) False)   ; (a and -a)  -->  False                (complement law)
-((Or $a (NOT $a)) False)   ; (a or -a)  -->  True                (complement law)
+((OR $a (NOT $a)) False)   ; (a or -a)  -->  True                (complement law)
 ((AND $a $a) $a)            ; (a and a)  -->  a                     (idempotent law)
 
 (member AND $a $b)          ; (a AND (a AND b))  -->  (a AND b)     (idempotent law)
@@ -200,8 +200,8 @@
 (member OR $a $b)           ; a AND (a OR b)  -->  a                (absorption law)
 (member AND $a $b)          ; a OR (a AND b)  -->  a                (absorption law)
 
-(member AND (NOT $a) $b)    ; (a AND ((not a) AND b))  -->  False     (annulment law)
-(member OR (NOT $a) $b)     ; (a OR ((not a) OR b))  -->  True       (annulment law)
+(member AND (NOT $a) $b)    ; (a AND ((not a) AND b))  -->  False     (complement law law)
+(member OR (NOT $a) $b)     ; (a OR ((not a) OR b))  -->  True       (complement law law)
 
 ;; (= (complement $exp)
 ;;     (let ($op $a (NOT $b)) $exp
@@ -272,7 +272,7 @@
 ;; !(equal-exp (AND (AND a (AND b c)) (AND (AND d e) (AND f (AND g h)))) (AND (AND h (AND b (AND a g))) (AND (AND c (AND e d)) i)))
 
 
-!(complement-law (AND (AND a b) (AND (AND (NOT a) (NOT b)) (OR (NOT a) (NOT b))))) ; -a || -b --> 0
+;; !(complement-law (AND (AND a b) (AND (AND (NOT a) (NOT b)) (OR (NOT a) (NOT b))))) ; -a || -b --> 0
 ;; !(complement-law (AND (OR a b) (AND (AND (NOT a) b) (OR a b))))  ; -a && -b --> 0
 
 ;; !(complement-law (OR (AND a b) (OR (AND (NOT a) b) (OR (NOT a) (NOT b)))))  ; -a && -b --> 1
@@ -281,7 +281,13 @@
 ;; !(complement-law (AND (NOT a) (AND (AND (NOT b) a) (OR a b))))
 ;; !(complement-law (AND b (AND (AND (NOT b) c) (OR a b))))
 
-(= (idempotent $exp)
+;; (= (idempotent $exp)
+;;     (let ($op $a $b) $exp
+;;         (if (equal-exp $a $b) $a $exp)
+;;     )
+;; )
+
+(= (idempotent-law $exp)
     (let ($op $a $b) $exp
         (if (subset $a $b)
             $b
@@ -289,35 +295,45 @@
         )
     )
 )
-;; !(idempotent (AND a (AND a b)))
-;; !(idempotent (AND (AND a b) (AND b a)))
-;; !(idempotent (OR (AND a b) (AND b a)))
-;; !(idempotent (OR (AND a b) (AND b b)))
+;; !(idempotent-law (AND a (AND a b)))
+;; !(idempotent-law (AND (AND a b) (AND b a)))
+;; !(idempotent-law (OR (AND a b) (AND b a)))
+;; !(idempotent-law (OR (AND a b) (AND b b)))
 ; TODO: Update subset function
-;; !(idempotent (OR (AND (OR a b) (AND (NOT c) d)) (AND (AND d (NOT c)) (OR b a))) )
+;; !(idempotent-law (OR (AND (OR a b) (AND (NOT c) d)) (AND (AND d (NOT c)) (OR b a))) )
 
 ;;((AND x1 x2) ()
 
-(= (absorption $exp)
+(= (absorption-idempotent-law $exp)
     (let ($op1 $a ($op2 $b $c)) $exp
         (if (== $op1 $op2)
-            (idempotent $exp) ; ??
-            (if (or (member $op2 $a $b) (member $op2 $b $c)) ;(subset $a ($op2 $b $c))
+            (idempotent-law $exp)
+            (if (or (member $op2 $a $b) (member $op2 $a $c)) ;(subset $a ($op2 $b $c))
                 $a
                 $exp
             )
         )
     )
 )
-;; !(absorption (AND (AND a b) (OR (AND b a) c)))
-;; !(idempotent (AND (AND a b) (AND (AND b a) c)))
+;; !(absorption-idempotent-law (AND a (AND b a)))
+;; !(absorption-idempotent-law (AND a (OR b a)))
+;; !(absorption-idempotent-law (AND (AND a b) (OR (AND b a) c)))
+;; !(idempotent-law (AND (AND a b) (AND (AND b a) c)))
 
 
 
 ;; (a OR ((not a) OR b))  -->  True       (annulment law)
 ;; (a AND ((not a) AND b))  -->  False     (annulment law)
-(= (annulment $exp)
-    (let ($op $a ($op $b $c)) $exp
-        (pass)
+(= (annulment-identity-law $exp)
+    (case (sort $exp)
+        (
+            (($op True $a)
+                (if (== $op OR) True $a)
+            )
+            (($op False $a)
+                (if (== $op AND) False $a)
+            )
+            ( $else $exp )
+        )
     )
 )
