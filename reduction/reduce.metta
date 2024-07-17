@@ -1,24 +1,23 @@
-; Original lisp version: https://web.cecs.pdx.edu/~mperkows/class478-2005/tsewen-midterm.pdf
+!(import! &self rules)
 !(import! &self utils)
-!(import! &self helper-functions)
 
 ; Main function to call for reducing boolean expressions
-(= (simplify $EXPR)
+(= (reduce $EXPR)
     ; Print the unreduced expression (this is called recursively)
-    (let* ((() (println! ("Sub-Exp:" $EXPR))))
+    (let* ((() (println! ("Reduce: " $EXPR))))
     ; First argument is an empty expression at first
-    (simplify-expr () $EXPR)
+    (compare-and-reduce () $EXPR)
     )
 )
 
-; Simplify expression2 is reduced and compared to expression1 (which is the unreduced expression)
-(= (simplify-expr $EXPR1 $EXPR2)
+; expression2 is reduced and compared to expression1 (which is the unreduced expression)
+(= (compare-and-reduce $EXPR1 $EXPR2)
     ; Print both expressions
     (let* ((() (println! ("Compare:" $EXPR1 $EXPR2))))
     ; If expression2 is not a literal and if it's not the same as the unreduced expression
     (if (and (== (get-metatype $EXPR2) Expression) (not (== $EXPR1 $EXPR2)))
-        ; Continue simplifying expression2
-        (simplify-expr $EXPR2 (simplify-boolean-expr $EXPR2))
+        ; Continue reducing expression2
+        (compare-and-reduce $EXPR2 (reduce-expression $EXPR2))
         ; Return expression2 because can't be further reduced
         $EXPR2
     )
@@ -26,21 +25,21 @@
 )
 
 ; Call reduction functions for each type of expression correspondingly
-(= (simplify-boolean-expr $_EXPR)
+(= (reduce-expression $_EXPR)
     ; Sort the outer expression (grounded < symbol < expression)
     (let $EXPR (sort $_EXPR)
         (if (== (get-metatype $EXPR) Expression)
                 (case $EXPR
                     (
-                        ((AND $EXPR1 $EXPR2) (simplify-and-expr $EXPR))
-                        ((OR $EXPR1 $EXPR2) (simplify-or-expr $EXPR))
-                        ((NOT $EXPR1) (simplify-not-expr $EXPR))
-                        ((XOR $EXPR1 $EXPR2) (simplify-xor-expr $EXPR))
+                        ((AND $EXPR1 $EXPR2) (reduce-and-expression $EXPR))
+                        ((OR $EXPR1 $EXPR2) (reduce-or-expression $EXPR))
+                        ((NOT $EXPR1) (reduce-not-expression $EXPR))
+                        ((XOR $EXPR1 $EXPR2) (reduce-xor-expression $EXPR))
                         ; (... add more operations)
                         ($else (Error "Invalid boolean expression"))
                     )
                 )
-            ; In case we try to simplify a literal
+            ; In case we try to reduce a literal
             $EXPR
         )
     )
@@ -49,9 +48,10 @@
 ; #################################################################################################
 
 ; Reduction function for AND expressions
-(= (simplify-and-expr $EXPR)
+(= (reduce-and-expression $EXPR)
     (case $EXPR
         (
+            ; Apply some AND reduction rules by pattern matching
             ( (AND False $a) False)                 ; (a and False)  -->  False             (annulment/identity law)
             ( (AND True $a) $a)                     ; (a and True)  -->  a                  (identity law)
             ( (AND $a (NOT $a)) False)              ; (a and -a)  -->  False                (complement law)
@@ -67,9 +67,9 @@
                     ;;         ($EXPR_2 (identity $EXPR_1))
                     ;;         ($_EXPR (flatten $EXPR_2))
                     ;;     )
-                    (let $_EXPR (flatten $EXPR)
+                    (let $_EXPR (apply-reduction-rules $EXPR)
                         (if (== (get-metatype $_EXPR) Expression)
-                            (simplify-recursive $_EXPR)
+                            (reduce-recursive $_EXPR)
                             $_EXPR
                         )
                     )
@@ -83,9 +83,10 @@
 )
 
 ; Reduction function for OR expressions
-(= (simplify-or-expr $EXPR)
+(= (reduce-or-expression $EXPR)
     (case $EXPR
         (
+            ; Apply some OR reduction rules by pattern matching
             ( (OR True $a) True)                ; (a OR True)  -->  True
             ( (OR False $a) $a)                 ; (a OR False)  -->  a
             ( (OR $a $a) $a)                    ; (a OR a)  -->  a
@@ -95,9 +96,9 @@
             ( (OR $a $b)
                 ; If either a or b is an expression
                 (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
-                    (let $_EXPR (flatten $EXPR)
+                    (let $_EXPR (apply-reduction-rules $EXPR)
                         (if (== (get-metatype $_EXPR) Expression)
-                            (simplify-recursive $_EXPR)
+                            (reduce-recursive $_EXPR)
                             $_EXPR
                         )
                     )
@@ -111,9 +112,10 @@
 )
 
 ; Reduction function for NOT expressions
-(= (simplify-not-expr $EXPR)
+(= (reduce-not-expression $EXPR)
     (case $EXPR
         (
+            ; Apply NOT reduction rules by pattern matching
             ( (NOT True) False)                             ; (-(-a))  -->  a
             ( (NOT False) True)                             ; (-(-a))  -->  a
             ( (NOT (NOT $a)) $a)                            ; (-(-a))  -->  a
@@ -121,7 +123,7 @@
             ( (NOT (OR $a $b)) (AND (NOT $a) (NOT $b)) )    ; -(a OR b)  -->  (-a AND -b)
             ( (NOT $a) 
                 (if (== (get-metatype $a) Expression)
-                    (simplify-recursive $EXPR)
+                    (reduce-recursive $EXPR)
                     $EXPR
                 )
             )
@@ -131,15 +133,17 @@
 )
 
 ; Reduction function for XOR expressions
-(= (simplify-xor-expr $EXPR)
+(= (reduce-xor-expression $EXPR)
     (case $EXPR
         (
             ( (XOR $a $a) False)             ; (a XOR a)  -->  False
-            ( (XOR $a $b) 
+            ( (XOR $a $b)
+                ; Check if the sub-expressions can't be further reduced
                 (if (or (and (== (get-metatype $a) Symbol) (== (get-metatype $b) Symbol))
                         (and (== (get-metatype $a) Grounded) (== (get-metatype $b) Grounded)))
                     True
-                    (simplify-recursive $EXPR)
+                    ; Further reduce the sub-expressions
+                    (reduce-recursive $EXPR)
                 )
             )
             ( $else (Error "Invalid XOR expression"))
@@ -152,21 +156,21 @@
 ; #################################################################################################
 
 ; Function to recursively apply reuction to sub-expressions
-(= (simplify-recursive $EXPR)
+(= (reduce-recursive $EXPR)
     (let*
         (
             ; Sort the expression (grounded < symbol < expression)
             ($_EXPR (sort $EXPR))
-            (() (println! ("Expression:" $_EXPR)))
+            (() (println! ("Reduce Recursive: " $_EXPR)))
         )
         (case $_EXPR
             (
                 (
                     ($OP $exp1 $exp2) 
                     (if (== (get-metatype $exp1) Expression)
-                        (simplify-expr $_EXPR ($OP (simplify $exp1) (simplify $exp2)))
+                        (compare-and-reduce $_EXPR ($OP (reduce $exp1) (reduce $exp2)))
                         (if (== (get-metatype $exp2) Expression) ;--
-                            (simplify-expr $_EXPR ($OP $exp1 (simplify $exp2)))
+                            (compare-and-reduce $_EXPR ($OP $exp1 (reduce $exp2)))
                             $_EXPR ;--
                         ) ;--
                     )
@@ -174,7 +178,7 @@
                 (
                     ($OP $exp1) 
                     (if (== (get-metatype $exp1) Expression)
-                        (simplify-expr $_EXPR ($OP (simplify $exp1)))
+                        (compare-and-reduce $_EXPR ($OP (reduce $exp1)))
                         $_EXPR
                     )
                 )
