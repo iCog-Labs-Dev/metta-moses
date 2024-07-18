@@ -53,7 +53,7 @@
         )
     )
 )
-(= (check-guard-set-disjunction $exp)
+(= (check-guard-set-conjunction $exp)
     (if (== $exp Nil)
         True
         (case $exp(
@@ -84,10 +84,10 @@
     )
 )
 
-(=(check-guard-set-conjunction $exp)
+(=(check-guard-set-disjunction $exp)
     (if (== $exp Nil)
         True
-        (case $exp(
+        (case $exp (
                 (($op $exp1 $exp2)
                     (if (== $op OR)
                         (isEmpty (intersect (get-guard-set $exp1) (get-guard-set $exp2)))
@@ -105,7 +105,8 @@
 
 
 ;; !(check-duplicate (Cons 1 (Cons 2 (Cons 3 (Cons 3 Nil)))))
-;; !(check-branchset (AND a (AND b (AND d c))) Nil)
+!(check-branchset (AND a (AND b (AND d c))) Nil)
+!(check-guard-set-conjunction (AND a (AND b (AND d c))))
 ;; !(check-branchset (AND a (OR a (AND b c))) Nil)
 
 ;; !(check-branchset (AND a (OR b (AND a c))) Nil)
