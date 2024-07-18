@@ -1,64 +1,6 @@
-;; !(register-module! ../../metta-moses-reduction)
-;; !(import! &self metta-moses-reduction:utilities:helper-functions)
-;; !(import! &self metta-moses-reduction:reduction:utils)
-;; (get-guard-set (AND a1 a2) Nil)
-;; (= (ret-append $set1 $set2)(append $set1 $set2))
-
-
-(= (append Nil $ys) $ys)
-(= (append (Cons $x $xs) $ys) (Cons $x (append $xs $ys)))
-
-;; !(append (Cons 1 (Cond 2 Nil)) (Cons 3 Nil))
-
-(= (member $elem $list)
-    (case $list(
-        (Nil False) ;;Checks if $x is repeated in $y
-        ((Cons $x $xs)
-            (if (== $x $elem)
-                True
-                (member $elem $xs)
-            )
-        )
-    ))
-)
-(= (member-not $elem $list) ;;checks if the member not member is working or not
-    (case $list(
-        (Nil False) ;;Checks if $x is repeated in $y
-        ((Cons $x $xs)
-            (if (or (== (NOT $x) $elem) (== $x (NOT $elem)))
-                True
-                (member-not $elem $xs)
-            )
-        )
-    ))
-)
-
-(= (check-not-duplicated $list)
-    (case $list
-        (
-            (Nil True)
-            ((Cons $x $xs)
-                (if (member $x $xs)
-                    False
-                    (check-not-duplicated $xs)
-                )
-            )
-        )
-    )
-)
-(= (check-not-inverse-duplicated $list)
-    (case $list
-        (
-            (Nil True)
-            ((Cons $x $xs)
-                (if (member-not $x $xs)
-                    False
-                    (check-not-inverse-duplicated $xs)
-                )
-            )
-        )
-    )
-)
+!(register-module! ../../metta-moses-reduction)
+!(import! &self metta-moses-reduction:utilities:helper-functions)
+!(import! &self metta-moses-reduction:reduction:utils)
 
 
 (: check-branchset (-> Expression List Bool))
@@ -111,6 +53,54 @@
         )
     )
 )
+(= (check-guard-set-disjunction $exp)
+    (if (== $exp Nil)
+        True
+        (case $exp(
+                (($op $exp1 $exp2)
+                    (if (== $op AND)
+                        (isEmpty (intersect (get-guard-set $exp1) (get-guard-set $exp2)))
+                        False
+                    )
+                )
+
+            )
+        )
+
+    )
+
+)
+(=(check-subset-constraint $exp)
+    (case $exp(
+            (($op $exp1 $exp2) 
+                (if (is-subset (get-guard-set $exp1) (get-guard-set $exp2)) 
+                    False 
+                    True
+                )
+            )
+            ($_ True)
+ 
+        )
+    )
+)
+
+(=(check-guard-set-conjunction $exp)
+    (if (== $exp Nil)
+        True
+        (case $exp(
+                (($op $exp1 $exp2)
+                    (if (== $op OR)
+                        (isEmpty (intersect (get-guard-set $exp1) (get-guard-set $exp2)))
+                        False
+                    )
+                )
+
+            )
+        )
+
+    )
+
+)
 
 
 
@@ -146,16 +136,6 @@
 )
 
 
-
-;; (= (not-gate $exp)
-;;     (case $exp (
-;;         (($op $exp1 $exp2)
-;;             (if (== $op NOT) True False))
-;;     )))
-;; (=(fourth-rule-checker $exp $branch-set)
-;;     (if ==(get-metatype $exp) 
-
-;; ))
 
 
 

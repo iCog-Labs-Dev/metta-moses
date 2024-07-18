@@ -151,6 +151,47 @@
         (merge (mergeSort $left) (mergeSort $right))
     )
 )
+(= (member-not $elem $list) ;;checks if the member not member is working or not
+    (case $list(
+        (Nil False) ;;Checks if $x is repeated in $y
+        ((Cons $x $xs)
+            (if (or (== (NOT $x) $elem) (== $x (NOT $elem)))
+                True
+                (member-not $elem $xs)
+            )
+        )
+    ))
+)
+
+(= (check-not-duplicated $list)
+    (case $list
+        (
+            (Nil True)
+            ((Cons $x $xs)
+                (if (member $x $xs)
+                    False
+                    (check-not-duplicated $xs)
+                )
+            )
+        )
+    )
+)
+(= (check-not-inverse-duplicated $list)
+    (case $list
+        (
+            (Nil True)
+            ((Cons $x $xs)
+                (if (member-not $x $xs)
+                    False
+                    (check-not-inverse-duplicated $xs)
+                )
+            )
+        )
+    )
+)
+(=(isEmpty $exp)
+    (if (== Nil $exp) True False)
+)
 (:intersect (-> List List List List))
 (=(intersect $list1 $list2 $accumulator)
     (if (or (== $list1 Nil) (== $list2 Nil))
@@ -265,13 +306,16 @@
                 )
                 (if (and (== $type1 Expression) (== $type2 Expression)) 
                     Nil
-                    (if (and (== $type1 Symbol) (== $type2 Symbol))
-                        (Cons $exp1 (Cons $exp2 Nil))
-                        (if (and (== $type1 Symbol) (== $type2 Expression))
-                            (Cons $exp1 Nil)
-                            (Cons $exp2 Nil)
-                            
+                    (if (== $OP AND)
+                        (if (and (== $type1 Symbol) (== $type2 Symbol))
+                            (Cons $exp1 (Cons $exp2 Nil))
+                            (if (and (== $type1 Symbol) (== $type2 Expression))
+                                (Cons $exp1 Nil)
+                                (Cons $exp2 Nil)
+                                
+                            )
                         )
+                        Nil
                     )
                 )
             )
@@ -284,6 +328,19 @@
         
     )
 )
+)
+(=(get-dominant-set $exp)
+    (case $exp (
+            (($op $exp1 $exp2)
+                (if (== AND $op)
+                   
+                    
+                )
+            )
+
+
+        )
+    )
 )
 (=(n-ary-and $exp)
     (case $exp (
@@ -313,7 +370,38 @@
         )
     )
 )
-!(union-set (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) )
+(=(is-subset $list1 $list2)
+    (let* (
+            ($min-list (if (> (length $list1) (length $list2)) $list2 $list1
+                        ))
+
+            ($max-list (if (> (length $list1) (length $list2)) $list1 $list2
+                        ) )
+
+        )(is-subset-ordered $min-list $max-list)
+    )
+   
+)
+(=(is-subset-ordered $min-list $max-list)
+    (if (== $min-list Nil)
+        True
+        (case $min-list (
+            ((Cons $x $xs)
+                (if (member $x $max-list)
+                    (is-subset-ordered $xs $max-list)
+                    False
+                )
+            )
+
+
+            )
+        )
+    )
+
+)
+
+!(is-subset (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3  Nil))))
+;;!(union-set (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) )
 ;;!(intersect (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
 ;; !(n-ary-or (Cons False (Cons True (Cons False (Cons True Nil)))))
 ;; !(n-ary-and (Cons True (Cons True (Cons False (Cons True Nil)))))
@@ -325,7 +413,7 @@
 ;;!(get-type True)
 ;; !(cdr (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
 ;; !(get-children (AND (OR x1 x2) (AND x3 x4)) Nil)
-;; !(get-guard-set (AND (OR x1 x2) (AND x3 x4)))
+;;!(get-guard-set (AND (OR x1 x2) (AND x3 x4)))
 ;;!(intersect (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Nil)))) Nil)
 ;;!(check_tree_depth (AND (OR x1 x2) (AND x3 x4)))
 ;;!(member 1 Nil)
