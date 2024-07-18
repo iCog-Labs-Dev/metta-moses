@@ -16,7 +16,7 @@
                     (AND (OR $a $b) (OR $a $c))
                 )
             )
-            ( $else $exp)
+            ( $else $exp )
         )
     )
 )
@@ -63,6 +63,67 @@
             ((AND $a $b) (apply-and-reduction-rules $expr))
             ((OR $a $b) (apply-or-reduction-rules $expr))
             ($else $expr)
+        )
+    )
+)
+
+; #################################################################################################
+
+(= (complement-law $exp)
+    (case $exp
+        (
+            ( (AND $a $b) (if (member AND (complement $a) $b) False $exp) )
+            ( (OR $a $b) (if (member OR (complement $a) $b) True $exp) )
+            ( $else $exp )
+        )
+    )
+)
+
+; #################################################################################################
+
+(= (idempotent-law $exp)
+    (case $exp
+        (
+            (($op $a $b)
+                (if (subset $a $b)
+                    $b
+                    $exp
+                )
+            )
+            ( $else $exp )
+        )
+    )
+)
+
+(= (absorption-idempotent-law $exp)
+    (case $exp
+        (
+            (($op1 $a ($op2 $b $c))
+                (if (== $op1 $op2)
+                    (idempotent-law $exp)
+                    (if (or (member $op2 $a $b) (member $op2 $a $c)) ;(subset $a ($op2 $b $c))
+                        $a
+                        $exp
+                    )
+                )
+            )
+            ( $else $exp )
+        )
+    )
+)
+
+; #################################################################################################
+
+(= (annulment-identity-law $exp)
+    (case (sort-metatype $exp)
+        (
+            (($op True $a)
+                (if (== $op OR) True $a)
+            )
+            (($op False $a)
+                (if (== $op AND) False $a)
+            )
+            ( $else $exp )
         )
     )
 )
