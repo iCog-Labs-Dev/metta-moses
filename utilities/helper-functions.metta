@@ -151,50 +151,45 @@
         (merge (mergeSort $left) (mergeSort $right))
     )
 )
-(:intersect (->List List List List))
-(= (intersect $list1 $list2 $set)
-    (let* (
-        ($type1 (get-metatype $list1))
-        ($type2 (get-metatype $list2))
-    )
-        (if (and (== $type1 Expression) (== $type2 Expression))
-            (case ($list1 $list2)
-                (
-                    (((Cons $x $xs) (Cons $y $ys))
+(:intersect (-> List List List List))
+(=(intersect $list1 $list2 $accumulator)
+    (if (or (== $list1 Nil) (== $list2 Nil))
+        $accumulator
+        (case ($list1 $list2)
+            (
+                (((Cons $x $xs) (Cons $y $ys))
                         (let* (
-                                ($is-x-member (member $x $ys))
-                                ($is-y-member (member $y $xs))
-                            )
-                                (if (and $is-x-member $is-y-member)
-                                    (intersect $xs $ys (append $set (Cons $x (Cons $y Nil))))
-                                    (if (== $x $y)
-                                        (intersect $xs $ys (append $set (Cons $x Nil)))
-                                        (if $x-member 
-                                            (intersect $xs $ys (append $set (Cons $x Nil)))
-                                            (if $y-member
-                                                (intersect $xs $ys (append $set (Cons $y Nil)))
-                                                (intersect $xs $ys $set)
-                                            )
-                                        )   
+                            ($is-x-member (member $x $ys))
+                            ($is-y-member (member $y $xs))
+                            )(if (and (== $is-x-member True) (== $is-y-member True))
+                                (if (== $x $y)
+                                    (intersect $xs $ys (append $accumulator (Cons $x Nil)))
+                                    (intersect $xs $ys (append $accumulator (Cons $x (Cons $y Nil))))
+                                )
+                                (if (and (== $is-x-member True) (== $is-y-member False))
+                                    (intersect $xs $ys (append $accumulator (Cons $x Nil)))
+                                    (if (and (== $is-x-member False) (== $is-y-member True))
+                                        (intersect $xs $ys (append $accumulator (Cons $y Nil)))
+                                        (intersect $xs $ys $accumulator)
                                     )
                                 )
+
+                            )
                         )
-                    )
-                    
+
+      
                 )
             )
-            $set
         )
-    )
-)
-(:union-set (->List List List List))
-(=(union-set $list1 $list2 $accumulator)
-    (case ($list1 $list2)(
-        ((Nil (Cons $x $xs))())
-    )
 
     )
 )
+
+(:union-set (->List List List List))
+(=(union-set $list1 $list2)
+    (remove-duplicates (append $list1 $list2))
+)
+
 
 (:cdr (-> List Atom))
 (=(cdr ()) Nil)
@@ -318,7 +313,8 @@
         )
     )
 )
-
+!(union-set (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) )
+;;!(intersect (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
 ;; !(n-ary-or (Cons False (Cons True (Cons False (Cons True Nil)))))
 ;; !(n-ary-and (Cons True (Cons True (Cons False (Cons True Nil)))))
 
@@ -331,7 +327,7 @@
 ;; !(get-children (AND (OR x1 x2) (AND x3 x4)) Nil)
 ;; !(get-guard-set (AND (OR x1 x2) (AND x3 x4)))
 ;;!(intersect (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Nil)))) Nil)
-!(check_tree_depth (AND (OR x1 x2) (AND x3 x4)))
+;;!(check_tree_depth (AND (OR x1 x2) (AND x3 x4)))
 ;;!(member 1 Nil)
 ;;!(add-three 1 2 3)
 ;;!(append (Cons a (Cons b (Cons c Nil))) (Cons c Nil))
