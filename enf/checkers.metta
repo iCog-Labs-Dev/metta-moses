@@ -59,7 +59,7 @@
         (case $exp(
                 (($op $exp1 $exp2)
                     (if (== $op AND)
-                        (isEmpty (intersect (get-guard-set $exp1) (get-guard-set $exp2)))
+                         (isEmpty (intersect (get-guard-set $exp1) (get-guard-set $exp2) Nil))
                         False
                     )
                 )
@@ -83,41 +83,6 @@
         )
     )
 )
-
-(=(check-guard-set-disjunction $exp)
-    (if (== $exp Nil)
-        True
-        (case $exp (
-                (($op $exp1 $exp2)
-                    (if (== $op OR)
-                        (isEmpty (intersect (get-guard-set $exp1) (get-guard-set $exp2)))
-                        False
-                    )
-                )
-
-            )
-        )
-
-    )
-
-)
-
-
-
-;; !(check-duplicate (Cons 1 (Cons 2 (Cons 3 (Cons 3 Nil)))))
-!(check-branchset (AND a (AND b (AND d c))) Nil)
-!(check-guard-set-conjunction (AND a (AND b (AND d c))))
-;; !(check-branchset (AND a (OR a (AND b c))) Nil)
-
-;; !(check-branchset (AND a (OR b (AND a c))) Nil)
-;; !(check-branchset (AND (AND a (OR b (AND c a))) (OR e (AND f (OR g h)))) Nil)
-
- ;;!(check-branchset (AND (AND a (OR b (AND c (NOT a)))) (OR e (AND f (OR g h)))) Nil)
-;; !(append (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons a (Cons b (Cons c (Cons (NOT a) Nil)))))
-;; !(check-not-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
-;; !(check-not-inverse-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
-;; !(member-not (NOT a) (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
-;; !(member-not a (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
 (= (not-checker $exp)
     (if (== (get-metatype $exp) Symbol)
         True
@@ -135,6 +100,42 @@
         )
     )
 )
+
+
+(=(check-guard-set-disjunction $exp)
+    (if (or (== $exp Nil) (== (get-metatype $exp) Symbol))
+        True
+        (case $exp (
+                (($op $exp1 $exp2)
+                    (if (== $op OR)
+                        (isEmpty (intersect (get-guard-set $exp1) (get-guard-set $exp2) Nil))
+                        False
+                    )
+                )
+
+            )
+        )
+
+    )
+
+)
+
+
+
+;; !(check-duplicate (Cons 1 (Cons 2 (Cons 3 (Cons 3 Nil)))))
+;;!(check-branchset (AND a (AND b (AND d c))) Nil)
+!(check-guard-set-conjunction (AND a (AND b (AND d c))))
+;; !(check-branchset (AND a (OR a (AND b c))) Nil)
+
+;; !(check-branchset (AND a (OR b (AND a c))) Nil)
+;; !(check-branchset (AND (AND a (OR b (AND c a))) (OR e (AND f (OR g h)))) Nil)
+
+ ;;!(check-branchset (AND (AND a (OR b (AND c (NOT a)))) (OR e (AND f (OR g h)))) Nil)
+;; !(append (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons a (Cons b (Cons c (Cons (NOT a) Nil)))))
+;; !(check-not-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
+;; !(check-not-inverse-duplicated (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
+;; !(member-not (NOT a) (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
+;; !(member-not a (Cons 1 (Cons 2 (Cons 3 (Cons a (Cons b (Cons c (Cons (NOT a) Nil))))))))
 
 
 

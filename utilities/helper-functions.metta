@@ -323,7 +323,7 @@
             (($OP $exp)(
                 (if (== NOT $exp) ($OP $exp) ERROR)
             ))
-            ($exp $exp)
+            ($exp (Cons $exp Nil))
 
         
     )
