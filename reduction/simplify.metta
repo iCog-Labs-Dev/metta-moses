@@ -1,6 +1,11 @@
 ; Original lisp version: https://web.cecs.pdx.edu/~mperkows/class478-2005/tsewen-midterm.pdf
+<<<<<<< HEAD
+;; !(import! &self type-defs)
+!(import! &self utils)
+=======
 !(import! &self utils)
 !(import! &self helper-functions)
+>>>>>>> ae88efae2e9432a37c3366680aab997c6b8e761d
 
 ; Main function to call for reducing boolean expressions
 (= (simplify $EXPR)
