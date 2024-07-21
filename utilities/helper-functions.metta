@@ -329,19 +329,19 @@
     )
 )
 )
-(=(get-dominant-set $exp)
-    (case $exp (
-            (($op $exp1 $exp2)
-                (if (== AND $op)
+;; (=(get-dominant-set $exp)
+;;     (case $exp (
+;;             (($op $exp1 $exp2)
+;;                 (if (== AND $op)
                    
                     
-                )
-            )
+;;                 )
+;;             )
 
 
-        )
-    )
-)
+;;         )
+;;     )
+;; )
 (=(n-ary-and $exp)
     (case $exp (
             (Nil True)
