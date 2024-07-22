@@ -4,13 +4,23 @@
 
 (=(propagate-truth-value $exp $truth-value)
     (case $exp(
-        (($op $exp1 $exp2)
-            (if (== $truth-value False)
-                (if (== $op AND)
-                    (OR (propagate-truth-value $exp2 (not $truth-value)))
+            (($op $exp1 $exp2)
+                (if (== $truth-value False)
+                    (if (== $op AND)
+                        (OR (propagate-truth-value $exp2 (not $truth-value)))
+                        (AND (propagate-truth-value $exp2 (not $truth-value)))
+                    )
+                    ($op (propagate-truth-value $exp2 $truth-value))
+                )
+
+            )
+            ((NOT $exp1)
+                (if (== $truth-value False)
+                    (Cons $exp1 (Cons True Nil))
+                    (Cons $exp1 (Cons False Nil))
                 )
             )
-        )
+            ($_ (Cons $exp (Cons $truth-value)))
 
         )
     )
