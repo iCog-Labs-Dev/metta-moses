@@ -385,9 +385,23 @@
 
 )
 
+(= (set-difference $set-a $set-b $accumulator)
+    (case $set-a (
+            ((Cons $x $xs)
+                (if (member $x $set-b)
+                    (set-difference $xs $set-b $accumulator)
+                    (set-difference $xs $set-b (append $accumulator (Cons $x Nil)))
+                )
+            )
+            ($_ $accumulator)
+
+        )
+    )
+)
+
 ;;!(is-subset (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3  Nil))))
 ;;!(union-set (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) )
-!(intersect (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
+!(set-difference (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
 ;; !(n-ary-or (Cons False (Cons True (Cons False (Cons True Nil)))))
 ;; !(n-ary-and (Cons True (Cons True (Cons False (Cons True Nil)))))
 
