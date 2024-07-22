@@ -192,36 +192,21 @@
 (=(isEmpty $exp)
     (if (== Nil $exp) True False)
 )
+
 (:intersect (-> List List List List))
-(=(intersect $list1 $list2 $accumulator)
-    (if (or (== $list1 Nil) (== $list2 Nil))
-        $accumulator
-        (case ($list1 $list2)
-            (
-                (((Cons $x $xs) (Cons $y $ys))
-                        (let* (
-                            ($is-x-member (member $x $ys))
-                            ($is-y-member (member $y $xs))
-                            )(if (and (== $is-x-member True) (== $is-y-member True))
-                                (if (== $x $y)
-                                    (intersect $xs $ys (append $accumulator (Cons $x Nil)))
-                                    (intersect $xs $ys (append $accumulator (Cons $x (Cons $y Nil))))
-                                )
-                                (if (and (== $is-x-member True) (== $is-y-member False))
-                                    (intersect $xs $ys (append $accumulator (Cons $x Nil)))
-                                    (if (and (== $is-x-member False) (== $is-y-member True))
-                                        (intersect $xs $ys (append $accumulator (Cons $y Nil)))
-                                        (intersect $xs $ys $accumulator)
-                                    )
-                                )
-
-                            )
-                        )
-
-      
-                )
+;;This function takes two lists and finds the intersection of two lists
+;;after it accumulates it in to an accumulator
+(= (intersect $list1 $list2 $accumulator)
+    (case $list1(
+        ((Cons $x $xs)
+            (if (member $x $list2)
+                (intersect $xs $list2 (append $accumulator (Cons $x Nil)))
+                (intersect $xs $list2 $accumulator)
             )
         )
+        ($_ $accumulator)
+
+    )
 
     )
 )
@@ -400,9 +385,9 @@
 
 )
 
-!(is-subset (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3  Nil))))
+;;!(is-subset (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3  Nil))))
 ;;!(union-set (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) )
-;;!(intersect (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
+!(intersect (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
 ;; !(n-ary-or (Cons False (Cons True (Cons False (Cons True Nil)))))
 ;; !(n-ary-and (Cons True (Cons True (Cons False (Cons True Nil)))))
 
