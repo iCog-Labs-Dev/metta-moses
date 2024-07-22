@@ -1,8 +1,8 @@
 !(register-module! ../../metta-moses-reduction)
 !(import! &self metta-moses-reduction:utilities:helper-functions)
 !(import! &self metta-moses-reduction:reduction:utils)
-
-(=(propagate-truth-value $exp $truth-value)
+(:propagate-truth-value (-> Expression Bool Expression))
+(= (propagate-truth-value $exp $truth-value)
     (case $exp(
             (($op $exp1 $exp2)
                 (if (== $truth-value False)
@@ -20,8 +20,9 @@
                     (Cons $exp1 (Cons False Nil))
                 )
             )
-            ($_ (Cons $exp (Cons $truth-value)))
+            ($_ (Cons $exp (Cons $truth-value Nil)))
 
         )
     )
 )
+!(propagate-truth-value )
