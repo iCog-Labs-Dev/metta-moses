@@ -54,17 +54,8 @@
 (= (reduce-andor-expression $EXPR)
     (case $EXPR
         (
-            ; Apply some AND reduction rules by pattern matching
-            ;; ( (AND False $a) False)                 ; (a and False)  -->  False             (annulment/identity law)
-            ;; ( (AND True $a) $a)                     ; (a and True)  -->  a                  (identity law)
-            ;; ( (AND $a (NOT $a)) False)              ; (a and -a)  -->  False                (complement law)
-            ;; ( (AND $a $a) $a)                       ; (a and a)  -->  a                     (idempotent law)
-
-            ; For all other cases of AND expressions
+            ; For any AND/OR expression
             ( ($op $a $b)
-                ; If either a or b is an expression
-                ;; (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
-                    ;; (let $_EXPR (apply-reduction-rules $EXPR)
                     (let* 
                         (
                             ($reduced_1 (complement-law $EXPR))
@@ -79,43 +70,11 @@
                             $reduced
                         )
                     )
-                    ; If both $a and $b are literals
-                ;;     $EXPR
-                ;; )
             )
             ( $else (Error "Invalid AND/OR expression"))
         )
     )
 )
-
-; Reduction function for OR expressions
-;; (= (reduce-or-expression $EXPR)
-;;     (case $EXPR
-;;         (
-;;             ; Apply some OR reduction rules by pattern matching
-;;             ( (OR True $a) True)                ; (a OR True)  -->  True
-;;             ( (OR False $a) $a)                 ; (a OR False)  -->  a
-;;             ( (OR $a $a) $a)                    ; (a OR a)  -->  a
-;;             ( (OR $a (NOT $a)) True)            ; (a OR -a)  -->  True
-
-;;             ; For all other cases of OR expressions
-;;             ( (OR $a $b)
-;;                 ; If either a or b is an expression
-;;                 (if (or (== (get-metatype $a) Expression) (== (get-metatype $b) Expression))
-;;                     (let $_EXPR (apply-reduction-rules $EXPR)
-;;                         (if (== (get-metatype $_EXPR) Expression)
-;;                             (reduce-recursive $_EXPR)
-;;                             $_EXPR
-;;                         )
-;;                     )
-;;                     ; If a and b are literals
-;;                     $EXPR
-;;                 )
-;;             )
-;;             ( $else (Error "Invalid OR expression"))
-;;         )
-;;     )
-;; )
 
 ; Reduction function for NOT expressions
 (= (reduce-not-expression $EXPR)
@@ -176,10 +135,10 @@
                     ($OP $exp1 $exp2) 
                     (if (== (get-metatype $exp1) Expression)
                         (compare-and-reduce $_EXPR ($OP (reduce $exp1) (reduce $exp2)))
-                        (if (== (get-metatype $exp2) Expression) ;--
+                        (if (== (get-metatype $exp2) Expression)
                             (compare-and-reduce $_EXPR ($OP $exp1 (reduce $exp2)))
-                            $_EXPR ;--
-                        ) ;--
+                            $_EXPR
+                        )
                     )
                 )
                 (
