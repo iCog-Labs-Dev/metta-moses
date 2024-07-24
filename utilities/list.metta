@@ -1,4 +1,6 @@
-!(import! &self type-defs)
+(: List type)
+(: Nil List)
+(: Cons (-> $a List List))
 
 ; Function to find the length of a list
 (: length (-> List Number))
@@ -61,13 +63,12 @@
 (= (partition $_ Nil) ( Nil Nil ))
 (= (partition $pivot (Cons $x $xs))
     (let ($left $right) (partition $pivot $xs)
-        ;; (if (<= $x $pivot)
-        ;; (let* ( ($cond  (<= $x $pivot))
-        (let* ( ($cond (lte $x $pivot))
+        (let* ( ($cond  (<= $x $pivot))
+        ;; (let* ( ($cond (lte $x $pivot))
                 (() (println! ($x "<=" $pivot "=" $cond)))
                 (() (println! ($left "---" $right)))
             )
-        (if $cond ;(lte $x $pivot)
+        (if $cond
             ((Cons $x $left) $right)
             ($left (Cons $x $right))
         )
@@ -83,8 +84,4 @@
         (append (quickSort $left) (Cons $x (quickSort $right)))
     )
 )
-;; !(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
-!(append (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons 4 (Cons 5 Nil)))
-;; !(quickSort (Cons "False" (Cons "A" (Cons "True" (Cons "B" Nil)))))
-;; !(quickSort (Cons A (Cons True Nil)))
-;; !(quickSort (Cons A (Cons B Nil)))
+

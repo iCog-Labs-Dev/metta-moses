@@ -1,4 +1,5 @@
 !(register-module! ../../metta-moses-reduction)
+!(import! &self metta-moses-reduction:utilities:list)
 !(import! &self metta-moses-reduction:utilities:helper-functions)
 (: List type)
 (: Nil List)
