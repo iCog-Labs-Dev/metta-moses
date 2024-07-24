@@ -236,7 +236,30 @@
     )
 
 )
+; Function to check if an element is in a list
+(= (member $x $y)
+    (case $y
+        (
+            ( (:: $h $t) (if (== $x $h) True (member $x $t)))
+            ( () False)
+        )
+    )
+)
 
+; Function to return the intersection of two lists
+(= (find-intersection $lst1 $lst2)
+    (case $lst1
+    (
+        ( (:: $h $t) (if (member $h $lst2) (:: $h (find-intersection $t $lst2)) (find-intersection $t $lst2)) )
+        ( () () )
+    )
+    )
+)
+
+
+
+
+! (find-intersection (:: Hi (:: 4 (:: Hello (:: 2 (:: 9 ()))))) (:: 1 (:: 4 (:: Hi (:: hello (:: 7 ()))))))
 ;; !(is-subset (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3  Nil))))
 ;;!(union-set (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) )
 ;;!(intersect (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
