@@ -7,12 +7,7 @@
 (= (get-children-tree $tree $accumulator)
     (case $tree (
            ((TreeNode $value $right $left $guardSet $children)
-                (case $value(
-                        ((Value Nil $constraint $nodetype)
-                            (appendTree (appendTree (ConsTree $right NilList) $accumulator) (ConsTree $left NilList))
-                        )
-                    )
-                )
+                $children
                 
            )
         )

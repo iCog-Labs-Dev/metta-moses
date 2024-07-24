@@ -1,6 +1,7 @@
 !(register-module! ../../metta-moses-reduction)
 !(import! &self metta-moses-reduction:utilities:helper-functions)
 !(import! &self metta-moses-reduction:reduction:utils)
+!(import! &self metta-moses-reduction:utilities:tree-ds)
 (:propagate-truth-value (-> Expression Bool Expression))
 (= (propagate-truth-value $exp $truth-value)
     (case $exp(
@@ -26,3 +27,4 @@
     )
 )
 !(propagate-truth-value (AND (OR x1 x2) (AND x3 x4)) False)
+
