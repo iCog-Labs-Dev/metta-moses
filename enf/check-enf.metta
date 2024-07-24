@@ -1,9 +1,10 @@
-!(import! &self ../utilities/helper-functions.metta)
+!(register-module! ../../metta-moses-reduction)
+!(import! &self metta-moses-reduction:utilities:helper-functions)
 (: List type)
 (: Nil List)
 (: Cons (-> $a List List))
 
-; 1. Negation appears only in literals.
+;; 1. Negation appears only in literals.
 (: check-negation (-> Expression Bool))
 (= (check-negation $exp) 
     (case $exp
@@ -15,11 +16,7 @@
     )
 )
 
-;; !(check-negation (AND a b))
-;; !(check-negation (AND (NOT a) (NOT b)))
 
-;; !(check-negation (NOT (AND (NOT a) (NOT (OR b c)))))
-;; !(check-negation (NOT (AND (NOT a) (NOT (OR b c)))))
 
 ; 2. Levels of conjunction and disjunction alternate.
 (: check-alternate (-> Expression Bool))
