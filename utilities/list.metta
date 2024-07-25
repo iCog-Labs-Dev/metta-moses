@@ -122,6 +122,25 @@
 ; !(findAndRemove 4 (Cons 1 (Cons 2 (Cons 3 Nil))))  ;; Output: [(Cons 1 (Cons 2 (Cons 3 Nil)))]
 
 
+;A function to compare 2 lists
+(: compare (-> List List  Bool))
+(= (compare Nil Nil) True) ;; if both the lists are empty, They are the same.
+(= (compare (Cons $x $xs) (Cons $y $ys)) 
+    (if (and (not(== $xs $ys)) (or (== $xs Nil) (== $ys Nil)))
+        False
+        (if (== $x $y) 
+            (compare $xs $ys) 
+            False
+        )
+    ) 
+)
+;; Test cases
+; !(compare (Cons 1 Nil) (Cons 1 Nil)) ;; Output: True
+; !(compare (Cons "A" Nil) (Cons "a" Nil)) ;; Output: False
+; !(compare (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons 1 (Cons 2 (Cons 3 Nil)))) ;; Output: True
+; !(compare (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons 1  (Cons 2 Nil)) ) ;; Output: False
+
+
 ; QuickSort implementation
 (: quickSort (-> List List))
 (= (quickSort Nil) Nil)
