@@ -1,4 +1,5 @@
-!(import! &self list)
+; !(import! &self list)
+!(import! &self tree-ds)
 
 (= (check-not-duplicated $list)
     (case $list
@@ -256,3 +257,176 @@
 ;;!(member 1 Nil)
 ;;!(add-three 1 2 3)
 ;;!(append (Cons a (Cons b (Cons c Nil))) (Cons c Nil))
+
+
+; !(get-type LITERAL)
+
+(: has-terminal-node (-> Tree Bool))
+(= (has-terminal-node NilNode) False)
+(= (has-terminal-node $node) (
+    case $node (
+        ( (TreeNode (Value $value $truthValue AND) NilNode NilNode $guardSet NilList) (
+            unify $guardSet (ConsTree $singleNode NilList) True False
+        ) )
+        ( (TreeNode $nodeValue $left $right $guardSet $children) ( or (has-terminal-node $left) (has-terminal-node $right)) )
+    )
+    
+))
+
+
+
+!(has-terminal-node (TreeNode (Value Nil False OR) (TreeNode (Value Nil True AND) NilNode NilNode NilList NilList) (TreeNode (Value Nil False AND) NilNode (TreeNode (Value Nil False AND) NilNode NilNode (ConsTree (TreeNode (Value x True LITERAL) NilNode NilNode NilList NilList ) (ConsTree (TreeNode (Value x True LITERAL) NilNode NilNode NilList NilList ) NilList)) NilList) NilList NilList) NilList NilList) )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(: contains-terminal-node (-> TreeList Bool ))
+(= (contains-terminal-node NilList) False)
+(= (contains-terminal-node $treeList) (
+    case $treeList (
+        ( (ConsTree $t $ts) (or (has-terminal-node $t) (trace! (evaluating $ts ) (contains-terminal-node $ts))) )
+        ; ($else (Invalid Expression--- $else))
+    )
+))
+
+
+; !(buildTree (OR a (AND b c)))
+
+; !(has-terminal-node (= tree1
+;   (TreeNode
+;     (Value Nil False AND)
+;     (TreeNode
+;       (Value x False LITERAL)
+;       NilNode
+;       NilNode
+;       NilList
+;       NilList
+;     )
+;     (TreeNode
+;       (Value Nil False AND)
+;       NilNode
+;       NilNode
+;       (ConsTree
+;         (TreeNode
+;           (Value b False LITERAL)
+;           NilNode
+;           NilNode
+;           NilList
+;           NilList
+;         )
+;         NilList
+;       )
+;       NilList
+;     )
+;     NilList
+;   )
+; )
+;  )
+; !(has-terminal-node (TreeNode (Value Nil False AND) (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) (TreeNode (Value Nil False AND) (TreeNode (Value NilNode False OR) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList) (TreeNode (Value NilNode False AND) NilNode NilNode NilList NilList) NilList NilList) NilList NilList) ) 
+; !(has-terminal-node (TreeNode (Value Nil False AND)
+;     (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList)
+;     (TreeNode (Value Nil False AND)
+;         (TreeNode (Value NilNode False OR) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList)
+;         (TreeNode (Value NilNode False AND) 
+;             (TreeNode (Value Nil False AND)
+;             (TreeNode (Value NilNode False AND) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList)
+;             (TreeNode (Value NilNode False AND) NilNode NilNode NilList NilList)
+;                 NilList
+;                 NilList
+;             ) 
+;             NilNode NilList NilList)
+;         NilList
+;         NilList
+;     )
+;     NilList
+;     NilList
+; )
+; )
+
+
+; (ConsTree 
+; (TreeNode (Value Nil False AND) (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) (TreeNode (Value Nil False AND) (TreeNode (Value NilNode False OR) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList) (TreeNode (Value NilNode False AND) NilNode NilNode NilList NilList) NilList NilList) NilList NilList) NilList)
+
+
+; !(contains-terminal-node
+; (ConsTree 
+;     (TreeNode (Value Nil False AND) (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) (TreeNode (Value Nil False AND) (TreeNode (Value NilNode False AND) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList) (TreeNode (Value NilNode False AND) NilNode NilNode NilList NilList) NilList NilList) NilList NilList) 
+;     (ConsTree (TreeNode (Value Nil False AND)
+;     (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList)
+;     (TreeNode (Value Nil False AND)
+;         (TreeNode (Value NilNode False OR) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList)
+;         (TreeNode (Value NilNode False AND) 
+;             (TreeNode (Value Nil False AND)
+;             (TreeNode (Value NilNode False AND) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList) ;this node fulfills the condition
+;             (TreeNode (Value NilNode False AND) NilNode NilNode NilList NilList)
+;                 NilList
+;                 NilList
+;             ) 
+;             NilNode NilList NilList)
+;         NilList
+;         NilList
+;     )
+;     NilList
+;     NilList
+; ) NilList)
+;     )
+;  )
+
+; !(has-terminal-node (TreeNode
+;   (Value Nil False AND)
+;   (TreeNode
+;     (Value x False LITERAL)
+;     NilNode
+;     NilNode
+;     NilList
+;     NilList
+;   )
+;   (TreeNode
+;     (Value Nil False AND)
+;     NilNode
+;     NilNode
+;     (ConsTree
+;       (TreeNode
+;         (Value b False LITERAL)
+;         NilNode
+;         NilNode
+;         NilList
+;         NilList
+;       )
+;       NilList
+;     )
+;     NilList
+;   )
+;   NilList
+; )
+; )
+
+
+
+
+
+
+
+
+
+
+
+
+(: update-guardSet (-> Tree TreeList Tree) )
+(= (update-guardSet $node $new-guardSet) (
+    let ($value $left $right $guardSet $children) $node  (TreeNode $value $left $right $new-guardSet $children)
+))
+(: update-tree (-> Tree NodeValue Tree))
+(= (update-tree $tree $newValue)(
+    let ($value $left $right $guardSet $children) $node  (TreeNode $newValue $left $right $new-guardSet $children)
+))
