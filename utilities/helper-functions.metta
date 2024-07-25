@@ -256,3 +256,56 @@
 ;;!(member 1 Nil)
 ;;!(add-three 1 2 3)
 ;;!(append (Cons a (Cons b (Cons c Nil))) (Cons c Nil))
+
+
+
+
+!(has-terminal-node (TreeNode (Value Nil False AND) (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) (TreeNode (Value Nil False AND) (TreeNode (Value NilNode False OR) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList) (TreeNode (Value NilNode False AND) NilNode NilNode NilList NilList) NilList NilList) NilList NilList) ) 
+!(has-terminal-node (TreeNode (Value Nil False AND)
+    (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList)
+    (TreeNode (Value Nil False AND)
+        (TreeNode (Value NilNode False OR) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList)
+        (TreeNode (Value NilNode False AND) 
+            (TreeNode (Value Nil False AND)
+            (TreeNode (Value NilNode False AND) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList)
+            (TreeNode (Value NilNode False AND) NilNode NilNode NilList NilList)
+                NilList
+                NilList
+            ) 
+            NilNode NilList NilList)
+        NilList
+        NilList
+    )
+    NilList
+    NilList
+)
+)
+
+
+(ConsTree 
+(TreeNode (Value Nil False AND) (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) (TreeNode (Value Nil False AND) (TreeNode (Value NilNode False OR) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList) (TreeNode (Value NilNode False AND) NilNode NilNode NilList NilList) NilList NilList) NilList NilList) NilList)
+!(contains-terminal-node
+(ConsTree 
+    (TreeNode (Value Nil False AND) (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) (TreeNode (Value Nil False AND) (TreeNode (Value NilNode False AND) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList) (TreeNode (Value NilNode False AND) NilNode NilNode NilList NilList) NilList NilList) NilList NilList) 
+    (ConsTree (TreeNode (Value Nil False AND)
+    (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList)
+    (TreeNode (Value Nil False AND)
+        (TreeNode (Value NilNode False OR) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList)
+        (TreeNode (Value NilNode False AND) 
+            (TreeNode (Value Nil False AND)
+            (TreeNode (Value NilNode False AND) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList) ;this node fulfills the condition
+            (TreeNode (Value NilNode False AND) NilNode NilNode NilList NilList)
+                NilList
+                NilList
+            ) 
+            NilNode NilList NilList)
+        NilList
+        NilList
+    )
+    NilList
+    NilList
+) NilList)
+    )
+ )
+
+
