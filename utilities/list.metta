@@ -76,6 +76,21 @@
     )
 )
 
+;A function that checks if at least one True exists from a Boolean list 
+(: any (-> List Bool))
+(= (any Nil) False) ;; return False if the list is empty
+(= (any (Cons True $xs)) ;; return True if the item is True
+    True
+)
+(= (any (Cons False $xs)) ;;go to the next list item if False
+    (any $xs)
+)
+;;test cases
+; ! (any (Cons False Nil)) ;; False
+; ! (any (Cons True Nil)) ;; True
+; ! (any (Cons True(Cons False (Cons True Nil)))) ;; True
+
+
 ; QuickSort implementation
 (: quickSort (-> List List))
 (= (quickSort Nil) Nil)
