@@ -106,6 +106,22 @@
 ; ! (all (Cons False(Cons True (Cons False Nil)))) ;; False
 ; ! (all (Cons True(Cons True (Cons True Nil)))) ;; True
 
+; A function to find and remove element from a list
+(: findAndRemove (-> $t List List ))
+;; if the list is empty, return Nil
+(= (findAndRemove $elem Nil) Nil)
+;; if $x equals $elem, skip it; otherwise, include $x in the new list.
+(= (findAndRemove $elem (Cons $x $xs)) 
+    (if (== $x $elem) (findAndRemove $elem $xs)
+    (Cons $x (findAndRemove $elem $xs)))
+    )
+
+;; Test cases
+; !(findAndRemove 1 (Cons 1 (Cons 2 (Cons 3 Nil))))  ;; Output: [(Cons 2 (Cons 3 Nil))]
+; !(findAndRemove 3 (Cons 1 (Cons 2 (Cons 3 Nil))))  ;; Output: [(Cons 1 (Cons 2 Nil))]
+; !(findAndRemove 4 (Cons 1 (Cons 2 (Cons 3 Nil))))  ;; Output: [(Cons 1 (Cons 2 (Cons 3 Nil)))]
+
+
 ; QuickSort implementation
 (: quickSort (-> List List))
 (= (quickSort Nil) Nil)
