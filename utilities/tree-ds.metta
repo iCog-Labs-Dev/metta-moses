@@ -28,7 +28,7 @@
       ( (AND $a $b) (TreeNode (Value Nil False AND) (buildTree $a) (buildTree $b) NilList NilList) )
       ( (OR $a $b) (TreeNode (Value Nil False OR) (buildTree $a) (buildTree $b) NilList NilList) )
       ( (NOT $x) (TreeNode (Value Nil False NOT) (buildTree $x) NilNode NilList NilList) )
-      ( $symbol (TreeNode (Value $symbol False NOT) NilNode NilNode NilList NilList) )
+      ( $symbol (TreeNode (Value $symbol False LITERAL) NilNode NilNode NilList NilList) )
     )
   )
 )
