@@ -430,3 +430,16 @@
 (= (update-tree $tree $newValue)(
     let ($value $left $right $guardSet $children) $node  (TreeNode $newValue $left $right $new-guardSet $children)
 ))
+
+(: changeTree (-> Tree Tree Tree))
+(= (changeTree $tree $newTree)
+    (case $newTree  (
+            ((TreeNode $newValue $newLeft $newRight $newGuardSet $newChildren)
+                $newTree
+            )
+            (NilNode NilNode)
+            ($_ Error)
+
+        )
+    )
+)
