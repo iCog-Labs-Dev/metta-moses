@@ -91,6 +91,21 @@
 ; ! (any (Cons True(Cons False (Cons True Nil)))) ;; True
 
 
+;A function that check if all of the elements are true from a Bool List.
+(: all (-> List Bool))
+(= (all Nil) True) ;; return True if the list is empty
+(= (all (Cons False $xs)) ;; return False if the item is False
+    False
+)
+(= (all (Cons True $xs)) ;;go to the next list item if True
+    (all $xs)
+)
+;; test cases
+; ! (all (Cons False Nil)) ;; False
+; ! (all (Cons True Nil)) ;; True
+; ! (all (Cons False(Cons True (Cons False Nil)))) ;; False
+; ! (all (Cons True(Cons True (Cons True Nil)))) ;; True
+
 ; QuickSort implementation
 (: quickSort (-> List List))
 (= (quickSort Nil) Nil)
