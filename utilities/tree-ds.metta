@@ -13,7 +13,7 @@
 (: LITERAL NodeType)
 
 ;; Value(value, truthValue, nodeType)
-(: Value (-> Number Bool NodeType NodeValue))
+(: Value (-> $v Bool NodeType NodeValue))
 
 (: NilNode Tree)
 ;; TreeNode(nodeValue, leftChild, rightChild, guardSet, listOfChildren)
