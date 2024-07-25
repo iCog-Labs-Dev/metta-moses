@@ -443,3 +443,15 @@
         )
     )
 )
+
+(:getChildrenFromTree (-> Tree TreeList TreeList))
+(= (getChildrenFromTree $tree $accumulator)
+    (case $tree (
+           ((TreeNode $value $right $left $guardSet $children)
+                $children
+                
+           )
+           ($_ NilList)
+        )
+    )
+)
