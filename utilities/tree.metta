@@ -3,36 +3,45 @@
 
 (= (treeFoldl $func $acc NilNode) $acc)
 (= (treeFoldl $func $acc (TreeNode $nodeVal $leftTree $rightTree $guardSet $children))
-  (let $leftAcc
-    (case $leftTree
-      (
-        ( (NilNode) $acc )
-        ( (TreeNode $innerNodeVal $innerLeftTree $innerRightTree $innerGuardSet $innerChildren) 
-          (case $innerNodeVal
-            (
-              ( (Value Nil $truthVal $type) $acc )
-              ( (Value $val $truthVal $type) (treeFoldl $func ($func $acc $val) $innerLeftTree) )
-            )
-          )
-        )
+  (case $nodeVal
+    (
+      ( (Value $val $truthVal LITERAL) 
+        ($func $acc $val)
       )
-    )
-    (case $rightTree
-      (
-        ( (NilNode) $acc )
-        ( (TreeNode $innerNodeVal $innerLeftTree $innerRightTree $innerGuardSet $innerChildren) 
-          (case $innerNodeVal
-            (
-              ( (Value Nil $truthVal $type) $acc )
-              ( (Value $val $truthVal $type) (treeFoldl $func ($func $leftAcc $val) $innerRightTree) )
-            )
-          )
-        )
+      ( (Value $val $truthVal ROOT)
+        (treeFoldl $func $acc $rightTree)
+      )
+      ( (Value $val $truthVal NOT)
+        (treeFoldl $func $acc $rightTree)
+      )
+      ( (Value $val $truthVal AND)
+        (treeFoldl $func (treeFoldl $func $acc $leftTree) $rightTree)
+      )
+      ( (Value $val $truthVal OR)
+        (treeFoldl $func (treeFoldl $func $acc $leftTree) $rightTree)
       )
     )
   )
 )
 
-(= (add $x $y) (+ $x $y))
+(= (treeFoldr $func $acc NilNode) $acc)
+(= (treeFoldr $func $acc (TreeNode $nodeVal $leftTree $rightTree $guardSet $children))
+  (case $nodeVal
+    (
+      ( (Value $val $truthVal LITERAL) ($func $acc $val) )
+      ( (Value $val $truthVal ROOT) (treeFoldl $func $acc $rightTree) )
+      ( (Value $val $truthVal NOT) (treeFoldl $func $acc $rightTree) )
+      ( (Value $val $truthVal AND)
+        (treeFoldl $func (treeFoldl $func $acc $leftTree) $rightTree)
+      )
+      ( (Value $val $truthVal OR)
+        (treeFoldl $func (treeFoldl $func $acc $leftTree) $rightTree)
+      )
+    )
+  )
+)
 
-!(treeFoldl add 0 (buildTree (AND 1 2)))
+;; (= (zip $x $y) ($x $y))
+
+;; !(treeFoldl zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
+;; !(treeFoldr zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))

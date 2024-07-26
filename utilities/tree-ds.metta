@@ -24,9 +24,9 @@
 (= (buildTree $expr) 
   (case $expr
     (
-      ( (AND $a $b) (TreeNode (Value 0 False AND) (buildTree $a) (buildTree $b) NilList NilList) )
+      ( (AND $a $b) (TreeNode (Value Nil False AND) (buildTree $a) (buildTree $b) NilList NilList) )
       ( (OR $a $b) (TreeNode (Value Nil False OR) (buildTree $a) (buildTree $b) NilList NilList) )
-      ( (NOT $x) (TreeNode (Value Nil False NOT) (buildTree $x) NilNode NilList NilList) )
+      ( (NOT $x) (TreeNode (Value Nil False NOT) NilNode (buildTree $x) NilList NilList) )
       ( $symbol (TreeNode (Value $symbol False LITERAL) NilNode NilNode NilList NilList) )
     )
   )
