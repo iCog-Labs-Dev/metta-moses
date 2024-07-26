@@ -76,6 +76,71 @@
     )
 )
 
+;A function that checks if at least one True exists from a Boolean list 
+(: any (-> List Bool))
+(= (any Nil) False) ;; return False if the list is empty
+(= (any (Cons True $xs)) ;; return True if the item is True
+    True
+)
+(= (any (Cons False $xs)) ;;go to the next list item if False
+    (any $xs)
+)
+;;test cases
+; ! (any (Cons False Nil)) ;; False
+; ! (any (Cons True Nil)) ;; True
+; ! (any (Cons True(Cons False (Cons True Nil)))) ;; True
+
+
+;A function that check if all of the elements are true from a Bool List.
+(: all (-> List Bool))
+(= (all Nil) True) ;; return True if the list is empty
+(= (all (Cons False $xs)) ;; return False if the item is False
+    False
+)
+(= (all (Cons True $xs)) ;;go to the next list item if True
+    (all $xs)
+)
+;; test cases
+; ! (all (Cons False Nil)) ;; False
+; ! (all (Cons True Nil)) ;; True
+; ! (all (Cons False(Cons True (Cons False Nil)))) ;; False
+; ! (all (Cons True(Cons True (Cons True Nil)))) ;; True
+
+; A function to find and remove element from a list
+(: findAndRemove (-> $t List List ))
+;; if the list is empty, return Nil
+(= (findAndRemove $elem Nil) Nil)
+;; if $x equals $elem, skip it; otherwise, include $x in the new list.
+(= (findAndRemove $elem (Cons $x $xs)) 
+    (if (== $x $elem) (findAndRemove $elem $xs)
+    (Cons $x (findAndRemove $elem $xs)))
+    )
+
+;; Test cases
+; !(findAndRemove 1 (Cons 1 (Cons 2 (Cons 3 Nil))))  ;; Output: [(Cons 2 (Cons 3 Nil))]
+; !(findAndRemove 3 (Cons 1 (Cons 2 (Cons 3 Nil))))  ;; Output: [(Cons 1 (Cons 2 Nil))]
+; !(findAndRemove 4 (Cons 1 (Cons 2 (Cons 3 Nil))))  ;; Output: [(Cons 1 (Cons 2 (Cons 3 Nil)))]
+
+
+;A function to compare 2 lists
+(: compare (-> List List  Bool))
+(= (compare Nil Nil) True) ;; if both the lists are empty, They are the same.
+(= (compare (Cons $x $xs) (Cons $y $ys)) 
+    (if (and (not(== $xs $ys)) (or (== $xs Nil) (== $ys Nil)))
+        False
+        (if (== $x $y) 
+            (compare $xs $ys) 
+            False
+        )
+    ) 
+)
+;; Test cases
+; !(compare (Cons 1 Nil) (Cons 1 Nil)) ;; Output: True
+; !(compare (Cons "A" Nil) (Cons "a" Nil)) ;; Output: False
+; !(compare (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons 1 (Cons 2 (Cons 3 Nil)))) ;; Output: True
+; !(compare (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons 1  (Cons 2 Nil)) ) ;; Output: False
+
+
 ; QuickSort implementation
 (: quickSort (-> List List))
 (= (quickSort Nil) Nil)
