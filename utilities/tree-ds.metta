@@ -19,8 +19,7 @@
 ;; TreeNode(nodeValue, leftChild, rightChild, guardSet, listOfChildren)
 (: TreeNode (-> NodeValue Tree Tree TreeList TreeList Tree))
 
-;; (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))
-;; (: buildTree (-> Expression Tree))
+;; function to build a tree of type "Tree" from an expression
 (= (buildTree $expr) 
   (case $expr
     (
@@ -32,11 +31,27 @@
   )
 )
 
-;; (: buildTreeWithRoot (-> Expression Tree))
+;; function to build a tree with a root node of "ROOT"
 (= (buildTreeWithRoot $expr)
   (TreeNode (Value Nil False ROOT) NilNode (buildTree $b) NilList NilList)
 )
 
-;; !(buildTree (AND 1 2))
-;; !(buildTree (AND a b))
+(: getNodeChildren (-> Tree TreeList))
+(= (getNodeChildren $node)
+  (case $node
+    (
+      ( (TreeNode $nodeVal $leftNode $rightNode $guardSet $children) $children )
+    )
+  )
+)
+
+(: getNodeGuardSet (-> Tree TreeList))
+(= (getNodeGuardSet $node)
+  (case $node
+    (
+      ( (TreeNode $nodeVal $leftNode $rightNode $guardSet $children) $guardSet )
+    )
+  )
+)
+
 !(buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A))))))))
