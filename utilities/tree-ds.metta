@@ -130,3 +130,6 @@
 		)
   )
 )
+
+;; example
+;; !(updateChild (buildTree(AND A (OR B C))) r (buildTree (AND Y Z)))
