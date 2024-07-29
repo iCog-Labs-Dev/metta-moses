@@ -124,6 +124,9 @@
 						(	r
 								 (TreeNode (Value $valueName $truthValue $nodeType) $left $newNode $guardSet $children)
 						)
+						( $else
+									"Error: Invalid option: must be l or r"
+						)
 					)
 				)
 			)
