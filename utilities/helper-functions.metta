@@ -455,3 +455,15 @@
         )
     )
 )
+
+(:compareTrees (-> Tree Tree Bool))
+(=(compareTrees $tree1 $tree2)
+    (case ($tree1 $tree2) (
+        (((TreeNode (Value $symbol $constraint $nodetype) $leftChild $rightChild $guardSet $listOfChildren) (TreeNode (Value $symbol $constraint $nodetype)  $leftChild1 $rightChild1 $guardSet1 $listOfChildren1)) True)
+        ($else False)
+    )
+    )
+
+
+)
+!(compareTrees (buildTree (OR a (AND b c))) (buildTree (AND d (AND b c))))
