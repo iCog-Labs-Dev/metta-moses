@@ -274,21 +274,7 @@
 ))
 
 
-
 !(has-terminal-node (TreeNode (Value Nil False OR) (TreeNode (Value Nil True AND) NilNode NilNode NilList NilList) (TreeNode (Value Nil False AND) NilNode (TreeNode (Value Nil False AND) NilNode NilNode (ConsTree (TreeNode (Value x True LITERAL) NilNode NilNode NilList NilList ) (ConsTree (TreeNode (Value x True LITERAL) NilNode NilNode NilList NilList ) NilList)) NilList) NilList NilList) NilList NilList) )
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 (: contains-terminal-node (-> TreeList Bool ))
 (= (contains-terminal-node NilList) False)
@@ -298,7 +284,6 @@
         ; ($else (Invalid Expression--- $else))
     )
 ))
-
 
 ; !(buildTree (OR a (AND b c)))
 
@@ -411,17 +396,6 @@
 ; )
 ; )
 
-
-
-
-
-
-
-
-
-
-
-
 (: update-guardSet (-> Tree TreeList Tree) )
 (= (update-guardSet $node $new-guardSet) (
     let ($value $left $right $guardSet $children) $node  (TreeNode $value $left $right $new-guardSet $children)
@@ -466,4 +440,10 @@
 
 
 )
-!(compareTrees (buildTree (OR a (AND b c))) (buildTree (AND d (AND b c))))
+
+;;!(compareTrees (buildTree (OR a (AND b c))) (buildTree (AND d (AND b c))))
+
+;; (=(compareNodeWithList $tree $treeList)
+;;     (if (== ))
+;; )
+

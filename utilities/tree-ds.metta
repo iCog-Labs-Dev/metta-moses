@@ -74,4 +74,9 @@
     )
   )
 )
+(: appendTree (-> List List List))
+(= (appendTree NilNode $ys) $ys)
+(= (appendTree (ConsTree $x $xs) $ys) (ConsTree $x (appendTree $xs $ys)))
+
+!(appendTree (buildTree))
 
