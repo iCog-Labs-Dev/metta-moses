@@ -412,16 +412,6 @@
 ; )
 
 
-
-
-
-
-
-
-
-
-
-
 (: update-guardSet (-> Tree TreeList Tree) )
 (= (update-guardSet $node $new-guardSet) (
     let ($value $left $right $guardSet $children) $node  (TreeNode $value $left $right $new-guardSet $children)
@@ -442,3 +432,19 @@
     )
   )
 )
+
+; checks if two tree nodes are equal
+; True if equal, False otherwise
+
+(: isEqual (-> TreeNode TreeNode Bool))
+( = (isEqual $node1 $node2) 
+    ( 
+        case ($node1 $node2) (
+            (((TreeNode (Value $val1 $truthValue1 $nodeType1) $left1 $right1 $guardSet1 $children1) (TreeNode  (Value $val2 $truthValue2 $nodeType2) $left2 $right2 $guardSet2 $children2)) (
+                if (and (== $val1 $val2) (== $truthValue1 $truthValue2)) True False
+                ))
+        )
+    )
+)
+; ! (isEqual (buildTree C) (buildTree C)) ; True 
+; ! (isEqual (buildTree A) (buildTree C)) ; False
