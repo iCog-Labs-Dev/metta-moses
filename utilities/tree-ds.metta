@@ -19,7 +19,12 @@
 ;; TreeNode(nodeValue, leftChild, rightChild, guardSet, listOfChildren)
 (: TreeNode (-> NodeValue Tree Tree TreeList TreeList Tree))
 
-;; function to build a tree of type "Tree" from an expression
+;; -----------------------------------
+;; -----------------------------------
+;; -------- function to build a tree of type "Tree" from an expression
+;; -----------------------------------
+;; -----------------------------------
+
 (= (buildTree $expr) 
   (case $expr
     (
@@ -34,12 +39,22 @@
 ;; !(buildTree (AND a b))
 !(buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A))))))))
 
-;; function to build a tree with a root node of "ROOT"
+;; -----------------------------------
+;; -----------------------------------
+;; -------- function to build a tree with a root node of "ROOT"
+;; -----------------------------------
+;; -----------------------------------
+
 (= (buildTreeWithRoot $expr)
   (TreeNode (Value Nil False ROOT) NilNode (buildTree $b) NilList NilList)
 )
 
-;a function to get the right or left child
+;; -----------------------------------
+;; -----------------------------------
+;; -------- a function to get the right or left child
+;; -----------------------------------
+;; -----------------------------------
+
 (: getChild (-> Tree String Tree))
 (= (getChild $tree $opt) 
  (case $tree
@@ -56,6 +71,11 @@
 
 ;!(getChild (buildTree (AND a b)) ())
 
+;; -----------------------------------
+;; -----------------------------------
+;; -------- a function to get node children
+;; -----------------------------------
+;; -----------------------------------
 
 (: getNodeChildren (-> Tree TreeList))
 (= (getNodeChildren $node)
@@ -65,6 +85,12 @@
     )
   )
 )
+
+;; -----------------------------------
+;; -----------------------------------
+;; -------- a function to get guardset
+;; -----------------------------------
+;; -----------------------------------
 
 (: getNodeGuardSet (-> Tree TreeList))
 (= (getNodeGuardSet $node)
