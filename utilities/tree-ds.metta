@@ -75,3 +75,32 @@
   )
 )
 
+;; -----------------------------------
+;; -------- updateChild
+;; -------- Given a binary tree node and position (left, right) indicating which child to update, replace it's left or right child with the given node.
+;; -----------------------------------
+;; -----------------------------------
+
+(: Position Type)
+(: l Position)
+(: r Position)
+
+;; (node postition(l or r) newNode)
+(: updateChild (-> Tree Position Tree Tree))
+(= (updateChild $node $position $newNode)
+  (case $node (
+			((TreeNode (Value $valueName $truthValue $nodeType) $left $right $guardSet $children)
+				(case $position (
+						(	l
+								 (TreeNode (Value $valueName $truthValue $nodeType) $newNode $right $guardSet $children)
+						)
+
+						(	r
+								 (TreeNode (Value $valueName $truthValue $nodeType) $left $newNode $guardSet $children)
+						)
+					)
+				)
+			)
+		)
+  )
+)
