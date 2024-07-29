@@ -136,3 +136,41 @@
 
 ;; example
 ;; !(updateChild (buildTree(AND A (OR B C))) r (buildTree (AND Y Z)))
+
+
+;; -----------------------------------
+;; -------- Append Children
+;; -------- Given a node and a tree, append the tree to the node's children.
+;; -----------------------------------
+;; -----------------------------------
+
+
+(: appendChildren (-> Tree Tree Tree))
+(= (appendChildren $node $child)
+  (case $node 
+		(
+			( 
+				(TreeNode (Value $valueName $truthValue $nodeType) $left $right $guardSet $children)
+				(TreeNode (Value $valueName $truthValue $nodeType) $left $right $guardSet (ConsTree $child $children))
+			)
+		)
+  )
+)
+
+;; example
+
+;; !(appendChildren 
+;;		(TreeNode (Value Nil False AND) 
+;;					(TreeNode (Value A False LITERAL) NilNode NilNode NilList NilList)
+;;					(TreeNode (Value B False LITERAL) NilNode NilNode NilList NilList)
+;;			NilList
+;;			(ConsTree 
+;;							(TreeNode (Value Nil False AND) 
+;;									(TreeNode (Value C False LITERAL) NilNode NilNode NilList NilList) 
+;;									(TreeNode (Value D False LITERAL) NilNode NilNode NilList NilList) NilList NilList)
+;;							NilList
+;;			) 
+;;		)
+;;
+;;		(buildTree (AND Y Z))
+;;	)
