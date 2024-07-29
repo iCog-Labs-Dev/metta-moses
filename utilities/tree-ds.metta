@@ -62,9 +62,9 @@
         ((TreeNode $nodeValue $leftChild $rightChild $guardSet $listOfChildren)
          (case $opt
              (
-                ("L" $leftChild)
-                ("R" $rightChild)
-                ($else "Error: Invalid option: must be 'L' or 'R'")
+                ( l $leftChild)
+                ( r $rightChild)
+                ($else "Error: Invalid option: must be l or r")
              )))
         (() ())
      )) )
