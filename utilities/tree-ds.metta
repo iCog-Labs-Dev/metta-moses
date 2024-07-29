@@ -19,7 +19,12 @@
 ;; TreeNode(nodeValue, leftChild, rightChild, guardSet, listOfChildren)
 (: TreeNode (-> NodeValue Tree Tree TreeList TreeList Tree))
 
-;; function to build a tree of type "Tree" from an expression
+;; -----------------------------------
+;; -----------------------------------
+;; -------- function to build a tree of type "Tree" from an expression
+;; -----------------------------------
+;; -----------------------------------
+
 (= (buildTree $expr) 
   (case $expr
     (
@@ -34,12 +39,22 @@
 ;; !(buildTree (AND a b))
 !(buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A))))))))
 
-;; function to build a tree with a root node of "ROOT"
+;; -----------------------------------
+;; -----------------------------------
+;; -------- function to build a tree with a root node of "ROOT"
+;; -----------------------------------
+;; -----------------------------------
+
 (= (buildTreeWithRoot $expr)
   (TreeNode (Value Nil False ROOT) NilNode (buildTree $b) NilList NilList)
 )
 
-;a function to get the right or left child
+;; -----------------------------------
+;; -----------------------------------
+;; -------- a function to get the right or left child
+;; -----------------------------------
+;; -----------------------------------
+
 (: getChild (-> Tree String Tree))
 (= (getChild $tree $opt) 
  (case $tree
@@ -56,6 +71,11 @@
 
 ;!(getChild (buildTree (AND a b)) ())
 
+;; -----------------------------------
+;; -----------------------------------
+;; -------- a function to get node children
+;; -----------------------------------
+;; -----------------------------------
 
 (: getNodeChildren (-> Tree TreeList))
 (= (getNodeChildren $node)
@@ -66,6 +86,12 @@
   )
 )
 
+;; -----------------------------------
+;; -----------------------------------
+;; -------- a function to get guardset
+;; -----------------------------------
+;; -----------------------------------
+
 (: getNodeGuardSet (-> Tree TreeList))
 (= (getNodeGuardSet $node)
   (case $node
@@ -75,3 +101,32 @@
   )
 )
 
+;; -----------------------------------
+;; -------- updateChild
+;; -------- Given a binary tree node and position (left, right) indicating which child to update, replace it's left or right child with the given node.
+;; -----------------------------------
+;; -----------------------------------
+
+(: Position Type)
+(: l Position)
+(: r Position)
+
+;; (node postition(l or r) newNode)
+(: updateChild (-> Tree Position Tree Tree))
+(= (updateChild $node $position $newNode)
+  (case $node (
+			((TreeNode (Value $valueName $truthValue $nodeType) $left $right $guardSet $children)
+				(case $position (
+						(	l
+								 (TreeNode (Value $valueName $truthValue $nodeType) $newNode $right $guardSet $children)
+						)
+
+						(	r
+								 (TreeNode (Value $valueName $truthValue $nodeType) $left $newNode $guardSet $children)
+						)
+					)
+				)
+			)
+		)
+  )
+)
