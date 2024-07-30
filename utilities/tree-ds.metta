@@ -100,6 +100,11 @@
     )
   )
 )
+(: appendTree (-> TreeList TreeList TreeList))
+(= (appendTree NilList $ys) $ys)
+(= (appendTree (ConsTree $x $xs) $ys) (ConsTree $x (appendTree $xs $ys)))
+
+
 
 ;; -----------------------------------
 ;; -------- updateChild
