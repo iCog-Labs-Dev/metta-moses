@@ -174,3 +174,47 @@
 ;;
 ;;		(buildTree (AND Y Z))
 ;;	)
+
+;;function to check if a tree is member of a treelist
+(= (member-tree $x $y)
+    (case ($x $y)
+        (
+            (((TreeNode $nodeValueX $leftChild $rightChild $guardSet $listOfChildren) (Cons (TreeNode $nodeValueL $leftChild $rightChild $guardSet $listOfChildren) $t))
+                 (if (== $nodeValueX $nodeValueL) 
+                     True 
+                     (member-tree $x $t))
+             )
+            ($else False)
+        )
+    )
+)
+
+;;function to return the intersection of two treelists
+(= (tree-intersection $lst1 $lst2)
+    (case $lst1
+    (
+        ((Cons $h $t) 
+         (if (member-tree $h $lst2) 
+            (Cons $h (tree-intersection $t $lst2)) 
+            (tree-intersection $t $lst2)
+         ) 
+        )
+        (() ())
+    )
+    )
+)
+
+;;!(member-tree (TreeNode (Value Nil False OR) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
+;;Node NilNode NilList NilList) NilList NilList) 
+;;(Cons (TreeNode (Value Nil False AND) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
+;;Node NilNode NilList NilList) NilList NilList) (Cons (TreeNode (Value Nil False OR) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
+;;Node NilNode NilList NilList) NilList NilList) ())))
+
+;;! (tree-intersection
+;; (Cons (TreeNode (Value Nil False AND) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
+;;Node NilNode NilList NilList) NilList NilList) (Cons (TreeNode (Value Nil False OR) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
+;;Node NilNode NilList NilList) NilList NilList) ()))
+;; (Cons (TreeNode (Value Nil False AND) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
+;;Node NilNode NilList NilList) NilList NilList) (Cons (TreeNode (Value Nil True OR) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
+;;Node NilNode NilList NilList) NilList NilList) ()))
+;;)
