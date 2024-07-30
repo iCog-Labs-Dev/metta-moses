@@ -460,3 +460,23 @@
 
 
 
+(: update-guardSet (-> Tree TreeList Tree) )
+(= (update-guardSet $node $new-guardSet) (
+    let ($value $left $right $guardSet $children) $node  (TreeNode $value $left $right $new-guardSet $children)
+))
+(: update-tree (-> Tree NodeValue Tree))
+(= (update-tree $tree $newValue)(
+    let ($value $left $right $guardSet $children) $node  (TreeNode $newValue $left $right $new-guardSet $children)
+))
+
+;replacing the children with a new updated list
+(: replace-children (-> Tree TreeList Tree))
+(= (replace-children $tree $newChildren) 
+  (case $tree
+    (
+      ((TreeNode $nodeValue $leftChild $rightChild $guardSet $listOfChildren)
+       (TreeNode $nodeValue $leftChild $rightChild $guardSet $newChildren))
+      (() ())
+    )
+  )
+)
