@@ -274,21 +274,7 @@
 ))
 
 
-
 !(has-terminal-node (TreeNode (Value Nil False OR) (TreeNode (Value Nil True AND) NilNode NilNode NilList NilList) (TreeNode (Value Nil False AND) NilNode (TreeNode (Value Nil False AND) NilNode NilNode (ConsTree (TreeNode (Value x True LITERAL) NilNode NilNode NilList NilList ) (ConsTree (TreeNode (Value x True LITERAL) NilNode NilNode NilList NilList ) NilList)) NilList) NilList NilList) NilList NilList) )
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 (: contains-terminal-node (-> TreeList Bool ))
 (= (contains-terminal-node NilList) False)
@@ -298,7 +284,6 @@
         ; ($else (Invalid Expression--- $else))
     )
 ))
-
 
 ; !(buildTree (OR a (AND b c)))
 
@@ -411,14 +396,67 @@
 ; )
 ; )
 
+(: update-guardSet (-> Tree TreeList Tree) )
+(= (update-guardSet $node $new-guardSet) (
+    let ($value $left $right $guardSet $children) $node  (TreeNode $value $left $right $new-guardSet $children)
+))
+(: update-tree (-> Tree NodeValue Tree))
+(= (update-tree $tree $newValue)(
+    let ($value $left $right $guardSet $children) $node  (TreeNode $newValue $left $right $new-guardSet $children)
+))
+
+(: changeTree (-> Tree Tree Tree))
+(= (changeTree $tree $newTree)
+    (case $newTree  (
+            ((TreeNode $newValue $newLeft $newRight $newGuardSet $newChildren)
+                $newTree
+            )
+            (NilNode NilNode)
+            ($_ Error)
+
+        )
+    )
+)
+
+(:getChildrenFromTree (-> Tree TreeList TreeList))
+(= (getChildrenFromTree $tree $accumulator)
+    (case $tree (
+           ((TreeNode $value $right $left $guardSet $children)
+                $children
+                
+           )
+           ($_ NilList)
+        )
+    )
+)
+
+(:compareTrees (-> Tree Tree Bool))
+(=(compareTrees $tree1 $tree2)
+    (case ($tree1 $tree2) (
+        (((TreeNode (Value $symbol $constraint $nodetype) $leftChild $rightChild $guardSet $listOfChildren) (TreeNode (Value $symbol $constraint $nodetype)  $leftChild1 $rightChild1 $guardSet1 $listOfChildren1)) True)
+        ($else False)
+    )
+    )
 
 
+)
 
+;;!(compareTrees (buildTree (OR a (AND b c))) (buildTree (AND d (AND b c))))
+(:compareAndRemoveNode (-> Tree TreeList TreeList TreeList))
+(=(compareAndRemoveNode $tree $treeList $accumulator)
+    (case $treeList(
+            ((ConsTree $x $xs)
+                (if (== (compareTrees $tree $x) True)
+                    (compareAndRemoveNode $tree $xs $accumulator)
+                    (compareAndRemoveNode $tree $xs (appendTree $accumulator (ConsTree $x NilList)))
+                )
+            )
+            ($_  $accumulator)
 
-
-
-
-
+        )
+    )
+)
+!(compareAndRemoveNode (buildTree (OR a (AND b c))) (ConsTree (buildTree (OR a (AND b c))) (ConsTree (buildTree (AND a (AND b c))) NilList)) NilList)
 
 
 
@@ -430,3 +468,15 @@
 (= (update-tree $tree $newValue)(
     let ($value $left $right $guardSet $children) $node  (TreeNode $newValue $left $right $new-guardSet $children)
 ))
+
+;replacing the children with a new updated list
+(: replace-children (-> Tree TreeList Tree))
+(= (replace-children $tree $newChildren) 
+  (case $tree
+    (
+      ((TreeNode $nodeValue $leftChild $rightChild $guardSet $listOfChildren)
+       (TreeNode $nodeValue $leftChild $rightChild $guardSet $newChildren))
+      (() ())
+    )
+  )
+)
