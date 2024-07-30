@@ -442,13 +442,13 @@
 )
 
 ;;!(compareTrees (buildTree (OR a (AND b c))) (buildTree (AND d (AND b c))))
-(:compareNodeWithList (-> Tree TreeList TreeList TreeList))
-(=(compareNodeWithList $tree $treeList $accumulator)
+(:compareAndRemoveNode (-> Tree TreeList TreeList TreeList))
+(=(compareAndRemoveNode $tree $treeList $accumulator)
     (case $treeList(
             ((ConsTree $x $xs)
                 (if (== (compareTrees $tree $x) True)
-                    (compareNodeWithList $tree $xs $accumulator)
-                    (compareNodeWithList $tree $xs (appendTree $accumulator $x))
+                    (compareAndRemoveNode $tree $xs $accumulator)
+                    (compareAndRemoveNode $tree $xs (appendTree $accumulator (ConsTree $x NilList)))
                 )
             )
             ($_  $accumulator)
@@ -456,5 +456,7 @@
         )
     )
 )
+!(compareAndRemoveNode (buildTree (OR a (AND b c))) (ConsTree (buildTree (OR a (AND b c))) (ConsTree (buildTree (AND a (AND b c))) NilList)) NilList)
+
 
 
