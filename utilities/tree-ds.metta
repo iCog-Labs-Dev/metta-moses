@@ -209,6 +209,32 @@
     )
 )
 
+; Function to get setDifference of two treelists  (List1 - List2) (guradSet - resultSet)
+; (: setDifference (-> TreeList TreeList TreeList))
+(= (setDifference $list1 $list2)
+    (
+        case $list1 (
+            (() ())
+            ((Cons $x $xs) 
+                (if (member-tree $x $list2) ; if condition
+                    (setDifference $xs $list2) ; pass if object found in @list2
+                    (Cons $x (setDifference $xs $list2)) ; add to our result and continue if not found in $list2
+            ))
+        )   
+    )
+)
+
+; Function to update the grandchild's guardSet given a resultSet
+; (: computeGrandchildGuardset (-> TreeNode TreeList TreeNode))
+(= (computeGrandchildGuardset $grandChild $resultSet)
+    (
+         case $grandChild (
+               ((TreeNode $nodeValue $left $right $guardSet $children) (TreeNode $nodeValue $left $right (setDifference $guardSet $resultSet) $children))
+               ($_ ERROR)
+        )
+    )
+)
+
 ;;!(member-tree (TreeNode (Value Nil False OR) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
 ;;Node NilNode NilList NilList) NilList NilList) 
 ;;(Cons (TreeNode (Value Nil False AND) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
