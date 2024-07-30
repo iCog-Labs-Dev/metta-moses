@@ -442,8 +442,19 @@
 )
 
 ;;!(compareTrees (buildTree (OR a (AND b c))) (buildTree (AND d (AND b c))))
+(:compareNodeWithList (-> Tree TreeList TreeList TreeList))
+(=(compareNodeWithList $tree $treeList $accumulator)
+    (case $treeList(
+            ((ConsTree $x $xs)
+                (if (== (compareTrees $tree $x) True)
+                    (compareNodeWithList $tree $xs $accumulator)
+                    (compareNodeWithList $tree $xs (appendTree $accumulator $x))
+                )
+            )
+            ($_  $accumulator)
 
-;; (=(compareNodeWithList $tree $treeList)
-;;     (if (== ))
-;; )
+        )
+    )
+)
+
 

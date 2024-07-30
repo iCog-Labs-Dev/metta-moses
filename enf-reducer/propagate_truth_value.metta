@@ -18,13 +18,13 @@
                                 )
                             )
                             (if (or (== $nodeType OR) (== $nodeType AND))
-                                (if (== False $truthValue)
+                                (if (== False $truthValueArg)
                                     (if (== $nodeType AND)
                                          (changeTree $tree (TreeNode (Value $valueName $truthValue OR) $left $right $guardSet $children))
                                          (changeTree $tree (TreeNode (Value $valueName $truthValue AND) $left $right $guardSet $children))
                                     ) 
                                     (if (and (not (== $left NilNode)) (not (== $right NilNode)))
-                                        (changeTree $tree (TreeNode (Value $valueName $truthValue $truthValue) (propagateTruthValue $right $truthValueArg) (propagateTruthValue $left $truthValueArg) $guardSet $children))
+                                        (changeTree $tree (TreeNode (Value $valueName $truthValue $nodeType) (propagateTruthValue $right $truthValueArg) (propagateTruthValue $left $truthValueArg) $guardSet $children))
                                         $tree
                                     )
                                 )
@@ -36,7 +36,7 @@
 
                 )
             )
-            (NilNode NilNode)
+            ($_ $tree)
 
         )
     )
