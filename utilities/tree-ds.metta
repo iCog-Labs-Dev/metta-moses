@@ -223,3 +223,18 @@
 ;;Node NilNode NilList NilList) NilList NilList) (Cons (TreeNode (Value Nil True OR) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
 ;;Node NilNode NilList NilList) NilList NilList) ()))
 ;;)
+
+
+;;a funcion to remove a child from a tree's listOfChildren and return an updated tree
+(=(update-tree $child $tree)
+ (case ($child $tree)
+  (
+    (($child (TreeNode $nodeValue $leftChild $rightChild $guardSet $listOfChildren))
+     (TreeNode $nodeValue $leftChild $rightChild $guardSet (compareAndRemoveNode $child $listOfChildren NilList))
+    )
+    ($else ())
+  )
+ )
+)
+
+;;!(update-tree (buildTree (OR a (AND b c))) (TreeNode (Value Nil False OR) (TreeNode (Value a False LITERAL) NilNode NilNode NilList NilList) (TreeNode (Value Nil False AND) (TreeNode (Value b False LITERAL) NilNode NilNode NilList NilList) (TreeNode (Value c False LITERAL) NilNode NilNode NilList NilList) NilList NilList) NilList (ConsTree (buildTree (OR a (AND b c))) (ConsTree (buildTree (AND a (AND b c))) NilList))))
