@@ -1,3 +1,5 @@
+!(import! &self list)
+
 (: Tree Type)
 (: NodeType Type)
 (: NodeValue Type)
@@ -139,46 +141,35 @@
 ;;		(buildTree (AND Y Z))
 ;;	)
 
-;;function to check if a tree is member of a treelist
-(= (member-tree $x $y)
-    (case ($x $y)
-        (
-            (((TreeNode $nodeValueX $leftChild $rightChild $guardSet $listOfChildren) (Cons (TreeNode $nodeValueL $leftChild $rightChild $guardSet $listOfChildren) $t))
-                 (if (== $nodeValueX $nodeValueL) 
-                     True 
-                     (member-tree $x $t))
-             )
-            ($else False)
-        )
-    )
+(: nodeEquality (-> Tree Tree Bool))
+(= (nodeEquality (TreeNode $nodeValue1 $guardSet1 $children1) (TreeNode $nodeValue2 $guardSet2 $children2))
+  (== $nodeValue1 $nodeValue2)
 )
+
+; !(nodeEquality (buildTree (AND A B)) (buildTree (AND A B)))
+
+;;function to check if a tree is member of a treelist
+(: treeIsMember (-> Tree (List Tree) Bool))
+(= (treeIsMember $x $list)
+   (memberWith nodeEquality $x $list)
+)
+
+; !(treeIsMember (buildTree D) (getChildren (buildTree (AND A D))))
 
 ;;function to return the intersection of two treelists
-(= (tree-intersection $lst1 $lst2)
-    (case $lst1
+(: treeIntersection (-> (List Tree) (List Tree) (List Tree)))
+(= (treeIntersection $list1 $list2)
+    (case $list1
     (
         ((Cons $h $t) 
-         (if (member-tree $h $lst2) 
-            (Cons $h (tree-intersection $t $lst2)) 
-            (tree-intersection $t $lst2)
+         (if (treeIsMember $h $list2) 
+            (Cons $h (treeIntersection $t $list2)) 
+            (treeIntersection $t $list2)
          ) 
         )
-        (() ())
+        ($_ (empty))
     )
     )
 )
 
-;;!(member-tree (TreeNode (Value Nil False OR) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
-;;Node NilNode NilList NilList) NilList NilList) 
-;;(Cons (TreeNode (Value Nil False AND) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
-;;Node NilNode NilList NilList) NilList NilList) (Cons (TreeNode (Value Nil False OR) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
-;;Node NilNode NilList NilList) NilList NilList) ())))
-
-;;! (tree-intersection
-;; (Cons (TreeNode (Value Nil False AND) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
-;;Node NilNode NilList NilList) NilList NilList) (Cons (TreeNode (Value Nil False OR) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
-;;Node NilNode NilList NilList) NilList NilList) ()))
-;; (Cons (TreeNode (Value Nil False AND) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
-;;Node NilNode NilList NilList) NilList NilList) (Cons (TreeNode (Value Nil True OR) (TreeNode (Value a False NOT) NilNode NilNode NilList NilList) (TreeNode (Value b False NOT) Nil
-;;Node NilNode NilList NilList) NilList NilList) ()))
-;;)
+; !(treeIntersection (getChildren (buildTree (AND A B))) (getChildren (buildTree (AND D E))))
