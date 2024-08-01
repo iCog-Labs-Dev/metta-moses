@@ -1,6 +1,6 @@
  !(import! &self list)
 !(import! &self tree-ds)
-
+(:check-not-duplicated (-> List Bool))
 (= (check-not-duplicated $list)
     (case $list
         (
@@ -99,7 +99,7 @@
 (=(car ()) Nil)
 (=(car (Cons $x $xs)) $x)
 
-
+(:check_tree_depth (-> List Number))
 (=(check_tree_depth $data)
     (case $data (
             (($op $exp1 $exp2)
@@ -119,7 +119,7 @@
 
 
 
-(:get-children (-> Expression List List))
+(:get-children (-> Expression (List $t) (List $t)))
 (= (get-children $exp $guard-set)
     (if (==(get-metatype $exp) Symbol)
         Nil
@@ -189,19 +189,7 @@
     )
 )
 )
-;; (=(get-dominant-set $exp)
-;;     (case $exp (
-;;             (($op $exp1 $exp2)
-;;                 (if (== AND $op)
-                   
-                    
-;;                 )
-;;             )
 
-
-;;         )
-;;     )
-;; )
 (=(n-ary-and $exp)
     (case $exp (
             (Nil True)
@@ -230,6 +218,7 @@
         )
     )
 )
+(:is-subset (-> (List $t) (List $t) Bool))
 (=(is-subset $list1 $list2)
     (let* (
             ($min-list (if (> (length $list1) (length $list2)) $list2 $list1
@@ -242,6 +231,7 @@
     )
    
 )
+(:is-subset-ordered (-> (List $t) (List $t) Bool))
 (=(is-subset-ordered $min-list $max-list)
     (if (== $min-list Nil)
         True
@@ -260,7 +250,7 @@
 
 )
 
-;; !(is-subset (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3  Nil))))
+ !(is-subset (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3  Nil))))
 ;;!(union-set (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) )
 ;;!(intersect (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
 ;; !(n-ary-or (Cons False (Cons True (Cons False (Cons True Nil)))))
