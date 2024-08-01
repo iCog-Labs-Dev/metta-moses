@@ -1,4 +1,4 @@
-; !(import! &self list)
+ !(import! &self list)
 !(import! &self tree-ds)
 
 (= (check-not-duplicated $list)
@@ -14,6 +14,7 @@
         )
     )
 )
+(:check-not-inverse-duplicated (-> (List $t) Bool))
 (= (check-not-inverse-duplicated $list)
     (case $list
         (
@@ -27,44 +28,65 @@
         )
     )
 )
+(: (-> (List $t) Bool))
 (=(isEmpty $exp)
     (if (== Nil $exp) True False)
 )
-(:intersect (-> List List List List))
+(=(test $list1 $list2)
+    (extend $list1 $list2)
+)
+(:intersect (-> (List $t) (List $t) (List $t) (List $t)))
 (=(intersect $list1 $list2 $accumulator)
-    (if (or (== $list1 Nil) (== $list2 Nil))
+    (if (and (isEmpty $list1) (isEmpty $list2))
         $accumulator
-        (case ($list1 $list2)
-            (
-                (((Cons $x $xs) (Cons $y $ys))
-                        (let* (
-                            ($is-x-member (member $x $ys))
-                            ($is-y-member (member $y $xs))
-                            )(if (and (== $is-x-member True) (== $is-y-member True))
-                                (if (== $x $y)
-                                    (intersect $xs $ys (append $accumulator (Cons $x Nil)))
-                                    (intersect $xs $ys (append $accumulator (Cons $x (Cons $y Nil))))
-                                )
-                                (if (and (== $is-x-member True) (== $is-y-member False))
-                                    (intersect $xs $ys (append $accumulator (Cons $x Nil)))
-                                    (if (and (== $is-x-member False) (== $is-y-member True))
-                                        (intersect $xs $ys (append $accumulator (Cons $y Nil)))
-                                        (intersect $xs $ys $accumulator)
-                                    )
-                                )
+        (case $list1 (
+                ((Cons $x $xs)
+                    (if (== (member $x $list2) True)
+                        (intersect $xs $list2 (extend $accumulator (Cons $x Nil)))
+                        (intersect $xs $list2 $accumulator)
+                    )
 
-                            )
-                        )
-
-      
                 )
+                (Nil $accumulator)
+
             )
         )
-
     )
 )
+;; (=(intersect $list1 $list2 $accumulator)
+;;     (if (or (== $list1 Nil) (== $list2 Nil))
+;;         $accumulator
+;;         (case ($list1 $list2)
+;;             (
+;;                 (((Cons $x $xs) (Cons $y $ys))
+;;                         (let* (
+;;                             ($is-x-member (member $x $ys))
+;;                             ($is-y-member (member $y $xs))
+;;                             )(if (and (== $is-x-member True) (== $is-y-member True))
+;;                                 (if (== $x $y)
+;;                                     (intersect $xs $ys (append $accumulator (Cons $x Nil)))
+;;                                     (intersect $xs $ys (append $accumulator (Cons $x (Cons $y Nil))))
+;;                                 )
+;;                                 (if (and (== $is-x-member True) (== $is-y-member False))
+;;                                     (intersect $xs $ys (append $accumulator (Cons $x Nil)))
+;;                                     (if (and (== $is-x-member False) (== $is-y-member True))
+;;                                         (intersect $xs $ys (append $accumulator (Cons $y Nil)))
+;;                                         (intersect $xs $ys $accumulator)
+;;                                     )
+;;                                 )
 
-(:union-set (->List List List List))
+;;                             )
+;;                         )
+
+      
+;;                 )
+;;             )
+;;         )
+
+;;     )
+;; )
+
+(:union-set (-> (List $t) (List $t) (List $t) (List $t)))
 (=(union-set $list1 $list2)
     (remove-duplicates (append $list1 $list2))
 )
@@ -109,15 +131,15 @@
                     ($type2 (get-metatype $exp2))
                 )
                 (if (and (== $type1 Symbol) (== $type2 Symbol))
-                    (append (Cons $exp1 (Cons $exp2 Nil)) $guard-set)
+                    (extend (Cons $exp1 (Cons $exp2 Nil)) $guard-set)
         
                     (if (and (== $type1 Symbol) (== $type2 Expression))
                         
-                        (append (Cons $exp1 Nil) (get-children $exp2 $guard-set))
+                        (extend (Cons $exp1 Nil) (get-children $exp2 $guard-set))
                     
                         (if (and (== $type1 Expression) (== $type2 Symbol))
-                            (append (Cons $exp2 Nil) (get-children $exp1 $guard-set))
-                            (append (get-children $exp1 $guard-set) (get-children $exp2 $guard-set))
+                            (extend (Cons $exp2 Nil) (get-children $exp1 $guard-set))
+                            (extend (get-children $exp1 $guard-set) (get-children $exp2 $guard-set))
                             
                         )
                     )
@@ -247,7 +269,7 @@
 ;; main = print $ mergeSort [3, 6, 2, 7, 1, 5, 4]
 ;; !(quickSort (Cons 2 (Cons 1 (Cons 3 Nil))))
 ;; !(quickSort (Cons 3 (Cons 6 (Cons 2 (Cons 7 (Cons 1 (Cons 5 (Cons 4 Nil))))))))
-;;!(intersection (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 4 (Cons 5 (Cons 6 Nil)))) Nil)
+;!(intersect (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 4 (Cons 5 (Cons 6 Nil)))) Nil)
 ;;!(get-type True)
 ;; !(cdr (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
 ;; !(get-children (AND (OR x1 x2) (AND x3 x4)) Nil)
@@ -274,7 +296,7 @@
 ))
 
 
-!(has-terminal-node (TreeNode (Value Nil False OR) (TreeNode (Value Nil True AND) NilNode NilNode NilList NilList) (TreeNode (Value Nil False AND) NilNode (TreeNode (Value Nil False AND) NilNode NilNode (ConsTree (TreeNode (Value x True LITERAL) NilNode NilNode NilList NilList ) (ConsTree (TreeNode (Value x True LITERAL) NilNode NilNode NilList NilList ) NilList)) NilList) NilList NilList) NilList NilList) )
+;;!(has-terminal-node (TreeNode (Value Nil False OR) (TreeNode (Value Nil True AND) NilNode NilNode NilList NilList) (TreeNode (Value Nil False AND) NilNode (TreeNode (Value Nil False AND) NilNode NilNode (ConsTree (TreeNode (Value x True LITERAL) NilNode NilNode NilList NilList ) (ConsTree (TreeNode (Value x True LITERAL) NilNode NilNode NilList NilList ) NilList)) NilList) NilList NilList) NilList NilList) )
 
 (: contains-terminal-node (-> TreeList Bool ))
 (= (contains-terminal-node NilList) False)
@@ -456,7 +478,7 @@
         )
     )
 )
-!(compareAndRemoveNode (buildTree (OR a (AND b c))) (ConsTree (buildTree (OR a (AND b c))) (ConsTree (buildTree (AND a (AND b c))) NilList)) NilList)
+;;!(compareAndRemoveNode (buildTree (OR a (AND b c))) (ConsTree (buildTree (OR a (AND b c))) (ConsTree (buildTree (AND a (AND b c))) NilList)) NilList)
 
 
 
