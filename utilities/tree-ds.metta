@@ -13,7 +13,6 @@
 ;; Value(value, truthValue, nodeType)
 (: Value (-> $v Bool NodeType NodeValue))
 
-(: NilNode Tree)
 ;; TreeNode(nodeValue, guardSet, listOfChildren)
 (: TreeNode (-> NodeValue (List Tree) (List Tree) Tree))
 
@@ -101,7 +100,7 @@
 (= (replaceChild (TreeNode $nodeValue $guardSet (Cons $l $xs)) $newNode L)
   (TreeNode $nodeValue $guardSet (Cons $newNode $xs))
 )
-(= (replaceChild (TreeNode $nodeValue $guardSet (Const $l Nil) R))
+(= (replaceChild (TreeNode $nodeValue $guardSet (Cons $l Nil) R))
   (TreeNode $nodeValue $guardSet (Cons $l (Cons $newNode Nil)))
 )
 (= (replaceChild (TreeNode $nodeValue $guardSet (Cons $l (Cons $r $xs))) $newNode R)
