@@ -65,7 +65,7 @@
  ; Function to merge two lists
 (: extend (-> (List $t) (List $t) (List $t)))
 (= (extend Nil $ys) $ys)
-(= (extend (Cons $x $xs) $ys) (Cons $x (join $xs $ys)))
+(= (extend (Cons $x $xs) $ys) (Cons $x (extend $xs $ys)))
 
  ; Function to partition the list
 (: partition (-> Atom (List $t) ( (List $t) (List $t) )))
