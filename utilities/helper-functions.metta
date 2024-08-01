@@ -480,3 +480,16 @@
     )
   )
 )
+
+
+;Intersection function
+(: intersections (-> (List TreeNode) (List TreeNode)(List TreeNode)))
+(= (intersections $intersectionSet $children)
+   (case $children(
+   ;if children list is empty, return list
+   ((Nil) ())
+   ;otherwise , compute the intersection and proceed recursively
+   (($head . $tail)
+     (let* (($newIntersectionSet (intersection $intersectionSet ($head  . guardSet))))
+     (intersections $newIntersectionSet $tail))
+   ))))
