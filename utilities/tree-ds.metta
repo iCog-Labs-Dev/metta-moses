@@ -13,7 +13,7 @@
 
 (: NilNode Tree)
 ;; TreeNode(nodeValue, guardSet, listOfChildren)
-(: TreeNode (-> NodeValue TreeList TreeList Tree))
+(: TreeNode (-> NodeValue (List Tree) (List Tree) Tree))
 
 (: Location Type)
 (: L Location)
@@ -28,16 +28,17 @@
 (= (buildTree $expr) 
   (case $expr
     (
-      ( (AND $a $b) (TreeNode (Value Nil False AND) Nil (Cons (buildTree $a) (Cons ((buildTree $b) Nil)))) )
-      ( (OR $a $b) (TreeNode (Value Nil False OR) Nil (Cons (buildTree $a) (Cons ((buildTree $b) Nil)))))
+      ( (AND $a $b) (TreeNode (Value Nil False AND) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))) )
+      ( (AND $a $b) (TreeNode (Value Nil False AND) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))) )
+      ( (OR $a $b) (TreeNode (Value Nil False OR) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))))
       ( (NOT $x) (TreeNode (Value Nil False NOT) Nil (Cons (buildTree $x) Nil)))
-      ( $symbol (TreeNode (Value $symbol False LITERAL) Nil Nil) )
+      ( $symbol (TreeNode (Value $symbol False LITERAL) Nil Nil))
     )
   )
 )
 
 ;; !(buildTree (AND a b))
-!(buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A))))))))
+;; !(buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A))))))))
 
 ;; -----------------------------------
 ;; -----------------------------------
@@ -55,21 +56,13 @@
 ;; -----------------------------------
 ;; -----------------------------------
 
-(: getChild (-> Tree String Tree))
-(= (getChild $tree $opt) 
- (case $tree
-     (
-        ((TreeNode $nodeValue $leftChild $rightChild $guardSet $listOfChildren)
-         (case $opt
-             (
-                ( l $leftChild)
-                ( r $rightChild)
-                ($else "Error: Invalid option: must be l or r")
-             )))
-        (() ())
-     )) )
+(: getChild (-> Tree Location Tree))
+(= (getChild (TreeNode $nodeValue $guardSet Nil) $opt) Nil)
+(= (getChild (TreeNode $nodeValue $guardSet (Cons $l $xs)) L) $l)
+(= (getChild (TreeNode $nodeValue $guardSet (Cons $l (Cons $r $xs))) R) $r)
 
-;!(getChild (buildTree (AND a b)) ())
+; !(getChild (buildTree b) L)
+; !(getChild (buildTree (AND a b)) R)
 
 ;; -----------------------------------
 ;; -----------------------------------
@@ -77,14 +70,10 @@
 ;; -----------------------------------
 ;; -----------------------------------
 
-(: getNodeChildren (-> Tree TreeList))
-(= (getNodeChildren $node)
-  (case $node
-    (
-      ( (TreeNode $nodeVal $leftNode $rightNode $guardSet $children) $children )
-    )
-  )
-)
+(: getChildren (-> Tree (List Tree)))
+(= (getChildren (TreeNode $nodeVal $guardSet $children)) $children)
+
+; !(getChildren (buildTree (AND a b)))
 
 ;; -----------------------------------
 ;; -----------------------------------
@@ -92,29 +81,15 @@
 ;; -----------------------------------
 ;; -----------------------------------
 
-(: getNodeGuardSet (-> Tree TreeList))
-(= (getNodeGuardSet $node)
-  (case $node
-    (
-      ( (TreeNode $nodeVal $leftNode $rightNode $guardSet $children) $guardSet )
-    )
-  )
-)
-(: appendTree (-> TreeList TreeList TreeList))
-(= (appendTree NilList $ys) $ys)
-(= (appendTree (ConsTree $x $xs) $ys) (ConsTree $x (appendTree $xs $ys)))
+(: getGuardSet (-> Tree TreeList))
+(= (getGuardSet (TreeNode $noeVal $guardSet $children)) $guardSet)
 
-
-
+; !(getGuardSet (buildTree (AND a b)))
 ;; -----------------------------------
 ;; -------- updateChild
 ;; -------- Given a binary tree node and position (left, right) indicating which child to update, replace it's left or right child with the given node.
 ;; -----------------------------------
 ;; -----------------------------------
-
-(: Position Type)
-(: l Position)
-(: r Position)
 
 ;; (node postition(l or r) newNode)
 (: updateChild (-> Tree Position Tree Tree))
