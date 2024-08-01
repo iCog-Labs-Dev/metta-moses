@@ -32,9 +32,7 @@
 (=(isEmpty $exp)
     (if (== Nil $exp) True False)
 )
-(=(test $list1 $list2)
-    (extend $list1 $list2)
-)
+
 (:intersect (-> (List $t) (List $t) (List $t) (List $t)))
 (=(intersect $list1 $list2 $accumulator)
     (if (and (isEmpty $list1) (isEmpty $list2))
@@ -250,7 +248,7 @@
 
 )
 
- !(is-subset (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3  Nil))))
+ ;;!(is-subset (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3  Nil))))
 ;;!(union-set (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) )
 ;;!(intersect (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
 ;; !(n-ary-or (Cons False (Cons True (Cons False (Cons True Nil)))))
