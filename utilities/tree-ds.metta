@@ -91,31 +91,23 @@
 ;; -----------------------------------
 ;; -----------------------------------
 
-;; (node postition(l or r) newNode)
-(: updateChild (-> Tree Position Tree Tree))
-(= (updateChild $node $position $newNode)
-  (case $node (
-			((TreeNode (Value $valueName $truthValue $nodeType) $left $right $guardSet $children)
-				(case $position (
-						(	l
-								 (TreeNode (Value $valueName $truthValue $nodeType) $newNode $right $guardSet $children)
-						)
-
-						(	r
-								 (TreeNode (Value $valueName $truthValue $nodeType) $left $newNode $guardSet $children)
-						)
-						( $else
-									"Error: Invalid option: must be l or r"
-						)
-					)
-				)
-			)
-		)
-  )
+;; (node location (L or R) newNode)
+(: replaceChild (-> Tree Tree Location Tree))
+(= (replaceChild (TreeNode $nodeValue $guardSet Nil) L) 
+  (TreeNode $nodeValue $guardSet (Cons $newNode Nil))
+)
+(= (replaceChild (TreeNode $nodeValue $guardSet (Cons $l $xs)) $newNode L)
+  (TreeNode $nodeValue $guardSet (Cons $newNode $xs))
+)
+(= (replaceChild (TreeNode $nodeValue $guardSet (Const $l Nil) R))
+  (TreeNode $nodeValue $guardSet (Cons $l (Cons $newNode Nil)))
+)
+(= (replaceChild (TreeNode $nodeValue $guardSet (Cons $l (Cons $r $xs))) $newNode R)
+  (TreeNode $nodeValue $guardSet (Cons $l (Cons $newNode $xs)))
 )
 
 ;; example
-;; !(updateChild (buildTree(AND A (OR B C))) r (buildTree (AND Y Z)))
+; !(replaceChild (buildTree (NOT A)) (buildTree (OR Y Z)) L)
 
 
 ;; -----------------------------------
@@ -125,21 +117,13 @@
 ;; -----------------------------------
 
 
-(: appendChildren (-> Tree Tree Tree))
-(= (appendChildren $node $child)
-  (case $node 
-		(
-			( 
-				(TreeNode (Value $valueName $truthValue $nodeType) $left $right $guardSet $children)
-				(TreeNode (Value $valueName $truthValue $nodeType) $left $right $guardSet (ConsTree $child $children))
-			)
-		)
-  )
+(: appendChild (-> Tree Tree Tree))
+(= (appendChild (TreeNode $nodeValue $guardSet $children) $child)
+  (TreeNode $nodeValue $guardSet (Cons $child $children))
 )
 
-;; example
-
-;; !(appendChildren 
+; !(appendChild (buildTree A) (buildTree (AND B)) )
+;; !(appendChild
 ;;		(TreeNode (Value Nil False AND) 
 ;;					(TreeNode (Value A False LITERAL) NilNode NilNode NilList NilList)
 ;;					(TreeNode (Value B False LITERAL) NilNode NilNode NilList NilList)
