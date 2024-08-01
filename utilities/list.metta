@@ -64,9 +64,9 @@
 ;; ! (remove-duplicates (Cons A (Cons B (Cons B Nil))))
 
 ; Function to merge two lists
-(: join (-> (List $t) (List $t) (List $t)))
-(=  (join Nil $ys) $ys)
-(= (join (Cons $x $xs) $ys) (Cons $x (join $xs $ys)))
+(: extend (-> (List $t) (List $t) (List $t)))
+(=  (extend Nil $ys) $ys)
+(= (extend (Cons $x $xs) $ys) (Cons $x (join $xs $ys)))
 
 ; Function to partition the list
 (: partition (-> Atom (List $t) ( (List $t) (List $t) )))
