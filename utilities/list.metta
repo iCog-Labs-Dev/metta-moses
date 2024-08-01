@@ -31,16 +31,26 @@
 ;; (= (add1 $num) (+ $num 1))
 ;; ! (map add1 (Cons 1 (Cons 2 (Cons 3 Nil))))
 
-; Function to check whether an Atom exists in a list
-(: member (-> $t (List $t) Bool))
-(= (member $a Nil) False)
-(= (member $a (Cons $x $xs))
-    (if (== $a $x)
+; Function to check the existance of an element in a list given the comparing function
+(: memberWith (-> (-> $t $t Bool) $t (List $t) Bool))
+(= (memberWith $f $a Nil) False)
+(= (memberWith $f $a (Cons $x $xs))
+    (if ($f $a $x)
         True
-        (member $a $xs)
+        (memberWith $f $a $xs)
     )
 )
-;; ! (member B (Cons A (Cons B (Cons C Nil))))
+
+; !(memberWith == 4 (Cons 1 (Cons 2 (Cons 3 Nil))))
+
+; Function to check whether an Atom exists in a list
+(: member (-> $t (List $t) Bool))
+(= (member $a $list)
+    (memberWith == $a $list)
+)
+
+! (member B (Cons A (Cons B (Cons C Nil))))
+
 
 ; Function to remove duplicates from a list
 (: remove-duplicates (-> (List $t) (List $t)))
