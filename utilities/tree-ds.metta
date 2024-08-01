@@ -1,10 +1,6 @@
 (: Tree Type)
 (: NodeType Type)
 (: NodeValue Type)
-(: TreeList Type)
-
-(: NilList TreeList)
-(: ConsTree (-> Tree TreeList TreeList))
 
 (: ROOT NodeType)
 (: AND NodeType)
@@ -16,8 +12,12 @@
 (: Value (-> $v Bool NodeType NodeValue))
 
 (: NilNode Tree)
-;; TreeNode(nodeValue, leftChild, rightChild, guardSet, listOfChildren)
-(: TreeNode (-> NodeValue Tree Tree TreeList TreeList Tree))
+;; TreeNode(nodeValue, guardSet, listOfChildren)
+(: TreeNode (-> NodeValue TreeList TreeList Tree))
+
+(: Location Type)
+(: L Location)
+(: R Location)
 
 ;; -----------------------------------
 ;; -----------------------------------
@@ -28,10 +28,10 @@
 (= (buildTree $expr) 
   (case $expr
     (
-      ( (AND $a $b) (TreeNode (Value Nil False AND) (buildTree $a) (buildTree $b) NilList NilList) )
-      ( (OR $a $b) (TreeNode (Value Nil False OR) (buildTree $a) (buildTree $b) NilList NilList) )
-      ( (NOT $x) (TreeNode (Value Nil False NOT) (buildTree $x) NilNode NilList NilList) )
-      ( $symbol (TreeNode (Value $symbol False LITERAL) NilNode NilNode NilList NilList) )
+      ( (AND $a $b) (TreeNode (Value Nil False AND) Nil (Cons (buildTree $a) (Cons ((buildTree $b) Nil)))) )
+      ( (OR $a $b) (TreeNode (Value Nil False OR) Nil (Cons (buildTree $a) (Cons ((buildTree $b) Nil)))))
+      ( (NOT $x) (TreeNode (Value Nil False NOT) Nil (Cons (buildTree $x) Nil)))
+      ( $symbol (TreeNode (Value $symbol False LITERAL) Nil Nil) )
     )
   )
 )
@@ -46,7 +46,7 @@
 ;; -----------------------------------
 
 (= (buildTreeWithRoot $expr)
-  (TreeNode (Value Nil False ROOT) NilNode (buildTree $b) NilList NilList)
+  (TreeNode (Value Nil False ROOT) Nil (Cons (buildTree $b) Nil))
 )
 
 ;; -----------------------------------
