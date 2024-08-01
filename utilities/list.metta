@@ -1,6 +1,6 @@
 (: List type)
 (: Nil (List $t))
-(: Cons (-> $t (List $t) (List $t)))
+(: Cons (-> $t (List $t)  (List $t)))
 
  ; Function to find the length of a list
 (: length (-> (List $t) Number))
