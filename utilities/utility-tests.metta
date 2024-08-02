@@ -233,3 +233,36 @@
 
 ;; !(treeFoldl zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
 ;; !(treeFoldr zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
+
+
+;;[TEST]  ! (----  allExceptTargetType ----)
+;  ! (allExceptTargetType
+; (Cons
+;     (TreeNode (Value Nil False AND) Nil Nil)
+;     (Cons
+;         (TreeNode (Value target1 False NOT)  Nil Nil)
+;         (Cons
+;             (TreeNode (Value target2 True OR) Nil Nil)
+;             Nil
+;         )
+; )
+; )
+;  NOT ;this is the nodeType
+;  )
+;;[EXPECT] [(Cons (TreeNode (Value Nil False AND) Nil Nil) (Cons (TreeNode (Value target2 True OR) Nil Nil) Nil))]
+
+
+
+
+;;   [TEST] remove-AND-subTree/ remove-OR-subTree
+;  ! (delete_AND_SubTree (TreeNode (Value target1 False NOT) Nil (Cons
+;              (TreeNode (Value Nil False AND) Nil Nil)
+;              (Cons
+;                  (TreeNode (Value target1 False OR)  Nil Nil)
+;                  (Cons
+;                      (TreeNode (Value target2 True AND) Nil Nil)
+;                      Nil
+;                  )
+;          )
+;  ) ))
+;; [EXPECT] [(TreeNode (Value target1 False NOT) Nil (Cons (TreeNode (Value target1 False OR) Nil Nil) Nil))]
