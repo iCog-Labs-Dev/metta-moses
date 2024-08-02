@@ -141,10 +141,10 @@
 (:changeTree (-> Tree Tree Tree))
 (= (changeTree $tree $newTree)
     (case $newTree  (
-            ((TreeNode $newValue $newLeft $newRight $newGuardSet $newChildren)
+            ((TreeNode $newValue $newGuardSet $newChildren)
                 $newTree
             )
-            (NilNode NilNode)
+            (Nil Nil)
             ($_ Error)
 
         )

@@ -2,12 +2,17 @@
 ! (import! &self metta-moses-reduction:types)
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 
-(=(propagateTruthValue $tree $truthValueArg)
-    (case $tree (
-            ((TreeNode (Value $valueName $truthValue $nodeType)  $left $right $guardSet $children)
-                (if (== $nodeType ROOT)
-                        (if (not (== $right NilNode))
-                            (TreeNode (Value $valueName $truthValue $nodeType) $left (propagateTruthValue $right $truthValueArg)  $guardSet $children)
+
+(= (propagateTruthValue $tree $truthValueArg)
+    (if (isTreeWellFormed $tree)
+            (if (== $nodeType ROOT)
+                (let* (
+                    ($right (getChild $tree R))
+                    ($left (getChild $tree L))
+                )
+                        (if (not (== $right Nil))
+                            ;;(TreeNode (Value $valueName $truthValue $nodeType) $left (propagateTruthValue $right $truthValueArg)  $guardSet $children)
+                            (replaceChild $tree (Cons (propagateTruthValue$right $truthValueArg) Nil) R)
                             $tree
                         )
                         (if (== $nodeType NOT)
@@ -33,22 +38,26 @@
                             )
 
                         )
-
-                )
-            )
-            ($_ $tree)
-
-        )
+                (Error the tree is not well formed)
+            ))
     )
-
 )
+            
+
+        
+    
+
+
 ;;!(propagateTruthValue (buildTree (OR a (AND b c))) True)
 (:isTreeWellFormed (->Tree Bool))
 (=(isTreeWellFormed $tree)
     (case $tree (
-            ((TreeNode (Value $value $constraint $nodeType) $guardSet (Cons $left (Cons $right Nil))) True)
+        (
+            (TreeNode (Value $value $constraint $nodeType) $guardSet $children True)
+            (Nil True)
             ($_ False)
         )
+    )
     )
 )
 ;;!(isTreeWellFormed (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value a False LITERAL) Nil Nil) (Cons (TreeNode (Value b False LITERAL) Nil Nil) Nil))))
