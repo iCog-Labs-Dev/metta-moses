@@ -3,6 +3,7 @@
 ! (import! &self metta-moses-reduction:utilities:expression-helpers)
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
+! (import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
 
 ;; -----------------------------------
 ;; -----------------------------------
@@ -234,3 +235,11 @@
 
 ;; !(treeFoldl zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
 ;; !(treeFoldr zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
+
+;; -----------------------------------
+;; -----------------------------------
+;; Test cases for RTEHelpers.metta
+;; -----------------------------------
+;; -----------------------------------
+
+; !(disconnectSubTreeHandler (buildTree (OR a (AND b c))) (TreeNode (Value Nil False OR) (TreeNode (Value a False LITERAL) NilNode NilNode NilList NilList) (TreeNode (Value Nil False AND) (TreeNode (Value b False LITERAL) NilNode NilNode NilList NilList) (TreeNode (Value c False LITERAL) NilNode NilNode NilList NilList) NilList NilList) NilList (ConsTree (buildTree (OR a (AND b c))) (ConsTree (buildTree (AND a (AND b c))) NilList))))
