@@ -150,6 +150,9 @@
         )
     )
 )
+;; function that get the node types
+(:getNodeType (-> Tree Atom))
+(=(getNodeType (TreeNode (Value $value $bool $nodeType) $guardSet $children)) $nodeType)
 
 (:compareTrees (-> Tree Tree Bool))
 (=(compareTrees $tree1 $tree2)
