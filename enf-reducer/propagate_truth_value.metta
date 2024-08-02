@@ -1,6 +1,6 @@
-!(register-module! ../../metta-moses-reduction)
-!(import! &self metta-moses-reduction:utilities:helper-functions)
-!(import! &self metta-moses-reduction:utilities:list)
+! (register-module! ../../metta-moses-reduction)
+! (import! &self metta-moses-reduction:types)
+! (import! &self metta-moses-reduction:utilities:list-helpers)
 
 (=(propagateTruthValue $tree $truthValueArg)
     (case $tree (
@@ -42,4 +42,3 @@
     )
 
 )
-!(propagateTruthValue (buildTree (OR a (AND b c))) True)
