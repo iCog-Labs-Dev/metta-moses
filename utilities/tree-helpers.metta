@@ -105,13 +105,13 @@
 (= (treeIntersection $list1 $list2)
     (case $list1
     (
+        (Nil Nil)
         ((Cons $h $t) 
          (if (treeIsMember $h $list2) 
             (Cons $h (treeIntersection $t $list2)) 
             (treeIntersection $t $list2)
          ) 
         )
-        ($_ (empty))
     )
     )
 )
