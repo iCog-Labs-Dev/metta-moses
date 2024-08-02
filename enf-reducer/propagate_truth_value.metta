@@ -42,4 +42,13 @@
     )
 
 )
-!(propagateTruthValue (buildTree (OR a (AND b c))) True)
+;;!(propagateTruthValue (buildTree (OR a (AND b c))) True)
+(:isTreeWellFormed (->Tree Bool))
+(=(isTreeWellFormed $tree)
+    (case $tree (
+            ((TreeNode (Value $value $constraint $nodeType) $guardSet (Cons $left (Cons $right Nil))) True)
+            ($_ False)
+        )
+    )
+)
+;;!(isTreeWellFormed (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value a False LITERAL) Nil Nil) (Cons (TreeNode (Value b False LITERAL) Nil Nil) Nil))))
