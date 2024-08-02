@@ -233,3 +233,47 @@
 
 ;; !(treeFoldl zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
 ;; !(treeFoldr zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
+
+; ----------------
+
+; test cases for detectConsistency and isConsistent function
+
+; !(isConsistent 
+;   (Cons 
+;      (TreeNode (Value "A" True AND) Nil (Cons 
+;        (TreeNode (Value "B" True OR) Nil Nil) 
+;        (Cons 
+;          (TreeNode (Value "C" False LITERAL) Nil Nil) 
+;          Nil
+;        )
+;      ))
+;      (Cons 
+;        (TreeNode (Value "B" False OR) Nil Nil) 
+;        (Cons 
+;          (TreeNode (Value "C" False LITERAL) Nil Nil) 
+;          (Cons 
+;          (TreeNode (Value "A" False LITERAL) Nil Nil) 
+;          Nil
+;        )
+;        )
+;      )
+;    )
+; )
+
+
+; --------------------------
+
+
+; !(detectConsistency (TreeNode (Value "d" True AND) Nil Nil)
+;   (Cons 
+;      (TreeNode (Value "A" False AND) Nil Nil) 
+;      (Cons 
+;        (TreeNode (Value "B" True OR) Nil Nil) 
+;        (Cons 
+;          (TreeNode (Value "d" False LITERAL) Nil Nil) 
+;          Nil
+;        )
+;      )
+;    ))
+
+
