@@ -214,3 +214,44 @@
     )
   )
 )
+; -----------------------
+
+; A function that detect consistency(value match and constrient difference) between a single tree and list of tree
+(: detectConsistency (-> Tree (List Tree) Bool))
+(= (detectConsistency $x $list)
+ (case ($x $list)
+   (
+     ;; If the list is Nil, return True
+     ( ($tree Nil) True )
+     ;; If the list is Cons, check the head and then the tail recursively
+     ( ((TreeNode (Value $value $bool $nodetype) $guardSet $children) (Cons (TreeNode (Value $v $b $n) $g $c) $r))
+       (if (and (== $value $v) (not (== $bool $b)))
+           False
+           (detectConsistency $x $r)
+       )
+     )
+    
+   )
+ )
+)
+
+; A function check the consistency of a tree list 
+
+(: isConsistent (-> (List Tree) Bool))
+(= (isConsistent $treelist)
+ (case $treelist
+   (
+     ;; If the list is Nil, return True
+     (Nil True)
+
+     ;; If the list is Cons, destructure to get the head and the rest of the list
+     ((Cons $firstTree (Cons $secondTree $restOfList))
+       (if (detectConsistency $firstTree (Cons $secondTree $restOfList))
+           (isConsistent (Cons $secondTree $restOfList))
+           False
+       )
+     )
+     ($else True)
+   )
+ )
+)
