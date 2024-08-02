@@ -1,14 +1,14 @@
 ! (register-module! ../../metta-moses-reduction)
 ! (import! &self metta-moses-reduction:types)
 
-; Function to find the length of a list
+ ; Function to find the length of a list
 (:length (-> (List $t) Number))
 (= (length Nil) 0)
 (= (length (Cons $x $xs))
     (+ 1 (length $xs))
 )
 
-; Function to find a list element given an index
+ ; Function to find a list element given an index
 (:index (-> Number (List $t) $t))
 (= (index $a Nil) Nil)
  ;(= (index 0 (Cons $x $xs)) $x)
@@ -19,14 +19,14 @@
     )
 )
 
-; Function to apply a partial function to every element in a list
+ ; Function to apply a partial function to every element in a list
 (:map (-> Atom (List $t) (List $tt)))
 (= (map $func Nil) Nil)
 (= (map $func (Cons $x $xs))
     (Cons ($func $x) (map $func $xs))
 )
 
-; Function to check the existance of an element in a list given the comparing function
+ ; Function to check the existance of an element in a list given the comparing function
 (:memberWith (-> (-> $t $t Bool) $t (List $t) Bool))
 (= (memberWith $f $a Nil) False)
 (= (memberWith $f $a (Cons $x $xs))
@@ -36,13 +36,13 @@
     )
 )
 
-; Function to check whether an Atom exists in a list
+ ; Function to check whether an Atom exists in a list
 (:member (-> $t (List $t) Bool))
 (= (member $a $list)
     (memberWith == $a $list)
 )
 
-; Function to remove duplicates from a list
+ ; Function to remove duplicates from a list
 (:removeuplicates (-> (List $t) (List $t)))
 (= (removeuplicates Nil) Nil)
 (= (removeuplicates (Cons $x $xs))
@@ -52,12 +52,12 @@
     )
 )
 
-; Function to merge two lists
+ ; Function to merge two lists
 (:extend (-> (List $t) (List $t) (List $t)))
 (= (extend Nil $ys) $ys)
 (= (extend (Cons $x $xs) $ys) (Cons $x (extend $xs $ys)))
 
-; Function to partition the list
+ ; Function to partition the list
 (:partition (-> Atom (List $t) ( (List $t) (List $t) )))
 (= (partition $_ Nil) ( Nil Nil ))
 (= (partition $pivot (Cons $x $xs))
@@ -75,7 +75,7 @@
 )
 )
 
-; A function that checks if at least one True exists from a Boolean list
+ ; A function that checks if at least one True exists from a Boolean list
 (:any (-> (List Bool) Bool))
 (= (any Nil) False) ;; return False if the list is empty
 
@@ -86,7 +86,7 @@
     (any $xs)
 )
 
-; A function that check if all of the elements are true from a Bool List.
+ ; A function that check if all of the elements are true from a Bool List.
 (:all (-> (List Bool) Bool))
 
 (= (all Nil) True) ;; return True if the list is empty
@@ -98,7 +98,7 @@
     (all $xs)
 )
 
-; A function to find and remove element from a list
+ ; A function to find and remove element from a list
 (:findAndRemove (-> $t (List $t) (List $t)))
 (= (findAndRemove $elem Nil) Nil)
 (= (findAndRemove $elem (Cons $x $xs))
@@ -106,7 +106,7 @@
         (Cons $x (findAndRemove $elem $xs)))
 )
 
-; A function to compare 2 lists
+ ; A function to compare 2 lists
 (:compare (-> (List $t) (List $t) (Bool)))
  ;; if both the lists are empty, They are the same.
 (= (compare Nil Nil) True)
@@ -134,14 +134,14 @@
     (case $list
         (
             (Nil True)
-            ((Cons $x $xs)
+            ( (Cons $x $xs)
                 (if (member $x $xs)
                     False
                     (checkNotDuplicated $xs)
                 )
-            )
         )
-    )
+)
+)
 )
 
 (:checkNotInverseDuplicated (-> (List $t) Bool))
@@ -149,73 +149,73 @@
     (case $list
         (
             (Nil True)
-            ((Cons $x $xs)
+            ( (Cons $x $xs)
                 (if (member-not $x $xs)
                     False
                     (checkNotInverseDuplicated $xs)
                 )
-            )
         )
-    )
+)
+)
 )
 
 (:intersect (-> (List $t) (List $t) (List $t) (List $t)))
-(=(intersect $list1 $list2 $accumulator)
+(= (intersect $list1 $list2 $accumulator)
     (if (and (isEmpty $list1) (isEmpty $list2))
         $accumulator
         (case $list1 (
-                ((Cons $x $xs)
+                ( (Cons $x $xs)
                     (if (== (member $x $list2) True)
                         (intersect $xs $list2 (extend $accumulator (Cons $x Nil)))
                         (intersect $xs $list2 $accumulator)
                     )
-                )
-                (Nil $accumulator)
             )
-        )
+        (Nil $accumulator)
     )
+)
+)
 )
 
 (:unionSet (-> (List $t) (List $t) (List $t) (List $t)))
-(=(unionSet $list1 $list2)
+(= (unionSet $list1 $list2)
     (removeDuplicates (append $list1 $list2))
 )
 
 (:isSubset (-> (List $t) (List $t) Bool))
-(=(isSubset $list1 $list2)
+(= (isSubset $list1 $list2)
     (let* (
             ($min-list (if (> (length $list1) (length $list2)) $list2 $list1
-                        ))
-            ($max-list (if (> (length $list1) (length $list2)) $list1 $list2
-                        ) )
-        )(isSubsetOrdered $min-list $max-list)
-    )
-   
+                ))
+        ($max-list (if (> (length $list1) (length $list2)) $list1 $list2
+            ) )
+) (isSubsetOrdered $min-list $max-list)
+)
+
 )
 
 (:isSubsetOrdered (-> (List $t) (List $t) Bool))
-(=(isSubsetOrdered $min-list $max-list)
+(= (isSubsetOrdered $min-list $max-list)
     (if (== $min-list Nil)
         True
         (case $min-list (
-            ((Cons $x $xs)
-                (if (member $x $max-list)
-                    (isSubsetOrdered $xs $max-list)
-                    False
-                )
+                ( (Cons $x $xs)
+                    (if (member $x $max-list)
+                        (isSubsetOrdered $xs $max-list)
+                        False
+                    )
             )
-            )
-        )
     )
+)
+)
 )
 
 (:hasTerminalNode (-> Tree Bool))
 (= (hasTerminalNode NilNode) False)
 (= (hasTerminalNode $node) (
-    case $node (
-        ( (TreeNode (Value $value $truthValue AND) NilNode NilNode $guardSet NilList) (
-            unify $guardSet (ConsTree $singleNode NilList) True False
-        ) )
+        case $node (
+            ( (TreeNode (Value $value $truthValue AND) NilNode NilNode $guardSet NilList) (
+                    unify $guardSet (ConsTree $singleNode NilList) True False
+                ) )
         ( (TreeNode $nodeValue $left $right $guardSet $children) ( or (hasTerminalNode $left) (hasTerminalNode $right)) )
     )
 ))
@@ -223,8 +223,22 @@
 (:containsTerminalNode (-> TreeList Bool ))
 (= (containsTerminalNode NilList) False)
 (= (containsTerminalNode $treeList) (
-    case $treeList (
-        ( (ConsTree $t $ts) (or (hasTerminalNode $t) (trace! (evaluating $ts ) (containsTerminalNode $ts))) )
-        ; ($else (Invalid Expression--- $else))
-    )
+        case $treeList (
+            ( (ConsTree $t $ts) (or (hasTerminalNode $t) (trace! (evaluating $ts ) (containsTerminalNode $ts))) )
+             ; ($else (Invalid Expression--- $else))
+        )
 ))
+
+ ; A function to foldLeft function
+(: foldLeft (-> (-> $a $b $a) $a List $a))
+(= (foldLeft $func $acc Nil) $acc)
+(= (foldLeft $func $acc (Cons $x $xs))
+    (foldLeft $func ($func $acc $x) $xs)
+)
+
+ ; an Abstract function to call foldLeft function and pass the first element as the initial accumulator (does not require an accumulator)
+(: foldl (-> (-> $a $b $a) List $a))
+(= (foldl $func Nil)Nil)
+(= (foldl $func (Cons $x $xs))
+    (foldLeft $func $x $xs)
+)
