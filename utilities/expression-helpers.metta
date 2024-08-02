@@ -1,7 +1,3 @@
-! (register-module! ../../metta-moses-reduction)
-! (import! &self metta-moses-reduction:types)
-! (import! &self metta-moses-reduction:utilities:list-helpers)
-
 (=(isEmpty $exp)
   (if (== Nil $exp) True False)
 )
@@ -28,7 +24,7 @@
       (Nil True)
       ((Cons $x $xs)
         (if (== $x True)
-          (n-ary-and $xs)
+          (nAryAnd $xs)
           False
         )
       )
@@ -43,7 +39,7 @@
       ((Cons $x $xs)
         (if (== $x True)
           True
-          (n-ary-or $xs)
+          (nAryOr $xs)
         )
       )
     )
