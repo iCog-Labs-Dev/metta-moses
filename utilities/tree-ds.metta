@@ -27,6 +27,7 @@
 ;; -----------------------------------
 ;; -----------------------------------
 
+(: buildTree (-> Atom Tree))
 (= (buildTree $expr) 
   (case $expr
     (
@@ -39,8 +40,8 @@
   )
 )
 
-;; !(buildTree (AND a b))
-;; !(buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A))))))))
+; !(buildTree (NOT (AND a b)))
+; !(buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A))))))))
 
 ;; -----------------------------------
 ;; -----------------------------------
@@ -48,9 +49,12 @@
 ;; -----------------------------------
 ;; -----------------------------------
 
+(: buildTreeWithRoot (-> Atom Tree))
 (= (buildTreeWithRoot $expr)
-  (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (buildTree $b) Nil)))
+  (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (buildTree $expr) Nil)))
 )
+
+; !(buildTreeWithRoot(NOT (AND a b)))
 
 ;; -----------------------------------
 ;; -----------------------------------
@@ -65,6 +69,8 @@
 
 ; !(getChild (buildTree b) L)
 ; !(getChild (buildTree (AND a b)) R)
+; !(getChild (buildTree (NOT (AND a b))) L)
+!(getChild(getChild (buildTreeWithRoot(NOT (AND a b))) R) R)
 
 ;; -----------------------------------
 ;; -----------------------------------
