@@ -13,6 +13,7 @@
 ;; Value(value, truthValue, nodeType)
 (: Value (-> $v Bool NodeType NodeValue))
 
+(: NilNode Tree)
 ;; TreeNode(nodeValue, guardSet, listOfChildren)
 (: TreeNode (-> NodeValue (List Tree) (List Tree) Tree))
 
@@ -32,7 +33,7 @@
       ( (AND $a $b) (TreeNode (Value Nil False AND) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))) )
       ( (AND $a $b) (TreeNode (Value Nil False AND) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))) )
       ( (OR $a $b) (TreeNode (Value Nil False OR) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))))
-      ( (NOT $x) (TreeNode (Value Nil False NOT) Nil (Cons (buildTree $x) Nil)))
+      ( (NOT $x) (TreeNode (Value Nil False NOT) Nil (Cons NilNode (Cons (buildTree $x) Nil))))
       ( $symbol (TreeNode (Value $symbol False LITERAL) Nil Nil))
     )
   )
@@ -48,7 +49,7 @@
 ;; -----------------------------------
 
 (= (buildTreeWithRoot $expr)
-  (TreeNode (Value Nil False ROOT) Nil (Cons (buildTree $b) Nil))
+  (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (buildTree $b) Nil)))
 )
 
 ;; -----------------------------------
@@ -58,7 +59,7 @@
 ;; -----------------------------------
 
 (: getChild (-> Tree Location Tree))
-(= (getChild (TreeNode $nodeValue $guardSet Nil) $opt) Nil)
+(= (getChild (TreeNode $nodeValue $guardSet Nil) $opt) NilNode)
 (= (getChild (TreeNode $nodeValue $guardSet (Cons $l $xs)) L) $l)
 (= (getChild (TreeNode $nodeValue $guardSet (Cons $l (Cons $r $xs))) R) $r)
 
