@@ -1,6 +1,3 @@
-! (register-module! ../../metta-moses-reduction)
-! (import! &self metta-moses-reduction:types)
-
 ; Function to find the length of a list
 (:length (-> (List $t) Number))
 (= (length Nil) 0)

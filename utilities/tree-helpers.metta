@@ -1,7 +1,3 @@
-! (register-module! ../../metta-moses-reduction)
-! (import! &self metta-moses-reduction:types)
-! (import! &self metta-moses-reduction:utilities:list-helpers)
-
 ;; -----------------------------------
 ;; -----------------------------------
 ;; -------- function to build a tree of type "Tree" from an expression
