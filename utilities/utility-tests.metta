@@ -3,11 +3,13 @@
 ! (import! &self metta-moses-reduction:utilities:expression-helpers)
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
- ;; -----------------------------------
- ;; -----------------------------------
- ;; Test cases for experssion-helpers.metta
- ;; -----------------------------------
- ;; -----------------------------------
+
+;; -----------------------------------
+;; -----------------------------------
+;; Test cases for experssion-helpers.metta
+;; -----------------------------------
+;; -----------------------------------
+
 
  ; !(checkTreeDepth (AND (OR x1 x2) (AND x3 x4)))
 
