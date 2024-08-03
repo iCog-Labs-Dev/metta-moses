@@ -66,6 +66,11 @@
 ; !(intersect (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 4 (Cons 5 (Cons 6 Nil)))) Nil)
 ; !(intersect (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Nil)))) Nil)
 
+
+; !(setDifference (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
+; !(setDifference (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Nil)))) Nil)
+; !(setDifference (Cons (buildTree (AND A (AND B))) (Cons (buildTree (AND E (AND D))) (Cons (buildTree (AND F (AND G))) Nil))) (Cons (buildTree (AND A (AND B))) (Cons (buildTree (AND C (AND F))) (Cons (buildTree (AND F (AND G))) (Cons (buildTree (AND A (AND B))) Nil)))) Nil)
+
 ; !(nAryOr (Cons False (Cons True (Cons False (Cons True Nil)))))
 
 ; !(nAryAnd (Cons True (Cons True (Cons False (Cons True Nil)))))
@@ -234,3 +239,5 @@
 
 ;; !(treeFoldl zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
 ;; !(treeFoldr zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
+                               ; Sample Grand Child                         ; Sample Result Set
+; !(computeGrandchildGuardset (buildTree (AND A (OR B C))) (getGuardSet (buildTree (AND A (OR B C)))) )

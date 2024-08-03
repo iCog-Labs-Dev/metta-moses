@@ -119,11 +119,11 @@
 ; ------------------------------------
 
 (:replaceGuardSet (-> Tree TreeList Tree) )
-(= (replaceGuardSet $node $new-guardSet) 
-    (let ($value $left $right $guardSet $children) 
+(= (replaceGuardSet $node $newguardSet) 
+    (let (TreeNode $value $guardSet $children) 
         $node  
-        (TreeNode $value $left $right $new-guardSet $children)
-    )
+        (TreeNode $value $newguardSet $children)
+        )
 )
 
 (:replaceNodeValue (-> Tree NodeValue Tree))
@@ -209,4 +209,11 @@
       )
     )
   )
+)
+
+; ------ Update GrandChild guardset
+
+(: computeGrandchildGuardset (-> Tree TreeList Tree))
+(= (computeGrandchildGuardset $grandChild $resultSet)
+    (replaceGuardSet $grandChild (setDifference (getGuardSet $grandChild) $resultSet)) ;
 )

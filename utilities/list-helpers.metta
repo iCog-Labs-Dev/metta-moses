@@ -173,6 +173,23 @@
     )
 )
 
+(:setDifference (-> (List $t) (List $t) (List $t) (List $t)))
+(=(setDifference $list1 $list2 $accumulator)
+    (if (and (isEmpty $list1) (isEmpty $list2))
+        $accumulator
+        (case $list1 (
+                ((Cons $x $xs)
+                    (if (== (member $x $list2) True)
+                        (setDifference $xs $list2 $accumulator)
+                        (setDifference $xs $list2 (extend $accumulator (Cons $x Nil)))
+                    )
+                )
+                (Nil $accumulator)
+            )
+        )
+    )
+)
+
 (:unionSet (-> (List $t) (List $t) (List $t) (List $t)))
 (=(unionSet $list1 $list2)
     (removeDuplicates (append $list1 $list2))
