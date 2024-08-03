@@ -249,6 +249,21 @@
         )
 )
 
+(= (apply-or-cut $child $current)
+  if(== length (get-children child) 1)(
+      ;; let $grandChild car (getNodeChildren $child)(
+       ;;  (union getNodeGuardSet $current getNodeGuardSet $grandChild, findAndRemoveChild getNodeChildren $current $grandChild)
+      ;; )
+    )
+)
+
+(= (command-set-iterator $children $localCommandSet)
+  if (== children Nil) ($localCommandSet )(
+    if (== True (== car (get-children $children) empty))
+    )
+
+)
+
 ;;!(is-subset (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3  Nil))))
 ;;!(union-set (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) )
 !(set-difference (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
