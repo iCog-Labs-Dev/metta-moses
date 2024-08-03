@@ -105,13 +105,13 @@
 (= (treeIntersection $list1 $list2)
     (case $list1
     (
+        (Nil Nil)
         ((Cons $h $t) 
          (if (treeIsMember $h $list2) 
             (Cons $h (treeIntersection $t $list2)) 
             (treeIntersection $t $list2)
          ) 
         )
-        ($_ (empty))
     )
     )
 )
@@ -213,3 +213,36 @@
     )
   )
 )
+
+(: allExceptTargetType (-> (List Tree) NodeType (List Tree)))
+(= (allExceptTargetType Nil $nodeType) Nil)
+(= (allExceptTargetType $treeList $nodeType) (
+      let  (Cons $tree $rest) $treeList (
+          unify $tree  (TreeNode (Value $value $truthValue $nodeType) $guardSet $children)
+          (allExceptTargetType $rest $nodeType)
+          (Cons $tree (allExceptTargetType $rest $nodeType))
+      )
+))
+
+
+
+; below are helper functions for DELETE AND and OR subtree handlers
+(: delete_AND_SubTree (-> Tree Tree) )
+(= (delete_AND_SubTree Nil) Nil )
+(= (delete_AND_SubTree $tree) (
+
+        let (TreeNode $nodeValue $guardSet $children) $tree
+        (TreeNode $nodeValue $guardSet (allExceptTargetType $children AND))
+
+    ))
+
+(: delete_OR_SubTree (-> Tree Tree) )
+(= (delete_OR_SubTree Nil) Nil )
+(= (delete_OR_SubTree $tree) (
+
+        let (TreeNode $nodeValue $guardSet $children) $tree
+        (TreeNode $nodeValue $guardSet (allExceptTargetType $children OR))
+
+    ))
+
+
