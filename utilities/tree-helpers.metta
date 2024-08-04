@@ -89,15 +89,21 @@
 )
 
 
-(:nodeEquality (-> Tree Tree Bool))
-(= (nodeEquality (TreeNode $nodeValue1 $guardSet1 $children1) (TreeNode $nodeValue2 $guardSet2 $children2))
+(:isNodeEqual (-> Tree Tree Bool))
+(= (isNodeEqual Nil Nil) False)
+(= (isNodeEqual (TreeNode $nodeValue $guardSet $children) Nil) False)
+(= (isNodeEqual Nil (TreeNode $nodeValue $guardSet $children)) False)
+(= (isNodeEqual 
+    (TreeNode $nodeValue1 $guardSet1 $children1) 
+    (TreeNode $nodeValue2 $guardSet2 $children2)
+   )
   (== $nodeValue1 $nodeValue2)
 )
 
 ;;function to check if a tree is member of a treelist
 (:treeIsMember (-> Tree (List Tree) Bool))
 (= (treeIsMember $x $list)
-   (memberWith nodeEquality $x $list)
+   (memberWith isNodeEqual $x $list)
 )
 
 ;;function to return the intersection of two treelists
@@ -210,6 +216,38 @@
     )
   )
 )
+; -----------------------
+
+; A function that detect consistency(value match and constrient difference) between a single tree and list of tree
+(: detectConsistency (-> Tree (List Tree) Bool))
+(= (detectConsistency $tree Nil) True)
+(= (detectConsistency 
+    (TreeNode (Value $fstValue $fstConstraint $fstNodetype) $fstGuardSet $fstChildren)
+    (Cons (TreeNode (Value $sndValue $sndConstraint $sndNodetype) $sndGuardSet $sndChildren) $restOfTree)
+   )
+
+  (if 
+    (and 
+      (== $fstValue $sndValue) 
+      (not (== $fstConstraint $sndConstraint))
+    )
+      False
+      (detectConsistency 
+        (TreeNode (Value $fstValue $fstConstraint $fstNodetype) $fstGuardSet $fstChildren) 
+        $restOfTree
+      )
+  )
+)
+
+; A function check the consistency of a tree list 
+(: isConsistent (-> (List Tree) Bool))
+(= (isConsistent Nil) True)
+(= (isConsistent (Cons $x $xs))
+  (if (detectConsistency $x $xs)
+    (isConsistent $xs)
+    False
+  )
+)
 
 (: allExceptTargetType (-> (List Tree) NodeType (List Tree)))
 (= (allExceptTargetType Nil $nodeType) Nil)
@@ -241,5 +279,4 @@
         (TreeNode $nodeValue $guardSet (allExceptTargetType $children OR))
 
     ))
-
 
