@@ -3,6 +3,7 @@
 ! (import! &self metta-moses-reduction:utilities:expression-helpers)
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
+! (import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
 
 ;; -----------------------------------
 ;; -----------------------------------
@@ -375,3 +376,24 @@
 ;          )
 ;  ) ))
 ;; [EXPECT] [(TreeNode (Value target1 False NOT) Nil (Cons (TreeNode (Value target1 False OR) Nil Nil) Nil))]
+
+;; -----------------------------------
+;; -----------------------------------
+;; Test cases for RTEHelpers.metta
+;; -----------------------------------
+;; -----------------------------------
+
+;; !(disconnectSubTreeHandler 
+;;   (buildTree (OR a (AND b c))) 
+;;   (TreeNode 
+;;     (Value Nil False OR)
+;;     Nil
+;;     (Cons 
+;;       (buildTree (OR a (AND b c))) 
+;;       (Cons 
+;;         (buildTree (AND a (AND b c)))
+;;         Nil
+;;       )
+;;     )
+;;   )
+;; )

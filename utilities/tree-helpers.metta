@@ -85,7 +85,7 @@
 
 (:appendChild (-> Tree Tree Tree))
 (= (appendChild (TreeNode $nodeValue $guardSet $children) $child)
-  (TreeNode $nodeValue $guardSet (Cons $child $children))
+  (TreeNode $nodeValue $guardSet (Cons $children $child))
 )
 
 
@@ -154,27 +154,17 @@
 )
 
 (:compareTrees (-> Tree Tree Bool))
-(=(compareTrees $tree1 $tree2)
-    (case ($tree1 $tree2) (
-        (((TreeNode (Value $symbol $constraint $nodetype) $leftChild $rightChild $guardSet $listOfChildren) (TreeNode (Value $symbol $constraint $nodetype)  $leftChild1 $rightChild1 $guardSet1 $listOfChildren1)) True)
-        ($else False)
-    )
-    )
+(=(compareTrees $fstTree $sndTree)
+  (if (nodeEquality $fstTree $sndTree) True False)
 )
 
-(:compareAndRemoveNode (-> Tree TreeList TreeList TreeList))
-(=(compareAndRemoveNode $tree $treeList $accumulator)
-    (case $treeList(
-            ((ConsTree $x $xs)
-                (if (== (compareTrees $tree $x) True)
-                    (compareAndRemoveNode $tree $xs $accumulator)
-                    (compareAndRemoveNode $tree $xs (appendTree $accumulator (ConsTree $x NilList)))
-                )
-            )
-            ($_  $accumulator)
-
-        )
-    )
+(:compareAndRemoveNode (-> Tree (List Tree) (List Tree) (List Tree)))
+(=(compareAndRemoveNode $tree Nil $accumulator) $accumulator)
+(=(compareAndRemoveNode $tree (Cons $x $xs) $accumulator)
+  (if (compareTrees $tree $x)
+    (compareAndRemoveNode $tree $xs $accumulator)
+    (compareAndRemoveNode $tree $xs (extend $accumulator (Cons $x Nil)))
+  )
 )
 
 (= (treeFoldl $func $acc NilNode) $acc)
