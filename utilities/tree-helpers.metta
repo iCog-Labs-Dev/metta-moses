@@ -33,7 +33,7 @@
 ;; -----------------------------------
 
 (:getChild (-> Tree Location Tree))
-(= (getChild (TreeNode $nodeValue $guardSet Nil) $opt) Nil)
+(= (getChild (TreeNode $nodeValue $guardSet Nil) $opt) NilNode)
 (= (getChild (TreeNode $nodeValue $guardSet (Cons $l $xs)) L) $l)
 (= (getChild (TreeNode $nodeValue $guardSet (Cons $l (Cons $r $xs))) R) $r)
 
