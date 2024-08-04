@@ -4,19 +4,17 @@
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
 
-;; -----------------------------------
-;; -----------------------------------
-;; Test cases for experssion-helpers.metta
-;; -----------------------------------
-;; -----------------------------------
-
+ ;; -----------------------------------
+ ;; -----------------------------------
+ ;; Test cases for experssion-helpers.metta
+ ;; -----------------------------------
+ ;; -----------------------------------
 
  ; !(checkTreeDepth (AND (OR x1 x2) (AND x3 x4)))
 
  ; !(getChildren (AND (OR x1 x2) (AND x3 x4)) Nil)
 
  ; !(getGuardSet (AND (OR x1 x2) (AND x3 x4)))
-
 
  ; !(nAryOr (Cons False (Cons True (Cons False (Cons True Nil)))))
 
@@ -237,36 +235,35 @@
  ;; !(treeFoldl zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
  ;; !(treeFoldr zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
  ;;[TEST]  ! (----  allExceptTargetType ----)
-;  ! (allExceptTargetType
-; (Cons
-;     (TreeNode (Value Nil False AND) Nil Nil)
-;     (Cons
-;         (TreeNode (Value target1 False NOT)  Nil Nil)
-;         (Cons
-;             (TreeNode (Value target2 True OR) Nil Nil)
-;             Nil
-;         )
-; )
-; )
-;  NOT ;this is the nodeType
-;  )
-;;[EXPECT] [(Cons (TreeNode (Value Nil False AND) Nil Nil) (Cons (TreeNode (Value target2 True OR) Nil Nil) Nil))]
+ ;  ! (allExceptTargetType
+ ; (Cons
+ ;     (TreeNode (Value Nil False AND) Nil Nil)
+ ;     (Cons
+ ;         (TreeNode (Value target1 False NOT)  Nil Nil)
+ ;         (Cons
+ ;             (TreeNode (Value target2 True OR) Nil Nil)
+ ;             Nil
+ ;         )
+ ; )
+ ; )
+ ;  NOT ;this is the nodeType
+ ;  )
+ ;;[EXPECT] [(Cons (TreeNode (Value Nil False AND) Nil Nil) (Cons (TreeNode (Value target2 True OR) Nil Nil) Nil))]
 
+ ;;   [TEST] remove-AND-subTree/ remove-OR-subTree
+ ;  ! (delete_AND_SubTree (TreeNode (Value target1 False NOT) Nil (Cons
+ ;              (TreeNode (Value Nil False AND) Nil Nil)
+ ;              (Cons
+ ;                  (TreeNode (Value target1 False OR)  Nil Nil)
+ ;                  (Cons
+ ;                      (TreeNode (Value target2 True AND) Nil Nil)
+ ;                      Nil
+ ;                  )
+ ;          )
+ ;  ) ))
+ ;; [EXPECT] [(TreeNode (Value target1 False NOT) Nil (Cons (TreeNode (Value target1 False OR) Nil Nil) Nil))]
 
-
-
-;;   [TEST] remove-AND-subTree/ remove-OR-subTree
-;  ! (delete_AND_SubTree (TreeNode (Value target1 False NOT) Nil (Cons
-;              (TreeNode (Value Nil False AND) Nil Nil)
-;              (Cons
-;                  (TreeNode (Value target1 False OR)  Nil Nil)
-;                  (Cons
-;                      (TreeNode (Value target2 True AND) Nil Nil)
-;                      Nil
-;                  )
-;          )
-;  ) ))
-;; [EXPECT] [(TreeNode (Value target1 False NOT) Nil (Cons (TreeNode (Value target1 False OR) Nil Nil) Nil))]
-
-
-
+ ; ! (intersections (Cons (getChildren (buildTree (AND A E)))
+ ;         (Cons (getChildren (buildTree (AND A G)))
+ ;             (Cons (getChildren (buildTree (AND B A)))
+ ;                 (Cons (getChildren (buildTree (AND A F))) Nil)))))
