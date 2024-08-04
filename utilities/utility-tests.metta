@@ -242,4 +242,17 @@
 ;; -----------------------------------
 ;; -----------------------------------
 
-; !(disconnectSubTreeHandler (buildTree (OR a (AND b c))) (TreeNode (Value Nil False OR) (TreeNode (Value a False LITERAL) NilNode NilNode NilList NilList) (TreeNode (Value Nil False AND) (TreeNode (Value b False LITERAL) NilNode NilNode NilList NilList) (TreeNode (Value c False LITERAL) NilNode NilNode NilList NilList) NilList NilList) NilList (ConsTree (buildTree (OR a (AND b c))) (ConsTree (buildTree (AND a (AND b c))) NilList))))
+!(disconnectSubTreeHandler 
+  (buildTree (OR a (AND b c))) 
+  (TreeNode 
+    (Value Nil False OR)
+    Nil
+    (Cons 
+      (buildTree (OR a (AND b c))) 
+      (Cons 
+        (buildTree (AND a (AND b c)))
+        Nil
+      )
+    )
+  )
+)
