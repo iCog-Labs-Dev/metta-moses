@@ -1,4 +1,4 @@
-; Function to find the length of a list
+ ; Function to find the length of a list
 (:length (-> (List $t) Number))
 (= (length Nil) 0)
 (= (length (Cons $x $xs))
@@ -227,14 +227,14 @@
 ))
 
  ; A function to foldLeft function
-(: foldLeft (-> (-> $a $b $a) $a List $a))
+(: foldLeft (-> (-> $a $b $a) $a (List $a) $a))
 (= (foldLeft $func $acc Nil) $acc)
 (= (foldLeft $func $acc (Cons $x $xs))
     (foldLeft $func ($func $acc $x) $xs)
 )
 
  ; an Abstract function to call foldLeft function and pass the first element as the initial accumulator (does not require an accumulator)
-(: foldl (-> (-> $a $b $a) List $a))
+(: foldl (-> (-> $a $b $a) (List $a) $a))
 (= (foldl $func Nil)Nil)
 (= (foldl $func (Cons $x $xs))
     (foldLeft $func $x $xs)
