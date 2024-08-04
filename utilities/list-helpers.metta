@@ -5,6 +5,16 @@
     (+ 1 (length $xs))
 )
 
+; Function to retirive the head of given list
+(: (-> (List $t) $t))
+(= (head Nil) Nil)
+(= (head (Cons $x $xs)) $x)
+
+; Function to retrive the tail of given list
+(: (-> (List $t) (List $t)))
+(= (tail Nil) Nil)
+(= (tail (Cons $x $xs)) $xs)
+
 ; Function to find a list element given an index
 (:index (-> Number (List $t) $t))
 (= (index $a Nil) Nil)
