@@ -122,7 +122,7 @@
 (= (quickSort Nil) Nil)
 (= (quickSort (Cons $x $xs))
     (let ($left $right) (partition $x $xs)
-        (append (quickSort $left) (Cons $x (quickSort $right)))
+        (extend (quickSort $left) (Cons $x (quickSort $right)))
     )
 )
 
@@ -175,7 +175,7 @@
 
 (:unionSet (-> (List $t) (List $t) (List $t) (List $t)))
 (=(unionSet $list1 $list2)
-    (removeDuplicates (append $list1 $list2))
+    (removeDuplicates (extend $list1 $list2))
 )
 
 (:isSubset (-> (List $t) (List $t) Bool))
