@@ -1,7 +1,3 @@
-! (register-module! ../../metta-moses-reduction)
-! (import! &self metta-moses-reduction:types)
-! (import! &self metta-moses-reduction:utilities:list-helpers)
-
 ;; -----------------------------------
 ;; -----------------------------------
 ;; -------- function to build a tree of type "Tree" from an expression
@@ -14,7 +10,7 @@
       ( (AND $a $b) (TreeNode (Value Nil False AND) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))) )
       ( (AND $a $b) (TreeNode (Value Nil False AND) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))) )
       ( (OR $a $b) (TreeNode (Value Nil False OR) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))))
-      ( (NOT $x) (TreeNode (Value Nil False NOT) Nil (Cons (buildTree $x) Nil)))
+      ( (NOT $x) (TreeNode (Value Nil False NOT) Nil (Cons NilNode (Cons (buildTree $x) Nil))))
       ( $symbol (TreeNode (Value $symbol False LITERAL) Nil Nil))
     )
   )
@@ -27,7 +23,7 @@
 ;; -----------------------------------
 
 (= (buildTreeWithRoot $expr)
-  (TreeNode (Value Nil False ROOT) Nil (Cons (buildTree $b) Nil))
+  (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (buildTree $expr) Nil)))
 )
 
 ;; -----------------------------------
@@ -109,13 +105,13 @@
 (= (treeIntersection $list1 $list2)
     (case $list1
     (
+        (Nil Nil)
         ((Cons $h $t) 
          (if (treeIsMember $h $list2) 
             (Cons $h (treeIntersection $t $list2)) 
             (treeIntersection $t $list2)
          ) 
         )
-        ($_ (empty))
     )
     )
 )
@@ -255,3 +251,36 @@
    )
  )
 )
+
+(: allExceptTargetType (-> (List Tree) NodeType (List Tree)))
+(= (allExceptTargetType Nil $nodeType) Nil)
+(= (allExceptTargetType $treeList $nodeType) (
+      let  (Cons $tree $rest) $treeList (
+          unify $tree  (TreeNode (Value $value $truthValue $nodeType) $guardSet $children)
+          (allExceptTargetType $rest $nodeType)
+          (Cons $tree (allExceptTargetType $rest $nodeType))
+      )
+))
+
+
+
+; below are helper functions for DELETE AND and OR subtree handlers
+(: delete_AND_SubTree (-> Tree Tree) )
+(= (delete_AND_SubTree Nil) Nil )
+(= (delete_AND_SubTree $tree) (
+
+        let (TreeNode $nodeValue $guardSet $children) $tree
+        (TreeNode $nodeValue $guardSet (allExceptTargetType $children AND))
+
+    ))
+
+(: delete_OR_SubTree (-> Tree Tree) )
+(= (delete_OR_SubTree Nil) Nil )
+(= (delete_OR_SubTree $tree) (
+
+        let (TreeNode $nodeValue $guardSet $children) $tree
+        (TreeNode $nodeValue $guardSet (allExceptTargetType $children OR))
+
+    ))
+
+

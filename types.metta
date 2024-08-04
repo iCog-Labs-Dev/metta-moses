@@ -16,6 +16,7 @@
 (: Value (-> $v Bool NodeType NodeValue))
 
 ;; TreeNode(nodeValue, guardSet, listOfChildren)
+(: NilNode Tree)
 (: TreeNode (-> NodeValue (List Tree) (List Tree) Tree))
 
 (: Location Type)
