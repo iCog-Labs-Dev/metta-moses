@@ -228,22 +228,14 @@
     )
 )
 
-(:hasTerminalNode (-> Tree Bool))
-(= (hasTerminalNode NilNode) False)
-(= (hasTerminalNode $node) (
-    case $node (
-        ( (TreeNode (Value $value $truthValue AND) NilNode NilNode $guardSet NilList) (
-            unify $guardSet (ConsTree $singleNode NilList) True False
-        ) )
-        ( (TreeNode $nodeValue $left $right $guardSet $children) ( or (hasTerminalNode $left) (hasTerminalNode $right)) )
+(: containsTerminalAndNode (-> (List Tree) Bool))
+(= (containsTerminalAndNode Nil) False)
+(= (containsTerminalAndNode (Cons $x $xs))
+  (case $x
+    (
+      ((TreeNode (Value $value $truthValue AND) (Cons $y Nil) Nil) True)
+      ((TreeNode $nodeValue $guardSet $children) (containsTerminalAndNode $xs))
     )
-))
+  )
+)
 
-(:containsTerminalNode (-> TreeList Bool ))
-(= (containsTerminalNode NilList) False)
-(= (containsTerminalNode $treeList) (
-    case $treeList (
-        ( (ConsTree $t $ts) (or (hasTerminalNode $t) (trace! (evaluating $ts ) (containsTerminalNode $ts))) )
-        ; ($else (Invalid Expression--- $else))
-    )
-))
