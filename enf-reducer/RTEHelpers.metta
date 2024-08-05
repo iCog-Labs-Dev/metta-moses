@@ -15,21 +15,23 @@
 ;; The function returns the updated  tree and the boolean value together in a tuple.
 
 (: applyAndCut (-> Tree Tree (Tree Bool)))
-(= (applyAndCut $grandChild $child) (
+(= (applyAndCut $grandChild $child)
   (if (and (== (length (getChildren $grandChild)) 1) (== (getGuardSet $grandChild) Nil))
-     (if (>= length (getChildren (head (getChildren $grandChild))) 0)
+     (if (>= (length (getChildren (head (getChildren $grandChild)))) 0)
         (let* 
           (
             ($firstNodeOfGrandChild (head (getChildren $grandChild)))
             ($updatedChildrenTree (replaceChildren $child (extend (getChildren $child) (getChildren $firstNodeOfGrandChild))))
-            ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree (getChildren $updatedChildrenTree) $firstNodeOfGrandChild)))
-            ($hasTerminalAndNode (containsTerminalNode $finalUpdatedTree))
-          ) 
+            ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree $firstNodeOfGrandChild (getChildren $updatedChildrenTree) )))
+            ($hasTerminalAndNode (containsTerminalAndNode (getChildren $firstNodeOfGrandChild)))
+          )
           ($finalUpdatedTree $hasTerminalAndNode)
         )
         ($child False)
      )
      ($child False)
   )
-))
+)
+
+
 
