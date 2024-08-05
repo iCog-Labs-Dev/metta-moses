@@ -1,4 +1,5 @@
-!(import! &self list)
+!(import! &self tree-helpers)
+!(import! &self list-helpers)
 
 (= (check-not-duplicated $list)
     (case $list
@@ -249,24 +250,28 @@
         )
 )
 
-(= (apply-or-cut $child $current)
-  if(== length (get-children child) 1)(
-      ;; let $grandChild car (getNodeChildren $child)(
-       ;;  (union getNodeGuardSet $current getNodeGuardSet $grandChild, findAndRemoveChild getNodeChildren $current $grandChild)
-      ;; )
+(= (apply-or-cut $child $current) (
+  if(== length (getChildren $child) 1)(
+    (union-set (getGuardSet $current) (getGuardSet (car (getChildren $child))), findAndRemove (getChildren (extend (car (getChildren $child)) (getChildren $current))) (car (getChildren $child)))
     )
 )
+)
+
+(= (guard-set-checker $children)(
+  if (> (length (getGuardSet (car $children))) 0)(length (getGuardSet (car $children)))(0)
+))
 
 (= (command-set-iterator $children $localCommandSet)
-  if (== children Nil) ($localCommandSet )(
-    if (== True (== car (get-children $children) empty))
+  if (== (length $children) 0) ($localCommandSet)(
+    if (== (and (> (length (getChildren (car (getChildren $children)))) 0) (== (guard-set-checker $children ) True)) 
+        (and (> (length $children) 0) (== (get-type (car $children)) AND) ) 
+        True)(union-set (getGuardSet (car $children))) (command-set-iterator (cdr $children) $localCommandSet)(command-set-iterator (cdr $children) $localCommandSet)
     )
-
 )
 
 ;;!(is-subset (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3  Nil))))
 ;;!(union-set (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) )
-!(set-difference (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
+;;!(set-difference (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
 ;; !(n-ary-or (Cons False (Cons True (Cons False (Cons True Nil)))))
 ;; !(n-ary-and (Cons True (Cons True (Cons False (Cons True Nil)))))
 

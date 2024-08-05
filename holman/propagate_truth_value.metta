@@ -1,7 +1,9 @@
-!(register-module! ../../metta-moses-reduction)
-!(import! &self metta-moses-reduction:utilities:helper-functions)
-!(import! &self metta-moses-reduction:reduction:utils)
-!(import! &self metta-moses-reduction:utilities:tree-ds)
+! (register-module! ../../metta-moses-reduction)
+! (import! &self metta-moses-reduction:utilities:helper-functions)
+;;! (import! &self metta-moses-reduction:reduction:utils)
+! (import! &self metta-moses-reduction:utilities:tree-ds)
+! (import! &self metta-moses-reduction:utilities:helper-functions)
+
 (:propagate-truth-value (-> Expression Bool Expression))
 (= (propagate-truth-value $exp $truth-value)
     (case $exp(
@@ -26,5 +28,7 @@
         )
     )
 )
-!(propagate-truth-value (AND (OR x1 x2) (AND x3 x4)) False)
+;;!(propagate-truth-value (AND (OR x1 x2) (AND x3 x4)) False)
+;;!(buildTree (AND (AND (OR A (NOT B)) (OR A C)) B))
+!(apply-or-cut (Cons A True (OR (Cons B True (OR (Cons D False)))(Cons C False))) (OR (Cons D False)))
 

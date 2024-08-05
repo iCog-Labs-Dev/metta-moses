@@ -6,7 +6,7 @@
 (: NilList TreeList)
 (: ConsTree (-> Tree TreeList TreeList))
 
-;; (: ROOT NodeType)
+(: ROOT NodeType)
 (: AND NodeType)
 (: OR NodeType)
 (: NOT NodeType)
@@ -36,5 +36,6 @@
 (= (appendTree NilList $ys) $ys)
 (= (appendTree (ConsTree $x $xs) $ys) (ConsTree $x (appendTree $xs $ys)))
 
-;; !(buildTree (AND a b))
-!(buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A))))))))
+;;!(buildTree (AND a b))
+;;!(buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A))))))))
+!(buildTree (AND (AND (OR A (NOT B)) (OR A C)) B))
