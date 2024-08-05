@@ -262,8 +262,38 @@
 
 ;; !(treeFoldl zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
 ;; !(treeFoldr zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
-                               ; Sample Grand Child                         ; Sample Result Set
-; !(computeGrandchildGuardset (buildTree (AND A (OR B C))) (getGuardSet (buildTree (AND A (OR B C)))) )
+
+;; !(computeGrandchildGuardset 
+;;   (TreeNode 
+;;     (Value Nil False AND) 
+;;     Nil 
+;;     (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C False LITERAL) Nil Nil) Nil))) Nil))
+;;   ) 
+;;   (Cons 
+;;     (TreeNode 
+;;       (Value Nil False AND) 
+;;       Nil 
+;;       (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C False LITERAL) Nil Nil) Nil))) Nil))
+;;     )
+;;     Nil
+;;   )
+;; )
+
+;; !(computeGrandchildGuardset 
+;;   (TreeNode 
+;;     (Value Nil False AND) 
+;;     (Cons (TreeNode (Value D False LITERAL) Nil Nil) (Cons (TreeNode (Value E False LITERAL) Nil Nil) Nil)) 
+;;     (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C False LITERAL) Nil Nil) Nil))) Nil))
+;;   ) 
+;;   (Cons 
+;;     (TreeNode 
+;;       (Value Nil False AND) 
+;;       Nil 
+;;       (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C False LITERAL) Nil Nil) Nil))) Nil))
+;;     )
+;;     Nil
+;;   )
+;; )
 
 ;; !(isConsistent 
 ;;   (Cons 

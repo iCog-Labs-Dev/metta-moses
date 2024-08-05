@@ -124,13 +124,9 @@
 
 ; ------------------------------------
 
-(:replaceGuardSet (-> Tree TreeList Tree) )
-(= (replaceGuardSet $node $newguardSet) 
-    (let (TreeNode $value $guardSet $children) 
-        $node  
-        (TreeNode $value $newguardSet $children)
-        )
-)
+(:replaceGuardSet (-> Tree (List Tree) Tree) )
+(= (replaceGuardSet NilNode $newguardSet) NilNode)
+(= (replaceGuardSet (TreeNode $value $guardSet $children) $newguardSet) (TreeNode $value $newguardSet $children))
 
 (:replaceNodeValue (-> Tree NodeValue Tree))
 (= (replaceNodeValue $tree $newValue)
@@ -207,14 +203,11 @@
   )
 )
 
-; ------ Update GrandChild guardset
-
-(: computeGrandchildGuardset (-> Tree TreeList Tree))
-(= (computeGrandchildGuardset $grandChild $resultSet)
-  (replaceGuardSet 
-    $grandChild 
-    (setDifference (getGuardSet $grandChild) $resultSet)
-  )
+; ------ Update GrandChild guardset with the difference between the current guardset(list of trees) and the given list of trees
+(: computeGrandchildGuardset (-> Tree (List Tree) Tree))
+(= (computeGrandchildGuardset NilNode $resultSet) NilNode)
+(= (computeGrandchildGuardset (TreeNode $nodeValue $guardSet $children) $resultSet)
+  (TreeNode $nodeValue (setDifference $guardSet $resultSet Nil) $children)
 )
 
 ; A function that detect consistency(value match and constrient difference) between a single tree and list of tree
