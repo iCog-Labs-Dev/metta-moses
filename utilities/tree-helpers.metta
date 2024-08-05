@@ -1,3 +1,4 @@
+!(import! &self list-helpers)
 ;; -----------------------------------
 ;; -----------------------------------
 ;; -------- function to build a tree of type "Tree" from an expression
@@ -85,7 +86,12 @@
 
 (:appendChild (-> Tree Tree Tree))
 (= (appendChild (TreeNode $nodeValue $guardSet $children) $child)
-  (TreeNode $nodeValue $guardSet (Cons $children $child))
+  (TreeNode $nodeValue $guardSet (Cons $child $children))
+)
+
+(:appendToGuardSet (-> Tree Tree Tree))
+(= (appendToGuardSet (TreeNode $nodeValue $guardSet $children) $guardValue)
+    (TreeNode $nodeValue (Cons $guardValue $guardSet) $children)
 )
 
 

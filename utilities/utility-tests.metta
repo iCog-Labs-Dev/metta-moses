@@ -225,8 +225,8 @@
 ; !(getGuardSet (buildTree (AND a b)))
 
 ; !(replaceChild (buildTree (NOT A)) (buildTree (OR Y Z)) L)
-
-; !(appendChild (buildTree A) (buildTree (AND B)) )
+!(appendChild (buildTree A) (buildTree (AND B)))
+!(appendToGuardSet (buildTree A) (buildTree (AND B)))
 ; !(appendChild
 ;;		(TreeNode (Value Nil False AND) 
 ;;					(TreeNode (Value A False LITERAL) NilNode NilNode NilList NilList)
@@ -365,16 +365,16 @@
 
 
 ;;   [TEST] remove-AND-subTree/ remove-OR-subTree
-  ! (delete_AND_SubTree (TreeNode (Value target1 False NOT) Nil (Cons
-              (TreeNode (Value Nil False AND) Nil Nil)
-              (Cons
-                 (TreeNode (Value target1 False OR)  Nil Nil)
-                (Cons
-                      (TreeNode (Value target2 True AND) Nil Nil)
-                      Nil
-                 )
-          )
-  ) ))
+  ;; ! (delete_AND_SubTree (TreeNode (Value target1 False NOT) Nil (Cons
+  ;;             (TreeNode (Value Nil False AND) Nil Nil)
+  ;;             (Cons
+  ;;                (TreeNode (Value target1 False OR)  Nil Nil)
+  ;;               (Cons
+  ;;                     (TreeNode (Value target2 True AND) Nil Nil)
+  ;;                     Nil
+  ;;                )
+  ;;         )
+  ;; ) ))
 ;; [EXPECT] [(TreeNode (Value target1 False NOT) Nil (Cons (TreeNode (Value target1 False OR) Nil Nil) Nil))]
 
 ;; -----------------------------------
