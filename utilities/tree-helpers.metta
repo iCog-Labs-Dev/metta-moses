@@ -128,6 +128,10 @@
 (= (replaceGuardSet NilNode $newguardSet) NilNode)
 (= (replaceGuardSet (TreeNode $value $guardSet $children) $newguardSet) (TreeNode $value $newguardSet $children))
 
+(: replaceChildren (-> Tree (List Tree) Tree))
+(= (replaceChildren NilNode $newChildren) NilNode)
+(= (replaceChildren (TreeNode $value $guardSet $children) $newChildren) (TreeNode $value $guardSet $newChildren))
+
 (:replaceNodeValue (-> Tree NodeValue Tree))
 (= (replaceNodeValue $tree $newValue)
     (let ($value $left $right $guardSet $children) 
