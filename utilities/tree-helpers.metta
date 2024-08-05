@@ -124,13 +124,9 @@
 
 ; ------------------------------------
 
-(:replaceGuardSet (-> Tree TreeList Tree) )
-(= (replaceGuardSet $node $new-guardSet) 
-    (let ($value $left $right $guardSet $children) 
-        $node  
-        (TreeNode $value $left $right $new-guardSet $children)
-    )
-)
+(:replaceGuardSet (-> Tree (List Tree) Tree) )
+(= (replaceGuardSet NilNode $newguardSet) NilNode)
+(= (replaceGuardSet (TreeNode $value $guardSet $children) $newguardSet) (TreeNode $value $newguardSet $children))
 
 (:replaceNodeValue (-> Tree NodeValue Tree))
 (= (replaceNodeValue $tree $newValue)
@@ -206,7 +202,13 @@
     )
   )
 )
-; -----------------------
+
+; ------ Update GrandChild guardset with the difference between the current guardset(list of trees) and the given list of trees
+(: computeGrandchildGuardset (-> Tree (List Tree) Tree))
+(= (computeGrandchildGuardset NilNode $resultSet) NilNode)
+(= (computeGrandchildGuardset (TreeNode $nodeValue $guardSet $children) $resultSet)
+  (TreeNode $nodeValue (setDifference $guardSet $resultSet Nil) $children)
+)
 
 ; A function that detect consistency(value match and constrient difference) between a single tree and list of tree
 (: detectConsistency (-> Tree (List Tree) Bool))
@@ -241,32 +243,37 @@
 
 (: allExceptTargetType (-> (List Tree) NodeType (List Tree)))
 (= (allExceptTargetType Nil $nodeType) Nil)
-(= (allExceptTargetType $treeList $nodeType) (
-      let  (Cons $tree $rest) $treeList (
-          unify $tree  (TreeNode (Value $value $truthValue $nodeType) $guardSet $children)
-          (allExceptTargetType $rest $nodeType)
-          (Cons $tree (allExceptTargetType $rest $nodeType))
-      )
-))
+(= (allExceptTargetType $treeList $nodeType) 
+  (let  
+    (Cons $tree $rest) 
+    $treeList 
+    (unify 
+      $tree  
+      (TreeNode (Value $value $truthValue $nodeType) $guardSet $children)
+      (allExceptTargetType $rest $nodeType)
+      (Cons $tree (allExceptTargetType $rest $nodeType))
+    )
+  )
+)
 
 
 
 ; below are helper functions for DELETE AND and OR subtree handlers
 (: delete_AND_SubTree (-> Tree Tree) )
 (= (delete_AND_SubTree Nil) Nil )
-(= (delete_AND_SubTree $tree) (
-
-        let (TreeNode $nodeValue $guardSet $children) $tree
-        (TreeNode $nodeValue $guardSet (allExceptTargetType $children AND))
-
-    ))
+(= (delete_AND_SubTree $tree) 
+  (let 
+    (TreeNode $nodeValue $guardSet $children) $tree
+    (TreeNode $nodeValue $guardSet (allExceptTargetType $children AND))
+  )
+)
 
 (: delete_OR_SubTree (-> Tree Tree) )
 (= (delete_OR_SubTree Nil) Nil )
-(= (delete_OR_SubTree $tree) (
-
-        let (TreeNode $nodeValue $guardSet $children) $tree
-        (TreeNode $nodeValue $guardSet (allExceptTargetType $children OR))
-
-    ))
+(= (delete_OR_SubTree $tree) 
+  (let 
+    (TreeNode $nodeValue $guardSet $children) $tree
+    (TreeNode $nodeValue $guardSet (allExceptTargetType $children OR))
+  )
+)
 
