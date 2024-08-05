@@ -5,6 +5,16 @@
     (+ 1 (length $xs))
 )
 
+; Function to retirive the head of given list
+(: (-> (List $t) $t))
+(= (head Nil) Nil)
+(= (head (Cons $x $xs)) $x)
+
+; Function to retrive the tail of given list
+(: (-> (List $t) (List $t)))
+(= (tail Nil) Nil)
+(= (tail (Cons $x $xs)) $xs)
+
 ; Function to find a list element given an index
 (:index (-> Number (List $t) $t))
 (= (index $a Nil) Nil)
@@ -122,7 +132,7 @@
 (= (quickSort Nil) Nil)
 (= (quickSort (Cons $x $xs))
     (let ($left $right) (partition $x $xs)
-        (append (quickSort $left) (Cons $x (quickSort $right)))
+        (extend (quickSort $left) (Cons $x (quickSort $right)))
     )
 )
 
@@ -192,7 +202,7 @@
 
 (:unionSet (-> (List $t) (List $t) (List $t) (List $t)))
 (=(unionSet $list1 $list2)
-    (removeDuplicates (append $list1 $list2))
+    (removeDuplicates (extend $list1 $list2))
 )
 
 (:isSubset (-> (List $t) (List $t) Bool))
