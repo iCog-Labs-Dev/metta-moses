@@ -1,6 +1,6 @@
 ! (register-module! ../../metta-moses-reduction)
 ! (import! &self metta-moses-reduction:types)
-! (import! &self metta-moses-reduction:utilities:expression-helpers)
+; ! (import! &self metta-moses-reduction:utilities:expression-helpers)
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
 ! (import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
@@ -437,3 +437,11 @@
 
 ;; !(containsTerminalAndNode (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) Nil) Nil))
 ;; !(containsTerminalAndNode (Cons (TreeNode (Value Nil False OR) Nil Nil) Nil))
+
+;;!(applyAndCut 
+;;      (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) (Cons (TreeNode (Value B False AND) Nil Nil) Nil))) Nil))
+;;      (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) (Cons (TreeNode (Value B False AND) Nil Nil) Nil))) Nil)) (Cons (TreeNode (Value A False AND) Nil Nil) (Cons (TreeNode (Value B False AND) Nil Nil) Nil)))))
+
+;;!(applyAndCut 
+;;    (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil)))
+;;    (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B False AND) Nil Nil) Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil))) Nil)))
