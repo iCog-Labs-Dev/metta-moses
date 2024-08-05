@@ -434,3 +434,6 @@
 ;;     )
 ;;   )
 ;; )
+
+;; !(containsTerminalAndNode (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) Nil) Nil))
+;; !(containsTerminalAndNode (Cons (TreeNode (Value Nil False OR) Nil Nil) Nil))
