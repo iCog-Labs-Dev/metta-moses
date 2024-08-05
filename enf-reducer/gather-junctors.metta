@@ -1,0 +1,45 @@
+! (register-module! ../../metta-moses-reduction)
+! (import! &self metta-moses-reduction:types)
+! (import! &self metta-moses-reduction:utilities:list-helpers)
+! (import! &self metta-moses-reduction:utilities:tree-helpers)
+
+(:gatherJunctors (-> Tree Tree Tree))
+(=(gatherJunctors $currentNode $centerNode)
+    (let* (
+        ($currentNodeType (getNodeType $currentNode))
+        ($centerNodeType (getNodeType $centerNode))
+        ($currentLeft (getChild $currentNode L))
+        ($currentRight (getChild $currentNode R))
+        ($centerLeft (getChild $centerNode L))
+        ($centerRight (getChild $centerNode R))
+        ((TreeNode (Value $valueName $constraint $currentNodeType) $guardSet $children) $currentNode)
+    )
+    (if (and (== $currentNodeType ROOT) (not (== $currentRight NilNode)))
+        (TreeNode (Value $valueName $constraint AND) $guardSet (Cons $left (Cons (gatherJunctors $right $centerNode) Nil)))
+        (if (or (== $currentNodeType AND) (== $currentNodeType OR))
+            (if  (== $currentNodeType $centerNodeType)
+                (if (and (not (== $currentLeft NilNode)) (not (== $currentRight NilNode)))
+                    (TreeNode (Value $valueName $constraint AND) $guardSet 
+                            (Cons (gatherJunctors $left $centerNode) (Cons (gatherJunctors $right $centerNode) Nil)))
+                    $currentNode
+                )
+                (let  $newCenterNode (appendChild $centerNode $currentNode)
+                    (appendChild (appendChild $newCenterNode (gatherJunctors $left $currentNode)) 
+                        (gatherJunctors $right $currentNode))
+
+                )
+            )
+            (if (== $currentNodeType LITERAL)
+                (if (== $centerNodeType AND)
+                    (appendToGuardSet $centerNodeType $currentNode)
+                    (appendChild $centerNode (TreeNode (Value $valueName $constraint AND) (Cons $currentNode Nil) $children))
+                )
+                (WrongType)
+            )
+                
+            )
+        )
+    
+
+    )
+)
