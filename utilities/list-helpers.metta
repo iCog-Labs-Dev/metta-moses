@@ -10,6 +10,16 @@
 
 ; Function to return the second element of a list
 (= (Cdr (Cons $x $xs)) $xs)
+=======
+; Function to retirive the head of given list
+(: (-> (List $t) $t))
+(= (head Nil) Nil)
+(= (head (Cons $x $xs)) $x)
+
+; Function to retrive the tail of given list
+(: (-> (List $t) (List $t)))
+(= (tail Nil) Nil)
+(= (tail (Cons $x $xs)) $xs)
 
 ; Function to find a list element given an index
 (:index (-> Number (List $t) $t))
@@ -128,7 +138,7 @@
 (= (quickSort Nil) Nil)
 (= (quickSort (Cons $x $xs))
     (let ($left $right) (partition $x $xs)
-        (append (quickSort $left) (Cons $x (quickSort $right)))
+        (extend (quickSort $left) (Cons $x (quickSort $right)))
     )
 )
 
@@ -179,9 +189,21 @@
     )
 )
 
+; Function that takes two lists and an accumulator then returns the accoumulator containing elements from the first list that are not found in the second list
+(:setDifference (-> (List $t) (List $t) (List $t) (List $t)))
+(=(setDifference Nil Nil $accumulator) Nil)
+(=(setDifference (Cons $x $xs) Nil $accumulator) (Cons $x $xs))
+(=(setDifference Nil (Cons $y $ys) $accumulator) $accumulator)
+(=(setDifference (Cons $x $xs) (Cons $y $ys) $accumulator)
+    (if (member $x (Cons $y $ys))
+        (setDifference $xs (Cons $y $ys) $accumulator)
+        (setDifference $xs (Cons $y $ys) (extend $accumulator (Cons $x Nil)))
+    )
+)
+
 (:unionSet (-> (List $t) (List $t) (List $t) (List $t)))
 (=(unionSet $list1 $list2)
-    (removeDuplicates (append $list1 $list2))
+    (removeDuplicates (extend $list1 $list2))
 )
 
 (:isSubset (-> (List $t) (List $t) Bool))

@@ -85,19 +85,25 @@
 
 (:appendChild (-> Tree Tree Tree))
 (= (appendChild (TreeNode $nodeValue $guardSet $children) $child)
-  (TreeNode $nodeValue $guardSet (Cons $child $children))
+  (TreeNode $nodeValue $guardSet (Cons $children $child))
 )
 
 
-(:nodeEquality (-> Tree Tree Bool))
-(= (nodeEquality (TreeNode $nodeValue1 $guardSet1 $children1) (TreeNode $nodeValue2 $guardSet2 $children2))
+(:isNodeEqual (-> Tree Tree Bool))
+(= (isNodeEqual Nil Nil) False)
+(= (isNodeEqual (TreeNode $nodeValue $guardSet $children) Nil) False)
+(= (isNodeEqual Nil (TreeNode $nodeValue $guardSet $children)) False)
+(= (isNodeEqual 
+    (TreeNode $nodeValue1 $guardSet1 $children1) 
+    (TreeNode $nodeValue2 $guardSet2 $children2)
+   )
   (== $nodeValue1 $nodeValue2)
 )
 
 ;;function to check if a tree is member of a treelist
 (:treeIsMember (-> Tree (List Tree) Bool))
 (= (treeIsMember $x $list)
-   (memberWith nodeEquality $x $list)
+   (memberWith isNodeEqual $x $list)
 )
 
 ;;function to return the intersection of two treelists
@@ -105,26 +111,22 @@
 (= (treeIntersection $list1 $list2)
     (case $list1
     (
+        (Nil Nil)
         ((Cons $h $t) 
          (if (treeIsMember $h $list2) 
             (Cons $h (treeIntersection $t $list2)) 
             (treeIntersection $t $list2)
          ) 
         )
-        ($_ (empty))
     )
     )
 )
 
 ; ------------------------------------
 
-(:replaceGuardSet (-> Tree TreeList Tree) )
-(= (replaceGuardSet $node $new-guardSet) 
-    (let ($value $left $right $guardSet $children) 
-        $node  
-        (TreeNode $value $left $right $new-guardSet $children)
-    )
-)
+(:replaceGuardSet (-> Tree (List Tree) Tree) )
+(= (replaceGuardSet NilNode $newguardSet) NilNode)
+(= (replaceGuardSet (TreeNode $value $guardSet $children) $newguardSet) (TreeNode $value $newguardSet $children))
 
 (:replaceNodeValue (-> Tree NodeValue Tree))
 (= (replaceNodeValue $tree $newValue)
@@ -148,27 +150,17 @@
 )
 
 (:compareTrees (-> Tree Tree Bool))
-(=(compareTrees $tree1 $tree2)
-    (case ($tree1 $tree2) (
-        (((TreeNode (Value $symbol $constraint $nodetype) $leftChild $rightChild $guardSet $listOfChildren) (TreeNode (Value $symbol $constraint $nodetype)  $leftChild1 $rightChild1 $guardSet1 $listOfChildren1)) True)
-        ($else False)
-    )
-    )
+(=(compareTrees $fstTree $sndTree)
+  (if (nodeEquality $fstTree $sndTree) True False)
 )
 
-(:compareAndRemoveNode (-> Tree TreeList TreeList TreeList))
-(=(compareAndRemoveNode $tree $treeList $accumulator)
-    (case $treeList(
-            ((ConsTree $x $xs)
-                (if (== (compareTrees $tree $x) True)
-                    (compareAndRemoveNode $tree $xs $accumulator)
-                    (compareAndRemoveNode $tree $xs (appendTree $accumulator (ConsTree $x NilList)))
-                )
-            )
-            ($_  $accumulator)
-
-        )
-    )
+(:compareAndRemoveNode (-> Tree (List Tree) (List Tree) (List Tree)))
+(=(compareAndRemoveNode $tree Nil $accumulator) $accumulator)
+(=(compareAndRemoveNode $tree (Cons $x $xs) $accumulator)
+  (if (compareTrees $tree $x)
+    (compareAndRemoveNode $tree $xs $accumulator)
+    (compareAndRemoveNode $tree $xs (extend $accumulator (Cons $x Nil)))
+  )
 )
 
 (= (treeFoldl $func $acc NilNode) $acc)
@@ -210,3 +202,78 @@
     )
   )
 )
+
+; ------ Update GrandChild guardset with the difference between the current guardset(list of trees) and the given list of trees
+(: computeGrandchildGuardset (-> Tree (List Tree) Tree))
+(= (computeGrandchildGuardset NilNode $resultSet) NilNode)
+(= (computeGrandchildGuardset (TreeNode $nodeValue $guardSet $children) $resultSet)
+  (TreeNode $nodeValue (setDifference $guardSet $resultSet Nil) $children)
+)
+
+; A function that detect consistency(value match and constrient difference) between a single tree and list of tree
+(: detectConsistency (-> Tree (List Tree) Bool))
+(= (detectConsistency $tree Nil) True)
+(= (detectConsistency 
+    (TreeNode (Value $fstValue $fstConstraint $fstNodetype) $fstGuardSet $fstChildren)
+    (Cons (TreeNode (Value $sndValue $sndConstraint $sndNodetype) $sndGuardSet $sndChildren) $restOfTree)
+   )
+
+  (if 
+    (and 
+      (== $fstValue $sndValue) 
+      (not (== $fstConstraint $sndConstraint))
+    )
+      False
+      (detectConsistency 
+        (TreeNode (Value $fstValue $fstConstraint $fstNodetype) $fstGuardSet $fstChildren) 
+        $restOfTree
+      )
+  )
+)
+
+; A function check the consistency of a tree list 
+(: isConsistent (-> (List Tree) Bool))
+(= (isConsistent Nil) True)
+(= (isConsistent (Cons $x $xs))
+  (if (detectConsistency $x $xs)
+    (isConsistent $xs)
+    False
+  )
+)
+
+(: allExceptTargetType (-> (List Tree) NodeType (List Tree)))
+(= (allExceptTargetType Nil $nodeType) Nil)
+(= (allExceptTargetType $treeList $nodeType) 
+  (let  
+    (Cons $tree $rest) 
+    $treeList 
+    (unify 
+      $tree  
+      (TreeNode (Value $value $truthValue $nodeType) $guardSet $children)
+      (allExceptTargetType $rest $nodeType)
+      (Cons $tree (allExceptTargetType $rest $nodeType))
+    )
+  )
+)
+
+
+
+; below are helper functions for DELETE AND and OR subtree handlers
+(: delete_AND_SubTree (-> Tree Tree) )
+(= (delete_AND_SubTree Nil) Nil )
+(= (delete_AND_SubTree $tree) 
+  (let 
+    (TreeNode $nodeValue $guardSet $children) $tree
+    (TreeNode $nodeValue $guardSet (allExceptTargetType $children AND))
+  )
+)
+
+(: delete_OR_SubTree (-> Tree Tree) )
+(= (delete_OR_SubTree Nil) Nil )
+(= (delete_OR_SubTree $tree) 
+  (let 
+    (TreeNode $nodeValue $guardSet $children) $tree
+    (TreeNode $nodeValue $guardSet (allExceptTargetType $children OR))
+  )
+)
+
