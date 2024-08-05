@@ -113,6 +113,16 @@
         (Cons $x (findAndRemove $elem $xs)))
 )
 
+;;function to find a given node from a list of nodes and remove it. Similar to findAndRemove implementation of for the lists.
+(: findAndRemoveTree (-> Tree (List Tree) (List Tree)))
+(= (findAndRemoveTree $elem Nil) Nil)
+(= (findAndRemoveTree $elem (Cons $x $xs))
+    (if (isNodeEqual $x $elem) 
+        (findAndRemoveTree $elem $xs)
+        (Cons $x (findAndRemoveTree $elem $xs))
+    )
+)
+
 ; A function to compare 2 lists
 (:compare (-> (List $t) (List $t) (Bool)))
  ;; if both the lists are empty, They are the same.
