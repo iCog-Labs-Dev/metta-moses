@@ -100,6 +100,15 @@
   (== $nodeValue1 $nodeValue2)
 )
 
+;;function to find a given node from a list of nodes and remove it. Similar to findAndRemove implementation of for the lists.
+(: findAndRemoveTree (-> Tree (List Tree) (List Tree)))
+(= (findAndRemoveTree $elem Nil) Nil)
+(= (findAndRemoveTree $elem (Cons $x $xs))
+    (if (isNodeEqual $x $elem) 
+        (findAndRemoveTree $elem $xs)
+        (Cons $x (findAndRemoveTree $elem $xs))
+    )
+)
 ;;function to check if a tree is member of a treelist
 (:treeIsMember (-> Tree (List Tree) Bool))
 (= (treeIsMember $x $list)
