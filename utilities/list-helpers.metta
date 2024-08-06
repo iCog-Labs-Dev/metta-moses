@@ -249,3 +249,15 @@
   )
 )
 
+ ; A function to foldLeft function
+(: foldLeft (-> (-> $t $t $t) $t (List $t) $t))
+(= (foldLeft $func $acc Nil) $acc)
+(= (foldLeft $func $acc (Cons $x $xs)) (foldLeft $func ($func $acc $x) $xs))
+
+ ; an Abstract function to call foldLeft function and pass the first element as the initial accumulator (does not require an accumulator)
+(: foldl (-> $t $t $t) (List $t) $t)
+(= (foldl $func Nil)Nil)
+(= (foldl $func (Cons $x $xs))
+    (foldLeft $func $x $xs)
+)
+>>>>>>> df941223a71da2045e09dbc32103c58db2d57f76
