@@ -453,4 +453,3 @@
  ;         (Cons (getChildren (buildTree (AND A G)))
  ;             (Cons (getChildren (buildTree (AND B A)))
  ;                 (Cons (getChildren (buildTree (AND A F))) Nil)))))
->>>>>>> df941223a71da2045e09dbc32103c58db2d57f76
