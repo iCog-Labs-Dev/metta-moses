@@ -234,8 +234,8 @@
 
 ; !(replaceChild (buildTree (NOT A)) (buildTree (OR Y Z)) L)
 
-; !(appendChild (buildTree A) (buildTree (AND B)) )
-; !(appendChild
+; !(prependChild (buildTree A) (buildTree (AND B)) )
+; !(prependChild
 ;;		(TreeNode (Value Nil False AND) 
 ;;					(TreeNode (Value A False LITERAL) NilNode NilNode NilList NilList)
 ;;					(TreeNode (Value B False LITERAL) NilNode NilNode NilList NilList)

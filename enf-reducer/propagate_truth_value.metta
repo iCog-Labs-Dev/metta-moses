@@ -4,7 +4,7 @@
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
 
 
-(:propagateTruthValue (-> Tree Bool Tree))
+(: propagateTruthValue (-> Tree Bool Tree))
 (= (propagateTruthValue $tree $truthValueArg)
     (if (== (isTreeWellFormed $tree) True)
             (let* (
@@ -12,7 +12,7 @@
                     ($left (getChild $tree L))
                     ($nodeType (getNodeType $tree))
                 )(if (== $nodeType ROOT)
-                    (if (not (== $right Nil))
+                    (if (not (== $right NilNode))
                         (propagateTruthValue $right $truthValueArg)
                         $tree
                     )
@@ -37,7 +37,6 @@
                                                 $tree
                                             )
                                         )
-                                    
                                 )
                                 (TreeNode (Value $valueName $truthValueArg $nodeTypeDestructured) $guardSet $children)
                             ) 
@@ -52,7 +51,7 @@
     (case $tree (
        
             ((TreeNode (Value $value $bool $nodeType) $guardSet $children) True)
-            (Nil True)
+            (NilNode True)
             ($else False)
         )
     )

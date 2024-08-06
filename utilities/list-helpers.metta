@@ -1,5 +1,5 @@
 ; Function to find the length of a list
-(:length (-> (List $t) Number))
+(: length (-> (List $t) Number))
 (= (length Nil) 0)
 (= (length (Cons $x $xs))
     (+ 1 (length $xs))
@@ -16,7 +16,7 @@
 (= (tail (Cons $x $xs)) $xs)
 
 ; Function to find a list element given an index
-(:index (-> Number (List $t) $t))
+(: index (-> Number (List $t) $t))
 (= (index $a Nil) Nil)
  ;(= (index 0 (Cons $x $xs)) $x)
 (= (index $a (Cons $x $xs))
@@ -27,14 +27,14 @@
 )
 
 ; Function to apply a partial function to every element in a list
-(:map (-> Atom (List $t) (List $tt)))
+(: map (-> Atom (List $t) (List $tt)))
 (= (map $func Nil) Nil)
 (= (map $func (Cons $x $xs))
     (Cons ($func $x) (map $func $xs))
 )
 
 ; Function to check the existance of an element in a list given the comparing function
-(:memberWith (-> (-> $t $t Bool) $t (List $t) Bool))
+(: memberWith (-> (-> $t $t Bool) $t (List $t) Bool))
 (= (memberWith $f $a Nil) False)
 (= (memberWith $f $a (Cons $x $xs))
     (if ($f $a $x)
@@ -44,13 +44,13 @@
 )
 
 ; Function to check whether an Atom exists in a list
-(:member (-> $t (List $t) Bool))
+(: member (-> $t (List $t) Bool))
 (= (member $a $list)
     (memberWith == $a $list)
 )
 
 ; Function to remove duplicates given a list and a compare compareFunc.
-(:removeDuplicates (-> (-> $t (List $t) Bool) (List $t) (List $t)))
+(: removeDuplicates (-> (-> $t (List $t) Bool) (List $t) (List $t)))
 (= (removeDuplicates $compareFunc Nil) Nil)
 (= (removeDuplicates $compareFunc (Cons $x $xs))
     (if ($compareFunc $x $xs)
@@ -60,12 +60,12 @@
 )
 
 ; Function to merge two lists
-(:extend (-> (List $t) (List $t) (List $t)))
+(: extend (-> (List $t) (List $t) (List $t)))
 (= (extend Nil $ys) $ys)
 (= (extend (Cons $x $xs) $ys) (Cons $x (extend $xs $ys)))
 
 ; Function to partition the list
-(:partition (-> Atom (List $t) ( (List $t) (List $t) )))
+(: partition (-> Atom (List $t) ( (List $t) (List $t) )))
 (= (partition $_ Nil) ( Nil Nil ))
 (= (partition $pivot (Cons $x $xs))
     (let ($left $right) (partition $pivot $xs)
@@ -83,7 +83,7 @@
 )
 
 ; A function that checks if at least one True exists from a Boolean list
-(:any (-> (List Bool) Bool))
+(: any (-> (List Bool) Bool))
 (= (any Nil) False) ;; return False if the list is empty
 
 (= (any (Cons True $xs)) ;; return True if the item is True
@@ -94,7 +94,7 @@
 )
 
 ; A function that check if all of the elements are true from a Bool List.
-(:all (-> (List Bool) Bool))
+(: all (-> (List Bool) Bool))
 
 (= (all Nil) True) ;; return True if the list is empty
 
@@ -106,7 +106,7 @@
 )
 
 ; A function to find and remove element from a list
-(:findAndRemove (-> $t (List $t) (List $t)))
+(: findAndRemove (-> $t (List $t) (List $t)))
 (= (findAndRemove $elem Nil) Nil)
 (= (findAndRemove $elem (Cons $x $xs))
     (if (== $x $elem) (findAndRemove $elem $xs)
@@ -124,7 +124,7 @@
 )
 
 ; A function to compare 2 lists
-(:compare (-> (List $t) (List $t) (Bool)))
+(: compare (-> (List $t) (List $t) (Bool)))
  ;; if both the lists are empty, They are the same.
 (= (compare Nil Nil) True)
 (= (compare (Cons $x $xs) (Cons $y $ys))
@@ -138,7 +138,7 @@
 )
 
  ; QuickSort implementation
-(:quickSort (-> List List))
+(: quickSort (-> List List))
 (= (quickSort Nil) Nil)
 (= (quickSort (Cons $x $xs))
     (let ($left $right) (partition $x $xs)
@@ -146,7 +146,7 @@
     )
 )
 
-(:checkNotDuplicated (-> (List $t) Bool))
+(: checkNotDuplicated (-> (List $t) Bool))
 (= (checkNotDuplicated $list)
     (case $list
         (
@@ -161,7 +161,7 @@
     )
 )
 
-(:checkNotInverseDuplicated (-> (List $t) Bool))
+(: checkNotInverseDuplicated (-> (List $t) Bool))
 (= (checkNotInverseDuplicated $list)
     (case $list
         (
@@ -176,7 +176,7 @@
     )
 )
 
-(:intersect (-> (List $t) (List $t) (List $t) (List $t)))
+(: intersect (-> (List $t) (List $t) (List $t) (List $t)))
 (=(intersect $list1 $list2 $accumulator)
     (if (and (isEmpty $list1) (isEmpty $list2))
         $accumulator
@@ -194,24 +194,24 @@
 )
 
 ; Function that takes two lists and an accumulator then returns the accoumulator containing elements from the first list that are not found in the second list
-(:setDifference (-> (-> $t (List $t) Bool) (List $t) (List $t) (List $t) (List $t)))
-(=(setDifference $compareFunc Nil Nil $accumulator) Nil)
-(=(setDifference $compareFunc (Cons $x $xs) Nil $accumulator) (Cons $x $xs))
-(=(setDifference $compareFunc Nil (Cons $y $ys) $accumulator) $accumulator)
-(=(setDifference $compareFunc (Cons $x $xs) (Cons $y $ys) $accumulator)
+(: setDifference (-> (-> $t (List $t) Bool) (List $t) (List $t) (List $t) (List $t)))
+(= (setDifference $compareFunc Nil Nil $accumulator) Nil)
+(= (setDifference $compareFunc (Cons $x $xs) Nil $accumulator) (Cons $x $xs))
+(= (setDifference $compareFunc Nil (Cons $y $ys) $accumulator) $accumulator)
+(= (setDifference $compareFunc (Cons $x $xs) (Cons $y $ys) $accumulator)
     (if ($compareFunc $x (Cons $y $ys))
         (setDifference $compareFunc $xs (Cons $y $ys) $accumulator)
         (setDifference $compareFunc $xs (Cons $y $ys) (extend $accumulator (Cons $x Nil)))
     )
 )
 
-(:setUnion (-> (List $t) (List $t) (List $t) (List $t)))
-(=(setUnion $list1 $list2)
+(: setUnion (-> (List $t) (List $t) (List $t) (List $t)))
+(= (setUnion $list1 $list2)
     (removeDuplicates (extend $list1 $list2))
 )
 
-(:isSubset (-> (List $t) (List $t) Bool))
-(=(isSubset $list1 $list2)
+(: isSubset (-> (List $t) (List $t) Bool))
+(= (isSubset $list1 $list2)
     (let* (
             ($min-list (if (> (length $list1) (length $list2)) $list2 $list1
                         ))
@@ -222,8 +222,8 @@
    
 )
 
-(:isSubsetOrdered (-> (List $t) (List $t) Bool))
-(=(isSubsetOrdered $min-list $max-list)
+(: isSubsetOrdered (-> (List $t) (List $t) Bool))
+(= (isSubsetOrdered $min-list $max-list)
     (if (== $min-list Nil)
         True
         (case $min-list (
@@ -260,4 +260,3 @@
 (= (foldl $func (Cons $x $xs))
     (foldLeft $func $x $xs)
 )
->>>>>>> df941223a71da2045e09dbc32103c58db2d57f76
