@@ -205,8 +205,8 @@
     )
 )
 
-(:unionSet (-> (List $t) (List $t) (List $t) (List $t)))
-(=(unionSet $list1 $list2)
+(:setUnion (-> (List $t) (List $t) (List $t) (List $t)))
+(=(setUnion $list1 $list2)
     (removeDuplicates (extend $list1 $list2))
 )
 
