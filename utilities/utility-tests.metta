@@ -434,3 +434,101 @@
 ;;     )
 ;;   )
 ;; )
+
+
+
+; !(hasTerminalNode (TreeNode (Value "A" True AND) Nil Nil)) ; Should return False
+; !(hasTerminalNode 
+;   (TreeNode (Value Nil True AND) (Cons (TreeNode (Value x True LITERAL) Nil Nil) Nil) Nil)
+;     ) 
+;; [EXPECT] True
+
+
+; !(hasTerminalNode 
+;     (TreeNode (Value Nil True OR) 
+;         (Cons 
+;             (TreeNode (Value x True LITERAL) Nil Nil) 
+;             (Cons 
+;                 (TreeNode (Value x True LITERAL) Nil Nil) 
+;                 Nil
+;             ) 
+;         ) 
+;         (Cons 
+;             (TreeNode (Value Nil True OR) 
+;                 (Cons 
+;                     (TreeNode (Value x True LITERAL) Nil Nil) 
+;                     Nil
+;                 ) 
+;                 (Cons 
+;                     (TreeNode (Value x True LITERAL) Nil Nil) 
+;                     (Cons 
+;                         (TreeNode (Value Nil True AND) ;;here is the terminal node
+;                             (Cons 
+;                                 (TreeNode (Value x True LITERAL) Nil Nil) 
+;                                 Nil
+;                             ) 
+;                             Nil
+;                         ) 
+;                         Nil
+;                     )
+;                 )
+;             ) 
+;             Nil
+;         )
+;     )
+; ) 
+;; [EXPECT] True
+
+
+; Test 1: List with one Tree containing an AND node with no children
+; !(containsTerminalNode 
+;   (Cons 
+;     (TreeNode (Value "A" True AND) Nil Nil) 
+;     Nil)) 
+;; [EXPECT] False
+
+; Test 2: List with one Tree containing a LITERAL node
+
+; !(containsTerminalNode 
+;   (Cons 
+;     (TreeNode 
+;       (Value Nil True AND) 
+;       (Cons 
+;         (TreeNode (Value x True LITERAL) Nil Nil) 
+;         Nil) 
+;       Nil) 
+;     Nil))
+;; [EXPECT] True
+
+
+; Test 3: List with multiple Trees, one containing a terminal node
+; !(containsTerminalNode 
+;   (Cons 
+;     (TreeNode 
+;       (Value Nil True OR) 
+;       (Cons 
+;         (TreeNode (Value x True LITERAL) Nil Nil) 
+;         (Cons 
+;           (TreeNode (Value x True LITERAL) Nil Nil) 
+;           Nil)) 
+;       (Cons 
+;         (TreeNode 
+;           (Value Nil True OR) 
+;           (Cons 
+;             (TreeNode (Value x True LITERAL) Nil Nil) 
+;             Nil) 
+;           (Cons 
+;             (TreeNode (Value x True LITERAL) Nil Nil) 
+;             (Cons 
+;               (TreeNode 
+;                 (Value Nil True AND) 
+;                 (Cons 
+;                   (TreeNode (Value x True LITERAL) Nil Nil) 
+;                   Nil) 
+;                 Nil) 
+;               Nil))) 
+;         Nil)) 
+;     (Cons 
+;       (TreeNode (Value "A" True AND) Nil Nil) 
+;       Nil))) 
+;; [EXPECT] True

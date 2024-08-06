@@ -1,3 +1,7 @@
+! (register-module! ../../metta-moses-reduction)
+! (import! &self metta-moses-reduction:types)
+! (import! &self metta-moses-reduction:utilities:expression-helpers)
+
 ; Function to find the length of a list
 (:length (-> (List $t) Number))
 (= (length Nil) 0)
@@ -229,21 +233,21 @@
 )
 
 (:hasTerminalNode (-> Tree Bool))
-(= (hasTerminalNode NilNode) False)
+(= (hasTerminalNode Nil) False)
 (= (hasTerminalNode $node) (
     case $node (
-        ( (TreeNode (Value $value $truthValue AND) NilNode NilNode $guardSet NilList) (
-            unify $guardSet (ConsTree $singleNode NilList) True False
+        ( (TreeNode (Value $value $truthValue AND) $guardSet Nil) (
+            unify $guardSet (Cons $singleNode Nil) True False
         ) )
-        ( (TreeNode $nodeValue $left $right $guardSet $children) ( or (hasTerminalNode $left) (hasTerminalNode $right)) )
+        ( (TreeNode $nodeValue $guardSet $children) (nAryOr (map hasTerminalNode $children)) )
     )
 ))
 
-(:containsTerminalNode (-> TreeList Bool ))
-(= (containsTerminalNode NilList) False)
+(:containsTerminalNode (-> (List Tree) Bool ))
+(= (containsTerminalNode Nil) False)
 (= (containsTerminalNode $treeList) (
     case $treeList (
-        ( (ConsTree $t $ts) (or (hasTerminalNode $t) (trace! (evaluating $ts ) (containsTerminalNode $ts))) )
+        ( (Cons $t $ts) (or (hasTerminalNode $t) (containsTerminalNode $ts)) )
         ; ($else (Invalid Expression--- $else))
     )
 ))
