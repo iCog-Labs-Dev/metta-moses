@@ -54,7 +54,7 @@
 ;; -----------------------------------
 
 (:getGuardSet (-> Tree TreeList))
-(= (getGuardSet (TreeNode $noeVal $guardSet $children)) $guardSet)
+(= (getGuardSet (TreeNode $nodeValue $guardSet $children)) $guardSet)
 
 ;; -----------------------------------
 ;; -------- updateChild
