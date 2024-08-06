@@ -183,6 +183,18 @@
     )
 )
 
+; Function that takes two lists and an accumulator then returns the accoumulator containing elements from the first list that are not found in the second list
+(:setDifference (-> (List $t) (List $t) (List $t) (List $t)))
+(=(setDifference Nil Nil $accumulator) Nil)
+(=(setDifference (Cons $x $xs) Nil $accumulator) (Cons $x $xs))
+(=(setDifference Nil (Cons $y $ys) $accumulator) $accumulator)
+(=(setDifference (Cons $x $xs) (Cons $y $ys) $accumulator)
+    (if (member $x (Cons $y $ys))
+        (setDifference $xs (Cons $y $ys) $accumulator)
+        (setDifference $xs (Cons $y $ys) (extend $accumulator (Cons $x Nil)))
+    )
+)
+
 (:unionSet (-> (List $t) (List $t) (List $t) (List $t)))
 (=(unionSet $list1 $list2)
     (removeDuplicates (extend $list1 $list2))
