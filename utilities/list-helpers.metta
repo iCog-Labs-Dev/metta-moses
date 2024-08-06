@@ -49,13 +49,13 @@
     (memberWith == $a $list)
 )
 
-; Function to remove duplicates from a list
-(:removeDuplicates (-> (List $t) (List $t)))
-(= (removeDuplicates Nil) Nil)
-(= (removeDuplicates (Cons $x $xs))
-    (if (member $x $xs)
-        (removeDuplicates $xs)
-        (Cons $x (removeDuplicates $xs))
+; Function to remove duplicates given a list and a compare compareFunc.
+(:removeDuplicates (-> (-> $t (List $t) Bool) (List $t) (List $t)))
+(= (removeDuplicates $compareFunc Nil) Nil)
+(= (removeDuplicates $compareFunc (Cons $x $xs))
+    (if ($compareFunc $x $xs)
+        (removeDuplicates $compareFunc $xs)
+        (Cons $x (removeDuplicates $compareFunc $xs))
     )
 )
 
@@ -194,14 +194,14 @@
 )
 
 ; Function that takes two lists and an accumulator then returns the accoumulator containing elements from the first list that are not found in the second list
-(:setDifference (-> (List $t) (List $t) (List $t) (List $t)))
-(=(setDifference Nil Nil $accumulator) Nil)
-(=(setDifference (Cons $x $xs) Nil $accumulator) (Cons $x $xs))
-(=(setDifference Nil (Cons $y $ys) $accumulator) $accumulator)
-(=(setDifference (Cons $x $xs) (Cons $y $ys) $accumulator)
-    (if (member $x (Cons $y $ys))
-        (setDifference $xs (Cons $y $ys) $accumulator)
-        (setDifference $xs (Cons $y $ys) (extend $accumulator (Cons $x Nil)))
+(:setDifference (-> (-> $t (List $t) Bool) (List $t) (List $t) (List $t) (List $t)))
+(=(setDifference $compareFunc Nil Nil $accumulator) Nil)
+(=(setDifference $compareFunc (Cons $x $xs) Nil $accumulator) (Cons $x $xs))
+(=(setDifference $compareFunc Nil (Cons $y $ys) $accumulator) $accumulator)
+(=(setDifference $compareFunc (Cons $x $xs) (Cons $y $ys) $accumulator)
+    (if ($compareFunc $x (Cons $y $ys))
+        (setDifference $compareFunc $xs (Cons $y $ys) $accumulator)
+        (setDifference $compareFunc $xs (Cons $y $ys) (extend $accumulator (Cons $x Nil)))
     )
 )
 

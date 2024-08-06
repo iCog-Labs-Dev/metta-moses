@@ -90,9 +90,12 @@
 ; !(intersect (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Nil)))) Nil)
 
 
-; !(setDifference (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
-; !(setDifference (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Nil)))) Nil)
-; !(setDifference (Cons (buildTree (AND A (AND B))) (Cons (buildTree (AND E (AND D))) (Cons (buildTree (AND F (AND G))) Nil))) (Cons (buildTree (AND A (AND B))) (Cons (buildTree (AND C (AND F))) (Cons (buildTree (AND F (AND G))) (Cons (buildTree (AND A (AND B))) Nil)))) Nil)
+; !(setDifference member (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
+; !(setDifference member (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Nil)))) Nil)
+; !(setDifference treeIsMember (Cons (buildTree (AND A (AND B))) (Cons (buildTree (AND E (AND D))) (Cons (buildTree (AND F (AND G))) Nil))) (Cons (buildTree (AND A (AND B))) (Cons (buildTree (AND C (AND F))) (Cons (buildTree (AND F (AND G))) (Cons (buildTree (AND A (AND B))) Nil)))) Nil)
+!(setDifference treeIsMember (getChildren (buildTree (AND D B))) (getChildren (buildTree (OR A C))) Nil)
+!(setDifference treeIsMember Nil (getChildren (buildTree (OR A C))) Nil)
+!(setDifference treeIsMember (getChildren (buildTree (OR A C))) Nil Nil)
 
 ; !(nAryOr (Cons False (Cons True (Cons False (Cons True Nil)))))
 
