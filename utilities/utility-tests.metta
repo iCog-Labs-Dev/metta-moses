@@ -5,15 +5,15 @@
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
 ! (import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
 
-;; -----------------------------------
-;; -----------------------------------
-;; Test cases for experssion-helpers.metta
-;; -----------------------------------
-;; -----------------------------------
+ ;; -----------------------------------
+ ;; -----------------------------------
+ ;; Test cases for experssion-helpers.metta
+ ;; -----------------------------------
+ ;; -----------------------------------
 
-; !(checkTreeDepth (AND (OR x1 x2) (AND x3 x4)))
+ ; !(checkTreeDepth (AND (OR x1 x2) (AND x3 x4)))
 
-; !(getChildren (AND (OR x1 x2) (AND x3 x4)) Nil)
+ ; !(getChildren (AND (OR x1 x2) (AND x3 x4)) Nil)
 
 ; !(getGuardSet (AND (OR x1 x2) (AND x3 x4)))
 
@@ -445,3 +445,8 @@
 ;;!(applyAndCut 
 ;;    (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil)))
 ;;    (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B False AND) Nil Nil) Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil))) Nil)))
+
+ ; ! (intersections (Cons (getChildren (buildTree (AND A E)))
+ ;         (Cons (getChildren (buildTree (AND A G)))
+ ;             (Cons (getChildren (buildTree (AND B A)))
+ ;                 (Cons (getChildren (buildTree (AND A F))) Nil)))))
