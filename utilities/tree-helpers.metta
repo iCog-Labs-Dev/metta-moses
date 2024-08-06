@@ -32,7 +32,7 @@
 ;; -----------------------------------
 
 (:getChild (-> Tree Location Tree))
-(= (getChild (TreeNode $nodeValue $guardSet Nil) $opt) Nil)
+(= (getChild (TreeNode $nodeValue $guardSet Nil) $opt) NilNode)
 (= (getChild (TreeNode $nodeValue $guardSet (Cons $l $xs)) L) $l)
 (= (getChild (TreeNode $nodeValue $guardSet (Cons $l Nil)) R) NilNode)
 (= (getChild (TreeNode $nodeValue $guardSet (Cons $l (Cons $r $xs))) R) $r)
@@ -143,15 +143,18 @@
 (:changeTree (-> Tree Tree Tree))
 (= (changeTree $tree $newTree)
     (case $newTree  (
-            ((TreeNode $newValue $newLeft $newRight $newGuardSet $newChildren)
+            ((TreeNode $newValue $newGuardSet $newChildren)
                 $newTree
             )
-            (NilNode NilNode)
+            (Nil Nil)
             ($_ Error)
 
         )
     )
 )
+;; function that get the node types
+(:getNodeType (-> Tree Atom))
+(=(getNodeType (TreeNode (Value $value $bool $nodeType) $guardSet $children)) $nodeType)
 
 (:compareTrees (-> Tree Tree Bool))
 (=(compareTrees $fstTree $sndTree)
