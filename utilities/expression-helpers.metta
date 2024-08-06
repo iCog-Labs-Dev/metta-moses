@@ -83,7 +83,7 @@
 (= (getGuardSet $exp)
   (case $exp 
     (
-      (
+      (fold
         ($OP $exp1 $exp2)
         (let* 
           (
