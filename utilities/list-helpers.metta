@@ -113,7 +113,17 @@
         (Cons $x (findAndRemove $elem $xs)))
 )
 
- ; A function to compare 2 lists
+;;function to find a given node from a list of nodes and remove it. Similar to findAndRemove implementation of for the lists.
+(: findAndRemoveTree (-> Tree (List Tree) (List Tree)))
+(= (findAndRemoveTree $elem Nil) Nil)
+(= (findAndRemoveTree $elem (Cons $x $xs))
+    (if (isNodeEqual $x $elem) 
+        (findAndRemoveTree $elem $xs)
+        (Cons $x (findAndRemoveTree $elem $xs))
+    )
+)
+
+; A function to compare 2 lists
 (:compare (-> (List $t) (List $t) (Bool)))
  ;; if both the lists are empty, They are the same.
 (= (compare Nil Nil) True)
@@ -228,25 +238,16 @@
 )
 )
 
-(:hasTerminalNode (-> Tree Bool))
-(= (hasTerminalNode NilNode) False)
-(= (hasTerminalNode $node) (
-        case $node (
-            ( (TreeNode (Value $value $truthValue AND) NilNode NilNode $guardSet NilList) (
-                    unify $guardSet (ConsTree $singleNode NilList) True False
-                ) )
-        ( (TreeNode $nodeValue $left $right $guardSet $children) ( or (hasTerminalNode $left) (hasTerminalNode $right)) )
+(: containsTerminalAndNode (-> (List Tree) Bool))
+(= (containsTerminalAndNode Nil) False)
+(= (containsTerminalAndNode (Cons $x $xs))
+  (case $x
+    (
+      ((TreeNode (Value $value $truthValue AND) (Cons $y Nil) Nil) True)
+      ((TreeNode $nodeValue $guardSet $children) (containsTerminalAndNode $xs))
     )
-))
-
-(:containsTerminalNode (-> TreeList Bool ))
-(= (containsTerminalNode NilList) False)
-(= (containsTerminalNode $treeList) (
-        case $treeList (
-            ( (ConsTree $t $ts) (or (hasTerminalNode $t) (trace! (evaluating $ts ) (containsTerminalNode $ts))) )
-             ; ($else (Invalid Expression--- $else))
-        )
-))
+  )
+)
 
  ; A function to foldLeft function
 (: foldLeft (-> (-> $t $t $t) $t (List $t) $t))
@@ -255,7 +256,6 @@
 
  ; an Abstract function to call foldLeft function and pass the first element as the initial accumulator (does not require an accumulator)
 (: foldl (-> $t $t $t) (List $t) $t)
-
 (= (foldl $func Nil)Nil)
 (= (foldl $func (Cons $x $xs))
     (foldLeft $func $x $xs)
