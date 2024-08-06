@@ -50,12 +50,12 @@
 )
 
 ; Function to remove duplicates from a list
-(:removeuplicates (-> (List $t) (List $t)))
-(= (removeuplicates Nil) Nil)
-(= (removeuplicates (Cons $x $xs))
+(:removeDuplicates (-> (List $t) (List $t)))
+(= (removeDuplicates Nil) Nil)
+(= (removeDuplicates (Cons $x $xs))
     (if (member $x $xs)
-        (removeuplicates $xs)
-        (Cons $x (removeuplicates $xs))
+        (removeDuplicates $xs)
+        (Cons $x (removeDuplicates $xs))
     )
 )
 
