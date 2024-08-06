@@ -5,6 +5,16 @@
     (+ 1 (length $xs))
 )
 
+; Function to retirive the head of given list
+(: (-> (List $t) $t))
+(= (head Nil) Nil)
+(= (head (Cons $x $xs)) $x)
+
+; Function to retrive the tail of given list
+(: (-> (List $t) (List $t)))
+(= (tail Nil) Nil)
+(= (tail (Cons $x $xs)) $xs)
+
 ; Function to find a list element given an index
 (:index (-> Number (List $t) $t))
 (= (index $a Nil) Nil)
@@ -39,13 +49,13 @@
     (memberWith == $a $list)
 )
 
-; Function to remove duplicates from a list
-(:removeuplicates (-> (List $t) (List $t)))
-(= (removeuplicates Nil) Nil)
-(= (removeuplicates (Cons $x $xs))
-    (if (member $x $xs)
-        (removeuplicates $xs)
-        (Cons $x (removeuplicates $xs))
+; Function to remove duplicates given a list and a compare compareFunc.
+(:removeDuplicates (-> (-> $t (List $t) Bool) (List $t) (List $t)))
+(= (removeDuplicates $compareFunc Nil) Nil)
+(= (removeDuplicates $compareFunc (Cons $x $xs))
+    (if ($compareFunc $x $xs)
+        (removeDuplicates $compareFunc $xs)
+        (Cons $x (removeDuplicates $compareFunc $xs))
     )
 )
 
@@ -103,6 +113,16 @@
         (Cons $x (findAndRemove $elem $xs)))
 )
 
+;;function to find a given node from a list of nodes and remove it. Similar to findAndRemove implementation of for the lists.
+(: findAndRemoveTree (-> Tree (List Tree) (List Tree)))
+(= (findAndRemoveTree $elem Nil) Nil)
+(= (findAndRemoveTree $elem (Cons $x $xs))
+    (if (isNodeEqual $x $elem) 
+        (findAndRemoveTree $elem $xs)
+        (Cons $x (findAndRemoveTree $elem $xs))
+    )
+)
+
 ; A function to compare 2 lists
 (:compare (-> (List $t) (List $t) (Bool)))
  ;; if both the lists are empty, They are the same.
@@ -122,7 +142,7 @@
 (= (quickSort Nil) Nil)
 (= (quickSort (Cons $x $xs))
     (let ($left $right) (partition $x $xs)
-        (append (quickSort $left) (Cons $x (quickSort $right)))
+        (extend (quickSort $left) (Cons $x (quickSort $right)))
     )
 )
 
@@ -173,9 +193,21 @@
     )
 )
 
-(:unionSet (-> (List $t) (List $t) (List $t) (List $t)))
-(=(unionSet $list1 $list2)
-    (removeDuplicates (append $list1 $list2))
+; Function that takes two lists and an accumulator then returns the accoumulator containing elements from the first list that are not found in the second list
+(:setDifference (-> (-> $t (List $t) Bool) (List $t) (List $t) (List $t) (List $t)))
+(=(setDifference $compareFunc Nil Nil $accumulator) Nil)
+(=(setDifference $compareFunc (Cons $x $xs) Nil $accumulator) (Cons $x $xs))
+(=(setDifference $compareFunc Nil (Cons $y $ys) $accumulator) $accumulator)
+(=(setDifference $compareFunc (Cons $x $xs) (Cons $y $ys) $accumulator)
+    (if ($compareFunc $x (Cons $y $ys))
+        (setDifference $compareFunc $xs (Cons $y $ys) $accumulator)
+        (setDifference $compareFunc $xs (Cons $y $ys) (extend $accumulator (Cons $x Nil)))
+    )
+)
+
+(:setUnion (-> (List $t) (List $t) (List $t) (List $t)))
+(=(setUnion $list1 $list2)
+    (removeDuplicates (extend $list1 $list2))
 )
 
 (:isSubset (-> (List $t) (List $t) Bool))
@@ -206,22 +238,26 @@
     )
 )
 
-(:hasTerminalNode (-> Tree Bool))
-(= (hasTerminalNode NilNode) False)
-(= (hasTerminalNode $node) (
-    case $node (
-        ( (TreeNode (Value $value $truthValue AND) NilNode NilNode $guardSet NilList) (
-            unify $guardSet (ConsTree $singleNode NilList) True False
-        ) )
-        ( (TreeNode $nodeValue $left $right $guardSet $children) ( or (hasTerminalNode $left) (hasTerminalNode $right)) )
+(: containsTerminalAndNode (-> (List Tree) Bool))
+(= (containsTerminalAndNode Nil) False)
+(= (containsTerminalAndNode (Cons $x $xs))
+  (case $x
+    (
+      ((TreeNode (Value $value $truthValue AND) (Cons $y Nil) Nil) True)
+      ((TreeNode $nodeValue $guardSet $children) (containsTerminalAndNode $xs))
     )
-))
+  )
+)
 
-(:containsTerminalNode (-> TreeList Bool ))
-(= (containsTerminalNode NilList) False)
-(= (containsTerminalNode $treeList) (
-    case $treeList (
-        ( (ConsTree $t $ts) (or (hasTerminalNode $t) (trace! (evaluating $ts ) (containsTerminalNode $ts))) )
-        ; ($else (Invalid Expression--- $else))
-    )
-))
+ ; A function to foldLeft function
+(: foldLeft (-> (-> $t $t $t) $t (List $t) $t))
+(= (foldLeft $func $acc Nil) $acc)
+(= (foldLeft $func $acc (Cons $x $xs)) (foldLeft $func ($func $acc $x) $xs))
+
+ ; an Abstract function to call foldLeft function and pass the first element as the initial accumulator (does not require an accumulator)
+(: foldl (-> $t $t $t) (List $t) $t)
+(= (foldl $func Nil)Nil)
+(= (foldl $func (Cons $x $xs))
+    (foldLeft $func $x $xs)
+)
+>>>>>>> df941223a71da2045e09dbc32103c58db2d57f76
