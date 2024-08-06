@@ -428,7 +428,7 @@
  ;;   )
  ;; )
 
-! (intersections (Cons (getChildren (buildTree (AND A E)))
-        (Cons (getChildren (buildTree (AND A G)))
-            (Cons (getChildren (buildTree (AND B A)))
-                (Cons (getChildren (buildTree (AND A F))) Nil)))))
+ ; ! (intersections (Cons (getChildren (buildTree (AND A E)))
+ ;         (Cons (getChildren (buildTree (AND A G)))
+ ;             (Cons (getChildren (buildTree (AND B A)))
+ ;                 (Cons (getChildren (buildTree (AND A F))) Nil)))))
