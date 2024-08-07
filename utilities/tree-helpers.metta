@@ -63,7 +63,7 @@
 
 ;; (node location (L or R) newNode)
 (: replaceChild (-> Tree Tree Location Tree))
-(= (replaceChild (TreeNode $nodeValue $guardSet Nil) L) 
+(= (replaceChild (TreeNode $nodeValue $guardSet Nil) $newNode L) 
   (TreeNode $nodeValue $guardSet (Cons $newNode Nil))
 )
 (= (replaceChild (TreeNode $nodeValue $guardSet (Cons $l $xs)) $newNode L)
