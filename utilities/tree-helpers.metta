@@ -46,6 +46,16 @@
 (:getChildren (-> Tree (List Tree)))
 (= (getChildren (TreeNode $nodeVal $guardSet $children)) $children)
 
+;;A function to get node children at a given index
+(:getChildAt (-> Tree Number Tree))
+(= (getChildAt (TreeNode $nodeValue $guardSet Nil) $i) NilNode)
+
+(= (getChildAt (TreeNode $nodeValue $guardSet $children) $i)
+    (if (== Nil (index $i $children))
+        NilNode
+        (index $i $children)
+    )
+)
 ;; -----------------------------------
 ;; -----------------------------------
 ;; -------- a function to get guardset
