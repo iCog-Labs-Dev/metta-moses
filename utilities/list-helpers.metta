@@ -261,3 +261,22 @@
     (foldLeft $func $x $xs)
 )
 >>>>>>> df941223a71da2045e09dbc32103c58db2d57f76
+;;is-member function Checks if a given element $x is a member of a list
+(= (is-member $x $list) 
+    (case $list 
+        ( 
+            ( (Cons $n $s) (if (== $x $n) True (is-member $x $s))) 
+            ( Nil False) 
+        ) 
+    ) 
+) 
+;; this function remove duplicate element 
+(= (remove-duplicates Nil) Nil) 
+(= (remove-duplicates (Cons $x $xs)) 
+  (if (is-member $x $xs) 
+    (remove-duplicates $xs) 
+    (Cons $x (remove-duplicates $xs)) 
+  ) 
+) 
+;; testcase
+! (remove-duplicates (Cons A (Cons B (Cons B Nil))))
