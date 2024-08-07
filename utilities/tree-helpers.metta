@@ -50,10 +50,11 @@
 (:getChildAt (-> Tree Number Tree))
 (= (getChildAt (TreeNode $nodeValue $guardSet Nil) $i) NilNode)
 
-(= (getChildAt (TreeNode $nodeValue $guardSet $children) $i)
-    (if (== Nil (index $i $children))
+(= (getChildAt (TreeNode $nodeValue $guardSet (Cons $x $xs)) $i)
+    ; (Cons $x $xs)
+    (if (== Nil (index $i (Cons $x $xs)))
         NilNode
-        (index $i $children)
+        (index $i (Cons $x $xs))
     )
 )
 ;; -----------------------------------
