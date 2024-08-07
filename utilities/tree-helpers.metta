@@ -55,6 +55,12 @@
 (: getGuardSet (-> Tree TreeList))
 (= (getGuardSet (TreeNode $nodeValue $guardSet $children)) $guardSet)
 
+; Given a tree and the new type, it returns a new tree with the new type
+(: changeType (-> Tree NodeType Tree))
+(= (changeType (TreeNode (Value $nodeValue $boolean $_) $guardSet $children) $newType)
+  (TreeNode (Value $nodeValue $boolean $newType) $guardSet $children)
+)
+
 ;; -----------------------------------
 ;; -------- updateChild
 ;; -------- Given a binary tree node and position (left, right) indicating which child to update, replace it's left or right child with the given node.
