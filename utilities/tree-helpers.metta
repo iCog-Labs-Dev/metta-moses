@@ -8,7 +8,6 @@
   (case $expr
     (
       ( (AND $a $b) (TreeNode (Value Nil False AND) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))) )
-      ( (AND $a $b) (TreeNode (Value Nil False AND) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))) )
       ( (OR $a $b) (TreeNode (Value Nil False OR) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))))
       ( (NOT $x) (TreeNode (Value Nil False NOT) Nil (Cons NilNode (Cons (buildTree $x) Nil))))
       ( $symbol (TreeNode (Value $symbol False LITERAL) Nil Nil))
@@ -33,8 +32,9 @@
 ;; -----------------------------------
 
 (:getChild (-> Tree Location Tree))
-(= (getChild (TreeNode $nodeValue $guardSet Nil) $opt) Nil)
+(= (getChild (TreeNode $nodeValue $guardSet Nil) $opt) NilNode)
 (= (getChild (TreeNode $nodeValue $guardSet (Cons $l $xs)) L) $l)
+(= (getChild (TreeNode $nodeValue $guardSet (Cons $l Nil)) R) NilNode)
 (= (getChild (TreeNode $nodeValue $guardSet (Cons $l (Cons $r $xs))) R) $r)
 
 ;; -----------------------------------
@@ -53,7 +53,7 @@
 ;; -----------------------------------
 
 (:getGuardSet (-> Tree TreeList))
-(= (getGuardSet (TreeNode $noeVal $guardSet $children)) $guardSet)
+(= (getGuardSet (TreeNode $nodeValue $guardSet $children)) $guardSet)
 
 ;; -----------------------------------
 ;; -------- updateChild
@@ -128,6 +128,10 @@
 (= (replaceGuardSet NilNode $newguardSet) NilNode)
 (= (replaceGuardSet (TreeNode $value $guardSet $children) $newguardSet) (TreeNode $value $newguardSet $children))
 
+(: replaceChildren (-> Tree (List Tree) Tree))
+(= (replaceChildren NilNode $newChildren) NilNode)
+(= (replaceChildren (TreeNode $value $guardSet $children) $newChildren) (TreeNode $value $guardSet $newChildren))
+
 (:replaceNodeValue (-> Tree NodeValue Tree))
 (= (replaceNodeValue $tree $newValue)
     (let ($value $left $right $guardSet $children) 
@@ -139,15 +143,18 @@
 (:changeTree (-> Tree Tree Tree))
 (= (changeTree $tree $newTree)
     (case $newTree  (
-            ((TreeNode $newValue $newLeft $newRight $newGuardSet $newChildren)
+            ((TreeNode $newValue $newGuardSet $newChildren)
                 $newTree
             )
-            (NilNode NilNode)
+            (Nil Nil)
             ($_ Error)
 
         )
     )
 )
+;; function that get the node types
+(:getNodeType (-> Tree Atom))
+(=(getNodeType (TreeNode (Value $value $bool $nodeType) $guardSet $children)) $nodeType)
 
 (:compareTrees (-> Tree Tree Bool))
 (=(compareTrees $fstTree $sndTree)
