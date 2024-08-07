@@ -18,20 +18,19 @@
             
         )
         (if (and (== $currentNodeType ROOT) (not (== $currentRight NilNode)))
-            
             (TreeNode (Value $valueName $constraint AND) $guardSet (Cons $currentLeft (Cons (gatherJunctors $currentRight $centerNode) Nil)))
-            
             (if (or (== $currentNodeType AND) (== $currentNodeType OR))
                 (if  (== $currentNodeType $centerNodeType)
-                    (if (and (not (== $currentLeft NilNode)) (not (== $currentRight NilNode)))
-                        (TreeNode (Value $valueName $constraint AND) $guardSet 
-                                (Cons (gatherJunctors $currentLeft $centerNode) (Cons (gatherJunctors $currentRight $centerNode) Nil)))
-                        $currentNode
-                    )
-                    (let  $newCenterNode (appendChild $centerNode $currentNode)
+                    (TreeNode (Value $valueName $constraint AND) $guardSet 
+                        (Cons (gatherJunctors $currentLeft $centerNode) (Cons (gatherJunctors $currentRight $centerNode) Nil)))    
+                    (let* (
+                            ($leftRemovedNode (removeFromChildren $centerNode $currentLeft))
+                            ($duplicateRemovedNode (removeFromChildren $leftRemovedNode $currentRight))
+                            ($newCenterNode (appendChild $duplicateRemovedNode $currentNode))
+                    
+                        ) 
                         (appendChild (appendChild $newCenterNode (gatherJunctors $currentLeft $currentNode)) 
                             (gatherJunctors $currentRight $currentNode))
-
                     )
                 )
                 (if (== $currentNodeType LITERAL)
@@ -42,11 +41,14 @@
                     $currentNode
                 )
                     
-                )
             )
+        )
         
 
         )
     )
 )
-!(gatherJunctors (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value a True LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value b True LITERAL) Nil Nil) (Cons (TreeNode (Value c True LITERAL) Nil Nil) Nil))) Nil))) (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value a True LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value b True LITERAL) Nil Nil) (Cons (TreeNode (Value c True LITERAL) Nil Nil) Nil))) Nil))))
+(=(gatherJunctorRunner $treeNode)
+    (gatherJunctors $treeNode $treeNode)
+)
+!(gatherJunctorRunner (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value a True LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value b True LITERAL) Nil Nil) (Cons (TreeNode (Value c True LITERAL) Nil Nil) Nil))) Nil))))

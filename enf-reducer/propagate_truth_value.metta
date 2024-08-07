@@ -52,7 +52,7 @@
     (case $tree (
        
             ((TreeNode (Value $value $bool $nodeType) $guardSet $children) True)
-            (Nil True)
+            (NilNode True)
             ($else False)
         )
     )

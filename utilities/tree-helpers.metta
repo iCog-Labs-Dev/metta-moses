@@ -285,4 +285,11 @@
     (TreeNode $nodeValue $guardSet (allExceptTargetType $children OR))
   )
 )
+(:removeFromChildren (->Tree Tree Tree))
+(=(removeFromChildren $treeNode $value)
+  (let (TreeNode $nodeValue $guardSet $children) $treeNode
+    (TreeNode $nodeValue $guardSet (findAndRemove $value $children))
+  )
+)
+
 
