@@ -35,3 +35,31 @@
 )
 )
 
+
+(= (guardSetChecker $children)(
+  if (> (length (getGuardSet (head $children))) 0)(length (getGuardSet (head $children)))(0)
+  )
+)
+
+;; -----------------------------------
+;; -----------------------------------
+;; -------- A function that given children and the a local command set,
+;; -------- it returns the updated command set
+;; -----------------------------------
+;; -----------------------------------
+
+(: commandSetIterator(-> (List Tree) Tree Tree)
+(= (commandSetIterator $children $localCommandSet)
+  if (== (length $children) 0) ($localCommandSet)(
+    if (== (and 
+            (and (> (length (getChildren (head (getChildren $children)))) 0) (== (guardSetChecker $children) 1))
+            (and (> (length $children) 0) (== (get-type (head $children)) AND))
+            ) 
+        True
+        )(
+              unionSet (getGuardSet (head $children)) (commandSetIterator (tail $children) $localCommandSet)
+            )(
+              commandSetIterator (tail $children) $localCommandSet
+              )
+    )
+)
