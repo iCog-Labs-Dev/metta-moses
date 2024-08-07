@@ -240,6 +240,11 @@
 
  ; !(replaceChild (buildTree (NOT A)) (buildTree (OR Y Z)) L)
 
+;  ! (replaceChildAt (buildTree (AND A B)) (buildTree (OR Y Z)) 0)
+;  ! (replaceChildAt (buildTree (AND A B)) (buildTree (OR Y Z)) 1)
+
+
+
  ; !(appendChild (buildTree A) (buildTree (AND B)) )
  ; !(appendChild
  ;;		(TreeNode (Value Nil False AND)
