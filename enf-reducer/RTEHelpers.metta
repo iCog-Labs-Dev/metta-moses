@@ -33,5 +33,10 @@
   )
 )
 
+(: andSubTreeElegance (-> Tree Tree (List Tree) (List Tree) $x))
+(= (andSubTreeElegance $child $current $handleSet $commandSet)(
+
+)
+)
 
 
