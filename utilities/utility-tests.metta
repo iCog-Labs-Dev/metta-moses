@@ -79,6 +79,9 @@
  ; ! (removeAtIndex 2 (Cons A (Cons B (Cons C (Cons D (Cons E Nil))))))
  ; ! (removeAtIndex 0 (Cons A (Cons B (Cons C (Cons D (Cons E Nil))))))
 
+ ; ! (replaceAtIndex 4 H (Cons A (Cons B (Cons C (Cons D (Cons E Nil))))))
+ ; ! (replaceAtIndex 1 H (Cons A (Cons B (Cons C (Cons D (Cons E Nil))))))
+
  ; !(compare (Cons 1 Nil) (Cons 1 Nil)) ;; Output: True
  ; !(compare (Cons "A" Nil) (Cons "a" Nil)) ;; Output: False
  ; !(compare (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons 1 (Cons 2 (Cons 3 Nil)))) ;; Output: True
