@@ -271,3 +271,18 @@
         (Cons $x (removeAtIndex (- $a 1) $xs))
     )
 )
+
+ ;A Function to replace an element at a given index in a List.
+(: replaceAtIndex (-> Number $element (List $t) (List $t)))
+(= (replaceAtIndex $a $element Nil) (Cons $element Nil))
+
+(= (replaceAtIndex $a $element (Cons $x $xs))
+    (if (== $a 0)
+        (if (== $xs Nil)
+            (Cons $element Nil)
+            (Cons $element  $xs)
+        )
+
+    (Cons $x (replaceAtIndex (- $a 1) $element $xs))
+)
+)
