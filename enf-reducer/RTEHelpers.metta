@@ -10,7 +10,6 @@
   )
 )
 
-
 (= (guardSetChecker $children)(
   if (> (length (getGuardSet (head $children))) 0)(length (getGuardSet (head $children)))(0)
   )
@@ -38,6 +37,7 @@
               )
     )
 )
+
 ;; A function that applies the "ApplyAndCut" operation on a tree node. It is the reimplementation of the function found in python.
 ;; The function takes a treeNode and checks if it has only one child and no guardSet, if so, it merges the child and the current node as one. It also checks the existance of a terminal and node in the child of the tree which will be beneficial for the `andSubTreeElegance` function. 
 ;; The function returns the updated  tree and the boolean value together in a tuple.

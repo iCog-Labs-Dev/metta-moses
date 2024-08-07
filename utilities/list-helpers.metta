@@ -5,17 +5,13 @@
     (+ 1 (length $xs))
 )
 
-<<<<<<< HEAD
 ; Function to return the first element of a list
 (= (Car (Cons $x $xs)) $x)
 
 ; Function to return the second element of a list
 (= (Cdr (Cons $x $xs)) $xs)
-=======
 ; Function to retirive the head of given list
-=======
  ; Function to retirive the head of given list
->>>>>>> main
 (: (-> (List $t) $t))
 (= (head Nil) Nil)
 (= (head (Cons $x $xs)) $x)
@@ -257,6 +253,14 @@
             ( (TreeNode $nodeValue $guardSet $children) (containsTerminalAndNode $xs))
         )
 )
+  (case $x
+    (
+      ((TreeNode (Value $value $truthValue AND) (Cons $y Nil) Nil) True)
+      ((TreeNode $nodeValue $guardSet $children) (containsTerminalAndNode $xs))
+    )
+))
+
+  )
 )
 
  ; A function to foldLeft function
