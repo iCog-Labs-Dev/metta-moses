@@ -33,5 +33,30 @@
   )
 )
 
+; orSubTreeElegance implementation
+(: Signal Type)
+(: ReductionSignal Signal)
+(: IterationSignal Signal)
+(: DELETE ReductionSignal)
+(: DISCONNECT ReductionSignal)
+(: KEEP ReductionSignal)
+(: ADVANCE IterationSignal)
 
-
+(: orSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
+(= (orSubTreeElegance $child $current $dominantSet $localCommandSet)
+    (let $outcome DELETE
+        (case $outcome
+          (
+            (DELETE
+                (if (> (length (getChildren $current)) 0)
+                    ((let $currentChildren (findAndRemoveTree $child (getChildren $current) )
+                        ($currentChildren ADVANCE)))
+                    ($current DELETE) 
+                )
+            )
+            (DISCONNECT ($current DISCONNECT))
+            (KEEP ($current ADVANCE))
+          )
+        )
+    )
+)
