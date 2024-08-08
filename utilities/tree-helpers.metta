@@ -9,7 +9,6 @@
   (case $expr
     (
       ( (AND $a $b) (TreeNode (Value Nil False AND) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))) )
-      ( (AND $a $b) (TreeNode (Value Nil False AND) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))) )
       ( (OR $a $b) (TreeNode (Value Nil False OR) Nil (Cons (buildTree $a) (Cons (buildTree $b) Nil))))
       ( (NOT $x) (TreeNode (Value Nil False NOT) Nil (Cons NilNode (Cons (buildTree $x) Nil))))
       ( $symbol (TreeNode (Value $symbol False LITERAL) Nil Nil))
@@ -36,6 +35,7 @@
 (:getChild (-> Tree Location Tree))
 (= (getChild (TreeNode $nodeValue $guardSet Nil) $opt) NilNode)
 (= (getChild (TreeNode $nodeValue $guardSet (Cons $l $xs)) L) $l)
+(= (getChild (TreeNode $nodeValue $guardSet (Cons $l Nil)) R) NilNode)
 (= (getChild (TreeNode $nodeValue $guardSet (Cons $l (Cons $r $xs))) R) $r)
 
 ;; -----------------------------------
@@ -47,6 +47,17 @@
 (:getChildren (-> Tree (List Tree)))
 (= (getChildren (TreeNode $nodeVal $guardSet $children)) $children)
 
+;;A function to get node children at a given index
+(:getChildAt (-> Tree Number Tree))
+(= (getChildAt (TreeNode $nodeValue $guardSet Nil) $i) NilNode)
+
+(= (getChildAt (TreeNode $nodeValue $guardSet (Cons $x $xs)) $i)
+    ; (Cons $x $xs)
+    (if (== Nil (index $i (Cons $x $xs)))
+        NilNode
+        (index $i (Cons $x $xs))
+    )
+)
 ;; -----------------------------------
 ;; -----------------------------------
 ;; -------- a function to get guardset
@@ -54,7 +65,7 @@
 ;; -----------------------------------
 
 (:getGuardSet (-> Tree TreeList))
-(= (getGuardSet (TreeNode $noeVal $guardSet $children)) $guardSet)
+(= (getGuardSet (TreeNode $nodeValue $guardSet $children)) $guardSet)
 
 ;; -----------------------------------
 ;; -------- updateChild
@@ -77,6 +88,11 @@
   (TreeNode $nodeValue $guardSet (Cons $l (Cons $newNode $xs)))
 )
 
+;; replace child of a node goven an index
+(:replaceChildAt (-> Tree Tree Number Tree))
+(= (replaceChildAt (TreeNode $nodeValue $guardSet $children) $newNode $i)
+    (TreeNode $nodeValue $guardSet (replaceAtIndex $i $newNode $children))
+)
 ;; -----------------------------------
 ;; -------- Append Children
 ;; -------- Given a node and a tree, append the tree to the node's children.
@@ -133,6 +149,10 @@
 (:replaceGuardSet (-> Tree (List Tree) Tree) )
 (= (replaceGuardSet NilNode $newguardSet) NilNode)
 (= (replaceGuardSet (TreeNode $value $guardSet $children) $newguardSet) (TreeNode $value $newguardSet $children))
+
+(: replaceChildren (-> Tree (List Tree) Tree))
+(= (replaceChildren NilNode $newChildren) NilNode)
+(= (replaceChildren (TreeNode $value $guardSet $children) $newChildren) (TreeNode $value $guardSet $newChildren))
 
 (:replaceNodeValue (-> Tree NodeValue Tree))
 (= (replaceNodeValue $tree $newValue)
