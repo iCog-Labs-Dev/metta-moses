@@ -458,3 +458,12 @@
  ;         (Cons (getChildren (buildTree (AND A G)))
  ;             (Cons (getChildren (buildTree (AND B A)))
  ;                 (Cons (getChildren (buildTree (AND A F))) Nil)))))
+
+
+;; -----------------------------------
+ ;; -----------------------------------
+ ;; Test cases for RTEHelpers.metta
+ ;; -----------------------------------
+ ;; -----------------------------------
+
+; ! (orSubTreeElegance (TreeNode (Value A False LITERAL) Nil Nil) (buildTree (AND A B)) Nil Nil)
