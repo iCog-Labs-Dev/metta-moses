@@ -44,7 +44,8 @@
 
 (: orSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
 (= (orSubTreeElegance $child $current $dominantSet $localCommandSet)
-    (let $outcome DELETE
+    (let $outcome DELETE ;; Simulate the result returned by the reduceToElegance function, Which is not implemented Currently.
+                         ;; The possible outcomes of reduceToElegance function are DELETE, DISCONNECT, or KEEP.
         (case $outcome
           (
             (DELETE
