@@ -207,7 +207,7 @@
 
 (:setUnion (-> (List $t) (List $t) (List $t) (List $t)))
 (= (setUnion $list1 $list2)
-    (removeDuplicates (extend $list1 $list2))
+    (removeDuplicates treeIsMember (extend $list1 $list2))
 )
 
 (:isSubset (-> (List $t) (List $t) Bool))
