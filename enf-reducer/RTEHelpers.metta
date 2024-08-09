@@ -33,5 +33,32 @@
   )
 )
 
+;;a function which is the reimplementation of the orSubTreeIterator function found in python
+
+(: orSubTreeIterator(-> Tree (List Tree) Tree (List Tree) (List Tree) Signal))
+(= (orSubTreeIterator $child $remainingChildren $currentNode $dominantSet $commandSet) 
+(let*
+ (
+    ($localCommandSet (commandSet))
+    ($localCommandSetUpdated (commandSetIterator $remainingChildren $localCommandSet))
+    ($action (orSubTreeElegance $child $currentNode $dominantSet $localCommandSetUpdated))
+ )
+ (case $action
+     (
+        (ADVANCE
+         (if (> (length $remainingChildren) 0)
+             (orSubTreeIterator (head $remainingChildren) (tail $remainingChildren) $currentNode $dominantSet $commandSet)
+             (None $currentNode)
+         )
+        )
+        (RESET
+         (None $currentNode)
+        )
+        ($else ($action $currentNode))
+
+     )
+ 
+ )
+))
 
 
