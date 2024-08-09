@@ -70,7 +70,7 @@
 )
 (: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) Number Signal))
 (= (andSubTreeIterator $children $currentNode $handleSet $commandSet $currentChildIndex) 
-(if (== (length $children) 0) $currentNode
+(if (== (length $children) 0) (None $currentNode)
 (let*
  (
     ($currentChild (index $currentChildIndex $children))
