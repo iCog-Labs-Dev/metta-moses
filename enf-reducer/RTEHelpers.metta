@@ -46,15 +46,14 @@
 (: applyOrCut (-> Tree Tree Tree))
 (= (applyOrCut $child $current)(
   if(== (length (getChildren $child)) 1)
-    (let* 
-      (
+     (let* (
         ($grandChild (head (getChildren $child)))
-        ($updatedGuardSetTree (replaceGuardSet $current (unionSet (getGuardSet $current) (getGuardSet $grandChild))) )
-        ($currentNodeChildren (getChildren $updatedGuardSetTree))
-        ($updatedChildrenTree (replaceChildren $updatedGuardSetTree (extend (getChildren $grandChild) $currentNodeChildren)))
-        ($finalUpdatedTree (findAndRemoveTree (getChildren $updatedChildrenTree) $grandChild))
-      )
-        ($finalUpdatedTree)
-    )
-)
+        ($updatedGuardSetTree (replaceGuardSet $current (setUnion (getGuardSet $current) (getGuardSet $grandChild))))
+        ($updatedChildrenTree (replaceChildren $updatedGuardSetTree (extend (getChildren $grandChild) (getChildren $updatedGuardSetTree))))
+        ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree $grandChild (getChildren $updatedChildrenTree))) )
+     )
+      $finalUpdatedTree
+       )
+    ($current)
+  )
 )
