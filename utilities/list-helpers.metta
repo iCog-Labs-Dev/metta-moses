@@ -5,12 +5,12 @@
     (+ 1 (length $xs))
 )
 
-; Function to retirive the head of given list
+ ; Function to retirive the head of given list
 (: (-> (List $t) $t))
 (= (head Nil) Nil)
 (= (head (Cons $x $xs)) $x)
 
-; Function to retrive the tail of given list
+ ; Function to retrive the tail of given list
 (: (-> (List $t) (List $t)))
 (= (tail Nil) Nil)
 (= (tail (Cons $x $xs)) $xs)
@@ -113,11 +113,11 @@
         (Cons $x (findAndRemove $elem $xs)))
 )
 
-;;function to find a given node from a list of nodes and remove it. Similar to findAndRemove implementation of for the lists.
+ ;;function to find a given node from a list of nodes and remove it. Similar to findAndRemove implementation of for the lists.
 (: findAndRemoveTree (-> Tree (List Tree) (List Tree)))
 (= (findAndRemoveTree $elem Nil) Nil)
 (= (findAndRemoveTree $elem (Cons $x $xs))
-    (if (isNodeEqual $x $elem) 
+    (if (isNodeEqual $x $elem)
         (findAndRemoveTree $elem $xs)
         (Cons $x (findAndRemoveTree $elem $xs))
     )
@@ -151,14 +151,14 @@
     (case $list
         (
             (Nil True)
-            ((Cons $x $xs)
+            ( (Cons $x $xs)
                 (if (member $x $xs)
                     False
                     (checkNotDuplicated $xs)
                 )
-            )
         )
-    )
+)
+)
 )
 
 (: checkNotInverseDuplicated (-> (List $t) Bool))
@@ -166,14 +166,14 @@
     (case $list
         (
             (Nil True)
-            ((Cons $x $xs)
+            ( (Cons $x $xs)
                 (if (member-not $x $xs)
                     False
                     (checkNotInverseDuplicated $xs)
                 )
-            )
         )
-    )
+)
+)
 )
 
 (: intersect (-> (List $t) (List $t) (List $t) (List $t)))
@@ -181,16 +181,16 @@
     (if (and (isEmpty $list1) (isEmpty $list2))
         $accumulator
         (case $list1 (
-                ((Cons $x $xs)
+                ( (Cons $x $xs)
                     (if (== (member $x $list2) True)
                         (intersect $xs $list2 (extend $accumulator (Cons $x Nil)))
                         (intersect $xs $list2 $accumulator)
                     )
-                )
-                (Nil $accumulator)
             )
-        )
+        (Nil $accumulator)
     )
+)
+)
 )
 
 ; Function that takes two lists and an accumulator then returns the accoumulator containing elements from the first list that are not found in the second list
@@ -214,12 +214,12 @@
 (= (isSubset $list1 $list2)
     (let* (
             ($min-list (if (> (length $list1) (length $list2)) $list2 $list1
-                        ))
-            ($max-list (if (> (length $list1) (length $list2)) $list1 $list2
-                        ) )
-        )(isSubsetOrdered $min-list $max-list)
-    )
-   
+                ))
+        ($max-list (if (> (length $list1) (length $list2)) $list1 $list2
+            ) )
+) (isSubsetOrdered $min-list $max-list)
+)
+
 )
 
 (: isSubsetOrdered (-> (List $t) (List $t) Bool))
@@ -227,26 +227,26 @@
     (if (== $min-list Nil)
         True
         (case $min-list (
-            ((Cons $x $xs)
-                (if (member $x $max-list)
-                    (isSubsetOrdered $xs $max-list)
-                    False
-                )
+                ( (Cons $x $xs)
+                    (if (member $x $max-list)
+                        (isSubsetOrdered $xs $max-list)
+                        False
+                    )
             )
-            )
-        )
     )
+)
+)
 )
 
 (: containsTerminalAndNode (-> (List Tree) Bool))
 (= (containsTerminalAndNode Nil) False)
 (= (containsTerminalAndNode (Cons $x $xs))
-  (case $x
-    (
-      ((TreeNode (Value $value $truthValue AND) (Cons $y Nil) Nil) True)
-      ((TreeNode $nodeValue $guardSet $children) (containsTerminalAndNode $xs))
-    )
-  )
+    (case $x
+        (
+            ( (TreeNode (Value $value $truthValue AND) (Cons $y Nil) Nil) True)
+            ( (TreeNode $nodeValue $guardSet $children) (containsTerminalAndNode $xs))
+        )
+)
 )
 
  ; A function to foldLeft function
@@ -259,4 +259,26 @@
 (= (foldl $func Nil)Nil)
 (= (foldl $func (Cons $x $xs))
     (foldLeft $func $x $xs)
+)
+
+ ;Function to remove an element at a given index in a List.
+(: removeAtIndex (-> Number (List $t) (List $t)))
+(= (removeAtIndex $a Nil) Nil)
+
+(= (removeAtIndex $a (Cons $x $xs))
+    (if (== $a 0)
+         $xs
+        (Cons $x (removeAtIndex (- $a 1) $xs))
+    )
+)
+
+ ;A Function to replace an element at a given index in a List.
+(: replaceAtIndex (-> Number $t (List $t) (List $t)))
+(= (replaceAtIndex $a $t Nil) Nil)
+
+(= (replaceAtIndex $a $t (Cons $x $xs))
+    (if (== $a 0)
+        (Cons $t  $xs)
+    (Cons $x (replaceAtIndex (- $a 1) $t $xs))
+    )
 )
