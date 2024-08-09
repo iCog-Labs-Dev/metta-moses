@@ -90,9 +90,9 @@
 
 
 (:isNodeEqual (-> Tree Tree Bool))
-(= (isNodeEqual Nil Nil) False)
-(= (isNodeEqual (TreeNode $nodeValue $guardSet $children) Nil) False)
-(= (isNodeEqual Nil (TreeNode $nodeValue $guardSet $children)) False)
+(= (isNodeEqual NilNode NilNode) False)
+(= (isNodeEqual (TreeNode $nodeValue $guardSet $children) NilNode) False)
+(= (isNodeEqual NilNode (TreeNode $nodeValue $guardSet $children)) False)
 (= (isNodeEqual 
     (TreeNode $nodeValue1 $guardSet1 $children1) 
     (TreeNode $nodeValue2 $guardSet2 $children2)
