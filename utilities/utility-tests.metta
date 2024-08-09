@@ -467,43 +467,43 @@
 ;    (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL)) Nil)) Nil)) Nil)) Nil))
 ;)
  
-!(applyOrCut 
-  (TreeNode 
-    (Value Nil False OR) 
-    Nil 
-    (Cons 
-      (TreeNode 
-        (Value Nil False AND) 
-        (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil) 
-        Nil
-      ) 
-      Nil
-    )
-  ) 
-  (TreeNode 
-        (Value Nil False OR) 
-        Nil 
-        (Cons 
-          (TreeNode 
-            (Value Nil False AND) 
-            (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil) 
-            (Cons 
-              (TreeNode 
-                (Value Nil False OR) 
-                Nil 
-                (Cons 
-                  (TreeNode 
-                    (Value Nil False AND) 
-                    (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)
-                    Nil
-                  ) 
-                  Nil
-                )
-              )
-              Nil
-            )
-          ) Nil 
-        )
-  )
-)
+;!(applyOrCut 
+;  (TreeNode 
+;    (Value Nil False OR) 
+;    Nil 
+;    (Cons 
+;      (TreeNode 
+;        (Value Nil False AND) 
+;        (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil) 
+;        Nil
+;      ) 
+;      Nil
+;    )
+;  ) 
+;  (TreeNode 
+;        (Value Nil False OR) 
+;        Nil 
+;        (Cons 
+;          (TreeNode 
+;            (Value Nil False AND) 
+;            (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil) 
+;            (Cons 
+;              (TreeNode 
+;                (Value Nil False OR) 
+;                Nil 
+;                (Cons 
+;                  (TreeNode 
+;                    (Value Nil False AND) 
+;                    (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)
+;                    Nil
+;                  ) 
+;                  Nil
+;                )
+;              )
+;              Nil
+;            )
+;          ) Nil 
+;        )
+;  )
+;)
 ;!(isNodeEqual (TreeNode (Value A True LITERAL) Nil Nil) (TreeNode (Value A True LITERAL) Nil Nil))
