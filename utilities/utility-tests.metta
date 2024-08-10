@@ -232,12 +232,21 @@
 
  ; !(getChildren (buildTree (AND a b)))
 
+; ! (getChildAt (buildTree (AND a b)) 0)
+; ! (getChildAt (buildTree (AND a b)) 1)
+; ! (getChildAt (buildTree (AND a b)) 4)
+
  ; !(getGuardSet (buildTree (AND a b)))
 
  ; !(replaceChild (buildTree (NOT A)) (buildTree (OR Y Z)) L)
 
- ; !(appendChild (buildTree A) (buildTree (AND B)) )
- ; !(appendChild
+;  ! (replaceChildAt (buildTree (AND A B)) (buildTree (OR Y Z)) 0)
+;  ! (replaceChildAt (buildTree (AND A B)) (buildTree (OR Y Z)) 1)
+
+
+
+ ; !(prependChild (buildTree A) (buildTree (AND B)) )
+ ; !(prependChild
  ;;		(TreeNode (Value Nil False AND)
  ;;					(TreeNode (Value A False LITERAL) NilNode NilNode NilList NilList)
  ;;					(TreeNode (Value B False LITERAL) NilNode NilNode NilList NilList)
@@ -413,11 +422,23 @@
  ;  ) ))
  ;; [EXPECT] [(TreeNode (Value target1 False NOT) Nil (Cons (TreeNode (Value target1 False OR) Nil Nil) Nil))]
 
- ;; -----------------------------------
+ 
+ ;; !(containsTerminalAndNode (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) Nil) Nil))
+ ;; !(containsTerminalAndNode (Cons (TreeNode (Value Nil False OR) Nil Nil) Nil))
+
+
+ ; ! (intersections (Cons (getChildren (buildTree (AND A E)))
+ ;         (Cons (getChildren (buildTree (AND A G)))
+ ;             (Cons (getChildren (buildTree (AND B A)))
+ ;                 (Cons (getChildren (buildTree (AND A F))) Nil)))))
+
+
+;; -----------------------------------
  ;; -----------------------------------
  ;; Test cases for RTEHelpers.metta
  ;; -----------------------------------
  ;; -----------------------------------
+
 
  ;; !(disconnectSubTreeHandler
  ;;   (buildTree (OR a (AND b c)))
@@ -433,9 +454,6 @@
  ;;     )
  ;;   )
  ;; )
-
- ;; !(containsTerminalAndNode (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) Nil) Nil))
- ;; !(containsTerminalAndNode (Cons (TreeNode (Value Nil False OR) Nil Nil) Nil))
 
  ;;!(applyAndCut
  ;;      (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) (Cons (TreeNode (Value B False AND) Nil Nil) Nil))) Nil))
@@ -521,3 +539,4 @@
 ;                    )
 ;)
 
+;  ! (orSubTreeElegance (TreeNode (Value A False LITERAL) Nil Nil) (buildTree (AND A B)) Nil Nil)
