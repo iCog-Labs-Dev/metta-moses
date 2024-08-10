@@ -232,9 +232,18 @@
 
  ; !(getChildren (buildTree (AND a b)))
 
+; ! (getChildAt (buildTree (AND a b)) 0)
+; ! (getChildAt (buildTree (AND a b)) 1)
+; ! (getChildAt (buildTree (AND a b)) 4)
+
  ; !(getGuardSet (buildTree (AND a b)))
 
  ; !(replaceChild (buildTree (NOT A)) (buildTree (OR Y Z)) L)
+
+;  ! (replaceChildAt (buildTree (AND A B)) (buildTree (OR Y Z)) 0)
+;  ! (replaceChildAt (buildTree (AND A B)) (buildTree (OR Y Z)) 1)
+
+
 
  ; !(appendChild (buildTree A) (buildTree (AND B)) )
  ; !(appendChild
