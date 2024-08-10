@@ -507,6 +507,7 @@
 ;  )
 ;)
 ;!(isNodeEqual (TreeNode (Value A True LITERAL) Nil Nil) (TreeNode (Value A True LITERAL) Nil Nil))
+
 ;!(commandSetIterator Nil 
 ;                    (Cons 
 ;                      (TreeNode (Value Nil False AND) 
@@ -520,4 +521,3 @@
 ;                    )
 ;)
 
-!(commandSetIterator (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) Nil) Nil) (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) Nil) Nil))
