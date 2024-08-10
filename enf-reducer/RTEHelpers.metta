@@ -46,19 +46,30 @@
 ;; -----------------------------------
 ;; -----------------------------------
 
-(: commandSetIterator(-> (List Tree) Tree Tree)
-(= (commandSetIterator $children $localCommandSet)
-  if (== (length $children) 0) ($localCommandSet)(
-    if (== (and 
-            (and (> (length (getChildren (head (getChildren $children)))) 0) (== (guardSetChecker $children) 1))
-            (and (> (length $children) 0) (== (get-type (head $children)) AND))
-            ) 
-        True
-        )(
-              unionSet (getGuardSet (head $children)) (commandSetIterator (tail $children) $localCommandSet)
-            )(
-              commandSetIterator (tail $children) $localCommandSet
-              )
+;(: commandSetIterator(-> (List Tree) (List Tree) (List Tree)))
+(= (commandSetIterator $children $localCommandSet)(
+  if(== $children Nil)($localCommandSet) (
+    let* 
+    (
+      ($c1 (== (getChildren (head $children)) Nil) )
+      ($c2 (== (guardSetChecker $children) 1))
+      ($c3 (not (== $children Nil)))
+      ($c4 (== (getNodeType (head $children)) AND))
+      ($final (and (and $c1 $c2) (and $c3 $c4)))
+      ($tail (tail $children))
+      ($ans (commandSetIterator $tail $localCommandSet))
+      ($gs (getGuardSet (head $children)))
+      ($union (setUnion $gs $ans))
+;      ($union (setUnion (getGuardSet (head $children)) (commandSetIterator (tail $children) $localCommandSet)))
     )
+    ($gs ---- $ans)
+;      if(and (and (== (getChildren (head $children)) Nil) (== (guardSetChecker $children) 1))
+;            (and (not (== $children Nil)) (== (getNodeType (head $children)) AND))
+;        )(
+;          setUnion (getGuardSet (head $children)) (commandSetIterator (tail $children) $localCommandSet)
+;        )(commandSetIterator (tail $children) $localCommandSet)
+;    $localCommandSet
+    )
+)
 )
 
