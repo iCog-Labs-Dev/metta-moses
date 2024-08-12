@@ -464,3 +464,4 @@
  ;;    (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B False AND) Nil Nil) Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil))) Nil)))
 
 ;  ! (orSubTreeElegance (TreeNode (Value A False LITERAL) Nil Nil) (buildTree (AND A B)) Nil Nil)
+;!(andSubTreeElegance (TreeNode (Value A False LITERAL) Nil Nil) (buildTree (AND A B)) Nil Nil)
