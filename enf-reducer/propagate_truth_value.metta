@@ -4,50 +4,55 @@
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
 
 
-(:propagateTruthValue (-> Tree Bool Tree))
+(: propagateTruthValue (-> Tree Bool Tree))
 (= (propagateTruthValue $tree $truthValueArg)
     (if (== (isTreeWellFormed $tree) True)
             (let* (
                     ($right (getChild $tree R))
                     ($left (getChild $tree L))
                     ($nodeType (getNodeType $tree))
+                    ((TreeNode $nodeValue $guardSet $children) $tree)
                 )(if (== $nodeType ROOT)
-                    (if (not (== $right Nil))
-                        (propagateTruthValue $right $truthValueArg)
+                    (if (not (== $right NilNode))
+                        (replaceChild $tree (propagateTruthValue $right $truthValueArg) R)
                         $tree
                     )
                     (if (== $nodeType NOT)
-                        (if (== (isTreeWellFormed $right) True)
-                            (propagateTruthValue $right (not $truthValueArg))
-                            $tree
-                        )
-                        (let (TreeNode (Value $valueName $truthValue $nodeTypeDestructured) $guardSet $children) $tree
-                            (if (or (== $nodeTypeDestructured OR) (== $nodeTypeDestructured AND))
+                       (propagateTruthValue $right (not $truthValueArg))
+                       (let
+                          (Value $valueName $truthValue $_)
+                          $nodeValue
+                          (if (or (== $nodeType OR) (== $nodeType AND))
                                 (if (== False $truthValueArg)
-                                        (if (== $nodeTypeDestructured AND)
-                                            (TreeNode (Value $valueName $truthValue OR) $guardSet (Cons (propagateTruthValue $left $truthValueArg) (Cons (propagateTruthValue $right $truthValueArg) Nil)))
-                                            (TreeNode (Value $valueName $truthValue AND) $guardSet (Cons (propagateTruthValue $left $truthValueArg) (Cons (propagateTruthValue $right $truthValueArg) Nil)))
+                                        (let
+                                          $updatedTree
+                                          (if (== $nodeType AND)
+                                                (changeType $tree OR)
+                                                (changeType $tree AND)
+                                          )
+                                          (let* (
+                                                  ($leftNotNil (not (== $left NilNode)))
+                                                  ($rightNotNil (not (== $right NilNode)))
+                                              )
+                                              (if (and $leftNotNil $rightNotNil)
+                                                  (replaceChild (replaceChild $updatedTree (propagateTruthValue $left $truthValueArg) L) (propagateTruthValue $right $truthValueArg) R)
+                                                  $updatedTree
+                                              )
+                                          )
                                         )
-                                        (let* (
-                                                ($leftNotNil (not (== $left NilNode)))
-                                                ($rightNotNil (not (== $right NilNode)))
-                                            )          
-                                            (if (and $leftNotNil $rightNotNil)
-                                                (TreeNode (Value $valueName $truthValue $nodeTypeDestructured) $guardSet (Cons (propagateTruthValue $left $truthValueArg) (Cons (propagateTruthValue $right $truthValueArg) Nil)))
-                                                $tree
-                                            )
-                                        )
-                                    
+                                        (replaceChild (replaceChild $tree (propagateTruthValue $left $truthValueArg) L) (propagateTruthValue $right $truthValueArg) R)
                                 )
-                                (TreeNode (Value $valueName $truthValueArg $nodeTypeDestructured) $guardSet $children)
-                            ) 
-                        )   
+                               (TreeNode (Value $valueName $truthValueArg $nodeType) $guardSet $children)
+                          )
+                       )
                     )
                 )
             )
         (Tree isn't well formed)
     )
 )
+
+(: isTreeWellFormed (Tree Bool))
 (= (isTreeWellFormed $tree)
     (case $tree (
        
@@ -62,7 +67,14 @@
 ;; !(changeTree (buildTree (OR a (AND b c))) (buildTree (AND a (AND b c))))
 ;; !(replaceChild (buildTree (OR a (AND b c))) (buildTree (AND a (AND b c))) L)
 ;; !(getNodeType (buildTree (OR a (AND b c))))
-;;!(propagateTruthValue (buildTree (OR a (AND b c))) True)
+;; !(propagateTruthValue (buildTreeWithRoot (OR a (AND b c))) True)
+;; !(propagateTruthValue (buildTreeWithRoot (OR a (AND b c))) False)
+;; !(propagateTruthValue (buildTreeWithRoot (NOT (OR a (AND b c)))) False)
+;; !(propagateTruthValue (buildTreeWithRoot (NOT (OR a (AND b c)))) True)
+;; !(propagateTruthValue (buildTreeWithRoot (AND a (OR b c))) False)
+;; !(propagateTruthValue (buildTreeWithRoot (AND a (OR b c))) True)
+;; !(propagateTruthValue (buildTreeWithRoot (NOT (AND a (OR b c)))) True)
+;; !(propagateTruthValue (buildTreeWithRoot (NOT (AND a (OR b c)))) False)
 ;; !(propagateTruthValue (TreeNode (Value target1 False NOT) Nil (Cons
 ;;               (TreeNode (Value Nil False AND) Nil Nil)
 ;;               (Cons
