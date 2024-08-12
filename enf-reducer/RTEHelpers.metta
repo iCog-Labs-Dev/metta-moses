@@ -50,10 +50,11 @@
         ($grandChild (head (getChildren $child)))
         ($updatedGuardSetTree (replaceGuardSet $current (setUnion (getGuardSet $current) (getGuardSet $grandChild))))
         ($updatedChildrenTree (replaceChildren $updatedGuardSetTree (extend (getChildren $grandChild) (getChildren $updatedGuardSetTree))))
-        ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree $grandChild (getChildren $updatedChildrenTree))) )
+        ($updatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree $child (getChildren $updatedChildrenTree))) )
+        ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree $grandChild (getChildren $updatedTree))) )
      )
       $finalUpdatedTree
-       )
+    )
     ($current)
   )
 )
