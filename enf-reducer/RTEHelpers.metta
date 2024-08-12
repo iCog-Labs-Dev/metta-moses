@@ -54,8 +54,7 @@
         )(
           setUnion (getGuardSet (head $children)) (commandSetIterator (tail $children) $localCommandSet)
         )
-        (commandSetIterator (tail $children) $localCommandSet)
-    $localCommandSet
+        (commandSetIterator (tail $children) $localCommandSet) 
     )
 )
 )
