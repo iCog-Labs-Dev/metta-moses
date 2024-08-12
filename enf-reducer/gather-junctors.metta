@@ -24,9 +24,9 @@
                     ;; (let* (
                     ;;         ($leftRemovedNode (removeFromChildren $centerNode $currentLeft))
                     ;;         ($duplicateRemovedNode (removeFromChildren $leftRemovedNode $currentRight))
-                    ;;         ($newCenterNode (appendChild $duplicateRemovedNode $currentNode))
+                    ;;         ($newCenterNode (prependChild $duplicateRemovedNode $currentNode))
                     ;;     ) 
-                    ;;     (appendChild (appendChild $newCenterNode (gatherJunctors $currentLeft $currentNode)) 
+                    ;;     (prependChild (prependChild $newCenterNode (gatherJunctors $currentLeft $currentNode)) 
                     ;;         (gatherJunctors $currentRight $currentNode))
                     ;; )
                     ;; (let $removedNode (removeFromChildren $centerNode $currentNode)
@@ -35,7 +35,7 @@
                             ($newCurrentLeft (replaceChildren $currentLeft Nil))
                             ($newCurrentRight (replaceChildren $currentRight Nil))
                         )
-                        (appendChild $centerNode (TreeNode (Value $valueName $constraint $currentNodeType) $guardSet 
+                        (prependChild $centerNode (TreeNode (Value $valueName $constraint $currentNodeType) $guardSet 
                             (Cons (gatherJunctors $newCurrentLeft $currentNode) (Cons (gatherJunctors $newCurrentRight $currentNode) Nil))))
                     )
                     )
@@ -44,7 +44,7 @@
                 (if (== $currentNodeType LITERAL)
                     (if (== $centerNodeType AND)
                         (appendToGuardSet $centerNode $currentNode)
-                        (appendChild $centerNode (TreeNode (Value $valueName $constraint AND) (Cons $currentNode Nil) $children))
+                        (prependChild $centerNode (TreeNode (Value $valueName $constraint AND) (Cons $currentNode Nil) $children))
                     )
                     NilNode
                 )
@@ -56,6 +56,7 @@
         )
     ;; )
 )
+(:gather-junctor (-> Tree Tree))
 (=(gather-junctor $treeNode)
     (if (== $treeNode NilNode)
         NilNode
@@ -82,7 +83,7 @@
                                 (TreeNode (Value $valueName $constraint $nodeType) $guardSet
                                     (Cons $left (Cons (gather-junctor $right) Nil))
                                 )
-                                (appendChild (appendChild (replaceChildren $treeNode Nil) (gather-junctor $left)) (gather-junctor $right))
+                                (prependChild (prependChild (replaceChildren $treeNode Nil) (gather-junctor $left)) (gather-junctor $right))
                             )
                         )  
                     )
@@ -110,4 +111,4 @@
 (=(gatherJunctorRunner $treeNode)
     (gatherJunctors $treeNode NilNode)
 )
-!(gather-junctor (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value a True LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value b True LITERAL) Nil Nil) (Cons (TreeNode (Value c True LITERAL) Nil Nil) Nil))) Nil))))
+!(gather-junctor (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value a True LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value b True LITERAL) Nil Nil) (Cons (TreeNode (Value c True LITERAL) Nil Nil) Nil))) Nil))))
