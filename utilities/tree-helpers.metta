@@ -309,3 +309,8 @@
     (TreeNode $nodeValue $guardSet (allExceptTargetType $children OR))
   )
 )
+(=(prependToGuardSet $holderTree $childTree)
+  (let (TreeNode $nodeValue $guardSet $children) $holderTree
+    (TreeNode $nodeValue (Cons $holderTree $guardSet) $children)
+  )
+)
