@@ -40,6 +40,7 @@
 (: DELETE ReductionSignal)
 (: DISCONNECT ReductionSignal)
 (: KEEP ReductionSignal)
+(: NONE ReductionSignal)
 (: ADVANCE IterationSignal)
 
 (: orSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
