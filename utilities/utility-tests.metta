@@ -539,4 +539,20 @@
 ;                    )
 ;)
 
+;!(commandSetIterator (Cons 
+;                        (TreeNode (Value A False LITERAL) 
+;                        Nil 
+;                        Nil) 
+;                      Nil) 
+;                    (Cons 
+;                      (TreeNode (Value Nil False AND) 
+;                      (Cons 
+;                        (TreeNode (Value A False LITERAL) 
+;                        Nil 
+;                        Nil) 
+;                      Nil) Nil
+;                      ) 
+;                      Nil
+;                    )
+;)
 ;  ! (orSubTreeElegance (TreeNode (Value A False LITERAL) Nil Nil) (buildTree (AND A B)) Nil Nil)
