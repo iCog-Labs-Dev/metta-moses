@@ -39,7 +39,7 @@
   case $outcome (
     (DELETE ($child (replaceChildren $current Nil) DELETE))
     (DISCONNECT (
-      let*(
+      let* (
         ($updatedCurrentTree (findAndRemoveTree $child (getChildren $current)))
         ($updatedChildTree (replaceChildren $child Nil))
         )
