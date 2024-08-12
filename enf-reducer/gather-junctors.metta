@@ -3,6 +3,7 @@
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
 
+
 (:gatherJunctors (-> Tree Tree Tree))
 (=(gatherJunctors $currentNode $centerNode)
     ;; (if (or (== $currentNode NilNode) (== $centerNode NilNode))
@@ -87,18 +88,26 @@
                             )
                         )  
                     )
+                    (let* (
+                               ($newLeft (changeType $left AND))
+                               ($newRight (changeType $right AND))
+                            )
                     (if (or (== $leftNodeType LITERAL) (== $rightNodeType LITERAL))
+                        
                         (if (== $nodeType AND)
                             (if (and (== $leftNodeType LITERAL) (== $rightNodeType LITERAL))
-                                (prependToGuardSet (prependToGuardSet $treeNode $left) $right)
+                                (prependToGuardSet (prependToGuardSet $treeNode $newLeft) $newRight)
                                 (if (== $leftNode LITERAL)
-                                    (prependToGuardSet $treeNode $left)
-                                    (prependToGuardSet $treeNode $right)                                   
+                                    (prependToGuardSet $treeNode $newLeft)
+                                    (prependToGuardSet $treeNode $newRight)                                   
                                 )
                             )
-                            (prependToGuardSet (prependToGuardSet $treeNode $left) $right)
+                            (prependToGuardSet (prependToGuardSet $treeNode $newLeft) $newRight)
                         )
-                        (prependToGuardSet (prependToGuardSet $treeNode $left) $right)
+                        (let $newTreeNode (changeType $treeNode AND)
+                            (prependToGuardSet $newTreeNode $newTreeNode)
+                        )
+                    )
                     )
                 )
             )
@@ -108,11 +117,28 @@
 )
 
 
-(=(gatherJunctorRunner $treeNode)
-    (gatherJunctors $treeNode NilNode)
-)
-(= (checker $treeNode)
-    (if (== (getNodeType $treeNode) ROOT) True False)
-)
-!(checker (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value a True LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value b True LITERAL) Nil Nil) (Cons (TreeNode (Value c True LITERAL) Nil Nil) Nil))) Nil))) Nil))))
-!(gather-junctor (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value a True LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value b True LITERAL) Nil Nil) (Cons (TreeNode (Value c True LITERAL) Nil Nil) Nil))) Nil))))
+;; (=(gatherJunctorRunner $treeNode)
+;;     (gatherJunctors $treeNode NilNode)
+;; )
+;; (= (checker $treeNode)
+;;     (if (== (getNodeType $treeNode) ROOT) True False)
+;; )
+;; !(checker (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value a True LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value b True LITERAL) Nil Nil) (Cons (TreeNode (Value c True LITERAL) Nil Nil) Nil))) Nil))) Nil))))
+
+
+
+;;;Gather Junctor check
+ ;         (TreeNode (Value NilNode False AND)
+ ;             (TreeNode (Value Nil False AND)
+ ;             (TreeNode (Value NilNode False AND) NilNode NilNode (ConsTree (TreeNode (Value x False LITERAL) NilNode NilNode NilList NilList) NilList ) NilList) ;this node fulfills the condition
+ ;             (TreeNode (Value NilNode False AND) NilNode NilNode NilList NilList)
+ ;                 NilList
+ ;                 NilList
+ ;             )
+ ;             NilNode NilList NilList)
+
+;;!(gather-junctor (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value a True LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value b True LITERAL) Nil Nil) (Cons (TreeNode (Value c True LITERAL) Nil Nil) Nil))) Nil))))
+;!(buildTreeWithRoot (OR A (AND Y (OR B (AND C D)))))
+;;(propagate-truth-value (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value Y False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value C False LITERAL) Nil Nil) (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil))) Nil))) Nil))) Nil))))
+;;!(gather-junctor (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value Y False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value C False LITERAL) Nil Nil) (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil))) Nil))) Nil))) Nil))))
+;;!(gather-junctor (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value Y False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value C False LITERAL) Nil Nil) (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil))) Nil))) Nil))) Nil))) Nil))))
