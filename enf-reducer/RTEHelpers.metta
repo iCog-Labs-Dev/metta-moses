@@ -34,8 +34,11 @@
 )
 
 ;; a helper function used inside commandSetIterator.
+(: guardSetChecker (-> (List Tree) Number))
 (= (guardSetChecker $children)(
-  if (> (length (getGuardSet (head $children))) 0)(length (getGuardSet (head $children)))(0)
+  if (> (length (getGuardSet (head $children))) 0)
+    (length (getGuardSet (head $children)))
+    (0)
   )
 )
 
@@ -48,14 +51,18 @@
 
 (: commandSetIterator(-> (List Tree) (List Tree) (List Tree)))
 (= (commandSetIterator $children $localCommandSet)(
-  if(== $children Nil)($localCommandSet) (
-      if(and (and (== (getChildren (head $children)) Nil) (== (guardSetChecker $children) 1))
-            (and (not (== $children Nil)) (== (getNodeType (head $children)) AND))
+  case $children (
+    (Nil $localCommandSet)
+    ((Cons $x $xs) (
+      if(and 
+          (and (== (getChildren (head $children)) Nil) (== (guardSetChecker $children) 1))
+          (== (getNodeType (head $children)) AND)
         )(
-          setUnion (getGuardSet (head $children)) (commandSetIterator (tail $children) $localCommandSet)
+          setUnion treeIsMember (getGuardSet (head $children)) (commandSetIterator (tail $children) $localCommandSet)
         )
-        (commandSetIterator (tail $children) $localCommandSet) 
-    )
+        (commandSetIterator (tail $children) $localCommandSet)
+    ))
+  )
 )
 )
 
