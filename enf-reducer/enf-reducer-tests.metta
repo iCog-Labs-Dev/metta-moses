@@ -3,6 +3,7 @@
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
 ! (import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
 ! (import! &self metta-moses-reduction:enf-reducer:propagate_truth_value)
+! (import! &self metta-moses-reduction:enf-reducer:reduce_to_elegance)
 
 ;;!(isTreeWellFormed (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value a False LITERAL) Nil Nil) (Cons (TreeNode (Value b False LITERAL) Nil Nil) Nil))))
 
@@ -15,3 +16,6 @@
 ;; !(propagateTruthValue (buildTreeWithRoot (AND a (OR b c))) True)
 ;; !(propagateTruthValue (buildTreeWithRoot (NOT (AND a (OR b c)))) True)
 ;; !(propagateTruthValue (buildTreeWithRoot (NOT (AND a (OR b c)))) False)
+
+!(reduceToElegance (TreeNode (Value Nil False AND) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
+!(reduceToElegance (TreeNode (Value Nil False OR) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
