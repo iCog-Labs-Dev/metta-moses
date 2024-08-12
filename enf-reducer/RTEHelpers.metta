@@ -71,3 +71,33 @@
  ) 
 )
 )
+
+; orSubTreeElegance implementation
+(: Signal Type)
+(: ReductionSignal Signal)
+(: IterationSignal Signal)
+(: DELETE ReductionSignal)
+(: DISCONNECT ReductionSignal)
+(: KEEP ReductionSignal)
+(: ADVANCE IterationSignal)
+
+(: orSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
+(= (orSubTreeElegance $child $current $dominantSet $localCommandSet)
+    (let $outcome DELETE ;; Simulate the result returned by the reduceToElegance function, Which is not implemented Currently.
+                         ;; The possible outcomes of reduceToElegance function are DELETE, DISCONNECT, or KEEP.
+        (case $outcome
+          (
+            (DELETE
+                (if (> (length (getChildren $current)) 0)
+                    ((let $currentChildren (findAndRemoveTree $child (getChildren $current) )
+                        ($currentChildren ADVANCE)))
+                    ($current DELETE) 
+                )
+            )
+            (DISCONNECT ($current DISCONNECT))
+            (KEEP ($current ADVANCE))
+          )
+        )
+    )
+)
+

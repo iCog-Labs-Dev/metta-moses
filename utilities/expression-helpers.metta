@@ -1,12 +1,12 @@
-(=(isEmpty $exp)
+(= (isEmpty $exp)
   (if (== Nil $exp) True False)
 )
 
-(=(max $first-val $second-val)
+(= (max $first-val $second-val)
   (if (> $first-val $second-val) $first-val $second-val)
 )
 
-(=(checkTreeDepth $data)
+(= (checkTreeDepth $data)
   (case $data 
     (
       (($op $exp1 $exp2)
@@ -18,7 +18,7 @@
   )
 )
 
-(=(nAryAnd $exp)
+(= (nAryAnd $exp)
   (case $exp 
     (
       (Nil True)
@@ -32,7 +32,7 @@
   )
 )
 
-(=(nAryOr $exp)
+(= (nAryOr $exp)
   (case $exp 
     (
       (Nil False)
@@ -46,7 +46,7 @@
   )
 )
 
-(:getChildren (-> Expression List List))
+(: getChildren (-> Expression List List))
 (= (getChildren $exp $guard-set)
   (if (==(get-metatype $exp) Symbol)
     Nil
@@ -79,7 +79,7 @@
   )
 )
 
-(:getGuardSet (-> Expression List List))
+(: getGuardSet (-> Expression List List))
 (= (getGuardSet $exp)
   (case $exp 
     (
