@@ -73,7 +73,8 @@
                     (TreeNode (Value $valueName $constraint AND) $guardSet (Cons $left (Cons (gather-junctor $right) Nil)))
                     $treeNode
                 )
-                (if (or (== $nodeType AND) (== $nodeType OR))
+                ;;check if the parent node doesn't have leaf nodes 
+                (if (and (or (== $nodeType AND) (== $nodeType OR)) (not (and (== $leftNodeType LITERAL) (== $rightNodeType LITERAL))))
                     (if (and (== $leftNodeType $nodeType) (== $rightNodeType $nodeType))
                         (TreeNode (Value $valueName $constraint AND) $guardSet 
                                 (Cons (gather-junctor $left) (Cons (gather-junctor $right) Nil)))
@@ -88,33 +89,33 @@
                             )
                         )  
                     )
-                    (let* (
-                               ($newLeft (changeType $left AND))
-                               ($newRight (changeType $right AND))
-                            )
+                    ;; (let* (
+                    ;;            ($left (changeType $left AND))
+                    ;;            ($right (changeType $right AND))
+                    ;;         )
                     (if (or (== $leftNodeType LITERAL) (== $rightNodeType LITERAL))
-                        
                         (if (== $nodeType AND)
                             (if (and (== $leftNodeType LITERAL) (== $rightNodeType LITERAL))
-                                (prependToGuardSet (prependToGuardSet $treeNode $newLeft) $newRight)
-                                (if (== $leftNode LITERAL)
-                                    (prependToGuardSet $treeNode $newLeft)
-                                    (prependToGuardSet $treeNode $newRight)                                   
+                                (prependToGuardSet (prependToGuardSet $treeNode $left) $right)
+                                (if (== $leftNodeType LITERAL)
+                                    (prependToGuardSet $treeNode $left)
+                                    (prependToGuardSet $treeNode $right)                                   
                                 )
                             )
-                            (prependToGuardSet (prependToGuardSet $treeNode $newLeft) $newRight)
+                            (prependToGuardSet (prependToGuardSet $treeNode $left) $right)
                         )
                         (let $newTreeNode (changeType $treeNode AND)
                             (prependToGuardSet $newTreeNode $newTreeNode)
                         )
                     )
                     )
+                    ;; )
                 )
             )
                
         )
     )
-)
+
 
 
 ;; (=(gatherJunctorRunner $treeNode)
@@ -141,4 +142,4 @@
 ;!(buildTreeWithRoot (OR A (AND Y (OR B (AND C D)))))
 ;;(propagate-truth-value (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value Y False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value C False LITERAL) Nil Nil) (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil))) Nil))) Nil))) Nil))))
 ;;!(gather-junctor (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value Y False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value C False LITERAL) Nil Nil) (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil))) Nil))) Nil))) Nil))))
-;;!(gather-junctor (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value Y False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value C False LITERAL) Nil Nil) (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil))) Nil))) Nil))) Nil))) Nil))))
+!(gather-junctor (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value Y False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value C False LITERAL) Nil Nil) (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil))) Nil))) Nil))) Nil))) Nil))))
