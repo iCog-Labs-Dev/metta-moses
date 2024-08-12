@@ -39,9 +39,11 @@
 (= (orSubTreeIterator $child $remainingChildren $currentNode $dominantSet $commandSet) 
 (let*
  (
-    ($localCommandSet (commandSet))
-    ($localCommandSetUpdated (commandSetIterator $remainingChildren $localCommandSet))
-    ($action (orSubTreeElegance $child $currentNode $dominantSet $localCommandSetUpdated))
+    ;($localCommandSet (commandSet))
+    ;($localCommandSetUpdated (commandSetIterator $remainingChildren $localCommandSet))
+    ;($action (orSubTreeElegance $child $currentNode $dominantSet $localCommandSetUpdated))
+    ($action ADVANCE);will be replaced with the above code once the functions 'orSubTreeElegance' and 'commandSetIterator' are implemented
+
  )
  (case $action
      (
@@ -57,14 +59,13 @@
         ($else ($action $currentNode))
 
      )
- 
+
  )
 ))
 
-
 ;;a function which is the reimplementation of the andSubTreeIterator function found in python
 
-(: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) (-> (List Tree) Tree (List Tree) (List Tree) Number Signal))))
+(: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) (-> (List Tree) Tree (List Tree) (List Tree) Number Signal)))
 (= (andSubTreeIterator $children $currentNode $handleSet $commandSet) 
     (andSubTreeIterator $children $currentNode $handleSet $commandSet 0)
 )
@@ -74,7 +75,9 @@
 (let*
  (
     ($currentChild (index $currentChildIndex $children))
-    ($action (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
+    ;($action (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
+    ($action ADVANCE);to be replaced with the above code when 'andSubTreeElegance' is implemented
+
  )
  (case $action
      (
@@ -90,9 +93,8 @@
         ($else ($action $currentNode))
 
      )
- 
+
  )
 )
 )
 )
-
