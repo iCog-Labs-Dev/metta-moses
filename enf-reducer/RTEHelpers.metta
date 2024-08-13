@@ -47,14 +47,16 @@
   if(== (length (getChildren $child)) 1)
      (let* (
         ($grandChild (head (getChildren $child)))
-        ($updatedGuardSetTree (replaceGuardSet $current (setUnion (getGuardSet $current) (getGuardSet $grandChild))))
+        ($A (getGuardSet $current))
+        ($B (getGuardSet $grandChild))
+        ($updatedGuardSetTree (replaceGuardSet $current (setUnion treeIsMember $A $B)))
         ($updatedChildrenTree (replaceChildren $updatedGuardSetTree (extend (getChildren $grandChild) (getChildren $updatedGuardSetTree))))
         ($updatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree $child (getChildren $updatedChildrenTree))) )
         ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree $grandChild (getChildren $updatedTree))) )
      )
       $finalUpdatedTree
     )
-    ($current)
+    $current
   )
 )
 
