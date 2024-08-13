@@ -33,6 +33,35 @@
   )
 )
 
+;; a helper function used inside commandSetIterator.
+(: guardSetChecker (-> (List Tree) Number))
+(= (guardSetChecker $children)(
+  if (> (length (getGuardSet (head $children))) 0)
+    (length (getGuardSet (head $children)))
+    (0)
+  )
+)
+
+;; -----------------------------------
+;; -----------------------------------
+;; -------- A function that given children and the a local command set,
+;; -------- it returns the updated command set
+;; -----------------------------------
+;; -----------------------------------
+
+(: commandSetIterator(-> (List Tree) (List Tree) (List Tree)))
+(= (commandSetIterator Nil $localCommandSet)($localCommandSet))
+(= (commandSetIterator (Cons $x $xs) $localCommandSet)(
+    if(and 
+        (and (== (getChildren (head (Cons $x $xs))) Nil) (== (guardSetChecker (Cons $x $xs)) 1))
+        (== (getNodeType (head (Cons $x $xs))) AND)
+      )(
+        setUnion treeIsMember (getGuardSet (head (Cons $x $xs))) (commandSetIterator (tail (Cons $x $xs)) $localCommandSet)
+      )
+      (commandSetIterator (tail (Cons $x $xs)) $localCommandSet)
+  )
+)
+
 ; orSubTreeElegance implementation
 (: Signal Type)
 (: ReductionSignal Signal)
