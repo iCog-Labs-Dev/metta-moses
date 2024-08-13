@@ -61,3 +61,7 @@
         )
     )
 )
+
+(: iterator (-> Tree (List Tree) (List Tree) ()))
+
+
