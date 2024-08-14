@@ -309,9 +309,14 @@
     (TreeNode $nodeValue $guardSet (allExceptTargetType $children OR))
   )
 )
-(=(prependToGuardSet $holderTree $childTree)
-  (let (TreeNode $nodeValue $guardSet $children) $holderTree
-    (TreeNode $nodeValue (Cons $holderTree $guardSet) $children)
-  )
-)
+;; (=(prependToGuardSet $holderTree $childTree)
+;;   (let (TreeNode $nodeValue $guardSet $children) $holderTree
+;;     (TreeNode $nodeValue (Cons $holderTree $guardSet) $children)
+;;   )
+;; )
 
+
+(: prependToGuardSet (-> Tree Tree Tree))
+(= (prependToGuardSet (TreeNode $nodeValue $guardSet $children) $node)
+  (TreeNode $nodeValue (Cons $node $guardSet) $children)
+)
