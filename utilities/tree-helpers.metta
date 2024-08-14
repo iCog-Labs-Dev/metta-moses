@@ -1,3 +1,4 @@
+!(import! &self list-helpers)
 ;; -----------------------------------
 ;; -----------------------------------
 ;; -------- function to build a tree of type "Tree" from an expression
@@ -86,10 +87,10 @@
 (= (replaceChild (TreeNode $nodeValue $guardSet (Cons $l $xs)) $newNode L)
   (TreeNode $nodeValue $guardSet (Cons $newNode $xs))
 )
-(= (replaceChild (TreeNode $nodeValue $guardSet Nil) R) 
+(= (replaceChild (TreeNode $nodeValue $guardSet Nil) $newNode R) 
    (TreeNode $nodeValue $guardSet (Cons $newNode Nil))
 )
-(= (replaceChild (TreeNode $nodeValue $guardSet (Cons $l Nil) R))
+(= (replaceChild (TreeNode $nodeValue $guardSet (Cons $l Nil)) $newNode R)
   (TreeNode $nodeValue $guardSet (Cons $l (Cons $newNode Nil)))
 )
 (= (replaceChild (TreeNode $nodeValue $guardSet (Cons $l (Cons $r $xs))) $newNode R)
@@ -113,11 +114,10 @@
   (TreeNode $nodeValue $guardSet (Cons $child $children))
 )
 
-
-(: isNodeEqual (-> Tree Tree Bool))
-(= (isNodeEqual Nil Nil) False)
-(= (isNodeEqual (TreeNode $nodeValue $guardSet $children) Nil) False)
-(= (isNodeEqual Nil (TreeNode $nodeValue $guardSet $children)) False)
+(:isNodeEqual (-> Tree Tree Bool))
+(= (isNodeEqual NilNode NilNode) False)
+(= (isNodeEqual (TreeNode $nodeValue $guardSet $children) NilNode) False)
+(= (isNodeEqual NilNode (TreeNode $nodeValue $guardSet $children)) False)
 (= (isNodeEqual 
     (TreeNode $nodeValue1 $guardSet1 $children1) 
     (TreeNode $nodeValue2 $guardSet2 $children2)
@@ -307,4 +307,15 @@
     (TreeNode $nodeValue $guardSet $children) $tree
     (TreeNode $nodeValue $guardSet (allExceptTargetType $children OR))
   )
+)
+;; (=(prependToGuardSet $holderTree $childTree)
+;;   (let (TreeNode $nodeValue $guardSet $children) $holderTree
+;;     (TreeNode $nodeValue (Cons $holderTree $guardSet) $children)
+;;   )
+;; )
+
+
+(: prependToGuardSet (-> Tree Tree Tree))
+(= (prependToGuardSet (TreeNode $nodeValue $guardSet $children) $node)
+  (TreeNode $nodeValue (Cons $node $guardSet) $children)
 )
