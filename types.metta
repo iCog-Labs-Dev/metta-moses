@@ -29,6 +29,7 @@
 (: DELETE ReductionSignal)
 (: DISCONNECT ReductionSignal)
 (: KEEP ReductionSignal)
+(: NONE ReductionSignal)
 (: ADVANCE IterationSignal)
 
 
