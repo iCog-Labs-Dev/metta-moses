@@ -488,10 +488,6 @@
 ;    )
 ;  ) 
 ;  (TreeNode 
-;        (Value Nil False OR) 
-;        Nil 
-;        (Cons 
-;          (TreeNode 
 ;            (Value Nil False AND) 
 ;            (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil) 
 ;            (Cons 
@@ -507,12 +503,15 @@
 ;                  Nil
 ;                )
 ;              )
-;              Nil
+;              (Cons 
+;                  (TreeNode 
+;                    (Value Nil False AND) 
+;                    (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)
+;                    Nil
+;                  ) 
+;                  Nil)
 ;            )
 ;  )
-;          Nil
-;)
-;)
 ;)
 
 ;!(commandSetIterator Nil 
