@@ -459,7 +459,7 @@
  ;!(getChildren (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil))))
 
      
-!(applyOrCut 
+;!(applyOrCut 
 ;  (TreeNode (Value Nil False OR)
 ;    Nil 
 ;    (Cons (TreeNode 
