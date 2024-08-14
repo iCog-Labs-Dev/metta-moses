@@ -460,7 +460,99 @@
  ;;      (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) (Cons (TreeNode (Value B False AND) Nil Nil) Nil))) Nil)) (Cons (TreeNode (Value A False AND) Nil Nil) (Cons (TreeNode (Value B False AND) Nil Nil) Nil)))))
 
  ;;!(applyAndCut
- ;;    (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil)))
+ ;;    (TreeNode (Value Nil False OR) Nil 
+ ;       (Cons (TreeNode (Value Nil False AND) Nil 
+  ;        (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) 
+   ;         (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil)
+    ;    )
+     ; )
  ;;    (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B False AND) Nil Nil) Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil))) Nil)))
 
+ ; ! (intersections (Cons (getChildren (buildTree (AND A E)))
+ ;         (Cons (getChildren (buildTree (AND A G)))
+ ;             (Cons (getChildren (buildTree (AND B A)))
+ ;                 (Cons (getChildren (buildTree (AND A F))) Nil)))))
+
+ ;!(getChildren (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil))))
+
+; !(applyOrCut 
+;    (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil))) 
+;     (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B False AND) Nil Nil) Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil))) Nil))
+;    )
+     
+;!(applyOrCut 
+;  (TreeNode (Value A True LITERAL) Nil (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value B True LITERAL) Nil 
+;    (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL)) Nil)) Nil)) Nil)) Nil))
+;)
+ 
+;!(applyOrCut 
+;  (TreeNode 
+;    (Value Nil False OR) 
+;    Nil 
+;    (Cons 
+;      (TreeNode 
+;        (Value Nil False AND) 
+;        (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil) 
+;        Nil
+;      ) 
+;      Nil
+;    )
+;  ) 
+;  (TreeNode 
+;        (Value Nil False OR) 
+;        Nil 
+;        (Cons 
+;          (TreeNode 
+;            (Value Nil False AND) 
+;            (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil) 
+;            (Cons 
+;              (TreeNode 
+;                (Value Nil False OR) 
+;                Nil 
+;                (Cons 
+;                  (TreeNode 
+;                    (Value Nil False AND) 
+;                    (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)
+;                    Nil
+;                  ) 
+;                  Nil
+;                )
+;              )
+;              Nil
+;            )
+;          ) Nil 
+;        )
+;  )
+;)
+;!(isNodeEqual (TreeNode (Value A True LITERAL) Nil Nil) (TreeNode (Value A True LITERAL) Nil Nil))
+
+;!(commandSetIterator Nil 
+;                    (Cons 
+;                      (TreeNode (Value Nil False AND) 
+;                      (Cons 
+;                        (TreeNode (Value A False LITERAL) 
+;                        Nil 
+;                        Nil) 
+;                      Nil) Nil
+;                      ) 
+;                      Nil
+;                    )
+;)
+
+;!(commandSetIterator (Cons 
+;                        (TreeNode (Value A False LITERAL) 
+;                        Nil 
+;                        Nil) 
+;                      Nil) 
+;                    (Cons 
+;                      (TreeNode (Value Nil False AND) 
+;                      (Cons 
+;                        (TreeNode (Value A False LITERAL) 
+;                        Nil 
+;                        Nil) 
+;                      Nil) Nil
+;                      ) 
+;                      Nil
+;                    )
+;)
 ;  ! (orSubTreeElegance (TreeNode (Value A False LITERAL) Nil Nil) (buildTree (AND A B)) Nil Nil)
