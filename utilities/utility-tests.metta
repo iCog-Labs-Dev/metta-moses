@@ -556,3 +556,4 @@
 ;                    )
 ;)
 ;  ! (orSubTreeElegance (TreeNode (Value A False LITERAL) Nil Nil) (buildTree (AND A B)) Nil Nil)
+;!(andSubTreeElegance (TreeNode (Value A False LITERAL) Nil Nil) (buildTree (AND A B)) Nil Nil)
