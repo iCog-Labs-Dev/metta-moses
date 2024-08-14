@@ -34,6 +34,7 @@
 )
 
 
+
 ;; -----------------------------------
 ;; -----------------------------------
 ;; -------- Function that 
@@ -82,6 +83,45 @@
     $current
 )
 )
+
+(: andSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Tree Signal)))
+(= (andSubTreeElegance $child $current $handleSet $commandSet)(
+ let $outcome DELETE (
+  case $outcome (
+    (DELETE ($child (replaceChildren $current Nil) DELETE))
+    (DISCONNECT (
+      let* (
+        ($updatedCurrentTree (findAndRemoveTree $child (getChildren $current)))
+        ($updatedChildTree (replaceChildren $child Nil))
+        )
+        ($updatedChildTree $updatedCurrentTree ADVANCE)
+      )  
+    )
+    (KEEP (
+      let $resultSet (treeIntersection Nil (getChildren $current)) (
+        if (> (length $resultSet) 0) (
+          let* (
+            ($updatedGuardSetTree (replaceGuardSet $current (setUnion (getGuardSet $current) $resultSet)))
+            ($updatedChildrenTree (replaceChildren $child (map computeGrandChildGuardSet (getChildren $updatedGuardSetTree))))
+            ($finalUpdatedTree (replaceChildren $child (map applyAndCut (getChildren $updatedGuardSetTree))))
+          )
+          ($finalUpdatedTree $updatedGuardSetTree RESET)
+          )(
+            let* (
+              ($bools (map applyAndCut (getChildren $updatedGuardSetTree)))
+              ($containsTerminalAndNode (any $bools))
+            )
+            (
+              if (== $containsTerminalAndNode True)($child $current ADVANCE)($child $current RESET)
+            )
+          )
+      )
+      )
+    )
+  )
+ ) 
+))
+
 
 ;; a helper function used inside commandSetIterator.
 (: guardSetChecker (-> (List Tree) Number))
