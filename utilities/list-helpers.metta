@@ -193,7 +193,7 @@
 )
 )
 
-; Function that takes two lists and an accumulator then returns the accoumulator containing elements from the first list that are not found in the second list
+; Function that takes two lists and an accumulator then returns the accumulator containing elements from the first list that are not found in the second list
 (: setDifference (-> (-> $t (List $t) Bool) (List $t) (List $t) (List $t) (List $t)))
 (= (setDifference $compareFunc Nil Nil $accumulator) Nil)
 (= (setDifference $compareFunc (Cons $x $xs) Nil $accumulator) (Cons $x $xs))
@@ -205,7 +205,8 @@
     )
 )
 
-(: setUnion (-> (-> $t (List $t) Bool) (List $t) (List $t) (List $t) (List $t)))
+
+(: setUnion (-> (-> $t (List $t) Bool) (List $t) (List $t) (List $t)))
 (= (setUnion $compareFunc $list1 $list2)
     (removeDuplicates $compareFunc (extend $list1 $list2))
 )
