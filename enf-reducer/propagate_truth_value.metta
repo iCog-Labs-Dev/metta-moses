@@ -1,9 +1,3 @@
-! (register-module! ../../metta-moses-reduction)
-! (import! &self metta-moses-reduction:types)
-! (import! &self metta-moses-reduction:utilities:list-helpers)
-! (import! &self metta-moses-reduction:utilities:tree-helpers)
-
-
 (: propagateTruthValue (-> Tree Bool Tree))
 (= (propagateTruthValue $tree $truthValueArg)
     (if (== (isTreeWellFormed $tree) True)
@@ -62,26 +56,3 @@
         )
     )
 )
-;;!(isTreeWellFormed (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value a False LITERAL) Nil Nil) (Cons (TreeNode (Value b False LITERAL) Nil Nil) Nil))))
- 
-;; !(changeTree (buildTree (OR a (AND b c))) (buildTree (AND a (AND b c))))
-;; !(replaceChild (buildTree (OR a (AND b c))) (buildTree (AND a (AND b c))) L)
-;; !(getNodeType (buildTree (OR a (AND b c))))
-;; !(propagateTruthValue (buildTreeWithRoot (OR a (AND b c))) True)
-;; !(propagateTruthValue (buildTreeWithRoot (OR a (AND b c))) False)
-;; !(propagateTruthValue (buildTreeWithRoot (NOT (OR a (AND b c)))) False)
-;; !(propagateTruthValue (buildTreeWithRoot (NOT (OR a (AND b c)))) True)
-;; !(propagateTruthValue (buildTreeWithRoot (AND a (OR b c))) False)
-;; !(propagateTruthValue (buildTreeWithRoot (AND a (OR b c))) True)
-;; !(propagateTruthValue (buildTreeWithRoot (NOT (AND a (OR b c)))) True)
-;; !(propagateTruthValue (buildTreeWithRoot (NOT (AND a (OR b c)))) False)
-;; !(propagateTruthValue (TreeNode (Value target1 False NOT) Nil (Cons
-;;               (TreeNode (Value Nil False AND) Nil Nil)
-;;               (Cons
-;;                  (TreeNode (Value target1 False OR)  Nil Nil)
-;;                 (Cons
-;;                       (TreeNode (Value target2 True AND) Nil Nil)
-;;                       Nil
-;;                  )
-;;           )
-;;   ) ) True)

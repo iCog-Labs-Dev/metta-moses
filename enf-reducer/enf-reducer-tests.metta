@@ -1,9 +1,21 @@
-!(import! &self propagate_truth_value)
+! (register-module! ../../metta-moses-reduction)
+! (import! &self metta-moses-reduction:utilities:list-helpers)
+! (import! &self metta-moses-reduction:utilities:tree-helpers)
+! (import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
+! (import! &self metta-moses-reduction:enf-reducer:propagate_truth_value)
+! (import! &self metta-moses-reduction:enf-reducer:reduce_to_elegance)
 
-;;!(propagateTruthValue (buildTree (OR a (AND b c))) True)
 ;;!(isTreeWellFormed (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value a False LITERAL) Nil Nil) (Cons (TreeNode (Value b False LITERAL) Nil Nil) Nil))))
- 
-;; !(changeTree (buildTree (OR a (AND b c))) (buildTree (AND a (AND b c))))
-;; !(replaceChild (buildTree (OR a (AND b c))) (buildTree (AND a (AND b c))) L)
-;; !(getNodeType (buildTree (OR a (AND b c))))
-;;!(propagateTruthValue (buildTree (OR a (AND b c))) True)
+
+;; !(propagateTruthValue (buildTree (OR a (AND b c))) True)
+;; !(propagateTruthValue (buildTreeWithRoot (OR a (AND b c))) True)
+;; !(propagateTruthValue (buildTreeWithRoot (OR a (AND b c))) False)
+;; !(propagateTruthValue (buildTreeWithRoot (NOT (OR a (AND b c)))) False)
+;; !(propagateTruthValue (buildTreeWithRoot (NOT (OR a (AND b c)))) True)
+;; !(propagateTruthValue (buildTreeWithRoot (AND a (OR b c))) False)
+;; !(propagateTruthValue (buildTreeWithRoot (AND a (OR b c))) True)
+;; !(propagateTruthValue (buildTreeWithRoot (NOT (AND a (OR b c)))) True)
+;; !(propagateTruthValue (buildTreeWithRoot (NOT (AND a (OR b c)))) False)
+
+!(reduceToElegance (TreeNode (Value Nil False AND) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
+!(reduceToElegance (TreeNode (Value Nil False OR) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
