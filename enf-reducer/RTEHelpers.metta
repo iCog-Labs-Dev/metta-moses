@@ -59,6 +59,8 @@
     )
     $current
 )
+)
+
 ;; a helper function used inside commandSetIterator.
 (: guardSetChecker (-> (List Tree) Number))
 (= (guardSetChecker $children)(
