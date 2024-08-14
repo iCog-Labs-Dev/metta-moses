@@ -175,7 +175,7 @@
 
 ;;a function which is the reimplementation of the orSubTreeIterator function found in python
 
-(: orSubTreeIterator(-> Tree (List Tree) Tree (List Tree) (List Tree) Signal))
+(: orSubTreeIterator(-> Tree (List Tree) Tree (List Tree) (List Tree) (Signal Tree)))
 (= (orSubTreeIterator $child $remainingChildren $currentNode $dominantSet $commandSet) 
 (let*
  (
