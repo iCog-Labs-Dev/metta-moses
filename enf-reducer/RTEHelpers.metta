@@ -36,26 +36,48 @@
 
 ;; -----------------------------------
 ;; -----------------------------------
-;; -------- Function that adds the target OR Node's child's
-;; -------- guardset to the guardset of its parent, add the 
-;; -------- target OR Node's grandchildren to the parent's list of children, 
-;; -------- remove target OR Node from it's parent's list of children.
+;; -------- Function that 
+;; -------- 1. adds a target OR Node's child's
+;; -------- guardset to the guardset of the target's parent 
+;; -------- 2. adds the target OR Node's children to the parent's list of children 
+;; -------  3. removes target OR Node from it's parent's list of children.
 ;; -----------------------------------
 ;; -----------------------------------
+
+;; ----- Helper Functions for applyOrCut to enhance readability
+(: updateGuardSetTree (-> Tree Tree Tree))
+(= (updateGuardSetTree $target $node2)(
+   let* (
+      ($A (getGuardSet $target))
+      ($B (getGuardSet $node2))
+   )
+    (replaceGuardSet $target (setUnion treeIsMember $A $B))
+  )
+)
+
+(: updateChildrenTree (-> Tree Tree Tree Tree))
+(= (updateChildrenTree $target $node1 $node2)(
+    replaceChildren $target (extend (getChildren $node1) (getChildren $node2))
+  )
+)
+
+(: removeChildFromTree (-> Tree Tree Tree))
+(= (removeChildFromTree $parentNode $target)(
+    replaceChildren $parentNode (findAndRemoveTree $target (getChildren $parentNode))
+  )
+)
 
 (: applyOrCut (-> Tree Tree Tree))
 (= (applyOrCut $child $current)(
   if(== (length (getChildren $child)) 1)
      (let* (
         ($grandChild (head (getChildren $child)))
-        ($A (getGuardSet $current))
-        ($B (getGuardSet $grandChild))
-        ($updatedGuardSetTree (replaceGuardSet $current (setUnion treeIsMember $A $B)))
-        ($updatedChildrenTree (replaceChildren $updatedGuardSetTree (extend (getChildren $grandChild) (getChildren $updatedGuardSetTree))))
-        ($updatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree $child (getChildren $updatedChildrenTree))) )
-        ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree $grandChild (getChildren $updatedTree))) )
+        ($updatedGuardSetTree (updateGuardSetTree $current $grandChild))
+        ($updatedChildrenTree (updateChildrenTree $updatedGuardSetTree $grandChild $updatedGuardSetTree))
+        ($updatedTree (removeChildFromTree $updatedChildrenTree $child) )
+        ($finalUpdatedTree (removeChildFromTree $updatedTree $grandChild) )
      )
-      $finalUpdatedTree
+      $finalUpdatedTree 
     )
     $current
 )
