@@ -205,11 +205,10 @@
 
 ;;a function which is the reimplementation of the andSubTreeIterator function found in python
 
-(: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) (-> (List Tree) Tree (List Tree) (List Tree) Number Signal)))
+(: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) (Signal Tree)))
 (= (andSubTreeIterator $children $currentNode $handleSet $commandSet) 
     (andSubTreeIterator $children $currentNode $handleSet $commandSet 0)
 )
-(: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) Number Signal))
 (= (andSubTreeIterator $children $currentNode $handleSet $commandSet $currentChildIndex) 
 (if (== (length $children) 0) (None $currentNode)
 (let*
