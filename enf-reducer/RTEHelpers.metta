@@ -112,6 +112,7 @@
   )
 )
 
+; orSubTreeElegance implementation
 (: orSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
 (= (orSubTreeElegance $child $current $dominantSet $localCommandSet)
     (let $outcome DELETE ;; Simulate the result returned by the reduceToElegance function, Which is not implemented Currently.
