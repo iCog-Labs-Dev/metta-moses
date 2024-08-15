@@ -308,14 +308,33 @@
     (TreeNode $nodeValue $guardSet (allExceptTargetType $children OR))
   )
 )
-;; (=(prependToGuardSet $holderTree $childTree)
-;;   (let (TreeNode $nodeValue $guardSet $children) $holderTree
-;;     (TreeNode $nodeValue (Cons $holderTree $guardSet) $children)
-;;   )
-;; )
-
 
 (: prependToGuardSet (-> Tree Tree Tree))
 (= (prependToGuardSet (TreeNode $nodeValue $guardSet $children) $node)
   (TreeNode $nodeValue (Cons $node $guardSet) $children)
 )
+;; Returns a boolean value after it compares two trees.
+(: compareSets (-> (List Tree) (List Tree) Bool))
+(=(compareSets $firstSet $secondSet)
+  (let*(
+      ($firstDifference (setDifference treeIsMember $firstSet $secondSet Nil))
+      ($secondDifference (setDifference treeIsMember $secondSet $firstSet Nil))
+    )(if (and (== $firstDifference Nil) (== $secondDifference Nil))
+      True
+      False
+    )
+  )
+)
+
+;;(TreeNode (Value A True LITERAL) Nil Nil)
+;;(TreeNode (Value B True LITERAL) Nil Nil)
+;;(TreeNode (Value C True LITERAL) Nil Nil)
+;;(TreeNode (Value A False LITERAL) Nil Nil)
+;;(TreeNode (Value B False LITERAL) Nil Nil)
+;;(TreeNode (Value C True LITERAL) Nil Nil)
+;;(Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil)))
+;;(Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil)))
+;;!(compareSets (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))))
+;;!(compareSets (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value C False LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))))
+;;!(compareSets (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value C True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil))))
+
