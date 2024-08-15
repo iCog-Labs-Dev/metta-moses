@@ -1,3 +1,8 @@
+;!(register-module! ../../metta-moses-reduction)
+!(import &self metta-moses-reduction:enf-reducer:RTEHelpers)
+!(import &self metta-moses-reduction:utilities:tree-helpers)
+!(import &self metta-moses-reduction:utilities:list-helpers)
+!(import &self metta-moses-reduction:types)
 (: getSignal (-> Signal Signal))
 (= (getSignal $signal) $signal)
 
@@ -45,7 +50,7 @@
         (let $currentTree (TreeNode (Value $value $constraint $type) $guardSet $children)
           (if (> (length $children) 0)
             ;; The action defined below is used to simulate the output of the orSubTreeIterator function call
-            (let $action DISCONNECT
+            (let ($orTree $action) (orSubTreeIterator (head $children) (tail $children) $currentTree $dominantSet $commandSet)
               (if (not (== $action NONE))
                   ($currentTree $action)
                   ($currentTree KEEP)

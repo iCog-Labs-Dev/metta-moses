@@ -331,7 +331,4 @@
 (= (tailOfChildren (TreeNode $nodeValue $guardSet $children))
     (let (Cons $x $xs) $children $xs)
 )
-!(headOfChildren (TreeNode (Value Nil False AND) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)))
-!(tailOfChildren (TreeNode (Value Nil False AND) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)))
-
 
