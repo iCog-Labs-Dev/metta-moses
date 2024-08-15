@@ -241,11 +241,11 @@
         (ADVANCE
          (if (> (length $remainingChildren) 0)
              (orSubTreeIterator (head $remainingChildren) (tail $remainingChildren) $currentNode $dominantSet $commandSet)
-             (None $currentNode)
+             (NONE $currentNode)
          )
         )
         (RESET
-         (None $currentNode)
+         (NONE $currentNode)
         )
         ($else ($action $currentNode))
 
@@ -257,34 +257,33 @@
 ;;a function which is the reimplementation of the andSubTreeIterator function found in python
 
 (: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) (Signal Tree)))
+(: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) Number (Signal Tree)))
 (= (andSubTreeIterator $children $currentNode $handleSet $commandSet) 
     (andSubTreeIterator $children $currentNode $handleSet $commandSet 0)
 )
 (= (andSubTreeIterator $children $currentNode $handleSet $commandSet $currentChildIndex) 
-(if (== (length $children) 0) (None $currentNode)
-(let*
- (
-    ($currentChild (index $currentChildIndex $children))
-    ;($action (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
-    ($action ADVANCE);to be replaced with the above code when 'andSubTreeElegance' is implemented
+    (if (== (length $children) 0) (NONE $currentNode)
+        (let*
+            (
+              ($currentChild (index $currentChildIndex $children))
+              ;($action (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
+              ($action ADVANCE);to be replaced with the above code when 'andSubTreeElegance' is implemented
 
- )
- (case $action
-     (
-        (ADVANCE
-         (if (< (+ $currentChildIndex 1) (length $children) )
-             (andSubTreeIterator $children $currentNode $handleSet $commandSet (+ $currentChildIndex 1))
-             (None $currentNode)
-         )
+            )
+            (case $action
+                (
+                  (ADVANCE
+                    (if (< (+ $currentChildIndex 1) (length $children) )
+                        (andSubTreeIterator $children $currentNode $handleSet $commandSet (+ $currentChildIndex 1))
+                        (NONE $currentNode)
+                    )
+                  )
+                  (RESET
+                    (andSubTreeIterator $children $currentNode $handleSet $commandSet 0) 
+                  )
+                  ($else ($action $currentNode))
+                )
+            )
         )
-        (RESET
-         (andSubTreeIterator $children $currentNode $handleSet $commandSet 0)
-        )
-        ($else ($action $currentNode))
-
-     )
-
- )
-)
-)
+    )
 )
