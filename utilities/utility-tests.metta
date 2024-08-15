@@ -522,7 +522,7 @@
 ;               (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
 ;     )
 
-!(applyToChildren (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
+; !(applyToChildren (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
 
 !(iterator (TreeNode (Value D False LITERAL) Nil Nil) 
           (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil)))
@@ -530,15 +530,15 @@
           )
 ; !(applyOrCut (TreeNode (Value D False LITERAL) Nil Nil) (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)))
 
-; ! (iterator (TreeNode (Value D False LITERAL) Nil Nil) 
+! (iterator (TreeNode (Value D False LITERAL) Nil Nil) 
 
-;    (Cons (TreeNode  (Value B True LITERAL) Nil 
-;          (Cons (TreeNode (Value Nil False OR) Nil Nil) Nil)
-;          )
-;    Nil)
-;     (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
+   (Cons (TreeNode  (Value B True LITERAL) Nil 
+         (Cons (TreeNode (Value Nil False OR) Nil Nil) Nil)
+         )
+   Nil)
+    (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
 
-; )
+)
 
 
 

@@ -213,7 +213,7 @@
                    
                   (if (not (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent))) 
                        (iterator $sndupdatedcurrent $dominant_set $command_set) 
-                       (NONE $sndupdatedcurrent)
+                       ($sndupdatedcurrent NONE)
                    )
                )
            )
