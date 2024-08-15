@@ -173,6 +173,56 @@
     )
 )
 
+
+; helper function for itarator
+
+(: applyToChildren (-> Tree (List Tree) Tree))
+(= (applyToChildren $current $children)
+   (case $children
+     (
+      (Nil $current) ; If there are no more children, return the current node
+      ((Cons $child $rest)
+         ; Apply `applyOrCut` to the current node and the child
+         (let* (
+             ($newChild (applyOrCut $current $child))
+             ($newCurrent (prependChild $current $newChild))
+             )
+              (applyToChildren $newCurrent $rest)
+         )
+      )
+     )
+   )
+)
+
+
+; iterator function
+(: iterator (-> Tree (List Tree) (List Tree) (Tree ReductionSignal)))
+(= (iterator $current $dominant_set $command_set) 
+   (let* (
+       ($previousGuardSet (getGuardSet $current))
+       ($handle_set (setUnion treeIsMember $dominant_set (getGuardSet $current)))
+       (($signal $fstupdatedcurrent) (andSubTreeIterator (getChildren $current) $current $handle_set $command_set))
+      )
+       (if (not (isConsistent $handle_set)) 
+           ($current DELETE) 
+           (if (not (== $signal NONE)) 
+              ($signal $fstupdatedcurrent) 
+               (let
+                   $sndupdatedcurrent (applyToChildren $fstupdatedcurrent (getChildren $fstupdatedcurrent))
+               
+                   
+                  (if (not (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent))) 
+                       (iterator $sndupdatedcurrent $dominant_set $command_set) 
+                       ($sndupdatedcurrent NONE)
+                   )
+               )
+           )
+       )
+   )
+)
+; 
+
+
 ;;a function which is the reimplementation of the orSubTreeIterator function found in python
 
 (: orSubTreeIterator(-> Tree (List Tree) Tree (List Tree) (List Tree) (Signal Tree)))
@@ -206,34 +256,33 @@
 ;;a function which is the reimplementation of the andSubTreeIterator function found in python
 
 (: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) (Signal Tree)))
+(: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) Number (Signal Tree)))
 (= (andSubTreeIterator $children $currentNode $handleSet $commandSet) 
     (andSubTreeIterator $children $currentNode $handleSet $commandSet 0)
 )
 (= (andSubTreeIterator $children $currentNode $handleSet $commandSet $currentChildIndex) 
-(if (== (length $children) 0) (None $currentNode)
-(let*
- (
-    ($currentChild (index $currentChildIndex $children))
-    ;($action (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
-    ($action ADVANCE);to be replaced with the above code when 'andSubTreeElegance' is implemented
+    (if (== (length $children) 0) (NONE $currentNode)
+        (let*
+            (
+              ($currentChild (index $currentChildIndex $children))
+              ;($action (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
+              ($action ADVANCE);to be replaced with the above code when 'andSubTreeElegance' is implemented
 
- )
- (case $action
-     (
-        (ADVANCE
-         (if (< (+ $currentChildIndex 1) (length $children) )
-             (andSubTreeIterator $children $currentNode $handleSet $commandSet (+ $currentChildIndex 1))
-             (None $currentNode)
-         )
+            )
+            (case $action
+                (
+                  (ADVANCE
+                    (if (< (+ $currentChildIndex 1) (length $children) )
+                        (andSubTreeIterator $children $currentNode $handleSet $commandSet (+ $currentChildIndex 1))
+                        (NONE $currentNode)
+                    )
+                  )
+                  (RESET
+                    (andSubTreeIterator $children $currentNode $handleSet $commandSet 0) 
+                  )
+                  ($else ($action $currentNode))
+                )
+            )
         )
-        (RESET
-         (andSubTreeIterator $children $currentNode $handleSet $commandSet 0)
-        )
-        ($else ($action $currentNode))
-
-     )
-
- )
-)
-)
+    )
 )
