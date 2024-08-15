@@ -574,3 +574,18 @@
 ;; !(andSubTreeIterator (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value (C) False LITERAL) Nil Nil) Nil)) (TreeNode (Value (B) False LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value (C) False LITERAL) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value (C) False LITERAL) Nil Nil) Nil)))
 
 
+!(compareset (Cons (TreeNode (Value A False LITERAL) Nil  Nil) Nil) 
+                     (Cons (TreeNode (Value A False LITERAL) Nil  Nil) 
+                     Nil) 
+)
+
+; !(== (length (Cons (TreeNode (Value A False LITERAL) Nil  Nil) 
+;                      Nil) ) (length (Cons (TreeNode (Value A False LITERAL) Nil  Nil) 
+;                      Nil)))
+
+; !(length Nil)
+
+; !(tail (Cons (TreeNode (Value A False LITERAL) Nil  Nil) 
+;                      Nil) )
+; !(findAndRemoveTree (TreeNode (Value A False LITERAL) Nil  Nil) (Cons (TreeNode (Value A False LITERAL) Nil  Nil) 
+;                      Nil))

@@ -198,11 +198,11 @@
 ; iterator function
 (: iterator (-> Tree (List Tree) (List Tree) (Tree ReductionSignal)))
 (= (iterator $current $dominant_set $command_set) 
-   (let 
+   (let* (
        ($previousGuardSet (getGuardSet $current))
        ($handle_set (union $dominant_set (getGuardSet $current)))
        ($fstupdatedcurrent $signal) (andSubTreeIterator (getChildren $current) $current $handle_set $command_set)
-       
+   )
        (if (not (isConsistent $handle_set)) 
            ($current DELETE) 
            (if (not (== $signal NONE)) 

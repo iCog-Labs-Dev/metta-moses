@@ -319,3 +319,28 @@
 (= (prependToGuardSet (TreeNode $nodeValue $guardSet $children) $node)
   (TreeNode $nodeValue (Cons $node $guardSet) $children)
 )
+
+(: compareset (-> (List Tree) (List Tree) Bool))
+(= (compareset $set1 $set2)
+       (if (== (length $set1) (length $set2)) False True))
+(= (compareset $set1 $set2) 
+     (if (== (length $set1) 0)) True False)
+
+(= (compareset Nil $set2) True False)
+
+(= (compareset $set1 $set2) 
+     (
+        let (
+            ($currentElement (index 0 $set1))
+        )
+        (if (not (treeIsMember $set2 $currentElement)) False 
+          (
+            let(
+                ($updatedset2 (findAndRemoveTree $currentElement $updatedset2 ))
+            )
+            (compareset (tail $set1) $updatedset2)
+          )
+        )
+          
+     )
+)
