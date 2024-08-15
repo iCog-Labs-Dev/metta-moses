@@ -45,11 +45,11 @@
                 )
             )
         )
-      )
+     )
       (OR
         (let $currentTree (TreeNode (Value $value $constraint $type) $guardSet $children)
           (if (> (length $children) 0)
-            ;; The action defined below is used to simulate the output of the orSubTreeIterator function call
+            ;;The action defined below is used to simulate the output of the orSubTreeIterator function call
             (let ($orTree $action) (orSubTreeIterator (head $children) (tail $children) $currentTree $dominantSet $commandSet)
               (if (not (== $action NONE))
                   ($currentTree $action)

@@ -190,13 +190,13 @@
         (ADVANCE
          (if (> (length $remainingChildren) 0)
              (orSubTreeIterator (head $remainingChildren) (tail $remainingChildren) $currentNode $dominantSet $commandSet)
-             (None $currentNode)
+             ($currentNode NONE)
          )
         )
         (RESET
-         (None $currentNode)
+         ($currentNode NONE)
         )
-        ($else ($action $currentNode))
+        ($else ($currentNode $action))
 
      )
 
