@@ -201,20 +201,19 @@
    (let* (
        ($previousGuardSet (getGuardSet $current))
        ($handle_set (union $dominant_set (getGuardSet $current)))
-       ($fstupdatedcurrent $signal) (andSubTreeIterator (getChildren $current) $current $handle_set $command_set)
+       (($signal $fstupdatedcurrent) (andSubTreeIterator (getChildren $current) $current $handle_set $command_set))
            )
        (if (not (isConsistent $handle_set)) 
-           ($current DELETE) 
+           (($current DELETE)) 
            (if (not (== $signal NONE)) 
-               ($fstupdatedcurrent $signal) 
+              ( ($signal $fstupdatedcurrent) )
                (let (
-
                    ($sndupdatedcurrent (applyToChildren $fstupdatedcurrent (getChildren $fstupdatedcurrent)))
                )
                    
                   (if (not (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent))) 
                        (iterator $sndupdatedcurrent $dominant_set $command_set) 
-                       ($sndupdatedcurrent NONE)
+                       ((NONE $sndupdatedcurrent))
                    )
                )
            )
