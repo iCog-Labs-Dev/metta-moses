@@ -482,14 +482,18 @@
 )
 
 
-;Intersection function
-(: intersections (-> (List TreeNode) (List TreeNode)(List TreeNode)))
-(= (intersections $intersectionSet $children)
-   (case $children(
-   ;if children list is empty, return list
-   ((Nil) ())
-   ;otherwise , compute the intersection and proceed recursively
-   (($head . $tail)
-     (let* (($newIntersectionSet (intersection $intersectionSet ($head  . guardSet))))
-     (intersections $newIntersectionSet $tail))
-   ))))
+;; -----------------------------------
+;; -------- Set Difference Function
+;; -------- Given two lists of trees, returns a list of elements in the first list but not in the second list.
+;; -----------------------------------
+(: setDifference (-> (List Tree) (List Tree) (List Tree)))
+(= (setDifference Nil $list2) Nil)
+(= (setDifference (Cons $head1 $tail1) $list2)
+   (if (treeIsMember $head1 $list2)
+     (setDifference $tail1 $list2)
+     (Cons $head1 (setDifference $tail1 $list2))
+   )
+)
+
+         
+            
