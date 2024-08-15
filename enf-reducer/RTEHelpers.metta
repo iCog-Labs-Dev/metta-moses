@@ -200,20 +200,20 @@
 (= (iterator $current $dominant_set $command_set) 
    (let* (
        ($previousGuardSet (getGuardSet $current))
-       ($handle_set (union $dominant_set (getGuardSet $current)))
+       ($handle_set (setUnion treeIsMember $dominant_set (getGuardSet $current)))
        (($signal $fstupdatedcurrent) (andSubTreeIterator (getChildren $current) $current $handle_set $command_set))
-           )
+      )
        (if (not (isConsistent $handle_set)) 
-           (($current DELETE)) 
+           ($current DELETE) 
            (if (not (== $signal NONE)) 
-              ( ($signal $fstupdatedcurrent) )
-               (let (
-                   ($sndupdatedcurrent (applyToChildren $fstupdatedcurrent (getChildren $fstupdatedcurrent)))
-               )
+              ($signal $fstupdatedcurrent) 
+               (let
+                   $sndupdatedcurrent (applyToChildren $fstupdatedcurrent (getChildren $fstupdatedcurrent))
+               
                    
                   (if (not (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent))) 
                        (iterator $sndupdatedcurrent $dominant_set $command_set) 
-                       ((NONE $sndupdatedcurrent))
+                       (NONE $sndupdatedcurrent)
                    )
                )
            )
