@@ -173,6 +173,57 @@
     )
 )
 
+
+; helper function for itarator
+
+(: applyToChildren (-> Tree (List Tree) Tree))
+(= (applyToChildren $current $children)
+   (case $children
+     (
+      (Nil $current) ; If there are no more children, return the current node
+      ((Cons $child $rest)
+         ; Apply `applyOrCut` to the current node and the child
+         (let* (
+             ($newChild (applyOrCut $current $child))
+             ($newCurrent (prependChild $current $newChild))
+             )
+              (applyToChildren $newCurrent $rest)
+         )
+      )
+     )
+   )
+)
+
+
+; iterator function
+(: iterator (-> Tree (List Tree) (List Tree) (Tree ReductionSignal)))
+(= (iterator $current $dominant_set $command_set) 
+   (let* (
+       ($previousGuardSet (getGuardSet $current))
+       ($handle_set (union $dominant_set (getGuardSet $current)))
+       ($fstupdatedcurrent $signal) (andSubTreeIterator (getChildren $current) $current $handle_set $command_set)
+           )
+       (if (not (isConsistent $handle_set)) 
+           ($current DELETE) 
+           (if (not (== $signal NONE)) 
+               ($fstupdatedcurrent $signal) 
+               (let (
+
+                   ($sndupdatedcurrent (applyToChildren $fstupdatedcurrent (getChildren $fstupdatedcurrent)))
+               )
+                   
+                  (if (not (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent))) 
+                       (iterator $sndupdatedcurrent $dominant_set $command_set) 
+                       ($sndupdatedcurrent NONE)
+                   )
+               )
+           )
+       )
+   )
+)
+; 
+
+
 ;;a function which is the reimplementation of the orSubTreeIterator function found in python
 
 (: orSubTreeIterator(-> Tree (List Tree) Tree (List Tree) (List Tree) (Signal Tree)))

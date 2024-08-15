@@ -308,14 +308,20 @@
     (TreeNode $nodeValue $guardSet (allExceptTargetType $children OR))
   )
 )
-;; (=(prependToGuardSet $holderTree $childTree)
-;;   (let (TreeNode $nodeValue $guardSet $children) $holderTree
-;;     (TreeNode $nodeValue (Cons $holderTree $guardSet) $children)
-;;   )
-;; )
-
 
 (: prependToGuardSet (-> Tree Tree Tree))
 (= (prependToGuardSet (TreeNode $nodeValue $guardSet $children) $node)
   (TreeNode $nodeValue (Cons $node $guardSet) $children)
+)
+;; Returns a boolean value after it compares two trees.
+(: compareSets (-> (List Tree) (List Tree) Bool))
+(=(compareSets $firstSet $secondSet)
+  (let*(
+      ($firstDifference (setDifference treeIsMember $firstSet $secondSet Nil))
+      ($secondDifference (setDifference treeIsMember $secondSet $firstSet Nil))
+    )(if (and (== $firstDifference Nil) (== $secondDifference Nil))
+      True
+      False
+    )
+  )
 )
