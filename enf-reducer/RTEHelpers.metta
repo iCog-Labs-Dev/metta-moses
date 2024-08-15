@@ -202,15 +202,17 @@
        ($previousGuardSet (getGuardSet $current))
        ($handle_set (union $dominant_set (getGuardSet $current)))
        ($fstupdatedcurrent $signal) (andSubTreeIterator (getChildren $current) $current $handle_set $command_set)
-   )
+           )
        (if (not (isConsistent $handle_set)) 
            ($current DELETE) 
            (if (not (== $signal NONE)) 
                ($fstupdatedcurrent $signal) 
-               (let 
+               (let (
+
                    ($sndupdatedcurrent (applyToChildren $fstupdatedcurrent (getChildren $fstupdatedcurrent)))
+               )
                    
-                   (if (not (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent))) 
+                  (if (not (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent))) 
                        (iterator $sndupdatedcurrent $dominant_set $command_set) 
                        ($sndupdatedcurrent NONE)
                    )
@@ -219,7 +221,7 @@
        )
    )
 )
-
+; 
 
 
 ;;a function which is the reimplementation of the orSubTreeIterator function found in python
