@@ -1,3 +1,4 @@
+
 ;a funcion to remove a child from a tree's listOfChildren and return an updated tree
 (: disconnectSubTreeHandler (-> Tree Tree Tree))
 (=(disconnectSubTreeHandler Nil $tree) $tree)
@@ -161,8 +162,8 @@
           (
             (DELETE
                 (if (> (length (getChildren $current)) 0)
-                    ((let $currentChildren (findAndRemoveTree $child (getChildren $current) )
-                        ($currentChildren ADVANCE)))
+                    (let $currentChildren (findAndRemoveTree $child (getChildren $current))
+                        ($currentChildren ADVANCE))
                     ($current DELETE) 
                 )
             )
@@ -225,14 +226,14 @@
 
 ;;a function which is the reimplementation of the orSubTreeIterator function found in python
 
-(: orSubTreeIterator(-> Tree (List Tree) Tree (List Tree) (List Tree) (Signal Tree)))
+(: orSubTreeIterator (-> Tree (List Tree) Tree (List Tree) (List Tree) (Tree Signal)))
 (= (orSubTreeIterator $child $remainingChildren $currentNode $dominantSet $commandSet) 
 (let*
  (
-    ;($localCommandSet (commandSet))
-    ;($localCommandSetUpdated (commandSetIterator $remainingChildren $localCommandSet))
-    ;($action (orSubTreeElegance $child $currentNode $dominantSet $localCommandSetUpdated))
-    ($action ADVANCE);will be replaced with the above code once the functions 'orSubTreeElegance' and 'commandSetIterator' are implemented
+      ($localCommandSet $commandSet)
+      ($localCommandSetUpdated (commandSetIterator $remainingChildren $localCommandSet))
+      (($orNode $action) (orSubTreeElegance $child $currentNode $dominantSet $localCommandSetUpdated))
+    ;($action ADVANCE);will be replaced with the above code once the functions 'orSubTreeElegance' and 'commandSetIterator' are implemented
 
  )
  (case $action

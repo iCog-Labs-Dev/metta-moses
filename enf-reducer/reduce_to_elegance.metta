@@ -1,8 +1,8 @@
 ;!(register-module! ../../metta-moses-reduction)
-!(import &self metta-moses-reduction:enf-reducer:RTEHelpers)
-!(import &self metta-moses-reduction:utilities:tree-helpers)
-!(import &self metta-moses-reduction:utilities:list-helpers)
-!(import &self metta-moses-reduction:types)
+;; !(import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
+;; !(import! &self metta-moses-reduction:utilities:tree-helpers)
+;; !(import! &self metta-moses-reduction:utilities:list-helpers)
+;; !(import! &self metta-moses-reduction:types)
 (: getSignal (-> Signal Signal))
 (= (getSignal $signal) $signal)
 
@@ -30,7 +30,7 @@
                     (if (not (== (length $resultSet) 0))
                         ($updatedCurrentTree DELETE)
                         ;; The action defined below is used to simulate the output of the iteractor function call
-                        (let $action DISCONNECT 
+                        (let ($finTree $action) (iterator $updatedCurrentTree $dominantSet $commandSet)
                           (if (not (== $action NONE))
                             ($updatedCurrentTree $action)
 
@@ -55,7 +55,9 @@
                   ($currentTree $action)
                   ($currentTree KEEP)
               )
+              
             )
+            
             ($currentTree KEEP)
           )
         )
@@ -63,3 +65,5 @@
     )
   )
 )
+
+
