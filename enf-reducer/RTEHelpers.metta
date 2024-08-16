@@ -87,7 +87,7 @@
 
 (: andSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Tree Signal)))
 (= (andSubTreeElegance $child $current $handleSet $commandSet)(
- let $outcome DELETE (
+ let ($finalTree $outcome) (reduceToElegance $child $handleSet $commandSet) (
   case $outcome (
     (DELETE ($child (replaceChildren $current Nil) DELETE))
     (DISCONNECT (
@@ -156,7 +156,7 @@
 ; orSubTreeElegance implementation
 (: orSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
 (= (orSubTreeElegance $child $current $dominantSet $localCommandSet)
-    (let $outcome DELETE ;; Simulate the result returned by the reduceToElegance function, Which is not implemented Currently.
+    (let ($finalTree $outcome) (reduceToElegance $child $dominantSet $localCommandSet) ;; Simulate the result returned by the reduceToElegance function, Which is not implemented Currently.
                          ;; The possible outcomes of reduceToElegance function are DELETE, DISCONNECT, or KEEP.
         (case $outcome
           (
@@ -266,8 +266,8 @@
         (let*
             (
               ($currentChild (index $currentChildIndex $children))
-              ;($action (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
-              ($action ADVANCE);to be replaced with the above code when 'andSubTreeElegance' is implemented
+              (($updatedChild $updatedCurrent $action) (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
+              ;;($action ADVANCE);to be replaced with the above code when 'andSubTreeElegance' is implemented
 
             )
             (case $action
