@@ -141,7 +141,7 @@
 ;; -----------------------------------
 
 (: commandSetIterator(-> (List Tree) (List Tree) (List Tree)))
-(= (commandSetIterator Nil $localCommandSet)($localCommandSet))
+(= (commandSetIterator Nil $localCommandSet) $localCommandSet)
 (= (commandSetIterator (Cons $x $xs) $localCommandSet)(
     if(and 
         (and (== (getChildren (head (Cons $x $xs))) Nil) (== (guardSetChecker (Cons $x $xs)) 1))
@@ -169,8 +169,10 @@
             )
             (DISCONNECT ($current DISCONNECT))
             (KEEP ($current ADVANCE))
+            ($_ ($finalTree $outcome))
           )
         )
+        
     )
 )
 

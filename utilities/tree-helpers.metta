@@ -325,11 +325,11 @@
     )
   )
 )
-;;retrieves for the head of Children in a tree given a tree
-(: headOfChildren (-> Tree Tree))
-(= (headOfChildren NilNode) NilNode)
-(= (headOfChildren (TreeNode $nodeValue $guardSet $children))
-  (let (Cons $x $xs) $children $x)
+;;retrieves for the head of Children in a List of tree given a tree
+(: headOfChildren (-> (List Tree) Tree))
+(= (headOfChildren Nil) NilNode)
+(= (headOfChildren (Cons $x $xs))
+  $x
 )
 ;;retrieves for the tail of Children in a tree it provides a list of tree.
 (: tailOfChildren (-> Tree (List Tree)))
