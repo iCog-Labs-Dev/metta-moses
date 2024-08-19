@@ -1,5 +1,5 @@
 (: postProcessing (-> Tree List))
-(= (postProcessing Nil) Nil)
+(= (postProcessing NilNode) Nil)
 (= (postProcessing (TreeNode (Value $value $truthValue $nodeType) $guardSet $children))
 		(if (== $nodeType LITERAL)
 			$value
