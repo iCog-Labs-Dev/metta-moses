@@ -427,11 +427,10 @@
  ;; !(containsTerminalAndNode (Cons (TreeNode (Value Nil False OR) Nil Nil) Nil))
 
 
- ; ! (intersections (Cons (getChildren (buildTree (AND A E)))
- ;         (Cons (getChildren (buildTree (AND A G)))
- ;             (Cons (getChildren (buildTree (AND B A)))
- ;                 (Cons (getChildren (buildTree (AND A F))) Nil)))))
-
+;!(intersections 
+;                (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value F False LITERAL) Nil Nil) Nil))
+;                (Cons (TreeNode (Value A False LITERAL) (Cons (TreeNode (Value F False LITERAL) (Cons (TreeNode (Value F False LITERAL) Nil Nil) Nil) Nil) Nil) Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value F False LITERAL) Nil Nil) Nil)))
+;)
 
 ;; -----------------------------------
  ;; -----------------------------------
@@ -459,8 +458,26 @@
  ;;      (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) (Cons (TreeNode (Value B False AND) Nil Nil) Nil))) Nil))
  ;;      (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) (Cons (TreeNode (Value B False AND) Nil Nil) Nil))) Nil)) (Cons (TreeNode (Value A False AND) Nil Nil) (Cons (TreeNode (Value B False AND) Nil Nil) Nil)))))
 
- ;;!(applyAndCut
+;;!(applyAndCut
  ;;    (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil)))
  ;;    (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B False AND) Nil Nil) Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil))) Nil)))
 
 ;  ! (orSubTreeElegance (TreeNode (Value A False LITERAL) Nil Nil) (buildTree (AND A B)) Nil Nil)
+;!(length (Cons 1 (Cons 2 (Cons 3 Nil))))
+;!(lambdaFunc computeGrandchildGuardset (Cons (TreeNode (Value B False AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) (Cons (TreeNode (Value X True LITERAL) Nil Nil) Nil))
+;  (Cons (TreeNode (Value A False AND) Nil Nil) Nil)
+;)
+;!(findAndReplaceChild 
+;  (TreeNode (Value A False LITERAL) Nil Nil) 
+;  (TreeNode (Value B True LITERAL) Nil Nil) 
+;  (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value X False LITERAL) Nil Nil) Nil))
+;)
+;!(findAndReplaceChild 
+;  (TreeNode (Value B True LITERAL) Nil Nil) 
+;  (TreeNode (Value A False LITERAL) Nil Nil) 
+;  (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value X False LITERAL) Nil Nil) Nil))
+;)
+;!(decoupleAndCutOutput ((TreeNode (Value C False LITERAL) Nil Nil) False)) 
+;!(map decoupleAndCutOutput (Cons ((TreeNode (Value C False LITERAL) Nil Nil) False) Nil))
+;!(any (map decoupleAndCutOutput (Cons ((TreeNode (Value C False LITERAL) Nil Nil) False) Nil)))
+;;!(map getChildren (Cons (TreeNode (Value C False LITERAL) Nil Nil) (Cons (TreeNode (Value D True LITERAL) Nil Nil) Nil) ))

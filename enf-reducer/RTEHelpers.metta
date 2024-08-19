@@ -62,3 +62,60 @@
         )
     )
 )
+
+;Helper functions for `andSubTreeElegance`
+
+;;This function applies a function to each values of the first list and the second list.
+;;The second list will be repeatedly passed without changing while the elements of the first list change.
+(: mapList (-> Atom (List $t) (List $t) (List $t)))
+(= (mapList $f Nil $rs) Nil)
+(= (mapList $f (Cons $x $xs) $rs)
+  (Cons ($f $x $rs) (mapList $f $xs $rs))
+)
+
+;;A function that finds a tree node from a list of trees and replaces it with a new node.
+(: findAndReplaceChild (-> Tree Tree (List Tree) (List Tree)))
+(= (findAndReplaceChild $oldChild $newChild Nil)(Nil))
+(= (findAndReplaceChild $oldChild $newChild (Cons $x $xs))
+  (if (== (isNodeEqual $oldChild $x) True)(Cons $newChild $xs)(Cons $x (findAndReplaceChild $oldChild $newChild $xs)))
+)
+
+;;a function that decouples the tuple output of `applyAndCut` and returns only the second element of the tuple.
+(: decoupleAndCutOutput (-> (Tree Bool) Bool))
+(= (decoupleAndCutOutput ((TreeNode $nodeValue $guardSet $children) $bool)) $bool)
+
+(: andSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
+(= (andSubTreeElegance $child $current $handleSet $commandSet) (
+  let $outcome (reduceToElegance $child $handleSet $commandSet) (
+    case $outcome (
+      (DELETE ((replaceChildren $current Nil) DELETE))
+      (DISCONNECT (replaceChildren $current (findAndRemoveTree $child (getChildren $current))))
+      (KEEP (
+        let $resultSet (intersections Nil (getChildren $child)) (
+          if(> (length $resultSet) 0) 
+          (
+            let* (
+              ($updatedGuardSetTree (replaceGuardSet $current (setUnion treeIsMember (getGuardSet $current) $resultSet)))
+              ($newChild (mapList computeGrandChildGuardset (getChildren $child) $resultSet))
+              ($updatedNewChild (mapList applyAndCut (getChildren $newChild) $newChild))
+              ($finalResult (replaceChildren $updatedGuardSetTree (findAndReplaceChild $child $updatedNewChild (getChildren $updatedGuardSetTree))))
+            )
+            $finalResult RESET
+          )
+          (
+            let* (
+              ($res (mapList applyAndCut (getChildren $child) $child))
+              ($bools (map decoupleAndCutOutput $res))
+              ($containsTerminalAndNode (any $bools))
+            )
+            (
+              if (== $containsTerminalAndNode True)($current ADVANCE)($current RESET)
+            )
+          )
+          )
+        )
+      )
+    )
+  )
+)
+)

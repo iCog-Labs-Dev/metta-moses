@@ -147,6 +147,24 @@
     )
 )
 
+;;a function that computes intersection of lists of trees.
+;;This is taken from the Python implementation with the same name.
+(: intersections (-> (List Tree) (List Tree) (List Tree)))
+(= (intersections $intersectionSet $children)
+  (
+    if(== (length $children) 0) Nil 
+      (
+        let* 
+        (
+          ($guardSet (getGuardSet (head $children)))
+          ($intersections (treeIntersection $intersectionSet $guardSet))
+          ($finalResult (intersections $intersections (tail $children)))
+        )
+        $finalResult
+      )
+  )
+)
+
 ; ------------------------------------
 
 (: replaceGuardSet (-> Tree (List Tree) Tree) )
@@ -239,7 +257,7 @@
 (: computeGrandchildGuardset (-> Tree (List Tree) Tree))
 (= (computeGrandchildGuardset NilNode $resultSet) NilNode)
 (= (computeGrandchildGuardset (TreeNode $nodeValue $guardSet $children) $resultSet)
-  (TreeNode $nodeValue (setDifference $guardSet $resultSet Nil) $children)
+  (TreeNode $nodeValue (setDifference treeIsMember $guardSet $resultSet Nil) $children)
 )
 
 ; A function that detect consistency(value match and constrient difference) between a single tree and list of tree
