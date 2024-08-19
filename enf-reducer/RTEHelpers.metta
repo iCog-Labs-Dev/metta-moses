@@ -156,23 +156,33 @@
 ; orSubTreeElegance implementation
 (: orSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
 (= (orSubTreeElegance $child $current $dominantSet $localCommandSet)
-    (let ($finalTree $outcome) (reduceToElegance $child $dominantSet $localCommandSet) ;; Simulate the result returned by the reduceToElegance function, Which is not implemented Currently.
-                         ;; The possible outcomes of reduceToElegance function are DELETE, DISCONNECT, or KEEP.
-        (case $outcome
+    (let*
+      (
+        ($updatedChild $outcome) (reduceToElegance $child $dominantSet $localCommandSet)
+        ;; TODO: The `findAndReplaceChild` function isn't implemented yet.
+        ;; ($updatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $current)))
+      )
+      (case $outcome
           (
             (DELETE
                 (if (> (length (getChildren $current)) 0)
-                    (let $currentChildren (findAndRemoveTree $child (getChildren $current))
-                        ($currentChildren ADVANCE))
-                    ($current DELETE) 
+                    (let* 
+                        (
+                          ($updatedChildren (findAndRemoveTree $child (getChildren $current)))
+                          ($removedChildCurrent (replaceChildren $current $updatedChildren))
+                        )
+                        ($removedChildCurrent ADVANCE)
+                    )
+                    ;; TODO: Replace `current` with `updatedCurrent` after the implementation of `findAndReplaceChild` function.
+                    ($current DELETE)
                 )
             )
+            ;; TODO: Replace `current` with `updatedCurrent` after the implementation of `findAndReplaceChild` function for the following cases.
             (DISCONNECT ($current DISCONNECT))
             (KEEP ($current ADVANCE))
-            ($_ ($finalTree $outcome))
+            ($_ ($current $outcome))
           )
-        )
-        
+      )
     )
 )
 
