@@ -89,20 +89,20 @@
 (= (andSubTreeElegance $child $current $handleSet $commandSet)(
  let ($finalTree $outcome) (reduceToElegance $child $handleSet $commandSet) (
   case $outcome (
-    (DELETE ($child (replaceChildren $current Nil) DELETE))
+    (DELETE ($child (replaceChildren $finalTree Nil) DELETE))
     (DISCONNECT (
       let* (
-        ($updatedCurrentTree (findAndRemoveTree $child (getChildren $current)))
+        ($updatedCurrentTree (findAndRemoveTree $child (getChildren $finalTree)))
         ($updatedChildTree (replaceChildren $child Nil))
         )
         ($updatedChildTree $updatedCurrentTree ADVANCE)
       )  
     )
     (KEEP (
-      let $resultSet (treeIntersection Nil (getChildren $current)) (
+      let $resultSet (treeIntersection Nil (getChildren $finalTree)) (
         if (> (length $resultSet) 0) (
           let* (
-            ($updatedGuardSetTree (replaceGuardSet $current (setUnion (getGuardSet $current) $resultSet)))
+            ($updatedGuardSetTree (replaceGuardSet $finalTree (setUnion (getGuardSet $finalTree) $resultSet)))
             ($updatedChildrenTree (replaceChildren $child (map computeGrandChildGuardSet (getChildren $updatedGuardSetTree))))
             ($finalUpdatedTree (replaceChildren $child (map applyAndCut (getChildren $updatedGuardSetTree))))
           )
@@ -242,7 +242,7 @@
      (
         (ADVANCE
          (if (> (length $remainingChildren) 0)
-             (orSubTreeIterator (head $remainingChildren) (tail $remainingChildren) $currentNode $dominantSet $commandSet)
+             (orSubTreeIterator (head $remainingChildren) (tail $remainingChildren) $orNode $dominantSet $commandSet)
              ($currentNode NONE)
          )
         )
