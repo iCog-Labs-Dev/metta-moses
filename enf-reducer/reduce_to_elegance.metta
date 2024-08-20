@@ -1,3 +1,8 @@
+;!(register-module! ../../metta-moses-reduction)
+;; !(import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
+;; !(import! &self metta-moses-reduction:utilities:tree-helpers)
+;; !(import! &self metta-moses-reduction:utilities:list-helpers)
+;; !(import! &self metta-moses-reduction:types)
 (: getSignal (-> Signal Signal))
 (= (getSignal $signal) $signal)
 
@@ -25,14 +30,14 @@
                     (if (not (== (length $resultSet) 0))
                         ($updatedCurrentTree DELETE)
                         ;; The action defined below is used to simulate the output of the iteractor function call
-                        (let $action DISCONNECT 
+                        (let ($finTree $action) (iterator $updatedCurrentTree $dominantSet $commandSet)
                           (if (not (== $action NONE))
-                            ($updatedCurrentTree $action)
+                            ($finTree $action)
 
                             ;; Determine if current is a site for 0-Subsumption
                             (if (and (== (length $children) 0) (== (length $finalGuardSet) 0))
-                                ($updatedCurrentTree DISCONNECT) 
-                                ($updatedCurrentTree KEEP)
+                                ($finTree DISCONNECT) 
+                                ($finTree KEEP)
                             )
                           )
                         )
@@ -40,21 +45,26 @@
                 )
             )
         )
-      )
+     )
       (OR
         (let $currentTree (TreeNode (Value $value $constraint $type) $guardSet $children)
           (if (> (length $children) 0)
-            ;; The action defined below is used to simulate the output of the orSubTreeIterator function call
-            (let $action DISCONNECT
+            ;;The action defined below is used to simulate the output of the orSubTreeIterator function call
+            (let ($orTree $action) (orSubTreeIterator (headOfChildren $children) (tail $children) $currentTree $dominantSet $commandSet)
               (if (not (== $action NONE))
-                  ($currentTree $action)
-                  ($currentTree KEEP)
+                  ($orTree $action)
+                  ($orTree KEEP)
               )
+               
             )
+            
             ($currentTree KEEP)
           )
+         
         )
       )
     )
   )
 )
+
+
