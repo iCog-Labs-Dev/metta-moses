@@ -113,6 +113,15 @@
 )
 
 ; orSubTreeElegance implementation
+(: Signal Type)
+(: ReductionSignal Signal)
+(: IterationSignal Signal)
+(: DELETE ReductionSignal)
+(: DISCONNECT ReductionSignal)
+(: KEEP ReductionSignal)
+(: NONE ReductionSignal)
+(: ADVANCE IterationSignal)
+
 (: orSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
 (= (orSubTreeElegance $child $current $dominantSet $localCommandSet)
     (let ($finalTree $outcome) (reduceToElegance $child $dominantSet $localCommandSet) ;; Simulate the result returned by the reduceToElegance function, Which is not implemented Currently.
@@ -144,8 +153,7 @@
 (= (mapList $f (Cons $x $xs) $rs)
   (Cons ($f $x $rs) (mapList $f $xs $rs))
 )
-
-;;This function applies a function to each values of the first list paired with the same parent node.
+;;A function that applies a function to the elements of the first list and a constant parent.
 (: mapParent (-> Atom (List $t) $t (List $t)))
 (= (mapParent $f Nil $parent) Nil)
 (= (mapParent $f (Cons $x $xs) $parent)
@@ -207,6 +215,7 @@
       )
     )
   )
+)
 
 ; helper function for itarator
 
@@ -322,8 +331,5 @@
      )
 
  )
-)
 
-    )
 
-)
