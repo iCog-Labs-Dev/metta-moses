@@ -59,8 +59,7 @@
 )
 
 ; Function to remove duplicates given a list and a compare compareFunc.
-(: removeDuplicates (-> (-> $t (List $t) Bool) (List $t) (List $t)))
-(= (removeDuplicates $compareFunc Nil) Nil)
+memberWith(= (removeDuplicates $compareFunc Nil) Nil)
 (= (removeDuplicates $compareFunc (Cons $x $xs))
     (if ($compareFunc $x $xs)
         (removeDuplicates $compareFunc $xs)

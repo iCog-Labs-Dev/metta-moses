@@ -64,7 +64,7 @@
 ;; -----------------------------------
 ;; -----------------------------------
 
-(: getGuardSet (-> Tree TreeList))
+(: getGuardSet (-> Tree (List Tree)))
 (= (getGuardSet (TreeNode $nodeValue $guardSet $children)) $guardSet)
 
 ; Given a tree and the new type, it returns a new tree with the new type
@@ -330,14 +330,33 @@
     (TreeNode $nodeValue $guardSet (allExceptTargetType $children OR))
   )
 )
-;; (=(prependToGuardSet $holderTree $childTree)
-;;   (let (TreeNode $nodeValue $guardSet $children) $holderTree
-;;     (TreeNode $nodeValue (Cons $holderTree $guardSet) $children)
-;;   )
-;; )
-
 
 (: prependToGuardSet (-> Tree Tree Tree))
 (= (prependToGuardSet (TreeNode $nodeValue $guardSet $children) $node)
   (TreeNode $nodeValue (Cons $node $guardSet) $children)
 )
+;; Returns a boolean value after it compares two trees.
+(: compareSets (-> (List Tree) (List Tree) Bool))
+(=(compareSets $firstSet $secondSet)
+  (let*(
+      ($firstDifference (setDifference treeIsMember $firstSet $secondSet Nil))
+      ($secondDifference (setDifference treeIsMember $secondSet $firstSet Nil))
+    )(if (and (== $firstDifference Nil) (== $secondDifference Nil))
+      True
+      False
+    )
+  )
+)
+;;retrieves for the head of Children in a List of tree given a tree
+(: headOfChildren (-> (List Tree) Tree))
+(= (headOfChildren Nil) NilNode)
+(= (headOfChildren (Cons $x $xs))
+  $x
+)
+;;retrieves for the tail of Children in a tree it provides a list of tree.
+(: tailOfChildren (-> Tree (List Tree)))
+(= (tailOfChildren NilNode) Nil)
+(= (tailOfChildren (TreeNode $nodeValue $guardSet $children))
+    (let (Cons $x $xs) $children $xs)
+)
+
