@@ -33,6 +33,15 @@
     (Cons ($func $x) (map $func $xs))
 )
 
+; Function to apply a function to each element in a list, and accumulate the results in a list, merge them with cons-atom
+(: consMap (-> Atom $ac (List $t) (List $tt)))
+(= (consMap $func $ac Nil) $ac)
+(= (consMap $func $ac (Cons $x $xs))
+		(let $result ($func $x)
+			(consMap $func (cons-atom $result $ac) $xs)
+		)
+)
+
 ; Function to check the existance of an element in a list given the comparing function
 (: memberWith (-> (-> $t $t Bool) $t (List $t) Bool))
 (= (memberWith $f $a Nil) False)
@@ -203,7 +212,6 @@ memberWith(= (removeDuplicates $compareFunc Nil) Nil)
         (setDifference $compareFunc $xs (Cons $y $ys) (extend $accumulator (Cons $x Nil)))
     )
 )
-
 
 (: setUnion (-> (-> $t (List $t) Bool) (List $t) (List $t) (List $t)))
 (= (setUnion $compareFunc $list1 $list2)

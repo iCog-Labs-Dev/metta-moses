@@ -34,8 +34,6 @@
   )
 )
 
-
-
 ;; -----------------------------------
 ;; -----------------------------------
 ;; -------- Function that 
@@ -84,45 +82,6 @@
     $current
 )
 )
-
-(: andSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Tree Signal)))
-(= (andSubTreeElegance $child $current $handleSet $commandSet)(
- let ($finalTree $outcome) (reduceToElegance $child $handleSet $commandSet) (
-  case $outcome (
-    (DELETE ($child (replaceChildren $finalTree Nil) DELETE))
-    (DISCONNECT (
-      let* (
-        ($updatedCurrentTree (findAndRemoveTree $child (getChildren $finalTree)))
-        ($updatedChildTree (replaceChildren $child Nil))
-        )
-        ($updatedChildTree $updatedCurrentTree ADVANCE)
-      )  
-    )
-    (KEEP (
-      let $resultSet (treeIntersection Nil (getChildren $finalTree)) (
-        if (> (length $resultSet) 0) (
-          let* (
-            ($updatedGuardSetTree (replaceGuardSet $finalTree (setUnion (getGuardSet $finalTree) $resultSet)))
-            ($updatedChildrenTree (replaceChildren $child (map computeGrandChildGuardSet (getChildren $updatedGuardSetTree))))
-            ($finalUpdatedTree (replaceChildren $child (map applyAndCut (getChildren $updatedGuardSetTree))))
-          )
-          ($finalUpdatedTree $updatedGuardSetTree RESET)
-          )(
-            let* (
-              ($bools (map applyAndCut (getChildren $updatedGuardSetTree)))
-              ($containsTerminalAndNode (any $bools))
-            )
-            (
-              if (== $containsTerminalAndNode True)($child $current ADVANCE)($child $current RESET)
-            )
-          )
-      )
-      )
-    )
-  )
- ) 
-))
-
 
 ;; a helper function used inside commandSetIterator.
 (: guardSetChecker (-> (List Tree) Number))
@@ -176,6 +135,78 @@
     )
 )
 
+;Helper functions for `andSubTreeElegance`
+
+;;This function applies a function to each values of the first list and the second list.
+;;The second list will be repeatedly passed without changing while the elements of the first list change.
+(: mapList (-> Atom (List $t) (List $t) (List $t)))
+(= (mapList $f Nil $rs) Nil)
+(= (mapList $f (Cons $x $xs) $rs)
+  (Cons ($f $x $rs) (mapList $f $xs $rs))
+)
+
+;;This function applies a function to each values of the first list paired with the same parent node.
+(: mapParent (-> Atom (List $t) $t (List $t)))
+(= (mapParent $f Nil $parent) Nil)
+(= (mapParent $f (Cons $x $xs) $parent)
+  (Cons ($f $x $parent) (mapParent $f $xs $parent))
+)
+;;A function that finds a tree node from a list of trees and replaces it with a new node.
+(: findAndReplaceChild (-> Tree Tree (List Tree) (List Tree)))
+(= (findAndReplaceChild $oldChild $newChild Nil) Nil)
+(= (findAndReplaceChild $oldChild $newChild (Cons $x $xs))
+  (if (== (isNodeEqual $oldChild $x) True)(Cons $newChild $xs)(Cons $x (findAndReplaceChild $oldChild $newChild $xs)))
+)
+
+;;a function that decouples the tuple output of `applyAndCut` and returns only the second element of the tuple.
+(: decoupleAndCutOutput (-> (Tree Bool) Bool))
+(= (decoupleAndCutOutput ((TreeNode $nodeValue $guardSet $children) $bool)) $bool)
+
+(: andSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
+(= (andSubTreeElegance $child $current $handleSet $commandSet) 
+  (
+    let ($updatedChild $outcome) (reduceToElegance $child $handleSet $commandSet) 
+    (
+      case $outcome 
+      (
+        (DELETE ( (replaceChildren $current Nil) DELETE) )
+        (DISCONNECT ( (replaceChildren $current (findAndRemoveTree $child (getChildren $current)) ) ADVANCE) )
+        (KEEP 
+        (
+          let* 
+          (
+            ($updatedCurrentTree (replaceChildren $current (findAndReplaceChild $child $updatedChild (getChildren $current))))
+            ($resultSet (intersections Nil (getChildren $updatedChild)))
+          )
+          (
+             if(> (length $resultSet) 0) 
+               (
+                 let* 
+                 (
+                  ($updatedGuardSetTree (setUnion treeIsMember (getGuardSet $updatedCurrentTree) $resultSet))
+                  ($newChild (mapList computeGrandChildGuardset (getChildren $child) $resultSet))
+                  ($updatedNewChild (mapParent applyAndCut (getChildren $newChild) $newChild))
+                  ($finalResult (replaceChildren $updatedGuardSetTree (findAndReplaceChild $child $updatedNewChild (getChildren $updatedGuardSetTree))))
+                 )
+                 ($finalResult RESET)
+               )
+               (
+                 let* 
+                 (
+                  ($res (mapParent applyAndCut (getChildren $child) $child))
+                  ($bools (map decoupleAndCutOutput $res))
+                  ($containsTerminalAndNode (any $bools))
+                 )
+                 (
+                   if (== $containsTerminalAndNode True)($updatedCurrentTree ADVANCE)($updatedCurrentTree RESET)
+                 )
+               )
+            )
+          )
+        )
+      )
+    )
+  )
 
 ; helper function for itarator
 
@@ -223,8 +254,6 @@
        )
    )
 )
-; 
-
 
 ;;a function which is the reimplementation of the orSubTreeIterator function found in python
 
@@ -287,5 +316,14 @@
                 )
             )
         )
+
+        ($else ($action $currentNode))
+
+     )
+
+ )
+)
+
     )
+
 )
