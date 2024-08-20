@@ -167,43 +167,44 @@
 (= (decoupleAndCutOutput ((TreeNode $nodeValue $guardSet $children) $bool)) $bool)
 
 (: andSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
-(= (andSubTreeElegance $child $current $handleSet $commandSet) (
-  let $outcome (reduceToElegance $child $handleSet $commandSet) (
-    case $outcome (
-      (DELETE ((replaceChildren $current Nil) DELETE))
-      (DISCONNECT (replaceChildren $current (findAndRemoveTree $child (getChildren $current))))
-      (KEEP (
-        let $resultSet (intersections Nil (getChildren $child)) (
-          if(> (length $resultSet) 0) 
+(= (andSubTreeElegance $child $current $handleSet $commandSet) 
+   (let $outcome (reduceToElegance $child $handleSet $commandSet) 
+        (case $outcome 
           (
-            let* (
-              ($updatedGuardSetTree (replaceGuardSet $current (setUnion treeIsMember (getGuardSet $current) $resultSet)))
-              ($newChild (mapList computeGrandChildGuardset (getChildren $child) $resultSet))
-              ($updatedNewChild (mapList applyAndCut (getChildren $newChild) $newChild))
-              ($finalResult (replaceChildren $updatedGuardSetTree (findAndReplaceChild $child $updatedNewChild (getChildren $updatedGuardSetTree))))
+            (DELETE ((replaceChildren $current Nil) DELETE))
+            (DISCONNECT (replaceChildren $current (findAndRemoveTree $child (getChildren $current))))
+            (KEEP 
+              (let $resultSet (intersections Nil (getChildren $child)) 
+                (if(> (length $resultSet) 0) 
+                  (let* 
+                    (
+                      ($updatedGuardSetTree (replaceGuardSet $current (setUnion treeIsMember (getGuardSet $current) $resultSet)))
+                      ($newChild (mapList computeGrandChildGuardset (getChildren $child) $resultSet))
+                      ($updatedNewChild (mapList applyAndCut (getChildren $newChild) $newChild))
+                      ($finalResult (replaceChildren $updatedGuardSetTree (findAndReplaceChild $child $updatedNewChild (getChildren $updatedGuardSetTree))))
+                    )
+                    ($finalResult RESET)
+                  )
+                  (let* 
+                    (
+                      ($res (mapList applyAndCut (getChildren $child) $child))
+                      ($bools (map decoupleAndCutOutput $res))
+                      ($containsTerminalAndNode (any $bools))
+                    )
+                    (if (== $containsTerminalAndNode True)
+                        ($current ADVANCE)
+                        ($current RESET)
+                    )
+                  )
+                )
+              )
             )
-            $finalResult RESET
-          )
-          (
-            let* (
-              ($res (mapList applyAndCut (getChildren $child) $child))
-              ($bools (map decoupleAndCutOutput $res))
-              ($containsTerminalAndNode (any $bools))
-            )
-            (
-              if (== $containsTerminalAndNode True)($current ADVANCE)($current RESET)
-            )
-          )
           )
         )
-      )
-    )
-  )
-            ($_ ($current $outcome))
-          )
-      )
-    )
+   )
 )
+    
+
 
 
 ; helper function for itarator
