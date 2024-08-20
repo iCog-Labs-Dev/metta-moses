@@ -21,7 +21,7 @@
                       )
                       $finalUpdatedCurrent
                   )
-                  (if (or (== $currentNodeType ANDpropagate_truth_value) (== $currentNodeType OR))
+                  (if (or (== $currentNodeType AND) (== $currentNodeType OR))
                       (if  (== $currentNodeType $centerNodeType)
                             (let* 
                               (

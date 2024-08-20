@@ -4,6 +4,7 @@
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
 ! (import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
+! (import! &self metta-moses-reduction:enf-reducer:reduce_to_elegance)
 
  ;; -----------------------------------
  ;; -----------------------------------
@@ -589,11 +590,13 @@
 ;                    )
 ;)
 ;  ! (orSubTreeElegance (TreeNode (Value A False LITERAL) Nil Nil) (buildTree (AND A B)) Nil Nil)
-
-
-;!(mapList computeGrandchildGuardset (Cons (TreeNode (Value B False AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) (Cons (TreeNode (Value X True LITERAL) Nil Nil) Nil))
-;  (Cons (TreeNode (Value A False AND) Nil Nil) Nil)
-;)
+;!(andSubTreeElegance (TreeNode (Value b True AND) Nil Nil) (TreeNode (Value Nil False AND) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
+; !(andSubTreeElegance 
+;    (TreeNode (Value Nil True OR) Nil Nil) 
+;    (TreeNode (Value Nil False AND) (Cons (TreeNode (Value Nil True OR) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil))
+;    Nil
+;    Nil
+; )
 ;!(findAndReplaceChild 
 ;  (TreeNode (Value A False LITERAL) Nil Nil) 
 ;  (TreeNode (Value B True LITERAL) Nil Nil) 

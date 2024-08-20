@@ -32,12 +32,12 @@
                         ;; The action defined below is used to simulate the output of the iteractor function call
                         (let ($finTree $action) (iterator $updatedCurrentTree $dominantSet $commandSet)
                           (if (not (== $action NONE))
-                            ($updatedCurrentTree $action)
+                            ($finTree $action)
 
                             ;; Determine if current is a site for 0-Subsumption
                             (if (and (== (length $children) 0) (== (length $finalGuardSet) 0))
-                                ($updatedCurrentTree DISCONNECT) 
-                                ($updatedCurrentTree KEEP)
+                                ($finTree DISCONNECT) 
+                                ($finTree KEEP)
                             )
                           )
                         )
@@ -52,8 +52,8 @@
             ;;The action defined below is used to simulate the output of the orSubTreeIterator function call
             (let ($orTree $action) (orSubTreeIterator (headOfChildren $children) (tail $children) $currentTree $dominantSet $commandSet)
               (if (not (== $action NONE))
-                  ($currentTree $action)
-                  ($currentTree KEEP)
+                  ($orTree $action)
+                  ($orTree KEEP)
               )
                
             )

@@ -250,8 +250,6 @@
        )
    )
 )
-; 
-
 
 ;;a function which is the reimplementation of the orSubTreeIterator function found in python
 
@@ -269,7 +267,7 @@
      (
         (ADVANCE
          (if (> (length $remainingChildren) 0)
-             (orSubTreeIterator (head $remainingChildren) (tail $remainingChildren) $currentNode $dominantSet $commandSet)
+             (orSubTreeIterator (head $remainingChildren) (tail $remainingChildren) $orNode $dominantSet $commandSet)
              ($currentNode NONE)
          )
         )
@@ -314,5 +312,14 @@
                 )
             )
         )
+
+        ($else ($action $currentNode))
+
+     )
+
+ )
+)
+
     )
+
 )
