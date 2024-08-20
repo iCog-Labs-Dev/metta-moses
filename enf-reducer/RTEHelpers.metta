@@ -1,5 +1,5 @@
 
-;a funcion to remove a child from a tree's listOfChildren and return an updated tree
+;a function to remove a child from a tree's listOfChildren and return an updated tree
 (: disconnectSubTreeHandler (-> Tree Tree Tree))
 (=(disconnectSubTreeHandler Nil $tree) $tree)
 (=(disconnectSubTreeHandler $child Nil) Nil)
@@ -12,7 +12,7 @@
 )
 
 ;; A function that applies the "ApplyAndCut" operation on a tree node. It is the reimplementation of the function found in python.
-;; The function takes a treeNode and checks if it has only one child and no guardSet, if so, it merges the child and the current node as one. It also checks the existance of a terminal and node in the child of the tree which will be beneficial for the `andSubTreeElegance` function. 
+;; The function takes a treeNode and checks if it has only one child and no guardSet, if so, it merges the child and the current node as one. It also checks the existence of a terminal and node in the child of the tree which will be beneficial for the `andSubTreeElegance` function. 
 ;; The function returns the updated  tree and the boolean value together in a tuple.
 
 (: applyAndCut (-> Tree Tree (Tree Bool)))
@@ -124,25 +124,32 @@
 
 (: orSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
 (= (orSubTreeElegance $child $current $dominantSet $localCommandSet)
-    (let ($finalTree $outcome) (reduceToElegance $child $dominantSet $localCommandSet) ;; Simulate the result returned by the reduceToElegance function, Which is not implemented Currently.
-                         ;; The possible outcomes of reduceToElegance function are DELETE, DISCONNECT, or KEEP.
-        (case $outcome
+    (let*
+      (
+        ($updatedChild $outcome) (reduceToElegance $child $dominantSet $localCommandSet)
+        ($updatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $current)))
+      )
+      (case $outcome
           (
             (DELETE
                 (if (> (length (getChildren $current)) 0)
-                    (let $currentChildren (findAndRemoveTree $child (getChildren $current))
-                        ($currentChildren ADVANCE))
-                    ($current DELETE) 
+                    (let* 
+                        (
+                          ($updatedChildren (findAndRemoveTree $child (getChildren $current)))
+                          ($removedChildCurrent (replaceChildren $current $updatedChildren))
+                        )
+                        ($removedChildCurrent ADVANCE)
+                    )
+                    ($updatedCurrent DELETE)
                 )
             )
-            (DISCONNECT ($current DISCONNECT))
-            (KEEP ($current ADVANCE))
-            ($_ ($finalTree $outcome))
+            (DISCONNECT ($updatedCurrent DISCONNECT))
+            (KEEP ($updatedCurrent ADVANCE))
           )
         )
-        
     )
 )
+
 
 ;Helper functions for `andSubTreeElegance`
 
@@ -161,7 +168,7 @@
 )
 ;;A function that finds a tree node from a list of trees and replaces it with a new node.
 (: findAndReplaceChild (-> Tree Tree (List Tree) (List Tree)))
-(= (findAndReplaceChild $oldChild $newChild Nil) Nil)
+(= (findAndReplaceChild $oldChild $newChild Nil)(Nil))
 (= (findAndReplaceChild $oldChild $newChild (Cons $x $xs))
   (if (== (isNodeEqual $oldChild $x) True)(Cons $newChild $xs)(Cons $x (findAndReplaceChild $oldChild $newChild $xs)))
 )
@@ -302,7 +309,8 @@
     (andSubTreeIterator $children $currentNode $handleSet $commandSet 0)
 )
 (= (andSubTreeIterator $children $currentNode $handleSet $commandSet $currentChildIndex) 
-    (if (== (length $children) 0) (NONE $currentNode)
+    (if (== (length $children) 0) 
+        (NONE $currentNode)
         (let*
             (
               ($currentChild (index $currentChildIndex $children))
@@ -325,11 +333,7 @@
                 )
             )
         )
-
-        ($else ($action $currentNode))
-
      )
-
  )
 
 
