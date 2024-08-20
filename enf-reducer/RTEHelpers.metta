@@ -314,22 +314,20 @@
         (let*
             (
               ($currentChild (index $currentChildIndex $children))
-              (($updatedChild $updatedCurrent $action) (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
-              ;;($action ADVANCE);to be replaced with the above code when 'andSubTreeElegance' is implemented
-
+              (($updatedCurrent $action) (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
             )
             (case $action
                 (
                   (ADVANCE
                     (if (< (+ $currentChildIndex 1) (length $children) )
-                        (andSubTreeIterator $children $currentNode $handleSet $commandSet (+ $currentChildIndex 1))
-                        (NONE $currentNode)
+                        (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet (+ $currentChildIndex 1))
+                        (NONE $updatedCurrent)
                     )
                   )
                   (RESET
-                    (andSubTreeIterator $children $currentNode $handleSet $commandSet 0) 
+                    (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet 0) 
                   )
-                  ($else ($action $currentNode))
+                  ($else ($action $updatedCurrent))
                 )
             )
         )
