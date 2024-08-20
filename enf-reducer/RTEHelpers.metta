@@ -118,8 +118,7 @@
     (let*
       (
         ($updatedChild $outcome) (reduceToElegance $child $dominantSet $localCommandSet)
-        ;; TODO: The `findAndReplaceChild` function isn't implemented yet.
-        ;; ($updatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $current)))
+        ($updatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $current)))
       )
       (case $outcome
           (
@@ -132,13 +131,11 @@
                         )
                         ($removedChildCurrent ADVANCE)
                     )
-                    ;; TODO: Replace `current` with `updatedCurrent` after the implementation of `findAndReplaceChild` function.
-                    ($current DELETE)
+                    ($updatedCurrent DELETE)
                 )
             )
-            ;; TODO: Replace `current` with `updatedCurrent` after the implementation of `findAndReplaceChild` function for the following cases.
-            (DISCONNECT ($current DISCONNECT))
-            (KEEP ($current ADVANCE))
+            (DISCONNECT ($updatedCurrent DISCONNECT))
+            (KEEP ($updatedCurrent ADVANCE))
           )
         )
     )
@@ -173,7 +170,7 @@
           (
             (DELETE ((replaceChildren $current Nil) DELETE))
             (DISCONNECT (replaceChildren $current (findAndRemoveTree $child (getChildren $current))))
-            (KEEP 
+            (KEEP
               (let $resultSet (intersections Nil (getChildren $child)) 
                 (if(> (length $resultSet) 0) 
                   (let* 
