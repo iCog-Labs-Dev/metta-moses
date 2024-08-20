@@ -88,7 +88,7 @@
 (= (guardSetChecker $children)(
   if (> (length (getGuardSet (head $children))) 0)
     (length (getGuardSet (head $children)))
-    (0)
+    0
   )
 )
 
@@ -333,7 +333,10 @@
                 )
             )
         )
+
+        ($else ($action $currentNode))
+
      )
+
  )
-
-
+)
