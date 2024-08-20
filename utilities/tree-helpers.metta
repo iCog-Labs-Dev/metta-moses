@@ -181,6 +181,10 @@
 (: getNodeType (-> Tree Atom))
 (= (getNodeType (TreeNode (Value $value $bool $nodeType) $guardSet $children)) $nodeType)
 
+;; function that get the node value
+(: getNodeValue (-> Tree Atom))
+(= (getNodeValue (TreeNode (Value $value $truthValue $nodeType) $guardSet $children)) $value)
+
 (: compareTrees (-> Tree Tree Bool))
 (= (compareTrees $fstTree $sndTree)
   (if (nodeEquality $fstTree $sndTree) True False)
