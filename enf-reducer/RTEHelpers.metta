@@ -113,6 +113,15 @@
 )
 
 ; orSubTreeElegance implementation
+(: Signal Type)
+(: ReductionSignal Signal)
+(: IterationSignal Signal)
+(: DELETE ReductionSignal)
+(: DISCONNECT ReductionSignal)
+(: KEEP ReductionSignal)
+(: NONE ReductionSignal)
+(: ADVANCE IterationSignal)
+
 (: orSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
 (= (orSubTreeElegance $child $current $dominantSet $localCommandSet)
     (let*
@@ -151,7 +160,12 @@
 (= (mapList $f (Cons $x $xs) $rs)
   (Cons ($f $x $rs) (mapList $f $xs $rs))
 )
-
+;;A function that applies a function to the elements of the first list and a constant parent.
+(: mapParent (-> Atom (List $t) $t (List $t)))
+(= (mapParent $f Nil $parent) Nil)
+(= (mapParent $f (Cons $x $xs) $parent)
+  (Cons ($f $x $parent) (mapParent $f $xs $parent))
+)
 ;;A function that finds a tree node from a list of trees and replaces it with a new node.
 (: findAndReplaceChild (-> Tree Tree (List Tree) (List Tree)))
 (= (findAndReplaceChild $oldChild $newChild Nil)(Nil))
@@ -165,44 +179,50 @@
 
 (: andSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
 (= (andSubTreeElegance $child $current $handleSet $commandSet) 
-   (let $outcome (reduceToElegance $child $handleSet $commandSet) 
-        (case $outcome 
+  (
+    let ($updatedChild $outcome) (reduceToElegance $child $handleSet $commandSet) 
+    (
+      case $outcome 
+      (
+        (DELETE ( (replaceChildren $current Nil) DELETE) )
+        (DISCONNECT ( (replaceChildren $current (findAndRemoveTree $child (getChildren $current)) ) ADVANCE) )
+        (KEEP 
+        (
+          let* 
           (
-            (DELETE ((replaceChildren $current Nil) DELETE))
-            (DISCONNECT (replaceChildren $current (findAndRemoveTree $child (getChildren $current))))
-            (KEEP
-              (let $resultSet (intersections Nil (getChildren $child)) 
-                (if(> (length $resultSet) 0) 
-                  (let* 
-                    (
-                      ($updatedGuardSetTree (replaceGuardSet $current (setUnion treeIsMember (getGuardSet $current) $resultSet)))
-                      ($newChild (mapList computeGrandChildGuardset (getChildren $child) $resultSet))
-                      ($updatedNewChild (mapList applyAndCut (getChildren $newChild) $newChild))
-                      ($finalResult (replaceChildren $updatedGuardSetTree (findAndReplaceChild $child $updatedNewChild (getChildren $updatedGuardSetTree))))
-                    )
-                    ($finalResult RESET)
-                  )
-                  (let* 
-                    (
-                      ($res (mapList applyAndCut (getChildren $child) $child))
-                      ($bools (map decoupleAndCutOutput $res))
-                      ($containsTerminalAndNode (any $bools))
-                    )
-                    (if (== $containsTerminalAndNode True)
-                        ($current ADVANCE)
-                        ($current RESET)
-                    )
-                  )
-                )
-              )
+            ($updatedCurrentTree (replaceChildren $current (findAndReplaceChild $child $updatedChild (getChildren $current))))
+            ($resultSet (intersections Nil (getChildren $updatedChild)))
+          )
+          (
+             if(> (length $resultSet) 0) 
+               (
+                 let* 
+                 (
+                  ($updatedGuardSetTree (setUnion treeIsMember (getGuardSet $updatedCurrentTree) $resultSet))
+                  ($newChild (mapList computeGrandChildGuardset (getChildren $child) $resultSet))
+                  ($updatedNewChild (mapParent applyAndCut (getChildren $newChild) $newChild))
+                  ($finalResult (replaceChildren $updatedGuardSetTree (findAndReplaceChild $child $updatedNewChild (getChildren $updatedGuardSetTree))))
+                 )
+                 ($finalResult RESET)
+               )
+               (
+                 let* 
+                 (
+                  ($res (mapParent applyAndCut (getChildren $child) $child))
+                  ($bools (map decoupleAndCutOutput $res))
+                  ($containsTerminalAndNode (any $bools))
+                 )
+                 (
+                   if (== $containsTerminalAndNode True)($updatedCurrentTree ADVANCE)($updatedCurrentTree RESET)
+                 )
+               )
             )
           )
         )
-   )
+      )
+    )
+  )
 )
-    
-
-
 
 ; helper function for itarator
 
@@ -318,8 +338,5 @@
      )
 
  )
-)
 
-    )
 
-)
