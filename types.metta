@@ -22,3 +22,14 @@
 (: Location Type)
 (: L Location)
 (: R Location)
+
+(: Signal Type)
+(: ReductionSignal Signal)
+(: IterationSignal Signal)
+(: DELETE ReductionSignal)
+(: DISCONNECT ReductionSignal)
+(: KEEP ReductionSignal)
+(: NONE ReductionSignal)
+(: ADVANCE IterationSignal)
+
+
