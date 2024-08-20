@@ -73,9 +73,15 @@
   (Cons ($f $x $rs) (mapList $f $xs $rs))
 )
 
+;;This function applies a function to each values of the first list paired with the same parent node.
+(: mapParent (-> Atom (List $t) $t (List $t)))
+(= (mapParent $f Nil $parent) Nil)
+(= (mapParent $f (Cons $x $xs) $parent)
+  (Cons ($f $x $parent) (mapParent $f $xs $parent))
+)
 ;;A function that finds a tree node from a list of trees and replaces it with a new node.
 (: findAndReplaceChild (-> Tree Tree (List Tree) (List Tree)))
-(= (findAndReplaceChild $oldChild $newChild Nil)(Nil))
+(= (findAndReplaceChild $oldChild $newChild Nil) Nil)
 (= (findAndReplaceChild $oldChild $newChild (Cons $x $xs))
   (if (== (isNodeEqual $oldChild $x) True)(Cons $newChild $xs)(Cons $x (findAndReplaceChild $oldChild $newChild $xs)))
 )
@@ -85,37 +91,48 @@
 (= (decoupleAndCutOutput ((TreeNode $nodeValue $guardSet $children) $bool)) $bool)
 
 (: andSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
-(= (andSubTreeElegance $child $current $handleSet $commandSet) (
-  let $outcome (reduceToElegance $child $handleSet $commandSet) (
-    case $outcome (
-      (DELETE ((replaceChildren $current Nil) DELETE))
-      (DISCONNECT (replaceChildren $current (findAndRemoveTree $child (getChildren $current))))
-      (KEEP (
-        let $resultSet (intersections Nil (getChildren $child)) (
-          if(> (length $resultSet) 0) 
+(= (andSubTreeElegance $child $current $handleSet $commandSet) 
+  (
+    let ($updatedChild $outcome) (reduceToElegance $child $handleSet $commandSet) 
+    (
+      case $outcome 
+      (
+        (DELETE ( (replaceChildren $current Nil) DELETE) )
+        (DISCONNECT ( (replaceChildren $current (findAndRemoveTree $child (getChildren $current)) ) ADVANCE) )
+        (KEEP 
+        (
+          let* 
           (
-            let* (
-              ($updatedGuardSetTree (replaceGuardSet $current (setUnion treeIsMember (getGuardSet $current) $resultSet)))
-              ($newChild (mapList computeGrandChildGuardset (getChildren $child) $resultSet))
-              ($updatedNewChild (mapList applyAndCut (getChildren $newChild) $newChild))
-              ($finalResult (replaceChildren $updatedGuardSetTree (findAndReplaceChild $child $updatedNewChild (getChildren $updatedGuardSetTree))))
-            )
-            $finalResult RESET
+            ($updatedCurrentTree (replaceChildren $current (findAndReplaceChild $child $updatedChild (getChildren $current))))
+            ($resultSet (intersections Nil (getChildren $updatedChild)))
           )
           (
-            let* (
-              ($res (mapList applyAndCut (getChildren $child) $child))
-              ($bools (map decoupleAndCutOutput $res))
-              ($containsTerminalAndNode (any $bools))
+             if(> (length $resultSet) 0) 
+               (
+                 let* 
+                 (
+                  ($updatedGuardSetTree (setUnion treeIsMember (getGuardSet $updatedCurrentTree) $resultSet))
+                  ($newChild (mapList computeGrandChildGuardset (getChildren $child) $resultSet))
+                  ($updatedNewChild (mapParent applyAndCut (getChildren $newChild) $newChild))
+                  ($finalResult (replaceChildren $updatedGuardSetTree (findAndReplaceChild $child $updatedNewChild (getChildren $updatedGuardSetTree))))
+                 )
+                 ($finalResult RESET)
+               )
+               (
+                 let* 
+                 (
+                  ($res (mapParent applyAndCut (getChildren $child) $child))
+                  ($bools (map decoupleAndCutOutput $res))
+                  ($containsTerminalAndNode (any $bools))
+                 )
+                 (
+                   if (== $containsTerminalAndNode True)($updatedCurrentTree ADVANCE)($updatedCurrentTree RESET)
+                 )
+               )
             )
-            (
-              if (== $containsTerminalAndNode True)($current ADVANCE)($current RESET)
-            )
-          )
           )
         )
       )
     )
   )
-)
 )
