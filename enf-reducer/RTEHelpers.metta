@@ -309,7 +309,8 @@
     (andSubTreeIterator $children $currentNode $handleSet $commandSet 0)
 )
 (= (andSubTreeIterator $children $currentNode $handleSet $commandSet $currentChildIndex) 
-    (if (== (length $children) 0) (NONE $currentNode)
+    (if (== (length $children) 0) 
+        (NONE $currentNode)
         (let*
             (
               ($currentChild (index $currentChildIndex $children))
@@ -332,11 +333,7 @@
                 )
             )
         )
-
-        ($else ($action $currentNode))
-
      )
-
  )
 
 
