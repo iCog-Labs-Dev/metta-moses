@@ -333,10 +333,5 @@
                 )
             )
         )
-
-        ($else ($action $currentNode))
-
      )
-
  )
-)
