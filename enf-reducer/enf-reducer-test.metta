@@ -1,4 +1,5 @@
-! (register-module! ../../metta-moses-reduction)
+! (register-module! ./)
+; ! (register-module! ../../metta-moses-reduction)
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
 ! (import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
@@ -24,3 +25,8 @@
 
 ;; !(reduceToElegance (TreeNode (Value Nil False AND) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
 ;; !(reduceToElegance (TreeNode (Value Nil False OR) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
+
+!(assertEqual True True)
+!(assertEqual False False)
+!(assertEqual True False)
+!(assertEqualToResult (True) (False))

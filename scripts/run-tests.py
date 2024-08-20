@@ -4,7 +4,7 @@ from hyperon import MeTTa
 import pathlib
 
 # get the list of test metta files from path (mosesReductionPath)
-root = pathlib.Path("./")
+root = pathlib.Path("../")
 testMettaFiles = root.rglob("*test.metta")
 
 listOfTestPrograms = []
@@ -30,6 +30,7 @@ for testProgram in listOfTestPrograms: # for each program in the list
         'expressions': metta.parse_all(testProgram['program']),
         'outputs': metta.run(testProgram['program'])
     }) # collect expression results into a list
+# print(programResults)
 
 # testCase = {
 #     'fileName': '',
@@ -39,7 +40,9 @@ for testProgram in listOfTestPrograms: # for each program in the list
 #             'outcome': '',
 #             'output': ''
 #         }
-#     ]
+#     ],
+#     'testsPassed': 0
+#     'testsFailed': 0
 # }
 testCases = []
 for programResult in programResults:
@@ -47,41 +50,54 @@ for programResult in programResults:
     testCase = {
         'fileName': programResult['fileName'],
         'testContent': [],
-        'testOutcome': []
+        'testOutcome': [],
+        'testsPassed': 0,
+        'testsFailed': 0
     }
     for idx, expression in enumerate(programResult['expressions']): # for each expression in a program
         if (str(expression)) == '!':
-            nextExpression = programResult['expressions'][idx+1]
-            if re.match("\(assertEqual", str(nextExpression)) is not None:
+            nextExpression = programResult['expressions'][idx+1] # get the expression for the respective '!'
+            isAssertExpression = re.match("\(assertEqual", str(nextExpression))
+            if isAssertExpression is not None:
                 outputString = str(programResult['outputs'][outputCounter][0])
 
                 testCase['testContent'].append(nextExpression)
-                testCase['testOutcome'].append({
-                    'result': "Pass" if outputString == '()' else "Fail",
-                    'output': programResult['outputs'][outputCounter]
-                })
+                if outputString == '()':
+                    testCase['testOutcome'].append({
+                        'result': "Pass",
+                        'output': programResult['outputs'][outputCounter]
+                    })
+                    testCase['testsPassed'] += 1
+                else:
+                    testCase['testOutcome'].append({
+                        'result': "Fail",
+                        'output': programResult['outputs'][outputCounter]
+                    })
+                    testCase['testsFailed'] += 1
+                    break
+                
             outputCounter += 1
 
     testCases.append(testCase)
-
 # print(testCases)
 
-testsFailed = 0
 testsPassed = 0
+testsFailed = 0
 for testCase in testCases:
     for idx, outCome in enumerate(testCase['testOutcome']):
         if outCome['result'] == "Fail":
-            testsFailed += 1
             print("Expression: \033[91m {}\033[0m" .format(testCase['testContent'][idx]))
             print("Output: \033[91m {}\033[0m" .format(outCome['output']))
             print("\033[91m=\033[0m"*60)
             print("\n")
-        elif outCome['result'] == "Pass":
-            testsPassed += 1
-    if testsFailed > 0:
+
+    if testCase['testsFailed'] > 0:
         print("\033[41m Fail \033[0m {}" .format(testCase['fileName']))
-    elif testsFailed <= 0:
+    elif testCase['testsFailed'] <= 0:
         print("\033[42m Pass \033[0m {}" .format(testCase['fileName']))
+    
+    testsPassed += testCase['testsPassed']
+    testsFailed += testCase['testsFailed']
 
 totalTests = testsPassed + testsFailed
 # print("\n")
