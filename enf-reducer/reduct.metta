@@ -17,7 +17,16 @@
                     (let $gatherJunctorTree (gatherJunctors $propagateTree NilNode)
                         (let () (println! $gatherJunctorTree)
                             (let ($reducedTree $action) (reduceToElegance $gatherJunctorTree Nil Nil)
-                                $reducedTree
+                                (if (== $action DISCONNECT)
+                                    True
+                                    (if (== $action DELETE)
+                                        False
+                                        (if (== $action KEEP)
+                                            $reducedTree
+                                            NilNode
+                                        )
+                                    )
+                                )
                             )
                         )
                     )
