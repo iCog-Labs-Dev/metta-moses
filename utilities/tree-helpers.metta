@@ -333,7 +333,7 @@
 
 (: prependToGuardSet (-> Tree Tree Tree))
 (= (prependToGuardSet (TreeNode $nodeValue $guardSet $children) $node)
-  (TreeNode $nodeValue (Cons $node $guardSet) $children)
+  (TreeNode $nodeValue (setInsert isNodeEqual $guardSet $node) $children)
 )
 ;; Returns a boolean value after it compares two trees.
 (: compareSets (-> (List Tree) (List Tree) Bool))
