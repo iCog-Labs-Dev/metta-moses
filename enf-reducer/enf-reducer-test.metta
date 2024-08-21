@@ -8,7 +8,7 @@
 
 ! (import! &self metta-moses-reduction:enf-reducer:postProcessing)
 ! (import! &self metta-moses-reduction:enf-reducer:reduct)
-! (import! &self metta-moses-reduction:gather-junctors)
+! (import! &self metta-moses-reduction:enf-reducer:gather-junctors)
 
 ;;!(isTreeWellFormed (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value a False LITERAL) Nil Nil) (Cons (TreeNode (Value b False LITERAL) Nil Nil) Nil))))
 
@@ -23,8 +23,8 @@
 ;; !(propagateTruthValue (buildTreeWithRoot (NOT (AND a (OR b c)))) False)
 
 
-!(reduceToElegance (TreeNode (Value Nil False AND) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
-!(reduceToElegance (TreeNode (Value Nil False OR) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
+; !(reduceToElegance (TreeNode (Value Nil False AND) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
+; !(reduceToElegance (TreeNode (Value Nil False OR) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
 
 ;; !(gatherJunctors (buildTreeWithRoot (AND A (AND B (AND C (OR D E))))) NilNode)
 ;; !(gatherJunctors (buildTreeWithRoot (OR A (OR B (OR C (AND D E))))) NilNode)
@@ -42,3 +42,7 @@
 ;;!(reduct (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A))))))))
 ;;!(reduct (AND A (AND B A)))
 
+!(assertEqual True True)
+!(assertEqual False False)
+!(assertEqual True False)
+!(assertEqualToResult (True) (False))

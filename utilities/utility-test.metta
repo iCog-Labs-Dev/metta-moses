@@ -6,6 +6,11 @@
 ! (import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
 ! (import! &self metta-moses-reduction:enf-reducer:reduce_to_elegance)
 
+!(assertEqualToResult True (True))
+!(assertEqualToResult False (False))
+!(assertEqualToResult (length (Cons A (Cons B (Cons C Nil)))) (4))
+!(assertEqualToResult (True) (False))
+
  ;; -----------------------------------
  ;; -----------------------------------
  ;; Test cases for expression-helpers.metta
@@ -26,7 +31,7 @@
  ;; -----------------------------------
  ;; -----------------------------------
 
- ; !(length (Cons A (Cons B (Cons C Nil))))
+; !(length (Cons A (Cons B (Cons C Nil))))
 
  ;; !(head Nil)
  ;; !(head
