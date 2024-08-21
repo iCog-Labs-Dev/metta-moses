@@ -10,7 +10,7 @@
 					(postProcessing (head $guardSet))
 					(if (== $nodeType AND)
 							(let $result (consMap postProcessing () (extend $children $guardSet))
-								(cons-atom nAndArr $result) 
+								(nAndArr $result)
 							) 
 							(nOrArr (consMap postProcessing () $children))
 					)
