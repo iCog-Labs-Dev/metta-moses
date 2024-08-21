@@ -64,7 +64,7 @@
 ;; -----------------------------------
 ;; -----------------------------------
 
-(: getGuardSet (-> Tree TreeList))
+(: getGuardSet (-> Tree (List Tree)))
 (= (getGuardSet (TreeNode $nodeValue $guardSet $children)) $guardSet)
 
 ; Given a tree and the new type, it returns a new tree with the new type
@@ -145,6 +145,24 @@
         )
     )
     )
+)
+
+;;a function that computes intersection of lists of trees.
+;;This is taken from the Python implementation with the same name.
+(: intersections (-> (List Tree) (List Tree) (List Tree)))
+(= (intersections $intersectionSet $children)
+  (
+    if(== (length $children) 0) Nil 
+      (
+        let* 
+        (
+          ($guardSet (getGuardSet (head $children)))
+          ($intersections (treeIntersection $intersectionSet $guardSet))
+          ($finalResult (intersections $intersections (tail $children)))
+        )
+        $finalResult
+      )
+  )
 )
 
 ; ------------------------------------
@@ -243,7 +261,7 @@
 (: computeGrandchildGuardset (-> Tree (List Tree) Tree))
 (= (computeGrandchildGuardset NilNode $resultSet) NilNode)
 (= (computeGrandchildGuardset (TreeNode $nodeValue $guardSet $children) $resultSet)
-  (TreeNode $nodeValue (setDifference $guardSet $resultSet Nil) $children)
+  (TreeNode $nodeValue (setDifference treeIsMember $guardSet $resultSet Nil) $children)
 )
 
 ; A function that detect consistency(value match and constrient difference) between a single tree and list of tree
@@ -312,14 +330,33 @@
     (TreeNode $nodeValue $guardSet (allExceptTargetType $children OR))
   )
 )
-;; (=(prependToGuardSet $holderTree $childTree)
-;;   (let (TreeNode $nodeValue $guardSet $children) $holderTree
-;;     (TreeNode $nodeValue (Cons $holderTree $guardSet) $children)
-;;   )
-;; )
-
 
 (: prependToGuardSet (-> Tree Tree Tree))
 (= (prependToGuardSet (TreeNode $nodeValue $guardSet $children) $node)
   (TreeNode $nodeValue (Cons $node $guardSet) $children)
 )
+;; Returns a boolean value after it compares two trees.
+(: compareSets (-> (List Tree) (List Tree) Bool))
+(=(compareSets $firstSet $secondSet)
+  (let*(
+      ($firstDifference (setDifference treeIsMember $firstSet $secondSet Nil))
+      ($secondDifference (setDifference treeIsMember $secondSet $firstSet Nil))
+    )(if (and (== $firstDifference Nil) (== $secondDifference Nil))
+      True
+      False
+    )
+  )
+)
+;;retrieves for the head of Children in a List of tree given a tree
+(: headOfChildren (-> (List Tree) Tree))
+(= (headOfChildren Nil) NilNode)
+(= (headOfChildren (Cons $x $xs))
+  $x
+)
+;;retrieves for the tail of Children in a tree it provides a list of tree.
+(: tailOfChildren (-> Tree (List Tree)))
+(= (tailOfChildren NilNode) Nil)
+(= (tailOfChildren (TreeNode $nodeValue $guardSet $children))
+    (let (Cons $x $xs) $children $xs)
+)
+
