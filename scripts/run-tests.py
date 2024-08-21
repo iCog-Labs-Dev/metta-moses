@@ -14,14 +14,20 @@ for mettaFile in testMettaFiles: # for each file in the list
 
     mettaTestProgram = ''
     for line in testContents: # for each line in the file
-        mettaTestProgram += line # join each line to form a program
+        isRegisterModulePresent = re.search("\(register-module!", str(line))
+        if (isRegisterModulePresent is None):
+            mettaTestProgram += line # join each line to form a program
 
     listOfTestPrograms.append({
         'fileName': mettaFile.name,
         'program': mettaTestProgram
     }) # collect programs into a list
 
+# listOfTestPrograms[0]['program'] = f"!(register-module! ./) {listOfTestPrograms[0]['program']}"
+
 metta = MeTTa() # initialize MeTTa instance
+# print(metta.working_dir())
+listOfTestPrograms[0]['program'] = f"!(register-module! {metta.working_dir()}) {listOfTestPrograms[0]['program']}"
 
 programResults = []
 for testProgram in listOfTestPrograms: # for each program in the list
@@ -44,6 +50,7 @@ for testProgram in listOfTestPrograms: # for each program in the list
 #     'testsPassed': 0
 #     'testsFailed': 0
 # }
+
 testCases = []
 for programResult in programResults:
     outputCounter = 0

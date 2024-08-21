@@ -1,4 +1,4 @@
-; ! (register-module! ../../metta-moses-reduction)
+! (register-module! ../../metta-moses-reduction)
 ! (import! &self metta-moses-reduction:types)
  ; ! (import! &self metta-moses-reduction:utilities:expression-helpers)
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
@@ -7,7 +7,8 @@
 
 !(assertEqualToResult True (True))
 !(assertEqualToResult False (False))
-; !(assertEqualToResult (True) (False))
+!(assertEqualToResult (length (Cons A (Cons B (Cons C Nil)))) (4))
+!(assertEqualToResult (True) (False))
 
  ;; -----------------------------------
  ;; -----------------------------------
@@ -29,7 +30,7 @@
  ;; -----------------------------------
  ;; -----------------------------------
 
- ; !(length (Cons A (Cons B (Cons C Nil))))
+; !(length (Cons A (Cons B (Cons C Nil))))
 
  ;; !(head Nil)
  ;; !(head
