@@ -8,7 +8,7 @@
 
 ! (import! &self metta-moses-reduction:enf-reducer:postProcessing)
 ! (import! &self metta-moses-reduction:enf-reducer:reduct)
-! (import! &self metta-moses-reduction:gather-junctors)
+! (import! &self metta-moses-reduction:enf-reducer:gather-junctors)
 
 ;;!(isTreeWellFormed (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value a False LITERAL) Nil Nil) (Cons (TreeNode (Value b False LITERAL) Nil Nil) Nil))))
 
