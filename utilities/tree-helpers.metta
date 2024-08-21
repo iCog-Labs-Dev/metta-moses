@@ -45,6 +45,7 @@
 ;; -----------------------------------
 
 (: getChildren (-> Tree (List Tree)))
+(=(getChildren NilNode) Nil)
 (= (getChildren (TreeNode $nodeVal $guardSet $children)) $children)
 
 ;;A function to get node children at a given index
@@ -197,6 +198,7 @@
 )
 ;; function that get the node types
 (: getNodeType (-> Tree Atom))
+(=(getNodeType NilNode) NONENODE)
 (= (getNodeType (TreeNode (Value $value $bool $nodeType) $guardSet $children)) $nodeType)
 
 ;; function that get the node value
