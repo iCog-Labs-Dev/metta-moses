@@ -66,6 +66,7 @@
 ;; -----------------------------------
 
 (: getGuardSet (-> Tree (List Tree)))
+(= (getGuardSet NilNode) Nil)
 (= (getGuardSet (TreeNode $nodeValue $guardSet $children)) $guardSet)
 
 ; Given a tree and the new type, it returns a new tree with the new type

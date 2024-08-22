@@ -116,11 +116,13 @@
 
 (: orSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
 (= (orSubTreeElegance $child $current $dominantSet $localCommandSet)
+    (let () (println! (inside orSubTree Elegance child ==> $child dominantSet ==> $dominantSet localCommandSet ==> $localCommandSet))
     (let*
       (
-        ($updatedChild $outcome) (reduceToElegance $child $dominantSet $localCommandSet)
+        (($updatedChild $outcome) (reduceToElegance $child $dominantSet $localCommandSet))
         ($updatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $current)))
       )
+      (let () (println! (updatedChild ==> $updatedChild updatedCurrent ==> $updatedCurrent))
       (case $outcome
           (
             (DELETE
@@ -140,6 +142,8 @@
           )
         )
     )
+    )
+)
 )
 
 
@@ -153,14 +157,14 @@
   (Cons ($f $x $rs) (mapList $f $xs $rs))
 )
 ;;A function that applies a function to the elements of the first list and a constant parent.
-;;(: mapParent (-> Atom (List $t) $t (List $t)))
+(: mapParent (-> Atom (List $t) $t (List $t)))
 (= (mapParent $f Nil $parent) Nil)
 (= (mapParent $f (Cons $x $xs) $parent)
   (Cons ($f $x $parent) (mapParent $f $xs $parent))
 )
 ;;A function that finds a tree node from a list of trees and replaces it with a new node.
 (: findAndReplaceChild (-> Tree Tree (List Tree) (List Tree)))
-(= (findAndReplaceChild $oldChild $newChild Nil)(Nil))
+(= (findAndReplaceChild $oldChild $newChild Nil) Nil)
 (= (findAndReplaceChild $oldChild $newChild (Cons $x $xs))
   (if (== (isNodeEqual $oldChild $x) True)(Cons $newChild $xs)(Cons $x (findAndReplaceChild $oldChild $newChild $xs)))
 )
@@ -266,7 +270,8 @@
 ;;a function which is the reimplementation of the orSubTreeIterator function found in python
 
 (: orSubTreeIterator (-> Tree (List Tree) Tree (List Tree) (List Tree) (Tree Signal)))
-(= (orSubTreeIterator $child $remainingChildren $currentNode $dominantSet $commandSet) 
+(= (orSubTreeIterator $child $remainingChildren $currentNode $dominantSet $commandSet)
+(let () (println! (The local commandSet ==> $commandSet))
 (let*
  (
       ($localCommandSet $commandSet)
@@ -275,6 +280,7 @@
     ;($action ADVANCE);will be replaced with the above code once the functions 'orSubTreeElegance' and 'commandSetIterator' are implemented
 
  )
+ (let () (println! (This is localCommandSetUpdated ==> $localCommandSetUpdated This is the orNode ==> $orNode))
  (case $action
      (
         (ADVANCE
@@ -291,7 +297,8 @@
      )
 
  )
-))
+)
+)))
 
 ;;a function which is the reimplementation of the andSubTreeIterator function found in python
 
