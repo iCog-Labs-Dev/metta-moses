@@ -29,7 +29,9 @@
 ; !(reduceToElegance (TreeNode (Value Nil False OR) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
 
 ; !(gatherJunctors (buildTreeWithRoot (AND A (AND B (AND C (OR D E))))) NilNode)
-!(gatherJunctors (buildTreeWithRoot (OR A B)) NilNode)
+; !(gatherJunctors (buildTreeWithRoot (AND (OR A B) C) ) NilNode)
+; !(gatherJunctors (buildTreeWithRoot (AND (AND A B) (OR C D)) ) NilNode)
+
 ;; !(gatherJunctors (buildTreeWithRoot (OR A (OR B (OR C (AND D E))))) NilNode)
 ;; !(gatherJunctors (buildTreeWithRoot (OR A (OR B (AND C (AND D (OR E F)))))) NilNode)
 ;;!(gatherJunctors (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil))) Nil))) Nil))) NilNode)
@@ -49,15 +51,3 @@
 ; !(assertEqual False False)
 ; !(assertEqual True False)
 ; !(assertEqualToResult (True) (False))
-
-
-[(TreeNode (Value Nil False AND) 
-    Nil 
-    (Cons (TreeNode (Value Nil False OR) 
-        Nil 
-        (Cons (TreeNode (Value Nil False AND) 
-            (Cons (TreeNode (Value B False LITERAL) Nil Nil) Nil) 
-            Nil) 
-        (Cons (TreeNode (Value Nil False AND) 
-            (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) Nil) Nil)))
-             Nil))]

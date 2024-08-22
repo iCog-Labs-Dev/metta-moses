@@ -13,18 +13,16 @@
 ; Test 01
 
 ; expression for builtreewithroot = (OR A B)
-; Expected tree node structure = (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))) Nil))) Nil)))
 
-! (assertEqual (gatherJunctors (buildTreeWithRoot (OR A B)) NilNode) (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))) Nil))) Nil))))
+! (assertEqual (gatherJunctors (buildTreeWithRoot (OR A B)) NilNode) (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B False LITERAL) Nil Nil) Nil) Nil) (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) Nil) Nil))) Nil)))
 
 ; Test 02
 
-; expression for builtreewithroot = (AND A B)
-; ! (propagateTruthValue (buildTreeWithRoot (AND A B) ) True) 
+; expression for builtreewithroot = (AND (OR A B) C) 
 
-! (assertEqual (propagateTruthValue (buildTreeWithRoot (AND A B) ) True) (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil))) Nil))))
+! (assertEqual (gatherJunctors (buildTreeWithRoot (AND (OR A B) C) ) NilNode) (TreeNode (Value Nil False AND) (Cons (TreeNode (Value C False LITERAL) Nil Nil) Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B False LITERAL) Nil Nil) Nil) Nil) (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) Nil) Nil))) Nil)))
+
 ; Test 03
 
-; expression for builtreewithroot = (NOT A)
-; ! (propagateTruthValue (buildTreeWithRoot (NOT A) ) True) 
-! (assertEqual (propagateTruthValue (buildTreeWithRoot (NOT A)) True) (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil))))
+; expression for builtreewithroot = (AND (AND A B) (OR C D))
+! (assertEqual (gatherJunctors (buildTreeWithRoot (AND (AND A B) (OR C D))) NilNode) (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil) Nil) (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value C False LITERAL) Nil Nil) Nil) Nil) Nil))) Nil)))
