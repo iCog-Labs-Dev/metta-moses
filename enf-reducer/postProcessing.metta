@@ -2,14 +2,17 @@
 (= (postProcessing NilNode) Nil)
 (= (postProcessing (TreeNode (Value $value $truthValue $nodeType) $guardSet $children))
 		(if (== $nodeType LITERAL)
-			$value
+			(if $truthValue
+				$value
+				(NOT $value)
+			)
 			(if (== (length $guardSet) 1)
-					(getNodeValue (head $guardSet))
+					(postProcessing (head $guardSet))
 					(if (== $nodeType AND)
 							(let $result (consMap postProcessing () (extend $children $guardSet))
-								(cons-atom nAndArr $result) 
+								(nAndAry $result)
 							) 
-							(nOrArr (consMap postProcessing () $children))
+							(nOrAry (consMap postProcessing () $children))
 					)
 			)
 		)
