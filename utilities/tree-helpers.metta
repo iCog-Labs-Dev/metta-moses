@@ -197,7 +197,7 @@
     )
 )
 ;; function that get the node types
-(: getNodeType (-> Tree Atom))
+(: getNodeType (-> Tree NodeType))
 (=(getNodeType NilNode) NONENODE)
 (= (getNodeType (TreeNode (Value $value $bool $nodeType) $guardSet $children)) $nodeType)
 

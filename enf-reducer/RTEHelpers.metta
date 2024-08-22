@@ -153,7 +153,7 @@
   (Cons ($f $x $rs) (mapList $f $xs $rs))
 )
 ;;A function that applies a function to the elements of the first list and a constant parent.
-(: mapParent (-> Atom (List $t) $t (List $t)))
+;;(: mapParent (-> Atom (List $t) $t (List $t)))
 (= (mapParent $f Nil $parent) Nil)
 (= (mapParent $f (Cons $x $xs) $parent)
   (Cons ($f $x $parent) (mapParent $f $xs $parent))
