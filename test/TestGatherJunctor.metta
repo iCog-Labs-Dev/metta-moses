@@ -21,7 +21,6 @@
 ; expression for builtreewithroot = (AND (OR A B) C) 
 
 ! (assertEqual (gatherJunctors (buildTreeWithRoot (AND (OR A B) C) ) NilNode) (TreeNode (Value Nil False AND) (Cons (TreeNode (Value C False LITERAL) Nil Nil) Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B False LITERAL) Nil Nil) Nil) Nil) (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) Nil) Nil))) Nil)))
-
 ; Test 03
 
 ; expression for builtreewithroot = (AND (AND A B) (OR C D))
