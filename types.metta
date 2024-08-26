@@ -11,6 +11,7 @@
 (: OR NodeType)
 (: NOT NodeType)
 (: LITERAL NodeType)
+(: NONENODE NodeType)
 
 ;; Value(value, truthValue, nodeType)
 (: Value (-> $v Bool NodeType NodeValue))
