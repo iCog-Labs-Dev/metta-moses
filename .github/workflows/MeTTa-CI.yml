@@ -24,10 +24,10 @@ jobs:
       working-directory: ./scripts
       run: |
         echo "moved to ./scripts directory"
+    - name: Run tests
+      working-directory: ./scripts
+      run: python3 run-tests.py
 
     - name: Ensure metta-run is executable
       run: chmod +x $HOME/metta-bin/metta-run
       
-    - name: Run tests
-      working-directory: ./scripts
-      run: python3 run-tests.py
