@@ -196,9 +196,6 @@
 
 ;orSubTreeElegance
 
-(TreeNode (Value G6 False LITERAL) Nil Nil) 
-(TreeNode (Value G7 False LITERAL) Nil Nil) 
-
 (TreeNode (Value P True AND) Nil Nil) 
 
 (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) 
@@ -206,9 +203,12 @@
 
 (TreeNode (Value R True OR) Nil (Cons (TreeNode (Value P True AND) Nil Nil) (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil))) 
 
+; this should return ReductionSignal.DISCONNECT
 ! (orSubTreeElegance 
     (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) 
-    (TreeNode (Value R True OR) Nil (Cons (TreeNode (Value P True AND) Nil Nil) (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil))) 
+    (TreeNode (Value R True OR) Nil 
+        (Cons (TreeNode (Value P True AND) Nil Nil) 
+            (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil))) 
     (Cons (TreeNode (Value G7 False LITERAL) Nil Nil) Nil)
     (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)
 )
@@ -216,29 +216,72 @@
 ;andSubTreeElegance
 
 
+; this should return IterationSignal.ADVANCE
+
+! (andSubTreeElegance 
+    (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil)
+    (TreeNode (Value S True AND) Nil 
+        (Cons (TreeNode (Value P True AND) Nil Nil) 
+            (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil)))
+    (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)
+    (Cons (TreeNode (Value G7 False LITERAL) Nil Nil) Nil)
+
+)
+
 
 
 
 ;iterator
 
+ (Cons (TreeNode (Value G5 False LITERAL) Nil Nil) Nil)
+ (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)
+; this should return None
 
-
+! (iterator (TreeNode (Value R True OR) Nil 
+            (Cons (TreeNode (Value P True AND) Nil Nil) 
+                (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil))) 
+        (Cons (TreeNode (Value G5 False LITERAL) Nil Nil) Nil)
+        (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)
+            )
 
 
 
 ;orSubTreeIterator
 
+; this should return ReductionSignal.DISCONNECT
 
-
-
-
-
-
+! (orSubTreeIterator (TreeNode (Value P True AND) Nil Nil) 
+        (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil) 
+        (TreeNode (Value R True OR) Nil 
+            (Cons (TreeNode (Value P True AND) Nil Nil) 
+                (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil)))
+        (Cons (TreeNode (Value G5 False LITERAL) Nil Nil) Nil)
+        (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)
+                )
 
 ;andSubTreeIterator
 
 
+; this should return None
+
+! (andSubTreeIterator (Cons (TreeNode (Value P True AND) Nil Nil) 
+            (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil)) 
+            (TreeNode (Value S True AND) Nil 
+            (Cons (TreeNode (Value P True AND) Nil Nil) 
+            (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil)))
+            (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)
+            (Cons (TreeNode (Value G7 False LITERAL) Nil Nil) Nil)
+            )
 
 
 
 ;reduceToElegance
+
+(TreeNode (Value G6 False LITERAL) Nil Nil) 
+(TreeNode (Value G7 False LITERAL) Nil Nil) 
+; this should return ReductionSignal.DISCONNECT
+
+! (reduceToElegance (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) 
+        (Cons (TreeNode (Value G5 False LITERAL) Nil Nil) Nil)
+        (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)
+)
