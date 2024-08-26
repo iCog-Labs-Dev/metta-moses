@@ -20,13 +20,13 @@ jobs:
       run: |
         curl -fsSL https://raw.githubusercontent.com/iCog-Labs-Dev/metta-prebuilt-binary/main/install.sh | bash
 
-    - name: move to scripts folder
-      working-directory: ./scripts
-      run: |
-        echo "moved to ./scripts directory"
+    # - name: move to scripts folder
+    #   working-directory: ./scripts
+    #   run: |
+    #     echo "moved to ./scripts directory"
     - name: Run tests
-      working-directory: ./scripts
-      run: python3 run-tests.py
+      working-directory: ./
+      run: python3 scripts/run-tests.py
 
     - name: Ensure metta-run is executable
       run: chmod +x $HOME/metta-bin/metta-run
