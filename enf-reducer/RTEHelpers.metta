@@ -101,8 +101,8 @@
 
 (: commandSetIterator(-> (List Tree) (List Tree) (List Tree)))
 (= (commandSetIterator Nil $localCommandSet) $localCommandSet)
-(= (commandSetIterator (Cons $x $xs) $localCommandSet)(
-    if(and 
+(= (commandSetIterator (Cons $x $xs) $localCommandSet)
+(if (and 
         (and (== (getChildren (head (Cons $x $xs))) Nil) (== (guardSetChecker (Cons $x $xs)) 1))
         (== (getNodeType (head (Cons $x $xs))) AND)
       )(
@@ -116,11 +116,11 @@
 
 (: orSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
 (= (orSubTreeElegance $child $current $dominantSet $localCommandSet)
-    (let () (println! (inside orSubTree Elegance child ==> $child dominantSet ==> $dominantSet localCommandSet ==> $localCommandSet))
+    (let () (println! (inside orSubTreeElegance))
     (let*
       (
         (($updatedChild $outcome) (reduceToElegance $child $dominantSet $localCommandSet))
-        ($updatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $current)))
+        ($updatedCurrent (replaceChildren $current (findAndReplaceChild $child $updatedChild (getChildren $current))))
       )
       (let () (println! (updatedChild ==> $updatedChild updatedCurrent ==> $updatedCurrent))
       (case $outcome
@@ -139,6 +139,7 @@
             )
             (DISCONNECT ($updatedCurrent DISCONNECT))
             (KEEP ($updatedCurrent ADVANCE))
+            ($_ ($updatedCurrent $outcome))
           )
         )
     )
@@ -174,14 +175,15 @@
 (= (decoupleAndCutOutput ((TreeNode $nodeValue $guardSet $children) $bool)) $bool)
 
 (: andSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
-(= (andSubTreeElegance $child $current $handleSet $commandSet) 
+(= (andSubTreeElegance $child $current $handleSet $commandSet)
+  (let () (println! (Inside andSubTreeElegance))
   (
     let ($updatedChild $outcome) (reduceToElegance $child $handleSet $commandSet) 
     (
       case $outcome 
       (
-        (DELETE ( (replaceChildren $current Nil) DELETE) )
-        (DISCONNECT ( (replaceChildren $current (findAndRemoveTree $child (getChildren $current)) ) ADVANCE) )
+        (DELETE ((replaceChildren $current Nil) DELETE))
+        (DISCONNECT ((replaceChildren $current (findAndRemoveTree $child (getChildren $current))) ADVANCE) )
         (KEEP 
         (
           let* 
@@ -215,9 +217,12 @@
             )
           )
         )
+        ($_ ($updatedChild $outcome))
+
       )
     )
   )
+)
 )
 
 ; helper function for itarator
@@ -242,13 +247,15 @@
 
 
 ; iterator function
-(: iterator (-> Tree (List Tree) (List Tree) (Tree ReductionSignal)))
-(= (iterator $current $dominant_set $command_set) 
+;;(: iterator (-> Tree (List Tree) (List Tree) (Tree ReductionSignal)))
+(= (iterator $current $dominant_set $command_set)
+  (let () (println! (inside Iterator ))
    (let* (
        ($previousGuardSet (getGuardSet $current))
        ($handle_set (setUnion treeIsMember $dominant_set (getGuardSet $current)))
        (($signal $fstupdatedcurrent) (andSubTreeIterator (getChildren $current) $current $handle_set $command_set))
       )
+      (let () (println! (Inside Iterator after andSubTreeIterator call))
        (if (not (isConsistent $handle_set)) 
            ($current DELETE) 
            (if (not (== $signal NONE)) 
@@ -265,13 +272,15 @@
            )
        )
    )
+   )
+)
 )
 
 ;;a function which is the reimplementation of the orSubTreeIterator function found in python
 
 (: orSubTreeIterator (-> Tree (List Tree) Tree (List Tree) (List Tree) (Tree Signal)))
 (= (orSubTreeIterator $child $remainingChildren $currentNode $dominantSet $commandSet)
-(let () (println! (The local commandSet ==> $commandSet))
+(let () (println! (Inside orSubTreeIterator))
 (let*
  (
       ($localCommandSet $commandSet)
@@ -280,19 +289,23 @@
     ;($action ADVANCE);will be replaced with the above code once the functions 'orSubTreeElegance' and 'commandSetIterator' are implemented
 
  )
- (let () (println! (This is localCommandSetUpdated ==> $localCommandSetUpdated This is the orNode ==> $orNode))
+ (let () (println! (Inside orSubTreeIterator After orSubTreeIterator))
  (case $action
      (
         (ADVANCE
-         (if (> (length $remainingChildren) 0)
+        ;;(let () (println! (== Inside orSubTreeIterator ==))
+         (if (== (length $remainingChildren) 0)
+              ($orNode NONE)
              (orSubTreeIterator (head $remainingChildren) (tail $remainingChildren) $orNode $dominantSet $commandSet)
-             ($currentNode NONE)
+
+             
          )
+        ;;)
         )
         (RESET
-         ($currentNode NONE)
+         ($orNode NONE)
         )
-        ($else ($currentNode $action))
+        ($else ($orNode $action))
 
      )
 
@@ -308,6 +321,7 @@
     (andSubTreeIterator $children $currentNode $handleSet $commandSet 0)
 )
 (= (andSubTreeIterator $children $currentNode $handleSet $commandSet $currentChildIndex) 
+  (let () (println! (Inside andSubTreeIterator))
     (if (== (length $children) 0) 
         (NONE $currentNode)
         (let*
@@ -331,4 +345,5 @@
             )
         )
      )
- )
+  )
+)
