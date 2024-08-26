@@ -1,15 +1,15 @@
-; ! (register-module! ../../metta-moses-reduction)
-; ! (import! &self metta-moses-reduction:types)
-;  ; ! (import! &self metta-moses-reduction:utilities:expression-helpers)
-; ! (import! &self metta-moses-reduction:utilities:list-helpers)
-; ! (import! &self metta-moses-reduction:utilities:tree-helpers)
-; ! (import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
-; ! (import! &self metta-moses-reduction:enf-reducer:reduce_to_elegance)
+! (register-module! ../../metta-moses-reduction)
+! (import! &self metta-moses-reduction:types)
+ ; ! (import! &self metta-moses-reduction:utilities:expression-helpers)
+! (import! &self metta-moses-reduction:utilities:list-helpers)
+! (import! &self metta-moses-reduction:utilities:tree-helpers)
+! (import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
+! (import! &self metta-moses-reduction:enf-reducer:reduce_to_elegance)
 
 !(assertEqualToResult True (True))
 !(assertEqualToResult False (False))
-!(assertEqualToResult (length (Cons A (Cons B (Cons C Nil)))) (3))
-!(assertEqualToResult True (True))
+!(assertEqualToResult (length (Cons A (Cons B (Cons C Nil)))) (4))
+!(assertEqualToResult (True) (False))
 
  ;; -----------------------------------
  ;; -----------------------------------
@@ -650,4 +650,3 @@
 ; !(compareSets (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))))
 ; !(compareSets (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value C False LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))))
 ; !(compareSets (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value C True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil))))
-
