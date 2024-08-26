@@ -147,24 +147,23 @@
     )
 )
 
-;;a function that computes intersection of lists of trees.
-;;This is taken from the Python implementation with the same name.
-(: intersections (-> (List Tree) (List Tree) (List Tree)))
-(= (intersections $intersectionSet $children)
-  (
-    if(== (length $children) 0) Nil 
-      (
-        let* 
-        (
-          ($guardSet (getGuardSet (head $children)))
-          ($intersections (treeIntersection $intersectionSet $guardSet))
-          ($finalResult (intersections $intersections (tail $children)))
+(: intersections (-> (List Tree) (List Tree)))
+
+(= (intersections $children)
+  (if (== (length $children) 0)
+    Nil
+    (if (== (length $children) 1)
+      (getGuardSet (head $children))
+      (let* (
+          ($first_child_guardSet (getGuardSet (head $children)))
+          ($remaining_intersections (intersections (tail $children)))
+          ($result (treeIntersection $first_child_guardSet $remaining_intersections))
         )
-        $finalResult
+        $result
       )
+    )
   )
 )
-
 ; ------------------------------------
 
 (: replaceGuardSet (-> Tree (List Tree) Tree) )
