@@ -1,111 +1,91 @@
-import re
-
-from hyperon import MeTTa
+import subprocess
 import pathlib
+from typing import Tuple
+# Define ANSI escape codes for colors
+RESET = "\033[0m"
+BOLD = "\033[1m"
+UNDERLINE = "\033[4m"
+CYAN = "\033[96m"
+GREEN = "\033[92m"
+RED = "\033[91m"
+YELLOW = "\033[93m"
+MAGENTA = "\033[95m"
 
-# get the list of test metta files from path (mosesReductionPath)
+
+def extract_and_print(result) -> Tuple[str, bool]:
+    output = result.stdout if result.returncode == 0 else result.stderr
+    # Remove the specified substring
+    extracted = output.replace("[()]\n", "")
+    
+    # Check if the string contains the word "Error"
+    has_failure = "Error" in extracted
+
+    if(not has_failure):
+        extracted = "test passed"
+    
+
+    
+    status_color = RED if  has_failure else GREEN
+    print(YELLOW + f"Result {idx + 1}:" + RESET)
+    print(status_color + extracted + RESET)
+    print(YELLOW + f"Exit-code: {result.returncode}" + RESET)
+    print("-" * 40)
+    
+    
+    return has_failure
+
+
+# Function to print ASCII art
+def print_ascii_art(text):
+    art = f"""
+    MeTTa Test
+"""
+    print(CYAN + art + RESET)
+
+# Define the command to run with the test files
+metta_run_command = "metta-run"
+
 root = pathlib.Path("../")
 testMettaFiles = root.rglob("*test.metta")
+total_files = 0
+results = []
+fails = 0
 
-listOfTestPrograms = []
-for mettaFile in testMettaFiles: # for each file in the list
-    with open(mettaFile, 'r') as f:
-        testContents = f.readlines() # put the lines to a variable (list).
+# Print ASCII art title
+print_ascii_art("Test Runner")
 
-    mettaTestProgram = ''
-    for line in testContents: # for each line in the file
-        isRegisterModulePresent = re.search("\(register-module!", str(line))
-        if (isRegisterModulePresent is None):
-            mettaTestProgram += line # join each line to form a program
+for testFile in testMettaFiles:
+    total_files += 1
+    try:
+        result = subprocess.run(
+            [metta_run_command, str(testFile)],  # Convert testFile to string
+            capture_output=True, 
+            text=True, 
+            check=True
+        )
+        fails += result.returncode
+        results.append(result)  # Collect only stdout in the results list
+    except subprocess.CalledProcessError as e:
+        results.append(f"Error with {testFile}: {e.stderr}")
+        fails += 1
 
-    listOfTestPrograms.append({
-        'fileName': mettaFile.name,
-        'program': mettaTestProgram
-    }) # collect programs into a list
-
-# listOfTestPrograms[0]['program'] = f"!(register-module! ./) {listOfTestPrograms[0]['program']}"
-
-metta = MeTTa() # initialize MeTTa instance
-# print(metta.working_dir())
-listOfTestPrograms[0]['program'] = f"!(register-module! {metta.working_dir()}) {listOfTestPrograms[0]['program']}"
-
-programResults = []
-for testProgram in listOfTestPrograms: # for each program in the list
-    programResults.append({
-        'fileName': testProgram['fileName'],
-        'expressions': metta.parse_all(testProgram['program']),
-        'outputs': metta.run(testProgram['program'])
-    }) # collect expression results into a list
-# print(programResults)
-
-# testCase = {
-#     'fileName': '',
-#     'testContent': [],
-#     'testOutcome': [
-#         {
-#             'outcome': '',
-#             'output': ''
-#         }
-#     ],
-#     'testsPassed': 0
-#     'testsFailed': 0
-# }
-
-testCases = []
-for programResult in programResults:
-    outputCounter = 0
-    testCase = {
-        'fileName': programResult['fileName'],
-        'testContent': [],
-        'testOutcome': [],
-        'testsPassed': 0,
-        'testsFailed': 0
-    }
-    for idx, expression in enumerate(programResult['expressions']): # for each expression in a program
-        if (str(expression)) == '!':
-            nextExpression = programResult['expressions'][idx+1] # get the expression for the respective '!'
-            isAssertExpression = re.match("\(assertEqual", str(nextExpression))
-            if isAssertExpression is not None:
-                outputString = str(programResult['outputs'][outputCounter][0])
-
-                testCase['testContent'].append(nextExpression)
-                if outputString == '()':
-                    testCase['testOutcome'].append({
-                        'result': "Pass",
-                        'output': programResult['outputs'][outputCounter]
-                    })
-                    testCase['testsPassed'] += 1
-                else:
-                    testCase['testOutcome'].append({
-                        'result': "Fail",
-                        'output': programResult['outputs'][outputCounter]
-                    })
-                    testCase['testsFailed'] += 1
-                    break
-                
-            outputCounter += 1
-
-    testCases.append(testCase)
-# print(testCases)
-
-testsPassed = 0
-testsFailed = 0
-for testCase in testCases:
-    for idx, outCome in enumerate(testCase['testOutcome']):
-        if outCome['result'] == "Fail":
-            print("Expression: \033[91m {}\033[0m" .format(testCase['testContent'][idx]))
-            print("Output: \033[91m {}\033[0m" .format(outCome['output']))
-            print("\033[91m=\033[0m"*60)
-            print("\n")
-
-    if testCase['testsFailed'] > 0:
-        print("\033[41m Fail \033[0m {}" .format(testCase['fileName']))
-    elif testCase['testsFailed'] <= 0:
-        print("\033[42m Pass \033[0m {}" .format(testCase['fileName']))
+# Output the results
+for idx, result in enumerate(results):
+    if isinstance(result, str):
+        print(RED + f"Error found: {result}" + RESET)
+        continue
     
-    testsPassed += testCase['testsPassed']
-    testsFailed += testCase['testsFailed']
+    has_failure =extract_and_print(result)
+    if has_failure:
+        fails+=1
 
-totalTests = testsPassed + testsFailed
-# print("\n")
-print("Tests: \033[91m{} failed\033[0m, \033[92m{} passed\033[0m, {} total" .format(testsFailed, testsPassed, totalTests))
+
+# Summary
+print(CYAN + "\nTest Summary" + RESET)
+print(MAGENTA + f"{total_files} files tested." + RESET)
+print(RED + f"{fails} failed." + RESET)
+print(GREEN + f"{total_files - fails} succeeded." + RESET)
+
+
+
+
