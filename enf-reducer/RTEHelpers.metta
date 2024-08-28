@@ -252,7 +252,7 @@
    (let* (
        ($previousGuardSet (getGuardSet $current))
        ($handle_set (setUnion treeIsMember $dominant_set (getGuardSet $current)))
-       (($signal $fstupdatedcurrent) (andSubTreeIterator (getChildren $current) $current $handle_set $command_set))
+       (($signal $fstupdatedcurrent) (andSubTreeIterator (getChildren $current) $current $handle_set $command_set 0))
       )
       ;; (let () (println! (Inside Iterator after andSubTreeIterator call fstupdatedcurrent ==> $fstupdatedcurrent))
        (if (not (isConsistent $handle_set)) 
@@ -320,11 +320,11 @@
 
 ;;a function which is the reimplementation of the andSubTreeIterator function found in python
 
-(: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) (Signal Tree)))
+;;(: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) (Signal Tree)))
 (: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) Number (Signal Tree)))
-(= (andSubTreeIterator $children $currentNode $handleSet $commandSet) 
-    (andSubTreeIterator $children $currentNode $handleSet $commandSet 0)
-)
+;; (= (andSubTreeIterator $children $currentNode $handleSet $commandSet) 
+;;     (andSubTreeIterator $children $currentNode $handleSet $commandSet 0)
+;; )
 (= (andSubTreeIterator $children $currentNode $handleSet $commandSet $currentChildIndex) 
   (let () (println! (Inside andSubTreeIterator))
     (if (> (length $children) 0) 
