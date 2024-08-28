@@ -362,4 +362,13 @@
 (= (tailOfChildren (TreeNode $nodeValue $guardSet $children))
     (let (Cons $x $xs) $children $xs)
 )
+(: indexOfTree (-> Number (List Tree) Tree))
+(= (indexOfTree $a Nil) NilNode)
+ ;(= (index 0 (Cons $x $xs)) $x)
+(= (indexOfTree $a (Cons $x $xs))
+    (if (== $a 0)
+        $x
+        (indexOfTree (- $a 1) $xs)
+    )
+)
 

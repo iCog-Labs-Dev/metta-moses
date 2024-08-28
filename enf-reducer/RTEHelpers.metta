@@ -99,7 +99,7 @@
 ;; -----------------------------------
 ;; -----------------------------------
 
-(: commandSetIterator(-> (List Tree) (List Tree) (List Tree)))
+(: commandSetIterator (-> (List Tree) (List Tree) (List Tree)))
 (= (commandSetIterator Nil $localCommandSet) $localCommandSet)
 (= (commandSetIterator (Cons $x $xs) $localCommandSet)
 (if (and 
@@ -248,32 +248,38 @@
 ; iterator function
 (: iterator (-> Tree (List Tree) (List Tree) (Tree ReductionSignal)))
 (= (iterator $current $dominant_set $command_set)
-  (let () (println! (inside Iterator ))
+  ;; (let () (println! (inside Iterator ))
    (let* (
        ($previousGuardSet (getGuardSet $current))
        ($handle_set (setUnion treeIsMember $dominant_set (getGuardSet $current)))
        (($signal $fstupdatedcurrent) (andSubTreeIterator (getChildren $current) $current $handle_set $command_set))
       )
-      (let () (println! (Inside Iterator after andSubTreeIterator call))
+      ;; (let () (println! (Inside Iterator after andSubTreeIterator call fstupdatedcurrent ==> $fstupdatedcurrent))
        (if (not (isConsistent $handle_set)) 
            ($current DELETE) 
+          ;;  (let () (println! (handle_set is $handle_set current is $current)
            (if (not (== $signal NONE)) 
               ($signal $fstupdatedcurrent) 
-               (let
-                   $sndupdatedcurrent (applyToChildren $fstupdatedcurrent (getChildren $fstupdatedcurrent))
-               
-                   
-                  (if (not (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent))) 
-                       (iterator $sndupdatedcurrent $dominant_set $command_set) 
-                       ($sndupdatedcurrent NONE)
-                   )
+               (let* (
+                  ($sndupdatedcurrent (applyToChildren $fstupdatedcurrent (getChildren $fstupdatedcurrent)))
+                  ($setsAreIdentical (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent)))
+
+               )
+                ;; (let () (println! (secondUpdatedCurrent is $sndupdatedcurrent setsAreIdentical is $setsAreIdentical))
+                      (if (not $setsAreIdentical) 
+                          (iterator $sndupdatedcurrent $dominant_set $command_set) 
+                          ($sndupdatedcurrent NONE)
+                      )
+                ;; )
                )
            )
-       )
+           )
+      ;;  )
    )
+  ;;  )
    )
-)
-)
+;; )
+;; )
 
 ;;a function which is the reimplementation of the orSubTreeIterator function found in python
 
@@ -321,13 +327,13 @@
 )
 (= (andSubTreeIterator $children $currentNode $handleSet $commandSet $currentChildIndex) 
   (let () (println! (Inside andSubTreeIterator))
-    (if (== (length $children) 0) 
-        (NONE $currentNode)
+    (if (> (length $children) 0) 
         (let*
             (
-              ($currentChild (index $currentChildIndex $children))
+              ($currentChild (indexOfTree $currentChildIndex $children))
               (($updatedCurrent $action) (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
             )
+            (let () (println! (andSubTreeIterator $currentChildIndex)) ;;checking currentIndex
             (case $action
                 (
                   (ADVANCE
@@ -343,6 +349,8 @@
                 )
             )
         )
+        )
+        (NONE $currentNode)
      )
   )
 )
