@@ -333,7 +333,7 @@
               ($currentChild (indexOfTree $currentChildIndex $children))
               (($updatedCurrent $action) (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
             )
-            (let () (println! (andSubTreeIterator $currentChildIndex)) ;;checking currentIndex
+            (let () (println! (AndSubTreeIterator ==> $currentChildIndex)) ;;checking currentIndex
             (case $action
                 (
                   (ADVANCE
@@ -342,9 +342,9 @@
                         (NONE $updatedCurrent)
                     )
                   )
-                  (RESET
-                    (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet 0) 
-                  )
+                  ;; (RESET
+                  ;;   (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet 0) 
+                  ;; )
                   ($else ($action $updatedCurrent))
                 )
             )
