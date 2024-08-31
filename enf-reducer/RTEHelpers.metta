@@ -211,7 +211,7 @@
                   ($containsTerminalAndNode (any $bools))
                  )
                  (
-                   if (== $containsTerminalAndNode True)($updatedCurrentTree ADVANCE)($updatedCurrentTree RESET)
+                   if (== $containsTerminalAndNode False)($updatedCurrentTree ADVANCE)($updatedCurrentTree RESET)
                  )
                )
             )
@@ -333,18 +333,18 @@
               ($currentChild (indexOfTree $currentChildIndex $children))
               (($updatedCurrent $action) (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
             )
-            (let () (println! (AndSubTreeIterator ==> $currentChildIndex)) ;;checking currentIndex
+            (let () (println! (AndSubTreeIterator ==> $currentChildIndex children ==> $children currentNode ==> $currentNode handleSet ==> $handleSet commandSet ==> $commandSet)) ;;checking currentIndex
             (case $action
                 (
                   (ADVANCE
-                    (if (< (+ $currentChildIndex 1) (length $children) )
+                    (if (< (+ $currentChildIndex 1) (length $children))
                         (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet (+ $currentChildIndex 1))
                         (NONE $updatedCurrent)
                     )
                   )
-                  ;; (RESET
-                  ;;   (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet 0) 
-                  ;; )
+                  (RESET
+                    (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet 0) 
+                  )
                   ($else ($action $updatedCurrent))
                 )
             )
