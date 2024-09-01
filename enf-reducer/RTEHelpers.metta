@@ -191,7 +191,9 @@
             ($updatedCurrentTree (replaceChildren $current (findAndReplaceChild $child $updatedChild (getChildren $current))))
             ($resultSet (intersections Nil (getChildren $updatedChild)))
           )
+          ;;(let () (resultSet ==> $resultSet)
           (
+    
              if(> (length $resultSet) 0) 
                (
                  let* 
@@ -215,9 +217,10 @@
                  )
                )
             )
+          ;;)
           )
         )
-        ($_ ($updatedChild $outcome))
+        ;;($_ ($updatedChild $outcome))
 
       )
     )
@@ -298,14 +301,14 @@
  (case $action
      (
         (ADVANCE
-        ;;(let () (println! (== Inside orSubTreeIterator ==))
+        (let () (println! (remainingChildren ==> $remainingChildren))
          (if (== (length $remainingChildren) 0)
               ($orNode NONE)
              (orSubTreeIterator (headOfChildren $remainingChildren) (tail $remainingChildren) $orNode $dominantSet $commandSet)
 
              
          )
-        ;;)
+        )
         )
         (RESET
          ($orNode NONE)
