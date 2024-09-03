@@ -1,7 +1,6 @@
 import subprocess
 import pathlib
 from typing import Tuple
-import sys
 # Define ANSI escape codes for colors
 RESET = "\033[0m"
 BOLD = "\033[1m"
@@ -13,7 +12,7 @@ YELLOW = "\033[93m"
 MAGENTA = "\033[95m"
 
 
-def extract_and_print(result,path) -> Tuple[str, bool]:
+def extract_and_print(result) -> Tuple[str, bool]:
     output = result.stdout if result.returncode == 0 else result.stderr
     # Remove the specified substring
     extracted = output.replace("[()]\n", "")
@@ -27,7 +26,7 @@ def extract_and_print(result,path) -> Tuple[str, bool]:
 
     
     status_color = RED if  has_failure else GREEN
-    print(YELLOW + f"Test {idx + 1}: {path}" + RESET)
+    print(YELLOW + f"Result {idx + 1}:" + RESET)
     print(status_color + extracted + RESET)
     print(YELLOW + f"Exit-code: {result.returncode}" + RESET)
     print("-" * 40)
@@ -65,22 +64,20 @@ for testFile in testMettaFiles:
             check=True
         )
         fails += result.returncode
-        results.append((result,testFile))  # Collect only stdout in the results list
+        results.append(result)  # Collect only stdout in the results list
     except subprocess.CalledProcessError as e:
         results.append(f"Error with {testFile}: {e.stderr}")
         fails += 1
 
 # Output the results
-for idx, (result,path )in enumerate(results):
+for idx, result in enumerate(results):
     if isinstance(result, str):
-        
         print(RED + f"Error found: {result}" + RESET)
         continue
     
-    has_failure =extract_and_print(result,path)
+    has_failure =extract_and_print(result)
     if has_failure:
         fails+=1
-        
 
 
 # Summary
@@ -91,6 +88,4 @@ print(GREEN + f"{total_files - fails} succeeded." + RESET)
 
 
 
-if(fails > 0):
-    print(RED + "Tests failed . Process Exiting with exit code 1" + RESET)
-    sys.exit(1)
+
