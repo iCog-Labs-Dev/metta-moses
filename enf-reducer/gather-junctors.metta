@@ -1,8 +1,3 @@
-;; ! (register-module! ../../metta-moses-reduction)
-;; ! (import! &self metta-moses-reduction:types)
-;; ! (import! &self metta-moses-reduction:utilities:list-helpers)
-;; ! (import! &self metta-moses-reduction:utilities:tree-helpers)
-
 (: gatherJunctors (-> Tree Tree Tree))
 (= (gatherJunctors $currentNode $centerNode)
       (let* (
