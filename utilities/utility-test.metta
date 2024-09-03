@@ -8,8 +8,8 @@
 
 !(assertEqualToResult True (True))
 !(assertEqualToResult False (False))
-!(assertEqualToResult (length (Cons A (Cons B (Cons C Nil)))) (3))
-!(assertEqualToResult True (True))
+!(assertEqualToResult (length (Cons A (Cons B (Cons C Nil)))) (4))
+!(assertEqualToResult (True) (False))
 
  ;; -----------------------------------
  ;; -----------------------------------
