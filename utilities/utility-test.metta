@@ -8,8 +8,8 @@
 
 !(assertEqualToResult True (True))
 !(assertEqualToResult False (False))
-!(assertEqualToResult (length (Cons A (Cons B (Cons C Nil)))) (4))
-!(assertEqualToResult (True) (False))
+!(assertEqualToResult (length (Cons A (Cons B (Cons C Nil)))) (3))
+!(assertEqualToResult True (True))
 
  ;; -----------------------------------
  ;; -----------------------------------
@@ -650,4 +650,3 @@
 ; !(compareSets (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))))
 ; !(compareSets (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value C False LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))))
 ; !(compareSets (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value C True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil))))
-
