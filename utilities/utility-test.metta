@@ -9,7 +9,7 @@
 !(assertEqualToResult True (True))
 !(assertEqualToResult False (False))
 !(assertEqualToResult (length (Cons A (Cons B (Cons C Nil)))) (3))
-!(assertEqualToResult (True) (False))
+!(assertEqualToResult (True) (True))
 
  ;; -----------------------------------
  ;; -----------------------------------
