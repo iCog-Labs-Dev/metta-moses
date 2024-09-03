@@ -23,7 +23,8 @@
             ($currentHasNoChild (== (length $children) 0))
             ($currentHasNoGuardSet (== (length $finalGuardSet) 0))
             ($updatedCurrentTree (TreeNode (Value $value $constraint $type) $finalGuardSet $children))
-          )
+           )
+          (let () (println! (Inside RTE AND case))
           (if (and $currentHasNoChild $currentHasNoGuardSet)
                 ($updatedCurrentTree DISCONNECT)
                 (let $resultSet (treeIntersection $finalGuardSet $commandSet)
@@ -44,27 +45,32 @@
                     )
                 )
           )
+         )
         )
      )
       (OR
         (let $currentTree (TreeNode (Value $value $constraint $type) $guardSet $children)
+          (let () (println! (Inside RTE Or case))
           (if (> (length $children) 0)
             ;;The action defined below is used to simulate the output of the orSubTreeIterator function call
-            (let ($orTree $action) (orSubTreeIterator (headOfChildren $children) (tail $children) $currentTree $dominantSet $commandSet)
-              (if (not (== $action NONE))
-                  ($orTree $action)
-                  ($orTree KEEP)
+            (let ($orTree $action) (orSubTreeIterator (head $children) (tail $children) $currentTree $dominantSet $commandSet)
+              (let () (pritnln!  (This is the orTree ==> $orTree))
+                (if (not (== $action NONE))
+                    ($orTree $action)
+                    ($orTree KEEP)
+                )
               )
-               
+            )
+               ($currentTree KEEP)
             )
             
-            ($currentTree KEEP)
+            
           )
-         
+        )
         )
       )
     )
   )
-)
+
 
 

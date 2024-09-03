@@ -45,6 +45,7 @@
 ;; -----------------------------------
 
 (: getChildren (-> Tree (List Tree)))
+(=(getChildren NilNode) Nil)
 (= (getChildren (TreeNode $nodeVal $guardSet $children)) $children)
 
 ;;A function to get node children at a given index
@@ -65,6 +66,7 @@
 ;; -----------------------------------
 
 (: getGuardSet (-> Tree (List Tree)))
+(= (getGuardSet NilNode) Nil)
 (= (getGuardSet (TreeNode $nodeValue $guardSet $children)) $guardSet)
 
 ; Given a tree and the new type, it returns a new tree with the new type
@@ -147,24 +149,23 @@
     )
 )
 
-;;a function that computes intersection of lists of trees.
-;;This is taken from the Python implementation with the same name.
-(: intersections (-> (List Tree) (List Tree) (List Tree)))
-(= (intersections $intersectionSet $children)
-  (
-    if(== (length $children) 0) Nil 
-      (
-        let* 
-        (
-          ($guardSet (getGuardSet (head $children)))
-          ($intersections (treeIntersection $intersectionSet $guardSet))
-          ($finalResult (intersections $intersections (tail $children)))
+(: intersections (-> (List Tree) (List Tree)))
+
+(= (intersections $children)
+  (if (== (length $children) 0)
+    Nil
+    (if (== (length $children) 1)
+      (getGuardSet (head $children))
+      (let* (
+          ($first_child_guardSet (getGuardSet (head $children)))
+          ($remaining_intersections (intersections (tail $children)))
+          ($result (treeIntersection $first_child_guardSet $remaining_intersections))
         )
-        $finalResult
+        $result
       )
+    )
   )
 )
-
 ; ------------------------------------
 
 (: replaceGuardSet (-> Tree (List Tree) Tree) )
@@ -196,7 +197,8 @@
     )
 )
 ;; function that get the node types
-(: getNodeType (-> Tree Atom))
+(: getNodeType (-> Tree NodeType))
+(=(getNodeType NilNode) NONENODE)
 (= (getNodeType (TreeNode (Value $value $bool $nodeType) $guardSet $children)) $nodeType)
 
 ;; function that get the node value
@@ -333,7 +335,7 @@
 
 (: prependToGuardSet (-> Tree Tree Tree))
 (= (prependToGuardSet (TreeNode $nodeValue $guardSet $children) $node)
-  (TreeNode $nodeValue (Cons $node $guardSet) $children)
+  (TreeNode $nodeValue (setInsert isNodeEqual $guardSet $node) $children)
 )
 ;; Returns a boolean value after it compares two trees.
 (: compareSets (-> (List Tree) (List Tree) Bool))
