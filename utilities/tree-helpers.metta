@@ -149,24 +149,27 @@
     )
 )
 
+;; Given list of trees, intersections will compute the intersection of between their guard sets.
+;; It has similar behaviour like treeIntersection but for more than two trees.
 (: intersections (-> (List Tree) (List Tree)))
-
 (= (intersections $children)
-  (if (== (length $children) 0)
-    Nil
-    (if (== (length $children) 1)
-      (getGuardSet (head $children))
-      (let* (
-          ($first_child_guardSet (getGuardSet (head $children)))
-          ($remaining_intersections (intersections (tail $children)))
-          ($result (treeIntersection $first_child_guardSet $remaining_intersections))
+  (case (length $children) 
+    (
+      (0 Nil)
+      (1 (getGuardSet (head $children)))
+      ($else 
+        (let* 
+          (
+            ($firstChildGuardSet (getGuardSet (head $children)))
+            ($remainingIntersections (intersections (tail $children)))
+            ($result (treeIntersection $firstChildGuardSet $remainingIntersections))
+          )
+          $result
         )
-        $result
       )
     )
   )
 )
-; ------------------------------------
 
 (: replaceGuardSet (-> Tree (List Tree) Tree) )
 (= (replaceGuardSet NilNode $newguardSet) NilNode)
@@ -259,7 +262,7 @@
   )
 )
 
-; ------ Update GrandChild guardset with the difference between the current guardset(list of trees) and the given list of trees
+;; Update GrandChild's guardset with the difference between the current guardset(list of trees) and the given list of trees
 (: computeGrandchildGuardset (-> Tree (List Tree) Tree))
 (= (computeGrandchildGuardset NilNode $resultSet) NilNode)
 (= (computeGrandchildGuardset (TreeNode $nodeValue $guardSet $children) $resultSet)
