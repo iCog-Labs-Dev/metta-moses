@@ -344,3 +344,16 @@
      )
   )
 )
+
+;; Helper functions for the RTE algorithm it self
+
+;; A helper function that acts like a lambda function definition in the map found in the OR case below.
+(: updateGuardSet ((List Tree) Tree Tree))
+(= (updateGuardSet $commonToAllChildren $child) (replaceGuardSet $child (setDifference (getGuardSet $child) $commonToAllChildren)))
+
+;; Map function that accepts a binary function and it's second argument.
+(: mapChild (-> Atom $t (List Tree) (List Tree)))
+(= (mapChild $function $secondArg Nil) Nil)
+(= (mapChild $function $secondArg (Cons $x $xs))
+      (Cons ($function $secondArg $x) (mapChild $function $secondArg $xs))
+)
