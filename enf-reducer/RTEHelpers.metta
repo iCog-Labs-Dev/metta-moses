@@ -286,7 +286,7 @@
 (let*
  (
       ($localCommandSet $commandSet)
-      ($localCommandSetUpdated (commandSetIterator $remainingChildren $localCommandSet))
+      ($localCommandSetUpdated (commandSetIterator $child $remainingChildren $localCommandSet))
       (($orNode $action) (orSubTreeElegance $child $currentNode $dominantSet $localCommandSetUpdated))
     ;($action ADVANCE);will be replaced with the above code once the functions 'orSubTreeElegance' and 'commandSetIterator' are implemented
 
