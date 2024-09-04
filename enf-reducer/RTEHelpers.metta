@@ -215,57 +215,49 @@
 )
 )
 
-; helper function for itarator
+;; Helper function for itarator
 
 (: applyToChildren (-> Tree (List Tree) Tree))
-(= (applyToChildren $current $children)
-   (case $children
-     (
-      (Nil $current) ; If there are no more children, return the current node
-      ((Cons $child $rest)
-         ; Apply `applyOrCut` to the current node and the child
-         (let* (
-             ($newChild (applyOrCut $current $child))
-             ($newCurrent (prependChild $current $newChild))
-             )
-              (applyToChildren $newCurrent $rest)
-         )
-      )
-     )
-   )
+(= (applyToChildren $current Nil) $current)
+(= (applyToChildren $current (Cons $x $xs)) 
+    (let $newCurrent (applyOrCut $x $current)
+      (applyToChildren $newCurrent $xs)
+    )
 )
 
 ; iterator function
-(: iterator (-> Tree (List Tree) (List Tree) (Tree ReductionSignal)))
-(= (iterator $current $dominant_set $command_set)
+(: iterator (-> Tree Tree (List Tree) (List Tree) (Tree Tree ReductionSignal)))
+(= (iterator $parent $current $dominantSet $commandSet)
   ;; (let () (println! (inside Iterator ))
-   (let* (
+   (let* 
+     (
        ($previousGuardSet (getGuardSet $current))
-       ($handle_set (setUnion treeIsMember $dominant_set (getGuardSet $current)))
-       (($signal $fstupdatedcurrent) (andSubTreeIterator (getChildren $current) $current $handle_set $command_set 0))
-      )
+       ($handleSet (setUnion treeIsMember $dominantSet (getGuardSet $current)))
+     )
       ;; (let () (println! (Inside Iterator after andSubTreeIterator call fstupdatedcurrent ==> $fstupdatedcurrent))
-       (if (not (isConsistent $handle_set)) 
-           ($current DELETE) 
-          ;;  (let () (println! (handle_set is $handle_set current is $current)
-           (if (not (== $signal NONE)) 
-              ($signal $fstupdatedcurrent) 
-               (let* (
-                  ($sndupdatedcurrent (applyToChildren $fstupdatedcurrent (getChildren $fstupdatedcurrent)))
-                  ($setsAreIdentical (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent)))
-
-               )
-                ;; (let () (println! (secondUpdatedCurrent is $sndupdatedcurrent setsAreIdentical is $setsAreIdentical))
-                      (if (not $setsAreIdentical) 
-                          (iterator $sndupdatedcurrent $dominant_set $command_set) 
-                          ($sndupdatedcurrent NONE)
-                      )
-                ;; )
-               )
+     (if (not (isConsistent $handleSet))
+           ($parent $current DELETE)
+          ;;  (let () (println! (handleSet is $handleSet current is $current)
+           (let ($updatedParent $updatedCurrent $outcome) (andSubTreeIterator $parent (getChildren $current) $current $handleSet $commandSet)
+              (if (~= $outcome NONE)
+                  ($updatedParent $updatedCurrent $outcome) 
+                  (let*
+                    (
+                      ($sndupdatedcurrent (applyToChildren $updatedCurrent (getChildren $updatedCurrent)))
+                      ($setsAreIdentical (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent)))
+                    )
+                    ;; (let () (println! (secondUpdatedCurrent is $sndupdatedcurrent setsAreIdentical is $setsAreIdentical))
+                    (if (not $setsAreIdentical) 
+                        (iterator $updatedParent $sndupdatedcurrent $dominantSet $commandSet) 
+                        ($updatedParent $sndupdatedcurrent NONE)
+                    )
+                    ;; )
+                  )
+              )
            )
            )
       ;;  )
-   )
+     )
   ;;  )
    )
 ;; )
