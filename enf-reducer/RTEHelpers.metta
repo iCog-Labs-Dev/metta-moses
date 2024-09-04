@@ -105,20 +105,6 @@
       (commandSetIterator $xs $localCommandSet)
   )
 )
-(: commandSetIterator (-> Tree (List Tree) (List Tree) (List Tree)))
-(= (commandSetIterator $_ Nil $localCommandSet) $localCommandSet)
-(= (commandSetIterator $child (Cons $x $xs) $localCommandSet)
-  ;; Compare if siblings have terminal and node with one constraint in their guard Set
-  (if (and
-          (and (== (getChildren $x) Nil) (== (length (getGuardSet $x)) 1))
-          (and (== (getNodeType $x) AND) (~= $child $x))
-      )
-      (let $tempResult (setUnion treeIsMember (getGuardSet $x) (commandSetIterator $xs $localCommandSet))
-        (setDifference treeIsMember $tempResult (getGuardSet $child))
-      )
-      (commandSetIterator $xs $localCommandSet)
-  )
-)
 
 ; orSubTreeElegance implementation
 
