@@ -338,17 +338,20 @@
   (TreeNode $nodeValue (setInsert isNodeEqual $guardSet $node) $children)
 )
 ;; Returns a boolean value after it compares two trees.
+;; Compares the two sets if they are identical or not regardless of their order.
 (: compareSets (-> (List Tree) (List Tree) Bool))
-(=(compareSets $firstSet $secondSet)
+(= (compareSets $firstSet $secondSet)
   (let*(
-      ($firstDifference (setDifference treeIsMember $firstSet $secondSet Nil))
-      ($secondDifference (setDifference treeIsMember $secondSet $firstSet Nil))
-    )(if (and (== $firstDifference Nil) (== $secondDifference Nil))
-      True
-      False
-    )
+        ($firstDifference (setDifference treeIsMember $firstSet $secondSet Nil))
+        ($secondDifference (setDifference treeIsMember $secondSet $firstSet Nil))
+       )
+       (if (and (== $firstDifference Nil) (== $secondDifference Nil))
+         True
+         False
+       )
   )
 )
+
 ;;retrieves for the head of Children in a List of tree given a tree
 (: headOfChildren (-> (List Tree) Tree))
 (= (headOfChildren Nil) NilNode)
