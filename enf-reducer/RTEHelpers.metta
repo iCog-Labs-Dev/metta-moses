@@ -34,53 +34,48 @@
   )
 )
 
-;; -----------------------------------
-;; -----------------------------------
-;; -------- Function that 
-;; -------- 1. adds a target OR Node's child's
-;; -------- guardset to the guardset of the target's parent 
-;; -------- 2. adds the target OR Node's children to the parent's list of children 
-;; -------  3. removes target OR Node from it's parent's list of children.
-;; -----------------------------------
-;; -----------------------------------
 
-;; ----- Helper Functions for applyOrCut to enhance readability
+;; Helper Functions for applyOrCut to enhance readability
 (: updateGuardSetTree (-> Tree Tree Tree))
-(= (updateGuardSetTree $target $node2)(
-   let* (
+(= (updateGuardSetTree $target $node2)
+   (let* 
+     (
       ($A (getGuardSet $target))
       ($B (getGuardSet $node2))
-   )
-    (replaceGuardSet $target (setUnion treeIsMember $A $B))
-  )
-)
-
-(: updateChildrenTree (-> Tree Tree Tree Tree))
-(= (updateChildrenTree $target $node1 $node2)(
-    replaceChildren $target (extend (getChildren $node1) (getChildren $node2))
-  )
-)
-
-(: removeChildFromTree (-> Tree Tree Tree))
-(= (removeChildFromTree $parentNode $target)(
-    replaceChildren $parentNode (findAndRemoveTree $target (getChildren $parentNode))
-  )
-)
-
-(: applyOrCut (-> Tree Tree Tree))
-(= (applyOrCut $child $current)(
-  if(== (length (getChildren $child)) 1)
-     (let* (
-        ($grandChild (headOfChildren (getChildren $child)))
-        ($updatedGuardSetTree (updateGuardSetTree $current $grandChild))
-        ($updatedChildrenTree (updateChildrenTree $updatedGuardSetTree $grandChild $updatedGuardSetTree))
-        ($updatedTree (removeChildFromTree $updatedChildrenTree $child) )
-        ($finalUpdatedTree (removeChildFromTree $updatedTree $grandChild) )
      )
-      $finalUpdatedTree 
-    )
-    $current
+     (replaceGuardSet $target (setUnion treeIsMember $A $B))
+  )
 )
+
+;; Helper Functions for applyOrCut to enhance readability
+(: updateChildrenTree (-> Tree Tree Tree))
+(= (updateChildrenTree $target $node2)
+  (replaceChildren $target (extend (getChildren $target) (getChildren $node2)))
+)
+
+;; Helper Functions for applyOrCut to enhance readability
+(: removeChildFromTree (-> Tree Tree Tree))
+(= (removeChildFromTree $parentNode $target)
+   (replaceChildren $parentNode (findAndRemoveTree $target (getChildren $parentNode)))
+)
+
+;; This function that removes unnecessary OR nodes from the tree.
+;; An OR node is deemed to be unnecessary if it only has one child.
+(: applyOrCut (-> Tree Tree Tree))
+(= (applyOrCut $child $current)
+    (if (== (length (getChildren $child)) 1)
+        (let* 
+          (
+            ($grandChild (headOfChildren (getChildren $child)))
+            ($updatedGuardSetTree (updateGuardSetTree $current $grandChild))
+            ($updatedChildrenTree (updateChildrenTree $updatedGuardSetTree $grandChild))
+            ($updatedTree (removeChildFromTree $updatedChildrenTree $child) )
+            ($finalUpdatedTree (removeChildFromTree $updatedTree $grandChild) )
+          )
+          $finalUpdatedTree 
+        )
+        $current
+    )
 )
 
 ;; -----------------------------------
