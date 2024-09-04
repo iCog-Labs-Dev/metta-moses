@@ -99,10 +99,10 @@
           (and (== (getChildren $x) Nil) (== (length (getGuardSet $x)) 1))
           (and (== (getNodeType $x) AND) (~= $child $x))
       )
-      (let $tempResult (setUnion treeIsMember (getGuardSet $x) (commandSetIterator $xs $localCommandSet))
-        (setDifference treeIsMember $tempResult (getGuardSet $child))
+      (let $tempResult (setUnion treeIsMember (getGuardSet $x) (commandSetIterator $child $xs $localCommandSet))
+        (setDifference treeIsMember $tempResult (getGuardSet $child) Nil)
       )
-      (commandSetIterator $xs $localCommandSet)
+      (commandSetIterator $child $xs $localCommandSet)
   )
 )
 
