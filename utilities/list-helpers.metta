@@ -72,6 +72,9 @@
 (= (extend Nil $ys) $ys)
 (= (extend (Cons $x $xs) $ys) (Cons $x (extend $xs $ys)))
 
+(: ++ (-> (List $t) (List $t) (List $t)))
+(= ($list1 ++ $list2) (extend $list1 $list2))
+
 ; Function to partition the list
 (: partition (-> Atom (List $t) ( (List $t) (List $t) )))
 (= (partition $_ Nil) ( Nil Nil ))
