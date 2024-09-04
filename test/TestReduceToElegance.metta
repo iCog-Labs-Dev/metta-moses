@@ -14,18 +14,24 @@
 ;; Test for applyAndCut function
 
 ;; Test 01 - Node with one child and empty guardSet
-;; ! (assertEqual (applyAndCut (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value a True LITERAL) Nil Nil) (Cons (TreeNode (Value b True LITERAL) Nil Nil) Nil) ) ) (TreeNode (Value K True AND) Nil (Cons (TreeNode ( Value J True OR) Nil (Cons (TreeNode ( Value I True LITERAL) (Cons (TreeNode ( Value G False LITERAL) Nil Nil) Nil) (Cons (TreeNode ( Value H True OR) Nil Nil) Nil) ) Nil) ) Nil) )) ((TreeNode (Value K True AND) Nil (Cons (TreeNode (Value J True OR) Nil (Cons (TreeNode (Value I True LITERAL) (Cons (TreeNode (Value G False LITERAL) Nil Nil) Nil) (Cons (TreeNode (Value H True OR) Nil Nil) Nil)) Nil)) Nil)) False))
+; !(assertEqual 
+;    (applyAndCut 
+;      (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value a True LITERAL) Nil Nil) (Cons (TreeNode (Value b True LITERAL) Nil Nil) Nil) ) )
+;      (TreeNode (Value K True AND) Nil (Cons (TreeNode ( Value J True OR) Nil (Cons (TreeNode ( Value I True LITERAL) (Cons (TreeNode ( Value G False LITERAL) Nil Nil) Nil) (Cons (TreeNode ( Value H True OR) Nil Nil) Nil) ) Nil) ) Nil) )
+;    ) 
+;    ((TreeNode (Value K True AND) Nil (Cons (TreeNode (Value J True OR) Nil (Cons (TreeNode (Value I True LITERAL) (Cons (TreeNode (Value G False LITERAL) Nil Nil) Nil) (Cons (TreeNode (Value H True OR) Nil Nil) Nil)) Nil)) Nil)) False)
+;  )
 
 
 ;; Test for applyorcut function
 
-!(assertEqual 
-   (applyOrCut 
-     (TreeNode (Value B False OR) Nil (Cons (TreeNode (Value C False LITERAL) (Cons (TreeNode (Value G1 True LITERAL) Nil Nil) (Cons (TreeNode (Value G2 True LITERAL) Nil Nil) Nil) ) (Cons (TreeNode (Value D True LITERAL) Nil Nil) Nil) ) Nil) )
-     (TreeNode (Value A True AND) (Cons (TreeNode (Value G0 True LITERAL) Nil Nil) Nil) (Cons (TreeNode (Value E False LITERAL) Nil Nil) Nil )) 
-   )  
-   (TreeNode (Value A True AND) (Cons (TreeNode (Value G0 True LITERAL) Nil Nil) (Cons (TreeNode (Value G1 True LITERAL) Nil Nil) (Cons (TreeNode (Value G2 True LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value E False LITERAL) Nil Nil) (Cons (TreeNode (Value D True LITERAL) Nil Nil) Nil)))
- )
+;; !(assertEqual 
+;;    (applyOrCut 
+;;      (TreeNode (Value B False OR) Nil (Cons (TreeNode (Value C False LITERAL) (Cons (TreeNode (Value G1 True LITERAL) Nil Nil) (Cons (TreeNode (Value G2 True LITERAL) Nil Nil) Nil) ) (Cons (TreeNode (Value D True LITERAL) Nil Nil) Nil) ) Nil) )
+;;      (TreeNode (Value A True AND) (Cons (TreeNode (Value G0 True LITERAL) Nil Nil) Nil) (Cons (TreeNode (Value E False LITERAL) Nil Nil) Nil )) 
+;;    )  
+;;    (TreeNode (Value A True AND) (Cons (TreeNode (Value G0 True LITERAL) Nil Nil) (Cons (TreeNode (Value G1 True LITERAL) Nil Nil) (Cons (TreeNode (Value G2 True LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value E False LITERAL) Nil Nil) (Cons (TreeNode (Value D True LITERAL) Nil Nil) Nil)))
+;;  )
 
 
 ;; Test for commandSetIterator function

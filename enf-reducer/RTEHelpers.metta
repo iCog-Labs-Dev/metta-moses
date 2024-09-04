@@ -11,10 +11,8 @@
   )
 )
 
-;; A function that applies the "ApplyAndCut" operation on a tree node. It is the reimplementation of the function found in python.
-;; The function takes a treeNode and checks if it has only one child and no guardSet, if so, it merges the child and the current node as one. It also checks the existence of a terminal and node in the child of the tree which will be beneficial for the `andSubTreeElegance` function. 
-;; The function returns the updated  tree and the boolean value together in a tuple.
-
+;; A function to remove unnecessary AND node.
+;; And AND node is said to be unnecessary if it has no guardSet and only one child.
 (: applyAndCut (-> Tree Tree (Tree Bool)))
 (= (applyAndCut $grandChild $child)
   (if (and (== (length (getChildren $grandChild)) 1) (== (getGuardSet $grandChild) Nil))
@@ -23,7 +21,7 @@
           (
             ($firstNodeOfGrandChild (head (getChildren $grandChild)))
             ($updatedChildrenTree (replaceChildren $child (extend (getChildren $child) (getChildren $firstNodeOfGrandChild))))
-            ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree $firstNodeOfGrandChild (getChildren $updatedChildrenTree) )))
+            ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree $grandChild (getChildren $updatedChildrenTree) )))
             ($hasTerminalAndNode (containsTerminalAndNode (getChildren $firstNodeOfGrandChild)))
           )
           ($finalUpdatedTree $hasTerminalAndNode)
