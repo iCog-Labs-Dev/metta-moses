@@ -83,15 +83,6 @@
 )
 )
 
-;; a helper function used inside commandSetIterator.
-(: guardSetChecker (-> (List Tree) Number))
-(= (guardSetChecker $children)(
-  if (> (length (getGuardSet (headOfChildren $children))) 0)
-    (length (getGuardSet (headOfChildren $children)))
-    0
-  )
-)
-
 ;; -----------------------------------
 ;; -----------------------------------
 ;; -------- A function that given children and the a local command set,
@@ -99,16 +90,33 @@
 ;; -----------------------------------
 ;; -----------------------------------
 
-(: commandSetIterator (-> (List Tree) (List Tree) (List Tree)))
-(= (commandSetIterator Nil $localCommandSet) $localCommandSet)
-(= (commandSetIterator (Cons $x $xs) $localCommandSet)
-(if (and 
-        (and (== (getChildren (head (Cons $x $xs))) Nil) (== (guardSetChecker (Cons $x $xs)) 1))
-        (== (getNodeType (head (Cons $x $xs))) AND)
-      )(
-        setUnion treeIsMember (getGuardSet (head (Cons $x $xs))) (commandSetIterator (tail (Cons $x $xs)) $localCommandSet)
+;; Function that iterates over the siblings of the current child and computes the local command set.
+;; A sibling will be added to the local command set if it is a terminal AND node with a single constraint.
+(: commandSetIterator (-> Tree (List Tree) (List Tree) (List Tree)))
+(= (commandSetIterator $_ Nil $localCommandSet) $localCommandSet)
+(= (commandSetIterator $child (Cons $x $xs) $localCommandSet)
+  (if (and
+          (and (== (getChildren $x) Nil) (== (length (getGuardSet $x)) 1))
+          (and (== (getNodeType $x) AND) (~= $child $x))
       )
-      (commandSetIterator (tail (Cons $x $xs)) $localCommandSet)
+      (let $tempResult (setUnion treeIsMember (getGuardSet $x) (commandSetIterator $xs $localCommandSet))
+        (setDifference treeIsMember $tempResult (getGuardSet $child))
+      )
+      (commandSetIterator $xs $localCommandSet)
+  )
+)
+(: commandSetIterator (-> Tree (List Tree) (List Tree) (List Tree)))
+(= (commandSetIterator $_ Nil $localCommandSet) $localCommandSet)
+(= (commandSetIterator $child (Cons $x $xs) $localCommandSet)
+  ;; Compare if siblings have terminal and node with one constraint in their guard Set
+  (if (and
+          (and (== (getChildren $x) Nil) (== (length (getGuardSet $x)) 1))
+          (and (== (getNodeType $x) AND) (~= $child $x))
+      )
+      (let $tempResult (setUnion treeIsMember (getGuardSet $x) (commandSetIterator $xs $localCommandSet))
+        (setDifference treeIsMember $tempResult (getGuardSet $child))
+      )
+      (commandSetIterator $xs $localCommandSet)
   )
 )
 
