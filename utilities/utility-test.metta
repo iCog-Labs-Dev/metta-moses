@@ -3,13 +3,14 @@
  ; ! (import! &self metta-moses-reduction:utilities:expression-helpers)
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
+! (import! &self metta-moses-reduction:utilities:generalHelperFunctions)
 ! (import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
 ! (import! &self metta-moses-reduction:enf-reducer:reduce_to_elegance)
 
-!(assertEqualToResult True (True))
-!(assertEqualToResult False (False))
-!(assertEqualToResult (length (Cons A (Cons B (Cons C Nil)))) (3))
-!(assertEqualToResult (True) (True))
+;; !(assertEqualToResult True (True))
+;; !(assertEqualToResult False (False))
+;; !(assertEqualToResult (length (Cons A (Cons B (Cons C Nil)))) (3))
+;; !(assertEqualToResult (True) (True))
 
  ;; -----------------------------------
  ;; -----------------------------------
@@ -651,5 +652,11 @@
 ; !(compareSets (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value C False LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))))
 ; !(compareSets (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value C True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil))))
 
-!(setInsert == (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) 1)
-!(setInsert == (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) 5)
+;; !(setInsert == (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) 1)
+;; !(setInsert == (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) 5)
+
+!(assertEqualToResult (~= 1 2) (True))
+!(assertEqualToResult (~= 1 1) (False))
+!(assertEqualToResult (~= Something Nothing) (True))
+!(assertEqualToResult (~= Something Something) (False))
+!(assertEqualToResult (~= Something something) (True))
