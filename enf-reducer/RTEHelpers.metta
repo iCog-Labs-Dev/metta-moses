@@ -263,39 +263,33 @@
 ;; )
 ;; )
 
-;;a function which is the reimplementation of the orSubTreeIterator function found in python
-
-(: orSubTreeIterator (-> Tree (List Tree) Tree (List Tree) (List Tree) (Tree Signal)))
-(= (orSubTreeIterator $child $remainingChildren $currentNode $dominantSet $commandSet)
+;; A function which is the reimplementation of the orSubTreeIterator function found in python
+(: orSubTreeIterator (-> Tree (List Tree) Tree (List Tree) (List Tree) Number (Tree Tree Signal)))
+(= (orSubTreeIterator $parent $children $currentNode $dominantSet $commandSet $currentChildIndex)
 (let () (println! (Inside orSubTreeIterator))
 (let*
  (
+      ($child (indexOfTree $currentChildIndex $children))
       ($localCommandSet $commandSet)
-      ($localCommandSetUpdated (commandSetIterator $child $remainingChildren $localCommandSet))
-      (($orNode $action) (orSubTreeElegance $child $currentNode $dominantSet $localCommandSetUpdated))
-    ;($action ADVANCE);will be replaced with the above code once the functions 'orSubTreeElegance' and 'commandSetIterator' are implemented
-
+      ($localCommandSetUpdated (commandSetIterator $child $children $localCommandSet))
+      (($_ $updatedCurrent $action) (orSubTreeElegance $currentNode $child $currentNode $dominantSet $localCommandSetUpdated))
  )
  (let () (println! (Inside orSubTreeIterator After orSubElegance))
  (case $action
      (
         (ADVANCE
-        (let () (println! (remainingChildren ==> $remainingChildren))
-         (if (== (length $remainingChildren) 0)
-              ($orNode NONE)
-             (orSubTreeIterator (headOfChildren $remainingChildren) (tail $remainingChildren) $orNode $dominantSet $commandSet)
-
-             
-         )
+        (let () (println! (children ==> $children))
+          (if (< (+ $currentChildIndex 1) (length $children))
+              (orSubTreeIterator $parent $children $updatedCurrent $dominantSet $commandSet (+ $currentChildIndex 1))
+              ($parent $updatedCurrent NONE)
+          )
         )
         )
         (RESET
-         ($orNode NONE)
+          (orSubTreeIterator $parent $children $updatedCurrent $dominantSet $commandSet 0)
         )
-        ($else ($orNode $action))
-
+        ($else ($parent $updatedCurrent $action))
      )
-
  )
 )
 )))
