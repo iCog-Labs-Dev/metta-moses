@@ -14,7 +14,7 @@
 !(assertEqual (all (Cons True(Cons True (Cons True Nil)))) True)
 
 !(assertEqual (findAndRemove 1 (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 2 (Cons 3 Nil)))
-!(assertEqual (findAndRemove 3 (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 2 (Cons 3 Nil)))
+!(assertEqual (findAndRemove 3 (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 1 (Cons 2 Nil)))
 !(assertEqual (findAndRemove 4 (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 1 (Cons 2 (Cons 3 Nil))))
 
 !(assertEqual ((Cons 1 (Cons 2 (Cons 3 Nil))) ++ Nil) ((Cons 1 (Cons 2 (Cons 3 Nil)))))
