@@ -103,35 +103,33 @@
 
 (: orSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
 (= (orSubTreeElegance $child $current $dominantSet $localCommandSet)
-    (let () (println! (inside orSubTreeElegance))
-    (let*
+   (let*
       (
+        (() (println! (inside orSubTreeElegance)))
         (($updatedChild $outcome) (reduceToElegance $child $dominantSet $localCommandSet))
         ($updatedCurrent (replaceChildren $current (findAndReplaceChild $child $updatedChild (getChildren $current))))
+        (() (println! (updatedChild ==> $updatedChild updatedCurrent ==> $updatedCurrent)))
       )
-      (let () (println! (updatedChild ==> $updatedChild updatedCurrent ==> $updatedCurrent))
       (case $outcome
-          (
-            (DELETE
-                (if (> (length (getChildren $current)) 0)
-                    (let* 
-                        (
-                          ($updatedChildren (findAndRemoveTree $child (getChildren $current)))
-                          ($removedChildCurrent (replaceChildren $current $updatedChildren))
-                        )
-                        ($removedChildCurrent ADVANCE)
+        (
+          (DELETE
+            (if (> (length (getChildren $current)) 0)
+                (let* 
+                    (
+                      ($updatedChildren (findAndRemoveTree $child (getChildren $current)))
+                      ($removedChildCurrent (replaceChildren $current $updatedChildren))
                     )
-                    ($updatedCurrent DELETE)
+                    ($removedChildCurrent ADVANCE)
                 )
+                ($updatedCurrent DELETE)
             )
-            (DISCONNECT ($updatedCurrent DISCONNECT))
-            (KEEP ($updatedCurrent ADVANCE))
-            ($_ ($updatedCurrent $outcome))
           )
+          (DISCONNECT ($updatedCurrent DISCONNECT))
+          (KEEP ($updatedCurrent ADVANCE))
+          ($_ ($updatedCurrent $outcome))
         )
-    )
-    )
-)
+      )
+   )
 )
 
 
