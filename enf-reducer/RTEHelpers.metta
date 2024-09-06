@@ -100,33 +100,34 @@
 )
 
 ; orSubTreeElegance implementation
-
 (: orSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
 (= (orSubTreeElegance $child $current $dominantSet $localCommandSet)
    (let*
       (
         (() (println! (inside orSubTreeElegance)))
-        (($updatedChild $outcome) (reduceToElegance $child $dominantSet $localCommandSet))
-        ($updatedCurrent (replaceChildren $current (findAndReplaceChild $child $updatedChild (getChildren $current))))
+
+        (($updatedCurrent $updatedChild $outcome) (reduceToElegance $current $child $dominantSet $localCommandSet))
+        ($sndUpdatedCurrent (replaceChildren $updatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $updatedCurrent))))
+
         (() (println! (updatedChild ==> $updatedChild updatedCurrent ==> $updatedCurrent)))
       )
       (case $outcome
         (
           (DELETE
-            (if (> (length (getChildren $current)) 0)
+            (if (> (length (getChildren $sndUpdatedCurrent)) 0)
                 (let* 
                     (
-                      ($updatedChildren (findAndRemoveTree $child (getChildren $current)))
-                      ($removedChildCurrent (replaceChildren $current $updatedChildren))
+                      ($updatedChildren (findAndRemoveTree $updatedChild (getChildren $sndUpdatedCurrent)))
+                      ($removedChildCurrent (replaceChildren $updatedCurrent $updatedChildren))
                     )
                     ($removedChildCurrent ADVANCE)
                 )
-                ($updatedCurrent DELETE)
+                ($sndUpdatedCurrent DELETE)
             )
           )
-          (DISCONNECT ($updatedCurrent DISCONNECT))
-          (KEEP ($updatedCurrent ADVANCE))
-          ($_ ($updatedCurrent $outcome))
+          (DISCONNECT ($sndUpdatedCurrent DISCONNECT))
+          (KEEP ($sndUpdatedCurrent ADVANCE))
+          ($_ ($sndUpdatedCurrent $outcome))
         )
       )
    )
@@ -268,7 +269,7 @@
       ($child (indexOfTree $currentChildIndex $children))
       ($localCommandSet $commandSet)
       ($localCommandSetUpdated (commandSetIterator $child $children $localCommandSet))
-      (($_ $updatedCurrent $action) (orSubTreeElegance $currentNode $child $currentNode $dominantSet $localCommandSetUpdated))
+      (($updatedCurrent $action) (orSubTreeElegance $child $currentNode $dominantSet $localCommandSetUpdated))
  )
  (let () (println! (Inside orSubTreeIterator After orSubElegance))
  (case $action
