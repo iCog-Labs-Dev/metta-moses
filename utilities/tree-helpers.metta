@@ -1,3 +1,5 @@
+;; This file contains functions that are going to be helpful for manipulating `TreeNode` data structure defined in the type.metta file.
+
 !(import! &self list-helpers)
 ;; -----------------------------------
 ;; -----------------------------------
