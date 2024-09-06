@@ -163,48 +163,49 @@
 
 (: andSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
 (= (andSubTreeElegance $child $current $handleSet $commandSet)
-   (let* 
+   (let*
      (
        (() (println! (Inside andSubTreeElegance)))
-       (($updatedChild $outcome) (reduceToElegance $child $handleSet $commandSet))
+       (($fstUpdatedCurrent $updatedChild $outcome) (reduceToElegance $current $child $handleSet $commandSet))
+       ;;TODO: Make sure to replace the previous child here with the updatedChild in the fstUpdatedCurrent just to make sure that there won't be any logical errors in the future.
      )
      (case $outcome 
        (
-         (DELETE ((replaceChildren $current Nil) DELETE))
-         (DISCONNECT ((replaceChildren $current (findAndRemoveTree $child (getChildren $current))) ADVANCE))
+         (DELETE ((replaceChildren $fstUpdatedCurrent Nil) DELETE))
+         ;; FIX: In the following line, check if the fstUpdatedCurrent contains either child or updatedChild before removing from the children.
+         (DISCONNECT ((replaceChildren $fstUpdatedCurrent (findAndRemoveTree $child (getChildren $fstUpdatedCurrent))) ADVANCE))
          (KEEP
-           (
-             let* 
+           (let*
              (
-               ($updatedCurrentTree (replaceChildren $current (findAndReplaceChild $child $updatedChild (getChildren $current))))
-               ($resultSet (intersections Nil (getChildren $updatedChild)))
-               (() (resultSet ==> $resultSet))
+              ;;FIX: Am not sure about this update either. Make sure its the right child.
+               ($sndUpdatedCurrent (replaceChildren $fstUpdatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $fstUpdatedCurrent))))
+               ($resultSet (intersections (getChildren $updatedChild)))
+               (() (println! (resultSet ==> $resultSet)))
              )
              (if(> (length $resultSet) 0) 
-               (
-                 let* 
+               (let*
                  (
-                   ($updatedGuardSetTree (setUnion treeIsMember (getGuardSet $updatedCurrentTree) $resultSet))
-                   ($newChild (mapList computeGrandChildGuardset (getChildren $child) $resultSet))
+                   ($updatedGuardSetCurrent (setUnion treeIsMember (getGuardSet $sndUpdatedCurrent) $resultSet))
+                   ;;FIX: The following three lines are tricky. The update isn't correct.
+                   ($newChild (mapList computeGrandChildGuardSet (getChildren $child) $resultSet))
                    ($updatedNewChild (mapParent applyAndCut (getChildren $newChild) $newChild))
-                   ($finalResult (replaceChildren $updatedGuardSetTree (findAndReplaceChild $child $updatedNewChild (getChildren $updatedGuardSetTree))))
+                   ($finalResult (replaceChildren $updatedGuardSetCurrent  (findAndReplaceChild $child $updatedNewChild (getChildren $updatedGuardSetCurrent))))
                  )
                  ($finalResult RESET)
                )
-               (
-                 let* 
+               (let*
+                 ;;FIX: The following  three lines are tricky. The update isn't correct.
                  (
                    ($res (mapParent applyAndCut (getChildren $child) $child))
                    ($bools (map decoupleAndCutOutput $res))
                    ($containsTerminalAndNode (any $bools))
                  )
-                 (
-                   if (== $containsTerminalAndNode False)($updatedCurrentTree ADVANCE)($updatedCurrentTree RESET)
-                 )
+                 (if (== $containsTerminalAndNode False) ($updatedCurrentTree ADVANCE) ($updatedCurrentTree RESET))
                )
              )
            )
          )
+         ($else ($fstUpdatedCurrent $outcome))
        )
      )
    )
@@ -297,7 +298,7 @@
         (let*
             (
               ($currentChild (indexOfTree $currentChildIndex $children))
-              (($_ $updatedCurrent $action) (andSubTreeElegance $currentNode $currentChild $currentNode $handleSet $commandSet))
+              (($updatedCurrent $action) (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
             )
             (let () (println! (AndSubTreeIterator ==> $currentChildIndex children ==> $children currentNode ==> $currentNode handleSet ==> $handleSet commandSet ==> $commandSet)) ;;checking currentIndex
             (case $action
