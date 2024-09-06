@@ -1,4 +1,4 @@
-! (register-module! ../../metta-moses-reduction)
+! (register-module! ../../../metta-moses-reduction)
 ! (import! &self metta-moses-reduction:types) 
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
