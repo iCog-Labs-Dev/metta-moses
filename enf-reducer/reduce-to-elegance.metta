@@ -1,5 +1,5 @@
 ;!(register-module! ../../metta-moses-reduction)
-;; !(import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
+;; !(import! &self metta-moses-reduction:enf-reducer:rte-helpers)
 ;; !(import! &self metta-moses-reduction:utilities:tree-helpers)
 ;; !(import! &self metta-moses-reduction:utilities:list-helpers)
 ;; !(import! &self metta-moses-reduction:types)

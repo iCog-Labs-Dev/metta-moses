@@ -3,9 +3,9 @@
  ; ! (import! &self metta-moses-reduction:utilities:expression-helpers)
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
-! (import! &self metta-moses-reduction:utilities:generalHelperFunctions)
-! (import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
-! (import! &self metta-moses-reduction:enf-reducer:reduce_to_elegance)
+! (import! &self metta-moses-reduction:utilities:general-helper-functions)
+! (import! &self metta-moses-reduction:enf-reducer:rte-helpers)
+! (import! &self metta-moses-reduction:enf-reducer:reduce-to-elegance)
 
 ;; !(assertEqualToResult True (True))
 ;; !(assertEqualToResult False (False))
