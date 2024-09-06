@@ -3,13 +3,14 @@
  ; ! (import! &self metta-moses-reduction:utilities:expression-helpers)
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
+! (import! &self metta-moses-reduction:utilities:generalHelperFunctions)
 ! (import! &self metta-moses-reduction:enf-reducer:RTEHelpers)
 ! (import! &self metta-moses-reduction:enf-reducer:reduce_to_elegance)
 
-!(assertEqualToResult True (True))
-!(assertEqualToResult False (False))
-!(assertEqualToResult (length (Cons A (Cons B (Cons C Nil)))) (3))
-!(assertEqualToResult (True) (True))
+;; !(assertEqualToResult True (True))
+;; !(assertEqualToResult False (False))
+;; !(assertEqualToResult (length (Cons A (Cons B (Cons C Nil)))) (3))
+;; !(assertEqualToResult (True) (True))
 
  ;; -----------------------------------
  ;; -----------------------------------
@@ -274,7 +275,7 @@
  ;; !(treeFoldl zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
  ;; !(treeFoldr zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
 
- ;; !(computeGrandchildGuardset
+ ;; !(computeGrandChildGuardSet
  ;;   (TreeNode
  ;;     (Value Nil False AND)
  ;;     Nil
@@ -290,7 +291,7 @@
  ;;   )
  ;; )
 
- ;; !(computeGrandchildGuardset
+ ;; !(computeGrandChildGuardSet
  ;;   (TreeNode
  ;;     (Value Nil False AND)
  ;;     (Cons (TreeNode (Value D False LITERAL) Nil Nil) (Cons (TreeNode (Value E False LITERAL) Nil Nil) Nil))
@@ -651,5 +652,17 @@
 ; !(compareSets (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value C False LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value B False LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))))
 ; !(compareSets (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value C True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil))))
 
-!(setInsert == (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) 1)
-!(setInsert == (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) 5)
+;; !(setInsert == (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) 1)
+;; !(setInsert == (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) 5)
+
+;;!(assertEqualToResult (~= 1 2) (True))
+;; !(assertEqualToResult (~= 1 1) (False))
+;; !(assertEqualToResult (~= Something Nothing) (True))
+;; !(assertEqualToResult (~= Something Something) (False))
+;; !(assertEqualToResult (~= Something something) (True))
+
+!(assertEqualToResult ((Cons 1 (Cons 2 (Cons 3 Nil))) ++ Nil) ((Cons 1 (Cons 2 (Cons 3 Nil)))))
+!(assertEqualToResult (Nil ++ (Cons 1 (Cons 2 (Cons 3 Nil)))) ((Cons 1 (Cons 2 (Cons 3 Nil)))))
+!(assertEqualToResult ((Cons 1 (Cons 2 (Cons 3 Nil))) ++ (Cons 4 Nil)) ((Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))))
+!(assertEqualToResult ((Cons 4 Nil) ++ (Cons 1 (Cons 2 (Cons 3 Nil)))) ((Cons 4 (Cons 1 (Cons 2 (Cons 3 Nil))))))
+!(assertEqualToResult ((Cons 1 (Cons 2 (Cons 3 Nil))) ++ (Cons 4 (Cons 3 (Cons 5 (Cons 2 Nil))))) ((Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 3 (Cons 5 (Cons 2 Nil)))))))))

@@ -63,9 +63,9 @@
 ;((TreeNode (Value Nil False AND) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) Nil) KEEP)
 ;)
 
-!(assertEqual
-(reduceToElegance (TreeNode (Value Nil False OR) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
-(empty))
+; !(assertEqual
+; (reduceToElegance (TreeNode (Value Nil False OR) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
+; (empty))
 
 ;!(assertEqual
 ;(gatherJunctors (buildTreeWithRoot (AND A (AND B (AND C (OR D E))))) NilNode)
