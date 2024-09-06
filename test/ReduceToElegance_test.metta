@@ -152,13 +152,14 @@
 
 ;; !(assertEqual
 ;;   (orSubTreeIterator 
-;;     (TreeNode (Value P True AND) Nil Nil) 
 ;;     (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil) 
 ;;     (TreeNode (Value R True OR) Nil (Cons (TreeNode (Value P True AND) Nil Nil) (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil)))
 ;;     (Cons (TreeNode (Value G5 False LITERAL) Nil Nil) Nil)
 ;;     (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)
+;;     0
 ;;   )
-;;   ((TreeNode (Value R True OR) Nil (Cons (TreeNode (Value P True AND) Nil Nil) (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil))) DISCONNECT)
+;;   ;; ((TreeNode (Value R True OR) Nil (Cons (TreeNode (Value P True AND) Nil Nil) (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil))) DISCONNECT)
+;;  ((TreeNode (Value R True OR) Nil (Cons (TreeNode (Value P True AND) Nil Nil) (Cons (TreeNode (Value Q True AND) Nil Nil) Nil))) DISCONNECT)
 ;; )
 
 
@@ -171,8 +172,9 @@
 ;;     (TreeNode (Value S True AND) Nil (Cons (TreeNode (Value P True AND) Nil Nil) (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil)))
 ;;     (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)
 ;;     (Cons (TreeNode (Value G7 False LITERAL) Nil Nil) Nil)
+;;     0
 ;;   )
-;;   (NilNode None)
+;;   ((TreeNode (Value S True AND) Nil Nil) NONE)
 ;;  )
 
 
