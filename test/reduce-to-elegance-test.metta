@@ -191,6 +191,14 @@
   ((TreeNode (Value S True AND) Nil Nil) NONE)
  )
 
+;; Test for isTreeWellFormed
+
+;; Test 01
+!(assertEqual
+   (isTreeWellFormed (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value a False LITERAL) Nil Nil) (Cons (TreeNode (Value b False LITERAL) Nil Nil) Nil))))
+   True 
+ )
+
 ;; Test case for reduceToElegance function
 
 ;; Test 01
