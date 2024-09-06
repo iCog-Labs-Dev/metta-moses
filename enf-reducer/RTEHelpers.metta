@@ -167,17 +167,14 @@
      (
        (() (println! (Inside andSubTreeElegance)))
        (($fstUpdatedCurrent $updatedChild $outcome) (reduceToElegance $current $child $handleSet $commandSet))
-       ;;TODO: Make sure to replace the previous child here with the updatedChild in the fstUpdatedCurrent just to make sure that there won't be any logical errors in the future.
      )
      (case $outcome 
        (
          (DELETE ((replaceChildren $fstUpdatedCurrent Nil) DELETE))
-         ;; FIX: In the following line, check if the fstUpdatedCurrent contains either child or updatedChild before removing from the children.
          (DISCONNECT ((replaceChildren $fstUpdatedCurrent (findAndRemoveTree $child (getChildren $fstUpdatedCurrent))) ADVANCE))
          (KEEP
            (let*
              (
-              ;;FIX: Am not sure about this update either. Make sure its the right child.
                ($sndUpdatedCurrent (replaceChildren $fstUpdatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $fstUpdatedCurrent))))
                ($resultSet (intersections (getChildren $updatedChild)))
                (() (println! (resultSet ==> $resultSet)))
@@ -186,17 +183,18 @@
                (let*
                  (
                    ($updatedGuardSetCurrent (setUnion treeIsMember (getGuardSet $sndUpdatedCurrent) $resultSet))
-                   ;;FIX: The following three lines are tricky. The update isn't correct.
-                   ($newChild (mapList computeGrandChildGuardSet (getChildren $child) $resultSet))
-                   ($updatedNewChild (mapParent applyAndCut (getChildren $newChild) $newChild))
-                   ($finalResult (replaceChildren $updatedGuardSetCurrent  (findAndReplaceChild $child $updatedNewChild (getChildren $updatedGuardSetCurrent))))
+                   ($updatedGrandChildren (mapList computeGrandChildGuardSet (getChildren $updatedChild) $resultSet))
+                   ($sndUpdatedChild (replaceChildren $updatedChild $updatedGrandChildren))
+                   ($result (mapParent applyAndCut (getChildren $sndUpdatedChild) $sndUpdatedChild))
+                   ($sndUpdatedGrandChildren (map car-atom $result))
+                   ($trdUpdatedChild (replaceChildren $sndUpdatedChild $sndUpdatedGrandChildren))
+                   ($finalUpdatedCurrent (replaceChildren $updatedGuardSetCurrent (findAndReplaceChild $updatedChild $trdUpdatedChild (getChildren $updatedGuardSetCurrent))))
                  )
-                 ($finalResult RESET)
+                 ($finalUpdatedCurrent RESET)
                )
                (let*
-                 ;;FIX: The following  three lines are tricky. The update isn't correct.
                  (
-                   ($res (mapParent applyAndCut (getChildren $child) $child))
+                   ($res (mapParent applyAndCut (getChildren $updatedChild) $updatedChild))
                    ($bools (map decoupleAndCutOutput $res))
                    ($containsTerminalAndNode (any $bools))
                  )
@@ -205,7 +203,11 @@
              )
            )
          )
-         ($else ($fstUpdatedCurrent $outcome))
+         ($else 
+           (let $sndUpdatedCurrent (replaceChildren $fstUpdatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $fstUpdatedCurrent)))
+              ($sndUpdatedCurrent $outcome)
+           )
+         )
        )
      )
    )
