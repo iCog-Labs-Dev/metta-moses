@@ -30,7 +30,7 @@
                         ($parent $updatedCurrentTree DELETE)
                         ;; The action defined below is used to simulate the output of the iteractor function call
                         ;;(let () (println! (inside RTE before iterator updatedCurrentTree ==> $updatedCurrentTree dominantSet ==> $dominantSet commandSet ==> $commandSet))
-                        (let ($updatedParent $finalUpdatedCurrent $action) (iterator $parent $updatedCurrentTree $dominantSet $commandSet)
+                        (let ($finalUpdatedCurrent $action) (iterator $updatedCurrentTree $dominantSet $commandSet)
                           (if (~= $action NONE)
                             ($updatedParent $finalUpdatedCurrent $action)
 
@@ -64,7 +64,7 @@
                 ($updatedParent $updatedCurrent RESET)
               )
               (if (> (length $children) 0)
-                  (let ($updatedParent $updatedCurrent $action) (orSubTreeIterator $parent $children $currentTree $dominantSet $commandSet)
+                  (let ($updatedParent $updatedCurrent $action) (orSubTreeIterator $children $currentTree $dominantSet $commandSet)
                     (if (~= $action NONE)
                         ($updatedParent $updatedCurrent $action)
                         ($updatedParent $updatedCurrent KEEP)
