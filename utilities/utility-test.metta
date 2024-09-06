@@ -275,7 +275,7 @@
  ;; !(treeFoldl zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
  ;; !(treeFoldr zip Nil (buildTree (AND A (AND B (AND C (AND (OR A (OR B (OR C A))) (AND B (AND (AND A A) (NOT A)))))))))
 
- ;; !(computeGrandchildGuardset
+ ;; !(computeGrandChildGuardSet
  ;;   (TreeNode
  ;;     (Value Nil False AND)
  ;;     Nil
@@ -291,7 +291,7 @@
  ;;   )
  ;; )
 
- ;; !(computeGrandchildGuardset
+ ;; !(computeGrandChildGuardSet
  ;;   (TreeNode
  ;;     (Value Nil False AND)
  ;;     (Cons (TreeNode (Value D False LITERAL) Nil Nil) (Cons (TreeNode (Value E False LITERAL) Nil Nil) Nil))

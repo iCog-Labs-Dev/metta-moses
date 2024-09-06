@@ -263,9 +263,9 @@
 )
 
 ;; Update GrandChild's guardset with the difference between the current guardset(list of trees) and the given list of trees
-(: computeGrandchildGuardset (-> Tree (List Tree) Tree))
-(= (computeGrandchildGuardset NilNode $resultSet) NilNode)
-(= (computeGrandchildGuardset (TreeNode $nodeValue $guardSet $children) $resultSet)
+(: computeGrandChildGuardSet (-> Tree (List Tree) Tree))
+(= (computeGrandChildGuardSet NilNode $resultSet) NilNode)
+(= (computeGrandChildGuardSet (TreeNode $nodeValue $guardSet $children) $resultSet)
   (TreeNode $nodeValue (setDifference treeIsMember $guardSet $resultSet Nil) $children)
 )
 
