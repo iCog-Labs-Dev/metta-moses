@@ -1,9 +1,3 @@
-;!(register-module! ../../metta-moses-reduction)
-;; !(import! &self metta-moses-reduction:enf-reducer:rte-helpers)
-;; !(import! &self metta-moses-reduction:utilities:tree-helpers)
-;; !(import! &self metta-moses-reduction:utilities:list-helpers)
-;; !(import! &self metta-moses-reduction:types)
-
 (: reduceToElegance (-> Tree Tree (List Tree) (List Tree) (Tree Tree Signal)))
 (= (reduceToElegance $_ NilNode $dominantSet $commandSet) (NilNode NONE))
 (= (reduceToElegance $parent (TreeNode (Value $value $constraint $type) $guardSet $children) $dominantSet $commandSet) 
