@@ -228,6 +228,7 @@
   ;; (let () (println! (inside Iterator ))
    (let* 
      (
+       (() (println! (inside Iterator )))
        ($previousGuardSet (getGuardSet $current))
        ($handleSet (setUnion treeIsMember $dominantSet (getGuardSet $current)))
      )
@@ -240,6 +241,7 @@
                   ($updatedCurrent $outcome) 
                   (let*
                     (
+                      (() (println! (The outcome is $outcome)))
                       ($sndupdatedcurrent (applyToChildren $updatedCurrent (getChildren $updatedCurrent)))
                       ($setsAreIdentical (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent)))
                     )
@@ -294,30 +296,33 @@
 (: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) Number (Tree Signal)))
 (= (andSubTreeIterator $children $currentNode $handleSet $commandSet $currentChildIndex) 
   (let () (println! (Inside andSubTreeIterator))
-    (if (> (length $children) 0) 
+    (if (> (length $children) 0)
         (let*
             (
+              (() (println! (Inside If before calling AndSubTreeElegance)))
               ($currentChild (indexOfTree $currentChildIndex $children))
-              (($updatedCurrent $action) (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet 0))
+              (($updatedCurrent $action) (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
+
+              ;; (() (println! (AndSubTreeIterator ==> $currentChildIndex children ==> $children currentNode ==> $currentNode handleSet ==> $handleSet commandSet ==> $commandSet)))
             )
-            (let () (println! (AndSubTreeIterator ==> $currentChildIndex children ==> $children currentNode ==> $currentNode handleSet ==> $handleSet commandSet ==> $commandSet)) ;;checking currentIndex
             (case $action
-                (
-                  (ADVANCE
-                    (if (< (+ $currentChildIndex 1) (length $children))
-                        (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet (+ $currentChildIndex 1))
-                        ($updatedCurrent NONE)
-                    )
+              (
+                (ADVANCE
+                  (if (< (+ $currentChildIndex 1) (length $children))
+                      (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet (+ $currentChildIndex 1))
+                      ($updatedCurrent NONE)
                   )
-                  (RESET
-                    (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet 0) 
-                  )
-                  ($else ($updatedCurrent $action))
                 )
-            )
+                (RESET
+                  (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet 0) 
+                )
+                ($else ($updatedCurrent $action))
+              )
             )
         )
-        ($currentNode NONE)
+        (let () (println! (Inside andSubTreeIterator Else))
+          ($currentNode NONE)
+        )
      )
   )
 )
