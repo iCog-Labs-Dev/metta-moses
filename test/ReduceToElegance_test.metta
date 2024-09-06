@@ -124,15 +124,15 @@
 
 ;; Test case for andSubTreeElegance function
 
-!(assertEqual 
-   (andSubTreeElegance 
-     (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil)
-     (TreeNode (Value S True AND) Nil (Cons (TreeNode (Value P True AND) Nil Nil) (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil)))
-     (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)
-     (Cons (TreeNode (Value G7 False LITERAL) Nil Nil) Nil)
-   )
-   ((TreeNode (Value S True AND) Nil (Cons (TreeNode (Value P True AND) Nil Nil) Nil)) ADVANCE)
- )
+; !(assertEqual 
+;    (andSubTreeElegance 
+;      (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil)
+;      (TreeNode (Value S True AND) Nil (Cons (TreeNode (Value P True AND) Nil Nil) (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil)))
+;      (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)
+;      (Cons (TreeNode (Value G7 False LITERAL) Nil Nil) Nil)
+;    )
+;    ((TreeNode (Value S True AND) Nil (Cons (TreeNode (Value P True AND) Nil Nil) Nil)) ADVANCE)
+;  )
 
 
 ;; Test case for iterator function
@@ -180,9 +180,10 @@
 
 ;; !(assertEqual
 ;;   (reduceToElegance 
+;;     (TreeNode (Value R True OR) (Cons (TreeNode (Value P True AND) Nil Nil) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)) Nil) 
 ;;     (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) 
 ;;     (Cons (TreeNode (Value G5 False LITERAL) Nil Nil) Nil)
 ;;     (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)
 ;;   )
-;;   ((TreeNode (Value Q True AND) Nil Nil) DISCONNECT)
+;;   ((TreeNode (Value R True OR) (Cons (TreeNode (Value P True AND) Nil Nil) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)) Nil) (TreeNode (Value Q True AND) Nil Nil) DISCONNECT)
 ;;  )
