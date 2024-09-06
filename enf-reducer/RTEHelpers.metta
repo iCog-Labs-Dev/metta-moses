@@ -235,7 +235,7 @@
      (if (not (isConsistent $handleSet))
            ($current DELETE)
           ;;  (let () (println! (handleSet is $handleSet current is $current)
-           (let ($updatedCurrent $outcome) (andSubTreeIterator (getChildren $current) $current $handleSet $commandSet)
+           (let ($updatedCurrent $outcome) (andSubTreeIterator (getChildren $current) $current $handleSet $commandSet 0)
               (if (~= $outcome NONE)
                   ($updatedCurrent $outcome) 
                   (let*
@@ -298,7 +298,7 @@
         (let*
             (
               ($currentChild (indexOfTree $currentChildIndex $children))
-              (($updatedCurrent $action) (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
+              (($updatedCurrent $action) (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet 0))
             )
             (let () (println! (AndSubTreeIterator ==> $currentChildIndex children ==> $children currentNode ==> $currentNode handleSet ==> $handleSet commandSet ==> $commandSet)) ;;checking currentIndex
             (case $action

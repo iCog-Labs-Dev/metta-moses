@@ -64,7 +64,7 @@
                 ($updatedParent $updatedCurrent RESET)
               )
               (if (> (length $children) 0)
-                  (let ($updatedParent $updatedCurrent $action) (orSubTreeIterator $children $currentTree $dominantSet $commandSet)
+                  (let ($updatedParent $updatedCurrent $action) (orSubTreeIterator $children $currentTree $dominantSet $commandSet 0)
                     (if (~= $action NONE)
                         ($updatedParent $updatedCurrent $action)
                         ($updatedParent $updatedCurrent KEEP)
