@@ -10,7 +10,7 @@
 (= (head Nil) Nil)
 (= (head (Cons $x $xs)) $x)
 
- ; Function to retrive the tail of given list
+ ; Function to retrieve the tail of given list
 (: (-> (List $t) (List $t)))
 (= (tail Nil) Nil)
 (= (tail (Cons $x $xs)) $xs)
@@ -42,7 +42,7 @@
 		)
 )
 
-; Function to check the existance of an element in a list given the comparing function
+; Function to check the existence of an element in a list given the comparing function
 (: memberWith (-> (-> $t $t Bool) $t (List $t) Bool))
 (= (memberWith $f $a Nil) False)
 (= (memberWith $f $a (Cons $x $xs))

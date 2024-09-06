@@ -1,6 +1,5 @@
 import subprocess
 import pathlib
-from typing import Tuple
 import sys
 
 # Define ANSI escape codes for colors
