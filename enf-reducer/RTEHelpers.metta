@@ -263,33 +263,32 @@
 ;; A function which is the reimplementation of the orSubTreeIterator function found in python
 (: orSubTreeIterator (-> Tree (List Tree) Tree (List Tree) (List Tree) Number (Tree Tree Signal)))
 (= (orSubTreeIterator $parent $children $currentNode $dominantSet $commandSet $currentChildIndex)
-(let () (println! (Inside orSubTreeIterator))
-(let*
- (
-      ($child (indexOfTree $currentChildIndex $children))
-      ($localCommandSet $commandSet)
-      ($localCommandSetUpdated (commandSetIterator $child $children $localCommandSet))
-      (($updatedCurrent $action) (orSubTreeElegance $child $currentNode $dominantSet $localCommandSetUpdated))
- )
- (let () (println! (Inside orSubTreeIterator After orSubElegance))
- (case $action
-     (
-        (ADVANCE
-        (let () (println! (children ==> $children))
-          (if (< (+ $currentChildIndex 1) (length $children))
-              (orSubTreeIterator $parent $children $updatedCurrent $dominantSet $commandSet (+ $currentChildIndex 1))
-              ($parent $updatedCurrent NONE)
+   (let*
+      (
+        (() (println! (Inside orSubTreeIterator)))
+        ($child (indexOfTree $currentChildIndex $children))
+        ($localCommandSet $commandSet)
+        ($localCommandSetUpdated (commandSetIterator $child $children $localCommandSet))
+        (($updatedCurrent $action) (orSubTreeElegance $child $currentNode $dominantSet $localCommandSetUpdated))
+        (() (println! (Inside orSubTreeIterator After orSubElegance)))
+        (() (println! (children ==> $children)))
+      )
+      (case $action
+        (
+          (ADVANCE
+            (if (< (+ $currentChildIndex 1) (length $children))
+                (orSubTreeIterator $parent $children $updatedCurrent $dominantSet $commandSet (+ $currentChildIndex 1))
+                ($parent $updatedCurrent NONE)
+            )
           )
+          (RESET
+            (orSubTreeIterator $parent $children $updatedCurrent $dominantSet $commandSet 0)
+          )
+          ($else ($parent $updatedCurrent $action))
         )
-        )
-        (RESET
-          (orSubTreeIterator $parent $children $updatedCurrent $dominantSet $commandSet 0)
-        )
-        ($else ($parent $updatedCurrent $action))
-     )
- )
+      )
+   )
 )
-)))
 
 ;; A function which is the reimplementation of the andSubTreeIterator function found in python
 (: andSubTreeIterator(-> Tree (List Tree) Tree (List Tree) (List Tree) Number (Tree Tree Signal)))
