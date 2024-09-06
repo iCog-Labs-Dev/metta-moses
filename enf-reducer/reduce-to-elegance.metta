@@ -22,11 +22,11 @@
                 (let $resultSet (treeIntersection $guardSet $commandSet)
                     (if (~= (length $resultSet) 0)
                         ($parent $updatedCurrentTree DELETE)
-                        ;; The action defined below is used to simulate the output of the iteractor function call
+                        ;; The signal defined below is used to simulate the output of the iteractor function call
                         ;;(let () (println! (inside RTE before iterator updatedCurrentTree ==> $updatedCurrentTree dominantSet ==> $dominantSet commandSet ==> $commandSet))
-                        (let ($finalUpdatedCurrent $action) (iterator $updatedCurrentTree $dominantSet $commandSet)
-                          (if (~= $action NONE)
-                            ($updatedParent $finalUpdatedCurrent $action)
+                        (let ($finalUpdatedCurrent $signal) (iterator $updatedCurrentTree $dominantSet $commandSet)
+                          (if (~= $signal NONE)
+                            ($updatedParent $finalUpdatedCurrent $signal)
 
                             ;; Determine if current is a site for 0-Subsumption
                             (if (and (== (length $children) 0) (== (length $finalGuardSet) 0))
@@ -58,9 +58,9 @@
                 ($updatedParent $updatedCurrent RESET)
               )
               (if (> (length $children) 0)
-                  (let ($updatedParent $updatedCurrent $action) (orSubTreeIterator $children $currentTree $dominantSet $commandSet 0)
-                    (if (~= $action NONE)
-                        ($updatedParent $updatedCurrent $action)
+                  (let ($updatedParent $updatedCurrent $signal) (orSubTreeIterator $children $currentTree $dominantSet $commandSet 0)
+                    (if (~= $signal NONE)
+                        ($updatedParent $updatedCurrent $signal)
                         ($updatedParent $updatedCurrent KEEP)
                     )
                   )

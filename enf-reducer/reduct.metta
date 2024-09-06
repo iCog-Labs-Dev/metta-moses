@@ -4,7 +4,7 @@
 ;;         ($builtTree  (buildTreeWithRoot $expression))
 ;;         ($propagateTruthValue (propagateTruthValue $builtTree True))
 ;;         ($gatherJunctorTree (gatherJunctors $propagateTruthValue NilNode))
-;;         (($reducedTree $action) (reduceToElegance $gatherJunctorTree Nil Nil))
+;;         (($reducedTree $signal) (reduceToElegance $gatherJunctorTree Nil Nil))
 ;;     )
 ;;         $reducedTree
 ;;     )
@@ -16,12 +16,12 @@
                 (let () (println! $propagateTree)
                     (let $gatherJunctorTree (gatherJunctors $propagateTree NilNode)
                         (let () (println! $gatherJunctorTree)
-                            (let ($reducedTree $action) (reduceToElegance $gatherJunctorTree Nil Nil)
-                                (if (== $action DISCONNECT)
+                            (let ($reducedTree $signal) (reduceToElegance $gatherJunctorTree Nil Nil)
+                                (if (== $signal DISCONNECT)
                                     True
-                                    (if (== $action DELETE)
+                                    (if (== $signal DELETE)
                                         False
-                                        (if (== $action KEEP)
+                                        (if (== $signal KEEP)
                                             $reducedTree
                                             NilNode
                                         )
