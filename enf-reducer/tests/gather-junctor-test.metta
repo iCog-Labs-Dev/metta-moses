@@ -17,7 +17,7 @@
 
 ;; Test 02
 
-;; input expression: (OR (A OR (B OR(C D))))
+;; input expression: (OR A (OR B (OR C D)))
 ;; output expression: (OR A B C D)
 
 ;; Test 03
@@ -32,7 +32,7 @@
 
 ;; Test 05
 
-;; input expression: (AND (A AND (B AND(C D))))
+;; input expression: (AND A (AND B (AND C D)))
 ;; output expression: (AND A B C D)
 
 ;; Test 06
@@ -78,7 +78,7 @@
 ;; Test 14
 
 ;; input expression: (OR (OR I (OR J (AND K (AND L M)))) (OR B (OR C (AND D (AND E (AND F (AND G H)))))))
-;; output expression: (OR I J (AND K L M) B C (AND D E F (OR G H))) | (OR B C I J (AND D E F (OR G H)) (AND K L M)). The order doesn't matter.
+;; output expression: (OR I J (AND K L M) B C (AND D E F G H)) | (OR B C I J (AND D E F G H) (AND K L M)). The order doesn't matter.
 
 ;; Test 15
 

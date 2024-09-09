@@ -72,5 +72,28 @@
 ;; output expression: (AND A (AND B (AND C D)))
 
 ;; Test 13
+
 ;; input expression: (NOT (NOT (NOT (NOT (OR A (AND B (OR C D)))))))
 ;; output expression: (OR A (AND B (OR C D)))
+
+;; Test 14
+
+;; input expression: (NOT (AND (AND I (AND J (NOT (OR K (OR L M))))) (AND B (NOT (AND C (OR D (OR E (NOT (OR F (AND G H))))))))))
+;; output expression: (OR (OR (NOT I) (OR (NOT J) (OR K (OR L M)))) (OR (NOT B) (AND C (OR D (OR E (AND (NOT F) (OR (NOT G) (NOT H))))))))
+
+;; Test 15
+
+;; input expression: (NOT (OR (OR I (OR J (AND K (AND L M)))) (OR B (OR C (AND D (AND E (AND F (AND G H))))))))
+;; output expression: (AND (AND (NOT I) (AND (NOT J) (OR (NOT K) (OR (NOT L) (NOT M))))) (AND (NOT B) (AND (NOT C) (OR (NOT D) (OR (NOT E) (OR (NOT F) (OR (NOT G) (NOT H))))))))
+
+;; Test 16
+
+;; input expression: (NOT (OR (OR (OR C D) B) A))
+;; output expression: (AND (AND (AND (NOT C) (NOT D)) (NOT B)) (NOT A))
+
+;; Test 17
+
+;; input expression: (OR (AND (AND C D) B) (NOT A))
+;; output expression: (OR (AND (AND C D) B) (NOT A))
+
+;; !(propagateTruthValue (buildTreeWithRoot (NOT (AND (AND I (AND J (NOT (OR K (OR L M))))) (AND B (NOT (AND C (OR D (OR E (NOT (OR F (AND G H))))))))))) True)
