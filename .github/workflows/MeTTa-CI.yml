@@ -1,0 +1,29 @@
+
+name: metta-run CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  setup-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: install and setup metta-run script
+      run: |
+        curl -fsSL https://raw.githubusercontent.com/iCog-Labs-Dev/metta-prebuilt-binary/main/install.sh | bash
+
+    - name: Run tests
+      working-directory: ./
+      run: python3 scripts/run-tests.py
+
+    - name: Ensure metta-run is executable
+      run: chmod +x $HOME/metta-bin/metta-run
+      
