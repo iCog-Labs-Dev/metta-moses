@@ -11,4 +11,16 @@
         )
     )
 )
+(=(eq $a $b)
+    (let* (
+            ($typeA (get-metatype $a))
+            ($typeB (get-metatype $b))
+        )
+        (if (== $typeA $typeB)
+            (== $a $b)
+            False
+        )
+    )
+    
+)
 !(iterate-and-insert (OR (AND A B) C) ((AND B C) E))
