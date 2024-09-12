@@ -107,7 +107,7 @@
         (() (println! (inside orSubTreeElegance)))
 
         (($updatedCurrent $updatedChild $signal) (reduceToElegance $current $child $dominantSet $localCommandSet))
-        ($sndUpdatedCurrent (replaceChildren $updatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $updatedCurrent))))
+        ($sndUpdatedCurrent (replaceChildren $updatedCurrent (findAndReplaceChild isNodeEqual $child $updatedChild (getChildren $updatedCurrent))))
 
         (() (println! (updatedChild ==> $updatedChild updatedCurrent ==> $updatedCurrent)))
       )
@@ -150,10 +150,13 @@
   (Cons ($f $x $parent) (mapParent $f $xs $parent))
 )
 ;;A function that finds a tree node from a list of trees and replaces it with a new node.
-(: findAndReplaceChild (-> Tree Tree (List Tree) (List Tree)))
-(= (findAndReplaceChild $oldChild $newChild Nil) Nil)
-(= (findAndReplaceChild $oldChild $newChild (Cons $x $xs))
-  (if (== (isNodeEqual $oldChild $x) True)(Cons $newChild $xs)(Cons $x (findAndReplaceChild $oldChild $newChild $xs)))
+(: findAndReplaceChild (-> (-> $t $t Bool) Tree Tree (List Tree) (List Tree)))
+(= (findAndReplaceChild $compareFunc $oldChild $newChild Nil) Nil)
+(= (findAndReplaceChild $compareFunc $oldChild $newChild (Cons $x $xs))
+  (if ($compareFunc $oldChild $x) 
+      (Cons $newChild $xs) 
+      (Cons $x (findAndReplaceChild $compareFunc $oldChild $newChild $xs))
+  )
 )
 
 ;;a function that decouples the tuple output of `applyAndCut` and returns only the second element of the tuple.
@@ -174,7 +177,7 @@
          (KEEP
            (let*
              (
-               ($sndUpdatedCurrent (replaceChildren $fstUpdatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $fstUpdatedCurrent))))
+               ($sndUpdatedCurrent (replaceChildren $fstUpdatedCurrent (findAndReplaceChild isNodeEqual $child $updatedChild (getChildren $fstUpdatedCurrent))))
                ($resultSet (intersections (getChildren $updatedChild)))
                (() (println! (resultSet ==> $resultSet)))
              )
@@ -187,7 +190,7 @@
                    ($result (mapParent applyAndCut (getChildren $sndUpdatedChild) $sndUpdatedChild))
                    ($sndUpdatedGrandChildren (map car-atom $result))
                    ($trdUpdatedChild (replaceChildren $sndUpdatedChild $sndUpdatedGrandChildren))
-                   ($finalUpdatedCurrent (replaceChildren $updatedGuardSetCurrent (findAndReplaceChild $updatedChild $trdUpdatedChild (getChildren $updatedGuardSetCurrent))))
+                   ($finalUpdatedCurrent (replaceChildren $updatedGuardSetCurrent (findAndReplaceChild isNodeEqual $updatedChild $trdUpdatedChild (getChildren $updatedGuardSetCurrent))))
                  )
                  ($finalUpdatedCurrent RESET)
                )
@@ -203,7 +206,7 @@
            )
          )
          ($else 
-           (let $sndUpdatedCurrent (replaceChildren $fstUpdatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $fstUpdatedCurrent)))
+           (let $sndUpdatedCurrent (replaceChildren $fstUpdatedCurrent (findAndReplaceChild  isNodeEqual $child $updatedChild (getChildren $fstUpdatedCurrent)))
               ($sndUpdatedCurrent $signal)
            )
          )
