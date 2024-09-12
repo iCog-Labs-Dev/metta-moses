@@ -152,3 +152,62 @@
    )
    (TreeNode (And) (Cons (b) (Cons (d') Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) Nil Nil) Nil)) Nil))
  )
+
+;; Test 05: Cut Unnecessary AND transformation test.
+
+!(assertEqual
+   (performReductAction
+     (reduceToElegance
+        (TreeNode (Or) Nil (Cons (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b) (Cons (d) Nil)) Nil) (Cons (TreeNode (And) (Cons (e') Nil) Nil) Nil))) Nil)) (Cons (TreeNode (And) (Cons (c) Nil) Nil) Nil)))
+       (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b) (Cons (d) Nil)) Nil) (Cons (TreeNode (And) (Cons (e') Nil) Nil) Nil))) Nil))
+       (Cons (a) Nil)
+       (Cons (c) Nil)
+     )
+   )
+  (TreeNode (Or) Nil (Cons (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b) (Cons (d) Nil)) Nil) (Cons (TreeNode (And) (Cons (e') Nil) Nil) Nil))) Nil)) (Cons (TreeNode (And) (Cons (c) Nil) Nil) Nil)))
+ )
+
+;; Test 06: Zero Constraint Subsumption Transformation test.
+
+!(assertEqual
+  (performReductAction
+    (reduceToElegance
+      (TreeNode (And) (Cons (a) Nil) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (a) Nil) Nil) (Cons (TreeNode (And) (Cons (b') Nil) (Cons (TreeNode (And) (Cons (e) Nil) Nil) (Cons (TreeNode (And) (Cons (f) Nil) Nil) Nil))) Nil))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) Nil Nil) Nil))) Nil)))
+      (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) Nil Nil) Nil)))
+      (Cons (a) Nil)
+      Nil
+    )
+  )
+  (TreeNode (And) (Cons (a) Nil) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (a) Nil) Nil) (Cons (TreeNode (And) (Cons (b') Nil) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (e) Nil) Nil) (Cons (TreeNode (And) (Cons (f) Nil) Nil) Nil))) Nil)) Nil))) Nil))
+
+)
+
+
+;; Test 07: One Constraint Subsumption Transformation test.
+
+!(assertEqual
+  (performReductAction
+    (reduceToElegance
+      (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (e) (Cons (d) Nil)) Nil) (Cons (TreeNode (And) (Cons (c) Nil) Nil) Nil)))
+      (TreeNode (And) (Cons (e) (Cons (d) Nil)) Nil)
+      (Cons (a) (Cons (b) Nil))
+      (Cons (c) (Cons (d) Nil))
+    )
+  )
+  (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) Nil))
+)
+
+
+;; Test 08: One constraint complement subtraction transformation test.
+
+!(assertEqual
+  (performReductAction
+    (reduceToElegance
+      (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b) (Cons (c) Nil)) Nil) (Cons (TreeNode (And) (Cons (d) Nil) Nil) Nil)))
+      (TreeNode (And) (Cons (b) (Cons (c) Nil)) Nil)
+      (Cons (a) (Cons (b) Nil))
+      (Cons (d) Nil)
+    )
+  )
+  (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) (Cons (d) Nil) Nil) Nil)))
+)
