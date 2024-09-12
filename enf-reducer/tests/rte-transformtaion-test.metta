@@ -15,10 +15,10 @@
    (case $signal
       (
         (DELETE
-          (replaceChildren $parent (findAndRemoveTree $child (getChildren $parent)))
+          (replaceChildren $parent (findAndRemove $child (getChildren $parent)))
         )
         (DISCONNECT
-          (replaceChildren $parent (findAndRemoveTree $child (getChildren $parent)))
+          (replaceChildren $parent (findAndRemove $child (getChildren $parent)))
         )
         ($else $parent)
       )
@@ -50,6 +50,12 @@
     (performReductAction ((TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil)) (TreeNode (Value A True LITERAL) Nil Nil) RESET))
     (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil))
  )
+
+;; Test 05
+!(assertEqual 
+    (performReductAction ((TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil) Nil) (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) Nil))) Nil)) (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil) Nil) Nil))) (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil) Nil) (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) Nil))) Nil)) DELETE))
+    (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b) Nil) Nil) Nil))
+)
 
 ;; TreeNodes to be reused. There are literal nodes only defined from a - f both with positive and negative constraint.
 ;; i.e.,:
@@ -91,7 +97,6 @@
 ;; Reduce to Elegance Transformation Tests
 
 ;; Test 01: Delete inconsistent handle transformation test.
- ;; Output
 
 !(assertEqual
    (performReductAction
@@ -105,4 +110,15 @@
  )
 
 
+;; Test 02: Promote Common Constraint transformation test.
 
+!(assertEqual
+    (performReductAction 
+      (reduceToElegance
+        (TreeNode (And) (Cons (a) Nil) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b') (Cons (c) Nil)) Nil) (Cons (TreeNode (And) (Cons (b') Nil) Nil) Nil))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b') (Cons (d') Nil)) Nil) (Cons (TreeNode (And) (Cons (c') Nil) Nil) Nil))) Nil)))
+        (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b') (Cons (c) Nil)) Nil) (Cons (TreeNode (And) (Cons (b') Nil) Nil) Nil)))
+        (Cons (a) (Cons (b') Nil))
+        Nil
+      ))
+      (TreeNode (And) (Cons (a) (Cons (b') Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) Nil Nil) Nil))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b') (Cons (d') Nil)) Nil) (Cons (TreeNode (And) (Cons (c') Nil) Nil) Nil))) Nil)))
+)
