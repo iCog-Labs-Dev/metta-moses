@@ -5,9 +5,11 @@ on:
   push:
     branches:
       - main
+      - v0.3.0
   pull_request:
     branches:
       - main
+      - v0.3.0
 
 jobs:
   setup-and-test:
