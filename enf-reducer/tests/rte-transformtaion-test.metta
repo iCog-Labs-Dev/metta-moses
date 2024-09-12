@@ -137,3 +137,18 @@
     ))
    (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (a) Nil) Nil) Nil))
  )
+
+
+;; Test 04: Cut Unnecessary OR transformation test.
+
+!(assertEqual
+   (performReductAction 
+      (reduceToElegance 
+        (TreeNode (And) (Cons (b) Nil) (Cons (TreeNode(Or) Nil (Cons (TreeNode (And) (Cons (d') Nil) Nil) Nil)) Nil))
+        (TreeNode(Or) Nil (Cons (TreeNode (And) (Cons (d') Nil) Nil) Nil))
+        (Cons (a) (Cons (b) (Cons (d') Nil)))
+        Nil
+      )
+   )
+   (TreeNode (And) (Cons (b) (Cons (d') Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) Nil Nil) Nil)) Nil))
+ )
