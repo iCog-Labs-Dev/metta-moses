@@ -53,8 +53,9 @@
                 (
                   ($updatedParent (replaceGuardSet $parent ((getGuardSet $parent) ++ $commonToAllChildren)))
                   ($updatedCurrent (replaceChildren $currentTree (mapChild updateGuardSet $commonToAllChildren $children)))
+                  ($finalUpdatedParent (replaceChildren $updatedParent (findAndReplaceChild == $currentTree $updatedCurrent (getChildren $updatedParent))))
                 )
-                ($updatedParent $updatedCurrent RESET)
+                ($finalUpdatedParent $updatedCurrent RESET)
               )
               (if (> (length $children) 0)
                   (let ($updatedCurrent $signal) (orSubTreeIterator $children $currentTree $dominantSet $commandSet 0)
