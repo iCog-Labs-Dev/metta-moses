@@ -25,37 +25,6 @@
    )
 )
 
-;; Test Cases for performReductAction
-
-;; Test  01
-!(assertEqual
-    (performReductAction ((TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil)) (TreeNode (Value A True LITERAL) Nil Nil) DELETE))
-    (TreeNode (Value Nil False AND) Nil Nil)
- )
-
-;; Test  02
-!(assertEqual
-    (performReductAction ((TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil)) (TreeNode (Value A True LITERAL) Nil Nil) DISCONNECT))
-    (TreeNode (Value Nil False AND) Nil Nil)
- )
-
-;; Test  03
-!(assertEqual
-    (performReductAction ((TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil)) (TreeNode (Value A True LITERAL) Nil Nil) KEEP))
-    (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil))
- )
-
-;; Test 04
-!(assertEqual
-    (performReductAction ((TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil)) (TreeNode (Value A True LITERAL) Nil Nil) RESET))
-    (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil))
- )
-
-;; Test 05
-!(assertEqual 
-    (performReductAction ((TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil) Nil) (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) Nil))) Nil)) (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil) Nil) Nil))) (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil) Nil) (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) Nil))) Nil)) DELETE))
-    (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b) Nil) Nil) Nil))
-)
 
 ;; TreeNodes to be reused. There are literal nodes only defined from a - f both with positive and negative constraint.
 ;; i.e.,:
@@ -93,6 +62,40 @@
 (= (And) (Value Nil False AND))
 (: Or NodeValue)
 (= (Or) (Value Nil False OR))
+
+
+;; Test Cases for performReductAction
+
+;; Test  01
+!(assertEqual
+    (performReductAction ((TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil)) (TreeNode (Value A True LITERAL) Nil Nil) DELETE))
+    (TreeNode (Value Nil False AND) Nil Nil)
+ )
+
+;; Test  02
+!(assertEqual
+    (performReductAction ((TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil)) (TreeNode (Value A True LITERAL) Nil Nil) DISCONNECT))
+    (TreeNode (Value Nil False AND) Nil Nil)
+ )
+
+;; Test  03
+!(assertEqual
+    (performReductAction ((TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil)) (TreeNode (Value A True LITERAL) Nil Nil) KEEP))
+    (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil))
+ )
+
+;; Test 04
+!(assertEqual
+    (performReductAction ((TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil)) (TreeNode (Value A True LITERAL) Nil Nil) RESET))
+    (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) Nil))
+ )
+
+;; Test 05
+!(assertEqual 
+    (performReductAction ((TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil) Nil) (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) Nil))) Nil)) (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil) Nil) Nil))) (TreeNode (Value Nil False AND) (Cons (TreeNode (Value A False LITERAL) Nil Nil) Nil) (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil) Nil) (Cons (TreeNode (Value Nil False AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) Nil))) Nil)) DELETE))
+    (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b) Nil) Nil) Nil))
+)
+
 
 ;; Reduce to Elegance Transformation Tests
 
