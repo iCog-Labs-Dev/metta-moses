@@ -116,7 +116,7 @@
 ;; Test 02: Promote Common Constraint transformation test.
 
 !(assertEqual
-    (performReductAction 
+    (performReductAction
       (reduceToElegance
         (TreeNode (And) (Cons (a) Nil) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b') (Cons (c) Nil)) Nil) (Cons (TreeNode (And) (Cons (b') Nil) Nil) Nil))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b') (Cons (d') Nil)) Nil) (Cons (TreeNode (And) (Cons (c') Nil) Nil) Nil))) Nil)))
         (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b') (Cons (c) Nil)) Nil) (Cons (TreeNode (And) (Cons (b') Nil) Nil) Nil)))
@@ -125,3 +125,15 @@
       ))
       (TreeNode (And) (Cons (a) (Cons (b') Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) Nil Nil) Nil))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b') (Cons (d') Nil)) Nil) (Cons (TreeNode (And) (Cons (c') Nil) Nil) Nil))) Nil)))
 )
+
+;; Test 03: Subtract Redundant Constraint transformation test.
+!(assertEqual
+    (performReductAction
+      (reduceToElegance
+        (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (a) (Cons (c) (Cons (d') Nil))) Nil) (Cons (TreeNode (And) (Cons (a) Nil) Nil) Nil)))
+        (TreeNode (And) (Cons (a) (Cons (c) (Cons (d') Nil))) Nil)
+        (Cons (b') (Cons (c) (Cons (a) Nil)))
+        (Cons (a) (Cons (e') Nil))
+    ))
+   (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (a) Nil) Nil) Nil))
+ )
