@@ -68,7 +68,7 @@
                   (let* 
                     (
                      (($updatedCurrent $signal) (orSubTreeIterator $children $currentTree $dominantSet $commandSet 0))
-                     ($finalUpdatedParent (replaceChildren $parent (findAndReplaceChild $currentTree $updatedCurrent (getChildren $parent))))
+                     ($finalUpdatedParent (replaceChildren $parent (findAndReplaceChild == $currentTree $updatedCurrent (getChildren $parent))))
                     )
                     (if (~= $signal NONE)
                         ($finalUpdatedParent $updatedCurrent $signal)
