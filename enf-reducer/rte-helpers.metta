@@ -21,7 +21,7 @@
           (
             ($firstNodeOfGrandChild (head (getChildren $grandChild)))
             ($updatedChildrenTree (replaceChildren $child (extend (getChildren $child) (getChildren $firstNodeOfGrandChild))))
-            ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree $grandChild (getChildren $updatedChildrenTree) )))
+            ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemove $grandChild (getChildren $updatedChildrenTree) )))
             ($hasTerminalAndNode (containsTerminalAndNode (getChildren $firstNodeOfGrandChild)))
           )
           ($finalUpdatedTree $hasTerminalAndNode)
@@ -117,7 +117,7 @@
             (if (> (length (getChildren $sndUpdatedCurrent)) 0)
                 (let* 
                     (
-                      ($updatedChildren (findAndRemoveTree $updatedChild (getChildren $sndUpdatedCurrent)))
+                      ($updatedChildren (findAndRemove $updatedChild (getChildren $sndUpdatedCurrent)))
                       ($removedChildCurrent (replaceChildren $updatedCurrent $updatedChildren))
                     )
                     ($removedChildCurrent ADVANCE)
@@ -170,7 +170,7 @@
      (case $signal 
        (
          (DELETE ((replaceChildren $fstUpdatedCurrent Nil) DELETE))
-         (DISCONNECT ((replaceChildren $fstUpdatedCurrent (findAndRemoveTree $child (getChildren $fstUpdatedCurrent))) ADVANCE))
+         (DISCONNECT ((replaceChildren $fstUpdatedCurrent (findAndRemove $child (getChildren $fstUpdatedCurrent))) ADVANCE))
          (KEEP
            (let*
              (
