@@ -172,7 +172,7 @@
 !(assertEqual
   (performReductAction
     (reduceToElegance
-      (TreeNode (And) (Cons (a) Nil) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (a) Nil) Nil) (Cons (TreeNode (And) (Cons (b') Nil) (Cons (TreeNode (And) (Cons (e) Nil) Nil) (Cons (TreeNode (And) (Cons (f) Nil) Nil) Nil))) Nil))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) Nil Nil) Nil))) Nil)))
+      (TreeNode (And) (Cons (a) Nil) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (a) Nil) Nil) (Cons (TreeNode (And) (Cons (b') Nil) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (e) Nil) Nil) (Cons (TreeNode (And) (Cons (f) Nil) Nil) Nil))) Nil) ) Nil))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) Nil Nil) Nil))) Nil)))
       (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) Nil Nil) Nil)))
       (Cons (a) Nil)
       Nil
