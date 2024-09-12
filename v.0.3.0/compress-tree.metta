@@ -17,17 +17,18 @@
             (if $headIsJunctor
                 (if (eq $head $parentTreeType)
                     (let* (
-                            ($intermediateTree (iterate-and-insert $head $tail))
+                            ($intermediateTree (iterate-and-insert ($head) $tail))
                             ($intermediateHead (car-atom $intermediateTree))
                             ($intermediateTail (cdr-atom $intermediateTree))
+                            ($nextIteration (changeToList (compressTree $intermediateTail $intermediateHead)))
                         )
-                        (cons-atom $intermediateHead (compressTree $intermediateTail $intermediateHead))
+                        (cons-atom $intermediateHead $nextIteration)
 
                     )
                     (compressTree $tail $head)
                       
                 )
-                $head
+                (compressTree $tail $parentTreeType)
             )
         )
         
