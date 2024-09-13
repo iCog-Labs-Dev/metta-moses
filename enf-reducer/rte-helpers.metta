@@ -107,27 +107,26 @@
         (() (println! (inside orSubTreeElegance)))
 
         (($updatedCurrent $updatedChild $signal) (reduceToElegance $current $child $dominantSet $localCommandSet))
-        ($sndUpdatedCurrent (replaceChildren $updatedCurrent (findAndReplaceChild isNodeEqual $child $updatedChild (getChildren $updatedCurrent))))
 
         (() (println! (updatedChild ==> $updatedChild updatedCurrent ==> $updatedCurrent)))
       )
       (case $signal
         (
           (DELETE
-            (if (> (length (getChildren $sndUpdatedCurrent)) 0)
-                (let* 
+            (if (> (length (getChildren $updatedCurrent)) 0)
+                (let*
                     (
-                      ($updatedChildren (findAndRemove $updatedChild (getChildren $sndUpdatedCurrent)))
+                      ($updatedChildren (findAndRemove $updatedChild (getChildren $updatedCurrent)))
                       ($removedChildCurrent (replaceChildren $updatedCurrent $updatedChildren))
                     )
                     ($removedChildCurrent ADVANCE)
                 )
-                ($sndUpdatedCurrent DELETE)
+                ($updatedCurrent DELETE)
             )
           )
-          (DISCONNECT ($sndUpdatedCurrent DISCONNECT))
-          (KEEP ($sndUpdatedCurrent ADVANCE))
-          ($_ ($sndUpdatedCurrent $signal))
+          (DISCONNECT ($updatedCurrent DISCONNECT))
+          (KEEP ($updatedCurrent ADVANCE))
+          ($_ ($updatedCurrent $signal))
         )
       )
    )
