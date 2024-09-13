@@ -1,5 +1,5 @@
 (: reduceToElegance (-> Tree Tree (List Tree) (List Tree) (Tree Tree Signal)))
-(= (reduceToElegance $_ NilNode $dominantSet $commandSet) (NilNode NONE))
+(= (reduceToElegance $_ NilNode $dominantSet $commandSet) (NilNode NilNode NONE))
 (= (reduceToElegance $parent (TreeNode (Value $value $constraint $type) $guardSet $children) $dominantSet $commandSet) 
   (case $type
     (
@@ -25,24 +25,22 @@
               (let $resultSet (treeIntersection $guardSet $commandSet)
                   (if (~= (length $resultSet) 0)
                       ($fstUpdatedParent $updatedCurrentTree DELETE)
-                      ;; The signal defined below is used to simulate the output of the iteractor function call
-                      ;;(let () (println! (inside RTE before iterator updatedCurrentTree ==> $updatedCurrentTree dominantSet ==> $dominantSet commandSet ==> $commandSet))
-                      (let* 
+                      (let*
                         (
-                         (($finalUpdatedCurrent $signal) (iterator $updatedCurrentTree $dominantSet $commandSet))
-                         ($finalUpdatedParent (replaceChildren $fstUpdatedParent (findAndReplaceChild == $updatedCurrentTree $finalUpdatedCurrent (getChildren $fstUpdatedParent))))
+                          ;; (() (println! (inside RTE before iterator updatedCurrentTree ==> $updatedCurrentTree dominantSet ==> $dominantSet commandSet ==> $commandSet)))
+                          (($finalUpdatedCurrent $signal) (iterator $updatedCurrentTree $dominantSet $commandSet))
+                          ($finalUpdatedParent (replaceChildren $fstUpdatedParent (findAndReplaceChild == $updatedCurrentTree $finalUpdatedCurrent (getChildren $fstUpdatedParent))))
                         )
                         (if (~= $signal NONE)
                           ($finalUpdatedParent $finalUpdatedCurrent $signal)
 
                           ;; Determine if current is a site for 0-Subsumption
-                          (if (and (== (length $children) 0) (== (length $finalGuardSet) 0))
+                          (if (and (== (length (getChildren $finalUpdatedCurrent)) 0) (== (length $finalGuardSet) 0))
                               ($finalUpdatedParent $finalUpdatedCurrent DISCONNECT) 
                               ($finalUpdatedParent $finalUpdatedCurrent KEEP)
                           )
                         )
                       )
-                  ;;)
                   )
               )
           )
@@ -52,6 +50,7 @@
         (let*
           (
             (() (println! (Inside RTE Or case)))
+
             ($currentTree (TreeNode (Value $value $constraint $type) $guardSet $children))
             ($commonToAllChildren (intersections $children))
           )
