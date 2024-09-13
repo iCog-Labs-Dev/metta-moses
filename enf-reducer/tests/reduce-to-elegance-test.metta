@@ -11,6 +11,8 @@
 ! (import! &self metta-moses-reduction:enf-reducer:reduct)
 ! (import! &self metta-moses-reduction:enf-reducer:gather-junctors)
 
+! (import! &self metta-moses-reduction:enf-reducer:tests:test-treenodes)
+
 ;; Test for applyAndCut function
 
 ;; Test 01 - Node with one child and empty guardSet
@@ -224,3 +226,19 @@
   (reduceToElegance (TreeNode (Value Nil False OR) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) (TreeNode (Value Nil False OR) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) Nil Nil)
   ((TreeNode (Value Nil False OR) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) (TreeNode (Value Nil False OR) (Cons (TreeNode (Value a True AND) Nil Nil) Nil) (Cons (TreeNode (Value b True AND) Nil Nil) Nil)) DISCONNECT)
  )
+
+
+;; Test 04: Test case from Mosh's paper. Page 37
+
+!(reduceToElegance
+    (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (g) Nil) Nil) (Cons (TreeNode (And) (Cons (a) (Cons (b) Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c') Nil) Nil) (Cons (TreeNode (And) (Cons (d') Nil) Nil) (Cons (TreeNode (And) (Cons (e) Nil) Nil) Nil)))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) (Cons (c) (Cons (f) Nil)) Nil) Nil))) Nil))) Nil))) Nil))
+    (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (g) Nil) Nil) (Cons (TreeNode (And) (Cons (a) (Cons (b) Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c') Nil) Nil) (Cons (TreeNode (And) (Cons (d') Nil) Nil) (Cons (TreeNode (And) (Cons (e) Nil) Nil) Nil)))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) (Cons (c) (Cons (f) Nil)) Nil) Nil))) Nil))) Nil))) Nil))
+      Nil
+      Nil)
+; (assertEqual
+;    (reduceToElegance
+;      (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (g) Nil) Nil) (Cons (TreeNode (And) (Cons (a) (Cons (b) Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c') Nil) Nil) (Cons (d') (Cons (e) Nil)))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (c) Nil) (Cons (TreeNode (And) (Cons (c) (Cons (f) Nil)) Nil) Nil))) Nil))) Nil))) Nil))
+;      (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (g) Nil) Nil) (Cons (TreeNode (And) (Cons (a) (Cons (b) Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c') Nil) Nil) (Cons (d') (Cons (e) Nil)))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (c) Nil) (Cons (TreeNode (And) (Cons (c) (Cons (f) Nil)) Nil) Nil))) Nil))) Nil))) Nil))
+;       Nil
+;       Nil)
+;  )
