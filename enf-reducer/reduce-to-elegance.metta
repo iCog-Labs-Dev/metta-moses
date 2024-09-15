@@ -1,11 +1,12 @@
 (: reduceToElegance (-> Tree Tree (List Tree) (List Tree) (Tree Tree Signal)))
-(= (reduceToElegance $_ NilNode $dominantSet $commandSet) (NilNode NONE))
+(= (reduceToElegance $_ NilNode $dominantSet $commandSet) (NilNode NilNode NONE))
 (= (reduceToElegance $parent (TreeNode (Value $value $constraint $type) $guardSet $children) $dominantSet $commandSet) 
   (case $type
     (
       (AND
         (let* 
           (
+            ($currentTree (TreeNode (Value $value $constraint $type) $guardSet $children))
             ;; Apply Redundant to current
             ($updatedGuardSet (setDifference treeIsMember $guardSet $dominantSet Nil))
 
@@ -15,36 +16,41 @@
             ($currentHasNoChild (== (length $children) 0))
             ($currentHasNoGuardSet (== (length $finalGuardSet) 0))
             ($updatedCurrentTree (TreeNode (Value $value $constraint $type) $finalGuardSet $children))
+            ($fstUpdatedParent (replaceChildren $parent (findAndReplaceChild == $currentTree $updatedCurrentTree (getChildren $parent))))
+
             (() (println! (Inside RTE AND case currentHasNoChild ==> $currentHasNoChild currentHasNoGuardSet ==> $currentHasNoGuardSet finalGuardSet ==> $finalGuardSet commandSet ==> $commandSet)))
           )
           (if (and $currentHasNoChild $currentHasNoGuardSet)
-              ($parent $updatedCurrentTree DISCONNECT)
+              ($fstUpdatedParent $updatedCurrentTree DISCONNECT)
               (let $resultSet (treeIntersection $guardSet $commandSet)
                   (if (~= (length $resultSet) 0)
-                      ($parent $updatedCurrentTree DELETE)
-                      ;; The signal defined below is used to simulate the output of the iteractor function call
-                      ;;(let () (println! (inside RTE before iterator updatedCurrentTree ==> $updatedCurrentTree dominantSet ==> $dominantSet commandSet ==> $commandSet))
-                      (let ($finalUpdatedCurrent $signal) (iterator $updatedCurrentTree $dominantSet $commandSet)
+                      ($fstUpdatedParent $updatedCurrentTree DELETE)
+                      (let*
+                        (
+                          ;; (() (println! (inside RTE before iterator updatedCurrentTree ==> $updatedCurrentTree dominantSet ==> $dominantSet commandSet ==> $commandSet)))
+                          (($finalUpdatedCurrent $signal) (iterator $updatedCurrentTree $dominantSet $commandSet))
+                          ($finalUpdatedParent (replaceChildren $fstUpdatedParent (findAndReplaceChild == $updatedCurrentTree $finalUpdatedCurrent (getChildren $fstUpdatedParent))))
+                        )
                         (if (~= $signal NONE)
-                          ($parent $finalUpdatedCurrent $signal)
+                          ($finalUpdatedParent $finalUpdatedCurrent $signal)
 
                           ;; Determine if current is a site for 0-Subsumption
-                          (if (and (== (length $children) 0) (== (length $finalGuardSet) 0))
-                              ($parent $finalUpdatedCurrent DISCONNECT) 
-                              ($parent $finalUpdatedCurrent KEEP)
+                          (if (and (== (length (getChildren $finalUpdatedCurrent)) 0) (== (length $finalGuardSet) 0))
+                              ($finalUpdatedParent $finalUpdatedCurrent DISCONNECT) 
+                              ($finalUpdatedParent $finalUpdatedCurrent KEEP)
                           )
                         )
                       )
-                  ;;)
                   )
               )
           )
         )
       )
       (OR
-        (let* 
+        (let*
           (
             (() (println! (Inside RTE Or case)))
+
             ($currentTree (TreeNode (Value $value $constraint $type) $guardSet $children))
             ($commonToAllChildren (intersections $children))
           )
@@ -58,10 +64,14 @@
                 ($finalUpdatedParent $updatedCurrent RESET)
               )
               (if (> (length $children) 0)
-                  (let ($updatedCurrent $signal) (orSubTreeIterator $children $currentTree $dominantSet $commandSet 0)
+                  (let* 
+                    (
+                     (($updatedCurrent $signal) (orSubTreeIterator $children $currentTree $dominantSet $commandSet 0))
+                     ($finalUpdatedParent (replaceChildren $parent (findAndReplaceChild == $currentTree $updatedCurrent (getChildren $parent))))
+                    )
                     (if (~= $signal NONE)
-                        ($parent $updatedCurrent $signal)
-                        ($parent $updatedCurrent KEEP)
+                        ($finalUpdatedParent $updatedCurrent $signal)
+                        ($finalUpdatedParent $updatedCurrent KEEP)
                     )
                   )
                   ($parent $currentTree KEEP)

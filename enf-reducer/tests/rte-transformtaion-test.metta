@@ -8,6 +8,8 @@
 ! (import! &self metta-moses-reduction:enf-reducer:reduce-to-elegance)
 ! (import! &self metta-moses-reduction:enf-reducer:reduct)
 
+! (import! &self metta-moses-reduction:enf-reducer:tests:test-treenodes)
+
 ;; This function is used to perform one single action after getting the input from the `reduceToElegance` function.
 ;; The function is only used here which is why it's defined here.
 (: performReductAction (-> (Tree Tree Signal) Tree))
@@ -24,44 +26,6 @@
       )
    )
 )
-
-
-;; TreeNodes to be reused. There are literal nodes only defined from a - f both with positive and negative constraint.
-;; i.e.,:
-      ;; a' means a tree node that has 'NodeType' of 'LITERAL', Value of 'A' and Constraint of 'False'.
-      ;; a means a tree node that has 'NodeType' of 'LITERAL', Value of 'A' and Constraint of 'True'.
-
-(: a Tree)
-(= (a) (TreeNode (Value A True LITERAL) Nil Nil))
-(: b Tree)
-(= (b) (TreeNode (Value B True LITERAL) Nil Nil))
-(: c Tree)
-(= (c) (TreeNode (Value C True LITERAL) Nil Nil))
-(: d Tree)
-(= (d) (TreeNode (Value D True LITERAL) Nil Nil))
-(: e Tree)
-(= (e) (TreeNode (Value E True LITERAL) Nil Nil))
-(: f Tree)
-(= (f) (TreeNode (Value F True LITERAL) Nil Nil))
-
-(: a' Tree)
-(= (a') (TreeNode (Value A False LITERAL) Nil Nil))
-(: b' Tree)
-(= (b') (TreeNode (Value B False LITERAL) Nil Nil))
-(: c' Tree)
-(= (c') (TreeNode (Value C False LITERAL) Nil Nil))
-(: d' Tree)
-(= (d') (TreeNode (Value D False LITERAL) Nil Nil))
-(: e' Tree)
-(= (e') (TreeNode (Value E False LITERAL) Nil Nil))
-(: f' Tree)
-(= (f') (TreeNode (Value F False LITERAL) Nil Nil))
-
-;; NodeValues that are reused. These are AND and OR node value to be reused
-(: And NodeValue)
-(= (And) (Value Nil False AND))
-(: Or NodeValue)
-(= (Or) (Value Nil False OR))
 
 
 ;; Test Cases for performReductAction
@@ -116,7 +80,7 @@
 ;; Test 02: Promote Common Constraint transformation test.
 
 !(assertEqual
-    (performReductAction 
+    (performReductAction
       (reduceToElegance
         (TreeNode (And) (Cons (a) Nil) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b') (Cons (c) Nil)) Nil) (Cons (TreeNode (And) (Cons (b') Nil) Nil) Nil))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b') (Cons (d') Nil)) Nil) (Cons (TreeNode (And) (Cons (c') Nil) Nil) Nil))) Nil)))
         (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b') (Cons (c) Nil)) Nil) (Cons (TreeNode (And) (Cons (b') Nil) Nil) Nil)))
@@ -124,4 +88,90 @@
         Nil
       ))
       (TreeNode (And) (Cons (a) (Cons (b') Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) Nil Nil) Nil))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b') (Cons (d') Nil)) Nil) (Cons (TreeNode (And) (Cons (c') Nil) Nil) Nil))) Nil)))
+)
+
+;; Test 03: Subtract Redundant Constraint transformation test.
+!(assertEqual
+    (performReductAction
+      (reduceToElegance
+        (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (a) (Cons (c) (Cons (d') Nil))) Nil) (Cons (TreeNode (And) (Cons (a) Nil) Nil) Nil)))
+        (TreeNode (And) (Cons (a) (Cons (c) (Cons (d') Nil))) Nil)
+        (Cons (b') (Cons (c) (Cons (a) Nil)))
+        (Cons (a) (Cons (e') Nil))
+    ))
+   (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (a) Nil) Nil) Nil))
+ )
+
+
+;; Test 04: Cut Unnecessary OR transformation test.
+
+!(assertEqual
+   (performReductAction 
+      (reduceToElegance 
+        (TreeNode (And) (Cons (b) Nil) (Cons (TreeNode(Or) Nil (Cons (TreeNode (And) (Cons (d') Nil) Nil) Nil)) Nil))
+        (TreeNode(Or) Nil (Cons (TreeNode (And) (Cons (d') Nil) Nil) Nil))
+        (Cons (a) (Cons (b) (Cons (d') Nil)))
+        Nil
+      )
+   )
+   (TreeNode (And) (Cons (b) (Cons (d') Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) Nil Nil) Nil)) Nil))
+ )
+
+;; Test 05: Cut Unnecessary AND transformation test.
+
+!(assertEqual
+   (performReductAction
+     (reduceToElegance
+        (TreeNode (Or) Nil (Cons (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b) (Cons (d) Nil)) Nil) (Cons (TreeNode (And) (Cons (e') Nil) Nil) Nil))) Nil)) (Cons (TreeNode (And) (Cons (c) Nil) Nil) Nil)))
+       (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b) (Cons (d) Nil)) Nil) (Cons (TreeNode (And) (Cons (e') Nil) Nil) Nil))) Nil))
+       (Cons (a) Nil)
+       (Cons (c) Nil)
+     )
+   )
+  (TreeNode (Or) Nil (Cons (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b) (Cons (d) Nil)) Nil) (Cons (TreeNode (And) (Cons (e') Nil) Nil) Nil))) Nil)) (Cons (TreeNode (And) (Cons (c) Nil) Nil) Nil)))
+ )
+
+;; Test 06: Zero Constraint Subsumption Transformation test.
+
+!(assertEqual
+  (performReductAction
+    (reduceToElegance
+      (TreeNode (And) (Cons (a) Nil) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (a) Nil) Nil) (Cons (TreeNode (And) (Cons (b') Nil) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (e) Nil) Nil) (Cons (TreeNode (And) (Cons (f) Nil) Nil) Nil))) Nil) ) Nil))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) Nil Nil) Nil))) Nil)))
+      (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) Nil Nil) Nil)))
+      (Cons (a) Nil)
+      Nil
+    )
+  )
+  (TreeNode (And) (Cons (a) Nil) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (a) Nil) Nil) (Cons (TreeNode (And) (Cons (b') Nil) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (e) Nil) Nil) (Cons (TreeNode (And) (Cons (f) Nil) Nil) Nil))) Nil)) Nil))) Nil))
+
+)
+
+
+;; Test 07: One Constraint Subsumption Transformation test.
+
+!(assertEqual
+  (performReductAction
+    (reduceToElegance
+      (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (e) (Cons (d) Nil)) Nil) (Cons (TreeNode (And) (Cons (c) Nil) Nil) Nil)))
+      (TreeNode (And) (Cons (e) (Cons (d) Nil)) Nil)
+      (Cons (a) (Cons (b) Nil))
+      (Cons (c) (Cons (d) Nil))
+    )
+  )
+  (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) Nil))
+)
+
+
+;; Test 08: One constraint complement subtraction transformation test.
+
+!(assertEqual
+  (performReductAction
+    (reduceToElegance
+      (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (b) (Cons (c) Nil)) Nil) (Cons (TreeNode (And) (Cons (d) Nil) Nil) Nil)))
+      (TreeNode (And) (Cons (b) (Cons (c) Nil)) Nil)
+      (Cons (a) (Cons (b) Nil))
+      (Cons (d) Nil)
+    )
+  )
+  (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) (Cons (d) Nil) Nil) Nil)))
 )
