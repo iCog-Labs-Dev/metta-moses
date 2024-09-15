@@ -96,14 +96,14 @@
             (case $tree (
             (($op $left $right)
                     (let* (
-                        ($leftRecursion (compressTree $left $accum $op))
-                        ($rightRecursion (compressTree $right $accum $op))
-                        ($opAccumulator (cons-atom $op $accum))
-                        ($leftAccumulated (cons-atom $accum $left))
-                        ($rightAccumulated (cons-atom $leftAccumulated $right))
+                            ($leftRecursion (compressTree $left $accum $op))
+                            ($rightRecursion (compressTree $right $accum $op))
+                            ($opAccumulator (cons-atom $op $accum))
+                            ($rightAccumulated (cons-atom $right $accum))
+                            ($leftAccumulated (cons-atom $left $rightAccumulated))
                         
-                    )
-                        $rightAccumulated    
+                        )
+                        $leftAccumulated    
                     )
             )
 
@@ -114,11 +114,11 @@
                 ($isHeadJunctor (or (== OR $head) (== AND $head)))
             )
                 (if $isHeadJunctor
-                    (if (eq $head $parentType)
+                    (if (== $head $parentType)
                         (let* (
                                 ($newAccum (unlist $accum $tail))
                             )
-                            (compressTree $tail $parentType $newAccum)
+                            (compressTree $tree $parentType $newAccum)
 
                         )
                         (compressTree $tail $head $accum)
@@ -135,4 +135,3 @@
 )
 )
 !(compressTree (AND (AND (AND x1 x2) (OR y1 y2)) c) NONE ())
-(cons-atom (() AND (AND x1 x2) (OR y1 y2)) c)
