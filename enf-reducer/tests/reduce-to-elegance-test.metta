@@ -229,12 +229,12 @@
 
 
 ;; Test 04: Test case from Mosh's paper. Page 37
-
-!(reduceToElegance
-    (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (g) Nil) Nil) (Cons (TreeNode (And) (Cons (a) (Cons (b) Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c') Nil) Nil) (Cons (TreeNode (And) (Cons (d') Nil) Nil) (Cons (TreeNode (And) (Cons (e) Nil) Nil) Nil)))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) (Cons (c) (Cons (f) Nil)) Nil) Nil))) Nil))) Nil))) Nil))
-    (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (g) Nil) Nil) (Cons (TreeNode (And) (Cons (a) (Cons (b) Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c') Nil) Nil) (Cons (TreeNode (And) (Cons (d') Nil) Nil) (Cons (TreeNode (And) (Cons (e) Nil) Nil) Nil)))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) (Cons (c) (Cons (f) Nil)) Nil) Nil))) Nil))) Nil))) Nil))
-      Nil
-      Nil)
+;;
+;; !(reduceToElegance
+;;     (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (g) Nil) Nil) (Cons (TreeNode (And) (Cons (a) (Cons (b) Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c') Nil) Nil) (Cons (TreeNode (And) (Cons (d') Nil) Nil) (Cons (TreeNode (And) (Cons (e) Nil) Nil) Nil)))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) (Cons (c) (Cons (f) Nil)) Nil) Nil))) Nil))) Nil))) Nil))
+;;     (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (g) Nil) Nil) (Cons (TreeNode (And) (Cons (a) (Cons (b) Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c') Nil) Nil) (Cons (TreeNode (And) (Cons (d') Nil) Nil) (Cons (TreeNode (And) (Cons (e) Nil) Nil) Nil)))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c) Nil) Nil) (Cons (TreeNode (And) (Cons (c) (Cons (f) Nil)) Nil) Nil))) Nil))) Nil))) Nil))
+;;       Nil
+;;       Nil)
 ; (assertEqual
 ;    (reduceToElegance
 ;      (TreeNode (And) Nil (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (g) Nil) Nil) (Cons (TreeNode (And) (Cons (a) (Cons (b) Nil)) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (Cons (c') Nil) Nil) (Cons (d') (Cons (e) Nil)))) (Cons (TreeNode (Or) Nil (Cons (TreeNode (And) (c) Nil) (Cons (TreeNode (And) (Cons (c) (Cons (f) Nil)) Nil) Nil))) Nil))) Nil))) Nil))
