@@ -158,11 +158,13 @@ j; !(intersect (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Ni
 
 
 ;; !(findAndReplaceChild 
+;;    isNodeEqual
 ;;   (TreeNode (Value A False LITERAL) Nil Nil) 
 ;;   (TreeNode (Value B True LITERAL) Nil Nil) 
 ;;   (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value X False LITERAL) Nil Nil) Nil))
 ;;  )
 ;; !(findAndReplaceChild 
+;;   isNodeEqual
 ;;  (TreeNode (Value B True LITERAL) Nil Nil) 
 ;;  (TreeNode (Value A False LITERAL) Nil Nil) 
 ;;  (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value X False LITERAL) Nil Nil) Nil))

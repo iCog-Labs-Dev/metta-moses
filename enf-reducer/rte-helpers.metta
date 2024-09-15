@@ -21,7 +21,7 @@
           (
             ($firstNodeOfGrandChild (head (getChildren $grandChild)))
             ($updatedChildrenTree (replaceChildren $child (extend (getChildren $child) (getChildren $firstNodeOfGrandChild))))
-            ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree $grandChild (getChildren $updatedChildrenTree) )))
+            ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemove $grandChild (getChildren $updatedChildrenTree) )))
             ($hasTerminalAndNode (containsTerminalAndNode (getChildren $firstNodeOfGrandChild)))
           )
           ($finalUpdatedTree $hasTerminalAndNode)
@@ -107,7 +107,7 @@
         (() (println! (inside orSubTreeElegance)))
 
         (($updatedCurrent $updatedChild $signal) (reduceToElegance $current $child $dominantSet $localCommandSet))
-        ($sndUpdatedCurrent (replaceChildren $updatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $updatedCurrent))))
+        ($sndUpdatedCurrent (replaceChildren $updatedCurrent (findAndReplaceChild isNodeEqual $child $updatedChild (getChildren $updatedCurrent))))
 
         (() (println! (updatedChild ==> $updatedChild updatedCurrent ==> $updatedCurrent)))
       )
@@ -117,7 +117,7 @@
             (if (> (length (getChildren $sndUpdatedCurrent)) 0)
                 (let* 
                     (
-                      ($updatedChildren (findAndRemoveTree $updatedChild (getChildren $sndUpdatedCurrent)))
+                      ($updatedChildren (findAndRemove $updatedChild (getChildren $sndUpdatedCurrent)))
                       ($removedChildCurrent (replaceChildren $updatedCurrent $updatedChildren))
                     )
                     ($removedChildCurrent ADVANCE)
@@ -150,10 +150,13 @@
   (Cons ($f $x $parent) (mapParent $f $xs $parent))
 )
 ;;A function that finds a tree node from a list of trees and replaces it with a new node.
-(: findAndReplaceChild (-> Tree Tree (List Tree) (List Tree)))
-(= (findAndReplaceChild $oldChild $newChild Nil) Nil)
-(= (findAndReplaceChild $oldChild $newChild (Cons $x $xs))
-  (if (== (isNodeEqual $oldChild $x) True)(Cons $newChild $xs)(Cons $x (findAndReplaceChild $oldChild $newChild $xs)))
+(: findAndReplaceChild (-> (-> $t $t Bool) Tree Tree (List Tree) (List Tree)))
+(= (findAndReplaceChild $compareFunc $oldChild $newChild Nil) Nil)
+(= (findAndReplaceChild $compareFunc $oldChild $newChild (Cons $x $xs))
+  (if ($compareFunc $oldChild $x) 
+      (Cons $newChild $xs) 
+      (Cons $x (findAndReplaceChild $compareFunc $oldChild $newChild $xs))
+  )
 )
 
 ;;a function that decouples the tuple output of `applyAndCut` and returns only the second element of the tuple.
@@ -170,11 +173,11 @@
      (case $signal 
        (
          (DELETE ((replaceChildren $fstUpdatedCurrent Nil) DELETE))
-         (DISCONNECT ((replaceChildren $fstUpdatedCurrent (findAndRemoveTree $child (getChildren $fstUpdatedCurrent))) ADVANCE))
+         (DISCONNECT ((replaceChildren $fstUpdatedCurrent (findAndRemove $child (getChildren $fstUpdatedCurrent))) ADVANCE))
          (KEEP
            (let*
              (
-               ($sndUpdatedCurrent (replaceChildren $fstUpdatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $fstUpdatedCurrent))))
+               ($sndUpdatedCurrent (replaceChildren $fstUpdatedCurrent (findAndReplaceChild isNodeEqual $child $updatedChild (getChildren $fstUpdatedCurrent))))
                ($resultSet (intersections (getChildren $updatedChild)))
                (() (println! (resultSet ==> $resultSet)))
              )
@@ -187,7 +190,7 @@
                    ($result (mapParent applyAndCut (getChildren $sndUpdatedChild) $sndUpdatedChild))
                    ($sndUpdatedGrandChildren (map car-atom $result))
                    ($trdUpdatedChild (replaceChildren $sndUpdatedChild $sndUpdatedGrandChildren))
-                   ($finalUpdatedCurrent (replaceChildren $updatedGuardSetCurrent (findAndReplaceChild $updatedChild $trdUpdatedChild (getChildren $updatedGuardSetCurrent))))
+                   ($finalUpdatedCurrent (replaceChildren $updatedGuardSetCurrent (findAndReplaceChild isNodeEqual $updatedChild $trdUpdatedChild (getChildren $updatedGuardSetCurrent))))
                  )
                  ($finalUpdatedCurrent RESET)
                )
@@ -203,7 +206,7 @@
            )
          )
          ($else 
-           (let $sndUpdatedCurrent (replaceChildren $fstUpdatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $fstUpdatedCurrent)))
+           (let $sndUpdatedCurrent (replaceChildren $fstUpdatedCurrent (findAndReplaceChild  isNodeEqual $child $updatedChild (getChildren $fstUpdatedCurrent)))
               ($sndUpdatedCurrent $signal)
            )
          )
@@ -331,10 +334,10 @@
 
 ;; A helper function that acts like a lambda function definition in the map found in the OR case below.
 (: updateGuardSet ((List Tree) Tree Tree))
-(= (updateGuardSet $commonToAllChildren $child) (replaceGuardSet $child (setDifference (getGuardSet $child) $commonToAllChildren)))
+(= (updateGuardSet $commonToAllChildren $child) (replaceGuardSet $child (setDifference  treeIsMember (getGuardSet $child) $commonToAllChildren Nil)))
 
 ;; Map function that accepts a binary function and it's second argument.
-(: mapChild (-> Atom $t (List Tree) (List Tree)))
+(: mapChild (-> $f (List Tree) (List Tree) (List Tree)))
 (= (mapChild $function $secondArg Nil) Nil)
 (= (mapChild $function $secondArg (Cons $x $xs))
       (Cons ($function $secondArg $x) (mapChild $function $secondArg $xs))
