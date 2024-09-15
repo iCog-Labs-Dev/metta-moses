@@ -143,7 +143,7 @@
   (Cons ($f $x $rs) (mapList $f $xs $rs))
 )
 ;;A function that applies a function to the elements of the first list and a constant parent.
-(: mapParent (-> Atom (List $t) $t (List $t)))
+(: mapParent (-> $f (List $t) $t (List $tt)))
 (= (mapParent $f Nil $parent) Nil)
 (= (mapParent $f (Cons $x $xs) $parent)
   (Cons ($f $x $parent) (mapParent $f $xs $parent))
@@ -196,11 +196,17 @@
                )
                (let*
                  (
+                   (() (println! (Children of UpdatedChild: (getChildren $updatedChild))))
+
                    ($res (mapParent applyAndCut (getChildren $updatedChild) $updatedChild))
                    ($bools (map decoupleAndCutOutput $res))
                    ($containsTerminalAndNode (any $bools))
+
+                   (() (println! (Result ==> $res)))
+                   (() (println! (Bools ==> $bools )))
+                   (() (println! (Contains Terminal And Node ==> $containsTerminalAndNode)))
                  )
-                 (if (== $containsTerminalAndNode False) ($updatedCurrentTree ADVANCE) ($updatedCurrentTree RESET))
+                 (if (not $containsTerminalAndNode) ($fstUpdatedCurrent ADVANCE) ($fstUpdatedCurrent RESET))
                )
              )
            )
@@ -300,8 +306,9 @@
 
               ($currentChild (indexOfTree $currentChildIndex $children))
               (($updatedCurrent $signal) (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
+              (() (println! (Inside AndSubTreeIterator After andSubTreeElegance with updatedCurrent ==> $updatedCurrent And Signal $signal)))
 
-              ;; (() (println! (AndSubTreeIterator ==> $currentChildIndex children ==> $children currentNode ==> $currentNode handleSet ==> $handleSet commandSet ==> $commandSet)))
+              (() (println! (AndSubTreeIterator ==> $currentChildIndex children ==> $children currentNode ==> $currentNode handleSet ==> $handleSet commandSet ==> $commandSet)))
             )
             (case $signal
               (
