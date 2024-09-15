@@ -23,4 +23,11 @@
     )
     
 )
-!(iterate-and-insert (OR (AND A B) C) ((AND B C) E))
+(=(changeToList $data)
+    (if (== (get-metatype $data) Expression)
+        $data
+        ($data)
+    )
+)
+
+!(iterate-and-insert (OR (AND A B) C) (OR (AND B C) E))
