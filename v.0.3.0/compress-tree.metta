@@ -69,19 +69,25 @@
 ;;     )
 
 ;; )
-;; (= (iterate-and-expand $tree $subTree $accum)
-;;     (if (== $tree ())
-;;         $accum
-;;         (let $firstVal (car-atom $tree)
-;;             (if (== $firstVal $subTree)
-;;                 (unlist $accum $subTree)
-;;                 (iterate-and-expand (cdr-atom $tree) $subTree (cons-atom $accum $firstVal))
+(= (changeToList $data)
+    (if (== (get-metatype $data) Expression)
+        $data
+        ($data)
+    )
+)
+(= (iterate-and-expand $tree $subTree $accum)
+    (if (== $tree ())
+        $accum
+        (let $firstVal (car-atom $tree)
+            (if (== $firstVal $subTree)
+                (unlist $accum $subTree)
+                (iterate-and-expand (cdr-atom $tree) $subTree (cons-atom $accum $firstVal))
                 
-;;             )
-;;         )
-;;     )
+            )
+        )
+    )
     
-;; )
+)
 (= (unlist $accum $list)
     (if (== $list ())
         $accum
@@ -91,23 +97,26 @@
     )
 )
 (= (compressTree $tree $parentType $accum)
+    (let () (println! (accum ==> $accum))
     (if (not (== $tree ()))
         (if (== NONE $parentType)
             (case $tree (
-            (($op $left $right)
-                    (let* (
-                            ($leftRecursion (compressTree $left $accum $op))
-                            ($rightRecursion (compressTree $right $accum $op))
-                            ($opAccumulator (cons-atom $op $accum))
-                            ($rightAccumulated (cons-atom $right $accum))
-                            ($leftAccumulated (cons-atom $left $rightAccumulated))
-                        
+                (($op $left $right)
+                        (let* (
+                                ($leftRecursion (compressTree $left $accum $op))
+                                ($rightRecursion (compressTree $right $accum $op))
+                                ;;($opAccumulator (cons-atom $op $accum))
+                                ($rightAccumulated (cons-atom $right $accum))
+                                ($leftAccumulated (cons-atom $left $rightAccumulated))
+                                ($opAccumulator (cons-atom $op $leftAccumulated))
+                            
+                            )
+                            $opAccumulator   
                         )
-                        $leftAccumulated    
-                    )
-            )
+                )
 
-            ))
+                )
+            )
             (let* (
                 ($head (car-atom $tree))
                 ($tail (cdr-atom $tree))
@@ -118,8 +127,9 @@
                         (let* (
                                 ($newAccum (unlist $accum $tail))
                             )
-                            (compressTree $tree $parentType $newAccum)
-
+                            (let () (println! (newAccum ==> $newAccum))
+                                (compressTree $tree $parentType $newAccum)
+                            )
                         )
                         (compressTree $tail $head $accum)
                     )
@@ -134,4 +144,8 @@
     $accum
 )
 )
+)
+;; (= (compressTree $tree $parentType $accum)
+
+;; )
 !(compressTree (AND (AND (AND x1 x2) (OR y1 y2)) c) NONE ())
