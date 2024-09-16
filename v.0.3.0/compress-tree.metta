@@ -148,23 +148,23 @@
 )
 )
 (= (hasExpression $exp)
-    (let* (
-        ($head (car-atom $exp))
-        ($tail (cdr-atom $exp))
-        ($isHeadExpression (== (get-metatype $head) Expression))
-    )(if $isHeadExpression
-        (let $secondHead (car-atom $head)
-            (if (== $secondHead NOT)
+    (if (== $exp ())
+        False
+        (let* (
+                ($head (car-atom $exp))
+                ($tail (cdr-atom $exp))
+                ($isHeadExpression (== (get-metatype $head) Expression))
+
+            )(if $isHeadExpression
+                (let $secondHead (car-atom $head)
+                    (if (== $secondHead NOT)
+                        (hasExpression $tail)
+                        True
+                    )
+                )
                 (hasExpression $tail)
-                True
             )
         )
-        (if (== () $exp)
-            False
-            (hasExpression $tail)
-        ) 
-
-    )
     )
 )
 ;; (= (compressTree $tree $parentType $accum)
@@ -173,3 +173,6 @@
 ;; !(compressTree (AND (AND x1 x2) x3) NONE ())
 ;; !(compressTree (AND (AND (AND x1 x2) (OR y1 y2)) c) NONE ())
 ;; !(unlist () (AND (OR x1 x2) x3))
+!(hasExpression (AND x1 xs))
+!(hasExpression (AND (AND x1 xs) x3))
+!(hasExpression (AND (NOT x2) x3))
