@@ -106,8 +106,8 @@
                                 ($leftRecursion (compressTree $left $accum $op))
                                 ($rightRecursion (compressTree $right $accum $op))
                                 ;;($opAccumulator (cons-atom $op $accum))
-                                ($rightAccumulated (cons-atom $right $accum))
-                                ($leftAccumulated (cons-atom $left $rightAccumulated))
+                                ($rightAccumulated (cons-atom $rightRecursion $accum))
+                                ($leftAccumulated (cons-atom $leftRecursion $rightAccumulated))
                                 ($opAccumulator (cons-atom $op $leftAccumulated))
                             
                             )
@@ -122,6 +122,7 @@
                 ($tail (cdr-atom $tree))
                 ($isHeadJunctor (or (== OR $head) (== AND $head)))
             )
+            (let () (println! (head ==> $head tail ==> $tail))
                 (if $isHeadJunctor
                     (if (== $head $parentType)
                         (let* (
@@ -139,13 +140,36 @@
 
                 )
             )
+            )
             
         )
     $accum
 )
 )
 )
+(= (hasExpression $exp)
+    (let* (
+        ($head (car-atom $exp))
+        ($tail (cdr-atom $exp))
+        ($isHeadExpression (== (get-metatype $head) Expression))
+    )(if $isHeadExpression
+        (let $secondHead (car-atom $head)
+            (if (== $secondHead NOT)
+                (hasExpression $tail)
+                True
+            )
+        )
+        (if (== () $exp)
+            False
+            (hasExpression $tail)
+        ) 
+
+    )
+    )
+)
 ;; (= (compressTree $tree $parentType $accum)
 
 ;; )
-!(compressTree (AND (AND (AND x1 x2) (OR y1 y2)) c) NONE ())
+;; !(compressTree (AND (AND x1 x2) x3) NONE ())
+;; !(compressTree (AND (AND (AND x1 x2) (OR y1 y2)) c) NONE ())
+;; !(unlist () (AND (OR x1 x2) x3))
