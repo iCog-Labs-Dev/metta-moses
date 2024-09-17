@@ -194,22 +194,31 @@
 (= (gatherJunctor $tree $parentType)
     (case $tree (
         (($op $left $right)
-            (if (== $parentType $op)
+            ;; (if (== $parentType $op)
                 (let* (
-                    ($left-gather (gatherJunctor $left $parentType))
-                    ($right-gather (gatherJunctor $left $parent))
+                    ($left-gather (gatherJunctor $left $op))
+                    ($right-gather (gatherJunctor $right $op))
                     ($accum ())
-                ))
+                )
+                (if (== $parentType $op)
+                    (reverse-list (unlist (unlist $accum (changeToList $left-gather)) (changeToList $right-gather)) ())
+                    (reverse-list (unlist (unlist (unlist $accum ($op)) (changeToList $left-gather)) (changeToList $right-gather)) ())
+
+                    
+                )
                 
                 ;;(reverse-list (iterate-and-insert (changeToList (gatherJunctor $left $parentType)) (gatherJunctor $right $parentType)))
-                (iterate-and-insert (iterate-and-insert $accum $left-gather) )
-                ($op (gatherJunctor $left $op) (gatherJunctor $right $op))
-            )
+                    ;;(iterate-and-insert $accum (iterate-and-insert $accum (iterate-and-insert $accum $left-gather)))
+                    ;;(unlist (reverse-list (unlist $accum $left-gather)) (reverse-list $right-gather))
+                )
+                ;;($op (gatherJunctor $left $op) (gatherJunctor $right $op))
+            ;; )
         )
         ($_ $tree)
         )
     )
 )
+
 (= (hasExpression $exp)
     (if (== $exp ())
         False
