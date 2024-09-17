@@ -4,7 +4,13 @@
     (if (== NONE $parentTreeType)
         (case $tree (
                 (($op $exp1 $exp2)
-                    ($op (compressTree $exp1 $op $accum) (compressTree $exp2 $op $accum))
+                    (let* (
+                        ($newAccum (changeToList (compressTree $exp1 $op (cons-atom $op $accum))))
+                        ($secondAccum (compressTree $exp2 $op $newAccum))
+
+                    )
+                        $secondAccum
+                    )
                 )
                 ($_ $tree)
 
@@ -16,28 +22,37 @@
                     ($tail (cdr-atom $tree))
                     ($headIsJunctor (or (eq $head AND) (eq $head OR)))
                 )
-                (let () (println! (head ==> $head tail ==> $tail))
+                (let () (println! (head ==> $head tail ==> $tail accum ==> $accum))
                 (if $headIsJunctor
                     (if (eq $head $parentTreeType)
-                        (let () (println! (head ==> $head tail ==> $tail))
-                        (let* (
-                                ($intermediateTree (iterate-and-expand $tree $tail ()))
-                                ($intermediateHead (car-atom $intermediateTree))
-                                ($intermediateTail (cdr-atom $intermediateTree))
-                                ($nextIteration (changeToList (compressTree $intermediateTail $intermediateHead $accum)))
+                    ;;     (let () (println! (head ==> $head tail ==> $tail))
+                    ;;     ;; (let* (
+                    ;;     ;;         ($intermediateTree (compressTreeIterator $tail ()))
+                    ;;     ;;         ;; ($intermediateHead (car-atom $intermediateTree))
+                    ;;     ;;         ;; ($intermediateTail (cdr-atom $intermediateTree))
+                    ;;     ;;         ;; ($nextIteration (changeToList (compressTree $intermediateTail $intermediateHead $accum)))
                                 
+                    ;;     ;;     )
+                    ;;     ;;     (let () (println! (intermediateTree ==> $intermediateTree nextIteration ==> $nextIteration))
+                    ;;     ;;         (cons-atom $intermediateTree $accum)
+                    ;;     ;;         ;;(unlist $accum $nextIteration)
+                    ;;     ;;         ;;$accum
+                    ;;     ;;     )
+                    ;;     ;;     ;;$nextIteration
+
+                    ;;     ;; )
+                    ;; )
+                        ;;(compressTree $tail $head $accum)
+                        (let $intermediateTree (compressTreeIterator $tail $parentTreeType ())
+                            (let () (println! (intermediateTree ==> $intermediateTree))
+                                (reverse-list (cons-atom $intermediateTree $accum))
                             )
-                            (let () (println! (intermediateTree ==> $intermediateTree nextIteration ==> $nextIteration))
-                                (cons-atom $intermediateHead $nextIteration)
-                                ;;(unlist $accum $nextIteration)
-                                ;;$accum
-                            )
-                            ;;$nextIteration
 
                         )
-                    )
-                        (compressTree $tail $head $accum)
                         
+                        (let $intermediateTree (compressTreeIterator $tail $parentTreeType ($head))
+                            (reverse-list (cons-atom $intermediateTree $accum))
+                        )                        
                     )
                     ;; (let* (
                     ;;     ($tailEval (compressTree $tail $parentTreeType $accum))
@@ -46,15 +61,15 @@
                     ;;     (cons-atom (cons-atom $head $accum) $tailEval)
                     ;; ;;     (cons-atom $modifiedAccum $tailEval)
                     ;; )
-                    (iterate-and-apply $tail $parentTreeType $accum)
+                    (compressTreeIterator $tail $parentTreeType $accum)
                 )
             )
             )
-            $tree
+            $accum
     )
         
     )
-        $tree
+        $accum
     )
 )
 (= (iterate-and-apply $list $parentTreeType $accum)
@@ -86,7 +101,7 @@
         )
     )
 )
-(=(eq $a $b)
+(= (eq $a $b)
     (let* (
             ($typeA (get-metatype $a))
             ($typeB (get-metatype $b))
@@ -176,41 +191,24 @@
 ;; )
 ;; )
 ;; )
-(= (gatherJunctor $tree $parentType $accum)
-    (if (not (== $tree ()))
-    (if (== $parentType NONE)
-        (case $tree (
-                (($op $left $right)
-                        (let* (
-                                ($leftRecursion (compressTree $left $accum $op))
-                                ($rightRecursion (compressTree $right $accum $op))
-                                ($rightAccumulated (cons-atom $rightRecursion $accum))
-                                ($leftAccumulated (cons-atom $leftRecursion $rightAccumulated))
-                                ($opAccumulator (cons-atom $op $leftAccumulated))
-                            
-                            )
-                            $opAccumulator   
-                        )
-                )
-
+(= (gatherJunctor $tree $parentType)
+    (case $tree (
+        (($op $left $right)
+            (if (== $parentType $op)
+                (let* (
+                    ($left-gather (gatherJunctor $left $parentType))
+                    ($right-gather (gatherJunctor $left $parent))
+                    ($accum ())
+                ))
+                
+                ;;(reverse-list (iterate-and-insert (changeToList (gatherJunctor $left $parentType)) (gatherJunctor $right $parentType)))
+                (iterate-and-insert (iterate-and-insert $accum $left-gather) )
+                ($op (gatherJunctor $left $op) (gatherJunctor $right $op))
             )
         )
-        (let* (
-                ($head (car-atom $tree))
-                ($tail (cdr-atom $tree))
-            )
-            (if (== $head $parentType)
-                (if (not (hasExpression $tail))
-                    (unlist $accum $tail)
-                    (iterate-and-apply $tail )
-                )
-
-
-            )
+        ($_ $tree)
         )
-
     )
-)
 )
 (= (hasExpression $exp)
     (if (== $exp ())
@@ -250,13 +248,34 @@
     )
 )
 (= (pop $exp)
-    (reverse-list (pop-helper $exp ()) ())
+    (if (== $exp ())
+        $exp
+        (reverse-list (pop-helper $exp ()) ())
+    )
+)
+(= (compressTreeIterator $tree $accum $parentType)
+    (if (== $tree ())
+        $accum
+        ;; (reverse-list $accum)
+        (let* (
+            ($head (car-atom $tree))
+            
+        )
+            (if (== (get-metatype $head) Expression)
+                (let $nextIterVal (compressTree $head $parentType ())
+                    (compressTreeIterator $tail (cons-atom $nextIterVal $accum))
+                )
+                (compressTreeIterator $tail (cons-atom $head $accum))
+            )
+        )
+    )
 )
 
 ;; !(compressTree (AND (AND x1 x2) x3) NONE ())
 ;; !(compressTree (AND (AND (AND x1 x2) (OR y1 y2)) c) NONE ())
 ;;!(compressTree (AND (AND (AND x1 x2) (OR y1 y2)) c) NONE ())
-!(pop (1 2 3 4 5 6))
+!(gatherJunctor (AND (AND (AND x1 x2) (OR y1 y2)) c) NONE)
+;;!(pop (1 2 3 4 5 6))
 ;; !(unlist () (AND (OR x1 x2) x3))
 ;; !(hasExpression (AND x1 xs))
 ;; !(hasExpression (AND (AND x1 xs) x3))
