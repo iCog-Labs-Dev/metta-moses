@@ -20,7 +20,6 @@
 ; Function to find a list element given an index
 (: index (-> Number (List $t) $t))
 (= (index $a Nil) Nil)
- ;(= (index 0 (Cons $x $xs)) $x)
 (= (index $a (Cons $x $xs))
     (if (== $a 0)
         $x
@@ -208,19 +207,35 @@
 
 ; Function that takes two lists and an accumulator then returns the accumulator containing elements from the first list that are not found in the second list
 (: setDifference (-> (-> $t (List $t) Bool) (List $t) (List $t) (List $t) (List $t)))
-(= (setDifference $compareFunc Nil Nil $accumulator) Nil)
-(= (setDifference $compareFunc (Cons $x $xs) Nil $accumulator) (Cons $x $xs))
-(= (setDifference $compareFunc Nil (Cons $y $ys) $accumulator) $accumulator)
-(= (setDifference $compareFunc (Cons $x $xs) (Cons $y $ys) $accumulator)
-    (if ($compareFunc $x (Cons $y $ys))
-        (setDifference $compareFunc $xs (Cons $y $ys) $accumulator)
-        (setDifference $compareFunc $xs (Cons $y $ys) (extend $accumulator (Cons $x Nil)))
+(= (setDifference $memberFunc Nil Nil $accumulator) Nil)
+(= (setDifference $memberFunc (Cons $x $xs) Nil $accumulator) (Cons $x $xs))
+(= (setDifference $memberFunc Nil (Cons $y $ys) $accumulator) $accumulator)
+(= (setDifference $memberFunc (Cons $x $xs) (Cons $y $ys) $accumulator)
+    (if ($memberFunc $x (Cons $y $ys))
+        (setDifference $memberFunc $xs (Cons $y $ys) $accumulator)
+        (setDifference $memberFunc $xs (Cons $y $ys) (extend $accumulator (Cons $x Nil)))
     )
 )
 
 (: setUnion (-> (-> $t (List $t) Bool) (List $t) (List $t) (List $t)))
-(= (setUnion $compareFunc $list1 $list2)
-    (removeDuplicates $compareFunc (extend $list1 $list2))
+(= (setUnion $memberFunc $list1 $list2)
+    (removeDuplicates $memberFunc (extend $list1 $list2))
+)
+
+;;function to return the intersection of two treelists
+(: setIntersection (-> (-> $t (List $t) Bool) (List $t) (List $t) (List $t)))
+(= (setIntersection $memberFunc $list1 $list2)
+    (case $list1
+    (
+        (Nil Nil)
+        ((Cons $x $xs)
+         (if ($memberFunc $x $list2) 
+            (Cons $x (setIntersection $memberFunc $xs $list2))
+            (setIntersection $memberFunc $xs $list2)
+         )
+        )
+    )
+    )
 )
 
 (: isSubset (-> (List $t) (List $t) Bool))

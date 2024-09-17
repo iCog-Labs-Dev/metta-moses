@@ -48,7 +48,7 @@
 ; ;;                                 (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) (Cons (TreeNode (Value Nil True AND) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil) Nil) Nil)))) 
 ; ;;                                 (if (not (== $signal#209 NONE)) 
 ; ;;                                     ($signal#209 $fstupdatedcurrent#210) 
-; ;;                                     (let* (($sndupdatedcurrent#211 (applyToChildren $fstupdatedcurrent#210 (getChildren $fstupdatedcurrent#210))) ($setsAreIdentical#212 (compareSets Nil (getGuardSet $sndupdatedcurrent#211)))) (let () (println! (secondUpdatedCurrent is $sndupdatedcurrent#211 setsAreIdentical is $setsAreIdentical#212)) (if (not $setsAreIdentical#212) (iterator $sndupdatedcurrent#211 Nil Nil) ($sndupdatedcurrent#211 NONE))))))))))
+; ;;                                     (let* (($sndupdatedcurrent#211 (applyOrCutToChildren $fstupdatedcurrent#210 (getChildren $fstupdatedcurrent#210))) ($setsAreIdentical#212 (compareSets Nil (getGuardSet $sndupdatedcurrent#211)))) (let () (println! (secondUpdatedCurrent is $sndupdatedcurrent#211 setsAreIdentical is $setsAreIdentical#212)) (if (not $setsAreIdentical#212) (iterator $sndupdatedcurrent#211 Nil Nil) ($sndupdatedcurrent#211 NONE))))))))))
 ;
 ; (if False 
 ;     ((TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) DELETE) 
@@ -57,7 +57,7 @@
 ;             (if (not (== NONE NONE)) 
 ;                 (NONE (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)) 
 ;                 (let* (
-;                         ($sndupdatedcurrent#3904 (applyToChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) (getChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)))) 
+;                         ($sndupdatedcurrent#3904 (applyOrCutToChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) (getChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)))) 
 ;                         ($setsAreIdentical#3905 (compareSets (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) (getGuardSet $sndupdatedcurrent#3904)))
 ;                     ) 
 ;                     (let () (println! 
@@ -67,7 +67,7 @@
 ;                                     ($sndupdatedcurrent#3904 NONE)
 ;                                 )
 ;                     )
-;         (println! (handle_set is (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) current is (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)) (if (not (== NONE NONE)) (NONE (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)) (let* (($sndupdatedcurrent#3904 (applyToChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) (getChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)))) ($setsAreIdentical#3905 (compareSets (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) (getGuardSet $sndupdatedcurrent#3904)))) (let () (println! (secondUpdatedCurrent is $sndupdatedcurrent#3904 setsAreIdentical is $setsAreIdentical#3905)) (if (not $setsAreIdentical#3905) (iterator $sndupdatedcurrent#3904 Nil Nil) ($sndupdatedcurrent#3904 NONE)))))
+;         (println! (handle_set is (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) current is (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)) (if (not (== NONE NONE)) (NONE (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)) (let* (($sndupdatedcurrent#3904 (applyOrCutToChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) (getChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)))) ($setsAreIdentical#3905 (compareSets (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) (getGuardSet $sndupdatedcurrent#3904)))) (let () (println! (secondUpdatedCurrent is $sndupdatedcurrent#3904 setsAreIdentical is $setsAreIdentical#3905)) (if (not $setsAreIdentical#3905) (iterator $sndupdatedcurrent#3904 Nil Nil) ($sndupdatedcurrent#3904 NONE)))))
 ;         )))
 ;                 )
 ;             )
@@ -81,7 +81,7 @@
 ;                 (if (not (== NONE NONE)) 
 ;                 (NONE (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)) 
 ;                 (let* (
-;                     ($sndupdatedcurrent#3904 (applyToChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) (getChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)))) 
+;                     ($sndupdatedcurrent#3904 (applyOrCutToChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) (getChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)))) 
 ;                     ($setsAreIdentical#3905 (compareSets (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) (getGuardSet $sndupdatedcurrent#3904)))
 ;                     ) 
 ;                 (let () (println! (secondUpdatedCurrent is $sndupdatedcurrent#3904 setsAreIdentical is $setsAreIdentical#3905)) 
@@ -102,7 +102,7 @@
 ;         (if (not (== NONE NONE)) 
 ;         (NONE (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)) 
 ;         (let* (
-;                 ($sndupdatedcurrent#3904 (applyToChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) (getChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)))) 
+;                 ($sndupdatedcurrent#3904 (applyOrCutToChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) (getChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)))) 
 ;                 ($setsAreIdentical#3905 (compareSets (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) (getGuardSet $sndupdatedcurrent#3904)))
 ;             ) (let () (println! (secondUpdatedCurrent is $sndupdatedcurrent#3904 setsAreIdentical is $setsAreIdentical#3905)) 
 ;                         (if (not $setsAreIdentical#3905) 
@@ -123,7 +123,7 @@
 ;             (if (not (== NONE NONE)) 
 ;                 (NONE (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)) 
 ;                 (let* (
-;                     ($sndupdatedcurrent#3904 (applyToChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) (getChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)))) 
+;                     ($sndupdatedcurrent#3904 (applyOrCutToChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil) (getChildren (TreeNode (Value Nil True AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) Nil)))) 
 ;                     ($setsAreIdentical#3905 (compareSets (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) (getGuardSet $sndupdatedcurrent#3904)))
 ;                     ) (let () (println! 
 ;                                 (secondUpdatedCurrent is $sndupdatedcurrent#3904 setsAreIdentical is $setsAreIdentical#3905)

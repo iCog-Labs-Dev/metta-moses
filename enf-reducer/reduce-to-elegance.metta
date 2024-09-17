@@ -16,20 +16,20 @@
             ($currentHasNoChild (== (length $children) 0))
             ($currentHasNoGuardSet (== (length $finalGuardSet) 0))
             ($updatedCurrentTree (TreeNode (Value $value $constraint $type) $finalGuardSet $children))
-            ($fstUpdatedParent (replaceChildren $parent (findAndReplaceChild == $currentTree $updatedCurrentTree (getChildren $parent))))
+            ($fstUpdatedParent (replaceChildren $parent (findAndReplace $currentTree $updatedCurrentTree (getChildren $parent))))
 
             (() (println! (Inside RTE AND case currentHasNoChild ==> $currentHasNoChild currentHasNoGuardSet ==> $currentHasNoGuardSet finalGuardSet ==> $finalGuardSet commandSet ==> $commandSet)))
           )
           (if (and $currentHasNoChild $currentHasNoGuardSet)
               ($fstUpdatedParent $updatedCurrentTree DISCONNECT)
-              (let $resultSet (treeIntersection $guardSet $commandSet)
+              (let $resultSet (setIntersection treeIsMember $guardSet $commandSet)
                   (if (~= (length $resultSet) 0)
                       ($fstUpdatedParent $updatedCurrentTree DELETE)
                       (let*
                         (
                           ;; (() (println! (inside RTE before iterator updatedCurrentTree ==> $updatedCurrentTree dominantSet ==> $dominantSet commandSet ==> $commandSet)))
                           (($finalUpdatedCurrent $signal) (iterator $updatedCurrentTree $dominantSet $commandSet))
-                          ($finalUpdatedParent (replaceChildren $fstUpdatedParent (findAndReplaceChild == $updatedCurrentTree $finalUpdatedCurrent (getChildren $fstUpdatedParent))))
+                          ($finalUpdatedParent (replaceChildren $fstUpdatedParent (findAndReplace $updatedCurrentTree $finalUpdatedCurrent (getChildren $fstUpdatedParent))))
                         )
                         (if (~= $signal NONE)
                           ($finalUpdatedParent $finalUpdatedCurrent $signal)
@@ -59,7 +59,7 @@
                 (
                   ($updatedParent (replaceGuardSet $parent ((getGuardSet $parent) ++ $commonToAllChildren)))
                   ($updatedCurrent (replaceChildren $currentTree (mapChild updateGuardSet $commonToAllChildren $children)))
-                  ($finalUpdatedParent (replaceChildren $updatedParent (findAndReplaceChild == $currentTree $updatedCurrent (getChildren $updatedParent))))
+                  ($finalUpdatedParent (replaceChildren $updatedParent (findAndReplace $currentTree $updatedCurrent (getChildren $updatedParent))))
                 )
                 ($finalUpdatedParent $updatedCurrent RESET)
               )
@@ -67,7 +67,7 @@
                   (let* 
                     (
                      (($updatedCurrent $signal) (orSubTreeIterator $children $currentTree $dominantSet $commandSet 0))
-                     ($finalUpdatedParent (replaceChildren $parent (findAndReplaceChild == $currentTree $updatedCurrent (getChildren $parent))))
+                     ($finalUpdatedParent (replaceChildren $parent (findAndReplace $currentTree $updatedCurrent (getChildren $parent))))
                     )
                     (if (~= $signal NONE)
                         ($finalUpdatedParent $updatedCurrent $signal)

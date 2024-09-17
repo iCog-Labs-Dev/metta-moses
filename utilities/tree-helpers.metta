@@ -56,9 +56,9 @@
 
 (= (getChildAt (TreeNode $nodeValue $guardSet (Cons $x $xs)) $i)
     ; (Cons $x $xs)
-    (if (== Nil (index $i (Cons $x $xs)))
+    (if (== Nil (indexOfTree $i (Cons $x $xs)))
         NilNode
-        (index $i (Cons $x $xs))
+        (indexOfTree $i (Cons $x $xs))
     )
 )
 ;; -----------------------------------
@@ -135,24 +135,8 @@
    (memberWith isNodeEqual $x $list)
 )
 
-;;function to return the intersection of two treelists
-(: treeIntersection (-> (List Tree) (List Tree) (List Tree)))
-(= (treeIntersection $list1 $list2)
-    (case $list1
-    (
-        (Nil Nil)
-        ((Cons $h $t) 
-         (if (treeIsMember $h $list2) 
-            (Cons $h (treeIntersection $t $list2)) 
-            (treeIntersection $t $list2)
-         ) 
-        )
-    )
-    )
-)
-
 ;; Given list of trees, intersections will compute the intersection of between their guard sets.
-;; It has similar behaviour like treeIntersection but for more than two trees.
+;; It has similar behaviour like setIntersection but for more than two trees.
 (: intersections (-> (List Tree) (List Tree)))
 (= (intersections $children)
   (case (length $children) 
@@ -164,7 +148,7 @@
           (
             ($firstChildGuardSet (getGuardSet (head $children)))
             ($remainingIntersections (intersections (tail $children)))
-            ($result (treeIntersection $firstChildGuardSet $remainingIntersections))
+            ($result (setIntersection treeIsMember $firstChildGuardSet $remainingIntersections))
           )
           $result
         )
@@ -371,7 +355,6 @@
 )
 (: indexOfTree (-> Number (List Tree) Tree))
 (= (indexOfTree $a Nil) NilNode)
- ;(= (index 0 (Cons $x $xs)) $x)
 (= (indexOfTree $a (Cons $x $xs))
     (if (== $a 0)
         $x
