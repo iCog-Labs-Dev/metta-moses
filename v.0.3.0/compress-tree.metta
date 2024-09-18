@@ -202,8 +202,8 @@
                 )
                 (if (== $parentType $op)
                     (reverse-list (unlist (unlist $accum (changeToList $left-gather)) (changeToList $right-gather)) ())
-                    (reverse-list (unlist (unlist (unlist $accum ($op)) (changeToList $left-gather)) (changeToList $right-gather)) ())
-
+                    ;;(reverse-list (cons-atom $right-gather (cons-atom $left-gather (unlist $accum ($op)))) ())
+                    (reverse-list (cons-atom ($op $left-gather $right-gather) $accum) ())
                     
                 )
                 
