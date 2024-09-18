@@ -46,7 +46,7 @@
     )
 )
 
-;; !(gatherJunctor (AND A B) NONE)
+!(gatherJunctor (AND A B) NONE)
 ;; !(unlist (1 2 3 4) ((1 2 3 4 5) 6 7 8 9))
 ;; !(gatherJunctor (AND (AND x1 x2) x3) NONE)
 ;; !(gatherJunctor (AND (AND (AND x1 x2) (OR y1 y2)) c) NONE)
