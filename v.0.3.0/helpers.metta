@@ -1,16 +1,4 @@
-(= (iterate-and-insert $accum $data)
-    (let* (
-            ($head (car-atom $accum))
-            ($tail (cdr-atom $accum))
-        )
-        (if (== $data ())
-            $accum
-            (let $midValue (iterate-and-insert (cons-atom (car-atom $data) $tail) (cdr-atom $data))
-                (cons-atom $head $midValue)
-            )
-        )
-    )
-)
+
 (=(eq $a $b)
     (let* (
             ($typeA (get-metatype $a))
@@ -23,6 +11,39 @@
     )
     
 )
+(= (hasExpression $exp)
+    (if (== $exp ())
+        False
+        (let* (
+                ($head (car-atom $exp))
+                ($tail (cdr-atom $exp))
+                ($isHeadExpression (== (get-metatype $head) Expression))
 
+            )(if $isHeadExpression
+                (let $secondHead (car-atom $head)
+                    (if (== $secondHead NOT)
+                        (hasExpression $tail)
+                        True
+                    )
+                )
+                (hasExpression $tail)
+            )
+        )
+    )
+)
+(= (pop-helper $exp $accum)
+    (if (== (cdr-atom $exp) ())
+        $accum
+        (let $head (car-atom $exp)
+            (pop-helper (cdr-atom $exp) (cons-atom $head $accum))
+        )
+    )
 
-!(iterate-and-insert (OR (AND A B) C) (OR (AND B C) E))
+)
+(= (pop $exp)
+    (if (== $exp ())
+        $exp
+        (reverse-list (pop-helper $exp ()) ())
+    )
+)
+
