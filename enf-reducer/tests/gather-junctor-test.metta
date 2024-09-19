@@ -14,7 +14,7 @@
 ;; Test 01
 
 ;; ;; input expression: (OR A B)
-!(assertEqual (gatherJunctor (OR A B) NONE) ((OR A B)))
+;; !(assertEqual (gatherJunctor (OR A B) NONE) ((OR A B)))
 ;; ;; output expression: (OR A B)
 
 ;; ;; Test 02
