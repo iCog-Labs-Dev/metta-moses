@@ -362,3 +362,25 @@
     )
 )
 
+(: intersections (-> (List Tree) (List Tree)))
+
+(= (intersections Nil) Nil)
+
+(= (intersections (Cons $firstChild Nil))
+    (getGuardSet $firstChild))
+
+(= (intersections (Cons $firstChild (Cons $secondChild $restChildren)))
+    (let*
+        (
+            ($firstChildGuardSet (getGuardSet $firstChild))
+            ($remainingIntersections (intersections (Cons $secondChild $restChildren)))
+            ($result (setIntersection treeIsMember $firstChildGuardSet $remainingIntersections))
+        )
+    $result
+    )
+)
+
+! (intersections Nil)
+! (intersections (Cons $child Nil))
+! (intersections (Cons $firstChild (Cons $secondChild Nil)))
+
