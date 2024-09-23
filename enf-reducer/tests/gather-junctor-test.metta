@@ -92,3 +92,28 @@
     (gatherJunctors (AND (AND B (AND (OR D (OR E (OR (AND G H) F))) C)) A) ())
     (AND B (OR D E (AND G H) F) C A)
 )
+
+;; Test 15
+!(assertEqual
+    (gatherJunctors (AND (AND B (AND (OR D (OR E (OR (AND G H) F))) C)) A) ())
+    (AND B (OR D E (AND G H) F) C A)
+)
+
+;; Test 16
+! (assertEqual (gatherJunctors (OR (NOT A) B) ())
+                 (OR (NOT A) B))
+
+;; Test 17 
+! (assertEqual (gatherJunctors (OR (NOT A) (OR B (OR (NOT C) D))) ()) 
+                  (OR (NOT A) B (NOT C) D) )
+;; Test 18
+! (assertEqual (gatherJunctors (AND (OR (OR C D) (NOT B)) (NOT A)) ()) 
+                 (AND (OR C D (NOT B)) (NOT A)))
+
+;; Test 19
+! (assertEqual (gatherJunctors (AND (AND (OR C (NOT D)) (NOT B)) A) ()) 
+                 (AND (OR C (NOT D)) (NOT B) A))
+
+;; Test 20
+! (assertEqual (gatherJunctors (AND (NOT A) (AND B (OR C (OR (NOT D) (AND E (AND F (NOT G))))))) ()) 
+                 (AND (NOT A) B (OR C (NOT D) (AND E F (NOT G)))) )
