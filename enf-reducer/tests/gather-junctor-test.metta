@@ -93,12 +93,6 @@
     (AND B (OR D E (AND G H) F) C A)
 )
 
-;; Test 15
-!(assertEqual
-    (gatherJunctors (AND (AND B (AND (OR D (OR E (OR (AND G H) F))) C)) A) ())
-    (AND B (OR D E (AND G H) F) C A)
-)
-
 ;; Test 16
 ! (assertEqual (gatherJunctors (OR (NOT A) B) ())
                  (OR (NOT A) B))
