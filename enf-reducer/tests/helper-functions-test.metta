@@ -101,3 +101,21 @@
 ; Test 04
 ; Create a single TreeNode object
 ! (assertEqual (isConsistent (Cons (TreeNode ( Value A True LITERAL) Nil Nil) Nil)) True)
+
+; Test for getGuardSetExp
+
+;Test 01 - getGuardSet of an empty set
+! (assertEqualToResult (getGuardSetExp () ()) (()))
+
+;Test 02 - getGuardSet of OR and NOT expressions 
+! (assertEqualToResult (getGuardSetExp (OR A B (not A)) ()) (()))
+! (assertEqualToResult (getGuardSetExp (OR (AND A B) (AND A B) (not A)) ()) (()))
+! (assertEqualToResult (getGuardSetExp (NOT (OR A B) (AND A B) A B) ()) (()))
+
+;Test 03 - getGuardSet of AND expressions
+! (assertEqualToResult (getGuardSetExp (AND (not A) (not B) A) ()) ((A (not B) (not A))))
+! (assertEqualToResult (getGuardSetExp (AND A (AND A B) (OR A B) (not B)) ()) (((not B) A)))
+! (assertEqualToResult (getGuardSetExp (AND (AND A B) A) ()) ((A)))
+! (assertEqualToResult (getGuardSetExp (AND A B (not B)) ()) (((not B) B A)))
+! (assertEqualToResult (getGuardSetExp (AND A (not A) (not B)) ()) (((not B) (not A) A)))
+! (assertEqualToResult (getGuardSetExp (AND (not A) A B) ()) ((B A (not A))))
