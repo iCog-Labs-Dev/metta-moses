@@ -367,3 +367,19 @@
 )
 )
 )
+
+;a function to check whether an n-ary expression is consistent or not.
+(= (isConsistentExp $exp)
+(let $guardSetTuple (getGuardSetExp $exp ()) 
+(if (== $guardSetTuple ()) True
+        (let*
+            (
+                ($head (car-atom $guardSetTuple))
+                ($tail (cdr-atom $guardSetTuple))
+            )
+        (if (isMember (Not $head) $tail) False
+            (isConsistentExp $tail)
+        ))
+)
+)   
+)
