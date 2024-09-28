@@ -15,3 +15,20 @@
        )
    )
 )
+
+; a helper function to the isConsistentExp function.
+; a function which simplifies nested logical negations by reducing them to their simplest form. 
+(= (Not $a)
+    (if (== (get-metatype $a) Symbol)
+        (not $a)
+        (if (== (get-metatype $a) Expression)
+            (case $a
+                (
+                    ( (not $b) (if (== (get-metatype $b) Symbol) $b (Not $b)))
+                )
+        )
+    False
+)
+)
+) 
+
