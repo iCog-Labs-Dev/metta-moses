@@ -7,3 +7,9 @@
 !(assertEqualToResult (~= Something Nothing) (True))
 !(assertEqualToResult (~= Something Something) (False))
 !(assertEqualToResult (~= Something something) (True))
+
+; tests for the function 'Not' 
+  ! (assertEqualToResult (Not (Not (Not A))) ( (not A)))
+  ! (assertEqualToResult (Not (Not A)) (A))
+
+  
