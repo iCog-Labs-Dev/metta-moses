@@ -12,4 +12,6 @@
   ! (assertEqualToResult (Not (Not (Not A))) ( (not A)))
   ! (assertEqualToResult (Not (Not A)) (A))
 
-  
+; tests for the function 'isMember'
+! (assertEqualToResult (isMember 1 (1 2 3)) (True))
+! (assertEqualToResult (isMember 8 (1 2 3)) (False))
