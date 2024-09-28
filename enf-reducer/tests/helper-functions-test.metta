@@ -2,6 +2,7 @@
 ! (import! &self metta-moses-reduction:types) 
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
+! (import! &self metta-moses-reduction:utilities:general-helper-functions)
 ! (import! &self metta-moses-reduction:enf-reducer:rte-helpers)
 ! (import! &self metta-moses-reduction:enf-reducer:propagate-truth-value)
 ! (import! &self metta-moses-reduction:enf-reducer:reduce-to-elegance)
@@ -119,3 +120,16 @@
 ! (assertEqualToResult (getGuardSetExp (AND A B (not B)) ()) (((not B) B A)))
 ! (assertEqualToResult (getGuardSetExp (AND A (not A) (not B)) ()) (((not B) (not A) A)))
 ! (assertEqualToResult (getGuardSetExp (AND (not A) A B) ()) ((B A (not A))))
+
+;Test for isConsistentExp 
+
+ ! (assertEqualToResult (isConsistentExp (AND (OR A B) (AND A B) A B)) (True))
+ ! (assertEqualToResult (isConsistentExp (AND (OR A B) (AND A B))) (True))
+ ! (assertEqualToResult (isConsistentExp (AND (OR A B) (AND A B) A B)) (True))
+ ! (assertEqualToResult (isConsistentExp (AND (not A) (not B) A)) (False))
+ ! (assertEqualToResult (isConsistentExp (AND A (AND A B) (OR A B) (not B))) (True))
+ ! (assertEqualToResult (isConsistentExp (AND (AND A B) A)) (True))
+ ! (assertEqualToResult (isConsistentExp (AND A B (not B))) (False))
+ ! (assertEqualToResult (isConsistentExp (OR A B (not A))) (True))
+ ! (assertEqualToResult (isConsistentExp (OR (AND A B) (AND A B) (not A))) (True))
+ ! (assertEqualToResult (isConsistentExp (AND A (not A) (not B))) (False))
