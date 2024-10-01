@@ -306,7 +306,7 @@
     )
 )
 
-(: checkInRemainingPartOfList (-> Atom (List $t) $t Bool))
+(: checkInRemainingPartOfList (-> Atom $t (List $t) Bool))
 (= (checkInRemainingPartOfList $func $data $remaining)
    (memberWith $func $data $remaining)
 )
