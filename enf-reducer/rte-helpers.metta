@@ -75,11 +75,10 @@
         $current
     )
 )
-(= (binaryFoldLeft $f $acc $current Nil) $acc)
-(= (binaryFoldLeft $f $acc $current (Cons $x $xs)) 
-   (
-    binaryFoldLeft $f $current ($f $current $x) $xs
-   )
+
+(= (foldLeftBinary $f $acc $current Nil) $acc)
+(= (foldLeftBinary $f $acc $current (Cons $x $xs)) 
+   (foldLeftBinary $f ($f $current $x) $current $xs)
 )
 
 ;This function is important because it applies the applyOrCut function to 
@@ -87,7 +86,7 @@
 (: applyOrCutToChildren (-> Tree (List Tree) Tree))
 (= (applyOrCutToChildren $current Nil) $current)
 (= (applyOrCutToChildren $current (Cons $x $xs))
-  (binaryFoldLeft applyOrCut Nil $current (Cons $x $xs))
+  (foldLeftBinary applyOrCut Nil $current (Cons $x $xs))
 )
 
 ;; -----------------------------------
