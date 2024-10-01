@@ -75,7 +75,6 @@
         $current
     )
 )
-
 (= (binaryFoldLeft $f $acc $current Nil) $acc)
 (= (binaryFoldLeft $f $acc $current (Cons $x $xs)) 
    (
@@ -90,6 +89,7 @@
 (= (applyOrCutToChildren $current (Cons $x $xs))
   (binaryFoldLeft applyOrCut Nil $current (Cons $x $xs))
 )
+
 ;; -----------------------------------
 ;; -----------------------------------
 ;; -------- A function that given children and the a local command set,
@@ -229,6 +229,16 @@
        )
      )
    )
+)
+
+;; Helper function for itarator
+
+(: applyOrCutToChildren (-> Tree (List Tree) Tree))
+(= (applyOrCutToChildren $current Nil) $current)
+(= (applyOrCutToChildren $current (Cons $x $xs)) 
+    (let $newCurrent (applyOrCut $x $current)
+      (applyOrCutToChildren $newCurrent $xs)
+    )
 )
 
 ; iterator function
