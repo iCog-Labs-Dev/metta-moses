@@ -118,7 +118,7 @@
   (TreeNode $nodeValue $guardSet (Cons $child $children))
 )
 
-(:isNodeEqual (-> Tree Tree Bool))
+(: isNodeEqual (-> Tree Tree Bool))
 (= (isNodeEqual NilNode NilNode) False)
 (= (isNodeEqual (TreeNode $nodeValue $guardSet $children) NilNode) False)
 (= (isNodeEqual NilNode (TreeNode $nodeValue $guardSet $children)) False)

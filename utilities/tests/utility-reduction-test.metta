@@ -6,6 +6,15 @@
 ! (import! &self metta-moses-reduction:enf-reducer:rte-helpers)
 ! (import! &self metta-moses-reduction:enf-reducer:reduce-to-elegance)
 
+!(assertEqual
+   (andSubTreeElegance
+     (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil)
+     (TreeNode (Value S True AND) Nil (Cons (TreeNode (Value P True AND) Nil Nil) (Cons (TreeNode (Value Q True AND) (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil) Nil) Nil)))
+     (Cons (TreeNode (Value G6 False LITERAL) Nil Nil) Nil)
+     (Cons (TreeNode (Value G7 False LITERAL) Nil Nil) Nil)
+   )
+   ((TreeNode (Value S True AND) Nil (Cons (TreeNode (Value P True AND) Nil Nil) Nil)) ADVANCE)
+ )
 ;; This test file is will only be useful for testing the reduction of some functions. It doesn't contains assert statements.
 
 ;; Test cases for list-helpers.metta
@@ -44,7 +53,7 @@
 
 ;; !(intersect (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
 ;; !(intersect (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 4 (Cons 5 (Cons 6 Nil)))) Nil)
-j; !(intersect (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Nil)))) Nil)
+; !(intersect (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Nil)))) Nil)
 
 ;; !(setDifference member (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 1 Nil)))) Nil)
 ;; !(setDifference member (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Nil)))) Nil)
@@ -149,12 +158,11 @@ j; !(intersect (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Ni
 ;; !(getChildren (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A False AND) Nil Nil) Nil)) (Cons (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value B False AND) Nil Nil) Nil)) Nil))))
 
 ;; !(prependChild (TreeNode (Value D False LITERAL) Nil Nil)  (TreeNode (Value K False LITERAL) Nil Nil) )
-
-;;!(applyOrCutToChildren 
-;;   (TreeNode (Value D False LITERAL) Nil Nil) 
-;;   (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
-;; )
-;; !(applyOrCutToChildren (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
+!(applyOrCutToChildren 
+    (TreeNode (Value D False LITERAL) Nil Nil) 
+    (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
+)
+ !(applyOrCutToChildren (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
 
 
 ;; !(findAndReplace
