@@ -15,3 +15,35 @@
        )
    )
 )
+
+; a helper function to the isConsistentExp function.
+; a function which simplifies nested logical negations by reducing them to their simplest form. 
+(= (Not $a)
+    (if (== (get-metatype $a) Symbol)
+        (not $a)
+        (if (== (get-metatype $a) Expression)
+            (case $a
+                (
+                    ( (not $b) (if (== (get-metatype $b) Symbol) $b (Not $b)))
+                )
+        )
+    False
+)
+)
+) 
+
+; a helper function to the isConsistentExp function.
+; a function which checks if an element is member of a tuple.
+(= (isMember $x $tuple)
+    (if (== $tuple ()) False
+        (let*
+            (
+                ($head (car-atom $tuple))
+                ($tail (cdr-atom $tuple))
+            )
+        (
+            if (== $x $head) True (isMember $x $tail)
+        )
+)
+)
+)
