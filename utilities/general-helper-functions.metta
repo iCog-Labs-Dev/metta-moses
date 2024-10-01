@@ -69,7 +69,7 @@
     )
 )
 
-(= (getChildren $expr) (getchildren $expr () ()))
+(= (getGsetAndChildren $expr) (getchildren $expr () ()))
 
 (= (findIntersection $tuple1 $tuple2)
     (if (== $tuple1 ())

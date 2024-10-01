@@ -1,10 +1,13 @@
+! (register-module! ../../metta-moses-reduction)
+! (import! &self metta-moses-reduction:utilities:general-helper-functions)
+
 (= (promoteCommonLiterals $expr)
      (case (car-atom $expr)
         (
                 (AND
                     (let* 
                         (
-                        (($gSet $children) (getChildren $expr))
+                        (($gSet $children) (getGsetAndChildren $expr))
                         ($result (processOrChildren (car-atom $children)))
                         (($head $tail) $result)                     
                         ($updatedExpr (concatTuple $gSet $head))
@@ -21,8 +24,8 @@
 (= (processOrChildren $expr)
     (let* 
         (
-            (($literals $children) (getChildren $expr)) 
-            ($childrenLiteral   (collapse (getChildren (superpose $children))))
+            (($literals $children) (getGsetAndChildren $expr)) 
+            ($childrenLiteral   (collapse (getGsetAndChildren (superpose $children))))
             ($common (findCommonLiterals $literals $childrenLiteral))         
         )
         (if (== $common ())
@@ -41,3 +44,4 @@
     )
 )
 
+!(promoteCommonLiterals (AND A B (OR A C (AND A D (OR G J)) (AND A E))))
