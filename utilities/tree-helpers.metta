@@ -137,24 +137,22 @@
 
 ;; Given list of trees, intersections will compute the intersection of between their guard sets.
 ;; It has similar behaviour like setIntersection but for more than two trees.
+
 (: intersections (-> (List Tree) (List Tree)))
-(= (intersections $children)
-  (case (length $children) 
-    (
-      (0 Nil)
-      (1 (getGuardSet (head $children)))
-      ($else 
-        (let* 
-          (
-            ($firstChildGuardSet (getGuardSet (head $children)))
-            ($remainingIntersections (intersections (tail $children)))
+(= (intersections Nil) Nil)
+
+(= (intersections (Cons $firstChild Nil)) (getGuardSet $firstChild))
+
+(= (intersections (Cons $firstChild (Cons $secondChild $restChildren)))
+    (let*
+        (
+            ($firstChildGuardSet (getGuardSet $firstChild))
+            ($remainingIntersections (intersections (Cons $secondChild $restChildren)))
             ($result (setIntersection treeIsMember $firstChildGuardSet $remainingIntersections))
-          )
-          $result
         )
-      )
+
+        $result
     )
-  )
 )
 
 (: replaceGuardSet (-> Tree (List Tree) Tree) )
@@ -361,4 +359,3 @@
         (indexOfTree (- $a 1) $xs)
     )
 )
-
