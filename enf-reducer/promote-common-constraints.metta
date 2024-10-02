@@ -1,6 +1,3 @@
-! (register-module! ../../metta-moses-reduction)
-! (import! &self metta-moses-reduction:utilities:general-helper-functions)
-
 (= (promoteCommonLiterals $expr)
      (case (car-atom $expr)
         (
@@ -43,5 +40,3 @@
         )
     )
 )
-
-!(promoteCommonLiterals (AND A B (OR A C (AND A D (OR G J)) (AND A E))))
