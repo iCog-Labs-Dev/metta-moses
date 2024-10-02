@@ -56,25 +56,12 @@
 (= (removeChildFromTree $parentNode $target)
    (replaceChildren $parentNode (findAndRemoveTree $target (getChildren $parentNode)))
 )
+;; Helper function for folding over children
+(: applyOrCutToChildren (-> Tree (List Tree) Tree))
+(= (applyOrCutToChildren $current $children)
+    (foldl (-> (Tree Tree) Tree) $current (lambda ($newCurrent $child)
+        (applyAndCut $child $newCurrent)) $children))
 
-;; This function that removes unnecessary OR nodes from the tree.
-;; An OR node is deemed to be unnecessary if it only has one child.
-(: applyOrCut (-> Tree Tree Tree))
-(= (applyOrCut $child $current)
-    (if (== (length (getChildren $child)) 1)
-        (let* 
-          (
-            ($grandChild (headOfChildren (getChildren $child)))
-            ($updatedGuardSetTree (updateGuardSetTree $current $grandChild))
-            ($updatedChildrenTree (updateChildrenTree $updatedGuardSetTree $grandChild))
-            ($updatedTree (removeChildFromTree $updatedChildrenTree $child) )
-            ($finalUpdatedTree (removeChildFromTree $updatedTree $grandChild) )
-          )
-          $finalUpdatedTree 
-        )
-        $current
-    )
-)
 ;; -----------------------------------
 ;; -----------------------------------
 ;; -------- A function that given children and the a local command set,
