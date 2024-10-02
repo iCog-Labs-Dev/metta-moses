@@ -339,3 +339,47 @@
 (= (mapChild $function $secondArg (Cons $x $xs))
       (Cons ($function $secondArg $x) (mapChild $function $secondArg $xs))
 )
+
+; a function to get the guardset of an n-ary expression as a tuple. 
+(= (getGuardSetExp $exp $acc)
+    (if (== $exp ()) $acc
+        (let*
+            (
+                ($head (car-atom $exp))
+                ($headIsExpression (== (get-metatype $head) Expression))
+                ($tail (cdr-atom $exp))
+            )
+        (if (or (== $head OR)(== $head NOT)) ()
+            (if (== $head AND )
+                (getGuardSetExp $tail $acc)
+                (if $headIsExpression
+                    (case $head
+                        (
+                            ( (not $a) (getGuardSetExp $tail (cons-atom $head $acc)))
+                            ($else (getGuardSetExp $tail $acc))
+                        )
+                )
+            (getGuardSetExp $tail (cons-atom $head $acc))
+        )
+)
+)
+
+)
+)
+)
+
+;a function to check whether an n-ary expression is consistent or not.
+(= (isConsistentExp $exp)
+(let $guardSetTuple (getGuardSetExp $exp ()) 
+(if (== $guardSetTuple ()) True
+        (let*
+            (
+                ($head (car-atom $guardSetTuple))
+                ($tail (cdr-atom $guardSetTuple))
+            )
+        (if (isMember (Not $head) $tail) False
+            (isConsistentExp $tail)
+        ))
+)
+)   
+)
