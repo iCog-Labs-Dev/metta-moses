@@ -3,6 +3,7 @@
 ! (import! &self metta-moses-reduction:utilities:list-helpers)
 ! (import! &self metta-moses-reduction:utilities:tree-helpers)
 ! (import! &self metta-moses-reduction:utilities:general-helper-functions)
+! (import! &self metta-moses-reduction:utilities:expression-helpers)
 ! (import! &self metta-moses-reduction:enf-reducer:rte-helpers)
 ! (import! &self metta-moses-reduction:enf-reducer:propagate-truth-value)
 ! (import! &self metta-moses-reduction:enf-reducer:reduce-to-elegance)
