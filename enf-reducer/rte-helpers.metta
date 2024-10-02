@@ -78,7 +78,7 @@
 
 (= (foldLeftBinary $f $acc $current Nil) $acc)
 (= (foldLeftBinary $f $acc $current (Cons $x $xs)) 
-   (foldLeftBinary $f ($f $current $x) $current $xs)
+   (foldLeftBinary $f $current ($f $current $x) $xs)
 )
 
 ;This function is important because it applies the applyOrCut function to 
