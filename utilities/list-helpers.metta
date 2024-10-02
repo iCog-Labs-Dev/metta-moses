@@ -1,5 +1,8 @@
 ;; This file contains functions that are going to be useful for the `List` data structure defined in the types.metta.
 
+(= (isEmpty $exp)
+  (if (== Nil $exp) True False)
+)
 ; Function to find the length of a list
 (: length (-> (List $t) Number))
 (= (length Nil) 0)

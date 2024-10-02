@@ -6,6 +6,15 @@
 ! (import! &self metta-moses-reduction:enf-reducer:rte-helpers)
 ! (import! &self metta-moses-reduction:enf-reducer:reduce-to-elegance)
 
+
+;; Test 01 - Node with one child and empty guardSet
+!(assertEqual 
+   (applyAndCut 
+     (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value a True LITERAL) Nil Nil) (Cons (TreeNode (Value b True LITERAL) Nil Nil) Nil) ) )
+     (TreeNode (Value K True AND) Nil (Cons (TreeNode ( Value J True OR) Nil (Cons (TreeNode ( Value I True LITERAL) (Cons (TreeNode ( Value G False LITERAL) Nil Nil) Nil) (Cons (TreeNode ( Value H True OR) Nil Nil) Nil) ) Nil) ) Nil) )
+   ) 
+   ((TreeNode (Value K True AND) Nil (Cons (TreeNode (Value J True OR) Nil (Cons (TreeNode (Value I True LITERAL) (Cons (TreeNode (Value G False LITERAL) Nil Nil) Nil) (Cons (TreeNode (Value H True OR) Nil Nil) Nil)) Nil)) Nil)) False)
+ )
 ;; This test file is will only be useful for testing the reduction of some functions. It doesn't contains assert statements.
 
 ;; Test cases for list-helpers.metta
@@ -150,12 +159,13 @@ j; !(intersect (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Ni
 
 ;; !(prependChild (TreeNode (Value D False LITERAL) Nil Nil)  (TreeNode (Value K False LITERAL) Nil Nil) )
 
-;;!(applyOrCutToChildren 
-;;   (TreeNode (Value D False LITERAL) Nil Nil) 
-;;   (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
-;; )
-;; !(applyOrCutToChildren (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
-
+;
+; !(applyOrCutToChildren 
+;   (TreeNode (Value D False LITERAL) Nil Nil) 
+;   (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
+; )
+; !(applyOrCutToChildren (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
+;
 
 ;; !(findAndReplace
 ;;   (TreeNode (Value A False LITERAL) Nil Nil) 
