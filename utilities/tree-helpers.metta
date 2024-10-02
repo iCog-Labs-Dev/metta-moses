@@ -135,22 +135,16 @@
    (memberWith isNodeEqual $x $list)
 )
 
-;; Given list of trees, intersections will compute the intersection of between their guard sets.
-;; It has similar behaviour like setIntersection but for more than two trees.
-
+;; Recursively compute the intersection of guard sets for tree nodes.
 (: intersections (-> (List Tree) (List Tree)))
 (= (intersections Nil) Nil)
-
 (= (intersections (Cons $firstChild Nil)) (getGuardSet $firstChild))
-
 (= (intersections (Cons $firstChild (Cons $secondChild $restChildren)))
-    (let*
-        (
+    (let* (
             ($firstChildGuardSet (getGuardSet $firstChild))
             ($remainingIntersections (intersections (Cons $secondChild $restChildren)))
             ($result (setIntersection treeIsMember $firstChildGuardSet $remainingIntersections))
         )
-
         $result
     )
 )
