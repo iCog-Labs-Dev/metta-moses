@@ -134,19 +134,21 @@
 
 ;Helper functions for `andSubTreeElegance`
 
-;;This function applies a function to each values of the first list and the second list.
-;;The second list will be repeatedly passed without changing while the elements of the first list change.
+
+;; A generic binary map function that applies a function to each element of a list and a constant.
+(: binaryMap (-> $f (List $t) $t (List $tt)))
+(= (binaryMap $f Nil $constant) Nil)
+(= (binaryMap $f (Cons $x $xs) $constant)
+   (Cons ($f $x $constant) (binaryMap $f $xs $constant))
+)
+;; Refactor mapList to use binaryMap
 (: mapList (-> Atom (List $t) (List $t) (List $t)))
-(= (mapList $f Nil $rs) Nil)
-(= (mapList $f (Cons $x $xs) $rs)
-  (Cons ($f $x $rs) (mapList $f $xs $rs))
-)
-;;A function that applies a function to the elements of the first list and a constant parent.
+(= mapList binaryMap)
+
+;; Refactor mapParent to use binaryMap
 (: mapParent (-> $f (List $t) $t (List $tt)))
-(= (mapParent $f Nil $parent) Nil)
-(= (mapParent $f (Cons $x $xs) $parent)
-  (Cons ($f $x $parent) (mapParent $f $xs $parent))
-)
+(= mapParent binaryMap)
+
 ;;A function that finds a tree node from a list of trees and replaces it with a new node.
 (: findAndReplace (-> Tree Tree (List Tree) (List Tree)))
 (= (findAndReplace $oldChild $newChild Nil) Nil)
