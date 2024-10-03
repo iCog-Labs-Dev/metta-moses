@@ -75,6 +75,16 @@
         $current
     )
 )
+
+;this function is used to call the `applyOrCut` function on 
+;all instances of the children of a tree.
+(: applyOrCutToChildren (-> (-> $t $t $t) $t (List $t) $t))
+(= (applyOrCutToChildren $f $current Nil) $current)
+(= (applyOrCutToChildren $f $current (Cons $x $xs)) 
+    (applyOrCutToChildren $f ($f $x $current) $xs) ;If $f applies to $x and $current, then it must also apply to $xs and ($f $x $current).
+                                                  ;($f $x $current) is a new value for $current.
+)
+
 ;; -----------------------------------
 ;; -----------------------------------
 ;; -------- A function that given children and the a local command set,
@@ -217,15 +227,6 @@
 )
 
 ;; Helper function for itarator
-
-(: applyOrCutToChildren (-> Tree (List Tree) Tree))
-(= (applyOrCutToChildren $current Nil) $current)
-(= (applyOrCutToChildren $current (Cons $x $xs)) 
-    (let $newCurrent (applyOrCut $x $current)
-      (applyOrCutToChildren $newCurrent $xs)
-    )
-)
-
 ; iterator function
 (: iterator (-> Tree (List Tree) (List Tree) (Tree ReductionSignal)))
 (= (iterator $current $dominantSet $commandSet)
@@ -246,7 +247,7 @@
                       (() (println! (Inside Iterator after andSubTreeIterator call fstupdatedcurrent ==> $updatedCurrent)))
                       ;; (() (println! (The signal is $signal)))
 
-                      ($sndupdatedcurrent (applyOrCutToChildren $updatedCurrent (getChildren $updatedCurrent)))
+                      ($sndupdatedcurrent (applyOrCutToChildren applyOrCut $updatedCurrent (getChildren $updatedCurrent)))
                       ($setsAreIdentical (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent)))
 
                       (() (println! (secondUpdatedCurrent is $sndupdatedcurrent setsAreIdentical is $setsAreIdentical)))
