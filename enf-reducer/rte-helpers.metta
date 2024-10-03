@@ -135,13 +135,6 @@
 
 ;Helper functions for `andSubTreeElegance`
 
-;;This function applies a function to each values of the first list and the second list.
-;;The second list will be repeatedly passed without changing while the elements of the first list change.
-(: binaryMap (-> Atom (List $t) (List $t) (List $t)))
-(= (binaryMap $f Nil $x) Nil)
-(= (binaryMap $f (Cons $x $xs) $common)
-   (Cons ($f $x $common) (binaryMap $f $xs $common))
-)
 ;;A function that finds a tree node from a list of trees and replaces it with a new node.
 (: findAndReplace (-> Tree Tree (List Tree) (List Tree)))
 (= (findAndReplace $oldChild $newChild Nil) Nil)
@@ -152,7 +145,7 @@
   )
 )
 
-;;a function that decouples the tuple output of `applyAndCut` and returns only the second element of the tuple.
+;;a function that decouples the tuple output of `applyAndCut` and returns only the second element off the tuple.
 (: getSecondValueOffTuple (-> (Tree Bool) Bool))
 (= (getSecondValueOffTuple ((TreeNode $nodeValue $guardSet $children) $bool)) $bool)
 
@@ -330,10 +323,3 @@
 ;; A helper function that acts like a lambda function definition in the map found in the OR case below.
 (: updateGuardSet ((List Tree) Tree Tree))
 (= (updateGuardSet $commonToAllChildren $child) (replaceGuardSet $child (setDifference  treeIsMember (getGuardSet $child) $commonToAllChildren Nil)))
-
-;; Map function that accepts a binary function and it's second argument.
-(: mapChild (-> $f (List Tree) (List Tree) (List Tree)))
-(= (mapChild $function $secondArg Nil) Nil)
-(= (mapChild $function $secondArg (Cons $x $xs))
-      (Cons ($function $secondArg $x) (mapChild $function $secondArg $xs))
-)

@@ -58,7 +58,7 @@
               (let*
                 (
                   ($updatedParent (replaceGuardSet $parent ((getGuardSet $parent) ++ $commonToAllChildren)))
-                  ($updatedCurrent (replaceChildren $currentTree (mapChild updateGuardSet $commonToAllChildren $children)))
+                  ($updatedCurrent (replaceChildren $currentTree (binaryMap updateGuardSet $children $commonToAllChildren)))
                   ($finalUpdatedParent (replaceChildren $updatedParent (findAndReplace $currentTree $updatedCurrent (getChildren $updatedParent))))
                 )
                 ($finalUpdatedParent $updatedCurrent RESET)

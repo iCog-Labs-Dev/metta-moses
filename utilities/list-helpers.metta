@@ -29,6 +29,14 @@
     (Cons ($func $x) (map $func $xs))
 )
 
+;;This function applies a function to each values of the first list and the second list.
+;;The second list will be repeatedly passed without changing while the elements of the first list change.
+(: binaryMap (-> Atom (List $t) (List $t) (List $t)))
+(= (binaryMap $f Nil $x) Nil)
+(= (binaryMap $f (Cons $x $xs) $common)
+   (Cons ($f $x $common) (binaryMap $f $xs $common))
+)
+
 ; A variation of the map function that uses `cons-atom` to build the output list. 
 (: consMap (-> Atom $ac (List $t) (List $tt)))
 (= (consMap $func $ac Nil) $ac)
@@ -148,44 +156,6 @@
     )
 )
 
-(: quickSort (-> List List))
-(= (quickSort Nil) Nil)
-(= (quickSort (Cons $x $xs))
-    (let ($left $right) (partition $x $xs)
-        (extend (quickSort $left) (Cons $x (quickSort $right)))
-    )
-)
-
-(: checkNotDuplicated (-> (List $t) Bool))
-(= (checkNotDuplicated $list)
-    (case $list
-        (
-            (Nil True)
-            ( (Cons $x $xs)
-                (if (member $x $xs)
-                    False
-                    (checkNotDuplicated $xs)
-                )
-            )
-        )
-    )
-)
-
-(: checkNotInverseDuplicated (-> (List $t) Bool))
-(= (checkNotInverseDuplicated $list)
-    (case $list
-        (
-            (Nil True)
-            ( (Cons $x $xs)
-                (if (member-not $x $xs);;TODO implement the member-not function
-                    False
-                    (checkNotInverseDuplicated $xs)
-                )
-            )
-        )
-    )
-)
-
 ;;Implementation information is needed
 (: intersect (-> (List $t) (List $t) (List $t) (List $t)))
 (=(intersect $list1 $list2 $accumulator)
@@ -224,6 +194,7 @@
 )
 
 ;; function to compute the intersection of two lists of Trees.
+;; This function needs a member checking function inorder for it to work!
 (: setIntersection (-> (-> $t (List $t) Bool) (List $t) (List $t) (List $t)))
 (= (setIntersection $membershipCheckerFunction $list1 $list2)
     (case $list1
@@ -288,7 +259,6 @@
  ;Function to remove an element at a given index in a List.
 (: removeAtIndex (-> Number (List $t) (List $t)))
 (= (removeAtIndex $a Nil) Nil)
-
 (= (removeAtIndex $a (Cons $x $xs))
     (if (== $a 0)
          $xs
