@@ -1,7 +1,7 @@
 (= (deleteInconsistent $exp)
     (let*
         (
-            ($guardSet (getGuardSetExp $exp ()))
+            ($guardSet (getGuardSetExp $exp $exp ()))
             ($isConsistent (isConsistentExp $guardSet))
         )
     (case $head
