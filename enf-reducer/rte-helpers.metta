@@ -76,12 +76,13 @@
     )
 )
 
-;this function is used to call the 'applyOrCut' function on 
+;this function is used to call the `applyOrCut` function on 
 ;all instances of the children of a tree.
 (: applyOrCutToChildren (-> (-> $t $t $t) $t (List $t) $t))
 (= (applyOrCutToChildren $f $current Nil) $current)
 (= (applyOrCutToChildren $f $current (Cons $x $xs)) 
-    (applyOrCutToChildren $f ($f $x $current) $xs) ;This line uses the rationale of a fold left function to reduce the expressions.
+    (applyOrCutToChildren $f ($f $x $current) $xs) ;If $f applies to $x and $current, then it must also apply to $xs and ($f $x $current).
+                                                  ;($f $x $current) is a new value for $current.
 )
 
 ;; -----------------------------------
