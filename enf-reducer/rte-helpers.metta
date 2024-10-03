@@ -76,17 +76,12 @@
     )
 )
 
-(= (foldLeftBinary $f $acc $current Nil) $acc)
-(= (foldLeftBinary $f $acc $current (Cons $x $xs)) 
-   (foldLeftBinary $f $current ($f $current $x) $xs)
-)
-
-;This function is important because it applies the applyOrCut function to 
-;instances of a list of trees that fulfill the criterias that warrant removal.
-(: applyOrCutToChildren (-> Tree (List Tree) Tree))
-(= (applyOrCutToChildren $current Nil) $current)
-(= (applyOrCutToChildren $current (Cons $x $xs))
-  (foldLeftBinary applyOrCut Nil $current (Cons $x $xs))
+;this function is used to call the 'applyOrCut' function on 
+;all instances of the children of a tree.
+(: applyOrCutToChildren (-> (-> $t $t $t) $t (List $t) $t))
+(= (applyOrCutToChildren $f $current Nil) $current)
+(= (applyOrCutToChildren $f $current (Cons $x $xs)) 
+    (applyOrCutToChildren $f ($f $x $current) $xs) ;This line uses the rationale of a fold left function to reduce the expressions.
 )
 
 ;; -----------------------------------
@@ -251,7 +246,7 @@
                       (() (println! (Inside Iterator after andSubTreeIterator call fstupdatedcurrent ==> $updatedCurrent)))
                       ;; (() (println! (The signal is $signal)))
 
-                      ($sndupdatedcurrent (applyOrCutToChildren $updatedCurrent (getChildren $updatedCurrent)))
+                      ($sndupdatedcurrent (applyOrCutToChildren applyOrCut $updatedCurrent (getChildren $updatedCurrent)))
                       ($setsAreIdentical (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent)))
 
                       (() (println! (secondUpdatedCurrent is $sndupdatedcurrent setsAreIdentical is $setsAreIdentical)))
