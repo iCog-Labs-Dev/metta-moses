@@ -75,6 +75,7 @@
         $current
     )
 )
+
 ;; -----------------------------------
 ;; -----------------------------------
 ;; -------- A function that given children and the a local command set,
@@ -136,16 +137,10 @@
 
 ;;This function applies a function to each values of the first list and the second list.
 ;;The second list will be repeatedly passed without changing while the elements of the first list change.
-(: mapList (-> Atom (List $t) (List $t) (List $t)))
-(= (mapList $f Nil $rs) Nil)
-(= (mapList $f (Cons $x $xs) $rs)
-  (Cons ($f $x $rs) (mapList $f $xs $rs))
-)
-;;A function that applies a function to the elements of the first list and a constant parent.
-(: mapParent (-> $f (List $t) $t (List $tt)))
-(= (mapParent $f Nil $parent) Nil)
-(= (mapParent $f (Cons $x $xs) $parent)
-  (Cons ($f $x $parent) (mapParent $f $xs $parent))
+(: binaryMap (-> Atom (List $t) (List $t) (List $t)))
+(= (binaryMap $f Nil $x) Nil)
+(= (binaryMap $f (Cons $x $xs) $common)
+   (Cons ($f $x $common) (binaryMap $f $xs $common))
 )
 ;;A function that finds a tree node from a list of trees and replaces it with a new node.
 (: findAndReplace (-> Tree Tree (List Tree) (List Tree)))
@@ -158,8 +153,8 @@
 )
 
 ;;a function that decouples the tuple output of `applyAndCut` and returns only the second element of the tuple.
-(: decoupleAndCutOutput (-> (Tree Bool) Bool))
-(= (decoupleAndCutOutput ((TreeNode $nodeValue $guardSet $children) $bool)) $bool)
+(: getSecondValueOffTuple (-> (Tree Bool) Bool))
+(= (getSecondValueOffTuple ((TreeNode $nodeValue $guardSet $children) $bool)) $bool)
 
 (: andSubTreeElegance (-> Tree Tree (List Tree) (List Tree) (Tree Signal)))
 (= (andSubTreeElegance $child $current $handleSet $commandSet)
@@ -184,9 +179,9 @@
                (let*
                  (
                    ($updatedGuardSetCurrent (setUnion treeIsMember (getGuardSet $fstUpdatedCurrent) $resultSet))
-                   ($updatedGrandChildren (mapList computeGrandChildGuardSet (getChildren $updatedChild) $resultSet))
+                   ($updatedGrandChildren (binaryMap computeGrandChildGuardSet (getChildren $updatedChild) $resultSet))
                    ($sndUpdatedChild (replaceChildren $updatedChild $updatedGrandChildren))
-                   ($result (mapParent applyAndCut (getChildren $sndUpdatedChild) $sndUpdatedChild))
+                   ($result (binaryMap applyAndCut (getChildren $sndUpdatedChild) $sndUpdatedChild))
                    ($sndUpdatedGrandChildren (map car-atom $result))
                    ($trdUpdatedChild (replaceChildren $sndUpdatedChild $sndUpdatedGrandChildren))
                    ($finalUpdatedCurrent (replaceChildren $updatedGuardSetCurrent (findAndReplace $updatedChild $trdUpdatedChild (getChildren $updatedGuardSetCurrent))))
@@ -197,8 +192,8 @@
                  (
                    (() (println! (Children of UpdatedChild: (getChildren $updatedChild))))
 
-                   ($res (mapParent applyAndCut (getChildren $updatedChild) $updatedChild))
-                   ($bools (map decoupleAndCutOutput $res))
+                   ($res (binaryMap applyAndCut (getChildren $updatedChild) $updatedChild))
+                   ($bools (map getSecondValueOffTuple $res))
                    ($containsTerminalAndNode (any $bools))
 
                    (() (println! (Result ==> $res)))
