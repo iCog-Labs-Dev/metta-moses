@@ -9,7 +9,7 @@
 !(assertEqualToResult (~= Something something) (True))
 
 ; tests for the function 'Not' 
-  ! (assertEqualToResult (Not (Not (Not A))) ( (not A)))
+  ! (assertEqualToResult (Not (Not (Not A))) ((NOT A)))
   ! (assertEqualToResult (Not (Not A)) (A))
 
 ; tests for the function 'isMember'
