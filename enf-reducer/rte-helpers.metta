@@ -36,13 +36,12 @@
 ;; Helper Functions for applyOrCut to enhance readability
 (: updateGuardSetTree (-> Tree Tree Tree))
 (= (updateGuardSetTree $target $node2)
-   (let* 
-     (
-      ($A (getGuardSet $target))
-      ($B (getGuardSet $node2))
+   (let* (
+      ($A (getGuardSet $target))   
+      ($B (getGuardSet $node2))   
      )
-     (replaceGuardSet $target (setUnion treeIsMember $A $B))
-  )
+     (replaceGuardSet $target (setInsert treeIsMember  $A $node2))  
+   )
 )
 
 ;; Helper Functions for applyOrCut to enhance readability
