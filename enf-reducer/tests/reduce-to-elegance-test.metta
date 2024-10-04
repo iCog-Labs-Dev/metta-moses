@@ -35,6 +35,12 @@
    )
    (TreeNode (Value A True AND) (Cons (TreeNode (Value G0 True LITERAL) Nil Nil) (Cons (TreeNode (Value G1 True LITERAL) Nil Nil) (Cons (TreeNode (Value G2 True LITERAL) Nil Nil) Nil))) (Cons (TreeNode (Value E False LITERAL) Nil Nil) (Cons (TreeNode (Value D True LITERAL) Nil Nil) Nil)))
  )
+;; test for UpdateGuardSetTree
+!(assertEqual (updateGuardSetTree  
+   (TreeNode (Value Nil False AND) Nil (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil)))  
+   (TreeNode (Value C True LITERAL) Nil Nil))
+   (TreeNode (Value Nil False AND) (Cons (TreeNode (Value C True LITERAL) Nil Nil) Nil) (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode (Value B True LITERAL) Nil Nil) Nil)))
+)
 
 
 ;; Test for commandSetIterator function
