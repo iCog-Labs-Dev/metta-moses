@@ -24,12 +24,12 @@
 )
 
 ; Function to remove redundancy of a specific symbol from subexpressions (excluding NOT expressions)
-(= (removeRedundency $symbol $expr)
+(= (removeRedundencyFromSubExpressions $symbol $expr)
     (if (== $expr ()) ()  ; Base case: empty expression
         (let* (
             ($head (car-atom $expr))  ; Get the head of the current expression
             ($tail (cdr-atom $expr))  ; Get the tail of the current expression
-            ($newtail (removeRedundency $symbol $tail))  ; Process the tail recursively
+            ($newtail (removeRedundencyFromSubExpressions $symbol $tail))  ; Process the tail recursively
         )
             ; Check if the head is an expression, and process only subexpressions like AND/OR (skip NOT)
             (if (and (== (get-metatype $head) Expression)
@@ -48,28 +48,20 @@
 )
 
 
-; ; Test Case 1: Remove 'b' from subexpressions
-; ! (removeRedundency b (AND b (AND b c) (NOT a) (OR a (OR b (NOT a)))))
-; ; Expected output: (AND b (AND c) (NOT a) (OR a (OR (NOT a))))
-
-; ; Test Case 2: Remove 'a' from subexpressions
-; ! (removeRedundency a (AND a b (NOT a) (OR c (NOT b) (AND b a))))
-; ; Expected output: (AND a b (NOT a) (OR c (NOT b) (AND b)))
-
 ;; Main function for removing redundancies from subexpressions
-(= (removeRedundencyFromSubExpressions $expr)
+(= (removeRedundentConstrient $expr)
     (if (== $expr ()) ()  ; Base case: empty expression
         (let* (
             ($head (car-atom $expr))  ; Get the head of the current expression
             ($tail (cdr-atom $expr))  ; Get the tail of the current expression
-            ($new-tail (removeRedundencyFromSubExpressions $tail))  ; Process the tail recursively
+            ($new-tail (removeRedundentConstrient $tail))  ; Process the tail recursively
         )
             ; Check if the head is a symbol (except AND/OR) or an expression starting with NOT
             (if (or (and (== (get-metatype $head) Symbol) (not (or (== $head AND) (== $head OR)))) 
                     (and (== (get-metatype $head) Expression) (== (car-atom $head) NOT)))
                 ; If the head is a symbol or starts with NOT, apply removeRedundency
                 (let* (
-                    ($updatedexpr (removeRedundency $head $new-tail))  ; Remove redundancy for current symbol/NOT
+                    ($updatedexpr (removeRedundencyFromSubExpressions $head $new-tail))  ; Remove redundancy for current symbol/NOT
                 )
                     (cons-atom $head $updatedexpr)
                 )
@@ -80,10 +72,29 @@
     )
 )
 
-; Test Case 1: Removing redundancies from subexpressions
-! (removeRedundencyFromSubExpressions (AND b (OR b c) (NOT a) (OR a (OR b (NOT a)))))
+; Test Case 1: Removing redundant constrient
+! (removeRedundentConstrient (AND b (OR b c) (NOT a) (OR a (OR b (NOT a)))))
 ; Expected output: (AND b (OR c) (NOT a) (OR a (OR)))
 
-; Test Case 2: Removing redundancies from subexpressions
-! (removeRedundencyFromSubExpressions (AND a b (NOT a) (OR c (NOT a) (AND b a))))
+; Test Case 2: Removing redundant constrient
+! (removeRedundentConstrient (AND a b (NOT a) (OR c (NOT a) (AND b a))))
 ; Expected output: (AND a b (NOT a) (OR c (AND)))
+
+
+; Test Case 1: Remove 'b' from subexpressions
+! (removeRedundencyFromSubExpressions b (AND b (AND b c) (NOT a) (OR a (OR b (NOT a)))))
+; Expected output: (AND b (AND c) (NOT a) (OR a (OR (NOT a))))
+
+; Test Case 2: Remove 'a' from subexpressions
+! (removeRedundencyFromSubExpressions a (AND a b (NOT a) (OR c (NOT b) (AND b a))))
+; Expected output: (AND a b (NOT a) (OR c (NOT b) (AND b)))
+
+
+; Test Case 1: remove 'b' from expression
+! (removeRedundent b (AND b (AND b c) (NOT a) (OR a (OR b (NOT a)))) )
+; Expected output: (AND (AND C) (NOT a) (OR a (OR (NOT a))))
+
+
+; Test Case 2: remove 'a' from expression
+! (removeRedundent a (AND a b (NOT a) (OR c (NOT b) (AND b a))))
+; ; Expected output: (AND b (NOT a) (OR c (NOT b) (AND b))))
