@@ -1,5 +1,6 @@
-;(: AndCut (-> Expression Expression))
-(= (AndCut $expr)
+;(: andCut (-> Expression Expression))
+;return POA’s grandchildren to the POA’s parent’s if it have empty Gset, 1child and the intersection of the grandchildren Gset is empty.
+(= (andCut $expr)
     (let*
         (
             (($gSet $child) (getGsetAndChildren $expr))
@@ -10,7 +11,6 @@
                 (
                     (($Grandgset $GrandChildren) (getGsetAndChildren (car-atom $child)))
                     ($allLiterals (collapse (getGuardSet (superpose $GrandChildren) ())))
-                    ($test (collapse (let $a (getGsetAndChildren (superpose $GrandChildren)) (car-atom $a))))
                     ($common (findCommon $allLiterals))
 
                 )
