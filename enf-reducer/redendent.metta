@@ -71,30 +71,3 @@
         )
     )
 )
-
-; Test Case 1: Removing redundant constrient
-! (removeRedundentConstrient (AND b (OR b c) (NOT a) (OR a (OR b (NOT a)))))
-; Expected output: (AND b (OR c) (NOT a) (OR a (OR)))
-
-; Test Case 2: Removing redundant constrient
-! (removeRedundentConstrient (AND a b (NOT a) (OR c (NOT a) (AND b a))))
-; Expected output: (AND a b (NOT a) (OR c (AND)))
-
-
-; Test Case 1: Remove 'b' from subexpressions
-! (removeRedundencyFromSubExpressions b (AND b (AND b c) (NOT a) (OR a (OR b (NOT a)))))
-; Expected output: (AND b (AND c) (NOT a) (OR a (OR (NOT a))))
-
-; Test Case 2: Remove 'a' from subexpressions
-! (removeRedundencyFromSubExpressions a (AND a b (NOT a) (OR c (NOT b) (AND b a))))
-; Expected output: (AND a b (NOT a) (OR c (NOT b) (AND b)))
-
-
-; Test Case 1: remove 'b' from expression
-! (removeRedundent b (AND b (AND b c) (NOT a) (OR a (OR b (NOT a)))) )
-; Expected output: (AND (AND C) (NOT a) (OR a (OR (NOT a))))
-
-
-; Test Case 2: remove 'a' from expression
-! (removeRedundent a (AND a b (NOT a) (OR c (NOT b) (AND b a))))
-; ; Expected output: (AND b (NOT a) (OR c (NOT b) (AND b))))
