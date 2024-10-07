@@ -341,36 +341,45 @@
 )
 
 ; a function to get the guardset of an n-ary expression as a tuple. 
-(= (getGuardSetExp $exp $acc)
-    (if (== $exp ()) $acc
+(= (getGuardSetExp $expOriginal $expRecursive $acc)
+    (if (== (get-metatype $expOriginal) Symbol) ($expOriginal) ;if $exp is LITERAL, the guardSet is the set containing the literal itself
+    (if (== $expRecursive ()) $acc
         (let*
             (
-                ($head (car-atom $exp))
+                ($head (car-atom $expRecursive))
                 ($headIsExpression (== (get-metatype $head) Expression))
-                ($tail (cdr-atom $exp))
+                ($tail (cdr-atom $expRecursive))
+                ($tailIsExpression (== (get-metatype $tail) Expression))
             )
-        (if (or (== $head OR)(== $head NOT)) ()
-            (if (== $head AND )
-                (getGuardSetExp $tail $acc)
-                (if $headIsExpression
-                    (case $head
-                        (
-                            ( (not $a) (getGuardSetExp $tail (cons-atom $head $acc)))
-                            ($else (getGuardSetExp $tail $acc))
-                        )
-                )
-            (getGuardSetExp $tail (cons-atom $head $acc))
+            (if (== $head NOT) 
+             (case $expOriginal
+                 (
+                     ((NOT $b) (if (== (get-metatype $b) Symbol) $expOriginal ())) ;If the head of the expression is NOT, $b should only be a literal for it to have a guardSet of (NOT $b). If $b is an expression, the guardSet is ()
+                 )
+             )
+             (if (== $head OR) ()  ;an OR expression doesn't have a guardSet
+                 (if (== $head AND) ; an AND expression has a guardSet which contains its literal and (NOT $literal) children
+                     (getGuardSetExp $expOriginal $tail $acc)
+                     (if $headIsExpression
+                         (case $head
+                             (
+                                 ( (NOT $a) (getGuardSetExp $expOriginal $tail (cons-atom $head $acc)))
+                                 ($else (getGuardSetExp $expOriginal $tail $acc))
+                             )
+                         )
+                         (getGuardSetExp $expOriginal $tail (cons-atom $head $acc))
+                     )
+                 )
+             )
+            )
         )
-)
-)
-
-)
-)
+    ) 
+    )
 )
 
 ;a function to check whether an n-ary expression is consistent or not.
 (= (isConsistentExp $exp)
-(let $guardSetTuple (getGuardSetExp $exp ()) 
+(let $guardSetTuple (getGuardSetExp $exp $exp ()) 
 (if (== $guardSetTuple ()) True
         (let*
             (
