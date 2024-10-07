@@ -1,10 +1,10 @@
 
-(= (removeRedundent $symbol $expr) 
+(= (removeRedundant $symbol $expr) 
     (if (== $expr ()) () 
         (let* (
             ($head (car-atom $expr))
             ($tail (cdr-atom $expr))
-            ($newtail (removeRedundent $symbol $tail)) ; Process the tail recursively
+            ($newtail (removeRedundant $symbol $tail)) ; Process the tail recursively
         )
             ; If the head matches the symbol, skip it
             (if (== $symbol $head) 
@@ -14,7 +14,7 @@
                     (if (and (== (get-metatype $head) Expression) 
                              (not (== (car-atom $head) NOT))) 
                         ; Recursively remove redundancy if not a (NOT ...) expression
-                        (removeRedundent $symbol $head) 
+                        (removeRedundant $symbol $head) 
                         $head)
                     (cons-atom $newhead $newtail)
                 )
@@ -24,17 +24,17 @@
 )
 
 ; Function to remove redundancy of a specific symbol from subexpressions (excluding NOT expressions)
-(= (removeRedundencyFromSubExpressions $symbol $expr)
+(= (removeRedundancyFromSubExpressions $symbol $expr)
     (if (== $expr ()) ()  ; Base case: empty expression
         (let* (
             ($head (car-atom $expr))  ; Get the head of the current expression
             ($tail (cdr-atom $expr))  ; Get the tail of the current expression
-            ($newtail (removeRedundencyFromSubExpressions $symbol $tail))  ; Process the tail recursively
+            ($newtail (removeRedundancyFromSubExpressions $symbol $tail))  ; Process the tail recursively
         )
             ; Check if the head is an expression, and process only subexpressions like AND/OR (skip NOT)
             (if (and (== (get-metatype $head) Expression)
                      (not (== (car-atom $head) NOT)))  ; Skip (NOT ...) expressions
-                (let $newhead (removeRedundent $symbol $head)  ; Recursively process subexpressions
+                (let $newhead (removeRedundant $symbol $head)  ; Recursively process subexpressions
                     (cons-atom $newhead $newtail)  ; Rebuild the expression with processed head and tail
                 )
                 ; Now we are at the top level: keep $symbol if it appears here, remove it from subexpressions
@@ -49,19 +49,19 @@
 
 
 ;; Main function for removing redundancies from subexpressions
-(= (removeRedundentConstrient $expr)
+(= (removeRedundantConstrient $expr)
     (if (== $expr ()) ()  ; Base case: empty expression
         (let* (
             ($head (car-atom $expr))  ; Get the head of the current expression
             ($tail (cdr-atom $expr))  ; Get the tail of the current expression
-            ($new-tail (removeRedundentConstrient $tail))  ; Process the tail recursively
+            ($new-tail (removeRedundantConstrient $tail))  ; Process the tail recursively
         )
             ; Check if the head is a symbol (except AND/OR) or an expression starting with NOT
             (if (or (and (== (get-metatype $head) Symbol) (not (or (== $head AND) (== $head OR)))) 
                     (and (== (get-metatype $head) Expression) (== (car-atom $head) NOT)))
                 ; If the head is a symbol or starts with NOT, apply removeRedundency
                 (let* (
-                    ($updatedexpr (removeRedundencyFromSubExpressions $head $new-tail))  ; Remove redundancy for current symbol/NOT
+                    ($updatedexpr (removeRedundancyFromSubExpressions $head $new-tail))  ; Remove redundancy for current symbol/NOT
                 )
                     (cons-atom $head $updatedexpr)
                 )
