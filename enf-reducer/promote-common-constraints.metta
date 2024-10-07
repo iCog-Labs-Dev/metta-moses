@@ -1,29 +1,12 @@
-(= (promoteCommonLiterals $expr)
-     (case (car-atom $expr)
-        (
-                (AND
-                    (let* 
-                        (
-                        (($gSet $children) (getGsetAndChildren $expr))
-                        ($result (processOrChildren (car-atom $children)))
-                        (($head $tail) $result)                     
-                        ($updatedExpr (concatTuple $gSet $head))
-                        ($final (concatTuple $updatedExpr ($tail)))                       
-                        )   
-                        (cons-atom AND $final)
-                    )
-            )
-            ($else $else)
-        )
-    )
-)
-
-(= (processOrChildren $expr)
+;(: promoteCommonConstraints (-> Expression Expression))
+(= (promoteCommonConstraints $expr)
     (let* 
         (
             (($literals $children) (getGsetAndChildren $expr)) 
-            ($childrenLiteral   (collapse (getGsetAndChildren (superpose $children))))
-            ($common (findCommonLiterals $literals $childrenLiteral))         
+            ($childrenLiteral   (collapse (getGuardSet (superpose $children) ())))
+            ($shared (findCommon $childrenLiteral))
+            ($common (findIntersection $literals $shared))   
+            ($x 2)      
         )
         (if (== $common ())
             (() $expr)
@@ -37,6 +20,49 @@
                 ($common $res)
             )
 
+        )
+       
+    )
+)
+
+
+; Helper function to find the intersection between two tuples
+(= (findIntersection $lit $common)
+    (if (== $lit ())
+        $common
+        (collapse (intersection (superpose $lit) (superpose $common)))
+    )
+)
+
+;a function to remove common literals from a nested tuple
+(= (removeCommonLiterals $common $children)
+    (if (== $children ()) 
+        ()  
+        (let* 
+            (
+                ($head (car-atom $children))  
+                ($tail (cdr-atom $children))  
+                ($filteredChild (removeElement $common $head)) 
+                ($newTail (removeCommonLiterals $common $tail))  
+            )
+            (cons-atom $filteredChild $newTail)  
+        )
+    )
+)
+;a function to remove a common element from a tuple
+(= (removeElement $common $child)
+    (if (== $child ()) 
+        ()  
+        (let* 
+            (
+                ($head (car-atom $child))  
+                ($tail (cdr-atom $child))  
+                ($newTail (removeElement $common $tail))  
+            )
+            (if (isMember $head $common)
+                $newTail  
+                (cons-atom $head $newTail)  
+            )
         )
     )
 )
