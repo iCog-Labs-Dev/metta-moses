@@ -1,3 +1,4 @@
+;a function which implements the 0-Constraint-Subsumption Transformation
 (= (zeroConstraintSubsume $expOriginal $expRecursive)
 (if (== $expRecursive ()) $expOriginal 
 (let*
@@ -7,15 +8,17 @@
     ($headType (get-metatype $head))
     ($headHasNoChild (not (nodeHasChildExp $head)))
 )
-(if (== $head AND) $expOriginal
-    (if (== $head NOT) $expOriginal 
-     (if (== $head OR) (zeroConstraintSubsume $expOriginal $tail)
-      (if (and (== (getGuardSetExp $head $head ()) ()) $headHasNoChild)
-         ()
-         (zeroConstraintSubsume $expOriginal $tail)
-      ) 
-     )
-    )    
+(case $head
+(
+   (AND $expOriginal)
+   (NOT $expOriginal)
+   (OR (zeroConstraintSubsume $expOriginal $tail))  ;the POA for this transformation is any OR node
+   ($else (if (and (== (getGuardSetExp $head $head ()) ()) $headHasNoChild)
+              () ;if any child of the POA has an empty guardSet and no child, it is removed. if not, it's kept.
+              (zeroConstraintSubsume $expOriginal $tail)
+          ) 
+    )
+)  
 )
 )
 )
