@@ -392,6 +392,26 @@
 )
 )   
 )
+
+;a helper function to the zeroConstraintSubsume function
+;a function which checks if an Expression (a representation of a node) has a child or not
+(= (nodeHasChildExp $node)
+(let*
+(
+    ($head (car-atom $node))
+    ($tail (cdr-atom $node))
+    ($nodeType (get-metatype $node))
+)
+(if (== $nodeType Symbol) 
+ False 
+ (if (== $tail ()) 
+     False 
+     True
+ )
+)
+)
+)
+
 ;a function that will return Gardset(literals for OR) and the children as a tuple ((Gset), (Children))
 (= (GsetandChildren $expr $literals $nonLiterals)
     (if (== $expr ())
@@ -466,3 +486,4 @@
         )
     )
 )
+

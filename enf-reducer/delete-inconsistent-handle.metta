@@ -1,16 +1,11 @@
+; a function which implements the Delete-Inconsistent-Handle Transformation
 (= (deleteInconsistent $exp)
     (let*
         (
-            ($guardSet (getGuardSetExp $exp $exp ()))
-            ($isConsistent (isConsistentExp $guardSet))
+            ($guardSet (getGuardSetExp $exp $exp ()))  
+            ($isConsistent (isConsistentExp $guardSet))  
         )
-    (case $head
-        (
-            (AND (if $isConsistent $exp ()))
-            (OR $exp)
-            (NOT $exp)
-        )
-)
+       (if $isConsistent $exp ()) 
 )
 )
 
