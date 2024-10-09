@@ -1,11 +1,7 @@
 ;; This file contains functions that are going to be helpful for manipulating `TreeNode` data structure defined in the type.metta file.
 
 !(import! &self list-helpers)
-;; -----------------------------------
-;; -----------------------------------
-;; -------- function to build a tree of type "Tree" from an expression
-;; -----------------------------------
-;; -----------------------------------
+;; function to build a tree of type "Tree" from an expression
 
 (= (buildTree $expr) 
   (case $expr
@@ -18,55 +14,36 @@
   )
 )
 
-;; -----------------------------------
-;; -----------------------------------
-;; -------- function to build a tree with a root node of "ROOT"
-;; -----------------------------------
-;; -----------------------------------
-
+;;function to build a tree with a root node of "ROOT"
 (= (buildTreeWithRoot $expr)
   (TreeNode (Value Nil False ROOT) Nil (Cons NilNode (Cons (buildTree $expr) Nil)))
 )
 
-;; -----------------------------------
-;; -----------------------------------
-;; -------- a function to get the right or left child
-;; -----------------------------------
-;; -----------------------------------
-
+;;a function to get the right or left child
 (: getChild (-> Tree Location Tree))
 (= (getChild (TreeNode $nodeValue $guardSet Nil) $opt) NilNode)
 (= (getChild (TreeNode $nodeValue $guardSet (Cons $l $xs)) L) $l)
 (= (getChild (TreeNode $nodeValue $guardSet (Cons $l Nil)) R) NilNode)
 (= (getChild (TreeNode $nodeValue $guardSet (Cons $l (Cons $r $xs))) R) $r)
 
-;; -----------------------------------
-;; -----------------------------------
-;; -------- a function to get node children
-;; -----------------------------------
-;; -----------------------------------
-
+;;a function to get node children
 (: getChildren (-> Tree (List Tree)))
 (=(getChildren NilNode) Nil)
 (= (getChildren (TreeNode $nodeVal $guardSet $children)) $children)
 
 ;;A function to get node children at a given index
-(:getChildAt (-> Tree Number Tree))
+(: getChildAt (-> Tree Number Tree))
 (= (getChildAt (TreeNode $nodeValue $guardSet Nil) $i) NilNode)
 
 (= (getChildAt (TreeNode $nodeValue $guardSet (Cons $x $xs)) $i)
     ; (Cons $x $xs)
-    (if (== Nil (index $i (Cons $x $xs)))
+    (if (== Nil (indexOfTree $i (Cons $x $xs)))
         NilNode
-        (index $i (Cons $x $xs))
+        (indexOfTree $i (Cons $x $xs))
     )
 )
-;; -----------------------------------
-;; -----------------------------------
-;; -------- a function to get guardset
-;; -----------------------------------
-;; -----------------------------------
 
+;;a function to get guardset
 (: getGuardSet (-> Tree (List Tree)))
 (= (getGuardSet NilNode) Nil)
 (= (getGuardSet (TreeNode $nodeValue $guardSet $children)) $guardSet)
@@ -77,11 +54,7 @@
   (TreeNode (Value $nodeValue $boolean $newType) $guardSet $children)
 )
 
-;; -----------------------------------
-;; -------- updateChild
-;; -------- Given a binary tree node and position (left, right) indicating which child to update, replace it's left or right child with the given node.
-;; -----------------------------------
-;; -----------------------------------
+;;Given a binary tree node and position (left, right) indicating which child to update, replace it's left or right child with the given node.
 
 ;; (node location (L or R) newNode)
 (: replaceChild (-> Tree Tree Location Tree))
@@ -106,19 +79,14 @@
 (= (replaceChildAt (TreeNode $nodeValue $guardSet $children) $newNode $i)
     (TreeNode $nodeValue $guardSet (replaceAtIndex $i $newNode $children))
 )
-;; -----------------------------------
-;; -------- Append Children
-;; -------- Given a node and a tree, append the tree to the node's children.
-;; -----------------------------------
-;; -----------------------------------
 
-
+;;Given a node and a tree, append the tree to the node's children
 (: prependChild (-> Tree Tree Tree))
 (= (prependChild (TreeNode $nodeValue $guardSet $children) $child)
   (TreeNode $nodeValue $guardSet (Cons $child $children))
 )
 
-(:isNodeEqual (-> Tree Tree Bool))
+(: isNodeEqual (-> Tree Tree Bool))
 (= (isNodeEqual NilNode NilNode) False)
 (= (isNodeEqual (TreeNode $nodeValue $guardSet $children) NilNode) False)
 (= (isNodeEqual NilNode (TreeNode $nodeValue $guardSet $children)) False)
@@ -135,42 +103,18 @@
    (memberWith isNodeEqual $x $list)
 )
 
-;;function to return the intersection of two treelists
-(: treeIntersection (-> (List Tree) (List Tree) (List Tree)))
-(= (treeIntersection $list1 $list2)
-    (case $list1
-    (
-        (Nil Nil)
-        ((Cons $h $t) 
-         (if (treeIsMember $h $list2) 
-            (Cons $h (treeIntersection $t $list2)) 
-            (treeIntersection $t $list2)
-         ) 
-        )
-    )
-    )
-)
-
-;; Given list of trees, intersections will compute the intersection of between their guard sets.
-;; It has similar behaviour like treeIntersection but for more than two trees.
+;; Recursively compute the intersection of guard sets for tree nodes.
 (: intersections (-> (List Tree) (List Tree)))
-(= (intersections $children)
-  (case (length $children) 
-    (
-      (0 Nil)
-      (1 (getGuardSet (head $children)))
-      ($else 
-        (let* 
-          (
-            ($firstChildGuardSet (getGuardSet (head $children)))
-            ($remainingIntersections (intersections (tail $children)))
-            ($result (treeIntersection $firstChildGuardSet $remainingIntersections))
-          )
-          $result
+(= (intersections Nil) Nil)
+(= (intersections (Cons $firstChild Nil)) (getGuardSet $firstChild))
+(= (intersections (Cons $firstChild (Cons $secondChild $restChildren)))
+    (let* (
+            ($firstChildGuardSet (getGuardSet $firstChild))
+            ($remainingIntersections (intersections (Cons $secondChild $restChildren)))
+            ($result (setIntersection treeIsMember $firstChildGuardSet $remainingIntersections))
         )
-      )
+        $result
     )
-  )
 )
 
 (: replaceGuardSet (-> Tree (List Tree) Tree) )
@@ -371,11 +315,9 @@
 )
 (: indexOfTree (-> Number (List Tree) Tree))
 (= (indexOfTree $a Nil) NilNode)
- ;(= (index 0 (Cons $x $xs)) $x)
 (= (indexOfTree $a (Cons $x $xs))
     (if (== $a 0)
         $x
         (indexOfTree (- $a 1) $xs)
     )
 )
-

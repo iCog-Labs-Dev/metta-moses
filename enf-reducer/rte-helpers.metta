@@ -21,7 +21,7 @@
           (
             ($firstNodeOfGrandChild (head (getChildren $grandChild)))
             ($updatedChildrenTree (replaceChildren $child (extend (getChildren $child) (getChildren $firstNodeOfGrandChild))))
-            ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemoveTree $grandChild (getChildren $updatedChildrenTree) )))
+            ($finalUpdatedTree (replaceChildren $updatedChildrenTree (findAndRemove $grandChild (getChildren $updatedChildrenTree) )))
             ($hasTerminalAndNode (containsTerminalAndNode (getChildren $firstNodeOfGrandChild)))
           )
           ($finalUpdatedTree $hasTerminalAndNode)
@@ -76,6 +76,15 @@
     )
 )
 
+;this function is used to call the `applyOrCut` function on 
+;all instances of the children of a tree.
+(: applyOrCutToChildren (-> (-> $t $t $t) $t (List $t) $t))
+(= (applyOrCutToChildren $f $current Nil) $current)
+(= (applyOrCutToChildren $f $current (Cons $x $xs)) 
+    (applyOrCutToChildren $f ($f $x $current) $xs) ;If $f applies to $x and $current, then it must also apply to $xs and ($f $x $current).
+                                                  ;($f $x $current) is a new value for $current.
+)
+
 ;; -----------------------------------
 ;; -----------------------------------
 ;; -------- A function that given children and the a local command set,
@@ -107,27 +116,26 @@
         (() (println! (inside orSubTreeElegance)))
 
         (($updatedCurrent $updatedChild $signal) (reduceToElegance $current $child $dominantSet $localCommandSet))
-        ($sndUpdatedCurrent (replaceChildren $updatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $updatedCurrent))))
 
         (() (println! (updatedChild ==> $updatedChild updatedCurrent ==> $updatedCurrent)))
       )
       (case $signal
         (
           (DELETE
-            (if (> (length (getChildren $sndUpdatedCurrent)) 0)
-                (let* 
+            (if (> (length (getChildren $updatedCurrent)) 0)
+                (let*
                     (
-                      ($updatedChildren (findAndRemoveTree $updatedChild (getChildren $sndUpdatedCurrent)))
+                      ($updatedChildren (findAndRemove $updatedChild (getChildren $updatedCurrent)))
                       ($removedChildCurrent (replaceChildren $updatedCurrent $updatedChildren))
                     )
                     ($removedChildCurrent ADVANCE)
                 )
-                ($sndUpdatedCurrent DELETE)
+                ($updatedCurrent DELETE)
             )
           )
-          (DISCONNECT ($sndUpdatedCurrent DISCONNECT))
-          (KEEP ($sndUpdatedCurrent ADVANCE))
-          ($_ ($sndUpdatedCurrent $signal))
+          (DISCONNECT ($updatedCurrent DISCONNECT))
+          (KEEP ($updatedCurrent ADVANCE))
+          ($_ ($updatedCurrent $signal))
         )
       )
    )
@@ -144,16 +152,19 @@
   (Cons ($f $x $rs) (mapList $f $xs $rs))
 )
 ;;A function that applies a function to the elements of the first list and a constant parent.
-(: mapParent (-> Atom (List $t) $t (List $t)))
+(: mapParent (-> $f (List $t) $t (List $tt)))
 (= (mapParent $f Nil $parent) Nil)
 (= (mapParent $f (Cons $x $xs) $parent)
   (Cons ($f $x $parent) (mapParent $f $xs $parent))
 )
 ;;A function that finds a tree node from a list of trees and replaces it with a new node.
-(: findAndReplaceChild (-> Tree Tree (List Tree) (List Tree)))
-(= (findAndReplaceChild $oldChild $newChild Nil) Nil)
-(= (findAndReplaceChild $oldChild $newChild (Cons $x $xs))
-  (if (== (isNodeEqual $oldChild $x) True)(Cons $newChild $xs)(Cons $x (findAndReplaceChild $oldChild $newChild $xs)))
+(: findAndReplace (-> Tree Tree (List Tree) (List Tree)))
+(= (findAndReplace $oldChild $newChild Nil) Nil)
+(= (findAndReplace $oldChild $newChild (Cons $x $xs))
+  (if (== $oldChild $x)
+      (Cons $newChild $xs)
+      (Cons $x (findAndReplace $oldChild $newChild $xs))
+  )
 )
 
 ;;a function that decouples the tuple output of `applyAndCut` and returns only the second element of the tuple.
@@ -165,113 +176,107 @@
    (let*
      (
        (() (println! (Inside andSubTreeElegance)))
+
        (($fstUpdatedCurrent $updatedChild $signal) (reduceToElegance $current $child $handleSet $commandSet))
      )
      (case $signal 
        (
          (DELETE ((replaceChildren $fstUpdatedCurrent Nil) DELETE))
-         (DISCONNECT ((replaceChildren $fstUpdatedCurrent (findAndRemoveTree $child (getChildren $fstUpdatedCurrent))) ADVANCE))
+         (DISCONNECT ((replaceChildren $fstUpdatedCurrent (findAndRemove $updatedChild (getChildren $fstUpdatedCurrent))) ADVANCE))
          (KEEP
            (let*
              (
-               ($sndUpdatedCurrent (replaceChildren $fstUpdatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $fstUpdatedCurrent))))
                ($resultSet (intersections (getChildren $updatedChild)))
+
                (() (println! (resultSet ==> $resultSet)))
              )
              (if(> (length $resultSet) 0) 
                (let*
                  (
-                   ($updatedGuardSetCurrent (setUnion treeIsMember (getGuardSet $sndUpdatedCurrent) $resultSet))
+                   ($updatedGuardSetCurrent (setUnion treeIsMember (getGuardSet $fstUpdatedCurrent) $resultSet))
                    ($updatedGrandChildren (mapList computeGrandChildGuardSet (getChildren $updatedChild) $resultSet))
                    ($sndUpdatedChild (replaceChildren $updatedChild $updatedGrandChildren))
                    ($result (mapParent applyAndCut (getChildren $sndUpdatedChild) $sndUpdatedChild))
                    ($sndUpdatedGrandChildren (map car-atom $result))
                    ($trdUpdatedChild (replaceChildren $sndUpdatedChild $sndUpdatedGrandChildren))
-                   ($finalUpdatedCurrent (replaceChildren $updatedGuardSetCurrent (findAndReplaceChild $updatedChild $trdUpdatedChild (getChildren $updatedGuardSetCurrent))))
+                   ($finalUpdatedCurrent (replaceChildren $updatedGuardSetCurrent (findAndReplace $updatedChild $trdUpdatedChild (getChildren $updatedGuardSetCurrent))))
                  )
                  ($finalUpdatedCurrent RESET)
                )
                (let*
                  (
+                   (() (println! (Children of UpdatedChild: (getChildren $updatedChild))))
+
                    ($res (mapParent applyAndCut (getChildren $updatedChild) $updatedChild))
                    ($bools (map decoupleAndCutOutput $res))
                    ($containsTerminalAndNode (any $bools))
+
+                   (() (println! (Result ==> $res)))
+                   (() (println! (Bools ==> $bools )))
+                   (() (println! (Contains Terminal And Node ==> $containsTerminalAndNode)))
                  )
-                 (if (== $containsTerminalAndNode False) ($updatedCurrentTree ADVANCE) ($updatedCurrentTree RESET))
+                 (if (not $containsTerminalAndNode) ($fstUpdatedCurrent ADVANCE) ($fstUpdatedCurrent RESET))
                )
              )
            )
          )
-         ($else 
-           (let $sndUpdatedCurrent (replaceChildren $fstUpdatedCurrent (findAndReplaceChild $child $updatedChild (getChildren $fstUpdatedCurrent)))
-              ($sndUpdatedCurrent $signal)
-           )
-         )
+         ($else ($fstUpdatedCurrent $signal))
        )
      )
    )
 )
 
 ;; Helper function for itarator
-
-(: applyToChildren (-> Tree (List Tree) Tree))
-(= (applyToChildren $current Nil) $current)
-(= (applyToChildren $current (Cons $x $xs)) 
-    (let $newCurrent (applyOrCut $x $current)
-      (applyToChildren $newCurrent $xs)
-    )
-)
-
 ; iterator function
 (: iterator (-> Tree (List Tree) (List Tree) (Tree ReductionSignal)))
 (= (iterator $current $dominantSet $commandSet)
-  ;; (let () (println! (inside Iterator ))
-   (let* 
+   (let*
      (
        (() (println! (inside Iterator )))
+
        ($previousGuardSet (getGuardSet $current))
        ($handleSet (setUnion treeIsMember $dominantSet (getGuardSet $current)))
      )
-      ;; (let () (println! (Inside Iterator after andSubTreeIterator call fstupdatedcurrent ==> $fstupdatedcurrent))
      (if (not (isConsistent $handleSet))
            ($current DELETE)
-          ;;  (let () (println! (handleSet is $handleSet current is $current)
            (let ($updatedCurrent $signal) (andSubTreeIterator (getChildren $current) $current $handleSet $commandSet 0)
               (if (~= $signal NONE)
                   ($updatedCurrent $signal) 
                   (let*
                     (
-                      (() (println! (The signal is $signal)))
-                      ($sndupdatedcurrent (applyToChildren $updatedCurrent (getChildren $updatedCurrent)))
+                      (() (println! (Inside Iterator after andSubTreeIterator call fstupdatedcurrent ==> $updatedCurrent)))
+                      ;; (() (println! (The signal is $signal)))
+
+                      ($sndupdatedcurrent (applyOrCutToChildren applyOrCut $updatedCurrent (getChildren $updatedCurrent)))
                       ($setsAreIdentical (compareSets $previousGuardSet (getGuardSet $sndupdatedcurrent)))
+
+                      (() (println! (secondUpdatedCurrent is $sndupdatedcurrent setsAreIdentical is $setsAreIdentical)))
                     )
-                    ;; (let () (println! (secondUpdatedCurrent is $sndupdatedcurrent setsAreIdentical is $setsAreIdentical))
                     (if (not $setsAreIdentical) 
                         (iterator $sndupdatedcurrent $dominantSet $commandSet) 
                         ($sndupdatedcurrent NONE)
                     )
-                    ;; )
                   )
               )
            )
-           )
-      ;;  )
      )
-  ;;  )
    )
-;; )
-;; )
+)
 
 ;; A function which is the reimplementation of the orSubTreeIterator function found in python
 (: orSubTreeIterator (-> (List Tree) Tree (List Tree) (List Tree) Number (Tree Signal)))
-(= (orSubTreeIterator $children $currentNode $dominantSet $commandSet $currentChildIndex)
+(= (orSubTreeIterator Nil $currentNode $dominantSet $commandSet $currentChildIndex) ($currentNode NONE))
+(= (orSubTreeIterator (Cons $x $xs) $currentNode $dominantSet $commandSet $currentChildIndex)
    (let*
       (
         (() (println! (Inside orSubTreeIterator)))
+
+        ($children (Cons $x $xs))
         ($child (indexOfTree $currentChildIndex $children))
         ($localCommandSet $commandSet)
         ($localCommandSetUpdated (commandSetIterator $child $children $localCommandSet))
         (($updatedCurrent $signal) (orSubTreeElegance $child $currentNode $dominantSet $localCommandSetUpdated))
+
         (() (println! (Inside orSubTreeIterator After orSubElegance)))
         (() (println! (children ==> $children)))
       )
@@ -294,36 +299,35 @@
 
 ;; A function which is the reimplementation of the andSubTreeIterator function found in python
 (: andSubTreeIterator(-> (List Tree) Tree (List Tree) (List Tree) Number (Tree Signal)))
-(= (andSubTreeIterator $children $currentNode $handleSet $commandSet $currentChildIndex) 
+(= (andSubTreeIterator Nil $currentNode $handleSet $commandSet $currentChildIndex) ($currentNode NONE))
+(= (andSubTreeIterator (Cons $x $xs) $currentNode $handleSet $commandSet $currentChildIndex) 
   (let () (println! (Inside andSubTreeIterator))
-    (if (> (length $children) 0)
-        (let*
-            (
-              (() (println! (Inside If before calling AndSubTreeElegance)))
-              ($currentChild (indexOfTree $currentChildIndex $children))
-              (($updatedCurrent $signal) (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
+       (let*
+          (
+            (() (println! (Inside andSubTreeIterator before calling AndSubTreeElegance)))
 
-              ;; (() (println! (AndSubTreeIterator ==> $currentChildIndex children ==> $children currentNode ==> $currentNode handleSet ==> $handleSet commandSet ==> $commandSet)))
-            )
-            (case $signal
-              (
-                (ADVANCE
-                  (if (< (+ $currentChildIndex 1) (length $children))
-                      (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet (+ $currentChildIndex 1))
-                      ($updatedCurrent NONE)
-                  )
+            ($children (Cons $x $xs))
+            ($currentChild (indexOfTree $currentChildIndex $children))
+            (($updatedCurrent $signal) (andSubTreeElegance $currentChild $currentNode $handleSet $commandSet))
+
+            (() (println! (Inside AndSubTreeIterator After andSubTreeElegance with updatedCurrent ==> $updatedCurrent And Signal $signal)))
+            (() (println! (AndSubTreeIterator ==> $currentChildIndex children ==> $children currentNode ==> $currentNode handleSet ==> $handleSet commandSet ==> $commandSet)))
+          )
+          (case $signal
+            (
+              (ADVANCE
+                (if (< (+ $currentChildIndex 1) (length $children))
+                    (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet (+ $currentChildIndex 1))
+                    ($updatedCurrent NONE)
                 )
-                (RESET
-                  (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet 0) 
-                )
-                ($else ($updatedCurrent $signal))
               )
+              (RESET
+                (andSubTreeIterator $children $updatedCurrent $handleSet $commandSet 0) 
+              )
+              ($else ($updatedCurrent $signal))
             )
-        )
-        (let () (println! (Inside andSubTreeIterator Else))
-          ($currentNode NONE)
-        )
-     )
+          )
+       )
   )
 )
 
@@ -331,10 +335,10 @@
 
 ;; A helper function that acts like a lambda function definition in the map found in the OR case below.
 (: updateGuardSet ((List Tree) Tree Tree))
-(= (updateGuardSet $commonToAllChildren $child) (replaceGuardSet $child (setDifference (getGuardSet $child) $commonToAllChildren)))
+(= (updateGuardSet $commonToAllChildren $child) (replaceGuardSet $child (setDifference  treeIsMember (getGuardSet $child) $commonToAllChildren Nil)))
 
 ;; Map function that accepts a binary function and it's second argument.
-(: mapChild (-> Atom $t (List Tree) (List Tree)))
+(: mapChild (-> $f (List Tree) (List Tree) (List Tree)))
 (= (mapChild $function $secondArg Nil) Nil)
 (= (mapChild $function $secondArg (Cons $x $xs))
       (Cons ($function $secondArg $x) (mapChild $function $secondArg $xs))

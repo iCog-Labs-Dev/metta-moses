@@ -81,7 +81,7 @@ j; !(intersect (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Ni
 
 ;; !(treeIsMember (buildTree D) (getChildren (buildTree (AND A D))))
 
-;; !(treeIntersection (getChildren (buildTree (AND A B))) (getChildren (buildTree (AND D E))))
+;; !(setIntersection treeIsMember (getChildren (buildTree (AND A B))) (getChildren (buildTree (AND D E))))
 
 ;; !(compareTrees (buildTree (OR a (AND b c))) (buildTree (AND d (AND b c))))
 
@@ -150,19 +150,19 @@ j; !(intersect (Cons a (Cons b (Cons c Nil))) (Cons c (Cons d (Cons e (Cons f Ni
 
 ;; !(prependChild (TreeNode (Value D False LITERAL) Nil Nil)  (TreeNode (Value K False LITERAL) Nil Nil) )
 
-;;!(applyToChildren 
+;;!(applyOrCutToChildren 
 ;;   (TreeNode (Value D False LITERAL) Nil Nil) 
 ;;   (Cons (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
 ;; )
-;; !(applyToChildren (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
+;; !(applyOrCutToChildren (TreeNode (Value Nil False OR) Nil (Cons (TreeNode (Value D False LITERAL) Nil Nil) Nil)) Nil)
 
 
-;; !(findAndReplaceChild 
+;; !(findAndReplace
 ;;   (TreeNode (Value A False LITERAL) Nil Nil) 
 ;;   (TreeNode (Value B True LITERAL) Nil Nil) 
 ;;   (Cons (TreeNode (Value A False LITERAL) Nil Nil) (Cons (TreeNode (Value X False LITERAL) Nil Nil) Nil))
 ;;  )
-;; !(findAndReplaceChild 
+;; !(findAndReplace
 ;;  (TreeNode (Value B True LITERAL) Nil Nil) 
 ;;  (TreeNode (Value A False LITERAL) Nil Nil) 
 ;;  (Cons (TreeNode (Value B True LITERAL) Nil Nil) (Cons (TreeNode (Value X False LITERAL) Nil Nil) Nil))

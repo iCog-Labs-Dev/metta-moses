@@ -11,11 +11,11 @@
 ! (import! &self metta-moses-reduction:enf-reducer:reduct)
 ! (import! &self metta-moses-reduction:enf-reducer:gather-junctors)
 
-;Test treeIntersection function
+;Test setIntersection function
 
 ; Test 01 - Test intersection with no common elements
 !(assertEqual 
-   (treeIntersection 
+   (setIntersection treeIsMember 
      (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode ( Value B True LITERAL) Nil Nil) Nil) ) 
      (Cons (TreeNode ( Value C True LITERAL) Nil Nil) (Cons (TreeNode ( Value D True LITERAL) Nil Nil) Nil))
    ) 
@@ -24,7 +24,7 @@
 
 ; Test 02 - Test intersection with common elements
 !(assertEqual 
-   (treeIntersection 
+   (setIntersection treeIsMember 
      (Cons (TreeNode (Value A True LITERAL) Nil Nil) (Cons (TreeNode ( Value B True LITERAL) Nil Nil) Nil) )
      (Cons (TreeNode ( Value A True LITERAL) Nil Nil) (Cons (TreeNode ( Value D True LITERAL) Nil Nil) Nil))
    ) 
@@ -32,11 +32,11 @@
  )
 
 ; Test 03 - Test intersection with empty lists
-! (assertEqual (treeIntersection Nil Nil) Nil)
+! (assertEqual (setIntersection treeIsMember Nil Nil) Nil)
 
 ; Test 04 -  Test intersection with one empty list
 ! (assertEqual 
-    (treeIntersection 
+    (setIntersection treeIsMember 
       (Cons (TreeNode ( Value A True LITERAL) Nil Nil) (Cons (TreeNode ( Value B True LITERAL) Nil Nil) Nil))
       Nil
     )
