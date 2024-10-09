@@ -1,23 +1,23 @@
-! (register-module! ../../../metta-moses-reduction)
+! (register-module! ../../../../metta-moses-reduction)
 
 ! (import! &self metta-moses-reduction:utilities:general-helpers)
-! (import! &self metta-moses-reduction:enf-reducer:rte-helpers)
+! (import! &self metta-moses-reduction:reduct:boolean-reduct:rte-helpers)
 
-; Test for getGuardSetExp
+;; Test for getGuardSetExp
 
-;Test 01 - getGuardSet of an empty set
+;; Test 01 - getGuardSet of an empty set
 ! (assertEqualToResult (getGuardSetExp () () ()) (()))
 
-;Test 02 - getGuardSet of a literal
+;; Test 02 - getGuardSet of a literal
 ! (assertEqualToResult (getGuardSetExp A A ()) ((A)))
 ! (assertEqualToResult (getGuardSetExp (A) (A) ()) ((A)))
 
-;Test 02 - getGuardSet of OR and NOT expressions 
+;; Test 02 - getGuardSet of OR and NOT expressions
 ! (assertEqualToResult (getGuardSetExp (OR) (OR) ()) (()))
 ! (assertEqualToResult (getGuardSetExp (OR A B (NOT A)) (OR A B (NOT A)) ()) (()))
 ! (assertEqualToResult (getGuardSetExp (OR (AND A B) (AND A B) (NOT A)) (OR (AND A B) (AND A B) (NOT A)) ()) (()))
 
-;Test 03 - getGuardSet of AND expressions
+;; Test 03 - getGuardSet of AND expressions
 ! (assertEqualToResult (getGuardSetExp (AND) (AND) ()) (()))
 ! (assertEqualToResult (getGuardSetExp (AND A) (AND A) ()) ((A)))
 ! (assertEqualToResult (getGuardSetExp (AND (NOT A) (NOT B) A) (AND (NOT A) (NOT B) A) ()) ((A (NOT B) (NOT A))))
@@ -27,7 +27,7 @@
 ! (assertEqualToResult (getGuardSetExp (AND A (NOT A) (NOT B)) (AND A (NOT A) (NOT B)) ()) (((NOT B) (NOT A) A)))
 ! (assertEqualToResult (getGuardSetExp (AND (NOT A) A B) (AND (NOT A) A B) ()) ((B A (NOT A))))
 
-;Test for isConsistentExp 
+;; Test for isConsistentExp
  ! (assertEqualToResult (isConsistentExp ()) (True))
  ! (assertEqualToResult (isConsistentExp A) (True))
  ! (assertEqualToResult (isConsistentExp (A)) (True))
