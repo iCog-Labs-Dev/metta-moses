@@ -1,5 +1,5 @@
  ! (register-module! ../../../metta-moses-reduction)
-! (import! &self metta-moses-reduction:types) 
+
 ! (import! &self metta-moses-reduction:utilities:general-helper-functions)
 ! (import! &self metta-moses-reduction:enf-reducer:n-ary-gather-junctors)
 

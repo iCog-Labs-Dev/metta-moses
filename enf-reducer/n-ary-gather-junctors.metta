@@ -46,8 +46,3 @@
 
  
 (= (gatherJunctors $expr) (nary-gather-junctors $expr ()))
-
-
-
-
-!(gatherJunctors (AND A (AND B (OR C (OR D (AND E (AND F G)))))))
