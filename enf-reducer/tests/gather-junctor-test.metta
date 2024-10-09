@@ -1,6 +1,6 @@
 ! (register-module! ../../../metta-moses-reduction)
 
-! (import! &self metta-moses-reduction:utilities:general-helper-functions)
+! (import! &self metta-moses-reduction:utilities:general-helpers)
 ! (import! &self metta-moses-reduction:enf-reducer:gather-junctors)
 
 ;; Test 01

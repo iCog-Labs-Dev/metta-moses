@@ -1,14 +1,4 @@
 ! (register-module! ../../../metta-moses-reduction)
-! (import! &self metta-moses-reduction:types) 
-! (import! &self metta-moses-reduction:utilities:list-helpers)
-! (import! &self metta-moses-reduction:utilities:tree-helpers)
-! (import! &self metta-moses-reduction:enf-reducer:rte-helpers)
-! (import! &self metta-moses-reduction:enf-reducer:propagate-truth-value)
-! (import! &self metta-moses-reduction:enf-reducer:reduce-to-elegance)
-
-! (import! &self metta-moses-reduction:enf-reducer:post-processing)
-! (import! &self metta-moses-reduction:enf-reducer:reduct)
-! (import! &self metta-moses-reduction:enf-reducer:gather-junctors)
 
 ! (import! &self metta-moses-reduction:enf-reducer:propagate-not)
 
