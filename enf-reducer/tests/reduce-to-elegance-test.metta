@@ -228,6 +228,13 @@
  )
 
 
+;; RTE Transformation test cases
+
+;; Test 01: Delete inconsistent handle
+
+;; input expression:  (AND A (OR (AND (NOT A) B C) B))
+;; output expression: (AND A (OR B))
+
 ;; Test 04: Test case from Mosh's paper. Page 37
 ;;
 ;; !(reduceToElegance
