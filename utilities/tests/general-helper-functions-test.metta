@@ -1,5 +1,6 @@
 ! (register-module! ../../../metta-moses-reduction)
-! (import! &self metta-moses-reduction:utilities:general-helper-functions)
+
+! (import! &self metta-moses-reduction:utilities:general-helpers)
 
 !(assertEqualToResult (~= 1 2) (True))
 !(assertEqualToResult (~= 1 1) (False))
