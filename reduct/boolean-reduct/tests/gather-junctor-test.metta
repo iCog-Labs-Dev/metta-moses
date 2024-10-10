@@ -1,7 +1,7 @@
- ! (register-module! ../../../metta-moses-reduction)
-! (import! &self metta-moses-reduction:types) 
-! (import! &self metta-moses-reduction:utilities:general-helper-functions)
-! (import! &self metta-moses-reduction:enf-reducer:gather-junctors)
+! (register-module! ../../../../metta-moses-reduction)
+
+! (import! &self metta-moses-reduction:utilities:general-helpers)
+! (import! &self metta-moses-reduction:reduct:boolean-reduct:gather-junctors)
 
 ;; Test 01
 !(assertEqual
@@ -98,16 +98,16 @@
                  (OR (NOT A) B))
 
 ;; Test 17 
-! (assertEqual (gatherJunctors (OR (NOT A) (OR B (OR (NOT C) D))) ()) 
+! (assertEqual (gatherJunctors (OR (NOT A) (OR B (OR (NOT C) D))) ())
                   (OR (NOT A) B (NOT C) D) )
 ;; Test 18
-! (assertEqual (gatherJunctors (AND (OR (OR C D) (NOT B)) (NOT A)) ()) 
+! (assertEqual (gatherJunctors (AND (OR (OR C D) (NOT B)) (NOT A)) ())
                  (AND (OR C D (NOT B)) (NOT A)))
 
 ;; Test 19
-! (assertEqual (gatherJunctors (AND (AND (OR C (NOT D)) (NOT B)) A) ()) 
+! (assertEqual (gatherJunctors (AND (AND (OR C (NOT D)) (NOT B)) A) ())
                  (AND (OR C (NOT D)) (NOT B) A))
 
 ;; Test 20
-! (assertEqual (gatherJunctors (AND (NOT A) (AND B (OR C (OR (NOT D) (AND E (AND F (NOT G))))))) ()) 
+! (assertEqual (gatherJunctors (AND (NOT A) (AND B (OR C (OR (NOT D) (AND E (AND F (NOT G))))))) ())
                  (AND (NOT A) B (OR C (NOT D) (AND E F (NOT G)))) )
