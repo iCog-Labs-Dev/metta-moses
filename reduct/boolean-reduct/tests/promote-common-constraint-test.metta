@@ -1,8 +1,8 @@
-! (register-module! ../../../../metta-moses-reduction) 
+! (register-module! ../../../../metta-moses) 
 
-! (import! &self metta-moses-reduction:utilities:general-helpers)
-! (import! &self metta-moses-reduction:reduct:boolean-reduct:rte-helpers)
-! (import! &self metta-moses-reduction:reduct:boolean-reduct:promote-common-constraints)
+! (import! &self metta-moses:utilities:general-helpers)
+! (import! &self metta-moses:reduct:boolean-reduct:rte-helpers)
+! (import! &self metta-moses:reduct:boolean-reduct:promote-common-constraints)
 
 
 ;; Test 01
