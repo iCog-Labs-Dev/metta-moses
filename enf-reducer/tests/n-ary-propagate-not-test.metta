@@ -1,7 +1,11 @@
 ! (register-module! ../../../metta-moses-reduction)
 ! (import! &self metta-moses-reduction:enf-reducer:n-ary-propagate-not)
 
-! (assertEqual
+!(assertEqual 
+  (propagateNot (AND (NOT (OR A B)) (NOT (AND C D E)) (OR A B) A B))
+  (AND (AND (NOT A) (NOT B)) (OR (NOT C) (NOT D) (NOT E)) (OR A B) A B)
+)
+!(assertEqual
     (propagateNot (AND (OR (AND G F E) D C) B A))
     (AND (OR (AND G F E) D C) B A)
 )
