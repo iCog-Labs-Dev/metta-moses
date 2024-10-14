@@ -16,3 +16,9 @@
 ; tests for the function 'isMember'
 ! (assertEqualToResult (isMember 1 (1 2 3)) (True))
 ! (assertEqualToResult (isMember 8 (1 2 3)) (False))
+
+; tests for the function 'concatTuple'
+!(assertEqualToResult (concatTuple () (3 4)) ((3 4)))
+!(assertEqualToResult (concatTuple (1 2) (3 4)) ((1 2 3 4)))
+!(assertEqualToResult (concatTuple (1 2) ()) ((1 2)))
+!(assertEqualToResult (concatTuple () ()) (()))
