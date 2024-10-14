@@ -22,5 +22,11 @@
     (orCut (OR (AND A (OR A (NOT B)))))
     (((A) (A (OR A (NOT B)))))
 )
-
-
+!(assertEqualToResult
+    (orCut (AND (AND A (OR A (NOT B)))))
+    ((AND (AND A (OR A (NOT B)))))
+)
+!(assertEqualToResult
+    (orCut (NOT (AND A (OR A (NOT B)))))
+    ((NOT (AND A (OR A (NOT B)))))
+)
