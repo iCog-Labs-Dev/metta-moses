@@ -25,16 +25,6 @@
 
 ; a helper function to the isConsistentExp function.
 ; a function which checks if an element is member of a tuple.
-(= (isMember $x $tuple)
-    (if (== $tuple ()) False
-        (let*
-            (
-                ($head (car-atom $tuple))
-                ($tail (cdr-atom $tuple))
-            )
-        (
-            if (== $x $head) True (isMember $x $tail)
-        )
-)
-)
+(= (isMember $x $list)
+    (not (== (collapse (intersection (superpose ($x)) (superpose $list))) ()))
 )
