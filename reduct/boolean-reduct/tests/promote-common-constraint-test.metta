@@ -34,3 +34,62 @@
     (promoteCommonConstraints (OR (NOT N) (AND N O) (AND N P) (AND M Q)))
     (() (OR (NOT N) (AND N O) (AND N P) (AND M Q)))
 )
+
+;;remove element Test
+;; Test 01
+!(assertEqualToResult 
+  (removeElement (A B) (A C B H))
+  ((C H))
+ )
+
+ ;; Test 02
+ !(assertEqualToResult 
+  (removeElement (A) (A C B H))
+  ((C B H))
+ )
+
+ ;; Test 03
+  !(assertEqualToResult 
+  (removeElement () (A C B H))
+  ((A C B H))
+ )
+
+ ;; Test 04
+  !(assertEqualToResult 
+  (removeElement (A B) (C  H))
+  ((C H))
+ )
+
+;; Test 05
+!(assertEqualToResult 
+  (removeElement (A B) ())
+  (())
+ )
+
+;; test removeCommonLiterals
+;; Test 01
+!(assertEqualToResult
+   (removeCommonLiterals (A B) ((A C B H) (A B D) (A C F B)))
+   (((C H) (D) (C F)))
+ )
+
+;; Test 02
+!(assertEqualToResult
+  (removeCommonLiterals (A) ((A C B H) (A B D) (A C F B)))
+  (((C B H) (B D) (C F B)))
+)
+;; Test 03
+!(assertEqualToResult
+   (removeCommonLiterals () ((A C B H) (A B D) (A C F B)))
+   (((A C B H) (A B D) (A C F B)))
+)
+;; Test 04
+!(assertEqualToResult
+ (removeCommonLiterals (A B) ((C H) ( B D) (A C F B)))
+ (((C H) (D) (C F )))
+)
+;; Test 05
+!(assertEqualToResult
+  (removeCommonLiterals (A B) ())
+  (())
+)
