@@ -35,20 +35,13 @@
 )
 
 ;a function to remove common literals from a nested tuple
-(= (removeCommonLiterals $common $children)
-    (if (== $children ()) 
-        ()  
-        (let* 
-            (
-                ($head (car-atom $children))  
-                ($tail (cdr-atom $children))  
-                ($filteredChild (removeElement $common $head)) 
-                ($newTail (removeCommonLiterals $common $tail))  
-            )
-            (cons-atom $filteredChild $newTail)  
-        )
-    )
+(= (removeCommonLiterals $common $tuple)
+   ( if (== $tuple ())
+        ()
+        (collapse (removeElement $common (superpose $tuple)))
+   )
 )
+
 ;a function to remove a common element from a tuple
 (= (removeElement $common $tuple) 
    (collapse (subtraction (superpose $tuple)  (superpose $common)))

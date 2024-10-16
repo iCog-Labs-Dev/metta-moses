@@ -65,3 +65,31 @@
   (removeElement (A B) ())
   (())
  )
+
+;; test removeCommonLiterals
+;; Test 01
+!(assertEqualToResult
+   (removeCommonLiterals (A B) ((A C B H) (A B D) (A C F B)))
+   (((C H) (D) (C F)))
+ )
+
+;; Test 02
+!(assertEqualToResult
+  (removeCommonLiterals (A) ((A C B H) (A B D) (A C F B)))
+  (((C B H) (B D) (C F B)))
+)
+;; Test 03
+!(assertEqualToResult
+   (removeCommonLiterals () ((A C B H) (A B D) (A C F B)))
+   (((A C B H) (A B D) (A C F B)))
+)
+;; Test 04
+!(assertEqualToResult
+ (removeCommonLiterals (A B) ((C H) ( B D) (A C F B)))
+ (((C H) (D) (C F )))
+)
+;; Test 05
+!(assertEqualToResult
+  (removeCommonLiterals (A B) ())
+  (())
+)
