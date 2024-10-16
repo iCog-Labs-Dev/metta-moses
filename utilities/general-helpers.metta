@@ -62,11 +62,10 @@
         )
             ; Check if the $head is in set2, if so, skip it
 
-            (if (and (isMember $head $set2) (not (== (get-metatype $head) Expression)) )
+            (if (isMember $head $set2)
                 $newtail 
                 ; Otherwise, add the head to the new tail, avoiding unnecessary parentheses
-                (if (and (== (car-atom $head) NOT) (isMember $head $set2) ) $newtail
-                    (cons-atom $head $newtail))  ; Avoid wrapping the head if it's already properly structured
+                (if (== (get-metatype $newtail) Expression) (cons-atom $head $newtail) $head)  ; Avoid wrapping the head if it's already properly structured
             )
         )
     )
