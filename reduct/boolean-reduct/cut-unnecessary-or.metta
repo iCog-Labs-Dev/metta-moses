@@ -15,10 +15,8 @@
         (
             (AND $exp)
             (NOT $exp)
-            (OR (if (== $restChildren ()) ((getGuardSetExp $child $child ()) $grandChildren) 
-            $exp))
+            (OR (if (== $restChildren ()) $grandChildren $exp))
         )
         )           
     )
 )
-
