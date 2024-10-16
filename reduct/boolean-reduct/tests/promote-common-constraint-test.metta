@@ -34,3 +34,34 @@
     (promoteCommonConstraints (OR (NOT N) (AND N O) (AND N P) (AND M Q)))
     (() (OR (NOT N) (AND N O) (AND N P) (AND M Q)))
 )
+
+;;remove element Test
+;; Test 01
+!(assertEqualToResult 
+  (removeElement (A B) (A C B H))
+  ((C H))
+ )
+
+ ;; Test 02
+ !(assertEqualToResult 
+  (removeElement (A) (A C B H))
+  ((C B H))
+ )
+
+ ;; Test 03
+  !(assertEqualToResult 
+  (removeElement () (A C B H))
+  ((A C B H))
+ )
+
+ ;; Test 04
+  !(assertEqualToResult 
+  (removeElement (A B) (C  H))
+  ((C H))
+ )
+
+;; Test 05
+!(assertEqualToResult 
+  (removeElement (A B) ())
+  (())
+ )

@@ -50,19 +50,6 @@
     )
 )
 ;a function to remove a common element from a tuple
-(= (removeElement $common $child)
-    (if (== $child ()) 
-        ()  
-        (let* 
-            (
-                ($head (car-atom $child))  
-                ($tail (cdr-atom $child))  
-                ($newTail (removeElement $common $tail))  
-            )
-            (if (isMember $head $common)
-                $newTail  
-                (cons-atom $head $newTail)  
-            )
-        )
-    )
+(= (removeElement $common $tuple) 
+   (collapse (subtraction (superpose $tuple)  (superpose $common)))
 )
