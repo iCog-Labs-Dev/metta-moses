@@ -145,6 +145,11 @@
 )
 )
 
+ ;; Partial function that is used with the getGuardSetExpression
+ ;; It checks if an element in an expression can be a guardset or not
+ ;; example (NOT A) is guard set and will be returned
+ ;; example A is guard set and will be returned
+ ;; example (AND A B) is not guard set and will not be returned
 ( = (isGuard $exp) (let*
         (
             ($type (get-metatype $exp))
@@ -160,6 +165,9 @@
 )
 )
 
+ ; getGuardSetExpression that takes an expression and returns it's guard sets
+ ; uses the partial function isGuard to map over every element in the expression
+ ;; example (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 ( = (getGuardSetExpression $exp) (if (== $exp ()) ()
         (if (== (get-metatype $exp) Expression) (let*
                 (
