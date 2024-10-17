@@ -35,21 +35,30 @@
     )
 )
 
-;a function to check whether an n-ary expression is consistent or not.
+;function to check consistency of  an expression
 (= (isConsistentExp $exp)
-(let $guardSetTuple (getGuardSetExp $exp $exp ()) 
-(if (== $guardSetTuple ()) True
-        (let*
-            (
-                ($head (car-atom $guardSetTuple))
-                ($tail (cdr-atom $guardSetTuple))
-            )
-        (if (isMember (Not $head) $tail) False
-            (isConsistentExp $tail)
-        ))
-)
-)   
-)
+   (let $guardSetTuple (getGuardSetExp $exp $exp ())
+      (if (== $guardSetTuple ()) True
+          (check-negations (collapse ((superpose $guardSetTuple) (superpose $guardSetTuple))))
+             )))
+
+;function to check negation pairs to check each pair in a list of a tuple
+(= (negation-pair $a $b)
+   (or (== $a (NOT $b)) (== $b (NOT $a))))
+
+;function  to recurse through the list of the tuple to check each pair
+(= (check-negations $pairList)
+   (if (== $pairList ()) 
+       True
+       (let* (
+        ($pair (car-atom $pairList))     
+        ($first (car-atom $pair))        
+        ($second (cdr-atom $pair))  
+        ($realsecond (car-atom $second))          
+        ($pairtail (cdr-atom $pairList))) 
+          (if (negation-pair $first $realsecond)
+              False                      
+              (check-negations $pairtail))))) 
 
 ;a helper function to the zeroConstraintSubsume function
 ;a function which checks if an Expression (a representation of a node) has a child or not
