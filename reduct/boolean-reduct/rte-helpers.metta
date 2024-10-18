@@ -1,4 +1,4 @@
-; a function to get the guardset of an n-ary expression as a tuple. 
+; a function to get the guardset of an n-ary expression as a tuple.
 (= (getGuardSetExp $expr)
     (if (== $expr ())
         ()
