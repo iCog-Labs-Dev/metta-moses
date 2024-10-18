@@ -19,7 +19,7 @@
 
 ;a function to check whether an n-ary expression is consistent or not.
 (= (isConsistentExp $exp)
-(let $guardSetTuple (getGuardSetExp $exp $exp ()) 
+(let $guardSetTuple (getGuardSetExp $exp) 
 (if (== $guardSetTuple ()) True
         (let*
             (
