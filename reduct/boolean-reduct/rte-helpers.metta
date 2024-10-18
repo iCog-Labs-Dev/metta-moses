@@ -6,11 +6,13 @@
             ()
             (collapse (let* (($tail (cdr-atom $expr))
                             ($x (superpose $tail)))
-                                (if (== (get-metatype $x) Symbol)
-                                    $x 
-                                    (if (== (car-atom $x) NOT)
-                                        $x
-                                        (empty)))
+                            (if (== (get-metatype $x) Symbol)
+                                $x 
+                                (if (== (car-atom $x) NOT)
+                                    $x
+                                    (empty)
+                                )
+                            )
                     ) 
             )  
         )
