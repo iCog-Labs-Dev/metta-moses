@@ -4,7 +4,6 @@
 (= (~= $a $b) (not (== $a $b)))
 
 ;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
-(: concatTuple (-> Expression Expression Expression))
 (= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y)))) 
 
 ; a helper function to the isConsistentExp function.
