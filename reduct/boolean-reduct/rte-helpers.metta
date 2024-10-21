@@ -36,19 +36,26 @@
 )
 
 ;a function to check whether an n-ary expression is consistent or not.
+;If any negation pairs are found (via areNegations), the function returns False, indicating inconsistency.
+
+(= (areNegations ($a $b))
+    (or (unify $a (NOT $b) True False)
+        (unify $b (NOT $a) True False)))
+
 (= (isConsistentExp $exp)
-(let $guardSetTuple (getGuardSetExp $exp $exp ()) 
-(if (== $guardSetTuple ()) True
-        (let*
-            (
-                ($head (car-atom $guardSetTuple))
-                ($tail (cdr-atom $guardSetTuple))
+    (let $guardSet (getGuardSetExp $exp $exp ())
+        (if (== $guardSet ()) 
+            True 
+            (let* (
+                ($pairs (collapse ((superpose $guardSet) (superpose $guardSet))))
+                ($result (collapse (areNegations (superpose $pairs))))
             )
-        (if (isMember (Not $head) $tail) False
-            (isConsistentExp $tail)
-        ))
-)
-)   
+            (if (isMember True $result)
+                False
+                True
+            ))
+        )
+    )
 )
 
 ;a helper function to the zeroConstraintSubsume function
