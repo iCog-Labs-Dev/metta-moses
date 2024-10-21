@@ -47,3 +47,26 @@
 )
 )
 )
+
+; This function assumes it receives a set1 and set2 expression as parameters. 
+; It then removes similar elements found in set2 that already exist in set1.
+; The function uses isMember from general helpers functions.
+
+(: setDifference (-> Expression Expression Expression))
+(= (setDifference $set1 $set2) 
+    (if (== $set1 ()) () ; Base case: return empty set when $set1 is empty
+        (let* (
+            ($head (car-atom $set1))  ; Extract the head of set1
+            ($tail (cdr-atom $set1))  ; Extract the tail of set1
+            ($newtail (setDifference $tail $set2))  ; Recursively process the tail
+        )
+            ; Check if the $head is in set2, if so, skip it
+
+            (if (isMember $head $set2)
+                $newtail 
+                ; Otherwise, add the head to the new tail, avoiding unnecessary parentheses
+                (if (== (get-metatype $newtail) Expression) (cons-atom $head $newtail) $head)  ; Avoid wrapping the head if it's already properly structured
+            )
+        )
+    )
+)
