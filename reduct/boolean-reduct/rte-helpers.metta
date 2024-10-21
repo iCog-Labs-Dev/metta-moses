@@ -1,43 +1,41 @@
- ; a function to get the guardset of an n-ary expression as a tuple.
-(= (getGuardSetExp $expOriginal $expRecursive $acc)
-    (if (== (get-metatype $expOriginal) Symbol) ($expOriginal) ;if $exp is LITERAL, the guardSet is the set containing the literal itself
-        (if (== $expRecursive ()) $acc
-            (let*
-                (
-                    ($head (car-atom $expRecursive))
-                    ($headIsExpression (== (get-metatype $head) Expression))
-                    ($tail (cdr-atom $expRecursive))
-                    ($tailIsExpression (== (get-metatype $tail) Expression))
-                )
-            (if (== $head NOT)
-                (case $expOriginal
-                    (
-                        ( (NOT $b) (if (== (get-metatype $b) Symbol) $expOriginal ())) ;If the head of the expression is NOT, $b should only be a literal for it to have a guardSet of (NOT $b). If $b is an expression, the guardSet is ()
-                    )
-            )
-        (if (== $head OR) () ;an OR expression doesn't have a guardSet
-            (if (== $head AND) ; an AND expression has a guardSet which contains its literal and (NOT $literal) children
-                (getGuardSetExp $expOriginal $tail $acc)
-                (if $headIsExpression
-                    (case $head
-                        (
-                            ( (NOT $a) (getGuardSetExp $expOriginal $tail (cons-atom $head $acc)))
-                            ($else (getGuardSetExp $expOriginal $tail $acc))
-                        )
-                )
-            (getGuardSetExp $expOriginal $tail (cons-atom $head $acc))
-        )
-)
-)
-)
-)
+ ;; Partial function that is used with the getGuardSetExp
+ ;; It checks if an element in an expression can be a guardset or not
+ ;; example (NOT A) is guard set and will be returned
+ ;; example A is guard set and will be returned
+ ;; example (AND A B) is not guard set and will not be returned
+( = (isGuard $exp) (let*
+        (
+            ($type (get-metatype $exp))
+        ) (if (== $type Symbol)
+        (if (or (== AND $exp) (== OR $exp))
+            (empty)
+            $exp
+        ) (if (== (car-atom $exp) NOT)
+        $exp
+        (empty)
+    )
 )
 )
 )
 
+ ; getGuardSetExp that takes an expression and returns it's guard sets
+ ; uses the partial function isGuard to map over every element in the expression
+ ;; example (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
+( = (getGuardSetExp $exp) (if (== $exp ()) ()
+        (if (== (get-metatype $exp) Expression) (let*
+                (
+                    ($head (car-atom $exp))
+                ) (if (== $head OR)
+                ()
+                (collapse ( isGuard (superpose $exp))))
+        )
+    (collapse ( isGuard (superpose ($exp))))
+))
+)
+
  ;a function to check whether an n-ary expression is consistent or not.
 (= (isConsistentExp $exp)
-    (let $guardSetTuple (getGuardSetExpression $exp)
+    (let $guardSetTuple (getGuardSetExp $exp)
         (if (== $guardSetTuple ()) True
             (let*
                 (
@@ -143,39 +141,4 @@
     )
 )
 )
-)
-
- ;; Partial function that is used with the getGuardSetExpression
- ;; It checks if an element in an expression can be a guardset or not
- ;; example (NOT A) is guard set and will be returned
- ;; example A is guard set and will be returned
- ;; example (AND A B) is not guard set and will not be returned
-( = (isGuard $exp) (let*
-        (
-            ($type (get-metatype $exp))
-        ) (if (== $type Symbol)
-        (if (or (== AND $exp) (== OR $exp))
-            (empty)
-            $exp
-        ) (if (== (car-atom $exp) NOT)
-        $exp
-        (empty)
-    )
-)
-)
-)
-
- ; getGuardSetExpression that takes an expression and returns it's guard sets
- ; uses the partial function isGuard to map over every element in the expression
- ;; example (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
-( = (getGuardSetExpression $exp) (if (== $exp ()) ()
-        (if (== (get-metatype $exp) Expression) (let*
-                (
-                    ($head (car-atom $exp))
-                ) (if (== $head OR)
-                ()
-                (collapse ( isGuard (superpose $exp))))
-        )
-    (collapse ( isGuard (superpose ($exp))))
-))
 )
