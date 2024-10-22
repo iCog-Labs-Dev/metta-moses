@@ -1,25 +1,27 @@
  ;; Partial function that is used with the getGuardSetExp
  ;; It checks if an element in an expression can be a guardset or not
+ ;; returns empty if it isn't, returns the value itself if it's a guardset
  ;; example (NOT A) is guard set and will be returned
  ;; example A is guard set and will be returned
  ;; example (AND A B) is not guard set and will not be returned
-( = (isGuard $exp) (let*
-        (
-            ($type (get-metatype $exp))
-        ) (if (== $type Symbol)
-        (if (or (== AND $exp) (== OR $exp))
-            (empty)
+
+( = (ifGuard $exp) (let
+        $type
+        (get-metatype $exp)
+        (if (== $type Symbol)
+            (if (or (== AND $exp) (== OR $exp))
+                (empty)
+                $exp
+            ) (if (== (car-atom $exp) NOT)
             $exp
-        ) (if (== (car-atom $exp) NOT)
-        $exp
-        (empty)
-    )
+            (empty)
+        )
 )
 )
 )
 
  ; getGuardSetExp that takes an expression and returns it's guard sets
- ; uses the partial function isGuard to map over every element in the expression
+ ; uses the partial function ifGuard to map over every element in the expression
  ;; example (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 ( = (getGuardSetExp $exp) (if (== $exp ()) ()
         (if (== (get-metatype $exp) Expression) (let*
@@ -27,13 +29,13 @@
                     ($head (car-atom $exp))
                 ) (if (== $head OR)
                 ()
-                (collapse ( isGuard (superpose $exp))))
+                (collapse ( ifGuard (superpose $exp))))
         )
-    (collapse ( isGuard (superpose ($exp))))
+    (collapse ( ifGuard (superpose ($exp))))
 ))
 )
 
-;If any negation pairs are found (via areNegations), the function returns False, indicating inconsistency.
+ ;If any negation pairs are found (via areNegations), the function returns False, indicating inconsistency.
 (= (areNegations ($a $b))
     (if (== $a (NOT $b))
         True
@@ -41,24 +43,24 @@
             True
             False
         )
-    )
+)
 )
 
-;a function to check whether an n-ary expression is consistent or not.
+ ;a function to check whether an n-ary expression is consistent or not.
 (= (isConsistentExp $exp)
-    (let $guardSet (getGuardSetExp $exp $exp ())
-        (if (== $guardSet ()) 
-            True 
+    (let $guardSet (getGuardSetExp $exp)
+        (if (== $guardSet ())
+            True
             (let* (
-                ($pairs (collapse ((superpose $guardSet) (superpose $guardSet))))
-                ($result (collapse (areNegations (superpose $pairs))))
-            )
+                    ($pairs (collapse ( (superpose $guardSet) (superpose $guardSet))))
+                    ($result (collapse (areNegations (superpose $pairs))))
+                )
             (if (isMember True $result)
                 False
                 True
             ))
-        )
-    )
+)
+)
 )
 
  ;a helper function to the zeroConstraintSubsume function
