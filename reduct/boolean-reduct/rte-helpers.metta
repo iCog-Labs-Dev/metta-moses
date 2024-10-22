@@ -35,13 +35,13 @@
     )
 )
 
-;a function to check whether an n-ary expression is consistent or not.
 ;If any negation pairs are found (via areNegations), the function returns False, indicating inconsistency.
 
 (= (areNegations ($a $b))
     (or (unify $a (NOT $b) True False)
         (unify $b (NOT $a) True False)))
 
+;a function to check whether an n-ary expression is consistent or not.
 (= (isConsistentExp $exp)
     (let $guardSet (getGuardSetExp $exp $exp ())
         (if (== $guardSet ()) 
