@@ -46,3 +46,42 @@
  ! (assertEqualToResult (nodeHasChildExp A) (False))
  ! (assertEqualToResult (nodeHasChildExp (AND)) (False))
  ! (assertEqualToResult (nodeHasChildExp AND) (False))
+
+
+; Test cases for getGsetAndChildren function.
+
+; Test case 1: Simple AND expression
+; Input: (AND A B (OR A B) C)
+; Expected Output: ((A B C) ((OR A B)))
+(= (testGetGsetAndChildrenCase1)
+    (let* 
+        (
+            ($expr (AND A B (OR A B) C))
+            ($expectedGuardSets (A B C))
+            ($expectedChildren ((OR A B)))
+            ($result (getGsetAndChildren $expr))
+        )
+        (if (== $result (tuple $expectedGuardSets $expectedChildren))  ; Use tuple for comparison
+            "Test Case 1 Passed"
+            (str "Test Case 1 Failed: Expected " (tuple $expectedGuardSets $expectedChildren) " but got " $result)
+        )
+    )
+)
+
+; Test case 2: Simple OR expression
+; Input: (OR A B (AND A B) C)
+; Expected Output: ((A B C) ((AND A B)))
+(= (testGetGsetAndChildrenCase2)
+    (let* 
+        (
+            ($expr (OR A B (AND A B) C))
+            ($expectedGuardSets (A B C))
+            ($expectedChildren ((AND A B)))
+            ($result (getGsetAndChildren $expr))
+        )
+        (if (== $result (tuple $expectedGuardSets $expectedChildren))  ; Use tuple for comparison
+            "Test Case 2 Passed"
+            (str "Test Case 2 Failed: Expected " (tuple $expectedGuardSets $expectedChildren) " but got " $result)
+        )
+    )
+)
