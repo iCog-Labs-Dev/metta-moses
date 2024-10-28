@@ -51,3 +51,9 @@
         )
     )
 )
+
+(= (replace $old $new $current) (if (== $old $current) $new $current))
+
+(= (findAndReplace $old $new $list)
+    (collapse (replace $old $new (superpose $list)))
+)
