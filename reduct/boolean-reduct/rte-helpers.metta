@@ -5,7 +5,7 @@
  ;; example A is guard set and will be returned
  ;; example (AND A B) is not guard set and will not be returned
 
-(= (ifGuard $exp)
+(= (filterGuard $exp)
         (if (== (get-metatype $exp) Symbol)
             (if (or (== $exp AND) (== $exp OR))
                 (empty)
@@ -14,8 +14,17 @@
                 $exp
                 (empty))))
 
+;; Partial function used to filter and keep only children of an expression.
+;; A child of an expression is a subexpression that isn't a Symbol.
+(= (filterChildren $exp)
+        (if (== (get-metatype $exp) Symbol)
+            (empty)
+            (if (== (car-atom $exp) NOT)
+                (empty)
+                $exp)))
+
 ;; getGuardSetExp that takes an expression and returns it's guard sets
-;; uses the partial function ifGuard to map over every element in the expression
+;; uses the partial function filterGuard to map over every element in the expression
 ;; example (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 (= (getGuardSetExp $exp)
      (if (== $exp ())
@@ -23,8 +32,17 @@
        (if (== (get-metatype $exp) Expression)
            (if (== (car-atom $exp) OR)
                ()
-               (collapse (ifGuard (superpose $exp))))
-           (collapse (ifGuard (superpose ($exp)))))))
+               (collapse (filterGuard (superpose $exp))))
+           (collapse (filterGuard (superpose ($exp)))))))
+
+;; A function to return children of a given expression. A child of a given expression is any subExpression.
+;; An atom of mettatype Symbol isn't considered to be a child of an expression.
+(= (getChildren $exp)
+     (if (== $exp ())
+       ()
+       (if (== (get-metatype $exp) Expression)
+           (collapse (filterGuard (superpose $exp))))
+           ()))
 
 ;; If any negation pairs are found (via areNegations), the function returns False, indicating inconsistency.
 (= (areNegations ($a $b))
