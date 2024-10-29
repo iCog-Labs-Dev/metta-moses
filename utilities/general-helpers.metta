@@ -57,3 +57,7 @@
 (= (findAndReplace $old $new $list)
     (collapse (replace $old $new (superpose $list)))
 )
+
+
+(: until (-> (-> $a Bool) (-> $a $a) $a $a))
+(= (until $predicate $function $x) (if ($predicate $x) $x (let $x' ($function $x) (until $predicate $function $x'))))
