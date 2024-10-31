@@ -1,4 +1,5 @@
 ;; A function to remove an unnecessary AND and its child.
+;; Definitions: A guard set of a POA is the set of literals in the POA.
 ;; Preconditions: The point of application (POA) is and AND node,
 ;;                has an empty guard set, one child and
 ;;                for each child C of the POA, the intersection 
