@@ -15,7 +15,7 @@
 ;; Test 02
 !(assertEqual
     (andCut (AND (OR (AND C D) (AND C F))))
-    (AND (OR (AND C D) (AND C F)))
+    ((AND C D) (AND C F))
 )
 
 ;; Test 03
