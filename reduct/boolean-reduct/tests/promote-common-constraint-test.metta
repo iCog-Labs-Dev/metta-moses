@@ -7,8 +7,7 @@
 
 ;; Test 01
 !(assertEqual
-    (promoteCommonConstraints (OR A C (AND A B) (AND A C)))
-    ((A) (OR C (AND B) (AND C)))
+    (promoteCommonConstraints (OR A C (AND A B) (AND A C))) ((A) (OR C (AND B) (AND C)))
 )
 
 ;; Test 02
@@ -35,7 +34,20 @@
     (() (OR (NOT N) (AND N O) (AND N P) (AND M Q)))
 )
 
+;; Test 06
+!(assertEqual
+    (promoteCommonConstraints (OR (NOT N) (AND (NOT N) O) (AND (NOT N) P) (AND (NOT N) Q)))
+    (((NOT N)) (OR (AND O) (AND P) (AND Q)))
+)
+
+;; Test 07
+!(assertEqual
+    (promoteCommonConstraints (OR (AND (NOT B) C) (NOT B)))
+    (((NOT B)) (OR (AND C)))
+)
+
 ;;remove element Test
+
 ;; Test 01
 !(assertEqualToResult 
   (removeElement (A B) (A C B H))

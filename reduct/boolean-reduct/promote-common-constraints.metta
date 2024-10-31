@@ -1,40 +1,51 @@
-;The transformation identifies constraints that are common to all children of an POA(OR) node and promote them to the parent node's guard set e.g (AND (OR (AND C D) (AND C E))) --> (AND C (OR (AND D) (AND E)))
-;(: promoteCommonConstraints (-> Expression Expression))                                                                                          
+;; A function to identify and return literals common
+;;  to all cildren of a point of application(POA) and
+;;  the updated POA after the promotion.
+;; Definitions: Guard set of a POA is the set of literals in the POA.
+;; Preconditions: The POA is an OR node and the intersection of the 
+;;                  guard sets of the children of the POA is not empty.
+;; Action: Let S be the intersection of the guard sets of the children
+;;            of the POA. The literals in S are subtraced from the 
+;;            guard set of each of the children of the POA. 
+;;            Then S and the updated POA is returned.
+;; Example: input: POA ==> (OR (AND (NOT B) C) (NOT B))
+;;        : output: (((NOT B)) (OR C (AND)))
+;(: promoteCommonConstraints (-> Expression Expression))
 (= (promoteCommonConstraints $expr)
-    (let* 
+    (let*
         (
-            (($literals $children) (getGsetAndChildren $expr)) 
-            ($childrenLiteral   (collapse (getGuardSet (superpose $children) ())))
-            ($shared (findCommon $childrenLiteral))
-            ($common (findIntersection $literals $shared))      
+          (($literals $children) (getGsetAndChildren $expr))
+          ($childrenLiteral (collapse (getGuardSet (superpose $children) ())))
+          ($shared (findCommon $childrenLiteral))
+          ($common (atomIntersection $literals $shared))
         )
         (if (== $common ())
             (() $expr)
             (let*
-                ( 
-                ($updatedChildren (removeCommonLiterals $common $children))
-                ($updatedLiterals (removeElement $common $literals))
-                ($newExp (concatTuple $updatedLiterals $updatedChildren ))
-                ($res (cons-atom OR $newExp))              
+                (
+                  ($updatedChildren (removeCommonLiterals $common $children))
+                  ($updatedLiterals (removeElement $common $literals))
+                  ($newExp (concatTuple $updatedLiterals $updatedChildren ))
+                  ($res (cons-atom OR $newExp))
                 )
                 ($common $res)
             )
-
         )
-       
     )
 )
 
 
-; Helper function to find the intersection between two tuples
-(= (findIntersection $lit $common)
+;;A function to find the intersection between two tuples
+(= (atomIntersection $lit $common)
     (if (== $lit ())
         $common
         (collapse (intersection (superpose $lit) (superpose $common)))
     )
 )
 
-;a function to remove common literals from a nested tuple
+;; A function to remove literals in $common from a nested tuple: $tuple.
+;; Example: input: common ==> (A B), tuple ==> ((A C B H) (A B D) (A C F B))
+;;          output: (((C H) (D) (C F)))
 (= (removeCommonLiterals $common $tuple)
    ( if (== $tuple ())
         ()
@@ -42,7 +53,7 @@
    )
 )
 
-;a function to remove a common element from a tuple
+;; A function to remove all elements found in $common from a $tuple
 (= (removeElement $common $tuple) 
-   (collapse (subtraction (superpose $tuple)  (superpose $common)))
+   (collapse (subtraction (superpose $tuple) (superpose $common)))
 )
