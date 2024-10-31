@@ -15,7 +15,7 @@
     (let*
         (
           (($literals $children) (getLiteralChildren $expr))
-          ($childrenLiteral (collapse (getGuardSet (superpose $children) ())))
+          ($childrenLiteral (collapse (getLiterals (superpose $children))))
           ($shared (findCommon $childrenLiteral))
           ($common (atomIntersection $literals $shared))
         )
