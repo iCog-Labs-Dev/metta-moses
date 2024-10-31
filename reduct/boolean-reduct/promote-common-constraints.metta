@@ -14,7 +14,7 @@
 (= (promoteCommonConstraints $expr)
     (let*
         (
-          (($literals $children) (getGsetAndChildren $expr))
+          (($literals $children) (getLiteralChildren $expr))
           ($childrenLiteral (collapse (getGuardSet (superpose $children) ())))
           ($shared (findCommon $childrenLiteral))
           ($common (atomIntersection $literals $shared))

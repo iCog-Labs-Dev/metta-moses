@@ -24,7 +24,7 @@
                     (AND $expOriginal)
                     (NOT $expOriginal)
                     (OR (zeroConstraintSubsume $expOriginal $tail)) ;; The POA for this transformation is any OR node
-                    ($else (if (and (== (getGuardSetExp $head) ()) $headHasNoChild)
+                    ($else (if (and (== (getGuardSet $head) ()) $headHasNoChild)
                                () ;; If any child of the POA has an empty guardSet and no child, it is removed. if not, it's kept.
                                (zeroConstraintSubsume $expOriginal $tail)
                            )

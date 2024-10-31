@@ -12,13 +12,13 @@
 (= (andCut $expr)
     (let*
         (
-            (($guardSet $child) (getGsetAndChildren $expr))
+            (($guardSet $child) (getLiteralChildren $expr))
             ($tail (cdr-atom $child))
         )
         (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
             (let*
                 (
-                    (($_ $grandChildren) (getGsetAndChildren (car-atom $child)))
+                    (($_ $grandChildren) (getLiteralChildren (car-atom $child)))
                     ($allLiterals (collapse (getGuardSet (superpose $grandChildren) ())))
                     ($common (findCommon $allLiterals))
                 )
