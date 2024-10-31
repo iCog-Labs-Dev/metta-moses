@@ -18,7 +18,7 @@
 
 ;;Test-05:applied on an AND Node
 ;;;; the example given in the Holman paper(the POA)
-! (assertEqualToResult (oneConstraintSubsume (AND E D) (AND E D) (D)) (()))
+! (assertEqualToResult (oneConstraintSubsume (AND E D) (AND E D) (C D)) (()))
 
 ;;;; empty $commandSet(the Root node or any AND node which is not commanded by any nodes)
 ! (assertEqualToResult (oneConstraintSubsume (AND A (OR (AND B (OR (AND E D) C)) D)) (AND A (OR (AND B (OR (AND E D) C)) D)) ()) ((AND A (OR (AND B (OR (AND E D) C)) D))))
