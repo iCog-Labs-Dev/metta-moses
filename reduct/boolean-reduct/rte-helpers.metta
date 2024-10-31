@@ -44,26 +44,6 @@
            (collapse (filterGuard (superpose $exp))))
            ()))
 
-;; If any negation pairs are found (via areNegations), the function returns False, indicating inconsistency.
-(= (areNegations ($a $b))
-     (or (== $a (NOT $b)) (== $b (NOT $a)))
-)
-
-;; a function to check whether an n-ary expression is consistent or not.
-(= (isConsistentExp $exp)
-    (let $guardSet (getGuardSetExp $exp)
-        (if (== $guardSet ())
-            True
-            (let*
-              (
-                ($pairs (collapse ( (superpose $guardSet) (superpose $guardSet))))
-                ($result (collapse (areNegations (superpose $pairs))))
-              )
-              (if (isMember True $result)
-                  False
-                  True
-              )))))
-
 ;; a helper function to the zeroConstraintSubsume function
 ;; a function which checks if an Expression (a representation of a node) has a child or not
 (= (nodeHasChildExp $node)
