@@ -1,4 +1,4 @@
-;; A function to remove some subsumable selecctions from the point of application (POA).
+;; A function to remove some subsumable selections from the point of application (POA).
 ;; Definitions: An AND node N commands every node which is a descendent of N's
 ;;                parent but which is neither N nor a descendent of N.
 ;;              A guard set of a POA is the set of literals in the POA.
@@ -14,24 +14,27 @@
 ;;         Returning an empty expression corresponds to deleting the POA.
 ;; Example: input: POA ==> (AND E D), commandSet ==> (C D)
 ;;        : output: ()
-(= (oneConstraintSubsume $expOriginal $expRecursive $commandSet)
-    (if (== $expRecursive ())
-        $expOriginal
-        (let*
-          (
-            ($head (car-atom $expRecursive))
-            ($tail (cdr-atom $expRecursive))
-          )
-          (case $head
-            (
-              (OR $expOriginal)
-              (NOT $expOriginal)
-              (AND (oneConstraintSubsume $expOriginal $tail $commandSet)) ;; The POA of this transformation is any non-root AND node
-              ($else (if (isMember $head $commandSet) () (oneConstraintSubsume $expOriginal $tail $commandSet))) ;; If any constraint of the AND node is found inside the commandSet, the node is removed. if not, it is kept.
+(= (oneConstraintSubsume $exp $commandSet)
+   (let*
+      (
+        ($head (car-atom $exp))
+        ($tail (cdr-atom $exp))
+      )
+      (case $head
+        (
+          (OR $exp)
+          (NOT $exp)
+          (AND
+            (let*
+              (
+                ($guardSet (getGuardSet $exp))
+                ($common (collapse (intersection (superpose $guardSet) (superpose $commandSet))))
+              )
+              (if (== $common ()) $exp ())
             )
           )
+          ($else $exp)
         )
-    )
+      )
+   )
 )
-
-
