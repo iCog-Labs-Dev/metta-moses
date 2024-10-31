@@ -14,7 +14,7 @@
 (= (deleteInconsistent $exp)
     (let*
         (
-          ($guardSet (getGuardSetExp $exp))
+          ($guardSet (getGuardSet $exp))
           ($isConsistent (isConsistentExp $guardSet))
         )
         (if $isConsistent $exp ())
@@ -26,7 +26,7 @@
 ;; Example: input: (A B C), output: True
 ;;          input: (A B C (NOT A)), output: True
 (= (isConsistentExp $exp)
-    (let $guardSet (getGuardSetExp $exp)
+    (let $guardSet (getGuardSet $exp)
         (if (== $guardSet ())
             True
             (let*
