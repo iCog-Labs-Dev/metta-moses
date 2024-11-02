@@ -2,15 +2,16 @@
 ;;  to all cildren of a point of application(POA) and
 ;;  the updated POA after the promotion.
 ;; Definitions: Guard set of a POA is the set of literals in the POA.
-;; Preconditions: The POA is an OR node and the intersection of the 
+;; Preconditions: The POA is an OR node and the intersection of the
 ;;                  guard sets of the children of the POA is not empty.
 ;; Action: Let S be the intersection of the guard sets of the children
-;;            of the POA. The literals in S are subtraced from the 
-;;            guard set of each of the children of the POA. 
-;;            Then S and the updated POA is returned.
+;;            of the POA. The literals in S are subtraced from the
+;;            guard set of each of the children of the POA.
+;;            Then S, the updated POA is returned and a boolean indicator
+;;            whether the transformation is applied or not.
 ;; Example: input: POA ==> (OR (AND (NOT B) C) (NOT B))
 ;;        : output: (((NOT B)) (OR C (AND)))
-;(: promoteCommonConstraints (-> Expression Expression))
+;(: promoteCommonConstraints (-> Expression (Expression Expression Bool)))
 (= (promoteCommonConstraints $expr)
     (let*
         (
@@ -20,7 +21,7 @@
           ($common (atomIntersection $literals $shared))
         )
         (if (== $common ())
-            (() $expr)
+            (() $expr False)
             (let*
                 (
                   ($updatedChildren (removeCommonLiterals $common $children))
@@ -28,7 +29,7 @@
                   ($newExp (concatTuple $updatedLiterals $updatedChildren ))
                   ($res (cons-atom OR $newExp))
                 )
-                ($common $res)
+                ($common $res True)
             )
         )
     )
