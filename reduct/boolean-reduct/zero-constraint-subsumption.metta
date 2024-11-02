@@ -8,48 +8,33 @@
 ;;          the POA.
 ;; Example: input: POA ==> (OR C)
 ;;        : output: ()
-;(: zeroConstraintSubsume (-> Expression Expression Expression))
-(= (zeroConstraintSubsume $expOriginal $expRecursive)
-    (if (== $expRecursive ())
-        $expOriginal
+;; (: zeroConstraintSubsume (-> Expression Expression Expression))
+(= (zeroConstraintSubsume $exp)
+  (case ((get-metatype $exp) $exp)
+    (
+      ((Expression ()) ())
+      ((Expression (NOT $x)) $exp)
+      ((Symbol $exp) $exp)
+      ((Expression $exp)
         (let*
+          (
+            ($head (car-atom $exp))
+            ($children (getChildren $exp))
+            ($childrenHasChildOrGuard (collapse (nodeHasChildOrGuard (superpose $children))))
+          )
+          (case ($head $children)
             (
-                ($head (car-atom $expRecursive))
-                ($tail (cdr-atom $expRecursive))
-                ($headType (get-metatype $head))
-                ($headHasNoChild (not (nodeHasChildExp $head)))
+              ((AND $_) $exp)
+              ((OR ()) $exp)
+              ((OR $children) (if (isMember False $childrenHasChildOrGuard) () $exp))
             )
-            (case $head
-                (
-                    (AND $expOriginal)
-                    (NOT $expOriginal)
-                    (OR (zeroConstraintSubsume $expOriginal $tail)) ;; The POA for this transformation is any OR node
-                    ($else (if (and (== (getGuardSet $head) ()) $headHasNoChild)
-                               () ;; If any child of the POA has an empty guardSet and no child, it is removed. if not, it's kept.
-                               (zeroConstraintSubsume $expOriginal $tail)
-                           )
-                    )
-                )
-            )
+          )
         )
+      )
     )
+  )
 )
 
 
-;; a helper function which checks if an expression has a child (subexpression) or not
-(= (nodeHasChildExp $node)
-    (let*
-        (
-          ($head (car-atom $node))
-          ($tail (cdr-atom $node))
-          ($nodeType (get-metatype $node))
-        )
-        (if (== $nodeType Symbol)
-            False
-            (if (== $tail ())
-                False
-                True
-            )
-        )
-    )
-)
+;; a helper function which checks if an expression has a child (subexpression) or a literal or not
+(= (nodeHasChildOrGuard $node) (or (~= (getLiterals $node) ()) (~= (getChildren $node) ())))
