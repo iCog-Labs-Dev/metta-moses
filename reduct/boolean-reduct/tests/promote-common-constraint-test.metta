@@ -41,10 +41,10 @@
 )
 
 ;; Test 07
-;; !(assertEqual
-;;     (promoteCommonConstraints (OR (AND (NOT B) C) (NOT B)))
-;;     (((NOT B)) (OR (AND C)))
-;; )
+!(assertEqual
+    (promoteCommonConstraints (OR (AND (NOT B) C) (NOT B)))
+    (((NOT B)) (OR (AND C)))
+)
 
 ;;remove element Test
 
@@ -105,3 +105,4 @@
   (removeCommonLiterals (A B) ())
   (())
 )
+
