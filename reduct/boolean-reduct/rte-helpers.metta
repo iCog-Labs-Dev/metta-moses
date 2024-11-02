@@ -71,11 +71,13 @@
 
 ;; Function to find common literals in a nested tuple
 (= (findCommon $nestedTuple)
-    (if (or (== $nestedTuple ()) (== (cdr-atom $nestedTuple) ()))
-        ()
-        (let*
-          (
-            ($first (car-atom $nestedTuple))
-            ($tail (cdr-atom $nestedTuple)))
-        (findCommonLiterals $first $tail))))
-
+   (case $nestedTuple 
+     ((() $nestedTuple)
+      ($else
+        (if (== (cdr-atom $nestedTuple) ())
+            (car-atom $nestedTuple)
+            (let*
+              (
+                ($first (car-atom $nestedTuple))
+                ($tail (cdr-atom $nestedTuple)))
+              (findCommonLiterals $first $tail)))))))
