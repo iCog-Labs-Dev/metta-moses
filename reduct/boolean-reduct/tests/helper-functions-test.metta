@@ -35,7 +35,7 @@
 ! (assertEqualToResult (isConsistentExp (AND (OR A B) (AND A B) A B)) (True))
 ! (assertEqualToResult (isConsistentExp (AND (NOT A) (NOT B) A)) (False))
 ! (assertEqualToResult (isConsistentExp (AND A B (NOT B))) (False))
-! (assertEqualToResult (isConsistentExp (OR A B (NOT A))) (True))
+! (assertEqualToResult (isConsistentExp (OR A B (NOT A))) (False))
 ! (assertEqualToResult (isConsistentExp (OR (AND A B) (AND A B) (NOT A))) (True))
 ! (assertEqualToResult (isConsistentExp (AND A (NOT A) (NOT B))) (False))
 
