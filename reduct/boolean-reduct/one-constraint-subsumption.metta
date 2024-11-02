@@ -11,9 +11,12 @@
 ;;                 the POA is commanded by a terminal AND node COM
 ;;                 whose guard set consists of the constraint X.
 ;; Action: The function returns an empty expression if applied, else it returns the POA.
+;;            It also a boolean value corresponding to whether the transformation function
+;;            is applied or not.
 ;;         Returning an empty expression corresponds to deleting the POA.
 ;; Example: input: POA ==> (AND E D), commandSet ==> (C D)
 ;;        : output: ()
+;;(: oneConstraintSubsume (-> Expression Expression (Expression Bool)))
 (= (oneConstraintSubsume $exp $commandSet)
    (let*
       (
@@ -22,18 +25,18 @@
       )
       (case $head
         (
-          (OR $exp)
-          (NOT $exp)
+          (OR ($exp False))
+          (NOT ($exp False))
           (AND
             (let*
               (
                 ($guardSet (getGuardSet $exp))
                 ($common (collapse (intersection (superpose $guardSet) (superpose $commandSet))))
               )
-              (if (== $common ()) $exp ())
+              (if (== $common ()) ($exp False) (() True))
             )
           )
-          ($else $exp)
+          ($else ($exp False))
         )
       )
    )

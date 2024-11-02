@@ -11,6 +11,7 @@
 ;;         Returning an empty expression corresponds to deleting the POA.
 ;; Example: input: POA ==> (AND (NOT A) (OR B C)), dominantSet ==> (A)
 ;;        : output: ()
+;; (: deleteInconsistentHandle (-> Expression (Expression Bool)))
 (= (deleteInconsistentHandle $exp $dominantSet)
     (let*
         (
@@ -18,7 +19,7 @@
           ($handleSet (concatTuple $dominantSet $guardSet))
           ($isConsistent (isConsistentExp $handleSet))
         )
-        (if $isConsistent $exp ())
+        (if $isConsistent ($exp False) (() True))
     )
 )
 
