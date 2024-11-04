@@ -23,13 +23,15 @@
         (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
             (let*
                 (
-                    (($_ $grandChildren) (getLiteralChildren (car-atom $child)))
-                    ($allLiterals (collapse (getGuardSet (superpose $grandChildren) ())))
-                    ($common (findCommon $allLiterals))
+                    (($grandLiterals $grandChildren) (getLiteralChildren (car-atom $child)))
+                    ($allLiterals (collapse (getGuardSet (superpose $grandChildren))))
+                    ($common (intersections $allLiterals))
                     ($updatedParent (removeElement ($current) $parent))
+                    ($updatedParent' (addChildren $updatedParent $grandChildren))
+                    ($updatedParent'' (addLiterals $updatedParent' $grandLiterals))
                 )
                 (if (== $common ())
-                    ((addChildren $updatedParent $grandChildren) () True)
+                    ($updatedParent'' () True)
                     ($parent $current False)
                 )
             )
@@ -37,3 +39,16 @@
         )
     )
 )
+
+;; Function to find intersections between all literals in a nested tuple
+(= (intersections $nestedTuple)
+   (case $nestedTuple 
+     ((() $nestedTuple)
+      ($else
+        (if (== (cdr-atom $nestedTuple) ())
+            ()
+            (let*
+              (
+                ($first (car-atom $nestedTuple))
+                ($tail (cdr-atom $nestedTuple)))
+              (findCommonLiterals $first $tail)))))))
