@@ -52,12 +52,22 @@
     )
 )
 
+;; A helper function for the findAndReplace function.
+;; It handles the replacement of a single atom.
 (= (replace $old $new $current) (if (== $old $current) $new $current))
 
+;; A function to replace a specific atom
+;;    with a new one from a list of atoms.
 (= (findAndReplace $old $new $list)
     (collapse (replace $old $new (superpose $list)))
 )
 
-
+;; A function that behaves like a do while loop.
+;; It executes the functions in the given list and returns the last result.
 (: until (-> (-> $a Bool) (-> $a $a) $a $a))
 (= (until $predicate $function $x) (if ($predicate $x) $x (let $x' ($function $x) (until $predicate $function $x'))))
+
+;; A function to remove all elements found in $common from a $tuple
+(= (removeElement $common $tuple)
+   (collapse (subtraction (superpose $tuple) (superpose $common)))
+)

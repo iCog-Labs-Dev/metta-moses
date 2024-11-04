@@ -24,11 +24,10 @@
             ($children (getChildren $exp))
             ($childrenHasChildOrGuard (collapse (nodeHasChildOrGuard (superpose $children))))
           )
-          (case ($head $children)
+          (case $children
             (
-              ((AND $_) ($exp False))
-              ((OR ()) ($exp False))
-              ((OR $children) (if (isMember False $childrenHasChildOrGuard) (() True) ($exp False)))
+              (() ($exp False))
+              ($else (if (isMember False $childrenHasChildOrGuard) (() True) ($exp False)))
             )
           )
         )

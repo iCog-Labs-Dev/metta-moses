@@ -54,7 +54,3 @@
    )
 )
 
-;; A function to remove all elements found in $common from a $tuple
-(= (removeElement $common $tuple) 
-   (collapse (subtraction (superpose $tuple) (superpose $common)))
-)
