@@ -1,33 +1,38 @@
 ;; A function to identify triviall-tautological subexpressions and
 ;;    removes the point of application(POA).
 ;; Definitions: Guard set of a POA is the set of literals in the POA.
-;; Preconditions: The POA is OR node, has a child which has an empty 
+;; Preconditions: The POA is OR node, has a child which has an empty
 ;;                  guard set and no children.
-;; Action: Return an empty expression if transformtion applied.
-;;         It will additionally return a boolean value indicating 
+;; Action: It will remove the POA from it's parent and return an empty
+;;            expression instead of current if transformtion applied.
+;;         It will additionally return a boolean value indicating
 ;;          whether the transformation is applied or not.
-;;         Returning an empty expression is equivalent to deleting
-;;          the POA.
-;; Example: input: POA ==> (OR C)
-;;        : output: ()
-;; (: zeroConstraintSubsume (-> Expression (Expression Bool)))
-(= (zeroConstraintSubsume $exp)
-  (case ((get-metatype $exp) $exp)
+;;         
+;; Example: input: POA ==> (OR C), parent ==> (AND A (OR A (NOT B)) (OR C AND))
+;;        : output: ((AND A (OR A (NOT B))) () True)
+;; (: zeroConstraintSubsume (-> Expression Expression (Expression Expression Bool)))
+(= (zeroConstraintSubsume $parent $current)
+  (case ((get-metatype $current) $current)
     (
-      ((Expression ()) ($exp False))
-      ((Expression (NOT $x)) ($exp False))
-      ((Symbol $exp) ($exp False))
-      ((Expression $exp)
+      ((currentression ()) ($current False))
+      ((currentression (NOT $x)) ($current False))
+      ((Symbol $current) ($current False))
+      ((currentression $current)
         (let*
           (
-            ($head (car-atom $exp))
-            ($children (getChildren $exp))
+            ($head (car-atom $current))
+            ($children (getChildren $current))
             ($childrenHasChildOrGuard (collapse (nodeHasChildOrGuard (superpose $children))))
           )
           (case $children
             (
-              (() ($exp False))
-              ($else (if (isMember False $childrenHasChildOrGuard) (() True) ($exp False)))
+              (() ($parent $current False))
+              ($else
+                (if (isMember False $childrenHasChildOrGuard)
+                    ((removeElement ($current) $parent) () True) ;; Remove current from parent.
+                    ($parent $current False)
+                )
+              )
             )
           )
         )

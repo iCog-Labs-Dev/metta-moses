@@ -7,29 +7,33 @@
 ;; Action: Let S be the intersection of the guard sets of the children
 ;;            of the POA. The literals in S are subtraced from the
 ;;            guard set of each of the children of the POA.
-;;            Then S, the updated POA is returned and a boolean indicator
-;;            whether the transformation is applied or not.
-;; Example: input: POA ==> (OR (AND (NOT B) C) (NOT B))
-;;        : output: (((NOT B)) (OR C (AND)))
-;(: promoteCommonConstraints (-> Expression (Expression Expression Bool)))
-(= (promoteCommonConstraints $expr)
+;;            Then S, the updated POA replaces the previous POA in the
+;;              parent of the POA and the updated parent, the updated
+;;              POA and a boolean indicator whether the transformation
+;;              is applied or not are returned in a tuple.
+;; Example: input: POA ==> (OR (AND (NOT B) C) (NOT B)), parent ==> (AND A (OR (AND (NOT B) C) (NOT B)) (OR (NOT C) (AND (NOT B) (NOT D))))
+;;        : output: ((AND A (NOT B) (OR (AND C) (AND)) (OR (NOT C) (AND (NOT B) (NOG D)))) () True)
+;(: promoteCommonConstraints (-> Expression Expression (Expression Expression Bool)))
+(= (promoteCommonConstraints $parent $current)
     (let*
         (
-          (($literals $children) (getLiteralChildren $expr))
+          (($literals $children) (getLiteralChildren $current))
           ($childrenLiteral (collapse (getLiterals (superpose $children))))
           ($shared (findCommon $childrenLiteral))
           ($common (atomIntersection $literals $shared))
         )
         (if (== $common ())
-            (() $expr False)
+            ($parent $current False)
             (let*
                 (
                   ($updatedChildren (removeCommonLiterals $common $children))
                   ($updatedLiterals (removeElement $common $literals))
                   ($newExp (concatTuple $updatedLiterals $updatedChildren ))
-                  ($res (cons-atom OR $newExp))
+                  ($newCurrent (cons-atom OR $newExp))
+                  ($updatedParent (findAndReplace $current $newCurrent $parent))
+                  ($updatedParent' (addLiterals $updatedParent $common))
                 )
-                ($common $res True)
+                ($updatedParent' $newCurrent True)
             )
         )
     )
