@@ -86,11 +86,23 @@
 ! (assertEqual (getLiteralChildren (OR A B (AND A B) C E (AND E F) (AND A) (NOT F))) ((A B C E (NOT F)) ((AND A B) (AND E F) (AND A))))
 ! (assertEqual (getLiteralChildren (OR (AND A B) A B C E (NOT F) (AND E F) (AND A))) ((A B C E (NOT F)) ((AND A B) (AND E F) (AND A))))
 
-;; Test for addToGuardSet
-
+;; Test for addLiterals
 ! (assertEqual (addLiterals (AND A B C (OR A B) E F) (A B G)) (AND A B C E F G (OR A B)))
 ! (assertEqual (addLiterals (OR A B C (AND A B) E F) (A B G)) (OR A B C E F G (AND A B)))
 ! (assertEqual (addLiterals (AND A B (OR A B)) (Z)) (AND A B Z (OR A B)))
 ! (assertEqual (addLiterals (OR (AND A B) A B) (Z)) (OR A B Z (AND A B)))
 ! (assertEqual (addLiterals (AND A B C (OR A B)) (A B C)) (AND A B C (OR A B)))
 ! (assertEqual (addLiterals (AND A (OR A B) B C) (E F G)) (AND A B C E F G (OR A B)))
+
+;; Test for addChildren
+! (assertEqual (addChildren (AND A B C) ()) (AND A B C))
+! (assertEqual (addChildren (OR A B C) ()) (OR A B C))
+! (assertEqual (addChildren (OR) ((AND B C))) (OR (AND B C)))
+! (assertEqual (addChildren (AND) ((OR B C))) (AND (OR B C)))
+! (assertEqual (addChildren (AND (OR A B)) ((OR C D) (OR E F))) (AND (OR A B) (OR C D) (OR E F)))
+! (assertEqual (addChildren (OR (AND A B)) ((AND C D) (AND E F))) (OR (AND A B) (AND C D) (AND E F)))
+! (assertEqual (addChildren (AND A B C (OR A B)) ((OR A E) (OR B C) (OR A B E (AND A F)))) (AND A B C (OR A B) (OR A E) (OR B C) (OR A B E (AND A F))))
+! (assertEqual (addChildren (OR A B C (AND A B)) ((AND A E) (AND B C) (AND A B E (OR A F)))) (OR A B C (AND A B) (AND A E) (AND B C) (AND A B E (OR A F))))
+! (assertEqual (addChildren (AND A (OR A B) B C) ((OR B C))) (AND A B C (OR A B) (OR B C)))
+! (assertEqual (addChildren (OR A (AND A B) B C) ((AND B C))) (OR A B C (AND A B) (AND B C)))
+! (assertEqual (addChildren (OR A B C) ((AND A E) (AND B C) (AND A B E (OR A F)))) (OR A B C (AND A E) (AND B C) (AND A B E (OR A F))))

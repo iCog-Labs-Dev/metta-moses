@@ -57,6 +57,22 @@
          ((NOT $x) ())
          ($else (if (== (get-metatype $exp) Expression) (collapse (filterChildren (superpose $exp))) ())))))
 
+;; A function to add a list of children to a given expression.
+;; Example: input: $exp -> (AND A B (OR C D)), $children -> ((OR A B) (OR E F) (OR D))
+;;          output: (AND A B (OR C D) (OR A B) (OR E F) (OR D))
+(= (addChildren $exp $children)
+   (let*
+     (
+        ($op (car-atom $exp))
+        ($oldChildren (getChildren $exp))
+        ($newChildren (concatTuple $oldChildren $children))
+        ($updatedSubExpression (concatTuple (getLiterals $exp) $newChildren))
+        ($newExp (cons-atom $op $updatedSubExpression))
+     )
+     $newExp
+   )
+)
+
 ;; A function to find return the literals of an expression
 ;;  the function performs returns the literals if the
 ;;  expression is either an AND or an OR.
