@@ -2,6 +2,8 @@
 
 ! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:reduct:boolean-reduct:rte-helpers)
+! (import! &self metta-moses:reduct:boolean-reduct:delete-inconsistent-handle)
+! (import! &self metta-moses:reduct:boolean-reduct:zero-constraint-subsumption)
 
  ;; Test for getGuardSetExp
 

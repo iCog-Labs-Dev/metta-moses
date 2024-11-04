@@ -5,82 +5,44 @@
  ;; example A is guard set and will be returned
  ;; example (AND A B) is not guard set and will not be returned
 
-( = (ifGuard $exp) (let
-        $type
-        (get-metatype $exp)
-        (if (== $type Symbol)
-            (if (or (== AND $exp) (== OR $exp))
+(= (filterGuard $exp)
+        (if (== (get-metatype $exp) Symbol)
+            (if (or (== $exp AND) (== $exp OR))
                 (empty)
+                $exp)
+            (if (== (car-atom $exp) NOT)
                 $exp
-            ) (if (== (car-atom $exp) NOT)
-            $exp
+                (empty))))
+
+;; Partial function used to filter and keep only children of an expression.
+;; A child of an expression is a subexpression that isn't a Symbol.
+(= (filterChildren $exp)
+        (if (== (get-metatype $exp) Symbol)
             (empty)
-        )
-)
-)
-)
+            (if (== (car-atom $exp) NOT)
+                (empty)
+                $exp)))
 
- ; getGuardSetExp that takes an expression and returns it's guard sets
- ; uses the partial function ifGuard to map over every element in the expression
- ;; example (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
-( = (getGuardSetExp $exp) (if (== $exp ()) ()
-        (if (== (get-metatype $exp) Expression) (let*
-                (
-                    ($head (car-atom $exp))
-                ) (if (== $head OR)
-                ()
-                (collapse ( ifGuard (superpose $exp))))
-        )
-    (collapse ( ifGuard (superpose ($exp))))
-))
-)
+;; getGuardSetExp that takes an expression and returns it's guard sets
+;; uses the partial function filterGuard to map over every element in the expression
+;; example (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
+(= (getGuardSetExp $exp)
+     (if (== $exp ())
+       ()
+       (if (== (get-metatype $exp) Expression)
+           (if (== (car-atom $exp) OR)
+               ()
+               (collapse (filterGuard (superpose $exp))))
+           (collapse (filterGuard (superpose ($exp)))))))
 
- ;If any negation pairs are found (via areNegations), the function returns False, indicating inconsistency.
-(= (areNegations ($a $b))
-    (if (== $a (NOT $b))
-        True
-        (if (== $b (NOT $a))
-            True
-            False
-        )
-)
-)
-
- ;a function to check whether an n-ary expression is consistent or not.
-(= (isConsistentExp $exp)
-    (let $guardSet (getGuardSetExp $exp)
-        (if (== $guardSet ())
-            True
-            (let* (
-                    ($pairs (collapse ( (superpose $guardSet) (superpose $guardSet))))
-                    ($result (collapse (areNegations (superpose $pairs))))
-                )
-            (if (isMember True $result)
-                False
-                True
-            ))
-)
-)
-)
-
- ;a helper function to the zeroConstraintSubsume function
- ;a function which checks if an Expression (a representation of a node) has a child or not
-(= (nodeHasChildExp $node)
-    (let*
-        (
-            ($head (car-atom $node))
-            ($tail (cdr-atom $node))
-            ($nodeType (get-metatype $node))
-        )
-    (if (== $nodeType Symbol)
-        False
-        (if (== $tail ())
-            False
-            True
-        )
-)
-)
-)
+;; A function to return children of a given expression. A child of a given expression is any subExpression.
+;; An atom of mettatype Symbol isn't considered to be a child of an expression.
+(= (getChildren $exp)
+     (if (== $exp ())
+       ()
+       (if (== (get-metatype $exp) Expression)
+           (collapse (filterGuard (superpose $exp))))
+           ()))
 
  ;a function that will return Gardset(literals for OR) and the children as a tuple ((Gset), (Children))
 (= (GsetandChildren $expr $literals $nonLiterals)
@@ -90,19 +52,13 @@
             (
                 ($head (car-atom $expr))
                 ($tail (cdr-atom $expr))
-                ($isLiteral (or (== (get-metatype $head) Symbol) (unify $head (NOT $_) True False)))
-            )
+                ($isLiteral (or (== (get-metatype $head) Symbol) (unify $head (NOT $_) True False))))
         (if (or (== $head AND) (== $head OR))
             (GsetandChildren $tail $literals $nonLiterals)
 
             (if $isLiteral
                 (GsetandChildren $tail (concatTuple $literals ($head)) $nonLiterals)
-                (GsetandChildren $tail $literals (concatTuple $nonLiterals ($head)))
-            )
-    )
-)
-)
-)
+                (GsetandChildren $tail $literals (concatTuple $nonLiterals ($head))))))))
 
 (= (getGsetAndChildren $expr) (GsetandChildren $expr () ()))
 
@@ -114,29 +70,22 @@
             (
                 ($first (car-atom $nestedTuple))
                 ($tail (cdr-atom $nestedTuple))
-                ($common (collapse (intersection (superpose $tuple) (superpose $first))))
-            )
+                ($common (collapse (intersection (superpose $tuple) (superpose $first)))))
         (if (== $tail ())
             $common
-            (findCommonLiterals $common $tail)
-        )
-)
-)
-)
+            (findCommonLiterals $common $tail)))))
 
- ; Function to find common literals in a nested tuple
+;; Function to find common literals in a nested tuple
 (= (findCommon $nestedTuple)
     (if (or (== $nestedTuple ()) (== (cdr-atom $nestedTuple) ()))
         ()
-        (let* (
-                ($first (car-atom $nestedTuple))
-                ($tail (cdr-atom $nestedTuple))
-            )
-        (findCommonLiterals $first $tail)
-    )
-)
-)
- ;function to find returin the Gardset of an expression
+        (let*
+          (
+            ($first (car-atom $nestedTuple))
+            ($tail (cdr-atom $nestedTuple)))
+        (findCommonLiterals $first $tail))))
+
+;; function to find returin the Gardset of an expression
 (= (getGuardSet $expr $acc)
     (if (== $expr ())
         $acc
@@ -144,15 +93,9 @@
             (
                 ($head (car-atom $expr))
                 ($tail (cdr-atom $expr))
-                ($isLiteral (or (== (get-metatype $head) Symbol) (unify $head (NOT $_) True False)))
-            )
+                ($isLiteral (or (== (get-metatype $head) Symbol) (unify $head (NOT $_) True False))))
         (if (or (== $head AND) (== $head OR))
             (getGuardSet $tail $acc)
             (if $isLiteral
                 (getGuardSet $tail (concatTuple $acc ($head)))
-                (getGuardSet $tail $acc)
-            )
-    )
-)
-)
-)
+                (getGuardSet $tail $acc))))))
