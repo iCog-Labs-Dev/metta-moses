@@ -18,6 +18,24 @@
         ()
         (getLiterals $exp)))
 
+;; A function to add a list of literals to a given expression
+;;    and keep the uniqueness of the literals.
+;; Example: input: $exp -> (AND A B (OR C D) E F), $elements -> (A B G)
+;;          output: (AND A B E F G (OR C D))
+(= (addLiterals $exp $elements)
+   (let*
+     (
+        ($op (car-atom $exp))
+        ($guardSet (getLiterals $exp))
+        ($newGuardSet (concatTuple $guardSet $elements))
+        ($newGuardSet' (collapse (unique (superpose $newGuardSet))))
+        ($updatedSubExpression (concatTuple $newGuardSet' (getChildren $exp)))
+        ($newExp (cons-atom $op $updatedSubExpression))
+     )
+     $newExp
+   )
+)
+
 ;; Partial function used to filter and keep only children of an expression.
 ;; A child of an expression is a subexpression that isn't a Symbol.
 ;; An expression (NOT A) is considered as a symbol in the case of boolean expression.

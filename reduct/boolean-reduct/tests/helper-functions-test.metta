@@ -39,13 +39,10 @@
 ! (assertEqualToResult (isConsistentExp (OR (AND A B) (AND A B) (NOT A))) (True))
 ! (assertEqualToResult (isConsistentExp (AND A (NOT A) (NOT B))) (False))
 
-! (assertEqualToResult (nodeHasChildExp (AND A B)) (True))
-! (assertEqualToResult (nodeHasChildExp (AND A B C)) (True))
-! (assertEqualToResult (nodeHasChildExp (OR A B C)) (True))
-! (assertEqualToResult (nodeHasChildExp (A)) (False))
-! (assertEqualToResult (nodeHasChildExp A) (False))
-! (assertEqualToResult (nodeHasChildExp (AND)) (False))
-! (assertEqualToResult (nodeHasChildExp AND) (False))
+! (assertEqualToResult (nodeHasChildOrGuard (AND A B)) (True))
+! (assertEqualToResult (nodeHasChildOrGuard (AND A B C)) (True))
+! (assertEqualToResult (nodeHasChildOrGuard (OR A B C)) (True))
+! (assertEqualToResult (nodeHasChildOrGuard (AND)) (False))
 
 ;; Test for filterLiterals
 ! (assertEqual (filterLiterals A) A)
@@ -88,3 +85,12 @@
 ! (assertEqual (getLiteralChildren (AND (OR A B) A B C E (NOT F) (OR E F) (OR A))) ((A B C E (NOT F)) ((OR A B) (OR E F) (OR A))))
 ! (assertEqual (getLiteralChildren (OR A B (AND A B) C E (AND E F) (AND A) (NOT F))) ((A B C E (NOT F)) ((AND A B) (AND E F) (AND A))))
 ! (assertEqual (getLiteralChildren (OR (AND A B) A B C E (NOT F) (AND E F) (AND A))) ((A B C E (NOT F)) ((AND A B) (AND E F) (AND A))))
+
+;; Test for addToGuardSet
+
+! (assertEqual (addLiterals (AND A B C (OR A B) E F) (A B G)) (AND A B C E F G (OR A B)))
+! (assertEqual (addLiterals (OR A B C (AND A B) E F) (A B G)) (OR A B C E F G (AND A B)))
+! (assertEqual (addLiterals (AND A B (OR A B)) (Z)) (AND A B Z (OR A B)))
+! (assertEqual (addLiterals (OR (AND A B) A B) (Z)) (OR A B Z (AND A B)))
+! (assertEqual (addLiterals (AND A B C (OR A B)) (A B C)) (AND A B C (OR A B)))
+! (assertEqual (addLiterals (AND A (OR A B) B C) (E F G)) (AND A B C E F G (OR A B)))
