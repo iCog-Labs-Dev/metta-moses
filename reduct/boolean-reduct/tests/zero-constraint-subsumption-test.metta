@@ -33,3 +33,19 @@
 
 ;; Test 10: Test case from Holman paper page #43
 ! (assertEqualToResult (zeroConstraintSubsume (AND (OR C (AND))) (OR C (AND))) (((AND) () True)))
+
+;; Test case for AND node variation of 0Subsume 
+;; Test 01
+!(assertEqual (zeroConstraintSubsume' (OR A B (AND) (OR A B) F) (AND)) ((OR A B (OR A B) F) () True))
+
+;; Test 02
+!(assertEqual (zeroConstraintSubsume' (AND A B (OR) (AND A B) F) (OR)) ((AND A B (OR) (AND A B) F) (OR) False))
+
+;; Test 03
+!(assertEqual (zeroConstraintSubsume' (OR A B (AND A) (OR A B) F) (AND A)) ((OR A B (AND A) (OR A B) F) (AND A) False))
+
+;; Test 04
+!(assertEqual (zeroConstraintSubsume' (OR A B (AND (OR)) (OR A B) F) (AND (OR))) ((OR A B (AND (OR)) (OR A B) F) (AND (OR)) False))
+
+;; Test 05
+!(assertEqual (zeroConstraintSubsume' (OR A B (AND A (OR)) (OR A B) F) (AND A (OR))) ((OR A B (AND A (OR)) (OR A B) F) (AND A (OR)) False))
