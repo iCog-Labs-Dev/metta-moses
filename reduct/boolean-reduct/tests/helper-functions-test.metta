@@ -106,3 +106,8 @@
 ! (assertEqual (addChildren (AND A (OR A B) B C) ((OR B C))) (AND A B C (OR A B) (OR B C)))
 ! (assertEqual (addChildren (OR A (AND A B) B C) ((AND B C))) (OR A B C (AND A B) (AND B C)))
 ! (assertEqual (addChildren (OR A B C) ((AND A E) (AND B C) (AND A B E (OR A F)))) (OR A B C (AND A E) (AND B C) (AND A B E (OR A F))))
+
+;; Test for foldl
+!(assertEqual (foldl + 0 (1 2 3 4 5)) 15)
+!(assertEqual (foldl * 1 (2 2 2 2)) 16)
+!(assertEqual (foldl * 1 ()) 1)
