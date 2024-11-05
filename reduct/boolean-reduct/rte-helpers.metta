@@ -90,7 +90,7 @@
 ;;  and the children as a tuple ((...literals...), (...children...))
 (= (getLiteralChildren $expr) ((getLiterals $expr) (getChildren $expr)))
 
- ; Function to find common literals between a tuple and a nested tuple
+;; Function to find common literals between a tuple and a nested tuple 
 (= (findCommonLiterals $tuple $nestedTuple)
     (if (or (== $nestedTuple ()) (== $tuple ()))
         ()
