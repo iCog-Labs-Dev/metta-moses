@@ -14,24 +14,25 @@
 (= (zeroConstraintSubsume $parent $current)
   (case ((get-metatype $current) $current)
     (
-      ((currentression ()) ($current False))
-      ((currentression (NOT $x)) ($current False))
-      ((Symbol $current) ($current False))
-      ((currentression $current)
+      ((Expression ()) ($parent $current False))
+      ((Expression (NOT $x)) ($parent $current False))
+      ((Symbol $current) ($parent $current False))
+      ((Expression $current)
         (let*
           (
             ($head (car-atom $current))
             ($children (getChildren $current))
             ($childrenHasChildOrGuard (collapse (nodeHasChildOrGuard (superpose $children))))
           )
-          (case $children
+          (case ($head $children)
             (
-              (() ($parent $current False))
-              ($else
-                (if (isMember False $childrenHasChildOrGuard)
-                    ((removeElement ($current) $parent) () True) ;; Remove current from parent.
-                    ($parent $current False)
-                )
+              ((AND $_) ($parent $current False))
+              ((OR ()) ($parent $current False))
+              ((OR $children)
+                  (if (isMember False $childrenHasChildOrGuard)
+                      ((removeElement ($current) $parent) () True)
+                      ($parent $current False)
+                  )
               )
             )
           )
