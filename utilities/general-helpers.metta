@@ -67,6 +67,15 @@
 (: until (-> (-> $a Bool) (-> $a $a) $a $a))
 (= (until $predicate $function $x) (if ($predicate $x) $x (let $x' ($function $x) (until $predicate $function $x'))))
 
+;; A foldleft function like the implementation in Haskell.
+;; It takes a binary function that expects two atoms and
+;;    apply it recursively on a nested atom.
+(: foldl (-> (-> $a $b $d) $b $c $d))
+(= (foldl $f $acc $tuple)
+   (if (== $tuple ())
+       $acc
+       (foldl $f ($f (car-atom $tuple) $acc) (cdr-atom $tuple))))
+
 ;; A function to remove all elements found in $common from a $tuple
 (= (removeElement $common $tuple)
    (collapse (subtraction (superpose $tuple) (superpose $common)))
