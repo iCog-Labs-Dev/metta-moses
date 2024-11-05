@@ -39,13 +39,10 @@
 ! (assertEqualToResult (isConsistentExp (OR (AND A B) (AND A B) (NOT A))) (True))
 ! (assertEqualToResult (isConsistentExp (AND A (NOT A) (NOT B))) (False))
 
-! (assertEqualToResult (nodeHasChildExp (AND A B)) (True))
-! (assertEqualToResult (nodeHasChildExp (AND A B C)) (True))
-! (assertEqualToResult (nodeHasChildExp (OR A B C)) (True))
-! (assertEqualToResult (nodeHasChildExp (A)) (False))
-! (assertEqualToResult (nodeHasChildExp A) (False))
-! (assertEqualToResult (nodeHasChildExp (AND)) (False))
-! (assertEqualToResult (nodeHasChildExp AND) (False))
+! (assertEqualToResult (nodeHasChildOrGuard (AND A B)) (True))
+! (assertEqualToResult (nodeHasChildOrGuard (AND A B C)) (True))
+! (assertEqualToResult (nodeHasChildOrGuard (OR A B C)) (True))
+! (assertEqualToResult (nodeHasChildOrGuard (AND)) (False))
 
 ;; Test for filterLiterals
 ! (assertEqual (filterLiterals A) A)
