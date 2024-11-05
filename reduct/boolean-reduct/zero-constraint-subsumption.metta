@@ -42,6 +42,40 @@
   )
 )
 
+;; This function's input and output is similar to the
+;;    zeroConstraintSubsume function.
+;; Preconditions: The point of application(POA) is AND node,
+;;                  the POA has no children and guard set.
+;; Action: If preconditions are met, it will remove the POA from its parent and return the updated parent, empty atom and a boolean value of True.
+;;         Otherwise, it will just return the unchanged state.
+;; Example: input: POA ==> (AND), parent ==> (OR A C (AND) (OR A B))
+;;          output: ((OR A C (OR A B)) () True)
+;; (: zeroConstraintSubsume' (-> Expression Expression (Expression Expression Bool)))
+(= (zeroConstraintSubsume' $parent $current)
+  (case ((get-metatype $current) $current)
+    (
+      ((Expression ()) ($parent $current False))
+      ((Expression (NOT $x)) ($parent $current False))
+      ((Symbol $current) ($parent $current False))
+      ((Expression $current)
+        (let*
+          (
+            ($head (car-atom $current))
+            ($children (getChildren $current))
+            ($guardSet (getGuardSet $current))
+          )
+          ;; POA is AND and has no children and guardSet
+          (if (and (== $head AND)
+                   (and (== $guardSet ()) (== $children ())))
+              ((removeElement ($current) $parent) () True)
+              ($parent $current False)
+          )
+        )
+      )
+    )
+  )
+)
+
 
 ;; a helper function which checks if an expression has a child (subexpression) or a literal or not
 (= (nodeHasChildOrGuard $node) (or (~= (getLiterals $node) ()) (~= (getChildren $node) ())))
