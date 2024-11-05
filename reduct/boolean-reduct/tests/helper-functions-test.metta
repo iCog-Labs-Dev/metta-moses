@@ -111,3 +111,11 @@
 !(assertEqual (foldl + 0 (1 2 3 4 5)) 15)
 !(assertEqual (foldl * 1 (2 2 2 2)) 16)
 !(assertEqual (foldl * 1 ()) 1)
+
+;; Test for any
+!(assertEqual (any (True False False)) True)
+!(assertEqual (any (False True False)) True)
+!(assertEqual (any (False False True)) True)
+!(assertEqual (any (False False False)) False)
+!(assertEqual (any (False False False False False False False)) False)
+!(assertEqual (any (False False True False False False False)) True)

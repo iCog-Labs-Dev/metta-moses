@@ -80,3 +80,10 @@
 (= (removeElement $common $tuple)
    (collapse (subtraction (superpose $tuple) (superpose $common)))
 )
+
+;; A function that returns True if any of the input atoms are True and False otherwise
+;; Example: input ==> (True True False), output ==> True
+;;          input ==> (False False False), output ==> False
+;;          input ==> (False True False), output ==> True
+(: any (-> Atom Bool))
+(= (any $bools) (isMember True $bools))
