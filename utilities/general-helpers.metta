@@ -65,7 +65,7 @@
 ;; A function that behaves like a do while loop.
 ;; It executes the functions in the given list and returns the last result.
 (: until (-> (-> $a Bool) (-> $a $a) $a $a))
-(= (until $predicate $function $x) (if ($predicate $x) $x (let $x' ($function $x) (until $predicate $function $x'))))
+(= (until $predicate $function $x) (trace! (=== Until === Current: $x Next: ($function $x) Predicate Value: ($predicate $x)) (if ($predicate $x) $x (let $x' ($function $x) (until $predicate $function $x')))))
 
 ;; A foldleft function like the implementation in Haskell.
 ;; It takes a binary function that expects two atoms and
@@ -74,7 +74,12 @@
 (= (foldl $f $acc $tuple)
    (if (== $tuple ())
        $acc
-       (foldl $f ($f (car-atom $tuple) $acc) (cdr-atom $tuple))))
+       (trace!
+          (=== Fold === Acc: $acc Remaining: $tuple Next: ($f (car-atom $tuple) $acc))
+          (foldl $f ($f (car-atom $tuple) $acc) (cdr-atom $tuple))
+       )
+   )
+)
 
 ;; A function to remove all elements found in $common from a $tuple
 (= (removeElement $common $tuple)

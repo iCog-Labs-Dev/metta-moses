@@ -29,11 +29,16 @@
                 (AND
                   (let*
                     (
+                      (() (println! (=== Inside RTE AND case ===)))
+                      (() (println! (Parameters ==> Parent: $parent Current: $current DominantSet: $dominantSet CommandSet: $commandSet)))
+                      (() (println! ""))
+
                       ($guardSet (getGuardSet $current))
                       ($children (getChildren $current))
 
                       ($updatedGuardSet (setDifference $guardSet $dominantSet)) ;; Apply Redundant to current
                       ($updatedGuardSet' (setDifference $updatedGuardSet $commandSet)) ;; Apply 1-Constraint-Complement-Subtraction
+                      ;; FIX: Truth value not correct and should be the negation of what it is here.
                       ($appliedRedundantOr1CC (or (== $updatedGuardSet $guardSet) (== $updatedGuardSet' $updatedGuardSet))) ;; Storing this state to return boolean indicating RTE is applied or not.
 
                       ($updatedSubExpression (concatTuple $updatedGuardSet' $children))
@@ -43,6 +48,11 @@
                       (($zeroSubsumeParent $zeroSubsumeCurrent $appliedZeroSubsume) (zeroConstraintSubsume' $updatedParent $updatedCurrent)) ;; Apply 0-Subsume AND node variation
                       (($oneSubsumeParent $oneSubsumeCurrent $appliedOneSubsume) (oneConstraintSubsume $zeroSubsumeParent $zeroSubsumeCurrent $commandSet)) ;; Apply 1-Subsume.
 
+                      (() (println! (=== RTE AND CASE log ===)))
+                      (() (println! (GuardSet: $guardSet Children: $children UpdatedGuardSet: $updatedGuardSet UpdatedGuardSet': $updatedGuardSet')))
+                      (() (println! (appliedRedundantOr1CC: $appliedRedundantOr1CC appliedZeroSubsume: $appliedZeroSubsume appliedOneSubsume: $appliedOneSubsume)))
+                      (() (println! ""))
+
                       ;; until no transformation is applied
                       ;;    compute dominantSet
                       ;;    deleteInconHandle.
@@ -50,6 +60,9 @@
                       ;;    apply RTE on children.
                       ;; 0-Subsume Variation
                       (($_ $__ ($updatedParent' $updatedCurrent' $bool)) (until andTransformationsNotApplied applyAndTransformations ($commandSet $dominantSet ($oneSubsumeParent $oneSubsumeCurrent True))))
+
+                      (() (println! (FinalResult ==> UpdatedParent: $updatedParent' UpdatedCurrent: $updatedCurrent' AppliedRTE: (any ($appliedRedundantOr1CC $appliedZeroSubsume $appliedOneSubsume $bool $finalBool)))))
+
                       (($finalUpdatedParent $finalUpdatedCurrent $finalBool) (zeroConstraintSubsume' $updatedParent' $updatedCurrent'))
                     )
                     ($finalUpdatedParent $finalUpdatedCurrent (any ($appliedRedundantOr1CC $appliedZeroSubsume $appliedOneSubsume $bool $finalBool)))
@@ -87,17 +100,26 @@
 (= (applyAndTransformations ($commandSet $dominantSet ($parent $current $_)))
    (let*
      (
+        (() (println! (=== Inside ApplyAndTransformations ===)))
+        (() (println! (Parameters ==> CommandSet: $commandSet DominantSet: $dominantSet Parent: $parent Current: $current)))
+        (() (println! ""))
+
         ($guardSet (getGuardSet $current))
         ($children (getChildren $current))
         ($handleSet (collapse (unique (union (superpose $guardSet) (superpose $dominantSet))))) ;; Compute new dominantSet
         (($delInconHandleParent $delInconHandleCurrent $appliedDelInconHandle) (deleteInconsistentHandle $parent $current $handleSet)) ;; Apply deleteInconHandle.
         (($andCutParent $andCutCurrent $appliedAndCut) (andCut $delInconHandleParent $delInconHandleCurrent)) ;; Apply andCut
+
+        (() (println! (=== ApplyAndTransformations Log)))
+        (() (println! (GuardSet: $guardSet Children: $children HandleSet: $handleSet)))
+        (() (println! (AppliedDelInconHandle: $appliedDelInconHandle AppliedAndCut: $appliedAndCut)))
+        (() (println! ""))
      )
      (if (or $appliedDelInconHandle $appliedAndCut)
          ($commandSet $dominantSet ($andCutParent $andCutCurrent True)) ;; Returning the most up to date state.
 
          ;; Apply RTE on children
-         (foldl reduceToElegance ($commandSet $handleSet ($parent $current False)) $children) ;; FIX: Make sure not to change the value of dominantSet  and commandSet
+         (foldl reduceToElegance ($commandSet $handleSet ($current () False)) $children) ;; FIX: Change reduceToElegance function with the applyReduceToEleganceToAnd Function
      )
    )
 )
@@ -106,7 +128,21 @@
 ;; This function is specific for the AND node case of the reduce to elegance function.
 (: applyReduceToEleganceToAnd (-> Expression (Expression Expression (Expression Expression Bool))))
 (= (applyReduceToEleganceToAnd $newCurrent ($commandSet $dominantSet ($parent $prevCurrent $bool)))
-   ($commandSet $dominantSet (reduceToElegance $parent $newCurrent $dominantSet $commandSet))
+   (let*
+     (
+        (() (println! (=== Inside ApplyReduceToEleganceToAND ===)))
+        (() (println! (Parameters ==> NewCurrent: $newCurrent CommandSet: $commandSet DominantSet: $dominantSet )))
+        (() (println! (Parameters ==> Parent: $parent PrevCurrent $prevCurrent Bool: $bool)))
+        (() (println! ""))
+
+        (($updatedParent $updatedCurrent $appliedRTE) (reduceToElegance $parent $newCurrent $dominantSet $commandSet))
+
+        (() (println! (=== ApplyReduceToEleganceToAND Log ===)))
+        (() (println! (UpdatedParent: $updatedParent UpdatedCurrent: $updatedCurrent AppliedRTE: $appliedRTE)))
+        (() (println! ""))
+     )
+     ($commandSet $dominantSet ($updatedParent $updatedCurrent $appliedRTE))
+   )
 )
 
 
@@ -120,19 +156,34 @@
 (= (applyOrTransformations ($commandSet $dominantSet ($parent $current $_)))
    (let*
      (
+        (() (println! (=== Inside ApplyOrTransformations ===)))
+        (() (println! (Parameters ==> CommandSet: $commandSet DominantSet: $dominantSet Parent: $parent Current: $current Unused Boolean Value: $_)))
+        (() (println! ""))
+
         (($zeroSubsumeParent $zeroSubsumeCurrent $appliedZeroSubsume) (zeroConstraintSubsume $parent $current)) ;; Apply 0-Subsume
         (($orCutParent $orCutCurrent $appliedOrCut) (orCut $zeroSubsumeParent $zeroSubsumeCurrent)) ;; Apply orCut
         ($children (getChildren $current))
         ($firstChild (if (~= $children ()) (car-atom $children) ()))
         ($remainingChildren (if (~= $nextChild ()) (cdr-atom $children) ()))
+
+        (() (println! (=== ApplyOrTransformations Log ===)))
+        (() (println! (0Subsume ==> Parent: $zeroSubsumeParent Current: $zeroSubsumeCurrent Applied: $appliedZeroSubsume)))
+        (() (println! (orCut ==> Parent: $orCutParent Current: $orCutCurrent Applied: $appliedOrCut)))
+        (() (println! (0Subsume ==> Parent: $zeroSubsumeParent Current: $zeroSubsumeCurrent Applied: $appliedZeroSubsume)))
+        (() (println! (Children: $children FirstChild: $firstChild RemainingChildren: $remainingChildren)))
+        (() (println! ""))
      )
      (if (or $appliedZeroSubsume $appliedOrCut) 
          ($commandSet $dominantSet ($orCutParent $orCutCurrent True)) ;; Returning the most up to date state.
 
          ;; Apply RTE on children until RTE is no longer being applied on any children.
-         (let ($_ $__ ($finalUpdatedParent $finalUpdatedCurrent $bool) (() ()))
-              (until orTransformationsNotApplied applyReduceToEleganceToOr ($commandSet $dominantSet ($parent $current True) ($firstChild $remainingChildren)))
-              ($commandSet $dominantSet ($finalUpdatedParent $finalUpdatedCurrent $bool))
+         (let*
+           (
+             (($_ $__ ($finalUpdatedParent $finalUpdatedCurrent $bool) (() ())) (until orTransformationsNotApplied applyReduceToEleganceToOr ($commandSet $dominantSet ($parent $current True) ($firstChild $remainingChildren))))
+             (() (println! (FinalResult ==> FinalUpdatedParent: $finalUpdatedParent FinalUpdatedCurrent: $finalUpdatedCurrent Applied: $bool)))
+             (() (println! ""))
+           )
+           ($commandSet $dominantSet ($finalUpdatedParent $finalUpdatedCurrent $bool))
          )
      )
    )
@@ -142,18 +193,26 @@
 ;; A helper function to apply reduceToElegance to the currentChild and return the nextChild in addtion to the state. It behaves like a lambda function.
 ;; The implementation of this function has many paramters to make it suitable to use with the already implemented until function.
 ;; This function is specific for the OR node case of the reduce to elegance function.
-;; TODO: Add type definitions
+(: applyReduceToEleganceToOr (-> (Expression Expression (Expression Expression Bool) (Expression Expression)) (Expression Expression (Expression Expression Bool))))
 (= (applyReduceToEleganceToOr ($commandSet $dominantSet ($parent $prevCurrent $bool) ($currentChild $remainingChildren)))
    (if (~= $currentChild ())
        (let*
           (
+              (() (println! (=== Inside ApplyReduceToEleganceToOr ===)))
+              (() (println! (Parameters ==> CommandSet: $commandSet DominantSet: $dominantSet Parent: $parent PrevCurrent: $prevCurrent Bool: $bool CurrentChild: $currentChild RemainingChildren $remainingChildren)))
+              (() (println! ""))
+
               ($localCommandSet (localCommandSet $currentChild (getChildren $prevCurrent) (getGuardSet $prevCurrent) $commandSet)) ;; Compute local command set
-              (() (println! (LocalCommandSet: $localCommandSet)))
               ($nextChild (if (~= $remainingChildren ()) (car-atom $remainingChildren) ()))
               ($restChildren (if (~= $nextChild ()) (cdr-atom $remainingChildren) ()))
+
+              (() (println! (=== ApplyReduceToEleganceToOr Log ===)))
+              (() (println! (Children: (getChildren $prevCurrent) GuardSet: (getGuardSet $prevCurrent))))
+              (() (println! (NextChild: $nextChild RestChildren: $restChildren)))
+              (() (println! ""))
+
           )
           ($commandSet $dominantSet (reduceToElegance $prevCurrent $currentChild $dominantSet $localCommandSet) ($nextChild $restChildren))
-          ;; (CommandSet: $commandSet CurrentChild: $currentChild Children: (getChildren $prevCurrent) GuardSet: (getGuardSet $prevCurrent))
        )
        ($commandSet $dominantSet ($parent $prevCurrent False) (() ()))
    )
@@ -175,6 +234,9 @@
         ($else
           (let*
             (
+              (() (println! (=== Inside LocalCommandSet ===)))
+              (() (println! ""))
+
               ($siblings (if (~= $parentChildren ()) (removeElement ($child) $parentChildren) ()))
               ($filteredGuardSet (if (~= $parentGuardSet ()) (removeElement ($child) $parentGuardSet) ()))
               ($filteredSiblings (if (~= $siblings ()) (collapse (filterTerminalAndNode (superpose $siblings))) ()))
@@ -200,10 +262,11 @@
               (() (println! (=== LocalCommandSet Log ===)))
               (() (println! (Siblings: $siblings)))
               (() (println! (FilteredGuardSet $filteredGuardSet)))
-              (() (println! (FilteredSiblins $filteredSiblings)))
+              (() (println! (FilteredSiblings $filteredSiblings)))
               (() (println! (SiblingsGuardSet $siblingsGuardSet)))
               (() (println! (TotalGuardSet: $totalGuardSet)))
               (() (println! (LocalCommandSet: $localCommandSet)))
+              (() (println! ""))
             )
             $localCommandSet
           )
@@ -225,3 +288,7 @@
      )
    )
 )
+
+
+!(applyOrTransformations (() ()  ((AND E (OR A B (AND C D))) (OR A B (AND C D)) False)))
+(() (C D) ((OR A B (AND C D)) (AND C D) False))
