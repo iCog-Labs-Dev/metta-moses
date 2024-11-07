@@ -74,12 +74,7 @@
 (= (foldl $f $acc $tuple)
    (if (== $tuple ())
        $acc
-       (trace!
-          (=== Fold === Acc: $acc Remaining: $tuple Next: ($f (car-atom $tuple) $acc))
-          (foldl $f ($f (car-atom $tuple) $acc) (cdr-atom $tuple))
-       )
-   )
-)
+       (foldl $f ($f (car-atom $tuple) $acc) (cdr-atom $tuple))))
 
 ;; A function to remove all elements found in $common from a $tuple
 (= (removeElement $common $tuple)
