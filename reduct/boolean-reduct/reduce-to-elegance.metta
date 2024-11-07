@@ -148,6 +148,7 @@
        (let*
           (
               ($localCommandSet (localCommandSet $currentChild (getChildren $prevCurrent) (getGuardSet $prevCurrent) $commandSet)) ;; Compute local command set
+              (() (println! (LocalCommandSet: $localCommandSet)))
               ($nextChild (if (~= $remainingChildren ()) (car-atom $remainingChildren) ()))
               ($restChildren (if (~= $nextChild ()) (cdr-atom $remainingChildren) ()))
           )
@@ -166,8 +167,6 @@
 ;;                   parentGuardSet: (E F G)
 ;;                   commandSet: (E F)
 ;;         output ==> (D E F)
-;; FIX: The function fails to reduce when the parentChildren has only one child and it is a duplicate 
-;;      of the first child. Don't know yet whether this should be the expected behaviour or not.
 (: localCommandSet (-> Expression Expression Expression Expression Expression))
 (= (localCommandSet $child $parentChildren $parentGuardSet $commandSet)
    (case ($parentChildren $parentGuardSet)
@@ -176,25 +175,35 @@
         ($else
           (let*
             (
-              ($siblings (removeElement ($child) $parentChildren))
-              ($filteredGuardSet (removeElement ($child) $parentGuardSet))
-              ($filteredSiblings (collapse (filterTerminalAndNode (superpose $siblings))))
-              (() (println! (FilteredSiblings: $filteredSiblings)))
+              ($siblings (if (~= $parentChildren ()) (removeElement ($child) $parentChildren) ()))
+              ($filteredGuardSet (if (~= $parentGuardSet ()) (removeElement ($child) $parentGuardSet) ()))
+              ($filteredSiblings (if (~= $siblings ()) (collapse (filterTerminalAndNode (superpose $siblings))) ()))
               ($siblingsGuardSet
                   ;; To flatten the guardSet of siblings
-                  (collapse
-                    (let*
-                      (
-                          ($siblingGuardSet (collapse (getGuardSet (superpose $filteredSiblings))))
-                          ($nDGuardSet (superpose $siblingGuardSet))
-                          ($nDGuardSet' (superpose $nDGuardSet))
+                  (if (~= $filteredSiblings ())
+                      (collapse
+                        (let*
+                          (
+                              ($siblingGuardSet (collapse (getGuardSet (superpose $filteredSiblings))))
+                              ($nDGuardSet (superpose $siblingGuardSet))
+                              ($nDGuardSet' (superpose $nDGuardSet))
+                          )
+                          $nDGuardSet'
+                        )
                       )
-                      $nDGuardSet'
-                    )
+                      ()
                   )
               )
               ($totalGuardSet (concatTuple $filteredGuardSet $siblingsGuardSet))
               ($localCommandSet (collapse (unique (union (superpose $totalGuardSet) (superpose $commandSet)))))
+
+              (() (println! (=== LocalCommandSet Log ===)))
+              (() (println! (Siblings: $siblings)))
+              (() (println! (FilteredGuardSet $filteredGuardSet)))
+              (() (println! (FilteredSiblins $filteredSiblings)))
+              (() (println! (SiblingsGuardSet $siblingsGuardSet)))
+              (() (println! (TotalGuardSet: $totalGuardSet)))
+              (() (println! (LocalCommandSet: $localCommandSet)))
             )
             $localCommandSet
           )
