@@ -11,8 +11,7 @@
 
 ;;RTE should also return a boolean value to indicate any one of the transformations are applied.
 (= (reduceToElegance $parent $current $dominantSet $commandSet)
-   (
-      (case ((get-metatype $current) $current)
+   (case ((get-metatype $current) $current)
         (
           ((Symbol $symbol) ($parent $symbol False))
           ((Expression ()) ($parent $current False))
@@ -28,7 +27,6 @@
 
                       ($updatedGuardSet (setDifference $guardSet $dominantSet)) ;; Apply Redundant to current
                       ($updatedGuardSet' (setDifference $updatedGuardSet $commandSet)) ;; Apply 1-Constraint-Complement-Subtraction
-
                       ($appliedRedundantOr1CC (or (== $updatedGuardSet $guardSet) (== $updatedGuardSet' $updatedGuardSet))) ;; Storing this state to return boolean indicating RTE is applied or not.
 
                       ($updatedSubExpression (concatTuple $updatedGuardSet' $children))
@@ -45,9 +43,10 @@
                       ;;    apply RTE on children.
                       ;; 0-Subsume Variation
                       (($_ $__ ($updatedParent' $updatedCurrent' $bool)) (until transformationNotApplied applyAndTransformations ($commandSet $dominantSet ($oneSubsumeParent $oneSubsumeCurrent True))))
-                      (() (println! (Updated State: $updatedParent' $updatedCurrent' $bool)))
+                      (($finalUpdatedParent $finalUpdatedCurrent $finalBool) (zeroConstraintSubsume' $updatedParent' $updatedCurrent'))
                     )
-                    (zeroConstraintSubsume' $updatedParent' $updatedCurrent')
+                    ($finalUpdatedParent $finalUpdatedCurrent (any ($appliedRedundantOr1CC $appliedZeroSubsume $appliedOneSubsume $bool $finalBool)))
+                    ; (finalUpdatedParent': $finalUpdatedParent finalUpdatedCurrent': $finalUpdatedCurrent bool: (any ($appliedRedundantOr1CC $appliedZeroSubsume $appliedOneSubsume $bool $finalBool)))
                   )
                 )
                 (OR
@@ -62,7 +61,8 @@
             )
         )
       )
-   )))
+   )
+)
 
 ;; A helper function to exptract transformation application from
 (: transformationNotApplied (-> (Expression Expression (Expression Expression Bool)) Bool))
