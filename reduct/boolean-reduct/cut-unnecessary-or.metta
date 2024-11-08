@@ -7,27 +7,29 @@
 ;;            are not met, it returns the state unchanged.
 ;; Example: input: POA ==> (OR (AND (NOT D))), parent => (AND B (OR (AND (NOT D))))
 ;;          output: ((AND B (NOT D)) () True)
-;; (: orCut (-> Expression Expression (Expression Expression Bool)))
+(: orCut (-> Expression Expression (Expression Expression Bool)))
 (= (orCut $parent $current)
-    (let*
-        (
+   (if (~= $current ())
+       (let*
+          (
             ($op (car-atom $current))
             ($children (cdr-atom $current))
-            ($child (car-atom $children))
-            ($restChildren (cdr-atom $children))
-            ($grandChildren (if (== (get-metatype $child) Symbol) () (cdr-atom $child)))
+            ($child (if (~= $children ()) (car-atom $children) ())) ;; Make sure children isn't empty
+            ($restChildren (if (~= $children ()) (cdr-atom $children) ())) ;; Make sure children isn't empty
+            ($grandChildren (if (or (== (get-metatype $child) Symbol) (== $child ())) () (cdr-atom $child))) ;; Make sure child isn't empty or Literal.
             ($updatedParent (removeElement ($current) $parent))
-        )
-        (case $op
-          (
-              (AND ($parent $current False))
-              (NOT ($parent $current False))
+          )
+          (case $op
+            (
               (OR (if (== $restChildren ())
                       ((addChildren $updatedParent $grandChildren) () True) ;; Add the children to the parent of POA.
                       ($parent $current False)
                   )
               )
+              ($else ($parent $current False))
+            )
           )
-        )
-    )
+       )
+       ($parent $current False)
+   )
 )

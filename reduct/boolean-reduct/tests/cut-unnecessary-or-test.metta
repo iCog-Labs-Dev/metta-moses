@@ -43,3 +43,5 @@
     (orCut (AND (NOT (AND A (OR A (NOT B))))) (NOT (AND A (OR A (NOT B)))))
     (((AND (NOT (AND A (OR A (NOT B))))) (NOT (AND A (OR A (NOT B)))) False))
 )
+
+!(assertEqualToResult (orCut (AND A B (OR C D)) ()) ((AND A B (OR C D)) () False))

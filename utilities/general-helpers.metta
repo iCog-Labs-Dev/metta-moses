@@ -74,9 +74,13 @@
 ;;    apply it recursively on a nested atom.
 (: foldl (-> (-> $a $b $d) $b $c $d))
 (= (foldl $f $acc $tuple)
-   (if (== $tuple ())
+   (trace! (Inside fold function with Tuple: $tuple and (if (== $tuple ()) (Returning accumulator: $acc) (calling Function $f with Parameter: (car-atom $tuple) and Acc: $acc)))
+     (if (== $tuple ())
        $acc
-       (foldl $f ($f (car-atom $tuple) $acc) (cdr-atom $tuple))))
+       (let $next (car-atom $tuple) (foldl $f ($f $next $acc) (cdr-atom $tuple)))
+     )
+   )
+)
 
 ;; A function to remove all elements found in $common from a $tuple
 (= (removeElement $common $tuple)
