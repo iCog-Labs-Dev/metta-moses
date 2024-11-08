@@ -17,6 +17,7 @@
 ;;    but may raise some unfoceable issue in the future while the later has more work to implement but is more robust.
 
 ;;RTE should also return a boolean value to indicate any one of the transformations are applied.
+(: reduceToElegance (-> Expression Expression Expression Expression (Expression Expression Bool)))
 (= (reduceToElegance $parent $current $dominantSet $commandSet)
    (case ((get-metatype $current) $current)
         (
@@ -208,8 +209,9 @@
            (
 
              (() (println! (===== Inside ApplyOrTransformations Before Until function ======)))
-             ;; (($_ $__ ($finalUpdatedParent $finalUpdatedCurrent $bool) (() ())) (() () ($orCutParent $orCutCurrent False) ($firstChild $remainingChildren)))
-             (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) (() ())) (until orReduceToEleganceNotApplied applyReduceToEleganceToOr ($commandSet $dominantSet ($parent $current True) ($firstChild $remainingChildren)))) ;; FIX: Make sure to pass the current as a parent not the old parent
+
+             (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) (() ())) (until orReduceToEleganceNotApplied applyReduceToEleganceToOr ($commandSet $dominantSet ($parent $current True) ($firstChild $remainingChildren))))
+
              (() (println! (Inside ApplyOrTransformations After Until function)))
              (() (println! (FinalResult ==> FinalUpdatedParent: $finalUpdatedParent FinalUpdatedCurrent: $finalUpdatedCurrent Applied: $bool)))
              (() (println! ""))
