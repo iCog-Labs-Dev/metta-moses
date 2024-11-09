@@ -106,6 +106,8 @@
 
         ($guardSet (getGuardSet $current))
         ($children (getChildren $current))
+        ($firstChild (if (~= $children ()) (car-atom $children) ()))
+        ($remainingChildren (if (~= $firstChild ()) (cdr-atom $children) ()))
         ($handleSet (collapse (unique (union (superpose $guardSet) (superpose $dominantSet))))) ;; Compute new dominantSet
         (($delInconHandleParent $delInconHandleCurrent $appliedDelInconHandle) (deleteInconsistentHandle $parent $current $handleSet)) ;; Apply deleteInconHandle.
         (($andCutParent $andCutCurrent $appliedAndCut) (andCut $delInconHandleParent $delInconHandleCurrent)) ;; Apply andCut
@@ -114,6 +116,7 @@
         (() (println! (GuardSet: $guardSet Children: $children HandleSet: $handleSet)))
         (() (println! (DelInconHandle ==> Parent: $delInconHandleParent Current: $delInconHandleCurrent appliedDelInconHandle: $appliedDelInconHandle)))
         (() (println! (AndCut ==> Parent: $andCutParent Current: $andCutCurrent appliedAndCut: $appliedAndCut)))
+        (() (println! (Children: $children FirstChild: $firstChild RemainingChildren: $remainingChildren)))
         (() (println! ""))
      )
      (if (or $appliedDelInconHandle $appliedAndCut)
@@ -125,7 +128,13 @@
               (($commandSet' $dominantSet' ($updatedParent $updatedCurrent $appliedRTE))
                 (if (~= $children ()) ;; No point in applying foldl if no children.
                     ;; The first accumulator of the foldl isn't used so it doesn't matter what we pass in place of the second $current.
-                    (foldl applyReduceToEleganceToAnd ($commandSet $handleSet ($parent $current False)) $children)
+                    (let*
+                          (
+                            (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $lastRemainingChild)) (until orReduceToEleganceNotApplied applyReduceToEleganceToOr ($commandSet $handleSet ($parent $current False) ($firstChild $remainingChildren))))
+                            (() (println! (LastChild: $lastChild LastRemainingChild: $lastRemainingChild)))
+                          )
+                        ($commandSet' $dominantSet' ($finalUpdatedParent $finalUpdatedCurrent $bool))
+                    )
                     ($commandSet $dominantSet ($parent $current False))
                 )
               )
@@ -183,13 +192,11 @@
         (($zeroSubsumeParent $zeroSubsumeCurrent $appliedZeroSubsume) (zeroConstraintSubsume $parent $current)) ;; Apply 0-Subsume
         (($orCutParent $orCutCurrent $appliedOrCut) (orCut $zeroSubsumeParent $zeroSubsumeCurrent)) ;; Apply orCut
         ($children (getChildren $current))
-        ($firstChild (if (~= $children ()) (car-atom $children) ()))
-        ($remainingChildren (if (~= $firstChild ()) (cdr-atom $children) ()))
 
         (() (println! (=== ApplyOrTransformations Log ===)))
         (() (println! (0Subsume ==> Parent: $zeroSubsumeParent Current: $zeroSubsumeCurrent Applied: $appliedZeroSubsume)))
         (() (println! (OrCut ==> Parent: $orCutParent Current: $orCutCurrent Applied: $appliedOrCut)))
-        (() (println! (Children: $children FirstChild: $firstChild RemainingChildren: $remainingChildren)))
+        (() (println! (Children: $children)))
         (() (println! ""))
      )
      (if (or $appliedZeroSubsume $appliedOrCut)
@@ -201,11 +208,10 @@
 
              (() (println! (===== Inside ApplyOrTransformations Before Until function ======)))
 
-             (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $lastRemainingChild)) (until orReduceToEleganceNotApplied applyReduceToEleganceToOr ($commandSet $dominantSet ($parent $current False) ($firstChild $remainingChildren))))
+             (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool)) (foldl applyReduceToEleganceToAnd ($commandSet $dominantSet ($parent $current False)) $children))
 
 
              (() (println! (Inside ApplyOrTransformations After Until function)))
-             (() (println! (LastChild: $lastChild LastRemainingChild: $lastRemainingChild)))
              (() (println! (FinalResult ==> FinalUpdatedParent: $finalUpdatedParent FinalUpdatedCurrent: $finalUpdatedCurrent Applied: $bool)))
              (() (println! ""))
            )
@@ -234,7 +240,7 @@
               ($restChildren (if (~= $nextChild ()) (cdr-atom $remainingChildren) ()))
 
               (($updatedCurrent $updatedChild $appliedRTE) (reduceToElegance $prevCurrent $currentChild $dominantSet $localCommandSet))
-              ($updatedParent (if $appliedRTE (findAndReplace $prevCurrent $updatedCurrent $parent) $parent))
+              ($updatedParent (findAndReplace $prevCurrent $updatedCurrent $parent))
 
               ($returnValue ($commandSet $dominantSet ($updatedParent $updatedCurrent (or $appliedRTE $bool)) ($nextChild $restChildren)))
 
@@ -253,9 +259,12 @@
 )
 
 ;;A function to calculate local command set of a given node.
-;;Local command set is the union of guardSets of AND nodes that have single guard set and no children.
+;;Local command set is the union of guardSets of terminal AND nodes.
+;;A terminal AND node is a node that has single guard set and no children.
+;;  In this implementation, literals are also included in the local command
+;;  set since they are equivalent to a terminal and node.
 ;;A guardSet is a set of literals or negation of literals in an AND nodes.
-;;Example: input ==> child: (AND A), 
+;;Example: input ==> child: (AND A),
 ;;                   parentChildren: ((AND A) (AND B C) (AND D) (AND B C (OR A B)))
 ;;                   parentGuardSet: (E F G)
 ;;                   commandSet: (E F)
@@ -275,22 +284,7 @@
               ($siblings (if (~= $parentChildren ()) (removeElement ($child) $parentChildren) ()))
               ($filteredGuardSet (if (~= $parentGuardSet ()) (removeElement ($child) $parentGuardSet) ()))
               ($filteredSiblings (if (~= $siblings ()) (collapse (filterTerminalAndNode (superpose $siblings))) ()))
-              ($siblingsGuardSet
-                  ;; To flatten the guardSet of siblings
-                  (if (~= $filteredSiblings ())
-                      (collapse
-                        (let*
-                          (
-                              ($siblingGuardSet (collapse (getGuardSet (superpose $filteredSiblings))))
-                              ($nDGuardSet (superpose $siblingGuardSet))
-                              ($nDGuardSet' (superpose $nDGuardSet))
-                          )
-                          $nDGuardSet'
-                        )
-                      )
-                      ()
-                  )
-              )
+              ($siblingsGuardSet (if (~= $filteredSiblings ()) (collapse (getGuardSetND (superpose $filteredSiblings))) ()))
               ($totalGuardSet (concatTuple $filteredGuardSet $siblingsGuardSet))
               ($localCommandSet (collapse (unique (union (superpose $totalGuardSet) (superpose $commandSet)))))
 
@@ -310,7 +304,7 @@
    )
 )
 
-;; A partial helper function to used to filter out a terminal AND node.
+;; A partial helper function used to filter out a terminal AND node.
 ;; A terminal AND node is any node that has no child and single guardSet.
 ;; WARN: This function doesn't work when the following type definition is added on MeTTa version 1.12
 ;; (: filterTerminalAndNode (-> Expression Expression))

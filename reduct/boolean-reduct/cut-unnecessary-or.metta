@@ -9,27 +9,37 @@
 ;;          output: ((AND B (NOT D)) () True)
 (: orCut (-> Expression Expression (Expression Expression Bool)))
 (= (orCut $parent $current)
-   (if (~= $current ())
-       (let*
-          (
-            ($op (car-atom $current))
-            ($children (cdr-atom $current))
-            ($child (if (~= $children ()) (car-atom $children) ())) ;; Make sure children isn't empty
-            ($restChildren (if (~= $children ()) (cdr-atom $children) ())) ;; Make sure children isn't empty
-            ($grandChildren (if (or (== (get-metatype $child) Symbol) (== $child ())) () (cdr-atom $child))) ;; Make sure child isn't empty or Literal.
-            ($updatedParent (removeElement ($current) $parent))
-          )
-          (case $op
-            (
-              (OR (if (== $restChildren ())
-                      ((addChildren $updatedParent $grandChildren) () True) ;; Add the children to the parent of POA.
-                      ($parent $current False)
-                  )
-              )
-              ($else ($parent $current False))
-            )
-          )
+   (case $current
+     (
+       ((OR (NOT $x)) ((addLiterals (removeElement ($current) $parent) ((NOT $x))) () True))
+       ((OR $x) (if (== (get-metatype $x) Symbol) 
+                    ((addLiterals (removeElement ($current) $parent) ($x)) () True)
+                    ((addChildren (removeElement ($current) $parent) (getSubExpression $x)) () True)
+                )
        )
-       ($parent $current False)
+       ($else ($parent $current False))
+     )
+   )
+)
+
+;; A function to return the literals and children of any given node.
+;; It is used for cases where we need all the subExpressions of AND & OR nodes.
+;;    Expressions like (NOT A) doesn't have any subExpression and are treated as a literal.
+(: getSubExpression (-> Expression Expression))
+(= (getSubExpression $exp)
+   (case $exp
+     (
+        ;; (NOT $a) is considered as a literal hence has no subExpression.
+        ((NOT $a) ())
+        ($else
+          (let*
+            (
+              ($literals (getLiterals $exp))
+              ($children (getChildren $exp))
+            )
+            (concatTuple $literals $children)
+          )
+        )
+     )
    )
 )
