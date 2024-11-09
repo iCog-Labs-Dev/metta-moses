@@ -27,6 +27,26 @@
 ! (assertEqualToResult (getGuardSet (AND A (NOT A) (NOT B))) ( ( A (NOT A) (NOT B) )))
 ! (assertEqualToResult (getGuardSet (AND (NOT A) A B)) ( ( (NOT A) A B)))
 
+ ;; Tests for getGuardSetND
+ ;; Test 01 - getGuardSet of a literal
+! (assertEqual (getGuardSetND A) A)
+! (assertEqualToResult (getGuardSetND (A)) (A))
+
+ ;; Test 02 - getGuardSetND of OR and NOT expressions
+! (assertEqualToResult (getGuardSetND (OR)) ())
+! (assertEqualToResult (getGuardSetND (OR A B (NOT A))) ())
+! (assertEqualToResult (getGuardSetND (OR (AND A B) (AND A B) (NOT A))) ())
+
+ ;; Test 03 - getGuardSetND of AND expressions
+! (assertEqualToResult (getGuardSetND (AND)) ())
+! (assertEqualToResult (getGuardSetND (AND A)) (A))
+! (assertEqualToResult (getGuardSetND (AND (NOT A) (NOT B) A)) ((NOT A) (NOT B) A))
+! (assertEqualToResult (getGuardSetND (AND A (AND A B) (OR A B) (NOT B))) (A (NOT B)))
+! (assertEqualToResult (getGuardSetND (AND (AND A B) A) ) (A))
+! (assertEqualToResult (getGuardSetND (AND A B (NOT B)) ) (A B (NOT B)))
+! (assertEqualToResult (getGuardSetND (AND A (NOT A) (NOT B))) (A (NOT A) (NOT B)))
+! (assertEqualToResult (getGuardSetND (AND (NOT A) A B)) ((NOT A) A B))
+
 ;; Test for isConsistentExp
 ! (assertEqualToResult (isConsistentExp ()) (True))
 ! (assertEqualToResult (isConsistentExp A) (True))
@@ -76,6 +96,15 @@
 ! (assertEqual (getLiterals (OR A B (AND A B) C E (AND E F) (AND A) (NOT F))) (A B C E (NOT F)))
 ! (assertEqual (getLiterals (OR (AND A B) A B C E (NOT F) (AND E F) (AND A))) (A B C E (NOT F)))
 
+
+;; Test for getLiteralsND
+! (assertEqualToResult (getLiteralsND ()) (()))
+! (assertEqualToResult (getLiteralsND (AND A)) (A))
+! (assertEqualToResult (getLiteralsND (OR A)) (A))
+! (assertEqualToResult (getLiteralsND (AND A B (OR A B) C E (OR E F) (OR A) (NOT F))) (A B C E (NOT F)))
+! (assertEqualToResult (getLiteralsND (AND (OR A B) A B C E (NOT F) (OR E F) (OR A))) (A B C E (NOT F)))
+! (assertEqualToResult (getLiteralsND (OR A B (AND A B) C E (AND E F) (AND A) (NOT F))) (A B C E (NOT F)))
+! (assertEqualToResult (getLiteralsND (OR (AND A B) A B C E (NOT F) (AND E F) (AND A))) (A B C E (NOT F)))
 
 ;; Test for getLiteralChildren
 ! (assertEqual (getLiteralChildren ()) (() ()))
