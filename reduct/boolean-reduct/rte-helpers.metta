@@ -18,6 +18,14 @@
         ()
         (getLiterals $exp)))
 
+;; A function similar to the getGuardSet function but returns a
+;;    non deterministic list instead of a collapsed atom.
+;; Example: (AND (NOT A) (NOT B) A) -> [(NOT A), (NOT B), A]
+(= (getGuardSetND $exp)
+    (if (== (car-atom $exp) OR)
+        (empty)
+        (getLiteralsND $exp)))
+
 ;; A function to add a list of literals to a given expression
 ;;    and keep the uniqueness of the literals.
 ;; Example: input: $exp -> (AND A B (OR C D) E F), $elements -> (A B G)
@@ -85,6 +93,18 @@
          (() $exp)
          ((NOT $x) $exp)
          ($else (if (== (get-metatype $exp) Expression) (collapse (filterLiterals (superpose $exp))) $exp)))))
+
+;; A function similar to getLiterals function but returns a
+;;    non deterministic list instead of a collapsed atom.
+;; Example: (AND (NOT A) (NOT B) A) -> [(NOT A),(NOT B),A]
+;;          (OR (NOT A) (NOT B) A) -> [(NOT A),(NOT B),A]
+;;          (NOT A) -> [(NOT A)]
+(= (getLiteralsND $exp)
+     (case $exp
+       (
+         (() $exp)
+         ((NOT $x) $exp)
+         ($else (if (== (get-metatype $exp) Expression) (filterLiterals (superpose $exp)) $exp)))))
 
 ;;A function that will return both literals (Also called guard sets for AND nodes)
 ;;  and the children as a tuple ((...literals...), (...children...))
