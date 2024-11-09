@@ -148,3 +148,8 @@
 !(assertEqual (any (False False False)) False)
 !(assertEqual (any (False False False False False False False)) False)
 !(assertEqual (any (False False True False False False False)) True)
+
+;; Test for getSubExpression
+!(assertEqual (getSubExpression (NOT A)) (NOT A))
+!(assertEqual (getSubExpression (OR A B (AND C D) (AND E F))) (A B (AND C D) (AND E F)))
+!(assertEqual (getSubExpression (AND A B (OR C D) (OR E F))) (A B (OR C D) (OR E F)))

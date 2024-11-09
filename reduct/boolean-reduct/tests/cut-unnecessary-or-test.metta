@@ -11,7 +11,7 @@
 
 !(assertEqualToResult
     (orCut (AND C (OR A)) (OR A))
-    (((AND C) () True))
+    (((AND C A) () True))
 )
 
 !(assertEqualToResult
@@ -44,4 +44,4 @@
     (((AND (NOT (AND A (OR A (NOT B))))) (NOT (AND A (OR A (NOT B)))) False))
 )
 
-!(assertEqualToResult (orCut (AND A B (OR C D)) ()) ((AND A B (OR C D)) () False))
+!(assertEqualToResult (orCut (AND A B (OR C D)) ()) (((AND A B (OR C D)) () False)))
