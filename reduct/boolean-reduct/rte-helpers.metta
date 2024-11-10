@@ -1,21 +1,26 @@
- ;; Partial function that is used with the getGuardSetExp
- ;; It checks if an element in an expression can be a guardset or not
- ;; returns empty if it isn't, returns the value itself if it's a guardset
- ;; example (NOT A) is guard set and will be returned
- ;; example A is guard set and will be returned
- ;; example (AND A B) is not guard set and will not be returned
-
-(= (filterGuard $exp)
+;; Partial function used to filter and keep only literals of an expression.
+;; An expression (NOT A) is also considered as a literal in the case of boolean expression.
+;; 'AND' and 'OR' are not considered as a literal.
+(= (filterLiterals $exp)
         (if (== (get-metatype $exp) Symbol)
-            (if (or (== $exp AND) (== $exp OR))
-                (empty)
-                $exp)
+            (if (or (== $exp AND) (== $exp OR)) (empty) $exp)
             (if (== (car-atom $exp) NOT)
                 $exp
                 (empty))))
 
+
+;; A function that takes an expression and returns it's guard sets
+;; Definition: Guard set of a node is the set of literals in the node. 
+;;                Only AND nodes have guard sets.
+;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
+(= (getGuardSet $exp)
+    (if (== (car-atom $exp) OR)
+        ()
+        (getLiterals $exp)))
+
 ;; Partial function used to filter and keep only children of an expression.
 ;; A child of an expression is a subexpression that isn't a Symbol.
+;; An expression (NOT A) is considered as a symbol in the case of boolean expression.
 (= (filterChildren $exp)
         (if (== (get-metatype $exp) Symbol)
             (empty)
@@ -23,44 +28,33 @@
                 (empty)
                 $exp)))
 
-;; getGuardSetExp that takes an expression and returns it's guard sets
-;; uses the partial function filterGuard to map over every element in the expression
-;; example (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
-(= (getGuardSetExp $exp)
-     (if (== $exp ())
-       ()
-       (if (== (get-metatype $exp) Expression)
-           (if (== (car-atom $exp) OR)
-               ()
-               (collapse (filterGuard (superpose $exp))))
-           (collapse (filterGuard (superpose ($exp)))))))
-
-;; A function to return children of a given expression. A child of a given expression is any subExpression.
-;; An atom of mettatype Symbol isn't considered to be a child of an expression.
+;; A function to return children of a given expression.
+;; A child of a given expression is any subExpression.
+;; An expression (NOT A) is also considered as a literal 
+;;    in the case of boolean expression. Hence not included as a child.
 (= (getChildren $exp)
-     (if (== $exp ())
-       ()
-       (if (== (get-metatype $exp) Expression)
-           (collapse (filterGuard (superpose $exp))))
-           ()))
+     (case $exp
+       (
+         (() $exp)
+         ((NOT $x) ())
+         ($else (if (== (get-metatype $exp) Expression) (collapse (filterChildren (superpose $exp))) ())))))
 
- ;a function that will return Gardset(literals for OR) and the children as a tuple ((Gset), (Children))
-(= (GsetandChildren $expr $literals $nonLiterals)
-    (if (== $expr ())
-        ($literals $nonLiterals)
-        (let*
-            (
-                ($head (car-atom $expr))
-                ($tail (cdr-atom $expr))
-                ($isLiteral (or (== (get-metatype $head) Symbol) (unify $head (NOT $_) True False))))
-        (if (or (== $head AND) (== $head OR))
-            (GsetandChildren $tail $literals $nonLiterals)
+;; A function to find return the literals of an expression
+;;  the function performs returns the literals if the
+;;  expression is either an AND or an OR.
+;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
+;;          (OR (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
+;;          (NOT A) -> (NOT A)
+(= (getLiterals $exp)
+     (case $exp
+       (
+         (() $exp)
+         ((NOT $x) $exp)
+         ($else (if (== (get-metatype $exp) Expression) (collapse (filterLiterals (superpose $exp))) $exp)))))
 
-            (if $isLiteral
-                (GsetandChildren $tail (concatTuple $literals ($head)) $nonLiterals)
-                (GsetandChildren $tail $literals (concatTuple $nonLiterals ($head))))))))
-
-(= (getGsetAndChildren $expr) (GsetandChildren $expr () ()))
+;;A function that will return both literals (Also called guard sets for AND nodes)
+;;  and the children as a tuple ((...literals...), (...children...))
+(= (getLiteralChildren $expr) ((getLiterals $expr) (getChildren $expr)))
 
  ; Function to find common literals between a tuple and a nested tuple
 (= (findCommonLiterals $tuple $nestedTuple)
@@ -77,25 +71,13 @@
 
 ;; Function to find common literals in a nested tuple
 (= (findCommon $nestedTuple)
-    (if (or (== $nestedTuple ()) (== (cdr-atom $nestedTuple) ()))
-        ()
-        (let*
-          (
-            ($first (car-atom $nestedTuple))
-            ($tail (cdr-atom $nestedTuple)))
-        (findCommonLiterals $first $tail))))
-
-;; function to find returin the Gardset of an expression
-(= (getGuardSet $expr $acc)
-    (if (== $expr ())
-        $acc
-        (let*
-            (
-                ($head (car-atom $expr))
-                ($tail (cdr-atom $expr))
-                ($isLiteral (or (== (get-metatype $head) Symbol) (unify $head (NOT $_) True False))))
-        (if (or (== $head AND) (== $head OR))
-            (getGuardSet $tail $acc)
-            (if $isLiteral
-                (getGuardSet $tail (concatTuple $acc ($head)))
-                (getGuardSet $tail $acc))))))
+   (case $nestedTuple 
+     ((() $nestedTuple)
+      ($else
+        (if (== (cdr-atom $nestedTuple) ())
+            (car-atom $nestedTuple)
+            (let*
+              (
+                ($first (car-atom $nestedTuple))
+                ($tail (cdr-atom $nestedTuple)))
+              (findCommonLiterals $first $tail)))))))

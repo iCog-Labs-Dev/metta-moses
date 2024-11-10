@@ -5,26 +5,26 @@
 ! (import! &self metta-moses:reduct:boolean-reduct:one-constraint-subsumption)
 
 ;; Test-01:applied on an empty set(not affected)
-! (assertEqualToResult (oneConstraintSubsume () () (A B C)) (()))
+! (assertEqualToResult (oneConstraintSubsume () (A B C)) ((() False)))
 
 ;; Test-02:applied on a literal(not affected)
-! (assertEqualToResult (oneConstraintSubsume A A (A B C)) (A))
+! (assertEqualToResult (oneConstraintSubsume A (A B C)) ((A False)))
 
 ;; Test-03:applied on an OR node(not affected)
-! (assertEqualToResult (oneConstraintSubsume (OR A B (AND C D)) (OR A B (AND C D)) (A C D)) ((OR A B (AND C D))))
+! (assertEqualToResult (oneConstraintSubsume (OR A B (AND C D)) (A C D)) (((OR A B (AND C D)) False)))
 
 ;;Test-04:applied on a NOT expression(not affected)
-! (assertEqualToResult (oneConstraintSubsume (NOT A) (NOT A) (A B)) ((NOT A)))
+! (assertEqualToResult (oneConstraintSubsume (NOT A) (A B)) (((NOT A) False)))
 
 ;;Test-05:applied on an AND Node
-;;;; the example given in the Holman paper(the POA)
-! (assertEqualToResult (oneConstraintSubsume (AND E D) (AND E D) (C D)) (()))
+;;;; Holamn Paper test case from page 44
+! (assertEqualToResult (oneConstraintSubsume (AND E D) (C D)) ((() True)))
 
 ;;;; empty $commandSet(the Root node or any AND node which is not commanded by any nodes)
-! (assertEqualToResult (oneConstraintSubsume (AND A (OR (AND B (OR (AND E D) C)) D)) (AND A (OR (AND B (OR (AND E D) C)) D)) ()) ((AND A (OR (AND B (OR (AND E D) C)) D))))
+! (assertEqualToResult (oneConstraintSubsume (AND A (OR (AND B (OR (AND E D) C)) D)) ()) (((AND A (OR (AND B (OR (AND E D) C)) D)) False)))
 
 ;;;; an AND node whose constraint is already inside the $commandSet
-! (assertEqualToResult (oneConstraintSubsume (AND A B C) (AND A B C) (A D E F)) (()))
+! (assertEqualToResult (oneConstraintSubsume (AND A B C) (A D E F)) ((() True)))
 
 ;;;; an AND node whose constraint isn't inside the $commandSet
-! (assertEqualToResult (oneConstraintSubsume (AND A B C) (AND A B C) (D E F)) ((AND A B C)))
+! (assertEqualToResult (oneConstraintSubsume (AND A B C) (D E F)) (((AND A B C) False)))

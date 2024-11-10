@@ -4,52 +4,39 @@
 ;; Preconditions: The POA is OR node, has a child which has an empty 
 ;;                  guard set and no children.
 ;; Action: Return an empty expression if transformtion applied.
+;;         It will additionally return a boolean value indicating 
+;;          whether the transformation is applied or not.
 ;;         Returning an empty expression is equivalent to deleting
 ;;          the POA.
 ;; Example: input: POA ==> (OR C)
 ;;        : output: ()
-;(: zeroConstraintSubsume (-> Expression Expression Expression))
-(= (zeroConstraintSubsume $expOriginal $expRecursive)
-    (if (== $expRecursive ())
-        $expOriginal
+;; (: zeroConstraintSubsume (-> Expression (Expression Bool)))
+(= (zeroConstraintSubsume $exp)
+  (case ((get-metatype $exp) $exp)
+    (
+      ((Expression ()) ($exp False))
+      ((Expression (NOT $x)) ($exp False))
+      ((Symbol $exp) ($exp False))
+      ((Expression $exp)
         (let*
+          (
+            ($head (car-atom $exp))
+            ($children (getChildren $exp))
+            ($childrenHasChildOrGuard (collapse (nodeHasChildOrGuard (superpose $children))))
+          )
+          (case ($head $children)
             (
-                ($head (car-atom $expRecursive))
-                ($tail (cdr-atom $expRecursive))
-                ($headType (get-metatype $head))
-                ($headHasNoChild (not (nodeHasChildExp $head)))
+              ((AND $_) ($exp False))
+              ((OR ()) ($exp False))
+              ((OR $children) (if (isMember False $childrenHasChildOrGuard) (() True) ($exp False)))
             )
-            (case $head
-                (
-                    (AND $expOriginal)
-                    (NOT $expOriginal)
-                    (OR (zeroConstraintSubsume $expOriginal $tail)) ;; The POA for this transformation is any OR node
-                    ($else (if (and (== (getGuardSetExp $head) ()) $headHasNoChild)
-                               () ;; If any child of the POA has an empty guardSet and no child, it is removed. if not, it's kept.
-                               (zeroConstraintSubsume $expOriginal $tail)
-                           )
-                    )
-                )
-            )
+          )
         )
+      )
     )
+  )
 )
 
 
-;; a helper function which checks if an expression has a child (subexpression) or not
-(= (nodeHasChildExp $node)
-    (let*
-        (
-          ($head (car-atom $node))
-          ($tail (cdr-atom $node))
-          ($nodeType (get-metatype $node))
-        )
-        (if (== $nodeType Symbol)
-            False
-            (if (== $tail ())
-                False
-                True
-            )
-        )
-    )
-)
+;; a helper function which checks if an expression has a child (subexpression) or a literal or not
+(= (nodeHasChildOrGuard $node) (or (~= (getLiterals $node) ()) (~= (getChildren $node) ())))

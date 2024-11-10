@@ -11,13 +11,15 @@
 ;;         Returning an empty expression corresponds to deleting the POA.
 ;; Example: input: POA ==> (AND (NOT A) (OR B C)), dominantSet ==> (A)
 ;;        : output: ()
-(= (deleteInconsistent $exp)
+;; (: deleteInconsistentHandle (-> Expression (Expression Bool)))
+(= (deleteInconsistentHandle $exp $dominantSet)
     (let*
         (
-          ($guardSet (getGuardSetExp $exp))
-          ($isConsistent (isConsistentExp $guardSet))
+          ($guardSet (getGuardSet $exp))
+          ($handleSet (concatTuple $dominantSet $guardSet))
+          ($isConsistent (isConsistentExp $handleSet))
         )
-        (if $isConsistent $exp ())
+        (if $isConsistent ($exp False) (() True))
     )
 )
 
@@ -25,19 +27,17 @@
 ;; A function to check if a given set of literals is consistent or not.
 ;; Example: input: (A B C), output: True
 ;;          input: (A B C (NOT A)), output: True
-(= (isConsistentExp $exp)
-    (let $guardSet (getGuardSetExp $exp)
-        (if (== $guardSet ())
-            True
-            (let*
-              (
-                ($pairs (collapse ( (superpose $guardSet) (superpose $guardSet))))
-                ($result (collapse (areNegations (superpose $pairs)))))
-              (if (isMember True $result)
-                  False
-                  True
-              )
-            )
+(= (isConsistentExp $handleSet)
+    (if (== $handleSet ())
+        True
+        (let*
+          (
+            ($pairs (collapse ((superpose $handleSet) (superpose $handleSet))))
+            ($result (collapse (areNegations (superpose $pairs)))))
+          (if (isMember True $result)
+              False
+              True
+          )
         )
     )
 )

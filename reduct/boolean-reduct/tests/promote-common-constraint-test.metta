@@ -7,44 +7,44 @@
 
 ;; Test 01
 !(assertEqual
-    (promoteCommonConstraints (OR A C (AND A B) (AND A C))) ((A) (OR C (AND B) (AND C)))
+    (promoteCommonConstraints (OR A C (AND A B) (AND A C))) ((A) (OR C (AND B) (AND C)) True)
 )
 
 ;; Test 02
 !(assertEqual
     (promoteCommonConstraints (OR (AND (NOT A) B) (AND (NOT A) C)))
-    (((NOT A)) (OR (AND B) (AND C)))
+    (((NOT A)) (OR (AND B) (AND C)) True)
 )
 
 ;; Test 03
 !(assertEqual
     (promoteCommonConstraints (OR E F (AND F (NOT G)) (AND H I)))
-    (() (OR E F (AND F (NOT G)) (AND H I)))
+    (() (OR E F (AND F (NOT G)) (AND H I)) False)
 )
 
 ;; Test 04
 !(assertEqual
     (promoteCommonConstraints (OR J (AND J K) (AND J L) (AND J M)))
-    ((J) (OR (AND K) (AND L) (AND M)))
+    ((J) (OR (AND K) (AND L) (AND M)) True)
 )
 
 ;; Test 05
 !(assertEqual
     (promoteCommonConstraints (OR (NOT N) (AND N O) (AND N P) (AND M Q)))
-    (() (OR (NOT N) (AND N O) (AND N P) (AND M Q)))
+    (() (OR (NOT N) (AND N O) (AND N P) (AND M Q)) False)
 )
 
 ;; Test 06
 !(assertEqual
     (promoteCommonConstraints (OR (NOT N) (AND (NOT N) O) (AND (NOT N) P) (AND (NOT N) Q)))
-    (((NOT N)) (OR (AND O) (AND P) (AND Q)))
+    (((NOT N)) (OR (AND O) (AND P) (AND Q)) True)
 )
 
 ;; Test 07
-;; !(assertEqual
-;;     (promoteCommonConstraints (OR (AND (NOT B) C) (NOT B)))
-;;     (((NOT B)) (OR (AND C)))
-;; )
+!(assertEqual
+    (promoteCommonConstraints (OR (AND (NOT B) C) (NOT B)))
+    (((NOT B)) (OR (AND C)) True)
+)
 
 ;;remove element Test
 
@@ -105,3 +105,4 @@
   (removeCommonLiterals (A B) ())
   (())
 )
+

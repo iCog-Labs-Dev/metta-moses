@@ -1,4 +1,4 @@
-;; A function to remove some subsumable selecctions from the point of application (POA).
+;; A function to remove some subsumable selections from the point of application (POA).
 ;; Definitions: An AND node N commands every node which is a descendent of N's
 ;;                parent but which is neither N nor a descendent of N.
 ;;              A guard set of a POA is the set of literals in the POA.
@@ -11,27 +11,33 @@
 ;;                 the POA is commanded by a terminal AND node COM
 ;;                 whose guard set consists of the constraint X.
 ;; Action: The function returns an empty expression if applied, else it returns the POA.
+;;            It also a boolean value corresponding to whether the transformation function
+;;            is applied or not.
 ;;         Returning an empty expression corresponds to deleting the POA.
 ;; Example: input: POA ==> (AND E D), commandSet ==> (C D)
 ;;        : output: ()
-(= (oneConstraintSubsume $expOriginal $expRecursive $commandSet)
-    (if (== $expRecursive ())
-        $expOriginal
-        (let*
-          (
-            ($head (car-atom $expRecursive))
-            ($tail (cdr-atom $expRecursive))
-          )
-          (case $head
-            (
-              (OR $expOriginal)
-              (NOT $expOriginal)
-              (AND (oneConstraintSubsume $expOriginal $tail $commandSet)) ;; The POA of this transformation is any non-root AND node
-              ($else (if (isMember $head $commandSet) () (oneConstraintSubsume $expOriginal $tail $commandSet))) ;; If any constraint of the AND node is found inside the commandSet, the node is removed. if not, it is kept.
+;;(: oneConstraintSubsume (-> Expression Expression (Expression Bool)))
+(= (oneConstraintSubsume $exp $commandSet)
+   (let*
+      (
+        ($head (car-atom $exp))
+        ($tail (cdr-atom $exp))
+      )
+      (case $head
+        (
+          (OR ($exp False))
+          (NOT ($exp False))
+          (AND
+            (let*
+              (
+                ($guardSet (getGuardSet $exp))
+                ($common (collapse (intersection (superpose $guardSet) (superpose $commandSet))))
+              )
+              (if (== $common ()) ($exp False) (() True))
             )
           )
+          ($else ($exp False))
         )
-    )
+      )
+   )
 )
-
-
