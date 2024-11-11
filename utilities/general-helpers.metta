@@ -82,6 +82,28 @@
    )
 )
 
+;; A map function that takes a function and applies 
+;;    it on every atom in a given tuple.
+(: map (-> (-> $a $b) $c $d))
+(= (map $f $tuple)
+   (if (== $tuple ())
+       (trace! (Found Tuple: $tuple Returning empty) ())
+       (let*
+         (
+            ($x (car-atom $tuple))
+            ($xs (cdr-atom $tuple))
+            ($x' ($f $x))
+            ($next (map $f $xs))
+
+            (() (println! (=== Map Log ===)))
+            (() (println! (X: $x XS: $xs UpdatedX: $x' Next: $next)))
+            (() (println! (UpdatedResult (cons-atom $x' $next))))
+         )
+         (cons-atom $x' $next)
+       )
+   )
+)
+
 ;; A function to remove all elements found in $common from a $tuple
 (= (removeElement $common $tuple)
    (collapse (subtraction (superpose $tuple) (superpose $common)))

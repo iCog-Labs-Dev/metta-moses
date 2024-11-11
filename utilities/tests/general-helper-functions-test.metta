@@ -41,7 +41,7 @@
 
 ;; Tests for until function
 
-;; These are functions used for testing until function.
+;; These are functions used for testing helper functions.
 
 ;; It returns True only if the input is zero.
 (: isZero (-> Number Bool))
@@ -66,11 +66,16 @@
 (: increment (-> Number Number))
 (= (increment $x) (+ $x 1))
 
+;; A function that turns every atom to unit
+(: transformToUnit (-> Atom Atom))
+(= (transformToUnit $x) ())
+
 ;; Test for dummy function of until
 !(assertEqual (isZero 1) False)
 !(assertEqual (isZero 0) True)
 
 !(assertEqual (greaterThanTen 8) False)
+!(assertEqual (greaterThanTen 0) False)
 !(assertEqual (greaterThanTen 11) True)
 
 !(assertEqual (isUnit (foo bar bae)) False)
@@ -94,3 +99,17 @@
 !(assertEqual (until greaterThanTen increment 0) 11)
 !(assertEqual (until isUnit cdr-atom (foo bar bae)) ())
 !(assertEqual (until isSingleAtom cdr-atom (foo bar bae)) (bae))
+
+;; Test for map function
+
+!(assertEqual (map increment (1 2 3 4)) (2 3 4 5))
+!(assertEqual (map decrement (1 2 3 4)) (0 1 2 3))
+!(assertEqual (map transformToUnit (A B C (A C D) E)) (() () () () ()))
+!(assertEqual (map isUnit (A B C (A C D) E)) (False False False False False))
+!(assertEqual (map isUnit (map transformToUnit (A B C (A C D) E))) (True True True True True))
+!(assertEqual (map isZero (map decrement (1 2 3 4))) (True False False False))
+!(assertEqual (map isZero (1 2 3 4)) (False False False False))
+!(assertEqual (map isZero (0 1 2 3 4)) (True False False False False))
+!(assertEqual (map isSingleAtom (A B C (A C D) E)) (False False False False False))
+!(assertEqual (map greaterThanTen (1 10 2 23 32 7 8 43 0 2)) (False False False True True False False True False False))
+!(assertEqual (map greaterThanTen (1 10 2 23 32 7 8 43 0)) (False False False True True False False True False))

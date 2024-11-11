@@ -43,3 +43,18 @@
      )
    )
 )
+
+;; A helper function used to apply orCut function in the until function.
+;; This function keeps the state of the until function updated for a single function application.
+(: applyOrCut (-> (Expression Bool (Expression Bool)) (Expression Bool (Expression Bool))))
+(= (applyOrCut ($parent $bool ($child $remainingChildren)))
+      (let*
+        (
+          (($updatedParent $updatedChild $appliedOrCut) (orCut $parent $child))
+          ($nextChild (if (~= $remainingChildren ()) (car-atom $remainingChildren) ()))
+          ($restChildren (if (~= $remainingChildren ()) (cdr-atom $remainingChildren) ()))
+        )
+        ($updatedParent (or $appliedOrCut $bool) ($nextChild $restChildren))
+      )
+)
+
