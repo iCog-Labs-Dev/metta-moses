@@ -52,3 +52,18 @@
                 ($first (car-atom $nestedTuple))
                 ($tail (cdr-atom $nestedTuple)))
               (findCommonLiterals $first $tail)))))))
+
+
+;; A helper function used to apply andCut in the until function.
+;; This function keeps the state of the until function updated for a single function application.
+(: applyAndCut (-> (Expression Bool (Expression Bool)) (Expression Bool (Expression Bool))))
+(= (applyAndCut ($parent $bool ($child $remainingChildren)))
+      (let*
+        (
+          (($updatedParent $updatedChild $appliedOrCut) (andCut $parent $child))
+          ($nextChild (if (~= $remainingChildren ()) (car-atom $remainingChildren) ()))
+          ($restChildren (if (~= $remainingChildren ()) (cdr-atom $remainingChildren) ()))
+        )
+        ($updatedParent (or $appliedOrCut $bool) ($nextChild $restChildren))
+      )
+)
