@@ -13,7 +13,7 @@
 ;;            whether the transformation function is applied or not.
 ;; Example: input: POA ==> (AND (OR (AND B D) (NOT E))), parent ==> (OR C (AND (OR (AND B D) (NOT E))))
 ;;          output: ((OR C (AND B D) (NOT E)) () True)
-;; (: andCut (-> Expression Expression (Expression Expression Bool)))
+(: andCut (-> Expression Expression (Expression Expression Bool)))
 (= (andCut $parent $current)
     (let*
         (
@@ -41,6 +41,7 @@
 )
 
 ;; Function to find intersections between all literals in a nested tuple
+(: intersections (-> Expression Expression))
 (= (intersections $nestedTuple)
    (case $nestedTuple 
      ((() $nestedTuple)
@@ -56,7 +57,7 @@
 
 ;; A helper function used to apply andCut in the until function.
 ;; This function keeps the state of the until function updated for a single function application.
-(: applyAndCut (-> (Expression Bool (Expression Bool)) (Expression Bool (Expression Bool))))
+(: applyAndCut (-> (Expression Bool (Expression Expression)) (Expression Bool (Expression Expression))))
 (= (applyAndCut ($parent $bool ($child $remainingChildren)))
       (let*
         (
