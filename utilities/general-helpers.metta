@@ -61,7 +61,16 @@
 ;; INFO: This function needs to change so that it can preserve the
 ;;        operator's position when MeTTa version is upgraded.
 (= (findAndReplace $old $new $list)
-    (collapse (replace $old $new (superpose $list)))
+    ;; (let*
+    ;;   (
+    ;;     (() (println! ""))
+    ;;     (() (println! (==> === Inside findAndReplace === <==)))
+    ;;     (() (println! (Parameters ==> Old: $old New: $new List: $list)))
+    ;;     (() (println! (Result ==> (collapse (replace $old $new (superpose $list))))))
+    ;;     (() (println! ""))
+    ;;   )
+      (collapse (replace $old $new (superpose $list)))
+    ;; )
 )
 
 ;; A function that behaves like a do while loop.

@@ -15,27 +15,40 @@
 ;;        : output: ((AND A (NOT B) (OR (AND C) (AND)) (OR (NOT C) (AND (NOT B) (NOG D)))) () True)
 ;(: promoteCommonConstraints (-> Expression Expression (Expression Expression Bool)))
 (= (promoteCommonConstraints $parent $current)
-    (let*
-        (
-          (($literals $children) (getLiteralChildren $current))
-          ($childrenLiteral (collapse (getLiterals (superpose $children))))
-          ($shared (findCommon $childrenLiteral))
-          ($common (atomIntersection $literals $shared))
-        )
-        (if (== $common ())
-            ($parent $current False)
-            (let*
-                (
-                  ($updatedChildren (removeCommonLiterals $common $children))
-                  ($updatedLiterals (removeElement $common $literals))
-                  ($newExp (concatTuple $updatedLiterals $updatedChildren ))
-                  ($newCurrent (cons-atom OR $newExp))
-                  ($updatedParent (findAndReplace $current $newCurrent $parent))
-                  ($updatedParent' (addLiterals $updatedParent $common))
+    (if (and (~= $current ()) (~= $parent ()))
+        (let*
+            (
+              (() (println! (=== Inside PromoteCommonConstraints ===)))
+              (() (println! (Parameters ==> Parent: $parent Current: $current)))
+
+              (($literals $children) (getLiteralChildren $current))
+              ($childrenLiteral (if (~= $children ()) (collapse (getLiterals (superpose $children))) ()))
+              ($shared (if (~= $childrenLiteral ()) (findCommon $childrenLiteral) ()))
+              ($common (if (and (~= $shared ()) (~= $literals ())) (atomIntersection $literals $shared) ()))
+            )
+            (if (== $common ())
+                ($parent $current False)
+                (let*
+                    (
+                      (() (println! (Removing Common Literals: $common)))
+                      ($updatedChildren (removeCommonLiterals $common $children))
+                      ($updatedLiterals (removeElement $common $literals))
+                      ($newExp (concatTuple $updatedLiterals $updatedChildren ))
+
+                      (() (println! ""))
+                      (() (println! (UpdatedLiterals: $updatedLiterals UpdatedChildren: $updatedChildren)))
+                      (() (println! (===> Adding OR node to $newExp <====)))
+                      (() (println! ""))
+
+                      ($newCurrent (cons-atom OR $newExp))
+                      ($updatedParent (findAndReplace $current $newCurrent $parent))
+                      ($updatedParent' (addLiterals $updatedParent $common))
+                    )
+                    ($updatedParent' $newCurrent True)
                 )
-                ($updatedParent' $newCurrent True)
             )
         )
+        ($parent $current False)
     )
 )
 
