@@ -36,7 +36,7 @@
                       ($updatedParent (findAndReplace $current $updatedCurrent $parent))
 
                       (($zeroSubsumeParent $zeroSubsumeCurrent $appliedZeroSubsume) (zeroConstraintSubsume' $updatedParent $updatedCurrent)) ;; Apply 0-Subsume AND node variation
-                      (($oneSubsumeParent $oneSubsumeCurrent $appliedOneSubsume) (oneConstraintSubsume $zeroSubsumeParent $zeroSubsumeCurrent $commandSet)) ;; Apply 1-Subsume.
+                      (($oneSubsumeParent $oneSubsumeCurrent $appliedOneSubsume) (oneConstraintSubsume $parent $current $commandSet)) ;; Apply 1-Subsume.
 
                       (() (println! (=== RTE AND CASE log ===)))
                       (() (println! (GuardSet: $guardSet Children: $children UpdatedGuardSet: $updatedGuardSet UpdatedGuardSet': $updatedGuardSet')))
@@ -49,11 +49,16 @@
                       ;;    andCut.
                       ;;    apply RTE on children.
                       ;; 0-Subsume Variation
-                      (($_ $__ ($updatedParent' $updatedCurrent' $bool)) (until andTransformationsNotApplied applyAndTransformations ($commandSet $dominantSet ($oneSubsumeParent $oneSubsumeCurrent True))))
+                      (($_ $__ ($updatedParent' $updatedCurrent' $bool))
+                         ;; TODO: Also include the 0-Subsume in this check.
+                         (if $appliedOneSubsume ;; If 1-Subsume is applied Current will be deleted so no need to iterate.
+                             ($dominantSet $commandSet ($oneSubsumeParent $oneSubsumeCurrent True))
+                             (until andTransformationsNotApplied applyAndTransformations ($commandSet $dominantSet ($zeroSubsumeParent $zeroSubsumeCurrent True)))))
 
                       (() (println! (FinalResult ==> UpdatedParent: $updatedParent' UpdatedCurrent: $updatedCurrent' AppliedRTE: (any ($appliedRedundantOr1CC $appliedZeroSubsume $appliedOneSubsume $bool $finalBool)))))
                       (() (println! ""))
 
+                      ;; TODO: Make sure the use previously updated Guard set in the previous implementation isn't an issue.
                       (($finalUpdatedParent $finalUpdatedCurrent $finalBool) (zeroConstraintSubsume' $updatedParent' $updatedCurrent'))
                     )
                     ($finalUpdatedParent $finalUpdatedCurrent (any ($appliedRedundantOr1CC $appliedZeroSubsume $appliedOneSubsume $bool $finalBool)))
@@ -106,9 +111,12 @@
 
         ($guardSet (getGuardSet $current))
         ($children (getChildren $current))
+
         ($firstChild (if (~= $children ()) (car-atom $children) ()))
         ($remainingChildren (if (~= $firstChild ()) (cdr-atom $children) ()))
+
         ($handleSet (collapse (unique (union (superpose $guardSet) (superpose $dominantSet))))) ;; Compute new dominantSet
+
         (($delInconHandleParent $delInconHandleCurrent $appliedDelInconHandle) (deleteInconsistentHandle $parent $current $handleSet)) ;; Apply deleteInconHandle.
         (($andCutParent $andCutCurrent $appliedAndCut) (andCut $delInconHandleParent $delInconHandleCurrent)) ;; Apply andCut
 
@@ -120,17 +128,19 @@
         (() (println! ""))
      )
      (if (or $appliedDelInconHandle $appliedAndCut)
-         (trace! (DelInconHandle OR AndCut applied. Returning ($commandSet $dominantSet ($andCutParent $andCutCurrent True))) ($commandSet $dominantSet ($andCutParent $andCutCurrent True))) ;; Returning the most up to date state.
+         (trace! (DelInconHandle | AndCut applied. Returning ($commandSet $dominantSet ($andCutParent $andCutCurrent True))) ($commandSet $dominantSet ($andCutParent $andCutCurrent True))) ;; Returning the most up to date state.
 
          ;; Apply RTE on children
          (let*
            (
               (($commandSet' $dominantSet' ($updatedParent $updatedCurrent $appliedRTE))
                 (if (~= $children ()) ;; No point in applying foldl if no children.
-                    ;; The first accumulator of the foldl isn't used so it doesn't matter what we pass in place of the second $current.
+                    ;; TODO: Move this comment to appropriate place => ;; The first accumulator of the foldl isn't used so it doesn't matter what we pass in place of the second $current.
                     (let*
                           (
                             (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $lastRemainingChild)) (until orReduceToEleganceNotApplied applyReduceToEleganceToOr ($commandSet $handleSet ($parent $current False) ($firstChild $remainingChildren))))
+
+                            ;; TODO: apply OrCut to children of the updatedCurrent here.
                             (() (println! (LastChild: $lastChild LastRemainingChild: $lastRemainingChild)))
                           )
                         ($commandSet' $dominantSet' ($finalUpdatedParent $finalUpdatedCurrent $bool))
@@ -208,6 +218,7 @@
 
              (() (println! (===== Inside ApplyOrTransformations Before Until function ======)))
 
+             ;; TODO: Change this foldl with until like our previous algorithm.
              (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool)) (foldl applyReduceToEleganceToAnd ($commandSet $dominantSet ($parent $current False)) $children))
 
 
@@ -241,6 +252,9 @@
 
               (($updatedCurrent $updatedChild $appliedRTE) (reduceToElegance $prevCurrent $currentChild $dominantSet $localCommandSet))
               ($updatedParent (findAndReplace $prevCurrent $updatedCurrent $parent))
+
+              ;; TODO: Apply Promote on updatedChild.
+              ;; TODO: Apply AND Cut on children of the updatedChild.
 
               ($returnValue ($commandSet $dominantSet ($updatedParent $updatedCurrent (or $appliedRTE $bool)) ($nextChild $restChildren)))
 
