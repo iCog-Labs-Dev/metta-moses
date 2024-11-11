@@ -44,8 +44,7 @@
 
 ;; This function's input and output is similar to the
 ;;    zeroConstraintSubsume function.
-;; Preconditions: The point of application(POA) is AND node,
-;;                  the POA has no children and guard set.
+;; Preconditions: The point of application(POA) has no children and guard set.
 ;; Action: If preconditions are met, it will remove the POA from its parent and return the updated parent, empty atom and a boolean value of True.
 ;;         Otherwise, it will just return the unchanged state.
 ;; Example: input: POA ==> (AND), parent ==> (OR A C (AND) (OR A B))
@@ -60,13 +59,11 @@
       ((Expression $current)
         (let*
           (
-            ($head (car-atom $current))
             ($children (getChildren $current))
-            ($guardSet (getGuardSet $current))
+            ($literals (getLiterals $current))
           )
           ;; POA is AND and has no children and guardSet
-          (if (and (== $head AND)
-                   (and (== $guardSet ()) (== $children ())))
+          (if (and (== $literals ()) (== $children ()))
               ((removeElement ($current) $parent) () True)
               ($parent $current False)
           )

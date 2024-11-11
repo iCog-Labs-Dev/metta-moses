@@ -38,6 +38,12 @@
         ($newGuardSet (concatTuple $guardSet $elements))
         ($newGuardSet' (collapse (unique (superpose $newGuardSet))))
         ($updatedSubExpression (concatTuple $newGuardSet' (getChildren $exp)))
+
+        (() (println! ""))
+        (() (println! (NewGuardSet': $newGuardSet' Children: (getChildren $exp))))
+        (() (println! (===> Adding $op node to $updatedSubExpression <====)))
+        (() (println! ""))
+
         ($newExp (cons-atom $op $updatedSubExpression))
      )
      $newExp
@@ -75,6 +81,12 @@
         ($oldChildren (getChildren $exp))
         ($newChildren (concatTuple $oldChildren $children))
         ($updatedSubExpression (concatTuple (getLiterals $exp) $newChildren))
+
+        (() (println! ""))
+        (() (println! (Literals: (getLiterals $exp) Children: $newChildren)))
+        (() (println! (===> Adding $op node to $updatedSubExpression <====)))
+        (() (println! ""))
+
         ($newExp (cons-atom $op $updatedSubExpression))
      )
      $newExp

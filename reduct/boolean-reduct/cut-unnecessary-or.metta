@@ -9,15 +9,22 @@
 ;;          output: ((AND B (NOT D)) () True)
 (: orCut (-> Expression Expression (Expression Expression Bool)))
 (= (orCut $parent $current)
-   (case $current
+   (let*
      (
-       ((OR (NOT $x)) ((addLiterals (removeElement ($current) $parent) ((NOT $x))) () True))
-       ((OR $x) (if (== (get-metatype $x) Symbol) 
-                    ((addLiterals (removeElement ($current) $parent) ($x)) () True)
-                    ((addChildren (removeElement ($current) $parent) (getSubExpression $x)) () True)
-                )
-       )
-       ($else ($parent $current False))
+      (() (println! (=== Inside OrCut ===)))
+      (() (println! (Parameters ==> Parent: $parent Current: $current)))
+
+     )
+     (case $current
+        (
+          ((OR (NOT $x)) ((addLiterals (removeElement ($current) $parent) ((NOT $x))) () True))
+          ((OR $x) (if (== (get-metatype $x) Symbol)
+                        ((addLiterals (removeElement ($current) $parent) ($x)) () True)
+                        ((addChildren (removeElement ($current) $parent) (getSubExpression $x)) () True)
+                    )
+          )
+          ($else ($parent $current False))
+        )
      )
    )
 )
