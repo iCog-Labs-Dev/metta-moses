@@ -23,8 +23,7 @@
 
               (($literals $children) (getLiteralChildren $current))
               ($childrenLiteral (if (~= $children ()) (collapse (getLiterals (superpose $children))) ()))
-              ($shared (if (~= $childrenLiteral ()) (findCommon $childrenLiteral) ()))
-              ($common (if (and (~= $shared ()) (~= $literals ())) (atomIntersection $literals $shared) ()))
+              ($common (if (~= $childrenLiteral ()) (findCommon $childrenLiteral) ()))
             )
             (if (== $common ())
                 ($parent $current False)
@@ -34,11 +33,6 @@
                       ($updatedChildren (removeCommonLiterals $common $children))
                       ($updatedLiterals (removeElement $common $literals))
                       ($newExp (concatTuple $updatedLiterals $updatedChildren ))
-
-                      (() (println! ""))
-                      (() (println! (UpdatedLiterals: $updatedLiterals UpdatedChildren: $updatedChildren)))
-                      (() (println! (===> Adding OR node to $newExp <====)))
-                      (() (println! ""))
 
                       ($newCurrent (cons-atom OR $newExp))
                       ($updatedParent (findAndReplace $current $newCurrent $parent))
