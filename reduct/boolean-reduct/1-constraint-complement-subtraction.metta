@@ -1,6 +1,11 @@
 ;; Name:                oneCcSub
 ;; A function to remove an element from the point of application (POA) if it's negated form is 
 ;;                      contained in the guard set of a commanding AND node (COM).
+;; Parameters:
+;;                      1. The guard set of the commanding terminal AND node (COM), $comSet.
+;;                      2. The point of application, $poa, a non-root AND node
+;;                      3. The parent expression,$parent, possibly containing the point of application 
+;;                      and a commanding AND node.
 ;; Goal:                To remove a constraint that is not needed because it is commanded by 
 ;;                      its negated form.
 ;; POA:                 Any non-root AND node.
@@ -12,14 +17,17 @@
 ;; Example:             POA --> (AND B C), COM guard set ((NOT B) A) -- a negated literal of the POA is                        found in the COM guard set so the POA is commanded by this set and the common
 ;;                      element is subtracted from the POA that member, B in this case. After the 
 ;;                      transformation, the POA is now (AND C).
-(= (oneCcSub $comSet $poa $subExpr)
+;; Function call:        !(oneCcSub $comSet $poa $parent)
+;;                      $comSet--((NOT B) C), $poa--(AND B C), $parent--(OR (AND D) (AND B C))) 
+;;                      !(oneCcSub (NOT B) C) (AND B C) (OR (AND D) (AND B C)))) --> (OR (AND D) (AND C))
+(= (oneCcSub $comSet $poa $parent)
     (let* 
         (
             ($poaGuardSet (getGuardSet $poa))
             ($invertedCom (invertLiterals $comSet))
             ($commonElements (collapse (intersection (superpose $poaGuardSet) (superpose $invertedCom))))
         )
-         (collapse (let $el (superpose $subExpr)
+         (collapse (let $el (superpose $parent)
             (if (expressionEquality $el $poa)
                 (collapse (subtraction (superpose $poa) (superpose $commonElements)))
                 $el)))))
@@ -47,11 +55,3 @@
             True
             False
         )))
-
-;; test cases
-
-! (oneCcSub ((NOT B) C) (AND B C) (OR (AND D) (AND B C))) ;(OR (AND D) (AND C))
-! (oneCcSub ((NOT B) C) (AND B C) (AND (AND D C) (NOT B) A (AND B C))) ;; (AND (AND D C) (NOT B) A (AND C))
-! (oneCcSub ((NOT B) C) (AND A C) (AND (AND D C) (NOT B) A (AND B C))) ;; (AND (AND D C) (NOT B) A (AND B C)) ;; no reduction because the POA is not in the expression
-! (oneCcSub (A B C) (AND (NOT A) C) (OR (AND (NOT A) C) (OR A B (AND B C)))) ;; (OR (AND C) (OR A B (AND B C)))
-! (oneCcSub ((NOT A) B C) (AND (NOT A) C) (OR (AND (NOT A) C) (OR A B (AND B C)))) ;; (OR (AND (NOT A) C) (OR A B (AND B C))) ;; no reduction - COM set doesn't contain negated terminals
