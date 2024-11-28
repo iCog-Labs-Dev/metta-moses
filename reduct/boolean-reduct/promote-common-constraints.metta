@@ -18,8 +18,8 @@
     (if (and (~= $current ()) (~= $parent ()))
         (let*
             (
-              (() (println! (=== Inside PromoteCommonConstraints ===)))
-              (() (println! (Parameters ==> Parent: $parent Current: $current)))
+              ;; (() (println! (=== Inside PromoteCommonConstraints ===)))
+              ;; (() (println! (Parameters ==> Parent: $parent Current: $current)))
 
               (($literals $children) (getLiteralChildren $current))
               ($childrenLiteral (if (~= $children ()) (collapse (getLiterals (superpose $children))) ()))
@@ -29,7 +29,7 @@
                 ($parent $current False)
                 (let*
                     (
-                      (() (println! (Removing Common Literals: $common)))
+                      ;; (() (println! (Removing Common Literals: $common)))
                       ($updatedChildren (removeCommonLiterals $common $children))
                       ($updatedLiterals (removeElement $common $literals))
                       ($newExp (concatTuple $updatedLiterals $updatedChildren ))

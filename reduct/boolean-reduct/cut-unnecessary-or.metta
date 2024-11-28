@@ -11,9 +11,8 @@
 (= (orCut $parent $current)
    (let*
      (
-      (() (println! (=== Inside OrCut ===)))
-      (() (println! (Parameters ==> Parent: $parent Current: $current)))
-
+      ;; (() (println! (=== Inside OrCut ===)))
+      ;; (() (println! (Parameters ==> Parent: $parent Current: $current)))
      )
      (case $current
         (
