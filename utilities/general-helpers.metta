@@ -76,18 +76,16 @@
 ;; A function that behaves like a do while loop.
 ;; It executes the functions in the given list and returns the last result.
 (: until (-> (-> $a Bool) (-> $a $a) $a $a))
-(= (until $predicate $function $x) (if ($predicate $x) (trace! (Predicate: True Current: $x) $x) (let $x' ($function $x) (trace! (Predicate: False Current: $x Next: $x') (until $predicate $function $x')))))
+(= (until $predicate $function $x) (if ($predicate $x) $x (let $x' ($function $x) (until $predicate $function $x'))))
 
 ;; A foldleft function like the implementation in Haskell.
 ;; It takes a binary function that expects two atoms and
 ;;    apply it recursively on a nested atom.
 (: foldl (-> (-> $a $b $d) $b $c $d))
 (= (foldl $f $acc $tuple)
-   (trace! (Inside fold function with Tuple: $tuple and (if (== $tuple ()) (Returning accumulator: $acc) (calling Function $f with Parameter: (car-atom $tuple) and Acc: $acc)))
-     (if (== $tuple ())
+   (if (== $tuple ())
        $acc
        (let $next (car-atom $tuple) (foldl $f ($f $next $acc) (cdr-atom $tuple)))
-     )
    )
 )
 
@@ -96,7 +94,7 @@
 (: map (-> (-> $a $b) $c $d))
 (= (map $f $tuple)
    (if (== $tuple ())
-       (trace! (Found Tuple: $tuple Returning empty) ())
+       ()
        (let*
          (
             ($x (car-atom $tuple))
