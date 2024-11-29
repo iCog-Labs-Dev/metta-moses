@@ -4,6 +4,7 @@
 ! (import! &self metta-moses:reduct:boolean-reduct:rte-helpers)
 ! (import! &self metta-moses:reduct:boolean-reduct:delete-inconsistent-handle)
 ! (import! &self metta-moses:reduct:boolean-reduct:zero-constraint-subsumption)
+! (import! &self metta-moses:reduct:boolean-reduct:cut-unnecessary-or)
 
  ;; Test for getGuardSet
 
@@ -150,6 +151,6 @@
 !(assertEqual (any (False False True False False False False)) True)
 
 ;; Test for getSubExpression
-!(assertEqual (getSubExpression (NOT A)) (NOT A))
+!(assertEqual (getSubExpression (NOT A)) ())
 !(assertEqual (getSubExpression (OR A B (AND C D) (AND E F))) (A B (AND C D) (AND E F)))
 !(assertEqual (getSubExpression (AND A B (OR C D) (OR E F))) (A B (OR C D) (OR E F)))
