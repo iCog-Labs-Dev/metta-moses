@@ -39,7 +39,7 @@
 !(assertEqual (zeroConstraintSubsume' (OR A B (AND) (OR A B) F) (AND)) ((OR A B (OR A B) F) () True))
 
 ;; Test 02
-!(assertEqual (zeroConstraintSubsume' (AND A B (OR) (AND A B) F) (OR)) ((AND A B (OR) (AND A B) F) (OR) False))
+!(assertEqual (zeroConstraintSubsume' (AND A B (OR) (AND A B) F) (OR)) ((AND A B (AND A B) F) () True))
 
 ;; Test 03
 !(assertEqual (zeroConstraintSubsume' (OR A B (AND A) (OR A B) F) (AND A)) ((OR A B (AND A) (OR A B) F) (AND A) False))

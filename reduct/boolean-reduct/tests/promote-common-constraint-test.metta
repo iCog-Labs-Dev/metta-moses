@@ -42,8 +42,8 @@
 
 ;; Test 07: Test case from Holman paper page #39
 !(assertEqual
-    (promoteCommonConstraints (AND A (OR (AND (NOT B) C) (NOT B)) (OR (NOT C) (AND (NOT B) (NOT D)))) (OR (AND (NOT B) C) (NOT B)))
-    ((AND A (NOT B) (OR (AND C)) (OR (NOT C) (AND (NOT B) (NOT D)))) (OR (AND C)) True)
+    (promoteCommonConstraints (AND A (OR (AND (NOT B) C) (AND (NOT B))) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))) (OR (AND (NOT B) C) (AND (NOT B))))
+    ((AND A (NOT B) (OR (AND C) (AND)) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))) (OR (AND C) (AND)) True)
 )
 
 ;;remove element Test
