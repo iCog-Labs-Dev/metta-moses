@@ -105,4 +105,3 @@
   (removeCommonLiterals (A B) ())
   (())
 )
-
