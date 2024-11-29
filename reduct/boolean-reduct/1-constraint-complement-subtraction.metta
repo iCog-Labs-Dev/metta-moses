@@ -1,30 +1,32 @@
 ;; Name:                oneCcSub
-;; A function to remove an element from the point of application (POA) if it's negated form is 
-;;                      contained in the guard set of a commanding AND node (COM).
+;; A function to remove an element from the point of application (POA) if its negated form is contained in the
+;;                       guard set of a commanding AND node (COM).
 ;; Parameters:
-;;                      1. The guard set of the commanding terminal AND node (COM), $comSet.
-;;                      2. The point of application, $poa, a non-root AND node
-;;                      3. The parent expression,$parent, possibly containing the point of application 
-;;                      and a commanding AND node.
-;; Goal:                To remove a constraint that is not needed because it is commanded by 
-;;                      its negated form.
+;;                      1. $parent:- the parent expression, possibly containing the point of application and a commanding AND node.
+;;                      2. $poa:- the point of application, a non-root AND node.
+;;                      3. $com:- the guard set of the commanding terminal AND node (COM).
+;;                      
+;; Goal:                To remove a constraint that is not needed because it is commanded by its negated form.
+;;                      
 ;; POA:                 Any non-root AND node.
+;;
 ;; Preconditions:       The POA’s guard set contains constraint X and the POA is commanded 
 ;;                      by a terminal AND node COM whose guard set consists of the constraint 
 ;;                      which is the opposite of X.
 ;; Action:              Subtract the constraint X from the guard set of the POA.
 ;;
-;; Example:             POA --> (AND B C), COM guard set ((NOT B) A) -- a negated literal of the POA is                        found in the COM guard set so the POA is commanded by this set and the common
-;;                      element is subtracted from the POA that member, B in this case. After the 
-;;                      transformation, the POA is now (AND C).
-;; Function call:        !(oneCcSub $comSet $poa $parent)
-;;                      $comSet--((NOT B) C), $poa--(AND B C), $parent--(OR (AND D) (AND B C))) 
-;;                      !(oneCcSub (NOT B) C) (AND B C) (OR (AND D) (AND B C)))) --> (OR (AND D) (AND C))
-(= (oneCcSub $comSet $poa $parent)
+;; Example:             if $poa -->(AND B C), and $com -->((NOT B) A) - one literal in the $poa is found in its negated form 
+;;                      in the $com, B. In 1-constraint-complement-subtraction transformation, this common element is removed  
+;;                      from its immediate parent, $poa, so $poa is now just (AND C).
+;;
+;; Function call:       !(oneCcSub $parent $poa $com)
+;;                      E.g. $parent->(OR (AND D) (AND B C)), $poa->(AND B C),  $com->((NOT B) C) 
+;;                      !(oneCcSub (OR (AND D) (AND B C)) (AND B C) ((NOT B) C)) --> (OR (AND D) (AND C))
+(= (oneCcSub $parent $poa $com)
     (let* 
         (
             ($poaGuardSet (getGuardSet $poa))
-            ($invertedCom (invertLiterals $comSet))
+            ($invertedCom (invertLiterals $com))
             ($commonElements (collapse (intersection (superpose $poaGuardSet) (superpose $invertedCom))))
         )
          (collapse (let $el (superpose $parent)
@@ -37,10 +39,10 @@
 ;; Example             input-(A B C) -output- ((NOT A) (NOT B) (NOT C))
 ;;                     input-(A (NOT B) C) -output- ((NOT A) B (NOT C))
 (= (invertLiterals $guardSet)
-    (collapse (let $a (superpose $guardSet)
-            (unify $a (NOT $x)
+    (collapse (let $literal (superpose $guardSet)
+            (unify $literal (NOT $x)
                 $x
-                (NOT $a)
+                (NOT $literal)
                 ))))
 
 ;; Name:              expressionEquality
