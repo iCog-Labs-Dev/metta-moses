@@ -2,7 +2,6 @@
 
 ! (import! &self metta-moses:reduct:boolean-reduct:rte-helpers)
 ! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:utilities:expression-helpers)
 
 ! (import! &self metta-moses:reduct:boolean-reduct:one-constraint-complement-subtraction)
 
