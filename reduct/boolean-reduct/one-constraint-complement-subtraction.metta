@@ -18,7 +18,7 @@
 (= (oneCcSub $parent $poa $com)
     (let* 
         (
-            ($poaGuardSet (getGuardSet $poa ()))
+            ($poaGuardSet (getGuardSet $poa))
             ($invertedCom (invertLiterals $com))
             ($commonElements (collapse (intersection (superpose $poaGuardSet) (superpose $invertedCom))))
         )
