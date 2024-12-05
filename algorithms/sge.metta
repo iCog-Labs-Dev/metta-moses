@@ -78,7 +78,7 @@
 ;; Until the depth isn't equal to the maximum depth, do the following:
 ;;    For each recursive rule:
 ;;        Replace every occurence of the lhs in the rhs with the lhs + depth.
-;;        If depth is equal to 0., don't update the lhs in the new production rule.
+;;        If depth is equal to 0, don't update the lhs in the new production rule.
 ;;            Add the new production rules; the unchanged lhs, the updated rhs and the non recursive rules.
 ;;        else, update the lhs to be lhs + (depth - 1)
 ;;            Add the new production rules; the updated lhs, the updated rhs and the non recursive rules.
@@ -91,12 +91,30 @@
 ;;            version of the non recursive rules and then using those in place of the lhs occurence.
 ;;            This will generate all possible combinations.
 
+;; Function to expand every recursive rule in the grammar according to the depth.
+(= (expandGrammar $maxDepth $grammarSpace)
+   (let $nts (unique (match $grammarSpace ($lhs $rhs $i) $lhs))
+             (expandRecursiveNT $nts $maxDepth $grammarSpace)))
+
+;; TODO: Add more details for this comment.
+;; Function to expand a non terminal with recursive Rhs.
+(= (expandRecursiveNT $nt $maxDepth $grammarSpace)
+   (let*
+     (
+       ($nrRules (collapse (getNonRecursiveRules $nt $grammarSpace)))
+       (($lhs $rhs $i) (getRecursiveRules $nt $grammarSpace))
+       ($_ (until maxDepthNotReached applyExpandRules ($nt 0 $maxDepth (collapse (getNonRecursiveRules $nt $grammarSpace)) $grammarSpace))) ;; TODO: Make sure the functions called are pure.
+       ($rulePerms (removeRFromRule $nt $rhs $i $nrRules))
+       ($updatedRules (cons-atom ($nt (- $maxDepth 1)) $rulePerms))
+       ($__ (collapse (remove-atom $grammarSpace ($lhs $rhs $i)))))
+     (add-atom $grammarSpace $updatedRules)))
 
 ;; Function to count atom occrence in a list of atoms.
 (= (count $atom $list) (sum (collapse (if (== $atom (superpose $list)) 1 (empty)))))
 
 (= (maxDepthNotReached ($nt $nextDepth $maxDepth $initialNRRules $grammarSpace)) (>= $nextDepth $maxDepth))
 
+;; TODO: Refactore the function to be pure.
 ;; Start with a single non terminal to be expanded and it's corresponding depth.
 ;; Match all of it's RHS productions.
 ;; Filter out recursive production rules and non recursive ones and store them in different variables.
@@ -112,10 +130,14 @@
 
 ;; Function to filter out recursive production rules from grammarSpace.
 (= (getRecursiveRules $nt $grammarSpace)
-   (let $rhs
-        (filter ((curry isMember) $nt)
-                (collapse (match $grammarSpace ($nt $rhs $i) $rhs)))
-        (match $grammarSpace ($nt $rhs $i) ($nt $rhs $i))))
+    (let*
+      (
+        ($rhss (collapse (match $grammarSpace ($nt $rhs $i) $rhs)))
+        ($rrhss (collapse (filter ((curry isMember) $nt) $rhss)))
+        ($ndRrhs (if (~= $rrhss ()) (superpose $rrhss) ())))
+      (if (~= $rrhss ())
+          (match $grammarSpace ($nt $ndRrhs $i) ($nt $ndRrhs $i))
+          ())))
 
 ;; Function to filter out non recursive production rules from grammarSpace.
 (= (getNonRecursiveRules $nt $grammarSpace)
@@ -152,6 +174,7 @@
            (let ($fR $fI) (removeRFromRuleHelper $lhs (cdr-atom $rhs) $nrRules) ((cons-atom $h $fR) $fI))))
        ()))
 
+;; TODO: Refactor function to become pure.
 ;; Given the depth, recursive rules, non recursive rules and the grammar space,
 ;;    this function will expand the given non terminal's production rules for a single depth.
 (= (expandRules $depth $rrules $nrrules $grammarSpace)
@@ -296,3 +319,13 @@
 ;; !(sum (1 2 3 4 5 6 7 8 9 10))
 ;; !(sum (1 1 1 1))
 ;; !(sum (1))
+
+;; !(expandRecursiveNT expr 3 &grammar)
+;; !(get-atoms &grammar)
+
+;; !(expandGrammar 3 &grammar)
+
+;; !(getRecursiveRules start &grammar)
+
+;; !(get-atoms &grammar)
+;; !(match &grammar ((uop $x) $rhs $i) ((uop $x) $rhs $i))
