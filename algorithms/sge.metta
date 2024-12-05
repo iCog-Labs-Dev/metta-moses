@@ -4,6 +4,16 @@
 ;; Structured grammatical evolution (SGE)
 ;; This implementation is based on the research paper: https://link.springer.com/article/10.1007/s10710-015-9262-4
 
+;; Grammar Chosen: Boolean expressions
+;; <start> -> <expr>
+;; <expr>  -> <bop> <expr> <expr> |
+;;            <bop> <term> <expr> |
+;;            <bop> <term> <term> |
+;;            <uop> <expr> |
+;;            <uop> <term>
+;; <bop>   -> AND | OR
+;; <uop>   -> NOT
+
 ;; TODO: Algorithm to calculate non terminal references.
 ;; TODO: Algorithm to calculate the maximum number of expansions per non terminal.
 ;; TODO: Algorithm to map the grammar to generated probabilistic selection dictionary.
@@ -32,7 +42,7 @@
 !(bind! &maxDepth 3)
 
 !(add-reduct &grammar (superpose (
-  ;; (start expr 0)
+  (start expr 0)
   (expr (bop expr expr) 0)
   (expr (bop term expr) 1)
   (expr (bop term term) 2)
@@ -42,6 +52,8 @@
   (bop OR 1)
   (uop NOT 0)
   (uop (uop term) 1)
+
+  ;; TODO: Automate insertion.
   (term X 0)
   (term Y 1)))
 )
@@ -60,25 +72,109 @@
 ;;            - Repeat the above steps for all non terminals.
 
 
-(= (expandRule $depth $lhs $grammarSpace)
+;; Start with a single non terminal to be expanded and it's corresponding depth.
+;; Match all of it's RHS productions.
+;; Filter out recursive production rules and non recursive ones and store them in different variables.
+;; Until the depth isn't equal to the maximum depth, do the following:
+;;    For each recursive rule:
+;;        Replace every occurence of the lhs in the rhs with the lhs + depth.
+;;        If depth is equal to 0., don't update the lhs in the new production rule.
+;;            Add the new production rules; the unchanged lhs, the updated rhs and the non recursive rules.
+;;        else, update the lhs to be lhs + (depth - 1)
+;;            Add the new production rules; the updated lhs, the updated rhs and the non recursive rules.
+;; When maximum depth has been reached, add one other additional rule:
+;;      The lhs will be updated to lhs + (maxDepth - 1)
+;;      The rhs will be updated as follows:
+;;          Every recursive occurence of the lhs will be replaced with the non recursive rule.
+;;          This is done in a way that all possible combinations of the non recursive rules
+;;            and the lhs occurence is covered. Possible implementation is using a superposed
+;;            version of the non recursive rules and then using those in place of the lhs occurence.
+;;            This will generate all possible combinations.
+
+
+;; Function to count atom occrence in a list of atoms.
+(= (count $atom $list) (sum (collapse (if (== $atom (superpose $list)) 1 (empty)))))
+
+(= (maxDepthNotReached ($nt $nextDepth $maxDepth $initialNRRules $grammarSpace)) (>= $nextDepth $maxDepth))
+
+;; Start with a single non terminal to be expanded and it's corresponding depth.
+;; Match all of it's RHS productions.
+;; Filter out recursive production rules and non recursive ones and store them in different variables.
+(= (applyExpandRules ($nt $depth $maxDepth $initialNRRules $grammarSpace))
+   (let*
+     (
+        ($rrules (collapse (getRecursiveRules $nt $grammarSpace)))
+        ($_ (expandRules $depth $rrules $initialNRRules $grammarSpace))
+
+        ;; (() (println! (Non recursive rules: $initialNRRules Nontermianl: $nt Depth: $depth)))
+     )
+     ($nt (+ $depth 1) $maxDepth $initialNRRules $grammarSpace)))
+
+;; Function to filter out recursive production rules from grammarSpace.
+(= (getRecursiveRules $nt $grammarSpace)
+   (let $rhs
+        (filter ((curry isMember) $nt)
+                (collapse (match $grammarSpace ($nt $rhs $i) $rhs)))
+        (match $grammarSpace ($nt $rhs $i) ($nt $rhs $i))))
+
+;; Function to filter out non recursive production rules from grammarSpace.
+(= (getNonRecursiveRules $nt $grammarSpace)
+   (subtraction
+          (match $grammarSpace ($nt $rhs $i) ($nt $rhs $i))
+          (let $rhs
+              (filter ((curry isMember) $nt)
+                      (collapse (match $grammarSpace ($nt $rhs $i) $rhs)))
+              (match $grammarSpace ($nt $rhs $i) ($nt $rhs $i)))))
+
+
+;; Function to remove all recursive of a production rule by replacing the
+;;    recursive call of the non terminal with the corresponding non recursive
+;;    rules of the lhs.
+(= (removeRFromRule $lhs $rhs $i $nrRules)
+   (if (any (collapse (isMember $lhs $rhs)))
+       (let ($rule $index) (removeRFromRuleHelper $lhs $rhs $nrRules) (removeRFromRule $lhs $rule (+ $index $i) $nrRules))
+       ($rhs $i)))
+
+;; Helper Function to search and remove the first recursive occerence of a production rule by replacing the
+;;    the non terminal with the corresponding non recursive rules of the lhs.
+(= (removeRFromRuleHelper $lhs $rhs $nrRules)
+   (if (~= $rhs ())
+       (let*
+         (
+            ($h (car-atom $rhs))
+            ($t (cdr-atom $rhs)))
+         (if (== $h $lhs)
+           (let*
+             (
+                (($lhss $rules $index) (superpose $nrRules))
+                ($restRhs (cdr-atom $rhs)))
+             ((cons-atom $rules $restRhs) $index))
+           (let ($fR $fI) (removeRFromRuleHelper $lhs (cdr-atom $rhs) $nrRules) ((cons-atom $h $fR) $fI))))
+       ()))
+
+;; Given the depth, recursive rules, non recursive rules and the grammar space,
+;;    this function will expand the given non terminal's production rules for a single depth.
+(= (expandRules $depth $rrules $nrrules $grammarSpace)
    (let*
       (
-        ($rhs (collapse (match $grammarSpace ($lhs $rhs $i) $rhs)))
-        ($rrhs (collapse (filter ((curry isMember) $lhs) $rhs)))
-        (($oneRhs $i) (rhsIndexPair (superpose $rrhs) $grammarSpace))
-        ($newRhs ((map ((curry updateRule) ($depth expr)) $oneRhs) $i))
-        ($oldRules ($lhs $oneRhs $i))
-        ($newRules (cons-atom ($lhs $depth) $newRhs))
-        (() (add-reduct $grammarSpace $newRules))
-        (() (remove-atom $grammarSpace $oldRules))
-        ) ;; Filtered Recursive RHS
-      ()))
+        ($updatedRRules (collapse (expandRule $depth (superpose $rrules))) )
+        ($updatedLhs (collapse (unique (let $lhs (superpose $updatedRRules) $lhs))))
+        ($updatedNRRules (collapse (let ($nrLhs $nrRhs $nrI) (superpose $nrrules) (($nrLhs (- $depth 1)) $nrRhs $nrI))))
+        ;; (() (println! (Non recursive production rules ==> Updated: $updatedNRRules Previous: $nrrules Depth: $depth)))
 
-;; Helper function to be used in the map function of updating a rule.
+        ($_ (collapse (add-reduct $grammarSpace (superpose $updatedRRules)))))
+      (if (== $depth 0)
+          ()
+          (collapse (add-reduct $grammarSpace (superpose $updatedNRRules)))
+      )))
+
+;; Update one rule. The update is to replace every occerence of the lhs in the rhs with a new value of (lhs + depth)
+;; It then updates the lhs too based on the depth.
+(= (expandRule $depth ($lhs $rhs $i)) ((if (== $depth 0) $lhs ($lhs (- $depth 1))) (map ((curry expandMapHelper) ($depth $lhs)) $rhs) $i))
+
+;; Helper function to be used in the map function of the expandRule function.
 ;; It takes a target and current non terminal and replaces the non terminal with new value.
-(= (updateRule ($depth $targetNT) $currentNT) (if (== $currentNT $targetNT) ($currentNT $depth) $currentNT))
-
-(= (rhsIndexPair $rhs $grammarSpace) ($rhs (match $grammarSpace ($lhs $rhs $i) $i)))
+(= (expandMapHelper ($depth $targetNT) $currentNT) (if (== $currentNT $targetNT) ($currentNT $depth) $currentNT))
 
 ;; Function: wrapper
 ;; Description: This function applies a predicate to an atom and returns the atom if the predicate is true, otherwise returns an empty expression.
@@ -91,9 +187,10 @@
 ;;   - The function uses an `if` construct to evaluate the predicate with the given atom.
 ;;   - If the predicate returns true, the atom is returned.
 ;;   - If the predicate returns false, an empty expression is returned.
-
 (:wrapper (-> Atom Atom Expression))
 (= (wrapper $predicate $x) (if ($predicate $x) $x (empty)))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -115,6 +212,15 @@
    wrapper $predicate (superpose $list))
 )
 
+(= (sum $list) (foldr + 0 $list))
+
+(= (any $bools) (isMember True $bools))
+
+(= (=== $x $y)
+   (if (and (== (get-metatype $x) Symbol) (== (get-metatype $y) Symbol))
+       (== $x $y)
+       (== (collapse (union (subtraction (superpose $x) (superpose $y)) (subtraction (superpose $y) (superpose $x)))) ())))
+
 ;; Apply a given function to every element of a tuple
 (: map (-> (-> $a $b) $c $d))
 (= (map $f $xs)
@@ -126,14 +232,67 @@
               ($ft (map $f $t)))
          (cons-atom $fh $ft))))
 
+;; Fold a tuple from right to left
+(: foldr (-> (-> $a $b $b) $b $c $d))
+(= (foldr $f $i $xs)
+   (if (== $xs ())
+       $i
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs))
+              ($ft (foldr $f $i $t)))
+         ($f $h $ft))))
+
 ;; A trick to define `curry` in MeTTa without `lambda`
 (: curry (-> (-> $a $b $c) (-> $a (-> $b $c))))
 (= (((curry $f) $x) $y) ($f $x $y))
 
-;; !(((curry isMember) H) (A B H))
-;; !(filter ((curry isMember) H) ((A B) (A B) (A H)))
-!(get-atoms &grammar)
-!(expandRule 0 (superpose (expr uop bop start)) &grammar)
-!(get-atoms &grammar)
-;; !(updateRule (0 expr) expr)
-;; !(map ((curry updateRule) (0 expr)) (bop expr expr))
+;; !(expandRule 0 (expr (bop term expr) 0))
+;; !(expandRule 0 (expr (bop term expr) 1))
+;; !(expandRule 1 (expr (bop expr expr) 2))
+;; ;; !(expandRule 1 (expr (bop expr expr) 3))
+
+;; !(get-atoms &grammar)
+
+;; !(expandRules 0
+;;               (collapse (let $rhs (filter ((curry isMember) expr) (collapse (match &grammar (expr $rhs $i) $rhs))) (match &grammar (expr $rhs $i) (expr $rhs $i))))
+;;               (collapse (subtraction (match &grammar (expr $rhs $i) (expr $rhs $i)) (let $rhs (filter ((curry isMember) expr) (collapse (match &grammar (expr $rhs $i) $rhs))) (match &grammar (expr $rhs $i) (expr $rhs $i)))))
+;;               &grammar)
+
+;; !(get-atoms &grammar)
+;; !(expandRules 1
+;;               (collapse (getRecursiveRules expr &grammar))
+;;               (collapse (getNonRecursiveRules expr &grammar))
+;;               &grammar)
+
+;; !(get-atoms &grammar)
+
+;; !(until maxDepthNotReached applyExpandRules (expr 0 2 (collapse (getNonRecursiveRules expr &grammar)) &grammar))
+
+;; !(get-atoms &grammar)
+
+;; !(collapse (generatePermituationTuples 2 (((bop term term) 1) ((uop term) 2))))
+;; !(collapse (let ($rule $number) (splitRuleIndexPair (generatePermituationTuples 2 (((bop term term) 1) ((uop term) 2)))) ($rule (+ 1 (sum $number)))))
+
+;; !(removeRFromRule expr (bop expr expr) 1 (collapse (getNonRecursiveRules expr &grammar)) )
+;; !(removeRFromRule expr (bop term term) 1 (((uop term) 1) ((bop term term) 2)))
+;; !(removeRFromRule expr (bop expr expr) ((uop term) (bop term term)))
+;; !(removeRFromRuleHelper expr (bop expr expr) ((uop term) (bop term term)))
+;; !(let $result (removeRFromRuleHelper expr (bop expr expr) ((uop term) (bop term term))) (removeRFromRuleHelper expr $result ((uop term) (bop term term))))
+
+;; !(=== A B)
+;; !(=== A A)
+;; !(=== () (A))
+;; !(=== (A) () )
+;; !(=== (A B) (A))
+;; !(=== (A B) (A B))
+;; !(=== (B A) (A B))
+;; !(=== (B C D E A) (B C D E A))
+;; !(=== (B C D E A) (C D A E B))
+;; !(=== (B F D E A) (B C D E A))
+
+
+;; !(count expr (bop expr expr bop bop expr x y a expr u expr z a))
+
+;; !(sum (1 2 3 4 5 6 7 8 9 10))
+;; !(sum (1 1 1 1))
+;; !(sum (1))
