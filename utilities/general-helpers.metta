@@ -52,12 +52,73 @@
     )
 )
 
+;; A helper function for the findAndReplace function.
+;; It handles the replacement of a single atom.
 (= (replace $old $new $current) (if (== $old $current) $new $current))
 
+;; A function to replace a specific atom
+;;    with a new one from a list of atoms.
+;; INFO: This function needs to change so that it can preserve the
+;;        operator's position when MeTTa version is upgraded.
 (= (findAndReplace $old $new $list)
-    (collapse (replace $old $new (superpose $list)))
+    ;; (let*
+    ;;   (
+    ;;     (() (println! ""))
+    ;;     (() (println! (==> === Inside findAndReplace === <==)))
+    ;;     (() (println! (Parameters ==> Old: $old New: $new List: $list)))
+    ;;     (() (println! (Result ==> (collapse (replace $old $new (superpose $list))))))
+    ;;     (() (println! ""))
+    ;;   )
+      (collapse (replace $old $new (superpose $list)))
+    ;; )
 )
 
-
+;; A function that behaves like a do while loop.
+;; It executes the functions in the given list and returns the last result.
 (: until (-> (-> $a Bool) (-> $a $a) $a $a))
 (= (until $predicate $function $x) (if ($predicate $x) $x (let $x' ($function $x) (until $predicate $function $x'))))
+
+;; A foldleft function like the implementation in Haskell.
+;; It takes a binary function that expects two atoms and
+;;    apply it recursively on a nested atom.
+(: foldl (-> (-> $a $b $d) $b $c $d))
+(= (foldl $f $acc $tuple)
+   (if (== $tuple ())
+       $acc
+       (let $next (car-atom $tuple) (foldl $f ($f $next $acc) (cdr-atom $tuple)))
+   )
+)
+
+;; A map function that takes a function and applies 
+;;    it on every atom in a given tuple.
+(: map (-> (-> $a $b) $c $d))
+(= (map $f $tuple)
+   (if (== $tuple ())
+       ()
+       (let*
+         (
+            ($x (car-atom $tuple))
+            ($xs (cdr-atom $tuple))
+            ($x' ($f $x))
+            ($next (map $f $xs))
+
+            (() (println! (=== Map Log ===)))
+            (() (println! (X: $x XS: $xs UpdatedX: $x' Next: $next)))
+            (() (println! (UpdatedResult (cons-atom $x' $next))))
+         )
+         (cons-atom $x' $next)
+       )
+   )
+)
+
+;; A function to remove all elements found in $common from a $tuple
+(= (removeElement $common $tuple)
+   (collapse (subtraction (superpose $tuple) (superpose $common)))
+)
+
+;; A function that returns True if any of the input atoms are True and False otherwise
+;; Example: input ==> (True True False), output ==> True
+;;          input ==> (False False False), output ==> False
+;;          input ==> (False True False), output ==> True
+(: any (-> Atom Bool))
+(= (any $bools) (isMember True $bools))
