@@ -92,6 +92,8 @@
 ;;            This will generate all possible combinations.
 
 ;; Function to expand every recursive rule in the grammar according to the depth.
+;; FIX: Make sure rule's indexes are unique.
+;; FIX: Make sure added rules are unique.
 (= (expandGrammar $maxDepth $grammarSpace)
    (let $nts (unique (match $grammarSpace ($lhs $rhs $i) $lhs))
              (expandRecursiveNT $nts $maxDepth $grammarSpace)))
@@ -103,10 +105,13 @@
      (
        ($nrRules (collapse (getNonRecursiveRules $nt $grammarSpace)))
        (($lhs $rhs $i) (getRecursiveRules $nt $grammarSpace))
-       ($_ (until maxDepthNotReached applyExpandRules ($nt 0 $maxDepth (collapse (getNonRecursiveRules $nt $grammarSpace)) $grammarSpace))) ;; TODO: Make sure the functions called are pure.
+       ($_ (until maxDepthNotReached applyExpandRules ($nt 0 $maxDepth (collapse (getNonRecursiveRules $nt $grammarSpace)) $grammarSpace))) ;; TODO: Use pure functions
        ($rulePerms (removeRFromRule $nt $rhs $i $nrRules))
+       (($nrLhs $nrRhs $nrI) (superpose $nrRules))
        ($updatedRules (cons-atom ($nt (- $maxDepth 1)) $rulePerms))
-       ($__ (collapse (remove-atom $grammarSpace ($lhs $rhs $i)))))
+       ($updatedNRRules (cons-atom ($nt (- $maxDepth 1)) ($nrRhs $nrI)))
+       ($__ (collapse (remove-atom $grammarSpace ($lhs $rhs $i))))
+       ($___ (collapse (add-atom $grammarSpace $updatedNRRules))))
      (add-atom $grammarSpace $updatedRules)))
 
 ;; Function to count atom occrence in a list of atoms.
@@ -323,9 +328,21 @@
 ;; !(expandRecursiveNT expr 3 &grammar)
 ;; !(get-atoms &grammar)
 
-;; !(expandGrammar 3 &grammar)
+!(expandGrammar 3 &grammar)
 
 ;; !(getRecursiveRules start &grammar)
 
 ;; !(get-atoms &grammar)
-;; !(match &grammar ((uop $x) $rhs $i) ((uop $x) $rhs $i))
+;; !(match &grammar ((uop 2) $rhs $i) ((uop 2) $rhs $i))
+;; !(match &grammar (uop $rhs $i) (uop $rhs $i))
+
+;; !(match &grammar ((bop $x) $rhs $i) ((bop $x) $rhs $i))
+;; !(match &grammar (bop $rhs $i) (bop $rhs $i))
+
+;; !(match &grammar ((expr $x) $rhs $i) ((expr $x) $rhs $i))
+;; !(match &grammar (expr $rhs $i) (expr $rhs $i))
+
+!(match &grammar (expr $rhs $i) (expr $rhs $i))
+;; !(match &grammar ((expr 0) $rhs $i) ((expr 0) $rhs $i))
+;; !(match &grammar ((expr 1) $rhs $i) ((expr 1) $rhs $i))
+;; !(match &grammar ((expr 2) $rhs $i) ((expr 2) $rhs $i))
