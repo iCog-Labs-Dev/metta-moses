@@ -120,8 +120,8 @@
 !(assertEqual (localCommandSet (OR G) ((OR A B (AND C D)) (OR E F) (OR G) (OR H) (OR I (AND A B))) (J K L) (M)) (J K L M))
 !(assertEqual (localCommandSet (OR I (AND A B)) ((OR A B (AND C D)) (OR E F) (OR G) (OR H) (OR I (AND A B))) (J K L) (M)) (J K L M))
 
-
-Test for filterTerminal function
+================================
+;; Test for filterTerminal function
 
 !(assertEqualToResult (filterTerminalAndNode (AND A)) ((AND A)))
 !(assertEqualToResult (filterTerminalAndNode (AND (NOT A))) ((AND (NOT A))))
@@ -176,7 +176,7 @@ Test for filterTerminal function
 ;; 1-Constraint Complement Subtraction Test
 !(assertEqual (reduceToElegance (OR (AND D) (AND B C)) (AND B C) (A B) (D (NOT B))) ((OR (AND D) (AND C)) (AND C) True))
 
-
+=========================================
 ;; Test cases from python implementation.
 
 !(assertEqual (reduceToElegance (AND (NOT A)) (NOT A) () ()) ((AND (NOT A)) (NOT A) False))
@@ -207,7 +207,7 @@ Test for filterTerminal function
 !(assertEqual (reduceToElegance (AND (AND A (OR B (AND C (OR D (AND E (NOT A))))))) (AND A (OR B (AND C (OR D (AND E (NOT A)))))) () ()) ((AND) () False))
 ;; (AND A B A A A) ==> (AND A B A A A)
 !(assertEqual (reduceToElegance (AND (AND A B A A A)) (AND A B A A A) () ()) ((AND (AND A B A A A)) (AND A B A A A) False))
-
+=====================================
 ;; (AND A B C D (NOT B)) ==> (AND)
 !(assertEqual (reduceToElegance (AND (AND A B C D (NOT B))) (AND A B C D (NOT B)) () ()) ((AND) () False))
 ;; (AND B (NOT C) (NOT A) (OR B (NOT A))) ==> (AND B (NOT C) (NOT A))
@@ -247,7 +247,7 @@ Test for filterTerminal function
 ;; (AND (OR (AND A B) (AND A C (OR D (AND E A))))) ==> (AND A (OR B (AND C (OR D E))))
 !(assertEqual (reduceToElegance (AND (OR (AND A B) (AND A C (OR (AND D) (AND E A))))) (OR (AND A B) (AND A C (OR (AND D) (AND E A)))) () ()) ((AND A (OR (AND B) (AND C (OR (AND D) (AND E A))))) (OR (AND B) (AND C (OR (AND D) (AND E A)))) True))  ;; INFO: This test case fails bec(reduceToElegance (AND (OR (AND A B) (AND A C (OR (AND D) (AND E) (AND A))))) (OR (AND A B) (AND A C (OR (AND D) (AND E) (AND A)))) () ())uase RTE needs to be called again if the parent chang ed
 !(assertEqual (reduceToElegance (AND (AND A (OR (AND B) (AND C (OR (AND D) (AND E A)))))) (AND A (OR (AND B) (AND C (OR (AND D) (AND E A))))) () ()) ((AND (AND A (OR (AND B) (AND C (OR (AND D) (AND E)))))) (AND A (OR (AND B) (AND C (OR (AND D) (AND E))))) False))
-
+=========================================================
 ;; (AND (OR (AND A B) (AND A C (OR D E A)))) ==> (AND A (OR B C))
 !(assertEqual (reduceToElegance (AND (OR (AND A B) (AND A C (OR (AND D) (AND E) (AND A))))) (OR (AND A B) (AND A C (OR (AND D) (AND E) (AND A)))) () ())  ((AND A (OR (AND B) (AND C (OR (AND D) (AND E) (AND A))))) (OR (AND B) (AND C (OR (AND D) (AND E) (AND A)))) True))
 !(assertEqual (reduceToElegance (AND (AND A (OR (AND B) (AND C (OR (AND D) (AND E) (AND A)))))) (AND A (OR (AND B) (AND C (OR (AND D) (AND E) (AND A))))) () ()) ((AND (AND A (OR (AND B) (AND C)))) (AND A (OR (AND B) (AND C))) False))
@@ -259,7 +259,7 @@ Test for filterTerminal function
 ;; (AND (OR (AND A B) (AND A C (OR D (AND E (NOT A)))))) ==> (AND A (OR B (AND C D)))
 !(assertEqual (reduceToElegance (AND (OR (AND A B) (AND A C (OR (AND D) (AND E (NOT A)))))) (OR (AND A B) (AND A C (OR (AND D) (AND E (NOT A))))) () ()) ((AND A (OR (AND B) (AND C (OR (AND D) (AND E (NOT A)))))) (OR (AND B) (AND C (OR (AND D) (AND E (NOT A))))) True))   ;; INFO: This test case fails becuase RTE needs to be called again if the parent chang ed
 !(assertEqual (reduceToElegance (AND (AND A (OR (AND B) (AND C (OR (AND D) (AND E (NOT A))))))) (AND A (OR (AND B) (AND C (OR (AND D) (AND E (NOT A)))))) () ()) ((AND (AND A (OR (AND B) (AND C D)))) (AND A (OR (AND B) (AND C D))) False))
-
+============================================
 ;; (AND (OR (NOT A) (AND A B C) (AND B C (NOT B)))) ==> (AND (OR (NOT A) (AND A B C)))
 !(assertEqual (reduceToElegance (AND (OR (AND (NOT A)) (AND A B C) (AND B C (NOT B)))) (OR (AND (NOT A)) (AND A B C) (AND B C (NOT B))) () ()) ((AND (OR (AND (NOT A)) (AND A B C))) (OR (AND (NOT A)) (AND A B C)) False))
 ;; (AND (OR (NOT A) (AND A B C) (AND B C (NOT B)))) ==> (AND (OR (NOT A) (AND A B C)))
@@ -270,7 +270,7 @@ Test for filterTerminal function
 !(assertEqual (reduceToElegance (AND (OR (AND C A D) (AND C A) (AND C A E))) (OR (AND C A D) (AND C A) (AND C A E)) () ()) ((AND C A) () True))
 ;; (AND (OR (AND A B) (AND A C D) (AND A C E) (AND C A))) ==> (AND A (OR B (AND C D) (AND C E) C))
 !(assertEqual (reduceToElegance (AND (OR (AND A B) (AND A C D) (AND A C E) (AND C A))) (OR (AND A B) (AND A C D) (AND A C E) (AND C A)) () ()) ((AND A (OR (AND B) (AND C D) (AND C E) (AND C))) (OR (AND B) (AND C D) (AND C E) (AND C)) True))
-
+==========================================
 ;; Test 04: Test case from Mosh's paper. Page 37
 
 ;; (AND (OR G (AND A B (OR (NOT C) (NOT D) E) (OR C (AND C F))))) ==> (AND (OR G (AND A B C (OR (NOT D) E))))
