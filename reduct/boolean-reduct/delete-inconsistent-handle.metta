@@ -5,21 +5,22 @@
 ;;              A guard set of a POA is the set of literals in the POA.
 ;;              An inconsistent handle is one which contains both a literal
 ;;                and its negagtion.
-;; Preconditions: The point of application (POA) is AND node and 
+;; Preconditions: The point of application (POA) is AND node and
 ;;                its handle set is inconsistent.
-;; Action: The function returns an empty expression if applied, else it returns the POA.
-;;         Returning an empty expression corresponds to deleting the POA.
-;; Example: input: POA ==> (AND (NOT A) (OR B C)), dominantSet ==> (A)
-;;        : output: ()
-;; (: deleteInconsistentHandle (-> Expression (Expression Bool)))
-(= (deleteInconsistentHandle $exp $dominantSet)
+;; Action: The function removes the POA and updates the parent.
+;;            It then returns the updated parent, an empty expression and
+;;            a boolean value of True if applied.
+;; Example: input: POA ==> (AND (NOT A) (OR B C)), dominantSet ==> (A), parent ==> (OR B (AND (NOT A) (OR B C)))
+;;        : output: ((OR B) () True)
+;; (: deleteInconsistentHandle (-> Expression Expression Expression (Expression Expression Bool)))
+(= (deleteInconsistentHandle $parent $current $dominantSet)
     (let*
         (
-          ($guardSet (getGuardSet $exp))
+          ($guardSet (getGuardSet $current))
           ($handleSet (concatTuple $dominantSet $guardSet))
           ($isConsistent (isConsistentExp $handleSet))
         )
-        (if $isConsistent ($exp False) (() True))
+        (if $isConsistent ($parent $current False) ((removeElement ($current) $parent) () True)) ;; Remove current from parent.
     )
 )
 
