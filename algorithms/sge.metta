@@ -91,6 +91,7 @@
 ;;            and the lhs occurence is covered. Possible implementation is using a superposed
 ;;            version of the non recursive rules and then using those in place of the lhs occurence.
 ;;            This will generate all possible combinations.
+;; Do this for all of the non terminals.
 
 ;; Function to expand every recursive rule in the grammar according to the depth.
 ;; FIX: Make sure index's order is sequential.
@@ -118,22 +119,13 @@
 
                     ($updatedRules (if (~= $rulePerms ()) (collapse (let $rules (superpose $rulePerms) (cons-atom $lhs $rules))) ()))
                     ($_''  (collapse (let ($lhs $rhs $i) (superpose $rRules) (remove-atom $grammarSpace ($lhs $rhs $i)))))
-                    ($_''' (change-state! &lastIndex 0)))
+                    ($_''' (change-state! &lastIndex 0))
+                    ;; (() (println! (State Resetted)))
+                    )
                   (if (~= $updatedRules ()) (add-reduct $grammarSpace (superpose $updatedRules)) ()))
               ())))
 
-;; Function to count atom occrence in a list of atoms.
-(= (count $atom $list) (sum (collapse (if (== $atom (superpose $list)) 1 (empty)))))
-
 (= (maxDepthNotReached ($nt $nextDepth $maxDepth $rRules $initialNRRules $grammarSpace)) (>= $nextDepth $maxDepth))
-
-(= (getUpdatedNRRules ($lhs $rhs $i) $maxDepth)
-    (let*
-        (
-          ($newIndex (get-state &lastIndex))
-          ($_ (change-state! &lastIndex (+ $newIndex 1)))
-          ($newLhs ($lhs (- $maxDepth 1))))
-        (cons-atom $newLhs ($rhs $newIndex))))
 
 ;; Start with a single non terminal to be expanded and it's corresponding depth.
 ;; Match all of it's RHS productions.
@@ -141,55 +133,6 @@
 (= (applyExpandRules ($nt $depth $maxDepth $rRules $initialNRRules $grammarSpace))
    (let $_ (expandRules $depth $rRules $initialNRRules $grammarSpace)
            ($nt (+ $depth 1) $maxDepth $rRules $initialNRRules $grammarSpace)))
-
-;; Function to filter out recursive production rules from grammarSpace.
-(= (getRecursiveRules $nt $grammarSpace)
-    (let*
-      (
-        ($rhss (collapse (match $grammarSpace ($nt $rhs $i) $rhs)))
-        ($rrhss (collapse (filter ((curry isMember) $nt) $rhss)))
-        ($ndRrhs (if (~= $rrhss ()) (superpose $rrhss) ())))
-      (if (~= $rrhss ())
-          (match $grammarSpace ($nt $ndRrhs $i) ($nt $ndRrhs $i))
-          ())))
-
-;; Function to filter out non recursive production rules from grammarSpace.
-(= (getNonRecursiveRules $nt $grammarSpace)
-   (subtraction
-          (match $grammarSpace ($nt $rhs $i) ($nt $rhs $i))
-          (getRecursiveRules $nt $grammarSpace)))
-
-
-;; Function to remove all recursive of a production rule by replacing the
-;;    recursive call of the non terminal with the corresponding non recursive
-;;    rules of the lhs.
-(= (removeRFromRule $lhs $rhs $i $nrRules)
-   (if (any (collapse (isMember $lhs $rhs)))
-       (let*
-            (
-              (($rule $index) (removeRFromRuleHelper $lhs $rhs $nrRules))
-              ($newIndex (get-state &lastIndex))
-              ($_ (change-state! &lastIndex (+ $newIndex 1)))
-            )
-            (removeRFromRule $lhs $rule $newIndex $nrRules))
-       ($rhs $i)))
-
-;; Helper Function to search and remove the first recursive occerence of a production rule by replacing the
-;;    the non terminal with the corresponding non recursive rules of the lhs.
-(= (removeRFromRuleHelper $lhs $rhs $nrRules)
-   (if (~= $rhs ())
-       (let*
-         (
-            ($h (car-atom $rhs))
-            ($t (cdr-atom $rhs)))
-         (if (== $h $lhs)
-           (let*
-             (
-                (($lhss $rules $index) (superpose $nrRules))
-                ($restRhs (cdr-atom $rhs)))
-             ((cons-atom $rules $restRhs) $index))
-           (let ($fR $fI) (removeRFromRuleHelper $lhs (cdr-atom $rhs) $nrRules) ((cons-atom $h $fR) $fI))))
-       ()))
 
 ;; Given the depth, recursive rules, non recursive rules and the grammar space,
 ;;    this function will expand the given non terminal's production rules for a single depth.
@@ -211,6 +154,68 @@
 ;; Helper function to be used in the map function of the expandRule function.
 ;; It takes a target and current non terminal and replaces the non terminal with new value.
 (= (expandMapHelper ($depth $targetNT) $currentNT) (if (== $currentNT $targetNT) ($currentNT $depth) $currentNT))
+
+;; Function to remove all recursive of a production rule by replacing the
+;;    recursive call of the non terminal with the corresponding non recursive
+;;    rules of the lhs.
+(= (removeRFromRule $lhs $rhs $i $nrRules)
+   (if (any (collapse (isMember $lhs $rhs)))
+       (let*
+            (
+              (($rule $index) (removeRFromRuleHelper $lhs $rhs $nrRules))
+              ($newIndex (get-state &lastIndex))
+              ($_ (change-state! &lastIndex (+ $newIndex 1)))
+              ($result (removeRFromRule $lhs $rule $newIndex $nrRules))
+              ;; (() (println! (Index: $newIndex NewRule: $result)))
+            )
+            $result)
+       ($rhs $i)))
+
+;; Helper Function to search and remove the first recursive occerence of a production rule by replacing the
+;;    the non terminal with the corresponding non recursive rules of the lhs.
+(= (removeRFromRuleHelper $lhs $rhs $nrRules)
+   (if (~= $rhs ())
+       (let*
+         (
+            ($h (car-atom $rhs))
+            ($t (cdr-atom $rhs)))
+         (if (== $h $lhs)
+           (let*
+             (
+                (($lhss $rules $index) (superpose $nrRules))
+                ($restRhs (cdr-atom $rhs)))
+             ((cons-atom $rules $restRhs) $index))
+           (let ($fR $fI) (removeRFromRuleHelper $lhs (cdr-atom $rhs) $nrRules) ((cons-atom $h $fR) $fI))))
+       ()))
+
+;; Function to update the index of non recursive 
+;;   production rules using the global state.
+(= (getUpdatedNRRules ($lhs $rhs $i) $maxDepth)
+    (let*
+        (
+          ($newIndex (get-state &lastIndex))
+          ($_ (change-state! &lastIndex (+ $newIndex 1)))
+          ($newLhs ($lhs (- $maxDepth 1)))
+          ;; (() (println! (Index: $newIndex NewRule: (cons-atom $newLhs ($rhs $newIndex)))))
+        )
+        (cons-atom $newLhs ($rhs $newIndex))))
+
+;; Function to filter out recursive production rules from grammarSpace.
+(= (getRecursiveRules $nt $grammarSpace)
+    (let*
+      (
+        ($rhss (collapse (match $grammarSpace ($nt $rhs $i) $rhs)))
+        ($rrhss (collapse (filter ((curry isMember) $nt) $rhss)))
+        ($ndRrhs (if (~= $rrhss ()) (superpose $rrhss) ())))
+      (if (~= $rrhss ())
+          (match $grammarSpace ($nt $ndRrhs $i) ($nt $ndRrhs $i))
+          ())))
+
+;; Function to filter out non recursive production rules from grammarSpace.
+(= (getNonRecursiveRules $nt $grammarSpace)
+   (subtraction
+          (match $grammarSpace ($nt $rhs $i) ($nt $rhs $i))
+          (getRecursiveRules $nt $grammarSpace)))
 
 ;; Function: wrapper
 ;; Description: This function applies a predicate to an atom and returns the atom if the predicate is true, otherwise returns an empty expression.
@@ -249,6 +254,9 @@
 )
 
 (= (sum $list) (foldr + 0 $list))
+
+;; Function to count atom occrence in a list of atoms.
+(= (count $atom $list) (sum (collapse (if (== $atom (superpose $list)) 1 (empty)))))
 
 (= (any $bools) (isMember True $bools))
 
