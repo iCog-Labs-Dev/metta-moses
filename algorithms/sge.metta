@@ -43,19 +43,19 @@
 !(bind! &lastIndex (new-state 0))
 
 !(add-reduct &grammar (superpose (
-  ;; (start expr 0)
+  (start expr 0)
   (expr (bop expr expr) 0)
   (expr (bop term expr) 1)
-  ;; (expr (bop term term) 2)
+  (expr (bop term term) 2)
   (expr (uop expr) 3)
-  ;; (expr (uop term) 4)
-  ;; (bop AND 0)
-  ;; (bop OR 1)
-  ;; (uop NOT 0)
+  (expr (uop term) 4)
+  (bop AND 0)
+  (bop OR 1)
+  (uop NOT 0)
 
   ;; TODO: Automate insertion.
-  ;; (term X 0)
-  ;; (term Y 1)
+  (term X 0)
+  (term Y 1)
   ))
 )
 
@@ -93,7 +93,7 @@
 ;;            This will generate all possible combinations.
 
 ;; Function to expand every recursive rule in the grammar according to the depth.
-;; FIX: Make sure rule's indexes are unique.
+;; FIX: Make sure index's order is sequential.
 (= (expandGrammar $maxDepth $grammarSpace)
    (let $nts (unique (match $grammarSpace ($lhs $rhs $i) $lhs))
              (expandRecursiveNT $nts $maxDepth $grammarSpace)))
@@ -101,24 +101,26 @@
 ;; TODO: Add more details for this comment.
 ;; Function to expand a non terminal with recursive Rhs.
 (= (expandRecursiveNT $nt $maxDepth $grammarSpace)
-   (let*
-     (
-       ($nrRules (collapse (unique (getNonRecursiveRules $nt $grammarSpace))))
-       ($rRules (collapse (getRecursiveRules $nt $grammarSpace)))
+   (let $rRules (collapse (getRecursiveRules $nt $grammarSpace))
+        (if (~= $rRules (()))
+              (let*
+                  (
+                    ($nrRules (collapse (unique (getNonRecursiveRules $nt $grammarSpace))))
+                    ($updatedNRRules (if (~= $nrRules ()) (collapse (getUpdatedNRRules (superpose $nrRules) $maxDepth)) ()))
+                    ($_ (if (~= $updatedNRRules ()) (collapse (add-reduct $grammarSpace (superpose $updatedNRRules))) ()))
+                    ($r (collapse (let $rRule (superpose $rRules) (remove-atom $grammarSpace $rRule))))
+                    ;; (() (println! (RRules: $rRules)))
 
-       ($updatedNRRules (if (~= $nrRules ()) (collapse (getUpdatedNRRules (superpose $nrRules) $maxDepth)) ()))
-       ($_ (if (~= $updatedNRRules ()) (collapse (add-reduct $grammarSpace (superpose $updatedNRRules))) ()))
-       ($r (collapse (let $rRule (superpose $rRules) (remove-atom $grammarSpace $rRule))))
+                    ($_' (until maxDepthNotReached applyExpandRules ($nt 0 $maxDepth $rRules $nrRules $grammarSpace)))
 
-       ($_' (until maxDepthNotReached applyExpandRules ($nt 0 $maxDepth $rRules $nrRules $grammarSpace)))
+                    ($rulePerms (if (~= $nrRules ()) (collapse (let ($lhs $rhs $i) (superpose $rRules) (removeRFromRule $nt $rhs $i $nrRules))) ()))
+                    ($lhs ($nt (- $maxDepth 1)))
 
-       ($rulePerms (if (~= $nrRules ()) (collapse (let ($lhs $rhs $i) (superpose $rRules) (removeRFromRule $nt $rhs $i $nrRules))) ()))
-       ($lhs ($nt (- $maxDepth 1)))
-
-       ($updatedRules (if (== $rulePerms ()) () (collapse (let $rules (superpose $rulePerms) (cons-atom $lhs $rules)))))
-       ($_''' (if (~= $rRules (())) (collapse (let ($lhs $rhs $i) (superpose $rRules) (remove-atom $grammarSpace ($lhs $rhs $i)))) ()))
-       ($_'' (change-state! &lastIndex 0)))
-     (if (~= $updatedRules ()) (add-reduct $grammarSpace (superpose $updatedRules)) ())))
+                    ($updatedRules (if (~= $rulePerms ()) (collapse (let $rules (superpose $rulePerms) (cons-atom $lhs $rules))) ()))
+                    ($_''  (collapse (let ($lhs $rhs $i) (superpose $rRules) (remove-atom $grammarSpace ($lhs $rhs $i)))))
+                    ($_''' (change-state! &lastIndex 0)))
+                  (if (~= $updatedRules ()) (add-reduct $grammarSpace (superpose $updatedRules)) ()))
+              ())))
 
 ;; Function to count atom occrence in a list of atoms.
 (= (count $atom $list) (sum (collapse (if (== $atom (superpose $list)) 1 (empty)))))
@@ -194,10 +196,10 @@
 (= (expandRules $depth $rrules $nrrules $grammarSpace)
    (let*
       (
-        (() (println! (Params: RRules: $rrules NRRules: $nrrules Depth: $depth)))
-        ($updatedRRules (if (== $rrules (())) () (collapse (expandRule $depth (superpose $rrules)))))
-        ($updatedNRRules (if (== $nrrules ()) () (collapse (let ($nrLhs $nrRhs $nrI) (superpose $nrrules) (($nrLhs (- $depth 1)) $nrRhs $nrI)))))
-        ($_ (if (== $updatedRRules ()) () (collapse (add-reduct $grammarSpace (superpose $updatedRRules))))))
+        ;; (() (println! (Params: RRules: $rrules NRRules: $nrrules Depth: $depth)))
+        ($updatedRRules (if (~= $rrules (())) (collapse (expandRule $depth (superpose $rrules))) ()))
+        ($updatedNRRules (if (~= $nrrules ()) (collapse (let ($nrLhs $nrRhs $nrI) (superpose $nrrules) (($nrLhs (- $depth 1)) $nrRhs $nrI))) ()))
+        ($_ (if (~= $updatedRRules ()) (collapse (add-reduct $grammarSpace (superpose $updatedRRules))) ())))
       (if (and (~= $depth 0) (~= $updatedNRRules ()))
           (collapse (add-reduct $grammarSpace (superpose $updatedNRRules)))
           ())))
@@ -334,13 +336,13 @@
 ;; !(expandRecursiveNT expr 3 &grammar)
 ;; !(get-atoms &grammar)
 
-;; !(expandGrammar 3 &grammar)
+!(expandGrammar 3 &grammar)
 
 ;; !(collapse (unique (getNonRecursiveRules (superpose (expr start uop bop)) &grammar)))
 
 ;; !(getRecursiveRules start &grammar)
 
-;; !(println! (get-atoms &grammar))
+!(println! (get-atoms &grammar))
 
 ;; !(match &grammar ((uop 2) $rhs $i) ((uop 2) $rhs $i))
 ;; !(match &grammar (uop $rhs $i) (uop $rhs $i))
