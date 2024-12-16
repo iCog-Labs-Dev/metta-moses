@@ -45,10 +45,8 @@
 !(add-reduct &grammar (superpose (
   (start expr 0)
   (expr (bop expr expr) 0)
-  (expr (bop term expr) 1)
-  (expr (bop term term) 2)
-  (expr (uop expr) 3)
-  (expr (uop term) 4)
+  (expr (uop expr) 1)
+  (expr term 2)
   (bop AND 0)
   (bop OR 1)
   (uop NOT 0)
