@@ -7,31 +7,42 @@
 ;; Action: Let S be the intersection of the guard sets of the children
 ;;            of the POA. The literals in S are subtraced from the
 ;;            guard set of each of the children of the POA.
-;;            Then S, the updated POA is returned and a boolean indicator
-;;            whether the transformation is applied or not.
-;; Example: input: POA ==> (OR (AND (NOT B) C) (NOT B))
-;;        : output: (((NOT B)) (OR C (AND)))
-;(: promoteCommonConstraints (-> Expression (Expression Expression Bool)))
-(= (promoteCommonConstraints $expr)
-    (let*
-        (
-          (($literals $children) (getLiteralChildren $expr))
-          ($childrenLiteral (collapse (getLiterals (superpose $children))))
-          ($shared (findCommon $childrenLiteral))
-          ($common (atomIntersection $literals $shared))
-        )
-        (if (== $common ())
-            (() $expr False)
-            (let*
-                (
-                  ($updatedChildren (removeCommonLiterals $common $children))
-                  ($updatedLiterals (removeElement $common $literals))
-                  ($newExp (concatTuple $updatedLiterals $updatedChildren ))
-                  ($res (cons-atom OR $newExp))
+;;            Then S, the updated POA replaces the previous POA in the
+;;              parent of the POA and the updated parent, the updated
+;;              POA and a boolean indicator whether the transformation
+;;              is applied or not are returned in a tuple.
+;; Example: input: POA ==> (OR (AND (NOT B) C) (NOT B)), parent ==> (AND A (OR (AND (NOT B) C) (NOT B)) (OR (NOT C) (AND (NOT B) (NOT D))))
+;;        : output: ((AND A (NOT B) (OR (AND C) (AND)) (OR (NOT C) (AND (NOT B) (NOG D)))) () True)
+;(: promoteCommonConstraints (-> Expression Expression (Expression Expression Bool)))
+(= (promoteCommonConstraints $parent $current)
+    (if (and (~= $current ()) (~= $parent ()))
+        (let*
+            (
+              ;; (() (println! (=== Inside PromoteCommonConstraints ===)))
+              ;; (() (println! (Parameters ==> Parent: $parent Current: $current)))
+
+              (($literals $children) (getLiteralChildren $current))
+              ($childrenLiteral (if (~= $children ()) (collapse (getLiterals (superpose $children))) ()))
+              ($common (if (~= $childrenLiteral ()) (findCommon $childrenLiteral) ()))
+            )
+            (if (== $common ())
+                ($parent $current False)
+                (let*
+                    (
+                      ;; (() (println! (Removing Common Literals: $common)))
+                      ($updatedChildren (removeCommonLiterals $common $children))
+                      ($updatedLiterals (removeElement $common $literals))
+                      ($newExp (concatTuple $updatedLiterals $updatedChildren ))
+
+                      ($newCurrent (cons-atom OR $newExp))
+                      ($updatedParent (findAndReplace $current $newCurrent $parent))
+                      ($updatedParent' (addLiterals $updatedParent $common))
+                    )
+                    ($updatedParent' $newCurrent True)
                 )
-                ($common $res True)
             )
         )
+        ($parent $current False)
     )
 )
 
@@ -54,7 +65,3 @@
    )
 )
 
-;; A function to remove all elements found in $common from a $tuple
-(= (removeElement $common $tuple) 
-   (collapse (subtraction (superpose $tuple) (superpose $common)))
-)

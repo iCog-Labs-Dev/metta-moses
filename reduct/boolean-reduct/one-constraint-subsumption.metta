@@ -10,33 +10,33 @@
 ;;                 the POA's guard set contains constraint X and
 ;;                 the POA is commanded by a terminal AND node COM
 ;;                 whose guard set consists of the constraint X.
-;; Action: The function returns an empty expression if applied, else it returns the POA.
-;;            It also a boolean value corresponding to whether the transformation function
+;; Action: The function removes the POA from it's parent if applied, else it returns the POA.
+;;            In addition to the POA, this function also returns the updated parent.
+;;            It also returns a boolean value corresponding to whether the transformation function
 ;;            is applied or not.
-;;         Returning an empty expression corresponds to deleting the POA.
-;; Example: input: POA ==> (AND E D), commandSet ==> (C D)
-;;        : output: ()
-;;(: oneConstraintSubsume (-> Expression Expression (Expression Bool)))
-(= (oneConstraintSubsume $exp $commandSet)
+;; Example: input: POA ==> (AND E D), commandSet ==> (C D), parent ==> (OR (AND E D) C)
+;;        : output: ((OR C) () True)
+;;(: oneConstraintSubsume (-> Expression Expression Expression (Expression Expression Bool)))
+(= (oneConstraintSubsume $parent $current $commandSet)
    (let*
       (
-        ($head (car-atom $exp))
-        ($tail (cdr-atom $exp))
+        ($head (car-atom $current))
+        ($tail (cdr-atom $current))
       )
       (case $head
         (
-          (OR ($exp False))
-          (NOT ($exp False))
+          (OR ($parent $current False))
+          (NOT ($parent $current False))
           (AND
             (let*
               (
-                ($guardSet (getGuardSet $exp))
+                ($guardSet (getGuardSet $current))
                 ($common (collapse (intersection (superpose $guardSet) (superpose $commandSet))))
               )
-              (if (== $common ()) ($exp False) (() True))
+              (if (== $common ()) ($parent $current False) ((removeElement ($current) $parent) () True)) ;; remove current from parent.
             )
           )
-          ($else ($exp False))
+          ($else ($parent $current False))
         )
       )
    )
