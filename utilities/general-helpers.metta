@@ -89,32 +89,46 @@
    )
 )
 
-;; A map function that takes a function and applies 
-;;    it on every atom in a given tuple.
-(: map (-> (-> $a $b) $c $d))
-(= (map $f $tuple)
-   (if (== $tuple ())
-       ()
-       (let*
-         (
-            ($x (car-atom $tuple))
-            ($xs (cdr-atom $tuple))
-            ($x' ($f $x))
-            ($next (map $f $xs))
+;; Fold a tuple from right to left
+(: foldr (-> (-> $a $b $b) $b $c $d))
+(= (foldr $f $i $xs)
+   (if (== $xs ())
+       $i
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs))
+              ($ft (foldr $f $i $t)))
+         ($f $h $ft))))
 
-            (() (println! (=== Map Log ===)))
-            (() (println! (X: $x XS: $xs UpdatedX: $x' Next: $next)))
-            (() (println! (UpdatedResult (cons-atom $x' $next))))
-         )
-         (cons-atom $x' $next)
-       )
-   )
-)
+;; Apply a given function to every element of a tuple
+(: map (-> (-> $a $b) $c $d))
+(= (map $f $xs)
+   (if (== $xs ())
+       ()
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs))
+              ($fh ($f $h))
+              ($ft (map $f $t)))
+         (cons-atom $fh $ft))))
+
+;; Function: wrapper
+;; Description: This function applies a predicate to an atom and returns the atom if the predicate is true, otherwise returns an empty expression.
+;; Parameters:
+;;   - $predicate: A function that takes an atom and returns a boolean value.
+;;   - $x: The atom to which the predicate is applied.
+;; Returns:
+;;   - Expression: Returns the atom if the predicate evaluates to true, otherwise returns an empty expression.
+;; TODO: Try this with unify
+(:wrapper (-> $f $a $a))
+(= (wrapper $predicate $x) (if ($predicate $x) $x (empty)))
+
+;; Filter function given a predicate
+(:filter (-> $f $a $a))
+(= (filter $predicate $list)
+   (wrapper $predicate (superpose $list)))
 
 ;; A function to remove all elements found in $common from a $tuple
 (= (removeElement $common $tuple)
-   (collapse (subtraction (superpose $tuple) (superpose $common)))
-)
+   (collapse (subtraction (superpose $tuple) (superpose $common))))
 
 ;; A function that returns True if any of the input atoms are True and False otherwise
 ;; Example: input ==> (True True False), output ==> True
@@ -122,3 +136,16 @@
 ;;          input ==> (False True False), output ==> True
 (: any (-> Atom Bool))
 (= (any $bools) (isMember True $bools))
+
+;; A trick to define `curry` in MeTTa without `lambda`
+(: curry (-> (-> $a $b $c) (-> $a (-> $b $c))))
+(= (((curry $f) $x) $y) ($f $x $y))
+
+;; Add numbers in an atom list
+(= (sum $list) (foldr + 0 $list))
+
+;; Function to count atom occrence in a list of atoms.
+(= (count $atom $list)
+   (if (== $list ())
+        0
+        (sum (collapse (if (== $atom (superpose $list)) 1 (empty))))))
