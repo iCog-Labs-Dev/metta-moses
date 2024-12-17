@@ -23,22 +23,20 @@
             ($commonElements (collapse (intersection (superpose $poaGuardSet) (superpose $invertedCom))))
         )
          (collapse (let $el (superpose $parent)
-            (if (expressionEquality $el $poa)
+            (if (=== $el $poa)
                 (collapse (subtraction (superpose $poa) (superpose $commonElements)))
                 $el)))))
-                
-;; Name:                        expressionEquality
+
+;; Name:                        ===
 ;; Description:                 A helper function to evaluate equality of two expressions ignoring ordering of litral children.
 ;;                              The grounded equality operator, ==, will return `False` when comparing (AND A B) and (AND B A)
-;;                              expressionEquality returns `True`.
+;;                              === returns `True`.
 ;;                              Used when looking for the POA in the parent's list of children.
+(= (=== $x $y)
+   (if (and (== (get-metatype $x) Symbol) (== (get-metatype $y) Symbol))
+       (== $x $y)
+       (== (collapse (union (subtraction (superpose $x) (superpose $y)) (subtraction (superpose $y) (superpose $x)))) ())))
 
-(= (expressionEquality $a $b)
-    (let $diff (collapse (subtraction (superpose $a) (superpose $b)))
-        (if (== $diff ())
-            True
-            False
-        )))
 
 ;; Name:                        invertLiterals
 ;; Description:                 A helper function that negates all literals in a literal only expression.
@@ -50,5 +48,4 @@
     (collapse (let $literal (superpose $guardSet)
             (unify $literal (NOT $x)
                 $x
-                (NOT $literal)
-            ))))
+                (NOT $literal)))))

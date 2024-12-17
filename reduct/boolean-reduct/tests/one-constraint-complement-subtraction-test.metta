@@ -47,3 +47,15 @@
     (oneCcSub (OR (AND (NOT A) C) (AND A B (AND B C))) (AND (NOT A) C) ((NOT A) B C))
     (OR (AND (NOT A) C) (AND A B (AND B C)))
 )
+
+;; Test for helper function ===
+! (assertEqual (=== A B) False)
+! (assertEqual (=== A A) True)
+! (assertEqual (=== () (A)) False)
+! (assertEqual (=== (A) () ) False)
+! (assertEqual (=== (A B) (A)) False)
+! (assertEqual (=== (A B) (A B)) True)
+! (assertEqual (=== (B A) (A B)) True)
+! (assertEqual (=== (B C D E A) (B C D E A)) True)
+! (assertEqual (=== (B C D E A) (C D A E B)) True)
+! (assertEqual (=== (B F D E A) (B C D E A)) False)
