@@ -99,32 +99,36 @@
               ($ft (foldr $f $i $t)))
          ($f $h $ft))))
 
-;; A map function that takes a function and applies 
-;;    it on every atom in a given tuple.
+;; Apply a given function to every element of a tuple
 (: map (-> (-> $a $b) $c $d))
-(= (map $f $tuple)
-   (if (== $tuple ())
+(= (map $f $xs)
+   (if (== $xs ())
        ()
-       (let*
-         (
-            ($x (car-atom $tuple))
-            ($xs (cdr-atom $tuple))
-            ($x' ($f $x))
-            ($next (map $f $xs))
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs))
+              ($fh ($f $h))
+              ($ft (map $f $t)))
+         (cons-atom $fh $ft))))
 
-            (() (println! (=== Map Log ===)))
-            (() (println! (X: $x XS: $xs UpdatedX: $x' Next: $next)))
-            (() (println! (UpdatedResult (cons-atom $x' $next))))
-         )
-         (cons-atom $x' $next)
-       )
-   )
-)
+;; Function: wrapper
+;; Description: This function applies a predicate to an atom and returns the atom if the predicate is true, otherwise returns an empty expression.
+;; Parameters:
+;;   - $predicate: A function that takes an atom and returns a boolean value.
+;;   - $x: The atom to which the predicate is applied.
+;; Returns:
+;;   - Expression: Returns the atom if the predicate evaluates to true, otherwise returns an empty expression.
+;; TODO: Try this with unify
+(:wrapper (-> $f $a $a))
+(= (wrapper $predicate $x) (if ($predicate $x) $x (empty)))
+
+;; Filter function given a predicate
+(:filter (-> $f $a $a))
+(= (filter $predicate $list)
+   (wrapper $predicate (superpose $list)))
 
 ;; A function to remove all elements found in $common from a $tuple
 (= (removeElement $common $tuple)
-   (collapse (subtraction (superpose $tuple) (superpose $common)))
-)
+   (collapse (subtraction (superpose $tuple) (superpose $common))))
 
 ;; A function that returns True if any of the input atoms are True and False otherwise
 ;; Example: input ==> (True True False), output ==> True
