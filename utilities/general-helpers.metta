@@ -3,6 +3,10 @@
 (: ~= (-> Atom Atom Bool))
 (= (~= $a $b) (not (== $a $b)))
 
+;; INFO: Uncomment for the use of MeTTaLog.
+;; (: >= (-> Number Number Bool))
+;; (= (>= $a $b) (or (== $a $b) (> $a $b)))
+
 ;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
 ;(: cocatTuple (-> Expression Expression Expression))
  (= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y)))) 
@@ -25,11 +29,12 @@
 
 ; a helper function to the isConsistentExp function.
 ; a function which checks if an element is member of a tuple.
+(: isMember (-> $a $aa Bool))
 (= (isMember $x $list)
     (not (== (collapse (intersection (superpose ($x)) (superpose $list))) ()))
 )
 
-; This function assumes it receives a set1 and set2 expression as parameters. 
+; This function assumes it receives a set1 and set2 expression as parameters.
 ; It then removes similar elements found in set2 that already exist in set1.
 ; The function uses isMember from general helpers functions.
 
@@ -117,14 +122,21 @@
 ;;   - $x: The atom to which the predicate is applied.
 ;; Returns:
 ;;   - Expression: Returns the atom if the predicate evaluates to true, otherwise returns an empty expression.
-;; TODO: Try this with unify
-(:wrapper (-> $f $a $a))
-(= (wrapper $predicate $x) (if ($predicate $x) $x (empty)))
+(:wrapper (-> (-> $a Bool) $aa $aa))
+(= (wrapper $predicate $x) (if (let $bool ($predicate $x) $bool) $x (empty)))
 
 ;; Filter function given a predicate
-(:filter (-> $f $a $a))
+(: filter (-> (-> $a Bool) $a $a))
 (= (filter $predicate $list)
    (wrapper $predicate (superpose $list)))
+
+;; INFO: Uncommnet the following two functions when using MeTTaLog.
+;; ;; (:wrapperB (-> (-> $a $b Bool) $a $b $b))
+;; (= (wrapperB $predicate $x $y) (if ($predicate $x $y) $y (empty)))
+;;
+;; (: filterB (-> (-> $a $b Bool) $a $bb $bb))
+;; (= (filterB $predicate $x $list)
+;;    (wrapperB $predicate $x (superpose $list)))
 
 ;; A function to remove all elements found in $common from a $tuple
 (= (removeElement $common $tuple)
