@@ -43,16 +43,33 @@
 !(bind! &lastIndex (new-state 0))
 
 !(add-atom &grammar (start expr 0))
-!(add-atom &grammar (expr (bop expr expr) 0))
-!(add-atom &grammar (expr (uop expr) 1))
+!(add-atom &grammar (expr (bop expr_0 expr_0) 0))
+!(add-atom &grammar (expr (uop expr_0) 1))
+;; INFO: Uncomment to have recursive grammar.
+;; !(add-atom &grammar (expr (bop expr expr) 0))
+;; !(add-atom &grammar (expr (uop expr) 1))
 !(add-atom &grammar (expr term 2))
+!(add-atom &grammar (expr_0 term 2))
 !(add-atom &grammar (bop AND 0))
 !(add-atom &grammar (bop OR 1))
 !(add-atom &grammar (uop NOT 0))
 
-  ;; TODO: Automate insertion.
+;; TODO: Automate insertion.
 !(add-atom &grammar (term X 0))
 !(add-atom &grammar (term Y 1))
+
+;; !(add-atom &grammar (start (expr op expr) 0))
+;; !(add-atom &grammar (start expr 1))
+;; !(add-atom &grammar (expr (term op term) 0))
+;; !(add-atom &grammar (expr ([ term op term ]) 1))
+;; !(add-atom &grammar (term X 0))
+;; !(add-atom &grammar (term 0.5 1))
+;; !(add-atom &grammar (op plus 0))
+;; !(add-atom &grammar (op minus 1))
+;; !(add-atom &grammar (op mult 2))
+;; !(add-atom &grammar (op div 3))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -334,10 +351,253 @@
           (getRecursiveRules $nt $grammarSpace)))
 
 
+!(bind! &ntCount (new-space))
+!(bind! &ntReference (new-space))
+!(bind! &countReference (new-space))
+
+;; Function to apply isUnit to calcMaxNtReference's state
+(= (applyIsUnit ($x $ntSet)) (isUnit $ntSet))
+
+;; Function to apply state to calcMaxNtReference to be compatible for until function.
+;;
+;; The arguments are:
+;;
+;; $grammarSpace: The grammar space containing production rules.
+;; $referenceSpace: The space to store non-terminal references.
+;; $countSpace: The space to store the count of non-terminal references.
+;; $refCountSpace: The space to store the maximum count of non-terminal references.
+;; $ntSet: The set of all non-terminals in the grammar space.
+;;
+;; Returns:
+;; - No usefull data except unit/().
+(= (applyCalcMaxNtReference (($grammarSpace $referenceSpace $countSpace $refCountSpace) $ntSet))
+   (let $_ (calcMaxNtReference $grammarSpace $referenceSpace $countSpace $refCountSpace (car-atom $ntSet)) 
+           (($grammarSpace $referenceSpace $countSpace $refCountSpace) (cdr-atom $ntSet))
+   )
+)
+
+;; Calculate the maximum number of non-terminal references of all
+;;    non-terminals in the grammar space.
+;; The function keeps a unique reference and referer pair between non terminals along the way.
+;;
+;; The arguments are:
+;;
+;; $grammarSpace: The grammar space containing production rules.
+;; $referenceSpace: The space to store non-terminal references.
+;; $countSpace: The space to store the count of non-terminal references.
+;; $refCountSpace: The space to store the maximum count of non-terminal references.
+;; $nt: The non-terminal to be processed.
+;;
+;; Returns:
+;; - No usefull data except unit/().
+;;
+;; Example:
+;;    Grammar:
+;;        S      -> Expr
+;;        Expr   -> Bop Expr_0 Expr_0 |
+;;                  Uop Expr_0 |
+;;                  Term
+;;        Expr_0 -> Term
+;;        Bop    -> AND | OR
+;;        Uop    -> NOT
+;;        Term   -> X | Y
+;;
+;;    $nt: Expr   => Maximum Reference Count: 1. This is because Expr is referenced only once and that is by S.
+;;    $nt: Expr_0 => Maximum Reference Count: 2. Expr_0 is referenced only by Expr.
+;;
+;; If a given non terminal is referenced with more than one non terminal,
+;;  then the maximum reference by each non terminal will be stored.
+(= (calcMaxNtReference $grammarSpace $referenceSpace $countSpace $refCountSpace $nt)
+   (let*
+     (
+       ($ntSet (collapse (unique (match &grammar ($lhs $rhs $i) $lhs))))
+
+       ($_ (calcTotalNtReference &grammar &ntReference &ntCount $nt $ntSet))
+
+       ;; Update the count reference to the new maximum count if possible.
+       ($_' (collapse
+                 (let*
+                     (
+                       ($keys (collapse (unique (match &ntCount ($key $count) $key))))
+                       ($_ (until isUnit ((curry applyCountMaxReference) (&ntCount &countReference $nt)) $keys))
+                     )
+                     ()))
+       )
+
+       ;; Clearing the count for next state
+       ($_'' (collapse (let $countPairs (get-atoms &ntCount) (remove-atom &ntCount $countPairs))))
+
+       ;; Making the reference space unique by ensuring that each non-terminal reference is found only once.
+       ($_''' (collapse (let*
+                          (
+                            ($uniqueRefs (unique (get-atoms &ntReference)))
+                            (() (remove-atom &ntReference $uniqueRefs))
+                          )
+                          (add-atom &ntReference $uniqueRefs)))
+       )
+     )
+     ()
+   )
+)
+
+
+;; Calculate the total number of non-terminal references in the grammar space.
+;;
+;; The arguments are:
+;;
+;; $grammarSpace: The grammar space containing production rules.
+;; $referenceSpace: The space to store non-terminal references.
+;; $countSpace: The space to store the count of non-terminal references.
+;; $nt: The non-terminal to be processed.
+;; $ntSet: The set of all non-terminals in the grammar space.
+;;
+;; Returns:
+;; - No useful result except for some unit / (). The update is done on the elements of the spaces.
+;;
+;; Example:
+;;    Grammar:
+;;        S      -> Expr
+;;        Expr   -> Bop Expr_0 Expr_0 |
+;;                  Uop Expr_0 |
+;;                  Term
+;;        Expr_0 -> Term
+;;        Bop    -> AND | OR
+;;        Uop    -> NOT
+;;        Term   -> X | Y
+;;
+;;    $nt: Expr   => Reference Count: 1. This is because Expr is referenced only once and that is by S.
+;;    $nt: Expr_0 => Reference Count: 2, 1. Expr_0 is referenced two times by Expr. Hence it will have two counts.
+(= (calcTotalNtReference $grammarSpace $referenceSpace $countSpace $nt $ntSet)
+   (let*
+        (
+         ;; Count the number of occurrences of references for each symbol in a given non-terminal's production rule.
+         ($_ (collapse
+                        (let*
+                            (
+                              (($nt $rules) ($nt (match $grammarSpace ($nt $rhs $i) $rhs)))
+                              (($nt $options) (if (isSymbol $rules) ($nt $rules) ($nt (superpose $rules))))
+                              ($_' (if (isMember $options $ntSet)
+                                        (let*
+                                            (
+                                              (() (add-atom $referenceSpace ($options $nt)))
+                                              (() (add-atom $countSpace ($rules $options 1)))
+                                            )
+                                            ())
+                                        ()))
+                            )
+                            ())))
+         
+         ;; Sum up each individual count to get total count of each non terminal.
+         ($_' (collapse
+                        (let*
+                            (
+                              (($nt $rules) ($nt (match $grammarSpace ($nt $rhs $i) $rhs)))
+                              (($rules $opts $counts) (match $countSpace ($rules $options $counts) ($rules $options $counts)))
+                              (($opt $sum) ($opts (sum (collapse (match $countSpace ($rules $opts $counts) $counts)))))
+                              (() (update-atom $countSpace ($rules $opt $counts) ($opt $sum))))
+                            ())))) 
+        ())
+)
+
+
+;; Function that applies the current state to the countMaxReference 
+;;    by calling it with the first element of the $rNts.
+;; It is used to make the countMaxReference function compatible with until function.
+;;
+;; The arguments are:
+;;
+;; $nt: The non-terminal referring the $rNts.
+;; $rNts: The referenced non-terminals to be compared.
+;; $countSpace: The space to store the count of non-terminal references.
+;; $refCountSpace: The space to store the maximum count of non-terminal references.
+;;
+;; Returns:
+;; - The remaining $rNts to be processed.
+(= (applyCountMaxReference ($countSpace $refCountSpace $nt) $rNts) (let $_ (countMaxReference $countSpace $refCountSpace (car-atom $rNts) $nt) (cdr-atom $rNts)))
+
+
+;; Count the maximum reference of a given non terminal.
+;;
+;; The arguments are:
+;;
+;; $rNt: The non terminal whose maximum reference is to be counted.
+;; $nt: The non-terminal refering $rNt.
+;;
+;; Returns:
+;; - No usefull result other than unit/().
+(= (countMaxReference $countSpace $refCountSpace $rNt $nt)
+   (let*
+      (
+        ($count (foldr max 0 (collapse (match $countSpace ($rNt $count) $count))))
+        ($oldCount (unify $refCountSpace ($rNt $nt $count) $count 0))
+        ($newCount (max $oldCount $count))
+      )
+      (update-atom $refCountSpace ($rNt $nt $oldCount) ($rNt $nt $newCount)))
+)
+
+
+
+;; Compute the maximum reference of a given non-terminal by keeping track of the maximum number of references of its referer non-terminal.
+;;
+;; The arguments are:
+;;
+;; $referenceSpace: The space to store non-terminal references.
+;; $refCountSpace: The space to store the count of non-terminal references.
+;; $nt: The non-terminal for which the maximum reference is to be computed.
+;;
+;; Returns:
+;; - The maximum reference count of the given non-terminal. 
+;;
+;; Example:
+;;    Grammar:
+;;        S      -> Expr Op Expr | Expr
+;;        Expr   -> Term Op Term |
+;;                  (Term Op Term)
+;;        Op     -> + | - | * | /
+;;        Term   -> X | 0.5
+;;    $nt: Expr => Max Reference for each production: 2. Since Expr is referenced only in S we have only one result.
+;;    $nt: Term => Max Reference for each production: 4. Since Term is referenced only a maximum of two times in Expr.
+;;                 Since Expr itself has a Max Reference of 2, the Max Reference becomes 4.
+(= (maxRefPerProd $referenceSpace $refCountSpace $nt)
+   (if (== $nt start)
+      1
+      (let*
+          (
+            ($referer (unify $referenceSpace ($nt $referer) $referer ()))
+            ($refUpperBound (if (~= referer ()) (maxRefPerProd $referenceSpace $refCountSpace $referer) 1))
+            ($ntMaxExpansion (match $refCountSpace ($nt $referer $count) $count))
+          )
+          (* $refUpperBound $ntMaxExpansion))
+   )
+)
+
+
+;; Sums up all the maximum references of a non-terminal from each production rule.
+;; The function maxRefPerProd can return a more than one value corresponding to each 
+;;    production rule's maximum reference. There for this functions sums them up.
+;;
+;; The arguments are:
+;;
+;; $referenceSpace: The space to store non-terminal references.
+;; $refCountSpace: The space to store the count of non-terminal references.
+;; $nt: The non-terminal for which the upper bounds are to be calculated.
+;;
+;; Returns:
+;; - The non-terminal and it's upperBound in a tuple.
+(= (upperBounds $referenceSpace $refCountSpace $nt) ($nt (sum (collapse (maxRefPerProd $referenceSpace $refCountSpace $nt)))))
+
+;; !(until applyIsUnit applyCalcMaxNtReference ((&grammar &ntReference &ntCount &countReference) (collapse (unique (match &grammar ($nt $rhs $i) $nt)))))
+;; !(upperBounds &ntReference &countReference (superpose (term expr expr_0 bop uop)))
+
+;; !(get-atoms &ntReference)
+;; !(get-atoms &ntCount)
+;; !(get-atoms &countReference)
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                                                                              ;;
-;;                                            Test cases                                                                        ;;
+;;                                                      Test cases                                                              ;;
 ;;                                                                                                                              ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -355,7 +615,7 @@
         (() (add-atom &tempGrammar (uop AND 0))))
       ()))
 
-(= (get-rules $space) (match $space ($lhs $rhs $i) ($lhs $rhs)))
+(= (get-rules $space) (match $space ($LHS $rhs $i) ($lhs $rhs)))
 
 !(assertEqualToResult (let () (populateSpace &tempGrammar) (get-atoms &tempGrammar)) ((start expr 0) (expr (uop expr) 0) (expr term 1) (uop AND 0)))
 !(assertEqual (let $_ (clearSpace &tempGrammar) (match &tempGrammar $x $x)) (empty))
