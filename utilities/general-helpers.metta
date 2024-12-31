@@ -150,3 +150,24 @@
 (= (any $bools) (isMember True $bools))
 
 (= (sum $list) (foldr + 0 $list))
+
+;; Function to count atom occrence in a list of atoms.
+(= (count $atom $list)
+   (if (== $list ())
+        0
+        (sum (collapse (if (== $atom (superpose $list)) 1 (empty))))))
+
+
+
+(: isSymbol (-> Expression Bool))
+(= (isSymbol $expr) (== (get-metatype $expr) Symbol))
+
+(: isUnit (-> Expression Bool))
+(= (isUnit $expr) (== $expr ()))
+
+;; Function to replace a given atom from a space.
+(: update-atom (-> Grounded Atom Atom (->)))
+(= (update-atom $space $oatom $natom) (let $_ (remove-atom $space $oatom) (add-atom $space $natom)))
+
+;; Return the maximum of two numbers.
+(= (max $x $y) (if (< $x $y) $y $x))
