@@ -43,13 +43,10 @@
 !(bind! &lastIndex (new-state 0))
 
 !(add-atom &grammar (start expr 0))
-!(add-atom &grammar (expr (bop expr_0 expr_0) 0))
-!(add-atom &grammar (expr (uop expr_0) 1))
 ;; INFO: Uncomment to have recursive grammar.
-;; !(add-atom &grammar (expr (bop expr expr) 0))
-;; !(add-atom &grammar (expr (uop expr) 1))
+!(add-atom &grammar (expr (bop expr expr) 0))
+!(add-atom &grammar (expr (uop expr) 1))
 !(add-atom &grammar (expr term 2))
-!(add-atom &grammar (expr_0 term 2))
 !(add-atom &grammar (bop AND 0))
 !(add-atom &grammar (bop OR 1))
 !(add-atom &grammar (uop NOT 0))
@@ -351,12 +348,17 @@
           (getRecursiveRules $nt $grammarSpace)))
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;                                                                                                                  ;;;;
+;;;;                                       Calculate upperbounds for each non terminal                               ;;;;
+;;;;                                                                                                                  ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 !(bind! &ntCount (new-space))
 !(bind! &ntReference (new-space))
 !(bind! &countReference (new-space))
-
-;; Function to apply isUnit to calcMaxNtReference's state
-(= (applyIsUnit ($x $ntSet)) (isUnit $ntSet))
 
 ;; Function to apply state to calcMaxNtReference to be compatible for until function.
 ;;
@@ -370,9 +372,9 @@
 ;;
 ;; Returns:
 ;; - No usefull data except unit/().
-(= (applyCalcMaxNtReference (($grammarSpace $referenceSpace $countSpace $refCountSpace) $ntSet))
-   (let $_ (calcMaxNtReference $grammarSpace $referenceSpace $countSpace $refCountSpace (car-atom $ntSet)) 
-           (($grammarSpace $referenceSpace $countSpace $refCountSpace) (cdr-atom $ntSet))
+(= (applyCalcMaxNtReference ($grammarSpace $referenceSpace $countSpace $refCountSpace) $ntSet)
+   (let $_ (calcMaxNtReference $grammarSpace $referenceSpace $countSpace $refCountSpace (car-atom $ntSet))
+           (cdr-atom $ntSet)
    )
 )
 
@@ -410,30 +412,30 @@
 (= (calcMaxNtReference $grammarSpace $referenceSpace $countSpace $refCountSpace $nt)
    (let*
      (
-       ($ntSet (collapse (unique (match &grammar ($lhs $rhs $i) $lhs))))
+       ($ntSet (collapse (unique (match $grammarSpace ($lhs $rhs $i) $lhs))))
 
-       ($_ (calcTotalNtReference &grammar &ntReference &ntCount $nt $ntSet))
+       ($_ (calcTotalNtReference $grammarSpace $referenceSpace $countSpace $nt $ntSet))
 
        ;; Update the count reference to the new maximum count if possible.
        ($_' (collapse
                  (let*
                      (
-                       ($keys (collapse (unique (match &ntCount ($key $count) $key))))
-                       ($_ (until isUnit ((curry applyCountMaxReference) (&ntCount &countReference $nt)) $keys))
+                       ($keys (collapse (unique (match $countSpace ($key $count) $key))))
+                       ($_ (until isUnit ((curry applyCountMaxReference) ($countSpace $refCountSpace $nt)) $keys))
                      )
                      ()))
        )
 
        ;; Clearing the count for next state
-       ($_'' (collapse (let $countPairs (get-atoms &ntCount) (remove-atom &ntCount $countPairs))))
+       ($_'' (collapse (let $countPairs (get-atoms $countSpace) (remove-atom $countSpace $countPairs))))
 
        ;; Making the reference space unique by ensuring that each non-terminal reference is found only once.
        ($_''' (collapse (let*
                           (
-                            ($uniqueRefs (unique (get-atoms &ntReference)))
-                            (() (remove-atom &ntReference $uniqueRefs))
+                            ($uniqueRefs (unique (get-atoms $referenceSpace)))
+                            (() (remove-atom $referenceSpace $uniqueRefs))
                           )
-                          (add-atom &ntReference $uniqueRefs)))
+                          (add-atom $referenceSpace $uniqueRefs)))
        )
      )
      ()
@@ -586,7 +588,6 @@
 ;; - The non-terminal and it's upperBound in a tuple.
 (= (upperBounds $referenceSpace $refCountSpace $nt) ($nt (sum (collapse (maxRefPerProd $referenceSpace $refCountSpace $nt)))))
 
-;; !(until applyIsUnit applyCalcMaxNtReference ((&grammar &ntReference &ntCount &countReference) (collapse (unique (match &grammar ($nt $rhs $i) $nt)))))
 ;; !(upperBounds &ntReference &countReference (superpose (term expr expr_0 bop uop)))
 
 ;; !(get-atoms &ntReference)
@@ -615,7 +616,7 @@
         (() (add-atom &tempGrammar (uop AND 0))))
       ()))
 
-(= (get-rules $space) (match $space ($LHS $rhs $i) ($lhs $rhs)))
+(= (get-rules $space) (match $space ($lhs $rhs $i) ($lhs $rhs)))
 
 !(assertEqualToResult (let () (populateSpace &tempGrammar) (get-atoms &tempGrammar)) ((start expr 0) (expr (uop expr) 0) (expr term 1) (uop AND 0)))
 !(assertEqual (let $_ (clearSpace &tempGrammar) (match &tempGrammar $x $x)) (empty))
@@ -722,12 +723,11 @@
    (removeRFromRule expr (bop term term) 1 ((expr (uop term) 1) (expr (bop term term) 2)))
    ((bop term term) 1))
 
-;; FIX: Failing test
-;; !(assertEqual
-;;    (===
-;;       (collapse (removeRFromRule expr (bop expr expr) 2 ((expr (uop term) 1) (expr (bop term term) 2))))
-;;       (((bop (uop term) (uop term)) 2) ((bop (uop term) (bop term term)) 3) ((bop (bop term term) (uop term)) 5) ((bop (bop term term) (bop term term)) 6)))
-;;    True)
+!(assertEqual
+   (===
+      (collapse (removeRFromRule expr (bop expr expr) 2 ((expr (uop term) 1) (expr (bop term term) 2))))
+      (((bop (uop term) (uop term)) 2) ((bop (uop term) (bop term term)) 3) ((bop (bop term term) (uop term)) 5) ((bop (bop term term) (bop term term)) 6)))
+   True)
 
 
 ;; Test removeRFromRuleHelper
@@ -792,3 +792,103 @@
         (let $_ (collapse (expandGrammar 2 &tempGrammar)) (collapse (get-rules &tempGrammar)))
         (((expr 1) (uop term)) ((expr 0) (uop (expr 1))) ((expr 1) term) ((expr 0) term) (expr (uop (expr 0))) (expr term) (uop AND) (start expr)))
     True)
+
+
+;; Preparing grammar for testing the following functions.
+!(bind! &expandedGrammar (new-space))
+
+!(add-atom &expandedGrammar (start expr 0))
+!(add-atom &expandedGrammar (expr (bop expr_0 expr_0) 0))
+!(add-atom &expandedGrammar (expr (uop expr_0) 1))
+!(add-atom &expandedGrammar (expr term 2))
+!(add-atom &expandedGrammar (expr_0 term 2))
+!(add-atom &expandedGrammar (bop AND 0))
+!(add-atom &expandedGrammar (bop OR 1))
+!(add-atom &expandedGrammar (uop NOT 0))
+!(add-atom &expandedGrammar (term X 0))
+!(add-atom &expandedGrammar (term Y 1))
+
+;; Test calcTotalNtReference
+
+!(assertEqual (let $_ (calcTotalNtReference &expandedGrammar &ntReference &ntCount expr_0 (collapse (unique (match &expandedGrammar ($lhs $rhs $i) $lhs)))) (=== (collapse (get-atoms &ntCount)) ((term 1)))) True)
+
+!(clearSpace (superpose (&ntReference &ntCount)))
+
+!(assertEqual (let $_ (calcTotalNtReference &expandedGrammar &ntReference &ntCount expr_0 (collapse (unique (match &expandedGrammar ($lhs $rhs $i) $lhs)))) (=== (collapse (get-atoms &ntReference)) ((term expr_0)))) True)
+
+!(clearSpace (superpose (&ntReference &ntCount)))
+
+!(assertEqual (let $_ (calcTotalNtReference &expandedGrammar &ntReference &ntCount expr (collapse (unique (match &expandedGrammar ($lhs $rhs $i) $lhs)))) (=== (collapse (get-atoms &ntCount)) ((bop 1) (expr_0 2) (expr_0 0) (uop 1) (expr_0 1) (term 1)))) True)
+
+!(clearSpace (superpose (&ntReference &ntCount)))
+
+!(assertEqual (let $_ (calcTotalNtReference &expandedGrammar &ntReference &ntCount expr (collapse (unique (match &expandedGrammar ($lhs $rhs $i) $lhs)))) (=== (collapse (get-atoms &ntReference)) ((bop expr) (expr_0 expr) (expr_0 expr) (uop expr) (expr_0 expr) (term expr)))) True)
+
+;; INFO: The above test case's effect on the space is kept intentionally as it will be an input for the countMaxReference test cases.
+
+;; Test countMaxReference
+!(assertEqual (let $_ (countMaxReference &ntCount &countReference expr_0 expr) (=== (collapse (get-atoms &countReference)) ((expr_0 expr 2)))) True)
+
+!(clearSpace &countReference)
+
+!(assertEqual (let $_ (countMaxReference &ntCount &countReference expr start) (=== (collapse (get-atoms &countReference)) ((expr start 0)))) True)
+
+!(clearSpace &countReference)
+
+!(assertEqual (let $_ (countMaxReference &ntCount &countReference x start) (=== (collapse (get-atoms &countReference)) ((x start 0)))) True)
+
+!(clearSpace &countReference)
+
+;; Test applyCountMaxReference
+!(assertEqual (applyCountMaxReference (&ntCount &countReference expr) (expr expr_0 term)) (expr_0 term))
+
+!(clearSpace &countReference)
+
+!(assertEqual (let $_ (applyCountMaxReference (&ntCount &countReference expr) (expr expr_0 term)) (=== (collapse (get-atoms &countReference)) ((expr expr 0)))) True)
+
+!(clearSpace (superpose (&ntCount &ntReference &countReference)))
+
+;; Test calcMaxNtReference
+
+!(assertEqual (let $_ (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference expr) (=== (collapse (get-atoms &ntReference)) ((uop expr) (expr_0 expr) (bop expr) (term expr)))) True)
+
+!(clearSpace (superpose (&ntReference &countReference)))
+
+!(assertEqual (let $_ (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference expr) (=== (collapse (get-atoms &countReference)) ((uop expr 1) (term expr 1) (bop expr 1) (expr_0 expr 2)))) True)
+
+!(clearSpace (superpose (&ntReference &countReference)))
+
+!(assertEqual (let $_  (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference expr_0) (=== (collapse (get-atoms &ntReference)) ((term expr_0)))) True)
+
+!(clearSpace (superpose (&ntReference &countReference)))
+
+!(assertEqual (let $_  (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference expr_0) (=== (collapse (get-atoms &countReference)) ((term expr_0 1)))) True)
+
+!(clearSpace (superpose (&ntReference &countReference)))
+
+!(assertEqual (let $_  (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference uop) (=== (collapse (get-atoms &ntReference)) ())) True)
+
+!(assertEqual (let $_  (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference uop) (=== (collapse (get-atoms &countReference)) ())) True)
+
+;; Test applyCalcMaxNtReference
+!(assertEqual (applyCalcMaxNtReference (&expandedGrammar &ntReference &ntCount &countReference) (expr_0 start expr term uop bop)) (start expr term uop bop))
+
+!(assertEqual (let $_ (applyCalcMaxNtReference (&expandedGrammar &ntReference &ntCount &countReference) (expr_0 start expr term uop bop)) (=== (collapse (get-atoms &ntReference)) ((term expr_0)))) True)
+
+!(clearSpace (superpose (&ntReference &countReference)))
+
+;; INFO: This line here is added because the next test cases depend on a result being present in the spaces defined.
+!(until isUnit ((curry applyCalcMaxNtReference) (&expandedGrammar &ntReference &ntCount &countReference)) (collapse (unique (match &expandedGrammar ($nt $rhs $i) $nt))))
+
+;; Test maxRefPerProd
+!(assertEqual (maxRefPerProd &ntReference &countReference expr) 1)
+!(assertEqual (maxRefPerProd &ntReference &countReference expr_0) 2)
+!(assertEqualToResult (maxRefPerProd &ntReference &countReference term) (2 1))
+
+;; Test upperBounds
+
+!(assertEqual (upperBounds &ntReference &countReference expr) (expr 1))
+!(assertEqual (upperBounds &ntReference &countReference expr_0) (expr_0 2))
+!(assertEqual (upperBounds &ntReference &countReference term) (term 3))
+
+!(clearSpace (superpose (&ntReference &countReference)))
