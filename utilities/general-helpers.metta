@@ -170,9 +170,40 @@
 (: isUnit (-> Expression Bool))
 (= (isUnit $expr) (== $expr ()))
 
+(: isSingleAtom (-> Expression Bool))
+(= (isSingleAtom $expr) (== (cdr-atom $expr) ()))
+
 ;; Function to replace a given atom from a space.
 (: update-atom (-> Grounded Atom Atom (->)))
 (= (update-atom $space $oatom $natom) (let $_ (remove-atom $space $oatom) (add-atom $space $natom)))
 
 ;; Return the maximum of two numbers.
 (= (max $x $y) (if (< $x $y) $y $x))
+
+;; A function to return a tuple of numbers from natural to a given number.
+;; $x is the upperbound
+;; $acc is the lowerbound wrapped with an atom.
+;;    Example: (gen 5 (0)) => (5 4 3 2 1 0)
+(= (gen $x $acc)
+   (if (== (car-atom $acc) $x)
+       $acc
+       (let $lastInserted (car-atom $acc) (gen $x (cons-atom (+ 1 $lastInserted) $acc)))))
+
+;; A function to return head and tail of an atom in a tuple.
+(= (decons $atom)
+   (if (not (or (isSymbol $atom) (isUnit $atom)))
+       ((car-atom $atom) (cdr-atom $atom))
+       (Error Unit Or Symbol cannot be deconstructed)))
+
+;; Function to create a tuple of tuples given two equal length list of atoms.
+(= (zip $a $b)
+   (if (or (isSingleAtom $a) (isSingleAtom $b))
+       (((car-atom $a) (car-atom $b)))
+       (let*
+          (
+            (($x $xs) (decons $a))
+            (($y $ys) (decons $b))
+            ($rest (zip $xs $ys))
+          )
+          (cons-atom ($x $y) $rest)))
+)
