@@ -14,8 +14,6 @@
 ;; <bop>   -> AND | OR
 ;; <uop>   -> NOT
 
-;; TODO: Algorithm to calculate non terminal references.
-;; TODO: Algorithm to calculate the maximum number of expansions per non terminal.
 ;; TODO: Algorithm to map the grammar to generated probabilistic selection dictionary.
 ;; TODO: Implement mutation and corssover operators.
 
@@ -43,7 +41,6 @@
 !(bind! &lastIndex (new-state 0))
 
 !(add-atom &grammar (start expr 0))
-;; INFO: Uncomment to have recursive grammar.
 !(add-atom &grammar (expr (bop expr expr) 0))
 !(add-atom &grammar (expr (uop expr) 1))
 !(add-atom &grammar (expr term 2))
@@ -120,7 +117,7 @@
 ;;             Expr_lvl_0 -> Expr_lvl_1 Op Expr_lvl_1 | term
 ;;             Expr_lvl_1 -> term Op term | term
 ;;             Op         -> + | *
-;; FIX: Make sure index's order is sequential.
+;; FIX: Remove index from original grammar.
 (= (expandGrammar $maxDepth $grammarSpace)
    (let $nts (unique (match $grammarSpace ($lhs $rhs $i) $lhs))
              (expandRecursiveNT $nts $maxDepth $grammarSpace)))
@@ -597,9 +594,58 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                                                                                              ;;
-;;                                                      Test cases                                                              ;;
-;;                                                                                                                              ;;
+;;;;                                                                                                                          ;;;;
+;;;;                                                      Generation                                                          ;;;;
+;;;;                                                                                                                          ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+;; Return count of possible derivation options for a given non terminal.
+(= (calculateCN $nt $grammarSpace)
+   (sum (collapse (match $grammarSpace ($nt $rhs $i) 1))))
+
+;; Index production rules of a non terminal properly.
+(= (indexRules $nt $grammarSpace)
+   (let*
+      (
+        ($cN (calculateCN $nt $grammarSpace))
+        ($oldRules (collapse (match $grammarSpace ($nt $rhs $i) ($nt $rhs $i))))
+        ($rhss (collapse (match $grammarSpace ($nt $rhs $i) $rhs)))
+        ($indices (gen (- $cN 1) (0)))
+        ($indexedRules (zip $rhss $indices))
+        ($_ (collapse
+                (let $ndOldRules (superpose $oldRules)
+                     (remove-atom $grammarSpace $ndOldRules))))
+        ($_' (collapse
+                (let*
+                    (
+                      ($ndRhs (superpose $indexedRules))
+                      ($ndNewRules (cons-atom $nt $ndRhs))
+                    )
+                    (add-atom $grammarSpace $ndNewRules))))
+      )
+      ()))
+
+;; Generate a random genotype given the required informtion.
+(= (genCodon $n $ub)
+   (if (== $n 1)
+       (((py-atom random.randint) 0 $ub))
+       (let*
+            (
+               ($firstRandom ((py-atom random.randint) 0 $ub))
+               ($nextRandoms (genCodon (- $n 1) $ub)))
+            (cons-atom $firstRandom $nextRandoms))))
+
+;; Generate a random mask given a size.
+(= (genMask $n) (genCodon $n 1))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;                                                                                                                          ;;;;
+;;;;                                                      Test cases                                                          ;;;;
+;;;;                                                                                                                          ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 !(bind! &tempGrammar (new-space))
