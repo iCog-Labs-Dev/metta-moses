@@ -618,7 +618,7 @@
         ($_ (collapse
                 (let $ndOldRules (superpose $oldRules)
                      (remove-atom $grammarSpace $ndOldRules))))
-        ($_' (collapse
+        ($_ (collapse
                 (let*
                     (
                       ($ndRhs (superpose $indexedRules))
@@ -640,6 +640,94 @@
 
 ;; Generate a random mask given a size.
 (= (genMask $n) (genCodon $n 1))
+
+;; Recombine two parents to produce new offsprings by using a binary masks
+(= (recombine $p1 $p2 $mask ($acc1 $acc2))
+    (if (== $mask ())
+        ($acc1 $acc2)
+        (let* (
+            ($bit (car-atom $mask))
+            ($gene1 (car-atom $p1))
+            ($gene2 (car-atom $p2))
+            ($maskTail (cdr-atom $mask))
+            ($restP1 (cdr-atom $p1))
+            ($restP2 (cdr-atom $p2))
+        )
+        (if (== $bit 0)
+            (let* (
+                ($offspring1 (concatTuple $acc1 ($gene1)))
+                ($offspring2 (concatTuple $acc2 ($gene2)))
+            )
+                (recombine $restP1 $restP2 $maskTail ($offspring1 $offspring2))
+            )
+            (let* (
+                ($offspring1 (concatTuple $acc1 ($gene2)))
+                ($offspring2 (concatTuple $acc2 ($gene1)))
+            )
+                (recombine $restP1 $restP2 $maskTail ($offspring1 $offspring2))
+            )
+            ))))
+
+;; Mutation agent
+;;    Parameteres:-
+;;                   1. $genotype -- tupel of tuples each containing geneotype information of each non-terminal
+;;                   2. $grammarSpace -- metta space where grammar expansion information has been added
+
+;; Explanation:-     the mutation operation is implemented as follows
+;;                   A non-terminal is picked randomly from the ntSet. The non-terminal thus picked must have at least 2 expansion options
+;;                   The genotype of that non-terminal is selected using index information
+;;                   A gene is selected from the genotype randomly using the length of the the genotype
+;;                   The value of the gene is replaced by new gene choosen from the range [0, cN) of that particular non-terminal
+;;                   The mutateGene agent makes sure the replacement is a new value 
+! (bind! rnd (py-atom numpy.random))
+
+(= (mutate $genotype $grammarSpace)
+    (let* (
+            ($tuple (findNt $grammarSpace))
+            ($index (selectByIndex $tuple 0))
+            ($geneList (selectByIndex $genotype $index))
+            ($geneLen (len $geneList)) ;
+            ($geneIndex ((py-dot rnd randint) $geneLen))
+            ($cN (selectByIndex $tuple 1))
+            ($newGeneList (mutateGene $geneList $geneIndex $cN))
+        )
+        (replaceByIndex $genotype $index $newGeneList ())))
+
+;;       The function findNt gets the ntset and passes the len and grammar space parameters to √nt which picks 
+;;       a random NT and checks its expansion options, if == 1, picks another until it gets one with cN >= 2
+;;       Returns the index and cN of the said NT
+
+(= (findNt $grammarSpace)
+    (let* 
+        (
+            ($ntSet (getNTs $grammarSpace))
+            ($len (len $ntSet))
+        )
+            (√nt $len $ntSet $grammarSpace)))
+
+;; √nt makes sure the picked NT has expansion option ≥ 2
+(= (√nt $len $ntSet $grammarSpace)
+    (let* (
+            ($index ((py-dot rnd randint) $len))
+            ($nt (selectByIndex $ntSet $index))
+            ($cN (calculateCN $nt $grammarSpace))
+            ;; (() (println! ($nt $cN)))
+        )
+        (if (== $cN 1)
+            (√nt $len $ntSet $grammarSpace)
+            ($index $cN)
+        )))
+
+;; Makes sure replacement happens with a different number chosen from [0, $cN)
+(= (mutateGene $genes $index $cN)
+    (let* (
+        ($old (selectByIndex $genes $index))
+        ($new ((py-dot rnd randint) $cN))
+        )
+        (if (== $new $old)
+            (mutateGene $genes $index $cN)
+            (replaceByIndex $genes $index $new ())
+        )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -938,3 +1026,17 @@
 !(assertEqual (upperBounds &ntReference &countReference term) (term 3))
 
 !(clearSpace (superpose (&ntReference &countReference)))
+
+;; Test recombine
+
+! (assertEqual 
+    (recombine ((0) (0 1) (0 1 0 1) (0 2 1)) ((1) (1 0) (0 0 0 1) (2 3 1)) (0 0 1 1)  (() ()))
+        (((0) (0 1) (0 0 0 1) (2 3 1)) ((1) (1 0) (0 1 0 1) (0 2 1))))
+
+! (assertEqual 
+    (recombine ((0) (0 1) (0 1 0 1) (0 2 1)) ((1) (1 0) (0 0 0 1) (2 3 1)) (0 1 0 1)  (() ()))
+        (((0) (1 0) (0 1 0 1) (2 3 1)) ((1) (0 1) (0 0 0 1) (0 2 1))))
+
+;; Test mutate
+
+;; ??

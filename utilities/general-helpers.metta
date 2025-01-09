@@ -207,3 +207,50 @@
           )
           (cons-atom ($x $y) $rest)))
 )
+
+
+(= (len $expr)
+    (if (== $expr ())
+        0
+        (+ 1 (len (cdr-atom $expr)))
+    )
+)
+
+;; Select atom by index
+
+(= (selectByIndex $expr $index)
+    (if (== $expr ())
+        $expr
+        (if (== $index 0)
+            (car-atom $expr)
+            (selectByIndex (cdr-atom $expr) (- $index 1))
+        )))
+
+;; Replace an atom by using index value
+(= (replaceByIndex $expr $index $val $acc)
+    (if (== $expr ())
+        $acc
+        (let* (
+            ($first (car-atom $expr))
+            ($tail (cdr-atom $expr))
+            )
+            (if (== $tail ())
+                (if (== $index 0)
+                    (collapse (union (superpose $acc) $val))
+                    (concatTuple $acc $expr) ; Unaltered expression
+                )
+                (if (== $index 0)
+                    (let $carry (collapse (union (superpose $acc) $val))
+                        (concatTuple  $carry $tail)
+                    )
+                    (let $carry (collapse (union (superpose $acc) $first))
+                        (replaceByIndex $tail (- $index 1) $val $carry)
+                    ))))))
+            
+(= (getNTs $grammarSpace)
+    (let $ntSet (collapse 
+                    (let $rule (get-atoms $grammarSpace)
+                        (car-atom $rule)
+                    )
+                )
+        (collapse (unique (superpose $ntSet)))))
