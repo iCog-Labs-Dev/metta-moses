@@ -1,6 +1,7 @@
 ! (register-module! ../../metta-moses)
 
 ! (import! &self metta-moses:utilities:general-helpers)
+! (import! &self metta-moses:utilities:expression-helpers)
 ! (import! &self metta-moses:reduct:boolean-reduct:one-constraint-complement-subtraction) ;; TODO: This import is temporary. Refactor code inside oncc and remove it.
 
 ;; Structured grammatical evolution (SGE)
@@ -1072,4 +1073,6 @@
 
 ;; Test mutate
 
-;; ??
+! (assertEqual 
+  (mutatedGeneCount ((0) (1 0) (1 1 0 0) (1 2 1) (1 0)) &grammar)
+    1)

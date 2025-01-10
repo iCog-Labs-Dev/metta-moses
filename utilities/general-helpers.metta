@@ -321,3 +321,46 @@
         (if (== (car-atom $a) NOT)
             True
             False )))
+
+;; compareElemets compares tuples element by element
+;; How it works
+;;              Employs noreduce-eq function from stdlib to compare elements
+;;              the grounded function == seem to have issues comparing 0 and 1 in a function call
+;;              Returns tuple of Bool values result of element by element comparison
+;; Examples:-   ! (compareElements (1 2 0 1) (1 2 1 0) ()) --> (True True False False)
+;;              ! (compareElements (1 1 1 0) (1 0 1 0) ()) --> (True False True True)
+
+(= (compareElements $first $second $result)
+    (if (== $first ())
+        $result
+        (let*
+            (
+                ($f (car-atom $first))
+                ($ft (cdr-atom $first))
+                ($s (car-atom $second))
+                ($st (cdr-atom $second))
+                ; (() (println! $carry))
+            )
+            (if (not (noreduce-eq $f $s))
+                (let $carry (++ $result False)
+                    (compareElements $ft $st $carry)
+                )
+                (let $carry (++ $result True)
+                    (compareElements $ft $st $carry)
+                )))))
+
+;; ++n counts occurence of $item in $expr 
+
+(= (++n $expr $item $count)
+    (if (== $expr ())
+        $count
+        (let* 
+            (
+                ($first (car-atom $expr))
+                ($tail (cdr-atom $expr))
+            )
+            
+            (if (== (quote $item) (quote $first))
+                (++n $tail $item (+ $count 1))
+                (++n $tail $item $count)
+            ))))

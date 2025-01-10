@@ -113,3 +113,38 @@
     )
   )
 )
+
+;; assertEqual for mutation operator
+;; ___f flattens a tuple of tuples keeping the order
+;; Examples
+;;          ! (___f ((0 1) (1 2 1 0))) --> (0 1 1 2 1 0)
+
+(= (___f $expr $acc)
+    (if (== $expr ())
+        $acc
+        (let* 
+            (
+                ($first (car-atom $expr))
+                ($tail (cdr-atom $expr))
+                ($carry (++ $acc $first))
+            )
+            (___f $tail $carry)
+            )))
+
+;; mutatedGeneCount counts the number of mutated genes
+
+(= (mutatedGeneCount $original $grammarSpace)
+    (let*
+        (
+            ($mutated (mutate $original $grammarSpace))
+            ; ($mutated ((0) (1 0 1) (1 2 3)))
+            ($o_ (___f $original ()))
+            ($m_ (___f $mutated ()))
+            ($bool (compareElements $o_ $m_ ()))
+            ; (() (println! $bool))
+            ; ($n (++n $bool False 0))
+        )
+        (++n $bool False 0)
+        ; (compareElements $o_ $m_ ())
+    )
+)
