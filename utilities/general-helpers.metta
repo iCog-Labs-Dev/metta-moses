@@ -208,6 +208,7 @@
           (cons-atom ($x $y) $rest)))
 )
 
+;; Finds length of a tuple
 
 (= (len $expr)
     (if (== $expr ())
@@ -216,17 +217,58 @@
     )
 )
 
-;; Select atom by index
+;; ++ apends $expr to $new recursively 
+;; How it works
+;;          1st checks if the parent expression is empty. If it is, just return ($new) if $new is literal $new and $new otherwise
+;;          2nd gets the head and tail
+;;          3rd see if the $tail == (). If so, append the first to $new taking into consideration the nature of $new
+;;          if tail is not empty call ++ function recursively appending last element to $new and working back to the first element 
+;; Example 
+;;         (++ (a b) c)
+;;         $first = a
+;;         call to (++ (b) c)
+;;         $first = b
+;;         $tail = () --> call the latest $first and append it to c => (b c) which will be $carry
+;;         it happens like this --> (cons a (cons-atom b (c)))
+;;         the above doesnt work as it is but since we are passing the result of each stage to a variable metta can deal with that
+;;         ! (++ (0 1 2) 3) --> (0 1 2 3)
+;;         ! (++ (0 1 2) ((0 1 3) (1 3))) --> (0 1 2 (0 1 3) (1 3))
 
-(= (selectByIndex $expr $index)
+(= (++ $expr $new)
     (if (== $expr ())
-        $expr
-        (if (== $index 0)
-            (car-atom $expr)
-            (selectByIndex (cdr-atom $expr) (- $index 1))
-        )))
+        (if (isLiteral $new) ($new) $new)
+        (let* 
+            (
+                ($first (car-atom $expr))
+                ($tail (cdr-atom $expr))
+                ; (() (println! $first))
+            )
+            (if (== $tail ())
+                (if (isLiteral $new)
+                    (cons-atom $first ($new))
+                    (cons-atom $first $new)
+                )
+                (let $carry (++ $tail $new)
+                    (cons-atom $first $carry)
+                )))))
 
-;; Replace an atom by using index value
+;; replaceByIndex replaces an atom at a specific index position with $val -- 0 (indexed counting is implied)
+;; How it works
+;;          parameters:- 1. $expr, parent expression 2. $index, the desired index position 3.$val, value to replace the old element 
+;;          as $index position 4. $acc, accumulator to construct the new expression - starts as empty expression()
+;;          1st checks if $expr == (). If so by this point all the elements including the new $val have been transferred to $acc, so
+;;          return the accumulator
+;;          THEN -- take the fist and rest of $expr
+;;          if $expr is a one element expression and the desired index is 0 append the new $val to $acc and return that
+;;          if $index not 0 just return the original expression
+;;          if $expression is a multi-element expression
+;;          check if index == 0, if so append the new $val to $acc and append the this to the rest of expression, $tail
+;;          if $index not 0, call the function with (- $index 1) and all the previous elements appended to $acc
+;; Example 
+;;         ! (replaceByIndex (0 1 2 3 4) 0 7 ()) -->             (7 1 2 3 4)
+;;         ! (replaceByIndex (0 1 2 3 4) 2 7 ()) -->             (0 1 7 3 4)
+;;         ! (replaceByIndex ((0) (0 1) (2 3 4)) 1 (2 1) ()) --> ((0) (2 1) (2 3 4))
+
 (= (replaceByIndex $expr $index $val $acc)
     (if (== $expr ())
         $acc
@@ -236,16 +278,34 @@
             )
             (if (== $tail ())
                 (if (== $index 0)
-                    (collapse (union (superpose $acc) $val))
-                    (concatTuple $acc $expr) ; Unaltered expression
+                    (++ $acc ($val))
+                    (++ $acc $expr) 
                 )
                 (if (== $index 0)
-                    (let $carry (collapse (union (superpose $acc) $val))
-                        (concatTuple  $carry $tail)
+                    (let $carry (++ $acc ($val))
+                        (++  $carry $tail)
                     )
-                    (let $carry (collapse (union (superpose $acc) $first))
+                    (let $carry (++ $acc ($first))
                         (replaceByIndex $tail (- $index 1) $val $carry)
                     ))))))
+
+;; Select atom by index
+;; description:-        0 indexed selection of atom in a tuple
+;;                      Returns -1 if index is out of range
+;;                      If $index 0 -- firs element is returned (car-atom $expr)
+;;                      Otherwise calls selectByIndex recusively with the rest of $expr, (cdr-atom $expr) and (- $index 1)
+;; Example
+;;                      ! (selectByIndex (0 1 2 3 4) 5) --> -1 , index out of range
+;;                      ! (selectByIndex (0 1 2 3 4) 0) --> 0
+;;                      ! (selectByIndex ((0 1) (2 3 4) (1 0 1)) 1) --> (2 3 4)
+
+(= (selectByIndex $expr $index)
+    (if (== $expr ())
+        -1
+        (if (== $index 0)
+            (car-atom $expr)
+            (selectByIndex (cdr-atom $expr) (- $index 1))
+        )))
             
 (= (getNTs $grammarSpace)
     (let $ntSet (collapse 
@@ -254,3 +314,10 @@
                     )
                 )
         (collapse (unique (superpose $ntSet)))))
+
+(= (isLiteral $a)
+    (if (or (== (get-metatype $a) Grounded) (== (get-metatype $a) Symbol))
+        True
+        (if (== (car-atom $a) NOT)
+            True
+            False )))
