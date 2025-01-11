@@ -750,8 +750,8 @@
 ;;                       2. $index, position of change
 ;;                       3. $cN, number of expansion options for a particular non-terminal from which a random value is picked to replace value at $index
 ;; Note:-       calls itself recursively till it finds a value within [0, cN) that is different from the old value at $index
-;; This last point is subject to furthure review and modification based on findings about how redundant mutation should in SGE should be handled
-;; This implementation makes sure the new genotype is different from the parent genotype at all times
+;;              This last point is subject to furthure review and modification based on findings about how redundant mutation in SGE should be handled
+;;              This implementation makes sure the new genotype is different from the parent genotype at all times
 
 (= (mutateGene $genes $index $cN)
     (let* (
