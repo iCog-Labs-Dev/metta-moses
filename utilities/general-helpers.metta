@@ -255,39 +255,36 @@
 ;; replaceByIndex replaces an atom at a specific index position with $val -- 0 (indexed counting is implied)
 ;; How it works
 ;;          parameters:- 1. $expr, parent expression 2. $index, the desired index position 3.$val, value to replace the old element 
-;;          as $index position 4. $acc, accumulator to construct the new expression - starts as empty expression()
-;;          1st checks if $expr == (). If so by this point all the elements including the new $val have been transferred to $acc, so
-;;          return the accumulator
+;;          as $index position
+;;          1st checks if $expr == (). If so, return the empty expression
 ;;          THEN -- take the fist and rest of $expr
-;;          if $expr is a one element expression and the desired index is 0 append the new $val to $acc and return that
+;;          if $expr is a one element expression and the desired index is 0 return ($new)
 ;;          if $index not 0 just return the original expression
 ;;          if $expression is a multi-element expression
 ;;          check if index == 0, if so append the new $val to $acc and append the this to the rest of expression, $tail
 ;;          if $index not 0, call the function with (- $index 1) and all the previous elements appended to $acc
-;; Example 
-;;         ! (replaceByIndex (0 1 2 3 4) 0 7 ()) -->             (7 1 2 3 4)
-;;         ! (replaceByIndex (0 1 2 3 4) 2 7 ()) -->             (0 1 7 3 4)
-;;         ! (replaceByIndex ((0) (0 1) (2 3 4)) 1 (2 1) ()) --> ((0) (2 1) (2 3 4))
+;; Examples 
+;;         ! (replaceByIndex (0 1 2 3 4) 0 7) -->             (7 1 2 3 4)
+;;         ! (replaceByIndex (0 1 2 3 4) 2 7) -->             (0 1 7 3 4)
+;;         ! (replaceByIndex ((0) (0 1) (2 3 4)) 1 (2 1)) --> ((0) (2 1) (2 3 4))
 
-(= (replaceByIndex $expr $index $val $acc)
+(: replaceByIndex (-> Expression Number $t Expression))
+(= (replaceByIndex $expr $index $new)
     (if (== $expr ())
-        $acc
-        (let* (
-            ($first (car-atom $expr))
-            ($tail (cdr-atom $expr))
+        $expr
+        (let*
+            (
+                ($first (car-atom $expr))
+                ($tail (cdr-atom $expr))
             )
-            (if (== $tail ())
-                (if (== $index 0)
-                    (++ $acc ($val))
-                    (++ $acc $expr) 
+            (if (== $index 0)
+                (if (== $tail ())
+                    ($new)
+                    (cons-atom $new $tail)
                 )
-                (if (== $index 0)
-                    (let $carry (++ $acc ($val))
-                        (++  $carry $tail)
-                    )
-                    (let $carry (++ $acc ($first))
-                        (replaceByIndex $tail (- $index 1) $val $carry)
-                    ))))))
+                (let $c (replaceByIndex $tail (- $index 1) $new)
+                    (cons-atom $first $c)
+                )))))
 
 ;; Select atom by index
 ;; description:-        0 indexed selection of atom in a tuple
@@ -330,37 +327,33 @@
 ;; Examples:-   ! (compareElements (1 2 0 1) (1 2 1 0) ()) --> (True True False False)
 ;;              ! (compareElements (1 1 1 0) (1 0 1 0) ()) --> (True False True True)
 
-(= (compareElements $first $second $result)
-    (if (== $first ())
-        $result
+(= (compareElements $first $second)
+    (if (or (== $first ()) (== $second ()))
+        ()
         (let*
             (
                 ($f (car-atom $first))
                 ($ft (cdr-atom $first))
                 ($s (car-atom $second))
                 ($st (cdr-atom $second))
-                ; (() (println! $carry))
+                ($r  (== $f $s))
+                ($c (compareElements $ft $st))
             )
-            (if (not (noreduce-eq $f $s))
-                (let $carry (++ $result False)
-                    (compareElements $ft $st $carry)
-                )
-                (let $carry (++ $result True)
-                    (compareElements $ft $st $carry)
-                )))))
+                    (cons-atom $r $c)
+                )))
 
 ;; ++n counts occurence of $item in $expr 
+;; (quote $__) is required to compare the atoms that it receieves without reducing them
 
-(= (++n $expr $item $count)
+(= (++n $expr $item)
     (if (== $expr ())
-        $count
-        (let* 
+        0
+        (let*
             (
                 ($first (car-atom $expr))
                 ($tail (cdr-atom $expr))
             )
-            
             (if (== (quote $item) (quote $first))
-                (++n $tail $item (+ $count 1))
-                (++n $tail $item $count)
+                (+ 1 (++n $tail $item))
+                (++n $tail $item)
             ))))
