@@ -1024,7 +1024,7 @@
 
 ;; Test mutate
 
-;; checkMutation 
+;; confirmMutation 
 ;;        return true only if the number of changed genes is either 0 or 1
 ;;        Flattens the two gene lists, original and mutated, so that changes can be compared element by element
 
