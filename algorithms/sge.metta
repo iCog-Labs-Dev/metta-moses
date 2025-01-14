@@ -1,6 +1,7 @@
 ! (register-module! ../../metta-moses)
 
 ! (import! &self metta-moses:utilities:general-helpers)
+! (import! &self metta-moses:utilities:expression-helpers)
 ! (import! &self metta-moses:reduct:boolean-reduct:one-constraint-complement-subtraction) ;; TODO: This import is temporary. Refactor code inside oncc and remove it.
 
 ;; Structured grammatical evolution (SGE)
@@ -615,7 +616,7 @@
         ($_ (collapse
                 (let $ndOldRules (superpose $oldRules)
                      (remove-atom $grammarSpace $ndOldRules))))
-        ($_' (collapse
+        ($_ (collapse
                 (let*
                     (
                       ($ndRhs (superpose $indexedRules))
@@ -1045,3 +1046,39 @@
 !(assertEqual (upperBounds &ntReference &countReference term) (term 3))
 
 !(clearSpace (superpose (&ntReference &countReference)))
+
+;; Test recombine
+
+! (assertEqual 
+    (recombine ((0) (0 1) (0 1 0 1) (0 2 1)) ((1) (1 0) (0 0 0 1) (2 3 1)) (0 0 1 1))
+        (((0) (0 1) (0 0 0 1) (2 3 1)) ((1) (1 0) (0 1 0 1) (0 2 1))))
+
+! (assertEqual 
+    (recombine ((0) (0 1) (0 1 0 1) (0 2 1)) ((1) (1 0) (0 0 0 1) (2 3 1)) (0 1 0 1))
+        (((0) (1 0) (0 1 0 1) (2 3 1)) ((1) (0 1) (0 0 0 1) (0 2 1))))
+
+;; Test mutate
+
+;; confirmMutation 
+;;        return true only if the number of changed genes is either 0 or 1
+;;        Flattens the two gene lists, original and mutated, so that changes can be compared element by element
+
+(: confirmMutation (-> Expression Expression Bool))
+(= (confirmMutation $original $mutated)
+    (let*
+        (
+            ($o_ (foldr ++ () $original))
+            ($m_ (foldr ++ () $mutated))
+            ($bool (compareElements $o_ $m_))
+            ($n (count False $bool))
+        )
+        (or (== $n 1) (== $n 0))
+    )
+)
+
+! (assertEqual 
+  (confirmMutation ((0) (1 0 1) (1 1) (0) (1 0)) (mutate ((0) (1 0 1) (1 1) (0) (1 0)) &grammar))
+    True)
+! (assertEqual 
+  (confirmMutation ((0) (1 1 1) (1 0) (0) (1 0)) (mutate ((0) (1 1 1) (1 0) (0) (1 0)) &grammar))
+    True)
