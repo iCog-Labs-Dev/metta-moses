@@ -9,7 +9,16 @@
 
 ;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
 ;(: cocatTuple (-> Expression Expression Expression))
- (= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y)))) 
+ (= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y))))
+
+(: ++ (-> Expression Expression Expression))
+(= (++ $x $y)
+   (case ((isSymbol $x) (isSymbol $y))
+      (
+        ((True True)  ($x $y))
+        ((True False) (cons-atom $x $y))
+        ((False True) (appendAtom $y $x))
+        ((False False)  (foldr cons-atom $y $x)))))
 
 ; a helper function to the isConsistentExp function.
 ; a function which simplifies nested logical negations by reducing them to their simplest form. 
@@ -25,7 +34,7 @@
     False
 )
 )
-) 
+)
 
 ; a helper function to the isConsistentExp function.
 ; a function which checks if an element is member of a tuple.
@@ -171,6 +180,10 @@
 ;; Function to replace a given atom from a space.
 (: update-atom (-> Grounded Atom Atom (->)))
 (= (update-atom $space $oatom $natom) (let $_ (remove-atom $space $oatom) (add-atom $space $natom)))
+
+;; Function to replace a given atom from a space.
+(: appendAtom (-> Atom Atom Atom))
+(= (appendAtom $a $atom) (foldr cons-atom ($a) $atom))
 
 ;; Return the maximum of two numbers.
 (= (max $x $y) (if (< $x $y) $y $x))
