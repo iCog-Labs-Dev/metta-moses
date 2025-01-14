@@ -14,9 +14,6 @@
 ;; <bop>   -> AND | OR
 ;; <uop>   -> NOT
 
-;; TODO: Algorithm to map the grammar to generated probabilistic selection dictionary.
-;; TODO: Implement mutation and corssover operators.
-
 ;; TODO: Implement a function to call all of the above functions together.
 ;;       Steps To follow:
 ;;              - Expand grammar based on depth.
@@ -63,7 +60,7 @@
 ;; !(add-atom &grammar (op mult 2))
 ;; !(add-atom &grammar (op div 3))
 
-
+(= (getNts $grammarSpace) (unique (match $grammarSpace ($lhs $rhs $i) $lhs)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -640,6 +637,116 @@
 
 ;; Generate a random mask given a size.
 (= (genMask $n) (genCodon $n 1))
+
+!(bind! &expandedGrammar (new-space))
+
+!(add-atom &expandedGrammar (start expr 0))
+!(add-atom &expandedGrammar (expr (bop expr_0 expr_0) 0))
+!(add-atom &expandedGrammar (expr (uop expr_0) 1))
+!(add-atom &expandedGrammar (expr term 2))
+!(add-atom &expandedGrammar (expr_0 term 0))
+!(add-atom &expandedGrammar (bop AND 0))
+!(add-atom &expandedGrammar (bop OR 1))
+!(add-atom &expandedGrammar (uop NOT 0))
+!(add-atom &expandedGrammar (term X 0))
+!(add-atom &expandedGrammar (term Y 1))
+
+!(until isUnit ((curry applyCalcMaxNtReference) (&expandedGrammar &ntReference &ntCount &countReference)) (collapse (unique (match &expandedGrammar ($nt $rhs $i) $nt))))
+
+!(bind! &resultSpace (new-space))
+
+;; Generate genotypes.
+(= (genGenotype $grammarSpace $referenceSpace $refCountSpace $resultMap)
+   (let*
+        (
+          ($nts (collapse (getNts $grammarSpace)))
+          ($codons
+              (collapse
+                  (let*
+                      (
+                        (($nt $up) (upperBounds $referenceSpace $refCountSpace (superpose $nts)))
+                        (($nt $codon) ($nt (genCodon $up (- (calculateCN $nt $grammarSpace) 1))))
+                        (() (add-atom $resultMap ($nt $codon)))
+                      )
+                      $codon)))
+        )
+        ()))
+
+(= (getOrderedLhs $grammarSpace $nt $len)
+   (if (== $len 0)
+       ()
+       (let*
+          (
+            ($nextLen (- $len 1))
+            ($h (match $grammarSpace ($nt $rhs $nextLen) $rhs))
+            ($t (getOrderedLhs $grammarSpace $nt $nextLen))
+          )
+          (appendAtom $h $t))))
+
+;; Steps:
+;;    1. Start traversing the grammar from the start symbol.
+;;    2. Get ordered LHS of the non termianl.
+;;    3. Flatten the LHS to be in a single tuple.
+;;    4. Append the flattened LHSs to the previous list of LHSs.
+;;    5. decons the LHSs to get the head and the rest of the LHSs.
+;;    6. If:  the head is member of the visited list of NTs, do nothing.
+;;       Else: get codon of the NT and store it in the end of the accumulator.
+;;             add the NT to the visited list.
+;;             get the LHSs of the head.
+;;    7. If: the tail is empty, return the acc.
+;;       Else: Continue recursing.
+(= (getOrderedGenoType $grammarSpace $resultSpace $nt $visited $lhss $acc)
+   (case ((isMember $nt $visited) (isUnit $lhss) (isMember $nt (collapse (getNts $grammarSpace))))
+      (
+        ((True True $_) $acc)
+        ((True False $_) (getOrderedGenoType $grammarSpace $resultSpace (car-atom $lhss) $visited (cdr-atom $lhss) $acc))
+        (($_ $__ False) (getOrderedGenoType $grammarSpace $resultSpace (car-atom $lhss) $visited (cdr-atom $lhss) $acc))
+        (($_ $__ True)
+            (let*
+              (
+                ($codon (match $resultSpace ($nt $codon) $codon))
+                ($visited' (appendAtom $nt $visited))
+                ($acc' (appendAtom $codon $acc))
+
+                (() (println! (NT: $nt)))
+                (() (println! (Codon: $codon)))
+
+
+                ($len (sum (collapse (match $grammarSpace ($nt $rhs $i) 1))))
+                ($oLhs (getOrderedLhs $grammarSpace $nt $len))
+                ($flatLhs (foldr ++ () $oLhs))
+                ($lhss' (++ $lhss $flatLhs))
+
+                (($h $t) (decons $lhss'))
+
+                ;; (() (println! (Updated Lhs: $lhss')))
+                ;; (() (println! (OldLhs: $oLhs)))
+              )
+              (if (=== $visited' (collapse (getNts $grammarSpace)))
+                  $acc'
+                  (getOrderedGenoType $grammarSpace $resultSpace $h $visited' $t $acc')))))))
+
+;; Generate phenotypes.
+(= (genPhenotype $resultMap $grammarSpace $acc $expr)
+   (if (isUnit $expr)
+       $acc
+       (let*
+          (
+            (($currentNt $nextExpr) (decons $expr))
+            ($is (match $resultMap ($currentNt $i) $i))
+            (($x $xs) (decons $is))
+            ($nextProd (match $grammarSpace ($currentNt $rhs $x) $rhs))
+            ($nextNt (if (isSymbol $nextProd) $nextProd (car-atom $nextProd)))
+            (() (update-atom $resultMap ($currentNt $is) ($currentNt $xs)))
+          )
+          (if (isMember $nextNt (collapse (getNts $grammarSpace)))
+              (genPhenotype $resultMap $grammarSpace $acc (++ $nextProd $nextExpr))
+              (genPhenotype $resultMap $grammarSpace (appendAtom $nextProd $acc) $nextExpr)))))
+
+;; !(genGenotype &expandedGrammar &ntReference &countReference &resultSpace)
+;; !(get-atoms &resultSpace)
+;; !(getOrderedGenoType &expandedGrammar &resultSpace start () () ())
+;; !(genPhenotype &resultSpace &expandedGrammar () (start))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
