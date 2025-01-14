@@ -662,14 +662,10 @@
         ($parent1 $parent2)
         (let*
             (
-                ($gene1 (car-atom $parent1))
-                ; (() (println! $gene1))
-                ($gene2 (car-atom $parent2))
-                ($bit (car-atom $mask))
-                ($maskTail (cdr-atom $mask))
-                ($restOfP1 (cdr-atom $parent1))
-                ($restOfP2 (cdr-atom $parent2))
-                (($c $d) (recombine $restOfP1 $restOfP2 $maskTail))
+               (($gene1 $restOfP1) (decons $parent1))
+               (($gene2 $restOfP2) (decons $parent2))
+               (($bit $maskTail) (decons $mask))
+               (($c $d) (recombine $restOfP1 $restOfP2 $maskTail))
             )
             (if (== $bit 0)
                 ((cons-atom $gene1 $c) (cons-atom $gene2 $d))
@@ -678,77 +674,45 @@
 
 ;; Mutation agent
 ;;    Parameteres:-
-;;                   1. $genotype -- tupel of tuples each nested tuple containing geneotype information of each non-terminal
+;;                   1. $genotype -- tuple of tuples each nested tuple containing geneotype information of each non-terminal
 ;;                   2. $grammarSpace -- metta space where grammar expansion information has been added
 
 ;; Explanation:-     the mutation operation is implemented as follows
-;;                   A non-terminal is picked randomly from the ntSet. The non-terminal thus picked must have at least 2 expansion options
-;;                   The genotype of that non-terminal is selected using index information
-;;                   A gene is selected from the genotype randomly using the length of the the genotype
+;;                   A non-terminal is picked randomly from the ntSet. 
+;;                   The index used to pick the gene sequence of the non-terminal in genotype tuple
+;;                   A gene is selected from this particular gene sequence randomly for mutation 
 ;;                   The value of the gene is replaced by new gene choosen from the range [0, cN) of that particular non-terminal
-;;                   The mutateGene agent makes sure the replacement is a new value 
+;;                   cN represents the number of expansion options of the particular non-terminal
+;;                   This implementation doesnt guarantee generation of new genotype material, the mutation rely on pure chance
+;;                   and there are two ways in which we could end up with the same genotype material as the one we started with.
+;;                   1. If the picked non-terminal's number of expansion options is exaclty one(1), the gene value is 0 and there 
+;;                   is no room for generation of new gene material
+;;                   2. In the case where the choosen non-terminal has more than one expansion options(cN ≥ 2), the random operator may
+;;                   end up picking the same gene in that range as the old one.
 ;; Examples
-;;                  ! (mutate ((0) (0 1) (1 0 0 1) (2 3 1) (1 1 0 0)) &grammar)
-;;                  -- run 1 -- ((0) (0 1) (1 0 0 1) (2 3 1) (1 1 1 0))
-;;                  -- run 2 -- ((0) (0 1) (1 1 0 1) (2 3 1) (1 1 0 0))
-;;                  -- run 3 -- ((0) (0 0) (1 0 0 1) (2 3 1) (1 1 0 0))
-;;                  -- run 4 -- ((0) (0 1) (1 1 0 1) (2 3 1) (1 1 0 0))
+;;                  ! (mutate ((0) (1 0 2) (1 1) (0) (0 1)) &grammar)
+;;                  -- run 1 -- ((0) (2 0 2) (1 1) (0) (0 1))
+;;                  -- run 2 -- ((0) (1 0 2) (1 1) (0) (0 1))
+;;                  -- run 3 -- ((0) (1 0 2) (1 0) (0) (0 1))
+;;                  -- run 4 -- ((0) (1 0 2) (1 1) (0) (0 1))
+;;                  -- run 5 -- ((0) (1 0 2) (0 1) (0) (0 1))
 
 ! (bind! rnd (py-atom numpy.random))
 
 (= (mutate $genotype $grammarSpace)
     (let* (
-            (($index $cN) (findNt $grammarSpace))
-            ($geneList (selectByIndex $genotype $index))
-            ($geneLen (len $geneList)) ;
-            ($geneIndex ((py-dot rnd randint) $geneLen))
-            ($newGeneList (mutateGene $geneList $geneIndex $cN))
-        )
-        (replaceByIndex $genotype $index $newGeneList)))
-
-;; findNt uses helper function, √nt, to retrieve index and number of expasnsion options of a non-terminal whose gene sequence is to be mutated
-;;       Parametere:-     $grammarSpace, contains atoms describing expansion options for each non-terminal in the grammar
-;;       a random NT and checks its expansion options, if == 1, picks another until it gets one with cN >= 2
-;;       Returns the index and cN of the said NT as a tuple
-
-(= (findNt $grammarSpace)
-    (let* 
-        (
             ($ntSet (getNTs $grammarSpace))
             ($len (len $ntSet))
-        )
-            (√nt $len $ntSet $grammarSpace)))
-
-;; √nt makes sure the picked NT has expansion option ≥ 2
-(= (√nt $len $ntSet $grammarSpace)
-    (let* (
             ($index ((py-dot rnd randint) $len))
             ($nt (selectByIndex $ntSet $index))
             ($cN (calculateCN $nt $grammarSpace))
-            ;; (() (println! ($nt $cN)))
+            ($geneList (selectByIndex $genotype $index))
+            ($geneLen (len $geneList)) ;
+            ($geneIndex ((py-dot rnd randint) $geneLen))
+            ($newGeneValue ((py-dot rnd randint) $cN))
+            ($mutatedGeneList (replaceByIndex $geneList $geneIndex $newGeneValue))
         )
-        (if (== $cN 1)
-            (√nt $len $ntSet $grammarSpace)
-            ($index $cN)
-        )))
-
-;; mutateGene mutates the gene sequence by replacing gene value at $index by new value taken randomly from [0, $cN)
-;;          Parameters:- 1. $genes, tuple of gene sequence to be mutated
-;;                       2. $index, position of change
-;;                       3. $cN, number of expansion options for a particular non-terminal from which a random value is picked to replace value at $index
-;; Note:-       calls itself recursively till it finds a value within [0, cN) that is different from the old value at $index
-;;              This last point is subject to furthure review and modification based on findings about how redundant mutation in SGE should be handled
-;;              This implementation makes sure the new genotype is different from the parent genotype at all times
-
-(= (mutateGene $genes $index $cN)
-    (let* (
-        ($old (selectByIndex $genes $index))
-        ($new ((py-dot rnd randint) $cN))
-        )
-        (if (== $new $old)
-            (mutateGene $genes $index $cN)
-            (replaceByIndex $genes $index $new)
-        )))
+        (replaceByIndex $genotype $index $mutatedGeneList)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1061,5 +1025,5 @@
 ;; Test mutate
 
 ! (assertEqual 
-  (mutatedGeneCount ((0) (1 0) (1 1 0 0) (1 2 1) (1 0)) &grammar)
-    1)
+  (mutatedGeneCount ((0) (1 0 1) (1 1) (0) (1 0)) (mutate ((0) (1 0 1) (1 1) (0) (1 0)) &grammar))
+    True)
