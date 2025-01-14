@@ -317,3 +317,6 @@
             )
                     (cons-atom $r $c)
                 )))
+;; Function to empty a space with contents.
+(= (clearSpace $space)
+   (collapse (let $content (get-atoms $space) (remove-atom $space $content))))

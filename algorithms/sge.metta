@@ -652,17 +652,19 @@
 !(add-atom &expandedGrammar (term X 0))
 !(add-atom &expandedGrammar (term Y 1))
 
-!(until isUnit ((curry applyCalcMaxNtReference) (&expandedGrammar &ntReference &ntCount &countReference)) (collapse (unique (match &expandedGrammar ($nt $rhs $i) $nt))))
+;; !(until isUnit ((curry applyCalcMaxNtReference) (&expandedGrammar &ntReference &ntCount &countReference)) (collapse (unique (match &expandedGrammar ($nt $rhs $i) $nt))))
 
 !(bind! &resultSpace (new-space))
 
 ;; Generate genotypes.
+;; FIX: This should take under consideration
+;;      that there is more than one population at a time.
 (= (genGenotype $grammarSpace $referenceSpace $refCountSpace $resultMap)
    (let*
         (
           ($nts (collapse (getNts $grammarSpace)))
           ($codons
-              (collapse
+              (collapse                                           
                   (let*
                       (
                         (($nt $up) (upperBounds $referenceSpace $refCountSpace (superpose $nts)))
@@ -749,6 +751,25 @@
 ;; !(getOrderedGenoType &expandedGrammar &resultSpace start () () ())
 ;; !(genPhenotype &resultSpace &expandedGrammar () (start))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;                                                                                                                          ;;;;
+;;;;                                                      Main loop                                                           ;;;;
+;;;;                                                                                                                          ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Evaluate populations.
+(= (evaluate $population $fitnessFunction)
+   (collapse
+     (let*
+        (
+          ($genotype (superpose $population))
+          ()
+        )
+        ())))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                                                                                                                          ;;;;
@@ -757,9 +778,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 !(bind! &tempGrammar (new-space))
-
-(= (clearSpace $space)
-   (collapse (let $content (get-atoms $space) (remove-atom $space $content))))
 
 (= (populateSpace $space)
    (let*
