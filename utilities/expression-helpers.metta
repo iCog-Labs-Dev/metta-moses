@@ -113,20 +113,3 @@
     )
   )
 )
-
-;; mutatedGeneCount counts the number of mutated genes and 
-;;        return true only if the number of changed genes is either 0 or 1
-;;        Flattens the two gene lists, original and mutated, so that changes can be compared element by element
-
-(: mutatedGeneCount (-> Expression Expression Bool))
-(= (mutatedGeneCount $original $mutated)
-    (let*
-        (
-            ($o_ (foldr ++ () $original))
-            ($m_ (foldr ++ () $mutated))
-            ($bool (compareElements $o_ $m_))
-            ($n (count False $bool))
-        )
-        (or (== $n 1) (== $n 0))
-    )
-)

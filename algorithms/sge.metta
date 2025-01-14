@@ -1024,6 +1024,26 @@
 
 ;; Test mutate
 
+;; checkMutation 
+;;        return true only if the number of changed genes is either 0 or 1
+;;        Flattens the two gene lists, original and mutated, so that changes can be compared element by element
+
+(: confirmMutation (-> Expression Expression Bool))
+(= (confirmMutation $original $mutated)
+    (let*
+        (
+            ($o_ (foldr ++ () $original))
+            ($m_ (foldr ++ () $mutated))
+            ($bool (compareElements $o_ $m_))
+            ($n (count False $bool))
+        )
+        (or (== $n 1) (== $n 0))
+    )
+)
+
 ! (assertEqual 
-  (mutatedGeneCount ((0) (1 0 1) (1 1) (0) (1 0)) (mutate ((0) (1 0 1) (1 1) (0) (1 0)) &grammar))
+  (confirmMutation ((0) (1 0 1) (1 1) (0) (1 0)) (mutate ((0) (1 0 1) (1 1) (0) (1 0)) &grammar))
+    True)
+! (assertEqual 
+  (confirmMutation ((0) (1 1 1) (1 0) (0) (1 0)) (mutate ((0) (1 1 1) (1 0) (0) (1 0)) &grammar))
     True)
