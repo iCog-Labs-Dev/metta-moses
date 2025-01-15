@@ -270,6 +270,7 @@
         (collapse (unique (superpose $ntSet)))))
 
 
+;; TODO: Use zipWith instead
 ;; compareElemets compares tuples element by element
 (= (compareElements $first $second)
     (if (or (== $first ()) (== $second ()))
@@ -291,26 +292,21 @@
    (collapse (let $content (get-atoms $space) (remove-atom $space $content))))
 
 ;; Function that merges two sorted lists while keeping them sorted.
-(= (merge $xs $ys)
+(= (merge $xs $ys) (merge $xs $ys <=))
+(= (merge $xs $ys $key)
     (case ($xs $ys)
-      (
-        ((() $ys) $ys)
-        (($xs ()) $xs)
-        (($xs $ys)
-          (let*
-              (
-                (($x $xss) (decons $xs))
-                (($y $yss) (decons $ys))
-              )
-              (if (<= $x $y)
-                  (let $t (merge $xss $ys) (cons-atom $x $t))
-                  (let $t (merge $xs $yss) (cons-atom $y $t))
-              )
-          )
-        )
-      )
-    )
-)
+          (
+            ((() $ys) $ys)
+            (($xs ()) $xs)
+            (($xs $ys)
+              (let*
+                  (
+                    (($x $xss) (decons $xs))
+                    (($y $yss) (decons $ys))
+                  )
+                  (if ($key $x $y)
+                      (let $t (merge $xss $ys $key) (cons-atom $x $t))
+                      (let $t (merge $xs $yss $key) (cons-atom $y $t))))))))
 
 (: splitAt (-> Number Expression (Atom Atom)))
 (= (splitAt $n $list)
@@ -331,14 +327,17 @@
    )
 )
 
-(= (sort $list $len)
+;; Merge sort function. Takes length to gain 
+;;  performance by avoiding recomputation of index.
+(= (sort $list $len) (sort $list $len <=))
+(= (sort $list $len $key)
    (if (or (isUnit $list) (isSingleAtom $list))
        $list
        (let* (
                 ($halfL ((py-atom math.floor) (/ $len 2)))
                 (($left $right) (splitAt $halfL $list))
              )
-             (merge (sort $left $halfL) (sort $right (- $len $halfL)))
+             (merge (sort $left $halfL $key) (sort $right (- $len $halfL) $key) $key)
        )
    )
 )
