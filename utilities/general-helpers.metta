@@ -232,31 +232,7 @@
     )
 )
 
-;; ++ apends $expr to $new recursively 
-;; How it works
-;;          1st checks if the parent expression is empty. If it is, just return ($new) if $new is literal $new and $new otherwise
-;;          2nd gets the head and tail
-;;          3rd see if the $tail == (). If so, append the first to $new taking into consideration the nature of $new
-;;          if tail is not empty call ++ function recursively appending last element to $new and working back to the first element 
-(= (++ $expr $new)
-    (if (== $expr ())
-        (if (isLiteral $new) ($new) $new)
-        (let* 
-            (
-                ($first (car-atom $expr))
-                ($tail (cdr-atom $expr))
-            )
-            (if (== $tail ())
-                (if (isLiteral $new)
-                    (cons-atom $first ($new))
-                    (cons-atom $first $new)
-                )
-                (let $carry (++ $tail $new)
-                    (cons-atom $first $carry)
-                )))))
-
 ;; replaceByIndex replaces an atom at a specific index position with $val -- 0 indexed counting is implied
-
 (: replaceByIndex (-> Expression Number $t Expression))
 (= (replaceByIndex $expr $index $new)
     (if (== $expr ())
@@ -276,7 +252,6 @@
                 )))))
 
 ;; Select atom by index and returns 
-
 (= (selectByIndex $expr $index)
     (if (== $expr ())
         (Error (Index out of range) ())
@@ -294,15 +269,8 @@
                 )
         (collapse (unique (superpose $ntSet)))))
 
-(= (isLiteral $a)
-    (if (or (== (get-metatype $a) Grounded) (== (get-metatype $a) Symbol))
-        True
-        (if (== (car-atom $a) NOT)
-            True
-            False )))
 
 ;; compareElemets compares tuples element by element
-
 (= (compareElements $first $second)
     (if (or (== $first ()) (== $second ()))
         ()
