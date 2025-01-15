@@ -497,7 +497,7 @@
 )
 
 
-;; Function that applies the current state to the countMaxReference 
+;; Function that applies the current state to the countMaxReference
 ;;    by calling it with the first element of the $rNts.
 ;; It is used to make the countMaxReference function compatible with until function.
 ;;
@@ -570,7 +570,7 @@
 
 
 ;; Sums up all the maximum references of a non-terminal from each production rule.
-;; The function maxRefPerProd can return a more than one value corresponding to each 
+;; The function maxRefPerProd can return more than one value corresponding to each
 ;;    production rule's maximum reference. There for this functions sums them up.
 ;;
 ;; The arguments are:
@@ -652,27 +652,23 @@
 !(add-atom &expandedGrammar (term X 0))
 !(add-atom &expandedGrammar (term Y 1))
 
-;; !(until isUnit ((curry applyCalcMaxNtReference) (&expandedGrammar &ntReference &ntCount &countReference)) (collapse (unique (match &expandedGrammar ($nt $rhs $i) $nt))))
+!(until isUnit ((curry applyCalcMaxNtReference) (&expandedGrammar &ntReference &ntCount &countReference)) (collapse (unique (match &expandedGrammar ($nt $rhs $i) $nt))))
 
 !(bind! &resultSpace (new-space))
 
 ;; Generate genotypes.
-;; FIX: This should take under consideration
-;;      that there is more than one population at a time.
-(= (genGenotype $grammarSpace $referenceSpace $refCountSpace $resultMap)
+(= (genGenotype $grammarSpace $referenceSpace $refCountSpace $resultMap ($g $p))
    (let*
         (
           ($nts (collapse (getNts $grammarSpace)))
-          ($codons
-              (collapse                                           
+          ($_
+              (collapse
                   (let*
                       (
                         (($nt $up) (upperBounds $referenceSpace $refCountSpace (superpose $nts)))
                         (($nt $codon) ($nt (genCodon $up (- (calculateCN $nt $grammarSpace) 1))))
-                        (() (add-atom $resultMap ($nt $codon)))
                       )
-                      $codon)))
-        )
+                      (add-atom $resultMap (($nt $g $p) $codon))))))
         ()))
 
 (= (getOrderedLhs $grammarSpace $nt $len)
@@ -698,21 +694,21 @@
 ;;             get the LHSs of the head.
 ;;    7. If: the tail is empty, return the acc.
 ;;       Else: Continue recursing.
-(= (getOrderedGenoType $grammarSpace $resultSpace $nt $visited $lhss $acc)
+(= (getOrderedGenoType $grammarSpace $resultSpace $nt $visited $lhss $acc ($g $p))
    (case ((isMember $nt $visited) (isUnit $lhss) (isMember $nt (collapse (getNts $grammarSpace))))
       (
         ((True True $_) $acc)
-        ((True False $_) (getOrderedGenoType $grammarSpace $resultSpace (car-atom $lhss) $visited (cdr-atom $lhss) $acc))
-        (($_ $__ False) (getOrderedGenoType $grammarSpace $resultSpace (car-atom $lhss) $visited (cdr-atom $lhss) $acc))
+        ((True False $_) (getOrderedGenoType $grammarSpace $resultSpace (car-atom $lhss) $visited (cdr-atom $lhss) $acc ($g $p)))
+        (($_ $__ False) (getOrderedGenoType $grammarSpace $resultSpace (car-atom $lhss) $visited (cdr-atom $lhss) $acc ($g $p)))
         (($_ $__ True)
             (let*
               (
-                ($codon (match $resultSpace ($nt $codon) $codon))
+                ($codon (match $resultSpace (($nt $g $p) $codon) $codon))
                 ($visited' (appendAtom $nt $visited))
                 ($acc' (appendAtom $codon $acc))
 
-                (() (println! (NT: $nt)))
-                (() (println! (Codon: $codon)))
+                ;; (() (println! (NT: $nt)))
+                ;; (() (println! (Codon: $codon)))
 
 
                 ($len (sum (collapse (match $grammarSpace ($nt $rhs $i) 1))))
@@ -727,29 +723,29 @@
               )
               (if (=== $visited' (collapse (getNts $grammarSpace)))
                   $acc'
-                  (getOrderedGenoType $grammarSpace $resultSpace $h $visited' $t $acc')))))))
+                  (getOrderedGenoType $grammarSpace $resultSpace $h $visited' $t $acc' ($g $p)))))
+      )))
 
 ;; Generate phenotypes.
-(= (genPhenotype $resultMap $grammarSpace $acc $expr)
+(= (genPhenotype $resultMap $grammarSpace $acc $expr ($g $p))
    (if (isUnit $expr)
        $acc
        (let*
           (
             (($currentNt $nextExpr) (decons $expr))
-            ($is (match $resultMap ($currentNt $i) $i))
+            ($is (match $resultMap (($currentNt $g $p) $i) $i))
             (($x $xs) (decons $is))
             ($nextProd (match $grammarSpace ($currentNt $rhs $x) $rhs))
             ($nextNt (if (isSymbol $nextProd) $nextProd (car-atom $nextProd)))
-            (() (update-atom $resultMap ($currentNt $is) ($currentNt $xs)))
+            (() (update-atom $resultMap (($currentNt $g $p) $is) (($currentNt $g $p) $xs)))
           )
           (if (isMember $nextNt (collapse (getNts $grammarSpace)))
-              (genPhenotype $resultMap $grammarSpace $acc (++ $nextProd $nextExpr))
-              (genPhenotype $resultMap $grammarSpace (appendAtom $nextProd $acc) $nextExpr)))))
+              (genPhenotype $resultMap $grammarSpace $acc (++ $nextProd $nextExpr) ($g $p))
+              (genPhenotype $resultMap $grammarSpace (appendAtom $nextProd $acc) $nextExpr ($g $p))))))
 
-;; !(genGenotype &expandedGrammar &ntReference &countReference &resultSpace)
-;; !(get-atoms &resultSpace)
-;; !(getOrderedGenoType &expandedGrammar &resultSpace start () () ())
-;; !(genPhenotype &resultSpace &expandedGrammar () (start))
+;; !(genGenotype &expandedGrammar &ntReference &countReference &resultSpace (1 1))
+;; !(getOrderedGenoType &expandedGrammar &resultSpace start () () () (1 1))
+;; !(genPhenotype &resultSpace &expandedGrammar () (start) (1 1))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -759,16 +755,6 @@
 ;;;;                                                                                                                          ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Evaluate populations.
-(= (evaluate $population $fitnessFunction)
-   (collapse
-     (let*
-        (
-          ($genotype (superpose $population))
-          ()
-        )
-        ())))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
