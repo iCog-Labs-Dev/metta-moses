@@ -756,13 +756,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Evaluate populations.
-(= (evaluate $population $fitnessFunction $resultMap $grammarSpace $startNt)
+(= (evaluate $population $fitnessFunction $data $lr $resultMap $grammarSpace $startNt)
    (collapse
      (let*
         (
           (($key $genotype) (superpose $population))
           ($phenotype (genPhenotype $resultMap $grammarSpace () ($startNt) $key))
-          ($score ($fitnessFunction $phenotype))
+          ($score ($fitnessFunction $phenotype $data $lr))
         )
         ($key $genotype $phenotype $score))))
 
