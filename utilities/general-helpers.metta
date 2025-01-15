@@ -283,3 +283,56 @@
 ;; Function to empty a space with contents.
 (= (clearSpace $space)
    (collapse (let $content (get-atoms $space) (remove-atom $space $content))))
+
+;; Function that merges two sorted lists while keeping them sorted.
+(= (merge $xs $ys)
+    (case ($xs $ys)
+      (
+        ((() $ys) $ys)
+        (($xs ()) $xs)
+        (($xs $ys)
+          (let*
+              (
+                (($x $xss) (decons $xs))
+                (($y $yss) (decons $ys))
+              )
+              (if (<= $x $y)
+                  (let $t (merge $xss $ys) (cons-atom $x $t))
+                  (let $t (merge $xs $yss) (cons-atom $y $t))
+              )
+          )
+        )
+      )
+    )
+)
+
+(: splitAt (-> Number Expression (Atom Atom)))
+(= (splitAt $n $list)
+   (case ($n $list)
+     (
+       ((0 $list) (() $list))
+       (($_ ()) (() ()))
+       (($n $list)
+          (let*
+             (
+               (($x $xs) (decons $list))
+               (($left $right) (splitAt (- $n 1) $xs))
+             )
+             ((cons-atom $x $left) $right)
+          )
+       )
+     )
+   )
+)
+
+(= (sort $list $len)
+   (if (or (isUnit $list) (isSingleAtom $list))
+       $list
+       (let* (
+                ($halfL ((py-atom math.floor) (/ $len 2)))
+                (($left $right) (splitAt $halfL $list))
+             )
+             (merge (sort $left $halfL) (sort $right (- $len $halfL)))
+       )
+   )
+)
