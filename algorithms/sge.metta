@@ -652,8 +652,6 @@
 !(add-atom &expandedGrammar (term X 0))
 !(add-atom &expandedGrammar (term Y 1))
 
-!(until isUnit ((curry applyCalcMaxNtReference) (&expandedGrammar &ntReference &ntCount &countReference)) (collapse (unique (match &expandedGrammar ($nt $rhs $i) $nt))))
-
 !(bind! &resultSpace (new-space))
 
 ;; Generate genotypes.
@@ -743,6 +741,7 @@
               (genPhenotype $resultMap $grammarSpace $acc (++ $nextProd $nextExpr) ($g $p))
               (genPhenotype $resultMap $grammarSpace (appendAtom $nextProd $acc) $nextExpr ($g $p))))))
 
+!(until isUnit ((curry applyCalcMaxNtReference) (&expandedGrammar &ntReference &ntCount &countReference)) (collapse (unique (match &expandedGrammar ($nt $rhs $i) $nt))))
 ;; !(genGenotype &expandedGrammar &ntReference &countReference &resultSpace (1 1))
 ;; !(getOrderedGenoType &expandedGrammar &resultSpace start () () () (1 1))
 ;; !(genPhenotype &resultSpace &expandedGrammar () (start) (1 1))
@@ -755,6 +754,17 @@
 ;;;;                                                                                                                          ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Evaluate populations.
+(= (evaluate $population $fitnessFunction $resultMap $grammarSpace $startNt)
+   (collapse
+     (let*
+        (
+          (($key $genotype) (superpose $population))
+          ($phenotype (genPhenotype $resultMap $grammarSpace () ($startNt) $key))
+          ($score ($fitnessFunction $phenotype))
+        )
+        ($key $genotype $phenotype $score))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
