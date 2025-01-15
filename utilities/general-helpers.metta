@@ -215,3 +215,71 @@
           )
           (cons-atom ($x $y) $rest)))
 )
+
+;; Finds length of a tuple
+
+(= (len $expr)
+    (if (== $expr ())
+        0
+        (let $tail (cdr-atom $expr)
+            (+ 1 (len $tail))
+        )
+    )
+)
+
+;; replaceByIndex replaces an atom at a specific index position with $val -- 0 indexed counting is implied
+(: replaceByIndex (-> Expression Number $t Expression))
+(= (replaceByIndex $expr $index $new)
+    (if (== $expr ())
+        $expr
+        (let*
+            (
+                ($first (car-atom $expr))
+                ($tail (cdr-atom $expr))
+            )
+            (if (== $index 0)
+                (if (== $tail ())
+                    ($new)
+                    (cons-atom $new $tail)
+                )
+                (let $c (replaceByIndex $tail (- $index 1) $new)
+                    (cons-atom $first $c)
+                )))))
+
+;; Select atom by index and returns 
+(= (selectByIndex $expr $index)
+    (if (== $expr ())
+        (Error (Index out of range) ())
+        (if (== $index 0)
+            (car-atom $expr)
+            (let $tail (cdr-atom $expr)
+                (selectByIndex $tail (- $index 1))
+            ))))
+
+(= (getNTs $grammarSpace)
+    (let $ntSet (collapse 
+                    (let $rule (get-atoms $grammarSpace)
+                        (car-atom $rule)
+                    )
+                )
+        (collapse (unique (superpose $ntSet)))))
+
+
+;; compareElemets compares tuples element by element
+(= (compareElements $first $second)
+    (if (or (== $first ()) (== $second ()))
+        ()
+        (let*
+            (
+                ($f (car-atom $first))
+                ($ft (cdr-atom $first))
+                ($s (car-atom $second))
+                ($st (cdr-atom $second))
+                ($r  (== $f $s))
+                ($c (compareElements $ft $st))
+            )
+                    (cons-atom $r $c)
+                )))
+;; Function to empty a space with contents.
+(= (clearSpace $space)
+   (collapse (let $content (get-atoms $space) (remove-atom $space $content))))
