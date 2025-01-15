@@ -755,6 +755,20 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Initialize populations given size.
+(= (initPopulation $grammarSpace $refSpace $refCountSpace $resultMap ($g $p))
+    (collapse
+      (let*
+        (
+          ($indexes (gen (- $p 1) (0)))
+          ($i (superpose $indexes))
+          ($_ (genGenotype $grammarSpace $refSpace $refCountSpace $resultMap ($g $i)))
+        )
+        ())))
+
+;; !(initPopulation &expandedGrammar &ntReference &countReference &resultSpace (1 10))
+;; !(get-atoms &resultSpace)
+
 ;; Evaluate populations.
 (= (evaluate $population $fitnessFunction $data $lr $resultMap $grammarSpace $startNt)
    (collapse
@@ -766,18 +780,6 @@
         )
         ($key ($genotype $phenotype $score)))))
 
-;; Generate a list of random indexes.
-(= (genIndexes $n $ub)
-   (if (== $n 0)
-       ()
-       (let*
-          (
-            ($t (genIndexes (- $n 1) $ub))
-            ($i ((py-atom random.randint) 0 (- $ub 1))))
-          (cons-atom $i $t))
-   )
-)
-
 ;; Function to compare population based on fitness
 (= (comparePop
       ($key1 ($genotype1 $phenotype1 $score1))
@@ -787,11 +789,14 @@
 (= (tournament $population $size $g $len)
    (let*
       (
-        ($indexes (genIndexes $size $len))
+        ;; ($indexes (genIndexes $size $len))
+        ($indexes (repeat ((py-atom random.randint) 0 (- $len 1)) $size))
         ($selected (collapse (let ($i (($g $i) $pop)) ((superpose $indexes) (superpose $population)) (($g $i) $pop))))
         ($sorted (sort $selected $size comparePop))
       )
       (car-atom $sorted)))
+
+
 
 ;; !(tournament
 ;; (
