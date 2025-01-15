@@ -190,7 +190,7 @@
 
 ;; A function to return a tuple of numbers from natural to a given number.
 ;; $x is the upperbound
-;; $acc is the lowerbound wrapped with an atom.
+;; $acc is the lowerbound wrapped with as a tuple.
 ;;    Example: (gen 5 (0)) => (5 4 3 2 1 0)
 (= (gen $x $acc)
    (if (== (car-atom $acc) $x)
@@ -333,5 +333,13 @@
              )
              (merge (sort $left $halfL $key) (sort $right (- $len $halfL) $key) $key)
        )
+   )
+)
+
+(: repeat (-> Atom Number Atom))
+(= (repeat $a $n)
+   (if (== $n 0)
+       ()
+       (let $t (repeat $a (- $n 1)) (cons-atom $a $t))
    )
 )
