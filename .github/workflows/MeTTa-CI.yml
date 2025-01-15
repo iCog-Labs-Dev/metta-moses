@@ -1,15 +1,14 @@
-
 name: metta-run CI
 
 on:
   push:
     branches:
       - main
-      - v0.3.0
+      - dev
   pull_request:
     branches:
       - main
-      - v0.3.0
+      - dev
 
 jobs:
   setup-and-test:
@@ -17,6 +16,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+    - name: Setup Python Environment
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11.6'
+
+    - name: Install Python Dependencies
+      run: |
+        python -m pip install --upgrade pip==23.1.2
 
     - name: install and setup metta-run script
       run: |
@@ -28,4 +36,3 @@ jobs:
 
     - name: Ensure metta-run is executable
       run: chmod +x $HOME/metta-bin/metta-run
-      
