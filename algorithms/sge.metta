@@ -569,6 +569,7 @@
 )
 
 
+
 ;; Sums up all the maximum references of a non-terminal from each production rule.
 ;; The function maxRefPerProd can return more than one value corresponding to each
 ;;    production rule's maximum reference. There for this functions sums them up.
@@ -724,27 +725,42 @@
                   (getOrderedGenoType $grammarSpace $resultSpace $h $visited' $t $acc' ($g $p)))))
       )))
 
+(= (isSubRule $expr)
+    (case $expr
+        (
+          (($nt $d) (~= (get-type $d) Number))
+          ($else (not (isSymbol $expr))))))
+
 ;; Generate phenotypes.
 (= (genPhenotype $resultMap $grammarSpace $acc $expr ($g $p))
    (if (isUnit $expr)
        $acc
-       (let*
-          (
-            (($currentNt $nextExpr) (decons $expr))
-            ($is (match $resultMap (($currentNt $g $p) $i) $i))
-            (($x $xs) (decons $is))
-            ($nextProd (match $grammarSpace ($currentNt $rhs $x) $rhs))
-            ($nextNt (if (isSymbol $nextProd) $nextProd (car-atom $nextProd)))
-            (() (update-atom $resultMap (($currentNt $g $p) $is) (($currentNt $g $p) $xs)))
-          )
-          (if (isMember $nextNt (collapse (getNts $grammarSpace)))
-              (genPhenotype $resultMap $grammarSpace $acc (++ $nextProd $nextExpr) ($g $p))
-              (genPhenotype $resultMap $grammarSpace (appendAtom $nextProd $acc) $nextExpr ($g $p))))))
-
-;; !(until isUnit ((curry applyCalcMaxNtReference) (&expandedGrammar &ntReference &ntCount &countReference)) (collapse (unique (match &expandedGrammar ($nt $rhs $i) $nt))))
-;; !(genGenotype &expandedGrammar &ntReference &countReference &resultSpace (1 1))
-;; !(getOrderedGenoType &expandedGrammar &resultSpace start () () () (1 1))
-;; !(genPhenotype &resultSpace &expandedGrammar () (start) (1 1))
+       (let ($currentNt $nextExpr) (decons $expr)
+            (if (not (isSubRule $currentNt))
+                (let*
+                    (
+                      ($is (match $resultMap (($currentNt $g $p) $i) $i))
+                      (($x $xs) (decons $is))
+                      ($nextProd (match $grammarSpace ($currentNt $rhs $x) $rhs))
+                      ($nextNt (if (isSymbol $nextProd) $nextProd (car-atom $nextProd)))
+                      (() (println! (CurrentNT: $currentNt NextNt: $nextNt Acc: $acc)))
+                      (() (update-atom $resultMap (($currentNt $g $p) $is) (($currentNt $g $p) $xs)))
+                    )
+                    (if (isMember $nextNt (collapse (getNts $grammarSpace)))
+                        (genPhenotype $resultMap $grammarSpace $acc (cons-atom $nextProd $nextExpr) ($g $p))
+                        (genPhenotype $resultMap $grammarSpace (appendAtom $nextProd $acc) $nextExpr ($g $p))
+                    )
+                )
+                (let*
+                    (
+                      ($t (genPhenotype $resultMap $grammarSpace () $currentNt ($g $p)))
+                      ($acc' (appendAtom $t $acc))
+                    )
+                    (genPhenotype $resultMap $grammarSpace $acc' $nextExpr ($g $p)))
+            )
+       )
+   )
+)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -766,19 +782,19 @@
         )
         ())))
 
-;; !(initPopulation &expandedGrammar &ntReference &countReference &resultSpace (1 10))
-;; !(get-atoms &resultSpace)
+(= (dummyScore $phenotype $data $lr) ((py-atom random.randint) 0 100))
 
 ;; Evaluate populations.
 (= (evaluate $population $fitnessFunction $data $lr $resultMap $grammarSpace $startNt)
    (collapse
      (let*
         (
-          (($key $genotype) (superpose $population))
-          ($phenotype (genPhenotype $resultMap $grammarSpace () ($startNt) $key))
-          ($score ($fitnessFunction $phenotype $data $lr))
+          ((($nt $g $p) $genotype) (superpose $population))
+          ($phenotype (genPhenotype $resultMap $grammarSpace () ($startNt) ($g $p)))
+          (() (println! (Generated Phenotype: $phenotype)))
+          ($score (dummyScore () $data $lr))
         )
-        ($key ($genotype $phenotype $score)))))
+        (($nt $g $p) ($genotype $phenotype $score)))))
 
 ;; Function to compare population based on fitness
 (= (comparePop
@@ -795,8 +811,6 @@
         ($sorted (sort $selected $size comparePop))
       )
       (car-atom $sorted)))
-
-
 
 ;; !(tournament
 ;; (
@@ -816,7 +830,6 @@
 ;; 10
 ;; )
 
-;; TODO: Population initializer
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
