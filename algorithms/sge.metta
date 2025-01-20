@@ -2,6 +2,7 @@
 
 ! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:utilities:expression-helpers)
+! (import! &self metta-moses:scoring:fitness)
 ! (import! &self metta-moses:reduct:boolean-reduct:one-constraint-complement-subtraction) ;; TODO: This import is temporary. Refactor code inside oncc and remove it.
 
 ;; Structured grammatical evolution (SGE)
@@ -656,6 +657,7 @@
 !(bind! &resultSpace (new-space))
 
 ;; Generate genotypes.
+;; TODO: UpperBounds can be stored in a separate space.
 (= (genGenotype $grammarSpace $referenceSpace $refCountSpace $resultMap ($g $p))
    (let*
         (
@@ -743,7 +745,7 @@
                       (($x $xs) (decons $is))
                       ($nextProd (match $grammarSpace ($currentNt $rhs $x) $rhs))
                       ($nextNt (if (isSymbol $nextProd) $nextProd (car-atom $nextProd)))
-                      (() (println! (CurrentNT: $currentNt NextNt: $nextNt Acc: $acc)))
+                      ;; (() (println! (CurrentNT: $currentNt NextNt: $nextNt Acc: $acc)))
                       (() (update-atom $resultMap (($currentNt $g $p) $is) (($currentNt $g $p) $xs)))
                     )
                     (if (isMember $nextNt (collapse (getNts $grammarSpace)))
@@ -761,6 +763,21 @@
        )
    )
 )
+
+;; !(expandGrammar 2 &grammar)
+;; !(println! (Finished expanding Grammar))
+;;
+;; !(until isUnit ((curry applyCalcMaxNtReference) (&grammar &ntReference &ntCount &countReference)) (collapse (unique (match &grammar ($nt $rhs $i) $nt))))
+;; !(println! (Finished Counting Max Reference))
+;;
+;; !(upperBounds &ntReference &countReference (getNts &grammar))
+;; !(println! (Finished Calculating Upperbounds))
+;;
+;; !(genGenotype &grammar &ntReference &countReference &resultSpace (1 1))
+;; !(println! (Finished Generating Genotypes))
+;; ;; !(getOrderedGenoType &expandedGrammar &resultSpace start () () () (1 1))
+;; ;; !(genPhenotype &resultSpace &expandedGrammar () (start) (1 1))
+;; !(println! (get-atoms &resultSpace))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -789,12 +806,12 @@
    (collapse
      (let*
         (
-          ((($nt $g $p) $genotype) (superpose $population))
+          ((($startNt $g $p) $genotype) (superpose $population))
           ($phenotype (genPhenotype $resultMap $grammarSpace () ($startNt) ($g $p)))
           (() (println! (Generated Phenotype: $phenotype)))
           ($score (dummyScore () $data $lr))
         )
-        (($nt $g $p) ($genotype $phenotype $score)))))
+        (($startNt $g $p) ($genotype $phenotype $score)))))
 
 ;; Function to compare population based on fitness
 (= (comparePop
@@ -802,33 +819,15 @@
       ($key2 ($genotype2 $phenotype2 $score2))) (>= $score1 $score2))
 
 ;; Tornament selection of an element from population.
-(= (tournament $population $size $g $len)
+(= (tournament $population $startNt $g $len $size)
    (let*
       (
-        ;; ($indexes (genIndexes $size $len))
         ($indexes (repeat ((py-atom random.randint) 0 (- $len 1)) $size))
-        ($selected (collapse (let ($i (($g $i) $pop)) ((superpose $indexes) (superpose $population)) (($g $i) $pop))))
+        ($selected (collapse (let ($i (($startNt $g $i) $pop)) ((superpose $indexes) (superpose $population)) (($startNt $g $i) $pop))))
         ($sorted (sort $selected $size comparePop))
       )
-      (car-atom $sorted)))
-
-;; !(tournament
-;; (
-;; ((1 0) ((0 0 1) (AND A B) 10))
-;; ((1 1) ((0 0 1) (AND A B) 0))
-;; ((1 2) ((0 0 1) (OR A B) 1))
-;; ((1 3) ((0 0 1) (AND B B) 11))
-;; ((1 4) ((0 0 1) (AND A A) 10))
-;; ((1 5) ((0 0 1) (OR B B) 9))
-;; ((1 6) ((0 0 1) (OR A A) 8))
-;; ((1 7) ((0 0 1) (AND B A) 7))
-;; ((1 8) ((0 0 1) (OR B A) 6))
-;; ((1 9) ((0 0 1) (OR B A) 5))
-;; )
-;; 3
-;; 1
-;; 10
-;; )
+      (car-atom $sorted)
+    ))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
