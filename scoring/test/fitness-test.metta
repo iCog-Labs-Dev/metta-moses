@@ -1,26 +1,58 @@
 ! (register-module! ../../../metta-moses)
+
 ! (import! &self metta-moses:scoring:fitness)
+! (import! &self metta-moses:utilities:general-helpers)
 
 
-; ; ; Test Cases 1: Simple AND Expression
-; ; !(penalizedFitness (AND A (OR B C)) 
-; ;                    ((True (A True) (B True) (C False)) 
-; ;                     (False (A False) (B True) (C True))) 
-; ;                    0.1) ; Expected: 1.8
+;; Test Cases 1: Simple AND Expression
+!(assertEqual
+   (penalizedFitness
+     (AND A (OR B C))
+      ((True (A True) (B True) (C False)) 
+       (False (A False) (B True) (C True)))
+     0.1)
+   1.8)
 
-; ; ; Test Case 2: Nested OR Expression
-; ; !(penalizedFitness (OR (AND A B) C) 
-; ;                    ((True (A True) (B False) (C True)) 
-; ;                     (True (A True) (B True) (C False)) 
-; ;                     (False (A False) (B False) (C False))) 
-; ;                    0.1) ; Expected: 2.8
+;; Test Case 2: Nested OR Expression
+!(assertEqual 
+   (penalizedFitness 
+     (OR (AND A B) C)
+     ((True (A True) (B False) (C True))
+      (True (A True) (B True) (C False))
+      (False (A False) (B False) (C False)))
+     0.1)
+   2.8)
 
-; ; ; Test Case 3: Complex Expression
-; ; !(penalizedFitness (OR (AND A (NOT B)) (AND C D)) 
-; ;                    ((True (A True) (B False) (C True) (D True)) 
-; ;                     (False (A False) (B True) (C False) (D False)) 
-; ;                     (True (A True) (B False) (C False) (D True))) 
-; ;                    0.1) ; Expected: 2.7
+;; Test Case 3: Complex Expression
+!(assertEqual 
+   (penalizedFitness 
+     (OR (AND A (NOT B)) (AND C D))
+     ((True (A True) (B False) (C True) (D True))
+      (False (A False) (B True) (C False) (D False))
+      (True (A True) (B False) (C False) (D True)))
+     0.1)
+   2.7)
 
-
-
+;; Test case 4: AND Expression
+!(assertEqual
+  (penalizedFitness
+      (AND A B)
+      ((True (A True) (B True))
+       (False (A False) (B True))
+       (False (A True) (B False))
+       (False (A False) (B False)))
+      0.0)
+  4.0
+)
+ 
+;; Test case 5: OR Expression
+!(assertEqual
+  (penalizedFitness
+      (OR A B)
+      ((True (A True) (B True))
+       (False (A False) (B True))
+       (False (A True) (B False))
+       (False (A False) (B False)))
+      0.0)
+  2.0
+)

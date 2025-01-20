@@ -89,6 +89,16 @@
    )
 )
 
+;; Fold a tuple from right to left
+(: foldr (-> (-> $a $b $b) $b $c $d))
+(= (foldr $f $i $xs)
+   (if (== $xs ())
+       $i
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs))
+              ($ft (foldr $f $i $t)))
+         ($f $h $ft))))
+
 ;; A map function that takes a function and applies 
 ;;    it on every atom in a given tuple.
 (: map (-> (-> $a $b) $c $d))
@@ -122,3 +132,5 @@
 ;;          input ==> (False True False), output ==> True
 (: any (-> Atom Bool))
 (= (any $bools) (isMember True $bools))
+
+(= (sum $list) (foldr + 0 $list))
