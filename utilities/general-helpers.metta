@@ -343,3 +343,16 @@
        (let $t (repeat $a (- $n 1)) (cons-atom $a $t))
    )
 )
+
+(: take (-> Number Atom Atom))
+(= (take $n $a)
+    (if (== $n 0)
+        ()
+        (let*
+            (
+              (($h $t) (decons $a))
+              ($r (take (- $n 1) $t))
+            )
+            (cons-atom $h $r))
+        )
+)
