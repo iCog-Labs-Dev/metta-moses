@@ -641,6 +641,80 @@
 ;; Generate a random mask given a size.
 (= (genMask $n) (genCodon $n 1))
 
+
+
+;; recombine creates crossbreeds by taking genetic material from two parents based on binary mask values
+;; How it works
+;;            Parameters:-  1. $parent1, $parent2 genotype of two parents given as two separate tuples of tuples
+;;                          E.g., ((0) (1 0))((1) (1 1)) -- two tuple consisting of genotypes of two parents each containing two gene sequences
+;;                                ((0) (1 0) (1 2 0)) ((1) (1 1) (1 1 2)) -- 3 gene sequences for each parent ...
+;;                          2. $mask, binary mask of same length as the genotype list, e.g., for the above genotypes possible masks are 
+;;                          (0 1) and (0 1 1) repectively. 
+;;                          bit 0 -- means the offspring will take genotype material from first parent
+;;                          bit 1 -- means the offspring will take genotype material from the other parent
+;; Examples
+;;                          ! (recombine ((0) (1 0))((1) (1 1)) (0 1)) --> (((0) (1 1)) ((1) (1 0))) -- genes have been swapped at index where the binary mask 1
+;;                          ! (recombine ((0) (1 0))((1) (1 1)) (1 0)) --> (((1) (1 0)) ((0) (1 1)))
+;;                          ! (recombine ((0) (1 0) (1 2 0)) ((1) (1 1) (1 1 2)) (0 1 1)) --> (((0) (1 1) (1 1 2)) ((1) (1 0) (1 2 0)))
+;;                          ! (recombine ((0) (1 0) (1 2 0) (1 1 0 0)) ((1) (1 1) (1 1 2) (0 0 1 1)) (0 1 1 0)) --> (((0) (1 1) (1 1 2) (1 1 0 0)) ((1) (1 0) (1 2 0) (0 0 1 1)))
+
+(= (recombine $parent1 $parent2 $mask)
+    (if (== $mask ())
+        ($parent1 $parent2)
+        (let*
+            (
+               (($gene1 $restOfP1) (decons $parent1))
+               (($gene2 $restOfP2) (decons $parent2))
+               (($bit $maskTail) (decons $mask))
+               (($c $d) (recombine $restOfP1 $restOfP2 $maskTail))
+            )
+            (if (== $bit 0)
+                ((cons-atom $gene1 $c) (cons-atom $gene2 $d))
+                ((cons-atom $gene2 $c) (cons-atom $gene1 $d))
+                ))))
+
+;; Mutation agent
+;;    Parameteres:-
+;;                   1. $genotype -- tuple of tuples each nested tuple containing geneotype information of each non-terminal
+;;                   2. $grammarSpace -- metta space where grammar expansion information has been added
+
+;; Explanation:-     the mutation operation is implemented as follows
+;;                   A non-terminal is picked randomly from the ntSet. 
+;;                   The index used to pick the gene sequence of the non-terminal in genotype tuple
+;;                   A gene is selected from this particular gene sequence randomly for mutation 
+;;                   The value of the gene is replaced by new gene choosen from the range [0, cN) of that particular non-terminal
+;;                   cN represents the number of expansion options of the particular non-terminal
+;;                   This implementation doesnt guarantee generation of new genotype material, the mutation rely on pure chance
+;;                   and there are two ways in which we could end up with the same genotype material as the one we started with.
+;;                   1. If the picked non-terminal's number of expansion options is exaclty one(1), the gene value is 0 and there 
+;;                   is no room for generation of new gene material
+;;                   2. In the case where the choosen non-terminal has more than one expansion options(cN ≥ 2), the random operator may
+;;                   end up picking the same gene in that range as the old one.
+;; Examples
+;;                  ! (mutate ((0) (1 0 2) (1 1) (0) (0 1)) &grammar)
+;;                  -- run 1 -- ((0) (2 0 2) (1 1) (0) (0 1))
+;;                  -- run 2 -- ((0) (1 0 2) (1 1) (0) (0 1))
+;;                  -- run 3 -- ((0) (1 0 2) (1 0) (0) (0 1))
+;;                  -- run 4 -- ((0) (1 0 2) (1 1) (0) (0 1))
+;;                  -- run 5 -- ((0) (1 0 2) (0 1) (0) (0 1))
+
+! (bind! rnd (py-atom numpy.random))
+
+(= (mutate $genotype $grammarSpace)
+    (let* (
+            ($ntSet (getNTs $grammarSpace))
+            ($len (len $ntSet))
+            ($index ((py-dot rnd randint) $len))
+            ($nt (selectByIndex $ntSet $index))
+            ($cN (calculateCN $nt $grammarSpace))
+            ($geneList (selectByIndex $genotype $index))
+            ($geneLen (len $geneList)) ;
+            ($geneIndex ((py-dot rnd randint) $geneLen))
+            ($newGeneValue ((py-dot rnd randint) $cN))
+            ($mutatedGeneList (replaceByIndex $geneList $geneIndex $newGeneValue))
+        )
+        (replaceByIndex $genotype $index $mutatedGeneList)))
+
 !(bind! &expandedGrammar (new-space))
 
 !(add-atom &expandedGrammar (start expr 0))
