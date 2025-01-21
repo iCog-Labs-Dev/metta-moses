@@ -346,13 +346,26 @@
 
 (: take (-> Number Atom Atom))
 (= (take $n $a)
-    (if (== $n 0)
-        ()
-        (let*
+    (case ($n $a)
+          (
+            (($n ()) ())
+            ((0 $a) ())
+            (($n $a)
+              (let*
+                (
+                  (($h $t) (decons $a))
+                  ($r (take (- $n 1) $t)))
+                (cons-atom $h $r))))))
+
+(: drop (-> Number Atom Atom))
+(= (drop $n $a)
+    (case ($n $a)
+      (
+        (($n ()) ())
+        ((0 $a) $a)
+        (($n $a)
+          (let*
             (
               (($h $t) (decons $a))
-              ($r (take (- $n 1) $t))
-            )
-            (cons-atom $h $r))
-        )
-)
+              ($r (drop (- $n 1) $t)))
+            $r)))))
