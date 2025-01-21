@@ -122,3 +122,8 @@
 ;;          input ==> (False True False), output ==> True
 (: any (-> Atom Bool))
 (= (any $bools) (isMember True $bools))
+;;The below function adds a list to space
+(= (addListToSpace $space $list)
+    (add-reduct $space (superpose $list))
+)
+
