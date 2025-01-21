@@ -778,7 +778,7 @@
         (($_ $__ True)
             (let*
               (
-                ($codon (match $resultSpace (($nt $g $p) $codon) $codon))
+                ($codon (unify $resultSpace (($nt $g $p) ($codon $ph $s)) $codon (match $resultSpace (($nt $g $p) $codon) $codon)))
                 ($visited' (appendAtom $nt $visited))
                 ($acc' (appendAtom $codon $acc))
 
@@ -797,7 +797,7 @@
                 ;; (() (println! (OldLhs: $oLhs)))
               )
               (if (=== $visited' (collapse (getNts $grammarSpace)))
-                  $acc'
+                  ($acc' $visited')
                   (getOrderedGenoType $grammarSpace $resultSpace $h $visited' $t $acc' ($g $p)))))
       )))
 
@@ -902,6 +902,47 @@
       )
       (car-atom $sorted)
     ))
+
+
+;; Generate a single element of the new population.
+(= (getNewPop $pop $startNt $g $popSize $tSize $elitism $probCrossOver $probMutate $grammarSpace $resultSpace $currLen)
+    (if (< ((py-atom random.random)) $probCrossOver)
+        (let*
+            (
+              (
+               (
+                 (($nt1 $g1 $p1) ($c1 $py1 $s1))
+                 (($nt2 $g2 $p2) ($c2 $py2 $s2)))
+               (collapse (superpose
+                           (
+                              (tournament $pop $startNt $g $popSize $tSize)
+                              (tournament $pop $startNt $g $popSize $tSize)))))
+
+              ((($oc1 $nts) ($oc2 $nts))
+                (collapse (superpose
+                            (
+                              (getOrderedGenoType $grammarSpace $resultSpace $startNt () () () ($g1 $p1))
+                              (getOrderedGenoType $grammarSpace $resultSpace $startNt () () () ($g2 $p2))))))
+
+              ($mask (genMask (sum (collapse (let $_ (getNts $grammarSpace) 1)))))
+              ($c (recombine $oc1 $oc2 $mask))
+              ($c' (if (< ((py-atom random.random)) $probMutate) (mutate $c $grammarSpace) $c))
+              ($ntCodonPair (zip $nts $c'))
+              ($newPop (collapse (let ($nt $codon) (superpose $ntCodonPair) (($nt $g $currLen) $codon))))
+            )
+            $newPop)
+        (let (($nt1 $g1 $p) ($c $py $s)) (tournament $pop $startNt $g $popSize $tSize)
+            (if (< ((py-atom random.random)) $probMutate)
+                (let*
+                    (
+                      ;; INFO: For some reason I don't know, the function runs faster when called in superpose.
+                      (($oc $nts) (superpose ((getOrderedGenoType $grammarSpace $resultSpace $startNt () () () ($g1 $p)))))
+                      ($mc (mutate $oc $grammarSpace))
+                      ($ntCodonPair (zip $nts $mc))
+                      ($newPop (collapse (let ($nt1' $codon) (superpose $ntCodonPair) (($nt1' $g1 $currLen) $codon))))
+                    )
+                    $newPop)
+                (($nt $g1 $p) ($c $py $s))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
