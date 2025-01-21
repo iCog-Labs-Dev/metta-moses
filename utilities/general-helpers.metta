@@ -123,7 +123,9 @@
 (: any (-> Atom Bool))
 (= (any $bools) (isMember True $bools))
 ;;The below function adds a list to space
+(: addListToSpace (-> hyperon::space::DynSpace Expression %Undefined%))
 (= (addListToSpace $space $list)
     (add-reduct $space (superpose $list))
 )
+
 
