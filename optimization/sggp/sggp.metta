@@ -11,4 +11,25 @@
 (= (initializeAlphabetSpace $alphabetSpace)
     (add-reduct $alphabetSpace (superpose (start expr bop uop term)))
 )
+;;The below procedure will initialize the grammarSpace with a cfg
+;; Written in context free grammar it will contain the following representation
+;; <start> -> <expr>
+;; <expr>  -> <bop> <expr> <expr> |
+;;            <uop> <expr> |
+;;            <term>
+;; <bop>   -> AND | OR
+;; <uop>   -> NOT
+(= (initializeGrammarSpace $grammarSpace)
+    (add-reduct $grammarSpace (superpose (
+            (start expr)
+            (expr (bop expr expr))
+            (expr (uop expr))
+            (expr term)
+            (bop AND)
+            (bop OR)
+            (uop NOT)
 
+        )
+    )
+    )
+)
