@@ -216,8 +216,19 @@
           (cons-atom ($x $y) $rest)))
 )
 
-;; Finds length of a tuple
+;; Similar to zip but instead of just creating a tuple of atoms,
+;;  it performes an operation of $f on them and returns the resulting list of atoms.
+(: zipWith (-> (-> $a $b $c) $d $e $f))
+(= (zipWith $f $xs $ys)
+   (if (== $xs ())                      ; We assume (arity $xs) == (arity $ys)
+       ()
+       (let* ((($xs-hd $xs-tl) (decons $xs))
+              (($ys-hd $ys-tl) (decons $ys))
+              ($head ($f $xs-hd $ys-hd))
+              ($tail (zipWith $f $xs-tl $ys-tl)))
+         (cons-atom $head $tail))))
 
+;; Finds length of a tuple
 (= (len $expr)
     (if (== $expr ())
         0
