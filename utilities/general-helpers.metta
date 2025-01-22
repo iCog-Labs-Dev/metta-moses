@@ -158,6 +158,11 @@
 (: any (-> Atom Bool))
 (= (any $bools) (isMember True $bools))
 
+;; A trick to define `curry` in MeTTa without `lambda`
+(: curry (-> (-> $a $b $c) (-> $a (-> $b $c))))
+(= (((curry $f) $x) $y) ($f $x $y))
+
+;; Add numbers in an atom list
 (= (sum $list) (foldr + 0 $list))
 
 ;; Function to count atom occrence in a list of atoms.
@@ -171,11 +176,11 @@
 (: isSymbol (-> Expression Bool))
 (= (isSymbol $expr) (== (get-metatype $expr) Symbol))
 
-(: isUnit (-> Expression Bool))
+(: isUnit (-> Atom Bool))
 (= (isUnit $expr) (== $expr ()))
 
-(: isSingleAtom (-> Expression Bool))
-(= (isSingleAtom $expr) (== (cdr-atom $expr) ()))
+(: isSingleAtom (-> Atom Bool))
+(= (isSingleAtom $expr) (if (and (== (get-metatype $expr) Expression) (not (isUnit $expr))) (== (cdr-atom $expr) ()) False))
 
 ;; Function to replace a given atom from a space.
 (: update-atom (-> Grounded Atom Atom (->)))

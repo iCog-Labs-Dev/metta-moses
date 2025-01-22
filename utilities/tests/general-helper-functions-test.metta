@@ -51,13 +51,6 @@
 (: greaterThanTen (-> Number Bool))
 (= (greaterThanTen $x) (> $x 10))
 
-;; It will return True if input is unit atom.
-(: isUnit (-> Atom Bool))
-(= (isUnit $x) (== $x ()))
-
-(: isSingleAtom (-> Atom Bool))
-(= (isSingleAtom $x) (if (== (get-metatype $x) Expression) (== (cdr-atom $x) ()) False))
-
 ;; It will decrement the input by 1.
 (: decrement (-> Number Number))
 (= (decrement $x) (- $x 1))
