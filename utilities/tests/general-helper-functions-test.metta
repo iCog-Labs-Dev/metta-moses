@@ -1,4 +1,4 @@
-! (register-module! ../../../metta-moses)
+!(register-module! ../../../metta-moses)
 
 ! (import! &self metta-moses:utilities:general-helpers)
 ! (bind! &newSpace (new-space))
@@ -10,17 +10,17 @@
 !(assertEqualToResult (~= Something Something) (False))
 !(assertEqualToResult (~= Something something) (True))
 
-;;tests for the function 'concatTuple'
+;; Tests for the function 'concatTuple'
 !(assertEqualToResult (concatTuple () (3 4)) ((3 4)))
 !(assertEqualToResult (concatTuple (1 2) (3 4)) ((1 2 3 4)))
 !(assertEqualToResult (concatTuple (1 2) ()) ((1 2)))
 !(assertEqualToResult (concatTuple () ()) (()))
 
-; tests for the function 'Not' 
-  ! (assertEqualToResult (Not (Not (Not A))) ((NOT A)))
-  ! (assertEqualToResult (Not (Not A)) (A))
+;; Tests for the function 'Not'
+!(assertEqualToResult (Not (Not (Not A))) ((NOT A)))
+!(assertEqualToResult (Not (Not A)) (A))
 
-; tests for the function 'isMember'
+;; Tests for the function 'isMember'
 !(assertEqualToResult (isMember 1 ()) (False))
 !(assertEqualToResult (isMember 2 (2 3 4 5)) (True))
 !(assertEqualToResult (isMember 3 (1 2 4 5)) (False))
@@ -51,13 +51,6 @@
 ;; It will return True if greater than 10.
 (: greaterThanTen (-> Number Bool))
 (= (greaterThanTen $x) (> $x 10))
-
-;; It will return True if input is unit atom.
-(: isUnit (-> Atom Bool))
-(= (isUnit $x) (== $x ()))
-
-(: isSingleAtom (-> Atom Bool))
-(= (isSingleAtom $x) (if (== (get-metatype $x) Expression) (== (cdr-atom $x) ()) False))
 
 ;; It will decrement the input by 1.
 (: decrement (-> Number Number))
