@@ -13,4 +13,3 @@
 !(assertEqual (assignWeight (expr term) 4) (expr term 4))
 
 
-((expr (bop expr expr)) 5)
