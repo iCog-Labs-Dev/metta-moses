@@ -44,7 +44,7 @@
       0.0)
   4.0
 )
- 
+
 ;; Test case 5: OR Expression
 !(assertEqual
   (penalizedFitness
@@ -55,4 +55,15 @@
        (False (A False) (B False)))
       0.0)
   2.0
+)
+
+!(assertEqual
+  (penalizedFitness
+      A
+      ((True (A True) (B True))
+       (False (A False) (B True))
+       (True (A True) (B False))
+       (False (A False) (B False)))
+      0.1)
+  4.0
 )

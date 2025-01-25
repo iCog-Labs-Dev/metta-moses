@@ -22,22 +22,22 @@
 ;; A function to evaluateuate the boolean expression
 (= (evaluate $expr)
     (if (== (get-metatype $expr) Grounded) ;; T/ F
-        $expr
-        (let* 
-          (
-            ($op (car-atom $expr))
-            ($tuple (cdr-atom $expr))
-          )
-          (case $op 
-            (
-              (AND (evaluateAnd $tuple))
-              (OR (evaluateOr $tuple))
-              (NOT (not (evaluate $tuple)))
-              ($_ ERROR)
+              $expr
+              (let*
+                (
+                  ($op (car-atom $expr))
+                  ($tuple (cdr-atom $expr))
+                )
+                (case $op 
+                  (
+                    (AND (evaluateAnd $tuple))
+                    (OR (evaluateOr $tuple))
+                    (NOT (not (evaluate $tuple)))
+                    ($_ ERROR)
 
-            )
-          )
-        )
+                  )
+                )
+              )
     )
 )
 
@@ -78,7 +78,7 @@
 
 ;; Count the total AND & OR operators in the expression.
 (= (counter $expr)
-    (if (== $expr ())
+    (if (or (== $expr ()) (isSymbol $expr))
         0
         (let*
           (
