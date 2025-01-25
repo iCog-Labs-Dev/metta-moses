@@ -4,6 +4,7 @@
 ! (import! &self metta-moses:utilities:expression-helpers)
 ! (import! &self metta-moses:scoring:fitness)
 ! (import! &self metta-moses:reduct:boolean-reduct:one-constraint-complement-subtraction) ;; TODO: This import is temporary. Refactor code inside oncc and remove it.
+mpare
 
 ;; Structured grammatical evolution (SGE)
 ;; This implementation is based on the research paper: https://link.springer.com/article/10.1007/s10710-015-9262-4
@@ -15,24 +16,6 @@
 ;;            <term>
 ;; <bop>   -> AND | OR
 ;; <uop>   -> NOT
-
-;; TODO: Implement a function to call all of the above functions together.
-;;       Steps To follow:
-;;              - Expand grammar based on depth.
-;;              - Calculate non terminal references and maximum number of derivations per rules.
-;;              - Generate N number of initial population.
-;;              - Until G is reached, repeat the following:
-;;                  - Score each population. If solution is found, break.
-;;                  - Select two random parents.
-;;                  - Crossover the two parents:
-;;                      - Randomly generate masking bitstring.
-;;                      - Perform the crossover.
-;;                  - Mutate the offsprings:
-;;                      - Randomly select a position to mutate and generate new value for it.
-;;                  - Mutate the parents.
-;;                  - Include the top two of previous population, the mutated offspings and mutated parents in next generation.
-;;                  - Keep the top K populations for the next generations and replace the rest of the population with new ones.
-;;                  - Repeat.
 
 
 !(bind! &grammar (new-space))
@@ -663,6 +646,7 @@
         ($parent1 $parent2)
         (let*
             (
+               (() (println! (Recombining $parent1 And $parent2 with Mask: $mask)))
                (($gene1 $restOfP1) (decons $parent1))
                (($gene2 $restOfP2) (decons $parent2))
                (($bit $maskTail) (decons $mask))
@@ -700,20 +684,29 @@
 
 ! (bind! rnd (py-atom numpy.random))
 
-(= (mutate $genotype $grammarSpace)
+;; WARN: This function gets cached it the generated result is the same as previous and will get stuck in infinte loop. To prevent this, we will just pass a random float everytime to prevent this from happening.
+(= (applyRandom ($cN $prevValue $value $rnd)) (let $newValue ((py-dot rnd randint) $cN) (trace! (PrevValue: $prevValue Generated: $newValue) ($cN $prevValue $newValue ((py-atom random.random))))))
+(= (applyNotEqual ($cN $prevValue $value $rnd)) (or (~= $prevValue $value) (<= $cN 1)))
+
+(= (mutate $genotype $nts $grammarSpace $ubSpace)
     (let* (
-            ($ntSet (getNTs $grammarSpace))
-            ($len (len $ntSet))
+            ($len (len $nts))
             ($index ((py-dot rnd randint) $len))
 
-            ($nt (selectByIndex $ntSet $index))
-            ($cN (calculateCN $nt $grammarSpace))
-            ($geneList (selectByIndex $genotype $index))
-            ($geneLen (len $geneList))
+            ($nt (selectByIndex $nts $index))
+            (($ub $cN) (match $ubSpace ($nt $ub $cN) ($ub $cN)))
 
-            ($geneIndex ((py-dot rnd randint) $geneLen))
-            ($newGeneValue ((py-dot rnd randint) $cN))
+            ($geneList (selectByIndex $genotype $index))
+            ($geneIndex ((py-dot rnd randint) $ub))
+
+            ($prevGeneValue (selectByIndex $geneList $geneIndex))
+            (() (println! (CN: $cN UB: $ub)))
+
+            (($cN $prevGeneValue $newGeneValue $_) (until applyNotEqual applyRandom ($cN $prevGeneValue $prevGeneValue ((py-atom random.random)))))
+            (() (println! (PrevGeneValue: $prevGeneValue NewGeneValue: $newGeneValue)))
+
             ($mutatedGeneList (replaceByIndex $geneList $geneIndex $newGeneValue))
+            (() (println! (GeneList: $geneList NewGeneList: $mutatedGeneList)))
         )
         (replaceByIndex $genotype $index $mutatedGeneList)))
 
@@ -733,19 +726,29 @@
 !(bind! &resultSpace (new-space))
 
 ;; Generate genotypes.
-;; TODO: UpperBounds can be stored in a separate space.
-(= (genGenotype $grammarSpace $referenceSpace $refCountSpace $resultMap ($g $p))
+(= (genGenotype $grammarSpace $referenceSpace $refCountSpace $ubSpace $resultMap ($g $p))
    (let*
         (
-          ($nts (collapse (getNts $grammarSpace)))
+          ;; (() (println! (Generating Population with ID: ($g $p))))
+          (() (println! ""))
           ($_
               (collapse
                   (let*
                       (
-                        (($nt $up) (upperBounds $referenceSpace $refCountSpace (superpose $nts)))
-                        (($nt $codon) ($nt (genCodon $up (- (calculateCN $nt $grammarSpace) 1))))
+                        (($nt $ub $n) (match $ubSpace ($nt $ub $n) ($nt $ub $n)))
+                        ;; (() (println! (Processing Nt: $nt Ub: $ub)))
+
+                        ($cN (if (== $n 0) (calculateCN $nt $grammarSpace) $n))
+
+                        (() (update-atom $ubSpace ($nt $ub $n) ($nt $ub $cN))) ;; Caching the cN which will be needed later.
+                        (($nt $codon) ($nt (genCodon $ub (- $cN 1))))
+
+                        (() (println! (Adding (($nt $g $p) $codon))))
                       )
-                      (add-atom $resultMap (($nt $g $p) $codon))))))
+                      (add-atom $resultMap (($nt $g $p) $codon))
+                  )))
+          (() (println! ""))
+        )
         ()))
 
 (= (getOrderedLhs $grammarSpace $nt $len)
@@ -780,12 +783,12 @@
         (($_ $__ True)
             (let*
               (
-                ($codon (unify $resultSpace (($nt $g $p) ($codon $ph $s)) $codon (match $resultSpace (($nt $g $p) $codon) $codon)))
-                ($visited' (appendAtom $nt $visited)) ;; FIX: No need to append at the end as this specific order actually doesn't matter.
-                ($acc' (appendAtom $codon $acc))
+                ($codon (unify $resultSpace (($nt $g $p) ($codon $ph $s)) $codon (match $resultSpace (($nt $g $p) $codon) $codon))) ;; FIX: Make sure to consider triplets of numbers here.
+                ($visited' (cons-atom $nt $visited))
+                ($acc' (cons-atom $codon $acc))
 
-                ;; (() (println! (NT: $nt)))
-                ;; (() (println! (Codon: $codon)))
+                (() (println! (NT: $nt)))
+                (() (println! (Codon: $codon)))
 
 
                 ($len (sum (collapse (match $grammarSpace ($nt $rhs $i) 1))))
@@ -817,12 +820,18 @@
             (if (not (isSubRule $currentNt))
                 (let*
                     (
-                      ($is (match $resultMap (($currentNt $g $p) $i) $i)) ;; FIX: Make sure to consider scored populations too.
+                      ($is (match $resultMap (($currentNt $g $p) $i)
+                                  (unify $i ($i' $phenotype $score)
+                                          (if (isExpression $i') $i' $i) ;; If $i' isn't an expression, then the unify is just matching over numbers of the codon.
+                                          $i
+                                  )))
+                      ;; (() (println! (IS: $is)))
                       (($x $xs) (decons $is))
+
                       ($nextProd (match $grammarSpace ($currentNt $rhs $x) $rhs))
                       ($nextNt (if (isSymbol $nextProd) $nextProd (car-atom $nextProd)))
                       ;; (() (println! (CurrentNT: $currentNt NextNt: $nextNt Acc: $acc)))
-                      (() (update-atom $resultMap (($currentNt $g $p) $is) (($currentNt $g $p) $xs)))
+                      (() (update-atom $resultMap (($currentNt $g $p) $is) (($currentNt $g $p) $xs))) ;; FIX: It also doesn't consider the scored populations. But I don't this this will be a problem, since we don't really care about the content of the space since it will be overridden with the correct value when the space is updated after the socring.
                     )
                     (if (isMember $nextNt (collapse (getNts $grammarSpace)))
                         (genPhenotype $resultMap $grammarSpace $acc (cons-atom $nextProd $nextExpr) ($g $p))
@@ -849,7 +858,7 @@
 ;; !(upperBounds &ntReference &countReference (getNts &grammar))
 ;; !(println! (Finished Calculating Upperbounds))
 ;;
-;; !(genGenotype &grammar &ntReference &countReference &resultSpace (1 1))
+;; !(genGenotype &grammar &ntReference &countReference &ubSpace &resultSpace (1 1))
 ;; !(println! (Finished Generating Genotypes))
 ;; ;; !(getOrderedGenoType &expandedGrammar &resultSpace start () () () (1 1))
 ;; ;; !(genPhenotype &resultSpace &expandedGrammar () (start) (1 1))
@@ -865,30 +874,38 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Initialize populations given size.
-(= (initPopulation $grammarSpace $refSpace $refCountSpace $resultMap ($g $p))
+(= (initPopulation $grammarSpace $refSpace $refCountSpace $ubSpace $resultMap ($g $p))
     (collapse
       (let*
         (
           ($indexes (gen (- $p 1) (0)))
           ($i (superpose $indexes))
-          ($_ (genGenotype $grammarSpace $refSpace $refCountSpace $resultMap ($g $i)))
+          ($_ (genGenotype $grammarSpace $refSpace $refCountSpace $ubSpace $resultMap ($g $i)))
         )
         ())))
 
 (= (dummyScore $phenotype $data $lr) ((py-atom random.randint) 0 100))
 
 ;; Evaluate populations.
-;; FIX: Don't evaluate already evaluated expressions.
 (= (evaluate $population $fitnessFunction $data $lr $resultMap $grammarSpace $startNt)
    (collapse
      (let*
         (
           ((($startNt $g $p) $genotype) (superpose $population))
-          ($phenotype (genPhenotype $resultMap $grammarSpace () ($startNt) ($g $p)))
-          (() (println! (Generated Phenotype: $phenotype)))
-          ($score ((py-atom random.randint) 0 100))
+          ($isScored (unify $genotype ($genotype' $phenotype $score) True (isExpression $genotype'))) ;; If is not expression, it is just unifying on the number of the codon.
         )
-        (($startNt $g $p) ($genotype $phenotype $score)))))
+        (if $isScored
+            (($startNt $g $p) $genotype)
+            (let*
+                (
+                  ($result (genPhenotype $resultMap $grammarSpace () ($startNt) ($g $p)))
+                  ($phenotype (car-atom $result))
+
+                  (() (println! (Generated Phenotype: $phenotype)))
+                  ($score ($fitnessFunction $phenotype $data $lr))
+                  (() (println! (Score: $score)))
+                )
+                (($startNt $g $p) ($genotype $phenotype $score)))))))
 
 ;; Function to compare population based on fitness
 (= (comparePop
@@ -906,70 +923,175 @@
       (car-atom $sorted)
     ))
 
+;; Truth table for AND
+!(bind! &data (new-space))
+!(add-reduct &data (superpose (
+       (True (A True) (B True))
+       (False (A False) (B True))
+       (False (A True) (B False))
+       (False (A False) (B False)))))
+
+!(bind! &refSpace (new-space))
+!(bind! &countSpace (new-space))
+!(bind! &refCountSpace (new-space))
+!(bind! &ubSpace (new-space))
 !(bind! &resultMap (new-space))
 
-;; Function to update the index of a single population element.
-(= (updatePopIndex (($nt $g $i) $popValue) $newI) (($nt $g $newI) $popValue)) 
+;;       Steps To follow:
+;;              - Expand grammar based on depth.
+;;              - Calculate non terminal references and maximum number of derivations per rules.
+;;              - Generate N number of initial population.
+;;              - Until G is reached, repeat the following:
+;;                  - Score each population. If solution is found, break.
+;;                  - Select two random parents.
+;;                  - Crossover the two parents:
+;;                      - Randomly generate masking bitstring.
+;;                      - Perform the crossover.
+;;                  - Mutate the offsprings:
+;;                      - Randomly select a position to mutate and generate new value for it.
+;;                  - Mutate the parents.
+;;                  - Include the top two of previous population, the mutated offspings and mutated parents in next generation.
+;;                  - Keep the top K populations for the next generations and replace the rest of the population with new ones.
+;;                  - Repeat.
+;; Perform preprocessing and space and first population initialization.
+(= (setup $grammarSpace $dataSpace $refSpace $countSpace $refCountSpace $ubSpace $resultMap $elitism $popSize $tSize $probCrossOver $probMutate $maxGen $maxDepth)
+   (let*
+      (
+        ;; Representation Building: Expanding recursive rules
+        ($_ (collapse (expandGrammar $maxDepth $grammarSpace)))
+        (() (println! (Expanded Grammar (collapse (getNts $grammarSpace)))))
 
-(= (runGeneration $grammarSpace $resultMap $g $elitism $popSize $tSize $data $probCrossOver $probMutate)
+        ;; Index Production rules
+        ($_' (collapse (indexRules (getNts $grammarSpace) $grammarSpace)))
+        (() (println! (Finished Indexing production rules)))
+
+        ;; Representation Building: Counting Max Reference
+        ($_''' (until isUnit ((curry applyCalcMaxNtReference) ($grammarSpace $refSpace $countSpace $refCountSpace)) (collapse (unique (match $grammarSpace ($nt $rhs $i) $nt)))))
+        (() (println! (Finished counting Max Reference: (collapse (get-atoms &refCountSpace)))))
+
+        ;; Calculating upperbounds.
+        ($_''  (collapse (let ($nt $ub) (upperBounds $refSpace $refCountSpace (getNts $grammarSpace)) (add-atom $ubSpace ($nt $ub 0))))) ;; 0 corresponds to the cN which will be filled later.
+        (() (println! (All UpperBounds Added: (=== (collapse (getNts $grammarSpace)) (collapse (match $ubSpace ($nt $u $cn) $nt))) Added For: (collapse (match $ubSpace ($nt $u $cn) $nt)))))
+
+        ;; Initializing first generation of populations
+        ($__ (initPopulation $grammarSpace $refSpace $refCountSpace $ubSpace $resultMap (0 $popSize)))
+
+        ;; (() (println! (Generated population: (collapse (get-atoms $resultMap)))))
+
+        ;; Main Loop
+        ($__' (until maxGenReached applyRunGeneration (($grammarSpace $ubSpace $dataSpace $resultMap $elitism $popSize $tSize $probCrossOver $probMutate) 0 $maxGen)))
+
+        (() (println! (Finished Running Generations)))
+       )
+      ()
+   )
+)
+
+;; Predicate function to be used in the setup function.
+(= (maxGenReached ($constants $nextGen $maxGen)) (>= $nextGen $maxGen))
+
+;; Apply the runGeneration function
+(= (applyRunGeneration (($grammarSpace $ubSpace $dataSpace $resultMap $elitism $popSize $tSize $probCrossOver $probMutate) $g $maxGen))
+      (let $_ (runGeneration $grammarSpace $ubSpace $dataSpace $resultMap $g $elitism $popSize $tSize $probCrossOver $probMutate)
+              (($grammarSpace $ubSpace $dataSpace $resultMap $elitism $popSize $tSize $probCrossOver $probMutate) (+ $g 1) $maxGen)))
+
+;; Function to update the index of a single population element.
+(= (updatePopIndex (($nt $g $i) $popValue) $newI) (($nt $g $newI) $popValue))
+
+(= (runGeneration $grammarSpace $ubSpace $dataSpace $resultMap $g $elitism $popSize $tSize $probCrossOver $probMutate)
     (let*
         (
           ($startNt start)
           (() (println! (Running Generation: $g)))
-          ($population (collapse (get-atoms &resultMap)))
+          ($population (collapse (get-atoms $resultMap)))
 
           (() (println! (Initial Population: $population)))
-          ;; ($data (collapse (get-atoms &data)))
+          ($data (collapse (get-atoms $dataSpace)))
 
-          ($scoredPop (evaluate $population penalizedFitness $data 0.1 &resultMap $grammarSpace $startNt))
+          ($scoredPop (evaluate $population penalizedFitness $data 0.1 $resultMap $grammarSpace $startNt))
           (() (println! (ScoredPop: $scoredPop)))
 
           ($sortedPop (sort $scoredPop $popSize comparePop))
-          (($elite $restPop $indexes $eIndex) (collapse (superpose (
+          (($elite $indexes $eIndex) (collapse (superpose (
                                                     (take $elitism $sortedPop)
-                                                    (drop $elitism $sortedPop)
                                                     (gen (- $popSize 1) ($elitism))
                                                     (gen (- $elitism 1) (0))
                                                   ))))
 
+          (() (println! ""))
           (() (println! (SortedPop: $sortedPop)))
           (() (println! (Elits: $elite RestPop: $restPop)))
           (() (println! (Indexes: $indexes ElitIndex: $eIndex)))
+          (() (println! ""))
 
           ($__' (collapse
                     (let*
                         (
                           ((($startNt $g $p) ($codon $phenotype $score)) (superpose $scoredPop))
-                          ((($nt $g $p) $oldValue) (get-atoms &resultMap))
+                          ((($nt $g $p) $oldValue) (superpose $population))
+                          ((($nt $g $p) $iValue) (get-atoms $resultMap))
+
+                          (() (println! (Updating Atom: (($nt $g $p) $oldValue) With (($nt $g $p) ($codon $phenotype $score)))))
                         )
                         (unify $oldValue ($oldCodon $oldPheno $oldScore)
-                                (update-atom &resultMap (($nt $g $p) $oldValue) (($nt $g $p) ($oldCodon $oldPheno $score)))
-                                (update-atom &resultMap (($nt $g $p) $oldValue) (($nt $g $p) ($oldValue $phenotype $score))))
+                                (if (isExpression $oldCodon) (update-atom $resultMap (($nt $g $p) $iValue) (($nt $g $p) ($oldCodon $oldPheno $score))))
+                                (update-atom $resultMap (($nt $g $p) $iValue) (($nt $g $p) ($oldValue $phenotype $score))))
                     )))
 
           ($updatedScore (collapse (let $score (subtraction (match $resultMap (($nt $g $p) ($geno $pheno $score)) (($nt $g $p) ($geno $pheno $score))) (superpose $scoredPop)))))
           (() (println! (Space updated for Score: (~= $updatedScore ()))))
 
-          ($newPop (collapse (let $i (superpose $indexes) (getNewPop $restPop $startNt $g $popSize $tSize $probCrossOver $probMutate $grammarSpace $resultMap $i))))
-          (() (println! (NewPop: $newPop)))
+          ($totalScoredPop (collapse (get-atoms $resultMap)))
+          ($elitIndices (collapse (let (($nt $generation $i) $value) (superpose $elite) $i)))
+          ($totalElits (collapse (let $i (superpose $elitIndices) (match $resultMap (($nt $generation $i) $value) (($nt $generation $i) $value)))))
 
-          ;; ($elitPop (collapse (let $i (superpose $eIndex) (updatePopIndex $elitPop $i))))
           ($elitPop (zipWith updatePopIndex $elite $eIndex))
+          ($totalUpdatedElits (collapse (let*
+                                            (
+                                              ((($startNt $g $p) ($c $ph $sc)) (superpose $elitPop))
+                                              ((($nt $g $p') ($c' $ph $sc)) (superpose $totalElits))
+                                              (() (println! (Updating ($nt $g $p')'s index with $p)))
+                                            )
+                                            (($nt $g $p) ($c' $ph $sc)))))
           (() (println! (ElitPop: $elitPop)))
 
-          ($totalPop (++ $elitPop $newPop))
+          (() (println! (TotalElits: $totalElits with Indexes: $elitIndices)))
+          (() (println! (TotalUpdatedElits: $totalUpdatedElits)))
+          (() (println! ""))
+
+
+          ;; ($newPop (collapse (subtraction
+          ;;                       (let $i (superpose $indexes) (getNewPop $totalScoredPop $startNt $g $popSize $tSize $probCrossOver $probMutate $grammarSpace $ubSpace $resultMap $i))
+          ;;                       (superpose $totalElits))))
+          ($newPop (collapse (let*
+                                (
+                                  ($i (superpose $indexes))
+                                  ($newP (getNewPop $totalScoredPop $startNt $g $popSize $tSize $probCrossOver $probMutate $grammarSpace $ubSpace $resultMap $i))
+                                  (() (println! (NewP After GetNewPop: $newP)))
+                                  ($flatP (superpose $newP))
+                                )
+                                $flatP)))
+
+          ;; ($newPop' (collapse (subtraction (superpose $newPop) (superpose $totalElits)))) ;; INFO: Not necessary
+
+          (() (println! ""))
+          (() (println! (NewPop: $newPop)))
+
+          ($totalPop (collapse (union (superpose $totalUpdatedElits) (superpose $newPop))))
           (() (println! (TotalPop: $totalPop)))
 
+
+          (() (println! ""))
           ($nextG (+ $g 1))
+
+          (() (println! ""))
           ($__'' (collapse
-                    (let*
-                        (
-                          ((($nt $g $p) $newValue) (superpose $totalPop))
-                          ((($nt $g $p') $oldValue) (get-atoms &resultMap))
-                          (() (remove-atom &resultMap (($nt $g $p') $oldValue)))
-                        )
-                        (add-atom &resultMap (($nt $nextG $p) $newValue))
-                    )))
+                    (let $spaceContent (get-atoms $resultMap)
+                         (remove-atom $resultMap $spaceContent))))
+
+          ($__''' (collapse
+                    (let (($nt $gen $p) $newValue) (superpose $totalPop)
+                         (add-atom $resultMap (($nt $nextG $p) $newValue)))))
 
           ($updated (~= () (collapse (match $resultMap (($nt ($nextG $p) $value) (($nt $g $p) ($geno $pheno $score))) (superpose $scoredPop)))))
           (() (println! (Space updated: (~= $updated ()))))
@@ -979,48 +1101,87 @@
 
 
 ;; Generate a single element of the new population.
-(= (getNewPop $pop $startNt $g $popSize $tSize $probCrossOver $probMutate $grammarSpace $resultSpace $currLen)
+(= (getNewPop $pop $startNt $g $popSize $tSize $probCrossOver $probMutate $grammarSpace $ubSpace $resultSpace $currLen)
+   (trace! (Running GetNewPop)
     (if (< ((py-atom random.random)) $probCrossOver)
-        (let*
-            (
-              (() (println! (Crossing over with $probCrossOver)))
-              (
-               (
-                 (($nt1 $g1 $p1) ($c1 $py1 $s1))
-                 (($nt2 $g2 $p2) ($c2 $py2 $s2)))
-               (collapse (superpose
-                           (
-                              (tournament $pop $startNt $g $popSize $tSize)
-                              (tournament $pop $startNt $g $popSize $tSize)))))
+            (let*
+                (
+                  (() (println! ""))
+                  (() (println! (Crossing over with $probCrossOver)))
+                  (() (println! (Pop: $pop Popsize: $popSize)))
+                  (
+                  (
+                    (($nt1 $g1 $p1) ($c1 $py1 $s1))
+                    (($nt2 $g2 $p2) ($c2 $py2 $s2)))
+                  (collapse (superpose
+                              (
+                                  (tournament $pop $startNt $g $popSize $tSize)
+                                  (tournament $pop $startNt $g $popSize $tSize)))))
 
-              ((($oc1 $nts) ($oc2 $nts))
-                (collapse (superpose
-                            (
-                              (getOrderedGenoType $grammarSpace $resultSpace $startNt () () () ($g1 $p1))
-                              (getOrderedGenoType $grammarSpace $resultSpace $startNt () () () ($g2 $p2))))))
+                  (() (println! (Finished Tournament selection)))
+                  (() (println! (Selected 1: (($nt1 $g1 $p1) ($c1 $py1 $s1)))))
+                  (() (println! (Selected 2: (($nt2 $g2 $p2) ($c2 $py2 $s2)))))
 
-              ($mask (genMask (sum (collapse (let $_ (getNts $grammarSpace) 1)))))
-              (($c1 $c2) (recombine $oc1 $oc2 $mask))
-              ($c (if (> ((py-atom random.random)) 0.5) $c1 $c2)) ;; Pick randomly one of the parents to be included in the next population.
+                  ((($oc1 $nts) ($oc2 $nts))
+                    (collapse (superpose
+                                (
+                                  (getOrderedGenoType $grammarSpace $resultSpace $startNt () () () ($g1 $p1))
+                                  (getOrderedGenoType $grammarSpace $resultSpace $startNt () () () ($g2 $p2))))))
 
-              ($c' (if (< ((py-atom random.random)) $probMutate) (mutate $c $grammarSpace) $c))
-              ($ntCodonPair (zip $nts $c'))
-              ($newPop (collapse (let ($nt $codon) (superpose $ntCodonPair) (($nt $g $currLen) $codon))))
-            )
-            $newPop)
-        (let (($nt1 $g1 $p) ($c $py $s)) (tournament $pop $startNt $g $popSize $tSize)
-            (if (< ((py-atom random.random)) $probMutate)
-                (let*
-                    (
-                      (() (println! (Mutating with $probMutate)))
-                      ;; INFO: For some reason I don't know, the function runs faster when called in superpose.
-                      (($oc $nts) (superpose ((getOrderedGenoType $grammarSpace $resultSpace $startNt () () () ($g1 $p)))))
-                      ($mc (mutate $oc $grammarSpace))
-                      ($ntCodonPair (zip $nts $mc))
-                      ($newPop (collapse (let ($nt1' $codon) (superpose $ntCodonPair) (($nt1' $g1 $currLen) $codon))))
-                    )
-                    $newPop)
-                (($nt1 $g1 $p) ($c $py $s))))))
+                  (() (println! (Finished ordering genotype)))
+
+                  ($mask (genMask (sum (collapse (let $_ (getNts $grammarSpace) 1)))))
+
+                  (() (println! (Recombination input: $oc1 $oc2 Mask: $mask)))
+
+                  (($ch1 $ch2) (recombine $oc1 $oc2 $mask))
+
+                  (() (println! (Recombination result: $ch1 $ch2)))
+
+                  ($c (if (> ((py-atom random.random)) 0.5) $ch1 $ch2)) ;; Pick randomly one of the parents to be included in the next population.
+
+                  (() (println! (Picked child: $c)))
+
+                  ($c' (if (< ((py-atom random.random)) $probMutate) (mutate $c $nts $grammarSpace $ubSpace) $c))
+
+                  (() (println! (Mutated child: $c')))
+
+                  ($ntCodonPair (zip $nts $c'))
+                  ($newPop (collapse (let ($nt $codon) (superpose $ntCodonPair) (($nt $g $currLen) $codon))))
+                  (() (println! (NewPop in gen new population: $newPop)))
+                )
+                $newPop)
+            (let (($nt1 $g1 $p) ($c $py $s)) (tournament $pop $startNt $g $popSize $tSize)
+                (if (< ((py-atom random.random)) $probMutate)
+                    (let*
+                        (
+                          (() (println! ""))
+                          (() (println! (Mutating with $probMutate)))
+                          (() (println! (Pop: $pop Popsize: $popSize)))
+                          ;; INFO: For some reason I don't know, the function runs faster when called in superpose.
+                          (($oc $nts) (superpose ((getOrderedGenoType $grammarSpace $resultSpace $startNt () () () ($g1 $p)))))
+
+                          (() (println! (Finished ordering genotype)))
+
+                          ($mc (mutate $oc $nts $grammarSpace $ubSpace))
+
+                          (() (println! (Mutated $oc to $mc)))
+
+                          ($ntCodonPair (zip $nts $mc))
+                          ($newPop (collapse (let ($nt1' $codon) (superpose $ntCodonPair) (($nt1' $g1 $currLen) $codon))))
+
+                          (() (println! (New pop in gen new population: $newPop)))
+                        )
+                        $newPop)
+                    (trace! (Returning the population: ((($nt1 $g1 $p) ($c $py $s))) with no operation)
+                            (collapse (let (($nt $g1 $p) ($c' $py $s)) (superpose $pop) (($nt $g1 $currLen) ($c' $py $s))))
+                            ))))
+   )
+)
+
+;; Params: (setup $grammarSpace $dataSpace $refSpace $countSpace $refCountSpace $resultMap $elitism $popSize $tSize $probCrossOver $probMutate $maxGen $maxDepth)
+!(setup &grammar &data &refSpace &countSpace &refCountSpace &ubSpace &resultMap 1 3 2 0.7 0.5 1 2)
+!(println! (get-atoms &resultMap))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
