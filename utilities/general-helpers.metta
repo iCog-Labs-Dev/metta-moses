@@ -176,6 +176,9 @@
 (: isSymbol (-> Expression Bool))
 (= (isSymbol $expr) (== (get-metatype $expr) Symbol))
 
+(: isExpression (-> Atom Bool))
+(= (isExpression $expr) (== (get-metatype $expr) Expression))
+
 (: isUnit (-> Expression Bool))
 (= (isUnit $expr) (== $expr ()))
 
