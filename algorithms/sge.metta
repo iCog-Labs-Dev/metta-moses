@@ -926,10 +926,10 @@ mpare
 ;; Truth table for AND
 !(bind! &data (new-space))
 !(add-reduct &data (superpose (
-       (True (A True) (B True))
-       (False (A False) (B True))
-       (False (A True) (B False))
-       (False (A False) (B False)))))
+       (True (X True) (Y True))
+       (False (X False) (Y True))
+       (False (X True) (Y False))
+       (False (X False) (Y False)))))
 
 !(bind! &refSpace (new-space))
 !(bind! &countSpace (new-space))
