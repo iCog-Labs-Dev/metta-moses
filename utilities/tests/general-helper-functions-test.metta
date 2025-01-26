@@ -118,3 +118,9 @@
 !(addListToSpace &newSpace (9 10))
 !(assertEqual (collapse (get-atoms &newSpace)) (1 2 3 4 5 6 7 8 9 10))
 
+;; Test for checking the all function.
+!(assertEqual (all (True True True True)) True)
+!(assertEqual (all (True True False True)) False)
+!(assertEqual (all (True True True False)) False)
+
+
