@@ -61,5 +61,17 @@
         $weightedChildren
     )
 )
+;;This function updates weights using increment logic 
+(= (updateWeight ($lhs $rhs $weight) $learnRate $cardinality inc)
+    (let $updatedWeight (* $weight (pow (+ 1 $learnRate) $cardinality)) ($lhs $rhs $updatedWeight))
+)
+;; This function updates weights using decrement logic
+(= (updateWeight ($lhs $rhs $weight) $learnRate $cardinality dec)
+    (let $updatedWeight (/ $weight (pow (- 1 $learnRate) $cardinality)) ($lhs $rhs $updatedWeight))
+)
+;; The following function extracts the parent from the given tuple.
+(= (extractParent ($lhs $rhs)) $lhs)
+(= (extractParent ($lhs $rhs $weight)) $lhs)
+
 
 
