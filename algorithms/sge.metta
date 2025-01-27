@@ -17,6 +17,7 @@ mpare
 ;; <bop>   -> AND | OR
 ;; <uop>   -> NOT
 
+! (bind! rnd (py-atom numpy.random))
 
 !(bind! &grammar (new-space))
 !(bind! &maxDepth 3)
@@ -34,16 +35,19 @@ mpare
 !(add-atom &grammar (term X 0))
 !(add-atom &grammar (term Y 1))
 
-;; !(add-atom &grammar (start (expr op expr) 0))
-;; !(add-atom &grammar (start expr 1))
-;; !(add-atom &grammar (expr (term op term) 0))
-;; !(add-atom &grammar (expr ([ term op term ]) 1))
-;; !(add-atom &grammar (term X 0))
-;; !(add-atom &grammar (term 0.5 1))
-;; !(add-atom &grammar (op plus 0))
-;; !(add-atom &grammar (op minus 1))
-;; !(add-atom &grammar (op mult 2))
-;; !(add-atom &grammar (op div 3))
+;; Truth table for AND
+!(bind! &data (new-space))
+!(add-reduct &data (superpose (
+       (True (X True) (Y True))
+       (False (X False) (Y True))
+       (False (X True) (Y False))
+       (False (X False) (Y False)))))
+
+!(bind! &refSpace (new-space))
+!(bind! &countSpace (new-space))
+!(bind! &refCountSpace (new-space))
+!(bind! &ubSpace (new-space))
+!(bind! &resultMap (new-space))
 
 (= (getNts $grammarSpace) (unique (match $grammarSpace ($lhs $rhs $i) $lhs)))
 
@@ -557,22 +561,20 @@ mpare
 ;; Sums up all the maximum references of a non-terminal from each production rule.
 ;; The function maxRefPerProd can return more than one value corresponding to each
 ;;    production rule's maximum reference. There for this functions sums them up.
+;; An upperbound is the maximum length of a codon that is needed to express all possible derivations leading to the non terminal.
 ;;
 ;; The arguments are:
 ;;
 ;; $referenceSpace: The space to store non-terminal references.
-;; $refCountSpace: The space to store the count of non-terminal references.
+;;    This corresponds to which nonterminal is referenced by which.
+;; $refCountSpace: The space to store the cound of how many times 
+;;    agiven non terminal is referenced by another.
 ;; $nt: The non-terminal for which the upper bounds are to be calculated.
 ;;
 ;; Returns:
 ;; - The non-terminal and it's upperBound in a tuple.
 (= (upperBounds $referenceSpace $refCountSpace $nt) ($nt (sum (collapse (maxRefPerProd $referenceSpace $refCountSpace $nt)))))
 
-;; !(upperBounds &ntReference &countReference (superpose (term expr expr_0 bop uop)))
-
-;; !(get-atoms &ntReference)
-;; !(get-atoms &ntCount)
-;; !(get-atoms &countReference)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -586,10 +588,27 @@ mpare
 
 
 ;; Return count of possible derivation options for a given non terminal.
+;;
+;; The arguments are: 
+;;
+;; $nt: The non-terminal whose possible derivations will be counted
+;; $grammarSpace: The space containing the grammar rules.
+;;
+;; Returns:
+;; - The number of possible derivations.
 (= (calculateCN $nt $grammarSpace)
    (sum (collapse (match $grammarSpace ($nt $rhs $i) 1))))
 
 ;; Index production rules of a non terminal properly.
+;; The production rules should have a certain kind of ordering which will be inforced by this function.
+;;
+;;The argumetns are:
+;;
+;; $nt: The non-terminal whose production rules will be indexed,
+;; $grammarSpace: The space containing the grammar rules.
+;;
+;; Returns:
+;; - No usefull result except unit / ().
 (= (indexRules $nt $grammarSpace)
    (let*
       (
@@ -611,7 +630,15 @@ mpare
       )
       ()))
 
-;; Generate a random genotype given the required informtion.
+;; Generate a random codon given the required informtion.
+;; A codon is a sequence of genes that represent a single non terminal.
+;;
+;; The arguments are:
+;; $n: The length of the codon.
+;; $ub: The maximum possible value of a gene.
+;;
+;; Result:
+;; - The function returns a list of numbers
 (= (genCodon $n $ub)
    (if (== $n 1)
        (((py-atom random.randint) 0 $ub)) ;; TODO: Change with random-int
@@ -621,26 +648,40 @@ mpare
                ($nextRandoms (genCodon (- $n 1) $ub)))
             (cons-atom $firstRandom $nextRandoms))))
 
-;; Generate a random mask given a size.
+;; Generate a random mask given its target length.
+;; A mask is a list of 1s and 0s.
+;; The mask will be used in recombination of two parents.
+;; Bit 0 means the offspring will take genotype material from first parent
+;; Bit 1 means the offspring will take genotype material from the other parent
+;;
+;; The arguements are:
+;; $n: The length of the mask.
+;;
+;; Result:
+;; - A list of 1s and 0s
+;;
+;; Example:
+;;    (genMask 2) => (1 0)
+;;    (genMask 3) => (0 1 0)
 (= (genMask $n) (genCodon $n 1))
 
 
-
-;; recombine creates crossbreeds by taking genetic material from two parents based on binary mask values
-;; How it works
-;;            Parameters:-  1. $parent1, $parent2 genotype of two parents given as two separate tuples of tuples
-;;                          E.g., ((0) (1 0))((1) (1 1)) -- two tuple consisting of genotypes of two parents each containing two gene sequences
-;;                                ((0) (1 0) (1 2 0)) ((1) (1 1) (1 1 2)) -- 3 gene sequences for each parent ...
-;;                          2. $mask, binary mask of same length as the genotype list, e.g., for the above genotypes possible masks are 
-;;                          (0 1) and (0 1 1) repectively. 
-;;                          bit 0 -- means the offspring will take genotype material from first parent
-;;                          bit 1 -- means the offspring will take genotype material from the other parent
-;; Examples
-;;                          ! (recombine ((0) (1 0)) ((1) (1 1)) (0 1)) --> (((0) (1 1)) ((1) (1 0))) -- genes have been swapped at index where the binary mask 1
-;;                          ! (recombine ((0) (1 0)) ((1) (1 1)) (1 0)) --> (((1) (1 0)) ((0) (1 1)))
-;;                          ! (recombine ((0) (1 0) (1 2 0)) ((1) (1 1) (1 1 2)) (0 1 1)) --> (((0) (1 1) (1 1 2)) ((1) (1 0) (1 2 0)))
-;;                          ! (recombine ((0) (1 0) (1 2 0) (1 1 0 0)) ((1) (1 1) (1 1 2) (0 0 1 1)) (0 1 1 0)) --> (((0) (1 1) (1 1 2) (1 1 0 0)) ((1) (1 0) (1 2 0) (0 0 1 1)))
-
+;; Recombine creates crossbreeds by taking genetic material from two parents based on binary mask values
+;;
+;; The arguments are:
+;; $parent1, $parent2 genotype of two parents given as two separate tuples of tuples
+;;                          E.g. ((0) (1 0)) ((1) (1 1))
+;;                               ((0) (1 0) (1 2 0)) ((1) (1 1) (1 1 2)) -- 3 gene sequences for each parent
+;; $mask, binary mask of same length as the genotype list, e.g. for the above genotypes possible masks are
+;;                          (0 1) and (0 1 1) repectively.
+;;                          - Bit 0 means the offspring will take genotype material from first parent.
+;;                          - Bit 1 means the offspring will take genotype material from the other parent.
+;;
+;; Returns:
+;; - Returns two childs from the recombination of the two parents in a tuple.
+;; Examples:
+;;    (recombine ((0) (1 0)) ((1) (1 1)) (0 1)) => (((0) (1 1)) ((1) (1 0))) -- genes have been swapped at index where the binary mask is 1
+;;    (recombine ((0) (1 0)) ((1) (1 1)) (1 0)) => (((1) (1 0)) ((0) (1 1)))
 (= (recombine $parent1 $parent2 $mask)
     (if (== $mask ())
         ($parent1 $parent2)
@@ -657,37 +698,25 @@ mpare
                 ((cons-atom $gene2 $c) (cons-atom $gene1 $d))
                 ))))
 
-;; Mutation agent
-;;    Parameteres:-
-;;                   1. $genotype -- tuple of tuples each nested tuple containing geneotype information of each non-terminal
-;;                   2. $grammarSpace -- metta space where grammar expansion information has been added
-
-;; Explanation:-     the mutation operation is implemented as follows
-;;                   A non-terminal is picked randomly from the ntSet. 
-;;                   The index used to pick the gene sequence of the non-terminal in genotype tuple
-;;                   A gene is selected from this particular gene sequence randomly for mutation 
-;;                   The value of the gene is replaced by new gene choosen from the range [0, cN) of that particular non-terminal
-;;                   cN represents the number of expansion options of the particular non-terminal
-;;                   This implementation doesnt guarantee generation of new genotype material, the mutation rely on pure chance
-;;                   and there are two ways in which we could end up with the same genotype material as the one we started with.
-;;                   1. If the picked non-terminal's number of expansion options is exaclty one(1), the gene value is 0 and there 
-;;                   is no room for generation of new gene material
-;;                   2. In the case where the choosen non-terminal has more than one expansion options(cN ≥ 2), the random operator may
-;;                   end up picking the same gene in that range as the old one.
-;; Examples
-;;                  ! (mutate ((0) (1 0 2) (1 1) (0) (0 1)) &grammar)
-;;                  -- run 1 -- ((0) (2 0 2) (1 1) (0) (0 1))
-;;                  -- run 2 -- ((0) (1 0 2) (1 1) (0) (0 1))
-;;                  -- run 3 -- ((0) (1 0 2) (1 0) (0) (0 1))
-;;                  -- run 4 -- ((0) (1 0 2) (1 1) (0) (0 1))
-;;                  -- run 5 -- ((0) (1 0 2) (0 1) (0) (0 1))
-
-! (bind! rnd (py-atom numpy.random))
-
-;; WARN: This function gets cached it the generated result is the same as previous and will get stuck in infinte loop. To prevent this, we will just pass a random float everytime to prevent this from happening.
-(= (applyRandom ($cN $prevValue $value $rnd)) (let $newValue ((py-dot rnd randint) $cN) (trace! (PrevValue: $prevValue Generated: $newValue) ($cN $prevValue $newValue ((py-atom random.random))))))
-(= (applyNotEqual ($cN $prevValue $value $rnd)) (or (~= $prevValue $value) (<= $cN 1)))
-
+;; A function to randomly mutate a single gene given a genotype.
+;; A non-terminal and it's correspnding codon is randomly picked
+;;    from ntSet and genotype respectively.
+;; A gene is randomly chosen from the selected codon for mutation,
+;;    and its value is replaced by a new gene from the range [0, cN)
+;;    where cN is the number of expansion options.
+;; Mutation may not generate new genotype material and could result
+;;    in the same genotype if the non-terminal has only one expansion option (cN=1) with a gene value of 0.
+;;
+;; The arguments:
+;; $genotype: tuple of tuples each nested tuple(codon) containing gene information of each non-terminal
+;; $grammarSpace: space where grammar production information has been added.
+;;
+;; Returns:
+;; - A genotype of same length and order like the first one except for a possibly changed single gene.
+;;
+;; Examples:
+;;    (mutate ((0) (1 0 2) (1 1) (0) (0 1)) &grammar) => ((0) (2 0 2) (1 1) (0) (0 1))
+;;    (mutate ((0) (1 0 2) (1 1) (0) (0 1)) &grammar) => ((0) (1 0 2) (1 1) (0) (0 1))
 (= (mutate $genotype $nts $grammarSpace $ubSpace)
     (let* (
             ($len (len $nts))
@@ -710,47 +739,57 @@ mpare
         )
         (replaceByIndex $genotype $index $mutatedGeneList)))
 
-!(bind! &expandedGrammar (new-space))
+;; A helper function that is used to make the input parameters of
+;;    mutate function and the expected input of the until function compatible.
+;; WARN: This function gets cached it the generated result is the same as previous and will get stuck in infinte loop. To prevent this, we will just pass a random float everytime to prevent this from happening.
+(= (applyRandom ($cN $prevValue $value $rnd)) (let $newValue ((py-dot rnd randint) $cN) (trace! (PrevValue: $prevValue Generated: $newValue) ($cN $prevValue $newValue ((py-atom random.random))))))
 
-!(add-atom &expandedGrammar (start expr 0))
-!(add-atom &expandedGrammar (expr (bop expr_0 expr_0) 0))
-!(add-atom &expandedGrammar (expr (uop expr_0) 1))
-!(add-atom &expandedGrammar (expr term 2))
-!(add-atom &expandedGrammar (expr_0 term 0))
-!(add-atom &expandedGrammar (bop AND 0))
-!(add-atom &expandedGrammar (bop OR 1))
-!(add-atom &expandedGrammar (uop NOT 0))
-!(add-atom &expandedGrammar (term X 0))
-!(add-atom &expandedGrammar (term Y 1))
 
-!(bind! &resultSpace (new-space))
+;; A helper function used as a predicate in the until function.
+(= (applyNotEqual ($cN $prevValue $value $rnd)) (or (~= $prevValue $value) (<= $cN 1)))
 
-;; Generate genotypes.
+;; Generate random genotype given the required spaces and unique key of the individual.
+;; A unique key is just the generation number the index of the individual.
+;; A genotype is just a collection of codons correpsonding to each of the non terminals.
+;;
+;; The arguments are:
+;; $grammarSpace: The space where all the production rules of the grammar is stored.
+;; $referenceSpace: The space to store non-terminal references.
+;;    This corresponds to which nonterminal is referenced by which.
+;; $refCountSpace: The space to store the cound of how many times
+;;    agiven non terminal is referenced by another.
+;; $ubSpace: The space where the upperbounds of each non terminal is stored.
+;; $resultMap: The space where individual elements of the populations are stored.
+;; $g: The current generation number.
+;; $p: A unique index to be assigned to the individual.
 (= (genGenotype $grammarSpace $referenceSpace $refCountSpace $ubSpace $resultMap ($g $p))
    (let*
         (
-          ;; (() (println! (Generating Population with ID: ($g $p))))
-          (() (println! ""))
           ($_
               (collapse
                   (let*
                       (
                         (($nt $ub $n) (match $ubSpace ($nt $ub $n) ($nt $ub $n)))
-                        ;; (() (println! (Processing Nt: $nt Ub: $ub)))
-
                         ($cN (if (== $n 0) (calculateCN $nt $grammarSpace) $n))
 
                         (() (update-atom $ubSpace ($nt $ub $n) ($nt $ub $cN))) ;; Caching the cN which will be needed later.
                         (($nt $codon) ($nt (genCodon $ub (- $cN 1))))
-
-                        (() (println! (Adding (($nt $g $p) $codon))))
                       )
                       (add-atom $resultMap (($nt $g $p) $codon))
                   )))
-          (() (println! ""))
         )
         ()))
 
+;; A function that returns the production rules of a given non terminal in the order of their index.
+;; This will be used when crossover and mutation of an individual is needed.
+;;
+;; The arguments are:
+;; $gramarSpace: The space containing the production rules of the grammar.
+;; $nt: The non terminal whose production rules are to be ordered.
+;; $len: The total number of production rules of the non terminal.
+;;
+;; Result:
+;; - The result will be a tuple of ordered left hand sides (Lhs) of the non terminal.
 (= (getOrderedLhs $grammarSpace $nt $len)
    (if (== $len 0)
        ()
@@ -762,18 +801,28 @@ mpare
           )
           (appendAtom $h $t))))
 
-;; Steps:
-;;    1. Start traversing the grammar from the start symbol.
-;;    2. Get ordered LHS of the non termianl.
-;;    3. Flatten the LHS to be in a single tuple.
-;;    4. Append the flattened LHSs to the previous list of LHSs.
-;;    5. decons the LHSs to get the head and the rest of the LHSs.
-;;    6. If:  the head is member of the visited list of NTs, do nothing.
-;;       Else: get codon of the NT and store it in the end of the accumulator.
-;;             add the NT to the visited list.
-;;             get the LHSs of the head.
-;;    7. If: the tail is empty, return the acc.
-;;       Else: Continue recursing.
+;; A function to retrieve the gentotype of an individual in a predifined order.
+;; The individual is represented in the $resultSpace with in a key value
+;;    manner without any order. However, this order will be essential when
+;;    crossover and mutations are needed.
+;; This function will traverse the grammar space starting from the start symbol
+;;    until it finishes visiting all the non terminals of the grammarspace while
+;;    at the same time retrieving the corresponding codons from the $resultSpace.
+;;
+;; The arguments are:
+;; $grammarSpace: The space containing the production rules of the grammar.
+;; $resultSpace: The space containing all the population key value pairs.
+;; $nt: The starting non terminal
+;; $visited: A list containing the visited non terminals.
+;; $lhss: A list containing ordered non terminals from which the next non
+;;    terminal will be selected.
+;; $acc: A list containing the ordered codons of the individual.
+;; $g: The current generation number.
+;; $p: The unique index of the individual in the population.
+;;
+;; Result:
+;; - The function returns a tuple of the codon and it's corresponding 
+;;     non terminal order respectively in a tuple.
 (= (getOrderedGenoType $grammarSpace $resultSpace $nt $visited $lhss $acc ($g $p))
    (case ((isMember $nt $visited) (isUnit $lhss) (isMember $nt (collapse (getNts $grammarSpace))))
       (
@@ -783,13 +832,9 @@ mpare
         (($_ $__ True)
             (let*
               (
-                ($codon (unify $resultSpace (($nt $g $p) ($codon $ph $s)) $codon (match $resultSpace (($nt $g $p) $codon) $codon))) ;; FIX: Make sure to consider triplets of numbers here.
+                ($codon (unify $resultSpace (($nt $g $p) ($codon $ph $s)) $codon (match $resultSpace (($nt $g $p) $codon) $codon)))
                 ($visited' (cons-atom $nt $visited))
                 ($acc' (cons-atom $codon $acc))
-
-                (() (println! (NT: $nt)))
-                (() (println! (Codon: $codon)))
-
 
                 ($len (sum (collapse (match $grammarSpace ($nt $rhs $i) 1))))
                 ($oLhs (getOrderedLhs $grammarSpace $nt $len))
@@ -797,22 +842,52 @@ mpare
                 ($lhss' (++ $lhss $flatLhs))
 
                 (($h $t) (decons $lhss'))
-
-                ;; (() (println! (Updated Lhs: $lhss')))
-                ;; (() (println! (OldLhs: $oLhs)))
               )
               (if (=== $visited' (collapse (getNts $grammarSpace)))
                   ($acc' $visited')
                   (getOrderedGenoType $grammarSpace $resultSpace $h $visited' $t $acc' ($g $p)))))
-      )))
+      ))
+)
 
+;; A function to check if a given expression is a production rule or not.
+;;
+;; The arguments are:
+;; $expr: The expression to be checked.
+;;
+;; Result:
+;; - Returns boolean.
+;;
+;; Example:
+;;     Grammar: S    -> Expr
+;;              (start expr)
+;;              (expr ((expr 0) Op (expr 0)))
+;;              (expr term)
+;;              ((expr 0) term)
+;;              (Op +)
+;;              (Op *)
+;;     For the grammar representation above:
+;;             - The expression (expr 0) is a non terminal
+;;             - The expression ((expr 0) Op (expr 0)) is a sub rule.
 (= (isSubRule $expr)
     (case $expr
         (
           (($nt $d) (~= (get-type $d) Number))
           ($else (not (isSymbol $expr))))))
 
-;; Generate phenotypes.
+;; A function that takes the resultMap space where genotypes are
+;;    stored and generate a phenotype.
+;; A phenotype is a boolean expression represented by a given genotype.
+;;
+;; The arguments are:
+;; $resultMap: The space where individual elements of the populations are stored.
+;; $grammarSpace: The space containing the production rules of the grammar.
+;; $acc: An accumulator to store the boolean expressions generted so far.
+;; $expr: The list of production rules to visit in order from left to right.
+;; $g: The generation number of the individual.
+;; $p: The unique index of the individual in the population.
+;;
+;; Result:
+;; - A boolean expression.
 (= (genPhenotype $resultMap $grammarSpace $acc $expr ($g $p))
    (if (isUnit $expr)
        $acc
@@ -825,13 +900,11 @@ mpare
                                           (if (isExpression $i') $i' $i) ;; If $i' isn't an expression, then the unify is just matching over numbers of the codon.
                                           $i
                                   )))
-                      ;; (() (println! (IS: $is)))
                       (($x $xs) (decons $is))
 
                       ($nextProd (match $grammarSpace ($currentNt $rhs $x) $rhs))
                       ($nextNt (if (isSymbol $nextProd) $nextProd (car-atom $nextProd)))
-                      ;; (() (println! (CurrentNT: $currentNt NextNt: $nextNt Acc: $acc)))
-                      (() (update-atom $resultMap (($currentNt $g $p) $is) (($currentNt $g $p) $xs))) ;; FIX: It also doesn't consider the scored populations. But I don't this this will be a problem, since we don't really care about the content of the space since it will be overridden with the correct value when the space is updated after the socring.
+                      (() (update-atom $resultMap (($currentNt $g $p) $is) (($currentNt $g $p) $xs)))
                     )
                     (if (isMember $nextNt (collapse (getNts $grammarSpace)))
                         (genPhenotype $resultMap $grammarSpace $acc (cons-atom $nextProd $nextExpr) ($g $p))
@@ -849,21 +922,6 @@ mpare
    )
 )
 
-;; !(expandGrammar 2 &grammar)
-;; !(println! (Finished expanding Grammar))
-;;
-;; !(until isUnit ((curry applyCalcMaxNtReference) (&grammar &ntReference &ntCount &countReference)) (collapse (unique (match &grammar ($nt $rhs $i) $nt))))
-;; !(println! (Finished Counting Max Reference))
-;;
-;; !(upperBounds &ntReference &countReference (getNts &grammar))
-;; !(println! (Finished Calculating Upperbounds))
-;;
-;; !(genGenotype &grammar &ntReference &countReference &ubSpace &resultSpace (1 1))
-;; !(println! (Finished Generating Genotypes))
-;; ;; !(getOrderedGenoType &expandedGrammar &resultSpace start () () () (1 1))
-;; ;; !(genPhenotype &resultSpace &expandedGrammar () (start) (1 1))
-;; !(println! (get-atoms &resultSpace))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -873,7 +931,26 @@ mpare
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Initialize populations given size.
+
+;; A function to generate the initial population for the algorithm.
+;; The elements are going to be stored in a space as key and value pairs.
+;; Key is going to be a tuple of non terminal, generation number and index.
+;; Value is going to be the genotype only but could contain the phoentype 
+;;    and score as the individual is evaluated.
+;;
+;; The arguments are:
+;; $grammarSpace: The space containing the production rules of the grammar.
+;; $refSpace: The space to store non-terminal references.
+;;    This corresponds to which nonterminal is referenced by which.
+;; $refCountSpace: The space to store the cound of how many times 
+;;    agiven non terminal is referenced by another.
+;; $resultMap: The space where individual elements of the populations are stored.
+;; $ubSpace: The space where the upperbounds of each non terminal is stored.
+;; $g: The initial generation number
+;; $p: The size the population.
+;;
+;; Result:
+;; - Returns no usefull result. But the result of the function is stored in the $resultMap space.
 (= (initPopulation $grammarSpace $refSpace $refCountSpace $ubSpace $resultMap ($g $p))
     (collapse
       (let*
@@ -884,15 +961,32 @@ mpare
         )
         ())))
 
-(= (dummyScore $phenotype $data $lr) ((py-atom random.randint) 0 100))
-
-;; Evaluate populations.
+;; A function that gives score to all the unscored individuals in the given populations.
+;; The function does so by using non deterministic evaluation of the individuals.
+;;
+;; The arguments are:
+;; $population: List of individuals to be scored.
+;; $fitnessFunction: Scoring function to be used.
+;; $data: Input data to be used in the scoring function.
+;; $lr: Learning rate for the scoring function.
+;; $resultMap: The space where the population is stored.
+;;    Needed by other functions called by it.
+;; $grammarSpace: The space containing the production rules of the grammar.
+;; $startNt: The start symbol, or non terminal.
+;;
+;; Result:
+;; - Returns the updated value of populations with their corresponding phenotype and score.
+;;
+;; The returned elements of the population are corresponding only to the entry of the start non terminal.
+;;    This is because the other non terminals of a given individual from the population will have the same
+;;    phenotype and score. This is true because a single individual represents a single boolean expression.
+;;    By limiting the evaluation to the start non terminal symbol, we can avoid unnecessary computation.
 (= (evaluate $population $fitnessFunction $data $lr $resultMap $grammarSpace $startNt)
    (collapse
      (let*
         (
           ((($startNt $g $p) $genotype) (superpose $population))
-          ($isScored (unify $genotype ($genotype' $phenotype $score) True (isExpression $genotype'))) ;; If is not expression, it is just unifying on the number of the codon.
+          ($isScored (unify $genotype ($genotype' $phenotype $score) (isExpression $genotype') False)) ;; If is not expression, it is just unifying on the number of the codon.
         )
         (if $isScored
             (($startNt $g $p) $genotype)
@@ -900,19 +994,31 @@ mpare
                 (
                   ($result (genPhenotype $resultMap $grammarSpace () ($startNt) ($g $p)))
                   ($phenotype (car-atom $result))
-
-                  (() (println! (Generated Phenotype: $phenotype)))
                   ($score ($fitnessFunction $phenotype $data $lr))
-                  (() (println! (Score: $score)))
                 )
                 (($startNt $g $p) ($genotype $phenotype $score)))))))
 
-;; Function to compare population based on fitness
+;; Function to compare population based on fitness.
+;; It will be used as a key while sorting a population.
 (= (comparePop
       ($key1 ($genotype1 $phenotype1 $score1))
       ($key2 ($genotype2 $phenotype2 $score2))) (>= $score1 $score2))
 
-;; Tornament selection of an element from population.
+;; Tournament selection of an element from population.
+;;
+;; The arguments are:
+;; $population: The population to select from.
+;; $startNt: The start symbol of the grammar.
+;; $g: The generation number.
+;; $len: The size of the population.
+;; $size: The number of elements to be selected.
+;;
+;;Returns:
+;;  - A single individual from the population.
+;;
+;; The returned individual of the population is only the entry of the start non terminal.
+;;    This is because the other non terminals of a given individual from the population will have the same
+;;    phenotype and score so selecting this entry will correspond to selecting the whole entry.
 (= (tournament $population $startNt $g $len $size)
    (let*
       (
@@ -923,38 +1029,35 @@ mpare
       (car-atom $sorted)
     ))
 
-;; Truth table for AND
-!(bind! &data (new-space))
-!(add-reduct &data (superpose (
-       (True (X True) (Y True))
-       (False (X False) (Y True))
-       (False (X True) (Y False))
-       (False (X False) (Y False)))))
-
-!(bind! &refSpace (new-space))
-!(bind! &countSpace (new-space))
-!(bind! &refCountSpace (new-space))
-!(bind! &ubSpace (new-space))
-!(bind! &resultMap (new-space))
-
-;;       Steps To follow:
-;;              - Expand grammar based on depth.
-;;              - Calculate non terminal references and maximum number of derivations per rules.
-;;              - Generate N number of initial population.
-;;              - Until G is reached, repeat the following:
-;;                  - Score each population. If solution is found, break.
-;;                  - Select two random parents.
-;;                  - Crossover the two parents:
-;;                      - Randomly generate masking bitstring.
-;;                      - Perform the crossover.
-;;                  - Mutate the offsprings:
-;;                      - Randomly select a position to mutate and generate new value for it.
-;;                  - Mutate the parents.
-;;                  - Include the top two of previous population, the mutated offspings and mutated parents in next generation.
-;;                  - Keep the top K populations for the next generations and replace the rest of the population with new ones.
-;;                  - Repeat.
-;; Perform preprocessing and space and first population initialization.
-(= (setup $grammarSpace $dataSpace $refSpace $countSpace $refCountSpace $ubSpace $resultMap $elitism $popSize $tSize $probCrossOver $probMutate $maxGen $maxDepth)
+;; A function to integrate the whole SGE algorithm.
+;; This function:
+;;    - Expands the grammar based on given depth to remove recursive production rules.
+;;    - Properly indexes of the production rules of each non terminals.
+;;    - Computes the upperBounds of each non terminals and store them in a space.
+;;    - Initializes the first generation of the population.
+;;    - Call the main loop of the evolution algorithm.
+;;
+;; The arguments are:
+;; $grammarSpace: The space containing the production rules of the grammar.
+;; $dataSpace: The space that contains the dataset used for the scoring.
+;; $refSpace: The space used to store the non terminal references.
+;; $countSpace: The space to be used to store the number of times a
+;;    given non terminal is referenced.
+;; $refCountSpace: The space to be used to store the number of times
+;;    a given non terminal is referenced by another non terminal.
+;; $ubSpace: The space to be used to store the upperBounds of each non terminal.
+;; $resultMap: The space to be used to store the population.
+;; $elitism: The number of elite individuals to be kept in each generation.
+;; $popSize: The size of the population.
+;; $tSize: The number of individuals to be considered in the tournament selection.
+;; $probCrossOver: Crossover probability.
+;; $probMutate: Mutation probability.
+;; $maxGen: Maximum number of generations to evolve to.
+;; $maxDepth: Maximum depth to expand the grammar to.
+;;
+;; Returns:
+;; - No usefull result except the update done in the spaces.
+(= (evolve $grammarSpace $dataSpace $refSpace $countSpace $refCountSpace $ubSpace $resultMap $elitism $popSize $tSize $probCrossOver $probMutate $maxGen $maxDepth)
    (let*
       (
         ;; Representation Building: Expanding recursive rules
@@ -987,10 +1090,11 @@ mpare
    )
 )
 
-;; Predicate function to be used in the setup function.
+;; Predicate function to be used in the until function of the evolve function.
 (= (maxGenReached ($constants $nextGen $maxGen)) (>= $nextGen $maxGen))
 
-;; Apply the runGeneration function
+;; Apply the runGeneration function. 
+;; Used to make the function compatible with until function.
 (= (applyRunGeneration (($grammarSpace $ubSpace $dataSpace $resultMap $elitism $popSize $tSize $probCrossOver $probMutate) $g $maxGen))
       (let $_ (runGeneration $grammarSpace $ubSpace $dataSpace $resultMap $g $elitism $popSize $tSize $probCrossOver $probMutate)
               (($grammarSpace $ubSpace $dataSpace $resultMap $elitism $popSize $tSize $probCrossOver $probMutate) (+ $g 1) $maxGen)))
@@ -998,6 +1102,32 @@ mpare
 ;; Function to update the index of a single population element.
 (= (updatePopIndex (($nt $g $i) $popValue) $newI) (($nt $g $newI) $popValue))
 
+;; Function to run the evolution for a single generation.
+;; It performs all the necessary steps for a single evolution:
+;;      - Scores the given populations.
+;;      - Pick the elits from the scored population.
+;;      - Generates new population by crossover and mutation.
+;;      - Indexes the individuals properly.
+;;      - Also make necessary updates.
+;;
+;;The arguments are:
+;;$grammarSpace: The space containing the production rules of the grammar.
+;;$ubSpace: The space where the upperbounds of each non terminal is stored.
+;;$dataSpace: The space that contains the dataset used for the scoring.
+;;$resultMap: The space where individual elements of the populations are stored.
+;;$g: The generation number running.
+;;$elitism: The number of elite individuals to be kept in each generation.
+;;$popSize: The size of the population.
+;;$tSize: The number of individuals to be considered in the tournament selection.
+;;$probCrossOver: Crossover probability.
+;;$probMutate: Mutation probability.
+;;
+;;Returns:
+;;- The new populations generated in a tuple.
+;;
+;;Since most of the functions used here don't perform the necessary updates on their own,
+;;   and some even return parital entries of a given individual, this function performs 
+;;   the necessary updates correctly.
 (= (runGeneration $grammarSpace $ubSpace $dataSpace $resultMap $g $elitism $popSize $tSize $probCrossOver $probMutate)
     (let*
         (
@@ -1024,6 +1154,7 @@ mpare
           (() (println! (Indexes: $indexes ElitIndex: $eIndex)))
           (() (println! ""))
 
+          ;; Updating the individuals with their corresponding phenotype and score of it's individuals.
           ($__' (collapse
                     (let*
                         (
@@ -1038,14 +1169,19 @@ mpare
                                 (update-atom $resultMap (($nt $g $p) $iValue) (($nt $g $p) ($oldValue $phenotype $score))))
                     )))
 
+          ;; For debugging only.
           ($updatedScore (collapse (let $score (subtraction (match $resultMap (($nt $g $p) ($geno $pheno $score)) (($nt $g $p) ($geno $pheno $score))) (superpose $scoredPop)))))
           (() (println! (Space updated for Score: (~= $updatedScore ()))))
 
+          ;; Getting the total entries of individuals.
           ($totalScoredPop (collapse (get-atoms $resultMap)))
           ($elitIndices (collapse (let (($nt $generation $i) $value) (superpose $elite) $i)))
           ($totalElits (collapse (let $i (superpose $elitIndices) (match $resultMap (($nt $generation $i) $value) (($nt $generation $i) $value)))))
 
+          ;; Recalculating indexes of the paritala entries elite population.
           ($elitPop (zipWith updatePopIndex $elite $eIndex))
+
+          ;; Retrieving the rest of the entries corresponding to the indexed elite population.
           ($totalUpdatedElits (collapse (let*
                                             (
                                               ((($startNt $g $p) ($c $ph $sc)) (superpose $elitPop))
@@ -1059,10 +1195,7 @@ mpare
           (() (println! (TotalUpdatedElits: $totalUpdatedElits)))
           (() (println! ""))
 
-
-          ;; ($newPop (collapse (subtraction
-          ;;                       (let $i (superpose $indexes) (getNewPop $totalScoredPop $startNt $g $popSize $tSize $probCrossOver $probMutate $grammarSpace $ubSpace $resultMap $i))
-          ;;                       (superpose $totalElits))))
+          ;; Generating new elements of the population non deterministically for next generation.
           ($newPop (collapse (let*
                                 (
                                   ($i (superpose $indexes))
@@ -1072,7 +1205,6 @@ mpare
                                 )
                                 $flatP)))
 
-          ;; ($newPop' (collapse (subtraction (superpose $newPop) (superpose $totalElits)))) ;; INFO: Not necessary
 
           (() (println! ""))
           (() (println! (NewPop: $newPop)))
@@ -1084,24 +1216,41 @@ mpare
           (() (println! ""))
           ($nextG (+ $g 1))
 
+          ;; Updating the population space with the next set of individuals to consider.
           (() (println! ""))
           ($__'' (collapse
                     (let $spaceContent (get-atoms $resultMap)
                          (remove-atom $resultMap $spaceContent))))
-
           ($__''' (collapse
                     (let (($nt $gen $p) $newValue) (superpose $totalPop)
                          (add-atom $resultMap (($nt $nextG $p) $newValue)))))
 
+          ;; For debugging only.
           ($updated (~= () (collapse (match $resultMap (($nt ($nextG $p) $value) (($nt $g $p) ($geno $pheno $score))) (superpose $scoredPop)))))
           (() (println! (Space updated: (~= $updated ()))))
-
         )
         $totalPop))
 
 
 ;; Generate a single element of the new population.
-(= (getNewPop $pop $startNt $g $popSize $tSize $probCrossOver $probMutate $grammarSpace $ubSpace $resultSpace $currLen)
+;; This function applies tournament selection, crossover 
+;;    and mutation to generate a new individual.
+;;
+;; The arguments are:
+;; $pop: The total population.
+;; $startNt: The start symbol of the grammar.
+;; $g: The generation number.
+;; $tSize: The number of individuals to be considered in the tournament selection.
+;; $probCrossOver: Crossover probability.
+;; $probMutate: Mutation probability.
+;; $gramarSpace: The space containing the production rules of the grammar.
+;; $ubSpace: The space where the upperbounds of each non terminal is stored.
+;; $resultSpace: The space where individual elements of the populations are stored.
+;; $newIndex: The new index for the generated population.
+;;
+;; Result:
+;; - Returns the new individual.
+(= (getNewPop $pop $startNt $g $popSize $tSize $probCrossOver $probMutate $grammarSpace $ubSpace $resultSpace $newIndex)
    (trace! (Running GetNewPop)
     (if (< ((py-atom random.random)) $probCrossOver)
             (let*
@@ -1109,19 +1258,22 @@ mpare
                   (() (println! ""))
                   (() (println! (Crossing over with $probCrossOver)))
                   (() (println! (Pop: $pop Popsize: $popSize)))
+
+                  ;; Selecting parents using tournament selection.
                   (
-                  (
-                    (($nt1 $g1 $p1) ($c1 $py1 $s1))
-                    (($nt2 $g2 $p2) ($c2 $py2 $s2)))
-                  (collapse (superpose
-                              (
-                                  (tournament $pop $startNt $g $popSize $tSize)
-                                  (tournament $pop $startNt $g $popSize $tSize)))))
+                    (
+                      (($nt1 $g1 $p1) ($c1 $py1 $s1))
+                      (($nt2 $g2 $p2) ($c2 $py2 $s2)))
+                    (collapse (superpose
+                                (
+                                    (tournament $pop $startNt $g $popSize $tSize)
+                                    (tournament $pop $startNt $g $popSize $tSize)))))
 
                   (() (println! (Finished Tournament selection)))
                   (() (println! (Selected 1: (($nt1 $g1 $p1) ($c1 $py1 $s1)))))
                   (() (println! (Selected 2: (($nt2 $g2 $p2) ($c2 $py2 $s2)))))
 
+                  ;; Ordering genotype of the selected parents.
                   ((($oc1 $nts) ($oc2 $nts))
                     (collapse (superpose
                                 (
@@ -1131,12 +1283,7 @@ mpare
                   (() (println! (Finished ordering genotype)))
 
                   ($mask (genMask (sum (collapse (let $_ (getNts $grammarSpace) 1)))))
-
-                  (() (println! (Recombination input: $oc1 $oc2 Mask: $mask)))
-
                   (($ch1 $ch2) (recombine $oc1 $oc2 $mask))
-
-                  (() (println! (Recombination result: $ch1 $ch2)))
 
                   ($c (if (> ((py-atom random.random)) 0.5) $ch1 $ch2)) ;; Pick randomly one of the parents to be included in the next population.
 
@@ -1147,7 +1294,8 @@ mpare
                   (() (println! (Mutated child: $c')))
 
                   ($ntCodonPair (zip $nts $c'))
-                  ($newPop (collapse (let ($nt $codon) (superpose $ntCodonPair) (($nt $g $currLen) $codon))))
+                  ($newPop (collapse (let ($nt $codon) (superpose $ntCodonPair) (($nt $g $newIndex) $codon))))
+
                   (() (println! (NewPop in gen new population: $newPop)))
                 )
                 $newPop)
@@ -1158,7 +1306,8 @@ mpare
                           (() (println! ""))
                           (() (println! (Mutating with $probMutate)))
                           (() (println! (Pop: $pop Popsize: $popSize)))
-                          ;; INFO: For some reason I don't know, the function runs faster when called in superpose.
+
+                          ;; For some reason, the function runs faster when called in superpose on MeTTa version 0.1.12
                           (($oc $nts) (superpose ((getOrderedGenoType $grammarSpace $resultSpace $startNt () () () ($g1 $p)))))
 
                           (() (println! (Finished ordering genotype)))
@@ -1168,19 +1317,19 @@ mpare
                           (() (println! (Mutated $oc to $mc)))
 
                           ($ntCodonPair (zip $nts $mc))
-                          ($newPop (collapse (let ($nt1' $codon) (superpose $ntCodonPair) (($nt1' $g1 $currLen) $codon))))
+                          ($newPop (collapse (let ($nt1' $codon) (superpose $ntCodonPair) (($nt1' $g1 $newIndex) $codon))))
 
                           (() (println! (New pop in gen new population: $newPop)))
                         )
                         $newPop)
                     (trace! (Returning the population: ((($nt1 $g1 $p) ($c $py $s))) with no operation)
-                            (collapse (let (($nt $g1 $p) ($c' $py $s)) (superpose $pop) (($nt $g1 $currLen) ($c' $py $s))))
+                            (collapse (let (($nt $g1 $p) ($c' $py $s)) (superpose $pop) (($nt $g1 $newIndex) ($c' $py $s))))
                             ))))
    )
 )
 
-;; Params: (setup $grammarSpace $dataSpace $refSpace $countSpace $refCountSpace $resultMap $elitism $popSize $tSize $probCrossOver $probMutate $maxGen $maxDepth)
-!(setup &grammar &data &refSpace &countSpace &refCountSpace &ubSpace &resultMap 1 3 2 0.7 0.5 1 2)
+;; Params: (evolve $grammarSpace $dataSpace $refSpace $countSpace $refCountSpace $resultMap $elitism $popSize $tSize $probCrossOver $probMutate $maxGen $maxDepth)
+!(evolve &grammar &data &refSpace &countSpace &refCountSpace &ubSpace &resultMap 1 2 2 0.7 0.5 2 2)
 !(println! (get-atoms &resultMap))
 
 
@@ -1191,6 +1340,22 @@ mpare
 ;;;;                                                                                                                          ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;
+;;;;!(bind! &expandedGrammar (new-space))
+;;;;
+;;;;!(add-atom &expandedGrammar (start expr 0))
+;;;;!(add-atom &expandedGrammar (expr (bop expr_0 expr_0) 0))
+;;;;!(add-atom &expandedGrammar (expr (uop expr_0) 1))
+;;;;!(add-atom &expandedGrammar (expr term 2))
+;;;;!(add-atom &expandedGrammar (expr_0 term 0))
+;;;;!(add-atom &expandedGrammar (bop AND 0))
+;;;;!(add-atom &expandedGrammar (bop OR 1))
+;;;;!(add-atom &expandedGrammar (uop NOT 0))
+;;;;!(add-atom &expandedGrammar (term X 0))
+;;;;!(add-atom &expandedGrammar (term Y 1))
+;;;;
+;;;;!(bind! &resultSpace (new-space))
+;;;;
 ;;;;!(bind! &tempGrammar (new-space))
 ;;;;
 ;;;;(= (populateSpace $space)
