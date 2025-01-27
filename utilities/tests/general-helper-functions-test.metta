@@ -51,13 +51,6 @@
 (: greaterThanTen (-> Number Bool))
 (= (greaterThanTen $x) (> $x 10))
 
-;; It will return True if input is unit atom.
-(: isUnit (-> Atom Bool))
-(= (isUnit $x) (== $x ()))
-
-(: isSingleAtom (-> Atom Bool))
-(= (isSingleAtom $x) (if (== (get-metatype $x) Expression) (== (cdr-atom $x) ()) False))
-
 ;; It will decrement the input by 1.
 (: decrement (-> Number Number))
 (= (decrement $x) (- $x 1))
@@ -149,3 +142,97 @@
 ;; Test foldr function
 !(assertEqual (foldr + 0 (1 2 3)) 6)
 !(assertEqual (foldr + 0 (1 2 3)) 6)
+
+;; Test isSymbol function
+!(assertEqual (isSymbol A) True)
+!(assertEqual (isSymbol (A)) False)
+!(assertEqual (isSymbol ()) False)
+!(assertEqual (isSymbol (A B)) False)
+
+;; Test isExpression function
+!(assertEqual (isExpression A) False)
+!(assertEqual (isExpression (A)) True)
+!(assertEqual (isExpression ()) True)
+!(assertEqual (isExpression (A B)) True)
+
+;; Test isUnit function
+!(assertEqual (isUnit A) False)
+!(assertEqual (isUnit (A)) False)
+!(assertEqual (isUnit ()) True)
+!(assertEqual (isUnit (A B)) False)
+
+;; Test isSingleAtom function
+!(assertEqual (isSingleAtom A) False)
+!(assertEqual (isSingleAtom (A)) True)
+!(assertEqual (isSingleAtom ()) False)
+!(assertEqual (isSingleAtom (A B)) False)
+
+
+!(bind! &space (new-space))
+!(add-atom &space A)
+!(add-atom &space C)
+!(add-atom &space C)
+
+!(assertEqualToResult (let $_ (update-atom &space A B) (get-atoms &space)) (B C C))
+!(assertEqualToResult (let $_ (update-atom &space D E) (get-atoms &space)) (B C C E))
+!(assertEqualToResult (let $_ (update-atom &space C 1) (get-atoms &space)) (B 1 E))
+!(assertEqualToResult (let $_ (clearSpace &space) (get-atoms &space)) ())
+
+!(assertEqual (appendAtom 1 ()) (1))
+!(assertEqual (appendAtom 1 (1 2)) (1 2 1))
+!(assertEqual (appendAtom A (B C)) (B C A))
+!(assertEqual (appendAtom (A) (B C)) (B C (A)))
+
+!(assertEqual (max 1 2) 2)
+!(assertEqual (max 2 4) 4)
+
+!(assertEqual (gen 1 (0)) (1 0))
+!(assertEqual (gen 3 (0)) (3 2 1 0))
+
+!(assertEqual (decons (A B C)) (A (B C)))
+!(assertEqual (decons ()) (if False ((car-atom ()) (cdr-atom ())) (Error Unit Or Symbol cannot be deconstructed)))
+!(assertEqual (decons (A)) (A ()))
+
+!(assertEqual (zip (A B C) (1 2 3)) ((A 1) (B 2) (C 3)))
+!(assertEqual (zip (A B) (1 2 3)) ((A 1) (B 2)))
+
+!(assertEqual (zipWith == (A B C) (A 2 3)) (True False False))
+!(assertEqual (zipWith == (B C) (A 2 3)) (False False))
+!(assertEqual (zipWith == () (A 2 3)) ())
+!(assertEqual (zipWith == () ()) ())
+
+!(assertEqual (len (A B C D)) 4)
+!(assertEqual (len ()) 0)
+!(assertEqual (len (A)) 1)
+!(assertEqual (len A) 4) ;; Should return Error.
+
+!(assertEqual (replaceByIndex (A B C) 0 D) (D B C))
+!(assertEqual (replaceByIndex (1 2 3 4) 4 D) (1 2 3 4))
+!(assertEqual (replaceByIndex (1 2 3 4) 3 D) (1 2 3 D))
+
+!(assertEqual (selectByIndex (1 2 3 4) 2) 3)
+!(assertEqual (selectByIndex (1 2 3 4) 3) 4)
+!(assertEqual (selectByIndex (1 2 3 4) 0) 1)
+
+!(assertEqual (compareElements (A B C) (1 2 3)) (False False False))
+!(assertEqual (compareElements (A B C) (A B C)) (True True True))
+!(assertEqual (compareElements (1 2 3) (1 2 3)) (True True True))
+
+!(assertEqual (splitAt 2 (A B C D E)) ((A B) (C D E)))
+!(assertEqual (splitAt 0 (A B C D E)) (() (A B C D E)))
+!(assertEqual (splitAt 5 (A B C D E)) ((A B C D E) ()))
+
+!(assertEqual (sort (2 3 1 4) 4) (1 2 3 4))
+!(assertEqual (sort (2 3 1 4) 4 >=) (4 3 2 1))
+
+!(assertEqual (repeat A 3) (A A A))
+!(assertEqual (repeat (== 1 2) 0) ())
+!(assertEqual (repeat (== 1 2) 2) (False False))
+
+!(assertEqual (take 1 (A B C)) (A))
+!(assertEqual (take 2 (A B C)) (A B))
+!(assertEqual (take 2 ()) ())
+
+!(assertEqual (drop 1 (A B C)) (B C))
+!(assertEqual (drop 2 (A B C)) (C))
+!(assertEqual (drop 2 ()) ())
