@@ -43,16 +43,22 @@
 ;;tests for initiailizing single left hand side 
 
 !(initializeGrammarSpace &grammarSpace)
+!(initializeAlphabetSpace &alphabetSpace)
+!(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
 ;; !(superpose (initializeForSingleLhs &grammarSpace expr))
 !(let $processedInitialization (initializeForSingleLhs &grammarSpace expr)
     (assertEqual (all (collapse (containsThreeVals (superpose $processedInitialization)))) True)
 )
 !(assertEqual (mutateRule (expr (bop expr expr) 5) 0.1) (expr (bop expr expr) 0.5))
-;; !(isWellFormed (AND x1 x2))
-;; !(isWellFormed (AND x1))
-;; !(isWellFormed (AND x1 (OR x1 (AND x1 x2))))
-;; !(isWellFormed (AND x1 (OR x1 (AND x1))))
-;; !(isWellFormed x1)
+!(get-atoms &stochasticGrammarSpace)
+;; Tests for well formed expression.
+!(assertEqual (isWellFormed (AND x1 x2)) True)
+!(assertEqual (isWellFormed (AND x1)) False)
+!(assertEqual (isWellFormed (AND x1 (OR x1 (AND x1 x2)))) True)
+!(assertEqual (isWellFormed (AND x1 (OR x1 (AND x1 x2)))) False)
+!(assertEqual (isWellFormed (AND x1 (OR x1 (AND x1)))) False)
+!(assertEqual (isWellFormed x1) True)
 
 
+ 
 
