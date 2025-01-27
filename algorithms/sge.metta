@@ -22,6 +22,13 @@ mpare
 !(bind! &grammar (new-space))
 !(bind! &maxDepth 3)
 !(bind! &lastIndex (new-state 0))
+!(bind! &elitism 1)
+!(bind! &popSize 3)
+!(bind! &tSize 3)
+!(bind! &probCrossOver 0.7)
+!(bind! &probMutate 0.2)
+!(bind! &maxGen 2)
+!(bind! &maxDepth 3)
 
 !(add-atom &grammar (start expr 0))
 !(add-atom &grammar (expr (bop expr expr) 0))
@@ -1329,7 +1336,7 @@ mpare
 )
 
 ;; Params: (evolve $grammarSpace $dataSpace $refSpace $countSpace $refCountSpace $resultMap $elitism $popSize $tSize $probCrossOver $probMutate $maxGen $maxDepth)
-!(evolve &grammar &data &refSpace &countSpace &refCountSpace &ubSpace &resultMap 1 2 2 0.7 0.5 2 2)
+!(evolve &grammar &data &refSpace &countSpace &refCountSpace &ubSpace &resultMap &elitism &popSize &tSize &probCrossOver &probMutate &maxGen &maxDepth)
 !(println! (get-atoms &resultMap))
 
 
