@@ -1,9 +1,7 @@
 !(register-module! ../../../../metta-moses)
 !(import! &self metta-moses:optimization:sggp:sggp-algorithm)
 !(import! &self metta-moses:utilities:general-helpers)
-;; !(import! &self metta-moses:utilities:test-helpers)
 !(import! &self metta-moses:scoring:fitness)
-;; !(bind! pow (py-atom pow))
 ;; This function checks if a tuple contains three entries
 ;; Example if tuple == (a b c) then the output will be true
 ;; if tuple == (a b) the the output will be false
@@ -68,6 +66,11 @@
 !(assertEqual (getRelations (AND x1 (OR x1 x2)) ()) (x1 (AND x1 (OR x1 x2)) x2 x1 (OR x1 x2)))
 !(assertEqual (getRelations (AND x1 x2) ()) (x2 x1 (AND x1 x2)))
 !(assertEqual (getRelations (AND x1 (OR x1 (AND x3 x4))) ()) (x1 (AND x1 (OR x1 (AND x3 x4))) x1 (OR x1 (AND x3 x4)) x4 x3 (AND x3 x4)))
+;; Tests for getRuleFromSubTree
+!(assertEqual (getRuleFromSubTree (OR x1 x2) &grammarSpace) ((bop OR) (expr (bop expr expr))))
+!(assertEqual (getRuleFromSubTree (OR x1 (AND x3 x4)) &grammarSpace) ((bop OR) (expr (bop expr expr))))
+!(getRuleFromSubTree (NOT x1) &grammarSpace)
+!(getRuleFromSubTree (NOT (AND x1 x2)) &grammarSpace)
 
 
 

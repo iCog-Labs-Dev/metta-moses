@@ -177,6 +177,31 @@
         (updateAtomSpace $stocSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
     );; (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
 )
+;; getRule from sub-tree expression and grammarSpace
+(= (getRuleFromSubTree $expression $grammarSpace)
+    (unify $expression ($op $exp1 $exp2)
+        (match $grammarSpace (, ($opType $op)
+                                ($exp ($opType $exp $exp))
+
+                        )
+                        (($opType $op) ($exp ($opType $exp $exp)))
+
+        )
+        (unify $expression ($op $exp1)
+            (match $grammarSpace (, 
+                                ($opType $op) 
+                                ($exp ($opType $exp))
+                            )
+                                (($opType $exp) ($exp ($opType $exp)))
+                            )
+            (match $grammarSpace ($parent $expression)
+                ($parent $expression) 
+            )
+        )
+         
+    )
+
+)
 
 
 
