@@ -46,7 +46,7 @@
 
 !(initializeGrammarSpace &grammarSpace)
 !(initializeAlphabetSpace &alphabetSpace)
-!(addTerminalsToSpace (x y) &grammarSpace)
+!(addTerminalsToSpace (x1 x2) &grammarSpace)
 !(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
 ;; !(superpose (initializeForSingleLhs &grammarSpace expr))
 !(let $processedInitialization (initializeForSingleLhs &grammarSpace expr)
@@ -54,7 +54,7 @@
 )
 !(assertEqual (mutateRule (expr (bop expr expr) 5) 0.1) (expr (bop expr expr) 0.5))
 !(get-atoms &stochasticGrammarSpace)
-
+!(get-atoms &grammarSpace)
 ;; Tests for well formed expression.
 !(assertEqual (isWellFormed (AND x1 x2)) True)
 !(assertEqual (isWellFormed (AND x1)) False)
@@ -69,9 +69,14 @@
 ;; Tests for getRuleFromSubTree
 !(assertEqual (getRuleFromSubTree (OR x1 x2) &grammarSpace) ((bop OR) (expr (bop expr expr))))
 !(assertEqual (getRuleFromSubTree (OR x1 (AND x3 x4)) &grammarSpace) ((bop OR) (expr (bop expr expr))))
-!(getRuleFromSubTree (NOT x1) &grammarSpace)
-!(getRuleFromSubTree (NOT (AND x1 x2)) &grammarSpace)
-
+!(assertEqual (getRuleFromSubTree (NOT x1) &grammarSpace) ((uop NOT) (expr (uop expr))))
+!(assertEqual (getRuleFromSubTree (NOT (AND x1 x2)) &grammarSpace) ((uop NOT) (expr (uop expr))))
+!(assertEqual (getRuleFromSubTree x1 &grammarSpace) (term x1))
+!(assertEqual (getRuleFromSubTree x2 &grammarSpace) (term x2))
+;; Tests for reinforceProd
+!(let $weight (match &stochasticGrammarSpace (expr (bop expr expr) $x) $x)
+    (assertEqual (reinforceProd (expr (bop expr expr) $weight) 0.1 10 &stochasticGrammarSpace) ())
+)
 
 
 

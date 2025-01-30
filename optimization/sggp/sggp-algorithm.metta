@@ -165,19 +165,12 @@
 (= (filterList $compSign $func $expressions $threshold)
     (collapse (filter $compSign $func (superpose $expressions) $threshold))
 )
-;;This procedure implements the reinforcing the production rule that is available.
-(= (reinforceProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
-    (let ($parent $child $updatedWeight) (updateWeight ($lhs $rhs $weight) $learnRate $cardinality inc)
-        (updateAtomSpace $stocSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
-    )
-)
-;; This procedure implements the punishing a specific production rule that is available.
-(= (punishProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
-    (let ($parent $child $updatedWeight) (updateWeight ($lhs $rhs $weight) $learnRate $cardinality dec)
-        (updateAtomSpace $stocSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
-    );; (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
-)
+
 ;; getRule from sub-tree expression and grammarSpace
+;;bop (bop exp1 exp2)
+;;uop (uop exp1)
+;;term x1 ==> (term x1)
+;; $_ x1
 (= (getRuleFromSubTree $expression $grammarSpace)
     (unify $expression ($op $exp1 $exp2)
         (match $grammarSpace (, ($opType $op)
@@ -192,15 +185,117 @@
                                 ($opType $op) 
                                 ($exp ($opType $exp))
                             )
-                                (($opType $exp) ($exp ($opType $exp)))
+                                (($opType $op) ($exp ($opType $exp)))
                             )
-            (match $grammarSpace ($parent $expression)
-                ($parent $expression) 
-            )
+            ;; (match $grammarSpace ($parent $expression)
+            ;;     (let* (
+            ;;         (() (println! (This is the parent $parent)))
+            ;;         (() (println! (This is the expression $expression)))
+
+            ;;     )
+            ;;         ($parent $expression)
+            ;;     )  
+            ;; )
+            (term $expression)
         )
          
     )
 
+)
+;; a helper that extracts the best after comparing with the threshold.
+(= (filter $compSign $func $expression $threshold)
+    (if ( $compSign ($func $expression) $threshold)
+        (empty)
+        $expression
+    )
+)
+(= (filterList $compSign $func $expressions $threshold)
+    (collapse (filter $compSign $func (superpose $expressions) $threshold))
+)
+;;This procedure implements the reinforcing the production rule that is available.
+(= (reinforceProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
+    (let ($parent $child $updatedWeight) (updateWeight ($lhs $rhs $weight) $learnRate $cardinality inc)
+        (update-atom $stocSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
+    )
+)
+;; This procedure implements the punishing a specific production rule that is available.
+(= (punishProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
+    (let ($parent $child $updatedWeight) (updateWeight ($lhs $rhs $weight) $learnRate $cardinality dec)
+        (update-atom $stocSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
+    );; (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+)
+;; This procedure implements the reinforcement of the reinforcement of a grammar given a Tree
+(= (reinforceGrammarbasedOnTree $tree $learnRate $cardinality $stocSpace)
+    (let* (
+        ($relations (getRelations $tree ()))
+        ($prodRules (collapse (getprodRule (superpose $relations))))
+        
+    )
+        (collapse (reinforceProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
+    )
+)
+;; The below piece of code punishes the production rule in a stochastic grammar based on a tree
+(= (punishGrammarbasedOnTree $tree $learnRate $cardinality $stocSpace)
+    (let* (
+        ($relations (getRelations $tree ()))
+        ($prodRules (collapse (getProdRule (superpose $relations))))
+    )
+        (collapse (punishProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
+    )
+)
+;;This function generates trees guided by the stochastic grammar
+
+(= (generateTrees $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)
+    (if (== $initSymbol start)
+        (generateTrees expr $grammarSpace $stocSpace $explorationCoeff $depth)
+        (let $derivs (findSuitableProdRules $initSymbol $stocSpace)
+            (if (== $derivs ())
+                $initSymbol
+                (if (<= $depth 0)
+                    ;; (match $grammarSpace ($initSymbol $x) (if (== $x ()) $initSymbol $x))
+                    (match $grammarSpace (term $x) $x)
+                    (let* (
+                        (($lhs $rhs $weight) (superpose $derivs))
+                        ($calculatedProbability (calculateProbability ($lhs $rhs) $stocSpace))
+                    )
+                        (if (>= $calculatedProbability (random))
+                            (if (== $lhs bop)
+                                (let* (
+                                    ($head (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                    ($left (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                    ($right (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                    
+                                )
+                                    ($head $left $right)
+                                )
+                                (if (== $lhs uop)
+                                    (let* (
+                                        ($head (generateTrees $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                        ($left (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1)))
+                                    )
+                                        ($head $left)
+                                    )
+                                    (let $rhs' (if (== (get-metatype $rhs) Expression) (car-atom $rhs) $rhs)
+                                        (generateTrees $rhs' $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+                                    )
+                                )
+                                
+                            
+                            )
+                        
+                            (generateTrees $lhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
+                            ;; (This is calculated probability $calculatedProbability)
+                            ;; (This is random value (random))
+                        )
+                        
+                    )
+            )
+
+            )
+        )
+    ;
+        
+    )
 )
 
 
