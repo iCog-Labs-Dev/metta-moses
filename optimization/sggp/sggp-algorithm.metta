@@ -297,6 +297,11 @@
         
     )
 )
+;; (= (generate $parentSymbol $initSymbol $grammarSpace $stocSpace $depth)
+;;     (if (== (findSuitableProdRules $initSymbol $grammarSpace) ())
+;;         (findAndReplace $parentSymbol $initSymbol)
+;;     )
+;; )
 
 
 

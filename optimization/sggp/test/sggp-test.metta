@@ -77,6 +77,12 @@
 !(let $weight (match &stochasticGrammarSpace (expr (bop expr expr) $x) $x)
     (assertEqual (reinforceProd (expr (bop expr expr) $weight) 0.1 10 &stochasticGrammarSpace) ())
 )
+!(let $weight (match &stochasticGrammarSpace (expr (uop expr) $x) $x)
+    (assertEqual (reinforceProd (expr (uop expr) $weight) 0.1 10 &stochasticGrammarSpace) ())
+)
+
+;;Tests for punishProd
+
 
 
 
