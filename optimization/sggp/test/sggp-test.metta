@@ -30,7 +30,8 @@
         (all $truthVals)
     )
 )
-
+(= (isEmpty $exp) (all (collapse (if (== (superpose $exp) ()) True False))))
+;; !(isEmpty (() ()))
 
 ;; Tests for assign weights
 !(assertEqual (assignWeight (expr (bop expr expr)) 5) (expr (bop expr expr) 5))
@@ -67,13 +68,22 @@
 !(assertEqual (getRelations (AND x1 x2) ()) (x2 x1 (AND x1 x2)))
 !(assertEqual (getRelations (AND x1 (OR x1 (AND x3 x4))) ()) (x1 (AND x1 (OR x1 (AND x3 x4))) x1 (OR x1 (AND x3 x4)) x4 x3 (AND x3 x4)))
 ;; Tests for getRuleFromSubTree
-!(assertEqual (getRuleFromSubTree (OR x1 x2) &grammarSpace) ((bop OR) (expr (bop expr expr))))
-!(assertEqual (getRuleFromSubTree (OR x1 (AND x3 x4)) &grammarSpace) ((bop OR) (expr (bop expr expr))))
-!(assertEqual (getRuleFromSubTree (NOT x1) &grammarSpace) ((uop NOT) (expr (uop expr))))
-!(assertEqual (getRuleFromSubTree (NOT (AND x1 x2)) &grammarSpace) ((uop NOT) (expr (uop expr))))
-!(assertEqual (getRuleFromSubTree x1 &grammarSpace) (term x1))
-!(assertEqual (getRuleFromSubTree x2 &grammarSpace) (term x2))
-;; Tests for reinforceProd
+;; !(superpose (getRuleFromSubTree x1 &stochasticGrammarSpace))
+!(getRuleFromSubTree x1 &stochasticGrammarSpace)
+!(let $evaluated (getRuleFromSubTree x1 &stochasticGrammarSpace)
+    (assertEqual (containsThreeVals $evaluated) True)
+)
+!(let $evaluated (getRuleFromSubTree (OR x1 x2) &stochasticGrammarSpace) 
+    (assertEqual (all (collapse (containsThreeVals (superpose $evaluated)))) True)
+)
+!(let $evaluated (getRuleFromSubTree (OR x1 (AND x1 x2)) &stochasticGrammarSpace)
+    (assertEqual (all (collapse (containsThreeVals (superpose $evaluated)))) True)
+)
+;; !(assertEqual (getRuleFromSubTree (NOT x1) &stochasticGrammarSpace) ((uop NOT) (expr (uop expr) $x2)))
+!(let $evaluated (getRuleFromSubTree (NOT x1) &stochasticGrammarSpace) 
+    (assertEqual (all (collapse (containsThreeVals (superpose $evaluated)))) True)
+)
+;; Tests for reinforceProdgrammar
 !(let $weight (match &stochasticGrammarSpace (expr (bop expr expr) $x) $x)
     (assertEqual (reinforceProd (expr (bop expr expr) $weight) 0.1 10 &stochasticGrammarSpace) ())
 )
@@ -88,7 +98,15 @@
 !(let $weight (match &stochasticGrammarSpace (expr (uop expr) $x) $x)
     (assertEqual (punishProd (expr (uop expr) $weight) 0.1 10 &stochasticGrammarSpace) ())
 )
-
+!(reinforceGrammarbasedOnTree (AND (OR x y) x) 0.01 15 &grammarSpace &stochasticGrammarSpace)
+;;Tests for reinforceGrammarBasedOnTree
+!(assertEqual (isEmpty (reinforceGrammarbasedOnTree (AND (OR x y) x) 0.01 15 &grammarSpace &stochasticGrammarSpace)) True)
+!(assertEqual (isEmpty (reinforceGrammarbasedOnTree (OR x y) 0.01 15 &grammarSpace &stochasticGrammarSpace)) True)
+!(get-atoms &stochasticGrammarSpace)
+;;Tests for punishGrammarBasedOnTree
+!(assertEqual (isEmpty (punishGrammarbasedOnTree (AND (OR x y) x) 0.01 15 &grammarSpace &stochasticGrammarSpace)) True)
+!(assertEqual (isEmpty (punishGrammarbasedOnTree (AND (OR x y) x) 0.01 15 &grammarSpace &stochasticGrammarSpace)) True)
+ 
 
 
 

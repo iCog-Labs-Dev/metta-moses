@@ -171,21 +171,21 @@
 ;;uop (uop exp1)
 ;;term x1 ==> (term x1)
 ;; $_ x1
-(= (getRuleFromSubTree $expression $grammarSpace)
+(= (getRuleFromSubTree $expression $stocSpace)
     (unify $expression ($op $exp1 $exp2)
-        (match $grammarSpace (, ($opType $op)
-                                ($exp ($opType $exp $exp))
+        (match $stocSpace (, ($opType $op $weight1)
+                                ($exp ($opType $exp $exp) $weight2)
 
                         )
-                        (($opType $op) ($exp ($opType $exp $exp)))
+                        (($opType $op $weight1) ($exp ($opType $exp $exp) $weight2))
 
         )
         (unify $expression ($op $exp1)
-            (match $grammarSpace (, 
-                                ($opType $op) 
-                                ($exp ($opType $exp))
+            (match $stocSpace (, 
+                                ($opType $op $weight1) 
+                                ($exp ($opType $exp) $weight2)
                             )
-                                (($opType $op) ($exp ($opType $exp)))
+                                (($opType $op $weight1) ($exp ($opType $exp) $weight2))
                             )
             ;; (match $grammarSpace ($parent $expression)
             ;;     (let* (
@@ -196,7 +196,10 @@
             ;;         ($parent $expression)
             ;;     )  
             ;; )
-            (term $expression)
+            ;;(term $expression)
+            (match $stocSpace ($parent $expression $weight)
+                ($parent $expression $weight)
+            )
         )
          
     )
@@ -218,27 +221,47 @@
         (update-atom $stocSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
     )
 )
+;; This procedure works if multiple weights happen 
+(= (reinforceProd ($prod1 $prod2) $learnRate $cardinality $stocSpace)
+    (let* (
+        ($res (reinforceProd $prod1 $learnRate $cardinality $stocSpace))
+        ($res' (reinforceProd $prod2 $learnRate $cardinality $stocSpace))
+    )
+        ()
+    )
+)
 ;; This procedure implements the punishing a specific production rule that is available.
 (= (punishProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
     (let ($parent $child $updatedWeight) (updateWeight ($lhs $rhs $weight) $learnRate $cardinality dec)
         (update-atom $stocSpace ($lhs $rhs $weight) ($parent $child $updatedWeight))
     );; (exploitInstances $rhs $grammarSpace $stocSpace $explorationCoeff (- $depth 1))
 )
+(= (punishProd ($prod1 $prod2) $learnRate $cardinality $stocSpace)
+    (let* (
+        ($res (punsihProd $prod1 $learnRate $cardinality $stocSpace))
+        ($res' (punishProd $prod2 $learnRate $cardinality $stocSpace))
+    )
+        ()
+    )
+)
+
 ;; This procedure implements the reinforcement of the reinforcement of a grammar given a Tree
-(= (reinforceGrammarbasedOnTree $tree $learnRate $cardinality $stocSpace)
+(= (reinforceGrammarbasedOnTree $tree $learnRate $cardinality $grammarSpace $stocSpace)
     (let* (
         ($relations (getRelations $tree ()))
-        ($prodRules (collapse (getprodRule (superpose $relations))))
+        ($prodRules (collapse (getRuleFromSubTree (superpose $relations) $stocSpace)))
+        (() (println! (production rules $prodRules)))
         
     )
         (collapse (reinforceProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
     )
 )
 ;; The below piece of code punishes the production rule in a stochastic grammar based on a tree
-(= (punishGrammarbasedOnTree $tree $learnRate $cardinality $stocSpace)
+(= (punishGrammarbasedOnTree $tree $learnRate $cardinality $grammarSpace $stocSpace)
     (let* (
         ($relations (getRelations $tree ()))
-        ($prodRules (collapse (getProdRule (superpose $relations))))
+        ($prodRules (collapse (getRuleFromSubTree (superpose $relations) $stocSpace)))
+        ;; (println (production rules $prodRules))
     )
         (collapse (punishProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
     )
@@ -302,7 +325,36 @@
 ;;         (findAndReplace $parentSymbol $initSymbol)
 ;;     )
 ;; )
+(=(fitnessWithdata $data)
+    (fitness (OR (AND A (NOT B)) (AND C D))
+             ((True (A True) (B False) (C True) (D True)) 
+             (False (A False) (B True) (C False) (D False)) 
+           (True (A True) (B False) (C False) (D True))))
 
+)
+
+(= (sggpHelper $initSymbol $learnRate $mutationRate $thresholdProb $maxRecur $explorationCoeff $maxDepth $scoreFunc)
+    (let () (println! ($maxRecur))
+    (if (> $maxRecur 0)
+        (let* (
+            ($generatedInstances (collapse (unique (generateTrees $initSymbol &grammarSpace &stochasticGrammarSpace $explorationCoeff $maxDepth))))
+            ($goodTrees (filterList >= $scoreFunc $generatedInstances $thresholdProb))
+            ($badTrees (filterList < $scoreFunc $generatedInstances $thresholdProb))
+            ($lenGood (len $goodTrees))
+            ($lenBad (len $badTrees))
+            ($reinforced (collapse (reinforceGrammarbasedOnTree (superpose $goodTrees) $learnRate $lenGood &grammarSpace &stochasticGrammarSpace)))
+            ($punished (collapse (punishGrammarbasedOnTree (superpose $badTrees) $learnRate $lenBad &grammarSpace &stochasticGrammarSpace)))
+        )
+            (let () (println! (goodTrees ==> $goodTrees))
+                (sggpHelper $initSymbol $learnRate $mutationRate $thresholdProb (- $maxRecur 1) $explorationCoeff $maxDepth $scoreFunc)
+            )
+            
+        )
+        ;; (generateInstances junctor &grammarSpace &stochasticGrammarSpace $maxDepth)
+        (collapse (unique (generateTrees $initSymbol &grammarSpace &stochasticGrammarSpace $explorationCoeff $maxDepth)))
+    )
+)
+)
 
 
 
