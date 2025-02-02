@@ -307,16 +307,10 @@
         (add-atom $cSpace ($nt $r $next $i))))
 
 
-(= (getCountSum $allCount $nt)
-    (let $cs (superpose $allCount)
-            (unify $cs ($nt $x) 
-                    (sum (collapse (let $rule (superpose $x)
-                        (unify $rule ($y $count)
-                            $count
-                            (empty)
-                        ))))
-                    (empty)
-            )))
+(= (getCountSum $iCount $nt)
+    (sum (collapse (let $cs (superpose $iCount)
+            (unify $cs ($nt $r $c) $c
+                    (empty))))))
 
 ;; getCount -- returns count of all production rules for appending to individual expression metta data
 ;;              $cSpace -- count space
@@ -326,10 +320,7 @@
 ;;                  $i -- index
 
 (= (getCount $cSpace $random)
-   (let $c (collapse (match $cSpace ($nt $r $c $i) ($nt $r $c)))
-   (cons-atom count $c)
-   )
-)
+   (collapse (match $cSpace ($nt $r $c $i) ($nt $r $c))))
 
 (= (getSum $cI $nts)
     (collapse (let*
@@ -342,7 +333,7 @@
 
 ! (genG 1 &grammar &count &geno &generation start ((py-dot np random.uniform)0 1) 0)
 
-! (get-atoms &generation)
+; ! (get-atoms &generation)
 
 ;; :::::::::::::::: SAMPLE OUTPUTS ::::::::::::::::
 
@@ -358,3 +349,73 @@
 ; ! (setGenotype &grammar &geno ((py-dot np random.uniform)0 1))
 ; ! (genPhen &grammar &count &geno (start expr bop uop term) start ((py-dot np random.uniform)0 1))
 ;; ::::::::::::: test phonetype generation :::::::::::::::
+
+;; :::::::::::::::: UPDATE PROBABILITIES ::::::::::::::::
+;; updateProbablity -- updates probability of a derivation rules based on count information from &count space 
+;;              $gSpace -- grammar space
+;;              $genSpace -- generation space
+;;              $id -- ID of an expression in the genaration space 
+;;;             $lambda -- learning factor 
+
+(= (updateProbability $gSpace $genSpace $id $lambda)
+    (let*
+        (
+            ($c (match $genSpace ($id $i $g $c) $c))
+            ($counts (superpose $c))
+            ($nt (unique (match $gSpace ($nt $r $i) $nt)))
+            ($sums (getCountSum $c $nt))
+        )
+        (unify $counts ($nt $r $cnt) 
+                (if (== $cnt 0)
+                    (let* 
+                        (
+                            (($nt $r $oldP $i) (match &grammar ($nt $r $p $i) ($nt $r $p $i)))
+                            ($newP (rd (- $oldP (* $lambda $oldP)) 3))
+                            (() (remove-atom &grammar ($nt $r $oldP $i)))
+                        )
+                        (add-atom &grammar ($nt $r $newP $i))
+                    )
+                    (let*
+                        (
+                            (($nt $r $oldP $i) (match &grammar ($nt $r $p $i) ($nt $r $p $i)))
+                            ($incP (+ $oldP (/ (* $cnt $lambda) $sums)))
+                            ($newP (rd (min $incP 1) 3))
+                            (() (remove-atom &grammar ($nt $r $oldP $i)))
+                        )
+                        (add-atom &grammar ($nt $r $newP $i))
+                    )
+                )
+                    (empty))))
+
+
+;; normalize -- adjusts probabilities of derivation rules sum to be exactly one
+;;        chucks if sum of probablities of all rules is greater than one
+;;        if so, subtract from all derivation rules the same amount given by the following formula
+;;              $gSpace -- grammar space
+;;              
+
+(= (normalizeP $gSpace)
+    (let*
+        (
+            ($nt (unique (match $gSpace ($nt $r $i) $nt)))
+            ($probSums (sum (collapse (match $gSpace ($nt $r $p $i) $p))))
+            ($j (sum (collapse (match $gSpace ($nt $r $p $i) 1))))
+            ($diff (rd (/ (- 1 $probSums) $j) 3))
+            (($oldProb $newProb $r $i) (match $gSpace ($nt $r $p $i) ($p (rd (+ $p $diff) 3) $r $i)))
+            ; ($oldProb (match $grammarSpace ($nt (($rule $prob) $index))))
+            (() (println! ("new P  " $newProb)))
+            (() (remove-atom $gSpace ($nt $r $oldProb $i)))
+        )
+        
+        (add-atom $gSpace ($nt $r $newProb $i))
+    ))
+
+! (get-atoms &grammar)
+
+! (updateProbability &grammar &generation 0 0.05)
+
+! (get-atoms &grammar)
+
+! (normalizeP &grammar)
+
+! (get-atoms &grammar)
