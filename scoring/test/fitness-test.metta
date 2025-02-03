@@ -44,7 +44,7 @@
       0.0)
   4.0
 )
-
+ 
 ;; Test case 5: OR Expression
 !(assertEqual
   (penalizedFitness
@@ -57,13 +57,22 @@
   2.0
 )
 
-!(assertEqual
-  (penalizedFitness
-      A
-      ((True (A True) (B True))
-       (False (A False) (B True))
-       (True (A True) (B False))
-       (False (A False) (B False)))
-      0.1)
-  4.0
-)
+;; Test Case 6: Nested OR Expression with undefined variable
+!(assertEqual 
+   (penalizedFitness 
+     (OR (AND X B) C)
+     ((True (A True) (B False) (C True))
+      (True (A True) (B True) (C False))
+      (False (A False) (B False) (C False)))
+     0.1)
+   -0.2)
+
+;; Test Case 7: Complex Expression with undefined variable
+!(assertEqual 
+   (penalizedFitness 
+     (OR (AND P (NOT Q)) (AND R S) (AND T U))
+     ((True (A True) (B False) (C True) (D True))
+      (False (A False) (B True) (C False) (D False))
+      (True (A True) (B False) (C False) (D True)))
+     0.1)
+   -0.4)

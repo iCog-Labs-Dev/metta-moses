@@ -343,9 +343,10 @@
 (= (repeat $a $n)
    (if (== $n 0)
        ()
-       (let $t (repeat $a (- $n 1)) (cons-atom $a $t))))
+       (let $t (repeat $a (- $n 1)) (cons-atom $a $t))
+   )
+)
 
-;; A function to return the first n element of a tuple.
 (: take (-> Number Atom Atom))
 (= (take $n $a)
     (case ($n $a)
