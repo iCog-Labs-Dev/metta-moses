@@ -30,6 +30,7 @@
         (all $truthVals)
     )
 )
+;;This is a function that checks if the enteries within an S-expression is an empty S-expression.
 (= (isEmpty $exp) (all (collapse (if (== (superpose $exp) ()) True False))))
 ;; !(isEmpty (() ()))
 
@@ -106,6 +107,10 @@
 ;;Tests for punishGrammarBasedOnTree
 !(assertEqual (isEmpty (punishGrammarbasedOnTree (AND (OR x y) x) 0.01 15 &grammarSpace &stochasticGrammarSpace)) True)
 !(assertEqual (isEmpty (punishGrammarbasedOnTree (AND (OR x y) x) 0.01 15 &grammarSpace &stochasticGrammarSpace)) True)
+;;Tests for the generators
+!(let $trees (collapse (generateTrees start &grammarSpace &stochasticGrammarSpace 3 3))
+    (assertEqual (any (collapse (isWellFormed (superpose $trees)))) True)
+)
  
 
 
