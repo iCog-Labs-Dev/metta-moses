@@ -111,6 +111,10 @@
 !(let $trees (collapse (generateTrees start &grammarSpace &stochasticGrammarSpace 3 3))
     (assertEqual (any (collapse (isWellFormed (superpose $trees)))) True)
 )
+!(let $trees (collapse (sggpHelper start 0.01 0.01 0.5 1 2 3 fitnessWithdata))
+    (assertEqual (any (collapse (isWellFormed (superpose $trees)))) True)
+)
+
  
 
 
