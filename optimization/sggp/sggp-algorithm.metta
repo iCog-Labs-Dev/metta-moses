@@ -267,6 +267,19 @@
     )
 )
 ;;This function generates trees guided by the stochastic grammar
+;; algorithm for generating instances // Exploitation purposes
+;; step 1 start from an init symbol with a depth = n.
+;; match the grammar atomspace to get matching tokens as a right handside from the context free grammar
+;; select probabilistically the production rule that passes the threshold
+;; build the tree recursively and non-deterministically. with depth (n-1)
+;; and make the rhs to lhs and start step 2
+;; Does this procedure result in a well formed tree?
+;; Do this until the depth is n = 0
+;; after finishing collapse the non-deterministic result.
+;; Question, Does this result in a well formed tree?
+;; Definition: A well formed tree is a recursive data structure were internal nodes have atleast two children 
+;; This stands out if the internal node is not a NOT junctor.
+;; If the internal node is a NOT junctor it will have a one child
 
 (= (generateTrees $initSymbol $grammarSpace $stocSpace $explorationCoeff $depth)
     (if (== $initSymbol start)
@@ -325,14 +338,21 @@
 ;;         (findAndReplace $parentSymbol $initSymbol)
 ;;     )
 ;; )
+;; The following function is an adapter that integrates the scoring 
+;; to the dataset
 (=(fitnessWithdata $data)
-    (fitness (OR (AND A (NOT B)) (AND C D))
+    (fitness $data
              ((True (A True) (B False) (C True) (D True)) 
              (False (A False) (B True) (C False) (D False)) 
            (True (A True) (B False) (C False) (D True))))
 
 )
-
+;; This algorithm implements the main loop of the sggp algorithm
+;; it works by generating trees from the stochastic grammar values
+;; it filters the trees as good trees and bad trees
+;; it reinforces the stochastic grammar based on the two classified syntax trees
+;; The threshold is specified to the main loop which is given to the generic function 
+;; called filterlist.
 (= (sggpHelper $initSymbol $learnRate $mutationRate $thresholdProb $maxRecur $explorationCoeff $maxDepth $scoreFunc)
     (let () (println! ($maxRecur))
     (if (> $maxRecur 0)
