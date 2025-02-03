@@ -4,7 +4,6 @@
 ! (import! &self metta-moses:utilities:expression-helpers)
 ! (import! &self metta-moses:scoring:fitness)
 ! (import! &self metta-moses:reduct:boolean-reduct:one-constraint-complement-subtraction) ;; TODO: This import is temporary. Refactor code inside oncc and remove it.
-mpare
 
 ;; Structured grammatical evolution (SGE)
 ;; This implementation is based on the research paper: https://link.springer.com/article/10.1007/s10710-015-9262-4
@@ -28,7 +27,6 @@ mpare
 !(bind! &probCrossOver 0.7)
 !(bind! &probMutate 0.2)
 !(bind! &maxGen 2)
-!(bind! &maxDepth 3)
 
 !(add-atom &grammar (start expr 0))
 !(add-atom &grammar (expr (bop expr expr) 0))
@@ -346,10 +344,6 @@ mpare
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-!(bind! &ntCount (new-space))
-!(bind! &ntReference (new-space))
-!(bind! &countReference (new-space))
-
 ;; Function to apply state to calcMaxNtReference to be compatible for until function.
 ;;
 ;; The arguments are:
@@ -596,7 +590,7 @@ mpare
 
 ;; Return count of possible derivation options for a given non terminal.
 ;;
-;; The arguments are: 
+;; The arguments are:
 ;;
 ;; $nt: The non-terminal whose possible derivations will be counted
 ;; $grammarSpace: The space containing the grammar rules.
@@ -726,6 +720,7 @@ mpare
 ;;    (mutate ((0) (1 0 2) (1 1) (0) (0 1)) &grammar) => ((0) (1 0 2) (1 1) (0) (0 1))
 (= (mutate $genotype $nts $grammarSpace $ubSpace)
     (let* (
+            (() (println! (Calling mutate with: $genotype)))
             ($len (len $nts))
             ($index ((py-dot rnd randint) $len))
 
@@ -830,6 +825,7 @@ mpare
 ;; Result:
 ;; - The function returns a tuple of the codon and it's corresponding 
 ;;     non terminal order respectively in a tuple.
+;; TODO: Try optimizing using reference space instead.
 (= (getOrderedGenoType $grammarSpace $resultSpace $nt $visited $lhss $acc ($g $p))
    (case ((isMember $nt $visited) (isUnit $lhss) (isMember $nt (collapse (getNts $grammarSpace))))
       (
@@ -839,6 +835,8 @@ mpare
         (($_ $__ True)
             (let*
               (
+                ;; (() (println! (Inside get ordered genotype)))
+                ;; (() (println! (Value for key: ($nt $g $p) (match $resultSpace (($nt $g $p) $codon) $codon))))
                 ($codon (unify $resultSpace (($nt $g $p) ($codon $ph $s)) $codon (match $resultSpace (($nt $g $p) $codon) $codon)))
                 ($visited' (cons-atom $nt $visited))
                 ($acc' (cons-atom $codon $acc))
@@ -889,7 +887,8 @@ mpare
 ;; $resultMap: The space where individual elements of the populations are stored.
 ;; $grammarSpace: The space containing the production rules of the grammar.
 ;; $acc: An accumulator to store the boolean expressions generted so far.
-;; $expr: The list of production rules to visit in order from left to right.
+;; $expr: The list of production rules to visit in order from left to right. 
+;;    For the first call, it should be the start symbol.
 ;; $g: The generation number of the individual.
 ;; $p: The unique index of the individual in the population.
 ;;
@@ -992,6 +991,7 @@ mpare
    (collapse
      (let*
         (
+          (() (println! ""))
           ((($startNt $g $p) $genotype) (superpose $population))
           ($isScored (unify $genotype ($genotype' $phenotype $score) (isExpression $genotype') False)) ;; If is not expression, it is just unifying on the number of the codon.
         )
@@ -1000,8 +1000,10 @@ mpare
             (let*
                 (
                   ($result (genPhenotype $resultMap $grammarSpace () ($startNt) ($g $p)))
+                  ;; (() (println! (Result: $result)))
                   ($phenotype (car-atom $result))
                   ($score ($fitnessFunction $phenotype $data $lr))
+                  ;; (() (println! (Phenotype: $phenotype Data: $data LR: $lr Score: $score)))
                 )
                 (($startNt $g $p) ($genotype $phenotype $score)))))))
 
@@ -1157,7 +1159,7 @@ mpare
 
           (() (println! ""))
           (() (println! (SortedPop: $sortedPop)))
-          (() (println! (Elits: $elite RestPop: $restPop)))
+          (() (println! (Elits: $elite)))
           (() (println! (Indexes: $indexes ElitIndex: $eIndex)))
           (() (println! ""))
 
@@ -1169,10 +1171,12 @@ mpare
                           ((($nt $g $p) $oldValue) (superpose $population))
                           ((($nt $g $p) $iValue) (get-atoms $resultMap))
 
-                          (() (println! (Updating Atom: (($nt $g $p) $oldValue) With (($nt $g $p) ($codon $phenotype $score)))))
+                          (() (println! (Updating Atom: (($nt $g $p) $oldValue) With (($nt $g $p) ($oldValue $phenotype $score)))))
                         )
                         (unify $oldValue ($oldCodon $oldPheno $oldScore)
-                                (if (isExpression $oldCodon) (update-atom $resultMap (($nt $g $p) $iValue) (($nt $g $p) ($oldCodon $oldPheno $score))))
+                                (if (isExpression $oldCodon)
+                                    (update-atom $resultMap (($nt $g $p) $iValue) (($nt $g $p) ($oldCodon $oldPheno $score)))
+                                    (update-atom $resultMap (($nt $g $p) $iValue) (($nt $g $p) ($oldValue $phenotype $score))))
                                 (update-atom $resultMap (($nt $g $p) $iValue) (($nt $g $p) ($oldValue $phenotype $score))))
                     )))
 
@@ -1200,6 +1204,7 @@ mpare
 
           (() (println! (TotalElits: $totalElits with Indexes: $elitIndices)))
           (() (println! (TotalUpdatedElits: $totalUpdatedElits)))
+          (() (println! (TotalScoredPop: $totalScoredPop)))
           (() (println! ""))
 
           ;; Generating new elements of the population non deterministically for next generation.
@@ -1258,7 +1263,7 @@ mpare
 ;; Result:
 ;; - Returns the new individual.
 (= (getNewPop $pop $startNt $g $popSize $tSize $probCrossOver $probMutate $grammarSpace $ubSpace $resultSpace $newIndex)
-   (trace! (Running GetNewPop)
+   (trace! (Running GetNewPop with Pop: $pop)
     (if (< ((py-atom random.random)) $probCrossOver)
             (let*
                 (
@@ -1332,12 +1337,21 @@ mpare
                     (trace! (Returning the population: ((($nt1 $g1 $p) ($c $py $s))) with no operation)
                             (collapse (let (($nt $g1 $p) ($c' $py $s)) (superpose $pop) (($nt $g1 $newIndex) ($c' $py $s))))
                             ))))
+                    ;; (collapse (let*
+                    ;;     (
+                    ;;        (() (println! (Selected: (($nt2 $g1 $p) ($c $py $s)))))
+                    ;;        (() (println! (Total Population: $pop)))
+                    ;;        ((($nt $g1 $p) ($c' $py $s)) (superpose $pop))
+                    ;;        (() (println! (Returning Population: (($nt $g1 $newIndex) ($c' $py $s)))))
+                    ;;     )
+                    ;;     (($nt $g1 $newIndex) ($c' $py $s)))))))
+
    )
 )
 
 ;; Params: (evolve $grammarSpace $dataSpace $refSpace $countSpace $refCountSpace $resultMap $elitism $popSize $tSize $probCrossOver $probMutate $maxGen $maxDepth)
-!(evolve &grammar &data &refSpace &countSpace &refCountSpace &ubSpace &resultMap &elitism &popSize &tSize &probCrossOver &probMutate &maxGen &maxDepth)
-!(println! (get-atoms &resultMap))
+;; !(evolve &grammar &data &refSpace &countSpace &refCountSpace &ubSpace &resultMap &elitism &popSize &tSize &probCrossOver &probMutate &maxGen &maxDepth)
+;; !(println! (get-atoms &resultMap))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1347,342 +1361,483 @@ mpare
 ;;;;                                                                                                                          ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;
-;;;;!(bind! &expandedGrammar (new-space))
-;;;;
-;;;;!(add-atom &expandedGrammar (start expr 0))
-;;;;!(add-atom &expandedGrammar (expr (bop expr_0 expr_0) 0))
-;;;;!(add-atom &expandedGrammar (expr (uop expr_0) 1))
-;;;;!(add-atom &expandedGrammar (expr term 2))
-;;;;!(add-atom &expandedGrammar (expr_0 term 0))
-;;;;!(add-atom &expandedGrammar (bop AND 0))
-;;;;!(add-atom &expandedGrammar (bop OR 1))
-;;;;!(add-atom &expandedGrammar (uop NOT 0))
-;;;;!(add-atom &expandedGrammar (term X 0))
-;;;;!(add-atom &expandedGrammar (term Y 1))
-;;;;
-;;;;!(bind! &resultSpace (new-space))
-;;;;
-;;;;!(bind! &tempGrammar (new-space))
-;;;;
-;;;;(= (populateSpace $space)
-;;;;   (let*
-;;;;      (
-;;;;        (() (add-atom &tempGrammar (start expr 0)))
-;;;;        (() (add-atom &tempGrammar (expr (uop expr) 0)))
-;;;;        (() (add-atom &tempGrammar (expr term 1)))
-;;;;        (() (add-atom &tempGrammar (uop AND 0))))
-;;;;      ()))
-;;;;
-;;;;(= (get-rules $space) (match $space ($lhs $rhs $i) ($lhs $rhs)))
-;;;;
-;;;;!(assertEqualToResult (let () (populateSpace &tempGrammar) (get-atoms &tempGrammar)) ((start expr 0) (expr (uop expr) 0) (expr term 1) (uop AND 0)))
-;;;;!(assertEqual (let $_ (clearSpace &tempGrammar) (match &tempGrammar $x $x)) (empty))
-;;;;
-;;;;;; A helper function to clear all atoms from a space
-;;;;
-;;;;;; Test getUpdatedNRRule
-;;;;!(assertEqual (let*
-;;;;   (
-;;;;      ($prevIndex (get-state &lastIndex))
-;;;;      ($updatedRule (getUpdatedNRRule (expr (bop term term) 0) 3))
-;;;;      ($newIndex (get-state &lastIndex)))
-;;;;   ($updatedRule (== $newIndex (+ 1 $prevIndex)))) (((expr 2) (bop term term) 0) True))
-;;;;
-;;;;!(change-state! &lastIndex 0)
-;;;;!(populateSpace &tempGrammar)
-;;;;;; Test getRecursiveRules
-;;;;
-;;;;!(assertEqual (getRecursiveRules start &tempGrammar) ())
-;;;;!(assertEqual (getRecursiveRules uop &tempGrammar ) ())
-;;;;!(assertEqual (getRecursiveRules expr &tempGrammar) (expr (uop expr) 0))
-;;;;!(assertEqual (getRecursiveRules AND &tempGrammar) (empty))
-;;;;
-;;;;;; Test getNonRecursiveRules
-;;;;
-;;;;!(assertEqual (getNonRecursiveRules start &tempGrammar) (start expr 0))
-;;;;!(assertEqual (getNonRecursiveRules uop &tempGrammar) (uop AND 0))
-;;;;!(assertEqual (getNonRecursiveRules expr &tempGrammar) (expr term 1))
-;;;;!(assertEqual (getNonRecursiveRules AND &tempGrammar) (empty))
-;;;;
-;;;;;; Test expandMapHelper
-;;;;
-;;;;!(assertEqual (expandMapHelper (1 expr) start) start)
-;;;;!(assertEqual (expandMapHelper (4 expr) expr) (expr 4))
-;;;;!(assertEqual (expandMapHelper (3 uop) expr) expr)
-;;;;!(assertEqual (expandMapHelper (2 uop) uop) (uop 2))
-;;;;
-;;;;;; Test expandRule
-;;;;
-;;;;!(assertEqual (expandRule 0 (expr (bop term expr) 0)) (expr (bop term (expr 0)) 0))
-;;;;!(assertEqual (expandRule 0 (expr (bop term expr) 1)) (expr (bop term (expr 0)) 1))
-;;;;!(assertEqual (expandRule 1 (expr (bop expr expr) 2)) ((expr 0) (bop (expr 1) (expr 1)) 2))
-;;;;!(assertEqual (expandRule 1 (expr (bop expr expr) 3)) ((expr 0) (bop (expr 1) (expr 1)) 3))
-;;;;!(assertEqual (expandRule 3 (expr (bop term expr) 0)) ((expr 2) (bop term (expr 3)) 0))
-;;;;!(assertEqual (expandRule 3 (expr (bop term expr) 1)) ((expr 2) (bop term (expr 3)) 1))
-;;;;!(assertEqual (expandRule 3 (expr (bop expr expr) 2)) ((expr 2) (bop (expr 3) (expr 3)) 2))
-;;;;!(assertEqual (expandRule 3 (expr (bop expr expr) 3)) ((expr 2) (bop (expr 3) (expr 3)) 3))
-;;;;
-;;;;;; Test expandRules
-;;;;
-;;;;!(assertEqual
-;;;;   (===
-;;;;      (let $_
-;;;;        (expandRules 1
-;;;;            (collapse (getRecursiveRules expr &tempGrammar))
-;;;;            (collapse (getNonRecursiveRules expr &tempGrammar))
-;;;;            &tempGrammar)
-;;;;        (collapse (get-atoms &tempGrammar)))
-;;;;      ((start expr 0) (expr (uop expr) 0) (expr term 1) (uop AND 0) ((expr 0) (uop (expr 1)) 0) ((expr 0) term 1))
-;;;;   )
-;;;;   True)
-;;;;
-;;;;!(clearSpace &tempGrammar)
-;;;;!(populateSpace &tempGrammar)
-;;;;
-;;;;;; Test maxDepthNotReached
-;;;;
-;;;;!(assertEqual (maxDepthNotReached (expr 2 3 () () &tempGrammar)) False)
-;;;;!(assertEqual (maxDepthNotReached (expr 3 3 () () &tempGrammar)) True)
-;;;;!(assertEqual (maxDepthNotReached (expr 4 3 () () &tempGrammar)) True)
-;;;;
-;;;;;; Test applyExpandRules
-;;;;!(assertEqual
-;;;;   (let $nextState
-;;;;        (applyExpandRules (expr 2 3 (collapse (getRecursiveRules expr &tempGrammar)) (collapse (getNonRecursiveRules expr &tempGrammar)) &tempGrammar))
-;;;;        ($nextState (collapse (get-atoms &tempGrammar))))
-;;;;   ((expr 3 3 ((expr (uop expr) 0)) ((expr term 1)) &tempGrammar) ((start expr 0) (expr (uop expr) 0) (expr term 1) (uop AND 0) ((expr 1) (uop (expr 2)) 0) ((expr 1) term 1))))
-;;;;
-;;;;!(clearSpace &tempGrammar)
-;;;;!(populateSpace &tempGrammar)
-;;;;
-;;;;!(assertEqual
-;;;;   (let $nextState
-;;;;        (applyExpandRules (start 2 3 (collapse (getRecursiveRules start &tempGrammar)) (collapse (getNonRecursiveRules start &tempGrammar)) &tempGrammar))
-;;;;        ($nextState (collapse (get-atoms &tempGrammar))))
-;;;;   ((start 3 3 (()) ((start expr 0)) &tempGrammar) ((start expr 0) (expr (uop expr) 0) (expr term 1) (uop AND 0) (expandRule 2 ()) ((start 1) expr 0))))
-;;;;
-;;;;!(clearSpace &tempGrammar)
-;;;;!(populateSpace &tempGrammar)
-;;;;
-;;;;!(assertEqual
-;;;;   (let $nextState (applyExpandRules (uop 2 3 (collapse (getRecursiveRules uop &tempGrammar)) (collapse (getNonRecursiveRules uop &tempGrammar)) &tempGrammar)) ($nextState (collapse (get-atoms &tempGrammar))))
-;;;;   ((uop 3 3 (()) ((uop AND 0)) &tempGrammar) ((start expr 0) (expr (uop expr) 0) (expr term 1) (uop AND 0) (expandRule 2 ()) ((uop 1) AND 0))))
-;;;;
-;;;;!(clearSpace &tempGrammar)
-;;;;!(populateSpace &tempGrammar)
-;;;;
-;;;;;; Test removeRFromRule
-;;;;
-;;;;!(assertEqual
-;;;;   (removeRFromRule expr (uop expr) 2 (collapse (getNonRecursiveRules expr &tempGrammar)))
-;;;;   ((uop term) 0))
-;;;;!(assertEqual
-;;;;   (removeRFromRule expr (bop term term) 1 ((expr (uop term) 1) (expr (bop term term) 2)))
-;;;;   ((bop term term) 1))
-;;;;
-;;;;!(assertEqual
-;;;;   (===
-;;;;      (collapse (removeRFromRule expr (bop expr expr) 2 ((expr (uop term) 1) (expr (bop term term) 2))))
-;;;;      (((bop (uop term) (uop term)) 2) ((bop (uop term) (bop term term)) 3) ((bop (bop term term) (uop term)) 5) ((bop (bop term term) (bop term term)) 6)))
-;;;;   True)
-;;;;
-;;;;
-;;;;;; Test removeRFromRuleHelper
-;;;;
-;;;;!(assertEqual
-;;;;   (===
-;;;;      (collapse (removeRFromRuleHelper expr (bop expr expr) ((expr (uop term) 0) (expr (bop term term) 1))))
-;;;;      (((bop (uop term) expr) 0) ((bop (bop term term) expr) 1)))
-;;;;   True)
-;;;;!(assertEqual
-;;;;   (===
-;;;;      (collapse (let ($rhs $i) (removeRFromRuleHelper expr (bop expr expr) ((expr (uop term) 0) (expr (bop term term) 1))) (removeRFromRuleHelper expr $rhs ((expr (uop term) 0) (expr (bop term term) 1)))))
-;;;;      (((bop (uop term) (uop term)) 0) ((bop (uop term) (bop term term)) 1) ((bop (bop term term) (uop term)) 0) ((bop (bop term term) (bop term term)) 1)))
-;;;;   True)
-;;;;
-;;;;;; Test expandRecursiveNT
-;;;;
-;;;;!(clearSpace &tempGrammar)
-;;;;!(populateSpace &tempGrammar)
-;;;;
-;;;;!(assertEqual
-;;;;  (===
-;;;;      (collapse (let $_ (expandRecursiveNT expr 3 &tempGrammar) (get-rules &tempGrammar)))
-;;;;      ((start expr) (expr (uop (expr 0))) (expr term) (uop AND) ((expr 2) term) ((expr 0) (uop (expr 1))) ((expr 0) term) ((expr 1) (uop (expr 2))) ((expr 1) term) ((expr 2) (uop term))))
-;;;;  True)
-;;;;
-;;;;!(clearSpace &tempGrammar)
-;;;;!(populateSpace &tempGrammar)
-;;;;
-;;;;!(assertEqual
-;;;;  (===
-;;;;      (let $_ (expandRecursiveNT expr 2 &tempGrammar) (collapse (get-rules &tempGrammar)))
-;;;;      ((start expr) (expr (uop (expr 0))) (expr term) (uop AND) ((expr 1) term) ((expr 0) (uop (expr 1))) ((expr 0) term) ((expr 1) (uop term))))
-;;;;  True)
-;;;;
-;;;;!(clearSpace &tempGrammar)
-;;;;!(populateSpace &tempGrammar)
-;;;;
-;;;;
-;;;;!(assertEqual
-;;;;  (===
-;;;;      (let $_ (expandRecursiveNT expr 1 &tempGrammar) (collapse (get-rules &tempGrammar)))
-;;;;      ((start expr) (expr (uop (expr 0))) (expr term) (uop AND) ((expr 0) term) ((expr 0) (uop term))))
-;;;;  True)
-;;;;
-;;;;!(clearSpace &tempGrammar)
-;;;;!(populateSpace &tempGrammar)
-;;;;
-;;;;;; Test expandGrammar
-;;;;
-;;;;!(assertEqual
-;;;;    (===
-;;;;        (let $_ (collapse (expandGrammar 3 &tempGrammar)) (collapse (get-rules &tempGrammar)))
-;;;;        ((start expr) (expr (uop (expr 0))) (expr term) (uop AND) ((expr 2) term) ((expr 0) (uop (expr 1))) ((expr 0) term) ((expr 1) (uop (expr 2))) ((expr 1) term) ((expr 2) (uop term))))
-;;;;    True)
-;;;;
-;;;;!(clearSpace &tempGrammar)
-;;;;!(populateSpace &tempGrammar)
-;;;;
-;;;;!(assertEqual
-;;;;    (===
-;;;;        (let $_ (collapse (expandGrammar 2 &tempGrammar)) (collapse (get-rules &tempGrammar)))
-;;;;        (((expr 1) (uop term)) ((expr 0) (uop (expr 1))) ((expr 1) term) ((expr 0) term) (expr (uop (expr 0))) (expr term) (uop AND) (start expr)))
-;;;;    True)
-;;;;
-;;;;
-;;;;;; Preparing grammar for testing the following functions.
-;;;;!(bind! &expandedGrammar (new-space))
-;;;;
-;;;;!(add-atom &expandedGrammar (start expr 0))
-;;;;!(add-atom &expandedGrammar (expr (bop expr_0 expr_0) 0))
-;;;;!(add-atom &expandedGrammar (expr (uop expr_0) 1))
-;;;;!(add-atom &expandedGrammar (expr term 2))
-;;;;!(add-atom &expandedGrammar (expr_0 term 2))
-;;;;!(add-atom &expandedGrammar (bop AND 0))
-;;;;!(add-atom &expandedGrammar (bop OR 1))
-;;;;!(add-atom &expandedGrammar (uop NOT 0))
-;;;;!(add-atom &expandedGrammar (term X 0))
-;;;;!(add-atom &expandedGrammar (term Y 1))
-;;;;
-;;;;;; Test calcTotalNtReference
-;;;;
-;;;;!(assertEqual (let $_ (calcTotalNtReference &expandedGrammar &ntReference &ntCount expr_0 (collapse (unique (match &expandedGrammar ($lhs $rhs $i) $lhs)))) (=== (collapse (get-atoms &ntCount)) ((term 1)))) True)
-;;;;
-;;;;!(clearSpace (superpose (&ntReference &ntCount)))
-;;;;
-;;;;!(assertEqual (let $_ (calcTotalNtReference &expandedGrammar &ntReference &ntCount expr_0 (collapse (unique (match &expandedGrammar ($lhs $rhs $i) $lhs)))) (=== (collapse (get-atoms &ntReference)) ((term expr_0)))) True)
-;;;;
-;;;;!(clearSpace (superpose (&ntReference &ntCount)))
-;;;;
-;;;;!(assertEqual (let $_ (calcTotalNtReference &expandedGrammar &ntReference &ntCount expr (collapse (unique (match &expandedGrammar ($lhs $rhs $i) $lhs)))) (=== (collapse (get-atoms &ntCount)) ((bop 1) (expr_0 2) (expr_0 0) (uop 1) (expr_0 1) (term 1)))) True)
-;;;;
-;;;;!(clearSpace (superpose (&ntReference &ntCount)))
-;;;;
-;;;;!(assertEqual (let $_ (calcTotalNtReference &expandedGrammar &ntReference &ntCount expr (collapse (unique (match &expandedGrammar ($lhs $rhs $i) $lhs)))) (=== (collapse (get-atoms &ntReference)) ((bop expr) (expr_0 expr) (expr_0 expr) (uop expr) (expr_0 expr) (term expr)))) True)
-;;;;
-;;;;;; INFO: The above test case's effect on the space is kept intentionally as it will be an input for the countMaxReference test cases.
-;;;;
-;;;;;; Test countMaxReference
-;;;;!(assertEqual (let $_ (countMaxReference &ntCount &countReference expr_0 expr) (=== (collapse (get-atoms &countReference)) ((expr_0 expr 2)))) True)
-;;;;
-;;;;!(clearSpace &countReference)
-;;;;
-;;;;!(assertEqual (let $_ (countMaxReference &ntCount &countReference expr start) (=== (collapse (get-atoms &countReference)) ((expr start 0)))) True)
-;;;;
-;;;;!(clearSpace &countReference)
-;;;;
-;;;;!(assertEqual (let $_ (countMaxReference &ntCount &countReference x start) (=== (collapse (get-atoms &countReference)) ((x start 0)))) True)
-;;;;
-;;;;!(clearSpace &countReference)
-;;;;
-;;;;;; Test applyCountMaxReference
-;;;;!(assertEqual (applyCountMaxReference (&ntCount &countReference expr) (expr expr_0 term)) (expr_0 term))
-;;;;
-;;;;!(clearSpace &countReference)
-;;;;
-;;;;!(assertEqual (let $_ (applyCountMaxReference (&ntCount &countReference expr) (expr expr_0 term)) (=== (collapse (get-atoms &countReference)) ((expr expr 0)))) True)
-;;;;
-;;;;!(clearSpace (superpose (&ntCount &ntReference &countReference)))
-;;;;
-;;;;;; Test calcMaxNtReference
-;;;;
-;;;;!(assertEqual (let $_ (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference expr) (=== (collapse (get-atoms &ntReference)) ((uop expr) (expr_0 expr) (bop expr) (term expr)))) True)
-;;;;
-;;;;!(clearSpace (superpose (&ntReference &countReference)))
-;;;;
-;;;;!(assertEqual (let $_ (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference expr) (=== (collapse (get-atoms &countReference)) ((uop expr 1) (term expr 1) (bop expr 1) (expr_0 expr 2)))) True)
-;;;;
-;;;;!(clearSpace (superpose (&ntReference &countReference)))
-;;;;
-;;;;!(assertEqual (let $_  (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference expr_0) (=== (collapse (get-atoms &ntReference)) ((term expr_0)))) True)
-;;;;
-;;;;!(clearSpace (superpose (&ntReference &countReference)))
-;;;;
-;;;;!(assertEqual (let $_  (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference expr_0) (=== (collapse (get-atoms &countReference)) ((term expr_0 1)))) True)
-;;;;
-;;;;!(clearSpace (superpose (&ntReference &countReference)))
-;;;;
-;;;;!(assertEqual (let $_  (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference uop) (=== (collapse (get-atoms &ntReference)) ())) True)
-;;;;
-;;;;!(assertEqual (let $_  (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference uop) (=== (collapse (get-atoms &countReference)) ())) True)
-;;;;
-;;;;;; Test applyCalcMaxNtReference
-;;;;!(assertEqual (applyCalcMaxNtReference (&expandedGrammar &ntReference &ntCount &countReference) (expr_0 start expr term uop bop)) (start expr term uop bop))
-;;;;
-;;;;!(assertEqual (let $_ (applyCalcMaxNtReference (&expandedGrammar &ntReference &ntCount &countReference) (expr_0 start expr term uop bop)) (=== (collapse (get-atoms &ntReference)) ((term expr_0)))) True)
-;;;;
-;;;;!(clearSpace (superpose (&ntReference &countReference)))
-;;;;
-;;;;;; INFO: This line here is added because the next test cases depend on a result being present in the spaces defined.
-;;;;!(until isUnit ((curry applyCalcMaxNtReference) (&expandedGrammar &ntReference &ntCount &countReference)) (collapse (unique (match &expandedGrammar ($nt $rhs $i) $nt))))
-;;;;
-;;;;;; Test maxRefPerProd
-;;;;!(assertEqual (maxRefPerProd &ntReference &countReference expr) 1)
-;;;;!(assertEqual (maxRefPerProd &ntReference &countReference expr_0) 2)
-;;;;!(assertEqualToResult (maxRefPerProd &ntReference &countReference term) (2 1))
-;;;;
-;;;;;; Test upperBounds
-;;;;
-;;;;!(assertEqual (upperBounds &ntReference &countReference expr) (expr 1))
-;;;;!(assertEqual (upperBounds &ntReference &countReference expr_0) (expr_0 2))
-;;;;!(assertEqual (upperBounds &ntReference &countReference term) (term 3))
-;;;;
-;;;;!(clearSpace (superpose (&ntReference &countReference)))
-;;;;
-;;;;;; Test recombine
-;;;;
-;;;;! (assertEqual 
-;;;;    (recombine ((0) (0 1) (0 1 0 1) (0 2 1)) ((1) (1 0) (0 0 0 1) (2 3 1)) (0 0 1 1))
-;;;;        (((0) (0 1) (0 0 0 1) (2 3 1)) ((1) (1 0) (0 1 0 1) (0 2 1))))
-;;;;
-;;;;! (assertEqual 
-;;;;    (recombine ((0) (0 1) (0 1 0 1) (0 2 1)) ((1) (1 0) (0 0 0 1) (2 3 1)) (0 1 0 1))
-;;;;        (((0) (1 0) (0 1 0 1) (2 3 1)) ((1) (0 1) (0 0 0 1) (0 2 1))))
-;;;;
-;;;;;; Test mutate
-;;;;
-;;;;;; confirmMutation 
-;;;;;;        return true only if the number of changed genes is either 0 or 1
-;;;;;;        Flattens the two gene lists, original and mutated, so that changes can be compared element by element
-;;;;
-;;;;(: confirmMutation (-> Expression Expression Bool))
-;;;;(= (confirmMutation $original $mutated)
-;;;;    (let*
-;;;;        (
-;;;;            ($o_ (foldr ++ () $original))
-;;;;            ($m_ (foldr ++ () $mutated))
-;;;;            ($bool (compareElements $o_ $m_))
-;;;;            ($n (count False $bool))
-;;;;        )
-;;;;        (or (== $n 1) (== $n 0))
-;;;;    )
-;;;;)
-;;;;
-;;;;! (assertEqual 
-;;;;  (confirmMutation ((0) (1 0 1) (1 1) (0) (1 0)) (mutate ((0) (1 0 1) (1 1) (0) (1 0)) &grammar))
-;;;;    True)
-;;;;! (assertEqual 
-;;;;  (confirmMutation ((0) (1 1 1) (1 0) (0) (1 0)) (mutate ((0) (1 1 1) (1 0) (0) (1 0)) &grammar))
-;;;;    True)
+
+;; Preparing grammar for testing the following functions.
+!(bind! &expandedGrammar (new-space))
+!(bind! &ntCount (new-space))
+!(bind! &ntReference (new-space))
+!(bind! &countReference (new-space))
+!(bind! &tempGrammar (new-space))
+!(bind! &testGrammar (new-space))
+!(bind! &resultSpace (new-space))
+!(bind! &upperBoundTest (new-space))
+
+!(add-atom &expandedGrammar (start expr 0))
+!(add-atom &expandedGrammar (expr (bop (expr 0) (expr 0)) 0))
+!(add-atom &expandedGrammar (expr (uop (expr 0)) 1))
+!(add-atom &expandedGrammar (expr term 2))
+!(add-atom &expandedGrammar ((expr 0) term 0))
+!(add-atom &expandedGrammar (bop AND 0))
+!(add-atom &expandedGrammar (bop OR 1))
+!(add-atom &expandedGrammar (uop NOT 0))
+!(add-atom &expandedGrammar (term X 0))
+!(add-atom &expandedGrammar (term Y 1))
+
+!(add-atom &testGrammar (start expr 0))
+!(add-atom &testGrammar (expr (bop (expr 0) (expr 0)) 0))
+!(add-atom &testGrammar (expr (uop (expr 0)) 1))
+!(add-atom &testGrammar (expr term 2))
+!(add-atom &testGrammar ((expr 0) term 0))
+!(add-atom &testGrammar (bop AND 0))
+!(add-atom &testGrammar (bop OR 1))
+!(add-atom &testGrammar (uop NOT 0))
+!(add-atom &testGrammar (term X 0))
+!(add-atom &testGrammar (term Y 1))
+
+!(add-atom &upperBoundTest (start 1 1))
+!(add-atom &upperBoundTest (expr 1 3))
+!(add-atom &upperBoundTest ((expr 0) 2 1))
+!(add-atom &upperBoundTest (bop 1 2))
+!(add-atom &upperBoundTest (uop 1 1))
+!(add-atom &upperBoundTest (term 3 2))
+
+
+;; Helper function to add intial atoms into space
+(= (populateSpace $space)
+   (let*
+      (
+        (() (add-atom &tempGrammar (start expr 0)))
+        (() (add-atom &tempGrammar (expr (uop expr) 0)))
+        (() (add-atom &tempGrammar (expr term 1)))
+        (() (add-atom &tempGrammar (uop AND 0))))
+      ()))
+
+(= (get-rules $space) (match $space ($lhs $rhs $i) ($lhs $rhs)))
+
+!(assertEqualToResult (let () (populateSpace &tempGrammar) (get-atoms &tempGrammar)) ((start expr 0) (expr (uop expr) 0) (expr term 1) (uop AND 0)))
+!(assertEqual (let $_ (clearSpace &tempGrammar) (match &tempGrammar $x $x)) (empty))
+
+;; Test getUpdatedNRRule
+!(assertEqual (let*
+   (
+      ($prevIndex (get-state &lastIndex))
+      ($updatedRule (getUpdatedNRRule (expr (bop term term) 0) 3))
+      ($newIndex (get-state &lastIndex)))
+   ($updatedRule (== $newIndex (+ 1 $prevIndex)))) (((expr 2) (bop term term) 0) True))
+
+!(change-state! &lastIndex 0)
+
+!(populateSpace &tempGrammar)
+;; Test getRecursiveRules
+
+!(assertEqual (getRecursiveRules start &tempGrammar) ())
+!(assertEqual (getRecursiveRules uop &tempGrammar ) ())
+!(assertEqual (getRecursiveRules expr &tempGrammar) (expr (uop expr) 0))
+!(assertEqual (getRecursiveRules AND &tempGrammar) (empty))
+
+;; Test getNonRecursiveRules
+
+!(assertEqual (getNonRecursiveRules start &tempGrammar) (start expr 0))
+!(assertEqual (getNonRecursiveRules uop &tempGrammar) (uop AND 0))
+!(assertEqual (getNonRecursiveRules expr &tempGrammar) (expr term 1))
+!(assertEqual (getNonRecursiveRules AND &tempGrammar) (empty))
+
+;; Test expandMapHelper
+
+!(assertEqual (expandMapHelper (1 expr) start) start)
+!(assertEqual (expandMapHelper (4 expr) expr) (expr 4))
+!(assertEqual (expandMapHelper (3 uop) expr) expr)
+!(assertEqual (expandMapHelper (2 uop) uop) (uop 2))
+
+;; Test expandRule
+
+!(assertEqual (expandRule 0 (expr (bop term expr) 0)) (expr (bop term (expr 0)) 0))
+!(assertEqual (expandRule 0 (expr (bop term expr) 1)) (expr (bop term (expr 0)) 1))
+!(assertEqual (expandRule 1 (expr (bop expr expr) 2)) ((expr 0) (bop (expr 1) (expr 1)) 2))
+!(assertEqual (expandRule 1 (expr (bop expr expr) 3)) ((expr 0) (bop (expr 1) (expr 1)) 3))
+!(assertEqual (expandRule 3 (expr (bop term expr) 0)) ((expr 2) (bop term (expr 3)) 0))
+!(assertEqual (expandRule 3 (expr (bop term expr) 1)) ((expr 2) (bop term (expr 3)) 1))
+!(assertEqual (expandRule 3 (expr (bop expr expr) 2)) ((expr 2) (bop (expr 3) (expr 3)) 2))
+!(assertEqual (expandRule 3 (expr (bop expr expr) 3)) ((expr 2) (bop (expr 3) (expr 3)) 3))
+
+;; Test expandRules
+
+!(assertEqual
+   (===
+      (let $_
+        (expandRules 1
+            (collapse (getRecursiveRules expr &tempGrammar))
+            (collapse (getNonRecursiveRules expr &tempGrammar))
+            &tempGrammar)
+        (collapse (get-atoms &tempGrammar)))
+      ((start expr 0) (expr (uop expr) 0) (expr term 1) (uop AND 0) ((expr 0) (uop (expr 1)) 0) ((expr 0) term 1))
+   )
+   True)
+
+!(clearSpace &tempGrammar)
+!(populateSpace &tempGrammar)
+
+;; Test maxDepthNotReached
+
+!(assertEqual (maxDepthNotReached (expr 2 3 () () &tempGrammar)) False)
+!(assertEqual (maxDepthNotReached (expr 3 3 () () &tempGrammar)) True)
+!(assertEqual (maxDepthNotReached (expr 4 3 () () &tempGrammar)) True)
+
+;; Test applyExpandRules
+!(assertEqual
+   (let $nextState
+        (applyExpandRules (expr 2 3 (collapse (getRecursiveRules expr &tempGrammar)) (collapse (getNonRecursiveRules expr &tempGrammar)) &tempGrammar))
+        ($nextState (collapse (get-atoms &tempGrammar))))
+   ((expr 3 3 ((expr (uop expr) 0)) ((expr term 1)) &tempGrammar) ((start expr 0) (expr (uop expr) 0) (expr term 1) (uop AND 0) ((expr 1) (uop (expr 2)) 0) ((expr 1) term 1))))
+
+!(clearSpace &tempGrammar)
+!(populateSpace &tempGrammar)
+
+!(assertEqual
+   (let $nextState
+        (applyExpandRules (start 2 3 (collapse (getRecursiveRules start &tempGrammar)) (collapse (getNonRecursiveRules start &tempGrammar)) &tempGrammar))
+        ($nextState (collapse (get-atoms &tempGrammar))))
+   ((start 3 3 (()) ((start expr 0)) &tempGrammar) ((start expr 0) (expr (uop expr) 0) (expr term 1) (uop AND 0) (expandRule 2 ()) ((start 1) expr 0))))
+
+!(clearSpace &tempGrammar)
+!(populateSpace &tempGrammar)
+
+!(assertEqual
+   (let $nextState (applyExpandRules (uop 2 3 (collapse (getRecursiveRules uop &tempGrammar)) (collapse (getNonRecursiveRules uop &tempGrammar)) &tempGrammar)) ($nextState (collapse (get-atoms &tempGrammar))))
+   ((uop 3 3 (()) ((uop AND 0)) &tempGrammar) ((start expr 0) (expr (uop expr) 0) (expr term 1) (uop AND 0) (expandRule 2 ()) ((uop 1) AND 0))))
+
+!(clearSpace &tempGrammar)
+!(populateSpace &tempGrammar)
+
+;; Test removeRFromRule
+
+!(assertEqual
+   (removeRFromRule expr (uop expr) 2 (collapse (getNonRecursiveRules expr &tempGrammar)))
+   ((uop term) 0))
+!(assertEqual
+   (removeRFromRule expr (bop term term) 1 ((expr (uop term) 1) (expr (bop term term) 2)))
+   ((bop term term) 1))
+
+!(assertEqual
+   (===
+      (collapse (removeRFromRule expr (bop expr expr) 2 ((expr (uop term) 1) (expr (bop term term) 2))))
+      (((bop (uop term) (uop term)) 2) ((bop (uop term) (bop term term)) 3) ((bop (bop term term) (uop term)) 5) ((bop (bop term term) (bop term term)) 6)))
+   True)
+
+
+;; Test removeRFromRuleHelper
+
+!(assertEqual
+   (===
+      (collapse (removeRFromRuleHelper expr (bop expr expr) ((expr (uop term) 0) (expr (bop term term) 1))))
+      (((bop (uop term) expr) 0) ((bop (bop term term) expr) 1)))
+   True)
+!(assertEqual
+   (===
+      (collapse (let ($rhs $i) (removeRFromRuleHelper expr (bop expr expr) ((expr (uop term) 0) (expr (bop term term) 1))) (removeRFromRuleHelper expr $rhs ((expr (uop term) 0) (expr (bop term term) 1)))))
+      (((bop (uop term) (uop term)) 0) ((bop (uop term) (bop term term)) 1) ((bop (bop term term) (uop term)) 0) ((bop (bop term term) (bop term term)) 1)))
+   True)
+
+;; Test expandRecursiveNT
+
+!(clearSpace &tempGrammar)
+!(populateSpace &tempGrammar)
+
+!(assertEqual
+  (===
+      (collapse (let $_ (expandRecursiveNT expr 3 &tempGrammar) (get-rules &tempGrammar)))
+      ((start expr) (expr (uop (expr 0))) (expr term) (uop AND) ((expr 2) term) ((expr 0) (uop (expr 1))) ((expr 0) term) ((expr 1) (uop (expr 2))) ((expr 1) term) ((expr 2) (uop term))))
+  True)
+
+!(clearSpace &tempGrammar)
+!(populateSpace &tempGrammar)
+
+!(assertEqual
+  (===
+      (let $_ (expandRecursiveNT expr 2 &tempGrammar) (collapse (get-rules &tempGrammar)))
+      ((start expr) (expr (uop (expr 0))) (expr term) (uop AND) ((expr 1) term) ((expr 0) (uop (expr 1))) ((expr 0) term) ((expr 1) (uop term))))
+  True)
+
+!(clearSpace &tempGrammar)
+!(populateSpace &tempGrammar)
+
+
+!(assertEqual
+  (===
+      (let $_ (expandRecursiveNT expr 1 &tempGrammar) (collapse (get-rules &tempGrammar)))
+      ((start expr) (expr (uop (expr 0))) (expr term) (uop AND) ((expr 0) term) ((expr 0) (uop term))))
+  True)
+
+!(clearSpace &tempGrammar)
+!(populateSpace &tempGrammar)
+
+;; Test expandGrammar
+
+!(assertEqual
+    (===
+        (let $_ (collapse (expandGrammar 3 &tempGrammar)) (collapse (get-rules &tempGrammar)))
+        ((start expr) (expr (uop (expr 0))) (expr term) (uop AND) ((expr 2) term) ((expr 0) (uop (expr 1))) ((expr 0) term) ((expr 1) (uop (expr 2))) ((expr 1) term) ((expr 2) (uop term))))
+    True)
+
+!(clearSpace &tempGrammar)
+!(populateSpace &tempGrammar)
+
+!(assertEqual
+    (===
+        (let $_ (collapse (expandGrammar 2 &tempGrammar)) (collapse (get-rules &tempGrammar)))
+        (((expr 1) (uop term)) ((expr 0) (uop (expr 1))) ((expr 1) term) ((expr 0) term) (expr (uop (expr 0))) (expr term) (uop AND) (start expr)))
+    True)
+
+
+;; Test calcTotalNtReference
+
+!(assertEqual (let $_ (calcTotalNtReference &expandedGrammar &ntReference &ntCount (expr 0) (collapse (unique (match &expandedGrammar ($lhs $rhs $i) $lhs)))) (=== (collapse (get-atoms &ntCount)) ((term 1)))) True)
+
+!(clearSpace (superpose (&ntReference &ntCount)))
+
+!(assertEqual (let $_ (calcTotalNtReference &expandedGrammar &ntReference &ntCount (expr 0) (collapse (unique (match &expandedGrammar ($lhs $rhs $i) $lhs)))) (=== (collapse (get-atoms &ntReference)) ((term (expr 0))))) True)
+
+!(clearSpace (superpose (&ntReference &ntCount)))
+
+!(assertEqual (let $_ (calcTotalNtReference &expandedGrammar &ntReference &ntCount expr (collapse (unique (match &expandedGrammar ($lhs $rhs $i) $lhs)))) (=== (collapse (get-atoms &ntCount)) ((bop 1) ((expr 0) 2) ((expr 0) 0) (uop 1) ((expr 0) 1) (term 1)))) True)
+
+!(clearSpace (superpose (&ntReference &ntCount)))
+
+!(assertEqual (let $_ (calcTotalNtReference &expandedGrammar &ntReference &ntCount expr (collapse (unique (match &expandedGrammar ($lhs $rhs $i) $lhs)))) (=== (collapse (get-atoms &ntReference)) ((bop expr) ((expr 0) expr) ((expr 0) expr) (uop expr) ((expr 0) expr) (term expr)))) True)
+
+;; INFO: The above test case's effect on the space is kept intentionally as it will be an input for the countMaxReference test cases.
+
+;; Test countMaxReference
+!(assertEqual (let $_ (collapse (countMaxReference &ntCount &countReference (expr 0) expr)) (=== (collapse (get-atoms &countReference)) (((expr 0) expr 2)))) True) ;; INFO: The countMaxReference function wrapped in let returns non deterministic result but works fine when called directly.
+!(clearSpace &countReference)
+
+!(assertEqual (let $_ (collapse (countMaxReference &ntCount &countReference expr start)) (=== (collapse (get-atoms &countReference)) ((expr start 0)))) True)
+
+!(clearSpace &countReference)
+
+!(assertEqual (let $_ (collapse (countMaxReference &ntCount &countReference x start)) (=== (collapse (get-atoms &countReference)) ((x start 0)))) True)
+
+!(clearSpace &countReference)
+
+;; Test applyCountMaxReference
+
+!(assertEqual (unique (applyCountMaxReference (&ntCount &countReference expr) (expr (expr 0) term))) ((expr 0) term)) ;; INFO: Fails for the same reason as the above countMaxReference being wrapped in a let.
+
+!(clearSpace &countReference)
+
+!(assertEqual (let $_ (collapse (applyCountMaxReference (&ntCount &countReference expr) (expr (expr 0) term))) (=== (collapse (get-atoms &countReference)) ((expr expr 0)))) True)
+
+!(clearSpace (superpose (&ntCount &ntReference &countReference)))
+
+;; Test calcMaxNtReference
+
+!(assertEqual (let $_ (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference expr) (=== (collapse (get-atoms &ntReference)) ((uop expr) ((expr 0) expr) (bop expr) (term expr)))) True)
+
+!(clearSpace (superpose (&ntReference &countReference)))
+
+!(assertEqual (let $_ (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference expr) (=== (collapse (get-atoms &countReference)) ((uop expr 1) (term expr 1) (bop expr 1) ((expr 0) expr 2)))) True)
+
+!(clearSpace (superpose (&ntReference &countReference)))
+
+!(assertEqual (let $_  (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference (expr 0)) (=== (collapse (get-atoms &ntReference)) ((term (expr 0))))) True)
+
+!(clearSpace (superpose (&ntReference &countReference)))
+
+!(assertEqual (let $_  (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference (expr 0)) (=== (collapse (get-atoms &countReference)) ((term (expr 0) 1)))) True)
+
+!(clearSpace (superpose (&ntReference &countReference)))
+
+!(assertEqual (let $_  (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference uop) (=== (collapse (get-atoms &ntReference)) ())) True)
+
+!(assertEqual (let $_  (calcMaxNtReference &expandedGrammar &ntReference &ntCount &countReference uop) (=== (collapse (get-atoms &countReference)) ())) True)
+
+;; Test applyCalcMaxNtReference
+!(assertEqual (applyCalcMaxNtReference (&expandedGrammar &ntReference &ntCount &countReference) ((expr 0) start expr term uop bop)) (start expr term uop bop))
+
+!(assertEqual (let $_ (applyCalcMaxNtReference (&expandedGrammar &ntReference &ntCount &countReference) ((expr 0) start expr term uop bop)) (=== (collapse (get-atoms &ntReference)) ((term (expr 0))))) True)
+
+!(clearSpace (superpose (&ntReference &countReference)))
+
+;; INFO: This line here is added because the next test cases depend on a result being present in the spaces defined.
+!(until isUnit ((curry applyCalcMaxNtReference) (&expandedGrammar &ntReference &ntCount &countReference)) (collapse (unique (match &expandedGrammar ($nt $rhs $i) $nt))))
+
+;; Test maxRefPerProd
+!(assertEqual (maxRefPerProd &ntReference &countReference expr) 1)
+!(assertEqual (maxRefPerProd &ntReference &countReference (expr 0)) 2)
+!(assertEqualToResult (maxRefPerProd &ntReference &countReference term) (2 1))
+
+;; Test upperBounds
+
+!(assertEqual (upperBounds &ntReference &countReference expr) (expr 1))
+!(assertEqual (upperBounds &ntReference &countReference (expr 0)) ((expr 0) 2))
+!(assertEqual (upperBounds &ntReference &countReference term) (term 3))
+
+!(clearSpace (superpose (&ntReference &countReference)))
+
+;; Test recombine
+
+! (assertEqual
+    (recombine ((0) (0 1) (0 1 0 1) (0 2 1)) ((1) (1 0) (0 0 0 1) (2 3 1)) (0 0 1 1))
+        (((0) (0 1) (0 0 0 1) (2 3 1)) ((1) (1 0) (0 1 0 1) (0 2 1))))
+
+! (assertEqual
+    (recombine ((0) (0 1) (0 1 0 1) (0 2 1)) ((1) (1 0) (0 0 0 1) (2 3 1)) (0 1 0 1))
+        (((0) (1 0) (0 1 0 1) (2 3 1)) ((1) (0 1) (0 0 0 1) (0 2 1))))
+
+;; Test mutate
+
+;; confirmMutation
+;;        return true only if the number of changed genes is either 0 or 1
+;;        Flattens the two gene lists, original and mutated, so that changes can be compared element by element
+
+        (: confirmMutation (-> Expression Expression Bool))
+        (= (confirmMutation $original $mutated)
+            (let*
+                (
+                    ($o_ (foldr ++ () $original))
+                    ($m_ (foldr ++ () $mutated))
+                    ($bool (compareElements $o_ $m_))
+                    ($n (count False $bool))
+                )
+                (or (== $n 1) (== $n 0))
+            )
+        )
+
+!(assertEqual
+  (confirmMutation ((0) (0 0) (1) (1 0 1) (1) (0)) (mutate ((0) (0 0) (1) (1 0 1) (1) (0)) (collapse (getNts &expandedGrammar)) &expandedGrammar &upperBoundTest))
+  True)
+!(assertEqual
+    (confirmMutation ((0) (0 0) (0) (0 0 0) (0) (0)) (mutate ((0) (0 0) (0) (0 0 0) (0) (0)) (collapse (getNts &expandedGrammar)) &expandedGrammar &upperBoundTest))
+  True)
+
+;; Test calculateCN
+
+!(assertEqual (calculateCN expr &expandedGrammar) 3)
+!(assertEqual (calculateCN (expr 0) &expandedGrammar) 1)
+!(assertEqual (calculateCN noNt &expandedGrammar) 0)
+
+;; Test genGenotype
+
+(= (isNumber $expr) (== (get-metatype $expr) Grounded))
+
+!(assertEqualToResult (let $_ (genGenotype &expandedGrammar &ntReference &countReference &upperBoundTest &resultSpace (0 2)) (match &resultSpace (($nt 0 2) $codon) $nt)) (start expr (expr 0) bop uop term))
+!(assertEqualToResult (let*
+                         (
+                           ($codon (collapse (match &resultSpace (($nt 0 2) $codon) $codon)))
+                           ($boolean (collapse
+                                       (let*
+                                           (
+                                             ($c (superpose $codon))
+                                             ($gene (superpose $c))
+                                           )
+                                       (isNumber $gene))))
+                         )
+                         (isMember False $boolean)) (False))
+
+;; Test index rules
+!(assertEqualToResult (let $_ (indexRules start &expandedGrammar) (match &expandedGrammar (start $lhs $i) $i)) (0))
+!(assertEqualToResult (let $_ (indexRules expr &expandedGrammar) (match &expandedGrammar (expr $lhs $i) $i)) (0 1 2))
+!(assertEqualToResult (let $_ (indexRules (expr 0) &expandedGrammar) (match &expandedGrammar ((expr 0) $lhs $i) $i)) (0))
+!(assertEqualToResult (let $_ (indexRules term &expandedGrammar) (match &expandedGrammar (term $lhs $i) $i)) (1 0))
+!(assertEqualToResult (let $_ (indexRules bop &expandedGrammar) (match &expandedGrammar (bop $lhs $i) $i)) (1 0))
+!(assertEqualToResult (let $_ (indexRules uop &expandedGrammar) (match &expandedGrammar (uop $lhs $i) $i)) (0))
+
+;; Test ordered left hand sides
+!(assertEqual (getOrderedLhs &testGrammar expr 3) ((bop (expr 0) (expr 0)) (uop (expr 0)) term))
+!(assertEqual (getOrderedLhs &testGrammar start 1) (expr))
+
+;; Test ordered genotype
+!(clearSpace &resultSpace)
+
+!(add-reduct &resultSpace (superpose ((((expr 0) 0 2) (0 0)) ((expr 0 2) (2)) ((term 0 2) (1 0 1)) ((uop 0 2) (0)) ((bop 0 2) (1)) ((start 0 2) (0))))) ;; Y
+!(add-reduct &resultSpace (superpose ((((expr 0) 0 1) (0 0)) ((start 0 1) (0)) ((uop 0 1) (0)) ((expr 0 1) (0)) ((bop 0 1) (1)) ((term 0 1) (1 1 1))))) ;; (OR Y Y)
+!(add-reduct &resultSpace (superpose ((((expr 0) 0 0) (0 0)) ((expr 0 0) (0)) ((term 0 0) (0 1 0)) ((uop 0 0) (0)) ((start 0 0) (0)) ((bop 0 0) (0))))) ;; (AND X Y)
+!(add-reduct &resultSpace (superpose ((((expr 0) 0 3) (0 0)) ((expr 0 3) (1)) ((term 0 3) (1 1 1)) ((bop 0 3) (1)) ((start 0 3) (0)) ((uop 0 3) (0))))) ;; (NOT Y)
+
+
+!(assertEqual (getOrderedGenoType &testGrammar &resultSpace start () () () (0 2)) ((1 (0) (0 0) (1) (2) (0)) (term uop (expr 0) bop expr start)))
+
+;; Test isSubRule
+!(assertEqual (isSubRule (bop term term)) True)
+!(assertEqual (isSubRule (expr 0)) False)
+!(assertEqual (isSubRule A) False)
+
+;; Test generate phenotype
+!(assertEqual (genPhenotype &resultSpace &testGrammar () (start) (0 2)) (Y))
+!(assertEqual (genPhenotype &resultSpace &testGrammar () (start) (0 1)) ((OR Y Y)))
+!(assertEqual (genPhenotype &resultSpace &testGrammar () (start) (0 0)) ((AND X Y)))
+!(assertEqual (genPhenotype &resultSpace &testGrammar () (start) (0 3)) ((NOT Y)))
+
+;; Test evaluate
+
+!(clearSpace &resultSpace)
+
+!(add-reduct &resultSpace (superpose ((((expr 0) 0 2) (0 0)) ((expr 0 2) (2)) ((term 0 2) (1 0 1)) ((uop 0 2) (0)) ((bop 0 2) (1)) ((start 0 2) (0))))) ;; Y
+!(add-reduct &resultSpace (superpose ((((expr 0) 0 1) (0 0)) ((start 0 1) (0)) ((uop 0 1) (0)) ((expr 0 1) (0)) ((bop 0 1) (1)) ((term 0 1) (1 1 1))))) ;; (OR Y Y)
+!(add-reduct &resultSpace (superpose ((((expr 0) 0 0) (0 0)) ((expr 0 0) (0)) ((term 0 0) (0 1 0)) ((uop 0 0) (0)) ((start 0 0) (0)) ((bop 0 0) (0))))) ;; (AND X Y)
+!(add-reduct &resultSpace (superpose ((((expr 0) 0 3) (0 0)) ((expr 0 3) (1)) ((term 0 3) (1 1 1)) ((bop 0 3) (1)) ((start 0 3) (0)) ((uop 0 3) (0))))) ;; (NOT Y)
+
+(= (testScore $x $y $z) 50)
+
+!(assertEqualToResult
+    (let $result (evaluate (collapse (get-atoms &resultSpace)) testScore () 0.1 &resultSpace &testGrammar start)
+                 (superpose $result))
+                 (((start 0 2) ((0) Y 50)) ((start 0 1) ((0) (OR Y Y) 50)) ((start 0 0) ((0) (AND X Y) 50)) ((start 0 3) ((0) (NOT Y) 50))))
+
+;; Test comparePop
+
+!(assertEqual (comparePop ((expr 1 2) ((0) Y 50)) ((start 1 2) ((0) (OR Y Y) 50))) True)
+!(assertEqual (comparePop (((expr 0) 2 2) ((0) Y 40)) ((expr 2 2) ((0) (OR Y Y) 50))) False)
+!(assertEqual (comparePop ((term 0 2) ((0) Y 50)) (((expr 0) 2 2) ((0) (OR Y Y) 60))) False)
+!(assertEqual (comparePop (((expr 0) 2 2) ((0) (OR Y Y) 60)) ((term 0 2) ((0) Y 50))) True)
+
+
+;; Test evolution
+
+(= (testEvolve $grammar $dataSpace $refSpace $countSpace $refCountSpace $ubSpace $resultSpace $elite $popSize $tSize $pCross $pMutate $maxGen $maxDepth)
+   (let*
+      (
+        (() (evolve $grammar $dataSpace $refSpace $countSpace $refCountSpace $ubSpace $resultSpace $elite $popSize $tSize $pCross $pMutate $maxGen $maxDepth))
+        ($result (collapse (get-atoms &resultSpace)))
+
+        (() (println! (Result: $result)))
+
+        ($nts (collapse (unique (let (($nt $g $i) $value) (superpose $result) $nt))))
+        ($ntSize (sum (collapse (let $nt (superpose $nts) 1))))
+        ($size (/ (sum (collapse (let (($nt $g $i) $value) (superpose $result) 1))) $ntSize))
+        ($eliteSize (/ (sum (collapse (let (($nt $g $i) ($codon $py $score)) (superpose $result) (if (isExpression $codon) 1 (empty))))) $ntSize))
+        ($ntsEqual (=== $nts (collapse (getNts $grammar))))
+      )
+      ($ntsEqual $size $eliteSize)
+   )
+)
+
+!(clearSpace (superpose (&ntReference &countReference &resultSpace &upperBoundTest)))
+
+!(assertEqual
+   (let ($ntsEqual $size $eliteSize) (testEvolve &expandedGrammar &data &ntReference &countSpace &countReference &upperBoundTest &resultSpace 1 3 2 0.0 0.0 1 2)
+        ($ntsEqual $size $eliteSize))
+   (True 3 3))
+
+!(clearSpace (superpose (&ntReference &countReference &resultSpace &upperBoundTest)))
+
+!(assertEqual
+   (let ($ntsEqual $size $eliteSize) (testEvolve &expandedGrammar &data &ntReference &countSpace &countReference &upperBoundTest &resultSpace 1 3 2 1.0 0.0 1 2)
+        ($ntsEqual $size $eliteSize))
+   (True 3 1))
+
+!(clearSpace (superpose (&ntReference &countReference &resultSpace &upperBoundTest)))
+
+!(assertEqual
+  (let ($ntsEqual $size $eliteSize) (testEvolve &expandedGrammar &data &ntReference &countSpace &countReference &upperBoundTest &resultSpace 1 3 2 0.0 1.0 1 2)
+       ($ntsEqual $size $eliteSize))
+  (True 3 1))
+
+!(clearSpace (superpose (&ntReference &countReference &resultSpace &upperBoundTest)))
+
+!(assertEqual
+   (let ($ntsEqual $size $eliteSize) (testEvolve &expandedGrammar &data &ntReference &countSpace &countReference &upperBoundTest &resultSpace 1 3 2 0.7 0.2 2 2)
+        ($ntsEqual $size (and (>= $eliteSize 1) (<= $eliteSize 3))))
+   (True 3 True))
+
+!(clearSpace (superpose (&ntReference &countReference &resultSpace &upperBoundTest)))

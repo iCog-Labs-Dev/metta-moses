@@ -317,8 +317,10 @@
        (($n $list)
           (let*
              (
+               ;; (() (println! (Splitting $list at: $n)))
                (($x $xs) (decons $list))
                (($left $right) (splitAt (- $n 1) $xs))
+               ;; (() (println! (From splitAt Left: $left Right: $right)))
              )
              ((cons-atom $x $left) $right))))))
 
@@ -329,8 +331,10 @@
    (if (or (isUnit $list) (isSingleAtom $list))
        $list
        (let* (
+                ;; (() (println! (Sorting $list len: $len)))
                 ($halfL ((py-atom math.floor) (/ $len 2)))
                 (($left $right) (splitAt $halfL $list))
+                ;; (() (println! (From sort Left: $left Right: $right)))
              )
              (merge (sort $left $halfL $key) (sort $right (- $len $halfL) $key) $key))))
 
