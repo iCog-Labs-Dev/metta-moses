@@ -1,6 +1,4 @@
 
-! (import! &self metta-moses:utilities:general-helpers)
-
 ! (bind! &space (new-space))
 
 
