@@ -129,5 +129,3 @@
      ((True (P True)))
      0.1)
    0)
-
-! (ALL TEST CASES HAVE PASSED!)
