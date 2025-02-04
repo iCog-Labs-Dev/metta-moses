@@ -24,16 +24,18 @@
  ;; If a variable is not found, it is replaced with undefined.
 (= (replaceWithTruth $expr $space $spaceContent)
     (if (== (get-metatype $expr) Expression) 
-        (let* (
-            ($op (car-atom $expr))
-            ($tuple (cdr-atom $expr)) 
-            ($substitutedArgs (collapse (replaceWithTruth (superpose $tuple) $space $spaceContent)) )
-
-            ($tupleWithOp (cons-atom $op $substitutedArgs))
+        (if (and (not (== (car-atom $expr) ())) (== (cdr-atom $expr) ())) ;; Special case: (A) → Should replace as a symbol
+            (collapse (replaceWithTruth (superpose $expr) $space $spaceContent))
+            (let* (
+                ($op (car-atom $expr))
+                ($tuple (cdr-atom $expr)) 
+                ($substitutedArgs (collapse (replaceWithTruth (superpose $tuple) $space $spaceContent)) )
+                ($tupleWithOp (cons-atom $op $substitutedArgs))
+            )
+                $tupleWithOp
+            )
         )
-            $tupleWithOp
-        )
-         (unify $space ($expr $value) $value undefined) 
+        ((unify $space ($expr $value) $value undefined)) ;; If not an Expression, replace normally
     )
 )
 
@@ -49,12 +51,15 @@
 (= (evaluate $expr)
     (if (== (get-metatype $expr) Grounded) ;; T / F
         $expr
-        (case (car-atom $expr) 
-            (
-                (AND (evaluateAnd (cdr-atom $expr)))
-                (OR (evaluateOr (cdr-atom $expr)))
-                (NOT (not (evaluate (cdr-atom $expr))))
-                ($_ ERROR)
+        (if (and (not (== (car-atom $expr) ())) (== (cdr-atom $expr) ()))  ;;  Handle (True) or (False)
+            (evaluate (car-atom $expr))  ;; Extract the actual boolean value
+            (case (car-atom $expr) 
+                (
+                    (AND (evaluateAnd (cdr-atom $expr)))
+                    (OR (evaluateOr (cdr-atom $expr)))
+                    (NOT (not (evaluate (cdr-atom $expr)))) 
+                    ($_ ERROR)
+                )
             )
         )
     )
@@ -162,7 +167,7 @@
 ;; helper function to calculate the how many AND and OR operators are in the expression
 
 (= (counter $expr)
-    (if (== $expr ())
+    (if (or (== $expr ()) (== (get-metatype $expr) Symbol))
         0
         (let*
           (
