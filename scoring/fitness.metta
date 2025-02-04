@@ -1,4 +1,6 @@
 
+! (import! &self metta-moses:utilities:general-helpers)
+
 ! (bind! &space (new-space))
 
 
@@ -24,8 +26,8 @@
  ;; If a variable is not found, it is replaced with undefined.
 (= (replaceWithTruth $expr $space $spaceContent)
     (if (== (get-metatype $expr) Expression) 
-        (if (and (not (== (car-atom $expr) ())) (== (cdr-atom $expr) ())) ;; Special case: (A) → Should replace as a symbol
-            (collapse (replaceWithTruth (superpose $expr) $space $spaceContent))
+        (if (isSingleAtom $expr) ;; 
+            (replaceWithTruth (superpose $expr) $space $spaceContent)
             (let* (
                 ($op (car-atom $expr))
                 ($tuple (cdr-atom $expr)) 
@@ -51,15 +53,12 @@
 (= (evaluate $expr)
     (if (== (get-metatype $expr) Grounded) ;; T / F
         $expr
-        (if (and (not (== (car-atom $expr) ())) (== (cdr-atom $expr) ()))  ;;  Handle (True) or (False)
-            (evaluate (car-atom $expr))  ;; Extract the actual boolean value
-            (case (car-atom $expr) 
-                (
-                    (AND (evaluateAnd (cdr-atom $expr)))
-                    (OR (evaluateOr (cdr-atom $expr)))
-                    (NOT (not (evaluate (cdr-atom $expr)))) 
-                    ($_ ERROR)
-                )
+        (case (car-atom $expr) 
+            (
+                (AND (evaluateAnd (cdr-atom $expr)))
+                (OR (evaluateOr (cdr-atom $expr)))
+                (NOT (not (evaluate (cdr-atom $expr)))) 
+                ($_ ERROR)
             )
         )
     )
@@ -167,7 +166,7 @@
 ;; helper function to calculate the how many AND and OR operators are in the expression
 
 (= (counter $expr)
-    (if (or (== $expr ()) (== (get-metatype $expr) Symbol))
+    (if (or (== $expr ()) (isSymbol $expr))
         0
         (let*
           (
