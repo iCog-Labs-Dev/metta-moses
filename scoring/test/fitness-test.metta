@@ -54,7 +54,7 @@
        (False (A True) (B False))
        (False (A False) (B False)))
       0.0)
-  2.0
+  2.0)
 
 
 ;; Test Case 6: Nested OR Expression with undefined variable
