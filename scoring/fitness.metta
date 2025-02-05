@@ -24,7 +24,7 @@
  ;; If a variable is not found, it is replaced with undefined.
 (= (replaceWithTruth $expr $space $spaceContent)
     (if (== (get-metatype $expr) Expression) 
-        (if (and (not (== (car-atom $expr) ())) (== (cdr-atom $expr) ())) ;; Special case: (A) → Should replace as a symbol
+        (if (== (cdr-atom $expr) ()) ;; Special case: (A) → Should replace as a symbol
             (collapse (replaceWithTruth (superpose $expr) $space $spaceContent))
             (let* (
                 ($op (car-atom $expr))
@@ -51,7 +51,7 @@
 (= (evaluate $expr)
     (if (== (get-metatype $expr) Grounded) ;; T / F
         $expr
-        (if (and (not (== (car-atom $expr) ())) (== (cdr-atom $expr) ()))  ;;  Handle (True) or (False)
+        (if (== (cdr-atom $expr) ())  ;;  Handle (True) or (False)
             (evaluate (car-atom $expr))  ;; Extract the actual boolean value
             (case (car-atom $expr) 
                 (
