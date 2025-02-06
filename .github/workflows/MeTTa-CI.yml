@@ -25,14 +25,10 @@ jobs:
     - name: Install Python Dependencies
       run: |
         python -m pip install --upgrade pip==23.1.2
-
-    - name: install and setup metta-run script
-      run: |
-        curl -fsSL https://raw.githubusercontent.com/iCog-Labs-Dev/metta-prebuilt-binary/main/install.sh | bash
+        pip install numpy==2.2.1
+        pip install hyperon==0.1.12
+        metta --version
 
     - name: Run tests
       working-directory: ./
       run: python3 scripts/run-tests.py
-
-    - name: Ensure metta-run is executable
-      run: chmod +x $HOME/metta-bin/metta-run
