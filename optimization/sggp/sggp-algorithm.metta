@@ -1,6 +1,10 @@
 ;;An implementation of the paper called "Avoiding the Bloat with 
 ;;Stochastic Grammar-based Genetic Programming"
-;
+
+!(register-module! ../../../metta-moses)
+;; !(import! &self metta-moses:optimization:sggp:sggp-algorithm)
+!(import! &self metta-moses:utilities:general-helpers)
+!(import! &self metta-moses:scoring:fitness)
 !(bind! &grammarSpace (new-space))
 !(bind! &stochasticGrammarSpace (new-space))
 !(bind! &alphabetSpace (new-space))
@@ -93,6 +97,15 @@
         (addListToSpace $stocSpace (superpose $weightedAtoms))
     )
     
+)
+;; This function calculates probability of a production rule
+(= (calculateProbability ($lhs $rhs) $space)
+    (let* (
+        ($totalValue (sum (extractWeightsFromParent $lhs $space)))
+        ($weight (match $space ($lhs $rhs $value) $value))
+    ) 
+        (/ $weight $totalValue)
+    )
 )
 ;;This is a function that returns a modified rule due to mutation.
 (= (mutateRule ($lhs $rhs $weight) $mutationRate) ($lhs $rhs (* $weight $mutationRate)))
@@ -206,14 +219,18 @@
 
 )
 ;; a helper that extracts the best after comparing with the threshold.
-(= (filter $compSign $func $expression $threshold)
-    (if ( $compSign ($func $expression) $threshold)
-        (empty)
+(= (filter' $compSign $func $expression $threshold)
+    (if ($compSign ($func $expression) $threshold)
         $expression
+        (empty)
     )
 )
+;;The following function leverages Non-determinism to filter a function
+;; based on a predicated
 (= (filterList $compSign $func $expressions $threshold)
-    (collapse (filter $compSign $func (superpose $expressions) $threshold))
+    (let $expressions' (superpose $expressions)
+        (collapse (filter' $compSign $func $expressions' $threshold))
+    )
 )
 ;;This procedure implements the reinforcing the production rule that is available.
 (= (reinforceProd ($lhs $rhs $weight) $learnRate $cardinality $stocSpace)
@@ -226,6 +243,7 @@
     (let* (
         ($res (reinforceProd $prod1 $learnRate $cardinality $stocSpace))
         ($res' (reinforceProd $prod2 $learnRate $cardinality $stocSpace))
+        (() (println! (reinforceProd works)))
     )
         ()
     )
@@ -250,12 +268,17 @@
     (let* (
         ($relations (getRelations $tree ()))
         ($prodRules (collapse (getRuleFromSubTree (superpose $relations) $stocSpace)))
-        (() (println! (production rules $prodRules)))
+        ;; (() (println! (production rules $prodRules)))
+        ;; ($reinforcedOutput (reinforceTreeHelper $prodRules $learnRate $cardinality $stocSpace))
         
     )
-        (collapse (reinforceProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
+        (reinforceTreeHelper $prodRules $learnRate $cardinality $stocSpace)
+        
+        ;;(collapse (reinforceProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
+        ;; $reinforcedOutput
     )
 )
+
 ;; The below piece of code punishes the production rule in a stochastic grammar based on a tree
 (= (punishGrammarbasedOnTree $tree $learnRate $cardinality $grammarSpace $stocSpace)
     (let* (
@@ -263,7 +286,8 @@
         ($prodRules (collapse (getRuleFromSubTree (superpose $relations) $stocSpace)))
         ;; (println (production rules $prodRules))
     )
-        (collapse (punishProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
+        ;;(collapse (punishProd (superpose $prodRules) $learnRate $cardinality $stocSpace))
+        (punishTreeHelper $prodRules $learnRate $cardinality $stocSpace)
     )
 )
 ;;This function generates trees guided by the stochastic grammar
@@ -340,11 +364,11 @@
 ;; )
 ;; The following function is an adapter that integrates the scoring 
 ;; to the dataset
-(=(fitnessWithdata $data)
+(= (fitnessWithdata $data)
     (fitness $data
-             ((True (A True) (B False) (C True) (D True)) 
-             (False (A False) (B True) (C False) (D False)) 
-           (True (A True) (B False) (C False) (D True))))
+             ((True (x1 True) (x2 False)) 
+             (False (x1 False) (x2 False)) 
+           (True (x1 True) (x2 True))))
 
 )
 ;; This algorithm implements the main loop of the sggp algorithm
@@ -358,12 +382,15 @@
     (if (> $maxRecur 0)
         (let* (
             ($generatedInstances (collapse (unique (generateTrees $initSymbol &grammarSpace &stochasticGrammarSpace $explorationCoeff $maxDepth))))
-            ($goodTrees (filterList >= $scoreFunc $generatedInstances $thresholdProb))
-            ($badTrees (filterList < $scoreFunc $generatedInstances $thresholdProb))
+            ($_ (println! (generatedInstances ==> $generatedInstances)))
+            ;;($collapsedValues (collapse $generatedInstances))
+            ($goodTrees (collapse (filter' >= $scoreFunc (superpose $generatedInstances) $thresholdProb)))
+            ($badTrees (collapse (filter' < $scoreFunc (superpose $generatedInstances) $thresholdProb)))
+            ($_ (println! (goodTrees $goodTrees badTrees $badTrees)))
             ($lenGood (len $goodTrees))
             ($lenBad (len $badTrees))
-            ($reinforced (collapse (reinforceGrammarbasedOnTree (superpose $goodTrees) $learnRate $lenGood &grammarSpace &stochasticGrammarSpace)))
-            ($punished (collapse (punishGrammarbasedOnTree (superpose $badTrees) $learnRate $lenBad &grammarSpace &stochasticGrammarSpace)))
+            ($reinforced (collapse (reinforceTreeRulesIterator  $goodTrees $learnRate $lenGood &grammarSpace &stochasticGrammarSpace)))
+            ($punished (collapse (punishTreeRulesIterator  $badTrees $learnRate $lenBad &grammarSpace &stochasticGrammarSpace)))
         )
             (let () (println! (goodTrees ==> $goodTrees))
                 (sggpHelper $initSymbol $learnRate $mutationRate $thresholdProb (- $maxRecur 1) $explorationCoeff $maxDepth $scoreFunc)
@@ -375,6 +402,196 @@
     )
 )
 )
+;;Helper for a reinforceGrammarBased on Tree
+(=(reinforceTreeHelper $distributedProdRules $learnRate $cardinality $stocSpace)
+    (if (== $distributedTrees ())
+        ()
+        (let* (
+            (($head $tail) (decons $distributedProdRules))
+            ($reinforced (reinforceProd $head $learnRate $cardinality $stocSpace))
+            ($stocAtoms (collapse (get-atoms $stocSpace)))
+            (() (println! (stocAtoms $stocAtoms head $head tail $tail)))
+        )
+            (reinforceTreeHelper $tail $learnRate $cardinality $stocSpace)
+        )
+    )
+)
+;; $helper for punish tree helper
+(=(punishTreeHelper $distributedProdRules $learnRate $cardinality $stocSpace)
+    (if (== $distributedTrees ())
+        ()
+        (let* (
+            (($head $tail) (decons $distributedProdRules))
+            ($_ (punishProd $head $learnRate $cardinality $stocSpace))
+        )
+            (punishTreeHelper $tail $learnRate $cardinality $stocSpace)
+        )
+    )
+)
+
+(= (reinforceTreeRulesIterator $setOfTrees $learnRate $cardinality  $grammarSpace $stocSpace)
+    (if (== $setOfTrees ())
+        ()
+        (let* (
+            (($head $tail) (decons $setOfTrees))
+            ($_ (reinforceGrammarbasedOnTree $head $learnRate $cardinality  $grammarSpace $stocSpace))
+        )
+            (reinforceTreeRulesIterator $tail $learnRate $cardinality $grammarSpace $stocSpace)
+        )
+    )
+)
+(= (punishTreeRulesIterator $setOfTrees $learnRate $cardinality  $grammarSpace $stocSpace)
+    (if (== $setOfTrees ())
+        ()
+        (let* (
+            (($head $tail) (decons $setOfTrees))
+            ($_ (punishGrammarbasedOnTree $head $learnRate $cardinality  $grammarSpace $stocSpace))
+        )
+            (punishTreeRulesIterator $tail $learnRate $cardinality $grammarSpace $stocSpace)
+        )
+    )
+)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Tests
+
+
+
+;; !(register-module! ../../../../metta-moses)
+;; !(import! &self metta-moses:optimization:sggp:sggp-algorithm)
+;; !(import! &self metta-moses:utilities:general-helpers)
+;; !(import! &self metta-moses:scoring:fitness)
+;; This function checks if a tuple contains three entries
+;; Example if tuple == (a b c) then the output will be true
+;; if tuple == (a b) the the output will be false
+(= (containsThreeVals $tuple)
+    (unify $tuple ($x $y $z) True False)
+)
+;; The below two set of functions checks if the function is well formed. Well-formed 
+;; In this context means that binary operators like AND and OR contain two or more children
+;; NOT contains one child. And in addition it checks if terminals variables are leaf nodes.
+(= (isWellFormedHelper $tree)
+    (if (== (get-metatype $tree) Expression)
+        (let ($head $tail) (decons $tree)
+            (if (and (isAtomJunctor $head) (>= (len $tail) 2))
+                (isWellFormedHelper (superpose $tail))
+                (if (and (== $head NOT) (== (len $tail) 1))
+                    True
+                    False
+                )
+            )
+        )
+        True
+    )
+)
+(= (isWellFormed $tree)
+    (let $truthVals (collapse (isWellFormedHelper $tree))
+        (all $truthVals)
+    )
+)
+;;This is a function that checks if the enteries within an S-expression is an empty S-expression.
+(= (isEmpty $exp) (all (collapse (if (== (superpose $exp) ()) True False))))
+;; !(isEmpty (() ()))
+
+;; Tests for assign weights
+!(assertEqual (assignWeight (expr (bop expr expr)) 5) (expr (bop expr expr) 5))
+!(assertEqual (assignWeight (expr (uop expr)) 4) (expr (uop expr) 4))
+!(assertEqual (assignWeight (expr term) 4) (expr term 4))
+;; !(initializeGrammarSpace &grammarSpace)
+!(assertEqual (updateWeight (expr (bop expr expr) 4) 0.5 5 inc) (expr (bop expr expr) (* 4 (pow (+ 1 0.5) 5))))
+;; Tests for extracting parents
+!(assertEqual (extractParent (expr (bop expr expr))) expr)
+!(assertEqual (extractParent (expr (bop expr expr) 5)) expr)
+
+;;tests for initiailizing single left hand side 
+
+!(initializeGrammarSpace &grammarSpace)
+!(initializeAlphabetSpace &alphabetSpace)
+!(addTerminalsToSpace (x1 x2) &grammarSpace)
+!(initializeStochasticSpace &alphabetSpace &grammarSpace &stochasticGrammarSpace)
+;; !(superpose (initializeForSingleLhs &grammarSpace expr))
+!(let $processedInitialization (initializeForSingleLhs &grammarSpace expr)
+    (assertEqual (all (collapse (containsThreeVals (superpose $processedInitialization)))) True)
+)
+!(assertEqual (mutateRule (expr (bop expr expr) 5) 0.1) (expr (bop expr expr) 0.5))
+!(get-atoms &stochasticGrammarSpace)
+!(get-atoms &grammarSpace)
+;; Tests for well formed expression.
+!(assertEqual (isWellFormed (AND x1 x2)) True)
+!(assertEqual (isWellFormed (AND x1)) False)
+!(assertEqual (isWellFormed (AND x1 (OR x1 (AND x1 x2)))) True)
+!(assertEqual (isWellFormed (AND x1 (OR x1 (AND x1)))) False)
+!(assertEqual (isWellFormed (AND x1 (OR x1 (AND x1)))) False)
+!(assertEqual (isWellFormed x1) True)
+;; Tests for get Relations 
+!(assertEqual (getRelations (AND x1 (OR x1 x2)) ()) (x1 (AND x1 (OR x1 x2)) x2 x1 (OR x1 x2)))
+!(assertEqual (getRelations (AND x1 x2) ()) (x2 x1 (AND x1 x2)))
+!(assertEqual (getRelations (AND x1 (OR x1 (AND x3 x4))) ()) (x1 (AND x1 (OR x1 (AND x3 x4))) x1 (OR x1 (AND x3 x4)) x4 x3 (AND x3 x4)))
+;; Tests for getRuleFromSubTree
+;; !(superpose (getRuleFromSubTree x1 &stochasticGrammarSpace))
+!(getRuleFromSubTree x1 &stochasticGrammarSpace)
+!(let $evaluated (getRuleFromSubTree x1 &stochasticGrammarSpace)
+    (assertEqual (containsThreeVals $evaluated) True)
+)
+!(let $evaluated (getRuleFromSubTree (OR x1 x2) &stochasticGrammarSpace) 
+    (assertEqual (all (collapse (containsThreeVals (superpose $evaluated)))) True)
+)
+!(let $evaluated (getRuleFromSubTree (OR x1 (AND x1 x2)) &stochasticGrammarSpace)
+    (assertEqual (all (collapse (containsThreeVals (superpose $evaluated)))) True)
+)
+;; !(assertEqual (getRuleFromSubTree (NOT x1) &stochasticGrammarSpace) ((uop NOT) (expr (uop expr) $x2)))
+!(let $evaluated (getRuleFromSubTree (NOT x1) &stochasticGrammarSpace) 
+    (assertEqual (all (collapse (containsThreeVals (superpose $evaluated)))) True)
+)
+;; Tests for reinforceProdgrammar
+!(let $weight (match &stochasticGrammarSpace (expr (bop expr expr) $x) $x)
+    (assertEqual (reinforceProd (expr (bop expr expr) $weight) 0.1 10 &stochasticGrammarSpace) ())
+)
+!(let $weight (match &stochasticGrammarSpace (expr (uop expr) $x) $x)
+    (assertEqual (reinforceProd (expr (uop expr) $weight) 0.1 10 &stochasticGrammarSpace) ())
+)
+
+;;Tests for punishProd
+!(let $weight (match &stochasticGrammarSpace (expr (bop expr expr) $x) $x)
+    (assertEqual (punishProd (expr (bop expr expr) $weight) 0.1 10 &stochasticGrammarSpace) ())
+)
+!(let $weight (match &stochasticGrammarSpace (expr (uop expr) $x) $x)
+    (assertEqual (punishProd (expr (uop expr) $weight) 0.1 10 &stochasticGrammarSpace) ())
+)
+;; !(reinforceGrammarbasedOnTree (AND (OR x1 x2) x1) 0.01 15 &grammarSpace &stochasticGrammarSpace)
+;; !(get-atoms &stochasticGrammarSpace)
+;;Tests for reinforceGrammarBasedOnTree
+!(reinforceGrammarbasedOnTree (AND (OR x1 x2) x1) 0.01 15 &grammarSpace &stochasticGrammarSpace)
+!(let $reinforcedVal (collapse (reinforceGrammarbasedOnTree (AND (OR x1 x2) x1) 0.01 15 &grammarSpace &stochasticGrammarSpace))
+    ;; (assertEqual (isEmpty $reinforcedVal) True)
+    (the value of reinforced val $reinforcedVal)
+)
+!(assertEqual (collapse (reinforceGrammarbasedOnTree (OR x1 x2) 0.01 15 &grammarSpace &stochasticGrammarSpace)) ())
+!(get-atoms &stochasticGrammarSpace)
+;;Tests for punishGrammarBasedOnTree
+!(assertEqual  (collapse (punishGrammarbasedOnTree (AND (OR x1 x2) x1) 0.01 15 &grammarSpace &stochasticGrammarSpace)) ()) 
+;; !(assertEqual  (punishGrammarbasedOnTree (AND (OR x1 x2) x1) 0.01 15 &grammarSpace &stochasticGrammarSpace) ()) 
+;;Tests for the generators
+!(unique (generateTrees start &grammarSpace &stochasticGrammarSpace 3 3))
+!(let $trees (collapse (unique (generateTrees start &grammarSpace &stochasticGrammarSpace 3 3)))
+    (assertEqual (any (collapse (isWellFormed (superpose $trees)))) True)
+)
+!(let $trees (sggpHelper start 0.001 0.01 0.5 1 2 3 fitnessWithdata)
+    (assertEqual (any (collapse (isWellFormed (superpose $trees)))) True)
+)
+;; !(fitnessWithdata (AND x1 (OR x1 x2)))
+;; !(filter' >= fitnessWithdata (AND x1 x1) 0.5)
+;;  !(fitnessWithdata (superpose ((AND x1 x1))))
+;; !(collapse (filter' >= fitnessWithdata (NOT x1) 0.5))
+;; !(getRelations () ())
+
+
+
+
+ 
+
 
 
 

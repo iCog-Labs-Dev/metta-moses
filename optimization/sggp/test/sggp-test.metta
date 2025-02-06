@@ -108,14 +108,18 @@
 !(assertEqual (isEmpty (punishGrammarbasedOnTree (AND (OR x y) x) 0.01 15 &grammarSpace &stochasticGrammarSpace)) True)
 !(assertEqual (isEmpty (punishGrammarbasedOnTree (AND (OR x y) x) 0.01 15 &grammarSpace &stochasticGrammarSpace)) True)
 ;;Tests for the generators
-!(let $trees (collapse (generateTrees start &grammarSpace &stochasticGrammarSpace 3 3))
+!(unique (generateTrees start &grammarSpace &stochasticGrammarSpace 3 3))
+!(let $trees (collapse (unique (generateTrees start &grammarSpace &stochasticGrammarSpace 3 3)))
     (assertEqual (any (collapse (isWellFormed (superpose $trees)))) True)
 )
-!(let $trees (collapse (sggpHelper start 0.01 0.01 0.5 1 2 3 fitnessWithdata))
+!(let $trees (sggpHelper start 0.001 0.01 0.5 1 2 3 fitnessWithdata)
     (assertEqual (any (collapse (isWellFormed (superpose $trees)))) True)
 )
-
- 
+;; !(fitnessWithdata (AND x1 (OR x1 x2)))
+;; !(filter' >= fitnessWithdata (AND x1 x1) 0.5)
+;;  !(fitnessWithdata (superpose ((AND x1 x1))))
+;; !(collapse (filter' >= fitnessWithdata (NOT x1) 0.5))
+;; !(getRelations () ())
 
 
 
