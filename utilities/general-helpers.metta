@@ -8,7 +8,7 @@
 ;; (= (>= $a $b) (or (== $a $b) (> $a $b)))
 
 ;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
-(: concatTuple (-> Expression Expression Expression))
+;; (: concatTuple (-> Expression Expression Expression))
  (= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y))))
 
 (: ++ (-> Expression Expression Expression))
