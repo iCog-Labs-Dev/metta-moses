@@ -1684,32 +1684,6 @@
     (recombine ((0) (0 1) (0 1 0 1) (0 2 1)) ((1) (1 0) (0 0 0 1) (2 3 1)) (0 1 0 1))
         (((0) (1 0) (0 1 0 1) (2 3 1)) ((1) (0 1) (0 0 0 1) (0 2 1))))
 
-;; Test mutate
-
-;; confirmMutation
-;;        return true only if the number of changed genes is either 0 or 1
-;;        Flattens the two gene lists, original and mutated, so that changes can be compared element by element
-
-        (: confirmMutation (-> Expression Expression Bool))
-        (= (confirmMutation $original $mutated)
-            (let*
-                (
-                    ($o_ (foldr ++ () $original))
-                    ($m_ (foldr ++ () $mutated))
-                    ($bool (compareElements $o_ $m_))
-                    ($n (count False $bool))
-                )
-                (or (== $n 1) (== $n 0))
-            )
-        )
-
-!(assertEqual
-  (confirmMutation ((0) (0 0) (1) (1 0 1) (1) (0)) (mutate ((0) (0 0) (1) (1 0 1) (1) (0)) (collapse (getNts &expandedGrammar)) &expandedGrammar &upperBoundTest))
-  True)
-!(assertEqual
-    (confirmMutation ((0) (0 0) (0) (0 0 0) (0) (0)) (mutate ((0) (0 0) (0) (0 0 0) (0) (0)) (collapse (getNts &expandedGrammar)) &expandedGrammar &upperBoundTest))
-  True)
-
 ;; Test calculateCN
 
 !(assertEqual (calculateCN expr &expandedGrammar) 3)
@@ -1791,6 +1765,33 @@
 !(assertEqual (comparePop ((term 0 2) ((0) Y 50)) (((expr 0) 2 2) ((0) (OR Y Y) 60))) False)
 !(assertEqual (comparePop (((expr 0) 2 2) ((0) (OR Y Y) 60)) ((term 0 2) ((0) Y 50))) True)
 
+
+;; Test mutate
+
+;; confirmMutation
+;;        return true only if the number of changed genes is either 0 or 1
+;;        Flattens the two gene lists, original and mutated, so that changes can be compared element by element
+
+(: confirmMutation (-> Expression Expression Bool))
+(= (confirmMutation $original $mutated)
+    (~= (collapse (subtraction (superpose $original) (superpose $mutated))) ())
+)
+
+!(clearSpace &upperBoundTest)
+
+!(add-atom &upperBoundTest (start 1 2))
+!(add-atom &upperBoundTest (expr 1 3))
+!(add-atom &upperBoundTest ((expr 0) 2 2))
+!(add-atom &upperBoundTest (bop 1 2))
+!(add-atom &upperBoundTest (uop 1 2))
+!(add-atom &upperBoundTest (term 3 2))
+
+!(assertEqual
+  (confirmMutation ((0) (0 0) (1) (1 0 1) (1) (0)) (mutate ((0) (0 0) (1) (1 0 1) (1) (0)) (collapse (getNts &expandedGrammar)) &expandedGrammar &upperBoundTest))
+  True)
+!(assertEqual
+    (confirmMutation ((0) (0 0) (0) (0 0 0) (0) (0)) (mutate ((0) (0 0) (0) (0 0 0) (0) (0)) (collapse (getNts &expandedGrammar)) &expandedGrammar &upperBoundTest))
+  True)
 
 ;; Test evolution
 
