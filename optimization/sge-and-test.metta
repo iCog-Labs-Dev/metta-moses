@@ -1813,7 +1813,7 @@
    )
 )
 
-!(clearSpace (superpose (&ntReference &countReference &resultSpace &upperBoundTest)))
+!(clearSpace (superpose (&resultSpace &upperBoundTest)))
 
 !(assertEqual
    (let ($ntsEqual $size $eliteSize) (testEvolve &expandedGrammar &data &ntReference &countSpace &countReference &upperBoundTest &resultSpace 1 3 2 0.0 0.0 1 2)
@@ -1840,5 +1840,3 @@
    (let ($ntsEqual $size $eliteSize) (testEvolve &expandedGrammar &data &ntReference &countSpace &countReference &upperBoundTest &resultSpace 1 3 2 0.7 0.2 2 2)
         ($ntsEqual $size (and (>= $eliteSize 1) (<= $eliteSize 3))))
    (True 3 True))
-
-!(clearSpace (superpose (&ntReference &countReference &resultSpace &upperBoundTest)))
