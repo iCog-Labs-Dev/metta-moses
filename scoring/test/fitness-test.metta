@@ -76,3 +76,56 @@
       (True (A True) (B False) (C False) (D True)))
      0.1)
    -0.4)
+
+;; Test Case 8: Simple Expression with no connective - Symbol
+!(assertEqual 
+   (penalizedFitness 
+     (A)
+     ((True (A True))
+      (False (A False)))
+     0.1)
+   2)
+
+;; Test Case 9:
+!(assertEqual 
+   (penalizedFitness 
+     (A)
+     ((False (A True))
+      (False (A False)))
+     0.1)
+   1)
+
+;; Test Case 10: simple expression but complex data
+!(assertEqual 
+   (penalizedFitness 
+     (A)
+    ((True (A True) (B False) (C True) (D True))
+      (False (A False) (B True) (C False) (D False))
+      (True (A True) (B False) (C False) (D True)))
+     0.1)
+   3)
+
+;; Test Case 11: Simple Expression with negation
+!(assertEqual 
+   (penalizedFitness 
+     (NOT A)
+     ((False (A True))
+      (True (A False)))
+     0.1)
+   2)
+
+;; Test Case 12: Symbol
+!(assertEqual 
+   (penalizedFitness 
+     A
+     ((True (A True)))
+     0.1)
+   1)
+
+;; Test Case 13: Symbol undefined
+!(assertEqual 
+   (penalizedFitness 
+     A
+     ((True (P True)))
+     0.1)
+   0)
