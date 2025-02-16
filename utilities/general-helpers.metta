@@ -1,124 +1,130 @@
-;; Helper functions that are going to be useful for writing any metta code
+;; Lenght of a tuple
 
-(: ~= (-> Atom Atom Bool))
-(= (~= $a $b) (not (== $a $b)))
+(= (len $tuple)
+    (if (== $tuple ())
+        0
+        (let $tail (cdr-atom $tuple)
+            (+ 1 (len $tail))
+        )))
+;; non-deterministic definitio of length
 
-;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
-;(: cocatTuple (-> Expression Expression Expression))
- (= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y)))) 
-
-; a helper function to the isConsistentExp function.
-; a function which simplifies nested logical negations by reducing them to their simplest form. 
-(= (Not $a)
-    (if (== (get-metatype $a) Symbol)
-        (NOT $a)
-        (if (== (get-metatype $a) Expression)
-            (case $a
-                (
-                    ( (NOT $b) (if (== (get-metatype $b) Symbol) $b (Not $b)))
-                )
-        )
-    False
+(= (length $expr)
+    (sum (collapse (let $a (superpose $expr) 1)))
 )
-)
-) 
+(: isSymbol (-> Expression Bool))
+(= (isSymbol $expr) (== (get-metatype $expr) Symbol))
 
-; a helper function to the isConsistentExp function.
+(: isUnit (-> Expression Bool))
+(= (isUnit $expr) (== $expr ()))
+
+(: isSingleAtom (-> Expression Bool))
+(= (isSingleAtom $expr) (== (cdr-atom $expr) ()))
+
+;; Function to replace a given atom from a space.
+(: update-atom (-> Grounded Atom Atom (->)))
+(= (update-atom $space $oatom $natom) (let $_ (remove-atom $space $oatom) (add-atom $space $natom)))
+
+;; A function to return head and tail of an atom in a tuple.
+(= (decons $atom)
+   (if (not (or (isSymbol $atom) (isUnit $atom)))
+       ((car-atom $atom) (cdr-atom $atom))
+       (Error Unit Or Symbol cannot be deconstructed)))
+
+;; Fold a tuple from right to left
+(: foldr (-> (-> $a $b $b) $b $c $d))
+(= (foldr $f $i $xs)
+   (if (== $xs ())
+       $i
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs))
+              ($ft (foldr $f $i $t)))
+         ($f $h $ft))))
+
+;; Add numbers in an atom list
+(= (sum $list) (foldr + 0 $list))
+
+;; Select atom by index
+
+(= (selectByIndex $expr $index)
+    (if (== $expr ())
+        (Error (Index out of range) ())
+        (if (== $index 0)
+            (car-atom $expr)
+            (let $tail (cdr-atom $expr)
+                (selectByIndex $tail (- $index 1))
+            ))))
+
+;; isLiteral -- determines if the given atom is a literal or not
+
+(= (isLiteral $a)
+    (if (or (== (get-metatype $a) Grounded) (== (get-metatype $a) Symbol))
+        True
+        (if (== (car-atom $a) NOT)
+            True
+            False )))
+
 ; a function which checks if an element is member of a tuple.
+(: isMember (-> $a $aa Bool))
 (= (isMember $x $list)
     (not (== (collapse (intersection (superpose ($x)) (superpose $list))) ()))
 )
 
-; This function assumes it receives a set1 and set2 expression as parameters. 
-; It then removes similar elements found in set2 that already exist in set1.
-; The function uses isMember from general helpers functions.
-
-(: setDifference (-> Expression Expression Expression))
-(= (setDifference $set1 $set2) 
-    (if (== $set1 ()) () ; Base case: return empty set when $set1 is empty
-        (let* (
-            ($head (car-atom $set1))  ; Extract the head of set1
-            ($tail (cdr-atom $set1))  ; Extract the tail of set1
-            ($newtail (setDifference $tail $set2))  ; Recursively process the tail
-        )
-            ; Check if the $head is in set2, if so, skip it
-
-            (if (isMember $head $set2)
-                $newtail 
-                ; Otherwise, add the head to the new tail, avoiding unnecessary parentheses
-                (if (== (get-metatype $newtail) Expression) (cons-atom $head $newtail) $head)  ; Avoid wrapping the head if it's already properly structured
-            )
-        )
-    )
-)
-
-;; A helper function for the findAndReplace function.
-;; It handles the replacement of a single atom.
-(= (replace $old $new $current) (if (== $old $current) $new $current))
-
-;; A function to replace a specific atom
-;;    with a new one from a list of atoms.
-;; INFO: This function needs to change so that it can preserve the
-;;        operator's position when MeTTa version is upgraded.
-(= (findAndReplace $old $new $list)
-    ;; (let*
-    ;;   (
-    ;;     (() (println! ""))
-    ;;     (() (println! (==> === Inside findAndReplace === <==)))
-    ;;     (() (println! (Parameters ==> Old: $old New: $new List: $list)))
-    ;;     (() (println! (Result ==> (collapse (replace $old $new (superpose $list))))))
-    ;;     (() (println! ""))
-    ;;   )
-      (collapse (replace $old $new (superpose $list)))
-    ;; )
-)
-
 ;; A function that behaves like a do while loop.
 ;; It executes the functions in the given list and returns the last result.
+
 (: until (-> (-> $a Bool) (-> $a $a) $a $a))
-(= (until $predicate $function $x) (if ($predicate $x) $x (let $x' ($function $x) (until $predicate $function $x'))))
+(= (until $predicate $function $x) 
+    (if ($predicate $x) 
+        $x 
+        ($y ($function $x) (until $predicate $function $y))
+    ))
 
-;; A foldleft function like the implementation in Haskell.
-;; It takes a binary function that expects two atoms and
-;;    apply it recursively on a nested atom.
-(: foldl (-> (-> $a $b $d) $b $c $d))
-(= (foldl $f $acc $tuple)
-   (if (== $tuple ())
-       $acc
-       (let $next (car-atom $tuple) (foldl $f ($f $next $acc) (cdr-atom $tuple)))
-   )
-)
+;; minOfTuple -- minimum of tuple of numeric expressions
 
-;; A map function that takes a function and applies 
-;;    it on every atom in a given tuple.
-(: map (-> (-> $a $b) $c $d))
-(= (map $f $tuple)
-   (if (== $tuple ())
+(= (minOfTuple $expr)
+    (let ($f $t) (decons $expr)
+        (if (== $t ())
+            $f
+            (min $f (minOfTuple $t))
+        )))
+
+;; unNest -- extracts elements from nested expressions 
+
+(= (unNest $exp)
+    (let $el (superpose $exp)
+        (if (isLiteral $el)
+            $el
+            (unNest $el))))
+;; flatten -- returns one tuple from a nested tuple of tuple of tuples ...
+
+(= (flatten $exp) (collapse (unNest $exp)))
+
+(= (repeat $a $n)
+   (if (== $n 0)
        ()
-       (let*
-         (
-            ($x (car-atom $tuple))
-            ($xs (cdr-atom $tuple))
-            ($x' ($f $x))
-            ($next (map $f $xs))
-
-            (() (println! (=== Map Log ===)))
-            (() (println! (X: $x XS: $xs UpdatedX: $x' Next: $next)))
-            (() (println! (UpdatedResult (cons-atom $x' $next))))
-         )
-         (cons-atom $x' $next)
-       )
+       (let $t (repeat $a (- $n 1)) (cons-atom $a $t))
    )
 )
 
-;; A function to remove all elements found in $common from a $tuple
-(= (removeElement $common $tuple)
-   (collapse (subtraction (superpose $tuple) (superpose $common)))
-)
+;; cleanSpace -- helper function to reset gen space
 
-;; A function that returns True if any of the input atoms are True and False otherwise
-;; Example: input ==> (True True False), output ==> True
-;;          input ==> (False False False), output ==> False
-;;          input ==> (False True False), output ==> True
-(: any (-> Atom Bool))
-(= (any $bools) (isMember True $bools))
+(= (cleanSpace $space)
+    (collapse (let $atoms (get-atoms $space)
+        (remove-atom $space $atoms))))
+
+(= (min $x $y) (if (<= $x $y) $x $y))
+
+
+(= (max $x $y) (if (>= $x $y) $x $y))
+
+;; maxOfTuple -- finds maximum of tuple of numbers
+
+(= (maxOfTuple $expr)
+    (let*
+        (
+            ($f (car-atom $expr))
+            ($t (cdr-atom $expr)))
+
+        (if (== $t ())
+            $f
+            (max $f (maxOfTuple $t)))))
