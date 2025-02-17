@@ -62,7 +62,7 @@ def run_test_file(test_file):
 
     Returns:
         tuple:
-            - result (subprocess.CompletedProcess | subprocess.CalledProcessError): 
+            - result (subprocess.CompletedProcess | subprocess.CalledProcessError):
               The result of the test execution.
             - test_file (pathlib.Path): The path to the test file.
             - has_failure (bool): True if the test failed due to a `CalledProcessError`.
@@ -95,7 +95,7 @@ def print_ascii_art(text):
 
 
 # Define the command to run with the test files
-metta_run_command = "metta-run"
+metta_run_command = "metta"
 
 root = pathlib.Path("../")
 testMettaFiles = list(root.rglob("*test.metta"))
@@ -140,5 +140,3 @@ print(GREEN + f"{total_files - fails} succeeded." + RESET)
 if fails > 0:
     print(RED + "Tests failed. Process Exiting with exit code 1" + RESET)
     sys.exit(1)
-
-
