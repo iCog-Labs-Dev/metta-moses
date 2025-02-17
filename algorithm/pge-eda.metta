@@ -75,7 +75,7 @@
         ()
         (let* 
             (   
-                ($first (round ((py-dot np random.uniform)0.7 1) $prec))
+                ($first (round ((py-dot np random.uniform)0 1) $prec))
                 ($c (createGenotype (- $n 1) $prec ((py-atom random.random)))))
 
             (cons-atom $first $c))))
@@ -419,8 +419,7 @@
                 ($scoredEx (collapse (match $popSpace ($genId $iId $i $g $c) ((penalizedFitness $i DATA PENALITY) $genId $iId $i))))
                 ($gBest (getMaxWithKey $scoredEx))
             )
-            (add-atom $sSpace $gBest)
-            ))
+            (add-atom $sSpace $gBest) ))
 
 ;; applyProbUpdate -- applies the probability update based on wh
 ;;             uses output of (rndBool) function to decide which best to use for porabability update (current generation or overall)
@@ -480,8 +479,7 @@
 
 (= (getOverallBest $sSpace)
     (let $scoredExps (collapse (match $sSpace ($s $genId $iId $i) ($s $genId $iId $i)))
-        (getMaxWithKey $scoredExps)
-        ))
+        (getMaxWithKey $scoredExps) ))
 
 ;; genPop -- generate $ngen number of generations each with $ni individuals
 ;;              $args -- args 
@@ -525,9 +523,4 @@
             (() (genPop $gSpace $cSpace $tSpace $popSpace $sSpace G $start $genCount $expCount ((py-atom random.random))))
             (($s $gId $iId $i) (getOverallBest $sSpace))
         )
-        $i
-))
-
-; ! (main &grammar &count &geno &population &scored start 0 0)
-
-; ! (match &grammar ($nt $r $p $i) ($nt $r $p $i) )
+        $i ))
