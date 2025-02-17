@@ -124,3 +124,8 @@
 !(assertEqual (all (True True True False)) False)
 
 
+;; Test foldr function
+!(assertEqual (foldr + 0 (1 2 3)) 6)
+!(assertEqual (foldr + 0 (1 2 3)) 6)
+
+
