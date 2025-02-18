@@ -54,7 +54,7 @@
 ! (bind! PENALITY 0.1) 
 ! (bind! FACTOR 0.05)
 ! (bind! PREC 3)
-! (bind! G 3)
+! (bind! G 2)
 ! (bind! E 1)
 
 ;; ::::::::::::: CREATING GENOTYPE :::::::::::::
@@ -477,15 +477,18 @@
 ;;                      $maxKey -- maximum score value being used as sorting key
 
 (= (getMaxWithKey $tuple)
-    (let $max 
-        (collapse 
-            (let*
+    (let $best 
+        (collapse (let*
                 (
                     ($t (superpose $tuple))
-                    ($maxKey (let $keys (collapse (let $el (superpose $tuple) (car-atom $el))) (maxOfTuple $keys))))
-                 
-                (unify $t ($maxKey $genId $iId $i) ($maxKey $genId $iId $i) (empty))))
-        (car-atom $max)))
+                    ($key (car-atom $t)) 
+                    ($keys (collapse (let $el (superpose $tuple) (car-atom $el)))) 
+                    ($max (maxOfTuple $keys))
+                )
+                (if (== $max $key)
+                    $t
+                    (empty) )))
+        (car-atom $best) ))
 
 (= (maxOfTuple $expr)
     (let*
