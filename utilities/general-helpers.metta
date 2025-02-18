@@ -4,8 +4,8 @@
 (= (~= $a $b) (not (== $a $b)))
 
 ;; INFO: Uncomment for the use of MeTTaLog.
-;; (: >= (-> Number Number Bool))
-;; (= (>= $a $b) (or (== $a $b) (> $a $b)))
+(: >= (-> Number Number Bool))
+(= (>= $a $b) (or (== $a $b) (> $a $b)))
 
 ;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
 ;(: cocatTuple (-> Expression Expression Expression))
@@ -29,12 +29,8 @@
             (case $a
                 (
                     ( (NOT $b) (if (== (get-metatype $b) Symbol) $b (Not $b)))
-                )
-        )
-    False
-)
-)
-)
+                ))
+    False )))
 
 ; a helper function to the isConsistentExp function.
 ; a function which checks if an element is member of a tuple.
@@ -61,10 +57,7 @@
                 $newtail 
                 ; Otherwise, add the head to the new tail, avoiding unnecessary parentheses
                 (if (== (get-metatype $newtail) Expression) (cons-atom $head $newtail) $head)  ; Avoid wrapping the head if it's already properly structured
-            )
-        )
-    )
-)
+            ))))
 
 ;; A helper function for the findAndReplace function.
 ;; It handles the replacement of a single atom.
@@ -140,21 +133,21 @@
    (wrapper $predicate (superpose $list)))
 
 ;; INFO: Uncommnet the following two functions when using MeTTaLog.
-;; ;; (:wrapperB (-> (-> $a $b Bool) $a $b $b))
-;; (= (wrapperB $predicate $x $y) (if ($predicate $x $y) $y (empty)))
-;;
-;; (: filterB (-> (-> $a $b Bool) $a $bb $bb))
-;; (= (filterB $predicate $x $list)
-;;    (wrapperB $predicate $x (superpose $list)))
+;; (:wrapperB (-> (-> $a $b Bool) $a $b $b))
+(= (wrapperB $predicate $x $y) (if ($predicate $x $y) $y (empty)))
+
+(: filterB (-> (-> $a $b Bool) $a $bb $bb))
+(= (filterB $predicate $x $list)
+   (wrapperB $predicate $x (superpose $list)))
 
 ;; A function to remove all elements found in $common from a $tuple
 (= (removeElement $common $tuple)
    (collapse (subtraction (superpose $tuple) (superpose $common))))
 
-;; A function that returns True if any of the input atoms are True and False otherwise
-;; Example: input ==> (True True False), output ==> True
-;;          input ==> (False False False), output ==> False
-;;          input ==> (False True False), output ==> True
+; ;; A function that returns True if any of the input atoms are True and False otherwise
+; ;; Example: input ==> (True True False), output ==> True
+; ;;          input ==> (False False False), output ==> False
+; ;;          input ==> (False True False), output ==> True
 (: any (-> Atom Bool))
 (= (any $bools) (isMember True $bools))
 
@@ -162,8 +155,8 @@
 (: curry (-> (-> $a $b $c) (-> $a (-> $b $c))))
 (= (((curry $f) $x) $y) ($f $x $y))
 
-;; Add numbers in an atom list
-(= (sum $list) (foldr + 0 $list))
+; ;; Add numbers in an atom list
+; (= (sum $list) (foldr + 0 $list))
 
 ;; Function to count atom occrence in a list of atoms.
 (= (count $atom $list)
@@ -190,8 +183,8 @@
 (: appendAtom (-> Atom Atom Atom))
 (= (appendAtom $a $atom) (foldr cons-atom ($a) $atom))
 
-;; Return the maximum of two numbers.
-(= (max $x $y) (if (< $x $y) $y $x))
+; ;; Return the maximum of two numbers.
+; ; (= (max $x $y) (if (< $x $y) $y $x))
 
 ;; A function to return a tuple of numbers from natural to a given number.
 ;; $x is the upperbound
@@ -202,7 +195,7 @@
        $acc
        (let $lastInserted (car-atom $acc) (gen $x (cons-atom (+ 1 $lastInserted) $acc)))))
 
-;; A function to return head and tail of an atom in a tuple.
+; ;; A function to return head and tail of an atom in a tuple.
 (= (decons $atom)
    (if (not (or (isSymbol $atom) (isUnit $atom)))
        ((car-atom $atom) (cdr-atom $atom))
@@ -239,9 +232,7 @@
         0
         (let $tail (cdr-atom $expr)
             (+ 1 (len $tail))
-        )
-    )
-)
+        )))
 
 ;; replaceByIndex replaces an atom at a specific index position with $val -- 0 indexed counting is implied
 (: replaceByIndex (-> Expression Number $t Expression))
@@ -297,6 +288,7 @@
             )
                     (cons-atom $r $c)
                 )))
+
 ;; Function to empty a space with contents.
 (= (clearSpace $space)
    (collapse (let $content (get-atoms $space) (remove-atom $space $content))))
@@ -385,3 +377,80 @@
               (($h $t) (decons $a))
               ($r (drop (- $n 1) $t)))
             $r)))))
+
+;; non-deterministic definitio of length
+
+(= (length $expr)
+    (sum (collapse (let $a (superpose $expr) 1)))
+)
+
+;; isLiteral -- determines if the given atom is a literal or not
+
+(= (isLiteral $a)
+    (if (or (== (get-metatype $a) Grounded) (== (get-metatype $a) Symbol))
+        True
+        (if (== (car-atom $a) NOT)
+            True
+            False )))
+
+;; minOfTuple -- minimum of tuple of numeric expressions
+
+(= (minOfTuple $expr)
+    (let ($f $t) (decons $expr)
+        (if (== $t ())
+            $f
+            (min $f (minOfTuple $t))
+        )))
+
+;; unNest -- extracts elements from nested expressions 
+
+(= (unNest $exp)
+    (let $el (superpose $exp)
+        (if (isLiteral $el)
+            $el
+            (unNest $el))))
+;; flatten -- returns one tuple from a nested tuple of tuple of tuples ...
+
+(= (flatten $exp) (collapse (unNest $exp)))
+
+
+(= (min $x $y) (if (<= $x $y) $x $y))
+
+; ;; maxOfTuple -- finds maximum of tuple of numbers
+
+; ; (= (maxOfTuple $expr)
+; ;     (let*
+; ;         (
+; ;             ($f (car-atom $expr))
+; ;             ($t (cdr-atom $expr)))
+
+; ;         (if (== $t ())
+; ;             $f
+; ;             (max $f (maxOfTuple $t)))))
+
+
+;; Add numbers in an atom list
+; (= (sum $list) (foldr + 0 $list))
+; (= (sum $list)
+;     (if (== $list ())
+;         0
+;         (let*
+;             (
+;                 ($f (car-atom $list))
+;                 ($t (cdr-atom $list))
+;             )
+;             (if (== $t ())
+;                 $f
+;                 (+ $f (sum $t)) ))))
+
+; (= (getMaxWithKey $tuple)
+;     (let $max 
+;         (collapse 
+;             (let*
+;                 (
+;                     ($t (superpose $tuple))
+;                     ($maxKey (let $keys (collapse (let $el (superpose $tuple) (car-atom $el))) (maxOfTuple $keys)))
+;                     ; (() (println! (maxxx $maxKey)))
+;                 ) 
+;                 (unify $t ($maxKey $genId $iId $i) ($maxKey $genId $iId $i) (empty))))
+;         (car-atom $max)))
