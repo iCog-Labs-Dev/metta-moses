@@ -156,7 +156,7 @@
 (= (((curry $f) $x) $y) ($f $x $y))
 
 ; ;; Add numbers in an atom list
-; (= (sum $list) (foldr + 0 $list))
+(= (sum $list) (foldr + 0 $list))
 
 ;; Function to count atom occrence in a list of atoms.
 (= (count $atom $list)
@@ -183,8 +183,8 @@
 (: appendAtom (-> Atom Atom Atom))
 (= (appendAtom $a $atom) (foldr cons-atom ($a) $atom))
 
-; ;; Return the maximum of two numbers.
-; ; (= (max $x $y) (if (< $x $y) $y $x))
+;; Return the maximum of two numbers.
+(= (max $x $y) (if (< $x $y) $y $x))
 
 ;; A function to return a tuple of numbers from natural to a given number.
 ;; $x is the upperbound
@@ -413,44 +413,34 @@
 
 (= (flatten $exp) (collapse (unNest $exp)))
 
-
 (= (min $x $y) (if (<= $x $y) $x $y))
 
 ; ;; maxOfTuple -- finds maximum of tuple of numbers
+; ;; commented here because the function is implemented in the main pge-eda.metta file
+; ;; to avoid collision
 
-; ; (= (maxOfTuple $expr)
-; ;     (let*
-; ;         (
-; ;             ($f (car-atom $expr))
-; ;             ($t (cdr-atom $expr)))
+; (= (maxOfTuple $expr)
+;     (let*
+;         (
+;             ($f (car-atom $expr))
+;             ($t (cdr-atom $expr)))
 
-; ;         (if (== $t ())
-; ;             $f
-; ;             (max $f (maxOfTuple $t)))))
+;         (if (== $t ())
+;             $f
+;             (max $f (maxOfTuple $t)))))
 
-
-;; Add numbers in an atom list
-; (= (sum $list) (foldr + 0 $list))
-; (= (sum $list)
-;     (if (== $list ())
-;         0
-;         (let*
-;             (
-;                 ($f (car-atom $list))
-;                 ($t (cdr-atom $list))
-;             )
-;             (if (== $t ())
-;                 $f
-;                 (+ $f (sum $t)) ))))
-
+; ;; getMaxWithKey -- finds the maximum of list of tuples using the first element of the nested tuples as key
+; ;; commented here because the same function is implemented in the main pge-eda.metta file
 ; (= (getMaxWithKey $tuple)
-;     (let $max 
-;         (collapse 
-;             (let*
+;     (let $best 
+;         (collapse (let*
 ;                 (
 ;                     ($t (superpose $tuple))
-;                     ($maxKey (let $keys (collapse (let $el (superpose $tuple) (car-atom $el))) (maxOfTuple $keys)))
-;                     ; (() (println! (maxxx $maxKey)))
-;                 ) 
-;                 (unify $t ($maxKey $genId $iId $i) ($maxKey $genId $iId $i) (empty))))
-;         (car-atom $max)))
+;                     ($key (car-atom $t)) 
+;                     ($keys (collapse (let $el (superpose $tuple) (car-atom $el)))) 
+;                     ($max (maxOfTuple $keys))
+;                 )
+;                 (if (== $max $key)
+;                     $t
+;                     (empty) )))
+;         (car-atom $best) ))
