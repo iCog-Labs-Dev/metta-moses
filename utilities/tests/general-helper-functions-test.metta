@@ -1,6 +1,7 @@
 !(register-module! ../../../metta-moses)
 
 !(import! &self metta-moses:utilities:general-helpers)
+!(import! &self metta-moses:algorithm:pge-eda)
 
 !(assertEqualToResult (~= 1 2) (True))
 !(assertEqualToResult (~= 1 1) (False))
@@ -30,7 +31,7 @@
 ! (assertEqual (setDifference (AND a b (NOT a) c (OR a b)) (a) )  (AND b (NOT a) c (OR a b)))
 ! (assertEqual (setDifference (AND a b (NOT a) c (OR a b v) v) (b (NOT a) v) ) (AND a c (OR a b v)))
 
-;; Tests for findAndReplace function
+; ;; Tests for findAndReplace function
 
 !(assertEqual (findAndReplace A Z (B C A (A B C) F G A)) (B C Z (A B C) F G Z))
 !(assertEqual (findAndReplace (A B C) Z (B C A (A B C) F G A)) (B C A Z F G A))
@@ -142,3 +143,38 @@
 ;; Test foldr function
 !(assertEqual (foldr + 0 (1 2 3)) 6)
 !(assertEqual (foldr + 0 (1 2 3)) 6)
+
+; Test selectByIndex
+
+!(assertEqual (selectByIndex (0 1 2 3 4) 2) 2)
+!(assertEqual (selectByIndex (0 1 2 3 4) 3) 3)
+!(assertEqual (selectByIndex (0 1 2 3 4) 5) (Error (Index out of range) ()))
+
+;; Test unNest
+
+!(assertEqual (collapse (unNest (AND A (AND B C)))) (AND A AND B C))
+!(assertEqual (collapse (unNest (1 2 (3 4 (5))))) (1 2 3 4 5))
+
+;; Test cleanSpace
+
+!(bind! &__ (new-space))
+
+!(add-reduct &__ (superpose ((A B C) atom 2 4 (2 1))))
+
+!(assertEqual 
+        (let () (cleanSpace &__) 
+            (collapse (get-atoms &__))) (empty))
+
+;; Test repeat
+
+!(assertEqual (repeat 5 4) (5 5 5 5))
+!(assertEqual (repeat 1 3) (1 1 1))
+
+;; Test update-atom
+!(add-atom &__ (A 2 3))
+!(let () (collapse (update-atom  &__ (A 2 3) (A 3 4))) (assertEqual (match &__ $x $x) (A 3 4)))
+
+;; Test maxOfTuple
+
+!(assertEqual (maxOfTuple (1 2 3 1)) 3)
+!(assertEqual (maxOfTuple (3 -2 11 3 1)) 11)
