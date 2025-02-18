@@ -27,16 +27,16 @@
 ! (add-atom &gen (genotype (1 2 3 4)))
 ! (add-atom &gen (codon-index 0))
 
-;; Test  -- iCount initializes production rule count in space
+;; Test -- iCount initializes production rule count in space
 ! (iCount &gram &cnt)
 
 ! (assertEqual (sum (collapse (match &cnt ($nt $r $c $i) $c))) 0)
 
-; ;; Test 02 -- set genotype in space
+; ;; Test -- set genotype in space
 ! (setGenotype PREC L &gen $dummy)
 ! (assertEqual (let $g (match &gen (genotype $g) $g)
                     (length $g)) L)
-;; Test 01 -- create genotype
+;; Test -- create genotype
 
 ! (let $g (createGenotype 9 PREC ((py-atom random.random)))  (assertEqual (length $g) L))
 
@@ -51,14 +51,14 @@
 ! (assertEqual (match &gram (expr term $p $i) $p) 0.333)
 ! (assertEqual (match &gram (bop AND $p $i) $p) 0.5)
 
-; ;; Test 03 -- getRule 
+; ;; Test -- getRule 
 
 ! (assertEqual (getRule start &gram &cnt 0.425 0 0 dummy) expr)
 ! (assertEqual (getRule expr &gram &cnt 0.212 0 0 dummy) (bop expr expr))
 ! (assertEqual (getRule expr &gram &cnt 0.421 0 0 dummy) (uop expr))
 ! (assertEqual (getRule bop &gram &cnt 0.7 0 0 dummy) OR)
 
-;; Test 04 -- prCounter -- updates count of each production rule by one everytime it is called
+;; Test -- prCounter -- updates count of each production rule by one everytime it is called
 ;;            prCounter was called in the above test cases so it has updated counts of corresponding rules
 
 ! (assertEqual (match &cnt (start expr $c $i) $c) 1)
@@ -73,7 +73,7 @@
 
 ! (assertEqual (match &cnt (start expr $c $i) $c) 2)
 
-;; Test 05 -- getCodon
+;; Test -- getCodon
 ! (assertEqual 
             (let $codon (getCodon &gen dummy) 
                 (get-metatype $codon)) Grounded)
@@ -82,7 +82,7 @@
             (let $codon (getCodon &gen dummy) 
                 (and (>= $codon 0) (<= $codon 1))) True)
     
-;; Test 06 -- updateIndex -- increases codon-index value by one whenever called
+;; Test -- updateIndex -- increases codon-index value by one whenever called
 
 ! (assertEqual (let () (updateIndex &gen dummy)
     (match &gen (codon-index $i) $i)) 1)
@@ -91,7 +91,7 @@
     (match &gen (codon-index $i) $i)) 2)
 
 
-;; Test 06 -- genPhen -- generate phonotype from genotype
+;; Test -- genPhen -- generate phonotype from genotype
 ;; isMemberTerminal -- checks if the generated expression contains only terminals
 ;;                  -- returns a bool indicating if all expression members are terminals or not 
 ;;                  -- True if all are terminals False if any member is a non-terminal indicating invalid expression
@@ -127,14 +127,14 @@
                     (unify (start expr $c) $s (>= $c 1) (empty) )
                 ) True)
 
-;; Test  -- rCount -- rests all production rule counts to zero
+;; Test -- rCount -- rests all production rule counts to zero
 
 ! (assertEqual 
                 (let () (rCount &cnt dummy)
                     (sum (collapse (match &cnt ($nt $r $c $i) $c)))
                 ) 0)
 
-;; Test   --  getCountSum -- retrieve sum of all production rule counts for a non-terminal
+;; Test -- getCountSum -- retrieve sum of all production rule counts for a non-terminal
 
 ! (assertEqual 
                 (let $c ((start expr 1) (expr (bop expr expr) 2) (expr (uop expr) 3) (expr term 4))
@@ -144,17 +144,24 @@
 ! (assertEqual 
                 (let $c ((start expr 1) (expr (bop expr expr) 2) (expr (uop expr) 3) (expr term 4))
                     (getCountSum $c expr)
-                ) 9)                        
+                ) 9)
 
-;; Test 04 -- getMaxWithKey 
+                    
+;; Test -- maxOfTuple
 
-! (let 
-    $a (getMaxWithKey ((1 A B C) (5 B C D) (3 D E F))) 
-        (assertEqual $a (5 B C D)))
+!(assertEqual (maxOfTuple (1 2 3 1)) 3)
+!(assertEqual (maxOfTuple (3 -2 11 3 1)) 11)
+
+;; Test -- getMaxWithKey 
+
+! (assertEqual (getMaxWithKey ((1 A) (5 B) (3 D))) (5 B))
+! (assertEqual (getMaxWithKey ((1 A B C) (5 B C D) (3 D E F))) (5 B C D))
+! (assertEqual (getMaxWithKey ((1 A B C) (5 B C D) (3 D E F) (6 T H A))) (6 T H A))
+
 ; ! (assertEqual (getMaxWithKey ((1 A B C) (5 B C D) (3 D E F))) (5 B C D))
 
 
-;; Test   -- updateProbability
+;; Test -- updateProbability
 
 ! (add-atom &pop 
         (0 0 B () ((start expr 1) (expr (bop expr expr) 0) 
