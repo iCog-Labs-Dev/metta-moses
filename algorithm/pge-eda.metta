@@ -41,7 +41,7 @@
 ;;                Generation count (G)
 ;;                Expression count (E)
 
-! (bind! L (sum (collapse (match &grammar ($nt $r $i) 1))))
+! (bind! L (sum` (collapse (match &grammar ($nt $r $i) 1))))
 ! (bind! NTS (collapse (unique (match &grammar ($nt $r $i) $nt))))
 
 ! (bind! DATA ((False (A False) (B False))
@@ -115,15 +115,15 @@
     (collapse (let*
         (
             ($nt (superpose $nts))
-            ($nr (sum (collapse (match $gSpace ($nt $r $i) 1))))
+            ($nr (sum` (collapse (match $gSpace ($nt $r $i) 1))))
             ($iP (round (/ 1.0 $nr) PREC))
             (() (match $gSpace ($nt $r $i) (add-atom $gSpace ($nt $r $iP $i)))))
 
         (empty))))
 
-;; sum -- helper function get sum of numeric tuple
+;; sum` -- helper function get sum of numeric tuple
 
-(= (sum $list)
+(= (sum` $list)
     (if (== $list ())
         0
         (let*
@@ -133,7 +133,7 @@
             )
             (if (== $t ())
                 $f
-                (+ $f (sum $t)) ))))
+                (+ $f (sum` $t)) ))))
 
 ;; ::::::::::::: PICKING PRODUCTION RULES BASED ON GENOTYPE AND CUMMULATIVE PROBABILITIES :::::::::::::
 ;; getRule -- retrieves the correct production rule based on cummulative probablity values
@@ -394,7 +394,7 @@
 ;;                      $c -- count values
 
 (= (getCountSum $iCount $nt)
-    (sum (collapse (let $cs (superpose $iCount)
+    (sum` (collapse (let $cs (superpose $iCount)
             (unify $cs ($nt $r $c) $c (empty))))))
 
 ;; normalizeP -- adjusts probabilities of derivation rules sum to be exactly one
@@ -411,8 +411,8 @@
     (collapse (let*
         (
             ($nt (superpose $nts))
-            ($probSums (sum (collapse (match $gSpace ($nt $r $p $i) $p))))
-            ($j (sum (collapse (match $gSpace ($nt $r $p $i) 1))))
+            ($probSums (sum` (collapse (match $gSpace ($nt $r $p $i) $p))))
+            ($j (sum` (collapse (match $gSpace ($nt $r $p $i) 1))))
             ($diff (round (/ (- 1 $probSums) $j) PREC))
             (($oldProb $newProb $r $i) (match $gSpace ($nt $r $p $i) ($p (round (+ $p $diff) PREC) $r $i)))
             (() (remove-atom $gSpace ($nt $r $oldProb $i)))
@@ -495,9 +495,9 @@
 
         (if (== $t ())
             $f
-            (max $f (maxOfTuple $t)))))
+            (max` $f (maxOfTuple $t)))))
 
-(= (max $x $y) (if (< $x $y) $y $x))
+(= (max` $x $y) (if (< $x $y) $y $x))
 
 ;; getOverallBest -- gets the individual which is the best of all the scored inidviduals in &scored space
 ;;              $sSpace -- scored space
