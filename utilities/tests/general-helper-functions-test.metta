@@ -1,7 +1,6 @@
 !(register-module! ../../../metta-moses)
 
 !(import! &self metta-moses:utilities:general-helpers)
-!(import! &self metta-moses:algorithm:pge-eda)
 
 !(assertEqualToResult (~= 1 2) (True))
 !(assertEqualToResult (~= 1 1) (False))
@@ -173,8 +172,3 @@
 ;; Test update-atom
 !(add-atom &__ (A 2 3))
 !(let () (collapse (update-atom  &__ (A 2 3) (A 3 4))) (assertEqual (match &__ $x $x) (A 3 4)))
-
-;; Test maxOfTuple
-
-!(assertEqual (maxOfTuple (1 2 3 1)) 3)
-!(assertEqual (maxOfTuple (3 -2 11 3 1)) 11)
