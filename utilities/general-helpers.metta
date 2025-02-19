@@ -184,9 +184,9 @@
 (= (isUnit $expr) (== $expr ()))
 
 ;; A function to check if a given atom is an expression 
-;;   with a single atom in it.
-(: isSingleAtom (-> Atom Bool))
-(= (isSingleAtom $expr) (if (and (== (get-metatype $expr) Expression) (not (isUnit $expr))) (== (cdr-atom $expr) ()) False))
+;;   with has one atom in it.
+(: hasOneAtom (-> Atom Bool))
+(= (hasOneAtom $expr) (if (and (== (get-metatype $expr) Expression) (not (isUnit $expr))) (== (cdr-atom $expr) ()) False))
 
 ;; Function to replace a given atom from a space.
 (: update-atom (-> Grounded Atom Atom (->)))
@@ -216,7 +216,7 @@
 
 ;; Function to create a tuple of tuples given two equal length list of atoms.
 (= (zip $a $b)
-   (if (or (isSingleAtom $a) (isSingleAtom $b))
+   (if (or (hasOneAtom $a) (hasOneAtom $b))
        (((car-atom $a) (car-atom $b)))
        (let*
           (
@@ -328,7 +328,7 @@
 ;;  performance by avoiding recomputation of index.
 (= (sort $list $len) (sort $list $len <=))
 (= (sort $list $len $key)
-   (if (or (isUnit $list) (isSingleAtom $list))
+   (if (or (isUnit $list) (hasOneAtom $list))
        $list
        (let* (
                 ;; (() (println! (Sorting $list len: $len)))

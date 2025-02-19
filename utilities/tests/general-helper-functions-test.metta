@@ -74,9 +74,9 @@
 !(assertEqual (isUnit (foo bar bae)) False)
 !(assertEqual (isUnit ()) True)
 
-!(assertEqual (isSingleAtom (foo bar bae)) False)
-!(assertEqual (isSingleAtom (foo)) True)
-!(assertEqual (isSingleAtom ()) False)
+!(assertEqual (hasOneAtom (foo bar bae)) False)
+!(assertEqual (hasOneAtom (foo)) True)
+!(assertEqual (hasOneAtom ()) False)
 
 !(assertEqual (decrement 1) 0)
 !(assertEqual (decrement -1) -2)
@@ -91,7 +91,7 @@
 !(assertEqual (until isZero decrement 10) 0)
 !(assertEqual (until greaterThanTen increment 0) 11)
 !(assertEqual (until isUnit cdr-atom (foo bar bae)) ())
-!(assertEqual (until isSingleAtom cdr-atom (foo bar bae)) (bae))
+!(assertEqual (until hasOneAtom cdr-atom (foo bar bae)) (bae))
 
 ;; Test for map function
 
@@ -103,7 +103,7 @@
 !(assertEqual (map isZero (map decrement (1 2 3 4))) (True False False False))
 !(assertEqual (map isZero (1 2 3 4)) (False False False False))
 !(assertEqual (map isZero (0 1 2 3 4)) (True False False False False))
-!(assertEqual (map isSingleAtom (A B C (A C D) E)) (False False False False False))
+!(assertEqual (map hasOneAtom (A B C (A C D) E)) (False False False False False))
 !(assertEqual (map greaterThanTen (1 10 2 23 32 7 8 43 0 2)) (False False False True True False False True False False))
 !(assertEqual (map greaterThanTen (1 10 2 23 32 7 8 43 0)) (False False False True True False False True False))
 
@@ -129,7 +129,7 @@
 
 ;; Test filter function
 !(assertEqual (collapse (filter isUnit (9 10 () 5 4 ()))) (() ()))
-!(assertEqual (collapse (filter isSingleAtom (9 10 (Hello) 5 4 (Nop) ()))) ((Hello) (Nop)))
+!(assertEqual (collapse (filter hasOneAtom (9 10 (Hello) 5 4 (Nop) ()))) ((Hello) (Nop)))
 !(assertEqual (collapse (filter isZero (9 10 0 5 4 0))) (0 0))
 !(assertEqual (collapse (filter greaterThanTen (9 10 12 5 4 28))) (12 28))
 
@@ -161,11 +161,11 @@
 !(assertEqual (isUnit ()) True)
 !(assertEqual (isUnit (A B)) False)
 
-;; Test isSingleAtom function
-!(assertEqual (isSingleAtom A) False)
-!(assertEqual (isSingleAtom (A)) True)
-!(assertEqual (isSingleAtom ()) False)
-!(assertEqual (isSingleAtom (A B)) False)
+;; Test hasOneAtom function
+!(assertEqual (hasOneAtom A) False)
+!(assertEqual (hasOneAtom (A)) True)
+!(assertEqual (hasOneAtom ()) False)
+!(assertEqual (hasOneAtom (A B)) False)
 
 
 !(bind! &space (new-space))
