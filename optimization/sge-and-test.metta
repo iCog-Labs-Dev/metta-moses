@@ -1011,7 +1011,8 @@
 ;; It will be used as a key while sorting a population.
 (= (comparePop
       ($key1 ($genotype1 $phenotype1 $score1))
-      ($key2 ($genotype2 $phenotype2 $score2))) (>= $score1 $score2))
+      ($key2 ($genotype2 $phenotype2 $score2))) 
+    (>= $score1 $score2))
 
 ;; Tournament selection of an element from population.
 ;;
