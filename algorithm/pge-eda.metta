@@ -75,7 +75,7 @@
         ()
         (let* 
             (   
-                ($first (round ((py-dot np random.uniform)0.7 1) $prec))
+                ($first (round ((py-dot np random.uniform)0 1) $prec))
                 ($c (createGenotype (- $n 1) $prec ((py-atom random.random)))))
 
             (cons-atom $first $c))))
