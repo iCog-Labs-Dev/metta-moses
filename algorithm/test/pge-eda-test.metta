@@ -241,11 +241,8 @@
 ! (assertEqual 
             (let*
                 (
-                    ; ($exp (main &gram &cnt &gen &pop &s start 0 0))
                     ($scoredCount (sum (collapse (match &s ($s $gId $id $i) 1))))
                     ($totalPop (sum (collapse (match &pop ($genId $id $i $g $c) 1))))
                 )
                 ($scoredCount $totalPop)
                 ) (G (* E G)))
-
-! (match &gram ($nt $r $p $i) ($nt $r $p $i))
