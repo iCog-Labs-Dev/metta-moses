@@ -69,7 +69,7 @@
 ;;                      -- 2nd run -- (0.71 0.511 0.312 0.676 0.281 0.669 0.128 0.857 0.848)
 ;;                      -- 3rd run -- (0.467 0.206 0.563 0.957 0.029 0.907 0.423 0.675 0.231)
 
-(: (createGenotype (-> Number Number Expression)))
+(: (createGenotype (-> Number Number Number Expression)))
 (= (createGenotype $n $prec $random)
     (if (== $n 0)
         ()
@@ -83,18 +83,18 @@
 ;; setGenotype -- calls the genotype generator, createGenotype,  and adds the genotyoe to space
 ;;              $prec -- rounding off precision value
 ;;              $n -- genotype length
-;;              $tSpace -- genotype space
+;;              $gtSpace -- genotype space
 ;;              $random -- random number to prevent metta from caching results
 ;;                      $g -- generated genotype
 
-(= (setGenotype $prec $n $tSpace $random)
+(= (setGenotype $prec $n $gtSpace $random)
     (let*
         (   
             ($g (createGenotype $n $prec ((py-atom random.random))))
             ($geno (genotype $g))
-            (() (match $tSpace (genotype $genotype) (remove-atom $tSpace (genotype $genotype)))))
+            (() (match $gtSpace (genotype $genotype) (remove-atom $gtSpace (genotype $genotype)))))
 
-         (add-atom $tSpace $geno)))
+         (add-atom $gtSpace $geno)))
 
 ;; ::::::::::::: ASSIGNING INITIAL PROBABILITIES :::::::::::::
 ;; iProbs --    assigns equal probability values for production rules in a non-terminal before the start of expression generation
@@ -162,53 +162,53 @@
 
 ;; ::::::::::::: SET AND GET CODON :::::::::::::
 ;; getCodon -- returns a codon from the genotype by using an index value
-;;              $tSpace -- genotype space which contains codon-index as well
+;;              $gtSpace -- genotype space which contains codon-index as well
 ;;              $random -- random number to prevent metta from caching results
 ;;                      $i -- index gotten from &geno (codon-index $i)
 ;;                      $g -- a genotype tuple
 ;;                      $len -- length of genotype tuple
 ;;                      $index -- value in the range [0 (- $len 1)] obtained using module 
 
-(= (getCodon $tSpace $random)
+(= (getCodon $gtSpace $random)
     (let*
         ( 
-            ($i (match $tSpace (codon-index $ind) $ind))
-            ($g (match $tSpace (genotype $geno) $geno))
+            ($i (match $gtSpace (codon-index $ind) $ind))
+            ($g (match $gtSpace (genotype $geno) $geno))
             ($index (% $i L)))
 
         (selectByIndex $g $index)))
 
 ;; updateIndex -- increments the codon-index value by 1 when called
-;;              $tSpace -- genotype space
+;;              $gtSpace -- genotype space
 ;;              $random -- random number to prevent metta from caching results
 ;;                      $i -- old index
 ;;                      $next -- new index (+ 1 $i)
 
-(= (updateIndex $tSpace $random)
+(= (updateIndex $gtSpace $random)
     (let*
         (
-            ($i (match $tSpace (codon-index $i) $i))
-            (() (remove-atom $tSpace (codon-index $i)))
+            ($i (match $gtSpace (codon-index $i) $i))
+            (() (remove-atom $gtSpace (codon-index $i)))
             ($next (+ 1 $i))
         )
-        (add-atom $tSpace (codon-index $next))))
+        (add-atom $gtSpace (codon-index $next))))
 
 ;; ::::::::::::: GENERATE PHENOTYPE :::::::::::::
 ;; genPhen -- generates phenotype starting from start symbol and using the genotype information to map productio rules
 ;;              $gSpace -- grammar space
-;;              $tSpace -- genotype space
+;;              $gtSpace -- genotype space
 ;;              $nts -- set of non-terminals
 ;;              $start -- the start symbol
 ;;              $maxIter -- maximum iteration length
 ;;              $random -- random number to prevent metta from caching results
 ;;                      $mapped -- a terminal symbol after having been transformed from a non-terminal using the grammar 
-;;                      $codon -- a probablity value gotten from &tSpace 
+;;                      $codon -- a probablity value gotten from &gtSpace 
 ;;                      $r -- variable to store recursive call to the function genPhen
-;;                      $codon -- a probablity value gotten from &tSpace 
+;;                      $codon -- a probablity value gotten from &gtSpace 
 ;;                      $nextRule -- production rule picked from the set of available expansions of a non-terminal based on probability values
 ;;                      $codonIndex -- the updated condon index value
 
-(= (genPhen $gSpace $cSpace $tSpace $nts $start $maxIter $random)
+(= (genPhen $gSpace $cSpace $gtSpace $nts $start $maxIter $random)
     (if (and (isLiteral $start) (not (isMember $start $nts)))
         $start
         (if (== (get-metatype $start) Expression)
@@ -216,27 +216,27 @@
             (let* 
                 (
                     (($f $t) (decons $start))
-                    ($mapped (genPhen $gSpace $cSpace $tSpace $nts $f $maxIter ((py-atom random.random))))
+                    ($mapped (genPhen $gSpace $cSpace $gtSpace $nts $f $maxIter ((py-atom random.random))))
                     )
 
                 (if (== $t ())
                     (cons-atom $mapped $t)
-                    (let $r (genPhen $gSpace $cSpace $tSpace $nts $t $maxIter ((py-atom random.random)))
+                    (let $r (genPhen $gSpace $cSpace $gtSpace $nts $t $maxIter ((py-atom random.random)))
                         (cons-atom $mapped $r) )))                  
 
             (let*
                 (   
-                    ($codon (getCodon $tSpace ((py-atom random.random))))
+                    ($codon (getCodon $gtSpace ((py-atom random.random))))
                     ($nextRule (getRule $start $gSpace $cSpace $codon 0 0 (py-atom random.random)))
                 
                     (() (println! $nextRule))
-                    (() (updateIndex $tSpace ((py-atom random.random))))
-                    ($codonIndex (match $tSpace (codon-index $i) $i)))
+                    (() (updateIndex $gtSpace ((py-atom random.random))))
+                    ($codonIndex (match $gtSpace (codon-index $i) $i)))
 
                 (if (< $codonIndex $maxIter)
-                    (genPhen $gSpace $cSpace $tSpace $nts $nextRule $maxIter ((py-dot np random.uniform)0 1))
+                    (genPhen $gSpace $cSpace $gtSpace $nts $nextRule $maxIter ((py-dot np random.uniform)0 1))
 
-                    X )))))
+                    null )))))
 
 ;; prCounter -- increments a production rule's count by one when called
 ;;              $cSpace -- count space
@@ -260,50 +260,50 @@
 ;; genG -- generate a single generation of size n
 ;;              $n -- population size
 ;;              $gSpace -- grammar space
-;;              $tSpace -- genotype space
+;;              $gtSpace -- genotype space
 ;;              $genSpace -- space for population
 ;;              $maxCount -- number of inidviduals to generate
 ;;              $start -- start symbol
 ;;              $genId -- genertion id for identification of genrations -- stays the same for a generation of individuals
 ;;              $$id -- id for an individual expression -- unique for an expression in a generation
 ;;              $random -- needed to prevent metta from caching results of recursive calls              
-;;                      $i -- indvidual expression
+;;                      $exp -- indvidual expression
 ;;                      $g -- genotype tuple used for the expression
 ;;                      $c -- production rule count info for an expression collected in a tuple
 
-(= (genG $gSpace $cSpace $tSpace $popSpace $maxCount $start $genId $id $random)
+(= (genG $gSpace $cSpace $gtSpace $popSpace $maxCount $start $genId $id $random)
     (if (< $id $maxCount)
         (let*
             (   
-                (() (setGenotype PREC L $tSpace ((py-atom random.random))))
-                ($i (genPhen $gSpace $cSpace $tSpace NTS $start MAXITER ((py-atom random.random))))
-                (() (resetIndex $tSpace))
-                ($g (getGeno $tSpace ((py-atom random.random))))
+                (() (setGenotype PREC L $gtSpace ((py-atom random.random))))
+                ($exp (genPhen $gSpace $cSpace $gtSpace NTS $start MAXITER ((py-atom random.random))))
+                (() (resetIndex $gtSpace))
+                ($g (getGeno $gtSpace ((py-atom random.random))))
 
                 ($c (getCount $cSpace ((py-atom random.random))))
-                (() (add-atom $popSpace ($genId $id $i $g $c)))
+                (() (add-atom $popSpace ($genId $id $exp $g $c)))
                 (() (rCount $cSpace ((py-atom random.random)))))
             
-                (genG $gSpace $cSpace $tSpace $popSpace $maxCount $start $genId (+ 1 $id) ((py-atom random.random))))
+                (genG $gSpace $cSpace $gtSpace $popSpace $maxCount $start $genId (+ 1 $id) ((py-atom random.random))))
         () ))
 
 ;; resetIndex -- resets the codon index to zero for the next round of generation
-;;          $tSpace -- genotype space
+;;          $gtSpace -- genotype space
 ;;                  $ind -- previous index value
 
-(= (resetIndex $tSpace)
+(= (resetIndex $gtSpace)
     (collapse (let*
         (
-            ($ind (match $tSpace (codon-index $ind) $ind))
-            (() (remove-atom $tSpace (codon-index $ind)))
-            (() (add-atom $tSpace (codon-index 0))))
+            ($ind (match $gtSpace (codon-index $ind) $ind))
+            (() (remove-atom $gtSpace (codon-index $ind)))
+            (() (add-atom $gtSpace (codon-index 0))))
 
         (empty) )))
 
 ;; retrive genotype information for the inidividual
 
-(= (getGeno $tSpace $random)
-    (match $tSpace (genotype $g) $g))
+(= (getGeno $gtSpace $random)
+    (match $gtSpace (genotype $g) $g))
 
 ;; getCount -- returns count of all production rules for appending to individual expression metta data
 ;;              $cSpace -- count space
@@ -350,42 +350,34 @@
 ;; :::::::::::::::: UPDATE PROBABILITIES ::::::::::::::::
 ;; updateProbablity -- updates probability of a derivation rules based on count information from &count space 
 ;;              $gSpace -- grammar space
-;;              $genSpace -- generation space
+;;              $popSpace -- population space
+;;              $nts -- set of non-terminals
+;;              $$gId -- generation ID 
 ;;              $id -- ID of an expression in the genaration space 
 ;;              $lambda -- learning factor
-;;                      ($id $i $g $c) -- (id of an individual expression, the expression itself, genotype used for generation, production rule reference counts)
-;;                      ($nt $r $i) -- (a non-terminal, a production rule, production rule index) as found in the &grammar space
-;;                      $sums -- sums of counts of all production rule referals of all non-terminals (superposed)
+;;                      $c -- all the production rule reference counts in one tuple
+;;                      ($nt $r $cnt) -- deconstructed tuple of non-terminal, a production rule and it's count
+;;                      $sums -- sums of counts of all production rules of non-terminals (superposed)
+;;                      ($nt $r $oldP $ind) -- each non-terminal/production rule pair matched with the corresponding probability value
 
 (= (updateProbability $gSpace $popSpace $nts $gId $id $lambda)
-    (collapse (let*
-        (
-            ($c (match $popSpace ($gId $id $i $g $c) $c))
-            ($counts (superpose $c))
-            ($nt (superpose $nts))
-            ($sums (getCountSum $c $nt))
-            (($nt $r $oldP $ind) (match $gSpace ($nt $r $p $i) ($nt $r $p $i))))
+    (collapse 
+        (let*
+            (
+                ($c (match $popSpace ($gId $id $exp $g $c) $c))
+                (($nt $r $cnt) (superpose $c))
+                ($sums (getCountSum $c $nt))
+                (($nt $r $oldP $ind) (match $gSpace ($nt $r $p $i) ($nt $r $p $i)))
 
-        (unify $counts ($nt $r $cnt) 
-                (if (== $cnt 0)
-                    (let* 
-                        (
-                            ($newP (round (- $oldP (* $lambda $oldP)) PREC))
-                            (() (remove-atom $gSpace ($nt $r $oldP $ind)))
-                            (() (add-atom $gSpace ($nt $r $newP $ind))))
+                ($newP (if (== $cnt 0)
+                            (round (- $oldP (* $lambda $oldP)) PREC)
+                            (let $incP (+ $oldP (/ (* $cnt $lambda) $sums))
+                                (round (min $incP 1) PREC)
+                            )))
+                (() (remove-atom $gSpace ($nt $r $oldP $ind)))
+                (() (add-atom $gSpace ($nt $r $newP $ind))))
 
-                        (empty))
-
-                    (let*
-                        (
-                            ($incP (+ $oldP (/ (* $cnt $lambda) $sums)))
-                            ($newP (round (min $incP 1) PREC))
-                            (() (remove-atom $gSpace ($nt $r $oldP $ind)))
-                            (() (add-atom $gSpace ($nt $r $newP $ind))))
-
-                        (empty) ))
-
-                    (empty) ))))
+        (empty) )))
 
 ;; getCountSum -- returns sum of all the referral counts of a non-terminal
 ;;              $iCount -- all the production rule counts used in an expression given as tuple of tuples of counts
@@ -432,11 +424,10 @@
 (= (addGenBest $genId $popSpace $sSpace)
      (let*
             (
-                ($scoredEx (collapse (match $popSpace ($genId $iId $i $g $c) ((penalizedFitness $i DATA PENALITY) $genId $iId $i))))
+                ($scoredEx (collapse (match $popSpace ($genId $iId $exp $g $c) ((penalizedFitness $exp DATA PENALITY) $genId $iId $exp))))
                 ($gBest (getMaxWithKey $scoredEx))
             )
-            (add-atom $sSpace $gBest)
-            ))
+            (add-atom $sSpace $gBest)))
 
 ;; applyProbUpdate -- applies the probability update based on wh
 ;;             uses output of (rndBool) function to decide which best to use for porabability update (current generation or overall)
@@ -445,27 +436,20 @@
 ;;                  $gSpace -- grammar space
 ;;                  $popSpace -- population space where all individuals are stored
 ;;                  $sSpace -- scored space
-;;                          $best -- description of the best individual as a tuple (score $genId $iId $i)
+;;                          $best -- description of the best individual as a tuple (score $genId $iId $exp)
 
 (= (applyProbUpdate $genId $gSpace $popSpace $sSpace)
-    (collapse (let $t (rBool)
-        (if $t
+    (collapse
             (let*
-                (   
-                    (($s $gId $id $i) (getOverallBest $sSpace))
+                (
+                    (($s $gId $id $exp) (if (rBool)
+                                            (getOverallBest $sSpace)
+                                            (match $sSpace ($s $genId $iId $exp) ($s $genId $iId $exp))))
                     (() (updateProbability $gSpace $popSpace NTS $gId $id FACTOR))
                     (() (normalizeP $gSpace NTS)))
-
-                (empty))
-
-            (let*
-                (   
-                    (($s $gId $id $i) (match $sSpace ($s $genId $iId $i) ($s $genId $iId $i)))
-                    (() (updateProbability $gSpace $popSpace NTS $genId $id FACTOR))
-                    (() (normalizeP $gSpace NTS)))
-
-                (empty)) ))))
-
+                
+                (empty))))
+                 
 ;; rBool -- random boolean value for choosing between the generation or oveall best
 
 (= (rBool) 
@@ -510,9 +494,8 @@
 ;;                      $b -- best individuals in a tuple -- b/c there could be more than one having the same score
 
 (= (getOverallBest $sSpace)
-    (let $scoredExps (collapse (match $sSpace ($s $genId $iId $i) ($s $genId $iId $i)))
-        (getMaxWithKey $scoredExps)
-        ))
+    (let $scoredExps (collapse (match $sSpace ($s $genId $iId $exp) ($s $genId $iId $exp)))
+        (getMaxWithKey $scoredExps)))
 
 ;; genPop -- generate $ngen number of generations each with $ni individuals
 ;;              $args -- args 
@@ -520,43 +503,43 @@
 ;;              $exCount -- expression count in a generation
 ;;
 
-(= (genPop $gSpace $cSpace $tSpace $popSpace $sSpace $gCount $start $genId $exCount $random)
+(= (genPop $gSpace $cSpace $gtSpace $popSpace $sSpace $gCount $start $genId $exCount $random)
     (if (< $genId $gCount)
         (let*
             (   
                 (() (println! $genId))
-                (() (genG $gSpace $cSpace $tSpace $popSpace E $start $genId $exCount ((py-atom random.random))))
+                (() (genG $gSpace $cSpace $gtSpace $popSpace E $start $genId $exCount ((py-atom random.random))))
                 (() (addGenBest $genId $popSpace $sSpace))
                 (() (if (== $genId (- $gCount 1))
                         ()
                         (applyProbUpdate $genId $gSpace $popSpace $sSpace)))
             )
-            (genPop $gSpace $cSpace $tSpace $popSpace $sSpace $gCount $start (+ 1 $genId) $exCount ((py-atom random.random)))   
+            (genPop $gSpace $cSpace $gtSpace $popSpace $sSpace $gCount $start (+ 1 $genId) $exCount ((py-atom random.random)))   
         )
         ()))
 
 ;; main -- iniitalizes the genotype, count space and calls the genPop function for generation of generations of indivdiulas
-;;               $gSpace -- grammar space$cSpace $tSpace $popSpace $sSpace $start $genCount $expCount
+;;               $gSpace -- grammar space$cSpace $gtSpace $popSpace $sSpace $start $genCount $expCount
 ;;               $cSpace -- count space
-;;               $tSpace -- genotype space 
+;;               $gtSpace -- genotype space 
 ;;               $popSpace -- expression population space 
 ;;               $sSpace -- scored instances space
 ;;               $start -- start symbol 
 ;;               $genCount -- generation count
 ;;               $expCount -- individual expression count
-;;                      ($s $gId $iId $i) -- (score, generation id, indivdual id, expression)
+;;                      ($s $gId $iId $exp) -- (score, generation id, expression id, expression)
 
-(= (main $gSpace $cSpace $tSpace $popSpace $sSpace $start $genCount $expCount)
+(= (main $gSpace $cSpace $gtSpace $popSpace $sSpace $start $genCount $expCount)
     (let*
         (
-            (() (add-atom $tSpace (genotype (1 2 3 4))))
-            (() (add-atom $tSpace (codon-index 0)))
+            (() (add-atom $gtSpace (genotype (1 2 3 4))))
+            (() (add-atom $gtSpace (codon-index 0)))
             (() (iProbs $gSpace NTS))
             (() (iCount $gSpace $cSpace))
-            (() (genPop $gSpace $cSpace $tSpace $popSpace $sSpace G $start $genCount $expCount ((py-atom random.random))))
-            (($s $gId $iId $i) (getOverallBest $sSpace))
+            (() (genPop $gSpace $cSpace $gtSpace $popSpace $sSpace G $start $genCount $expCount ((py-atom random.random))))
+            (($s $gId $iId $exp) (getOverallBest $sSpace))
         )
-        $i
+        $exp
 ))
 
 ; ! (main &grammar &count &geno &population &scored start 0 0)
