@@ -385,6 +385,7 @@
               (($h $t) (decons $a))
               ($r (drop (- $n 1) $t)))
             $r)))))
+            
 ;; This function adds list to space
 (= (addListToSpace $space $list)
     (add-reduct $space (superpose $list))

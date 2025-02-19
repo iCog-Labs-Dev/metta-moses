@@ -38,11 +38,13 @@
     )
     )
 )
+
 ;; This function initializes the alphabet atom space with the non-terminals 
 ;; start expr bop uop term
 (= (initializeAlphabetSpace $alphabetSpace)
     (add-reduct $alphabetSpace (superpose (start expr bop uop term)))
 )
+
 ;; The following function filters production-rule provided a left hand side
 ;; <start> -> <expr>
 ;; <expr>  -> <bop> <expr> <expr> |
@@ -94,6 +96,7 @@
 (= (updateWeight ($lhs $rhs $weight) $learnRate $cardinality dec)
     (let $updatedWeight (/ $weight (pow (- 1 $learnRate) $cardinality)) ($lhs $rhs $updatedWeight))
 )
+
 ;; The following function extracts the parent from the given tuple.
 (= (extractParent ($lhs $rhs)) $lhs)
 (= (extractParent ($lhs $rhs $weight)) $lhs)
@@ -125,15 +128,18 @@
 (= (extractWeightsFromParent $parent $space)
     (collapse (match $space ($parent $child $weight) $weight))
 )
+
 ;; check if the atom is a junctor
 (= (isAtomJunctor $token)
     (if (or (== $token AND) (== $token OR)) True False)
 )
+
 ;; This function fetches stochastic production rules with the same left hand side (lhs)
 ;; Example: input => expr output => (expr (bop expr expr) 7), (expr (uop expr) 4)
 (= (findSuitableProdRules $lhs $stocSpace)
     (collapse (match $stocSpace ($lhs $rhs $weight) ($lhs $rhs $weight)))
 )
+
 ;; getRelations separates a tree to a parent-child a reverse parseable expressions to the production 
 ;; rules.
 ;; Example: input => (AND x1 (OR x1 x2)), output ((AND x1 (OR x1 x2)) (OR x1 x2) x1 x2)
@@ -228,6 +234,7 @@
 ;;     )
 
 ;; )
+
 ;; getRule from sub-tree expression and grammarSpace
 ;;bop (bop exp1 exp2)
 ;;uop (uop exp1)
@@ -256,6 +263,7 @@
     )
     )
 )
+
 ;; a helper that extracts the best after comparing with the threshold.
 (= (filter' $compSign $func $expression $threshold)
     (if ($compSign ($func $expression) $threshold)
@@ -263,6 +271,7 @@
         (empty)
     )
 )
+
 ;;The following function leverages Non-determinism to filter a function
 ;; based on a predicated
 (= (filterList $compSign $func $expressions $threshold)
@@ -584,6 +593,7 @@
 !(assertEqual (mutateRule (expr (bop expr expr) 5) 0.1) (expr (bop expr expr) 0.5))
 !(get-atoms &stochasticGrammarSpace)
 !(get-atoms &grammarSpace)
+
 ;; Tests for well formed expression.
 !(assertEqual (isWellFormed (AND x1 x2)) True)
 !(assertEqual (isWellFormed (AND x1)) False)
@@ -591,10 +601,12 @@
 !(assertEqual (isWellFormed (AND x1 (OR x1 (AND x1)))) False)
 !(assertEqual (isWellFormed (AND x1 (OR x1 (AND x1)))) False)
 !(assertEqual (isWellFormed x1) True)
+
 ;; Tests for get Relations 
 !(assertEqual (getRelations (AND x1 (OR x1 x2)) ()) (x1 (AND x1 (OR x1 x2)) x2 x1 (OR x1 x2)))
 !(assertEqual (getRelations (AND x1 x2) ()) (x2 x1 (AND x1 x2)))
 !(assertEqual (getRelations (AND x1 (OR x1 (AND x3 x4))) ()) (x1 (AND x1 (OR x1 (AND x3 x4))) x1 (OR x1 (AND x3 x4)) x4 x3 (AND x3 x4)))
+
 ;; Tests for getRuleFromSubTree
 ;; !(superpose (getRuleFromSubTree x1 &stochasticGrammarSpace))
 !(getRuleFromSubTree x1 &stochasticGrammarSpace)
@@ -611,6 +623,7 @@
 !(let $evaluated (getRuleFromSubTree (NOT x1) &stochasticGrammarSpace) 
     (assertEqual (all (collapse (containsThreeVals (superpose $evaluated)))) True)
 )
+
 ;; Tests for reinforceProdgrammar
 !(let $weight (match &stochasticGrammarSpace (expr (bop expr expr) $x) $x)
     (assertEqual (reinforceProd (expr (bop expr expr) $weight) 0.1 10 &stochasticGrammarSpace) ())
@@ -628,6 +641,7 @@
 )
 ;; !(reinforceGrammarbasedOnTree (AND (OR x1 x2) x1) 0.01 15 &grammarSpace &stochasticGrammarSpace)
 ;; !(get-atoms &stochasticGrammarSpace)
+
 ;;Tests for reinforceGrammarBasedOnTree
 !(reinforceGrammarbasedOnTree (AND (OR x1 x2) x1) 0.01 15 &grammarSpace &stochasticGrammarSpace)
 !(let $reinforcedVal (collapse (reinforceGrammarbasedOnTree (AND (OR x1 x2) x1) 0.01 15 &grammarSpace &stochasticGrammarSpace))
@@ -636,9 +650,11 @@
 )
 !(assertEqual (collapse (reinforceGrammarbasedOnTree (OR x1 x2) 0.01 15 &grammarSpace &stochasticGrammarSpace)) ())
 !(get-atoms &stochasticGrammarSpace)
+
 ;;Tests for punishGrammarBasedOnTree
 !(assertEqual  (collapse (punishGrammarbasedOnTree (AND (OR x1 x2) x1) 0.01 15 &grammarSpace &stochasticGrammarSpace)) ()) 
 ;; !(assertEqual  (punishGrammarbasedOnTree (AND (OR x1 x2) x1) 0.01 15 &grammarSpace &stochasticGrammarSpace) ()) 
+
 ;;Tests for the generators
 !(unique (generateTrees start &grammarSpace &stochasticGrammarSpace 3))
 !(let $trees (collapse (unique (generateTrees start &grammarSpace &stochasticGrammarSpace 3)))
