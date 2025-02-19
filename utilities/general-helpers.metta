@@ -4,8 +4,8 @@
 (= (~= $a $b) (not (== $a $b)))
 
 ;; INFO: Uncomment for the use of MeTTaLog.
-(: >= (-> Number Number Bool))
-(= (>= $a $b) (or (== $a $b) (> $a $b)))
+; (: >= (-> Number Number Bool))
+; (= (>= $a $b) (or (== $a $b) (> $a $b)))
 
 ;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
 ;(: cocatTuple (-> Expression Expression Expression))
