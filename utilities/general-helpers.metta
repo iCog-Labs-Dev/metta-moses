@@ -156,7 +156,7 @@
 (= (((curry $f) $x) $y) ($f $x $y))
 
 ; ;; Add numbers in an atom list
-; (= (sum $list) (foldr + 0 $list))
+(= (sum $list) (foldr + 0 $list))
 
 ;; Function to count atom occrence in a list of atoms.
 (= (count $atom $list)
