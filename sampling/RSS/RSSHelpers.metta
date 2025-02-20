@@ -1,6 +1,6 @@
 ! (bind! np-rnd (py-atom numpy.random))
-;!(bind! &fortest (new-space))
-(= (manuplate-space $opration $space $elements)(
+;; !(bind! &fortest (new-space))
+(= (manuplateSpace $opration $space $elements)(
     (superpose ($opration)) (superpose ($space)) (superpose $elements)
 ))
 
@@ -18,7 +18,7 @@
 )
 )
 
-;This Function Generates random n unique numbers from m numbers
+;; This Function Generates random n unique numbers from m numbers
 (: random (-> Number Number list tuple))
 (=($x) $x)
 (=(random $num $range $list )(
@@ -37,9 +37,9 @@
   
 ))
 
-;testcases
-; !(manuplate-space add-atom &fortest (1 2 3))
-; !(match &fortest $y $y)
+;; testcases
+;; !(manuplateSpace add-atom &fortest (1 2 3))
+;; !(match &fortest $y $y)
 
-; !(isMember 1 (1 2 3 ))
-; !(random 10 100 ())
+;; !(isMember 1 (1 2 3 ))
+;; !(random 10 100 ())
