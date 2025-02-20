@@ -444,3 +444,37 @@
 ;                     $t
 ;                     (empty) )))
 ;         (car-atom $best) ))
+;; map` -- a modified map functinality with, i.e., a map that takes a function which has two inputs
+
+(: map` (-> (-> $a $a $b) $a $c $d))
+(= (map` $f $x $xs)
+   (if (== $xs ())
+       ()
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs))
+              ($fh ($f $h $x))
+              ($ft (map` $f $x $t)))
+         (cons-atom $fh $ft))))
+
+;; notNt -- check if a symbol is not a member of the non-terminal set
+
+(= (notMember $symbol $expr) (not (isMember $symbol $expr)))
+
+;; isValidExp -- to check if the boolean expression produced by genPhen is a valid bolean expression
+;;          $exp -- an expression which is being checked for validity
+;;          $parent -- an expression against which the check is being made -- set of non-terminals in this case.
+
+(= (isValidExp $exp $parent)
+    (if (== (get-metatype $exp) Symbol)
+        (notMember $exp $parent)
+        (let*
+            (
+                ($f (flatten $exp))
+                ($t (map` notMember $parent $f))
+            ) 
+            (all $t)
+        )))
+
+;; a function that checks that all of the expressions are true.
+(: all (-> Expression Bool))
+(= (all $expressions) (if (isMember False $expressions) False True))
