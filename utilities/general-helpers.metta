@@ -485,6 +485,10 @@
             ) 
             (all $t)
         )))
+;; This function adds list to space
+(= (addListToSpace $space $list)
+    (add-reduct $space (superpose $list))
+)
 
 ;; a function that checks that all of the expressions are true.
 (: all (-> Expression Bool))
