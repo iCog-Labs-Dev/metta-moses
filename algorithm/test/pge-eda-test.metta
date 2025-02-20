@@ -92,23 +92,13 @@
 
 
 ;; Test -- genPhen -- generate phonotype from genotype
-;; isMemberTerminal -- checks if the generated expression contains only terminals
-;;                  -- returns a bool indicating if all expression members are terminals or not 
-;;                  -- True if all are terminals False if any member is a non-terminal indicating invalid expression
-;;                  NTS -- set of non-terminals agains which the non-membership is being checked
 
-(= (isMemberTerminal $exp)
-    (if (isLiteral $exp)
-        (not (isMember $exp NTS))
-        (let $a 
-                (collapse (let $el (unNest $exp)
-                            (not (isMember $el NTS))))
-                (foldr and True $a))))
-
-! (assertEqual (let $expr (genPhen &gram &cnt &gen NTS start 10 dummy)
-                    (isMemberTerminal $expr)
-                ) True)
-
+! (assertEqual (let*
+                    (
+                        ($expr (genPhen &gram &cnt &gen NTS start 11 ((py-atom random.random))))
+                        (() (println! $expr))
+                    ) 
+                    (isValidExp $expr NTS)) True)
 
 ;; Test -- getGeno -- retrieve genotype from space
 
