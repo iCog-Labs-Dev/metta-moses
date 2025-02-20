@@ -1,6 +1,7 @@
 !(register-module! ../../../metta-moses)
 
-!(import! &self metta-moses:utilities:general-helpers)
+! (import! &self metta-moses:utilities:general-helpers)
+! (bind! &newSpace (new-space))
 
 !(assertEqualToResult (~= 1 2) (True))
 !(assertEqualToResult (~= 1 1) (False))
@@ -138,6 +139,21 @@
 !(assertEqual (wrapper isZero 1) (empty))
 !(assertEqual (wrapper isUnit 1) (empty))
 !(assertEqual (wrapper isUnit ()) ())
+
+
+;; Test for add list to space
+!(addListToSpace &newSpace (1 2 3 4 5))
+!(assertEqual (collapse (get-atoms &newSpace)) (1 2 3 4 5))
+!(addListToSpace &newSpace (6 7 8))
+!(assertEqual (collapse (get-atoms &newSpace)) (1 2 3 4 5 6 7 8))
+!(addListToSpace &newSpace (9 10))
+!(assertEqual (collapse (get-atoms &newSpace)) (1 2 3 4 5 6 7 8 9 10))
+
+;; Test for checking the all function.
+!(assertEqual (all (True True True True)) True)
+!(assertEqual (all (True True False True)) False)
+!(assertEqual (all (True True True False)) False)
+
 
 ;; Test foldr function
 !(assertEqual (foldr + 0 (1 2 3)) 6)
