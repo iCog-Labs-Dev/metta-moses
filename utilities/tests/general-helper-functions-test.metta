@@ -172,3 +172,35 @@
 ;; Test update-atom
 !(add-atom &__ (A 2 3))
 !(let () (collapse (update-atom  &__ (A 2 3) (A 3 4))) (assertEqual (match &__ $x $x) (A 3 4)))
+
+;; Test flatten
+
+!(assertEqual (flatten (AND A (AND A B))) (AND A AND A B))
+!(assertEqual (flatten (AND A (AND (OR A (NOT C)) (OR B D)))) (AND A AND OR A (NOT C) OR B D))
+
+;; Test notNt 
+!(bind! NTS (start expr bop uop term))
+
+!(assertEqual (notMember AND NTS) True)
+!(assertEqual (notMember A NTS) True)
+!(assertEqual (notMember expr NTS) False)
+
+;; Test all
+
+!(assertEqual (all (True True True False)) False)
+!(assertEqual (all (True True True True)) True)
+!(assertEqual (all (True True True False True)) False)
+
+;; Test map` 
+
+(= (add $x $y) (+ $x $y))
+
+!(assertEqual (map` add 2 (1 2 3 4 5)) (3 4 5 6 7))
+!(assertEqual (map` notMember (1 2 3) (2 4 1 3)) (False True False False))
+
+;; Test isValidExp 
+
+!(assertEqual (isValidExp A (start expr bop uop term)) True)
+!(assertEqual (isValidExp expr (start expr bop uop term)) False)
+!(assertEqual (isValidExp (AND A B) (start expr bop uop term)) True)
+!(assertEqual (isValidExp (OR (AND B null) (NOT B)) (start expr bop uop term)) True)
