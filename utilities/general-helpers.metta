@@ -8,7 +8,7 @@
 ;; (= (>= $a $b) (or (== $a $b) (> $a $b)))
 
 ;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
-;(: cocatTuple (-> Expression Expression Expression))
+;; (: concatTuple (-> Expression Expression Expression))
  (= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y))))
 
 (: ++ (-> Expression Expression Expression))
@@ -385,3 +385,12 @@
               (($h $t) (decons $a))
               ($r (drop (- $n 1) $t)))
             $r)))))
+            
+;; This function adds list to space
+(= (addListToSpace $space $list)
+    (add-reduct $space (superpose $list))
+)
+;; a function that checks that all of the expressions are true.
+(: all (-> Expression Bool))
+(= (all $expressions) (if (isMember False $expressions) False True))
+

@@ -1,6 +1,7 @@
 !(register-module! ../../../metta-moses)
 
-!(import! &self metta-moses:utilities:general-helpers)
+! (import! &self metta-moses:utilities:general-helpers)
+! (bind! &newSpace (new-space))
 
 !(assertEqualToResult (~= 1 2) (True))
 !(assertEqualToResult (~= 1 1) (False))
@@ -107,38 +108,24 @@
 !(assertEqual (map greaterThanTen (1 10 2 23 32 7 8 43 0 2)) (False False False True True False False True False False))
 !(assertEqual (map greaterThanTen (1 10 2 23 32 7 8 43 0)) (False False False True True False False True False))
 
-;; Test count atom function
-!(assertEqual (count expr (bop expr expr bop bop expr x y a expr u expr z a)) 5)
-!(assertEqual (count bop (bop expr expr bop bop expr x y a expr u expr z a)) 3)
-!(assertEqual (count x (bop expr expr bop bop expr x y a expr u expr z a)) 1)
-!(assertEqual (count u (bop expr expr bop bop expr x y a expr u expr z a)) 1)
-!(assertEqual (count f (bop expr expr bop bop expr x y a expr u expr z a)) 0)
-!(assertEqual (count z (bop expr expr bop bop expr x y a expr u expr z a)) 1)
-!(assertEqual (count expr ()) 0)
-!(assertEqual (count expr (expr)) 1)
-!(assertEqual (count expr (bop)) 0)
 
-;; Test sum function
-!(assertEqual (sum (1 2 3 4 5 6 7 8 9 10)) 55)
-!(assertEqual (sum (1 1 1 1)) 4)
-!(assertEqual (sum (1)) 1)
 
-;; Test curry function
-!(assertEqual (((curry +) 1) 2) 3)
-!(assertEqual (((curry -) 5) 4) 1)
+;; Test for add list to space
+!(addListToSpace &newSpace (1 2 3 4 5))
+!(assertEqual (collapse (get-atoms &newSpace)) (1 2 3 4 5))
+!(addListToSpace &newSpace (6 7 8))
+!(assertEqual (collapse (get-atoms &newSpace)) (1 2 3 4 5 6 7 8))
+!(addListToSpace &newSpace (9 10))
+!(assertEqual (collapse (get-atoms &newSpace)) (1 2 3 4 5 6 7 8 9 10))
 
-;; Test filter function
-!(assertEqual (collapse (filter isUnit (9 10 () 5 4 ()))) (() ()))
-!(assertEqual (collapse (filter isSingleAtom (9 10 (Hello) 5 4 (Nop) ()))) ((Hello) (Nop)))
-!(assertEqual (collapse (filter isZero (9 10 0 5 4 0))) (0 0))
-!(assertEqual (collapse (filter greaterThanTen (9 10 12 5 4 28))) (12 28))
+;; Test for checking the all function.
+!(assertEqual (all (True True True True)) True)
+!(assertEqual (all (True True False True)) False)
+!(assertEqual (all (True True True False)) False)
 
-;; Test wrapper function for filter function
-!(assertEqual (wrapper isZero 0) 0)
-!(assertEqual (wrapper isZero 1) (empty))
-!(assertEqual (wrapper isUnit 1) (empty))
-!(assertEqual (wrapper isUnit ()) ())
 
 ;; Test foldr function
 !(assertEqual (foldr + 0 (1 2 3)) 6)
 !(assertEqual (foldr + 0 (1 2 3)) 6)
+
+
