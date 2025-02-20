@@ -499,22 +499,22 @@
 
 ;; genPop -- generate $ngen number of generations each with $ni individuals
 ;;              $args -- args 
-;;              $genCount -- generation count, starts as 0
+;;              $popSize -- population size in termns of generation count
+;;              $genId -- unique generation identifier
 ;;              $exCount -- expression count in a generation
-;;
 
-(= (genPop $gSpace $cSpace $gtSpace $popSpace $sSpace $gCount $start $genId $exCount $random)
-    (if (< $genId $gCount)
+(= (genPop $gSpace $cSpace $gtSpace $popSpace $sSpace $popSize $start $genId $exCount $random)
+    (if (< $genId $popSize)
         (let*
             (   
                 (() (println! $genId))
                 (() (genG $gSpace $cSpace $gtSpace $popSpace E $start $genId $exCount ((py-atom random.random))))
                 (() (addGenBest $genId $popSpace $sSpace))
-                (() (if (== $genId (- $gCount 1))
+                (() (if (== $genId (- $popSize 1))
                         ()
                         (applyProbUpdate $genId $gSpace $popSpace $sSpace)))
             )
-            (genPop $gSpace $cSpace $gtSpace $popSpace $sSpace $gCount $start (+ 1 $genId) $exCount ((py-atom random.random)))   
+            (genPop $gSpace $cSpace $gtSpace $popSpace $sSpace $popSize $start (+ 1 $genId) $exCount ((py-atom random.random)))   
         )
         ()))
 
