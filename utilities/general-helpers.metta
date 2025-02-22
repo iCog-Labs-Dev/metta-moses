@@ -183,8 +183,8 @@
 (: appendAtom (-> Atom Atom Atom))
 (= (appendAtom $a $atom) (foldr cons-atom ($a) $atom))
 
-; ;; Return the maximum of two numbers.
-; ; (= (max $x $y) (if (< $x $y) $y $x))
+;; Return the maximum of two numbers.
+(= (max $x $y) (if (< $x $y) $y $x))
 
 ;; A function to return a tuple of numbers from natural to a given number.
 ;; $x is the upperbound
