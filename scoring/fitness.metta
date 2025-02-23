@@ -1,7 +1,6 @@
 
 ! (bind! &space (new-space))
 
-
 (= (removeFromSpace $row $space) (remove-atom $space $row))
 
 ;  This function counts the total occurrences of variable $X in an expression non-deterministically.
