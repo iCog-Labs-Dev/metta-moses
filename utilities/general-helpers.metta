@@ -164,23 +164,29 @@
         0
         (sum (collapse (if (== $atom (superpose $list)) 1 (empty))))))
 
-;; A function to check if a given atom is symbol.
+
+
 (: isSymbol (-> Expression Bool))
 (= (isSymbol $expr) (== (get-metatype $expr) Symbol))
 
-;; A function to check if a given atom is expression.
-(: isExpression (-> Atom Bool))
-(= (isExpression $expr) (== (get-metatype $expr) Expression))
+(= (first $tuple) (car-atom $tuple))
 
-;; A function to check if a given atom is unit or empty tuple.
+(= (isGreater $a $b) (>= (first $a) (first $b)))
+(= (isLess $a $b) (< (first $a) (first $b)))
+
 (: isUnit (-> Atom Bool))
 (= (isUnit $expr) (== $expr ()))
 
-;; A function to check if a given atom is an expression 
-;;   with has one atom in it.
-(: hasOneAtom (-> Atom Bool))
-(= (hasOneAtom $expr) (if (and (== (get-metatype $expr) Expression) (not (isUnit $expr))) (== (cdr-atom $expr) ()) False))
+;; Finds length of a tuple
+(= (len $expr)
+    (if (== $expr ())
+        0
+        (let $tail (cdr-atom $expr)
+            (+ 1 (len $tail))
+        )))
 
+(: isSingleAtom (-> Atom Bool))
+(= (isSingleAtom $expr) (== (len $expr) 1))
 ;; Function to replace a given atom from a space.
 (: update-atom (-> Grounded Atom Atom (->)))
 (= (update-atom $space $oatom $natom) (let $_ (remove-atom $space $oatom) (add-atom $space $natom)))
@@ -209,7 +215,7 @@
 
 ;; Function to create a tuple of tuples given two equal length list of atoms.
 (= (zip $a $b)
-   (if (or (hasOneAtom $a) (hasOneAtom $b))
+   (if (or (isSingleAtom $a) (isSingleAtom $b))
        (((car-atom $a) (car-atom $b)))
        (let*
           (
@@ -232,15 +238,10 @@
               ($tail (zipWith $f $xs-tl $ys-tl)))
          (cons-atom $head $tail))))
 
-;; Finds length of a tuple
-(= (len $expr)
-    (if (== $expr ()) ;; FIX: return Error if symbol
-        0
-        (let $tail (cdr-atom $expr)
-            (+ 1 (len $tail))
-        )))
 
-;; A function to replace an atom at a specific index position with $val -- 0 indexed counting is implied
+
+
+;; replaceByIndex replaces an atom at a specific index position with $val -- 0 indexed counting is implied
 (: replaceByIndex (-> Expression Number $t Expression))
 (= (replaceByIndex $expr $index $new)
     (if (== $expr ())
@@ -259,7 +260,7 @@
                     (cons-atom $first $c)
                 )))))
 
-;; Select atom by index and returns
+;; Select atom by index and returns 
 (= (selectByIndex $expr $index)
     (if (== $expr ())
         (Error (Index out of range) ())
@@ -269,15 +270,54 @@
                 (selectByIndex $tail (- $index 1))
             ))))
 
+(= (getNTs $grammarSpace)
+    (let $ntSet (collapse 
+                    (let $rule (get-atoms $grammarSpace)
+                        (car-atom $rule)
+                    )
+                )
+        (collapse (unique (superpose $ntSet)))))
+
+
 ;; TODO: Use zipWith instead
-;; A function that compares tuples element by element.
+;; compareElemets compares tuples element by element
 (= (compareElements $first $second)
-   (zipWith == $first $second)
-)
+    (if (or (== $first ()) (== $second ()))
+        ()
+        (let*
+            (
+                ($f (car-atom $first))
+                ($ft (cdr-atom $first))
+                ($s (car-atom $second))
+                ($st (cdr-atom $second))
+                ($r  (== $f $s))
+                ($c (compareElements $ft $st))
+            )
+                    (cons-atom $r $c)
+                )))
 
 ;; Function to empty a space with contents.
 (= (clearSpace $space)
    (collapse (let $content (get-atoms $space) (remove-atom $space $content))))
+
+; (: splitAt (-> Number Expression (Atom Atom)))
+(= (splitAt $n $list)
+   (case ($n $list)
+     (
+       ((0 $list) (() $list))
+       (($_ ()) (() ()))
+       (($n $list)
+          (let*
+             (
+               (($x $xs) (decons $list))
+               (($left $right) (splitAt (- $n 1) $xs))
+             )
+             ((cons-atom $x $left) $right)
+          )
+       )
+     )
+   )
+)
 
 ;; Function that merges two sorted lists while keeping them sorted.
 (= (merge $xs $ys) (merge $xs $ys <=))
@@ -296,40 +336,22 @@
                       (let $t (merge $xss $ys $key) (cons-atom $x $t))
                       (let $t (merge $xs $yss $key) (cons-atom $y $t))))))))
 
-;; A function to split a list in to two at an index so that everything
-;;    until that index without including that index as first tuple and 
-;;    the rest as the second.
-(: splitAt (-> Number Expression (Atom Atom)))
-(= (splitAt $n $list)
-   (case ($n $list)
-     (
-       ((0 $list) (() $list))
-       (($_ ()) (() ()))
-       (($n $list)
-          (let*
-             (
-               ;; (() (println! (Splitting $list at: $n)))
-               (($x $xs) (decons $list))
-               (($left $right) (splitAt (- $n 1) $xs))
-               ;; (() (println! (From splitAt Left: $left Right: $right)))
-             )
-             ((cons-atom $x $left) $right))))))
-
-;; Merge sort function. Takes length to gain 
-;;  performance by avoiding recomputation of index.
-(= (sort $list $len) (sort $list $len <=))
+(= (sortNestedTuple $list reverse) (sort $list (len $list) isGreater))
+(= (sortNestedTuple $list) (sort $list (len $list) isLess))
 (= (sort $list $len $key)
-   (if (or (isUnit $list) (hasOneAtom $list))
+   (if (or (isUnit $list) (isSingleAtom $list))
        $list
        (let* (
-                ;; (() (println! (Sorting $list len: $len)))
                 ($halfL ((py-atom math.floor) (/ $len 2)))
                 (($left $right) (splitAt $halfL $list))
-                ;; (() (println! (From sort Left: $left Right: $right)))
              )
-             (merge (sort $left $halfL $key) (sort $right (- $len $halfL) $key) $key))))
+            
+             (merge (sort $left $halfL $key) (sort $right (- $len $halfL) $key) $key)
+       )
+    
+   )
+)
 
-;; A function to take an atom and repeat it n times.
 (: repeat (-> Atom Number Atom))
 (= (repeat $a $n)
    (if (== $n 0)
@@ -351,8 +373,6 @@
                   ($r (take (- $n 1) $t)))
                 (cons-atom $h $r))))))
 
-;; A function to remove the frist n elements of a tuple 
-;;   and returns the rest.
 (: drop (-> Number Atom Atom))
 (= (drop $n $a)
     (case ($n $a)
