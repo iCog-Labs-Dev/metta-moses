@@ -1,0 +1,5 @@
+A,B,C,D,Truthvalue
+True,False,True,True,False
+False,True,True,True,False
+False,True,False,True,False
+False,True,False,True,True
