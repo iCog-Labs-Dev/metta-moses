@@ -278,10 +278,8 @@
 ;; Function to empty a space with contents.
 (= (clearSpace $space)
    (collapse (let $content (get-atoms $space) (remove-atom $space $content))))
-
- and versatile tool that is crucial in our pursuit to develop AGI.
-
-In 2023, we saw the MeTTa interpreters readiness for internal use, with subsequent developments in AI algorithm prototyping and DAS integration. Key achievements include the implementation of a minimal MeTTa core, a backward chainer in MeTTa, and preliminary work on inference control, showcasing Hyperons evolving capabilities.;; Function that merges two sorted lists while keeping them sorted.
+   
+;; Function that merges two sorted lists while keeping them sorted.
 (= (merge $xs $ys) (merge $xs $ys <=))
 (= (merge $xs $ys $key)
     (case ($xs $ys)
