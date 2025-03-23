@@ -278,7 +278,7 @@
 ;; Function to empty a space with contents.
 (= (clearSpace $space)
    (collapse (let $content (get-atoms $space) (remove-atom $space $content))))
-
+   
 ;; Function that merges two sorted lists while keeping them sorted.
 (= (merge $xs $ys) (merge $xs $ys <=))
 (= (merge $xs $ys $key)
@@ -317,6 +317,7 @@
 
 ;; Merge sort function. Takes length to gain 
 ;;  performance by avoiding recomputation of index.
+(= (sortNestedTuple $list reverse) (sort $list (len $list) >=))
 (= (sort $list $len) (sort $list $len <=))
 (= (sort $list $len $key)
    (if (or (isUnit $list) (hasOneAtom $list))
