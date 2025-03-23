@@ -1,4 +1,4 @@
-! (register-module! ../../metta-moses)
+! (register-module! ../../../metta-moses)
 
 ! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:utilities:expression-helpers)

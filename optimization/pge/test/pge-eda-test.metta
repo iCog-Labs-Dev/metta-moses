@@ -1,8 +1,8 @@
-! (register-module! ../../../metta-moses)
+! (register-module! ../../../../metta-moses)
 
 ! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:scoring:fitness)
-! (import! &self metta-moses:algorithm:pge-eda)
+! (import! &self metta-moses:optimization:pge:pge-eda)
 
 ! (bind! &gram (new-space))
 ! (bind! &gen (new-space))
