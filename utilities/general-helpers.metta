@@ -482,3 +482,15 @@
 ;; a function that checks that all of the expressions are true.
 (: all (-> Expression Bool))
 (= (all $expressions) (if (isMember False $expressions) False True))
+
+
+;; Name:                        ===
+;; Description:                 A helper function to evaluate equality of two expressions ignoring ordering of litral children.
+;;                              The grounded equality operator, ==, will return `False` when comparing (AND A B) and (AND B A)
+;;                              === returns `True`.
+;;                              Used when looking for the POA in the parent's list of children.
+(= (=== $x $y)
+   (if (and (== (get-metatype $x) Symbol) (== (get-metatype $y) Symbol))
+       (== $x $y)
+       (== (collapse (union (subtraction (superpose $x) (superpose $y)) (subtraction (superpose $y) (superpose $x)))) ())))
+
