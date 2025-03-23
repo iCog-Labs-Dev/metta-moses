@@ -49,7 +49,7 @@
 ! (assertEqual (match &gram (bop AND $p $i) $p) 0.5)
 
 
-; ;; Test -- getRule 
+;; Test -- getRule
 
 ! (assertEqual (getRule start &gram &cnt 0.425 0 0 False) expr)
 ! (assertEqual (getRule expr &gram &cnt 0.212 0 0 False) (bop expr expr))
@@ -76,12 +76,11 @@
 ! (assertEqual (match &cnt (start expr $c $i) $c) 1)
 
 ;; Test -- getCodon
-! (assertEqual 
+! (assertEqual
             (getCodon (0.52 0.43 0.53 0.89 0.12 0.34 0.56 0.78 0.23) 4)
             0.12)
-                
 
-! (assertEqual 
+! (assertEqual
             (getCodon (0.021 0.981 0.36 0.402 0.24 0.475 0.319 0.229 0.536) 2) 
                   0.36)
 
@@ -100,7 +99,7 @@
 
 ;; Test -- rCount -- rests all production rule counts to zero
 
-! (assertEqual 
+! (assertEqual
                 (let $x (resetCount &cnt)
                     (sum (collapse (match &cnt ($nt $r $c $i) $c)))
                 ) 0)
@@ -115,7 +114,7 @@
 
 ! (updateProbability &gram &cnt lambda)
 
-! (assertEqual 
+! (assertEqual
                 (
                     (match &gram (start expr $p $i) $p) 
                     (match &gram (expr (bop expr expr) $p $i) $p)
@@ -159,6 +158,4 @@
 ! (assertEqual
             (let $a (crossover (0.56 0.45 0.67 .23) (0.76 0.23 0.45 0.66) 0.5) (len $a)
             ) 4)
-
-
 
