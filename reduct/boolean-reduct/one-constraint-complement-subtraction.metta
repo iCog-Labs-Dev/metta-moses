@@ -27,17 +27,6 @@
                 (collapse (subtraction (superpose $poa) (superpose $commonElements)))
                 $el)))))
 
-;; Name:                        ===
-;; Description:                 A helper function to evaluate equality of two expressions ignoring ordering of litral children.
-;;                              The grounded equality operator, ==, will return `False` when comparing (AND A B) and (AND B A)
-;;                              === returns `True`.
-;;                              Used when looking for the POA in the parent's list of children.
-(= (=== $x $y)
-   (if (and (== (get-metatype $x) Symbol) (== (get-metatype $y) Symbol))
-       (== $x $y)
-       (== (collapse (union (subtraction (superpose $x) (superpose $y)) (subtraction (superpose $y) (superpose $x)))) ())))
-
-
 ;; Name:                        invertLiterals
 ;; Description:                 A helper function that negates all literals in a literal only expression.
 ;;                              Used when finding a negated literal of the POA in the guardset of the commanding AND node.

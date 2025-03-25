@@ -1,9 +1,9 @@
 ;; module import
 
-; ! (register-module! ../../metta-moses)
+;; ! (register-module! ../../metta-moses)
 
-; ! (import! &self metta-moses:utilities:general-helpers)
-; ! (import! &self metta-moses:scoring:fitness)
+;; ! (import! &self metta-moses:utilities:general-helpers)
+;; ! (import! &self metta-moses:scoring:fitness)
 
 ;; python bindings for random number generation and rounding
 
@@ -542,5 +542,5 @@
         $exp
 ))
 
-; ! (main &grammar &count &geno &population &scored start 0 0)
-; ! (match &grammar ($nt $r $p $i) ($nt $r $p $i))
+;; ! (main &grammar &count &geno &population &scored start 0 0)
+;; ! (match &grammar ($nt $r $p $i) ($nt $r $p $i))

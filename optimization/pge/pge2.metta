@@ -1,16 +1,15 @@
+;; Probabilistic Grammatical Evolution (PGE) is a variant of Grammatical
+;; which introduces a new genotypic representation and new mapping mech-
+;; anism for GE. Specifically, we resort to a Probabilistic Context-Free
+;; Grammar (PCFG) where its probabilities are adapted during the evolu-
+;; tionary process, taking into account the productions chosen to construct
+;; the fittest individual. The genotype is a list of real values, where each
+;; value represents the likelihood of selecting a derivation rule
 
-; ;  Probabilistic Grammatical Evolution (PGE) is a variant of Grammatical
-; ; which introduces a new genotypic representation and new mapping mech-
-; ; anism for GE. Specifically, we resort to a Probabilistic Context-Free
-; ; Grammar (PCFG) where its probabilities are adapted during the evolu-
-; ; tionary process, taking into account the productions chosen to construct
-; ; the fittest individual. The genotype is a list of real values, where each
-; ; value represents the likelihood of selecting a derivation rule
 
-
-; ; ! (register-module! ./utilities)
-; ; ! (import! &self utilities:general-helpers)
-; ; ! (import! &self scoring:fitness)
+;; ! (register-module! ./utilities)
+;; ! (import! &self utilities:general-helpers)
+;; ! (import! &self scoring:fitness)
 
 ;; python bindings for random number generation and rounding
 ! (bind! np (py-atom numpy))

@@ -1,9 +1,8 @@
-! (register-module! ../../metta-moses)
+! (register-module! ../../../metta-moses)
 
 ! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:utilities:expression-helpers)
 ! (import! &self metta-moses:scoring:fitness)
-! (import! &self metta-moses:reduct:boolean-reduct:one-constraint-complement-subtraction) ;; TODO: This import is temporary. Refactor code inside oncc and remove it.
 
 ;; Structured grammatical evolution (SGE)
 ;; This implementation is based on the research paper: https://link.springer.com/article/10.1007/s10710-015-9262-4

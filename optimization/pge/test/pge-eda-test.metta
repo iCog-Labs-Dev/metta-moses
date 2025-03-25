@@ -1,8 +1,8 @@
-! (register-module! ../../../metta-moses)
+! (register-module! ../../../../metta-moses)
 
 ! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:scoring:fitness)
-! (import! &self metta-moses:algorithm:pge-eda)
+! (import! &self metta-moses:optimization:pge:pge-eda)
 
 ! (bind! &gram (new-space))
 ! (bind! &gen (new-space))
@@ -10,7 +10,7 @@
 ! (bind! &pop (new-space))
 ! (bind! &s (new-space))
 
-; ;; add grammar to space
+;; Add grammar to space
 
 ! (add-reduct &gram 
                 (superpose 
@@ -32,7 +32,7 @@
 
 ! (assertEqual (sum (collapse (match &cnt ($nt $r $c $i) $c))) 0)
 
-; ;; Test -- set genotype in space
+;; Test -- set genotype in space
 ! (setGenotype PREC L &gen $dummy)
 ! (assertEqual (let $g (match &gen (genotype $g) $g)
                     (length $g)) L)
@@ -51,7 +51,7 @@
 ! (assertEqual (match &gram (expr term $p $i) $p) 0.333)
 ! (assertEqual (match &gram (bop AND $p $i) $p) 0.5)
 
-; ;; Test -- getRule 
+;; Test -- getRule 
 
 ! (assertEqual (getRule start &gram &cnt 0.425 0 0 dummy) expr)
 ! (assertEqual (getRule expr &gram &cnt 0.212 0 0 dummy) (bop expr expr))
@@ -65,6 +65,7 @@
 ! (assertEqual (match &cnt (expr (bop expr expr) $c $i) $c) 1)
 ! (assertEqual (match &cnt (expr (uop expr) $c $i) $c) 1)
 ! (assertEqual (match &cnt (bop OR $c $i) $c) 1)
+
 ;; lets add one more count for the `expr` production rule of the start non-terminal
 
 ! (prCounter &cnt start expr dummy)
@@ -81,7 +82,7 @@
 ! (assertEqual 
             (let $codon (getCodon &gen dummy) 
                 (and (>= $codon 0) (<= $codon 1))) True)
-    
+
 ;; Test -- updateIndex -- increases codon-index value by one whenever called
 
 ! (assertEqual (let () (updateIndex &gen dummy)
@@ -119,37 +120,34 @@
 
 ;; Test -- rCount -- rests all production rule counts to zero
 
-! (assertEqual 
+! (assertEqual
                 (let () (rCount &cnt dummy)
                     (sum (collapse (match &cnt ($nt $r $c $i) $c)))
                 ) 0)
 
 ;; Test -- getCountSum -- retrieve sum of all production rule counts for a non-terminal
 
-! (assertEqual 
+! (assertEqual
                 (let $c ((start expr 1) (expr (bop expr expr) 2) (expr (uop expr) 3) (expr term 4))
                     (getCountSum $c start)
-                ) 1)                        
+                ) 1)
 
-! (assertEqual 
+! (assertEqual
                 (let $c ((start expr 1) (expr (bop expr expr) 2) (expr (uop expr) 3) (expr term 4))
                     (getCountSum $c expr)
                 ) 9)
 
-                    
+
 ;; Test -- maxOfTuple
 
 !(assertEqual (maxOfTuple (1 2 3 1)) 3)
 !(assertEqual (maxOfTuple (3 -2 11 3 1)) 11)
 
-;; Test -- getMaxWithKey 
+;; Test -- getMaxWithKey
 
 ! (assertEqual (getMaxWithKey ((1 A) (5 B) (3 D))) (5 B))
 ! (assertEqual (getMaxWithKey ((1 A B C) (5 B C D) (3 D E F))) (5 B C D))
 ! (assertEqual (getMaxWithKey ((1 A B C) (5 B C D) (3 D E F) (6 T H A))) (6 T H A))
-
-; ! (assertEqual (getMaxWithKey ((1 A B C) (5 B C D) (3 D E F))) (5 B C D))
-
 
 ;; Test -- updateProbability
 
@@ -161,26 +159,26 @@
 
 ! (updateProbability &gram &pop NTS 0 0 0.05)
 
-! (assertEqual 
+! (assertEqual
                 (
                     (match &gram (start expr $p $i) $p) 
                     (match &gram (expr (bop expr expr) $p $i) $p)
                     (match &gram (expr term $p $i) $p)
                     (match &gram (term B $p $i) $p)
                 )
-                (1 0.316 0.383 0.55))                 
+                (1 0.316 0.383 0.55))
 
 ;; Test  -- normalizeP --normalizes probability values to 1
 
 ! (normalizeP &gram NTS)
 
-! (assertEqual 
+! (assertEqual
         (round (sum (collapse (match &gram (expr $r $p $i) $p))) 2) 1)
 
-! (assertEqual 
+! (assertEqual
         (round (sum (collapse (match &gram (term $r $p $i) $p))) 2) 1)
 
-;; Test -- addGenBest 
+;; Test -- addGenBest
 
 ! (add-reduct &pop (superpose (
                     (0 0 (AND A B) () ())
@@ -189,18 +187,19 @@
                     )))
 
 ! (addGenBest 0 &pop &s)
-! (assertEqual 
+! (assertEqual
     ; (let () (addGenBest 0 &pop &s)
                     (match &s ($s $gId $id $i) ($gId $id $i))
-                    (0 0 (AND A B)) ) 
+                    (0 0 (AND A B)) )
                     ; )
 
-;; Test    -- getOverallBest 
+;; Test    -- getOverallBest
 
 ! (add-reduct &s (superpose (
                         (3 1 0 B)
                         (1 2 1 (NOT B))
                     )))
+
 ;; considering (3.9 0 0 (AND A B)) has been added in the above step this should be the overall best
 
 ! (assertEqual (getOverallBest &s) (3.9 0 0 (AND A B)))
