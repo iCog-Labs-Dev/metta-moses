@@ -55,21 +55,15 @@
 ;; !(get-type (and a (or $b (not $c))))
 
 
-(: Or (-> Bool Bool))
-(: Or (-> Bool Bool Bool))
-(= (Or $x) $x)
-(= (Or $x $y) (or $x $y))
-!(get-type (Or $x))
-
 (: And (-> Bool Bool))
 (: And (-> Bool Bool Bool))
 (= (And $x) $x)
-(= (Or $x $y) (and $x $y))
+(= (And $x $y) (and $x $y))
 
 (: or (-> Bool Bool Bool))
 ;; !(get-type (Or $a $b))
 
-(= (reduce ($a $b $c $d $e)) (and $a (or $b (not $c))))
+(= (reduce ($0 $1 $2 $3 $4) $input) (let (quote $expression) $input $expression))
 ;; !(reduce (True False False False True))
 
 ;; !(get-metatype $head)
@@ -251,3 +245,8 @@
 
 ;; !(Cons' (1 2) (mkMap ))
 ;; !(let $map (Cons' (1 2) (Cons' (2 3) (Cons' (4 5) (Cons' (5 6) (Cons' (6 7) (Cons' (7 8) Nil')))))) (addOne $map))
+
+
+(: Or (-> Bool (-> Bool Bool)))
+(: Or (-> Bool Bool Bool))
+(= (Or $x $y) (or $x $y))
