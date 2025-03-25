@@ -9,8 +9,7 @@
 
 ;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
 ;; (: concatTuple (-> Expression Expression Expression))
- (= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y))))
-
+ (= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y)))) ;; FIX: No longer working on version 0.2.3
 (: ++ (-> Expression Expression Expression))
 (= (++ $x $y)
    (case ((isSymbol $x) (isSymbol $y))
@@ -67,7 +66,7 @@
 ;;    with a new one from a list of atoms.
 ;; INFO: This function needs to change so that it can preserve the
 ;;        operator's position when MeTTa version is upgraded.
-(= (findAndReplace $old $new $list)
+(= (findAndReplace $old $new $list) ;; FIX: No longer working on version 0.2.3
     ;; (let*
     ;;   (
     ;;     (() (println! ""))
@@ -127,7 +126,7 @@
 (:wrapper (-> (-> $a Bool) $aa $aa))
 (= (wrapper $predicate $x) (if (let $bool ($predicate $x) $bool) $x (empty)))
 
-;; Filter function given a predicate
+;; Filter function given a predicate ;; FIX: No longer working on version 0.2.3
 (: filter (-> (-> $a Bool) $a $a))
 (= (filter $predicate $list)
    (wrapper $predicate (superpose $list)))
@@ -178,14 +177,14 @@
 
 ;; A function to check if a given atom is an expression 
 ;;   with has one atom in it.
-(: hasOneAtom (-> Atom Bool))
+(: hasOneAtom (-> Atom Bool)) ;; FIX: No longer working on version 0.2.3
 (= (hasOneAtom $expr) (if (and (== (get-metatype $expr) Expression) (not (isUnit $expr))) (== (cdr-atom $expr) ()) False))
 
-;; Function to replace a given atom from a space.
+;; Function to replace a given atom from a space ;; FIX: No longer working on version 0.2.3
 (: update-atom (-> Grounded Atom Atom (->)))
 (= (update-atom $space $oatom $natom) (let $_ (remove-atom $space $oatom) (add-atom $space $natom)))
 
-;; Function to replace a given atom from a space.
+;; Function to replace a given atom from a space. ;; FIX: No longer working on version 0.2.3
 (: appendAtom (-> Atom Atom Atom))
 (= (appendAtom $a $atom) (foldr cons-atom ($a) $atom))
 
@@ -195,7 +194,7 @@
 ;; A function to return a tuple of numbers from natural to a given number.
 ;; $x is the upperbound
 ;; $acc is the lowerbound wrapped with as a tuple.
-;;    Example: (gen 5 (0)) => (5 4 3 2 1 0)
+;;    Example: (gen 5 (0)) => (5 4 3 2 1 0) ;; FIX: No longer working on version 0.2.3
 (= (gen $x $acc)
    (if (== (car-atom $acc) $x)
        $acc
@@ -207,7 +206,7 @@
        ((car-atom $atom) (cdr-atom $atom))
        (Error Unit Or Symbol cannot be deconstructed)))
 
-;; Function to create a tuple of tuples given two equal length list of atoms.
+;; Function to create a tuple of tuples given two equal length list of atoms. ;; FIX: No longer working on version 0.2.3
 (= (zip $a $b)
    (if (or (hasOneAtom $a) (hasOneAtom $b))
        (((car-atom $a) (car-atom $b)))
@@ -232,7 +231,7 @@
               ($tail (zipWith $f $xs-tl $ys-tl)))
          (cons-atom $head $tail))))
 
-;; Finds length of a tuple
+;; Finds length of a tuple ;; FIX: No longer working on version 0.2.3
 (= (len $expr)
     (if (== $expr ()) ;; FIX: return Error if symbol
         0
@@ -318,7 +317,8 @@
 ;; Merge sort function. Takes length to gain 
 ;;  performance by avoiding recomputation of index.
 (= (sortNestedTuple $list reverse) (sort $list (len $list) >=))
-(= (sort $list $len) (sort $list $len <=))
+
+(= (sort $list $len) (sort $list $len <=)) ;; FIX: No longer working on version 0.2.3
 (= (sort $list $len $key)
    (if (or (isUnit $list) (hasOneAtom $list))
        $list
