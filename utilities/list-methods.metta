@@ -24,16 +24,8 @@
 
 ;; Get an element by index from a list
 (: List.getByIdx (-> (List $a) Number $a))
-(= (List.getByIdx $xs $idx)
-    (if (== $xs Nil)
-        (Error (Index out of range))
-        (let (Cons $head $tail) $xs 
-        (if (== $idx 0)
-            $head
-            (List.getByIdx $tail (- $idx 1)))
-        )
-    )
-)
+(= (List.getByIdx Nil $idx) (Error (Index out of range)))
+(= (List.getByIdx (Cons $head $tail) $idx) (if (== $idx 0 ) $head (List.getByIdx $tail (- $idx 1))) )
 
 ;; Insert an element to a presumably sorted list, remains sorted.
 (: List.insert (-> $a (List $a) (List $a)))

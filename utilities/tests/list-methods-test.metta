@@ -20,9 +20,10 @@
 !(assertEqual (List.append 10 (Cons 5 (Cons 6 (Cons 7 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 10 Nil)))))
 
 ;; Test cases for List.getByIdx
-!(assertEqual (List.getByIdx (Cons 1 (Cons 2 (Cons 3 Nil))) 2) 3)
+!(assertEqual (List.getByIdx (Cons 1 (Cons 2 (Cons 3 Nil))) 0) 1)
 !(assertEqual (List.getByIdx (Cons 10 (Cons 20 (Cons 30 Nil))) 1) 20)
 !(assertEqual (List.getByIdx (Cons 100 (Cons 200 (Cons 300 Nil))) 0) 100)
+!(assertEqual (List.getByIdx (Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 (Cons 6 (Cons 7 (Cons 8 (Cons 9 (Cons 10 (Cons 11 (Cons 12 (Cons 13 (Cons 14 (Cons 15 (Cons 16 (Cons 17 (Cons 18 (Cons 19 (Cons 20 Nil)))))))))))))))))))) 0) 1)
 
 ;; Test cases for List.insert
 !(assertEqual (List.insert 2 (Cons 1 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
