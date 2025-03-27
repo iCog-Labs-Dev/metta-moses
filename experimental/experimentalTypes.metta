@@ -145,4 +145,90 @@
 
 (:WorstCompositeScore (-> Number))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;;;;Metapopulation related ;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; base tree
+(: tree Type)
+(: mkTree (-> $a tree))
+
+;; scored tree -- xmplr
+;; deme ID
+(: demeID Type)
+(: mkDemeID (-> Number demeID))
+
+;; composite_score
+(: cscore Type)
+(: getCscore (-> tree cscore))
+        
+;; composite score components
+(: scoreT Type)
+(: cpxyT Type)
+
+(: mkScoreT (-> Number scoreT))
+(: mkCpxy (-> Number cpxyT))
+
+;; composite score is composed of scor??, comlexity score, a complexity penalty and a uniformity penalty score
+
+(: mkCscore (-> scoreT cpxyT scoreT scoreT cscore))
+
+; ! (get-type (mkCscore (mkScoreT 0.3) (mkCpxy 0.42) (mkScoreT 0.85) (mkScoreT 0.63))) ;; cscore
+
+;; behavioral_score
+(: bscore Type)
+(: mkBscore (-> Number bscore))
+(: getBscore (-> tree bscore))
+
+; ! (get-type (getBscore (mkTree sda))) 
+
+(: Xmplr Type)
+(: mkXmplr (-> tree demeID cscore bscore Xmplr))
+
+! (get-type (mkXmplr (mkTree efa) (mkDemeID 56) 
+                    (mkCscore (mkScoreT 0.3) (mkCpxy 0.42) (mkScoreT 0.85) (mkScoreT 0.63))
+                    (mkBscore 1.12))) ;; xmplr
+
+;; metapopulation --  ordered set containing scored trees
+;; represented here as set of scored trees -- sTSet
+(: OrdSet (-> $a Type))
+(: MP (OrdSet Xmplr)) ;; metapopulation
+(: mkMP (-> Xmplr (OrdSet Xmplr) (OrdSet Xmplr)))
+
+(: Nil (OrdSet Xmplr))
+
+; ! (get-type (mkMP 
+;                 (mkXmplr (mkTree efa) (mkDemeID 56) 
+;                         (mkCscore (mkScoreT 0.3) (mkCpxy 0.42) (mkScoreT 0.85) (mkScoreT 0.63))
+;                         (mkBscore 1.12)) 
+;                     Nil)) ;; (Set xmplr)
+
+;; visited exemplars -- holds count of number of times an exemplar has been expaned
+;; -- assuming correspondence between the scored tree set and this set
+;; rather than having a separate structure containig the scored trees themselve
+
+(: Rvst Type)
+(: mkRvst (-> Number Rvst))
+
+(: List (-> $a Type))
+(: RvstSet (List Rvst))
+
+;; exemplar selection
+(: selectExmplr (-> (OrdSet Xmplr) Xmplr))
+
+; ! (get-type (selectExmplr
+;                 (mkMP 
+;                     (mkXmplr (mkTree efa) (mkDemeID 56) 
+;                         (mkCscore (mkScoreT 0.3) (mkCpxy 0.42) (mkScoreT 0.85) (mkScoreT 0.63))
+;                         (mkBscore 1.12)) 
+;                     Nil))) ;; xmplr
+;; roulette_select used to select randomly from set of scored trees that have the same cscore favouring those that have higher penalized scores
+;; takes a random number generator
+(: mkRnd (-> Number))
+(: rultSelect (-> (-> Number) (OrdSet Xmplr) Xmplr))
+
+; ! (get-type (rultSelect mkRnd (mkMP 
+;                             (mkXmplr (mkTree efa) (mkDemeID 56) 
+;                                     (mkCscore (mkScoreT 0.3) (mkCpxy 0.42) (mkScoreT 0.85) (mkScoreT 0.63))
+;                                     (mkBscore 1.12)) 
+;                                     Nil))) ;; xmplr
