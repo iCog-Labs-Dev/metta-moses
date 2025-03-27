@@ -82,3 +82,67 @@
 ;creates a discrete knob for a given node
 (: find-disc-knob (-> Node (Pair DiscSpec DiscKnob)))
 ;!(get-type (find-disc-knob (mkNode $and)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          ;;;;;;;;;;;;;;;Scoring ;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
+(: List (-> $a Type))
+(: Nil (List $a))
+(: Cons (-> $a (List $a) (List $a)))
+
+(: Distance Type)
+(: mkDistance (-> Number Distance))
+
+(: Row (List $a))
+(: Table (List Row))
+(: LenTable (-> Table Number))
+
+(: mkRow (-> $a Row))
+; ! (get-type (mkRow (Cons 2 Nil))) ;; Row
+
+;; raw based score
+(: behavioralScore (List $a))           ;; [0,-1,0,0,-1,0,0,]
+(: mkBscore (-> $a behavioralScore))
+; ! (get-type (mkBscore (Cons 1 (Cons 2 Nil))))
+
+
+;; all of the output rows are correct 
+;; e.g  something like [0,0,0,0,0,0,0,]
+
+(: bestPossibleBscore (-> Number behavioralScore))          
+; ! (get-type (bestPossibleBscore 4 )) ;; behaviouralScore
+
+(: worstPossibleBscore (-> Number behavioralScore))          ;; e.g  [-1,-1,-1,-1,-1,-1]
+
+(: minImprov (-> Number)) ;0.5
+; ! (get-type (minImprov))
+
+;; Truth Table Scoring
+(: completeTruthTableScore
+   (-> Expression Number Table))  ;; takes tree and arity
+
+; ! (get-type (completeTruthTableScore $d 3))
+
+
+;; Logical Scoring
+(: logicalBscore (-> Expression behavioralScore))
+; ! (get-type (logicalBscore (sadfa)))
+
+;; converts an instance into a combo_tree (Expression)
+(: getCandidate (-> instance bool Expression)) ;; () 
+
+;; which counts the number of nodes in the combo tree return tr.size()
+(: complexity_t (-> Expression Number))
+
+
+;; Composite Scoring combines row fitness with complexity        
+(: compositeScore (-> (-> behavioralScore Number) Table (-> combo Number) ComplexityPenalty UniformityPenalit Number) ) ;; sumBscore, complexity, complexity-coef, 0.0 by default 
+; ! (get-type (compositeScore 10 12 0.4 0.0))
+
+(:WorstCompositeScore (-> Number))
+
+
