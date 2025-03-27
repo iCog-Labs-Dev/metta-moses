@@ -259,16 +259,16 @@
 ;; treating types like anyother value and 
 (: mkExp (-> $e (if (is1Type $e) (Exp (unique (superpose $e))) (Error $e TYPE_ERROR))))
 ;; (Exp Bool)
-! (get-type (mkExp (True False))) 
+; ! (get-type (mkExp (True False))) 
 
 ;; (Exp Number)
-! (get-type (mkExp (1 2 3))) 
+; ! (get-type (mkExp (1 2 3))) 
 
 ;; checking with custom types
 (: ID Type)
 (: mkID (-> Number ID))
 
 ;; (Exp ID) 
-! (get-type (mkExp ((mkID 0) (mkID 1) (mkID 2)))) 
+; ! (get-type (mkExp ((mkID 0) (mkID 1) (mkID 2)))) 
 ;; Error (Exp (ID ID Number)) "not of one type"
 ; ! (get-type (mkExp ((mkID 0) (mkID 1)  2))) 
