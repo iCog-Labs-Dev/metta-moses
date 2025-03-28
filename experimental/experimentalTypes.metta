@@ -232,3 +232,44 @@
 ;                                     (mkCscore (mkScoreT 0.3) (mkCpxy 0.42) (mkScoreT 0.85) (mkScoreT 0.63))
 ;                                     (mkBscore 1.12)) 
 ;                                     Nil))) ;; xmplr
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;;;;;;; Boolean Tree related ;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(: A Bool)
+(: B Bool)
+(: C Bool)
+
+(: tree Type)
+;; AND, OR, NOT with literal inputs
+
+(: AND (-> tree))
+(: OR (-> tree))
+(: AND (-> Bool tree))
+(: OR (-> Bool tree))
+(: AND (-> Bool Bool tree))
+(: OR (-> Bool Bool tree))
+(: NOT (-> Bool tree))
+
+;; AND and OR with tree
+(: AND (-> tree tree))
+(: OR (-> tree tree))
+(: AND (-> tree tree tree))
+(: OR (-> tree tree tree))
+
+;; AND and OR with tree and bool
+(: AND (-> Bool tree tree))
+(: OR (-> Bool tree tree))
+(: AND (-> tree Bool tree))
+(: OR (-> tree Bool tree))
+
+; (: OP (-> Bool Bool tree))
+
+; (: tree (-> OP tree tree))
+
+! (get-type (AND )) ;; tree
+! (get-type (AND A)) ;; tree
+! (get-type (AND A B)) ;; tree
+! (get-type (AND (OR (NOT C)) B)) ;; tree
+! (get-type (AND (OR (NOT C) C) (AND (OR B (NOT C)) B))) ;; tree
