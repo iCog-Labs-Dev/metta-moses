@@ -252,11 +252,29 @@
 (= (Or $x $y) (or $x $y))
 
 ;; Experimental typing for Expression type
+;; a helper function to check if all the members of an expression are of the same type
 
+(= (is1Type $exp)
+    (let*
+        (
+            ($a (map-atom $exp $x (get-type $x)))
+            ($u (collapse (unique (superpose $a))))
+        )
+        (== (size-atom $u) 1)))
+
+; (= (is1Type $exp)
+;     (let $u (collapse (unique (superpose $a)))
+;         (== (size-atom $u) 1)))
+
+; ! (is1Type ( 1 2 A )) ;; false
+; ! (is1Type ( 1 2 3 )) ;; true
+
+;; error text 
 ! (bind! TYPE_ERROR "not of one type")
+
 (: Exp (-> $a Type))
 
-;; treating types like anyother value and 
+;; treating types like anyother value  
 (: mkExp (-> $e (if (is1Type $e) (Exp (unique (superpose $e))) (Error $e TYPE_ERROR))))
 ;; (Exp Bool)
 ; ! (get-type (mkExp (True False))) 
