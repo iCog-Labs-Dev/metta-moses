@@ -290,3 +290,31 @@
 ; ! (get-type (mkExp ((mkID 0) (mkID 1) (mkID 2)))) 
 ;; Error (Exp (ID ID Number)) "not of one type"
 ; ! (get-type (mkExp ((mkID 0) (mkID 1)  2))) 
+
+;; insert operation to an ordered set of exemplars, a.k.a, metapopulation
+    ;; helper function to compare exemplars 
+(: >>= (-> Xmplr Xmplr Bool))
+(= (>>= $xmplr1 $xmplr2)
+    ;; deconstructing and comparing at one go
+    (>= (xmplr.getPnzdScr $xmplr1) (xmplr.getPnzdScr $xmplr2))
+)
+
+;; helper function for the above comparator
+(: xmplr.getPnzdScr (-> Xmplr scoreT))
+
+(= (xmplr.getPnzdScr $xmplr)
+    (let ($t $demeID ($s $cs $cp $up) $bscore) $xmplr
+        (- (- $s $cp) $up)))
+
+;; the main function
+(: mp.insert (-> Xmplr (OrdSet Xmplr) (OrdSet Xmplr)))
+
+(= (mp.insert $xmplr $xmplrSet)
+    (if (== $xmplrSet ())
+        (cons-atom $xmplr $xmplrSet)
+        (let ($f $t) (decons-atom $xmplrSet)
+            (if (>>= $xmplr $f)
+                (cons-atom $xmplr $xmplrSet)
+                (let $c (insert $xmplr $t)
+                    (cons-atom $f $c)
+                )))))
