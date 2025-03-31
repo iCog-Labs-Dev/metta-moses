@@ -18,7 +18,7 @@
 (= (OrderedMap.getByKey $key NilOrderedMap) (Error $key "not found"))
 (= (OrderedMap.getByKey $key (ConsOrderedMap $head $tail))
     (let $curKey (car-atom $head)
-        (if (== $key $curKey) (cdr-atom $head) (OrderedMap.getByKey $key $tail) )))
+        (if (== $key $curKey) (index-atom $head 1) (OrderedMap.getByKey $key $tail) )))
 
 
 ;; Check if a key is in the ordered map
@@ -32,7 +32,7 @@
 (: OrderedMap.valueAtKey (-> $key $value (OrderedMap $a) Bool))
 (= (OrderedMap.valueAtKey $key $value $OrderedMap)
     (let $curVal ( OrderedMap.getByKey $key $OrderedMap )
-        (if (== ($value) $curVal) True False)))
+        (if (== $value $curVal) True False)))
 
 ;Replace a value at key in ordered map
 (: OrderedMap.replace (-> $key $value (OrderedMap $a) (OrderedMap $a)))

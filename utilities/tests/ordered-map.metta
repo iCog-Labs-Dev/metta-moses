@@ -25,13 +25,13 @@
 
 
 ;; Testcase for OrderedMap.replace
-! (assertEqual (OrderedMap.replace 1 d (ConsOrderedMap (1 a) (ConsOrderedMap (2 b) (ConsOrderedMap (3 c) NilOrderedMap)))) (ConsOrderedMap (1 d) (ConsOrderedMap (2 b) (ConsOrderedMap (3 c) NilOrderedMap))))
+! (assertEqual (OrderedMap.replace 1 (a d) (ConsOrderedMap (1 a) (ConsOrderedMap (2 b) (ConsOrderedMap (3 c) NilOrderedMap)))) (ConsOrderedMap (1 (a d)) (ConsOrderedMap (2 b) (ConsOrderedMap (3 c) NilOrderedMap))))
 ! (assertEqual (OrderedMap.replace 4 b (ConsOrderedMap (1 a) (ConsOrderedMap (2 b) (ConsOrderedMap (3 c) (ConsOrderedMap (4 d) NilOrderedMap))))) (ConsOrderedMap (1 a) (ConsOrderedMap (2 b) (ConsOrderedMap (3 c) (ConsOrderedMap (4 b) NilOrderedMap)))))
 ! (assertEqual (OrderedMap.replace 10 b (ConsOrderedMap (1 a) (ConsOrderedMap (2 b) (ConsOrderedMap (3 c) NilOrderedMap)))) (Error 10 "not found"))
 
 ;; Testcase for OrderedMap.getByIdx
-! (assertEqual (OrderedMap.getByKey 1 (ConsOrderedMap (1 a) (ConsOrderedMap (2 b) (ConsOrderedMap (3 c) NilOrderedMap)))) (a))
-! (assertEqual (OrderedMap.getByKey 3 (ConsOrderedMap (1 a) (ConsOrderedMap (2 b) (ConsOrderedMap (3 c) NilOrderedMap)))) (c))
+! (assertEqual (OrderedMap.getByKey 1 (ConsOrderedMap (1 a) (ConsOrderedMap (2 b) (ConsOrderedMap (3 c) NilOrderedMap)))) a)
+! (assertEqual (OrderedMap.getByKey 3 (ConsOrderedMap (1 a) (ConsOrderedMap (2 b) (ConsOrderedMap (3 c) NilOrderedMap)))) c)
 ! (assertEqual (OrderedMap.getByKey 10 (ConsOrderedMap (1 a) (ConsOrderedMap (2 b) (ConsOrderedMap (3 c) (ConsOrderedMap (4 d)(ConsOrderedMap (5 e) (ConsOrderedMap (6 f) (ConsOrderedMap (7 g) (ConsOrderedMap (8 h) (ConsOrderedMap (9 i) NilOrderedMap)))))))))) (Error 10 "not found"))
 
 ;; Testcase for OrderedMap.length
