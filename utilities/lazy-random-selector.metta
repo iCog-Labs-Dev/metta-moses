@@ -19,6 +19,7 @@
 ;;        $lower: lower bound of the random number
 ;;        $upper: upper bound of the random number
 ;;        $n: number of elements to select
+;;        $picked: list of picked numbers
 ;;
 ;; Return a list of selected indexs as Expression 
 
