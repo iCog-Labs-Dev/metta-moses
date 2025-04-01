@@ -29,7 +29,10 @@
    )
    (if (== $nodeType Symbol) 
        $nodeAtIndex 
-       (getNodeById $nodeAtIndex (mkNodeId $nextIndexes))
+       (if (== $nextIndexes ()) 
+           $nodeAtIndex
+           (getNodeById $nodeAtIndex (mkNodeId $nextIndexes))
+       )
    )
 )
 )
