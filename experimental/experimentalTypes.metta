@@ -273,3 +273,166 @@
 ! (get-type (AND A B)) ;; tree
 ! (get-type (AND (OR (NOT C)) B)) ;; tree
 ! (get-type (AND (OR (NOT C) C) (AND (OR B (NOT C)) B))) ;; tree
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;               Refactored Types                         ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(: List (-> $a Type))
+(: Nil (List $a))
+(: Cons (-> $a (List $a) (List $a)))
+
+(: Tree Type)
+(: mkTree (-> $a (Tree $a)))
+
+(: Map (-> $k $v Type))
+(: NilMap (Map $k $v))
+(: ConsMap (-> ($k $v) (Map $k $v) (Map $k $v)))
+
+
+(: MultiMap (-> $k $v Type))
+(: NilMMap (MultiMap $k $v))
+(: ConsMMap (-> ($k $v) (MultiMap $k $v) (MultiMap $k $v)))
+
+(: mapToList (-> (Map $k $v) (List ($k $v))))
+(= (mapToList NilMap) Nil)
+(= (mapToList (ConsMap $x $xs)) (Cons $x (mapToList $xs)))
+
+(: Row (-> $a Type))
+(: mkRow (-> (List $a) (Row $a)))
+
+(: Table (-> $a (List (Row $a))))
+(: sizeTable (-> (Table $a) Number))
+
+(: AND (-> Bool Bool Bool))
+; (: AND (-> Bool Bool))
+(: OR (-> Bool Bool Bool))
+; (: OR (-> Bool Bool))
+(: NOT (-> Bool Bool))
+(: naryAND (-> (List Bool) Bool))
+(: naryOR (-> (List Bool) Bool))
+
+(: Nothing Type)
+(: someFunc (-> Bool Nothing))
+
+(: someTreeFunc (-> (Tree Bool) Nothing))
+
+(: someListFunc (-> (List $a) Nothing))
+(: someMapFunc (-> (Map $k $v) Nothing))
+
+(: Instance Type)
+(: mkInstance (-> (List Number) Instance))
+
+(: ScoredInstance (-> $score Type))
+(: mkScoredInstance (-> (Instance $score) (ScoredInstance $score)))
+
+(: InstanceSet (-> $score Type))
+(: mkInstanceSet (-> (List ScoredInstance) InstanceSet))
+
+(: DemeId Type)
+(: mkDemeId (-> Number DemeId))
+
+(: Deme Type)
+(: mkDeme (-> (InstanceSet CompositeScore) Deme))
+
+(: Xmplr (-> $a Type))
+(: mkXmplr (-> $a DemeId CompositeScore BehavioralScore (Xmplr $a)))
+
+(: Node Type) ;; AND, OR, Predicate, Boolean, Argument
+(: mkNode (-> $and Node))
+
+(: Subtree (-> $a Type))
+(: mkSubtree (-> $a (Subtree $a)))
+
+(: Multiplicity Number)
+(: mkMulti (-> Number Multiplicity))
+
+(: DiscSpec Type)
+(: mkDiscSpec (-> Multiplicity DiscSpec))
+
+
+(: Knob Type)
+(: mkKnob (-> $a Knob))
+;
+(: DiscKnob Type)
+(: mkDiscKnob (-> Knob DiscKnob))
+;
+(: LogicalKnob Type)
+(: mkLogicalKnob (-> DiscKnob LogicalKnob))
+
+(: DiscMap Type)
+(: mkDiscMap (-> (MultiMap DiskSpec DiscKnob) DiscMap))
+
+(: Representation Type)
+(: mkRep (-> KnobMapper (Xmplr $a) Representation))
+
+(: KnobMapper Type)
+(: mkKnobMapper (-> DiscMap KnobMapper))
+
+(: Distance Type)
+(: mkDistance (-> Number Distance))
+
+(: BehavioralScore Type)
+(: mkBscore (-> (List Number) BehavioralScore)) ;; [0,-1,0,0,-1,0,0,]
+(: getBscore (-> (Xmplr $a) BehavioralScore))
+
+(: createDemeIDs (-> Number (List DemeId)))
+(: createDeme (-> (Xmplr $a) Number Deme))
+(: buildLogical (-> (Xmplr Bool) (Subtree Bool) Node (Map DiscSpec LogicalKnob))) ;;;Orderedmap
+(: addLogicalKnobs (-> (Xmplr Bool) (Subtree Bool) Node Bool (Map DiscSpec LogicalKnob)))
+(: sampleLogicalPerms (-> Node (List (Subtree Bool))))
+(: findDiscKnob (-> KnobMapper Node DiscKnob))
+(: bestPossibleBscore (-> Number BehavioralScore))
+(: worstPossibleBscore (-> Number BehavioralScore))          ;; e.g  [-1,-1,-1,-1,-1,-1]
+
+!(mkXmplr (AND A B) (mkDemeId 0) (mkCscore 0) (mkBscore (Cons 0 (Cons 1 Nil))))
+!(createDeme (mkXmplr (AND A B) (mkDemeId 0) (mkCscore 0) (mkBscore (Cons 0 (Cons 1 Nil)))) 0)
+!(buildLogical (mkXmplr (AND A B) (mkDemeId 0) (mkCscore 0) (mkBscore (Cons 0 (Cons 1 Nil)))) (mkSubtree (AND A B)) (mkNode A))
+!(addLogicalKnobs (mkXmplr (AND A B) (mkDemeId 0) (mkCscore 0) (mkBscore (Cons 0 (Cons 1 Nil)))) (mkSubtree (AND A B)) (mkNode A) False)
+!(sampleLogicalPerms (mkNode A))
+!(findDiscKnob (mkKnobMapper (mkDiscMap (ConsMMap ((mkDiskSpec 1) (mkDiscKnob Uu)) NilMMap))) (mkNode A))
+!(bestPossibleBscore 0)
+!(worstPossibleBscore 0)
+
+!(get-type (mkXmplr (AND A B) (mkDemeId 0) (mkCscore 0) (mkBscore (Cons 0 (Cons 1 Nil)))))
+!(get-type (createDeme (mkXmplr (AND A B) (mkDemeId 0) (mkCscore 0) (mkBscore (Cons 0 (Cons 1 Nil)))) 0))
+!(get-type (buildLogical (mkXmplr (AND A B) (mkDemeId 0) (mkCscore 0) (mkBscore (Cons 0 (Cons 1 Nil)))) (mkSubtree (AND A B)) (mkNode A)))
+!(get-type (addLogicalKnobs (mkXmplr (AND A B) (mkDemeId 0) (mkCscore 0) (mkBscore (Cons 0 (Cons 1 Nil)))) (mkSubtree (AND A B)) (mkNode A) False))
+!(get-type (sampleLogicalPerms (mkNode A)))
+!(get-type (findDiscKnob (mkKnobMapper (mkDiscMap (ConsMMap ((mkDiskSpec 1) (mkDiscKnob Uu)) NilMMap))) (mkNode A)))
+
+(: Arity Type)
+(: mkArity (-> Number Arity))
+
+(: CompleteTruthTable Type)
+(: mkCompleteTruthTable (-> (Table Bool) Arity CompleteTruthTable))
+
+(: CompositeScore Type)
+(: mkCscore (-> ScoreT ComplexityPenalty UniformityPenalty CompositeScore))
+
+(: ComplexityPenality Type)
+(: mkComplexityPenality (-> Number ComplexityPenalty))
+
+(: UniformityPenalty Type)
+(: mkUniformityPenalty (-> Number UniformityPenalty))
+
+(: ScoreT Type)
+(: mkScoreT (-> Number ScoreT))
+
+;; metapopulation --  ordered set containing scored trees
+;; represented here as set of scored trees -- sTSet
+(: Set (-> $a Type))
+(: NilSet (Set $a))
+(: ConsSet (-> $a (Set $a) (Set $a)))
+
+(: MetaPop (Set (Xmplr $a))) ;; metapopulation
+(: mkMetaPop (-> (Xmplr $a) (Set (Xmplr $a)) (Set (Xmplr $a))))
+
+;; exemplar selection
+(: selectExmplr (-> (Set (Xmplr $a)) (Xmplr $a)))
+
+(: mkRnd (-> Number))
+(: rultSelect (-> (-> Number) (Set (Xmplr $a)) (Xmplr $a)))
