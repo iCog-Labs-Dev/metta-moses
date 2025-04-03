@@ -43,20 +43,7 @@
 ; The function uses isMember from general helpers functions.
 
 (: setDifference (-> Expression Expression Expression))
-(= (setDifference $set1 $set2) 
-    (if (== $set1 ()) () ; Base case: return empty set when $set1 is empty
-        (let* (
-            ($head (car-atom $set1))  ; Extract the head of set1
-            ($tail (cdr-atom $set1))  ; Extract the tail of set1
-            ($newtail (setDifference $tail $set2))  ; Recursively process the tail
-        )
-            ; Check if the $head is in set2, if so, skip it
-
-            (if (isMember $head $set2)
-                $newtail 
-                ; Otherwise, add the head to the new tail, avoiding unnecessary parentheses
-                (if (== (get-metatype $newtail) Expression) (cons-atom $head $newtail) $head)  ; Avoid wrapping the head if it's already properly structured
-            ))))
+(= (setDifference $set1 $set2) (collapse (subtraction (superpose $set1) (superpose $set2))))
 
 ;; A helper function for the findAndReplace function.
 ;; It handles the replacement of a single atom.
@@ -127,8 +114,8 @@
 (= (wrapper $predicate $x) (if (let $bool ($predicate $x) $bool) $x (empty)))
 
 ;; Filter function given a predicate ;; FIX: No longer working on version 0.2.3
-(: filter (-> (-> $a Bool) $a $a))
-(= (filter $predicate $list)
+(: filter (-> (-> $a Bool) $b $c))
+(= (filter $predicate $list) 
    (wrapper $predicate (superpose $list)))
 
 ;; INFO: Uncommnet the following two functions when using MeTTaLog.
@@ -178,15 +165,15 @@
 ;; A function to check if a given atom is an expression 
 ;;   with has one atom in it.
 (: hasOneAtom (-> Atom Bool)) ;; FIX: No longer working on version 0.2.3
-(= (hasOneAtom $expr) (if (and (== (get-metatype $expr) Expression) (not (isUnit $expr))) (== (cdr-atom $expr) ()) False))
+(= (hasOneAtom $expr) (if (== (get-metatype $expr) Expression) (== (length $expr) 1) False))
 
 ;; Function to replace a given atom from a space ;; FIX: No longer working on version 0.2.3
 (: update-atom (-> Grounded Atom Atom (->)))
 (= (update-atom $space $oatom $natom) (let $_ (remove-atom $space $oatom) (add-atom $space $natom)))
 
-;; Function to replace a given atom from a space. ;; FIX: No longer working on version 0.2.3
+;; Function to append a given atom from to a list. ;; FIX: No longer working on version 0.2.3
 (: appendAtom (-> Atom Atom Atom))
-(= (appendAtom $a $atom) (foldr cons-atom ($a) $atom))
+(= (appendAtom $a $atom) (union-atom $atom ($a)))
 
 ;; Return the maximum of two numbers.
 (= (max $x $y) (if (< $x $y) $y $x))
@@ -195,10 +182,10 @@
 ;; $x is the upperbound
 ;; $acc is the lowerbound wrapped with as a tuple.
 ;;    Example: (gen 5 (0)) => (5 4 3 2 1 0) ;; FIX: No longer working on version 0.2.3
-(= (gen $x $acc)
-   (if (== (car-atom $acc) $x)
+(= (gen $x $acc)(let $top (car-atom $acc)
+   (if (== $top $x)
        $acc
-       (let $lastInserted (car-atom $acc) (gen $x (cons-atom (+ 1 $lastInserted) $acc)))))
+       (let $lastInserted (car-atom $acc) (gen $x (cons-atom (+ 1 $lastInserted) $acc))))))
 
 ; ;; A function to return head and tail of an atom in a tuple.
 (= (decons $atom)
@@ -233,11 +220,13 @@
 
 ;; Finds length of a tuple ;; FIX: No longer working on version 0.2.3
 (= (len $expr)
+    
+    (if (not (isExpression $expr)) (Error $expr "is not Expression")
     (if (== $expr ()) ;; FIX: return Error if symbol
         0
         (let $tail (cdr-atom $expr)
             (+ 1 (len $tail))
-        )))
+        ))))
 
 ;; A function to replace an atom at a specific index position with $val -- 0 indexed counting is implied
 (: replaceByIndex (-> Expression Number $t Expression))
