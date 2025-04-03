@@ -1,6 +1,7 @@
 ;; ordered map Data Structure
 (: map (-> $a Type))
-(: Nilmap  (Error (Key: $key not found))(map $a))
+(: NilMap (Map $k $v))
+(: ConsMap ...)
 (: Consmap (-> $a (map $a) (map $a)))
 
 ;; add an element to an ordered map
