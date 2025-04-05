@@ -10,11 +10,11 @@
 !(assertEqualToResult (~= Something Something) (False))
 !(assertEqualToResult (~= Something something) (True))
 
-;; ;; Tests for the function 'concatTuple' ;; FIXED failing tests
-!(assertEqualToResult (concatTuple () (3 4)) ((3 4)))
-!(assertEqualToResult (concatTuple (1 2) (3 4)) ((1 2 3 4)))
-!(assertEqualToResult (concatTuple (1 2) ()) ((1 2)))
-!(assertEqualToResult (concatTuple () ()) (()))
+;; ;; Tests for the function 'concatTuple' ;; FIXED failing tests ;; TODO change 'concatTuple' to '++'
+!(assertEqualToResult (++ () (3 4)) ((3 4)))
+!(assertEqualToResult (++ (1 2) (3 4)) ((1 2 3 4)))
+!(assertEqualToResult (++ (1 2) ()) ((1 2)))
+!(assertEqualToResult (++ () ()) (()))
 
 ;; Tests for the function 'Not'
 !(assertEqualToResult (Not (Not (Not A))) ((NOT A)))
@@ -126,10 +126,10 @@
 !(assertEqual (((curry -) 5) 4) 1)
 
 ;; ;; Test filter function ;; FIX: Failing Test case
-;; !(assertEqual (collapse (filter isUnit (9 10 () 5 4 ()))) (() ()))
-;; !(assertEqual (collapse (filter hasOneAtom (9 10 (Hello) 5 4 (Nop) ()))) ((Hello) (Nop)))
-;; !(assertEqual (collapse (filter isZero (9 10 0 5 4 0))) (0 0))
-;; !(assertEqual (collapse (filter greaterThanTen (9 10 12 5 4 28))) (12 28))
+; !(assertEqual (collapse (filter isUnit (9 10 () 5 4 ()))) (() ()))
+; !(assertEqual (collapse (filter hasOneAtom (9 10 (Hello) 5 4 (Nop) ()))) ((Hello) (Nop)))
+; !(assertEqual (collapse (filter isZero (9 10 0 5 4 0))) (0 0))
+; !(assertEqual (collapse (filter greaterThanTen (9 10 12 5 4 28))) (12 28))
 
 ;; Test wrapper function for filter function
 !(assertEqual (wrapper isZero 0) 0)

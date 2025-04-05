@@ -45,7 +45,7 @@
                       ($updatedGuardSet' (setDifference $updatedGuardSet $commandSet)) ;; Apply 1-Constraint-Complement-Subtraction
                       ($appliedRedundantOr1CC (or (~= $updatedGuardSet $guardSet) (~= $updatedGuardSet' $updatedGuardSet))) ;; Storing this state to return boolean indicating RTE is applied or not.
 
-                      ($updatedSubExpression (concatTuple $updatedGuardSet' $children))
+                      ($updatedSubExpression (++ $updatedGuardSet' $children))
                       ($updatedCurrent (cons-atom AND $updatedSubExpression))
                       ($updatedParent (findAndReplace $current $updatedCurrent $parent))
 
@@ -353,7 +353,7 @@
               ($filteredGuardSet (if (~= $parentGuardSet ()) (removeElement ($child) $parentGuardSet) ()))
               ($filteredSiblings (if (~= $siblings ()) (collapse (filterTerminalAndNode (superpose $siblings))) ()))
               ($siblingsGuardSet (if (~= $filteredSiblings ()) (collapse (getGuardSetND (superpose $filteredSiblings))) ()))
-              ($totalGuardSet (concatTuple $filteredGuardSet $siblingsGuardSet))
+              ($totalGuardSet (++ $filteredGuardSet $siblingsGuardSet))
               ($localCommandSet (collapse (unique (union (superpose $totalGuardSet) (superpose $commandSet)))))
 
               ;; (() (println! (=== LocalCommandSet Log ===)))

@@ -43,7 +43,7 @@
               ($literals (getLiterals $exp))
               ($children (getChildren $exp))
             )
-            (concatTuple $literals $children)
+            (++ $literals $children)
           )
         )
      )

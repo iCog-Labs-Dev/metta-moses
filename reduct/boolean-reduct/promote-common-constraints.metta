@@ -32,7 +32,7 @@
                       ;; (() (println! (Removing Common Literals: $common)))
                       ($updatedChildren (removeCommonLiterals $common $children))
                       ($updatedLiterals (removeElement $common $literals))
-                      ($newExp (concatTuple $updatedLiterals $updatedChildren ))
+                      ($newExp (++ $updatedLiterals $updatedChildren ))
 
                       ($newCurrent (cons-atom OR $newExp))
                       ($updatedParent (findAndReplace $current $newCurrent $parent))

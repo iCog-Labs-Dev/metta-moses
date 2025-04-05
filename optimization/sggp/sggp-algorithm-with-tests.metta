@@ -153,7 +153,7 @@
             (if (== (get-metatype $head) Expression)
                 (let* (
                     ($recur-result (getRelations $head ()))
-                    ($newAccum (concatTuple $accum $recur-result))
+                    ($newAccum (++ $accum $recur-result))
                 )
                     (getRelations $tail $newAccum)
                 )
