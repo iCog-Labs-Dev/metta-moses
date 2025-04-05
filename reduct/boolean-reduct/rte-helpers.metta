@@ -35,9 +35,9 @@
      (
         ($op (car-atom $exp))
         ($guardSet (getLiterals $exp))
-        ($newGuardSet (concatTuple $guardSet $elements))
+        ($newGuardSet (++ $guardSet $elements))
         ($newGuardSet' (collapse (unique (superpose $newGuardSet))))
-        ($updatedSubExpression (concatTuple $newGuardSet' (getChildren $exp)))
+        ($updatedSubExpression (++ $newGuardSet' (getChildren $exp)))
 
         ($newExp (cons-atom $op $updatedSubExpression))
      )
@@ -74,8 +74,8 @@
      (
         ($op (car-atom $exp))
         ($oldChildren (getChildren $exp))
-        ($newChildren (concatTuple $oldChildren $children))
-        ($updatedSubExpression (concatTuple (getLiterals $exp) $newChildren))
+        ($newChildren (++ $oldChildren $children))
+        ($updatedSubExpression (++ (getLiterals $exp) $newChildren))
 
         ($newExp (cons-atom $op $updatedSubExpression))
      )

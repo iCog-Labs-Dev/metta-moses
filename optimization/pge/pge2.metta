@@ -335,7 +335,7 @@
             (($head $tail) (splitAt $rand $p1))
             (($head2 $tail2) (splitAt $rand $p2))
         )
-        (concatTuple $head $tail2)
+        (++ $head $tail2)
 
     )
 )

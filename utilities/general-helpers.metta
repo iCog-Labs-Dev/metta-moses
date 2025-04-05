@@ -7,9 +7,7 @@
 ;; (: >= (-> Number Number Bool))
 ;; (= (>= $a $b) (or (== $a $b) (> $a $b)))
 
-;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
-;; (: concatTuple (-> Expression Expression Expression))
-(= (concatTuple $x $y) (union-atom $x $y)) ;; This should work when run after activating the virtual env.
+;Function to cocatinate two tuples (A B) (C D) ==> (A B C D) ;; can also be used with atoms
 (: ++ (-> Expression Expression Expression))
 (= (++ $x $y)
    (case ((isSymbol $x) (isSymbol $y))
@@ -96,7 +94,7 @@
 )
 
 ;; Fold a tuple from right to left
-(: foldr (-> (-> $a $b $b) $b $c $d))
+(: foldr (-> (-> $a $b $b) $d $c $d)) ;; changed the parameterized type of second argument from $b to $d
 (= (foldr $f $i $xs)
    (if (== $xs ())
        $i
