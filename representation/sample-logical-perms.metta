@@ -3,7 +3,7 @@
 !(bind! args (A B C D E F))
 
 ;; helper function to swap operators
-(: swapAndOr (-> S Operator))
+(: swapAndOr (-> Atom Atom))
 (= (swapAndOr $op)
   (if (== $op AND) OR AND))
 
@@ -17,6 +17,7 @@
     )
 )
 ;; A function to generate all pairs of numbers from a list, where a != b
+(: genPairs (-> Expression Expression))
 (= (genPairs $list)
     ( let*
         (
@@ -35,6 +36,7 @@
 ;;          $swapedOp -> swaped operator
 ;;          $PermPairs -> list of pairs of idx permutations
 ;;          $picked -> list of picked idxs
+(: getArgs (-> Atom Expression Expression Expression))
 (= (getArgs $swapedOp $PermPairs $picked)
     (let*
         (
@@ -55,7 +57,7 @@
 ;;          Union of $perms (the list of logical expressions generated) with args
 
 ; (= (sampleLogicalPerms $op $arity) (sampleLogicalPerms $op $arity ()))
-(: sampleLogicalPerms (-> Node Number Expression))
+(: sampleLogicalPerms (-> Atom Number Expression))
 (= (sampleLogicalPerms $op $arity)
     (let*
         ( 
