@@ -9,7 +9,7 @@
 
 ;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
 ;; (: concatTuple (-> Expression Expression Expression))
- (= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y)))) ;; FIX: No longer working on version 0.2.3
+ (= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y))))
 (: ++ (-> Expression Expression Expression))
 (= (++ $x $y)
    (case ((isSymbol $x) (isSymbol $y))
@@ -44,6 +44,19 @@
 
 (: setDifference (-> Expression Expression Expression))
 (= (setDifference $set1 $set2) (collapse (subtraction (superpose $set1) (superpose $set2))))
+    ; (if (== $set1 ()) () ; Base case: return empty set when $set1 is empty
+    ;         (let* (
+    ;             ($head (car-atom $set1))  ; Extract the head of set1
+    ;             ($tail (cdr-atom $set1))  ; Extract the tail of set1
+    ;             ($newtail (setDifference $tail $set2))  ; Recursively process the tail
+    ;         )
+    ;             ; Check if the $head is in set2, if so, skip it
+
+    ;             (if (isMember $head $set2)
+    ;                 $newtail 
+    ;                 ; Otherwise, add the head to the new tail, avoiding unnecessary parentheses
+    ;                 (if (== (get-metatype $newtail) Expression) (cons-atom $head $newtail) $head)  ; Avoid wrapping the head if it's already properly structured
+    ;             ))))
 
 ;; A helper function for the findAndReplace function.
 ;; It handles the replacement of a single atom.
@@ -53,7 +66,7 @@
 ;;    with a new one from a list of atoms.
 ;; INFO: This function needs to change so that it can preserve the
 ;;        operator's position when MeTTa version is upgraded.
-(= (findAndReplace $old $new $list) ;; FIX: No longer working on version 0.2.3
+(= (findAndReplace $old $new $list) 
     ;; (let*
     ;;   (
     ;;     (() (println! ""))
@@ -68,7 +81,7 @@
 
 ;; A function that behaves like a do while loop.
 ;; It executes the functions in the given list and returns the last result.
-(: until (-> (-> $a Bool) (-> $a $a) $a $a))
+(: until (-> (-> $a Bool) (-> $b $b) $b $b))
 (= (until $predicate $function $x) (if ($predicate $x) $x (let $x' ($function $x) (until $predicate $function $x'))))
 
 ;; A foldleft function like the implementation in Haskell.
@@ -113,7 +126,7 @@
 (:wrapper (-> (-> $a Bool) $aa $aa))
 (= (wrapper $predicate $x) (if (let $bool ($predicate $x) $bool) $x (empty)))
 
-;; Filter function given a predicate ;; FIX: No longer working on version 0.2.3
+;; Filter function given a predicate 
 (: filter (-> (-> $a Bool) $b $c))
 (= (filter $predicate $list) 
    (wrapper $predicate (superpose $list)))
@@ -164,14 +177,14 @@
 
 ;; A function to check if a given atom is an expression 
 ;;   with has one atom in it.
-(: hasOneAtom (-> Atom Bool)) ;; FIX: No longer working on version 0.2.3
+(: hasOneAtom (-> Atom Bool)) 
 (= (hasOneAtom $expr) (if (== (get-metatype $expr) Expression) (== (length $expr) 1) False))
 
-;; Function to replace a given atom from a space ;; FIX: No longer working on version 0.2.3
+;; Function to replace a given atom from a space 
 (: update-atom (-> Grounded Atom Atom (->)))
 (= (update-atom $space $oatom $natom) (let $_ (remove-atom $space $oatom) (add-atom $space $natom)))
 
-;; Function to append a given atom from to a list. ;; FIX: No longer working on version 0.2.3
+;; Function to append a given atom from to a list. 
 (: appendAtom (-> Atom Atom Atom))
 (= (appendAtom $a $atom) (union-atom $atom ($a)))
 
@@ -181,7 +194,7 @@
 ;; A function to return a tuple of numbers from natural to a given number.
 ;; $x is the upperbound
 ;; $acc is the lowerbound wrapped with as a tuple.
-;;    Example: (gen 5 (0)) => (5 4 3 2 1 0) ;; FIX: No longer working on version 0.2.3
+;;    Example: (gen 5 (0)) => (5 4 3 2 1 0)
 (= (gen $x $acc)(let $top (car-atom $acc)
    (if (== $top $x)
        $acc
@@ -193,10 +206,10 @@
        ((car-atom $atom) (cdr-atom $atom))
        (Error Unit Or Symbol cannot be deconstructed)))
 
-;; Function to create a tuple of tuples given two equal length list of atoms. ;; FIX: No longer working on version 0.2.3
+;; Function to create a tuple of tuples given two equal length list of atoms. 
 (= (zip $a $b)
-   (if (or (hasOneAtom $a) (hasOneAtom $b))
-       (((car-atom $a) (car-atom $b)))
+   (if (or (== $a ()) (== $b ()))
+       ()
        (let*
           (
             (($x $xs) (decons $a))
@@ -218,11 +231,11 @@
               ($tail (zipWith $f $xs-tl $ys-tl)))
          (cons-atom $head $tail))))
 
-;; Finds length of a tuple ;; FIX: No longer working on version 0.2.3
+;; Finds length of a tuple
 (= (len $expr)
     
     (if (not (isExpression $expr)) (Error $expr "is not Expression")
-    (if (== $expr ()) ;; FIX: return Error if symbol
+    (if (== $expr ()) 
         0
         (let $tail (cdr-atom $expr)
             (+ 1 (len $tail))
@@ -307,7 +320,7 @@
 ;;  performance by avoiding recomputation of index.
 (= (sortNestedTuple $list reverse) (sort $list (len $list) >=))
 
-(= (sort $list $len) (sort $list $len <=)) ;; FIX: No longer working on version 0.2.3
+(= (sort $list $len) (sort $list $len <=)) 
 (= (sort $list $len $key)
    (if (or (isUnit $list) (hasOneAtom $list))
        $list
