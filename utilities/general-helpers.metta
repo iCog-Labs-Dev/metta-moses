@@ -175,6 +175,12 @@
 (: isUnit (-> Atom Bool))
 (= (isUnit $expr) (== $expr ()))
 
+(: isEven (-> Number Bool))
+(= (isEven $x) (== (% $x 2) 0))
+
+(: isOdd (-> Number Bool))
+(= (isOdd $x) (not (isEven $x)))
+
 ;; A function to check if a given atom is an expression 
 ;;   with has one atom in it.
 (: hasOneAtom (-> Atom Bool)) ;; FIX: No longer working on version 0.2.3
@@ -494,3 +500,10 @@
        (== $x $y)
        (== (collapse (union (subtraction (superpose $x) (superpose $y)) (subtraction (superpose $y) (superpose $x)))) ())))
 
+
+
+;; A trick to define composition function.
+;; Takes a function and returns another function
+;; applying the two functions in sequence.
+(: . (-> (-> $b $c) (-> $a $b) (-> $a $c)))
+(= ((. $g $f) $x) ($g ($f $x)))

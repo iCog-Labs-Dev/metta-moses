@@ -312,3 +312,9 @@
 !(assertEqual (isValidExp expr (start expr bop uop term)) False)
 !(assertEqual (isValidExp (AND A B) (start expr bop uop term)) True)
 !(assertEqual (isValidExp (OR (AND B null) (NOT B)) (start expr bop uop term)) True)
+
+;; Test for compoase (.)
+!(assertEqual ((. not isEven) 4) False)
+!(assertEqual ((. isEven (. decrement increment)) 4) True)
+!(assertEqual ((. decrement (. increment increment)) 4) 5)
+!(assertEqual ((. greaterThanTen (. decrement (. increment increment))) 4) False)
