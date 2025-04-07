@@ -17,7 +17,7 @@
     (let*
         (
           ($guardSet (getGuardSet $current))
-          ($handleSet (concatTuple $dominantSet $guardSet))
+          ($handleSet (++ $dominantSet $guardSet))
           ($isConsistent (isConsistentExp $handleSet))
         )
         (if $isConsistent ($parent $current False) ((removeElement ($current) $parent) () True)) ;; Remove current from parent.
