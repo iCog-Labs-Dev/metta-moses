@@ -44,3 +44,18 @@
 (: List.length (-> (List $a) Number))
 (= (List.length Nil) 0)
 (= (List.length (Cons $head $tail)) (+ 1 (List.length $tail)))
+
+;; Map a function over a list
+(: List.map (-> (-> $a $b) (List $a) (List $b)))
+(= (List.map $f Nil) Nil)
+(= (List.map $f (Cons $x $xs)) (Cons ($f $x) (List.map $f $xs)))
+
+;; Filter a list based on a predicate.
+(: List.filter (-> (-> $a Bool) (List $a) (List $a)))
+(= (List.filter $p Nil) Nil)
+(= (List.filter $p (Cons $x $xs)) (if ($p $x) (Cons $x (List.filter $p $xs)) (List.filter $p $xs)))
+
+;; Convert a list to an expression.
+(: List.listToExpr (-> (List $a) Expression))
+(= (List.listToExpr Nil) ())
+(= (List.listToExpr (Cons $x $xs)) (let $t (List.listToExpr $xs) (cons-atom $x $t)))
