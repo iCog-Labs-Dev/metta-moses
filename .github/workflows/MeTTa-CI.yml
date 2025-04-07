@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - dev
+      - bugfix/*
   pull_request:
     branches:
       - main
       - dev
+      - bugfix/*
 
 jobs:
   setup-and-test:
