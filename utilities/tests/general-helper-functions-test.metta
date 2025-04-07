@@ -225,7 +225,7 @@
 !(assertEqual (len (A B C D)) 4)
 !(assertEqual (len ()) 0)
 !(assertEqual (len (A)) 1)
-!(assertEqual (len A) (Error A "is not Expression"))
+!(assertEqual (len A) (size-atom A))
 
 !(assertEqual (replaceByIndex (A B C) 0 D) (D B C))
 !(assertEqual (replaceByIndex (1 2 3 4) 4 D) (1 2 3 4))
