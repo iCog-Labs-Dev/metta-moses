@@ -200,5 +200,3 @@
         $s
     )
 )
-
-!(flat ((NOT A) A B C ((OR A) (OR A B) (OR B))))
