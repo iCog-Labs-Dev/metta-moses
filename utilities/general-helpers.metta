@@ -504,13 +504,7 @@
 ;; Eg flat ((A B C (NOT A)) D E F (G)) -> (A B C (NOT A) D E F G)
 (= (flat $x)
     (if (isNested $x)
-        (let*
-            (
-                (($h $t) (decons-atom $x))
-                ($s (if (isNested $h) (flat $h) (++ $h (flat $t))))
-            )
-            $s
-        )
+        (let ($h $t) (decons-atom $x) (if (isNested $h) (flat $h) (++ $h (flat $t))))
         $x
     )
 )

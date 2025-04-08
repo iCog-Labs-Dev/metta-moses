@@ -147,10 +147,7 @@
 (= (isNested $x)
     (if (or (== (get-metatype $x) Grounded) (== (get-metatype $x) Symbol))
         False
-        (let*
-            (
-                (($h $t) (decons-atom $x))
-            )
+        (let ($h $t) (decons-atom $x)
             (if (== (get-metatype $h) Expression)
                 (case (car-atom $h)
                     (
