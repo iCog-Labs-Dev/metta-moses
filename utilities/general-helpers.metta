@@ -89,7 +89,14 @@
 (= (foldl $f $acc $tuple)
    (if (== $tuple ())
        $acc
-       (let $next (car-atom $tuple) (foldl $f ($f $next $acc) (cdr-atom $tuple)))
+       (let*
+            (
+                ($next (car-atom $tuple))
+                ($tail (cdr-atom $tuple))
+            )
+            (foldl $f ($f $next $acc) $tail)
+       )
+    ;    (let $next (car-atom $tuple) (foldl $f ($f $next $acc) (cdr-atom $tuple)))
    )
 )
 
@@ -492,3 +499,47 @@
        (== $x $y)
        (== (collapse (union (subtraction (superpose $x) (superpose $y)) (subtraction (superpose $y) (superpose $x)))) ())))
 
+;; A function that flattens a given nested tuple without a nil element
+;; it evaluates expressions as (NOT A) as a single Atom
+;; Eg flat ((A B C (NOT A)) D E F (G)) -> (A B C (NOT A) D E F G)
+(= (flat $x)
+    (if (isNested $x)
+        (let*
+            (
+                ($h (car-atom $x))
+                ($t (cdr-atom $x))
+                ($s (if (isNested $h) (flat $h) (++ $h (flat $t))))
+            )
+            $s
+        )
+        $x
+    )
+)
+
+;; Small function to check non equality of two Symbols
+(= (NotEq $x $y) (if (not (== $x $y)) $y (empty)))
+;; A function to find and remove a given Atom from a list
+;; Returns the rest of the list excluding the value of interest
+;; Eg: findAndRemove 2 (1 2 3 4 5) -> (1 3 4 5)
+;; it also works with expressions
+;; findAndRemove (A B C) ((A B C) D E) -> (D E)
+(= (findAndRemove $x $list)
+    (collapse (NotEq $x (superpose $list)))
+)
+;; A function to check if any given two tuples have the same element
+;; NOTE: order does not matter
+;; Returns () if they are the same, if they are different it will return the
+;; unique elements left
+;; Originally built for testing rte-helper functions
+(= (isSame $x $y)
+    (let*
+        (
+            ($newY (flat $y))
+            ($newX (flat $x))
+            ($headx (car-atom $newX))
+            ($tailx (cdr-atom $newX))
+            ($s (if (== $tailx ()) (findAndRemove $headx $newY) (isSame $tailx (findAndRemove $headx $newY))))
+        )
+        $s
+    )
+)

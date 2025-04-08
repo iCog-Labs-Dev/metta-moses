@@ -14,17 +14,19 @@
 ;;                Only AND nodes have guard sets.
 ;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 (= (getGuardSet $exp)
+  (if (isSymbol $exp) (filterLiterals $exp)
     (if (== (car-atom $exp) OR)
         ()
-        (getLiterals $exp)))
+        (getLiterals $exp))))
 
 ;; A function similar to the getGuardSet function but returns a
 ;;    non deterministic list instead of a collapsed atom.
 ;; Example: (AND (NOT A) (NOT B) A) -> [(NOT A), (NOT B), A]
 (= (getGuardSetND $exp)
+  (if (isSymbol $exp) (filterLiterals $exp)
     (if (== (car-atom $exp) OR)
         (empty)
-        (getLiteralsND $exp)))
+        (getLiteralsND $exp))))
 
 ;; A function to add a list of literals to a given expression
 ;;    and keep the uniqueness of the literals.
@@ -137,3 +139,30 @@
                 ($first (car-atom $nestedTuple))
                 ($tail (cdr-atom $nestedTuple)))
               (findCommonLiterals $first $tail)))))))
+
+;; Checks if a given Tuple is nested or not excluding expressions like (NOT A) (OR A)...
+;; Eg: given (A B C (NOT A)) -> False
+;;     given ((A B C (NOT A)) (OR F) G) -> True
+(= (isNested ()) False)
+(= (isNested $x)
+    (if (or (== (get-metatype $x) Grounded) (== (get-metatype $x) Symbol))
+        False
+        (let*
+            (
+                ($h (car-atom $x))
+                ($t (cdr-atom $x))
+            )
+            (if (== (get-metatype $h) Expression)
+                (case (car-atom $h)
+                    (
+                        (NOT (isNested $t))
+                        (AND (isNested $t))
+                        (OR (isNested $t))
+                        ($else True)
+                    )
+                )
+                (isNested $t)
+            )
+        )
+    )
+)
