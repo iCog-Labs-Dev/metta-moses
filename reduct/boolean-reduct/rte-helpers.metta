@@ -149,8 +149,7 @@
         False
         (let*
             (
-                ($h (car-atom $x))
-                ($t (cdr-atom $x))
+                (($h $t) (decons-atom $x))
             )
             (if (== (get-metatype $h) Expression)
                 (case (car-atom $h)

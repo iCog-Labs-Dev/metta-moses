@@ -506,8 +506,7 @@
     (if (isNested $x)
         (let*
             (
-                ($h (car-atom $x))
-                ($t (cdr-atom $x))
+                (($h $t) (decons-atom $x))
                 ($s (if (isNested $h) (flat $h) (++ $h (flat $t))))
             )
             $s
@@ -536,8 +535,8 @@
         (
             ($newY (flat $y))
             ($newX (flat $x))
-            ($headx (car-atom $newX))
-            ($tailx (cdr-atom $newX))
+            (($headx $tailx) (decons-atom $newX))
+
             ($s (if (== $tailx ()) (findAndRemove $headx $newY) (isSame $tailx (findAndRemove $headx $newY))))
         )
         $s
