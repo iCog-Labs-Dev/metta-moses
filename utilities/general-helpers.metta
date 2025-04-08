@@ -79,7 +79,7 @@
 
 ;; A function that behaves like a do while loop.
 ;; It executes the functions in the given list and returns the last result.
-(: until (-> (-> $a Bool) (-> $b $b) $b $b))
+(: until (-> (-> $a Bool) (-> $a $a) $a $a))
 (= (until $predicate $function $x) (if ($predicate $x) $x (let $x' ($function $x) (until $predicate $function $x'))))
 
 ;; A foldleft function like the implementation in Haskell.
@@ -175,7 +175,7 @@
 
 ;; A function to check if a given atom is an expression 
 ;;   with has one atom in it.
-(: hasOneAtom (-> Atom Bool))
+(: hasOneAtom (-> $a Bool))
 (= (hasOneAtom $expr) (if (== (get-metatype $expr) Expression) (== (size-atom $expr) 1) False))
 
 ;; Function to replace a given atom from a space 
