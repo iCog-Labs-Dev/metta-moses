@@ -170,7 +170,7 @@
 (= (isExpression $expr) (== (get-metatype $expr) Expression))
 
 ;; A function to check if a given atom is unit or empty tuple.
-(: isUnit (-> Atom Bool))
+(: isUnit (-> $a Bool))
 (= (isUnit $expr) (== $expr ()))
 
 ;; A function to check if a given atom is an expression 
