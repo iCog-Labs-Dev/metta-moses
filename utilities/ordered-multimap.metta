@@ -1,57 +1,57 @@
 ;; Ordered multimap Data Structure
-(: OMM (-> ($k $v) Type))
-(: NilOMM (OMM ($k $v)))
-(: ConsOMM (-> ($k $v) (OMM ($k $v)) (OMM ($k $v))))
+(: MultiMap (-> ($k $v) Type))
+(: NilMMap (MultiMap ($k $v)))
+(: ConsMMap (-> ($k $v) (MultiMap ($k $v)) (MultiMap ($k $v))))
 
 ;; insert an element to the Ordered multimap
-(: OMM.insert (-> ($k $v) (OMM ($k $v)) (OMM ($k $v))))
-(= (OMM.insert ($key $value) NilOMM) (ConsOMM ($key $value) NilOMM))
-(= (OMM.insert ($key $value) (ConsOMM ($curKey $curVal) $tail))
+(: MultiMap.insert (-> ($k $v) (MultiMap ($k $v)) (MultiMap ($k $v))))
+(= (MultiMap.insert ($key $value) NilMMap) (ConsMMap ($key $value) NilMMap))
+(= (MultiMap.insert ($key $value) (ConsMMap ($curKey $curVal) $tail))
         (if (<= $key $curKey)
-            (ConsOMM ($key $value) (ConsOMM ($curKey $curVal) $tail))
-            (ConsOMM ($curKey $curVal) (OMM.insert ($key $value) $tail))))
+            (ConsMMap ($key $value) (ConsMMap ($curKey $curVal) $tail))
+            (ConsMMap ($curKey $curVal) (MultiMap.insert ($key $value) $tail))))
 
 ;; Get the first found value with the given key from the Ordered multimap using key
-(: OMM.findOne (-> $k (OMM ($k $v)) $v))
-(= (OMM.findOne $key NilOMM) (Error $key "not found"))
-(= (OMM.findOne $key (ConsOMM ($curKey $curVal) $tail))
-    (if (== $key $curKey) $curVal (OMM.findOne $key $tail) ))
+(: MultiMap.findOne (-> $k (MultiMap ($k $v)) $v))
+(= (MultiMap.findOne $key NilMMap) (Error $key "not found"))
+(= (MultiMap.findOne $key (ConsMMap ($curKey $curVal) $tail))
+    (if (== $key $curKey) $curVal (MultiMap.findOne $key $tail) ))
 
 ;; Get all found values with the given key from the Ordered multimap using key
-(: OMM.findAll (-> $k (OMM ($k $v)) Expression))
-(= (OMM.findAll $key NilOMM) ())
-(= (OMM.findAll $key (ConsOMM ($curKey $curVal) $tail)) 
+(: MultiMap.findAll (-> $k (MultiMap ($k $v)) Expression))
+(= (MultiMap.findAll $key NilMMap) ())
+(= (MultiMap.findAll $key (ConsMMap ($curKey $curVal) $tail)) 
     (if (== $key $curKey)
-        (let $rest (OMM.findAll $key $tail) (cons-atom $curVal $rest)) 
-        (OMM.findAll $key $tail)))
+        (let $rest (MultiMap.findAll $key $tail) (cons-atom $curVal $rest)) 
+        (MultiMap.findAll $key $tail)))
 
 ;; Check if a key is in the Ordered multimap
-(: OMM.contains (-> $k (OMM ($k $v)) Bool))
-(= (OMM.contains $key NilOMM) False)
-(= (OMM.contains $key (ConsOMM ($curKey $curVal) $tail))
-    (if (== $key $curKey) True (OMM.contains $key $tail)))
+(: MultiMap.contains (-> $k (MultiMap ($k $v)) Bool))
+(= (MultiMap.contains $key NilMMap) False)
+(= (MultiMap.contains $key (ConsMMap ($curKey $curVal) $tail))
+    (if (== $key $curKey) True (MultiMap.contains $key $tail)))
 
 ;; Check if a value in the Ordered multimap 
-(: OMM.checkValue (-> $v (OMM ($k $v)) Bool))
-(= (OMM.checkValue $value NilOMM) False)
-(= (OMM.checkValue $value (ConsOMM ($curKey $curVal) $tail))
-        (if (== $value $curVal) True (OMM.checkValue $value $tail)))
+(: MultiMap.checkValue (-> $v (MultiMap ($k $v)) Bool))
+(= (MultiMap.checkValue $value NilMMap) False)
+(= (MultiMap.checkValue $value (ConsMMap ($curKey $curVal) $tail))
+        (if (== $value $curVal) True (MultiMap.checkValue $value $tail)))
 
 
 ;; Remove a key-value pair with a given key from the Ordered multimap
-(: OMM.removeOne (-> $k (OMM ($k $v)) (OMM ($k $v))))
-(= (OMM.removeOne $key NilOMM) (Error $key "not found"))
-(= (OMM.removeOne $key (ConsOMM ($curKey $curVal) $tail)) 
-    (if (== $key $curKey) $tail (ConsOMM ($curKey $curVal) (OMM.removeOne $key $tail))))
+(: MultiMap.removeOne (-> $k (MultiMap ($k $v)) (MultiMap ($k $v))))
+(= (MultiMap.removeOne $key NilMMap) (Error $key "not found"))
+(= (MultiMap.removeOne $key (ConsMMap ($curKey $curVal) $tail)) 
+    (if (== $key $curKey) $tail (ConsMMap ($curKey $curVal) (MultiMap.removeOne $key $tail))))
 
 ;; Remove all key-value pair with a given key from the Ordered multimap
-(: OMM.removeAll (-> $k (OMM ($k $v)) (OMM ($k $v))))
-(= (OMM.removeAll $key NilOMM) NilOMM)
-(= (OMM.removeAll $key (ConsOMM ($curKey $curVal) $tail)) 
-    (if (== $key $curKey) (OMM.removeAll $key $tail) (ConsOMM ($curKey $curVal) (OMM.removeAll $key $tail))))
+(: MultiMap.removeAll (-> $k (MultiMap ($k $v)) (MultiMap ($k $v))))
+(= (MultiMap.removeAll $key NilMMap) NilMMap)
+(= (MultiMap.removeAll $key (ConsMMap ($curKey $curVal) $tail)) 
+    (if (== $key $curKey) (MultiMap.removeAll $key $tail) (ConsMMap ($curKey $curVal) (MultiMap.removeAll $key $tail))))
     
 ;; Get the length of the Ordered multimap
-(: OMM.length (-> (OMM ($k $v)) Number))
-(= (OMM.length NilOMM) 0)
-(= (OMM.length (ConsOMM ($curKey $curVal) $tail)) (+ 1 (OMM.length $tail)))
+(: MultiMap.length (-> (MultiMap ($k $v)) Number))
+(= (MultiMap.length NilMMap) 0)
+(= (MultiMap.length (ConsMMap ($curKey $curVal) $tail)) (+ 1 (MultiMap.length $tail)))
 

@@ -2,43 +2,43 @@
 
 ! (import! &self metta-moses:utilities:ordered-multimap)
 
-;; Testcase OMM.insert
-! (assertEqual (OMM.insert (4 d) (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM)))) (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) (ConsOMM (4 d) NilOMM)))))
-! (assertEqual (OMM.insert (1 e) (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM)))) (ConsOMM (1 e) (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM)))))
-! (assertEqual (OMM.insert (2 b) NilOMM) (ConsOMM (2 b)  NilOMM))
+;; Testcase MultiMap.insert
+! (assertEqual (MultiMap.insert (4 d) (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d) NilMMap)))))
+! (assertEqual (MultiMap.insert (1 e) (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) (ConsMMap (1 e) (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))))
+! (assertEqual (MultiMap.insert (2 b) NilMMap) (ConsMMap (2 b)  NilMMap))
 
-;; Testcase for OMM.findOne
-! (assertEqual (OMM.findOne 1 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM)))) a)
-! (assertEqual (OMM.findOne 2 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (2 c) NilOMM)))) b)
-! (assertEqual (OMM.findOne 6 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM)))) (Error 6 "not found"))
+;; Testcase for MultiMap.findOne
+! (assertEqual (MultiMap.findOne 1 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) a)
+! (assertEqual (MultiMap.findOne 2 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (2 c) NilMMap)))) b)
+! (assertEqual (MultiMap.findOne 6 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) (Error 6 "not found"))
 
-;; Testcase for OMM.findAll
-! (assertEqual (OMM.findAll 1 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM)))) (a))
-! (assertEqual (OMM.findAll 2 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (2 c)(ConsOMM (2 b) (ConsOMM (2 d) NilOMM)))))) (b c b d))
-! (assertEqual (OMM.findAll 6 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM)))) ())
+;; Testcase for MultiMap.findAll
+! (assertEqual (MultiMap.findAll 1 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) (a))
+! (assertEqual (MultiMap.findAll 2 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (2 c)(ConsMMap (2 b) (ConsMMap (2 d) NilMMap)))))) (b c b d))
+! (assertEqual (MultiMap.findAll 6 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) ())
 
-;; Testcase for OMM.removeOne
-! (assertEqual (OMM.removeOne 5 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM)))) (Error 5 "not found"))
-! (assertEqual (OMM.removeOne 1 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) (ConsOMM (4 d) NilOMM))))) (ConsOMM (2 b) (ConsOMM (3 c) (ConsOMM (4 d) NilOMM))))
-! (assertEqual (OMM.removeOne 2 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (2 c) NilOMM)))) (ConsOMM (1 a) (ConsOMM (2 c) NilOMM)))
+;; Testcase for MultiMap.removeOne
+! (assertEqual (MultiMap.removeOne 5 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) (Error 5 "not found"))
+! (assertEqual (MultiMap.removeOne 1 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d) NilMMap))))) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d) NilMMap))))
+! (assertEqual (MultiMap.removeOne 2 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (2 c) NilMMap)))) (ConsMMap (1 a) (ConsMMap (2 c) NilMMap)))
 
-;; Testcase for OMM.removeAll
-! (assertEqual (OMM.removeAll 5 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM)))) (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM))))
-! (assertEqual (OMM.removeAll 1 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) (ConsOMM (4 d) NilOMM))))) (ConsOMM (2 b) (ConsOMM (3 c) (ConsOMM (4 d) NilOMM))))
-! (assertEqual (OMM.removeAll 2 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (2 c) NilOMM)))) (ConsOMM (1 a) NilOMM))
+;; Testcase for MultiMap.removeAll
+! (assertEqual (MultiMap.removeAll 5 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap))))
+! (assertEqual (MultiMap.removeAll 1 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d) NilMMap))))) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d) NilMMap))))
+! (assertEqual (MultiMap.removeAll 2 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (2 c) NilMMap)))) (ConsMMap (1 a) NilMMap))
 
 
-;; Testcase for OMM.contains
-! (assertEqual (OMM.contains 5 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM)))) False)
-! (assertEqual (OMM.contains 1 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) (ConsOMM (4 d) NilOMM))))) True)
-! (assertEqual (OMM.contains 2 (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM)))) True)
+;; Testcase for MultiMap.contains
+! (assertEqual (MultiMap.contains 5 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) False)
+! (assertEqual (MultiMap.contains 1 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d) NilMMap))))) True)
+! (assertEqual (MultiMap.contains 2 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) True)
 
-;; Testcase for OMM.checkValue
-! (assertEqual (OMM.checkValue a (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM)))) True)
-! (assertEqual (OMM.checkValue d (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) (ConsOMM (4 d) NilOMM))))) True)
-! (assertEqual (OMM.checkValue f (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM)))) False)
+;; Testcase for MultiMap.checkValue
+! (assertEqual (MultiMap.checkValue a (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) True)
+! (assertEqual (MultiMap.checkValue d (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d) NilMMap))))) True)
+! (assertEqual (MultiMap.checkValue f (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) False)
 
-;; Testcase for OMM.length
-! (assertEqual (OMM.length (ConsOMM (3 c) NilOMM)) 1)
-! (assertEqual (OMM.length (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) NilOMM)))) 3)
-! (assertEqual (OMM.length (ConsOMM (1 a) (ConsOMM (2 b) (ConsOMM (3 c) (ConsOMM (4 d)(ConsOMM (5 e) (ConsOMM (6 f) (ConsOMM (7 g) (ConsOMM (8 h) (ConsOMM (9 i) NilOMM)))))))))) 9)
+;; Testcase for MultiMap.length
+! (assertEqual (MultiMap.length (ConsMMap (3 c) NilMMap)) 1)
+! (assertEqual (MultiMap.length (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) 3)
+! (assertEqual (MultiMap.length (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d)(ConsMMap (5 e) (ConsMMap (6 f) (ConsMMap (7 g) (ConsMMap (8 h) (ConsMMap (9 i) NilMMap)))))))))) 9)
