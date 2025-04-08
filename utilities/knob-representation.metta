@@ -1,3 +1,6 @@
+(: NodeId Type)
+(: mkNodeId (-> $tuple NodeId))
+
 ;;;knob base representation
 ;      Tree: a tree reference
 ;      NodeId: a position pointing to current position in the tree
