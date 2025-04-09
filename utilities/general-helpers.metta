@@ -507,3 +507,10 @@
 ;; applying the two functions in sequence.
 (: . (-> (-> $b $c) (-> $a $b) (-> $a $c)))
 (= ((. $g $f) $x) ($g ($f $x)))
+;; Convert an expression to a list   e.g (A B C) -> (Cons A (Cons B (Cons C Nil)))
+(= (exprToList $expr)
+    (if (== $expr ())
+        Nil
+        (let ($head $tail) (decons-atom $expr)  (Cons $head (exprToList $tail)))
+    )
+)

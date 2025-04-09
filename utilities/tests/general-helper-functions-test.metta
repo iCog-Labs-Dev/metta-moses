@@ -318,3 +318,7 @@
 !(assertEqual ((. isEven (. decrement increment)) 4) True)
 !(assertEqual ((. decrement (. increment increment)) 4) 5)
 !(assertEqual ((. greaterThanTen (. decrement (. increment increment))) 4) False)
+
+;; Test for exprToList
+!(assertEqual (exprToList (AND A B)) (Cons AND (Cons A (Cons B Nil))))
+!(assertEqual (exprToList (1 2 3 4)) (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
