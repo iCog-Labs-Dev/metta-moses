@@ -5,7 +5,7 @@
 
 ;; default insert function that insert an element to the Ordered MultiMap using <=.
 (: MultiMap.insert (-> ($k $v) (MultiMap ($k $v)) (MultiMap ($k $v))))
-(= (MultiMap.insert ($key $value) NilMMap) (ConsMMap ($key $value) NilMMap))
+(= (MultiMap.insert $newValue $mMap) (MultiMap.insert $newValue $mMap <=))
 (= (MultiMap.insert ($key $value) (ConsMMap ($curKey $curVal) $tail))
     (MultiMap.insert ($key $value) (ConsMMap ($curKey $curVal) $tail) <=))
 
