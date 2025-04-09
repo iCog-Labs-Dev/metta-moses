@@ -3,13 +3,19 @@
 (: NilMMap (MultiMap ($k $v)))
 (: ConsMMap (-> ($k $v) (MultiMap ($k $v)) (MultiMap ($k $v))))
 
-;; insert an element to the Ordered multimap
+;; default insert function that insert an element to the Ordered MultiMap using <=.
 (: MultiMap.insert (-> ($k $v) (MultiMap ($k $v)) (MultiMap ($k $v))))
 (= (MultiMap.insert ($key $value) NilMMap) (ConsMMap ($key $value) NilMMap))
 (= (MultiMap.insert ($key $value) (ConsMMap ($curKey $curVal) $tail))
-        (if (<= $key $curKey)
+    (MultiMap.insert ($key $value) (ConsMMap ($curKey $curVal) $tail) <=))
+
+;; insert an element to the Ordered multimap using custum function
+(: MultiMap.insert (-> ($k $v) (MultiMap ($k $v)) (-> $k $k Bool) (MultiMap ($k $v))))
+(= (MultiMap.insert ($key $value) NilMMap $fn) (ConsMMap ($key $value) NilMMap))
+(= (MultiMap.insert ($key $value) (ConsMMap ($curKey $curVal) $tail) $fn)
+        (if ($fn $key $curKey)
             (ConsMMap ($key $value) (ConsMMap ($curKey $curVal) $tail))
-            (ConsMMap ($curKey $curVal) (MultiMap.insert ($key $value) $tail))))
+            (ConsMMap ($curKey $curVal) (MultiMap.insert ($key $value) $tail $fn))))
 
 ;; Get the first found value with the given key from the Ordered multimap using key
 (: MultiMap.findOne (-> $k (MultiMap ($k $v)) $v))
@@ -18,11 +24,11 @@
     (if (== $key $curKey) $curVal (MultiMap.findOne $key $tail) ))
 
 ;; Get all found values with the given key from the Ordered multimap using key
-(: MultiMap.findAll (-> $k (MultiMap ($k $v)) Expression))
-(= (MultiMap.findAll $key NilMMap) ())
+(: MultiMap.findAll (-> $k (MultiMap ($k $v)) (List $v)))
+(= (MultiMap.findAll $key NilMMap) Nil)
 (= (MultiMap.findAll $key (ConsMMap ($curKey $curVal) $tail)) 
     (if (== $key $curKey)
-        (let $rest (MultiMap.findAll $key $tail) (cons-atom $curVal $rest)) 
+        (Cons $curVal (MultiMap.findAll $key $tail))
         (MultiMap.findAll $key $tail)))
 
 ;; Check if a key is in the Ordered multimap
