@@ -89,7 +89,14 @@
 (= (foldl $f $acc $tuple)
    (if (== $tuple ())
        $acc
-       (let $next (car-atom $tuple) (foldl $f ($f $next $acc) (cdr-atom $tuple)))
+       (let*
+            (
+                ($next (car-atom $tuple))
+                ($tail (cdr-atom $tuple))
+            )
+            (foldl $f ($f $next $acc) $tail)
+       )
+    ;    (let $next (car-atom $tuple) (foldl $f ($f $next $acc) (cdr-atom $tuple)))
    )
 )
 
@@ -488,4 +495,3 @@
    (if (and (== (get-metatype $x) Symbol) (== (get-metatype $y) Symbol))
        (== $x $y)
        (== (collapse (union (subtraction (superpose $x) (superpose $y)) (subtraction (superpose $y) (superpose $x)))) ())))
-
