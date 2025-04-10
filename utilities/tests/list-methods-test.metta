@@ -2,6 +2,7 @@
 !(register-module! ../../../metta-moses)
 
 ! (import! &self metta-moses:utilities:list-methods)
+! (import! &self metta-moses:utilities:general-helpers)
 
 
 ;; Test cases for List.foldr
@@ -40,3 +41,18 @@
 !(assertEqual (List.length (Cons 1 (Cons 2 (Cons 3 Nil)))) 3)
 !(assertEqual (List.length (Cons 10 (Cons 20 (Cons 30 (Cons 40 Nil))))) 4)
 !(assertEqual (List.length (Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 (Cons 6 (Cons 7 (Cons 8 (Cons 9 (Cons 10 (Cons 11 (Cons 12 (Cons 13 (Cons 14 (Cons 15 (Cons 16 (Cons 17 (Cons 18 (Cons 19 (Cons 20 Nil))))))))))))))))))))) 20)
+
+;; Test cases for List.map
+!(assertEqual (List.map isEven (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons False (Cons True (Cons False Nil))))
+!(assertEqual (List.map isOdd Nil) Nil)
+
+
+;; Test cases for List.filter
+!(assertEqual (List.filter isEven (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 2 Nil))
+!(assertEqual (List.filter isOdd (Cons 2 (Cons 2 (Cons 4 Nil)))) Nil)
+!(assertEqual (List.filter isOdd Nil) Nil)
+
+
+;; Test cases for List.listToExpr
+!(assertEqual (List.listToExpr Nil) ())
+!(assertEqual (List.listToExpr (Cons 1 (Cons 3 (Cons 4 Nil)))) (1 3 4))

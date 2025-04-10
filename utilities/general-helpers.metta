@@ -175,6 +175,12 @@
 (: isUnit (-> Atom Bool))
 (= (isUnit $expr) (== $expr ()))
 
+(: isEven (-> Number Bool))
+(= (isEven $x) (== (% $x 2) 0))
+
+(: isOdd (-> Number Bool))
+(= (isOdd $x) (not (isEven $x)))
+
 ;; A function to check if a given atom is an expression 
 ;;   with has one atom in it.
 (: hasOneAtom (-> Atom Bool)) ;; FIX: No longer working on version 0.2.3
@@ -575,3 +581,17 @@
 ;;      $ctor -- type constructor
 (: adder (-> $a $a $a))
 (= (adder ($ctor $x) ($ctor $y)) ($ctor (+ $x $y)))
+
+
+;; A trick to define composition function.
+;; Takes a function and returns another function
+;; applying the two functions in sequence.
+(: . (-> (-> $b $c) (-> $a $b) (-> $a $c)))
+(= ((. $g $f) $x) ($g ($f $x)))
+;; Convert an expression to a list   e.g (A B C) -> (Cons A (Cons B (Cons C Nil)))
+(= (exprToList $expr)
+    (if (== $expr ())
+        Nil
+        (let ($head $tail) (decons-atom $expr)  (Cons $head (exprToList $tail)))
+    )
+)
