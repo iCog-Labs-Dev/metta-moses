@@ -1,17 +1,3 @@
-;; List type
-(: List (-> $a Type))
-(: Cons (-> $a (List $a) (List $a)))
-(: Nil (List $a))
-
-;; Tree type
-(: Tree (-> $a Type))
-(: Node (-> $a Type))
-(: mkNode (-> $a (Node $a)))
-
-(: A Bool)
-
-(: mkTree (-> (Node $a) (List (Tree $a)) (Tree $a)))
-
 ;; scored Tree -- exemplar
 ;; deme ID
 (: DemeId Type)

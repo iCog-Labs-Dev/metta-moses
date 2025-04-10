@@ -432,7 +432,7 @@
 ;                 $f
 ;                 (+ $f (sum $t)) ))))
 
-; (= (getMaxWithKey $tuple)
+; (= (getmaxWithKey $tuple)
 ;     (let $max 
 ;         (collapse 
 ;             (let*
@@ -494,3 +494,84 @@
        (== $x $y)
        (== (collapse (union (subtraction (superpose $x) (superpose $y)) (subtraction (superpose $y) (superpose $x)))) ())))
 
+
+;; compareXmplr -- Exemplar comparator
+;; compares two exemplars using series of scores
+;;      penalized, $p1 and $p2, of the two exemplars are used first -- the higher the penalized score the better
+;;      if the two scores are equal then complexity scores are used as tie breaker -- the smaller complexity score the better
+;;TODO XXX : original implemntaion of examplar comparison takes the difference between scores and 
+;;          allows the difference to be a small non-zero number for equality
+(: compareXmplr (-> Xmplr Xmplr Atom))
+(= (compareXmplr 
+        (mkXmplr $tree1 (mkDemeId $id1) (mkCscore (mkScoreT $s1) (mkComplexity $cs1) (mkScoreT $cp1) (mkScoreT $up1)) (mkBscore $bs1))
+        (mkXmplr $tree2 (mkDemeId $id2) (mkCscore (mkScoreT $s2) (mkComplexity $cs2) (mkScoreT $cp2) (mkScoreT $up2)) (mkBscore $bs2)))
+    
+    (let ($p1 $p2) ((- (- $s1 $cp1) $up1) (- (- $s2 $cp2) $up2))
+        (case ((> $p1 $p2) (== $p1 $p2) (< $cs1 $cs2) (== $cs1 $cs2))
+            
+            (((True $t $u $v) G)
+            ((False True True $v) G)
+            ((False True False True) E)
+            ((False True False False) L)
+            ((False False $u $v) L) ))))
+
+;; Number compartor
+(: compareNum (-> Number Number Atom))
+(= (compareNum $num1 $num2)
+    (case ((> $num1 $num2) (== $num1 $num2))
+        (((True $t) G)
+         ((False True) E)
+         ((False False) L))))
+
+;; finding maximum from list numbers
+
+(: List.max (-> (List $a) $a))
+(= (List.max Nil) Nil)
+(= (List.max (Cons $x $xs))
+    (if (== $xs Nil)
+        $x
+        (let (Cons $t $u) $xs 
+            (if (>= $x $t)
+                (List.max (Cons $x $u))
+                (List.max $xs)))))
+
+;; overloading the above function with another type definition for an implementation of List.max that compares other types 
+(: List.max (-> (-> $a $a Bool) (List $a) $a))
+(= (List.max $comparator Nil) Nil)
+(= (List.max $comparator (Cons $x $xs))
+    (if (== $xs Nil)
+        $x
+         (let (Cons $t $u) $xs
+            (if ($comparator $x $t)
+                (List.max $comparator (Cons $x $u))
+                (List.max $comparator $xs)))))
+
+;; an equal to or grearter than comparator that is resopnsible for deconstructing numerical values from the type constructor and compare them 
+;; ($ctor $x) ($ctor $y) -- (constructor value) pair                
+(: >>= (-> $a $a Bool))
+(= (>>= ($ctor $x) ($ctor $y))(>= $x $y))
+
+;; Sum of list elements
+;;      1st for (List Number) -- followed by 
+(: List.sum (-> (List $a) $a))
+(= (List.sum Nil) Nil)
+(= (List.sum (Cons $x $xs))
+    (if (== $xs Nil)
+        $x
+        (let $c (List.sum $xs)
+            (+ $x $c))))
+
+;;      2nd List.Sum for any (List $a) $a of (typeConstructor Number) type
+(: List.sum (-> (-> $a $a $a) (List $a) $a))
+(= (List.sum $adder Nil) Nil)
+(= (List.sum $adder (Cons $x $xs))
+    (if (== $xs Nil)
+        $x
+        (let $c (List.sum $adder $xs)
+            ($adder $x $c))))
+
+;; defining addition operator for non-numerical types
+;; adder
+;;      $ctor -- type constructor
+(: adder (-> $a $a $a))
+(= (adder ($ctor $x) ($ctor $y)) ($ctor (+ $x $y)))
