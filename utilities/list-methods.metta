@@ -59,3 +59,18 @@
 (: List.listToExpr (-> (List $a) Expression))
 (= (List.listToExpr Nil) ())
 (= (List.listToExpr (Cons $x $xs)) (let $t (List.listToExpr $xs) (cons-atom $x $t)))
+
+;; defining List.max function with a comparator that compares non-numerical type values
+(: List.max (-> (-> $a $a Bool) (List $a) $a))
+(= (List.max $comparator Nil) Nil)
+(= (List.max $comparator (Cons $x $xs))
+    (if (== $xs Nil)
+        $x
+         (let (Cons $t $u) $xs
+            (if ($comparator $x $t)
+                (List.max $comparator (Cons $x $u))
+                (List.max $comparator $xs)))))
+
+;; Overloading the above List.max with the built in >= comparison operator for operation on List of numbers
+(: List.max (-> (List $a) $a))
+(= (List.max (Cons $x $xs)) (List.max >= (Cons $x $xs)))

@@ -23,7 +23,7 @@
                 ($hstScr (List.max >>= $probs))
                 ;; get list of normalized ScoreT values
                 ($normalizedProbs (normalizeProbs INV_TEMP $hstScr $probs))
-                ($sum (List.sum plus $normalizedProbs)))
+                ($sum (List.sum adder $normalizedProbs)))
 
                 (rouletteSelect $xmplrSet $probs $sum) )))))
 
@@ -51,11 +51,6 @@
         ($c (normalizeProbs (mkScoreT $invTemp) (mkScoreT $best) $xs)))
 
         (Cons $new $c)))
-        
-;; wrapping the built-in ininf-math with custom function because the return type is not bool, it is number
-;; using the type-cast function
-(: isInf (-> Number Bool))
-(= (isInf $x) (type-cast (isinf-math $x) Bool &self))
 
 ;; the main roulette select function
 ;;      $xmplrSet -- (OS Xmplr) -- list of exemplars
@@ -66,7 +61,6 @@
 (= (rouletteSelect $xmplrSet $probs (mkScoreT $sum))
     (let* (($rndfloat (rndfloat))
            ($ajstdSum (* $sum $rndfloat))
-        ;    (() (println! $ajstdSum))
             ($index (roulette $probs 0 $ajstdSum)))
 
         (OS.getByIdx $index $xmplrSet)))

@@ -3,6 +3,7 @@
 ! (import! &self metta-moses:utilities:exemplar-type)
 ! (import! &self metta-moses:utilities:exemplar-selection)
 ! (import! &self metta-moses:utilities:general-helpers)
+! (import! &self metta-moses:utilities:list-methods)
 
 ;; Get penalized scores
 ! (assertEqual (getPnScore NilOS) Nil)
@@ -150,7 +151,7 @@
           (mkCscore (mkScoreT 0.6) (mkComplexity 0.5) (mkScoreT 0.0) (mkScoreT 0.0))
           (mkBscore (Cons 1 (Cons 0 Nil))))
         NilOS))))
-! (assertEqual (let $choice (selectExemplar test1-exemplars) (get-type $choice)) Xmplr)
+! (assertEqual (let $choice (selectExemplar test1-exemplars) (OS.contains test1-exemplars $choice)) True)
 
 ! (bind! test2-exemplars
   (ConsOS
@@ -166,4 +167,4 @@
           (mkCscore (mkScoreT 0.4) (mkComplexity 0.4) (mkScoreT 0.05) (mkScoreT 0.1))
           (mkBscore (Cons 0 (Cons 0 (Cons 1 (Cons 0 Nil))))))
         NilOS))))
-! (assertEqual (let $choice (selectExemplar test2-exemplars) (get-type $choice)) Xmplr)
+! (assertEqual (let $choice (selectExemplar test2-exemplars) (OS.contains test2-exemplars $choice)) True)
