@@ -557,17 +557,7 @@
 (: >>= (-> $a $a Bool))
 (= (>>= ($ctor $x) ($ctor $y))(>= $x $y))
 
-;; Sum of list elements
-;;      1st for (List Number) -- followed by 
-(: List.sum (-> (List $a) $a))
-(= (List.sum Nil) Nil)
-(= (List.sum (Cons $x $xs))
-    (if (== $xs Nil)
-        $x
-        (let $c (List.sum $xs)
-            (+ $x $c))))
-
-;;      2nd List.Sum for any (List $a) $a of (typeConstructor Number) type
+;; List.Sum for any (List $a) $a of (typeConstructor Number) type
 (: List.sum (-> (-> $a $a $a) (List $a) $a))
 (= (List.sum $adder Nil) Nil)
 (= (List.sum $adder (Cons $x $xs))
