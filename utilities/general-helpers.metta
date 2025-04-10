@@ -519,9 +519,9 @@
         $x
         (let $c (List.sum $adder $xs)
             ($adder $x $c))))
-;; overloading the above function to work with list of numbers
-(: List.sum (-> (List $a) $a))
-(= (List.sum $list) (List.sum + $list))
+; ;; overloading the above function to work with list of numbers
+; (: List.sum (-> (List $a) $a))
+; (= (List.sum $list) (List.sum + $list))
 
 ;; defining addition operator for non-numerical types
 ;; adder
