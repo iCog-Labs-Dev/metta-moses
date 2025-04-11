@@ -56,3 +56,8 @@
 ;; Test cases for List.listToExpr
 !(assertEqual (List.listToExpr Nil) ())
 !(assertEqual (List.listToExpr (Cons 1 (Cons 3 (Cons 4 Nil)))) (1 3 4))
+
+;; Test cases for List.max
+!(assertEqual (List.max >= (Cons 2 (Cons 5 (Cons 1 Nil)))) 5)
+!(assertEqual (List.max >= (Cons 42 Nil)) 42)
+!(assertEqual (List.max >>= (Cons (mkSize 1) (Cons (mkSize 3) (Cons (mkSize 2) Nil)))) (mkSize 3))
