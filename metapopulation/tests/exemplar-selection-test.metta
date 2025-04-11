@@ -2,8 +2,8 @@
 ! (import! &self metta-moses:utilities:ordered-set)
 ! (import! &self metta-moses:utilities:list-methods)
 ! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:representation:exemplar-type)
-! (import! &self metta-moses:representation:exemplar-selection)
+! (import! &self metta-moses:metapopulation:exemplar-type)
+! (import! &self metta-moses:metapopulation:exemplar-selection)
 
 ;; Get penalized scores
 ! (assertEqual (getPnScore NilOS) Nil)
