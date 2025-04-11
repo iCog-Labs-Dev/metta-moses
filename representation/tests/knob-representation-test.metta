@@ -1,7 +1,7 @@
 !(register-module! ../../../metta-moses)
-!(import! &self metta-moses:utilities:knob-representation)
 !(import! &self metta-moses:utilities:tree)
 !(import! &self metta-moses:utilities:list-methods)
+!(import! &self metta-moses:representation:knob-representation)
 
 ! (assertEqual (let $return (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) $return)  
                (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1)))

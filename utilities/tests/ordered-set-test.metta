@@ -1,7 +1,7 @@
 ! (register-module! ../../../metta-moses)
 ! (import! &self metta-moses:utilities:ordered-set)
-! (import! &self metta-moses:utilities:exemplar-type)
 ! (import! &self metta-moses:utilities:general-helpers)
+! (import! &self metta-moses:representation:exemplar-type)
 
 ;; Length of an ordered set
 ! (assertEqual (OS.length NilOS) 0)

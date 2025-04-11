@@ -1,6 +1,6 @@
 ! (register-module! ../../../metta-moses)
 ; ! (import! &self metta-moses:utilities:ordered-set)
-! (import! &self metta-moses:utilities:exemplar-type)
+! (import! &self metta-moses:representation:exemplar-type)
 
 ;; Exemplar initialization
 ! (assertEqual (xmplrInit (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) (mkDemeId 1))

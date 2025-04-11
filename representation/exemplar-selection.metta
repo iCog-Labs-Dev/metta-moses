@@ -65,13 +65,12 @@
 
         (OS.getByIdx $index $xmplrSet)))
 
-;; roulette function to do the roulette selection and return an index -- spin the wheel 😁
+;; roulette function to do the roulette selection and return an index -- spin the wheel
 ;;      $probs -- (List ScoreT) -- list of prob values (Cons (mkScoretT ..) .. Nil)
 ;;      $sIdx -- start index -- 0
 ;;      $ajstdsum -- sum of probabilities which has been multiplied with a random with random value in (0 .. 1) range
 (: roulette (-> (List ScoreT) Number Number Number))
-(= (roulette (Cons $x $xs) $sIdx $ajstdsum)
-    (let ($custor $p) $x
-        (if (<= (- $ajstdsum $p) 0)
+(= (roulette (Cons ($custor $p) $xs) $sIdx $ajstdsum)
+    (if (<= (- $ajstdsum $p) 0)
             $sIdx
-            (roulette $xs (+ 1 $sIdx) (- $ajstdsum $p)))))
+            (roulette $xs (+ 1 $sIdx) (- $ajstdsum $p))))

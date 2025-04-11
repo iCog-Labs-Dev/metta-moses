@@ -512,6 +512,7 @@
 ;; ($ctor $x) ($ctor $y) -- (constructor value) pair                
 (: >>= (-> $a $a Bool))
 (= (>>= ($ctor $x) ($ctor $y))(>= $x $y));; List.Sum for any (List $a) $a of (typeConstructor Number) type
+
 (: List.sum (-> (-> $a $a $a) (List $a) $a))
 (= (List.sum $adder Nil) Nil)
 (= (List.sum $adder (Cons $x $xs))
@@ -519,6 +520,7 @@
         $x
         (let $c (List.sum $adder $xs)
             ($adder $x $c))))
+
 ; ;; overloading the above function to work with list of numbers
 ; (: List.sum (-> (List $a) $a))
 ; (= (List.sum $list) (List.sum + $list))
@@ -539,6 +541,7 @@
 ;; applying the two functions in sequence.
 (: . (-> (-> $b $c) (-> $a $b) (-> $a $c)))
 (= ((. $g $f) $x) ($g ($f $x)))
+
 ;; Convert an expression to a list   e.g (A B C) -> (Cons A (Cons B (Cons C Nil)))
 (= (exprToList $expr)
     (if (== $expr ())
