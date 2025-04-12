@@ -1,11 +1,11 @@
 !(register-module! ../../../metta-moses)
 
 ! (import! &self metta-moses:utilities:list-methods)
-! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:utilities:tree)
-! (import! &self metta-moses:utilities:knob-representation)
+! (import! &self metta-moses:representation:knob-representation)
 ! (import! &self metta-moses:utilities:nodeId)
-! (import! &self metta-moses:utilities:lsk)
+! (import! &self metta-moses:representation:lsk)
+
 
 ;;Testcases for getSubtreeId
 !(assertEqual
