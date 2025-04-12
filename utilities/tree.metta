@@ -5,7 +5,7 @@
 (: mkNode (-> $a (Node $a)))
 
 (: NullVertex (Tree $a))
-(: mkNullVex (-> (List (LSK $a)) (Tree $a)))
+(: mkNullVex (-> (List (Tree $a)) (Tree $a)))
 
 (: preOrder (-> (Tree $a) $a))
 (= (preOrder (mkTree (mkNode $r) Nil)) $r)
