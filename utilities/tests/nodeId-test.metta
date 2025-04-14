@@ -4,9 +4,9 @@
 ! (import! &self metta-moses:utilities:tree)
 ! (import! &self metta-moses:utilities:nodeId)
 
-;;; Testcase findLevelById
+;;; Testcase getLevelById
 !(assertEqual 
-  (findLevelById 
+  (getLevelById 
     (mkTree (mkNode AND) 
       (Cons (mkTree (mkNode A) Nil) 
         (Cons (mkTree (mkNode OR) 
@@ -18,16 +18,16 @@
   (mkNullVex (Cons (mkTree (mkNode S) Nil) Nil)))
 
 !(assertEqual 
-  (findLevelById 
+  (getLevelById 
     (mkTree (mkNode OR) 
       (Cons (mkTree (mkNode A) Nil) 
       (Cons (mkNullVex 
             (Cons (mkTree (mkNode S) Nil) Nil)) Nil))) 2) 
   (mkNullVex (Cons (mkTree (mkNode S) Nil) Nil)))
 
-;;; Testcase findNodeById 
+;;; Testcase getNodeById 
 !(assertEqual 
-  (findNodeById 
+  (getNodeById 
     (mkTree (mkNode AND) 
       (Cons (mkTree (mkNode A) Nil) 
       (Cons (mkTree (mkNode OR) 
@@ -39,7 +39,7 @@
   (mkNullVex (Cons (mkTree (mkNode S) Nil) Nil)))
 
 !(assertEqual 
-  (findNodeById 
+  (getNodeById 
     (mkTree (mkNode AND) 
       (Cons (mkTree (mkNode A) Nil) 
       (Cons (mkTree (mkNode OR) 
@@ -49,4 +49,3 @@
       (Cons (mkTree (mkNode D) Nil) Nil)))) 
     (mkNodeId (2 3 1))) 
   (mkTree (mkNode S) Nil))
-

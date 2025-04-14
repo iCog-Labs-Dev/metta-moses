@@ -17,16 +17,16 @@
 ;;   $levelId: - index indicating the level (0 for root, 1 for first child, etc.).
 ;; Returns:
 ;;   (Tree $a) - The subtree at the specified level, or Nil if out of bounds.
-(: findLevelById (-> (Tree $a) Number (Tree $a)))
-(= (findLevelById (mkTree (mkNode $r) $children) $levelId)
+(: getLevelById (-> (Tree $a) Number (Tree $a)))
+(= (getLevelById (mkTree (mkNode $r) $children) $levelId)
    (if (== $levelId 0)
        (mkTree (mkNode $r) $children)
        (List.getByIdx $children (- $levelId 1))))
-(= (findLevelById (mkNullVex $children) $levelId)
+(= (getLevelById (mkNullVex $children) $levelId)
    (if (== $levelId 0)
        (mkNullVex $children)
        (List.getByIdx $children (- $levelId 1))))
-(= (findLevelById Nil $levelId) Nil)
+(= (getLevelById Nil $levelId) Nil)
 
 ;; Traverses a tree to find a node by its ID path.
 ;; Parameters:
@@ -34,45 +34,23 @@
 ;;   $id: - A mkNodeId-wrapped tuple of indices (e.g., (mkNodeId (2 1))) representing the path.
 ;; Returns:
 ;;   (Tree $a) - The subtree at the specified ID path, or an error if invalid.
-(: findNodeById (-> (Tree $a) NodeId (Tree $a)))
-(= (findNodeById $tree (mkNodeId ())) $tree)
-(= (findNodeById Nil $id) Nil)
-(= (findNodeById $tree (mkNodeId $id))
+(: getNodeById (-> (Tree $a) NodeId (Tree $a)))
+(= (getNodeById $tree (mkNodeId ())) $tree)
+(= (getNodeById Nil $id) Nil)
+(= (getNodeById $tree (mkNodeId $id))
    (let*
      (
-       ($head (car-atom $id))
-       ($tail (cdr-atom $id))
-       ($level (findLevelById $tree $head))
+       (($head $tail) (decons-atom $id))
+       ($level (getLevelById $tree $head))
      )
-     (case $level
-       (
-         ((mkTree $n $c)
-          (if (== $tail ())
-              (mkTree $n $c)
-              (let*
+     (if (== $tail ())
+          $level
+          (let*
               (
-               ($nextHead (car-atom $tail))
-               ($nextTail (cdr-atom $tail))
-               ($nextLevel (findLevelById (mkTree $n $c) $nextHead))
+               (($nextHead $nextTail) (decons-atom $tail))
+               ($nextLevel (getLevelById $level $nextHead))
               )
-              (findNodeById $nextLevel (mkNodeId $nextTail))
-              ))
-         )
-         ((mkNullVex $c)
-          (if (== $tail ())
-              (mkNullVex $c)
-              (let*
-              (
-               ($nextHead (car-atom $tail))
-               ($nextTail (cdr-atom $tail))
-               ($nextLevel (findLevelById (mkNullVex $c) $nextHead))
-              )
-              (findNodeById $nextLevel (mkNodeId $nextTail))
-              ))
-       )
-       ($else (Error (Index out of bounds)))
-       )
-      )
-
+              (getNodeById $nextLevel (mkNodeId $nextTail))
+          ))
    )
 )
