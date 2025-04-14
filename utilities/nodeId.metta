@@ -18,7 +18,6 @@
 ;; Returns:
 ;;   (Tree $a) - The subtree at the specified level, or Nil if out of bounds.
 (: findLevelById (-> (Tree $a) Number (Tree $a)))
-(: findLevelById (-> (Tree $a) Number (Tree $a)))
 (= (findLevelById (mkTree (mkNode $r) $children) $levelId)
    (if (== $levelId 0)
        (mkTree (mkNode $r) $children)
@@ -35,7 +34,6 @@
 ;;   $id: - A mkNodeId-wrapped tuple of indices (e.g., (mkNodeId (2 1))) representing the path.
 ;; Returns:
 ;;   (Tree $a) - The subtree at the specified ID path, or an error if invalid.
-(: findNodeById (-> (Tree $a) NodeId (Tree $a)))
 (: findNodeById (-> (Tree $a) NodeId (Tree $a)))
 (= (findNodeById $tree (mkNodeId ())) $tree)
 (= (findNodeById Nil $id) Nil)
@@ -71,8 +69,8 @@
               )
               (findNodeById $nextLevel (mkNodeId $nextTail))
               ))
-         ($else (Error "Index out of bounds"))
        )
+       ($else (Error (Index out of bounds)))
        )
       )
 
