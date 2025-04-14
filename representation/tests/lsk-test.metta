@@ -88,7 +88,7 @@
           Nil))
       Nil)))
 
-;;Testcases for replaceNOdeById
+;;Testcases for replaceNodeById
 !(assertEqual
   (replaceNodeById
     (mkTree (mkNode AND)
@@ -139,7 +139,29 @@
                  (Cons (mkTree (mkNode C) Nil) Nil))) Nil)))
    (mkNodeId (1 1))))
 
+!(assertEqual
+   (appendChild
+      (mkTree (mkNode AND)
+        (Cons (mkTree (mkNode A) Nil)
+          (Cons (mkTree (mkNode OR)
+                  (Cons (mkTree (mkNode B) Nil)
+                    (Cons (mkTree (mkNode C) Nil)
+                      Nil)))
+            Nil)))
+      (mkNodeId (2))
+      (mkTree (mkNode D) Nil))
+   ((mkTree (mkNode AND)
+      (Cons (mkTree (mkNode A) Nil)
+        (Cons (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode B) Nil)
+                  (Cons (mkTree (mkNode C) Nil)
+                    (Cons (mkTree (mkNode D) Nil)
+                      Nil))))
+          Nil)))
+    (mkNodeId (2 3))))
+
 ;; Testcases for logicalSubtreeKnob
+;; Testcase 1: When the subtree isn't found in the target's children list
 !(assertEqual
   (logicalSubtreeKnob
     (mkTree (mkNode AND)
@@ -163,6 +185,7 @@
       (mkMultip 3))
     (mkTree (mkNode D) Nil)))
 
+;; Testcase 2: When the subtree is found in the target's children list
 !(assertEqual
   (logicalSubtreeKnob
     (mkTree (mkNode OR)
@@ -186,3 +209,27 @@
       Nil)
     (mkTree (mkNode Y) Nil)))
 
+;; Testcase 3: When the negation of the subtree is found in the target's children list
+!(assertEqual
+  (logicalSubtreeKnob
+    (mkTree (mkNode AND)
+      (Cons (mkTree (mkNode A) Nil)
+        (Cons (mkNullVex
+                (Cons (mkTree (mkNode NOT)
+                        (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
+    (mkNodeId (2))
+    (mkTree (mkNode B) Nil))
+  (mkLSK
+    (mkDiscKnob
+      (mkKnob
+        (mkTree (mkNode AND)
+          (Cons (mkTree (mkNode A) Nil)
+            (Cons (mkNullVex
+                    (Cons (mkTree (mkNode NOT)
+                            (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
+        (mkNodeId (2 1)))
+      (mkMultip 3)
+      (mkDiscSpec 1)
+      (mkDiscSpec 1)
+      Nil)
+    (mkTree (mkNode B) Nil)))
