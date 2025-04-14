@@ -74,3 +74,15 @@
 ;; Overloading the above List.max with the built in >= comparison operator for operation on List of numbers
 (: List.max (-> (List $a) $a))
 (= (List.max (Cons $x $xs)) (List.max >= (Cons $x $xs)))
+
+;; Checks if an element is member of a list
+(: List.contains (-> $a (List $a) Bool))
+(= (List.contains $a Nil) False)
+(= (List.contains $a (Cons $head $tail)) (if (== $a $head) True (List.contains $a $tail)))
+
+; Replaces an element at a specific index with another element
+(: List.replaceAt (-> (List $a) Number $a (List $a)))
+(= (List.replaceAt Nil $n $elem) Nil)
+(= (List.replaceAt (Cons $head $tail) $n $elem) 
+   (if (== $n 0) (Cons $elem $tail) (Cons $head (List.replaceAt $tail (- $n 1) $elem))))  
+

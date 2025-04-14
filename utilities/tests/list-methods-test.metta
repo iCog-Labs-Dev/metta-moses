@@ -61,3 +61,13 @@
 !(assertEqual (List.max >= (Cons 2 (Cons 5 (Cons 1 Nil)))) 5)
 !(assertEqual (List.max >= (Cons 42 Nil)) 42)
 !(assertEqual (List.max >>= (Cons (mkSize 1) (Cons (mkSize 3) (Cons (mkSize 2) Nil)))) (mkSize 3))
+
+;; Test cases for List.contains
+!(assertEqual (List.contains 2 (Cons 1 (Cons 2 (Cons 3 Nil)))) True)
+!(assertEqual (List.contains 4 (Cons 1 (Cons 2 (Cons 3 Nil)))) False)
+!(assertEqual (List.contains 1 Nil) False)
+
+;; Test cases for List.replaceAt
+!(assertEqual (List.replaceAt (Cons 1 (Cons 2 (Cons 3 Nil))) 0 9) (Cons 9 (Cons 2 (Cons 3 Nil))))
+!(assertEqual (List.replaceAt (Cons 1 (Cons 2 (Cons 3 Nil))) 1 9) (Cons 1 (Cons 9 (Cons 3 Nil))))
+!(assertEqual (List.replaceAt Nil 0 5) Nil)
