@@ -10,7 +10,7 @@
 ;;   NodeId - The NodeId of the Subtree
 (: getSubtreeId (-> (Tree $a) NodeId (Tree $a) Number NodeId))                      
 (= (getSubtreeId $tree (mkNodeId $targetId) $subtree $iter)  
-(let $targetNode (findNodeById $tree (mkNodeId $targetId)) 
+(let $targetNode (getNodeById $tree (mkNodeId $targetId)) 
   (case $targetNode
   (
     ((mkTree (mkNode $tgt) $childrenTgt)
@@ -34,7 +34,7 @@
 ;;   (List (Tree $a)) - The list of children of the target node.
 (: getChildrenById (-> (Tree $a) NodeId (List (Tree $a))))
 (= (getChildrenById $tree (mkNodeId $id))
-   (let $targetNode (findNodeById $tree (mkNodeId $id))
+   (let $targetNode (getNodeById $tree (mkNodeId $id))
      (case $targetNode
        (
          ((mkTree (mkNode $r) $childrenTgt) $childrenTgt)
@@ -102,7 +102,7 @@
 (= (appendChild $tree (mkNodeId $target) $child)
    (let*
      (
-       ($targetNode (findNodeById $tree (mkNodeId $target)))
+       ($targetNode (getNodeById $tree (mkNodeId $target)))
      )
      (case $targetNode
        (
@@ -137,10 +137,10 @@
     ($reducedSubtree $negatedSubtree)
     ($childrenOfTarget (getChildrenById $tree (mkNodeId $target)))
    )
-   (if (List.isMember $subtree $childrenOfTarget) 
+   (if (List.contains $subtree $childrenOfTarget) 
        (let $idOfSubtree (getSubtreeId $tree (mkNodeId $target) $subtree 0) 
            (mkLSK (mkDiscKnob (mkKnob $tree $idOfSubtree) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil) $subtree))
-       (if (List.isMember $reducedSubtree $childrenOfTarget)
+       (if (List.contains $reducedSubtree $childrenOfTarget)
            (let $idOfReducedSubtree (getSubtreeId $tree (mkNodeId $target) $reducedSubtree 0) 
                 (mkLSK (mkDiscKnob (mkKnob $tree $idOfReducedSubtree) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil) $subtree))
            (let*
