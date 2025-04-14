@@ -76,9 +76,9 @@
 (= (List.max (Cons $x $xs)) (List.max >= (Cons $x $xs)))
 
 ;; Checks if an element is member of a list
-(: List.isMember (-> $a (List $a) Bool))
-(= (List.isMember $a Nil) False)
-(= (List.isMember $a (Cons $head $tail)) (if (== $a $head) True (List.isMember $a $tail)))
+(: List.contains (-> $a (List $a) Bool))
+(= (List.contains $a Nil) False)
+(= (List.contains $a (Cons $head $tail)) (if (== $a $head) True (List.contains $a $tail)))
 
 ; Replaces an element at a specific index with another element
 (: List.replaceAt (-> (List $a) Number $a (List $a)))
