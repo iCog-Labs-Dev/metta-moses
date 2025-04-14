@@ -1,6 +1,6 @@
 from typing import Union, List
 from ..DataStructures.Trees import BinaryExpressionTreeNode, NodeType, TreeNode
-
+import re
 
 def print_constraint_tree(node: TreeNode, level=0, side=""):
     constraint = ""
@@ -265,34 +265,70 @@ def setDifference(list1: List[TreeNode], list2: List[TreeNode]) -> List[TreeNode
     )  # if there is no similarity either in constraint or value
     # we add that element and go to the next elelement of list1
 
-def get_constraint(node: TreeNode) -> str:
-    if node.type not in ["AND", "OR"]:
-        constraint = "+" if node.constraint else "-"
-        return f"{constraint}{node.value}"
-    else:
-        return node.value
 
-def get_constraint_tree(node: TreeNode, level=0, side="") -> str:
-    if node is None:
-        return ""
+## accepts constraint tree node and returns metta boolean expression
+def constraint_tree_to_metta_expr(node) -> str:
+    def parse_guard(guard):
+        sign = "+" if guard.constraint else "-"
+        name = guard.value.upper()
+        return name if sign == "+" else f"(NOT {name})"
 
-    lines = []
-    indent = "    " * level
-    label = f"[{side}{level}]"
+    def recurse(node):
+        if node is None:
+            return ""
 
-    if node.type == NodeType.AND:
-        guard_strs = [get_constraint(g) for g in node.guardSet]
-        guards = " ".join(guard_strs) # Changed from ", ".join(guard_strs)
-        lines.append(f"{indent}{label} AND[{guards}]")
-    else:
-        constraint = ""
-        if node.value not in ["AND", "OR"]:
-            constraint = "+" if node.constraint else "-"
-        lines.append(f"{indent}{label} {constraint}{node.value}")
+        if node.type == NodeType.AND:
+            guard_exprs = [parse_guard(g) for g in node.guardSet]
+            child_exprs = [recurse(child) for child in node.children]
+            args = guard_exprs + child_exprs
+            return f"(AND {' '.join(args)})"
+        
+        elif node.type == NodeType.OR:
+            child_exprs = [recurse(child) for child in node.children]
+            return f"(OR {' '.join(child_exprs)})"
 
-    for child in node.children:
-        child_str = get_constraint_tree(child, level + 1, "CHL")
-        if child_str:
-            lines.append(child_str)
+        else:
+            name = node.value.upper()
+            return name if node.constraint else f"(NOT {name})"
 
-    return "\n".join(lines)
+    return recurse(node)
+
+
+
+## accepts Metta boolean expression and returns equivalent binary enf expression
+## e.g 
+##      (OR A B C D) -->  "|(a,|(b,|(c,d)))
+def parse_metta_expression(expr: str) -> str:
+    def parse_tokens(tokens: list[str]) -> str:
+        token = tokens.pop(0)
+
+        if token != '(':
+            return token.lower()
+
+        op = tokens.pop(0).upper()
+
+        if op == 'NOT':
+            sub_expr = parse_tokens(tokens)
+            assert tokens.pop(0) == ')'
+            return f"!({sub_expr})"
+
+        elif op in ('AND', 'OR'):
+            symbol = '&' if op == 'AND' else '|'
+            args = []
+            while tokens[0] != ')':
+                args.append(parse_tokens(tokens))
+            tokens.pop(0)  # remove ')'
+
+            # Convert to binary expression by right-associating
+            def to_binary(args):
+                if len(args) == 1:
+                    return args[0]
+                return f"{symbol}({args[0]},{to_binary(args[1:])})"
+            
+            return to_binary(args)
+
+        else:
+            raise ValueError(f"Unknown operator: {op}")
+
+    tokens = re.findall(r'\(|\)|[A-Za-z]+', expr)
+    return parse_tokens(tokens)

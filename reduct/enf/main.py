@@ -5,11 +5,11 @@ from hyperon.ext import register_atoms
 
 from .DataStructures.Trees import TreeNode, BinaryExpressionTreeNode, NodeType
 from .Utilities.BuildTree import BuildTree
-from .Utilities.HelperFunctions import print_constraint_tree, get_constraint_tree
+from .Utilities.HelperFunctions import constraint_tree_to_metta_expr, parse_metta_expression
 from .Utilities.PropagateTruthValue import propagateTruthValue
 from .Utilities.GatherJunctors import gatherJunctors
 from .Utilities.ReduceToElegance import *
-from .Utilities.parser import *
+
 
 def reduce (metta: MeTTa, expr):
     expr = str(expr)
@@ -56,8 +56,9 @@ def reduce (metta: MeTTa, expr):
         # print("constraint Tree after reduction")
         # print_constraint_tree(constraintTree)
 
-        result = get_constraint_tree(constraintTree)
-        return metta.parse_all(parse_constraint_tree (result))
+        print(constraint_tree_to_metta_expr(constraintTree))
+        return metta.parse_all(constraint_tree_to_metta_expr(constraintTree))
+        # return metta.parse_all(parse_constraint_tree (result))
     
     return metta.parse_all(expr)
 
