@@ -55,10 +55,9 @@ def reduce (metta: MeTTa, expr):
     if constraintTree:
         # print("constraint Tree after reduction")
         # print_constraint_tree(constraintTree)
-
-        print(constraint_tree_to_metta_expr(constraintTree))
+        
         return metta.parse_all(constraint_tree_to_metta_expr(constraintTree))
-        # return metta.parse_all(parse_constraint_tree (result))
+        
     
     return metta.parse_all(expr)
 
