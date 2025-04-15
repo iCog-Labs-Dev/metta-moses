@@ -5,23 +5,20 @@
 ;;   (mkNodeId $targetId): ID of the target node in the exemplar.
 ;;   $perms: Tuple of expressions returns from the sampleLogicalPerms.
 ;;   $addIfInExemplar: If true, include knobs even if in exemplar.
-;;   $knobs: Accumulator tuple of mkLSK values (e.g., ((mkLSK ...) (mkLSK ...))).
 
-;; Return: Accumulated mkLSK values.
+;; Return: LSKs
 
-(: logicalProbe (-> (Tree $a) NodeId Expression Bool Expression Expression))
-(= (logicalProbe $exemplar (mkNodeId $targetId) () $addIfInExemplar $knobs) $knobs)
-(= (logicalProbe $exemplar (mkNodeId $targetId) $perms $addIfInExemplar $knobs)
+(: logicalProbe (-> (Tree $a) NodeId Expression Bool Expression))
+(= (logicalProbe $exemplar (mkNodeId $targetId) () $addIfInExemplar) ())
+(= (logicalProbe $exemplar (mkNodeId $targetId) $perms $addIfInExemplar)
+(collapse
 (let*
 (
-    (($head $tail) (decons-atom $perms))
-    ($headToTree (buildTree $head))
-    ($lsk (logicalSubtreeKnob $exemplar (mkNodeId $targetId) $headToTree))
+    ($perm (superpose $perms))
+    ($permToTree (buildTree $perm))
+    ($lsk (logicalSubtreeKnob $exemplar (mkNodeId $targetId) $permToTree))
     ($discKnob (getDiscKnob $lsk))
 )
 (if (or $addIfInExemplar (not (inExemplar $discKnob)))
-    (if (== $tail ()) 
-        (union-atom $knobs ($lsk))
-        (let $knobsList (union-atom $knobs ($lsk)) (logicalProbe $exemplar (mkNodeId $targetId) $tail $addIfInExemplar $knobsList))
-    )
-    (logicalProbe $exemplar (mkNodeId $targetId) $tail $addIfInExemplar $knobs))))
+    $lsk
+    (empty)))))
