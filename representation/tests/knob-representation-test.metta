@@ -25,5 +25,12 @@
 ! (assertEqual (let $type (get-type (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode A) Nil))) $type) LogicalSubtreeKnob)
 ! (assertEqual (let $type (get-type (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2)) (mkTree (mkNode A) Nil))) $type) LogicalSubtreeKnob)
 
+;; inExemplar tests
+!(assertEqual (inExemplar (mkDiscKnob $knob $multiplicity (mkDiscSpec 0) (mkDiscSpec 1) Nil)) True)
+!(assertEqual (inExemplar (mkDiscKnob $knob $multiplicity)) False)
 
-
+;; getDiscKnob Tests
+!(assertEqual (getDiscKnob (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode A) Nil)))
+  (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))
+!(assertEqual (getDiscKnob (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2)) (mkTree (mkNode A) Nil)))
+  (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))
