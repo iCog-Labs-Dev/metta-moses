@@ -9,7 +9,6 @@
 ;; Return: LSKs
 
 (: logicalProbe (-> (Tree $a) NodeId Expression Bool Expression))
-(= (logicalProbe $exemplar (mkNodeId $targetId) () $addIfInExemplar) ())
 (= (logicalProbe $exemplar (mkNodeId $targetId) $perms $addIfInExemplar)
 (collapse
 (let*
