@@ -27,3 +27,18 @@
        ;Subtree: represents a portion of the tree that will be controlled by the knob
 (: LogicalSubtreeKnob Type)
 (: mkLSK (-> DiscreteKnob (Tree $a) LogicalSubtreeKnob))
+
+;; Checks if a DiscreteKnob is considered part of the exemplar based on its default specifier.
+;; Params:
+;;   $discKnob: DiscreteKnob
+;; Return: True if the default specifier is non-zero (not in exemplar), False otherwise.
+(: inExemplar (-> DiscreteKnob Bool))
+(= (inExemplar (mkDiscKnob $knob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis)) 
+   (not (== $def 0)))
+
+;; Extracts the DiscreteKnob component from a LogicalSubtreeKnob (mkLSK).
+;; Params:
+;;   $lsk: LogicalSubtreeKnob
+;; Return: The extracted DiscKnob
+(: getDiscKnob (-> LogicalSubtreeKnob DiscreteKnob)) 
+(= (getDiscKnob (mkLSK $DiscKnob $Subtree)) $DiscKnob)
