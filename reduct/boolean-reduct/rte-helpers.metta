@@ -15,9 +15,11 @@
 ;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 (= (getGuardSet $exp)
   (if (isSymbol $exp) (filterLiterals $exp)
-    (if (== (car-atom $exp) OR)
-        ()
-        (getLiterals $exp))))
+    (if (== $exp ()) ; added is empty checks
+      ()
+      (if (== (car-atom $exp) OR)
+          ()
+          (getLiterals $exp)))))
 
 ;; A function similar to the getGuardSet function but returns a
 ;;    non deterministic list instead of a collapsed atom.
