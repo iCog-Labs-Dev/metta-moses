@@ -30,6 +30,15 @@
             (mkTree (mkNode $expr) Nil))
             )
 
+(: cleanTree (-> (Tree $a) (Tree $a)))
+(= (cleanTree (mkTree (mkNode $r) (Cons $x $xs)))
+    (let*
+        (
+          ($preordered (preOrder (mkTree (mkNode $r) (Cons $x $xs))))
+          ($reduced (REDUCE $preordered))
+        )
+        (buildTree $reduced)))
+
 ;; Finds the NodeId of a subtree within the children of a target node.
 ;; Params:
 ;;   $tree: - The full tree to search.
