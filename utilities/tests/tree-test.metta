@@ -5,7 +5,10 @@
 ! (import! &self metta-moses:utilities:tree)
 ! (import! &self metta-moses:utilities:nodeId)
 ! (import! &self metta-moses:utilities:general-helpers)
+! (import! &self metta-moses:reduct:enf)
 
+;; Helper function for clean tree
+(= (REDUCE $expr) (reduce $expr))
 !(bind! tree1 (mkTree (mkNode AND)
                 (Cons (mkTree (mkNode A) Nil)
                 (Cons (mkTree (mkNode OR)
@@ -54,6 +57,31 @@
 
 !(assertEqual (preOrder tree1) (AND A (OR B C)))
 !(assertEqual (preOrder tree2) (AND A (OR B C)))
+
+!(assertEqual (cleanTree (mkTree (mkNode AND)
+                            (Cons (mkTree (mkNode OR)
+                                (Cons (mkTree (mkNode A) Nil)
+                                (Cons (mkTree (mkNode B) Nil) Nil))) 
+                                (Cons (mkTree (mkNode A) Nil) Nil)))
+                          )
+                            (mkTree (mkNode AND) 
+                              (Cons (mkTree (mkNode A) Nil) Nil)))
+!(assertEqual (cleanTree (mkTree (mkNode AND) 
+                            (Cons (mkTree (mkNode OR) 
+                              (Cons (mkTree (mkNode A) Nil) 
+                              (Cons (mkTree (mkNode B) Nil) Nil)))
+                            (Cons (mkTree (mkNode NOT) 
+                              (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))
+                          )
+                            (mkTree (mkNode AND) 
+                              (Cons (mkTree (mkNode NOT) 
+                                (Cons (mkTree (mkNode A) Nil) Nil))
+                                (Cons (mkTree (mkNode B) Nil) Nil))))
+!(assertEqual (cleanTree (buildTree (AND (OR A B) (NOT A) (NOT B)))) (buildTree (AND (NOT A) (NOT B) (OR))))
+!(assertEqual (cleanTree (buildTree (AND A B (NOT A)))) (buildTree (AND)))
+!(assertEqual (cleanTree (buildTree (OR (AND A B (NOT A) B)))) (buildTree (AND)))
+!(assertEqual (cleanTree (buildTree (OR A (AND B C)))) (buildTree (AND (OR (AND A) (AND B C)))))
+!(assertEqual (cleanTree (buildTree (OR A B C D))) (buildTree (AND (OR (AND A) (AND B) (AND C) (AND D)))))
 
 (: A Bool)
 

@@ -40,6 +40,22 @@
 ! (assertEqual (MultiMap.checkValue d (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d) NilMMap))))) True)
 ! (assertEqual (MultiMap.checkValue f (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) False)
 
+;; Testcase for Map.values
+! (assertEqual (MultiMap.values (ConsMultiMap (1 a) (ConsMultiMap (2 b) (ConsMultiMap (3 c) NilMMap)))) (a b c))
+! (assertEqual (MultiMap.values (ConsMultiMap (1 a) (ConsMultiMap (2 b) (ConsMultiMap (3 c) (ConsMultiMap (4 d)(ConsMultiMap (5 e) (ConsMultiMap (6 f) (ConsMultiMap (7 g) (ConsMultiMap (8 h) (ConsMultiMap (9 i) NilMMap)))))))))) (a b c d e f g h i))
+! (assertEqual (MultiMap.values NilMMap) ())
+
+;; Testcase for MultiMap.keys
+! (assertEqual (MultiMap.keys (ConsMultiMap (1 a) (ConsMultiMap (2 b) (ConsMultiMap (3 c) NilMMap)))) (1 2 3))
+! (assertEqual (MultiMap.keys (ConsMultiMap (1 a) (ConsMultiMap (2 b) (ConsMultiMap (3 c) (ConsMultiMap (4 d)(ConsMultiMap (5 e) (ConsMultiMap (6 f) (ConsMultiMap (7 g) (ConsMultiMap (8 h) (ConsMultiMap (9 i) NilMMap)))))))))) (1 2 3 4 5 6 7 8 9))
+! (assertEqual (MultiMap.keys NilMMap) ())
+
+;; Testcase for MultiMap.items
+! (assertEqual (MultiMap.items (ConsMultiMap (1 a) (ConsMultiMap (2 b) (ConsMultiMap (3 c) NilMMap)))) ((1 a) (2 b) (3 c)))
+! (assertEqual (MultiMap.items (ConsMultiMap (1 a) (ConsMultiMap (2 b) (ConsMultiMap (3 c) (ConsMultiMap (4 d)(ConsMultiMap (5 e) (ConsMultiMap (6 f) (ConsMultiMap (7 g) (ConsMultiMap (8 h) (ConsMultiMap (9 i) NilMMap)))))))))) ((1 a) (2 b) (3 c) (4 d) (5 e) (6 f) (7 g) (8 h) (9 i)))
+! (assertEqual (MultiMap.items NilMMap) ())
+
+
 ;; Testcase for MultiMap.length
 ! (assertEqual (MultiMap.length (ConsMMap (3 c) NilMMap)) 1)
 ! (assertEqual (MultiMap.length (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) 3)
