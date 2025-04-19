@@ -34,3 +34,21 @@
   (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))
 !(assertEqual (getDiscKnob (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2)) (mkTree (mkNode A) Nil)))
   (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))
+
+;; getTree Tests
+!(assertEqual (getTree (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode A) Nil)))
+  (mkTree (mkNode A) Nil))
+!(assertEqual (getTree (mkLSK 
+       (mkDiscKnob 
+       (mkKnob (mkTree (mkNode AND) 
+                       (Cons (mkTree (mkNode A) 
+                             (Cons (mkNullVex (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) 
+                                              (Cons (mkTree (mkNode B) Nil) Nil))) 
+               (mkNodeId (1 1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) 
+       (mkTree (mkNode D) Nil)) )
+  (mkTree (mkNode AND) 
+                       (Cons (mkTree (mkNode A) 
+                             (Cons (mkNullVex (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) 
+                                              (Cons (mkTree (mkNode B) Nil) Nil))))
+
+

@@ -42,3 +42,10 @@
 ;; Return: The extracted DiscKnob
 (: getDiscKnob (-> LogicalSubtreeKnob DiscreteKnob)) 
 (= (getDiscKnob (mkLSK $DiscKnob $Subtree)) $DiscKnob)
+
+;; Extracts the Tree component from a LogicalSubtreeKnob (mkLSK).
+;; Params:
+;;   $lsk: LogicalSubtreeKnob
+;; Return: The extracted Tree
+(: getTree LogicalSubtreeKnob (Tree $a))
+(= (getTree (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multip $curr $def $dis) $sub)) $tree)
