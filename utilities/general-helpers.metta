@@ -73,7 +73,8 @@
     ;;     (() (println! (Result ==> (collapse (replace $old $new (superpose $list))))))
     ;;     (() (println! ""))
     ;;   )
-      (collapse (replace $old $new (superpose $list)))
+    ;   (collapse (replace $old $new (superpose $list)))
+      (reverseExp (collapse (replace $old $new (superpose $list))) ())
     ;; )
 )
 
