@@ -40,22 +40,22 @@
     (if (== $key $curKey) $tail (ConsMap ($curKey $curVal) (Map.remove $key $tail))))
 
 ;; Get the all the values from the map
-(: Map.values (-> (Map ($v $v)) Expression))
-(= (Map.values NilMap) ())
+(: Map.values (-> (Map ($k $v)) (List $v)))
+(= (Map.values NilMap) Nil)
 (= (Map.values (ConsMap ($key $value) $tail))
-    (let $rest (Map.values $tail) (cons-atom $value $rest)))
+    (Cons $value (Map.values $tail)))
 
 ;; Get the all the keys from the map
-(: Map.keys (-> (Map ($v $v)) Expression))
-(= (Map.keys NilMap) ())
+(: Map.keys (-> (Map ($k $v)) (List $k)))
+(= (Map.keys NilMap) Nil)
 (= (Map.keys (ConsMap ($key $value) $tail))
-    (let $rest (Map.keys $tail) (cons-atom $key $rest)))
+    (Cons $key (Map.keys $tail)))
 
 ;; Get the all the key value pairs from the map
-(: Map.items (-> (Map ($v $v)) Expression))
-(= (Map.items NilMap) ())
+(: Map.items (-> (Map ($k $v)) (List ($k $v))))
+(= (Map.items NilMap) Nil)
 (= (Map.items (ConsMap $pair $tail))
-    (let $rest (Map.items $tail) (cons-atom $pair $rest)))
+    (Cons $pair (Map.items $tail)))
 
 ;; Get the length of the map
 (: Map.length (-> (Map ($k $v)) Number))

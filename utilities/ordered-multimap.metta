@@ -56,22 +56,22 @@
 
 
 ;; Get the all the values from the map
-(: MultiMap.values (-> (MultiMap ($v $v)) Expression))
-(= (MultiMap.values NilMMap) ())
-(= (MultiMap.values (ConsMultiMap ($key $value) $tail))
-    (let $rest (MultiMap.values $tail) (cons-atom $value $rest)))
+(: MultiMap.values (-> (MultiMap ($k $v)) (List $v)))
+(= (MultiMap.values NilMMap) Nil)
+(= (MultiMap.values (ConsMMap ($key $value) $tail))
+    (Cons $value (MultiMap.values $tail)))
 
 ;; Get the all the keys from the MultiMap
-(: MultiMap.keys (-> (MultiMap ($v $v)) Expression))
-(= (MultiMap.keys NilMMap) ())
-(= (MultiMap.keys (ConsMultiMap ($key $value) $tail))
-    (let $rest (MultiMap.keys $tail) (cons-atom $key $rest)))
+(: MultiMap.keys (-> (MultiMap ($k $v)) (List $k)))
+(= (MultiMap.keys NilMMap) Nil)
+(= (MultiMap.keys (ConsMMap ($key $value) $tail))
+    (Cons $key (MultiMap.keys $tail)))
 
 ;; Get the all the key value pairs from the MultiMap
-(: MultiMap.items (-> (MultiMap ($v $v)) Expression))
-(= (MultiMap.items NilMMap) ())
-(= (MultiMap.items (ConsMultiMap $pair $tail))
-    (let $rest (MultiMap.items $tail) (cons-atom $pair $rest)))
+(: MultiMap.items (-> (MultiMap ($k $v)) (List ($k $v))))
+(= (MultiMap.items NilMMap) Nil)
+(= (MultiMap.items (ConsMMap $pair $tail))
+    (Cons $pair (MultiMap.items $tail)))
 
 
 ;; Get the length of the Ordered multimap

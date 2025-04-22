@@ -31,10 +31,10 @@
             )
 
 (: cleanTree (-> (Tree $a) (Tree $a)))
-(= (cleanTree (mkTree (mkNode $r) (Cons $x $xs)))
+(= (cleanTree $tree)
     (let*
         (
-          ($preordered (preOrder (mkTree (mkNode $r) (Cons $x $xs))))
+          ($preordered (preOrder $tree))
           ($reduced (REDUCE $preordered))
         )
         (buildTree $reduced)))

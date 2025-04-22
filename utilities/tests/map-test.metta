@@ -28,20 +28,20 @@
 ! (assertEqual (Map.getByKey 3 (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) NilMap)))) c)
 ! (assertEqual (Map.getByKey 10 (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) (ConsMap (4 d)(ConsMap (5 e) (ConsMap (6 f) (ConsMap (7 g) (ConsMap (8 h) (ConsMap (9 i) NilMap)))))))))) (Error 10 "not found"))
 
-;; Testcase for Map.values
-! (assertEqual (Map.values (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) NilMap)))) (a b c))
-! (assertEqual (Map.values (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) (ConsMap (4 d)(ConsMap (5 e) (ConsMap (6 f) (ConsMap (7 g) (ConsMap (8 h) (ConsMap (9 i) NilMap)))))))))) (a b c d e f g h i))
-! (assertEqual (Map.values NilMap) ())
-
 ;; Testcase for Map.keys
-! (assertEqual (Map.keys (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) NilMap)))) (1 2 3))
-! (assertEqual (Map.keys (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) (ConsMap (4 d)(ConsMap (5 e) (ConsMap (6 f) (ConsMap (7 g) (ConsMap (8 h) (ConsMap (9 i) NilMap)))))))))) (1 2 3 4 5 6 7 8 9))
-! (assertEqual (Map.keys NilMap) ())
+! (assertEqual (Map.keys (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) NilMap)))) (Cons 1 (Cons 2 (Cons 3 Nil))))
+! (assertEqual (Map.keys (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) (ConsMap (4 d)(ConsMap (5 e) (ConsMap (6 f) (ConsMap (7 g) (ConsMap (8 h) (ConsMap (9 i) NilMap)))))))))) (Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 (Cons 6 (Cons 7 (Cons 8 (Cons 9 Nil))))))))))
+! (assertEqual (Map.keys NilMap) Nil)
+
+;; Testcase for Map.values
+! (assertEqual (Map.values (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) NilMap)))) (Cons a (Cons b (Cons c Nil))))
+! (assertEqual (Map.values (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) (ConsMap (4 d)(ConsMap (5 e) (ConsMap (6 f) (ConsMap (7 g) (ConsMap (8 h) (ConsMap (9 i) NilMap)))))))))) (Cons a (Cons b (Cons c (Cons d (Cons e (Cons f (Cons g (Cons h (Cons i Nil))))))))))
+! (assertEqual (Map.values NilMap) Nil)
 
 ;; Testcase for Map.items
-! (assertEqual (Map.items (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) NilMap)))) ((1 a) (2 b) (3 c)))
-! (assertEqual (Map.items (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) (ConsMap (4 d)(ConsMap (5 e) (ConsMap (6 f) (ConsMap (7 g) (ConsMap (8 h) (ConsMap (9 i) NilMap)))))))))) ((1 a) (2 b) (3 c) (4 d) (5 e) (6 f) (7 g) (8 h) (9 i)))
-! (assertEqual (Map.items NilMap) ())
+! (assertEqual (Map.items (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) NilMap)))) (Cons (1 a) (Cons (2 b) (Cons (3 c) Nil))))
+! (assertEqual (Map.items (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) (ConsMap (4 d)(ConsMap (5 e) (ConsMap (6 f) (ConsMap (7 g) (ConsMap (8 h) (ConsMap (9 i) NilMap)))))))))) (Cons (1 a) (Cons (2 b) (Cons (3 c) (Cons (4 d) (Cons (5 e) (Cons (6 f) (Cons (7 g) (Cons (8 h) (Cons (9 i) Nil))))))))))
+! (assertEqual (Map.items NilMap) Nil)
 
 ;; Testcase for Map.length
 ! (assertEqual (Map.length (ConsMap (3 c) NilMap)) 1)
