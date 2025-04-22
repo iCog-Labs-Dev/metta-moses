@@ -44,3 +44,13 @@
 ! (assertEqual (MultiMap.length (ConsMMap (3 c) NilMMap)) 1)
 ! (assertEqual (MultiMap.length (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) 3)
 ! (assertEqual (MultiMap.length (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d)(ConsMMap (5 e) (ConsMMap (6 f) (ConsMMap (7 g) (ConsMMap (8 h) (ConsMMap (9 i) NilMMap)))))))))) 9)
+
+;; Testcase for MultiMap.checkElement
+!(assertEqual (MultiMap.checkElement (1 a) (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) True)
+!(assertEqual (MultiMap.checkElement (3 a) (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) False)
+
+;; Testcase for MultiMap.equals
+!(assertEqual (MultiMap.equals (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))
+(ConsMMap (2 b) (ConsMMap (1 a) (ConsMMap (3 c) NilMMap)))) True)
+!(assertEqual (MultiMap.equals (ConsMMap (1 b) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))
+(ConsMMap (2 b) (ConsMMap (1 a) (ConsMMap (3 c) NilMMap)))) False)
