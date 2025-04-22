@@ -1,6 +1,6 @@
 
 ;; sampled arguments (inputs)
-!(bind! args (A B C D E F))
+!(bind! args (A B))
 
 ;; helper function to swap operators
 (: swapAndOr (-> Atom Atom))
