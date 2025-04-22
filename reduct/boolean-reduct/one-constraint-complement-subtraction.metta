@@ -22,10 +22,11 @@
             ($invertedCom (invertLiterals $com))
             ($commonElements (collapse (intersection (superpose $poaGuardSet) (superpose $invertedCom))))
         )
-         (collapse (let $el (superpose $parent)
-            (if (=== $el $poa)
-                (collapse (subtraction (superpose $poa) (superpose $commonElements)))
-                $el)))))
+         (reverseExp (collapse (let $el (superpose $parent)
+            (if (isSymbol $el) $el
+                (if (=== $el $poa)
+                    (reverseExp (removeElement $commonElements $poa) ())
+                    $el)))) ())))
 
 ;; Name:                        invertLiterals
 ;; Description:                 A helper function that negates all literals in a literal only expression.
