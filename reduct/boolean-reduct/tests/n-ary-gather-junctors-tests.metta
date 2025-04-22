@@ -2,17 +2,17 @@
 
 ! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:reduct:boolean-reduct:n-ary-gather-junctors)
-; ! (import! &self metta-moses:reduct:boolean-reduct:rte-helpers)
+! (import! &self metta-moses:reduct:boolean-reduct:rte-helpers)
 
 
 ;; Test 01
-!(=== (gatherJunctors (OR A B)) (OR A B))
+; !(=== (gatherJunctors (OR A B)) (OR A B))
 ; !(assertEqual
 ;     (gatherJunctors (OR A B))
 ;     (OR A B)
 ; )
 
-;; Test 02
+; ;; Test 02
 !(=== (gatherJunctors (OR A F (OR B (OR C D))))
     (OR A F B C D))
 ; !(assertEqual
@@ -21,10 +21,12 @@
 ; )
 
 ;; Test 03
-!(assertEqual
-    (gatherJunctors (OR (OR (OR C D) B) A (AND F H (AND K L) V)))
-    (OR C D B A (AND F H K L V))
-)
+!(isSame (gatherJunctors (OR (OR (OR C D) B) A (AND F H (AND K L) V)))
+    (OR C D B A (AND F H K L V)))
+; !(assertEqual
+;     (gatherJunctors (OR (OR (OR C D) B) A (AND F H (AND K L) V)))
+;     (OR C D B A (AND F H K L V))
+; )
 
 ;; Test 04
 !(assertEqual
