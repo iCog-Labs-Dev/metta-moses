@@ -105,8 +105,8 @@
 (= (foldr $f $i $xs)
    (if (== $xs ())
        $i
-       (let* (($h  (if (isSymbol $xs) $xs (car-atom $xs))) ; added isSymbol checks not to encounter any errors
-              ($t (if (isSymbol $xs) () (cdr-atom $xs))) ; added isSymbol checks not to encounter any errors
+       (let* (($h  (car-atom $xs)) ; added isSymbol checks not to encounter any errors
+              ($t (cdr-atom $xs)) ; added isSymbol checks not to encounter any errors
               ($ft (foldr $f $i $t)))
          ($f $h $ft))))
 
@@ -512,7 +512,8 @@
     (let*
       (
         (($h $t) (decons-atom $exp))
-        ($s (if (isSymbol $h) (cons-atom $h $i) (++ ($h) $i)))
+        ; ($s (if (isSymbol $h) (cons-atom $h $i) (++ ($h) $i)))
+        ($s (cons-atom $h $i))
       )
       (reverseExp $t $s)
     )
