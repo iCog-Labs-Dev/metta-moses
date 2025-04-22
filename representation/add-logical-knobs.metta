@@ -5,7 +5,7 @@
 ;;   (mkNodeId $targetId): ID of the target node in the exemplar.
 ;;   $addIfInExemplar: If true, include knobs even if in exemplar.
 ;;   $map: a multimap to add the new knobs into
-;; Return: a tuple of ($knobSpec $knob) pair and the updated tree
+;; Return: a multimap of ($knobSpec $knob) and the updated tree
 
 ;; helper function to the addLogicalKnobs
 ;; takes a tuple of knobs and return a tuple of knob and knobSpec pairs

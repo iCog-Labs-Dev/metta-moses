@@ -59,7 +59,7 @@
 (= (MultiMap.length NilMMap) 0)
 (= (MultiMap.length (ConsMMap ($curKey $curVal) $tail)) (+ 1 (MultiMap.length $tail)))
 
-;; Check if an element in the Ordered multimap 
+;; Check if an element is found in the Ordered multimap 
 (: MultiMap.checkElement (-> ($k $v) (MultiMap ($k $v)) Bool))
 (= (MultiMap.checkElement $element NilMMap) False)
 (= (MultiMap.checkElement $element (ConsMMap $head $tail))

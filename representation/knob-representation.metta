@@ -50,6 +50,7 @@
 (: getTree LogicalSubtreeKnob (Tree $a))
 (= (getTree (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multip $curr $def $dis) $sub)) $tree)
 
+;; Calculates the knob Specification of an LSK
 (: getKnobSpec (-> LogicalSubtreeKnob DiscSpec))
 (= (getKnobSpec (mkLSK (mkDiscKnob $knob (mkMultip $multip) (mkDiscSpec $curr) (mkDiscSpec $def) $dis) $subtree))
 (mkDiscSpec (- $multip (List.length $dis))))
