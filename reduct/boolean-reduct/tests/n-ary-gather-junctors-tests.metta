@@ -6,27 +6,22 @@
 
 
 ;; Test 01
-; !(=== (gatherJunctors (OR A B)) (OR A B))
-; !(assertEqual
-;     (gatherJunctors (OR A B))
-;     (OR A B)
-; )
+!(assertEqual
+    (gatherJunctors (OR A B))
+    (OR A B)
+)
 
 ; ;; Test 02
-!(=== (gatherJunctors (OR A F (OR B (OR C D))))
-    (OR A F B C D))
-; !(assertEqual
-;     (gatherJunctors (OR A F (OR B (OR C D))) )
-;     (OR A F B C D)
-; )
+!(assertEqual
+    (gatherJunctors (OR A F (OR B (OR C D))) )
+    (OR A F B C D)
+)
 
 ;; Test 03
-!(isSame (gatherJunctors (OR (OR (OR C D) B) A (AND F H (AND K L) V)))
-    (OR C D B A (AND F H K L V)))
-; !(assertEqual
-;     (gatherJunctors (OR (OR (OR C D) B) A (AND F H (AND K L) V)))
-;     (OR C D B A (AND F H K L V))
-; )
+!(assertEqual
+    (gatherJunctors (OR (OR (OR C D) B) A (AND F H (AND K L) V)))
+    (OR C D B A (AND F H K L V))
+)
 
 ;; Test 04
 !(assertEqual
