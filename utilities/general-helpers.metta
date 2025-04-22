@@ -105,8 +105,8 @@
 (= (foldr $f $i $xs)
    (if (== $xs ())
        $i
-       (let* (($h (car-atom $xs))
-              ($t (cdr-atom $xs))
+       (let* (($h  (car-atom $xs)) ; added isSymbol checks not to encounter any errors
+              ($t (cdr-atom $xs)) ; added isSymbol checks not to encounter any errors
               ($ft (foldr $f $i $t)))
          ($f $h $ft))))
 
@@ -495,3 +495,24 @@
    (if (and (== (get-metatype $x) Symbol) (== (get-metatype $y) Symbol))
        (== $x $y)
        (== (collapse (union (subtraction (superpose $x) (superpose $y)) (subtraction (superpose $y) (superpose $x)))) ())))
+
+;; Name :                       reverseExp
+;; Description:                 A function to reverse a given expression. This is needed b/c
+;;                              new version of metta (0.2.3) is giving unpredicted order when
+;;                              using superpose.
+;;                              Eg: given ((AND E C) B A OR) => (OR A B (AND E C))
+;;                              NOTE: Must use collapse at the begining of your function call
+;; Usage: (collapse (reversExp ((AND E C) B A OR)))
+(= (reverseExp $exp $i)
+  (if (== $exp ())
+    $i
+    (let*
+      (
+        (($h $t) (decons-atom $exp))
+        ; ($s (if (isSymbol $h) (cons-atom $h $i) (++ ($h) $i)))
+        ($s (cons-atom $h $i))
+      )
+      (reverseExp $t $s)
+    )
+  )
+)
