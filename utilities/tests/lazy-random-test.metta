@@ -5,8 +5,8 @@
 
 ;;Test case for lazy-random selector
 ! (assertEqual (length (lazyRandomSelector 0 5 3)) 3)
-! (assertEqual (length (lazyRandomSelector 0 3 4)) 3)
+! (assertEqual (length (lazyRandomSelector 0 3 4)) 4)
 ! (assertEqual (length (lazyRandomSelector 0 5 5)) 5)
-! (assertEqual (length (lazyRandomSelector 0 1 6)) 1)
+! (assertEqual (length (lazyRandomSelector 0 1 6)) (Error break "number of elements to select is greater than list size"))
 
 
