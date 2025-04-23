@@ -55,3 +55,13 @@
 (: getKnobMultip (-> LogicalSubtreeKnob Multiplicity))
 (= (getKnobMultip (mkDiscKnob $knob $multiplicity $curr $def $disAll)) $multiplicity)
 (= (getKnobMultip (mkLSK $discKnob $subtree)) (getKnobMultip $discKnob))
+;; Calculates the knob Specification of an LSK
+(: getKnobSpec (-> LogicalSubtreeKnob DiscSpec))
+(= (getKnobSpec (mkLSK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis) $subtree))
+(mkDiscSpec (- $multip (List.length $dis))))
+
+;; A comparison function for discSpec 
+;; (used as a $compFunc to insert knobSpec and knob pairs into a multimap ) 
+(: discSpec<= (-> DiscSpec DiscSpec Bool))
+(= (discSpec<= (mkDiscSpec $newKey) (mkDiscSpec $currKey))
+(<= $newKey $currKey))
