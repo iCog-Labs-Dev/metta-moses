@@ -23,7 +23,7 @@
                 ($hstScr (List.max >>= $probs))
                 ;; get list of normalized ScoreT values
                 ($normalizedProbs (normalizeProbs INV_TEMP $hstScr $probs))
-                ($sum (List.sum adder $normalizedProbs)))
+                ($sum (List.sum add $normalizedProbs)))
 
                 (rouletteSelect $xmplrSet $probs $sum) )))))
 

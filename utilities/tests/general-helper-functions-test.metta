@@ -301,9 +301,7 @@
 
 ;; Test map`
 
-(= (add $x $y) (+ $x $y))
-
-!(assertEqual (map` add 2 (1 2 3 4 5)) (3 4 5 6 7))
+!(assertEqual (map` + 2 (1 2 3 4 5)) (3 4 5 6 7))
 !(assertEqual (map` notMember (1 2 3) (2 4 1 3)) (False True False False))
 
 ;; Test isValidExp
@@ -332,3 +330,7 @@
 !(assertEqual (let $a (first (1 2)) (get-type $a)) Number)
 !(assertEqual (let $a (second (1 2)) (get-type $a)) Number)
 !(assertEqual (let $a (first (second (1 (1 2)))) (get-type $a)) Number)
+
+;; Test the add Function for Numbers wrapped within constructors
+!(assertEqual (add (mkMultip 1) (mkMultip 2)) (mkMultip 3))
+!(assertEqual (add (mkMultip A) (mkMultip 1)) (Error (A or 1) "One of the argument is not a number"))
