@@ -12,8 +12,8 @@
 !(import! &self metta-moses:utilities:ordered-multimap) 
 (= (ARGS) args) 
 
-;; Testcase for the mkPair
-!(assertEqual (mkPair 
+;; Testcase for the pairKnobWithSpec
+!(assertEqual (pairKnobWithSpec
        ((mkLSK 
        (mkDiscKnob 
        (mkKnob (mkTree (mkNode AND) 
