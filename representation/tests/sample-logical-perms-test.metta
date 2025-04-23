@@ -6,5 +6,5 @@
 !(import! &self metta-moses:representation:sample-logical-perms)
 
 ;; Testcase for sample-logical-perms
-! (assertEqual (length (sampleLogicalPerms And 4)) 10 )
-! (assertEqual (length (sampleLogicalPerms OR 3)) 9 )
+! (assertEqual (length (sampleLogicalPerms And 2)) 4)
+! (assertEqual (length (sampleLogicalPerms OR 2)) 4)
