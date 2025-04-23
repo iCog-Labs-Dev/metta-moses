@@ -53,7 +53,27 @@
 (= (MultiMap.removeAll $key NilMMap) NilMMap)
 (= (MultiMap.removeAll $key (ConsMMap ($curKey $curVal) $tail)) 
     (if (== $key $curKey) (MultiMap.removeAll $key $tail) (ConsMMap ($curKey $curVal) (MultiMap.removeAll $key $tail))))
-    
+
+
+;; Get the all the values from the map
+(: MultiMap.values (-> (MultiMap ($k $v)) (List $v)))
+(= (MultiMap.values NilMMap) Nil)
+(= (MultiMap.values (ConsMMap ($key $value) $tail))
+    (Cons $value (MultiMap.values $tail)))
+
+;; Get the all the keys from the MultiMap
+(: MultiMap.keys (-> (MultiMap ($k $v)) (List $k)))
+(= (MultiMap.keys NilMMap) Nil)
+(= (MultiMap.keys (ConsMMap ($key $value) $tail))
+    (Cons $key (MultiMap.keys $tail)))
+
+;; Get the all the key value pairs from the MultiMap
+(: MultiMap.items (-> (MultiMap ($k $v)) (List ($k $v))))
+(= (MultiMap.items NilMMap) Nil)
+(= (MultiMap.items (ConsMMap $pair $tail))
+    (Cons $pair (MultiMap.items $tail)))
+
+
 ;; Get the length of the Ordered multimap
 (: MultiMap.length (-> (MultiMap ($k $v)) Number))
 (= (MultiMap.length NilMMap) 0)
