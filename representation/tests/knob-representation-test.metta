@@ -75,12 +75,3 @@
 ;; Test for discSpec<=
 !(assertEqual (discSpec<= (mkDiscSpec 2) (mkDiscSpec 3)) True)
 !(assertEqual (discSpec<= (mkDiscSpec 3) (mkDiscSpec 2)) False)
-
-;; Test for tupleToMMap
-!(assertEqual 
-(tupleToMMap (((mkDiscSpec 1) (mkLsk1)) ((mkDiscSpec 2) (mkLsk2)) ((mkDiscSpec 3) (mkLsk3)))
-NilMMap discSpec<=)
-(ConsMMap ((mkDiscSpec 1) (mkLsk1)) (ConsMMap ((mkDiscSpec 2) (mkLsk2)) (ConsMMap ((mkDiscSpec 3) (mkLsk3)) NilMMap)))
-)
-
-!(assertEqual (tupleToMMap () NilMMap discSpec<=) NilMMap)

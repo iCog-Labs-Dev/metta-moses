@@ -52,24 +52,11 @@
 
 ;; Calculates the knob Specification of an LSK
 (: getKnobSpec (-> LogicalSubtreeKnob DiscSpec))
-(= (getKnobSpec (mkLSK (mkDiscKnob $knob (mkMultip $multip) (mkDiscSpec $curr) (mkDiscSpec $def) $dis) $subtree))
+(= (getKnobSpec (mkLSK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis) $subtree))
 (mkDiscSpec (- $multip (List.length $dis))))
 
 ;; A comparison function for discSpec 
 ;; (used as a $compFunc to insert knobSpec and knob pairs into a multimap ) 
 (: discSpec<= (-> DiscSpec DiscSpec Bool))
 (= (discSpec<= (mkDiscSpec $newKey) (mkDiscSpec $currKey))
-(if (<= $newKey $currKey) True False))
-
-;; Converts a tuple of pairs into ordered multimap
-;; Ex: ((k1 v1) (k2 v2)) -> (ConsMMap (k1 v1) (ConsMMap (k2 v2) NilMMap))
-(: tupleToMMap (-> Expression (MultiMap ($k $v)) (-> $k $k Bool) (MultiMap ($k $v))))
-(= (tupleToMMap () $map $compFunc) NilMMap)
-(= (tupleToMMap $tuple $map $compFunc)
-(let*
-(
-    (($head $tail) (decons-atom $tuple))
-    ($updatedMap (MultiMap.insert $head $map $compFunc))
-
-)
-(if (== $tail ()) $updatedMap (tupleToMMap $tail $updatedMap $compFunc))))
+(<= $newKey $currKey))
