@@ -83,7 +83,6 @@
 (: getChildrenById (-> (Tree $a) NodeId (List (Tree $a))))
 (= (getChildrenById $tree (mkNodeId $id))
    (let $targetNode (getNodeById $tree (mkNodeId $id))
-     (getChildren $targetNode)))
 
 ;; Creates a new tree with a node inserted above the given tree as its parent.
 ;; Params:

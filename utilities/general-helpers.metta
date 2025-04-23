@@ -175,6 +175,12 @@
 (: isUnit (-> Atom Bool))
 (= (isUnit $expr) (== $expr ()))
 
+(: isEven (-> Number Bool))
+(= (isEven $x) (== (% $x 2) 0))
+
+(: isOdd (-> Number Bool))
+(= (isOdd $x) (not (isEven $x)))
+
 ;; A function to check if a given atom is an expression 
 ;;   with has one atom in it.
 (: hasOneAtom (-> Atom Bool)) ;; FIX: No longer working on version 0.2.3
@@ -432,7 +438,7 @@
 ;                 $f
 ;                 (+ $f (sum $t)) ))))
 
-; (= (getMaxWithKey $tuple)
+; (= (getmaxWithKey $tuple)
 ;     (let $max 
 ;         (collapse 
 ;             (let*
@@ -494,3 +500,65 @@
        (== $x $y)
        (== (collapse (union (subtraction (superpose $x) (superpose $y)) (subtraction (superpose $y) (superpose $x)))) ())))
 
+;; Number compartor
+(: compareNum (-> Number Number Atom))
+(= (compareNum $num1 $num2)
+    (case ((> $num1 $num2) (== $num1 $num2))
+        (((True $t) G)
+         ((False True) E)
+         ((False False) L))))
+
+;; an equal to or grearter than comparator that is resopnsible for deconstructing numerical values from the type constructor and compare them 
+;; ($ctor $x) ($ctor $y) -- (constructor value) pair                
+(: >>= (-> $a $a Bool))
+(= (>>= ($ctor $x) ($ctor $y))(>= $x $y));; List.Sum for any (List $a) $a of (typeConstructor Number) type
+
+(: List.sum (-> (-> $a $a $a) (List $a) $a))
+(= (List.sum $adder Nil) Nil)
+(= (List.sum $adder (Cons $x $xs))
+    (if (== $xs Nil)
+        $x
+        (let $c (List.sum $adder $xs)
+            ($adder $x $c))))
+
+; ;; overloading the above function to work with list of numbers
+; (: List.sum (-> (List $a) $a))
+; (= (List.sum $list) (List.sum + $list))
+
+;; defining addition operator for non-numerical types
+;; adder
+;;      $ctor -- type constructor
+(: adder (-> $a $a $a))
+(= (adder ($ctor $x) ($ctor $y)) ($ctor (+ $x $y)))
+
+;; wrapping the built-in ininf-math with custom function because the return type is not bool, it is number
+;; using the type-cast function
+(: isInf (-> Number Bool))
+(= (isInf $x) (type-cast (isinf-math $x) Bool &self))
+
+;; A trick to define composition function.
+;; Takes a function and returns another function
+;; applying the two functions in sequence.
+(: . (-> (-> $b $c) (-> $a $b) (-> $a $c)))
+(= ((. $g $f) $x) ($g ($f $x)))
+
+;; Convert an expression to a list   e.g (A B C) -> (Cons A (Cons B (Cons C Nil)))
+(= (exprToList $expr)
+    (if (== $expr ())
+        Nil
+        (let ($head $tail) (decons-atom $expr)  (Cons $head (exprToList $tail)))
+    )
+)
+
+;; Converts a tuple of pairs into ordered multimap
+;; Ex: ((k1 v1) (k2 v2)) -> (ConsMMap (k1 v1) (ConsMMap (k2 v2) NilMMap))
+(: expToMMap (-> Expression (MultiMap ($k $v)) (-> $k $k Bool) (MultiMap ($k $v))))
+(= (expToMMap () $map $compFunc) NilMMap)
+(= (expToMMap $tuple $map $compFunc)
+(let*
+(
+    (($head $tail) (decons-atom $tuple))
+    ($updatedMap (MultiMap.insert $head $map $compFunc))
+
+)
+(if (== $tail ()) $updatedMap (expToMMap $tail $updatedMap $compFunc))))
