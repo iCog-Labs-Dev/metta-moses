@@ -2,6 +2,7 @@
 !(import! &self metta-moses:utilities:tree)
 !(import! &self metta-moses:utilities:list-methods)
 !(import! &self metta-moses:representation:knob-representation)
+!(import! &self metta-moses:utilities:ordered-multimap) 
 
 ! (assertEqual (let $return (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) $return)  
                (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1)))
@@ -51,4 +52,26 @@
                              (Cons (mkNullVex (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) 
                                               (Cons (mkTree (mkNode B) Nil) Nil))))
 
+;; getKnobSpec Tests
+!(assertEqual (getKnobSpec (mkLSK 
+       (mkDiscKnob 
+       (mkKnob (mkTree (mkNode AND) 
+                       (Cons (mkTree (mkNode A) 
+                             (Cons (mkNullVex (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) 
+                                              (Cons (mkTree (mkNode B) Nil) Nil))) 
+               (mkNodeId (1 1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) (Cons (mkDiscSpec 1) Nil)) 
+       (mkTree (mkNode D) Nil))) (mkDiscSpec 2))
 
+!(assertEqual (getKnobSpec (mkLSK 
+       (mkDiscKnob 
+       (mkKnob (mkTree (mkNode AND) 
+                       (Cons (mkTree (mkNode A) 
+                             (Cons (mkNullVex (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) 
+                                              (Cons (mkTree (mkNode B) Nil) Nil))) 
+               (mkNodeId (1 1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) 
+       (mkTree (mkNode D) Nil)) ) (mkDiscSpec 3))
+
+
+;; Test for discSpec<=
+!(assertEqual (discSpec<= (mkDiscSpec 2) (mkDiscSpec 3)) True)
+!(assertEqual (discSpec<= (mkDiscSpec 3) (mkDiscSpec 2)) False)

@@ -1,6 +1,9 @@
 !(register-module! ../../../metta-moses)
 
 ! (import! &self metta-moses:utilities:general-helpers)
+! (import! &self metta-moses:utilities:ordered-multimap)
+!(import! &self metta-moses:representation:knob-representation)
+
 ! (bind! &newSpace (new-space))
 
 !(assertEqualToResult (~= 1 2) (True))
@@ -322,3 +325,12 @@
 ;; Test for exprToList
 !(assertEqual (exprToList (AND A B)) (Cons AND (Cons A (Cons B Nil))))
 !(assertEqual (exprToList (1 2 3 4)) (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
+
+;; Test for expToMMap
+!(assertEqual 
+(expToMMap (((mkDiscSpec 1) (mkLsk1)) ((mkDiscSpec 2) (mkLsk2)) ((mkDiscSpec 3) (mkLsk3)))
+NilMMap discSpec<=)
+(ConsMMap ((mkDiscSpec 1) (mkLsk1)) (ConsMMap ((mkDiscSpec 2) (mkLsk2)) (ConsMMap ((mkDiscSpec 3) (mkLsk3)) NilMMap)))
+)
+
+!(assertEqual (expToMMap () NilMMap discSpec<=) NilMMap)
