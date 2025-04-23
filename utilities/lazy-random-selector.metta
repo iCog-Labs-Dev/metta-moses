@@ -29,7 +29,7 @@
     (chain (pick $lower $upper $picked ) $rand 
         (if  (== $n 0) 
             $picked
-            (if  (== (+ (- $upper $lower) 1) (length $picked))
+            (if  (< (+ (- $upper $lower) 1) (+ (size-atom $picked) $n))
                 (Error break "number of elements to select is greater than list size")
                 (let $picked_ (cons-atom $rand $picked) (lazyRandomSelector $lower $upper (- $n 1) $picked_))
             )

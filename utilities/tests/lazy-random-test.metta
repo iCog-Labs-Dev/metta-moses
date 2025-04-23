@@ -8,5 +8,5 @@
 ! (assertEqual (length (lazyRandomSelector 0 3 4)) 4)
 ! (assertEqual (length (lazyRandomSelector 0 5 5)) 5)
 ! (assertEqual (length (lazyRandomSelector 0 1 6)) (Error break "number of elements to select is greater than list size"))
-
-
+! (assertEqual (length (lazyRandomSelector 0 20 50)) (Error break "number of elements to select is greater than list size"))
+! (assertEqual (length (lazyRandomSelector 0 6 0)) 0)
