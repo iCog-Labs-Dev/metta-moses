@@ -1,6 +1,9 @@
 !(register-module! ../../../metta-moses)
 
 ! (import! &self metta-moses:utilities:general-helpers)
+! (import! &self metta-moses:utilities:ordered-multimap)
+!(import! &self metta-moses:representation:knob-representation)
+
 ! (bind! &newSpace (new-space))
 
 !(assertEqualToResult (~= 1 2) (True))
