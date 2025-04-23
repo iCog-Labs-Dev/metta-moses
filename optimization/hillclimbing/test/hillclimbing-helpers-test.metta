@@ -41,3 +41,8 @@
 ;; map containing two knobs with different multiplicity of 2 and 3
 !(assertEqual (informationTheoreticBits knobmap2) 5)
 
+;; Testing estimateNeighborhood on the above knob maps
+!(assertEqual (estimateNeighborhood 0 knobmap1) 1)
+!(assertEqual (estimateNeighborhood 1 knobmap2) 10)
+!(assertEqual (estimateNeighborhood 2 knobmap1) 12)
+!(assertEqual (estimateNeighborhood 2 knobmap2) 10)
