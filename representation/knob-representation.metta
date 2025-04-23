@@ -51,7 +51,7 @@
 ;; Params:
 ;;  $knob: Either discrete or logical subtree knob
 ;; Returns: The multiplicity of the knob.
-(: getMultiplicity (-> DiscreteKnob Multiplicity))
-(: getMultiplicity (-> LogicalSubtreeKnob Multiplicity))
-(= (getMultiplicity (mkDiscKnob $knob $multiplicity $curr $def $disAll)) $multiplicity)
-(= (getMultiplicity (mkLSK $discKnob $subtree)) (getMultiplicity $discKnob))
+(: getKnobMultip (-> DiscreteKnob Multiplicity))
+(: getKnobMultip (-> LogicalSubtreeKnob Multiplicity))
+(= (getKnobMultip (mkDiscKnob $knob $multiplicity $curr $def $disAll)) $multiplicity)
+(= (getKnobMultip (mkLSK $discKnob $subtree)) (getKnobMultip $discKnob))

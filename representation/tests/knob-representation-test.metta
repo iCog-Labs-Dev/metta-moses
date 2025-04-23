@@ -53,5 +53,5 @@
 
 
 ;; Testing getmultiplicity function
-!(assertEqual (getMultiplicity (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2))) (mkMultip 2))
-!(assertEqual (getMultiplicity (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode A) Nil))) (mkMultip 2))
+!(assertEqual (getKnobMultip (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2))) (mkMultip 2))
+!(assertEqual (getKnobMultip (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode A) Nil))) (mkMultip 2))

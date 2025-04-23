@@ -4,7 +4,7 @@
 (: informationTheoreticBits (-> (MultiMap (NodeId (DiscSpec $knob))) Number))
 (= (informationTheoreticBits $knobMap)
     (chain (List.map second (MultiMap.values $knobMap)) $knobs
-      (chain (List.map getMultiplicity $knobs) $multips
+      (chain (List.map getKnobMultip $knobs) $multips
         (chain (List.foldr add (mkMultip 0) $multips) $res
           (let (mkMultip $val) $res $val)))))
 
