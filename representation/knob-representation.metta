@@ -1,6 +1,3 @@
-(: NodeId Type)
-(: mkNodeId (-> $tuple NodeId))
-
 ;;;knob base representation
 ;      Tree: a tree reference
 ;      NodeId: a position pointing to current position in the tree
@@ -40,7 +37,7 @@
 ;; Params:
 ;;   $lsk: LogicalSubtreeKnob
 ;; Return: The extracted DiscKnob
-(: getDiscKnob (-> LogicalSubtreeKnob DiscreteKnob)) 
+(: getDiscKnob (-> LogicalSubtreeKnob DiscreteKnob))
 (= (getDiscKnob (mkLSK $DiscKnob $Subtree)) $DiscKnob)
 
 ;; Extracts the Tree component from a LogicalSubtreeKnob (mkLSK).
@@ -49,3 +46,12 @@
 ;; Return: The extracted Tree
 (: getTree LogicalSubtreeKnob (Tree $a))
 (= (getTree (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multip $curr $def $dis) $sub)) $tree)
+
+;; Extracts the multiplicity from a discrete or a logical subtree knob.
+;; Params:
+;;  $knob: Either discrete or logical subtree knob
+;; Returns: The multiplicity of the knob.
+(: getMultiplicity (-> DiscreteKnob Multiplicity))
+(: getMultiplicity (-> LogicalSubtreeKnob Multiplicity))
+(= (getMultiplicity (mkDiscKnob $knob $multiplicity $curr $def $disAll)) $multiplicity)
+(= (getMultiplicity (mkLSK $discKnob $subtree)) (getMultiplicity $discKnob))
