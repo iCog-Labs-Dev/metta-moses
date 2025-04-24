@@ -42,3 +42,21 @@
 ;; Return: The extracted DiscKnob
 (: getDiscKnob (-> LogicalSubtreeKnob DiscreteKnob)) 
 (= (getDiscKnob (mkLSK $DiscKnob $Subtree)) $DiscKnob)
+
+;; Extracts the Tree component from a LogicalSubtreeKnob (mkLSK).
+;; Params:
+;;   $lsk: LogicalSubtreeKnob
+;; Return: The extracted Tree
+(: getTree LogicalSubtreeKnob (Tree $a))
+(= (getTree (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multip $curr $def $dis) $sub)) $tree)
+
+;; Calculates the knob Specification of an LSK
+(: getKnobSpec (-> LogicalSubtreeKnob DiscSpec))
+(= (getKnobSpec (mkLSK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis) $subtree))
+(mkDiscSpec (- $multip (List.length $dis))))
+
+;; A comparison function for discSpec 
+;; (used as a $compFunc to insert knobSpec and knob pairs into a multimap ) 
+(: discSpec<= (-> DiscSpec DiscSpec Bool))
+(= (discSpec<= (mkDiscSpec $newKey) (mkDiscSpec $currKey))
+(<= $newKey $currKey))
