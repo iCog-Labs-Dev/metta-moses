@@ -79,3 +79,17 @@
 (= (MultiMap.length NilMMap) 0)
 (= (MultiMap.length (ConsMMap ($curKey $curVal) $tail)) (+ 1 (MultiMap.length $tail)))
 
+;; Check if an element is found in the Ordered multimap 
+(: MultiMap.checkElement (-> ($k $v) (MultiMap ($k $v)) Bool))
+(= (MultiMap.checkElement $element NilMMap) False)
+(= (MultiMap.checkElement $element (ConsMMap $head $tail))
+        (if (== $element $head) True (MultiMap.checkElement $element $tail)))
+
+;; Check if two multimaps are equal regardless of the order of the elements
+(: MultiMap.equals (-> (MultiMap ($k $v)) (MultiMap ($k $v)) Bool))
+(= (MultiMap.equals () $mm2) False)
+(= (MultiMap.equals (ConsMMap $x $xs) $mm2)
+(if (== (MultiMap.length (ConsMMap $x $xs)) (MultiMap.length $mm2))
+    (if (MultiMap.checkElement $x $mm2) True (MultiMap.equals $xs $mm2))
+    False
+))

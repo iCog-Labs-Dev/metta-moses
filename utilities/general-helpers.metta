@@ -549,3 +549,16 @@
         (let ($head $tail) (decons-atom $expr)  (Cons $head (exprToList $tail)))
     )
 )
+
+;; Converts a tuple of pairs into ordered multimap
+;; Ex: ((k1 v1) (k2 v2)) -> (ConsMMap (k1 v1) (ConsMMap (k2 v2) NilMMap))
+(: expToMMap (-> Expression (MultiMap ($k $v)) (-> $k $k Bool) (MultiMap ($k $v))))
+(= (expToMMap () $map $compFunc) NilMMap)
+(= (expToMMap $tuple $map $compFunc)
+(let*
+(
+    (($head $tail) (decons-atom $tuple))
+    ($updatedMap (MultiMap.insert $head $map $compFunc))
+
+)
+(if (== $tail ()) $updatedMap (expToMMap $tail $updatedMap $compFunc))))
