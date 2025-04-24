@@ -158,3 +158,11 @@
             ($updatedTree (mkNodeId $idOfChild))))
          ($else (Error (Target node not found or invalid)))
        ))))            
+
+;; getChildrenById -- retrieve children of a tree using index values
+(: getChildrenById (-> (Tree $a) Number (List (Tree $a))))
+(= (getChildrenByIdx $tree $idx)
+        (case $tree
+            (((mkTree (mkNode $r) $childrenTgt) (List.getByIdx $childrenTgt $idx))
+              ((mkNullVex $childrenTgt) (List.getByIdx $childrenTgt $idx))
+              ($else (Error (Node not found or invalid))))))
