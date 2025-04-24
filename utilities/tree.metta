@@ -168,8 +168,8 @@
          ($else (Error (Target node not found or invalid)))
        ))))            
 
-;; getChildrenById -- retrieve children of a tree using index values
-(: getChildrenById (-> (Tree $a) Number (List (Tree $a))))
+;; getChildrenByIdx -- retrieve children of a tree using index values
+(: getChildrenByIdx (-> (Tree $a) Number (List (Tree $a))))
 (= (getChildrenByIdx $tree $idx)
         (case $tree
             (((mkTree (mkNode $r) $childrenTgt) (List.getByIdx $childrenTgt $idx))
