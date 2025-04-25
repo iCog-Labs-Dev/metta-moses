@@ -82,6 +82,11 @@
 (= (bc $kb $env $_ (: $prf $thrm))
    (match' $env (: $prf $thrm) (: $prf $thrm)))
 
+;; Blackbox rule reduction
+(= (bc $kb $env $_ (: ((CondReduce $p $r) $cnd) $thrm))
+   (when (is-closed $cnd)
+     (if (== ($p $cnd) $r) (: ((CondReduce $p $r) $cnd) $thrm) (empty))))
+
 ;; Recursive steps
 ;; Unary proof application
 (= (bc $kb $env (S $k) (: ($prfabs $prfarg) $thrm))
@@ -120,10 +125,6 @@
 ;; !(add-atom &rb (: OrIden (-> (: (𝐨𝐫 $x) 𝐁𝐨𝐨𝐥) (: 𝐨𝐫 (-> (: $xs (List 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)) (: ($rule $child 𝐚𝐧𝐝) 𝐁𝐨𝐨𝐥))))
 ;; !(add-atom &rb (: AndIden (-> (: (𝐚𝐧𝐝 $x) 𝐁𝐨𝐨𝐥) (: 𝐚𝐧𝐝 (-> (: $xs (List 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)) (: ($rule $child 𝐨𝐫) 𝐁𝐨𝐨𝐥))))
 
-;; !(add-atom &rb (: CutOr (-> (: (𝐨𝐫 $x) 𝐁𝐨𝐨𝐥) 𝐁𝐨𝐨𝐥)))
-;; !(add-atom &rb (: CutAnd (-> (: (𝐚𝐧𝐝 $x) 𝐁𝐨𝐨𝐥) 𝐁𝐨𝐨𝐥)))
-;; !(add-atom &rb (: OrIden (-> (: (𝐨𝐫 $x) 𝐁𝐨𝐨𝐥) 𝐁𝐨𝐨𝐥)))
-;; !(add-atom &rb (: AndIden (-> (: (𝐚𝐧𝐝 $x) 𝐁𝐨𝐨𝐥) 𝐁𝐨𝐨𝐥)))
 
 ;; !(add-atom &rb (: CutOr (-> (: ((: $rule (-> (: (𝐨𝐫 $x) 𝐁𝐨𝐨𝐥) 𝐁𝐨𝐨𝐥)) $x) 𝐁𝐨𝐨𝐥) 𝐁𝐨𝐨𝐥)))
 ;; !(add-atom &rb (: CutOr (-> (: (𝐨𝐫 $x) 𝐁𝐨𝐨𝐥) (: $rule (-> (: $nc 𝐁𝐨𝐨𝐥) $nr)))))
@@ -139,16 +140,72 @@
 ;; !(add-atom &rb (: AndIden (-> (: (𝐚𝐧𝐝 $x) 𝐁𝐨𝐨𝐥) 𝐁𝐨𝐨𝐥)))
 
 
+;; Run the code if the condition is true, otherwise prune the branch
+(: when (-> Bool $a $a))
+(= (when $c $x) (if $c $x (empty)))
+
+;; Return True iff $term is closed
+(: is-closed (-> Atom Bool))
+(= (is-closed $term)
+   (case (get-metatype $term)
+     ((Variable False)
+      (Symbol True)
+      (Grounded True)
+      (Expression (if (== $term ())
+                      True
+                      (let* (($head (car-atom $term))
+                             ($tail (cdr-atom $term)))
+                        (and (is-closed $head) (is-closed $tail))))))))
+
+(: any (-> (List 𝐁𝐨𝐨𝐥) 𝐁𝐨𝐨𝐥))
+(= (any Nil) 𝐅𝐚𝐥𝐬𝐞)
+(= (any (Cons $x $xs)) (if (== $x 𝐓𝐫𝐮𝐞) 𝐓𝐫𝐮𝐞 (any $xs)) )
+;; (= (any (Cons $x $xs)) (trace! (Running X: $x check...) (if (== $x 𝐓𝐫𝐮𝐞) 𝐓𝐫𝐮𝐞 (any $xs))) )
+
+(: all (-> (List $a) 𝐁𝐨𝐨𝐥))
+(= (all Nil) 𝐓𝐫𝐮𝐞)
+(= (all (Cons $x $xs)) (if (== $x 𝐅𝐚𝐥𝐬𝐞) 𝐅𝐚𝐥𝐬𝐞 (all $xs)))
+;; (= (all (Cons $x $xs)) (trace! (Running X: $x check...) (if (== $x 𝐅𝐚𝐥𝐬𝐞) 𝐅𝐚𝐥𝐬𝐞 (all $xs))))
+
 ;; !(add-atom &rb (: 𝐚𝐧𝐝 (-> (: $x (List 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)))
 ;; !(add-atom &rb (: 𝐨𝐫 (-> (: $x (List 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)))
 
-;; !(println!
-;;     (bc &rb
-;;         ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z Nil)) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; CutOr and CutAnd
-;;         ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z Nil)) (Cons 𝐓𝐫𝐮𝐞 Nil))) 𝐁𝐨𝐨𝐥) Nil) ;; IdentityOr
-;;         (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z (Cons 𝐅𝐚𝐥𝐬𝐞 Nil))) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; IdentityAnd
-;;         ;; (Cons (: z 𝐁𝐨𝐨𝐥) Nil)
-;;         (fromNumber 2)
-;;         ;; (: $reduct 𝐁𝐨𝐨𝐥))
-;;         (: ($rule ($ctor $xs) $ctor) 𝐁𝐨𝐨𝐥))
-;;  )
+!(add-atom &rb (: CutOr (-> (: (𝐨𝐫 (Cons $x Nil)) 𝐁𝐨𝐨𝐥) (: $x 𝐁𝐨𝐨𝐥))))
+!(add-atom &rb (: CutOr (-> (: ($rule $seq) (: (𝐨𝐫 (Cons $x Nil)) 𝐁𝐨𝐨𝐥)) (: $x 𝐁𝐨𝐨𝐥))))
+
+!(add-atom &rb (: CutAnd (-> (: (𝐚𝐧𝐝 (Cons $x Nil)) 𝐁𝐨𝐨𝐥) (: $x 𝐁𝐨𝐨𝐥))))
+!(add-atom &rb (: CutAnd (-> (: ($rule $seq) (: (𝐚𝐧𝐝 (Cons $x Nil)) 𝐁𝐨𝐨𝐥)) (: $x 𝐁𝐨𝐨𝐥))))
+
+;; !(add-atom &rb (: OrIden (-> (: (𝐨𝐫 $xs) 𝐁𝐨𝐨𝐥) (: (if (== (any $xs) 𝐓𝐫𝐮𝐞) 𝐓𝐫𝐮𝐞 (empty)) 𝐁𝐨𝐨𝐥)))) ;; FIX: Rule runs before candidate is closed.
+;; !(add-atom &rb (: OrIden (-> (: ($rule $seq) (: (𝐨𝐫 $xs) 𝐁𝐨𝐨𝐥)) (: (if (== (any $xs) 𝐓𝐫𝐮𝐞) 𝐓𝐫𝐮𝐞 (empty)) 𝐁𝐨𝐨𝐥))))
+;; !(add-atom &rb (: OrIden (-> (: (𝐨𝐫 $xs) 𝐁𝐨𝐨𝐥) (: ((CondReduce any 𝐓𝐫𝐮𝐞) $xs) 𝐁𝐨𝐨𝐥)))) ;; FIX: Not working
+;; !(add-atom &rb (: OrIden (-> (: ($rule $seq) (: (𝐨𝐫 $xs) 𝐁𝐨𝐨𝐥)) (: ((CondReduce any 𝐓𝐫𝐮𝐞) $xs) 𝐁𝐨𝐨𝐥))))
+
+;; !(add-atom &rb (: AndIden (-> (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥) (: (if (== (all $xs) 𝐓𝐫𝐮𝐞) (empty) 𝐅𝐚𝐥𝐬𝐞) 𝐁𝐨𝐨𝐥))))
+;; !(add-atom &rb (: AndIden (-> (: ($rule $seq) (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥)) (: (if (== (all $xs) 𝐓𝐫𝐮𝐞) (empty) 𝐅𝐚𝐥𝐬𝐞) 𝐁𝐨𝐨𝐥))))
+;; !(add-atom &rb (: AndIden (-> (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥) (: ((CondReduce all 𝐅𝐚𝐥𝐬𝐞) $xs) 𝐁𝐨𝐨𝐥)))) ;; FIX: Not working
+;; !(add-atom &rb (: AndIden (-> (: ($rule $seq) (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥)) (: ((CondReduce all 𝐅𝐚𝐥𝐬𝐞) $xs) 𝐁𝐨𝐨𝐥))))
+
+
+!(add-atom &rb (: Id (-> (: $x 𝐁𝐨𝐨𝐥) (: $x 𝐁𝐨𝐨𝐥))))
+
+!(add-atom &rb (: AndIden (-> (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥) (: ((CondReduce all 𝐅𝐚𝐥𝐬𝐞) $xs) 𝐁𝐨𝐨𝐥) (: 𝐅𝐚𝐥𝐬𝐞 𝐁𝐨𝐨𝐥))))
+!(add-atom &rb (: AndIden (-> (: ($rule $seq) (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥)) (: ((CondReduce all 𝐅𝐚𝐥𝐬𝐞) $xs) 𝐁𝐨𝐨𝐥) (: 𝐅𝐚𝐥𝐬𝐞 𝐁𝐨𝐨𝐥))))
+
+!(add-atom &rb (: OrIden (-> (: (𝐨𝐫 $xs) 𝐁𝐨𝐨𝐥) (: ((CondReduce any 𝐓𝐫𝐮𝐞) $xs) 𝐁𝐨𝐨𝐥) (: 𝐓𝐫𝐮𝐞 𝐁𝐨𝐨𝐥))))
+!(add-atom &rb (: OrIden (-> (: ($rule $seq) (: (𝐨𝐫 $xs) 𝐁𝐨𝐨𝐥)) (: ((CondReduce any 𝐓𝐫𝐮𝐞) $xs) 𝐁𝐨𝐨𝐥) (: 𝐓𝐫𝐮𝐞 𝐁𝐨𝐨𝐥))))
+
+!(println!
+    (bc &rb
+        ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z Nil)) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; CutOr and CutAnd
+        ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z (Cons 𝐅𝐚𝐥𝐬𝐞 Nil))) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; CutOr and CutAnd
+        ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z Nil)) (Cons 𝐓𝐫𝐮𝐞 Nil))) 𝐁𝐨𝐨𝐥) Nil) ;; IdentityOr
+        ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z (Cons 𝐅𝐚𝐥𝐬𝐞 Nil))) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; IdentityAnd
+        ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z (Cons 𝐅𝐚𝐥𝐬𝐞 Nil))) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; IdentityAnd
+        ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons z Nil)) (Cons 𝐅𝐚𝐥𝐬𝐞 Nil))) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; IdentityAnd
+        ;; (Cons (: (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons z Nil)) (Cons 𝐅𝐚𝐥𝐬𝐞 Nil))) 𝐁𝐨𝐨𝐥) Nil) ;; IdentityAnd
+        (Cons (: (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons z Nil)) (Cons 𝐓𝐫𝐮𝐞 Nil))) 𝐁𝐨𝐨𝐥) Nil) ;; IdentityAnd
+        ;; (Cons (: z 𝐁𝐨𝐨𝐥) Nil)
+        (fromNumber 2)
+        (: $reduct (: $x 𝐁𝐨𝐨𝐥)))
+ )
