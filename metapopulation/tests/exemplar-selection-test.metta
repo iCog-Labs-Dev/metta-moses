@@ -53,10 +53,10 @@
 ! (assertEqual (List.max >>= (Cons (mkScoreT 0.1) (Cons (mkScoreT 0.4) (Cons (mkScoreT 0.65) (Cons (mkScoreT 0.9) Nil))))) (mkScoreT 0.9))
 
 ;; Boltzman adjusted probablity values
-! (assertEqual (let $a (List.sum adder (normalizeProbs INV_TEMP (mkScoreT 0.5) (Cons (mkScoreT 0.3) Nil))) (get-type $a)) ScoreT)
-! (assertEqual (let $a (List.sum adder (normalizeProbs INV_TEMP (mkScoreT 0.7) (Cons (mkScoreT 0.6) (Cons (mkScoreT 0.2) Nil)))) (get-type $a)) ScoreT)
-! (assertEqual (let $a (List.sum adder (normalizeProbs INV_TEMP (mkScoreT 0.95) (Cons (mkScoreT 0.95) (Cons (mkScoreT 0.9) (Cons (mkScoreT 0.85) Nil))))) (get-type $a)) ScoreT)
-! (assertEqual (let $a (List.sum adder (normalizeProbs INV_TEMP (mkScoreT 1.0) (Cons (mkScoreT 0.9) (Cons (mkScoreT 0.85) (Cons (mkScoreT 0.95) (Cons (mkScoreT 0.7) Nil)))))) (get-type $a)) ScoreT)
+! (assertEqual (let $a (List.sum add (normalizeProbs INV_TEMP (mkScoreT 0.5) (Cons (mkScoreT 0.3) Nil))) (get-type $a)) ScoreT)
+! (assertEqual (let $a (List.sum add (normalizeProbs INV_TEMP (mkScoreT 0.7) (Cons (mkScoreT 0.6) (Cons (mkScoreT 0.2) Nil)))) (get-type $a)) ScoreT)
+! (assertEqual (let $a (List.sum add (normalizeProbs INV_TEMP (mkScoreT 0.95) (Cons (mkScoreT 0.95) (Cons (mkScoreT 0.9) (Cons (mkScoreT 0.85) Nil))))) (get-type $a)) ScoreT)
+! (assertEqual (let $a (List.sum add (normalizeProbs INV_TEMP (mkScoreT 1.0) (Cons (mkScoreT 0.9) (Cons (mkScoreT 0.85) (Cons (mkScoreT 0.95) (Cons (mkScoreT 0.7) Nil)))))) (get-type $a)) ScoreT)
 
 ;; roulette -- spinning the wheel favoring expressions with higher scores 
 ! (assertEqual (roulette (Cons (mkScoreT 1.0) Nil) 0 0.57) 0)
