@@ -21,8 +21,8 @@
 (: z DeBruijn)                        ; Zero
 (: s (-> DeBruijn DeBruijn))          ; Successor
 (: List (-> $a Type))
-;; (: Nil (List $a))
-;; (: Cons (-> $a (List $a) (List $a)))
+(: Nil (List $a))
+(: Cons (-> $a (List $a) (List $a)))
 
 ;; Similar to match but takes a list of terms instead of a space.
 (: match' (-> (List Atom) $a $a $a))
@@ -113,32 +113,7 @@
 
 !(bind! &rb (new-space))
 
-;; Attempt to add more constraints on the reduct rules ;; WARN: This file isn't working yet.
-
-;; ;; !(add-atom &rb (: CutOr (-> (: $x 𝐁𝐨𝐨𝐥) (: 𝐨𝐫 (-> (: $xs (List 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)))
-;; !(add-atom &rb (: CutAnd (-> (: $x 𝐁𝐨𝐨𝐥) (: 𝐚𝐧𝐝 (-> (: $xs (List 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)))
-;; !(add-atom &rb (: OrIden (-> (: $x 𝐁𝐨𝐨𝐥) (: 𝐨𝐫 (-> (: $xs (List 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)))
-;; !(add-atom &rb (: AndIden (-> (: $x 𝐁𝐨𝐨𝐥) (: 𝐚𝐧𝐝 (-> (: $xs (List 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)))
-;;
-;; !(add-atom &rb (: CutOr (-> (: (𝐨𝐫 $x) 𝐁𝐨𝐨𝐥) (: 𝐨𝐫 (-> (: $xs (List 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)) (: ($rule $child 𝐚𝐧𝐝) 𝐁𝐨𝐨𝐥)))) ;; return type should contain the resulting expression's type
-;; !(add-atom &rb (: CutAnd (-> (: (𝐚𝐧𝐝 $x) 𝐁𝐨𝐨𝐥) (: 𝐚𝐧𝐝 (-> (: $xs (List 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)) (: ($rule $child 𝐨𝐫) 𝐁𝐨𝐨𝐥))))
-;; !(add-atom &rb (: OrIden (-> (: (𝐨𝐫 $x) 𝐁𝐨𝐨𝐥) (: 𝐨𝐫 (-> (: $xs (List 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)) (: ($rule $child 𝐚𝐧𝐝) 𝐁𝐨𝐨𝐥))))
-;; !(add-atom &rb (: AndIden (-> (: (𝐚𝐧𝐝 $x) 𝐁𝐨𝐨𝐥) (: 𝐚𝐧𝐝 (-> (: $xs (List 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)) (: ($rule $child 𝐨𝐫) 𝐁𝐨𝐨𝐥))))
-
-
-;; !(add-atom &rb (: CutOr (-> (: ((: $rule (-> (: (𝐨𝐫 $x) 𝐁𝐨𝐨𝐥) 𝐁𝐨𝐨𝐥)) $x) 𝐁𝐨𝐨𝐥) 𝐁𝐨𝐨𝐥)))
-;; !(add-atom &rb (: CutOr (-> (: (𝐨𝐫 $x) 𝐁𝐨𝐨𝐥) (: $rule (-> (: $nc 𝐁𝐨𝐨𝐥) $nr)))))
-;; !(add-atom &rb (: CutOr (-> (: $rule (-> (: (𝐚𝐧𝐝 $x) 𝐁𝐨𝐨𝐥) (: (𝐨𝐫 $x') 𝐁𝐨𝐨𝐥))) (: $rule (-> (: $nc 𝐁𝐨𝐨𝐥) $nr)))))
-;; !(add-atom &rb (: CutOr (-> (: (𝐨𝐫 $x) 𝐁𝐨𝐨𝐥) (: $x 𝐁𝐨𝐨𝐥))))
-;; !(add-atom &rb (: CutOr (-> (: $rule (-> (: (𝐚𝐧𝐝 $x) 𝐁𝐨𝐨𝐥) (: (𝐨𝐫 $x) 𝐁𝐨𝐨𝐥))) (: $x 𝐁𝐨𝐨𝐥))))
-
-;; !(add-atom &rb (: CutAnd (-> (: (𝐚𝐧𝐝 $x) 𝐁𝐨𝐨𝐥) (: $rule (-> (: $nc 𝐁𝐨𝐨𝐥) $nr)))))
-;; !(add-atom &rb (: CutAnd (-> (: $rule (-> (: (𝐨𝐫 $x) 𝐁𝐨𝐨𝐥) (: (𝐚𝐧𝐝 $x') 𝐁𝐨𝐨𝐥))) (: $rule (-> (: $nc 𝐁𝐨𝐨𝐥) $nr)))))
-;; !(add-atom &rb (: CutAnd (-> (: (𝐚𝐧𝐝 $x) 𝐁𝐨𝐨𝐥) (: $x 𝐁𝐨𝐨𝐥))))
-;; !(add-atom &rb (: CutAnd (-> (: $rule (-> (: (𝐨𝐫 $x) 𝐁𝐨𝐨𝐥) (: (𝐚𝐧𝐝 $x) 𝐁𝐨𝐨𝐥))) (: $x 𝐁𝐨𝐨𝐥))))
-;; !(add-atom &rb (: OrIden (-> (: (𝐨𝐫 $x) 𝐁𝐨𝐨𝐥) 𝐁𝐨𝐨𝐥)))
-;; !(add-atom &rb (: AndIden (-> (: (𝐚𝐧𝐝 $x) 𝐁𝐨𝐨𝐥) 𝐁𝐨𝐨𝐥)))
-
+;; Attempt to add more constraints on the reduct rules.
 
 ;; Run the code if the condition is true, otherwise prune the branch
 (: when (-> Bool $a $a))
@@ -176,18 +151,7 @@
 !(add-atom &rb (: CutAnd (-> (: (𝐚𝐧𝐝 (Cons $x Nil)) 𝐁𝐨𝐨𝐥) (: $x 𝐁𝐨𝐨𝐥))))
 !(add-atom &rb (: CutAnd (-> (: ($rule $seq) (: (𝐚𝐧𝐝 (Cons $x Nil)) 𝐁𝐨𝐨𝐥)) (: $x 𝐁𝐨𝐨𝐥))))
 
-;; !(add-atom &rb (: OrIden (-> (: (𝐨𝐫 $xs) 𝐁𝐨𝐨𝐥) (: (if (== (any $xs) 𝐓𝐫𝐮𝐞) 𝐓𝐫𝐮𝐞 (empty)) 𝐁𝐨𝐨𝐥)))) ;; FIX: Rule runs before candidate is closed.
-;; !(add-atom &rb (: OrIden (-> (: ($rule $seq) (: (𝐨𝐫 $xs) 𝐁𝐨𝐨𝐥)) (: (if (== (any $xs) 𝐓𝐫𝐮𝐞) 𝐓𝐫𝐮𝐞 (empty)) 𝐁𝐨𝐨𝐥))))
-;; !(add-atom &rb (: OrIden (-> (: (𝐨𝐫 $xs) 𝐁𝐨𝐨𝐥) (: ((CondReduce any 𝐓𝐫𝐮𝐞) $xs) 𝐁𝐨𝐨𝐥)))) ;; FIX: Not working
-;; !(add-atom &rb (: OrIden (-> (: ($rule $seq) (: (𝐨𝐫 $xs) 𝐁𝐨𝐨𝐥)) (: ((CondReduce any 𝐓𝐫𝐮𝐞) $xs) 𝐁𝐨𝐨𝐥))))
-
-;; !(add-atom &rb (: AndIden (-> (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥) (: (if (== (all $xs) 𝐓𝐫𝐮𝐞) (empty) 𝐅𝐚𝐥𝐬𝐞) 𝐁𝐨𝐨𝐥))))
-;; !(add-atom &rb (: AndIden (-> (: ($rule $seq) (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥)) (: (if (== (all $xs) 𝐓𝐫𝐮𝐞) (empty) 𝐅𝐚𝐥𝐬𝐞) 𝐁𝐨𝐨𝐥))))
-;; !(add-atom &rb (: AndIden (-> (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥) (: ((CondReduce all 𝐅𝐚𝐥𝐬𝐞) $xs) 𝐁𝐨𝐨𝐥)))) ;; FIX: Not working
-;; !(add-atom &rb (: AndIden (-> (: ($rule $seq) (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥)) (: ((CondReduce all 𝐅𝐚𝐥𝐬𝐞) $xs) 𝐁𝐨𝐨𝐥))))
-
-
-!(add-atom &rb (: Id (-> (: $x 𝐁𝐨𝐨𝐥) (: $x 𝐁𝐨𝐨𝐥))))
+;; !(add-atom &rb (: Id (-> (: $x 𝐁𝐨𝐨𝐥) (: $x 𝐁𝐨𝐨𝐥))))
 
 !(add-atom &rb (: AndIden (-> (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥) (: ((CondReduce all 𝐅𝐚𝐥𝐬𝐞) $xs) 𝐁𝐨𝐨𝐥) (: 𝐅𝐚𝐥𝐬𝐞 𝐁𝐨𝐨𝐥))))
 !(add-atom &rb (: AndIden (-> (: ($rule $seq) (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥)) (: ((CondReduce all 𝐅𝐚𝐥𝐬𝐞) $xs) 𝐁𝐨𝐨𝐥) (: 𝐅𝐚𝐥𝐬𝐞 𝐁𝐨𝐨𝐥))))
@@ -198,14 +162,14 @@
 !(println!
     (bc &rb
         ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z Nil)) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; CutOr and CutAnd
-        ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z (Cons 𝐅𝐚𝐥𝐬𝐞 Nil))) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; CutOr and CutAnd
         ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z Nil)) (Cons 𝐓𝐫𝐮𝐞 Nil))) 𝐁𝐨𝐨𝐥) Nil) ;; IdentityOr
-        ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z (Cons 𝐅𝐚𝐥𝐬𝐞 Nil))) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; IdentityAnd
-        ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z (Cons 𝐅𝐚𝐥𝐬𝐞 Nil))) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; IdentityAnd
-        ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons z Nil)) (Cons 𝐅𝐚𝐥𝐬𝐞 Nil))) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; IdentityAnd
+        ;; (Cons (: (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z Nil)) (Cons 𝐓𝐫𝐮𝐞 Nil))) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; CutAnd => IdentityOr
+        ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z Nil)) (Cons 𝐅𝐚𝐥𝐬𝐞 Nil))) 𝐁𝐨𝐨𝐥) Nil) ;; Incorrect IdentityOr shouldn't work
         ;; (Cons (: (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons z Nil)) (Cons 𝐅𝐚𝐥𝐬𝐞 Nil))) 𝐁𝐨𝐨𝐥) Nil) ;; IdentityAnd
-        (Cons (: (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons z Nil)) (Cons 𝐓𝐫𝐮𝐞 Nil))) 𝐁𝐨𝐨𝐥) Nil) ;; IdentityAnd
-        ;; (Cons (: z 𝐁𝐨𝐨𝐥) Nil)
-        (fromNumber 2)
+        ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons z Nil)) (Cons 𝐅𝐚𝐥𝐬𝐞 Nil))) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; CutOr => IdentityAnd
+        ;; (Cons (: (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons z Nil)) (Cons 𝐓𝐫𝐮𝐞 Nil))) 𝐁𝐨𝐨𝐥) Nil) ;; Incorrect IdentityAnd shouldn't work
+        ;; (Cons (: z 𝐁𝐨𝐨𝐥) Nil) ;; No reduction
+        (Cons (: (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons 𝐅𝐚𝐥𝐬𝐞 (Cons 𝐓𝐫𝐮𝐞 Nil)) ) Nil)) Nil)) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; CutAnd => CutOr => CutAnd => OrIden
+        (fromNumber 4)
         (: $reduct (: $x 𝐁𝐨𝐨𝐥)))
  )
