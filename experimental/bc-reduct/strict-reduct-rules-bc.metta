@@ -114,6 +114,27 @@
 !(bind! &rb (new-space))
 
 ;; Attempt to add more constraints on the reduct rules.
+;; TODO: If the reduction can't be applied to the parent,
+;;   the reduction never proceeds to the children.
+;;    WARN: However, if the reduction can proceed to the children,
+;;            then we may face an issue with keeping the ENF format.
+;;            For example, the AND OR alternation could be lost or a
+;;            certain parent could become a place where we could apply
+;;            or identity after some adjustments to children.
+;;          To fix this kind of issues, maybe starting the reduction from
+;;            leaf nodes could be a good idea but that also may arise certain
+;;            performance issues and also may contradict with other reduction rules
+;;            preference like the demorgans rule which starts from the parent.
+;;          In theory, we can define a set of rules where one group prefers being applied
+;;            starting from the parent while the others start from the leaf nodes. However,
+;;            practicality of this idea is questionable.
+;;
+;; TODO: Most of the reduction rules may want certain CPU computations,
+;;   and therefore can be hard to actually convert to reasoning. Whether these
+;;   CPU computations can be converted to reasoning is another question. But
+;;   if the chainer already needs a CPU computation before deciding what rule to apply
+;;   rules or not, wouldn't it be easier to just define the rules and apply them using
+;;   a loop or something excluding the chainer?
 
 ;; Run the code if the condition is true, otherwise prune the branch
 (: when (-> Bool $a $a))
