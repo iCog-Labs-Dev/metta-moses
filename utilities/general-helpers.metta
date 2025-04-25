@@ -525,11 +525,16 @@
 ; (: List.sum (-> (List $a) $a))
 ; (= (List.sum $list) (List.sum + $list))
 
-;; defining addition operator for non-numerical types
-;; adder
-;;      $ctor -- type constructor
-(: adder (-> $a $a $a))
-(= (adder ($ctor $x) ($ctor $y)) ($ctor (+ $x $y)))
+;; A function to take any two types which have the same constructor and add them.
+;;   params: ($ctor $a): The first argument with a constructor $ctor
+;;           ($ctor $b): The second argument with the same constructor as the first
+;;   returns: Sum of the types if they both contain numbers
+;;            An error if they can't be added together
+(: add (-> $a $a $a))
+(= (add ($ctor $a) ($ctor $b))
+     (if (== (get-type $a) Number)
+            ($ctor (+ $a $b))
+            (Error ($a or $b) "One of the argument is not a number")))
 
 ;; wrapping the built-in ininf-math with custom function because the return type is not bool, it is number
 ;; using the type-cast function
@@ -549,6 +554,14 @@
         (let ($head $tail) (decons-atom $expr)  (Cons $head (exprToList $tail)))
     )
 )
+
+;; From a tuple (Pair) return the first element
+(: first (-> ($a $b) $a))
+(= (first ($a $b)) $a)
+
+;; From a tuple (Pair) return the second element
+(: second (-> ($a $b) $b))
+(= (second ($a $b)) $b)
 
 ;; Converts a tuple of pairs into ordered multimap
 ;; Ex: ((k1 v1) (k2 v2)) -> (ConsMMap (k1 v1) (ConsMMap (k2 v2) NilMMap))

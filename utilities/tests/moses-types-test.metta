@@ -1,4 +1,5 @@
-!(register-module! ../../../metta-moses)
+! (register-module! ../../../metta-moses)
+
 ! (import! &self metta-moses:utilities:moses-types)
 
 ;output test

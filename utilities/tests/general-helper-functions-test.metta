@@ -304,9 +304,7 @@
 
 ;; Test map`
 
-(= (add $x $y) (+ $x $y))
-
-!(assertEqual (map` add 2 (1 2 3 4 5)) (3 4 5 6 7))
+!(assertEqual (map` + 2 (1 2 3 4 5)) (3 4 5 6 7))
 !(assertEqual (map` notMember (1 2 3) (2 4 1 3)) (False True False False))
 
 ;; Test isValidExp
@@ -326,6 +324,19 @@
 !(assertEqual (exprToList (AND A B)) (Cons AND (Cons A (Cons B Nil))))
 !(assertEqual (exprToList (1 2 3 4)) (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
 
+;; Test for expression pair (tuple)
+
+!(assertEqual (first (1 2)) 1)
+!(assertEqual (second (1 2)) 2)
+!(assertEqual (first (second (1 (1 2)))) 1)
+
+!(assertEqual (let $a (first (1 2)) (get-type $a)) Number)
+!(assertEqual (let $a (second (1 2)) (get-type $a)) Number)
+!(assertEqual (let $a (first (second (1 (1 2)))) (get-type $a)) Number)
+
+;; Test the add Function for Numbers wrapped within constructors
+!(assertEqual (add (mkMultip 1) (mkMultip 2)) (mkMultip 3))
+!(assertEqual (add (mkMultip A) (mkMultip 1)) (Error (A or 1) "One of the argument is not a number"))
 ;; Test for expToMMap
 !(assertEqual 
 (expToMMap (((mkDiscSpec 1) (mkLsk1)) ((mkDiscSpec 2) (mkLsk2)) ((mkDiscSpec 3) (mkLsk3)))
