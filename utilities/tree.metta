@@ -82,7 +82,8 @@
 ;;   (List (Tree $a)) - The list of children of the target node.
 (: getChildrenById (-> (Tree $a) NodeId (List (Tree $a))))
 (= (getChildrenById $tree (mkNodeId $id))
-   (let $targetNode (getNodeById $tree (mkNodeId $id))))
+   (let $targetNode (getNodeById $tree (mkNodeId $id))
+     (getChildren $targetNode)))
 
 ;; Creates a new tree with a node inserted above the given tree as its parent.
 ;; Params:
@@ -126,7 +127,7 @@
 ;;   $child: - The new child to append.
 ;; Returns:
 ;;   ((Tree $a) NodeId) - Tuple of updated tree and NodeId of the new child.    
-(: appendChild (-> (Tree $a) NodeId (Tree $a) ((Tree $a) NodeId)))
+(: appendChild (-> (Tree $a) NodeId (Tree $a) (List (U (Tree $a) NodeId))))
 (= (appendChild $tree (mkNodeId $target) $child)
    (let* 
       (
@@ -139,4 +140,5 @@
         ( $updatedTree (replaceNodeById $tree (mkNodeId $target) $newTargetSubtree))
       )
 
-    ($updatedTree (mkNodeId $idOfChild))))   
+    ($updatedTree (mkNodeId $idOfChild))))    
+     
