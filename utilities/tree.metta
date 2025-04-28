@@ -127,7 +127,7 @@
 ;;   $child: - The new child to append.
 ;; Returns:
 ;;   ((Tree $a) NodeId) - Tuple of updated tree and NodeId of the new child.    
-(: appendChild (-> (Tree $a) NodeId (Tree $a) (List (U (Tree $a) NodeId))))
+(: appendChild (-> (Tree $a) NodeId (Tree $a) ((Tree $a) NodeId)))
 (= (appendChild $tree (mkNodeId $target) $child)
    (let* 
       (
