@@ -49,6 +49,33 @@
         )
         (buildTree $reduced)))
 
+;; Get an id of a certain node.
+;; Params:
+;;   $tree: The full tree to search
+;;   $targetTree: The target tree to find the ID of.
+;; Returns:
+;;   NodeId: The id of the targetTree if found.
+(: getNodeID (-> (Tree $a) (Tree $a) NodeId))
+(: getNodeID (-> (Tree $a) (Tree $a) NodeId NodeId))
+(= (getNodeId $tree $targetTree) (getNodeId $tree $targetTree (mkNodeId (0))))
+(= (getNodeId $tree $targetTree (mkNodeId $idxAcc))
+    (chain (getChildren $tree) $children
+    (chain (List.index $children $targetTree) $targetIdx
+       (if (== $targetIdx -1)
+           (chain (List.foldl applyGetNodeId ($targetTree (mkNodeId (-1)) 1) $children) $state
+              (let ($_ $nodeId $iter) $state $nodeId))
+           (mkNodeId (unionAtom $idxAcc ((+ 1 $targetIdx))))))))
+
+;; Helper function for the getNodeId function.
+;;   The function's sole purpose is to make the
+;;   getNodeById compatible for the foldr function call.
+(: applyGetNodeId (-> (Tree $a) ((Tree $a) NodeId Number) ((Tree $a) NodeId Number)))
+(= (applyGetNodeId $currTree ($targetTree $accId $iter))
+    (if (== $accId (mkNodeId (-1)))
+        (chain (getNodeId $currTree $targetTree (mkNodeId ($iter))) $nodeId
+           (let (mkNodeId $idx) $nodeId ($targetTree $nodeId (+ 1 $iter))))
+        ($targetTree $accId (+ 1 $iter))))
+
 ;; Finds the NodeId of a subtree within the children of a target node.
 ;; Params:
 ;;   $tree: - The full tree to search.
