@@ -126,19 +126,25 @@
 ;;   $target: - ID of the target node
 ;;   $child: - The new child to append.
 ;; Returns:
-;;   ((Tree $a) NodeId) - Tuple of updated tree and NodeId of the new child.    
+;;   ((Tree $a) NodeId) - Tuple of updated tree and NodeId of the new child.
 (: appendChild (-> (Tree $a) NodeId (Tree $a) ((Tree $a) NodeId)))
 (= (appendChild $tree (mkNodeId $target) $child)
-   (let* 
+   (let*
       (
-        ( $targetNode (getNodeById $tree (mkNodeId $target)))       
-        ( $childrenTgt (getChildren $targetNode))                  
-        ( $updatedChildrenTgt (List.append $child $childrenTgt))   
-        ( $childIndex (List.length $updatedChildrenTgt))          
-        ( $idOfChild (union-atom $target ($childIndex)))          
+        ( $targetNode (getNodeById $tree (mkNodeId $target)))
+        ( $childrenTgt (getChildren $targetNode))
+        ( $updatedChildrenTgt (List.append $child $childrenTgt))
+        ( $childIndex (List.length $updatedChildrenTgt))
+        ( $idOfChild (union-atom $target ($childIndex)))
         ( $newTargetSubtree (updateChildren $targetNode $updatedChildrenTgt))
         ( $updatedTree (replaceNodeById $tree (mkNodeId $target) $newTargetSubtree))
       )
+    ($updatedTree (mkNodeId $idOfChild))))
 
-    ($updatedTree (mkNodeId $idOfChild))))    
-     
+;; getChildrenByIdx -- retrieve children of a tree using index values
+(: getChildrenByIdx (-> (Tree $a) Number (List (Tree $a))))
+(= (getChildrenByIdx $tree $idx)
+        (case $tree
+            (((mkTree (mkNode $r) $childrenTgt) (List.getByIdx $childrenTgt $idx))
+              ((mkNullVex $childrenTgt) (List.getByIdx $childrenTgt $idx))
+              ($else (Error (Node not found or invalid))))))
