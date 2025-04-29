@@ -10,6 +10,12 @@
 !(assertEqual (List.foldr * 1 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))) 24)
 !(assertEqual (List.foldr - 0 (Cons 10 (Cons 5 (Cons 2 Nil)))) 7)  
 
+
+;; Test cases for List.foldr
+!(assertEqual (List.foldl + 0 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))) 10)
+!(assertEqual (List.foldl * 1 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))) 24)
+!(assertEqual (List.foldl - 0 (Cons 10 (Cons 5 (Cons 2 Nil)))) 7)
+
 ;; Test cases for List.sum
 !(assertEqual (List.sum (Cons 1 (Cons 2 (Cons 3 (Cons 2 (Cons 3 Nil)))))) 11)
 !(assertEqual (List.sum (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))) 10)

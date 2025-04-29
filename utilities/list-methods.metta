@@ -10,7 +10,7 @@
 ;; Fold a tuple from left to right
 (: List.foldl (-> (-> $a $b $b) $b (List $a) $b))
 (= (List.foldl $f $i Nil) $i)
-(= (List.foldl $f $i (Cons $h $t)) (chain ($f $h $i) $i' (List.foldr $f $i' $t)))
+(= (List.foldl $f $i (Cons $h $t)) (chain ($f $h $i) $i' (List.foldl $f $i' $t)))
 
 ;; Fold a tuple from right to left
 (: List.foldr (-> (-> $a $b $b) $b (List $a) $b))
