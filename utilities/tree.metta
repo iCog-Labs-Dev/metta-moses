@@ -148,3 +148,12 @@
             (((mkTree (mkNode $r) $childrenTgt) (List.getByIdx $childrenTgt $idx))
               ((mkNullVex $childrenTgt) (List.getByIdx $childrenTgt $idx))
               ($else (Error (Node not found or invalid))))))
+
+
+;; check if tree is empty
+(: isEmpty (-> (Tree $a) Bool))
+(= (isEmpty $tree)
+    (case $tree
+        (((mkNullVex Nil) True)
+        ($else False))))
+

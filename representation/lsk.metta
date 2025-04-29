@@ -28,23 +28,19 @@
 
 
 ;; get node id from lsk
+(: getNodeId (-> LogicalSubtreeKnob NodeId))
 (= (getNodeId (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multi $default $current $discSpecList) $subtree))
    $nodeId)
 
 ;; get current and default disc spec
+(: getDiscSpec (-> LogicalSubtreeKnob (DiscSpec DiscSpec)))
 (= (getDiscSpec (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multi $default $current $discSpecList) $subtree))
     (let ((mkDiscSpec $def) (mkDiscSpec $cur)) ($default $current) ($def $cur)))
 
 ;; get subtree from lsk
-(= (getSubtree (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multi $default $current $discSpecList) $subtree))
+(: getSubtree (-> LogicalSubtreeKnob (Tree $a)))
+(= (getSubtree (mkLSK $disknob $subtree))
     $subtree)
-
-;; check if tree is empty
-(: isEmpty (-> (Tree $a) Bool))
-(= (isEmpty $tree)
-    (case $tree
-        (((mkNullVex Nil) True)
-        ($else False))))
 
 ;; appendTo -- appends a subtree in place of a logical subtree using information from the lsk 
 ;;          -- $tree is an tree decorated with logica subtree knobs
@@ -62,10 +58,9 @@
                 $subtree
                 (let $treeToAppend 
                    (case ($current $default)
-                        (((2 1) (insertAbove $subtree (mkNode NOT)))
-                         ((2 0) (let $child (getChildrenByIdx $subtree 0) (insertAbove $child (mkNode NOT))))
-                         ($else (if (and (not (== $current 0)) (== $default 1))
+                        (((2 1) (insertAbove $subtree (mkNode NOT))) ;; If negated but present in the tree
+                         ((2 0) (let $child (getChildrenByIdx $subtree 0) (insertAbove $child (mkNode NOT)))) ;; If negated but not present in the tree
+                         ($else (if (and (not (== $current 0)) (== $default 1)) ;; If not absent and is present
                                 $subtree
-                                (getChildrenByIdx $subtree 0)))))
-
+                                (getChildrenByIdx $subtree 0))))) ;; If not absent and not present
                     (replaceNodeById $tree $nodeId $treeToAppend))))))

@@ -99,11 +99,6 @@
                         (mkTree (mkNode OR) (Cons (mkTree (mkNode D) Nil) (Cons (mkTree (mkNode E) Nil) Nil))))) 
                             (mkTree (mkNode OR) (Cons (mkTree (mkNode D) Nil) (Cons (mkTree (mkNode E) Nil) Nil))))
 
-;; isEmpty
-! (assertEqual (isEmpty (mkNullVex Nil)) True)
-! (assertEqual (isEmpty (mkTree (mkNode A) Nil)) False)
-! (assertEqual (isEmpty (mkTree (mkNode B) (Cons NullVertex Nil))) False)
-
 ;; appendTo
 ;; invalid disc specification
 ! (assertEqual

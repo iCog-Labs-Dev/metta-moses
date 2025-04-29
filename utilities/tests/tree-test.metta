@@ -250,3 +250,10 @@
 !(assertEqual (getChildrenByIdx (mkTree (mkNode X) (Cons (mkTree (mkNode Y) Nil) (Cons (mkTree (mkNode Z) Nil) Nil))) 1) (mkTree (mkNode Z) Nil))
 !(assertEqual (getChildrenByIdx (mkNullVex (Cons (mkTree (mkNode P) Nil) (Cons (mkTree (mkNode Q) Nil) Nil))) 0) (mkTree (mkNode P) Nil))
 !(assertEqual (getChildrenByIdx (mkNullVex (Cons (mkTree (mkNode R) Nil) (Cons (mkTree (mkNode S) Nil) Nil))) 1) (mkTree (mkNode S) Nil))
+
+
+;; Test cases for isEmpty
+! (assertEqual (isEmpty (mkNullVex Nil)) True)
+! (assertEqual (isEmpty (mkTree (mkNode A) Nil)) False)
+! (assertEqual (isEmpty (mkTree (mkNode B) (Cons NullVertex Nil))) False)
+
