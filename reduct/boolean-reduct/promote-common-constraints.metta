@@ -31,8 +31,9 @@
                     (
                       ;; (() (println! (Removing Common Literals: $common)))
                       ($updatedChildren (removeCommonLiterals $common $children))
+                    ;   ($updatedChildren' (reverseExp (collapse (reverseExp (superpose $updatedChildren) ())) ()))
                       ($updatedLiterals (removeElement $common $literals))
-                      ($newExp (++ $updatedLiterals $updatedChildren ))
+                      ($newExp (++ $updatedLiterals $updatedChildren))
 
                       ($newCurrent (cons-atom OR $newExp))
                       ($updatedParent (findAndReplace $current $newCurrent $parent))
@@ -61,7 +62,7 @@
 (= (removeCommonLiterals $common $tuple)
    ( if (== $tuple ())
         ()
-        (collapse (removeElement $common (superpose $tuple)))
+        (collapse (reverseExp (removeElement $common (superpose $tuple)) ()))
    )
 )
 

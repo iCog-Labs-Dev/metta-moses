@@ -15,7 +15,7 @@ A short example, from beginning to end, can be found in this Jupyter notebook (c
 There is also a considerable amount of information in the OpenCog wiki: http://wiki.opencog.org/w/Meta-Optimizing_Semantic_Evolutionary_Search
 
 ## Running the code
-- Make sure to install MeTTa `v0.1.12` following the instruction on the [hyperon-experimental](https://github.com/trueagi-io/hyperon-experimental) repository.
+- Make sure to install MeTTa `v0.2.3` following the instruction on the [hyperon-experimental](https://github.com/trueagi-io/hyperon-experimental) repository.
 - For windows users, an alternative way of running MeTTa can be using the [metta-run](https://github.com/iCog-Labs-Dev/metta-prebuilt-binary) binary.
 
 ## Contributing
