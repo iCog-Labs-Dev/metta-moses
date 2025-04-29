@@ -89,3 +89,20 @@
 ;; List.prepend .. adds an element at the beginnig of a list
 (: List.prepend (-> $a (List $a) (List $a)))
 (= (List.prepend $a $list) (Cons $a $list))
+
+;; Find an element in a list
+;; Params: 
+;;  $list: The list to search
+;;  $target: The element to find
+;; Returns: 
+;;  The index of the first found element or
+;;  -1 If the element can't be found
+(: List.index (-> (List $a) $a Number))
+(= (List.index Nil $target) -1)
+(= (List.index (Cons $x $xs) $target)
+    (if (== $x $target)
+        0
+        (chain (List.index $xs $target) $idx 
+          (if (< $idx 0)
+              $idx
+              (+ 1 $idx)))))

@@ -76,3 +76,11 @@
 !(assertEqual (List.prepend 0 Nil) (Cons 0 Nil))
 !(assertEqual (List.prepend 0 (Cons 1 Nil)) (Cons 0 (Cons 1 Nil)))
 !(assertEqual (List.prepend 0 (Cons 1 (Cons 2 Nil))) (Cons 0 (Cons 1 (Cons 2 Nil))))
+
+;; Test case of List.index
+!(assertEqual (List.index Nil A) -1)
+!(assertEqual (List.index (Cons A (Cons B (Cons C Nil))) A) 0)
+!(assertEqual (List.index (Cons B (Cons C Nil)) A) -1)
+!(assertEqual (List.index (Cons D (Cons B (Cons C (Cons A Nil)))) A) 3)
+!(assertEqual (List.index (Cons D (Cons A (Cons C Nil))) A) 1)
+!(assertEqual (List.index (Cons D (Cons A (Cons A Nil))) A) 1)
