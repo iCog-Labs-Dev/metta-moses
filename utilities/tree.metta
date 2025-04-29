@@ -49,32 +49,43 @@
         )
         (buildTree $reduced)))
 
-;; Get an id of a certain node.
+;; Get an id of a certain node. And (0) if the root node.
+;; Example:
+;;    Id of A in the (AND (OR (AND A B))) => (1 1 1)
+;;    Id of (AND A B) in the (AND (OR (AND A B))) => (1 1)
 ;; Params:
 ;;   $tree: The full tree to search
 ;;   $targetTree: The target tree to find the ID of.
 ;; Returns:
 ;;   NodeId: The id of the targetTree if found.
-(: getNodeID (-> (Tree $a) (Tree $a) NodeId))
-(: getNodeID (-> (Tree $a) (Tree $a) NodeId NodeId))
+(: getNodeId (-> (Tree $a) (Tree $a) NodeId))
+(: getNodeId (-> (Tree $a) (Tree $a) NodeId NodeId))
 (= (getNodeId $tree $targetTree) (getNodeId $tree $targetTree (mkNodeId (0))))
-(= (getNodeId $tree $targetTree (mkNodeId $idxAcc))
-    (chain (getChildren $tree) $children
-    (chain (List.index $children $targetTree) $targetIdx
-       (if (== $targetIdx -1)
-           (chain (List.foldl applyGetNodeId ($targetTree (mkNodeId (-1)) 1) $children) $state
-              (let ($_ $nodeId $iter) $state $nodeId))
-           (mkNodeId (unionAtom $idxAcc ((+ 1 $targetIdx))))))))
+(= (getNodeId $tree $targetTree (mkNodeId $parentIdx))
+    (if (== $tree $targetTree)
+        (mkNodeId $parentIdx)
+        (chain (getChildren $tree) $children
+        (chain (List.index $children $targetTree) $targetIdx
+        (if (== $targetIdx -1)
+            (chain (List.foldl applyGetNodeId ($targetTree (mkNodeId $parentIdx) (mkNodeId (-1)) 1) $children) $state
+              (let ($_ $__ $nodeId $iter) $state $nodeId))
+            (if (== $parentIdx (0)) ;; If parentIdx is (0) don't include it in the index.
+                (mkNodeId ((+ 1 $targetIdx)))
+                (mkNodeId (unionAtom $parentIdx ((+ 1 $targetIdx))))))))))
 
 ;; Helper function for the getNodeId function.
 ;;   The function's sole purpose is to make the
 ;;   getNodeById compatible for the foldr function call.
-(: applyGetNodeId (-> (Tree $a) ((Tree $a) NodeId Number) ((Tree $a) NodeId Number)))
-(= (applyGetNodeId $currTree ($targetTree $accId $iter))
+(: applyGetNodeId (-> (Tree $a) ((Tree $a) NodeId NodeId Number) ((Tree $a) NodeId NodeId Number)))
+(= (applyGetNodeId $currTree ($targetTree (mkNodeId $parentIdx) $accId $iter))
     (if (== $accId (mkNodeId (-1)))
         (chain (getNodeId $currTree $targetTree (mkNodeId ($iter))) $nodeId
-           (let (mkNodeId $idx) $nodeId ($targetTree $nodeId (+ 1 $iter))))
-        ($targetTree $accId (+ 1 $iter))))
+        (chain (if (== $parentIdx (0)) (mkNodeId $idx) (mkNodeId (unionAtom $parentIdx $idx))) $newId ;; If parentIdx (0) don't include it in the index.
+          (let (mkNodeId $idx) $nodeId
+            (if (== $idx (-1))
+                ($targetTree (mkNodeId $parentIdx) $nodeId (+ 1 $iter))
+                ($targetTree $nodeId $newId (+ 1 $iter))))))
+        ($targetTree (mkNodeId $pareantIdx) $accId (+ 1 $iter))))
 
 ;; Finds the NodeId of a subtree within the children of a target node.
 ;; Params:
