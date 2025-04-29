@@ -84,3 +84,11 @@
 !(assertEqual (List.index (Cons D (Cons B (Cons C (Cons A Nil)))) A) 3)
 !(assertEqual (List.index (Cons D (Cons A (Cons C Nil))) A) 1)
 !(assertEqual (List.index (Cons D (Cons A (Cons A Nil))) A) 1)
+
+;; Test case for List.head
+!(assertEqual (List.head Nil) (Error Nil EmptyList))
+!(assertEqual (List.head (Cons 1 (Cons 2 Nil))) 1)
+
+;; Test case for List.tail
+!(assertEqual (List.tail Nil) Nil)
+!(assertEqual (List.tail (Cons 1 (Cons 2 Nil))) (Cons 2 Nil))
