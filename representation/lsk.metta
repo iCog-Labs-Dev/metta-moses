@@ -58,9 +58,9 @@
                 $subtree
                 (let $treeToAppend 
                    (case ($current $default)
-                        (((2 1) (insertAbove $subtree (mkNode NOT))) ;; If negated but present in the tree
-                         ((2 0) (let $child (getChildrenByIdx $subtree 0) (insertAbove $child (mkNode NOT)))) ;; If negated but not present in the tree
-                         ($else (if (and (not (== $current 0)) (== $default 1)) ;; If not absent and is present
+                        (((2 1) (insertAbove $subtree (mkNode NOT))) ;; If negated but found in the tree
+                         ((2 0) (let $child (getChildrenByIdx $subtree 0) (insertAbove $child (mkNode NOT)))) ;; If negated but not found in the tree
+                         ($else (if (and (not (== $current 0)) (== $default 1)) ;; If not absent and is found in the tree
                                 $subtree
-                                (getChildrenByIdx $subtree 0))))) ;; If not absent and not present
+                                (getChildrenByIdx $subtree 0))))) ;; If not absent and not found in the tree
                     (replaceNodeById $tree $nodeId $treeToAppend))))))
