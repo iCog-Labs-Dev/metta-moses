@@ -71,3 +71,8 @@
 !(assertEqual (List.replaceAt (Cons 1 (Cons 2 (Cons 3 Nil))) 0 9) (Cons 9 (Cons 2 (Cons 3 Nil))))
 !(assertEqual (List.replaceAt (Cons 1 (Cons 2 (Cons 3 Nil))) 1 9) (Cons 1 (Cons 9 (Cons 3 Nil))))
 !(assertEqual (List.replaceAt Nil 0 5) Nil)
+
+;; Test case for List.prepend
+!(assertEqual (List.prepend 0 Nil) (Cons 0 Nil))
+!(assertEqual (List.prepend 0 (Cons 1 Nil)) (Cons 0 (Cons 1 Nil)))
+!(assertEqual (List.prepend 0 (Cons 1 (Cons 2 Nil))) (Cons 0 (Cons 1 (Cons 2 Nil))))

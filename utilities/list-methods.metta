@@ -86,3 +86,6 @@
 (= (List.replaceAt (Cons $head $tail) $n $elem) 
    (if (== $n 0) (Cons $elem $tail) (Cons $head (List.replaceAt $tail (- $n 1) $elem))))  
 
+;; List.prepend .. adds an element at the beginnig of a list
+(: List.prepend (-> $a (List $a) (List $a)))
+(= (List.prepend $a $list) (Cons $a $list))
