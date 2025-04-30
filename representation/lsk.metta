@@ -46,21 +46,21 @@
 ;;          -- $tree is an tree decorated with logica subtree knobs
 ;;          -- $lsk is a the knob containing information of how the subtree is appeneded to the original tree 
 
-(: appendTo (-> (Tree $a) LogicalSubtreeKnob (Tree $a)))
-(= (appendTo $tree $lsk)
+(: appendTo (-> LogicalSubtreeKnob (Tree $a) Number (Tree $a)))
+(= (appendTo $lsk $tree $d)
     (let* (($nodeId (getNodeId $lsk))
-            (($current $default) (getDiscSpec $lsk))
+            (($_ $default) (getDiscSpec $lsk))
             ($subtree (getSubtree $lsk)))
 
-            (if (> $current 2)
-              (Error $current "Invalid disc specification:- cannot exceed 2.")
+            (if (> $d 2)
+              (Error $d "Invalid disc specification:- cannot exceed 2.")
               (if (isEmpty $tree)
                 $subtree
-                (let $treeToAppend 
-                   (case ($current $default)
+                (let $treeToAppend
+                   (case ($d $default)
                         (((2 1) (insertAbove $subtree (mkNode NOT))) ;; If negated but present in the tree
                          ((2 0) (let $child (getChildrenByIdx $subtree 0) (insertAbove $child (mkNode NOT)))) ;; If negated but not present in the tree
-                         ($else (if (and (not (== $current 0)) (== $default 1)) ;; If not absent and is present
+                         ($else (if (and (~= $d 0) (== $default 1)) ;; If not absent and is present
                                 $subtree
                                 (getChildrenByIdx $subtree 0))))) ;; If not absent and not present
                     (replaceNodeById $tree $nodeId $treeToAppend))))))
