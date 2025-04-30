@@ -7,6 +7,10 @@
 (: NullVertex (Tree $a))
 (: mkNullVex (-> (List (Tree $a)) (Tree $a)))
 
+(: getNodeValue (-> (Tree $a) (Node $a)))
+(= (getNodeValue (mkNullVex $xs)) (Error (mkNullVex $xs) "Null Vertex has no value"))
+(= (getNodeValue (mkTree $nodeValue $chl)) $nodeValue)
+
 (: getChildren (-> (Tree $a) (List (Tree $a))))
 (= (getChildren (mkTree (mkNode $r) $children)) $children)
 (= (getChildren (mkNullVex $children)) $children)
@@ -143,7 +147,9 @@
 ;;   (Tree $a) - The updated tree with $newSubtree at $id.
 (: replaceNodeById (-> (Tree $a) NodeId (Tree $a) (Tree $a)))
 (= (replaceNodeById $tree (mkNodeId $id) $newSubtree)
-   (if (== $id ())
+
+   ;; If no more id or targetTree is root.
+   (if (or (== $id ()) (== (mkNodeId $id) (mkNodeId (0)))) ;; Without the mkNodeId constructor the interpreter treats the () and (0) as different types.
        $newSubtree
        (let* (($headId (car-atom $id))
               ($tailId (cdr-atom $id))
@@ -166,14 +172,17 @@
 ;; Returns:
 ;;   ((Tree $a) NodeId) - Tuple of updated tree and NodeId of the new child.
 (: appendChild (-> (Tree $a) NodeId (Tree $a) ((Tree $a) NodeId)))
-(= (appendChild $tree (mkNodeId $target) $child)
+(= (appendChild (mkNullVex Nil) $targetId $child) ($child (mkNodeId (0))))
+(= (appendChild (mkNullVex (Cons $x $xs)) $targetId $child) (Error (mkNullVex (Cons $x $xs)) "Null vertex can't have more than one child"))
+(= (appendChild (mkTree $node $children) (mkNodeId $target) $child)
    (let*
       (
+        ( $tree (mkTree $node $children))
         ( $targetNode (getNodeById $tree (mkNodeId $target)))
         ( $childrenTgt (getChildren $targetNode))
         ( $updatedChildrenTgt (List.append $child $childrenTgt))
         ( $childIndex (List.length $updatedChildrenTgt))
-        ( $idOfChild (union-atom $target ($childIndex)))
+        ( $idOfChild (if (== $target (0)) ($childIndex) (union-atom $target ($childIndex))))
         ( $newTargetSubtree (updateChildren $targetNode $updatedChildrenTgt))
         ( $updatedTree (replaceNodeById $tree (mkNodeId $target) $newTargetSubtree))
       )
