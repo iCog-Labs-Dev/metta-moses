@@ -182,7 +182,13 @@
         ( $childrenTgt (getChildren $targetNode))
         ( $updatedChildrenTgt (List.append $child $childrenTgt))
         ( $childIndex (List.length $updatedChildrenTgt))
-        ( $idOfChild (if (== $target (0)) ($childIndex) (union-atom $target ($childIndex))))
+
+        ;; Comparison has to be in mkNodeId constructor because if not,
+        ;;    when the expression size is different so will the type and
+        ;;    cause bad type error sometimes. For example, (2 3) 's type
+        ;;    is (Number Number) and (0) 's type is (Number) hence the
+        ;;    interpreter throws a bad type error.
+        ( $idOfChild (if (== (mkNodeId $target) (mkNodeId (0))) ($childIndex) (union-atom $target ($childIndex))))
         ( $newTargetSubtree (updateChildren $targetNode $updatedChildrenTgt))
         ( $updatedTree (replaceNodeById $tree (mkNodeId $target) $newTargetSubtree))
       )
