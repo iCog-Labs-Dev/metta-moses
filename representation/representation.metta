@@ -4,7 +4,7 @@
 (: KnobMap Type)
 (: mkKbMap (-> (Map (NodeId Number)) (MultiMap (DiscSpec $knob)) KnobMap))
 
-(: getCandidate -> Representation Instance (Tree $a))
+(: getCandidate (-> Representation Instance (Tree $a)))
 (= (getCandidate $repObj $inst)
    (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex Nil)) $candidate
       (cleanTree $candidate)))
