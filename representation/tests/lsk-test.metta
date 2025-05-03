@@ -4,6 +4,7 @@
 ! (import! &self metta-moses:utilities:tree)
 ! (import! &self metta-moses:representation:knob-representation)
 ! (import! &self metta-moses:utilities:nodeId)
+! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:representation:lsk)
 
 ;; Testcases for logicalSubtreeKnob
@@ -103,55 +104,127 @@
 ;; invalid disc specification
 ! (assertEqual
   (appendTo
-    (mkTree (mkNode OR) Nil)
     (mkLSK
       (mkDiscKnob
-        (mkKnob (mkTree (mkNode OR) Nil) (mkNodeId 0))
+        (mkKnob (mkTree (mkNode OR) Nil) (mkNodeId (0)))
         (mkMultip 1)
         (mkDiscSpec 4)
         (mkDiscSpec 0)
         Nil)
-      (mkTree (mkNode A) Nil)))
+      (mkTree (mkNode A) Nil))
+    (mkTree (mkNode OR) Nil)
+    (mkNodeId (0))
+      4
+    )
   (Error 4 "Invalid disc specification:- cannot exceed 2."))
+
 ;; appending to empty tree
 ! (assertEqual
   (appendTo
+    (mkLSK
+      (mkDiscKnob
+         (mkKnob
+            (mkNullVex Nil)
+            (mkNodeId (0)))
+         (mkMultip 1)
+         (mkDiscSpec 1)
+         (mkDiscSpec 0)
+         Nil)
+    (mkTree (mkNode AND)
+        (Cons (mkTree (mkNode P) Nil) Nil)))
     (mkNullVex  Nil)
-            (mkLSK
-            (mkDiscKnob (mkKnob (mkNullVex Nil) (mkNodeId 0)) (mkMultip 1) (mkDiscSpec 1) (mkDiscSpec 0) Nil)
-            (mkTree (mkNode AND)
-                (Cons (mkTree (mkNode P) Nil) Nil))))
-                    (mkTree (mkNode AND)
-                        (Cons (mkTree (mkNode P) Nil) Nil)))
-;; insertion at a node
-! (assertEqual
-  (appendTo (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil)
-        (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode X) Nil) (Cons (mkTree (mkNode Y) Nil) Nil)))
-            Nil)) Nil)))
-    (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil)
-              (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode X) Nil) (Cons (mkTree (mkNode Y) Nil) Nil)))
-                Nil)) Nil)))
-            (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 2) (mkDiscSpec 1) Nil) (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)))) 
-              (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil))))
+    (mkNodeId (0))
+    1)
+    (mkTree (mkNode AND)
+        (Cons (mkTree (mkNode P) Nil) Nil)))
 
-! (assertEqual
-  (appendTo (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil)
-        (Cons (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode X) Nil) (Cons (mkTree (mkNode Y) Nil) Nil)))
-            Nil)) Nil)) Nil)))
-    (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil)
-        (Cons (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode X) Nil) (Cons (mkTree (mkNode Y) Nil) Nil)))
-            Nil)) Nil)) Nil)))
-            (mkNodeId (2 1))) (mkMultip 3) (mkDiscSpec 2) (mkDiscSpec 1) Nil) (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)))) 
-              (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)) Nil))))
-
+;; Test case for insertion at a node
+;; KnobSetting 2: (OR A) => (OR A (NOT (OR B)))
 ! (assertEqual
   (appendTo
-    (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil)
-      (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode X) Nil) (Cons (mkTree (mkNode Y) Nil) Nil))) Nil)) Nil)))
-    (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil)
-                    (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode X) Nil) (Cons (mkTree (mkNode Y) Nil) Nil))) Nil)) Nil)))
-                      (mkNodeId (2)))
-        (mkMultip 3) (mkDiscSpec 2) (mkDiscSpec 0) Nil)
-      (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil))))
-    
-    (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode B) Nil) Nil)) Nil))))
+    (mkLSK
+      (mkDiscKnob
+        (mkKnob
+          (mkTree (mkNode OR)
+            (Cons (mkTree (mkNode A) Nil)
+            (Cons (mkNullVex
+                    (Cons (mkTree (mkNode OR)
+                             (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
+          (mkNodeId (2)))
+        (mkMultip 3)
+        (mkDiscSpec 2)
+        (mkDiscSpec 0)
+        Nil)
+      (mkTree (mkNode OR)
+         (Cons (mkTree (mkNode B) Nil) Nil)))
+
+    (mkTree (mkNode OR)
+        (Cons (mkTree (mkNode A) Nil) Nil))
+    (mkNodeId (0))
+    2)
+    (mkTree (mkNode OR)
+        (Cons (mkTree (mkNode A) Nil)
+        (Cons (mkTree (mkNode NOT)
+                 (Cons (mkTree (mkNode OR)
+                 (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
+    )
+
+;; KnobSetting 2: (OR A (AND)) => (OR A (AND (NOT (OR B))))
+! (assertEqual
+  (appendTo
+    (mkLSK
+      (mkDiscKnob
+        (mkKnob
+          (mkTree (mkNode OR)
+            (Cons (mkTree (mkNode A) Nil)
+            (Cons (mkTree (mkNode AND)
+                    (Cons (mkNullVex
+                            (Cons (mkTree (mkNode OR)
+                                    (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)) Nil)))
+            (mkNodeId (2 1)))
+        (mkMultip 3)
+        (mkDiscSpec 2)
+        (mkDiscSpec 1)
+        Nil)
+      (mkTree (mkNode OR)
+         (Cons (mkTree (mkNode B) Nil) Nil)))
+    (mkTree (mkNode OR)
+            (Cons (mkTree (mkNode A) Nil)
+            (Cons (mkTree (mkNode AND) Nil) Nil)))
+    (mkNodeId (2))
+    2)
+    (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode A) Nil)
+                (Cons (mkTree (mkNode AND)
+                        (Cons (mkTree (mkNode NOT)
+                                 (Cons (mkTree (mkNode OR)
+                                 (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)) Nil)))
+)
+
+
+;; KnobSetting 0: (OR A) => (OR A)
+! (assertEqual
+  (appendTo
+    (mkLSK
+      (mkDiscKnob
+        (mkKnob
+          (mkTree (mkNode OR)
+             (Cons (mkTree (mkNode A) Nil)
+             (Cons (mkNullVex
+                     (Cons (mkTree (mkNode OR)
+                              (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
+          (mkNodeId (2)))
+        (mkMultip 3)
+        (mkDiscSpec 2)
+        (mkDiscSpec 0)
+        Nil)
+      (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)))
+    (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil))
+    (mkNodeId (0))
+    0)
+
+    (mkTree (mkNode OR)
+             (Cons (mkTree (mkNode A) Nil)
+             (Cons (mkNullVex
+                     (Cons (mkTree (mkNode OR)
+                              (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil))))

@@ -205,6 +205,28 @@
       (Cons (mkTree (mkNode B) Nil)
         Nil))))
 
+;; Test replaceNodeById at root with children
+!(assertEqual
+   (replaceNodeById 
+      (mkTree (mkNode AND)
+        (Cons (mkTree (mkNode A) Nil)
+        (Cons (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode B) Nil)
+                (Cons (mkTree (mkNode C) Nil)
+                (Cons (mkNullVex
+                        (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)))
+      (mkNodeId (0))
+      (mkTree (mkNode A) Nil))
+   (mkTree (mkNode A) Nil))
+
+;; Test replaceNodeById at root with no children
+!(assertEqual
+   (replaceNodeById
+      (mkTree (mkNode AND) Nil)
+      (mkNodeId (0))
+      (mkTree (mkNode A) Nil))
+   (mkTree (mkNode A) Nil))
+
 ;;Testcases for appendChild
 !(assertEqual
   (appendChild
@@ -245,6 +267,45 @@
           Nil)))
     (mkNodeId (2 3))))
 
+;; Test appendChild on empty null vertex
+!(assertEqual
+    (appendChild (mkNullVex Nil) (mkNodeId (1)) (mkTree (mkNode B) Nil))
+    ((mkTree (mkNode B) Nil) (mkNodeId (0))))
+
+;; Test appendChild on Null vertex with children
+!(assertEqual
+    (appendChild 
+      (mkNullVex
+         (Cons (mkTree (mkNode A) Nil) Nil)) 
+         (mkNodeId (1))
+         (mkTree (mkNode B) Nil))
+    (Error (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) "Null vertex can't have more than one child"))
+
+;; Test appendChild on empty root node
+!(assertEqual (appendChild (mkTree (mkNode AND) Nil) (mkNodeId (0)) (mkTree (mkNode B) Nil))
+              ((mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (mkNodeId (1))))
+
+;; Test appendChild on non empty root node (AND A B C) => (AND A B C D)
+!(assertEqual 
+    (appendChild 
+       (mkTree (mkNode AND)
+          (Cons (mkTree (mkNode A) Nil)
+          (Cons (mkTree (mkNode B) Nil)
+          (Cons (mkTree (mkNode C) Nil) Nil))))
+       (mkNodeId (0))
+       (mkTree (mkNode D) Nil))
+    (
+      (mkTree (mkNode AND)
+                (Cons (mkTree (mkNode A) Nil)
+                (Cons (mkTree (mkNode B) Nil)
+                (Cons (mkTree (mkNode C) Nil)
+                (Cons (mkTree (mkNode D) Nil) Nil))))) 
+      (mkNodeId (4))
+    )
+  )
+
+
+
 ;; Test cases for  getChildernByIdx
 !(assertEqual (getChildrenByIdx (mkTree (mkNode A) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))) 0) (mkTree (mkNode B) Nil))
 !(assertEqual (getChildrenByIdx (mkTree (mkNode X) (Cons (mkTree (mkNode Y) Nil) (Cons (mkTree (mkNode Z) Nil) Nil))) 1) (mkTree (mkNode Z) Nil))
@@ -257,3 +318,99 @@
 ! (assertEqual (isEmpty (mkTree (mkNode A) Nil)) False)
 ! (assertEqual (isEmpty (mkTree (mkNode B) (Cons NullVertex Nil))) False)
 
+
+
+;; Test cases for getNodeId
+;; (AND A (OR B C)) A
+!(assertEqual
+    (getNodeId
+      (mkTree (mkNode AND)
+          (Cons (mkTree (mkNode A) Nil)
+          (Cons (mkTree (mkNode OR)
+                  (Cons (mkTree (mkNode B) Nil)
+                  (Cons (mkTree (mkNode C) Nil) Nil))) Nil)))
+      (mkTree (mkNode A) Nil))
+    (mkNodeId (1))
+ )
+
+;; (AND A (OR B C)) B
+!(assertEqual
+    (getNodeId
+      (mkTree (mkNode AND)
+          (Cons (mkTree (mkNode A) Nil)
+          (Cons (mkTree (mkNode OR)
+                  (Cons (mkTree (mkNode B) Nil)
+                  (Cons (mkTree (mkNode C) Nil) Nil))) Nil)))
+      (mkTree (mkNode B) Nil))
+    (mkNodeId (2 1))
+ )
+
+;; (AND A (OR B (AND D E))) E
+!(assertEqual
+    (getNodeId
+      (mkTree (mkNode AND)
+          (Cons (mkTree (mkNode A) Nil)
+          (Cons (mkTree (mkNode OR)
+                  (Cons (mkTree (mkNode B) Nil)
+                  (Cons (mkTree (mkNode AND)
+                          (Cons (mkTree (mkNode D) Nil)
+                          (Cons (mkTree (mkNode E) Nil) Nil))) Nil))) Nil)))
+      (mkTree (mkNode E) Nil))
+    (mkNodeId (2 2 2))
+ )
+
+;; (AND A (OR B C)) D
+!(assertEqual
+    (getNodeId
+      (mkTree (mkNode AND)
+          (Cons (mkTree (mkNode A) Nil)
+          (Cons (mkTree (mkNode OR)
+                  (Cons (mkTree (mkNode B) Nil)
+                  (Cons (mkTree (mkNode AND)
+                          (Cons (mkTree (mkNode D) Nil)
+                          (Cons (mkTree (mkNode E) Nil) Nil))) Nil))) Nil)))
+      (mkTree (mkNode D) Nil))
+    (mkNodeId (2 2 1))
+ )
+
+;; (AND A (OR B C)) E
+!(assertEqual
+    (getNodeId
+      (mkTree (mkNode AND)
+          (Cons (mkTree (mkNode A) Nil)
+          (Cons (mkTree (mkNode OR)
+                  (Cons (mkTree (mkNode B) Nil)
+                  (Cons (mkTree (mkNode C) Nil) Nil))) Nil)))
+      (mkTree (mkNode E) Nil))
+    (mkNodeId (-1))
+ )
+
+;; (AND A (OR B C)) (AND A (OR B C))
+!(assertEqual
+    (getNodeId
+      (mkTree (mkNode AND)
+          (Cons (mkTree (mkNode A) Nil)
+          (Cons (mkTree (mkNode OR)
+                  (Cons (mkTree (mkNode B) Nil)
+                  (Cons (mkTree (mkNode C) Nil) Nil))) Nil)))
+      (mkTree (mkNode AND)
+          (Cons (mkTree (mkNode A) Nil)
+          (Cons (mkTree (mkNode OR)
+                  (Cons (mkTree (mkNode B) Nil)
+                  (Cons (mkTree (mkNode C) Nil) Nil))) Nil))))
+    (mkNodeId (0))
+ )
+
+;; (AND (A (OR B C))) (OR B C)
+!(assertEqual
+    (getNodeId
+      (mkTree (mkNode AND)
+          (Cons (mkTree (mkNode A) Nil)
+          (Cons (mkTree (mkNode OR)
+                  (Cons (mkTree (mkNode B) Nil)
+                  (Cons (mkTree (mkNode C) Nil) Nil))) Nil)))
+      (mkTree (mkNode OR)
+                  (Cons (mkTree (mkNode B) Nil)
+                  (Cons (mkTree (mkNode C) Nil) Nil))))
+    (mkNodeId (2))
+ )

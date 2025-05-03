@@ -10,6 +10,12 @@
 !(assertEqual (List.foldr * 1 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))) 24)
 !(assertEqual (List.foldr - 0 (Cons 10 (Cons 5 (Cons 2 Nil)))) 7)  
 
+
+;; Test cases for List.foldr
+!(assertEqual (List.foldl + 0 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))) 10)
+!(assertEqual (List.foldl * 1 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))) 24)
+!(assertEqual (List.foldl - 0 (Cons 10 (Cons 5 (Cons 2 Nil)))) 7)
+
 ;; Test cases for List.sum
 !(assertEqual (List.sum (Cons 1 (Cons 2 (Cons 3 (Cons 2 (Cons 3 Nil)))))) 11)
 !(assertEqual (List.sum (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))) 10)
@@ -76,3 +82,19 @@
 !(assertEqual (List.prepend 0 Nil) (Cons 0 Nil))
 !(assertEqual (List.prepend 0 (Cons 1 Nil)) (Cons 0 (Cons 1 Nil)))
 !(assertEqual (List.prepend 0 (Cons 1 (Cons 2 Nil))) (Cons 0 (Cons 1 (Cons 2 Nil))))
+
+;; Test case of List.index
+!(assertEqual (List.index Nil A) -1)
+!(assertEqual (List.index (Cons A (Cons B (Cons C Nil))) A) 0)
+!(assertEqual (List.index (Cons B (Cons C Nil)) A) -1)
+!(assertEqual (List.index (Cons D (Cons B (Cons C (Cons A Nil)))) A) 3)
+!(assertEqual (List.index (Cons D (Cons A (Cons C Nil))) A) 1)
+!(assertEqual (List.index (Cons D (Cons A (Cons A Nil))) A) 1)
+
+;; Test case for List.head
+!(assertEqual (List.head Nil) (Error Nil EmptyList))
+!(assertEqual (List.head (Cons 1 (Cons 2 Nil))) 1)
+
+;; Test case for List.tail
+!(assertEqual (List.tail Nil) Nil)
+!(assertEqual (List.tail (Cons 1 (Cons 2 Nil))) (Cons 2 Nil))

@@ -15,6 +15,11 @@
             (ConsMMap ($key $value) (ConsMMap ($curKey $curVal) $tail))
             (ConsMMap ($curKey $curVal) (MultiMap.insert ($key $value) $tail $fn))))
 
+;; Get the key value pair given an index.
+(: MultiMap.getByIdx (-> Number (MultiMap ($k $v)) ($k $v)))
+(= (MultiMap.getByIdx $idx NilMMap ) (Error NilMMap (Can't find $idx)))
+(= (MultiMap.getByIdx $idx (ConsMMap $x $xs)) (if (== $idx 0) $x (MultiMap.getByIdx (- $idx 1) $xs)))
+
 ;; Get the first found value with the given key from the Ordered multimap using key
 (: MultiMap.findOne (-> $k (MultiMap ($k $v)) $v))
 (= (MultiMap.findOne $key NilMMap) (Error $key "not found"))
