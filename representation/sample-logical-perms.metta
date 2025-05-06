@@ -56,7 +56,7 @@
 (= (sampleLogicalPerms $op $arity)
     (let*
         ( 
-            ($swapedOp (swap $op))
+            ($swapedOp (swapAndOr $op))
             ($list (genList (- $arity 1)))
             ($idxPairs (collapse (genPairs $list)))
             ($nPairs $arity)                                          ;; since perm_ratio is 0.0 the max number of n_pairs = arity

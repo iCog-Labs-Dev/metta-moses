@@ -581,13 +581,11 @@
 (= (unionAtom $x $y) (union-atom $x $y))
 
 ;; swap AND , OR 
-(: swap (-> Atom Atom))
-(= (swap $op)
+(: swapAndOr (-> Atom Atom))
+(= (swapAndOr $op)
     (case $op
         ((AND OR)
          (OR AND)
          ($else $op))
-    
     )
 )
-
