@@ -579,3 +579,15 @@
 ;; A trick function to make chain reduce when using union-atom
 (: (-> unionAtom (-> Expression Expression Expression)))
 (= (unionAtom $x $y) (union-atom $x $y))
+
+;; swap AND , OR 
+(: swap (-> Atom Atom))
+(= (swap $op)
+    (case $op
+        ((AND OR)
+         (OR AND)
+         ($else $op))
+    
+    )
+)
+
