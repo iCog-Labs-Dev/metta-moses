@@ -24,8 +24,8 @@
                 (mkLSK (mkDiscKnob (mkKnob $tree $idOfReducedSubtree) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil) $subtree))
            (let*
            (
-            (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex Nil)))
-            (($subtreeAppendedTree $subtreeId) (appendChild $nullVexAppendedTree $nullVexId $subtree))
+            (($nullVexAppendedTree $nullVexId) (APPEND_CHILD $tree (mkNodeId $target) (mkNullVex Nil)))
+            (($subtreeAppendedTree $subtreeId) (APPEND_CHILD $nullVexAppendedTree $nullVexId $subtree))
            )
            (mkLSK (mkDiscKnob (mkKnob $subtreeAppendedTree $nullVexId) (mkMultip 3)) $subtree)
            )
