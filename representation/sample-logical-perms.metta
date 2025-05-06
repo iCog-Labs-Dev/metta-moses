@@ -2,11 +2,6 @@
 ;; sampled arguments (inputs)
 !(bind! args (A B))
 
-;; helper function to swap operators
-(: swapAndOr (-> Atom Atom))
-(= (swapAndOr $op)
-  (if (== $op AND) OR AND))
-
 ;; helper function to generate list of numbers ranging from 0 to n
 (: genList (-> Number Expression))
 (= (genList $n) 
@@ -61,7 +56,7 @@
 (= (sampleLogicalPerms $op $arity)
     (let*
         ( 
-            ($swapedOp (swapAndOr $op))
+            ($swapedOp (swap $op))
             ($list (genList (- $arity 1)))
             ($idxPairs (collapse (genPairs $list)))
             ($nPairs $arity)                                          ;; since perm_ratio is 0.0 the max number of n_pairs = arity
