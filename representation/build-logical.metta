@@ -16,15 +16,14 @@
                 (() (println! ("tree" $tree)))
                 ($curId (union-atom $parentId ($childNum)))
                 ((mkTree (mkNode $node) $childern) $head)
-                (() (println!( "curId: " $curId "node :"$node)))
-                (() (println!( "head: " $head "tail :"$tail)))
-                (() (println!( "inserted " (INSERT_ABOVE $tree (mkNodeId $curId) (mkTree (mkNode $swapedOp) Nil))))) ;; replace node using python
+                ; (() (println!( "curId: " $curId "node :"$node)))
+                ; (() (println!( "head: " $head "tail :"$tail)))
                 (($tNew  $mNew) (if (isMember $node (AND OR NOT));;
                                 (buildLogical $tree $curId $MMap $cnt)
                                 (chain (INSERT_ABOVE $tree (mkNodeId $curId) (mkTree (mkNode $swapedOp) Nil)) $itree (addLogicalKnobs $itree (mkNodeId $curId) True $MMap))
                             ))
                 
-                (() (println!("tail: " $tail)))
+                ; (() (println!("tail: " $tail)))
                 (($tailT $tailM) (siblingit $tNew $tail (mkNodeId $parentId )(+ $childNum 1) $swapedOp $mNew))
                 
              )
