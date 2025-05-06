@@ -209,4 +209,10 @@
     (case $tree
         (((mkNullVex Nil) True)
         ($else False))))
-
+        
+;; check if tree is null vertex 
+(: isNullVertex (-> (Tree $a) Bool))
+(= (isNullVertex $tree)
+    (case $tree
+        (((mkNullVex $children) True)
+         ($else False))))
