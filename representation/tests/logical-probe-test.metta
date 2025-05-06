@@ -8,6 +8,10 @@
 !(import! &self metta-moses:representation:lsk)
 !(import! &self metta-moses:utilities:nodeId)
 !(import! &self metta-moses:representation:sample-logical-perms) 
+! (import! &self metta-moses:utilities:python-treehelpers)
+
+(= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
+(= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
 
 ;; permsToTree tests
 !(assertEqual (permsToTree (A B)) ((mkTree (mkNode B) Nil) (mkTree (mkNode A) Nil)))
