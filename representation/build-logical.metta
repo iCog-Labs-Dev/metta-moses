@@ -45,7 +45,7 @@
         (let*
         (
             ((mkTree (mkNode $op) $childrens) $subtree) 
-            ($swapped (swap $op))
+            ($swapped (swapAndOr $op))
             (($t1 $mp1) (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap))
             (() (println! ($t1 $mp1) ))
             (($updatedTree $updatedMMap) (siblingit $t1 $childrens (mkNodeId $nodeId) 1 $swapped $mp1 ))
