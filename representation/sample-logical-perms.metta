@@ -7,15 +7,6 @@
 (= (swapAndOr $op)
   (if (== $op AND) OR AND))
 
-;; helper function to generate list of numbers ranging from 0 to n
-(: genList (-> Number Expression))
-(= (genList $n) 
-    (if (< $n 0)
-        ()
-        (let $res  (genList (- $n 1))
-            (cons-atom $n $res) )
-    )
-)
 ;; A function to generate all pairs of numbers from a list, where a != b
 (: genPairs (-> Expression Expression))
 (= (genPairs $list)
