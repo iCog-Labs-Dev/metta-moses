@@ -36,7 +36,6 @@ def exprToList(expr: str):
         return matches + expr.split()
 
     tokens = tokenize(expr)
-    tokens = tokens
     list = "Nil"
 
     for token in reversed(tokens):
