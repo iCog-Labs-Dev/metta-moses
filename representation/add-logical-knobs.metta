@@ -29,7 +29,7 @@
             (let  $treePerms (map-atom $perms $perm (buildTree $perm))
               (let ($knobs $updatedTree) (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ())
                 (let  $pairs (pairKnobWithSpec $knobs)
-                  (chain (expToMMap $pairs NilMMap discSpec<=) $mmp
+                  (chain (expToMMap $pairs $map discSpec<=) $mmp
                     ($updatedTree $mmp))
                 )
               )
