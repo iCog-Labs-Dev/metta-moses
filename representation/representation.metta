@@ -12,14 +12,14 @@
 ;; Params: DiscMap
 ;; Returns: DiscKnobMap
 (: crtDiscKnobMap (-> DiscMap DiscKnobMap Number DiscKnobMap))
-(= (crtDiscKnobMap NilMMap $lkm $index) $lkm)
-(= (crtDiscKnobMap (ConsMMap ($kbSpec $kb) $tail) $lkm $index)
+(= (crtDiscKnobMap (mkDscMp NilMMap) (mkDscKbMp $dkm) $index) (mkDscKbMp $dkm))
+(= (crtDiscKnobMap (mkDscMp (ConsMMap ($kbSpec $kb) $tail)) (mkDscKbMp $dkm) $index)
    (let*
    (
     ($loc (getKnobLoc $kb))
-    ($updatedLkm (Map.insert ($loc $index) $lkm nodeId== nodeId<))
+    ($updatedDkm (Map.insert ($loc $index) $dkm nodeId== nodeId<))
    ) 
-   (crtDiscKnobMap $tail $updatedLkm (+ $index 1))
+   (crtDiscKnobMap (mkDscMp $tail) (mkDscKbMp $updatedDkm) (+ $index 1))
   ))
 
 ;; representation constructor
@@ -30,9 +30,9 @@
 (let*
 (
     (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap))
-    ($dscKbMp (crtDiscKnobMap $dscMp NilMap 0))
+    ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
 )   
-(mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree)
+(mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
 ))
 
 (: getCandidate (-> Representation Instance (Tree $a)))
