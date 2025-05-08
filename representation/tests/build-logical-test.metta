@@ -11,7 +11,7 @@
 !(import! &self metta-moses:representation:add-logical-knobs)
 !(import! &self metta-moses:utilities:ordered-multimap) 
 !(import! &self metta-moses:representation:build-logical)
-! (import! &self metta-moses:utilities:python-treehelpers)
+!(import! &self metta-moses:utilities:python-helpers)
 
 (= (ARGS) args) 
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))

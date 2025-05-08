@@ -6,7 +6,7 @@
 ! (import! &self metta-moses:utilities:nodeId)
 ! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:representation:lsk)
-! (import! &self metta-moses:utilities:python-treehelpers)
+! (import! &self metta-moses:utilities:python-helpers)
 
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 ;; Testcases for logicalSubtreeKnob
