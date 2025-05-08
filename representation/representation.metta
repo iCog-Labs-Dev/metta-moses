@@ -1,8 +1,39 @@
-(: Representation Type)
-(: mkRep (-> KnobMap (Tree $a) Representation))
-
+(: DiscMap Type)   
+(: DiscKnobMap Type)
+(: mkDscMp (-> (MultiMap (DiscSpec $knob)) DiscMap))
+(: mkDscKbMp (-> (Map (NodeId Number)) DiscKnobMap))
 (: KnobMap Type)
-(: mkKbMap (-> (Map (NodeId Number)) (MultiMap (DiscSpec $knob)) KnobMap))
+(: mkKbMap (-> DiscKnobMap DiscMap KnobMap))
+(: Representation Type)
+(: mkRep (-> KnobMap (Tree $a) Representation)) 
+
+;; helper function to representation
+;; Converts DiscMap (multimap of knobSpec & knob) to DiscKnobMap (map of location & index)
+;; Params: DiscMap
+;; Returns: DiscKnobMap
+(: crtDiscKnobMap (-> DiscMap DiscKnobMap Number DiscKnobMap))
+(= (crtDiscKnobMap NilMMap $lkm $index) $lkm)
+(= (crtDiscKnobMap (ConsMMap ($kbSpec $kb) $tail) $lkm $index)
+   (let*
+   (
+    ($loc (getKnobLoc $kb))
+    ($updatedLkm (Map.insert ($loc $index) $lkm nodeId== nodeId<))
+   ) 
+   (crtDiscKnobMap $tail $updatedLkm (+ $index 1))
+  ))
+
+;; representation constructor
+;; Params: Tree (Exemplar)
+;; Returns: Representation
+(: representation (-> (Tree $a) Representation))
+(= (representation $exemplar)
+(let*
+(
+    (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap))
+    ($dscKbMp (crtDiscKnobMap $dscMp NilMap 0))
+)   
+(mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree)
+))
 
 (: getCandidate (-> Representation Instance (Tree $a)))
 (= (getCandidate $repObj $inst)
