@@ -19,7 +19,7 @@
                 ; (() (println!( "curId: " $curId "node :"$node)))
                 ; (() (println!( "head: " $head "tail :"$tail)))
                 (($tNew  $mNew) (if (isMember $node (AND OR NOT));;
-                                (buildLogical $tree (mkNodeId $curId) $MMap $cnt)
+                                (buildLogical $tree (mkNodeId $curId) $MMap)
                                 (chain (INSERT_ABOVE $tree (mkNodeId $curId) (mkTree (mkNode $swapedOp) Nil)) $itree (addLogicalKnobs $itree (mkNodeId $curId) True $MMap))
                             ))
                 
@@ -56,5 +56,3 @@
     )
   )
 )
-
-;
