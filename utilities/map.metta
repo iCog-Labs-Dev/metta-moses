@@ -12,6 +12,15 @@
             (ConsMap ($key $value) (ConsMap ($curKey $curVal) $tail))
             (ConsMap ($curKey $curVal) (Map.insert ($key $value) $tail)))))
 
+;; insert an element to a Map using custom comparison functions (equality $ lessthan)
+(: Map.insert (-> ($k $v) (Map ($k $v)) (-> $k $k Bool) (-> $k $k Bool) (Map ($k $v))))
+(= (Map.insert ($key $value) NilMap $fEq $fLt) (ConsMap ($key $value) NilMap))
+(= (Map.insert ($key $value) (ConsMap ($curKey $curVal) $tail) $fEq $fLt)
+    (if ($fEq $key $curKey)  (ConsMap ($key $value) $tail)
+        (if ($fLt $key $curKey)
+            (ConsMap ($key $value) (ConsMap ($curKey $curVal) $tail))
+            (ConsMap ($curKey $curVal) (Map.insert ($key $value) $tail $fEq $fLt)))))
+
 ;; Get a value from a Map using key
 (: Map.getByKey (-> $k (Map ($k $v)) $v))
 (= (Map.getByKey $key NilMap) (Error $key "not found"))
