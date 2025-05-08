@@ -345,3 +345,8 @@ NilMMap discSpec<=)
 )
 
 !(assertEqual (expToMMap () NilMMap discSpec<=) NilMMap)
+
+;; Test for swapAndOr
+!(assertEqual (swapAndOr AND) OR)
+!(assertEqual (swapAndOr OR) AND)
+!(assertEqual (swapAndOr A) A)
