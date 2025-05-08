@@ -2,11 +2,6 @@
 ;; sampled arguments (inputs)
 !(bind! args (A B))
 
-;; helper function to swap operators
-(: swapAndOr (-> Atom Atom))
-(= (swapAndOr $op)
-  (if (== $op AND) OR AND))
-
 ;; helper function to generate list of numbers ranging from 0 to n
 (: genList (-> Number Expression))
 (= (genList $n) 

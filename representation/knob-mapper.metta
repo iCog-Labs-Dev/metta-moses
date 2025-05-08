@@ -2,12 +2,11 @@
 ;; Finds all knobs associated with a given node id and returns them as a list.
 ;; the MultiMap is used to store the association between node ids and a tuple of disc specification and knob.
 
-(: findDiscKnob (-> NodeId (MultiMap ($k $v)) (List $v))) ;; TODO: Give specific type for key and value
-(= (findDiscKnob  $nodeId NilMMap ) Nil)
-(= (findDiscKnob $nodeId (ConsMMap ($id ($spec $knob)) $tail))
-    (if (== $nodeId $id) 
-        (Cons $knob (findDiscKnob $nodeId $tail))
-        (findDiscKnob $nodeId $tail)
-    )
-)
+(: findDiscKnob (-> KnobMap NodeId ($knob Number))) ;; TODO: Give specific type for key and value
+(= (findDiscKnob (mkKbMap $itDiscKnob $disc) $nodeId)
+   (if (Map.contains $nodeId $itDiscKnob)
+       (chain (Map.getByKey $nodeId $itDiscKnob) $discIdx
+       (chain (MultiMap.getByIdx $discIdx $disc) $discKnobPair
+         ((second $discKnobPair) $discIdx)))
 
+       (() -1)))

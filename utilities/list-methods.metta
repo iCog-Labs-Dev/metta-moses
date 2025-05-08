@@ -7,6 +7,10 @@
 (: Cons (-> $a (List $a) (List $a)))
 
 
+;; Fold a tuple from left to right
+(: List.foldl (-> (-> $a $b $b) $b (List $a) $b))
+(= (List.foldl $f $i Nil) $i)
+(= (List.foldl $f $i (Cons $h $t)) (chain ($f $h $i) $i' (List.foldl $f $i' $t)))
 
 ;; Fold a tuple from right to left
 (: List.foldr (-> (-> $a $b $b) $b (List $a) $b))
@@ -24,7 +28,7 @@
 
 ;; Get an element by index from a list
 (: List.getByIdx (-> (List $a) Number $a))
-(= (List.getByIdx Nil $idx) (Error (Index out of range)))
+(= (List.getByIdx Nil $idx) (Error Nil (Index out of range)))
 (= (List.getByIdx (Cons $head $tail) $idx) (if (== $idx 0 ) $head (List.getByIdx $tail (- $idx 1))) )
 
 ;; Insert an element to a presumably sorted list, remains sorted.
@@ -89,3 +93,39 @@
 ;; List.prepend .. adds an element at the beginnig of a list
 (: List.prepend (-> $a (List $a) (List $a)))
 (= (List.prepend $a $list) (Cons $a $list))
+
+;; Find an element in a list
+;; Params: 
+;;  $list: The list to search
+;;  $target: The element to find
+;; Returns: 
+;;  The index of the first found element or
+;;  -1 If the element can't be found
+(: List.index (-> (List $a) $a Number))
+(= (List.index Nil $target) -1)
+(= (List.index (Cons $x $xs) $target)
+    (if (== $x $target)
+        0
+        (chain (List.index $xs $target) $idx
+          (if (< $idx 0)
+              $idx
+              (+ 1 $idx)))))
+
+;; Return the first element from a list
+;; Params:
+;;  $list: The list to return from
+;; Returns:
+;;  The first element of the list
+(: List.head (-> (List $a) $a))
+(= (List.head Nil) (Error Nil EmptyList))
+(= (List.head (Cons $x $xs)) $x)
+
+
+;; Return the list without its first element
+;; Params:
+;;  $list: The list to return from
+;; Returns:
+;;  The rest of the list
+(: List.tail (-> (List $a) (List $a)))
+(= (List.tail Nil) Nil)
+(= (List.tail (Cons $x $xs)) $xs)
