@@ -3,7 +3,7 @@
 ;; the MultiMap is used to store the association between node ids and a tuple of disc specification and knob.
 
 (: findDiscKnob (-> KnobMap NodeId ($knob Number))) ;; TODO: Give specific type for key and value
-(= (findDiscKnob (mkKbMap $itDiscKnob $disc) $nodeId)
+(= (findDiscKnob (mkKbMap (mkDscKbMp $itDiscKnob) (mkDscMp $disc)) $nodeId)
    (if (Map.contains $nodeId $itDiscKnob)
        (chain (Map.getByKey $nodeId $itDiscKnob) $discIdx
        (chain (MultiMap.getByIdx $discIdx $disc) $discKnobPair
