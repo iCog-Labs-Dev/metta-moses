@@ -65,3 +65,27 @@
 (: discSpec<= (-> DiscSpec DiscSpec Bool))
 (= (discSpec<= (mkDiscSpec $newKey) (mkDiscSpec $currKey))
 (<= $newKey $currKey))
+
+;; Checks of two nodeIds are equal.
+;; Params: $id1 & $id2
+;; Returns: True/False
+(: nodeId== (-> NodeId NodeId Bool))
+(= (nodeId== (mkNodeId $id1) (mkNodeId $id2))
+   (if (== (length $id1) (length $id2)) 
+       (if (== $id1 $id2) True False) False))
+
+;; Checks of nodeId1 is lessthan nodeId2.
+;; Params: $id1 & $id2
+;; Returns: True/False
+(: nodeId< (-> NodeId NodeId Bool))
+(= (nodeId< (mkNodeId ()) (mkNodeId $id2)) True)
+(= (nodeId< (mkNodeId $id1) (mkNodeId ())) False)
+(= (nodeId< (mkNodeId $id1) (mkNodeId $id2)) 
+(if (nodeId== (mkNodeId $id1) (mkNodeId $id2)) False
+    (let* 
+       (
+          (($headId1 $tailId1) (decons-atom $id1))
+          (($headId2 $tailId2) (decons-atom $id2)))
+       (if (< $headId1 $headId2) True
+           (if (> $headId1 $headId2) False 
+               (nodeId< (mkNodeId $tailId1) (mkNodeId $tailId2)))))))

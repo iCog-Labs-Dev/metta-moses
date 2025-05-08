@@ -1,6 +1,7 @@
 !(register-module! ../../../metta-moses)
 !(import! &self metta-moses:utilities:tree)
 !(import! &self metta-moses:utilities:list-methods)
+!(import! &self metta-moses:utilities:general-helpers)
 !(import! &self metta-moses:representation:knob-representation)
 !(import! &self metta-moses:utilities:ordered-multimap) 
 
@@ -78,3 +79,15 @@
 ;; Test for discSpec<=
 !(assertEqual (discSpec<= (mkDiscSpec 2) (mkDiscSpec 3)) True)
 !(assertEqual (discSpec<= (mkDiscSpec 3) (mkDiscSpec 2)) False)
+
+;; Test for nodeId==
+!(assertEqual (nodeId== (mkNodeId (2 2 3)) (mkNodeId (2 2 3))) True)
+!(assertEqual (nodeId== (mkNodeId (2 1 2)) (mkNodeId (2 2 3))) False)
+
+;; Test for nodeId<
+!(assertEqual (nodeId< (mkNodeId (2 1)) (mkNodeId (2 1 1))) True)
+!(assertEqual (nodeId< (mkNodeId (2 1)) (mkNodeId (2 2))) True)
+!(assertEqual (nodeId< (mkNodeId (2 2 3)) (mkNodeId (2 3))) True)
+!(assertEqual (nodeId< (mkNodeId (2 3)) (mkNodeId (1 2))) False)
+!(assertEqual (nodeId< (mkNodeId (2 3)) (mkNodeId (2 3))) False)
+
