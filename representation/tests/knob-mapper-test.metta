@@ -55,8 +55,8 @@
             (mkTree (mkNode A) Nil)))
 
 !(bind! knobMapObj (mkKbMap
-                      (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap)))
-                      (ConsMMap ((mkDiscSpec 1) lsk1) (ConsMMap ((mkDiscSpec 0) lsk2) (ConsMMap ((mkDiscSpec 1) lsk3) NilMMap)))))
+                      (mkDscMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap))))
+                      (mkDscKbMp (ConsMMap ((mkDiscSpec 1) lsk1) (ConsMMap ((mkDiscSpec 0) lsk2) (ConsMMap ((mkDiscSpec 1) lsk3) NilMMap))))))
 
 
 !(assertEqual (findDiscKnob knobMapObj (mkNodeId (2 3))) (lsk1 0))
