@@ -60,6 +60,15 @@
 (= (getKnobSpec (mkLSK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis) $subtree))
 (mkDiscSpec (- $multip (List.length $dis))))
 
+;; Extracts the location from a discrete or a logical subtree knob.
+;; Params:
+;;  $knob: Either discrete or logical subtree knob
+;; Returns: The location of the knob.
+(: getKnobLoc (-> DiscreteKnob (NodeId)))
+(: getKnobLoc (-> LogicalSubtreeKnob (NodeId)))
+(= (getKnobLoc (mkDiscKnob (mkKnob $tree $loc) $multip $curr $def $dis)) $loc)
+(= (getKnobLoc (mkLSK $discKnob $subtree)) (getKnobLoc $discKnob))
+
 ;; A comparison function for discSpec 
 ;; (used as a $compFunc to insert knobSpec and knob pairs into a multimap ) 
 (: discSpec<= (-> DiscSpec DiscSpec Bool))

@@ -75,6 +75,9 @@
                (mkNodeId (1 1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) 
        (mkTree (mkNode D) Nil)) ) (mkDiscSpec 3))
 
+;; Test for getKnobLoc
+!(assertEqual (getKnobLoc (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode A) Nil))) (mkNodeId (1)))
+!(assertEqual (getKnobLoc (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode A) Nil))) (mkNodeId (1)))
 
 ;; Test for discSpec<=
 !(assertEqual (discSpec<= (mkDiscSpec 2) (mkDiscSpec 3)) True)
