@@ -14,4 +14,4 @@
 ! (assertEqual (let $returned (sfn 2 1  KNOBMAPPER CENTERAL) (List.length $returned)) 2)
 ! (assertEqual (let $returned (sfn 1 2  KNOBMAPPER CENTERAL) (List.length $returned)) 1)
 ! (assertEqual (let $returned (sfn 3 1  KNOBMAPPER CENTERAL) (List.length $returned)) 3)
-! (assertEqual (let $returned (sfn 1 2  KNOBMAPPER Nil) (List.length $returned)) (Error (The length of center instance must equal with knob maper) ()))
+! (assertEqual (let $returned (sfn 1 2  KNOBMAPPER Nil) (List.length $returned)) (Error (3 0) "Not Equal"))
