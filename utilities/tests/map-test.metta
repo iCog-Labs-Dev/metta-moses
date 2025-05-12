@@ -50,6 +50,6 @@
 ! (assertEqual (Map.length (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) (ConsMap (4 d)(ConsMap (5 e) (ConsMap (6 f) (ConsMap (7 g) (ConsMap (8 h) (ConsMap (9 i) NilMap)))))))))) 9)
 
 ;; Testcase for Map.insert which uses custom comparison functions
-! (assertEqual (Map.insert ((mkNodeId (2 2)) 0) (ConsMap ((mkNodeId (2 1))  1) (ConsMap ((mkNodeId (2 3))  2) NilMap)) nodeId== nodeId<)
+! (assertEqual (Map.insert ((mkNodeId (2 2)) 0) (ConsMap ((mkNodeId (2 1))  1) (ConsMap ((mkNodeId (2 3))  2) NilMap)) == nodeId<)
                (ConsMap ((mkNodeId (2 1)) 1) (ConsMap ((mkNodeId (2 2)) 0) (ConsMap ((mkNodeId (2 3)) 2) NilMap))))
-! (assertEqual (Map.insert ((mkNodeId (2 2)) 0) NilMap nodeId== nodeId<) (ConsMap ((mkNodeId (2 2)) 0) NilMap))
+! (assertEqual (Map.insert ((mkNodeId (2 2)) 0) NilMap == nodeId<) (ConsMap ((mkNodeId (2 2)) 0) NilMap))

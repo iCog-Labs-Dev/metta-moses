@@ -17,7 +17,7 @@
    (let*
    (
     ($loc (getKnobLoc $kb))
-    ($updatedDkm (Map.insert ($loc $index) $dkm nodeId== nodeId<))
+    ($updatedDkm (Map.insert ($loc $index) $dkm == nodeId<))
    ) 
    (crtDiscKnobMap (mkDscMp $tail) (mkDscKbMp $updatedDkm) (+ $index 1))
   ))
