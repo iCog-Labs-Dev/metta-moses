@@ -60,8 +60,33 @@
 (= (getKnobSpec (mkLSK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis) $subtree))
 (mkDiscSpec (- $multip (List.length $dis))))
 
+;; Extracts the location from a discrete or a logical subtree knob.
+;; Params:
+;;  $knob: Either discrete or logical subtree knob
+;; Returns: The location of the knob.
+(: getKnobLoc (-> DiscreteKnob (NodeId)))
+(: getKnobLoc (-> LogicalSubtreeKnob (NodeId)))
+(= (getKnobLoc (mkDiscKnob (mkKnob $tree $loc) $multip $curr $def $dis)) $loc)
+(= (getKnobLoc (mkLSK $discKnob $subtree)) (getKnobLoc $discKnob))
+
 ;; A comparison function for discSpec 
 ;; (used as a $compFunc to insert knobSpec and knob pairs into a multimap ) 
 (: discSpec<= (-> DiscSpec DiscSpec Bool))
 (= (discSpec<= (mkDiscSpec $newKey) (mkDiscSpec $currKey))
 (<= $newKey $currKey))
+
+;; Checks of nodeId1 is lessthan nodeId2.
+;; Params: $id1 & $id2
+;; Returns: True/False
+(: nodeId< (-> NodeId NodeId Bool))
+(= (nodeId< (mkNodeId ()) (mkNodeId $id2)) True)
+(= (nodeId< (mkNodeId $id1) (mkNodeId ())) False)
+(= (nodeId< (mkNodeId $id1) (mkNodeId $id2)) 
+(if (== (mkNodeId $id1) (mkNodeId $id2)) False
+    (let* 
+       (
+          (($headId1 $tailId1) (decons-atom $id1))
+          (($headId2 $tailId2) (decons-atom $id2)))
+       (if (== $headId1 $headId2) 
+           (nodeId< (mkNodeId $tailId1) (mkNodeId $tailId2))
+           (< $headId1 $headId2)))))
