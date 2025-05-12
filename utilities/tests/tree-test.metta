@@ -317,9 +317,6 @@
 ! (assertEqual (isEmpty (mkNullVex Nil)) True)
 ! (assertEqual (isEmpty (mkTree (mkNode A) Nil)) False)
 ! (assertEqual (isEmpty (mkTree (mkNode B) (Cons NullVertex Nil))) False)
-
-
-
 ;; Test cases for getNodeId
 ;; (AND A (OR B C)) A
 !(assertEqual
@@ -414,3 +411,8 @@
                   (Cons (mkTree (mkNode C) Nil) Nil))))
     (mkNodeId (2))
  )
+
+;; Test case for isNullVertex
+!(assertEqual (isNullVertex (mkNullVex Nil)) True)
+!(assertEqual (isNullVertex (mkTree (mkNode A) Nil)) False)
+!(assertEqual (isNullVertex (mkTree (mkNode B) (Cons (mkNullVex Nil) Nil))) False)

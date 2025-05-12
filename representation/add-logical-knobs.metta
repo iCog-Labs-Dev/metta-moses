@@ -19,19 +19,22 @@
 ($knobSpec $knob)
 )))
 
+
 ;; addLogicalKnobs
 (: addLogicalKnobs (-> (Tree $a) NodeId Bool (MultiMap ($k $v)) Expression))
 (= (addLogicalKnobs $exemplar $nodeId $addIfInExemplar $map) 
-(let*
-(
-  ((mkTree (mkNode $op) $children) (getNodeById $exemplar $nodeId))
-  ($lengthOfArgs (len (ARGS)))
-  ($perms (sampleLogicalPerms $op $lengthOfArgs))
-  ($treePerms (map-atom $perms $perm (buildTree $perm)))
-  (($knobs $updatedTree) (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ()))
-  ($pairs (pairKnobWithSpec $knobs)) 
-  ($mmp (expToMMap $pairs NilMMap discSpec<=))  
-)
-($updatedTree $mmp)
+(let (mkTree (mkNode $op) $children) (GetByID $exemplar $nodeId)
+       (let  $lengthOfArgs (len (ARGS))
+          (let  $perms (sampleLogicalPerms $op $lengthOfArgs)
+            (let  $treePerms (map-atom $perms $perm (buildTree $perm))
+              (let ($knobs $updatedTree) (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ())
+                (let  $pairs (pairKnobWithSpec $knobs)
+                  (chain (expToMMap $pairs $map discSpec<=) $mmp
+                    ($updatedTree $mmp))
+                )
+              )
+            )
+          )
+       )
 )
 )

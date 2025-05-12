@@ -2,11 +2,6 @@
 ;; sampled arguments (inputs)
 !(bind! args (A B))
 
-;; helper function to swap operators
-(: swapAndOr (-> Atom Atom))
-(= (swapAndOr $op)
-  (if (== $op AND) OR AND))
-
 ;; A function to generate all pairs of numbers from a list, where a != b
 (: genPairs (-> Expression Expression))
 (= (genPairs $list)
