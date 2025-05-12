@@ -2,6 +2,7 @@
 ! (import! &self metta-moses:representation:lsk)
 ! (import! &self metta-moses:representation:knob-mapper)
 ! (import! &self metta-moses:representation:representation)
+! (import! &self metta-moses:representation:create-representation)
 ! (import! &self metta-moses:representation:knob-representation)
 ! (import! &self metta-moses:representation:logical-probe) 
 ! (import! &self metta-moses:representation:build-logical)
