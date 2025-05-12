@@ -590,7 +590,8 @@
     (if (< $u $l)
         ()
         (let $res (genList $l (- $u 1))
-            (cons-atom $u $res) )
+            (cons-atom $u $res) )))
+
 ;; swap AND , OR 
 (: swapAndOr (-> Atom Atom))
 (= (swapAndOr $op)
