@@ -1,6 +1,8 @@
 !(register-module! ../../../../metta-moses)
 
 !(import! &self metta-moses:representation:knob-representation)
+!(import! &self metta-moses:representation:representation)
+!(import! &self metta-moses:representation:instance)
 !(import! &self metta-moses:utilities:list-methods)
 !(import! &self metta-moses:utilities:ordered-multimap)
 !(import! &self metta-moses:utilities:general-helpers)
@@ -33,6 +35,85 @@
                       (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode B) Nil) (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode B) Nil))))
         NilMMap)))
 
+!(bind! knobmap3   
+  (mkKbMap 
+    (mkDscKbMp 
+      (ConsMap ((mkNodeId (1 2)) 0)
+        (ConsMap ((mkNodeId (2)) 1)
+          (ConsMap ((mkNodeId (3)) 2) NilMap))))
+    (mkDscMp 
+      (ConsMMap 
+        ((mkDiscSpec 3)
+         (mkLSK 
+           (mkDiscKnob 
+             (mkKnob 
+               (mkTree 
+                 (mkNode OR) 
+                 (Cons 
+                   (mkTree 
+                     (mkNode AND) 
+                     (Cons 
+                       (mkTree (mkNode C) Nil)
+                       (Cons 
+                         (mkNullVex 
+                           (Cons 
+                             (mkTree 
+                               (mkNode OR) 
+                               (Cons 
+                                 (mkTree (mkNode A) Nil)
+                                 (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil)))
+                   (Cons 
+                     (mkNullVex 
+                       (Cons 
+                         (mkTree 
+                           (mkNode AND) 
+                           (Cons 
+                             (mkTree (mkNode A) Nil)
+                             (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil)))
+               (mkNodeId (1 2)))
+             (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+           (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))))
+        (ConsMMap 
+          ((mkDiscSpec 3)
+           (mkLSK 
+             (mkDiscKnob 
+               (mkKnob 
+                 (mkTree 
+                   (mkNode OR) 
+                   (Cons 
+                     (mkTree (mkNode C) Nil)
+                     (Cons 
+                       (mkNullVex 
+                         (Cons 
+                           (mkTree 
+                             (mkNode AND) 
+                             (Cons 
+                               (mkTree (mkNode A) Nil)
+                               (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil)))
+                 (mkNodeId (2)))
+               (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+             (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))))
+          (ConsMMap 
+            ((mkDiscSpec 3)
+             (mkLSK 
+               (mkDiscKnob 
+                 (mkKnob 
+                   (mkTree 
+                     (mkNode OR) 
+                     (Cons 
+                       (mkTree (mkNode C) Nil)
+                       (Cons 
+                         (mkNullVex 
+                           (Cons 
+                             (mkTree 
+                               (mkNode AND) 
+                               (Cons 
+                                 (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil))
+                                 (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil)))
+                   (mkNodeId (3)))
+                 (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+               (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil)))))
+            NilMMap))))))
 ;; Test informationTheoreticBits with a knob 
 ;; map containing two knobs with same multiplicity of 3
 !(assertEqual (informationTheoreticBits knobmap1) 6)
@@ -46,3 +127,21 @@
 !(assertEqual (estimateNeighborhood 1 knobmap2) 10)
 !(assertEqual (estimateNeighborhood 2 knobmap1) 12)
 !(assertEqual (estimateNeighborhood 2 knobmap2) 10)
+
+;Testcase for countNeighborhood
+!(assertEqual 
+ (countNeighborhood
+  knobmap3  ;knobmap
+  (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) ;instance
+  2 ; distance
+  20) ; maximum count
+  12)
+
+;Testcase for countNeighborhood
+!(assertEqual 
+ (countNeighborhood
+  knobmap3 ;knobmap
+  (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) ;instance
+  3 ;distance
+  20) ;maxCount
+  8) 
