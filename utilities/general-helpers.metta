@@ -580,6 +580,18 @@
 (: (-> unionAtom (-> Expression Expression Expression)))
 (= (unionAtom $x $y) (union-atom $x $y))
 
+
+;; helper function to generate list of numbers ranging from 0 to n
+(: genList (-> Number Expression))
+(= (genList $u) (genList 0 $u))
+
+(: genList (-> Number Number Expression))
+(= (genList $l $u)
+    (if (< $u $l)
+        ()
+        (let $res (genList $l (- $u 1))
+            (cons-atom $u $res) )))
+
 ;; swap AND , OR 
 (: swapAndOr (-> Atom Atom))
 (= (swapAndOr $op)
