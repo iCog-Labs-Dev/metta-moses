@@ -13,17 +13,17 @@
 (= (siblingit $tree (Cons $head $tail) (mkNodeId $parentId) $childNum $swapedOp $MMap)
         (let*
              (
-                (() (println! ("tree" $tree)))
+                ;; (() (println! ("tree" $tree)))
                 ($curId (union-atom $parentId ($childNum)))
                 ((mkTree (mkNode $node) $childern) $head)
-                ; (() (println!( "curId: " $curId "node :"$node)))
-                ; (() (println!( "head: " $head "tail :"$tail)))
+                ;; (() (println!( "curId: " $curId "node :"$node)))
+                ;; (() (println!( "head: " $head "tail :"$tail)))
                 (($tNew  $mNew) (if (isMember $node (AND OR NOT));;
                                 (buildLogical $tree (mkNodeId $curId) $MMap)
                                 (chain (INSERT_ABOVE $tree (mkNodeId $curId) (mkTree (mkNode $swapedOp) Nil)) $itree (addLogicalKnobs $itree (mkNodeId $curId) True $MMap))
                             ))
                 
-                ; (() (println!("tail: " $tail)))
+                ;; (() (println!("tail: " $tail)))
                 (($tailT $tailM) (siblingit $tNew $tail (mkNodeId $parentId )(+ $childNum 1) $swapedOp $mNew))
                 
              )
@@ -49,7 +49,7 @@
             (($t1 $mp1) (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap))
             (() (println! ($t1 $mp1) ))
             (($updatedTree $updatedMMap) (siblingit $t1 $childrens (mkNodeId $nodeId) 1 $swapped $mp1 ))
-            ;($append (appendChild $updatedTree $nodeId (mkNode $filp)))                                 ;; this part will add much complexity to the tree, not worth the cost
+            ;;($append (appendChild $updatedTree $nodeId (mkNode $filp)))                                 ;; this part will add much complexity to the tree, not worth the cost
         )
             ($updatedTree $updatedMMap)
         )
