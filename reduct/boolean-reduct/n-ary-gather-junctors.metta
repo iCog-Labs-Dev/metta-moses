@@ -24,7 +24,8 @@
             let* (
                 ($op (car-atom $expr)) 
                 ($tuple (cdr-atom $expr))
-                ($newTuple (fold concat-tuple () (collapse (nary-gather-junctors (superpose $tuple) $op))))
+                ($newTuple (fold concat-tuple () (reverseExp (collapse (nary-gather-junctors (superpose $tuple) $op)) ())))
+                ; ($newTuple (fold concat-tuple () (collapse (nary-gather-junctors (superpose $tuple) $op))))
                 ($tupleWithOp (cons-atom $op $newTuple))
             )
             (
