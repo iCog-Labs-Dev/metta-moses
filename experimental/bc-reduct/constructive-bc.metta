@@ -75,36 +75,58 @@
 ;; Base cases
 ;; Match the knowledge base
 (= (bc $kb $_ (: $prf $thrm))
-   (match $kb (: $prf $thrm) (: $prf $thrm))
+   (let*
+      (
+        ; (() (println! ""))
+        ; (() (println! (At Depth $_ Matching Proof: (: $prf $thrm))))
+        ((: $prf $thrm) (match $kb (: $prf $thrm) (: $prf $thrm)))
+        ; (() (println! (At Depth $_ Found Proof: (: $prf $thrm))))
+        ; (() (println! ""))
+      )
+      (: $prf $thrm)
    )
+   ;; (match $kb (: $prf $thrm) (: $prf $thrm))
+)
 
 ;; Recursive steps
 ;; Unary proof application
 (= (bc $kb (S $k) (: ($prfabs $prfarg) $thrm))
    (let* (;; Recurse on unary rule
-          (() (println! (Unary rule called at depth: (S $k))))
+          ; (() (println! "" ))
+          ; (() (println! (At Depth (S $k) Running proof: (: $prfabs (-> $prfarg $thrm)))))
+
           ((: $prfabs (-> $prfarg $thrm))
            (bc $kb $k (: $prfabs (-> $prfarg $thrm))))
-          (() (println! (Fact checking Arg: $prfarg at depth: (S $k))))
-          ((: $prms $prfarg) (bc $kb $k (: $prms $prfarg)))
-          (() (println! (Unary returning (: ($prfabs $prms) $thrm) from depth: (S $k) )))
+
+          ; (() (println! (At Depth (S $k) Found Proof (: $prfabs (-> $prfarg $thrm)))))
+          ; (() (println! (At Depth (S $k) Running Proof: (: $prms $prfarg))))
+
+          (() (println! (At Depth (S $k) PrfabsAndThrm: ($prfabs $thrm))))
+          ($result (bc $kb $k (: $prms $prfarg)))
+
+          (() (println! (At Depth (S $k) Got intermidiate Result: $result for Prms: $prms and PrfArg: $prfarg)))
+          ((: $prms $prfarg) $result)
+
+          ; (() (println! (At Depth (S $k) Found Proof: (: $prms $prfarg))))
+          (() (println! (At Depth (S $k) Returning: (: ($prfabs $prms) $thrm) from depth: (S $k) )))
+          ; (() (println! "" ))
           )
      (: ($prfabs $prms) $thrm)))
 
-;; Binary proof application
-(= (bc $kb (S $k) (: ($prfabs $prfarg1 $prfarg2) $thrm))
-   (let* (;; Recurse on binary rule
-          ;; (() (println! (Binary rule called)))
-          ((: $prfabs (-> $prfarg1 $prfarg2 $thrm))
-           (bc $kb $k (: $prfabs (-> $prfarg1 $prfarg2 $thrm))))
-          (() (println! (Binary Prfabs: $prfabs)))
-          (() (println! (Prfarg1: $prfarg1)))
-          (() (println! (Prfarg2: $prfarg2)))
-
-          ((: $prms1 $prfarg1) (bc $kb $k (: $prms1 $prfarg1)))
-          ((: $prms2 $prfarg2) (bc $kb $k (: $prms2 $prfarg2)))
-          )
-     (: ($prfabs $prms1 $prms2) $thrm)))
+;; ;; Binary proof application
+;; (= (bc $kb (S $k) (: ($prfabs $prfarg1 $prfarg2) $thrm))
+;;    (let* (;; Recurse on binary rule
+;;           ;; (() (println! (Binary rule called)))
+;;           ((: $prfabs (-> $prfarg1 $prfarg2 $thrm))
+;;            (bc $kb $k (: $prfabs (-> $prfarg1 $prfarg2 $thrm))))
+;;           (() (println! (Binary Prfabs: $prfabs)))
+;;           (() (println! (Prfarg1: $prfarg1)))
+;;           (() (println! (Prfarg2: $prfarg2)))
+;;
+;;           ((: $prms1 $prfarg1) (bc $kb $k (: $prms1 $prfarg1)))
+;;           ((: $prms2 $prfarg2) (bc $kb $k (: $prms2 $prfarg2)))
+;;           )
+;;      (: ($prfabs $prms1 $prms2) $thrm)))
 
 ;; ;; Ternary proof application
 ;; (= (bc $kb (S $k) (: ($prfabs $prfarg1 $prfarg2 $prfarg3) $thrm))

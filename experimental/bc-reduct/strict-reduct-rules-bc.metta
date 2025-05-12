@@ -20,6 +20,7 @@
 ;; Define DeBruijn constructors
 (: z DeBruijn)                        ; Zero
 (: s (-> DeBruijn DeBruijn))          ; Successor
+
 (: List (-> $a Type))
 (: Nil (List $a))
 (: Cons (-> $a (List $a) (List $a)))
@@ -163,22 +164,32 @@
 (= (all (Cons $x $xs)) (if (== $x 𝐅𝐚𝐥𝐬𝐞) 𝐅𝐚𝐥𝐬𝐞 (all $xs)))
 ;; (= (all (Cons $x $xs)) (trace! (Running X: $x check...) (if (== $x 𝐅𝐚𝐥𝐬𝐞) 𝐅𝐚𝐥𝐬𝐞 (all $xs))))
 
+;; Apply a given function to every element of a tuple
+(: map (-> (-> $a $b) $c $d))
+(= (map $f Nil) Nil)
+(= (map $f (Cons $x $xs)) (Cons ($f $x) (map $f $xs)))
+(= (map $f $xs) (Error $xs NotClosed))
+
 ;; !(add-atom &rb (: 𝐚𝐧𝐝 (-> (: $x (List 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)))
 ;; !(add-atom &rb (: 𝐨𝐫 (-> (: $x (List 𝐁𝐨𝐨𝐥)) 𝐁𝐨𝐨𝐥)))
 
-!(add-atom &rb (: CutOr (-> (: (𝐨𝐫 (Cons $x Nil)) 𝐁𝐨𝐨𝐥) (: $x 𝐁𝐨𝐨𝐥))))
-!(add-atom &rb (: CutOr (-> (: ($rule $seq) (: (𝐨𝐫 (Cons $x Nil)) 𝐁𝐨𝐨𝐥)) (: $x 𝐁𝐨𝐨𝐥))))
+;; !(add-atom &rb (: CutOr (-> (: (𝐨𝐫 (Cons $x Nil)) 𝐁𝐨𝐨𝐥) (: $x 𝐁𝐨𝐨𝐥))))
+;; !(add-atom &rb (: CutOr (-> (: ($rule $seq) (: (𝐨𝐫 (Cons $x Nil)) 𝐁𝐨𝐨𝐥)) (: $x 𝐁𝐨𝐨𝐥))))
 
-!(add-atom &rb (: CutAnd (-> (: (𝐚𝐧𝐝 (Cons $x Nil)) 𝐁𝐨𝐨𝐥) (: $x 𝐁𝐨𝐨𝐥))))
-!(add-atom &rb (: CutAnd (-> (: ($rule $seq) (: (𝐚𝐧𝐝 (Cons $x Nil)) 𝐁𝐨𝐨𝐥)) (: $x 𝐁𝐨𝐨𝐥))))
+;; !(add-atom &rb (: CutAnd (-> (: (𝐚𝐧𝐝 (Cons $x Nil)) 𝐁𝐨𝐨𝐥) (: $x 𝐁𝐨𝐨𝐥))))
+;; !(add-atom &rb (: CutAnd (-> (: ($rule $seq) (: (𝐚𝐧𝐝 (Cons $x Nil)) 𝐁𝐨𝐨𝐥)) (: $x 𝐁𝐨𝐨𝐥))))
 
 ;; !(add-atom &rb (: Id (-> (: $x 𝐁𝐨𝐨𝐥) (: $x 𝐁𝐨𝐨𝐥))))
 
-!(add-atom &rb (: AndIden (-> (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥) (: ((CondReduce all 𝐅𝐚𝐥𝐬𝐞) $xs) 𝐁𝐨𝐨𝐥) (: 𝐅𝐚𝐥𝐬𝐞 𝐁𝐨𝐨𝐥))))
-!(add-atom &rb (: AndIden (-> (: ($rule $seq) (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥)) (: ((CondReduce all 𝐅𝐚𝐥𝐬𝐞) $xs) 𝐁𝐨𝐨𝐥) (: 𝐅𝐚𝐥𝐬𝐞 𝐁𝐨𝐨𝐥))))
+;; !(add-atom &rb (: AndIden (-> (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥) (: ((CondReduce all 𝐅𝐚𝐥𝐬𝐞) $xs) 𝐁𝐨𝐨𝐥) (: 𝐅𝐚𝐥𝐬𝐞 𝐁𝐨𝐨𝐥))))
+;; !(add-atom &rb (: AndIden (-> (: ($rule $seq) (: (𝐚𝐧𝐝 $xs) 𝐁𝐨𝐨𝐥)) (: ((CondReduce all 𝐅𝐚𝐥𝐬𝐞) $xs) 𝐁𝐨𝐨𝐥) (: 𝐅𝐚𝐥𝐬𝐞 𝐁𝐨𝐨𝐥))))
 
-!(add-atom &rb (: OrIden (-> (: (𝐨𝐫 $xs) 𝐁𝐨𝐨𝐥) (: ((CondReduce any 𝐓𝐫𝐮𝐞) $xs) 𝐁𝐨𝐨𝐥) (: 𝐓𝐫𝐮𝐞 𝐁𝐨𝐨𝐥))))
-!(add-atom &rb (: OrIden (-> (: ($rule $seq) (: (𝐨𝐫 $xs) 𝐁𝐨𝐨𝐥)) (: ((CondReduce any 𝐓𝐫𝐮𝐞) $xs) 𝐁𝐨𝐨𝐥) (: 𝐓𝐫𝐮𝐞 𝐁𝐨𝐨𝐥))))
+;; !(add-atom &rb (: OrIden (-> (: (𝐨𝐫 $xs) 𝐁𝐨𝐨𝐥) (: ((CondReduce any 𝐓𝐫𝐮𝐞) $xs) 𝐁𝐨𝐨𝐥) (: 𝐓𝐫𝐮𝐞 𝐁𝐨𝐨𝐥))))
+;; !(add-atom &rb (: OrIden (-> (: ($rule $seq) (: (𝐨𝐫 $xs) 𝐁𝐨𝐨𝐥)) (: ((CondReduce any 𝐓𝐫𝐮𝐞) $xs) 𝐁𝐨𝐨𝐥) (: 𝐓𝐫𝐮𝐞 𝐁𝐨𝐨𝐥))))
+
+;; !(add-atom &rb (: propNot (-> (: (𝐧𝐨𝐭 (𝐨𝐫 $xs)) 𝐁𝐨𝐨𝐥) (: ((CpuReduce map 𝐧𝐨𝐭) $xs $ys) 𝐁𝐨𝐨𝐥) (: (𝐚𝐧𝐝 $ys) 𝐁𝐨𝐨𝐥))))
+;; !(add-atom &rb (: propNot (-> (: (𝐧𝐨𝐭 (𝐚𝐧𝐝 $xs)) 𝐁𝐨𝐨𝐥) (: ((CpuReduce map 𝐧𝐨𝐭) $xs $ys) 𝐁𝐨𝐨𝐥) (: (𝐨𝐫 $ys) 𝐁𝐨𝐨𝐥))))
+!(add-atom &rb (: propNot (-> (: (𝐧𝐨𝐭 (𝐚𝐧𝐝 $xs)) 𝐁𝐨𝐨𝐥) (: (𝐨𝐫 (map 𝐧𝐨𝐭 $xs)) 𝐁𝐨𝐨𝐥))))
 
 !(println!
     (bc &rb
@@ -190,7 +201,9 @@
         ;; (Cons (: (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons z Nil)) (Cons 𝐅𝐚𝐥𝐬𝐞 Nil))) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; CutOr => IdentityAnd
         ;; (Cons (: (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons z Nil)) (Cons 𝐓𝐫𝐮𝐞 Nil))) 𝐁𝐨𝐨𝐥) Nil) ;; Incorrect IdentityAnd shouldn't work
         ;; (Cons (: z 𝐁𝐨𝐨𝐥) Nil) ;; No reduction
-        (Cons (: (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons 𝐅𝐚𝐥𝐬𝐞 (Cons 𝐓𝐫𝐮𝐞 Nil)) ) Nil)) Nil)) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; CutAnd => CutOr => CutAnd => OrIden
-        (fromNumber 4)
+        ;; (Cons (: (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons 𝐅𝐚𝐥𝐬𝐞 (Cons 𝐓𝐫𝐮𝐞 Nil)) ) Nil)) Nil)) Nil)) 𝐁𝐨𝐨𝐥) Nil) ;; CutAnd => CutOr => CutAnd => OrIden
+        (Cons (: (𝐧𝐨𝐭 (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z Nil)) (Cons 𝐓𝐫𝐮𝐞 Nil))) Nil))) 𝐁𝐨𝐨𝐥) Nil) ;; CutAnd => CutOr => CutAnd => OrIden
+        ;; (Cons (: (𝐧𝐨𝐭 (𝐚𝐧𝐝 (𝐨𝐫 ((𝐚𝐧𝐝 (Cons z Nil)) 𝐓𝐫𝐮𝐞)))) 𝐁𝐨𝐨𝐥) Nil) ;; CutAnd => CutOr => CutAnd => OrIden
+        (fromNumber 1)
         (: $reduct (: $x 𝐁𝐨𝐨𝐥)))
  )
