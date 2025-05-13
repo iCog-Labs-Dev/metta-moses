@@ -2,7 +2,6 @@
 ;; but different knob settings, along with their scores
 (: Deme Type)
 (: mkDeme (-> Representation (InstanceSet Number) DemeId Deme))
-! (bind! -infinity (py-atom "float('-inf')"))
 
 ;; Creates a new deme with an empty instance set
 ;; Params:
@@ -17,5 +16,6 @@
     ($demeIds (createDemeIds $nExpansion $nDeme))
     ($representation (createRepresentation $exemplar))
     ($demeId (List.getByIdx $demeIds 0))
+    ($score (pow-math -10 37))
    )
-   (mkDeme $representation (mkSInstSet -infinity Nil) $demeId)))
+   (mkDeme $representation (mkSInstSet $score Nil) $demeId)))
