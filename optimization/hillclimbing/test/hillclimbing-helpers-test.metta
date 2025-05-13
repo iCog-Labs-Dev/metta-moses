@@ -8,6 +8,11 @@
 !(import! &self metta-moses:utilities:general-helpers)
 !(import! &self metta-moses:utilities:nodeId)
 !(import! &self metta-moses:optimization:hillclimbing:hill-climbing-helpers)
+!(import! &self metta-moses:moses:neighborhood-sampling)
+!(import! &self metta-moses:utilities:python-helpers)
+
+(= (pyExprToList $expr) (py_exprToList $expr))
+
 
 !(bind! knobmap1
         (ConsMMap (
@@ -128,7 +133,7 @@
 !(assertEqual (estimateNeighborhood 2 knobmap1) 12)
 !(assertEqual (estimateNeighborhood 2 knobmap2) 10)
 
-;Testcase for countNeighborhood
+;Testcase 1 for countNeighborhood
 !(assertEqual 
  (countNeighborhood
   knobmap3  ;knobmap
@@ -137,7 +142,7 @@
   20) ; maximum count
   12)
 
-;Testcase for countNeighborhood
+;Testcase 2 for countNeighborhood
 !(assertEqual 
  (countNeighborhood
   knobmap3 ;knobmap
@@ -145,3 +150,30 @@
   3 ;distance
   20) ;maxCount
   8) 
+
+;Testcase 3 for countNeighborhood
+!(assertEqual 
+ (let*
+    (
+       ($totalSize (countNeighborhood knobmap3 (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3 20))
+       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3)))
+    )
+    (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
+
+;Testcase 4 for countNeighborhood
+!(assertEqual 
+ (let*
+    (
+       ($totalSize (countNeighborhood knobmap3 (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2 20))
+       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2)))
+    )
+    (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
+
+;Testcase 5 for countNeighborhood
+!(assertEqual
+ (let*
+    (
+       ($totalSize (countNeighborhood knobmap3 (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 1 20))
+       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 1)))
+    )
+    (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
