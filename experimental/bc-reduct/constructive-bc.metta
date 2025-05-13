@@ -92,26 +92,11 @@
 ;; Unary proof application
 (= (bc $kb (S $k) (: ($prfabs $prfarg) $thrm))
    (let* (;; Recurse on unary rule
-          ; (() (println! "" ))
-          ; (() (println! (At Depth (S $k) Running proof: (: $prfabs (-> $prfarg $thrm)))))
-
-          ((: $prfabs (-> $prfarg $thrm))
-           (bc $kb $k (: $prfabs (-> $prfarg $thrm))))
-
-          ; (() (println! (At Depth (S $k) Found Proof (: $prfabs (-> $prfarg $thrm)))))
-          ; (() (println! (At Depth (S $k) Running Proof: (: $prms $prfarg))))
-
-          (() (println! (At Depth (S $k) PrfabsAndThrm: ($prfabs $thrm))))
-          ($result (bc $kb $k (: $prms $prfarg)))
-
-          (() (println! (At Depth (S $k) Got intermidiate Result: $result for Prms: $prms and PrfArg: $prfarg)))
-          ((: $prms $prfarg) $result)
-
-          ; (() (println! (At Depth (S $k) Found Proof: (: $prms $prfarg))))
-          (() (println! (At Depth (S $k) Returning: (: ($prfabs $prms) $thrm) from depth: (S $k) )))
-          ; (() (println! "" ))
+          ((: $prfabs (-> $prms $thrm))
+           (bc $kb $k (: $prfabs (-> $prms $thrm))))
+          ((: $prfarg $prms) (bc $kb $k (: $prfarg $prms)))
           )
-     (: ($prfabs $prms) $thrm)))
+     (: ($prfabs $prfarg) $thrm)))
 
 ;; ;; Binary proof application
 ;; (= (bc $kb (S $k) (: ($prfabs $prfarg1 $prfarg2) $thrm))
