@@ -2,6 +2,7 @@
 !(import! &self metta-moses:utilities:general-helpers)
 !(import! &self metta-moses:utilities:list-methods)
 !(import! &self metta-moses:utilities:tree)
+!(import! &self metta-moses:scoring:fitness)
 
 (: BehavioralScore Type)
 (: mkBScore (-> (List Number) BehavioralScore))
@@ -32,35 +33,32 @@
 
 (: scoreTree (-> (ITable $a) (Tree $a) BehavioralScore))
 (= (scoreTree (mkITable $table $labels) $tree)
-   (let*
-      (
-        ($expTree (preOrder $tree))
-      )
-      ()))
+   (chain (preOrder $tree) $expTree
+   (chain (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table) $scoreList
+   (chain (List.length $labels) $length
+   (chain (List.flatten (List.map ((curry List.drop) (- $length 1)) $table)) $outputs
+   (chain (List.zipWith compareAndScore $scoreList $outputs) $bScore
+      (mkBScore $bScore)))))))
+
+(: compareAndScore (-> $a $a Number))
+(= (compareAndScore $a $b) (if (== $a $b) 0 -1))
 
 ;; Replace every occurence of a lable inside an expression with a truth value
-(: replaceVarWithTruth (-> (Bool Atom) Atom Atom))
+(: replaceVarWithTruth (-> (Bool Symbol) $a $a))
 (= (replaceVarWithTruth ($b $l) $boolExpr)
-   (trace! (Getting BoolExpr: $boolExpr)
-   (if (or (== (get-metatype $boolExpr) Symbol) (== (get-metatype $boolExpr) Grounded))
-       (if (== $boolExpr $l) $b $boolExpr)
+   (if (== (get-metatype $boolExpr) Expression) ;; If symbol or Grounded
        (let ($h $t) (decons-atom $boolExpr)
             (if (== $t ())
                 (replaceVarWithTruth ($b $l) $h)
                 (let $t' (map-atom $t $ts (replaceVarWithTruth ($b $l) $ts))
                   (if (== $h $l)
                       (cons-atom $b $t')
-                      (cons-atom $h $t'))))))))
+                      (cons-atom $h $t')))))
+       (if (== $boolExpr $l) $b $boolExpr)))
 
-(: replaceVarsWithTruth (-> (List Bool) (List Atom) Expression Expression))
-(= (replaceVarsWithTruth Nil Nil $boolExpr) $boolExpr)
-(= (replaceVarsWithTruth (Cons $b $bs) (Cons $l $ls) $boolExpr )
-   (let $boolExpr' (replaceVarWithTruth ($b $l) $boolExpr) (trace! (GotBoolExpr: $boolExpr') (replaceVarsWithTruth $bs $ls $boolExpr'))))
-
-;; !(replaceVarWithTruth (True A) (AND A B (OR A B (NOT A)))) ;; (AND True B (OR True B (NOT True)))
-;; !(replaceVarWithTruth (False B) (AND A B (OR A B (NOT A)))) ;; (AND A False (OR A False (NOT False)))
-;; !(replaceVarsWithTruth (Cons True (Cons False Nil)) (Cons A (Cons B Nil)) (AND A B (OR A B (NOT A))))
-!(List.foldl replaceVarWithTruth (AND A B (OR A B (NOT A))) (Cons (True A) (Cons (False B) Nil)))
+(: replaceVarsWithTruth (-> ((List Symbol) Expression) (List Bool) Expression))
+(= (replaceVarsWithTruth ($lList $boolExpr) $bList)
+   (let $blList (List.zip $bList $lList) (List.foldl replaceVarWithTruth $boolExpr $blList)))
 
 ;; !(let $a (mkBScore (Cons 1 (Cons 0 (Cons 2 Nil)))) (get-type $a)) ;; BehavioralScore
 ;; !(let $a (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil)))) (get-type $a)) ;; (ITable Number)
@@ -70,3 +68,10 @@
 ;; !(sub (mkBScore (Cons 1 (Cons 0 (Cons 2 Nil)))) (mkBScore (Cons 1 (Cons 0 (Cons 2 Nil))))) ;; (mkBScore (Cons 0 (Cons 0 (Cons 0 Nil))))
 ;; !(getTable (mkTruthTableBScore 1 0.2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil)))))) ;; (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil))
 
+;; !(replaceVarWithTruth (True A) (AND A B (OR A B (NOT A)))) ;; (AND True B (OR True B (NOT True)))
+;; !(replaceVarWithTruth (False B) (AND A B (OR A B (NOT A)))) ;; (AND A False (OR A False (NOT False)))
+;; !(replaceVarsWithTruth (Cons True (Cons False Nil)) (Cons A (Cons B Nil)) (AND A B (OR A B (NOT A))))
+;; !(replaceVarsWithTruth (Cons True (Cons False Nil)) (Cons A (Cons B Nil)) (AND A B (OR A B (NOT A))))
+
+;; !(scoreTree (mkITable (Cons (Cons True (Cons False (Cons False Nil))) (Cons (Cons True (Cons True (Cons True Nil))) Nil) ) (Cons A (Cons B (Cons O Nil)))) (buildTree (OR A B))) ;; (mkBScore (Cons -1 (Cons 0 Nil)))
+;; !(scoreTree (mkITable (Cons (Cons True (Cons False (Cons False Nil))) (Cons (Cons True (Cons True (Cons True Nil))) Nil) ) (Cons A (Cons B (Cons O Nil)))) (buildTree (AND A B))) ;; (mkBScore (Cons 0 (Cons 0 Nil)))
