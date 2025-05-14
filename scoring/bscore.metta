@@ -1,7 +1,7 @@
 !(register-module! ../../metta-moses)
-!(import! &self metta-moses:utilities:general-helpers)
 !(import! &self metta-moses:utilities:list-methods)
 !(import! &self metta-moses:utilities:tree)
+!(import! &self metta-moses:utilities:general-helpers)
 !(import! &self metta-moses:scoring:fitness)
 
 (: BehavioralScore Type)
@@ -40,8 +40,25 @@
    (chain (List.zipWith compareAndScore $scoreList $outputs) $bScore
       (mkBScore $bScore)))))))
 
+(: bestPossibleScore (-> (TruthTableBScore $a) BehavioralScore))
+(= (bestPossibleScore (mkTruthTableBScore $compCoeff $size $table)) (mkBScore (List.repeat $size 0)))
+
+(: worstPossibleScore (-> (TruthTableBScore $a) BehavioralScore))
+(= (worstPossibleScore (mkTruthTableBScore $compCoeff $size $table)) (mkBScore (List.repeat $size -1)))
+
+;; When we have a compressed tree, the min improvement 
+;;  will be calculated. For now it's fixed.
+(: minImprove (-> (TruthTableBScore $a) Number))
+(= (minImprove $_) 0.5)
+
+(: sumBScore (-> BehavioralScore Number))
+(= (sumBScore (mkBScore $bs)) (List.sum $bs))
+
 (: compareAndScore (-> $a $a Number))
 (= (compareAndScore $a $b) (if (== $a $b) 0 -1))
+
+(: (getComplexity (-> (Tree $a) Number)))
+(= (getComplexity $tree) (treeComplexity $tree))
 
 ;; Replace every occurence of a lable inside an expression with a truth value
 (: replaceVarWithTruth (-> (Bool Symbol) $a $a))
@@ -75,3 +92,9 @@
 
 ;; !(scoreTree (mkITable (Cons (Cons True (Cons False (Cons False Nil))) (Cons (Cons True (Cons True (Cons True Nil))) Nil) ) (Cons A (Cons B (Cons O Nil)))) (buildTree (OR A B))) ;; (mkBScore (Cons -1 (Cons 0 Nil)))
 ;; !(scoreTree (mkITable (Cons (Cons True (Cons False (Cons False Nil))) (Cons (Cons True (Cons True (Cons True Nil))) Nil) ) (Cons A (Cons B (Cons O Nil)))) (buildTree (AND A B))) ;; (mkBScore (Cons 0 (Cons 0 Nil)))
+
+;; !(sumBScore (mkBScore (Cons 1 (Cons 2 (Cons 0 (Cons 1 Nil)))))) ;; 4
+
+;; !(treeComplexity (buildTree (AND (NOT A) (OR A B)))) ;; 3
+;; !(treeComplexity (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) ;; 0
+;; !(treeComplexity (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) ;; 1

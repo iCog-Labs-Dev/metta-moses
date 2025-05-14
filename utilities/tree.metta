@@ -216,3 +216,15 @@
     (case $tree
         (((mkNullVex $children) True)
          ($else False))))
+
+(: isArgument (-> (Tree $a) Bool))
+(= (isArgument (mkNullVex $x)) False)
+(= (isArgument (mkTree (mkNode $x) $children))
+   (and (not (isMember $x (AND OR))) (== $children Nil)))
+
+(: treeComplexity (-> (Tree $a) Number))
+(= (treeComplexity (mkNullVex $x)) 0)
+(= (treeComplexity (mkTree (mkNode $a) $children)) ;; AND, OR and NOT have no complexity
+   (if (isArgument (mkTree (mkNode $a) $children))
+       1
+       (List.sum (List.map treeComplexity $children))))
