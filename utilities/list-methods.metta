@@ -129,3 +129,13 @@
 (: List.tail (-> (List $a) (List $a)))
 (= (List.tail Nil) Nil)
 (= (List.tail (Cons $x $xs)) $xs)
+
+;; Subtract list element wise
+(: List.sub (-> (List Number) (List Number) (List Number)))
+(= (List.sub Nil Nil) Nil)
+(= (List.sub Nil (Cons $y $ys)) (Error (Cons $y $ys) LenghtOfListNotEqual))
+(= (List.sub (Cons $x $xs) Nil) (Error (Cons $x $xs) LenghtOfListsNotEqual))
+(= (List.sub (Cons $x $xs) (Cons $y $ys)) (Cons (- $x $y) (List.sub $xs $ys)))
+
+;; !(List.sub (Cons 1 (Cons 3 Nil)) (Cons 0 (Cons 3 Nil))) ;; (Cons 1 (Cons 0 Nil))
+;; !(List.sub (Cons 1 (Cons 3 Nil)) (Cons 0 (Cons 3 (Cons 2 Nil)))) ;; (Error (Cons 2 Nil) LenghtOfListNotEqual)
