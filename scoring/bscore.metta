@@ -82,10 +82,10 @@
 (: mkBCScore (-> (TruthTableBScore $a) (BehavioralCScore $a)))
 
 (: bestPossibleScore (-> (BehavioralCScore $a) Number))
-(= (bestPossibleScore (mkBCScore $truthTableBScore)) (List.sum (bestPossibleScore $truthTableBScore)))
+(= (bestPossibleScore (mkBCScore $truthTableBScore)) (let (mkBScore $bscore) (bestPossibleScore $truthTableBScore) (List.sum $bscore)))
 
 (: worstPossibleScore (-> (BehavioralCScore $a) Number))
-(= (worstPossibleScore (mkBCScore $truthTableBScore)) (List.sum (worstPossibleScore $truthTableBScore)))
+(= (worstPossibleScore (mkBCScore $truthTableBScore)) (let (mkBScore $bscore) (worstPossibleScore $truthTableBScore) (List.sum $bscore)))
 
 ;; When we have a compressed tree, the min improvement 
 ;;  will be calculated. For now it's fixed.
@@ -113,3 +113,17 @@
 ;; !(treeComplexity (buildTree (AND (NOT A) (OR A B)))) ;; 3
 ;; !(treeComplexity (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) ;; 0
 ;; !(treeComplexity (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) ;; 1
+
+
+;; !(bestPossibleScore (mkTruthTableBScore 0.2 1 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil)))))) ;; (Cons 0 Nil)
+;; !(worstPossibleScore (mkTruthTableBScore 0.2 1 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil)))))) ;; (Cons -1 Nil)
+;; !(minImprove (mkTruthTableBScore 0.2 1 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil)))))) ;; 0.5
+
+;; !(bestPossibleScore (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) (Cons (Cons 0 (Cons 0 (Cons 1 Nil))) Nil)) (Cons A (Cons B (Cons C Nil))))))) ;; 0
+;; !(worstPossibleScore (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) (Cons (Cons 0 (Cons 0 (Cons 1 Nil))) Nil)) (Cons A (Cons B (Cons C Nil))))))) ;; -2
+;; !(minImprove (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) (Cons (Cons 0 (Cons 0 (Cons 1 Nil))) Nil)) (Cons A (Cons B (Cons C Nil))))))) ;; 0.5
+
+;; !(compareAndScore A B) ;; -1
+;; !(compareAndScore A A) ;; 0
+
+;; !(getComplexity (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) ;; 1
