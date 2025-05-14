@@ -22,11 +22,10 @@
 !(assertEqual (distance (mkInst (Cons 1 (Cons 2 (Cons 1 (Cons 0 Nil))))) (mkInst (Cons 0 (Cons 1 (Cons 0 (Cons 0 Nil)))))) 3)
 
 
-;; Test case to check valid reduction of vary1Knobs
+;; ;; Test case to check valid reduction of vary1Knobs
 !(assertEqualToResult (vary1Knobs (2 1) (0 0 0 0)) ((0 0 0 2) (0 0 0 1) (0 0 2 0) (0 0 0 2) (0 0 0 1) (0 0 1 0) (0 2 0 0) (0 0 0 2) (0 0 0 1) (0 0 2 0) (0 0 0 2) (0 0 0 1) (0 0 1 0) (0 1 0 0) (2 0 0 0) (0 0 0 2) (0 0 0 1) (0 0 2 0) (0 0 0 2) (0 0 0 1) (0 0 1 0) (0 2 0 0) (0 0 0 2) (0 0 0 1) (0 0 2 0) (0 0 0 2) (0 0 0 1) (0 0 1 0) (0 1 0 0) (1 0 0 0)))
-
 ;; Test case to make sure it varyNKnobs reduce
-!(assertEqualToResult (let $a (varyNKnobs (2 1) (0 0 0 1) 2) (if (== (distance $a (0 0 0 1)) 0) $a (empty))) ((0 0 0 1) (0 0 0 1))) ;;
+!(assertEqualToResult (let $a (varyNKnobs (2 1) (0 0 0 1) 2) (if (== (distance $a (0 0 0 1)) 0) (empty) $a)) ((1 0 0 2) (1 0 0 0) (1 0 2 1) (1 0 1 1) (1 2 0 1) (1 1 0 1) (2 0 0 1) (2 0 0 2) (2 0 0 0) (2 0 2 1) (2 0 1 1) (2 2 0 1) (2 1 0 1) (1 0 0 1) (0 1 0 2) (0 1 0 0) (0 1 2 1) (0 1 1 1) (0 2 0 1) (2 1 0 1) (1 1 0 1) (0 2 0 2) (0 2 0 0) (0 2 2 1) (0 2 1 1) (0 1 0 1) (2 2 0 1) (1 2 0 1) (0 0 1 2) (0 0 1 0) (0 0 2 1) (0 2 1 1) (0 1 1 1) (2 0 1 1) (1 0 1 1) (0 0 2 2) (0 0 2 0) (0 0 1 1) (0 2 2 1) (0 1 2 1) (2 0 2 1) (1 0 2 1) (0 0 0 2) (0 0 2 0) (0 0 1 0) (0 2 0 0) (0 1 0 0) (2 0 0 0) (1 0 0 0) (0 0 0 0) (0 0 2 2) (0 0 1 2) (0 2 0 2) (0 1 0 2) (2 0 0 2) (1 0 0 2)))
 
 ;; At distance 2 should generate total of 32 neighbors
 !(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil))))) 2) ((List.length $a) (get-type $a))) (32 (List Instance)))

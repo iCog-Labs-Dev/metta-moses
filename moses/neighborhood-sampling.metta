@@ -23,7 +23,9 @@
    (let $instExp (List.listToExpr (Cons $x $xs))
    (let $listNeighbors (collapse (let $neighbors (varyNKnobs $multips $instExp $dist)
                               (mkInst (pyExprToList $neighbors))))
-   (let $uqListNeighbors (unique-atom $listNeighbors) (pyExprToList $uqListNeighbors))))))
+   (let $uqListNeighbors (unique-atom $listNeighbors)
+   (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (Cons $x $xs))))
+     (pyExprToList $uqListNeighbors')))))))
 
 
 ;; This function returns a non deterministic list of instances at the given distance.
@@ -67,7 +69,7 @@
    (let $i (superpose $multips)
    (let ($h $t) (decons-atom $instExp)
      (superpose (
-                  (let $a (if (== $i $x) 0 $i) (cons-atom $a $t))
+                  (let $a (if (== $i $h) 0 $i) (cons-atom $a $t))
                   (let $b (vary1Knobs $multips $t) (cons-atom $h $b)))))))
 
 ;; Computes the hamming distance between two instances.
