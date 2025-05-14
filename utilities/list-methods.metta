@@ -137,5 +137,32 @@
 (= (List.sub (Cons $x $xs) Nil) (Error (Cons $x $xs) LenghtOfListsNotEqual))
 (= (List.sub (Cons $x $xs) (Cons $y $ys)) (Cons (- $x $y) (List.sub $xs $ys)))
 
-;; !(List.sub (Cons 1 (Cons 3 Nil)) (Cons 0 (Cons 3 Nil))) ;; (Cons 1 (Cons 0 Nil))
-;; !(List.sub (Cons 1 (Cons 3 Nil)) (Cons 0 (Cons 3 (Cons 2 Nil)))) ;; (Error (Cons 2 Nil) LenghtOfListNotEqual)
+(: List.zip (-> (List $a) (List $b) (List ($a $b))))
+(= (List.zip Nil Nil) Nil)
+(= (List.zip Nil (Cons $y $ys)) Nil)
+(= (List.zip (Cons $x $xs) Nil) Nil)
+(= (List.zip (Cons $x $xs) (Cons $y $ys)) (Cons ($x $y) (List.zip $xs $ys)))
+
+(: List.zipWith (-> (-> $a $b $c) (List $a) (List $b) (List $c)))
+(= (List.zipWith $f Nil Nil) Nil)
+(= (List.zipWith $f Nil (Cons $y $ys)) Nil) (= (List.zipWith $f (Cons $x $xs) Nil) Nil) (= (List.zipWith $f (Cons $x $xs) (Cons $y $ys)) (Cons ($f $x $y) (List.zipWith $f $xs $ys)))
+
+(: List.drop (-> Number (List $a) (List $a)))
+(= (List.drop $n Nil) Nil)
+(= (List.drop $n (Cons $x $xs))
+   (if (== $n 0)
+       (Cons $x $xs)
+       (List.drop (- $n 1) $xs)))
+
+;; Temporary flatten function that works only for list of 
+;;  lists where the second list has only single elements.
+(: List.flatten (-> (List (List $a)) (List $a)))
+(= (List.flatten Nil) Nil)
+(= (List.flatten (Cons (Cons $x Nil) $xs)) (Cons $x (List.flatten $xs)))
+(= (List.flatten (Cons $x $xs)) (Error $x "Can't be flattened"))
+
+(: List.repeat (-> Number $a (List $a)))
+(= (List.repeat $n $a)
+   (if (== $n 0)
+       Nil
+       (Cons $a (List.repeat (- $n 1) $a))))
