@@ -3,6 +3,7 @@
 ! (import! &self metta-moses:representation:lsk)
 ! (import! &self metta-moses:representation:knob-mapper)
 ! (import! &self metta-moses:representation:representation)
+! (import! &self metta-moses:representation:create-representation)
 ! (import! &self metta-moses:representation:knob-representation)
 !(import! &self metta-moses:representation:logical-probe) 
 ! (import! &self metta-moses:representation:build-logical)
@@ -31,7 +32,7 @@
 ;; The test case is the same as the representation test case
 ;;      if create representation supports feature selection and ignore op it will be different
 ;; takes exemplar and generates Representation($kbMapKnobMap $updatedExemplar)
-!(assertEqual (representation  (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) Nil)))
+!(assertEqual (createRepresentation (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) Nil)))
 (mkRep 
   (mkKbMap 
      (mkDscKbMp (ConsMap ((mkNodeId (1 2)) 0) (ConsMap ((mkNodeId (1 3)) 1) (ConsMap ((mkNodeId (1 4)) 2) (ConsMap ((mkNodeId (1 5)) 3) (ConsMap ((mkNodeId (2)) 4) (ConsMap ((mkNodeId (3)) 5) (ConsMap ((mkNodeId (4)) 6) (ConsMap ((mkNodeId (5)) 7) NilMap))))))))) 
