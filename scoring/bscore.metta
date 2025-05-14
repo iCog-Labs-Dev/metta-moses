@@ -77,6 +77,21 @@
 (= (replaceVarsWithTruth ($lList $boolExpr) $bList)
    (let $blList (List.zip $bList $lList) (List.foldl replaceVarWithTruth $boolExpr $blList)))
 
+;; Behavioral complexity score
+(: BehavioralCScore (-> $a Type))
+(: mkBCScore (-> (TruthTableBScore $a) (BehavioralCScore $a)))
+
+(: bestPossibleScore (-> (BehavioralCScore $a) Number))
+(= (bestPossibleScore (mkBCScore $truthTableBScore)) (List.sum (bestPossibleScore $truthTableBScore)))
+
+(: worstPossibleScore (-> (BehavioralCScore $a) Number))
+(= (worstPossibleScore (mkBCScore $truthTableBScore)) (List.sum (worstPossibleScore $truthTableBScore)))
+
+;; When we have a compressed tree, the min improvement 
+;;  will be calculated. For now it's fixed.
+(: minImprove (-> (BehavioralCScore $a) Number))
+(= (minImprove (mkBCScore $truthTableBScore) (minImprove $truthTableBScore)))
+
 ;; !(let $a (mkBScore (Cons 1 (Cons 0 (Cons 2 Nil)))) (get-type $a)) ;; BehavioralScore
 ;; !(let $a (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil)))) (get-type $a)) ;; (ITable Number)
 ;; !(let $a (mkTruthTableBScore 1 0.2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil))))) (get-type $a)) ;; (TruthTableBScore Number)
