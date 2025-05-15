@@ -1,8 +1,8 @@
-!(register-module! ../../metta-moses)
-!(import! &self metta-moses:utilities:list-methods)
-!(import! &self metta-moses:utilities:tree)
-!(import! &self metta-moses:utilities:general-helpers)
-!(import! &self metta-moses:scoring:fitness)
+;; Type definitions and functions related to beahvioral socre, behavioral complexity score and turth table behavioral score.
+;; Behavioral score is a list of numbers, where each number represents the score of a particular output. 
+;; For boolean expressions, the score is either 0 or -1. Therefore, this behavioral score is a list of 0s and -1s.
+;; In the C++ version, floating point scores and numbers different than -1 and 0 are used as a result of table compression 
+;;  and weighting options. However, we don't have that yet.
 
 (: BehavioralScore Type)
 (: mkBScore (-> (List Number) BehavioralScore))
@@ -14,16 +14,21 @@
        (Error ($bs1 $bs2) "Incompatible behavioral scores")
        (mkBScore (List.sub $bs1 $bs2))))
 
-;; Input table
+;; Input table with rows, columns and labels of the columns
+;; An Input Table is just a list of lists.
 (: ITable (-> $a Type))
-;; List of rows and column labels
 (: mkITable (-> (List (List $a)) (List Symbol) (ITable $a)))
 
+;; TruthTableBScore is a type that contains the complexity coefficient, size of the table and the input table itself.
+;; Using this type we can get behavioral score and behavioral complexity score.
+;; This table is the cTruthTableBScore in the C++. The C stands for compressed. But omitted here since the table won't be compressed during this version.
+;;  It is left as future work.
 (: TruthTableBScore (-> $a Type))
-
-;; Complexity coeff, Size, Table
 (: mkTruthTableBScore (-> Number Number (ITable $a) (TruthTableBScore $a)))
 
+;; A constuctor for truthTableBScore to assign the size of the table on it's own.
+;; INFO: This could have been done by overloading the mkTruthTableBScore function, but
+;;  that has shown to be problematic for certain cases. Best to avoid it whenever we can.
 (: createTruthTableBScore (-> Number (ITable $a) (TruthTableBScore $a)))
 (= (createTruthTableBScore $complexityCoeff (mkITable $itable $labels)) (mkTruthTableBScore $complexityCoeff (List.length $itable) (mkITable $itable $labels)))
 
@@ -31,6 +36,14 @@
 (: getTable (-> (TruthTableBScore $a) (ITable $a)))
 (= (getTable (mkTruthTableBScore $compCoeff $size $table)) $table)
 
+;; Function to give a behavioral score for a given tree.
+;; It takes the Input table and the tree then scores the input table on each row. After which it builds the behavioral score.
+;;
+;; Params: $table - Input table
+;;         $labels - Column labels
+;;         $tree - The tree to be scored
+;;
+;; Returns: Beahvioral score for the given tree.
 (: scoreTree (-> (ITable $a) (Tree $a) BehavioralScore))
 (= (scoreTree (mkITable $table $labels) $tree)
    (chain (preOrder $tree) $expTree
@@ -40,9 +53,15 @@
    (chain (List.zipWith compareAndScore $scoreList $outputs) $bScore
       (mkBScore $bScore)))))))
 
+;; Return the best possible BehavioralScore given the size of the table.
+;;  Altohugh the whole table is given for consistency and to distinguish 
+;;  from the same function that works on BehavioralCScore, it uses only the size of the table.
 (: bestPossibleScore (-> (TruthTableBScore $a) BehavioralScore))
 (= (bestPossibleScore (mkTruthTableBScore $compCoeff $size $table)) (mkBScore (List.repeat $size 0)))
 
+;; Return the worst possible BehavioralScore given the size of the table.
+;;  Altohugh the whole table is given for consistency and to distinguish 
+;;  from the same function that works on BehavioralCScore, it uses only the size of the table.
 (: worstPossibleScore (-> (TruthTableBScore $a) BehavioralScore))
 (= (worstPossibleScore (mkTruthTableBScore $compCoeff $size $table)) (mkBScore (List.repeat $size -1)))
 
@@ -51,16 +70,26 @@
 (: minImprove (-> (TruthTableBScore $a) Number))
 (= (minImprove $_) 0.5)
 
+;; Sums the behavioral score to get a single number.
 (: sumBScore (-> BehavioralScore Number))
 (= (sumBScore (mkBScore $bs)) (List.sum $bs))
 
+;; Score tree helepr function that compares two values and returns a number instead of a bool.
+;; It returns 0 if the values are equal, -1 they're not equal.
 (: compareAndScore (-> $a $a Number))
 (= (compareAndScore $a $b) (if (== $a $b) 0 -1))
 
+;; A wrapper function to return the complexity a tree.
 (: (getComplexity (-> (Tree $a) Number)))
 (= (getComplexity $tree) (treeComplexity $tree))
 
-;; Replace every occurence of a lable inside an expression with a truth value
+;; Replace every occurence of a lable inside an expression with a truth value.
+;;
+;; Params: $boolExpr - The expression to be modified
+;;         $b - The truth value to replace with
+;;         $l - The variable to be replaced
+;;
+;; Returns: Modified version of the boolean expression.
 (: replaceVarWithTruth (-> (Bool Symbol) $a $a))
 (= (replaceVarWithTruth ($b $l) $boolExpr)
    (if (== (get-metatype $boolExpr) Expression) ;; If symbol or Grounded
@@ -73,57 +102,37 @@
                       (cons-atom $h $t')))))
        (if (== $boolExpr $l) $b $boolExpr)))
 
+;; Replace ever occurence of all labels (boolean variables) 
+;;  inside an expression with their corresponding truth values.
+;;
+;; Params: $boolExpr - The expression to be modified
+;;         $lList - list of variables to be replaced
+;;         $bList - list of the corresponding truth values to replace the variables with
+;;
+;; Returns: Modified version of the boolean expression.
 (: replaceVarsWithTruth (-> ((List Symbol) Expression) (List Bool) Expression))
 (= (replaceVarsWithTruth ($lList $boolExpr) $bList)
    (let $blList (List.zip $bList $lList) (List.foldl replaceVarWithTruth $boolExpr $blList)))
 
-;; Behavioral complexity score
+;; Behavioral complexity score. Although this type adds no additional atttributes to the truth table bscore,
+;;  It is used to distinguish between the two types. The behavioral complexity score is treated differently than the latter one.
+;;  Instead of a list of scores in the BehavioralScore this type deals with a single score values.
 (: BehavioralCScore (-> $a Type))
 (: mkBCScore (-> (TruthTableBScore $a) (BehavioralCScore $a)))
 
+;; Return the best possible Behavioral composite score given the table. 
+;;  Although the whole table is given for consistency and to distinguish 
+;;  from the same function that works on BehavioralScore, it only needs the size of the table.
 (: bestPossibleScore (-> (BehavioralCScore $a) Number))
 (= (bestPossibleScore (mkBCScore $truthTableBScore)) (let (mkBScore $bscore) (bestPossibleScore $truthTableBScore) (List.sum $bscore)))
 
+;; Return the worst possible Behavioral composite score given the table.
+;;  Although the whole table is given for consistency and to distinguish
+;;  from the same function that works on BehavioralScore, it only needs the size of the table.
 (: worstPossibleScore (-> (BehavioralCScore $a) Number))
 (= (worstPossibleScore (mkBCScore $truthTableBScore)) (let (mkBScore $bscore) (worstPossibleScore $truthTableBScore) (List.sum $bscore)))
 
-;; When we have a compressed tree, the min improvement 
+;; When we have a compressed tree, the min improvement
 ;;  will be calculated. For now it's fixed.
 (: minImprove (-> (BehavioralCScore $a) Number))
 (= (minImprove (mkBCScore $truthTableBScore) (minImprove $truthTableBScore)))
-
-;; !(let $a (mkBScore (Cons 1 (Cons 0 (Cons 2 Nil)))) (get-type $a)) ;; BehavioralScore
-;; !(let $a (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil)))) (get-type $a)) ;; (ITable Number)
-;; !(let $a (mkTruthTableBScore 1 0.2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil))))) (get-type $a)) ;; (TruthTableBScore Number)
-;; !(let $a (createTruthTableBScore 0.2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil))))) (get-type $a)) ;; (TruthTableBScore Number)
-;; !(createTruthTableBScore 0.2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil))))) ;; (mkTruthTableBScore 0.2 1 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil)))
-;; !(sub (mkBScore (Cons 1 (Cons 0 (Cons 2 Nil)))) (mkBScore (Cons 1 (Cons 0 (Cons 2 Nil))))) ;; (mkBScore (Cons 0 (Cons 0 (Cons 0 Nil))))
-;; !(getTable (mkTruthTableBScore 1 0.2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil)))))) ;; (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil))
-
-;; !(replaceVarWithTruth (True A) (AND A B (OR A B (NOT A)))) ;; (AND True B (OR True B (NOT True)))
-;; !(replaceVarWithTruth (False B) (AND A B (OR A B (NOT A)))) ;; (AND A False (OR A False (NOT False)))
-;; !(replaceVarsWithTruth (Cons True (Cons False Nil)) (Cons A (Cons B Nil)) (AND A B (OR A B (NOT A))))
-;; !(replaceVarsWithTruth (Cons True (Cons False Nil)) (Cons A (Cons B Nil)) (AND A B (OR A B (NOT A))))
-
-;; !(scoreTree (mkITable (Cons (Cons True (Cons False (Cons False Nil))) (Cons (Cons True (Cons True (Cons True Nil))) Nil) ) (Cons A (Cons B (Cons O Nil)))) (buildTree (OR A B))) ;; (mkBScore (Cons -1 (Cons 0 Nil)))
-;; !(scoreTree (mkITable (Cons (Cons True (Cons False (Cons False Nil))) (Cons (Cons True (Cons True (Cons True Nil))) Nil) ) (Cons A (Cons B (Cons O Nil)))) (buildTree (AND A B))) ;; (mkBScore (Cons 0 (Cons 0 Nil)))
-
-;; !(sumBScore (mkBScore (Cons 1 (Cons 2 (Cons 0 (Cons 1 Nil)))))) ;; 4
-
-;; !(treeComplexity (buildTree (AND (NOT A) (OR A B)))) ;; 3
-;; !(treeComplexity (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) ;; 0
-;; !(treeComplexity (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) ;; 1
-
-
-;; !(bestPossibleScore (mkTruthTableBScore 0.2 1 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil)))))) ;; (Cons 0 Nil)
-;; !(worstPossibleScore (mkTruthTableBScore 0.2 1 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil)))))) ;; (Cons -1 Nil)
-;; !(minImprove (mkTruthTableBScore 0.2 1 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil)))))) ;; 0.5
-
-;; !(bestPossibleScore (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) (Cons (Cons 0 (Cons 0 (Cons 1 Nil))) Nil)) (Cons A (Cons B (Cons C Nil))))))) ;; 0
-;; !(worstPossibleScore (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) (Cons (Cons 0 (Cons 0 (Cons 1 Nil))) Nil)) (Cons A (Cons B (Cons C Nil))))))) ;; -2
-;; !(minImprove (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) (Cons (Cons 0 (Cons 0 (Cons 1 Nil))) Nil)) (Cons A (Cons B (Cons C Nil))))))) ;; 0.5
-
-;; !(compareAndScore A B) ;; -1
-;; !(compareAndScore A A) ;; 0
-
-;; !(getComplexity (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) ;; 1
