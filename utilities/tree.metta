@@ -216,3 +216,21 @@
     (case $tree
         (((mkNullVex $children) True)
          ($else False))))
+
+;; Takes a tree and decides if the node is an argument or not.
+;; An argument is anything that's not an operator or a null vertex.
+(: isArgument (-> (Tree $a) Bool))
+(= (isArgument (mkNullVex $x)) False)
+(= (isArgument (mkTree (mkNode $x) $children))
+   (and (not (isMember $x (AND OR NOT))) (== $children Nil)))
+
+;; A function to calculate the complexity of a tree.
+;;  The complexity of a tree is the number of arguments it contains.
+;;  That means, ANDs, ORs and NOTs have no complexity. 
+;; Knobs, or null vetices aren't included in the complexity calculatio.
+(: treeComplexity (-> (Tree $a) Number))
+(= (treeComplexity (mkNullVex $x)) 0)
+(= (treeComplexity (mkTree (mkNode $a) $children)) ;; AND, OR and NOT have no complexity
+   (if (isArgument (mkTree (mkNode $a) $children))
+       1
+       (List.sum (List.map treeComplexity $children))))

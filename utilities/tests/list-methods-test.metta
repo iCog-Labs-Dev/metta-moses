@@ -98,3 +98,32 @@
 ;; Test case for List.tail
 !(assertEqual (List.tail Nil) Nil)
 !(assertEqual (List.tail (Cons 1 (Cons 2 Nil))) (Cons 2 Nil))
+
+;; Test case for List.sub
+!(assertEqual (List.sub (Cons 1 (Cons 3 Nil)) (Cons 0 (Cons 3 Nil))) (Cons 1 (Cons 0 Nil)))
+!(assertEqual (List.sub (Cons 1 (Cons 3 Nil)) (Cons 0 (Cons 3 (Cons 2 Nil)))) (Error (Cons 2 Nil) LenghtOfListNotEqual))
+
+;; Test case for List.zip
+!(assertEqual (List.zip (Cons 1 (Cons 2 Nil)) (Cons A (Cons B Nil))) (Cons (1 A) (Cons (2 B) Nil)))
+!(assertEqual (List.zip (Cons False (Cons True Nil)) (Cons A (Cons B Nil))) (Cons (False A) (Cons (True B) Nil)))
+!(assertEqual (List.zip (Cons False (Cons True Nil)) (Cons A Nil)) (Cons (False A) Nil))
+!(assertEqual (List.zip (Cons False Nil) (Cons A (Cons A (Cons B Nil)))) (Cons (False A) Nil))
+
+;; Test case for List.zipWith
+!(assertEqual (List.zipWith == (Cons 1 (Cons 2 Nil)) (Cons A (Cons B Nil))) (Cons False (Cons False Nil)))
+!(assertEqual (List.zipWith == (Cons False (Cons True Nil)) (Cons A (Cons B Nil))) (Cons False (Cons False Nil)))
+!(assertEqual (List.zipWith == (Cons False (Cons True Nil)) (Cons A Nil)) (Cons False Nil))
+!(assertEqual (List.zipWith == (Cons False Nil) (Cons A (Cons A (Cons B Nil)))) (Cons False Nil))
+
+;; Test case for List.drop
+!(assertEqual (List.drop 5 (Cons A (Cons B Nil))) Nil)
+!(assertEqual (List.drop 1 (Cons A (Cons B Nil))) (Cons B Nil))
+!(assertEqual (List.drop 2 (Cons A (Cons B (Cons C Nil)))) (Cons C Nil))
+
+;; Test case for List.flatten
+!(assertEqual (List.flatten (Cons (Cons 1 Nil) (Cons (Cons 2 Nil) Nil))) (Cons 1 (Cons 2 Nil)))
+!(assertEqual (List.flatten (Cons (Cons 1 Nil) (Cons (Cons 2 (Cons 3 Nil)) Nil))) (Error (Cons 2 (Cons 3 Nil)) "Can't be flattened"))
+
+;; Test case for List.repeat
+!(assertEqual (List.repeat 0 0) Nil)
+!(assertEqual (List.repeat 3 0) (Cons 0 (Cons 0 (Cons 0 Nil))))

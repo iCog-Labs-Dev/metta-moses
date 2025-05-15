@@ -129,3 +129,43 @@
 (: List.tail (-> (List $a) (List $a)))
 (= (List.tail Nil) Nil)
 (= (List.tail (Cons $x $xs)) $xs)
+
+;; Subtract list element wise
+(: List.sub (-> (List Number) (List Number) (List Number)))
+(= (List.sub Nil Nil) Nil)
+(= (List.sub Nil (Cons $y $ys)) (Error (Cons $y $ys) LenghtOfListNotEqual))
+(= (List.sub (Cons $x $xs) Nil) (Error (Cons $x $xs) LenghtOfListsNotEqual))
+(= (List.sub (Cons $x $xs) (Cons $y $ys)) (Cons (- $x $y) (List.sub $xs $ys)))
+
+(: List.zip (-> (List $a) (List $b) (List ($a $b))))
+(= (List.zip Nil Nil) Nil)
+(= (List.zip Nil (Cons $y $ys)) Nil)
+(= (List.zip (Cons $x $xs) Nil) Nil)
+(= (List.zip (Cons $x $xs) (Cons $y $ys)) (Cons ($x $y) (List.zip $xs $ys)))
+
+(: List.zipWith (-> (-> $a $b $c) (List $a) (List $b) (List $c)))
+(= (List.zipWith $f Nil Nil) Nil)
+(= (List.zipWith $f Nil (Cons $y $ys)) Nil) (= (List.zipWith $f (Cons $x $xs) Nil) Nil) (= (List.zipWith $f (Cons $x $xs) (Cons $y $ys)) (Cons ($f $x $y) (List.zipWith $f $xs $ys)))
+
+(: List.drop (-> Number (List $a) (List $a)))
+(= (List.drop $n Nil) Nil)
+(= (List.drop $n (Cons $x $xs))
+   (if (== $n 0)
+       (Cons $x $xs)
+       (List.drop (- $n 1) $xs)))
+
+;; Temporary flatten function that works only for list of 
+;;  lists where the second list has only single elements.
+(: List.flatten (-> (List (List $a)) (List $a)))
+(= (List.flatten Nil) Nil)
+(= (List.flatten (Cons $x $xs))
+    (case $x
+       (
+         ((Cons $y Nil) (Cons $y (List.flatten $xs)))
+         ((Cons $y $ys) (Error $x "Can't be flattened")))))
+
+(: List.repeat (-> Number $a (List $a)))
+(= (List.repeat $n $a)
+   (if (== $n 0)
+       Nil
+       (Cons $a (List.repeat (- $n 1) $a))))

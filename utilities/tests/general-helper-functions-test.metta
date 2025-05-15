@@ -350,3 +350,15 @@ NilMMap discSpec<=)
 !(assertEqual (swapAndOr AND) OR)
 !(assertEqual (swapAndOr OR) AND)
 !(assertEqual (swapAndOr A) A)
+
+;; Test for compose function
+(: inc (-> Number Number) )
+(= (inc $x) (+ $x 1))
+
+(: dec (-> Number Number) )
+(= (dec $x) (- $x 1))
+
+!(assertEqual ((compose inc dec) 1) 1)
+!(assertEqual ((compose (compose inc dec) (compose inc inc)) 1) 3)
+!(assertEqual ((compose (compose inc dec) inc) 1) 2)
+!(assertEqual ((compose not isZero) 1) True)

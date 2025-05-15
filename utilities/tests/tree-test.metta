@@ -416,3 +416,8 @@
 !(assertEqual (isNullVertex (mkNullVex Nil)) True)
 !(assertEqual (isNullVertex (mkTree (mkNode A) Nil)) False)
 !(assertEqual (isNullVertex (mkTree (mkNode B) (Cons (mkNullVex Nil) Nil))) False)
+
+;; Test case for tree complexity
+!(assertEqual (treeComplexity (buildTree (AND (NOT A) (OR A B)))) 3)
+!(assertEqual (treeComplexity (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) 0)
+!(assertEqual (treeComplexity (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) 1)
