@@ -3,44 +3,44 @@
 (= (OR $x) (cons-atom OR $x))
 
 ;; function to propagate to all of nested tuples by  mapping a propagetNot function to them
-(= (propagateNotChildrens () $tuple) (reverseExp (collapse (propagateNot (superpose $tuple))) ()))
-(= (propagateNotChildrens $tuple) (reverseExp (collapse (propagateNot NOT (superpose $tuple))) ()))
+; (= (propagateNotChildrens () $tuple) (reverseExp (collapse (propagateNot (superpose $tuple))) ()))
+; (= (propagateNotChildrens $tuple) (reverseExp (collapse (propagateNot NOT (superpose $tuple))) ()))
 
 ;; recurssive solution
-; (= (propagateNotChildrens $tuple)
-;     (if (== $tuple ())
-;     ()
-;         (let*
-;             (
-;                 (($h $t) (decons-atom $tuple))
-;                 ; (() (println! ("H: " $h)))
-;                 ; (() (println! ("T: " $t)))
-;                 ($s (++ ((propagateNot NOT $h)) (propagateNotChildrens $t)))
-;                 ; (() (println! ("S: " $s)))
-;                 ; ($rest (propagateNotChildrens () $t))
-;             )
-;             $s
-;         )
-;     )
-; )
+(= (propagateNotChildrens $tuple)
+    (if (== $tuple ())
+    ()
+        (let*
+            (
+                (($h $t) (decons-atom $tuple))
+                ; (() (println! ("H: " $h)))
+                ; (() (println! ("T: " $t)))
+                ($s (++ ((propagateNot NOT $h)) (propagateNotChildrens $t)))
+                ; (() (println! ("S: " $s)))
+                ; ($rest (propagateNotChildrens () $t))
+            )
+            $s
+        )
+    )
+)
 
 
-; (= (propagateNotChildrens () $tuple)
-;     (if (== $tuple ())
-;     ()
-;         (let*
-;             (
-;                 (($h $t) (decons-atom $tuple))
-;                 ; (() (println! ("H: " $h)))
-;                 ; (() (println! ("T: " $t)))
-;                 ($s (++ ((propagateNot $h)) (propagateNotChildrens () $t)))
-;                 ; (() (println! ("S: " $s)))
-;                 ; ($rest (propagateNotChildrens () $t))
-;             )
-;             $s
-;         )
-;     )
-; )
+(= (propagateNotChildrens () $tuple)
+    (if (== $tuple ())
+    ()
+        (let*
+            (
+                (($h $t) (decons-atom $tuple))
+                ; (() (println! ("H: " $h)))
+                ; (() (println! ("T: " $t)))
+                ($s (++ ((propagateNot $h)) (propagateNotChildrens () $t)))
+                ; (() (println! ("S: " $s)))
+                ; ($rest (propagateNotChildrens () $t))
+            )
+            $s
+        )
+    )
+)
 
 ;; Rules to propagete
 (= (propagateNot AND $tuple) (AND (propagateNotChildrens () $tuple)))
