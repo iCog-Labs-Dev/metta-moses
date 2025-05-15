@@ -8,8 +8,8 @@
 (: mkBScore (-> (List Number) BehavioralScore))
 
 ;; Subtrace two behavioral scores
-(: sub (-> BehavioralScore BehavioralScore BehavioralScore))
-(= (sub (mkBScore $bs1) (mkBScore $bs2))
+(: BScore.sub (-> BehavioralScore BehavioralScore BehavioralScore))
+(= (BScore.sub (mkBScore $bs1) (mkBScore $bs2))
    (if (~= (List.length $bs1) (List.length $bs2))
        (Error ($bs1 $bs2) "Incompatible behavioral scores")
        (mkBScore (List.sub $bs1 $bs2))))

@@ -28,12 +28,12 @@
 ;; Test Behavioral Score Helper functions
 ;; Test Sutract subtract behavioral scores pair wise
 !(assertEqual
-   (sub 
+   (BScore.sub 
       (mkBScore (Cons 1 (Cons 0 (Cons 2 Nil))))
       (mkBScore (Cons 1 (Cons 0 (Cons 2 Nil))))) 
    (mkBScore (Cons 0 (Cons 0 (Cons 0 Nil)))))
 !(assertEqual
-   (sub 
+   (BScore.sub 
       (mkBScore (Cons 1 (Cons 0 (Cons 2 Nil))))
       (mkBScore (Cons 1 (Cons 0 Nil))))
    (Error ((Cons 1 (Cons 0 (Cons 2 Nil))) (Cons 1 (Cons 0 Nil))) "Incompatible behavioral scores"))
