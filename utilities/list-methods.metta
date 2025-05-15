@@ -158,8 +158,11 @@
 ;;  lists where the second list has only single elements.
 (: List.flatten (-> (List (List $a)) (List $a)))
 (= (List.flatten Nil) Nil)
-(= (List.flatten (Cons (Cons $x Nil) $xs)) (Cons $x (List.flatten $xs)))
-(= (List.flatten (Cons $x $xs)) (Error $x "Can't be flattened"))
+(= (List.flatten (Cons $x $xs))
+    (case $x
+       (
+         ((Cons $y Nil) (Cons $y (List.flatten $xs)))
+         ((Cons $y $ys) (Error $x "Can't be flattened")))))
 
 (: List.repeat (-> Number $a (List $a)))
 (= (List.repeat $n $a)

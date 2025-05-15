@@ -104,7 +104,7 @@
 !(assertEqual (List.sub (Cons 1 (Cons 3 Nil)) (Cons 0 (Cons 3 (Cons 2 Nil)))) (Error (Cons 2 Nil) LenghtOfListNotEqual))
 
 ;; Test case for List.zip
-!(assertEqual (List.zip (Cons 1 (Cons 2 Nil)) (Cons A (Cons B Nil))) (Cons (1 A) (Cons 2 B) Nil))
+!(assertEqual (List.zip (Cons 1 (Cons 2 Nil)) (Cons A (Cons B Nil))) (Cons (1 A) (Cons (2 B) Nil)))
 !(assertEqual (List.zip (Cons False (Cons True Nil)) (Cons A (Cons B Nil))) (Cons (False A) (Cons (True B) Nil)))
 !(assertEqual (List.zip (Cons False (Cons True Nil)) (Cons A Nil)) (Cons (False A) Nil))
 !(assertEqual (List.zip (Cons False Nil) (Cons A (Cons A (Cons B Nil)))) (Cons (False A) Nil))
@@ -112,8 +112,8 @@
 ;; Test case for List.zipWith
 !(assertEqual (List.zipWith == (Cons 1 (Cons 2 Nil)) (Cons A (Cons B Nil))) (Cons False (Cons False Nil)))
 !(assertEqual (List.zipWith == (Cons False (Cons True Nil)) (Cons A (Cons B Nil))) (Cons False (Cons False Nil)))
-!(assertEqual (List.zipWith == (Cons False (Cons True Nil)) (Cons A Nil)) (Cons (False A) Nil))
-!(assertEqual (List.zipWith == (Cons False Nil) (Cons A (Cons A (Cons B Nil)))) (Cons (False A) Nil))
+!(assertEqual (List.zipWith == (Cons False (Cons True Nil)) (Cons A Nil)) (Cons False Nil))
+!(assertEqual (List.zipWith == (Cons False Nil) (Cons A (Cons A (Cons B Nil)))) (Cons False Nil))
 
 ;; Test case for List.drop
 !(assertEqual (List.drop 5 (Cons A (Cons B Nil))) Nil)

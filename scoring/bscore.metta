@@ -14,6 +14,10 @@
        (Error ($bs1 $bs2) "Incompatible behavioral scores")
        (mkBScore (List.sub $bs1 $bs2))))
 
+;; Sums the behavioral score to get a single number.
+(: sumBScore (-> BehavioralScore Number))
+(= (sumBScore (mkBScore $bs)) (List.sum $bs))
+
 ;; Input table with rows, columns and labels of the columns
 ;; An Input Table is just a list of lists.
 (: ITable (-> $a Type))
@@ -69,10 +73,6 @@
 ;;  will be calculated. For now it's fixed.
 (: minImprove (-> (TruthTableBScore $a) Number))
 (= (minImprove $_) 0.5)
-
-;; Sums the behavioral score to get a single number.
-(: sumBScore (-> BehavioralScore Number))
-(= (sumBScore (mkBScore $bs)) (List.sum $bs))
 
 ;; Score tree helepr function that compares two values and returns a number instead of a bool.
 ;; It returns 0 if the values are equal, -1 they're not equal.
