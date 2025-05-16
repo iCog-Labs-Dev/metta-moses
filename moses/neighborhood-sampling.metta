@@ -72,13 +72,65 @@
                   (let $a (if (== $i $h) 0 $i) (cons-atom $a $t))
                   (let $b (vary1Knobs $multips $t) (cons-atom $h $b)))))))
 
+;; This function generates $samplesize instances that are within a distance (difference in knob specifications) 
+;; of $dist  from the central instance. It uses the knobmapper to extract the multiplicity of the knob,
+;; as the central instance only contains the list of specifications.
+;; Parameters:
+;;      $samplesize: The number of instances to be generated.
+;;      $dist: The distance from the central instance.
+;;      $knobmapper: The knob mapper used to extract the multiplicity of the knob.
+;;      $centralinstance: The instance from which other instances will be generated.
+(: sampleFromNeighborhood (-> Number Number knobMap Instance (List Instance)))
+(= (sampleFromNeighborhood $sampleSize $dist (mkKbMap $itDiscKnob $disc) (mkInst $centralInst))
+    (if (== $sampleSize 0)
+        Nil
+        (let*
+          (
+            ($knobLen (MultiMap.length $disc))
+            ($instLen (List.length $centralInst)))
+          (if (== $knobLen $instLen)
+              (let*
+                (
+                  ($selectedIndices (lazyRandomSelector 0 (- $instLen 1) $dist))
+                  ($updatedInst (updateInst $selectedIndices $disc $centralInst))
+                  ($restInstances (sampleFromNeighborhood (- $sampleSize 1) $dist (mkKbMap $itDiscKnob $disc) (mkInst $centralInst)))
+                  ($inst (mkInst $updatedInst)))
+                (List.prepend $inst $restInstances))
+              (Error ($knobLen $instLen) "Not Equal")))))
+
+;; This is a helper function for sfn (sampling from neighborhood) that updates the 
+;; central instance for a specified number of times, determined by $dist.
+;; 
+;; Parameters:
+;;      $dist: The required distance from the central instance.
+;;      $len: The length of the central instance.
+;;      $disc: A multi-map (extracted from the knob mapper) of DiscSpec logicalSubtreeKnob, 
+;;             used to retrieve the lsk (logical subtree knob) from which the knob multiplicity 
+;;             can be obtained.
+;;      $newinst: The original central instance.
+(: updatedInst (-> Expression (MultiMap (DiscSpec logicalSubtreeKnob)) (List Number) (List Number)))
+(= (updateInst $selectedIndices $disc $newInst)
+    ( if (== $selectedIndices ())
+        $newInst
+        (let*
+          (
+            (($rand $next) (decons-atom $selectedIndices))
+            (($decSpec (mkLSK (mkDiscKnob $knob (mkMultip $multi) $spec $spec1 $specList) $tree)) (MultiMap.getByIdx $rand $disc))
+            ($curSpec (List.getByIdx $newInst $rand))
+            ($upper (- $multi 1))
+            ($randomSpec (+ (random-int &rng 0 $upper) 1))
+            ($updatedInst (if (== $randomSpec $curSpec)
+                              (List.replaceAt $newInst $rand 0)
+                              (List.replaceAt $newInst $rand $randomSpec))))
+          (updateInst $next $disc $updatedInst))))
+
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1
 ;;          inst1: (0 1 0 1), inst2: (0 0 0 0) => distance: 2
 (: distance (-> Expression Expression Number) )
 (= (distance $inst1 $inst2)
    (if (~= (size-atom $inst1) (size-atom $inst2))
-       (Error (Inst: $inst1 and Inst: $inst2) (Instances are not equal lenght))
+       (Error (Inst: $inst1 and Inst: $inst2) (Instances are not equal length))
    (if (== $inst1 ())
        0
        (let ($h1 $t1) (decons-atom $inst1)
@@ -89,3 +141,9 @@
 (= (distance (mkInst Nil) (mkInst Nil)) 0)
 (= (distance (mkInst (Cons $x $xs)) (mkInst (Cons $y $ys)))
       (+ (if (== $x $y) 0 1) (distance (mkInst $xs) (mkInst $ys))))
+
+;; A trick function to use to prevent the type error
+;;  bugs that may rise as a result of overloaded types
+;;  of the distance function
+(: distance' (-> Instance Instance Number))
+(= (distance' $inst1 $inst2) (distance $inst1 $inst2))
