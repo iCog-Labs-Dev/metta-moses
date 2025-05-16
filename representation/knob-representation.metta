@@ -14,7 +14,7 @@
 (: DiscSpec Type)
 (: mkDiscSpec (-> Number DiscSpec))
 
-; (: mkDiscKnob (-> Knob Multiplicity DiscreteKnob)) ; this is not being reduced to DiscreteKnob rather (-> Knob Multiplicity DiscreteKnob) causing an error 
+(: mkDiscKnob (-> Knob Multiplicity DiscreteKnob))  
 (: mkDiscKnob (-> Knob Multiplicity DiscSpec DiscSpec (List DiscSpec) DiscreteKnob))
 (= (mkDiscKnob $knob $multiplicity)
    (mkDiscKnob $knob $multiplicity (mkDiscSpec 0) (mkDiscSpec 0) Nil)
