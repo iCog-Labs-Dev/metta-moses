@@ -127,7 +127,7 @@
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1
 ;;          inst1: (0 1 0 1), inst2: (0 0 0 0) => distance: 2
-;; (: distance (-> Expression Expression Number) )
+(: distance (-> Expression Expression Number) )
 (= (distance $inst1 $inst2)
    (if (~= (size-atom $inst1) (size-atom $inst2))
        (Error (Inst: $inst1 and Inst: $inst2) (Instances are not equal length))
@@ -141,3 +141,9 @@
 (= (distance (mkInst Nil) (mkInst Nil)) 0)
 (= (distance (mkInst (Cons $x $xs)) (mkInst (Cons $y $ys)))
       (+ (if (== $x $y) 0 1) (distance (mkInst $xs) (mkInst $ys))))
+
+;; A trick function to use to prevent the type error
+;;  bugs that may rise as a result of overloaded types
+;;  of the distance function
+(: distance' (-> Instance Instance Number))
+(= (distance' $inst1 $inst2) (distance $inst1 $inst2))
