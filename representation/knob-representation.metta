@@ -14,9 +14,9 @@
 (: DiscSpec Type)
 (: mkDiscSpec (-> Number DiscSpec))
 
-(: mkDiscKnob (-> Knob Multiplicity DiscreteKnob))
+(: mkDiscKnob (-> Knob Multiplicity DiscreteKnob))  
 (: mkDiscKnob (-> Knob Multiplicity DiscSpec DiscSpec (List DiscSpec) DiscreteKnob))
-(= (mkDiscKnob $knob $multiplicity) 
+(= (mkDiscKnob $knob $multiplicity)
    (mkDiscKnob $knob $multiplicity (mkDiscSpec 0) (mkDiscSpec 0) Nil)
 )
 
