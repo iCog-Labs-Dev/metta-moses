@@ -336,6 +336,35 @@
              )
              (merge (sort $left $halfL $key) (sort $right (- $len $halfL) $key) $key))))
 
+;; preprocessor functions for insertion sort
+(: insertionSort (-> Expression Number Expression))
+(= (insertionSort $expr $n) (insertionSort $expr $n >=))
+(: insertionSort (-> Expression (-> $x $x Bool) Expression))
+(= (insertionSort $expr $fn) (let $n (size-atom $expr) (insertionSort $expr $n $fn)))
+(: insertionSort (-> Expression Expression))
+(= (insertionSort $expr) (let $n (size-atom $expr) (insertionSort $expr $n >=)))
+
+;; Helper function for insertionto insert an element to already sorted expression
+(: insert (Expression Number Number (-> $x $x Bool) Expression))
+(= (insert $sorted $x $n $fn)
+    (if (== $n 1)
+        (cons-atom $x $sorted)
+        (let ($head $tail) (decons-atom $sorted)
+            (if ($fn $head $x)
+                (cons-atom $x $sorted)
+                (let $rest (insert $tail $x (- $n 1) $fn) (cons-atom $head $rest))
+                ))))
+
+;; A function to sort only the first $n elementes from an expression
+(: insertionSort (-> Expression Number (-> $x $x Bool) Expression))
+(= (insertionSort $expr $n $fn)
+    (if (== $n 0)
+        $expr
+        (let* (
+            (($head $tail) (decons-atom $expr))
+            ($sorted (insertionSort $tail (- $n 1) $fn)))
+            (insert $sorted $head $n $fn))))
+
 ;; A function to take an atom and repeat it n times.
 (: repeat (-> Atom Number Atom))
 (= (repeat $a $n)

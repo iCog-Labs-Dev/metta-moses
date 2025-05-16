@@ -249,6 +249,12 @@
 ;; !(assertEqual (sort (2 3 1 4) 4) (1 2 3 4))
 ;; !(assertEqual (sort (2 3 1 4) 4 >=) (4 3 2 1))
 
+!(assertEqual (insertionSort (9 7 5 2 4 6 3) 3 >=) (5 7 9 2 4 6 3))
+!(assertEqual (insertionSort (3 1 4 2 4 6 3) 5 <=) (4 4 3 2 1 6 3))
+!(assertEqual (insertionSort (9 7 5 2 4 6 3) 4) (2 5 7 9 4 6 3))
+!(assertEqual (insertionSort (4 7 5 2 4 6 3) <) (7 6 5 4 4 3 2))
+!(assertEqual (insertionSort (4 7 5 2 4 6 3)) (2 3 4 4 5 6 7))
+
 !(assertEqual (take 1 (A B C)) (A))
 !(assertEqual (take 2 (A B C)) (A B))
 !(assertEqual (take 2 ()) ())
