@@ -8,7 +8,7 @@
 ;;             used to retrieve the lsk (logical subtree knob) from which the knob multiplicity 
 ;;             can be obtained.
 ;;      $newinst: The original central instance.
-(: updatedInst (-> Number Number (MultiMap (DiscSpec logicalSubtreeKnob)) (List Number) (List Number) (List Number)))
+(: updatedInst (-> Number Number (MultiMap (DiscSpec logicalSubtreeKnob)) (List Number) (List Number)))
 (= (updateInst $dist $len $disc $newinst)
     ( if (== $dist 0) 
         $newinst
@@ -22,7 +22,7 @@
                         (List.replaceAt $newinst $rand 0) 
                         (List.replaceAt $newinst $rand $randomspec)
                         )))
-             (updateInst (- $dist 1) $len $disc $newinst))))
+             (updateInst (- $dist 1) $len $disc $updatedinst))))
 
 
 
@@ -42,9 +42,9 @@
             ($instlen (List.length $centralinst)))
             (if (== $knoblen $instlen) 
                     (let* (
-                ($updatedinstace (updateInst $dist $instlen $disc $centralinst))
+                ($updatedinst (updateInst $dist $instlen $disc $centralinst))
                 ($restinstances (sfn (- $samplesize 1) $dist (mkKbMap $itDiscKnob $disc) (mkInst $centralinst)))
-                ($inst (mkInst $updatedinstace))
+                ($inst (mkInst $updatedinst))
                 ($final (List.append $inst $restinstances))
                 )
                 $final
