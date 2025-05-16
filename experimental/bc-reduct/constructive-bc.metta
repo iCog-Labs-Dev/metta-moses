@@ -98,32 +98,31 @@
           )
      (: ($prfabs $prfarg) $thrm)))
 
-;; ;; Binary proof application
-;; (= (bc $kb (S $k) (: ($prfabs $prfarg1 $prfarg2) $thrm))
-;;    (let* (;; Recurse on binary rule
-;;           ;; (() (println! (Binary rule called)))
-;;           ((: $prfabs (-> $prfarg1 $prfarg2 $thrm))
-;;            (bc $kb $k (: $prfabs (-> $prfarg1 $prfarg2 $thrm))))
-;;           (() (println! (Binary Prfabs: $prfabs)))
-;;           (() (println! (Prfarg1: $prfarg1)))
-;;           (() (println! (Prfarg2: $prfarg2)))
-;;
-;;           ((: $prms1 $prfarg1) (bc $kb $k (: $prms1 $prfarg1)))
-;;           ((: $prms2 $prfarg2) (bc $kb $k (: $prms2 $prfarg2)))
-;;           )
-;;      (: ($prfabs $prms1 $prms2) $thrm)))
+;; Binary proof application
+(= (bc $kb (S $k) (: ($prfabs $prfarg1 $prfarg2) $thrm))
+   (let* (;; Recurse on binary rule
+          ((: $prfabs (-> $prms1 $prms2 $thrm))
+           (bc $kb $k (: $prfabs (-> $prms1 $prms2 $thrm))))
 
-;; ;; Ternary proof application
-;; (= (bc $kb (S $k) (: ($prfabs $prfarg1 $prfarg2 $prfarg3) $thrm))
-;;    (let* (;; Recurse on unary rule
-;;           ((: $prfabs (-> $prfarg1 $prfarg2 $prfarg3 $thrm))
-;;            (bc $kb $k (: $prfabs (-> $prfarg1 $prfarg2 $prfarg3 $thrm))))
-;;
-;;           ((: $prms1 $prfarg1) (bc $kb $k (: $prms1 $prfarg1)))
-;;           ((: $prms2 $prfarg2) (bc $kb $k (: $prms2 $prfarg2)))
-;;           ((: $prms3 $prfarg3) (bc $kb $k (: $prms3 $prfarg3)))
-;;           )
-;;      (: ($prfabs $prms1 $prms2 $prms3) $thrm)))
+          ((: $prfarg1 $prms1) (bc $kb $k (: $prfarg1 $prms1)))
+          ((: $prfarg2 $prms2) (bc $kb $k (: $prfarg2 $prms2)))
+          )
+     (: ($prfabs $prfarg1 $prfarg2) $thrm)))
+
+;; Ternary proof application
+(= (bc $kb (S $k) (: ($prfabs $prfarg1 $prfarg2 $prfarg3) $thrm))
+   (let* (;; Recurse on unary rule
+          ((: $prfabs (-> $prms1 $prms2 $prms3 $thrm))
+           (bc $kb $k (: $prfabs (-> $prms1 $prms2 $prms3 $thrm))))
+
+          ((: $prfarg1 $prms1) (bc $kb $k (: $prfarg1 $prms1)))
+          ((: $prfarg2 $prms2) (bc $kb $k (: $prfarg2 $prms2)))
+          ((: $prfarg3 $prms3) (bc $kb $k (: $prfarg3 $prms3)))
+          )
+     (: ($prfabs $prfarg1 $prfarg2 $prfarg3) $thrm)))
+
+(= (filterResultBc (: $prf (ReducesTo $x $y))) (if (== $x $y) (empty) (: $prf (ReducesTo $x $y))))
+
 
 !(bind! &kb (new-space))
 
@@ -131,44 +130,85 @@
 ;                                   (ReducesTo (𝐨𝐫 (Cons $x Nil)) $y))))
 ;
 ; !(add-atom &kb (: NaryOrRule (-> (ReducesTo $head $head-r)
-;                                  (ReducesTo (Cons $head $tail) (Cons $head-r $tail-r))
+;                                  (ReducesTo $tail $tail-r)
 ;                                  (ReducesTo (𝐨𝐫 (Cons $head $tail)) (𝐨𝐫 (Cons $head-r $tail-r))))))
 ;
-; !(add-atom &kb (: TrueAxiom (ReducesTo 𝐓𝐫𝐮𝐞 𝐓𝐫𝐮𝐞)))
-; !(add-atom &kb (: FalseAxiom (ReducesTo 𝐅𝐚𝐥𝐬𝐞 𝐅𝐚𝐥𝐬𝐞)))
-; !(add-atom &kb (: zAxiom (ReducesTo z z)))
-; !(add-atom &kb (: sAxiom (ReducesTo (s $xs) (s $xs))))
+; !(add-atom &kb (: UnaryAndRule (-> (ReducesTo $x $y)
+;                                    (ReducesTo (𝐚𝐧𝐝 (Cons $x Nil)) $y))))
 ;
-; !(add-atom &kb (: nilAxiom (ReducesTo Nil Nil)))
-; !(add-atom &kb (: listAxiom (ReducesTo (Cons $head $tail) (Cons $head $tail))))
+; !(add-atom &kb (: NaryAndRule (-> (ReducesTo $head $head-r)
+;                                   (ReducesTo $tail $tail-r)
+;                                   (ReducesTo (𝐚𝐧𝐝 (Cons $head $tail)) (𝐚𝐧𝐝 (Cons $head-r $tail-r))))))
 ;
+!(add-atom &kb (: TrueAxiom (ReducesTo 𝐓𝐫𝐮𝐞 𝐓𝐫𝐮𝐞)))
+!(add-atom &kb (: FalseAxiom (ReducesTo 𝐅𝐚𝐥𝐬𝐞 𝐅𝐚𝐥𝐬𝐞)))
+;
+!(add-atom &kb (: zAxiom (ReducesTo z z)))
+!(add-atom &kb (: sAxiom (ReducesTo (s $xs) (s $xs))))
+
+!(add-atom &kb (: nilAxiom (ReducesTo Nil Nil)))
+!(add-atom &kb (: listAxiom (ReducesTo (Cons $head $tail) (Cons $head $tail))))
+
 ; !(add-atom &kb (: recurseList (-> (ReducesTo $head $head-r)
 ;                                   (ReducesTo $tail $tail-r)
 ;                                   (ReducesTo (Cons $head $tail) (Cons $head-r $tail-r)))))
+;
+; !(add-atom &kb (: AbsorbFalse (-> (ReducesTo (Cons $head $tail) (Cons $head-r $tail-r))
+;                                   (Elem 𝐅𝐚𝐥𝐬𝐞 (Cons $head-r $tail-r))
+;                                   (ReducesTo (𝐚𝐧𝐝 (Cons $head $tail)) 𝐅𝐚𝐥𝐬𝐞))))
+;
+; !(add-atom &kb (: AbsorbTrue (-> (ReducesTo (Cons $head $tail) (Cons $head-r $tail-r))
+;                                  (Elem 𝐓𝐫𝐮𝐞 (Cons $head-r $tail-r))
+;                                  (ReducesTo (𝐨𝐫 (Cons $head $tail)) 𝐓𝐫𝐮𝐞))))
 
-;; ;; Failed attempt for list uniqueness
-;; !(add-atom &kb (: uniqueList (-> (ReducesTo $head $head-r)
-;;                                  (ReducesTo $head $head-r)
-;;                                  (ReducesTo $tail $tail-r)
-;;                                  (ReducesTo (Cons $head (Cons $head $tail)) (Cons $head-r $tail-r)))))
+!(add-atom &kb (: dstNilAxiom (ReducesTo ($op Nil) Nil)))
+!(add-atom &kb (: dstZAxiom (ReducesTo ($op z) ($op z))))
+!(add-atom &kb (: dstSAxiom (ReducesTo ($op (s $xs)) ($op (s $xs)))))
 
-;; !(bc &kb (fromNumber 1) (: $prf (ReducesTo (𝐨𝐫 (Cons z Nil)) $y)))
-;; (: $prfabs (-> $prfarg (ReducesTo (𝐨𝐫 z) $y))) => (: UnaryOrRule (-> (ReducesTo z $y) (ReducesTo (𝐨𝐫 z) $y)))
+!(add-atom &kb (: Distribute (-> (ReducesTo (𝐧𝐨𝐭 $head) $head-r)
+                                 (ReducesTo (𝐧𝐨𝐭 $tail) $tail-r)
+                                 (ReducesTo (𝐧𝐨𝐭 (Cons $head $tail)) (Cons $head-r $tail-r)))))
 
-;; !(bc &kb (fromNumber 2) (: $prf (ReducesTo (𝐨𝐫 (Cons z (Cons z Nil))) $y)))
-
-
-; !(add-atom &kb (: AbsorbFalse (-> (ReducesTo $lst $lst-r)
-;                    (Elem 𝐅𝐚𝐥𝐬𝐞 $lst-r)
-;                    (ReducesTo (𝐚𝐧𝐝 $lst) 𝐅𝐚𝐥𝐬𝐞))))
 
 !(add-atom &kb (: ElemAxiom (Elem $head (Cons $head $tail))))
 
 !(add-atom &kb (: ElemRule (-> (Elem $x $tail)
                                (Elem $x (Cons $head $tail)))))
 
-!(bc &kb (fromNumber 2) (: $prf (Elem A (Cons B (Cons C (Cons A Nil))))))
+;; FIX: Failing test case
+;; !(add-atom &kb (: RemoveDuplicates (-> (Elem $head-r $tail-r)
+;;                                       (ReducesTo (Cons $head $tail) $tail-r))))
 
-;; !(bc &kb (fromNumber 2) (: $prf (Elem A (Cons B (Cons C (Cons A Nil))))))
-;; !(bc &kb (fromNumber 0) (: $prf (Elem A (Cons A Nil))))
-;; !(bc &kb (fromNumber 1) (: $prf (Elem A (Cons C (Cons A Nil)))))
+!(add-atom &kb (: PropNot (-> (ReducesTo $head $head-r)
+                              (ReducesTo $tail $tail-r)
+                              (ReducesTo (𝐧𝐨𝐭 (Cons $head-r $tail-r)) $lst-r)
+                              (ReducesTo (𝐧𝐨𝐭 (𝐚𝐧𝐝 (Cons $head $tail))) (𝐨𝐫 $lst-r)))))
+                              ;; (ReducesTo (𝐧𝐨𝐭 (𝐚𝐧𝐝 (Cons $head $tail))) (𝐨𝐫 (𝐧𝐨𝐭 (Cons $head-r $tail-r)))))))
+
+!(add-atom &kb (: PropNot (-> (ReducesTo $head $head-r)
+                              (ReducesTo $tail $tail-r)
+                              (ReducesTo (𝐧𝐨𝐭 (Cons $head-r $tail-r)) $lst-r)
+                              (ReducesTo (𝐧𝐨𝐭 (𝐨𝐫 (Cons $head $tail))) (𝐚𝐧𝐝 $lst-r)))))
+                              ;; (ReducesTo (𝐧𝐨𝐭 (𝐨𝐫 (Cons $head $tail))) (𝐚𝐧𝐝 (𝐧𝐨𝐭 (Cons $head-r $tail-r)))))))
+
+;; !(bc &kb (fromNumber 3) (: $prf (ReducesTo (𝐧𝐨𝐭 (𝐨𝐫 (Cons z (Cons (s z) Nil)))) $y))) ;; PropNot test case
+;; !(bc &kb (fromNumber 6) (: $prf (ReducesTo (𝐧𝐨𝐭 (𝐨𝐫 (Cons z (Cons (𝐚𝐧𝐝 (Cons z (Cons (s z) Nil))) Nil)))) $y))) ;; PropNot test case.
+
+;; !(println! (filterResultBc (bc &kb (fromNumber 2) (: $prf (ReducesTo (𝐨𝐫 (Cons z (Cons z Nil))) $y)))))
+;; !(println! (filterResultBc (bc &kb (fromNumber 3) (: $prf (ReducesTo (𝐨𝐫 (Cons (s z) (Cons z (Cons z Nil)))) $y)))))
+;; !(println! (filterResultBc (bc &kb (fromNumber 3) (: $prf (ReducesTo (𝐨𝐫 (Cons z (Cons (s z) (Cons z Nil)))) $y))))) ;; Fails for this
+;; !(println! (filterResultBc (bc &kb (fromNumber 2) (: $prf (ReducesTo (Cons z (Cons (s z) (Cons z Nil))) $y))))) ;; But this still works
+
+;; !(println! (bc &kb (fromNumber 2) (: $prf (Elem A (Cons B (Cons C (Cons A Nil))))))) ;; Element check test
+;; !(println! "")
+;; !(println! (bc &kb (fromNumber 3) (: $prf (ReducesTo (𝐚𝐧𝐝 (Cons A (Cons B (Cons 𝐅𝐚𝐥𝐬𝐞 Nil)))) $y)))) ;; Absorb false test
+;; !(println! "")
+;; !(println! (bc &kb (fromNumber 3) (: $prf (ReducesTo (𝐨𝐫 (Cons A (Cons B (Cons 𝐓𝐫𝐮𝐞 Nil)))) $y)))) ;; Absorb true test
+;; !(println! "")
+;; !(println! (bc &kb (fromNumber 3) (: $prf (ReducesTo (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons 𝐅𝐚𝐥𝐬𝐞 Nil)) Nil)) $y)))) ;; absorb false and or cut test
+;; !(println! "")
+;; !(println! (bc &kb (fromNumber 2) (: $prf (ReducesTo (𝐨𝐫 (Cons z Nil)) $y)))) ;; orcut test
+;; !(println! "")
+;; !(println! (bc &kb (fromNumber 2) (: $prf (ReducesTo (𝐚𝐧𝐝 (Cons z Nil)) $y)))) ;; andcut test
+;; !(println! "")
+;; !(println! (bc &kb (fromNumber 5) (: $prf (ReducesTo (𝐚𝐧𝐝 (Cons z (Cons (𝐨𝐫 (Cons z (Cons 𝐓𝐫𝐮𝐞 Nil))) Nil))) $y)))) ;; recurse list test
