@@ -11,6 +11,7 @@
 ! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:utilities:ordered-multimap)
 ! (import! &self metta-moses:utilities:lazy-random-selector)
+! (import! &self metta-moses:optimization:hillclimbing:hill-climbing-helpers)
 
 
 (= (pyExprToList $expr) (py_exprToList $expr))
@@ -92,6 +93,86 @@
                       (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap)))
                       (ConsMMap ((mkDiscSpec 1) lsk1) (ConsMMap ((mkDiscSpec 0) lsk2) (ConsMMap ((mkDiscSpec 1) lsk3) NilMMap)))))
 
+! (bind! deme (mkDeme 
+(mkRep (mkKbMap 
+    (mkDscKbMp 
+      (ConsMap ((mkNodeId (1 2)) 0)
+        (ConsMap ((mkNodeId (2)) 1)
+          (ConsMap ((mkNodeId (3)) 2) NilMap))))
+    (mkDscMp 
+      (ConsMMap 
+        ((mkDiscSpec 3)
+         (mkLSK 
+           (mkDiscKnob 
+             (mkKnob 
+               (mkTree 
+                 (mkNode OR) 
+                 (Cons 
+                   (mkTree 
+                     (mkNode AND) 
+                     (Cons 
+                       (mkTree (mkNode C) Nil)
+                       (Cons 
+                         (mkNullVex 
+                           (Cons 
+                             (mkTree 
+                               (mkNode OR) 
+                               (Cons 
+                                 (mkTree (mkNode A) Nil)
+                                 (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil)))
+                   (Cons 
+                     (mkNullVex 
+                       (Cons 
+                         (mkTree 
+                           (mkNode AND) 
+                           (Cons 
+                             (mkTree (mkNode A) Nil)
+                             (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil)))
+               (mkNodeId (1 2)))
+             (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+           (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))))
+        (ConsMMap 
+          ((mkDiscSpec 3)
+           (mkLSK 
+             (mkDiscKnob 
+               (mkKnob 
+                 (mkTree 
+                   (mkNode OR) 
+                   (Cons 
+                     (mkTree (mkNode C) Nil)
+                     (Cons 
+                       (mkNullVex 
+                         (Cons 
+                           (mkTree 
+                             (mkNode AND) 
+                             (Cons 
+                               (mkTree (mkNode A) Nil)
+                               (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil)))
+                 (mkNodeId (2)))
+               (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+             (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))))
+          (ConsMMap 
+            ((mkDiscSpec 3)
+             (mkLSK 
+               (mkDiscKnob 
+                 (mkKnob 
+                   (mkTree 
+                     (mkNode OR) 
+                     (Cons 
+                       (mkTree (mkNode C) Nil)
+                       (Cons 
+                         (mkNullVex 
+                           (Cons 
+                             (mkTree 
+                               (mkNode AND) 
+                               (Cons 
+                                 (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil))
+                                 (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil)))
+                   (mkNodeId (3)))
+                 (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+               (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil)))))
+            NilMMap))))) (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil))))))) (mkSInstSet -1.0000000000000001e37 Nil) (mkDemeId "1")))
+
 ;; Test case for sampleFromNeighborhood function
 ;; Function should returned two instances at the specified distance
 ! (assertEqual
@@ -112,3 +193,44 @@
      (let $returned
        (sampleFromNeighborhood 1 2  knobMapObj (mkInst Nil)) (List.length $returned))
      (Error (3 0) "Not Equal"))
+
+;; Testcase 1 for sampleNewInstances
+!(assertEqual 
+ (sampleNewInstances 
+  20
+  3 
+  (mkInst (Cons 0 (Cons 0 (Cons 0 Nil))))
+  deme
+  2)
+  ((mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1 2)) 0) (ConsMap ((mkNodeId (2)) 1) (ConsMap ((mkNodeId (3)) 2) NilMap)))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (1 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))))) NilMMap))))) (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil))))))) (mkSInstSet -1.0000000000000001e37 (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 2 (Cons 1 (Cons 0 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 1 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e37)) Nil)))) (mkDemeId "1")) 3)
+  )
+
+;; Testcase 2 for sampleNewInstances
+!(assertEqual
+ (sampleNewInstances 
+   10 
+   7 
+   (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 
+   deme 
+   2)
+   ((mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1 2)) 0) (ConsMap ((mkNodeId (2)) 1) (ConsMap ((mkNodeId (3)) 2) NilMap)))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (1 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))))) NilMMap))))) (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil))))))) (mkSInstSet -1.0000000000000001e37 (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 2 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 2 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e37)) Nil)))))))) (mkDemeId "1")) 7))
+
+;; Testcase 3 for sampleNewInstances
+!(assertEqual 
+  (sampleNewInstances 
+   4 
+   5
+   (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 
+   deme 
+   2)
+   ((mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1 2)) 0) (ConsMap ((mkNodeId (2)) 1) (ConsMap ((mkNodeId (3)) 2) NilMap)))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (1 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))))) NilMMap))))) (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil))))))) (mkSInstSet -1.0000000000000001e37 (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 2 (Cons 1 (Cons 0 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 2 (Cons 2 (Cons 0 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 2 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) -1.0000000000000001e37)) Nil)))))) (mkDemeId "1")) 5))
+
+;; Testcase 4 for sampleNewInstances
+!(assertEqual
+  (sampleNewInstances 
+   20 
+   0 
+   (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 
+   deme 
+   2)
+   ((mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1 2)) 0) (ConsMap ((mkNodeId (2)) 1) (ConsMap ((mkNodeId (3)) 2) NilMap)))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (1 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))))) NilMMap))))) (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil))))))) (mkSInstSet -1.0000000000000001e37 Nil) (mkDemeId "1")) 0))
