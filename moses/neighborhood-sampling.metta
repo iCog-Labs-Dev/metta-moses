@@ -147,3 +147,41 @@
 ;;  of the distance function
 (: distance' (-> Instance Instance Number))
 (= (distance' $inst1 $inst2) (distance $inst1 $inst2))
+
+;; Assigns an initial large negative score to an instance.
+;; Params:
+;;   $inst: The instance to be scored.
+;; Returns:
+;;   (ScoredInstance $score): Scored instance with an initial large negative score -10^37.
+(: initInstScore (-> Instance (ScoredInstance $score)))
+(= (initInstScore $inst)
+(mkSInst (pow-math -10 37) (mkPair $inst (pow-math -10 37))))
+
+;; Samples or generates new instances at a specified distance from a center instance,
+;; assigns random scores, and updates the Deme by appending scored instances.
+;; Params:
+;;   $totalNeighbors: Estimated number of neighbors at distance $dist.
+;;   $numNewInstances: Desired number of new instances to add.
+;;   $centerInst: Reference instance for distance calculations.
+;;   $deme: Deme
+;;   $dist: Distance from $centerInst for sampling/generating instances.
+;; Returns:
+;;   (Deme Number) - Tuple of updated Deme with new scored instances appended and number of new instances added.
+(: sampleNewInstances (-> Number Number Instance Deme Number (Deme Number)))
+(= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep $kbMp $tree) (mkSInstSet $score $instList) $demeId) $dist)
+ (let*
+  (($updatedTotalNeighbors 
+         (if (> (* 2 $numNewInstances) $totalNeighbors)
+             (countNeighborhood $kbMp $centerInst $dist $numNewInstances)
+             $totalNeighbors))
+    ($updatedNumNewInstances 
+         (if (< $numNewInstances $updatedTotalNeighbors)  
+             $numNewInstances
+             $updatedTotalNeighbors))
+    ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
+                       (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
+                       (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))
+    ($scoredNewInstances (List.map initInstScore $newInstances))
+    ($updatedInstList (List.concat $instList $scoredNewInstances))
+ )
+ ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $score $updatedInstList) $demeId) $updatedNumNewInstances)))
