@@ -127,3 +127,8 @@
 ;; Test case for List.repeat
 !(assertEqual (List.repeat 0 0) Nil)
 !(assertEqual (List.repeat 3 0) (Cons 0 (Cons 0 (Cons 0 Nil))))
+
+;; Test cases for List.concat
+!(assertEqual (List.concat (Cons 1 (Cons 2 Nil)) (Cons 3 (Cons 4 Nil))) (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
+!(assertEqual (List.concat (Cons 5 (Cons 6 (Cons 7 Nil))) (Cons 8 Nil)) (Cons 5 (Cons 6 (Cons 7 (Cons 8 Nil)))))
+!(assertEqual (List.concat Nil (Cons 10 (Cons 11 (Cons 12 Nil)))) (Cons 10 (Cons 11 (Cons 12 Nil))))
