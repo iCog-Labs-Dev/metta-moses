@@ -12,6 +12,7 @@
 ! (import! &self metta-moses:utilities:ordered-multimap)
 ! (import! &self metta-moses:utilities:lazy-random-selector)
 ! (import! &self metta-moses:optimization:hillclimbing:hill-climbing-helpers)
+! (import! &self metta-moses:deme:create-deme)
 
 
 (= (pyExprToList $expr) (py_exprToList $expr))
@@ -194,43 +195,64 @@
        (sampleFromNeighborhood 1 2  knobMapObj (mkInst Nil)) (List.length $returned))
      (Error (3 0) "Not Equal"))
 
-;; Testcase 1 for sampleNewInstances
+;; Testcases for removeInstScore
 !(assertEqual 
- (sampleNewInstances 
-  20
-  3 
-  (mkInst (Cons 0 (Cons 0 (Cons 0 Nil))))
-  deme
-  2)
-  ((mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1 2)) 0) (ConsMap ((mkNodeId (2)) 1) (ConsMap ((mkNodeId (3)) 2) NilMap)))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (1 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))))) NilMMap))))) (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil))))))) (mkSInstSet -1.0000000000000001e37 (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 2 (Cons 1 (Cons 0 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 1 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e37)) Nil)))) (mkDemeId "1")) 3)
-  )
+ (removeInstScore (mkSInst 3.2 (mkPair (mkInst (Cons 1 (Cons 2 (Cons 3 (Cons 2.0 Nil))))) 3.2)))
+ (mkInst (Cons 1 (Cons 2 (Cons 3 (Cons 2.0 Nil)))))
+ )
+!(assertEqual 
+ (removeInstScore (mkSInst 3.2 (mkPair (mkInst (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil))))) 3.2)))
+ (mkInst (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil)))))
+ )
 
-;; Testcase 2 for sampleNewInstances
-!(assertEqual
- (sampleNewInstances 
+; Testcase-1 for sampleNewInstances
+; totalNeighbors & numNewInstances won't be updated, samples new instances 
+!(assertEqual 
+   (let ((mkDeme $rep (mkSInstSet $score $updatedInstList) $demeId) $num) 
+   (sampleNewInstances 
+   20 
+   3 
+   (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 
+   deme 
+   2)
+   (List.map ((curry distance') (mkInst (Cons 0 (Cons 0 (Cons 0 Nil))))) (List.map removeInstScore $updatedInstList)))
+   (Cons 2 (Cons 2 (Cons 2 Nil))))
+
+; Testcase-2 for sampleNewInstances
+; totalNeighbors will be updated, samples new instances 
+!(assertEqual 
+   (let ((mkDeme $rep (mkSInstSet $score $updatedInstList) $demeId) $num) 
+   (sampleNewInstances 
    10 
    7 
    (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 
    deme 
    2)
-   ((mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1 2)) 0) (ConsMap ((mkNodeId (2)) 1) (ConsMap ((mkNodeId (3)) 2) NilMap)))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (1 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))))) NilMMap))))) (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil))))))) (mkSInstSet -1.0000000000000001e37 (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 2 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 2 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e37)) Nil)))))))) (mkDemeId "1")) 7))
+   (List.map ((curry distance') (mkInst (Cons 0 (Cons 0 (Cons 0 Nil))))) (List.map removeInstScore $updatedInstList)))
+   (Cons 2 (Cons 2 (Cons 2 (Cons 2 (Cons 2 (Cons 2 (Cons 2 Nil))))))))
 
-;; Testcase 3 for sampleNewInstances
+; Testcase-3 for sampleNewInstances
+; totalNeighbors will be updated, generates all instances in neighborhood
 !(assertEqual 
-  (sampleNewInstances 
-   4 
-   5
+   (let ((mkDeme $rep (mkSInstSet $score $updatedInstList) $demeId) $num) 
+   (sampleNewInstances 
+   4
+   5 
    (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 
    deme 
    2)
-   ((mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1 2)) 0) (ConsMap ((mkNodeId (2)) 1) (ConsMap ((mkNodeId (3)) 2) NilMap)))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (1 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))))) NilMMap))))) (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil))))))) (mkSInstSet -1.0000000000000001e37 (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 2 (Cons 1 (Cons 0 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 2 (Cons 2 (Cons 0 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 2 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst -1.0000000000000001e37 (mkPair (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) -1.0000000000000001e37)) Nil)))))) (mkDemeId "1")) 5))
+   (List.map ((curry distance') (mkInst (Cons 0 (Cons 0 (Cons 0 Nil))))) (List.map removeInstScore $updatedInstList)))
+   (Cons 2 (Cons 2 (Cons 2 (Cons 2 (Cons 2 Nil))))))
 
-;; Testcase 4 for sampleNewInstances
-!(assertEqual
-  (sampleNewInstances 
+; Testcase-4 for sampleNewInstances
+; totalNeighbors & numNewInstances won't be updated, samples new instances
+!(assertEqual 
+   (let ((mkDeme $rep (mkSInstSet $score $updatedInstList) $demeId) $num) 
+   (sampleNewInstances 
    20 
    0 
    (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 
    deme 
    2)
-   ((mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1 2)) 0) (ConsMap ((mkNodeId (2)) 1) (ConsMap ((mkNodeId (3)) 2) NilMap)))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (1 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))) (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))))) NilMMap))))) (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil))))))) (mkSInstSet -1.0000000000000001e37 Nil) (mkDemeId "1")) 0))
+   (List.map ((curry distance') (mkInst (Cons 0 (Cons 0 (Cons 0 Nil))))) (List.map removeInstScore $updatedInstList)))
+   Nil)
