@@ -40,7 +40,8 @@
         ($op (car-atom $exp))
         ($guardSet (getLiterals $exp))
         ($newGuardSet (++ $guardSet $elements))
-        ($newGuardSet' (collapse (unique (superpose $newGuardSet))))
+        ; ($newGuardSet' (collapse (unique (superpose $newGuardSet))))
+        ($newGuardSet' (reverseExp (collapse (unique (superpose $newGuardSet))) ()))
         ($updatedSubExpression (++ $newGuardSet' (getChildren $exp)))
 
         ($newExp (cons-atom $op $updatedSubExpression))
@@ -68,7 +69,10 @@
        (
          (() $exp)
          ((NOT $x) ())
-         ($else (if (== (get-metatype $exp) Expression) (collapse (filterChildren (superpose $exp))) ())))))
+        ;  ($else (if (== (get-metatype $exp) Expression) (collapse (filterChildren (superpose $exp))) ())))))
+         ($else (if (== (get-metatype $exp) Expression) (reverseExp (collapse (filterChildren (superpose $exp))) ()) ())))))
+
+
 
 ;; A function to add a list of children to a given expression.
 ;; Example: input: $exp -> (AND A B (OR C D)), $children -> ((OR A B) (OR E F) (OR D))
@@ -98,7 +102,9 @@
        (
          (() $exp)
          ((NOT $x) $exp)
-         ($else (if (== (get-metatype $exp) Expression) (collapse (filterLiterals (superpose $exp))) $exp)))))
+        ;  ($else (if (== (get-metatype $exp) Expression) (collapse (filterLiterals (superpose $exp))) $exp)))))
+         ($else (if (== (get-metatype $exp) Expression) (reverseExp (collapse (filterLiterals (superpose $exp))) ()) $exp)))))
+
 
 ;; A function similar to getLiterals function but returns a
 ;;    non deterministic list instead of a collapsed atom.
@@ -115,6 +121,7 @@
 ;;A function that will return both literals (Also called guard sets for AND nodes)
 ;;  and the children as a tuple ((...literals...), (...children...))
 (= (getLiteralChildren $expr) ((getLiterals $expr) (getChildren $expr)))
+; (= (getLiteralChildren $expr) ((reverseExp (getLiterals $expr) ()) (reverseExp (getChildren $expr)())))
 
 ;; Function to find common literals between a tuple and a nested tuple 
 (= (findCommonLiterals $tuple $nestedTuple)

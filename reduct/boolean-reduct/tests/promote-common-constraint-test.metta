@@ -50,32 +50,32 @@
 
 ;; Test 01
 !(assertEqualToResult 
-  (removeElement (A B) (A C B H))
-  ((C H))
+  (=== (removeElement (A B) (A C B H))
+  (C H)) (True)
  )
 
  ;; Test 02
  !(assertEqualToResult 
-  (removeElement (A) (A C B H))
-  ((C B H))
+  (=== (removeElement (A) (A C B H))
+  (C B H)) (True)
  )
 
  ;; Test 03
-  !(assertEqualToResult 
-  (removeElement () (A C B H))
-  ((A C B H))
+!(assertEqualToResult 
+  (=== (removeElement () (A C B H))
+  (A C B H)) (True)
  )
 
  ;; Test 04
-  !(assertEqualToResult 
-  (removeElement (A B) (C  H))
-  ((C H))
+!(assertEqualToResult 
+  (=== (removeElement (A B) (C  H))
+  (C H)) (True)
  )
 
 ;; Test 05
 !(assertEqualToResult 
-  (removeElement (A B) ())
-  (())
+  (=== (removeElement (A B) ())
+  ()) (True)
  )
 
 ;; test removeCommonLiterals
