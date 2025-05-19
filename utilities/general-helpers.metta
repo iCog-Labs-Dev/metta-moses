@@ -32,9 +32,15 @@
 ; a helper function to the isConsistentExp function.
 ; a function which checks if an element is member of a tuple.
 (: isMember (-> $a $aa Bool))
-(= (isMember $x $list)
+(= (isMemberHelper $x $list)
     (not (== (collapse (intersection (superpose ($x)) (superpose $list))) ()))
 )
+
+ (= (isMember $x $checked) 
+   (let* (($type (get-metatype $checked)))
+     (if (== $type Symbol)
+          (== $x $checked)
+         (isMemberHelper $x $checked))))
 
 ; This function assumes it receives a set1 and set2 expression as parameters.
 ; It then removes similar elements found in set2 that already exist in set1.
@@ -60,10 +66,17 @@
 ;; It handles the replacement of a single atom.
 (= (replace $old $new $current) (if (== $old $current) $new $current))
 
+(= (decons $atom)
+   (if (not (or (isSymbol $atom) (isUnit $atom)))
+       ((car-atom $atom) (cdr-atom $atom))
+       (Error Unit Or Symbol cannot be deconstructed)))
+
+       
 ;; A function to replace a specific atom
 ;;    with a new one from a list of atoms.
 ;; INFO: This function needs to change so that it can preserve the
 ;;        operator's position when MeTTa version is upgraded.
+;; INFO:  This function has been changed to not use reverse 
 (= (findAndReplace $old $new $list) 
     ;; (let*
     ;;   (
@@ -73,6 +86,7 @@
     ;;     (() (println! (Result ==> (collapse (replace $old $new (superpose $list))))))
     ;;     (() (println! ""))
     ;;   )
+    ;   (collapse (replace $old $new (superpose $list)))
       (collapse (replace $old $new (superpose $list)))
     ;; )
 )
@@ -80,7 +94,7 @@
 ;; A function that behaves like a do while loop.
 ;; It executes the functions in the given list and returns the last result.
 (: until (-> (-> $a Bool) (-> $a $a) $a $a))
-(= (until $predicate $function $x) (if ($predicate $x) $x (let $x' ($function $x) (until $predicate $function $x'))))
+(= (until $predicate $function $x) (if ($predicate $x) $x (let $B ($function $x) (until $predicate $function $B))))
 
 ;; A foldleft function like the implementation in Haskell.
 ;; It takes a binary function that expects two atoms and
@@ -206,11 +220,6 @@
        $acc
        (let $lastInserted (car-atom $acc) (gen $x (cons-atom (+ 1 $lastInserted) $acc))))))
 
-; ;; A function to return head and tail of an atom in a tuple.
-(= (decons $atom)
-   (if (not (or (isSymbol $atom) (isUnit $atom)))
-       ((car-atom $atom) (cdr-atom $atom))
-       (Error Unit Or Symbol cannot be deconstructed)))
 
 ;; Function to create a tuple of tuples given two equal length list of atoms.
 (= (zip $a $b)
@@ -218,8 +227,8 @@
        ()
        (let*
           (
-            (($x $xs) (decons $a))
-            (($y $ys) (decons $b))
+            (($x $xs) (decons-atom $a))
+            (($y $ys) (decons-atom $b))
             ($rest (zip $xs $ys))
           )
           (cons-atom ($x $y) $rest)))
@@ -231,8 +240,8 @@
 (= (zipWith $f $xs $ys)
    (if (== $xs ())                      ; We assume (arity $xs) == (arity $ys)
        ()
-       (let* ((($xs-hd $xs-tl) (decons $xs))
-              (($ys-hd $ys-tl) (decons $ys))
+       (let* ((($xs-hd $xs-tl) (decons-atom $xs))
+              (($ys-hd $ys-tl) (decons-atom $ys))
               ($head ($f $xs-hd $ys-hd))
               ($tail (zipWith $f $xs-tl $ys-tl)))
          (cons-atom $head $tail))))
@@ -290,8 +299,8 @@
             (($xs $ys)
               (let*
                   (
-                    (($x $xss) (decons $xs))
-                    (($y $yss) (decons $ys))
+                    (($x $xss) (decons-atom $xs))
+                    (($y $yss) (decons-atom $ys))
                   )
                   (if ($key $x $y)
                       (let $t (merge $xss $ys $key) (cons-atom $x $t))
@@ -310,7 +319,7 @@
           (let*
              (
                ;; (() (println! (Splitting $list at: $n)))
-               (($x $xs) (decons $list))
+               (($x $xs) (decons-atom $list))
                (($left $right) (splitAt (- $n 1) $xs))
                ;; (() (println! (From splitAt Left: $left Right: $right)))
              )
@@ -350,7 +359,7 @@
             (($n $a)
               (let*
                 (
-                  (($h $t) (decons $a))
+                  (($h $t) (decons-atom $a))
                   ($r (take (- $n 1) $t)))
                 (cons-atom $h $r))))))
 
@@ -365,7 +374,7 @@
         (($n $a)
           (let*
             (
-              (($h $t) (decons $a))
+              (($h $t) (decons-atom $a))
               ($r (drop (- $n 1) $t)))
             $r)))))
 
@@ -387,7 +396,7 @@
 ;; minOfTuple -- minimum of tuple of numeric expressions
 
 (= (minOfTuple $expr)
-    (let ($f $t) (decons $expr)
+    (let ($f $t) (decons-atom $expr)
         (if (== $t ())
             $f
             (min $f (minOfTuple $t))
@@ -508,7 +517,7 @@
     $i
     (let*
       (
-        (($h $t) (decons-atom $exp))
+        (($h $t) (decons-atom-atom $exp))
         ; ($s (if (isSymbol $h) (cons-atom $h $i) (++ ($h) $i)))
         ($s (cons-atom $h $i))
       )
