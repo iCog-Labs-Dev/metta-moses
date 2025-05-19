@@ -157,6 +157,12 @@
 (= (initInstScore $inst)
 (mkSInst (pow-math -10 37) (mkPair $inst (pow-math -10 37))))
 
+;; converts a Scored Instance back to a normal Instance (used to the purpose of testing the sampleNewInstances method)
+;; Param: scored instance
+;; Returns:a normal instance without any score
+(: removeInstScore (ScoredInstance $score) Instance)
+(= (removeInstScore (mkSInst $score (mkPair $inst $score))) $inst)
+
 ;; Samples or generates new instances at a specified distance from a center instance,
 ;; assigns random scores, and updates the Deme by appending scored instances.
 ;; Params:
