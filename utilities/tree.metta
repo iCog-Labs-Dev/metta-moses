@@ -251,42 +251,19 @@
         (union-atom ($op) $acc)))
 
 ;; extractArgsFromList -- helper function for 
-(: extractArgsFromList (-> (List $a)))
+(: extractArgsFromList (-> (List $a) Expression Expression))
 (= (extractArgsFromList Nil $acc) $acc)
 (= (extractArgsFromList (Cons $head $tail) $acc)
     (let $acc1 (extractArgs $head $acc)
          (extractArgsFromList $tail $acc1)))
-
-(: getCscore (-> ITable (Tree $a) Number Cscore))
-(= (getCscore $itable $tree $p)
-    (let $bs (scoreTree $itable $tree)
-        (if (== (get-type $bs) ErrorType)
-            ;; return worst possible composite score
-            (mkCscore (mkScoreT (pow-math 10 -308) (mkComplexity 0) (mkScoreT 0.0) (mkScoreT 0.0) (mkScoreT (pow-math 10 -308))))
-            (let* (($bsum (sumBScore $bs))
-                   ($cpxy (treeComplexity $tree))
-                   ($cCoef (getComplexityCoef $tree $p))
-                   ($penalizedScore (updatePenalizedScore (mkScoreT $bsum) (mkScoreT (* $cpxy $cCoef) (mkScoreT 0.0) False))))
-                
-                (mkCscore (mkScoreT $bsum) (mkComplexity $cpxy) (mkScoreT (* $cpxy $cCoef)) (mkScoreT 0.0) (mkScoreT $penalizedScore))))))         
+;; importing python's float casting and rounding functionality        
+! (bind! float (py-atom "float"))
+! (bind! round (py-atom round))         
 
 ;; getComplexityCoef -- calcualtes the complexity coeffient of a tree                
 (: getComplexityCoef (-> (Tree $a) Number ScoreT))
 (= (getComplexityCoef $tree $p)
-    (let $as (float (alphabetSize $tree))
-        (if (and (> $p 0) (< $p 0.5))
-            (mkScoreT (* -1 (/ (log-math EXP $as) (log-math EXP (/ $p (- 1 $p))))))
-            (mkScoreT 0))))                
-
-;; updatePenalizedScore            
-;; by default the worst possible score is set as the penalized score for a tree
-;; there is a bool multiply_diversity parameter if set to true the penalized score has to be multiplied with the uniform penalty
-;; if not the uniformity penalty is instead subtracted
-;; the default thing is to set the parameter to False
-
-(: updatePenalizedScore (-> ScoreT ScoreT ScoreT Bool ScoreT))
-(= (updatePenalizedScore (mkScoreT $scor) (mkScoreT $complexityPenalty) (mkScoreT $uniformityPenalty) $multiplyDiversity)
-    (let $temp (- $scor $complexityPenalty)
-        (if $multiplyDiversity
-            (mkScoreT (* $temp $uniformityPenalty))
-            (mkScoreT (- $temp $uniformityPenalty)))))
+    (let $f (float (alphabetSize $tree))
+        (mkScoreT (round (if (and (> $p 0) (< $p 0.5))
+                    (* -1 (/ (log-math EXP $f) (log-math EXP (/ $p (- 1 $p)))))
+                    0) 4))))                    

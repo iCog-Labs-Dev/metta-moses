@@ -421,3 +421,30 @@
 !(assertEqual (treeComplexity (buildTree (AND (NOT A) (OR A B)))) 3)
 !(assertEqual (treeComplexity (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) 0)
 !(assertEqual (treeComplexity (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) 1)
+
+;; Test case for alphabetSize
+! (assertEqual (alphabetSize (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))) 2 )
+! (assertEqual
+    (alphabetSize
+      (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode X) Nil) (Cons (mkTree (mkNode Y) Nil) Nil)))
+          (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode Z) Nil) Nil)) Nil))))
+      3)
+! (assertEqual (alphabetSize 
+      (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode P) Nil) (Cons (mkTree (mkNode Q) Nil) Nil))) 
+          (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode P) Nil) Nil)) Nil)))) 
+      2)
+
+;; Test case getComplexityCoef
+! (assertEqual  (getComplexityCoef (mkTree (mkNode P) Nil) 0.05) (mkScoreT 0.0))
+! (assertEqual (getComplexityCoef (mkTree (mkNode AND) (Cons (mkTree (mkNode P) Nil) (Cons (mkTree (mkNode Q) Nil) Nil)))
+      0.2) (mkScoreT 0.5000))
+! (assertEqual (getComplexityCoef (mkTree (mkNode NOT) (Cons (mkTree (mkNode P) Nil) Nil)) 0.1)
+    (mkScoreT 0.0))     
+! (assertEqual
+    (getComplexityCoef (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode P) Nil) (Cons (mkTree (mkNode Q) Nil) Nil)))
+          (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode R) Nil) (Cons (mkTree (mkNode S) Nil) Nil))) Nil))) 0.25)
+    (mkScoreT 1.2619))
+! (assertEqual
+    (getComplexityCoef (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode P) Nil) Nil))
+            (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode Q) Nil) (Cons (mkTree (mkNode R) Nil) Nil))) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode S) Nil) Nil)) (Cons (mkTree (mkNode T) Nil) Nil)))))
+            0.4) (mkScoreT 3.9694))      
