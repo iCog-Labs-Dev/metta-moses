@@ -314,7 +314,7 @@
       (
         ($rhss (collapse (match $grammarSpace ($nt $rhs $i) $rhs)))
         ($rrhss (collapse (filter ((curry isMember) $nt) $rhss)))
-        (() (println! (Recursive Rules: $rrhss)))
+        ;; (() (println! (Recursive Rules: $rrhss)))
         ;; ($rrhss (collapse (filterB isMember $nt $rhss))) ;; INFO: Use this line instead of the above on MeTTaLog
         ($ndRrhs (if (~= $rrhss ()) (superpose $rrhss) ())))
       (if (~= $rrhss ())
@@ -999,7 +999,7 @@
    (collapse
      (let*
         (
-          (() (println! ""))
+          ;; (() (println! ""))
           ((($startNt $g $p) $genotype) (superpose $population))
           ($isScored (unify $genotype ($genotype' $phenotype $score) (isExpression $genotype') False)) ;; If is not expression, it is just unifying on the number of the codon.
         )
