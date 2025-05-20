@@ -1,9 +1,9 @@
-(= (fold $f $acc $tuple)
-    (if (== $tuple ()) $acc
-        (fold $f ($f $acc (car-atom $tuple)) (cdr-atom $tuple))
-    )
-)
-
+;; Old implementation
+; (= (fold $f $acc $tuple)
+;     (if (== $tuple ()) $acc
+;         (fold $f ($f $acc (car-atom $tuple)) (cdr-atom $tuple))
+;     )
+; )
 
 (= (concat-tuple $xs $ys)
     (if (== $xs ()) $ys
@@ -24,8 +24,8 @@
             let* (
                 ($op (car-atom $expr)) 
                 ($tuple (cdr-atom $expr))
-                ($newTuple (fold concat-tuple () (reverseExp (collapse (nary-gather-junctors (superpose $tuple) $op)) ())))
-                ; ($newTuple (fold concat-tuple () (collapse (nary-gather-junctors (superpose $tuple) $op))))
+                ($newChilderen (map-atom $tuple $t (nary-gather-junctors $t $op)))
+                ($newTuple (foldl-atom $newChilderen () $acc $x (concat-tuple $acc $x)))
                 ($tupleWithOp (cons-atom $op $newTuple))
             )
             (
