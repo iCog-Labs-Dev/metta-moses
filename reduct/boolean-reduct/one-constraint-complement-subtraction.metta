@@ -26,7 +26,7 @@
             (let*
                 (
                     ($el (superpose $parent))
-                    ($s (if (isSymbol $el) $el (if (=== $el $poa) (reverseExp (removeElement $commonElements $poa) ()) $el)))
+                    ($s (if (isSymbol $el) $el (if (=== $el $poa) (removeElement $commonElements $poa) $el)))
                 )
                 $s
              )) ())

@@ -147,7 +147,7 @@
 
 ;; A function to remove all elements found in $common from a $tuple
 (= (removeElement $common $tuple)
-   (collapse (subtraction (superpose $tuple) (superpose $common))))
+   (reverseExp (collapse (subtraction (superpose $tuple) (superpose $common))) ()))
 
 ; ;; A function that returns True if any of the input atoms are True and False otherwise
 ; ;; Example: input ==> (True True False), output ==> True
