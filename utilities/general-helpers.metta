@@ -33,8 +33,9 @@
 ; a function which checks if an element is member of a tuple.
 (: isMember (-> $a $aa Bool))
 (= (isMember $x $list)
-    (not (== (collapse (intersection (superpose ($x)) (superpose $list))) ()))
-)
+   (if (== (get-metatype $list) Symbol)
+       (== $x $list) ; For symbols, simple equality check
+       (not (== (collapse (intersection (superpose ($x)) (superpose $list))) ())))) ; For other types, use the original implementation
 
 ; This function assumes it receives a set1 and set2 expression as parameters.
 ; It then removes similar elements found in set2 that already exist in set1.
