@@ -169,3 +169,14 @@
    (if (== $n 0)
        Nil
        (Cons $a (List.repeat (- $n 1) $a))))
+
+;; Concatenates two lists into a single list, preserving element order.
+;; Params:
+;;   $list1: First list to concatenate.
+;;   $list2: Second list to concatenate.
+;; Returns:
+;;   (List $a) - New list containing all elements of $list1 followed by $list2.
+(: List.concat (-> (List $a) (List $a) (List $a)))
+(= (List.concat Nil $list2) $list2)
+(= (List.concat (Cons $head $tail) $list2)
+   (Cons $head (List.concat $tail $list2)))
