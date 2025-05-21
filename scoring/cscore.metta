@@ -3,23 +3,25 @@
 ;; If p is large (approaching 0.5), it means the model is expected to be less accurate, making mistakes more often (but still better than random guessing).
 
 (: getCscore (-> (ITable $a) (Tree $a) Number Cscore))
-(= (getCscore $itable $tree $p)
+(= (getCscore $itable $tree $complexityRatio)
     (let $bs (scoreTree $itable $tree)
         (if-error $bs ;; return worst possible composite score
-            (mkCscore (mkScoreT (pow-math 10 -308) (mkComplexity 0) (mkScoreT 0.0) (mkScoreT 0.0) (mkScoreT (pow-math 10 -308))))
+            (worstCscore)
             (let* (($bsum (sumBScore $bs))
                    ($cpxy (treeComplexity $tree))
-                   ((mkScoreT $cCoef) (getComplexityCoef $tree $p)))
+                   ($cCoef (getComplexityCoef $complexityRatio)))
 
-                   (updatePenalizedScore (mkCscore (mkScoreT $bsum) (mkComplexity $cpxy) (mkScoreT (* $cpxy $cCoef)) (mkScoreT 0.0) (mkScoreT (pow-math 10 -308)))  False)))))         
+                   (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (pow-math 10 -308))  False)))))         
 
-;; getComplexityCoef -- calcualtes the complexity coeffient of a tree                
-(: getComplexityCoef (-> (Tree $a) Number ScoreT))
-(= (getComplexityCoef $tree $p)
-    (let $f (float (alphabetSize $tree))
-        (mkScoreT (round (if (and (> $p 0) (< $p 0.5))
-                                (* -1 (/ (log-math EXP $f) (log-math EXP (/ $p (- 1 $p)))))
-                                0) 4))))            
+;; getComplexityCoef -- calcualtes the complexity coeffient of a tree   
+;; takes complexity ratio as input and returns complexity coefficient
+;; complexity ratio, unless set by the user, has 3.5 for a default value
+
+(: getComplexityCoef (-> Number Number))
+(= (getComplexityCoef $complexityRatio)
+    (if (> $complexityRatio 0)
+        (/ 1.0 $complexityRatio)
+        0.0))           
 
 ;; updatePenalizedScore            
 ;; by default the worst possible score is set as the penalized score for a tree
@@ -27,9 +29,17 @@
 ;; if not the uniformity penalty is instead subtracted
 ;; the default thing is to set the parameter to False
 
+(: Cscore Type)
+(: mkCscore (-> Number Number Number Number Number Cscore))
+
 (: updatePenalizedScore (-> Cscore Bool Cscore))
-(= (updatePenalizedScore (mkCscore (mkScoreT $scor) (mkComplexity $cpxy) (mkScoreT $cpxyPenalty) (mkScoreT $uniformityPenalty) (mkScoreT $penalizedScore)) $multiplyDiversity)
+(= (updatePenalizedScore (mkCscore $scor $cpxy $cpxyPenalty $uniformityPenalty $penalizedScore) $multiplyDiversity)
     (let* (($temp (- $scor $cpxyPenalty))
            ($updatedPScore (if $multiplyDiversity (* $temp $uniformityPenalty) (- $temp $uniformityPenalty))))
         
-            (mkCscore (mkScoreT $scor) (mkComplexity $cpxy) (mkScoreT $cpxyPenalty) (mkScoreT $uniformityPenalty) (mkScoreT $updatedPScore))))
+            (mkCscore $scor $cpxy $cpxyPenalty $uniformityPenalty $updatedPScore)))
+
+;; worstCscore
+(: worstCscore (-> Cscore))
+(= (worstCscore)
+    (mkCscore (pow-math 10 -308)  0 0.0 0.0 (pow-math 10 -308)))            
