@@ -233,37 +233,10 @@
 (= (treeComplexity (mkTree (mkNode $a) $children)) ;; AND, OR and NOT have no complexity
    (if (isArgument (mkTree (mkNode $a) $children))
        1
-       (List.sum (List.map treeComplexity $children))))
+       (List.sum (List.map treeComplexity $children))))          
 
-;; a function to determine the alphabet size of a given tree
-(: alphabetSize (-> (Tree $a) Number))
-(= (alphabetSize $tree) 
-    (let* (($allArgs (extractArgs $tree ()))
-           ($uniqueArgs (unique-atom $allArgs)))
-        
-        (size-atom $uniqueArgs)))
-
-;;extractArgs -- heler function extractArgs that retrieves all the arguments from tree
-(: extractArgs (-> (Tree $a) Expression Expression))
-(= (extractArgs (mkTree (mkNode $op) $children) $acc)
-    (if (isMember $op (AND OR NOT))
-        (extractArgsFromList $children $acc)
-        (union-atom ($op) $acc)))
-
-;; extractArgsFromList -- helper function for 
-(: extractArgsFromList (-> (List $a) Expression Expression))
-(= (extractArgsFromList Nil $acc) $acc)
-(= (extractArgsFromList (Cons $head $tail) $acc)
-    (let $acc1 (extractArgs $head $acc)
-         (extractArgsFromList $tail $acc1)))
-;; importing python's float casting and rounding functionality        
-! (bind! float (py-atom "float"))
-! (bind! round (py-atom round))         
-
-;; getComplexityCoef -- calcualtes the complexity coeffient of a tree                
-(: getComplexityCoef (-> (Tree $a) Number ScoreT))
-(= (getComplexityCoef $tree $p)
-    (let $f (float (alphabetSize $tree))
-        (mkScoreT (round (if (and (> $p 0) (< $p 0.5))
-                    (* -1 (/ (log-math EXP $f) (log-math EXP (/ $p (- 1 $p)))))
-                    0) 4))))                    
+;; NOTE: for future use -- a function to determine the alphabet size of a given tree for computation of complexity ratio
+;; takes a truth table and adds 3 (for AND,. OR and NOT) to the number of input labels
+(: alphabetSize (-> (ITable $a) Number))
+(= (alphabetSize (mkITable $rows $labels)) 
+    (+ 3 (- (List.length $labels) 1)))                   
