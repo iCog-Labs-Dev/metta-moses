@@ -233,4 +233,10 @@
 (= (treeComplexity (mkTree (mkNode $a) $children)) ;; AND, OR and NOT have no complexity
    (if (isArgument (mkTree (mkNode $a) $children))
        1
-       (List.sum (List.map treeComplexity $children))))
+       (List.sum (List.map treeComplexity $children))))          
+
+;; NOTE: for future use -- a function to determine the alphabet size of a given tree for computation of complexity ratio
+;; takes a truth table and adds 3 (for AND,. OR and NOT) to the number of input labels
+(: alphabetSize (-> (ITable $a) Number))
+(= (alphabetSize (mkITable $rows $labels)) 
+    (+ 3 (- (List.length $labels) 1)))                   

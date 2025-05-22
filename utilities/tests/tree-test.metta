@@ -421,3 +421,21 @@
 !(assertEqual (treeComplexity (buildTree (AND (NOT A) (OR A B)))) 3)
 !(assertEqual (treeComplexity (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) 0)
 !(assertEqual (treeComplexity (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) 1)
+
+;; Test case for alphabetSize
+! (bind! ttable1 (mkITable (Cons (Cons True (Cons False (Cons True Nil)))
+                        (Cons (Cons True (Cons True  (Cons True Nil))) Nil)) 
+                        (Cons A (Cons B (Cons O Nil)))))
+! (bind! ttable2 (mkITable
+                    (Cons (Cons True (Cons True (Cons True Nil)))
+                    (Cons (Cons True (Cons False (Cons False Nil)))
+                    (Cons (Cons False (Cons True (Cons False Nil)))
+                    (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
+                    (Cons A (Cons B (Cons Output Nil)))))
+
+! (assertEqual (alphabetSize ttable1) 5)
+! (assertEqual (alphabetSize ttable2) 5)
+; ! (assertEqual (alphabetSize 
+;       (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode P) Nil) (Cons (mkTree (mkNode Q) Nil) Nil))) 
+;           (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode P) Nil) Nil)) Nil)))) 
+;       2)      
