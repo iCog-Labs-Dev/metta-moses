@@ -362,3 +362,9 @@ NilMMap discSpec<=)
 !(assertEqual ((compose (compose inc dec) (compose inc inc)) 1) 3)
 !(assertEqual ((compose (compose inc dec) inc) 1) 2)
 !(assertEqual ((compose not isZero) 1) True)
+
+;; Test cases -- Aproximate equality
+!(assertEqual (isApproxEq 0.0000005 0.0000006) True)
+!(assertEqual (isApproxEq 1.0000005 1.0000006) True)
+!(assertEqual (isApproxEq 1000000.1 1000000.2) True)
+!(assertEqual (isApproxEq 1.0 1.1) False)
