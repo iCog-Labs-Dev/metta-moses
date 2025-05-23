@@ -606,6 +606,7 @@
 (= ((compose $g $f) $x) ($g ($f $x)))
 
 ;; approximate equality -- takes the relative magnitude of the numbers into consideration
+! (bind! EPSILON (pow-math 10 -6))
 (: isApproxEq (-> Number Number Bool))
 (= (isApproxEq $x $y)
     (let $diff (abs-math (- $x $y))

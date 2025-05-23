@@ -75,7 +75,6 @@
             (or (< $pl $pr) (and (== $pl $pr) (> $cl $cr))))))
             
 ;; Check for equality, to within floating-point error, EPSILON
-! (bind! EPSILON (pow-math 10 -6))
 (: cScore== (-> Cscore Cscore Bool))
 (= (cScore== $cs1 $cs2)
     (let ($sL $cL $cpL $upL $pL $sR $cR $cpR $upR $pR) 
