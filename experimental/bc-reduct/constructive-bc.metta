@@ -121,7 +121,7 @@
           )
      (: ($prfabs $prfarg1 $prfarg2 $prfarg3) $thrm)))
 
-(= (filterResultBc (: $prf (ReducesTo $x $y))) (if (== $x $y) (empty) (: $prf (ReducesTo $x $y))))
+(= (filterResultBc (: $prf ($op $x $y))) (if (== $x $y) (empty) (: $prf ($op $x $y))))
 
 
 !(bind! &kb (new-space))
@@ -146,8 +146,8 @@
 !(add-atom &kb (: zAxiom (ReducesTo z z)))
 !(add-atom &kb (: sAxiom (ReducesTo (s $xs) (s $xs))))
 
-!(add-atom &kb (: nilAxiom (ReducesTo Nil Nil)))
-!(add-atom &kb (: listAxiom (ReducesTo (Cons $head $tail) (Cons $head $tail))))
+; !(add-atom &kb (: nilAxiom (ReducesTo Nil Nil)))
+; !(add-atom &kb (: listAxiom (ReducesTo (Cons $head $tail) (Cons $head $tail))))
 
 ; !(add-atom &kb (: recurseList (-> (ReducesTo $head $head-r)
 ;                                   (ReducesTo $tail $tail-r)
@@ -160,25 +160,25 @@
 ; !(add-atom &kb (: AbsorbTrue (-> (ReducesTo (Cons $head $tail) (Cons $head-r $tail-r))
 ;                                  (Elem 𝐓𝐫𝐮𝐞 (Cons $head-r $tail-r))
 ;                                  (ReducesTo (𝐨𝐫 (Cons $head $tail)) 𝐓𝐫𝐮𝐞))))
-
-!(add-atom &kb (: dstNilAxiom (ReducesTo ($op Nil) Nil)))
-!(add-atom &kb (: dstZAxiom (ReducesTo ($op z) ($op z))))
-!(add-atom &kb (: doubleNotAxiom (ReducesTo (𝐧𝐨𝐭 (𝐧𝐨𝐭 $x)) $x)))
-!(add-atom &kb (: dstSAxiom (ReducesTo ($op (s $xs)) ($op (s $xs)))))
-
-!(add-atom &kb (: Distribute (-> (ReducesTo (𝐧𝐨𝐭 $head) $head-r)
-                                 (ReducesTo (𝐧𝐨𝐭 $tail) $tail-r)
-                                 (ReducesTo (𝐧𝐨𝐭 (Cons $head $tail)) (Cons $head-r $tail-r)))))
-
-
-!(add-atom &kb (: istcNilAxiom (Intersection Nil $list Nil)))
-
-!(add-atom &kb (: IntersectHeadRule (-> (Elem $head $list)
-                                        (Intersection $tail $list $tail-r)
-                                        (Intersection (Cons $head $tail) $list (Cons $head $tail-r)))))
-
-!(add-atom &kb (: IntersectTailRule (-> (Intersection $tail $list $tail-r)
-                                        (Intersection (Cons $head $tail) $list $tail-r))))
+;
+; !(add-atom &kb (: dstNilAxiom (ReducesTo ($op Nil) Nil)))
+; !(add-atom &kb (: dstZAxiom (ReducesTo ($op z) ($op z))))
+; !(add-atom &kb (: doubleNotAxiom (ReducesTo (𝐧𝐨𝐭 (𝐧𝐨𝐭 $x)) $x)))
+; !(add-atom &kb (: dstSAxiom (ReducesTo ($op (s $xs)) ($op (s $xs)))))
+;
+; !(add-atom &kb (: Distribute (-> (ReducesTo (𝐧𝐨𝐭 $head) $head-r)
+;                                  (ReducesTo (𝐧𝐨𝐭 $tail) $tail-r)
+;                                  (ReducesTo (𝐧𝐨𝐭 (Cons $head $tail)) (Cons $head-r $tail-r)))))
+;
+;
+; !(add-atom &kb (: istcNilAxiom (Intersection Nil $list Nil)))
+;
+; !(add-atom &kb (: IntersectHeadRule (-> (Elem $head $list)
+;                                         (Intersection $tail $list $tail-r)
+;                                         (Intersection (Cons $head $tail) $list (Cons $head $tail-r)))))
+;
+; !(add-atom &kb (: IntersectTailRule (-> (Intersection $tail $list $tail-r)
+;                                         (Intersection (Cons $head $tail) $list $tail-r))))
 
 
 
@@ -191,9 +191,27 @@
 ; !(println! "")
 ; !(println! (bc &kb (fromNumber 2) (: $prf (Intersection (Cons z (Cons (s z) Nil)) (Cons (s z) Nil) $intersection)))) ;; List intersection
 ;
-;; FIX: Failing test case
-;; !(add-atom &kb (: RemoveDuplicates (-> (Elem $head-r $tail-r)
-;;                                       (ReducesTo (Cons $head $tail) $tail-r))))
+
+!(add-atom &kb (: RemoveDuplicatesNilAxiom (ReducesTo Nil Nil)))
+
+!(add-atom &kb (: RemoveDuplicates (-> (ReducesTo $tail $tail-r)
+                                       (Elem $head $tail-r)
+                                       (ReducesTo (Cons $head $tail) $tail-r))))
+
+!(add-atom &kb (: RemoveDuplicatesRecurse (-> (ReducesTo $tail $tail-r)
+                                              (ReducesTo (Cons $head $tail) (Cons $head $tail-r)))))
+
+; !(println! (filterResultBc (bc &kb (fromNumber 2) (: $prf (ReducesTo (Cons z (Cons z (Cons (s z) Nil))) $y))))) ;; Remove duplicates test
+; !(println! "")
+; !(println! (filterResultBc (bc &kb (fromNumber 2) (: $prf (ReducesTo (Cons (s z) (Cons z (Cons z Nil))) $y))))) ;; Remove duplicates test
+; !(println! "")
+; !(println! (filterResultBc (bc &kb (fromNumber 2) (: $prf (ReducesTo (Cons z (Cons (s z) (Cons z Nil))) $y))))) ;; Remove duplicates test
+; !(println! "")
+; !(println! (filterResultBc (bc &kb (fromNumber 3) (: $prf (ReducesTo (Cons z (Cons (s z) (Cons (s z) Nil))) $y))))) ;; Remove duplicates test
+; !(println! "")
+;; !(println! (filterResultBc (bc &kb (fromNumber 3) (: $prf (ReducesTo (Cons (s z) (Cons (s z) (Cons (s z) Nil))) $y))))) ;; Remove duplicates test
+;; !(println! (bc &kb (fromNumber 3) (: $prf (Unique (Cons (s z) (Cons (s z) (Cons (s z) Nil))) $y))))
+;; !(println! "")
 
 ; !(add-atom &kb (: PropNot (-> (ReducesTo $head $head-r)
 ;                               (ReducesTo $tail $tail-r)
@@ -223,6 +241,8 @@
 
 !(add-atom &kb (: delInconRecurseRule (-> (ReducesTo (𝐚𝐧𝐝 $tail) (𝐚𝐧𝐝 $tail-r))
                                           (ReducesTo (𝐚𝐧𝐝 (Cons $head $tail)) (𝐚𝐧𝐝 (Cons $head $tail-r))))))
+
+;; Del inconsistent test cases
 
 ;; ;; !(println! (bc &kb (fromNumber 3) (: $prf (ReducesTo (𝐧𝐨𝐭 (Cons (𝐧𝐨𝐭 z) Nil)) $tail-r))))
 ;; !(println! (bc &kb (fromNumber 2) (: $prf (ReducesTo (𝐚𝐧𝐝 (Cons (𝐨𝐫 (Cons (𝐚𝐧𝐝 (Cons z Nil)) Nil)) (Cons (𝐧𝐨𝐭 z) Nil))) $y))))
