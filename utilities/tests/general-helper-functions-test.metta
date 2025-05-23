@@ -33,12 +33,12 @@
 
 ;; ;; Tests for findAndReplace function ;; FIX: Failing Test case
 ;;
-;; !(assertEqual (findAndReplace A Z (B C A (A B C) F G A)) (B C Z (A B C) F G Z))
-;; !(assertEqual (findAndReplace (A B C) Z (B C A (A B C) F G A)) (B C A Z F G A))
-;; !(assertEqual (findAndReplace G 1 (B C A (A B C) F G A)) (B C A (A B C) F 1 A))
-;; !(assertEqual (findAndReplace Z 1 (B C A (A B C) F G A)) (B C A (A B C) F G A))
-;; !(assertEqual (findAndReplace A Z (A C A (A B C) A G A)) (Z C Z (A B C) Z G Z))
-;; !(assertEqual (findAndReplace F (A B C) (B C A (A B C) F G A)) (B C A (A B C) (A B C) G A))
+; !(assertEqual (findAndReplace A Z (B C A (A B C) F G A)) (B C Z (A B C) F G Z))
+; !(assertEqual (findAndReplace (A B C) Z (B C A (A B C) F G A)) (B C A Z F G A))
+; !(assertEqual (findAndReplace G 1 (B C A (A B C) F G A)) (B C A (A B C) F 1 A))
+; !(assertEqual (findAndReplace Z 1 (B C A (A B C) F G A)) (B C A (A B C) F G A))
+; !(assertEqual (findAndReplace A Z (A C A (A B C) A G A)) (Z C Z (A B C) Z G Z))
+; !(assertEqual (findAndReplace F (A B C) (B C A (A B C) F G A)) (B C A (A B C) (A B C) G A))
 
 ;; Tests for until function
 
@@ -205,8 +205,8 @@
 !(assertEqual (max 2 4) 4)
 
 ;; ;; FIX: Failing Test case
-;; !(assertEqual (gen 1 (0)) (1 0))
-;; !(assertEqual (gen 3 (0)) (3 2 1 0))
+!(assertEqual (gen 1 (0)) (1 0))
+!(assertEqual (gen 3 (0)) (3 2 1 0))
 
 !(assertEqual (decons (A B C)) (A (B C)))
 !(assertEqual (decons ()) (if False ((car-atom ()) (cdr-atom ())) (Error Unit Or Symbol cannot be deconstructed)))
@@ -243,8 +243,8 @@
 !(assertEqual (splitAt 5 (A B C D E)) ((A B C D E) ()))
 
 ;; ;; FIX: Failing Test case.
-;; !(assertEqual (sort (2 3 1 4) 4) (1 2 3 4))
-;; !(assertEqual (sort (2 3 1 4) 4 >=) (4 3 2 1))
+; !(assertEqual (sort (2 3 1 4) 4) (1 2 3 4))
+; !(assertEqual (sort (2 3 1 4) 4 >=) (4 3 2 1))
 
 !(assertEqual (take 1 (A B C)) (A))
 !(assertEqual (take 2 (A B C)) (A B))
