@@ -7,9 +7,7 @@
 ;; (: >= (-> Number Number Bool))
 ;; (= (>= $a $b) (or (== $a $b) (> $a $b)))
 
-;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
-;; (: concatTuple (-> Expression Expression Expression))
-(= (concatTuple $x $y) (union-atom $x $y)) ;; This should work when run after activating the virtual env
+;Function to cocatinate two tuples (A B) (C D) ==> (A B C D) ;; can also be used with atoms
 (: ++ (-> Expression Expression Expression))
 (= (++ $x $y)
    (case ((isSymbol $x) (isSymbol $y))
@@ -67,7 +65,7 @@
 ;;    with a new one from a list of atoms.
 ;; INFO: This function needs to change so that it can preserve the
 ;;        operator's position when MeTTa version is upgraded.
-(= (findAndReplace $old $new $list) ;; FIX: No longer working on version 0.2.3
+(= (findAndReplace $old $new $list) 
     ;; (let*
     ;;   (
     ;;     (() (println! ""))
@@ -76,7 +74,8 @@
     ;;     (() (println! (Result ==> (collapse (replace $old $new (superpose $list))))))
     ;;     (() (println! ""))
     ;;   )
-      (collapse (replace $old $new (superpose $list)))
+    ;   (collapse (replace $old $new (superpose $list)))
+      (reverseExp (collapse (replace $old $new (superpose $list))) ())
     ;; )
 )
 
@@ -92,17 +91,24 @@
 (= (foldl $f $acc $tuple)
    (if (== $tuple ())
        $acc
-       (let $next (car-atom $tuple) (foldl $f ($f $next $acc) (cdr-atom $tuple)))
+       (let*
+            (
+                ($next (car-atom $tuple))
+                ($tail (cdr-atom $tuple))
+            )
+            (foldl $f ($f $next $acc) $tail)
+       )
+    ;    (let $next (car-atom $tuple) (foldl $f ($f $next $acc) (cdr-atom $tuple)))
    )
 )
 
 ;; Fold a tuple from right to left
-(: foldr (-> (-> $a $b $b) $b $c $d))
+(: foldr (-> (-> $a $b $b) $d $c $d)) ;; changed the parameterized type of second argument from $b to $d
 (= (foldr $f $i $xs)
    (if (== $xs ())
        $i
-       (let* (($h (car-atom $xs))
-              ($t (cdr-atom $xs))
+       (let* (($h  (car-atom $xs)) ; added isSymbol checks not to encounter any errors
+              ($t (cdr-atom $xs)) ; added isSymbol checks not to encounter any errors
               ($ft (foldr $f $i $t)))
          ($f $h $ft))))
 
@@ -127,8 +133,8 @@
 (:wrapper (-> (-> $a Bool) $aa $aa))
 (= (wrapper $predicate $x) (if (let $bool ($predicate $x) $bool) $x (empty)))
 
-;; Filter function given a predicate ;; FIX: No longer working on version 0.2.3
-(: filter (-> (-> $a Bool) $a $a))
+;; Filter function given a predicate 
+(: filter (-> (-> $a Bool) $b $b))
 (= (filter $predicate $list)
    (wrapper $predicate (superpose $list)))
 
@@ -173,19 +179,19 @@
 (= (isExpression $expr) (== (get-metatype $expr) Expression))
 
 ;; A function to check if a given atom is unit or empty tuple.
-(: isUnit (-> Atom Bool))
+(: isUnit (-> $a Bool))
 (= (isUnit $expr) (== $expr ()))
 
 ;; A function to check if a given atom is an expression 
 ;;   with has one atom in it.
-(: hasOneAtom (-> Atom Bool)) ;; FIX: No longer working on version 0.2.3
-(= (hasOneAtom $expr) (if (and (== (get-metatype $expr) Expression) (not (isUnit $expr))) (== (cdr-atom $expr) ()) False))
+(: hasOneAtom (-> $a Bool))
+(= (hasOneAtom $expr) (if (== (get-metatype $expr) Expression) (== (size-atom $expr) 1) False))
 
-;; Function to replace a given atom from a space ;; FIX: No longer working on version 0.2.3
+;; Function to replace a given atom from a space 
 (: update-atom (-> Grounded Atom Atom (->)))
 (= (update-atom $space $oatom $natom) (let $_ (remove-atom $space $oatom) (add-atom $space $natom)))
 
-;; Function to replace a given atom from a space. ;; FIX: No longer working on version 0.2.3
+;; Function to replace a given atom from a space. 
 (: appendAtom (-> Atom Atom Atom))
 (= (appendAtom $a $atom) (foldr cons-atom ($a) $atom))
 
@@ -195,7 +201,7 @@
 ;; A function to return a tuple of numbers from natural to a given number.
 ;; $x is the upperbound
 ;; $acc is the lowerbound wrapped with as a tuple.
-;;    Example: (gen 5 (0)) => (5 4 3 2 1 0) ;; FIX: No longer working on version 0.2.3
+;;    Example: (gen 5 (0)) => (5 4 3 2 1 0) 
 (= (gen $x $acc)
    (let $start (if (== $acc ()) 0 (car-atom $acc))  ; Start at 0 if empty, else head of $acc
    (if (== $start $x)
@@ -208,7 +214,7 @@
        ((car-atom $atom) (cdr-atom $atom))
        (Error Unit Or Symbol cannot be deconstructed)))
 
-;; Function to create a tuple of tuples given two equal length list of atoms. ;; FIX: No longer working on version 0.2.3
+;; Function to create a tuple of tuples given two equal length list of atoms.
 (= (zip $a $b)
     (if (or (== $a ()) (== $b ()))
     ()
@@ -235,13 +241,9 @@
               ($tail (zipWith $f $xs-tl $ys-tl)))
          (cons-atom $head $tail))))
 
-;; Finds length of a tuple ;; FIX: No longer working on version 0.2.3
-(= (len $expr)
-    (if (== $expr ()) ;; FIX: return Error if symbol
-        0
-        (let $tail (cdr-atom $expr)
-            (+ 1 (len $tail))
-        )))
+;; Finds length of a tuple 
+(= (len $expr) (size-atom $expr))
+    
 
 ;; A function to replace an atom at a specific index position with $val -- 0 indexed counting is implied
 (: replaceByIndex (-> Expression Number $t Expression))
@@ -322,6 +324,7 @@
 ;;  performance by avoiding recomputation of index.
 (= (sortNestedTuple $list reverse) (sort $list (len $list) >=))
 
+(= (sort $list $len) (sort $list $len <=)) 
 (= (sort $list $len $key)
    (if (or (isUnit $list) (<= $len 1))
        $list
@@ -497,3 +500,23 @@
        (== $x $y)
        (== (collapse (union (subtraction (superpose $x) (superpose $y)) (subtraction (superpose $y) (superpose $x)))) ())))
 
+;; Name :                       reverseExp
+;; Description:                 A function to reverse a given expression. This is needed b/c
+;;                              new version of metta (0.2.3) is giving unpredicted order when
+;;                              using superpose.
+;;                              Eg: given ((AND E C) B A OR) => (OR A B (AND E C))
+;;                              NOTE: Must use collapse at the begining of your function call
+;; Usage: (collapse (reversExp ((AND E C) B A OR)))
+(= (reverseExp $exp $i)
+  (if (== $exp ())
+    $i
+    (let*
+      (
+        (($h $t) (decons-atom $exp))
+        ; ($s (if (isSymbol $h) (cons-atom $h $i) (++ ($h) $i)))
+        ($s (cons-atom $h $i))
+      )
+      (reverseExp $t $s)
+    )
+  )
+)

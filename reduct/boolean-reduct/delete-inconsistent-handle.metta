@@ -17,10 +17,10 @@
     (let*
         (
           ($guardSet (getGuardSet $current))
-          ($handleSet (concatTuple $dominantSet $guardSet))
+          ($handleSet (++ $dominantSet $guardSet))
           ($isConsistent (isConsistentExp $handleSet))
         )
-        (if $isConsistent ($parent $current False) ((removeElement ($current) $parent) () True)) ;; Remove current from parent.
+        (if $isConsistent ($parent $current False) ((reverseExp (removeElement ($current) $parent) ()) () True)) ;; Remove current from parent.
     )
 )
 
@@ -29,6 +29,8 @@
 ;; Example: input: (A B C), output: True
 ;;          input: (A B C (NOT A)), output: True
 (= (isConsistentExp $handleSet)
+  (if (isSymbol $handleSet) ;; added a symbol check
+    True
     (if (== $handleSet ())
         True
         (let*
@@ -41,7 +43,7 @@
           )
         )
     )
-)
+))
 
 
 ;; A helper function that takes a pair of boolean expressions

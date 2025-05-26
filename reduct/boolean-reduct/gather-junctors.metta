@@ -4,10 +4,10 @@
       (
          (($op $a $b)
             (if (== $prev ())
-               (concatTuple ($op) (concatTuple (gatherJunctors $a $op) (gatherJunctors $b $op)))
+               (++ ($op) (++ (gatherJunctors $a $op) (gatherJunctors $b $op)))
                (if (== $op $prev)
-                  (concatTuple (gatherJunctors $a $op) (gatherJunctors $b $op))
-                  ((concatTuple ($op) (concatTuple (gatherJunctors $a $op) (gatherJunctors $b $op))))
+                  (++ (gatherJunctors $a $op) (gatherJunctors $b $op))
+                  ((++ ($op) (++ (gatherJunctors $a $op) (gatherJunctors $b $op))))
                )
             )
          )

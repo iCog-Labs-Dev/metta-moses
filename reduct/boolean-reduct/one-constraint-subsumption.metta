@@ -18,6 +18,7 @@
 ;;        : output: ((OR C) () True)
 ;;(: oneConstraintSubsume (-> Expression Expression Expression (Expression Expression Bool)))
 (= (oneConstraintSubsume $parent $current $commandSet)
+  (if (or (== $current ()) (isSymbol $current)) ($parent $current False)
    (let*
       (
         ($head (car-atom $current))
@@ -33,11 +34,12 @@
                 ($guardSet (getGuardSet $current))
                 ($common (collapse (intersection (superpose $guardSet) (superpose $commandSet))))
               )
-              (if (== $common ()) ($parent $current False) ((removeElement ($current) $parent) () True)) ;; remove current from parent.
+              (if (== $common ()) ($parent $current False) ((reverseExp (removeElement ($current) $parent) ()) () True)) ;; remove current from parent.
             )
           )
           ($else ($parent $current False))
         )
       )
+   )
    )
 )

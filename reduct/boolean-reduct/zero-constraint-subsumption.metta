@@ -64,7 +64,7 @@
           )
           ;; POA is AND and has no children and guardSet
           (if (and (== $literals ()) (== $children ()))
-              ((removeElement ($current) $parent) () True)
+              ((reverseExp (removeElement ($current) $parent) ()) () True)
               ($parent $current False)
           )
         )

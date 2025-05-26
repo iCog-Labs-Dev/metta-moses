@@ -14,17 +14,21 @@
 ;;                Only AND nodes have guard sets.
 ;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 (= (getGuardSet $exp)
-    (if (== (car-atom $exp) OR)
-        ()
-        (getLiterals $exp)))
+  (if (isSymbol $exp) (filterLiterals $exp)
+    (if (== $exp ()) ; added is empty checks
+      ()
+      (if (== (car-atom $exp) OR)
+          ()
+          (getLiterals $exp)))))
 
 ;; A function similar to the getGuardSet function but returns a
 ;;    non deterministic list instead of a collapsed atom.
 ;; Example: (AND (NOT A) (NOT B) A) -> [(NOT A), (NOT B), A]
 (= (getGuardSetND $exp)
+  (if (isSymbol $exp) (filterLiterals $exp)
     (if (== (car-atom $exp) OR)
         (empty)
-        (getLiteralsND $exp)))
+        (getLiteralsND $exp))))
 
 ;; A function to add a list of literals to a given expression
 ;;    and keep the uniqueness of the literals.
@@ -35,9 +39,10 @@
      (
         ($op (car-atom $exp))
         ($guardSet (getLiterals $exp))
-        ($newGuardSet (concatTuple $guardSet $elements))
-        ($newGuardSet' (collapse (unique (superpose $newGuardSet))))
-        ($updatedSubExpression (concatTuple $newGuardSet' (getChildren $exp)))
+        ($newGuardSet (++ $guardSet $elements))
+        ; ($newGuardSet' (collapse (unique (superpose $newGuardSet))))
+        ($newGuardSet' (reverseExp (collapse (unique (superpose $newGuardSet))) ()))
+        ($updatedSubExpression (++ $newGuardSet' (getChildren $exp)))
 
         ($newExp (cons-atom $op $updatedSubExpression))
      )
@@ -64,7 +69,10 @@
        (
          (() $exp)
          ((NOT $x) ())
-         ($else (if (== (get-metatype $exp) Expression) (collapse (filterChildren (superpose $exp))) ())))))
+        ;  ($else (if (== (get-metatype $exp) Expression) (collapse (filterChildren (superpose $exp))) ())))))
+         ($else (if (== (get-metatype $exp) Expression) (reverseExp (collapse (filterChildren (superpose $exp))) ()) ())))))
+
+
 
 ;; A function to add a list of children to a given expression.
 ;; Example: input: $exp -> (AND A B (OR C D)), $children -> ((OR A B) (OR E F) (OR D))
@@ -74,8 +82,8 @@
      (
         ($op (car-atom $exp))
         ($oldChildren (getChildren $exp))
-        ($newChildren (concatTuple $oldChildren $children))
-        ($updatedSubExpression (concatTuple (getLiterals $exp) $newChildren))
+        ($newChildren (++ $oldChildren $children))
+        ($updatedSubExpression (++ (getLiterals $exp) $newChildren))
 
         ($newExp (cons-atom $op $updatedSubExpression))
      )
@@ -94,7 +102,9 @@
        (
          (() $exp)
          ((NOT $x) $exp)
-         ($else (if (== (get-metatype $exp) Expression) (collapse (filterLiterals (superpose $exp))) $exp)))))
+        ;  ($else (if (== (get-metatype $exp) Expression) (collapse (filterLiterals (superpose $exp))) $exp)))))
+         ($else (if (== (get-metatype $exp) Expression) (reverseExp (collapse (filterLiterals (superpose $exp))) ()) $exp)))))
+
 
 ;; A function similar to getLiterals function but returns a
 ;;    non deterministic list instead of a collapsed atom.
@@ -111,6 +121,7 @@
 ;;A function that will return both literals (Also called guard sets for AND nodes)
 ;;  and the children as a tuple ((...literals...), (...children...))
 (= (getLiteralChildren $expr) ((getLiterals $expr) (getChildren $expr)))
+; (= (getLiteralChildren $expr) ((reverseExp (getLiterals $expr) ()) (reverseExp (getChildren $expr)())))
 
 ;; Function to find common literals between a tuple and a nested tuple 
 (= (findCommonLiterals $tuple $nestedTuple)
@@ -137,3 +148,64 @@
                 ($first (car-atom $nestedTuple))
                 ($tail (cdr-atom $nestedTuple)))
               (findCommonLiterals $first $tail)))))))
+
+;; Checks if a given Tuple is nested or not excluding expressions like (NOT A) (OR A)...
+;; Eg: given (A B C (NOT A)) -> False
+;;     given ((A B C (NOT A)) (OR F) G) -> True
+(= (isNested ()) False)
+(= (isNested $x)
+    (if (or (== (get-metatype $x) Grounded) (== (get-metatype $x) Symbol))
+        False
+        (let ($h $t) (decons-atom $x)
+            (if (== (get-metatype $h) Expression)
+                (case (car-atom $h)
+                    (
+                        (NOT (isNested $t))
+                        (AND (isNested $t))
+                        (OR (isNested $t))
+                        ($else True)
+                    )
+                )
+                (isNested $t)
+            )
+        )
+    )
+)
+
+;; A function that flattens a given nested tuple without a nil element
+;; it evaluates expressions as (NOT A) as a single Atom
+;; Eg flat ((A B C (NOT A)) D E F (G)) -> (A B C (NOT A) D E F G)
+(= (flat $x)
+    (if (isNested $x)
+        (let ($h $t) (decons-atom $x) (if (isNested $h) (flat $h) (++ $h (flat $t))))
+        $x
+    )
+)
+
+;; Small function to check non equality of two Symbols
+(= (NotEq $x $y) (if (not (== $x $y)) $y (empty)))
+;; A function to find and remove a given Atom from a list
+;; Returns the rest of the list excluding the value of interest
+;; Eg: findAndRemove 2 (1 2 3 4 5) -> (1 3 4 5)
+;; it also works with expressions
+;; findAndRemove (A B C) ((A B C) D E) -> (D E)
+(= (findAndRemove $x $list)
+    (collapse (NotEq $x (superpose $list)))
+)
+;; A function to check if any given two tuples have the same element
+;; NOTE: order does not matter
+;; Returns () if they are the same, if they are different it will return the
+;; unique elements left
+;; Originally built for testing rte-helper functions
+(= (isSame $x $y)
+    (let*
+        (
+            ($newY (flat $y))
+            ($newX (flat $x))
+            (($headx $tailx) (decons-atom $newX))
+
+            ($s (if (== $tailx ()) (findAndRemove $headx $newY) (isSame $tailx (findAndRemove $headx $newY))))
+        )
+        $s
+    )
+)

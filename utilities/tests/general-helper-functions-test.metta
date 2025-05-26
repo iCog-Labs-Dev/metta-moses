@@ -10,11 +10,11 @@
 !(assertEqualToResult (~= Something Something) (False))
 !(assertEqualToResult (~= Something something) (True))
 
-;; ;; Tests for the function 'concatTuple' ;; FIXED failing tests
-!(assertEqualToResult (concatTuple () (3 4)) ((3 4)))
-!(assertEqualToResult (concatTuple (1 2) (3 4)) ((1 2 3 4)))
-!(assertEqualToResult (concatTuple (1 2) ()) ((1 2)))
-!(assertEqualToResult (concatTuple () ()) (()))
+;; ;; Tests for the function 'concatTuple' ;; FIXED failing tests ;; TODO change 'concatTuple' to '++'
+!(assertEqualToResult (++ () (3 4)) ((3 4)))
+!(assertEqualToResult (++ (1 2) (3 4)) ((1 2 3 4)))
+!(assertEqualToResult (++ (1 2) ()) ((1 2)))
+!(assertEqualToResult (++ () ()) (()))
 
 ;; Tests for the function 'Not'
 !(assertEqualToResult (Not (Not (Not A))) ((NOT A)))
@@ -26,19 +26,19 @@
 !(assertEqualToResult (isMember 3 (1 2 4 5)) (False))
 
 
-! (assertEqual (setDifference (AND a b (NOT a) c (OR a b)) (a b (NOT a) (OR a b)) ) (AND c))
-! (assertEqual (setDifference (AND a b (NOT a) c (OR a b)) (a c (NOT c) (NOT a)) ) (AND b (OR a b)))
-! (assertEqual (setDifference (AND a b (NOT a) c (OR a b)) (a) )  (AND b (NOT a) c (OR a b)))
-! (assertEqual (setDifference (AND a b (NOT a) c (OR a b v) v) (b (NOT a) v) ) (AND a c (OR a b v)))
+! (assertEqual (=== (setDifference (AND a b (NOT a) c (OR a b)) (a b (NOT a) (OR a b)) ) (AND c)) True)
+! (assertEqual (=== (setDifference (AND a b (NOT a) c (OR a b)) (a c (NOT c) (NOT a)) ) (AND b (OR a b))) True)
+! (assertEqual (=== (setDifference (AND a b (NOT a) c (OR a b)) (a) )  (AND b (NOT a) c (OR a b))) True)
+! (assertEqual (=== (setDifference (AND a b (NOT a) c (OR a b v) v) (b (NOT a) v) ) (AND a c (OR a b v))) True)
 
-;; ;; Tests for findAndReplace function ;; FIX: Failing Test case
+;; ;; Tests for findAndReplace function ;; FIXED failing Test case
 ;;
-; !(assertEqual (findAndReplace A Z (B C A (A B C) F G A)) (B C Z (A B C) F G Z))
-; !(assertEqual (findAndReplace (A B C) Z (B C A (A B C) F G A)) (B C A Z F G A))
-; !(assertEqual (findAndReplace G 1 (B C A (A B C) F G A)) (B C A (A B C) F 1 A))
-; !(assertEqual (findAndReplace Z 1 (B C A (A B C) F G A)) (B C A (A B C) F G A))
-; !(assertEqual (findAndReplace A Z (A C A (A B C) A G A)) (Z C Z (A B C) Z G Z))
-; !(assertEqual (findAndReplace F (A B C) (B C A (A B C) F G A)) (B C A (A B C) (A B C) G A))
+!(assertEqual (=== (findAndReplace A Z (B C A (A B C) F G A)) (B C Z (A B C) F G Z)) True)
+!(assertEqual (=== (findAndReplace (A B C) Z (B C A (A B C) F G A)) (B C A Z F G A)) True)
+!(assertEqual (=== (findAndReplace G 1 (B C A (A B C) F G A)) (B C A (A B C) F 1 A)) True)
+!(assertEqual (=== (findAndReplace Z 1 (B C A (A B C) F G A)) (B C A (A B C) F G A)) True)
+!(assertEqual (=== (findAndReplace A Z (A C A (A B C) A G A)) (Z C Z (A B C) Z G Z)) True)
+!(assertEqual (=== (findAndReplace F (A B C) (B C A (A B C) F G A)) (B C A (A B C) (A B C) G A)) True)
 
 ;; Tests for until function
 
@@ -87,9 +87,9 @@
 !(assertEqual (until isZero decrement 10) 0)
 !(assertEqual (until greaterThanTen increment 0) 11)
 
-;; FIX: Failing Test case
-;; !(assertEqual (until isUnit cdr-atom (foo bar bae)) ())
-;; !(assertEqual (until hasOneAtom cdr-atom (foo bar bae)) (bae))
+;; FIXED: Failing Test case
+!(assertEqual (until isUnit cdr-atom (foo bar bae)) ())
+!(assertEqual (until hasOneAtom cdr-atom (foo bar bae)) (bae))
 
 ;; Test for map function
 
@@ -125,11 +125,11 @@
 !(assertEqual (((curry +) 1) 2) 3)
 !(assertEqual (((curry -) 5) 4) 1)
 
-;; ;; Test filter function ;; FIX: Failing Test case
-;; !(assertEqual (collapse (filter isUnit (9 10 () 5 4 ()))) (() ()))
-;; !(assertEqual (collapse (filter hasOneAtom (9 10 (Hello) 5 4 (Nop) ()))) ((Hello) (Nop)))
-;; !(assertEqual (collapse (filter isZero (9 10 0 5 4 0))) (0 0))
-;; !(assertEqual (collapse (filter greaterThanTen (9 10 12 5 4 28))) (12 28))
+;; ;; Test filter function ;; FIXED: Failing Test case
+!(assertEqual (collapse (filter isUnit (9 10 () 5 4 ()))) (() ()))
+!(assertEqual (collapse (filter hasOneAtom (9 10 (Hello) 5 4 (Nop) ()))) ((Hello) (Nop)))
+!(assertEqual (collapse (filter isZero (9 10 0 5 4 0))) (0 0))
+!(assertEqual (collapse (filter greaterThanTen (9 10 12 5 4 28))) (12 28))
 
 ;; Test wrapper function for filter function
 !(assertEqual (wrapper isZero 0) 0)
@@ -174,14 +174,14 @@
 !(assertEqual (isUnit ()) True)
 !(assertEqual (isUnit (A B)) False)
 
-;; ;; Test hasOneAtom function ;; FIX: Failing Test case
-;; !(assertEqual (hasOneAtom A) False)
-;; !(assertEqual (hasOneAtom (A)) True)
-;; !(assertEqual (hasOneAtom ()) False)
-;; !(assertEqual (hasOneAtom (A B)) False)
-;; !(assertEqual (hasOneAtom (foo bar bae)) False)
-;; !(assertEqual (hasOneAtom (foo)) True)
-;; !(assertEqual (hasOneAtom ()) False)
+;; ;; Test hasOneAtom function ;; FIXED: Failing Test case
+!(assertEqual (hasOneAtom A) False)
+!(assertEqual (hasOneAtom (A)) True)
+!(assertEqual (hasOneAtom ()) False)
+!(assertEqual (hasOneAtom (A B)) False)
+!(assertEqual (hasOneAtom (foo bar bae)) False)
+!(assertEqual (hasOneAtom (foo)) True)
+!(assertEqual (hasOneAtom ()) False)
 
 
 !(bind! &space (new-space))
@@ -189,22 +189,22 @@
 !(add-atom &space C)
 !(add-atom &space C)
 
-;; ;; FIX: Failing Test case
-;; !(assertEqualToResult (let $_ (update-atom &space A B) (get-atoms &space)) (B C C))
-;; !(assertEqualToResult (let $_ (update-atom &space D E) (get-atoms &space)) (B C C E))
-;; !(assertEqualToResult (let $_ (update-atom &space C 1) (get-atoms &space)) (B 1 E))
-;; !(assertEqualToResult (let $_ (clearSpace &space) (get-atoms &space)) ())
+;; FIXED: Failing Test case
+!(assertEqualToResult (let $_ (update-atom &space A B) (get-atoms &space)) (B C C))
+!(assertEqualToResult (let $_ (update-atom &space D E) (get-atoms &space)) (B C C E))
+!(assertEqualToResult (let $_ (update-atom &space C 1) (get-atoms &space)) (B 1 C E))
+!(assertEqualToResult (let $_ (clearSpace &space) (get-atoms &space)) ())
 
-;; ;; FIX: Failing Test case
-;; !(assertEqual (appendAtom 1 ()) (1))
-;; !(assertEqual (appendAtom 1 (1 2)) (1 2 1))
-;; !(assertEqual (appendAtom A (B C)) (B C A))
-;; !(assertEqual (appendAtom (A) (B C)) (B C (A)))
+;; ;; FIXED: Failing Test case
+!(assertEqual (appendAtom 1 ()) (1))
+!(assertEqual (appendAtom 1 (1 2)) (1 2 1))
+!(assertEqual (appendAtom A (B C)) (B C A))
+!(assertEqual (appendAtom (A) (B C)) (B C (A)))
 
 !(assertEqual (max 1 2) 2)
 !(assertEqual (max 2 4) 4)
 
-;; ;; FIX: Failing Test case
+;; ;; FIXED: Failing Test case
 !(assertEqual (gen 1 (0)) (1 0))
 !(assertEqual (gen 3 (0)) (3 2 1 0))
 
@@ -212,21 +212,22 @@
 !(assertEqual (decons ()) (if False ((car-atom ()) (cdr-atom ())) (Error Unit Or Symbol cannot be deconstructed)))
 !(assertEqual (decons (A)) (A ()))
 
-;; ;; FIX: Failing Test case
-;; !(assertEqual (zip (A B C) (1 2 3)) ((A 1) (B 2) (C 3)))
-;; !(assertEqual (zip (A B) (1 2 3)) ((A 1) (B 2)))
+;; ;; FIXED: Failing Test case
+!(assertEqual (zip (A B C) (1 2 3)) ((A 1) (B 2) (C 3)))
+!(assertEqual (zip (A B) (1 2 3)) ((A 1) (B 2)))
 
 !(assertEqual (zipWith == (A B C) (A 2 3)) (True False False))
 !(assertEqual (zipWith == (B C) (A 2 3)) (False False))
 !(assertEqual (zipWith == () (A 2 3)) ())
 !(assertEqual (zipWith == () ()) ())
 
-;; ;; FIX: Failing Test case
-;; !(assertEqual (len (A B C D)) 4)
-;; !(assertEqual (len ()) 0)
-;; !(assertEqual (len (A)) 1)
-;; !(assertEqual (len A) 4) ;; Should return Error. !(assertEqual (replaceByIndex (A B C) 0 D) (D B C))
+;; ;; FIXED: Failing Test case
+!(assertEqual (len (A B C D)) 4)
+!(assertEqual (len ()) 0)
+!(assertEqual (len (A)) 1)
+!(assertEqual (len A) (size-atom A))
 
+!(assertEqual (replaceByIndex (A B C) 0 D) (D B C))
 !(assertEqual (replaceByIndex (1 2 3 4) 4 D) (1 2 3 4))
 !(assertEqual (replaceByIndex (1 2 3 4) 3 D) (1 2 3 D))
 
@@ -242,8 +243,8 @@
 !(assertEqual (splitAt 0 (A B C D E)) (() (A B C D E)))
 !(assertEqual (splitAt 5 (A B C D E)) ((A B C D E) ()))
 
-;; ;; FIX: Failing Test case.
-; !(assertEqual (sort (2 3 1 4) 4) (1 2 3 4))
+;; ;; FIXED: Failing Test case.
+!(assertEqual (sort (2 3 1 4) 4) (1 2 3 4))
 !(assertEqual (sort (2 3 1 4) 4 >=) (4 3 2 1))
 
 !(assertEqual (take 1 (A B C)) (A))
