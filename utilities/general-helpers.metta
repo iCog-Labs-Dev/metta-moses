@@ -322,12 +322,11 @@
 ;;  performance by avoiding recomputation of index.
 (= (sortNestedTuple $list reverse) (sort $list (len $list) >=))
 
-(= (sort $list $len) (sort $list $len <=)) ;; FIX: No longer working on version 0.2.3
 (= (sort $list $len $key)
-   (if (or (isUnit $list) (hasOneAtom $list))
+   (if (or (isUnit $list) (<= $len 1))
        $list
        (let* (
-                ;; (() (println! (Sorting $list len: $len)))
+                (() (println! (Sorting $list len: $len)))
                 ($halfL ((py-atom math.floor) (/ $len 2)))
                 (($left $right) (splitAt $halfL $list))
                 ;; (() (println! (From sort Left: $left Right: $right)))

@@ -244,7 +244,7 @@
 
 ;; ;; FIX: Failing Test case.
 ; !(assertEqual (sort (2 3 1 4) 4) (1 2 3 4))
-; !(assertEqual (sort (2 3 1 4) 4 >=) (4 3 2 1))
+!(assertEqual (sort (2 3 1 4) 4 >=) (4 3 2 1))
 
 !(assertEqual (take 1 (A B C)) (A))
 !(assertEqual (take 2 (A B C)) (A B))
