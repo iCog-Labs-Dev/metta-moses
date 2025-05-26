@@ -16,6 +16,5 @@
     ($demeIds (createDemeIds $nExpansion $nDeme))
     ($representation (createRepresentation $exemplar))
     ($demeId (List.getByIdx $demeIds 0))
-    ($score (pow-math -10 37))
    )
-   (mkDeme $representation (mkSInstSet $score Nil) $demeId)))
+   (mkDeme $representation (mkSInstSet Nil) $demeId)))
