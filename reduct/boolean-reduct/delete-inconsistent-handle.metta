@@ -20,7 +20,7 @@
           ($handleSet (++ $dominantSet $guardSet))
           ($isConsistent (isConsistentExp $handleSet))
         )
-        (if $isConsistent ($parent $current False) ((reverseExp (removeElement ($current) $parent) ()) () True)) ;; Remove current from parent.
+        (if $isConsistent ($parent $current False) ((removeElement ($current) $parent) () True)) ;; Remove current from parent.
     )
 )
 

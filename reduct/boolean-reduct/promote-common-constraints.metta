@@ -62,7 +62,7 @@
 (= (removeCommonLiterals $common $tuple)
    ( if (== $tuple ())
         ()
-        (collapse (reverseExp (removeElement $common (superpose $tuple)) ()))
+        (reverseExp (collapse (removeElement $common (superpose $tuple))) ())
    )
 )
 

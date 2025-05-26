@@ -34,7 +34,7 @@
                 ($guardSet (getGuardSet $current))
                 ($common (collapse (intersection (superpose $guardSet) (superpose $commandSet))))
               )
-              (if (== $common ()) ($parent $current False) ((reverseExp (removeElement ($current) $parent) ()) () True)) ;; remove current from parent.
+              (if (== $common ()) ($parent $current False) ((removeElement ($current) $parent) () True)) ;; remove current from parent.
             )
           )
           ($else ($parent $current False))
