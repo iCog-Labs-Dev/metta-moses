@@ -15,7 +15,7 @@
 (
     ($score (complexityBasedScorer $rep $i $itable $complexityRatio))
     ($scoredInst (mkSInst $score (mkPair $i $score)))
-    ($uListofScoredInst (List.append $scoredInst $listOfScoredInst))
+    ($uListofScoredInst (Cons $scoredInst $listOfScoredInst))
 )
 (applyComplexityBasedScore $rep $is $itable $complexityRatio $uListofScoredInst)))
 
