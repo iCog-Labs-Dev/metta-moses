@@ -172,7 +172,7 @@
                    (mkNodeId (3)))
                  (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
                (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil)))))
-            NilMMap))))) (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil))))))) (mkSInstSet -1.0000000000000001e37 Nil) (mkDemeId "1")))
+            NilMMap))))) (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil))))))) (mkSInstSet Nil) (mkDemeId "1")))
 
 ;; Test case for sampleFromNeighborhood function
 ;; Function should returned two instances at the specified distance
@@ -197,18 +197,18 @@
 
 ;; Testcases for removeInstScore
 !(assertEqual 
- (removeInstScore (mkSInst 3.2 (mkPair (mkInst (Cons 1 (Cons 2 (Cons 3 (Cons 2.0 Nil))))) 3.2)))
+ (removeInstScore (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 (Cons 3 (Cons 2.0 Nil))))) 3.2)))
  (mkInst (Cons 1 (Cons 2 (Cons 3 (Cons 2.0 Nil)))))
  )
 !(assertEqual 
- (removeInstScore (mkSInst 3.2 (mkPair (mkInst (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil))))) 3.2)))
+ (removeInstScore (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil))))) 3.2)))
  (mkInst (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil)))))
  )
 
 ; Testcase-1 for sampleNewInstances
 ; totalNeighbors & numNewInstances won't be updated, samples new instances 
 !(assertEqual 
-   (let ((mkDeme $rep (mkSInstSet $score $updatedInstList) $demeId) $num) 
+   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num) 
    (sampleNewInstances 
    20 
    3 
@@ -221,7 +221,7 @@
 ; Testcase-2 for sampleNewInstances
 ; totalNeighbors will be updated, samples new instances 
 !(assertEqual 
-   (let ((mkDeme $rep (mkSInstSet $score $updatedInstList) $demeId) $num) 
+   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num) 
    (sampleNewInstances 
    10 
    7 
@@ -234,7 +234,7 @@
 ; Testcase-3 for sampleNewInstances
 ; totalNeighbors will be updated, generates all instances in neighborhood
 !(assertEqual 
-   (let ((mkDeme $rep (mkSInstSet $score $updatedInstList) $demeId) $num) 
+   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num) 
    (sampleNewInstances 
    4
    5 
@@ -247,7 +247,7 @@
 ; Testcase-4 for sampleNewInstances
 ; totalNeighbors & numNewInstances won't be updated, samples new instances
 !(assertEqual 
-   (let ((mkDeme $rep (mkSInstSet $score $updatedInstList) $demeId) $num) 
+   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num) 
    (sampleNewInstances 
    20 
    0 

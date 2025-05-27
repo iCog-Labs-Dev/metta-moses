@@ -43,3 +43,45 @@
 (: worstCscore (-> Cscore))
 (= (worstCscore)
     (mkCscore (pow-math 10 -308)  0 0.0 0.0 (pow-math 10 -308)))            
+
+;; score getters
+(: getPenScore (-> Cscore Number))
+(= (getPenScore (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $penalizedScore)
+
+(: getScore (-> Cscore Number))
+(= (getScore (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $scor)
+
+(: getComp (-> Cscore Number))
+(= (getComp (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $cpxy)
+
+(: getCompPen (-> Cscore Number))
+(= (getCompPen (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $complexityPenalty)
+
+(: getUniPen (-> Cscore Number))
+(= (getUniPen (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $uniformityPenalty)
+
+;; comparing composite scores
+;; cScore< -- composite score less than operator
+;; uses penalized scores to compare and complexity score to break ties in the penalized score
+;; $cs1 -- composite score of the left side instance ..
+;; $cs2 -- composite score of the right side instance or whatever
+;; the type-cast in the if .. is used because the return type of the built-in isnan-math function is not Bool so it has to be cast in to bool value
+
+(: cScore< (-> Cscore Cscore Bool)) 
+(= (cScore< $cs1 $cs2)
+    (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
+        (if (type-cast (isnan-math $pl) Bool &self)
+            (not (type-cast (isnan-math $pr) Bool &self))
+            (or (< $pl $pr) (and (== $pl $pr) (> $cl $cr))))))
+            
+;; Check for equality, to within floating-point error, EPSILON
+(: cScore== (-> Cscore Cscore Bool))
+(= (cScore== $cs1 $cs2)
+    (let ($sL $cL $cpL $upL $pL $sR $cR $cpR $upR $pR) 
+            ((getScore $cs1) (getComp $cs1) (getCompPen $cs1) (getUniPen $cs1) (getPenScore $cs1)
+            (getScore $cs2) (getComp $cs2) (getCompPen $cs2) (getUniPen $cs2) (getPenScore $cs2)) 
+        
+            (and (isApproxEq $sL $sR) 
+                (and (isApproxEq $cL $cR) 
+                    (and (isApproxEq $cpL $cpR) 
+                        (and (isApproxEq $upL $upR) (isApproxEq $pL $pR)))))))

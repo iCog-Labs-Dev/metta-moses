@@ -155,13 +155,13 @@
 ;;   (ScoredInstance $score): Scored instance with an initial large negative score -10^37.
 (: initInstScore (-> Instance (ScoredInstance $score)))
 (= (initInstScore $inst)
-(mkSInst (pow-math -10 37) (mkPair $inst (pow-math -10 37))))
+(mkSInst (mkPair $inst (pow-math -10 37))))
 
 ;; converts a Scored Instance back to a normal Instance (used to the purpose of testing the sampleNewInstances method)
 ;; Param: scored instance
 ;; Returns:a normal instance without any score
 (: removeInstScore (ScoredInstance $score) Instance)
-(= (removeInstScore (mkSInst $score (mkPair $inst $score))) $inst)
+(= (removeInstScore (mkSInst (mkPair $inst $score))) $inst)
 
 ;; Samples or generates new instances at a specified distance from a center instance,
 ;; assigns random scores, and updates the Deme by appending scored instances.
@@ -174,7 +174,7 @@
 ;; Returns:
 ;;   (Deme Number) - Tuple of updated Deme with new scored instances appended and number of new instances added.
 (: sampleNewInstances (-> Number Number Instance Deme Number (Deme Number)))
-(= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep $kbMp $tree) (mkSInstSet $score $instList) $demeId) $dist)
+(= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep $kbMp $tree) (mkSInstSet $instList) $demeId) $dist)
  (let*
   (($updatedTotalNeighbors 
          (if (> (* 2 $numNewInstances) $totalNeighbors)
@@ -190,4 +190,4 @@
     ($scoredNewInstances (List.map initInstScore $newInstances))
     ($updatedInstList (List.concat $instList $scoredNewInstances))
  )
- ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $score $updatedInstList) $demeId) $updatedNumNewInstances)))
+ ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId) $updatedNumNewInstances)))
