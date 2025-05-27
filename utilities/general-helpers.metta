@@ -326,7 +326,7 @@
 
 (= (sort $list $len) (sort $list $len <=)) 
 (= (sort $list $len $key)
-   (if (or (isUnit $list) (<= $len 1))
+   (if (or (isUnit $list) (hasOneAtom $list))
        $list
        (let* (
                 (() (println! (Sorting $list len: $len)))
