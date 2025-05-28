@@ -203,10 +203,10 @@
 ;; $acc is the lowerbound wrapped with as a tuple.
 ;;    Example: (gen 5 (0)) => (5 4 3 2 1 0) 
 (= (gen $x $acc)
-    (let $top (car-atom $acc)
-    (if (== $top $x)
-       $acc
-       (let $lastInserted (car-atom $acc) (gen $x (cons-atom (+ 1 $lastInserted) $acc))))))
+   (let $start (if (== $acc ()) 0 (car-atom $acc))  ; Start at 0 if empty, else head of $acc
+   (if (== $start $x)
+       (if (== $acc ()) (cons-atom $x ()) $acc)     ; Return ($x) if empty, else $acc
+       (gen $x (cons-atom (+ 1 $start) $acc)))))     ; Prepend (+1 start) to $acc    ; Preserve structure
 
 ; ;; A function to return head and tail of an atom in a tuple.
 (= (decons $atom)
@@ -216,15 +216,17 @@
 
 ;; Function to create a tuple of tuples given two equal length list of atoms.
 (= (zip $a $b)
-   (if (or (== $a ()) (== $b ()))
-       ()
+    (if (or (== $a ()) (== $b ()))
+    ()
+   (if (or (hasOneAtom $a) (hasOneAtom $b))
+       (((car-atom $a) (car-atom $b)))
        (let*
           (
-            (($x $xs) (decons $a))
-            (($y $ys) (decons $b))
+            (($x $xs) (decons-atom $a))
+            (($y $ys) (decons-atom $b))
             ($rest (zip $xs $ys))
           )
-          (cons-atom ($x $y) $rest)))
+          (cons-atom ($x $y) $rest))))
 )
 
 ;; Similar to zip but instead of just creating a tuple of atoms,
@@ -327,7 +329,7 @@
    (if (or (isUnit $list) (hasOneAtom $list))
        $list
        (let* (
-                ;; (() (println! (Sorting $list len: $len)))
+                (() (println! (Sorting $list len: $len)))
                 ($halfL ((py-atom math.floor) (/ $len 2)))
                 (($left $right) (splitAt $halfL $list))
                 ;; (() (println! (From sort Left: $left Right: $right)))
