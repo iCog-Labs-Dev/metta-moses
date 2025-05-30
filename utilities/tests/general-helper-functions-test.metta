@@ -368,3 +368,10 @@ NilMMap discSpec<=)
 !(assertEqual (isApproxEq 1.0000005 1.0000006) True)
 !(assertEqual (isApproxEq 1000000.1 1000000.2) True)
 !(assertEqual (isApproxEq 1.0 1.1) False)
+
+;; Test cases -- selectionSort
+!(assertEqual (selectionSort (5 2 9 1 73 2 3 9 8 34 25) 2) (1 2 5 9 73 2 3 9 8 34 25))
+!(assertEqual (selectionSort  (5 2 9 1 73 2 3 9 8 34 25) 3 >) (73 34 25 5 2 9 1 2 3 9 8))
+!(assertEqual (selectionSort (1 73 2 3 1 9 8 34 1 25 1) 4 <) (1 1 1 1 73 2 3 9 8 34 25))
+!(assertEqual (selectionSort () 2 >) ())
+!(assertEqual (selectionSort (1 2 3) 4 >) (3 2 1))
