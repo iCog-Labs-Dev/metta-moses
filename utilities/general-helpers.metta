@@ -336,6 +336,23 @@
              )
              (merge (sort $left $halfL $key) (sort $right (- $len $halfL) $key) $key))))
 
+;; function to partially sort the smallest $n numbers from an expression
+! (bind! toInt (py-atom int))
+(: selectionSort (-> Expression Number Expression))
+(= (selectionSort $list $n) (selectionSort $list $n <))
+(: selectionSort (-> Expression Number (-> $a $a Bool) Expression))
+(= (selectionSort $list $n $op)
+    (if (or (== $n 0) (== $list ()))
+        $list
+     (let* (
+        ($fn (if (== $op <) min-atom max-atom))
+        ($cur (toInt ($fn $list)))
+        ($newList (subtraction-atom $list ($cur)))
+        ($rest (selectionSort $newList (- $n 1) $op))
+    )
+    (cons-atom $cur $rest)
+    )))
+
 ;; A function to take an atom and repeat it n times.
 (: repeat (-> Atom Number Atom))
 (= (repeat $a $n)
