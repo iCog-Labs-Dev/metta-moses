@@ -1,9 +1,9 @@
 ;; Verbatim port of the Infromation theoretic bits function from c++
 ;; Params: $knobMap: A map of knobs with their multiplicities
 ;; Returns: Sum of the multiplicities of the knobs in the map
-(: informationTheoreticBits (-> (MultiMap (NodeId (DiscSpec $knob))) Number))
+(: informationTheoreticBits (-> (MultiMap (DiscSpec $knob)) Number))
 (= (informationTheoreticBits $knobMap)
-    (chain (List.map second (MultiMap.values $knobMap)) $knobs
+    (chain (MultiMap.values $knobMap) $knobs
       (chain (List.map getKnobMultip $knobs) $multips
         (chain (List.foldr add (mkMultip 0) $multips) $res
           (let (mkMultip $val) $res $val)))))
@@ -12,7 +12,7 @@
 ;; Params: $distance: The hamming distance from the current knob
 ;;         $knobMap: A map of knobs with their multiplicities
 ;; Returns: 2 * Sum of the multiplicities of the knobs in the map
-(: estimateNeighborhood (-> Number (MultiMap (NodeId (DiscSpec $knob))) Number))
+(: estimateNeighborhood (-> Number (MultiMap (DiscSpec $knob)) Number))
 (= (estimateNeighborhood $distance $knobMap)
    (if (== $distance 0)
        1
@@ -46,7 +46,7 @@
                  )
                  $uUpdatedNumInstances))))))
 
-; countNeighborhood 
+; countNeighborhood
 (: countNeighborhood (-> KnobMap Instance Number Number Number))
 (= (countNeighborhood $kbMap $inst $dist $maxCount)
 (countNeighborhoodFromIdx $kbMap $inst $dist 0 $maxCount))

@@ -16,28 +16,20 @@
 
 !(bind! knobmap1
         (ConsMMap (
-                    (mkNodeId (0))
-                    (
                       (mkDiscSpec 1)
-                      (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode A) Nil))))
+                      (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode A) Nil)))
         (ConsMMap (
-                    (mkNodeId (0))
-                    (
                       (mkDiscSpec 1)
-                      (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode B) Nil) (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode B) Nil))))
+                      (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode B) Nil) (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode B) Nil)))
         NilMMap)))
 
 !(bind! knobmap2
         (ConsMMap (
-                    (mkNodeId (0))
-                    (
                       (mkDiscSpec 1)
-                      (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode A) Nil))))
+                      (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode A) Nil)))
         (ConsMMap (
-                    (mkNodeId (0))
-                    (
                       (mkDiscSpec 1)
-                      (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode B) Nil) (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode B) Nil))))
+                      (mkLSK (mkDiscKnob (mkKnob (mkTree (mkNode B) Nil) (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) (mkTree (mkNode B) Nil)))
         NilMMap)))
 
 !(bind! knobmap3   
@@ -119,6 +111,7 @@
                  (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
                (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil)))))
             NilMMap))))))
+
 ;; Test informationTheoreticBits with a knob 
 ;; map containing two knobs with same multiplicity of 3
 !(assertEqual (informationTheoreticBits knobmap1) 6)
