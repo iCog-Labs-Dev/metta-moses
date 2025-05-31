@@ -12,6 +12,17 @@
             (ConsMap ($key $value) (ConsMap ($curKey $curVal) $tail))
             (ConsMap ($curKey $curVal) (Map.insert ($key $value) $tail)))))
 
+;; An insertion function that also allows map to act as a counter
+
+(: Map.insertCounter (-> ($k $v) (Map ($k $v)) (Map ($k $v))))
+(= (Map.insertCounter ($key $value) NilMap) (ConsMap ($key $value) NilMap))
+(= (Map.insertCounter ($key $value) (ConsMap ($curKey $curVal) $tail))
+    (if (== $key $curKey)
+        (ConsMap ($curKey (+ $curVal $value)) $tail)
+        (if (< $key $curKey)
+            (ConsMap ($key $value) (ConsMap ($curKey $curVal) $tail))
+            (ConsMap ($curKey $curVal) (Map.insertCounter ($key $value) $tail)))))
+
 ;; insert an element to a Map using custom comparison functions (equality $ lessthan)
 (: Map.insert (-> ($k $v) (Map ($k $v)) (-> $k $k Bool) (-> $k $k Bool) (Map ($k $v))))
 (= (Map.insert ($key $value) NilMap $fEq $fLt) (ConsMap ($key $value) NilMap))
@@ -82,7 +93,7 @@
 (= (Map.find (ConsMap ($k $v) $xs) $k')
    (if (== $k $k')
        0
-       (chain (Map.find $xs $k' ) $targetIdx
+       (chain (Map.find $xs $k'' ) $targetIdx
                       (if (== $targetIdx -1)
                           $targetIdx
                           (+ 1 $targetIdx)))))
