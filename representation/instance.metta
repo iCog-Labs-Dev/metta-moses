@@ -35,3 +35,6 @@
             (if (cScore< $score1 $score2)
                 (Cons $scoredInst2 (Cons $scoredInst1 $rest))
                 (Cons $scoredInst1 (insertSInst $scoredInst2 $rest))))) 
+
+(= (getSInstScore (mkSInst (mkPair $inst $score))) $score)
+(= (getInst (mkSInst (mkPair $inst $score))) $inst)
