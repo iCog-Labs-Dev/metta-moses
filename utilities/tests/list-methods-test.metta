@@ -132,3 +132,12 @@
 !(assertEqual (List.concat (Cons 1 (Cons 2 Nil)) (Cons 3 (Cons 4 Nil))) (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
 !(assertEqual (List.concat (Cons 5 (Cons 6 (Cons 7 Nil))) (Cons 8 Nil)) (Cons 5 (Cons 6 (Cons 7 (Cons 8 Nil)))))
 !(assertEqual (List.concat Nil (Cons 10 (Cons 11 (Cons 12 Nil)))) (Cons 10 (Cons 11 (Cons 12 Nil))))
+
+;; Test cases for List.removeAtIdx
+!(assertEqual (List.removeAtIdx (Cons 1 (Cons 2 (Cons 3 Nil))) 0) (Cons 2 (Cons 3 Nil)))
+!(assertEqual (List.removeAtIdx (Cons 1 (Cons 2 (Cons 3 Nil))) 1) (Cons 1 (Cons 3 Nil)))
+!(assertEqual (List.removeAtIdx (Cons 1 (Cons 2 (Cons 3 Nil))) 3) (Cons 1 (Cons 2 (Cons 3 Nil))))
+
+;; Test cases for List.isMember
+!(assertEqual (List.isMember 2 (Cons 1 (Cons 2 (Cons 3 Nil)))) True)
+!(assertEqual (List.isMember 4 (Cons 1 (Cons 2 (Cons 3 Nil)))) False)

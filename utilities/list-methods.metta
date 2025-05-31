@@ -180,3 +180,28 @@
 (= (List.concat Nil $list2) $list2)
 (= (List.concat (Cons $head $tail) $list2)
    (Cons $head (List.concat $tail $list2)))
+
+;; Removes the element at the specified index from the list.
+;; Params:
+;;   $list: Input list.
+;;   $idx: Non-negative index of element to remove (0-based).
+;; Returns:
+;;   (List $a) - New list with element at $idx removed, or original list if $idx is invalid.
+(: List.removeAtIdx (-> (List $a) Number (List $a)))
+(= (List.removeAtIdx Nil $idx) Nil)
+(= (List.removeAtIdx (Cons $head $tail) $idx)
+   (if (< $idx 0) (Cons $head $tail)
+       (if (== $idx 0) $tail
+           (Cons $head (List.removeAtIdx $tail (- $idx 1))))))
+
+;; Checks if an element exists in a list.
+;; Params:
+;;   $elem: Element to search for.
+;;   $list: Input list to search in.
+;; Returns:
+;;   Bool - True if $elem is found in $list, False otherwise.
+(: List.isMember (-> $a (List $a) Bool))
+(= (List.isMember $elem Nil) False)
+(= (List.isMember $elem (Cons $head $tail))
+   (if (== $elem $head) True
+       (List.isMember $elem $tail)))
