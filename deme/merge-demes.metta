@@ -41,10 +41,9 @@
 
 ;; removing duplicates and keeping top scoring unique ones
 (: keepTopUniqueCandidates (-> (InstanceSet Cscore) Number Number (List (ScoredInstance Cscore))))
-(= (keepTopUniqueCandidates $sortedSInstList $nEval $maxCandsPerDeme)
+(= (keepTopUniqueCandidates (mkSInstSet $sortedSInstList) $nEval $maxCandsPerDeme)
  (let*
  (
-    (() (println! "inside keep"))
     ($lenSInstList (List.length $sortedSInstList))
     ($topCnd (min-atom ($nEval $lenSInstList)))
     ($uTopCnd (if (>= $maxCandsPerDeme 0) (min-atom ($topCnd $maxCandsPerDeme)) $topCnd))
@@ -53,8 +52,10 @@
  $uniqueTopCandidates
  ))
 
+(: usefulScoreRange (-> Number Number))
 (= (usefulScoreRange $complexityTemperature)(/ (* 30 $complexityTemperature) 100.0))
 
+(: filterDemeByScore (-> (List (ScoredInstance Cscore)) Number Number (List (ScoredInstance Cscore))))
 (= (filterDemeByScore Nil $lastIndex $botSc) Nil)
 (= (filterDemeByScore (Cons $si $sis) 0 $botSc) (Cons $si $sis))
 (= (filterDemeByScore (Cons $si $sis) $lastIndex $botSc)
@@ -70,11 +71,11 @@
     )
 ))
 
-(: trimDownDeme (-> Deme Number Number Deme))
-(= (trimDownDeme (mkDeme $rep (mkSInstSet $sInstList) (mkDemeId $demeId)) $minPoolSize $complexityTemperature)
+(: trimDownDeme (-> (List (ScoredInstance Cscore)) Number Number (List (ScoredInstance Cscore))))
+(= (trimDownDeme $sInstList $minPoolSize $complexityTemperature)
 (let $demeSize (List.length $sInstList)
 (if (or (>= $minPoolSize $demeSize) (<= $demeSize 1)) 
-    (mkDeme $rep (mkSInstSet $sInstList) (mkDemeId $demeId))
+    $sInstList
     (let*
       (
        ($topInst (List.head $sInstList))
@@ -82,29 +83,34 @@
        ($topPenScore (getPenScore $topScore))
        ($botSc (- $topPenScore (usefulScoreRange $complexityTemperature)))
        ($filteredSInstList (filterDemeByScore $sInstList (- $demeSize 1) $botSc)))     
-      (mkDeme $rep (mkSInstSet $filteredSInstList) (mkDemeId $demeId))))))
+       $filteredSInstList))))
 
 (: demeToTrees(-> Deme (ITable $a) (List (Exemplar $a))))
-(= (demeToTrees (mkDeme $rep (mkSInstSet Nil) (mkDemeId $demeId)) $itable) Nil)
-(= (demeToTrees (mkDeme $rep (mkSInstSet (Cons $si $sil)) (mkDemeId $demeId)) $itable)
+(= (demeToTrees (mkDeme $rep (mkSInstSet Nil) $demeId) $itable) Nil)
+(= (demeToTrees (mkDeme $rep (mkSInstSet (Cons $si $sil)) $demeId) $itable)
 (let*
 (
+    (() (println! "inside demeToTrees list"))
     ($cscore (getSInstScore $si))
-    ($inst (getInst $si))
+    (() (println! $cscore)) ;;;
+    ($inst (getInst $si))  
+    (() (println! $inst))  ;;;
     ($tree (getCandidate $rep $inst))
+    (() (println! $tree)) ;;;
     ($bscore (scoreTree $itable $tree))
-    ($scoredTree (mkExemplar $tree (mkDemeId $demeId) $cscore $bscore))
+    (() (println! $bscore)) ;;;
+    ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
+    (() (println! $scoredTree))
 )
-(Cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) (mkDemeId $demeId))))
+(Cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) $demeId) $itable))
 ))
 
+(: getNewCandidates (-> (List (Exemplar $a)) (OS (Exemplar $a)) (List (Exemplar $a))))
 (= (getNewCandidates Nil $metaPop) Nil)
 (= (getNewCandidates (Cons $xmp $xmpl) $metaPop)
-(if (List.isMember $xmp $metaPop)
+(if (OS.isMember $xmp $metaPop)
     (getNewCandidates $xmpl $metaPop)
-    (Cons $xmp (getNewCandidates $xmpl $metaPop))
-)
-)
+    (Cons $xmp (getNewCandidates $xmpl $metaPop))))
 
 (: dominates (-> BehavioralScore BehavioralScore $bool))
 (= (dominates (mkBScore Nil) (mkBScore Nil)) Indeterminate)
@@ -141,23 +147,26 @@
               (removeDominated (Cons $other $rest))
               (removeDominatedRec $exemplar $rest (Cons $other $acc))))))
 
-()
+;; issues with compareExamplar;;;;
+; (: mergeCandidates (-> (List (Exemplar $a)) (OS (Exemplar $a)) (OS (Exemplar $a))))
+; (= (mergeCandidates (Cons $x $xs) $metapop)
+; (let $updatedMetaPop (OS.insert compareExemplar $x $metapop) ))
 
-(: mergeDemes (-> Deme Number Number (ITable $a) (List (ScoredInstance Cscore))))
-(= (mergeDemes (mkDeme $rep $sInstList $demeId) $nEval $maxCandsPerDeme $itable)
+;; todo set the return type
+(: mergeDemes (-> Deme Number Number Number Number (ITable $a) (OS (Exemplar $a)) $anything))
+(= (mergeDemes (mkDeme $rep $sInstList $demeId) $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metapop)
 (let*
-(
+( 
     ($sortedSInstList (sortDeme $sInstList)) ;; sorting the instances inside the deme by decreasing order
     ($unqCandidates (keepTopUniqueCandidates $sortedSInstList $nEval $maxCandsPerDeme))  ;;remove duplicates and limits the size by keeping the top scoring
-    ; ($trimmedDeme (trimDownDeme $unqCandidates))  ;; further trims the deme
-    ; ($potCandidates (demeToTrees $trimmedDeme (ITable $a))) ;;convert instances to trees
-    ; ($candidates (getNewCandidates $treesToBeMerged)) ;;which aren't found in the meta pop
-    ; ($removedDominated (removeDominated $candidates))  ;;removeDominated 
-    ; ; ($updatedBestCandidate (updateBestCandidates $removedDominated))  ;;update best candidate
-    ; ($candidatesMerged (mergeCandidates $updatedBestCandidate))  ;;merge candidates into metapop
-    ; ($resizedMetapop (resizeMetapop))  ;;resize the metapop
+    ($trimmedDeme (trimDownDeme $unqCandidates $minPoolSize $complexityTemperature))  ;; further trims the deme
+    ($potCandidates (demeToTrees (mkDeme $rep (mkSInstSet $trimmedDeme) $demeId) $itable)) ;;convert instances to trees
+    ($candidates (getNewCandidates $potCandidates $metapop)) ;;which aren't found in the meta pop
+    ($removedDominated (removeDominated $candidates))  ;;removeDominated 
+    ;($candidatesMerged (mergeCandidates $removedDominated $metapop))  ;;merge candidates into metapop
+    ;($resizedMetapop (resizeMetapop))  ;;resize the metapop
 
 )
-$unqCandidates
+$removedDominated
 ))
 

@@ -1,33 +1,34 @@
 ! (register-module! ../../../metta-moses)
 ! (import! &self metta-moses:deme:merge-demes)
-! (import! &self metta-moses:utilities:list-methods)
-! (import! &self metta-moses:representation:instance)
 ! (import! &self metta-moses:deme:create-deme)
 ! (import! &self metta-moses:deme:deme-id-creation)
-! (import! &self metta-moses:representation:representation)
-! (import! &self metta-moses:representation:knob-representation)
-! (import! &self metta-moses:utilities:pair)
-! (import! &self metta-moses:utilities:tree)
-! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:scoring:fitness)
 ! (import! &self metta-moses:scoring:bscore) 
 ! (import! &self metta-moses:scoring:cscore) 
+! (import! &self metta-moses:representation:representation)
+! (import! &self metta-moses:representation:knob-representation)
 ! (import! &self metta-moses:representation:instance) 
 ! (import! &self metta-moses:metapopulation:exemplar-type) 
+! (import! &self metta-moses:representation:instance)
 ! (import! &self metta-moses:representation:lsk)
 ! (import! &self metta-moses:representation:knob-mapper)
-
 !(import! &self metta-moses:representation:logical-probe) 
 ! (import! &self metta-moses:representation:build-logical)
 ! (import! &self metta-moses:representation:build-knobs)
 !(import! &self metta-moses:representation:sample-logical-perms) 
 !(import! &self metta-moses:representation:add-logical-knobs)
-
+! (import! &self metta-moses:utilities:list-methods)
+! (import! &self metta-moses:utilities:ordered-set)
+! (import! &self metta-moses:utilities:pair)
+! (import! &self metta-moses:utilities:tree)
+! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:utilities:map)
 ! (import! &self metta-moses:utilities:nodeId)
 ! (import! &self metta-moses:utilities:ordered-multimap)
-! (import! &self metta-moses:reduct:enf)
 ! (import! &self metta-moses:utilities:python-treehelpers)
+! (import! &self metta-moses:reduct:enf)
+! (import! &self metta-moses:metapopulation:exemplar-type)
+
 
 (= (ARGS) args) 
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
@@ -97,6 +98,10 @@
                     (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
                     (Cons A (Cons B (Cons Output Nil)))))
 
+! (bind! metaPop (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil))))
+                 (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) 
+                 NilOS)))
+
 ; ;; Test cases for removeDupInsts
 ; !(assertEqual
 ;    (removeDupInsts
@@ -143,7 +148,11 @@
 ;   (demeToTrees (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap)))) (mkDscMp (ConsMMap ((mkDiscSpec 1) lsk1) (ConsMMap ((mkDiscSpec 0) lsk2) (ConsMMap ((mkDiscSpec 1) lsk3) NilMMap))))) (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil))))) (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 0 Nil)))) (mkCscore -1 2 1 0 1))) (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 (Cons 0 Nil)))) (mkCscore 0 2 0.5 0 0.8))) Nil))) (mkDemeId "1")))
 ;   (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore Nil)) (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore 0 2 0.5 0 0.8) (mkBScore Nil)) Nil))
 ; )
-; !(getNewCandidates (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons 1 (Cons 4 (Cons 5 Nil))))
+; !(assertEqual
+;   (getNewCandidates 
+;     (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil)))) (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) Nil)) 
+;      metaPop)
+;   (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil)))) (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) Nil)))
 
 ; !(dominates (mkBScore (Cons 1 (Cons 5 (Cons 3 Nil)))) (mkBScore (Cons 2 (Cons 2 (Cons 4 Nil)))))
 
@@ -253,6 +262,11 @@
 ;          (mkBScore (Cons 1 (Cons 2 Nil))))
 ;        Nil)))
 
-;  !(mergeDemes (mkDeme (mkRep knobMapObj tree1) sInstSet (mkDemeId "1")) 5 2 ttable1)
+;!(mergeDemes (mkDeme (mkRep knobMapObj tree1) sInstSet (mkDemeId "1")) 5 2 0 1 ttable1 metaPop)
 
-!(get-type )
+!(compareExemplar
+(mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (Cons 0 (Cons 0 Nil))))
+(mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil))))
+)
+
+
