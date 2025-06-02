@@ -59,3 +59,16 @@
     (if (== $index 0)
         $xs
         (ConsOS $x (OS.removeByIdx $xs (- $index 1)))))
+
+;; Check if an Exemplar is a member of an ordered set
+;; Params:
+;;   $exemplar: Exemplar to check
+;;   $os: Ordered set (OS Exemplar)
+;; Returns:
+;;   Bool - True if $exemplar is in $os, False otherwise
+(: OS.isMember (-> (Exemplar $a) (OS (Exemplar $a)) Bool))
+(= (OS.isMember $exemplar NilOS) False)
+(= (OS.isMember $exemplar (ConsOS $x $xs))
+   (if (== $exemplar $x)
+       True
+       (OS.isMember $exemplar $xs)))
