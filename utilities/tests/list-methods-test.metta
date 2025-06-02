@@ -3,6 +3,8 @@
 
 ! (import! &self metta-moses:utilities:list-methods)
 ! (import! &self metta-moses:utilities:general-helpers)
+! (import! &self metta-moses:representation:instance)
+!(import! &self metta-moses:scoring:cscore)
 
 
 ;; Test cases for List.foldr
@@ -141,3 +143,47 @@
 ;; Test cases for List.isMember
 !(assertEqual (List.isMember 2 (Cons 1 (Cons 2 (Cons 3 Nil)))) True)
 !(assertEqual (List.isMember 4 (Cons 1 (Cons 2 (Cons 3 Nil)))) False)
+
+;; List.partialSort -- for list of Scored instances
+! (assertEqual (List.partialSort instance>=
+                            (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore 1 2 3 4 15)))
+                                (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 1 2 3 4 5)))
+                                (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 1 2 3 4 0.5))) Nil))) 2 Nil)
+                                    
+                                (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore 1 2 3 4 15))) 
+                                        (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 1 2 3 4 5)))
+                                        (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 1 2 3 4 0.5))) Nil))))
+
+! (assertEqual (List.partialSort instance>=
+                        (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 1 1.0 0.5 -3.5)))
+                            (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -1.0 2 1.0 0.5 -2.5)))
+                            (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -3.0 3 1.0 0.5 -4.5))) Nil)))2 Nil)
+    
+      (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -1.0 2 1.0 0.5 -2.5)))
+        (Cons  (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 1 1.0 0.5 -3.5)))
+            (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -3.0 3 1.0 0.5 -4.5))) Nil))))
+
+! (assertEqual (List.partialSort instance>=
+      (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 3 1.0 0.5 -3.5)))
+        (Cons  (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 2 1.0 0.5 -3.5)))
+          (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 1 1.0 0.5 -3.5))) Nil))) 2 Nil)
+    
+          (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 1 1.0 0.5 -3.5)))
+                (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 2 1.0 0.5 -3.5)))
+                    (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 3 1.0 0.5 -3.5))) Nil))))
+
+! (assertEqual (List.partialSort instance>=
+                                (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -3.0 2 1.0 0.5 -4.5)))
+                                    (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -1.0 3 1.0 0.5 -2.5)))
+                                        (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 1 1.0 0.5 -3.5))) Nil))) 2 Nil)
+            (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -1.0 3 1.0 0.5 -2.5)))
+                (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 1 1.0 0.5 -3.5)))
+                    (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -3.0 2 1.0 0.5 -4.5))) Nil))))   
+
+;; For list of numbers             
+! (assertEqual (List.partialSort (Cons 5 (Cons 1 (Cons 8 (Cons 3 Nil)))) 2 Nil) 
+                                (Cons 8 (Cons 5 (Cons 1 (Cons 3 Nil)))) )
+! (assertEqual (List.partialSort (Cons -4 (Cons -3 (Cons -2 (Cons -1 Nil)))) 2 Nil) 
+                                    (Cons -1 (Cons -2 (Cons -4 (Cons -3 Nil)))))
+! (assertEqual (List.partialSort (Cons 5 (Cons 1 (Cons 8 (Cons 3 (Cons 1 (Cons 7 Nil)))))) 3 Nil) 
+                                (Cons 8 (Cons 7 (Cons 5 (Cons 1 (Cons 3 (Cons 1 Nil)))))))
