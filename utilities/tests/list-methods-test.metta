@@ -187,3 +187,7 @@
                                     (Cons -1 (Cons -2 (Cons -4 (Cons -3 Nil)))))
 ! (assertEqual (List.partialSort (Cons 5 (Cons 1 (Cons 8 (Cons 3 (Cons 1 (Cons 7 Nil)))))) 3 Nil) 
                                 (Cons 8 (Cons 7 (Cons 5 (Cons 1 (Cons 3 (Cons 1 Nil)))))))
+
+;; For List.takeN 
+! (assertEqual (List.takeN 2 (Cons 2 (Cons 1 (Cons 3 Nil)))) (Cons 2 (Cons 1 Nil)))                                 
+! (assertEqual (List.takeN 0 (Cons 2 (Cons 1 (Cons 3 Nil)))) Nil)                                 

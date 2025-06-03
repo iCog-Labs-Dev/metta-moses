@@ -235,3 +235,11 @@
     (if (== $x $a)
         $xs
         (Cons $x (List.delete $a $xs))))        
+
+;; List.takeN -- takes the first N members of a list 
+(: List.takeN (-> Number (List $a) (List $a)))
+(= (List.takeN $n Nil) Nil)
+(= (List.takeN $n (Cons $x $xs)) 
+    (if (== $n 0)
+        Nil
+        (let $t (List.takeN (- $n 1) $xs) (Cons $x $t))))
