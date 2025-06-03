@@ -44,7 +44,8 @@
 (: getCandidateRec (-> Representation Instance NodeId NodeId (Tree $a) (Tree $a)))
 (= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $candidate)
    ;; Find the knob associated with src (if any)
-   (chain (findDiscKnob $knobMapObj $srcId) $knobIdxPair
+   ;; (rlkt ((0) 1)) (dicMap (0 K1) (0 K2) ) => (K1 1)
+   (chain (findDiscKnob $knobMapObj $srcId) $knobIdxPair;; K1-0, K2-1, K3-2..., (0 0 1)
       (if (~= (second $knobIdxPair) -1)
           (chain (List.getByIdx $inst (second $knobIdxPair)) $d
           (chain (appendTo (first $knobIdxPair) $candidate $parentId $d) $updatedCnd
@@ -56,7 +57,7 @@
           $updatedCnd))
 
          ;; No knob found. Just copy.
-         (chain (getNodeById $tree $srcId) $src ;; Get node value using id
+         (chain (getNodeById $tree $srcId) $src ;; Get node value using id;; (AND A B) => (AND A) A= (1) B= (2)
          (chain (appendChild $candidate $parentId (mkTree (getNodeValue $src) Nil)) $cndChIdPair ;; AppendChild returns a pair of tree and appended child Id
          (chain (getChildren $src) $srcChildren
          (chain (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (second $cndChIdPair) (first $cndChIdPair) 1) $srcChildren) $state

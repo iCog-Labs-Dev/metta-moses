@@ -46,6 +46,7 @@
                  )
                  $uUpdatedNumInstances))))))
 
+<<<<<<< Updated upstream
 ; countNeighborhood
 (: countNeighborhood (-> KnobMap Instance Number Number Number))
 (= (countNeighborhood $kbMap $inst $dist $maxCount)
@@ -84,10 +85,10 @@
 ;;      Check if the score has improve, if so update the center instance by the best instance found. Set the distance to 1. and change already xover to false.
 ;;      If not, check if no crossover was made and if so increase the distance by 1.
 ;;      If it is the first time through the loop, we should not exit but we should set the distance to 1 and retry the iteration.
-(: hillClimbing (-> Deme TruthTableBScore Instance (Instance Deme $state)))
+(: hillClimbing (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)))
 (= (hillClimbing $deme $tTableBscorer $centerInst) (hillClimbing (4 3 0) (False False False $centerInst (worstCscore) (pow-math 10 -308) 0 0 1) $deme $cscorer $centerInst))
 
-(: hillClimbing (-> $params $state Deme TruthTableBScore Instance (Instance Deme $state)))
+(: hillClimbing (-> $params $state Deme (TruthTableBScore $a) Instance (Instance Deme $state)))
 (= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
                  ($alreadyXover $lastChance $_ $prevCenter $bestCscore $bestScore $currentNInstances $d $i) ;; Mutable states
                  (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) $instSet $id) ;; Deme
@@ -95,8 +96,11 @@
                  $centerInst) ;; Center instance or init instance
    (let*
       (
+        (() (println! (Iteration $i running)))
         ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) $instSet $id))
         ($totalNNeighbors (estimateNeighborhood $d $disc))
+        (() (println! (Estimated neibors)))
+        ($nNewNeighbors (min $totalNeighbors 5)) ;; Try with 7
 
         ;; INFO: Since our neighborhood size is chosen to be small,
         ;; we don't need to limit the new neighbors with another function like the C++ (At least for now).
@@ -106,8 +110,8 @@
         ;; Cross over if iteration is > 1 and either neighborhood is large or last chance. Also if not already crossed over.
         ($xOver (and (> $i 1) (and (not $alreadyXover) (or $largeNbh $lastChance))))
         (((mkDeme $rep $updatedInstSet $id) $newInstances) (if $xOver
-                                                               (crossover $totalNNeighbors $prevCenter $deme)
-                                                               (sampleNewInstances $totalNNeighbors $totalNNeighbors $prevCenter $deme $d)))
+                                                               (crossover $totalNNeighbors $nNewNeighbors $prevCenter $deme)
+                                                               (sampleNewInstances $totalNNeighbors $nNewNeighbors $prevCenter $deme $d)))
 
         ;; Score all demes in the instance set.
         ((mkSInstSet $scoredInstances) (transform $updatedInstSet $rep $iTable $cpxCoeff))
@@ -162,5 +166,3 @@
                               $finalDeme
                               (mkTruthTableBScore $cpxCoeff $size $iTable)
                               $finalCenter))))))
-
-

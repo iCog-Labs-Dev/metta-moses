@@ -55,7 +55,8 @@
             ($picked (lazyRandomSelector 0 $upperbound $nPairs))
             ($perms (collapse (getArgs $swapedOp $idxPairs $picked)))
         )
-        (collapse (union (superpose args) (superpose $perms)))
+        ;; (collapse (union (superpose args) (superpose $perms)))
+        args
     )
 )
 

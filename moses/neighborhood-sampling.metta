@@ -19,7 +19,7 @@
 ;; Returns: List of instances.
 (: generateAllInNeighborhood (-> Multiplicity Instance Number (List Instance)))
 (= (generateAllInNeighborhood (mkMultip $m) (mkInst (Cons $x $xs)) $dist)
-   (let $multips (genList 1 (- $m 1))
+   (let $multips (genList 1 (- $m 1)) ;; (1 2)
    (let $instExp (List.listToExpr (Cons $x $xs))
    (let $listNeighbors (collapse (let $neighbors (varyNKnobs $multips $instExp $dist)
                               (mkInst (pyExprToList $neighbors))))
@@ -176,7 +176,7 @@
 (: sampleNewInstances (-> Number Number Instance Deme Number (Deme Number)))
 (= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep $kbMp $tree) (mkSInstSet $instList) $demeId) $dist)
  (let*
-  (($updatedTotalNeighbors 
+  (($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (countNeighborhood $kbMp $centerInst $dist $numNewInstances)
              $totalNeighbors))
