@@ -64,3 +64,12 @@
             ((False True False True) E)
             ((False True False False) L)
             ((False False $u $v) L) ))))
+
+(: compareExemplar (-> (Exemplar $a) (Exemplar $a) Atom))
+(= (compareExemplar 
+        (mkExemplar $tree1 $demeId1 $cscore1 $bscr1)
+        (mkExemplar $tree2 $demeId2 $cscore2 $bscr2))
+   (if (cScore< $cscore1 $cscore2) L
+       (if (cScore== $cscore1 $cscore2) E
+           G)
+    ))
