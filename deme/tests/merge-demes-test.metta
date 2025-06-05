@@ -7,16 +7,15 @@
 ! (import! &self metta-moses:scoring:cscore) 
 ! (import! &self metta-moses:representation:representation)
 ! (import! &self metta-moses:representation:knob-representation)
-! (import! &self metta-moses:representation:instance) 
-! (import! &self metta-moses:metapopulation:exemplar-type) 
+! (import! &self metta-moses:representation:instance)  
 ! (import! &self metta-moses:representation:instance)
 ! (import! &self metta-moses:representation:lsk)
 ! (import! &self metta-moses:representation:knob-mapper)
-!(import! &self metta-moses:representation:logical-probe) 
+! (import! &self metta-moses:representation:logical-probe) 
 ! (import! &self metta-moses:representation:build-logical)
 ! (import! &self metta-moses:representation:build-knobs)
-!(import! &self metta-moses:representation:sample-logical-perms) 
-!(import! &self metta-moses:representation:add-logical-knobs)
+! (import! &self metta-moses:representation:sample-logical-perms) 
+! (import! &self metta-moses:representation:add-logical-knobs)
 ! (import! &self metta-moses:utilities:list-methods)
 ! (import! &self metta-moses:utilities:ordered-set)
 ! (import! &self metta-moses:utilities:pair)
@@ -30,13 +29,10 @@
 ! (import! &self metta-moses:metapopulation:exemplar-type)
 ! (import! &self metta-moses:metapopulation:metapopulation)
 
-
 (= (ARGS) args) 
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 (= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
-
 (= (INSERT_ABOVE $tree $nodeId $subtree) (py_insertAbove  $tree $nodeId $subtree))
-
 ; Helper function for clean tree
 (= (REDUCE $expr) (reduce $expr))
 
@@ -103,332 +99,379 @@
                  (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) 
                  NilOS)))
 
-; ;; Testcase-1 for the removeDupInsts
-; !(assertEqual
-;    (removeDupInsts
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;          (Cons
-;             (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;             (Cons
-;                (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
-;                Nil)))
-;       2)
-;    (Cons
-;       (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
-;          Nil)))
+;; Testcase-1 for the removeDupInsts
+!(assertEqual
+   (removeDupInsts
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+         (Cons
+            (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+            (Cons
+               (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
+               Nil)))
+      2)
+   (Cons
+      (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
+         Nil)))
 
-; ;; Testcase-2 for the removeDupInsts
-; !(assertEqual
-;    (removeDupInsts
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;          (Cons
-;             (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
-;             (Cons
-;                (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 0)))
-;                Nil)))
-;       2)
-;    (Cons
-;       (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
-;          Nil)))
+;; Testcase-2 for the removeDupInsts
+!(assertEqual
+   (removeDupInsts
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+         (Cons
+            (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
+            (Cons
+               (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 0)))
+               Nil)))
+      2)
+   (Cons
+      (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
+         Nil)))
 
-; ;; Testcase-3 for the removeDupInsts
-; !(assertEqual
-;    (removeDupInsts
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;          (Cons
-;             (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;             (Cons
-;                (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
-;                (Cons
-;                   (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
-;                   Nil))))
-;       3)
-;    (Cons
-;       (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
-;          Nil)))
+;; Testcase-3 for the removeDupInsts
+!(assertEqual
+   (removeDupInsts
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+         (Cons
+            (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+            (Cons
+               (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
+               (Cons
+                  (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
+                  Nil))))
+      3)
+   (Cons
+      (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
+         Nil)))
 
-; ;; Testcase-1 for keepTopUnique
-; !(assertEqual
-;    (keepTopUniqueCandidates
-;       (mkSInstSet
-;          (Cons
-;             (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;             (Cons
-;                (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;                (Cons
-;                   (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
-;                   Nil))))
-;       5
-;       2)
-;    (Cons
-;       (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
-;          Nil)))
+;; Testcase-1 for keepTopUnique
+!(assertEqual
+   (keepTopUniqueCandidates
+      (mkSInstSet
+         (Cons
+            (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+            (Cons
+               (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+               (Cons
+                  (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
+                  Nil))))
+      5
+      2)
+   (Cons
+      (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
+         Nil)))
 
-; ;; Testcase-2 for keepTopUnique   
-; !(assertEqual
-;    (keepTopUniqueCandidates
-;       (mkSInstSet
-;          (Cons
-;             (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;             (Cons
-;                (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
-;                (Cons
-;                   (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 0)))
-;                   Nil))))
-;       2
-;       5)
-;    (Cons
-;       (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
-;          Nil)))
+;; Testcase-2 for keepTopUnique   
+!(assertEqual
+   (keepTopUniqueCandidates
+      (mkSInstSet
+         (Cons
+            (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+            (Cons
+               (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
+               (Cons
+                  (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 0)))
+                  Nil))))
+      2
+      5)
+   (Cons
+      (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
+         Nil)))
 
-; ;; Testcase-3 for keepTopUnique
-; !(assertEqual
-;    (keepTopUniqueCandidates
-;       (mkSInstSet
-;          (Cons
-;             (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;             (Cons
-;                (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;                (Cons
-;                   (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
-;                   (Cons
-;                      (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 0)))
-;                      Nil)))))
-;       5
-;       3)
-;    (Cons
-;       (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
-;          (Cons
-;             (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 0)))
-;             Nil))))
+;; Testcase-3 for keepTopUnique
+!(assertEqual
+   (keepTopUniqueCandidates
+      (mkSInstSet
+         (Cons
+            (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+            (Cons
+               (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+               (Cons
+                  (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
+                  (Cons
+                     (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 0)))
+                     Nil)))))
+      5
+      3)
+   (Cons
+      (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 0)))
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 0)))
+         (Cons
+            (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 0)))
+            Nil))))
 
-; ;; Testcase-1 for filterDemeByScore
-; !(assertEqual
-;    (filterDemeByScore
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1)))
-;          (Cons
-;             (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 -0.3)))
-;             (Cons
-;                (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 -0.5)))
-;                Nil)))
-;       2
-;       -0.4)
-;    (Cons
-;       (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1)))
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 -0.3)))
-;          Nil)))
-;
-; ;; Testcase-2 for filterDemeByScore
-; !(assertEqual
-;    (filterDemeByScore
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1)))
-;          (Cons
-;             (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 -0.2)))
-;             (Cons
-;                (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 -0.3)))
-;                Nil)))
-;       2
-;       -0.4)
-;    (Cons
-;       (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1)))
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 -0.2)))
-;          (Cons
-;             (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 -0.3)))
-;             Nil))))
-;
-; ;; Testcase-3 for filterDemeByScore
-; !(assertEqual
-;    (filterDemeByScore
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1)))
-;          (Cons
-;             (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 -0.5)))
-;             (Cons
-;                (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 -0.6)))
-;                Nil)))
-;       2
-;       -0.4)
-;    (Cons
-;       (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1)))
-;       Nil))
+;; Testcase-1 for filterDemeByScore
+!(assertEqual
+   (filterDemeByScore
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1)))
+         (Cons
+            (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 -0.3)))
+            (Cons
+               (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 -0.5)))
+               Nil)))
+      2
+      -0.4)
+   (Cons
+      (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1)))
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 -0.3)))
+         Nil)))
 
-;; Testcase for trimDownDeme: TOD0: trimDownDeme is giving 2 non-deterministic outputs which are exactly the same.
-;; I don't know what is wrong. filterDemeByScore is working fine. 
-; !(trimDownDeme
-;       (Cons
-;          (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1)))
-;          (Cons
-;             (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 -0.3)))
-;             (Cons
-;                (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 -0.5)))
-;                Nil)))
-;       2
-;       0.1)
+;; Testcase-2 for filterDemeByScore
+!(assertEqual
+   (filterDemeByScore
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1)))
+         (Cons
+            (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 -0.2)))
+            (Cons
+               (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 -0.3)))
+               Nil)))
+      2
+      -0.4)
+   (Cons
+      (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1)))
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 -0.2)))
+         (Cons
+            (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 -0.3)))
+            Nil))))
 
-; ;; Test case for demeToTrees
-; !(assertEqual
-;   (demeToTrees (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap)))) (mkDscMp (ConsMMap ((mkDiscSpec 1) lsk1) (ConsMMap ((mkDiscSpec 0) lsk2) (ConsMMap ((mkDiscSpec 1) lsk3) NilMMap))))) (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil))))) (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 0 Nil)))) (mkCscore -1 2 1 0 1))) (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 (Cons 0 Nil)))) (mkCscore 0 2 0.5 0 0.8))) Nil))) (mkDemeId "1")) ttable1)
-;   (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (Cons 0 (Cons 0 Nil)))) (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore 0 2 0.5 0 0.8) (mkBScore (Cons 0 (Cons 0 Nil)))) Nil)))
+;; Testcase-3 for filterDemeByScore
+!(assertEqual
+   (filterDemeByScore
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1)))
+         (Cons
+            (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 -0.5)))
+            (Cons
+               (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 -0.6)))
+               Nil)))
+      2
+      -0.4)
+   (Cons
+      (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1)))
+      Nil))
+
+;; Testcase-1 for trimDownDeme
+!(assertEqual
+  (trimDownDeme
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1)))
+         (Cons
+            (mkSInst (mkPair (mkInst (Cons 3 (Cons 4 Nil))) (mkCscore 0 2 0 0 -0.3)))
+            (Cons
+               (mkSInst (mkPair (mkInst (Cons 5 (Cons 6 Nil))) (mkCscore 0 3 0 0 -0.5)))
+               Nil))) 2 0.1)
+               
+  (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 0 1 0 0 -0.1))) Nil))
+
+;; Testcase-2 for trimDownDeme
+!(assertEqual
+  (trimDownDeme
+    (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))) (mkCscore -0.2 1 0.1 0.1 -0.4))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 0 Nil)))) (mkCscore -0.1 2 0.2 0.3 -0.6))) Nil)) 0 1)
+  (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))) (mkCscore -0.2 1 0.1 0.1 -0.4))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 0 Nil)))) (mkCscore -0.1 2 0.2 0.3 -0.6))) Nil)))
+
+;; Testcase-3 for trimDownDeme
+!(assertEqual
+   (trimDownDeme
+      (Cons
+         (mkSInst (mkPair (mkInst (Cons 7 (Cons 8 Nil))) (mkCscore -0.1 1 0.2 0.0 -0.15)))
+         (Cons
+            (mkSInst (mkPair (mkInst (Cons 9 (Cons 10 Nil))) (mkCscore -0.2 2 0.15 0.1 -0.35)))
+            (Cons
+               (mkSInst (mkPair (mkInst (Cons 11 (Cons 12 Nil))) (mkCscore -0.3 3 0.1 0.2 -0.55)))
+               Nil)))
+      2
+      0.1)
+   (Cons (mkSInst (mkPair (mkInst (Cons 7 (Cons 8 Nil))) (mkCscore -0.1 1 0.2 0.0 -0.15))) Nil))
+
+; Testcase-1 for demeToTrees
+!(assertEqual
+  (demeToTrees (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap)))) (mkDscMp (ConsMMap ((mkDiscSpec 1) lsk1) (ConsMMap ((mkDiscSpec 0) lsk2) (ConsMMap ((mkDiscSpec 1) lsk3) NilMMap))))) (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil))))) (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 0 Nil)))) (mkCscore -1 2 1 0 1))) (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 (Cons 0 Nil)))) (mkCscore 0 2 0.5 0 0.8))) Nil))) (mkDemeId "1")) ttable1)
+  (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (Cons 0 (Cons 0 Nil)))) (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore 0 2 0.5 0 0.8) (mkBScore (Cons 0 (Cons 0 Nil)))) Nil)))
+
+; Testcase-2 for demeToTrees
+ !(assertEqual
+    (demeToTrees (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap)))) (mkDscMp (ConsMMap ((mkDiscSpec 1) lsk1) (ConsMMap ((mkDiscSpec 0) lsk2) (ConsMMap ((mkDiscSpec 1) lsk3) NilMMap))))) (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil))))) (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 0 Nil)))) (mkCscore -1 2 1 0 1))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) (mkCscore 0 2 0.5 0 0.8))) Nil))) (mkDemeId "1")) ttable1)
+    (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (Cons 0 (Cons 0 Nil)))) (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) Nil))) Nil)) (mkDemeId "1") (mkCscore 0 2 0.5 0 0.8) (mkBScore (Cons 0 (Cons 0 Nil)))) Nil)))
 
 ;; Testcase-1 for getNewCandidates
-; !(assertEqual
-;   (getNewCandidates 
-;     (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil)))) (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) Nil)) 
-;      metaPop)
-;   (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil)))) (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) Nil)))
+!(assertEqual
+  (getNewCandidates 
+    (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil)))) (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) Nil)) 
+     metaPop)
+  (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil)))) (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) Nil)))
+
+;; Testcase-2 for getNewCandidates
+!(assertEqual
+   (getNewCandidates 
+    (Cons (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) Nil)) 
+     metaPop)
+   (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) Nil))
 
 ;; Testcase-1 for dominates
-; !(assertEqual 
-;   (dominates (mkBScore (Cons 1 (Cons 5 (Cons 3 Nil)))) (mkBScore (Cons 2 (Cons 2 (Cons 4 Nil)))))
-;   Indeterminate)
+!(assertEqual 
+  (dominates (mkBScore (Cons 1 (Cons 5 (Cons 3 Nil)))) (mkBScore (Cons 2 (Cons 2 (Cons 4 Nil)))))
+  Indeterminate)
 
-;; Testcase-1 for removeDominated
-; !(assertEqual
-; (removeDominated
-;    (Cons 
-;      (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (Cons 1 (Cons 5 (Cons 3 Nil))))) 
-;    (Cons 
-;      (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore 0 2 0.5 0 0.8)(mkBScore (Cons 2 (Cons 2 (Cons 4 Nil))))) Nil))
-; )
-; (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (Cons 1 (Cons 5 (Cons 3 Nil))))) (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore 0 2 0.5 0 0.8) (mkBScore (Cons 2 (Cons 2 (Cons 4 Nil))))) Nil))
-; )
+;; Testcase-2 for dominates
+!(assertEqual
+   (dominates 
+      (mkBScore (Cons 5 (Cons 4 (Cons 3 Nil))))
+      (mkBScore (Cons 2 (Cons 1 (Cons 0 Nil)))))
+   True)
 
-; !(assertEqual
-;    (removeDominated Nil)
-;    Nil)
+;; Testcase-3 for dominates
+!(assertEqual
+   (dominates 
+      (mkBScore (Cons 1 (Cons 2 (Cons 3 Nil))))
+      (mkBScore (Cons 2 (Cons 3 (Cons 3 Nil)))))
+   False)
 
-; !(assertEqual
-;   (removeDominated
-;    (Cons
-;      (mkExemplar
-;        (mkTree (mkNode A) Nil)
-;        (mkDemeId "1")
-;        (mkCscore -1 2 1 0 1)
-;        (mkBScore (Cons 1 (Cons 1 Nil))))
-;      Nil))
-;    (Cons (mkExemplar (mkTree (mkNode A) Nil) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (Cons 1 (Cons 1 Nil)))) Nil))
-       
-; !(assertEqual
-;    (removeDominated
-;      (Cons
-;        (mkExemplar
-;          (mkTree (mkNode A) Nil)
-;          (mkDemeId "1")
-;          (mkCscore -1 2 1 0 1)
-;          (mkBScore (Cons 1 (Cons 1 Nil))))
-;        (Cons
-;          (mkExemplar
-;            (mkTree (mkNode B) Nil)
-;            (mkDemeId "1")
-;            (mkCscore 0 2 0.5 0 0.8)
-;            (mkBScore (Cons 1 (Cons 0 Nil))))
-;          Nil)))
-;    (Cons
-;      (mkExemplar
-;        (mkTree (mkNode A) Nil)
-;        (mkDemeId "1")
-;        (mkCscore -1 2 1 0 1)
-;        (mkBScore (Cons 1 (Cons 1 Nil))))
-;      Nil))
+; Testcase-1 for removeDominated
+!(assertEqual
+(removeDominated
+   (Cons 
+     (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (Cons 1 (Cons 5 (Cons 3 Nil))))) 
+   (Cons 
+     (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore 0 2 0.5 0 0.8)(mkBScore (Cons 2 (Cons 2 (Cons 4 Nil))))) Nil))
+)
+(Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (Cons 1 (Cons 5 (Cons 3 Nil))))) (Cons (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore 0 2 0.5 0 0.8) (mkBScore (Cons 2 (Cons 2 (Cons 4 Nil))))) Nil))
+)
 
-; !(assertEqual
-;    (removeDominated
-;      (Cons
-;        (mkExemplar
-;          (mkTree (mkNode A) Nil)
-;          (mkDemeId "1")
-;          (mkCscore -1 2 1 0 1)
-;          (mkBScore (Cons 1 (Cons 0 Nil))))
-;        (Cons
-;          (mkExemplar
-;            (mkTree (mkNode B) Nil)
-;            (mkDemeId "1")
-;            (mkCscore 0 2 0.5 0 0.8)
-;            (mkBScore (Cons 1 (Cons 1 Nil))))
-;          Nil)))
-;    (Cons
-;      (mkExemplar
-;        (mkTree (mkNode B) Nil)
-;        (mkDemeId "1")
-;        (mkCscore 0 2 0.5 0 0.8)
-;        (mkBScore (Cons 1 (Cons 1 Nil))))
-;      Nil))
+; Testcase-2 for removeDominated
+!(assertEqual
+  (removeDominated
+   (Cons
+     (mkExemplar
+       (mkTree (mkNode A) Nil)
+       (mkDemeId "1")
+       (mkCscore -1 2 1 0 1)
+       (mkBScore (Cons 1 (Cons 1 Nil))))
+     Nil))
+   (Cons (mkExemplar (mkTree (mkNode A) Nil) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (Cons 1 (Cons 1 Nil)))) Nil))
 
-; !(assertEqual
-;    (removeDominated
-;      (Cons
-;        (mkExemplar
-;          (mkTree (mkNode A) Nil)
-;          (mkDemeId "1")
-;          (mkCscore -1 2 1 0 1)
-;          (mkBScore (Cons 2 (Cons 1 Nil))))
-;        (Cons
-;          (mkExemplar
-;            (mkTree (mkNode B) Nil)
-;            (mkDemeId "1")
-;            (mkCscore 0 2 0.5 0 0.8)
-;            (mkBScore (Cons 1 (Cons 2 Nil))))
-;          (Cons
-;            (mkExemplar
-;              (mkTree (mkNode C) Nil)
-;              (mkDemeId "1")
-;              (mkCscore 0 2 0.5 0 0.7)
-;              (mkBScore (Cons 1 (Cons 0 Nil))))
-;            Nil))))
-;    (Cons
-;      (mkExemplar
-;        (mkTree (mkNode A) Nil)
-;        (mkDemeId "1")
-;        (mkCscore -1 2 1 0 1)
-;        (mkBScore (Cons 2 (Cons 1 Nil))))
-;      (Cons
-;        (mkExemplar
-;          (mkTree (mkNode B) Nil)
-;          (mkDemeId "1")
-;          (mkCscore 0 2 0.5 0 0.8)
-;          (mkBScore (Cons 1 (Cons 2 Nil))))
-;        Nil)))
+; Testcase-3 for removeDominated    
+!(assertEqual
+   (removeDominated
+     (Cons
+       (mkExemplar
+         (mkTree (mkNode A) Nil)
+         (mkDemeId "1")
+         (mkCscore -1 2 1 0 1)
+         (mkBScore (Cons 1 (Cons 1 Nil))))
+       (Cons
+         (mkExemplar
+           (mkTree (mkNode B) Nil)
+           (mkDemeId "1")
+           (mkCscore 0 2 0.5 0 0.8)
+           (mkBScore (Cons 1 (Cons 0 Nil))))
+         Nil)))
+   (Cons
+     (mkExemplar
+       (mkTree (mkNode A) Nil)
+       (mkDemeId "1")
+       (mkCscore -1 2 1 0 1)
+       (mkBScore (Cons 1 (Cons 1 Nil))))
+     Nil))
 
-;; Testcse-1 for mergeCandidates
-; !(assertEqual
-;  (mergeCandidates
-;       (Cons
-;          (mkExemplar
-;             (mkTree (mkNode A) Nil)
-;             (mkDemeId "1")
-;             (mkCscore -0.1 2 0.1 0.1 -0.3)
-;             (mkBScore (Cons 0 (Cons 0 Nil))))
-;          (Cons
-;             (mkExemplar
-;                (mkTree (mkNode B) Nil)
-;                (mkDemeId "1")
-;                (mkCscore -0.2 3 0.1 0.1 -0.4)
-;                (mkBScore (Cons 0 (Cons 0 Nil))))
-;             Nil))
-;       metaPop)
-;       (ConsOS (mkExemplar (mkTree (mkNode A) Nil) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (Cons 0 (Cons 0 Nil)))) (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil)))) (ConsOS (mkExemplar (mkTree (mkNode B) Nil) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil)))) (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) NilOS))))
-;       )
+; Testcase-4 for removeDominated
+!(assertEqual
+   (removeDominated
+     (Cons
+       (mkExemplar
+         (mkTree (mkNode A) Nil)
+         (mkDemeId "1")
+         (mkCscore -1 2 1 0 1)
+         (mkBScore (Cons 1 (Cons 0 Nil))))
+       (Cons
+         (mkExemplar
+           (mkTree (mkNode B) Nil)
+           (mkDemeId "1")
+           (mkCscore 0 2 0.5 0 0.8)
+           (mkBScore (Cons 1 (Cons 1 Nil))))
+         Nil)))
+   (Cons
+     (mkExemplar
+       (mkTree (mkNode B) Nil)
+       (mkDemeId "1")
+       (mkCscore 0 2 0.5 0 0.8)
+       (mkBScore (Cons 1 (Cons 1 Nil))))
+     Nil))
 
-;; Test case-1 for mergeDemes
-;!(mergeDemes (mkDeme (mkRep knobMapObj tree1) sInstSet (mkDemeId "1")) 5 2 0 1 ttable1 metaPop 3 3 0.004 1000)
+; Testcase-5 for removeDominated
+!(assertEqual
+   (removeDominated
+     (Cons
+       (mkExemplar
+         (mkTree (mkNode A) Nil)
+         (mkDemeId "1")
+         (mkCscore -1 2 1 0 1)
+         (mkBScore (Cons 2 (Cons 1 Nil))))
+       (Cons
+         (mkExemplar
+           (mkTree (mkNode B) Nil)
+           (mkDemeId "1")
+           (mkCscore 0 2 0.5 0 0.8)
+           (mkBScore (Cons 1 (Cons 2 Nil))))
+         (Cons
+           (mkExemplar
+             (mkTree (mkNode C) Nil)
+             (mkDemeId "1")
+             (mkCscore 0 2 0.5 0 0.7)
+             (mkBScore (Cons 1 (Cons 0 Nil))))
+           Nil))))
+   (Cons
+     (mkExemplar
+       (mkTree (mkNode A) Nil)
+       (mkDemeId "1")
+       (mkCscore -1 2 1 0 1)
+       (mkBScore (Cons 2 (Cons 1 Nil))))
+     (Cons
+       (mkExemplar
+         (mkTree (mkNode B) Nil)
+         (mkDemeId "1")
+         (mkCscore 0 2 0.5 0 0.8)
+         (mkBScore (Cons 1 (Cons 2 Nil))))
+       Nil)))
+
+; Testcase for mergeCandidates
+!(assertEqual
+ (mergeCandidates
+      (Cons
+         (mkExemplar
+            (mkTree (mkNode A) Nil)
+            (mkDemeId "1")
+            (mkCscore -0.1 2 0.1 0.1 -0.3)
+            (mkBScore (Cons 0 (Cons 0 Nil))))
+         (Cons
+            (mkExemplar
+               (mkTree (mkNode B) Nil)
+               (mkDemeId "1")
+               (mkCscore -0.2 3 0.1 0.1 -0.4)
+               (mkBScore (Cons 0 (Cons 0 Nil))))
+            Nil))
+      metaPop)
+      (ConsOS (mkExemplar (mkTree (mkNode A) Nil) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (Cons 0 (Cons 0 Nil)))) (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil)))) (ConsOS (mkExemplar (mkTree (mkNode B) Nil) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil)))) (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) NilOS)))))
+
+;; Testcase for mergeDemes
+!(assertEqual
+  (mergeDemes (mkDeme (mkRep knobMapObj tree1) sInstSet (mkDemeId "1")) 5 2 0 1 ttable1 metaPop 3 3 0.004 1000)
+  (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil)))) (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) NilOS)))
 
 
