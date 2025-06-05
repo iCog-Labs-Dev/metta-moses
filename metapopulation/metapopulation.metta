@@ -61,3 +61,22 @@
                 (chain (OS.removeByIdx (ConsOS $exemplar $rest) $index) $newPop
                     (cullAtRandom $newPop $offset (- $nToRemove 1)))))
         (ConsOS $exemplar $rest))) 
+
+;; Compares two exemplars based on their Cscores, returning L if the first is less, E if equal, or G if greater.
+;; Params:
+;;   (Exemplar $a): First exemplar 
+;;   (Exemplar $a): Second exemplar 
+;; Return: L (less), E (equal), or G (greater)
+(: compareExemplar (-> (Exemplar $a) (Exemplar $a) Atom))
+(= (compareExemplar 
+        (mkExemplar $tree1 $demeId1 $cscore1 $bscr1)
+        (mkExemplar $tree2 $demeId2 $cscore2 $bscr2))
+   (if (cScore< $cscore1 $cscore2) L
+       (if (cScore== $cscore1 $cscore2) E G)))
+
+;; Extract BScore from Exemplar
+;; Params:
+;;   (Exemplar $a): exemplar 
+;; Return: $bscore
+(: getExemplarBScore (-> (Exemplar $a) BehavioralScore))
+(= (getExemplarBScore (mkExemplar $tree $demeId $cscore $bscore)) $bscore)
