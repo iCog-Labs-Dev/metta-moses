@@ -2,16 +2,6 @@
 ;;                 Merge Demes                       ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(: Exemplar (-> $type Type))
-(: mkExemplar (-> (Tree $a) DemeId Cscore BehavioralScore (Exemplar $a)))
-
-;; Extract BScore from Exemplar
-(: getExemplarBScore (-> (Exemplar $a) BehavioralScore))
-(= (getExemplarBScore (mkExemplar $tree $demeId $cscore $bscore)) $bscore)
-
-!(bind! EPSILON (pow-math 10 -6))
-(= (isApproxEq $a $b $epsilon) (< (abs-math (- $a $b)) $epsilon))
-
 ;; Removes adjacent duplicate ScoredInstances from a sorted list, keeping up to $topCnd unique instances.
 ;; Params:
 ;;    (List (ScoredInstance Cscore)): Sorted list of scored instances.
@@ -51,9 +41,6 @@
  $uniqueTopCandidates
  ))
 
-(: usefulScoreRange (-> Number Number))
-(= (usefulScoreRange $complexityTemperature)(/ (* 30 $complexityTemperature) 100.0))
-
 ;; Filters a sorted list of ScoredInstances, removing instances with penalized scores below $botSc, starting from $lastIndex.
 ;; Params:
 ;;   (List (ScoredInstance Cscore)): Sorted list of scored instances.
@@ -66,8 +53,6 @@
 (= (filterDemeByScore (Cons $si $sis) $lastIndex $botSc)
 (let*
 (
-   (() (println! "Inside fillterDemeByScore"))
-   (() (println! (Cons $si $sis)))
    ($lastSInst (List.getByIdx (Cons $si $sis) $lastIndex))
    ($lastSInstScore (getSInstScore $lastSInst))
    ($lastSInstPenScore (getPenScore $lastSInstScore))
@@ -91,16 +76,10 @@
     $sInstList
     (let*
       (
-       (() (println! "Inside trimDownDeme"))
        ($topInst (List.head $sInstList))
-       (() (println! $topInst))
        ($topScore (getSInstScore $topInst))
-       (() (println! $topScore))
        ($topPenScore (getPenScore $topScore))
-       (() (println! $topPenScore))
        ($botSc (- $topPenScore (usefulScoreRange $complexityTemperature)))
-       (() (println! $botSc))
-       (() (println! $sInstList))
        ($filteredSInstList (filterDemeByScore $sInstList (- $demeSize 1) $botSc)))     
        $filteredSInstList))))
 
@@ -114,17 +93,11 @@
 (= (demeToTrees (mkDeme $rep (mkSInstSet (Cons $si $sil)) $demeId) $itable)
 (let*
 (
-    (() (println! "inside let*"))
     ($cscore (getSInstScore $si))
-    (() (println! $cscore))
     ($inst (getInst $si)) 
-    (() (println! $inst)) 
     ($tree (getCandidate $rep $inst))
-    (() (println! $tree))
     ($bscore (scoreTree $itable $tree))
-    (() (println! $bscore))
     ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
-    (() (println! $scoredTree))
 )
 (Cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) $demeId) $itable))
 ))
@@ -146,12 +119,16 @@
 ;;   $bscore1: First score list (mkBScore (List Number)).
 ;;   $bscore2: Second score list (mkBScore (List Number)).
 ;; Return: $bool - True if $bscore1 dominates, False if $bscore2 dominates, Indeterminate otherwise.
-(: dominates (-> BehavioralScore BehavioralScore $bool))
+(: dominates (-> BehavioralScore BehavioralScore Atom))
 (= (dominates (mkBScore Nil) (mkBScore Nil)) Indeterminate)
 (= (dominates (mkBScore Nil) (mkBScore (Cons $by $bys))) False)
 (= (dominates (mkBScore (Cons $bx $bxs)) (mkBScore Nil)) True)
 (= (dominates (mkBScore (Cons $bx $bxs)) (mkBScore (Cons $by $bys)))
    (dominatesRec (mkBScore (Cons $bx $bxs)) (mkBScore (Cons $by $bys)) Indeterminate))
+
+;; helper function for dominates
+(: dominatesRec (-> BehavioralScore BehavioralScore Atom Atom))
+(= (dominatesRec (mkBScore Nil) (mkBScore Nil) $res) $res)
 (= (dominatesRec (mkBScore (Cons $bx $bxs)) (mkBScore (Cons $by $bys)) $res)
    (if (> $bx $by)
        (if (== $res False) Indeterminate
@@ -160,7 +137,6 @@
            (if (== $res True) Indeterminate
                (dominatesRec (mkBScore $bxs) (mkBScore $bys) False))
            (dominatesRec (mkBScore $bxs) (mkBScore $bys) $res))))
-(= (dominatesRec (mkBScore Nil) (mkBScore Nil) $res) $res)
 
 ;; Removes dominated exemplars from a list based on their BehavioralScores.
 ;; Params:
@@ -190,8 +166,9 @@
               (removeDominatedRec $exemplar $rest (Cons $other $acc))))))
 
 ;; Merges a list of exemplars into the metapopulation, maintaining order based on exemplar comparison.
+;; Assumes the exemplars are already filtered so it directly inserts them to the metapopulation
 ;; Params:
-;;   (List (Exemplar $a)): List of exemplars to merge.
+;;   (List (Exemplar $a)): List of exemplars to merge 
 ;;   $metapop: Ordered set to merge into.
 ;; Return: $updatedMetaPop: Updated ordered set with merged exemplars.
 (: mergeCandidates (-> (List (Exemplar $a)) (OS (Exemplar $a)) (OS (Exemplar $a))))
