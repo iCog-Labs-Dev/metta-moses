@@ -181,6 +181,7 @@
  (let*
   (
     (() (println! (Inside sampleNewInstances: $totalNeighbors $numNewInstances $centerInst)))
+    (() (println! (Distance: $dist CenterInst: $centerInst)))
     (() (println! ""))
 
     ($updatedTotalNeighbors
@@ -196,7 +197,5 @@
                        (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))
     ($scoredNewInstances (List.map initInstScore $newInstances))
     ($updatedInstList (List.concat $instList $scoredNewInstances))
-    (() (println! (SampledInstances: $updatedInstList)))
-    (() (println! ""))
  )
  ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId) $updatedNumNewInstances)))
