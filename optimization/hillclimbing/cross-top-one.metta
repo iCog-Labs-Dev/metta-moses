@@ -25,7 +25,7 @@
 ;; returns an expression of Scored instances with the new instances recieveing the worst composite possible score 
 (: merger (-> Expression Instance Instance Expression))
 (= (merger $targetInstances $baseInst $referenceInst)
-    (collapse (let* (((mkSInst (mkPair $targetInst $score)) (superpose $targetInstances))) 
+    (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
         (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
 
 ;; mergeInstance -- handles the crossover of single instance   
