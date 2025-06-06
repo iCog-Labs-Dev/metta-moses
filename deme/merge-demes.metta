@@ -191,12 +191,11 @@
 ;;   $itable: The input table.
 ;;   $metapop: Ordered set of existing exemplars.
 ;;   $nToKeep: Target size for resized metapopulation.
-;;   $compTemp: Complexity temperature for resizing.
 ;;   $capCoef: Capacity coefficient for resizing.
 ;;   $genCount: Generation count for resizing.
 ;; Return: Updated and resized metapopulation.
-(: mergeDemes (-> Deme Number Number Number Number (ITable $a) (OS (Exemplar $a)) Number Number Number Number (OS (Exemplar $a))))
-(= (mergeDemes (mkDeme $rep $sInstList $demeId) $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metapop $nToKeep $compTemp $capCoef $genCount)
+(: mergeDemes (-> Deme Number Number Number Number (ITable $a) (OS (Exemplar $a)) Number Number Number (OS (Exemplar $a))))
+(= (mergeDemes (mkDeme $rep $sInstList $demeId) $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metapop $nToKeep $capCoef $genCount)
 (let*
 ( 
     ($sortedSInstList (sortDeme $sInstList)) ;; sorting the instances inside the deme by decreasing order
@@ -206,7 +205,7 @@
     ($candidates (getNewCandidates $potCandidates $metapop)) ;;which aren't found in the meta pop
     ($removedDominated (removeDominated $candidates))  ;;removeDominated 
     ($updatedMetaPop (mergeCandidates $removedDominated $metapop))  ;;merge candidates into metapop
-    ($resizedMetapop (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $compTemp $capCoef $genCount))  ;;resize the metapop
+    ($resizedMetapop (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount))  ;;resize the metapop
 )
 $resizedMetapop))
 
