@@ -19,13 +19,15 @@
 ;; Returns: List of instances.
 (: generateAllInNeighborhood (-> Multiplicity Instance Number (List Instance)))
 (= (generateAllInNeighborhood (mkMultip $m) (mkInst (Cons $x $xs)) $dist)
-   (let $multips (genList 1 (- $m 1)) ;; (1 2)
-   (let $instExp (List.listToExpr (Cons $x $xs))
-   (let $listNeighbors (collapse (let $neighbors (varyNKnobs $multips $instExp $dist)
-                              (mkInst (pyExprToList $neighbors))))
-   (let $uqListNeighbors (unique-atom $listNeighbors)
-   (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (Cons $x $xs))))
-     (pyExprToList $uqListNeighbors')))))))
+   (if (== $dist 0)
+       (Cons (mkInst (Cons $x $xs)) Nil)
+       (let $multips (genList 1 (- $m 1))
+          (let $instExp (List.listToExpr (Cons $x $xs))
+          (let $listNeighbors (collapse (let $neighbors (varyNKnobs $multips $instExp $dist)
+                                      (mkInst (pyExprToList $neighbors))))
+          (let $uqListNeighbors (unique-atom $listNeighbors)
+          (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (Cons $x $xs))))
+            (pyExprToList $uqListNeighbors'))))))))
 
 
 ;; This function returns a non deterministic list of instances at the given distance.
@@ -80,7 +82,7 @@
 ;;      $dist: The distance from the central instance.
 ;;      $knobmapper: The knob mapper used to extract the multiplicity of the knob.
 ;;      $centralinstance: The instance from which other instances will be generated.
-(: sampleFromNeighborhood (-> Number Number knobMap Instance (List Instance)))
+(: sampleFromNeighborhood (-> Number Number KnobMap Instance (List Instance)))
 (= (sampleFromNeighborhood $sampleSize $dist (mkKbMap (mkDscKbMp $itDiscKnob) (mkDscMp $disc)) (mkInst $centralInst))
     (if (== $sampleSize 0)
         Nil
@@ -91,6 +93,7 @@
           (if (== $knobLen $instLen)
               (let*
                 (
+                  (() (println! (Inside sampleFromNeighborhood: $sampleSize $dist $centralInst)))
                   ($selectedIndices (lazyRandomSelector 0 (- $instLen 1) $dist))
                   ($updatedInst (updateInst $selectedIndices $disc $centralInst))
                   ($restInstances (sampleFromNeighborhood (- $sampleSize 1) $dist (mkKbMap (mkDscKbMp $itDiscKnob) (mkDscMp $disc)) (mkInst $centralInst)))
@@ -155,7 +158,7 @@
 ;;   (ScoredInstance $score): Scored instance with an initial large negative score -10^37.
 (: initInstScore (-> Instance (ScoredInstance $score)))
 (= (initInstScore $inst)
-(mkSInst (mkPair $inst (pow-math -10 37))))
+(mkSInst (mkPair $inst (worstCscore))))
 
 ;; converts a Scored Instance back to a normal Instance (used to the purpose of testing the sampleNewInstances method)
 ;; Param: scored instance
@@ -176,7 +179,11 @@
 (: sampleNewInstances (-> Number Number Instance Deme Number (Deme Number)))
 (= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep $kbMp $tree) (mkSInstSet $instList) $demeId) $dist)
  (let*
-  (($updatedTotalNeighbors
+  (
+    (() (println! (Inside sampleNewInstances: $totalNeighbors $numNewInstances $centerInst)))
+    (() (println! ""))
+
+    ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (countNeighborhood $kbMp $centerInst $dist $numNewInstances)
              $totalNeighbors))
@@ -189,5 +196,7 @@
                        (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))
     ($scoredNewInstances (List.map initInstScore $newInstances))
     ($updatedInstList (List.concat $instList $scoredNewInstances))
+    (() (println! (SampledInstances: $updatedInstList)))
+    (() (println! ""))
  )
  ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId) $updatedNumNewInstances)))
