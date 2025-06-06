@@ -42,7 +42,7 @@
 ;; worstCscore
 (: worstCscore (-> Cscore))
 (= (worstCscore)
-    (mkCscore (pow-math 10 -308)  0 0.0 0.0 (pow-math 10 -308)))            
+    (mkCscore (* -1 (pow-math 10 308))  0 0.0 0.0 (* -1 (pow-math 10 308))))            
 
 ;; score getters
 (: getPenScore (-> Cscore Number))
