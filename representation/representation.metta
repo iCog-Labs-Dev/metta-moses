@@ -37,15 +37,15 @@
 
 (: getCandidate (-> Representation Instance (Tree $a)))
 (= (getCandidate $repObj $inst)
-   (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex Nil)) $candidate
-      (cleanTree $candidate)))
+   (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex Nil)) $candidate
+      ;; (cleanTree $candidate))))
+     (trace! (Done converting instance to tree $candidate) $candidate))))
 
 ;; Assumes the reverseLookupTable's order never changes during this call.
 (: getCandidateRec (-> Representation Instance NodeId NodeId (Tree $a) (Tree $a)))
 (= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $candidate)
    ;; Find the knob associated with src (if any)
-   ;; (rlkt ((0) 1)) (dicMap (0 K1) (0 K2) ) => (K1 1)
-   (chain (findDiscKnob $knobMapObj $srcId) $knobIdxPair;; K1-0, K2-1, K3-2..., (0 0 1)
+   (chain (findDiscKnob $knobMapObj $srcId) $knobIdxPair
       (if (~= (second $knobIdxPair) -1)
           (chain (List.getByIdx $inst (second $knobIdxPair)) $d
           (chain (appendTo (first $knobIdxPair) $candidate $parentId $d) $updatedCnd
@@ -57,7 +57,7 @@
           $updatedCnd))
 
          ;; No knob found. Just copy.
-         (chain (getNodeById $tree $srcId) $src ;; Get node value using id;; (AND A B) => (AND A) A= (1) B= (2)
+         (chain (getNodeById $tree $srcId) $src ;; Get node value using id
          (chain (appendChild $candidate $parentId (mkTree (getNodeValue $src) Nil)) $cndChIdPair ;; AppendChild returns a pair of tree and appended child Id
          (chain (getChildren $src) $srcChildren
          (chain (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (second $cndChIdPair) (first $cndChIdPair) 1) $srcChildren) $state
