@@ -51,3 +51,11 @@
     (if (== $x $el)
         True
         (OS.contains $xs $el)))
+
+;; removeByIdx
+(OS.removeByIdx (-> (OS $a) Number (OS $a)))
+(= (OS.removeByIdx NilOS $index) (Error NilOS INDEX_ERROR))
+(= (OS.removeByIdx (ConsOS $x $xs) $index)
+    (if (== $index 0)
+        $xs
+        (ConsOS $x (OS.removeByIdx $xs (- $index 1)))))        
