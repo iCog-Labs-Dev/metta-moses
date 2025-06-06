@@ -243,3 +243,13 @@
     (if (== $n 0)
         Nil
         (let $t (List.takeN (- $n 1) $xs) (Cons $x $t))))
+
+;; List.takeNFrom -- takes N members starting from given start position position 
+(: List.takeNFrom (-> Number Number (List $a) (List $a)))
+(= (List.takeNFrom $start $n Nil) Nil)
+(= (List.takeNFrom $start $n (Cons $x $xs))
+    (if (== $n 0)
+        Nil
+        (if (== $start 0)
+            (List.takeN $n (Cons $x $xs))
+            (List.takeNFrom (- $start 1) $n $xs))))
