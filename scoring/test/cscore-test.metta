@@ -10,10 +10,10 @@
 ! (bind! nan (py-atom math.nan))
 
 ; ;; Test cases for updatePenalizedScore
-! (assertEqual (updatePenalizedScore (mkCscore  0  2  0.3 0.5  (pow-math 10 -308)) False) (mkCscore  0  2  0.3  0.5 -0.8))
-! (assertEqual (updatePenalizedScore (mkCscore  -1  3  0.2  0.4  (pow-math 10 -308)) True) (mkCscore  -1  3  0.2  0.4  -0.48))
-! (assertEqual (updatePenalizedScore (mkCscore  0  5  0.1  0.9 (pow-math 10 -308)) False) (mkCscore  0  5  0.1 0.9 -1.0))
-! (assertEqual (updatePenalizedScore (mkCscore  -3 1 0.7 1.0  (pow-math 10 -308)) False) (mkCscore  -3 1  0.7 1.0  -4.7))
+! (assertEqual (updatePenalizedScore (mkCscore  0  2  0.3 0.5  (* -1 (pow-math 10 308))) False) (mkCscore  0  2  0.3  0.5 -0.8))
+! (assertEqual (updatePenalizedScore (mkCscore  -1  3  0.2  0.4 (* -1 (pow-math 10 308))) True) (mkCscore  -1  3  0.2  0.4  -0.48))
+! (assertEqual (updatePenalizedScore (mkCscore  0  5  0.1  0.9 (* -1 (pow-math 10 308))) False) (mkCscore  0  5  0.1 0.9 -1.0))
+! (assertEqual (updatePenalizedScore (mkCscore  -3 1 0.7 1.0  (* -1 (pow-math 10 308))) False) (mkCscore  -3 1  0.7 1.0  -4.7))
 
 ! (bind! ttable1 (mkITable (Cons (Cons True (Cons False (Cons True Nil)))
                         (Cons (Cons True (Cons True  (Cons True Nil))) Nil)) 
