@@ -85,7 +85,7 @@
 ;;      If not, check if no crossover was made and if so increase the distance by 1.
 ;;      If it is the first time through the loop, we should not exit but we should set the distance to 1 and retry the iteration.
 (: hillClimbing (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)))
-(= (hillClimbing $deme $tTableBscorer $centerInst) (hillClimbing (4 3 0) (False False False $centerInst (worstCscore) (* -1 (pow-math 10 308)) 0 0 1) $deme $tTableBscorer $centerInst))
+(= (hillClimbing $deme $tTableBscorer $centerInst) (hillClimbing (2 3 0) (False False False $centerInst (worstCscore) (* -1 (pow-math 10 308)) 0 0 1) $deme $tTableBscorer $centerInst))
 
 (: hillClimbing (-> $params $state Deme (TruthTableBScore $a) Instance (Instance Deme $state)))
 (= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
@@ -168,7 +168,7 @@
 
       (if (<= $bestPossibleScore $scoreToCompareBelow)
           (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
-          (let $finalCenter $finalDeme ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI)
+          (let ($finalCenter $finalDeme ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
             ;; TODO: The C++ version checks the hyper parameter hc_params.crossover before getting here.
             ;; TODO: The C++ version checks for the hc_params.widen_search too. For now, we're assuming it is always true. 
             ;;       Hence the omission of the distance check from the C++ Hence the omission of the distance check from the C++
@@ -180,12 +180,12 @@
                               $newDeme
                               (mkTruthTableBScore $cpxCoeff $size $iTable)
                               $newCenter)
-                (trace! (Terminating because last chance is over) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))) )
+                (trace! (Continuing to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))) )
 
             (if (< $maxDist $finalDistance)
-                (trace! (Terminating because of maximum distance reached) ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI)))
+                (trace! (Terminating because of maximum distance reached) ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))) ;; I don't know why I didn't do this earlier but incrementing is needed here.
                 (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
-                              ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI) ;; Updated state
+                              ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
                               $finalDeme
                               (mkTruthTableBScore $cpxCoeff $size $iTable)
                               $finalCenter))))))
