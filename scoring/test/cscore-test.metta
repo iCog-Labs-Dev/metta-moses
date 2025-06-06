@@ -39,7 +39,7 @@
 ! (assertEqual (cScore< (mkCscore -0.1 2 0.1 0.1 -0.3) (mkCscore -0.2 3 0.1 0.1 -0.4)) False)
 ! (assertEqual (cScore< (mkCscore -0.5 3 0.1 0.1 -0.7) (mkCscore -0.5 2 0.1 0.1 -0.7)) True)
 ! (assertEqual (cScore< (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 3 0.1 0.1 -0.7)) False)
-; ! (assertEqual (cScore< (mkCscore nan 2 0.1 0.1 -0.7) (mkCscore -0.5 3 0.1 0.1 -0.7)) True) ;; to be fixed
+! (assertEqual (cScore< (mkCscore nan 2 0.1 0.1 nan) (mkCscore -0.5 3 0.1 0.1 -0.7)) True)
 
 ;; Test cases -- composite score equality comparator 
 ! (assertEqual (cScore== (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 2 0.1 0.1 -0.7)) True)
