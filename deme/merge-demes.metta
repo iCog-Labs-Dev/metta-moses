@@ -49,17 +49,17 @@
 ;; Return: (List (ScoredInstance Cscore)): Filtered list with low-scoring instances removed.
 (: filterDemeByScore (-> (List (ScoredInstance Cscore)) Number Number (List (ScoredInstance Cscore))))
 (= (filterDemeByScore Nil $lastIndex $botSc) Nil)
-(= (filterDemeByScore (Cons $si $sis) 0 $botSc) (Cons $si $sis))
-(= (filterDemeByScore (Cons $si $sis) $lastIndex $botSc)
+(= (filterDemeByScore $listOfScoredInsts 0 $botSc) $listOfScoredInsts)
+(= (filterDemeByScore $listOfScoredInsts $lastIndex $botSc)
 (let*
 (
-   ($lastSInst (List.getByIdx (Cons $si $sis) $lastIndex))
+   ($lastSInst (List.getByIdx $listOfScoredInsts $lastIndex))
    ($lastSInstScore (getSInstScore $lastSInst))
    ($lastSInstPenScore (getPenScore $lastSInstScore))
 )
 (if (< $lastSInstPenScore $botSc) 
-    (let $lastRemovedList (List.removeAtIdx (Cons $si $sis) $lastIndex) (filterDemeByScore $lastRemovedList (- $lastIndex 1) $botSc))
-    (filterDemeByScore (Cons $si $sis) (- $lastIndex 1) $botSc)
+    (let $lastRemovedList (List.removeAtIdx $listOfScoredInsts $lastIndex) (filterDemeByScore $lastRemovedList (- $lastIndex 1) $botSc))
+    (filterDemeByScore $listOfScoredInsts (- $lastIndex 1) $botSc)
     )
 ))
 
@@ -116,9 +116,13 @@
 
 ;; Determines if one BehavioralScore dominates another by comparing their score lists.
 ;; Params:
-;;   $bscore1: First score list (mkBScore (List Number)).
-;;   $bscore2: Second score list (mkBScore (List Number)).
-;; Return: $bool - True if $bscore1 dominates, False if $bscore2 dominates, Indeterminate otherwise.
+;;   $bscore1: First bscore 
+;;   $bscore2: Second score
+;; Return: True if $bscore1 dominates, 
+;;         False if $bscore2 dominates, 
+;;         Indeterminate otherwise.
+;; x dominates y if:
+;; for all i x_i >= y_i and there exists i such that x_i > y_i
 (: dominates (-> BehavioralScore BehavioralScore Atom))
 (= (dominates (mkBScore Nil) (mkBScore Nil)) Indeterminate)
 (= (dominates (mkBScore Nil) (mkBScore (Cons $by $bys))) False)
