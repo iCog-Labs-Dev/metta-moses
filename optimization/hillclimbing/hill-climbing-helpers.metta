@@ -85,7 +85,7 @@
 ;;      If not, check if no crossover was made and if so increase the distance by 1.
 ;;      If it is the first time through the loop, we should not exit but we should set the distance to 1 and retry the iteration.
 (: hillClimbing (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)))
-(= (hillClimbing $deme $tTableBscorer $centerInst) (hillClimbing (2 3 0) (False False False $centerInst (worstCscore) (* -1 (pow-math 10 308)) 0 0 1) $deme $tTableBscorer $centerInst))
+(= (hillClimbing $deme $tTableBscorer $centerInst) (hillClimbing (1 3 0) (False False False $centerInst (worstCscore) (* -1 (pow-math 10 308)) 0 0 1) $deme $tTableBscorer $centerInst))
 
 (: hillClimbing (-> $params $state Deme (TruthTableBScore $a) Instance (Instance Deme $state)))
 (= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters

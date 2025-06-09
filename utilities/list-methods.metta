@@ -180,3 +180,9 @@
 (= (List.concat Nil $list2) $list2)
 (= (List.concat (Cons $head $tail) $list2)
    (Cons $head (List.concat $tail $list2)))
+
+;; Returns True if any element in the list is True, otherwise False.
+(: List.any (-> (List Bool) Bool))
+(= (List.any Nil) False)
+(= (List.any (Cons True $xs)) True)
+(= (List.any (Cons False $xs)) (List.any $xs))
