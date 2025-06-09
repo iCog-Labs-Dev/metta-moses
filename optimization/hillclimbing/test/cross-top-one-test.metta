@@ -1,14 +1,22 @@
 !(register-module! ../../../../metta-moses)
 
-!(import! &self metta-moses:scoring:cscore)
+
+!(import! &self metta-moses:representation:instance)
+!(import! &self metta-moses:representation:representation)
+!(import! &self metta-moses:representation:create-representation)
+
 !(import! &self metta-moses:utilities:tree)
 !(import! &self metta-moses:utilities:list-methods)
+!(import! &self metta-moses:utilities:python-helpers)
 !(import! &self metta-moses:utilities:general-helpers)
+
+!(import! &self metta-moses:scoring:cscore)
+
 !(import! &self metta-moses:deme:create-deme)
-!(import! &self metta-moses:representation:create-representation)
-!(import! &self metta-moses:representation:representation)
-!(import! &self metta-moses:representation:instance)
+
 !(import! &self metta-moses:optimization:hillclimbing:cross-top-one)
+
+(= (pyExprToList $expr) (py_exprToList $expr))
 
 ;; NOTE!!!!!!!
 ;; merger -- this is a function implemented as part if the main crossTopOne in optimization/hillclimbing/cross-top-one.metta but results in error unless this is imported in the test file

@@ -16,7 +16,7 @@
                 ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
                 ($newInstances (merger $targetExpr $baseInstance $referenceInst)))
                 
-                (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet (List.appendList (exprToList $newInstances) $instSet)) $demeId))))
+                (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet (List.appendList (pyExprToList $newInstances) $instSet)) $demeId))))
 
 ;; merger --          handles the non-deterministic operation of crossing over from the reference instance to the target instances             
 ;;                    $targetInstances -- an expression of scored instances
