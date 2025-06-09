@@ -8,6 +8,12 @@
 ! (assertEqual (Map.insert (1 e) (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) NilMap)))) (ConsMap (1 e) (ConsMap (2 b) (ConsMap (3 c) NilMap))))
 ! (assertEqual (Map.insert (2 b) (ConsMap (1 a) (ConsMap (3 c) (ConsMap (4 d) NilMap)))) (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) (ConsMap (4 d) NilMap)))))
 
+;;Testcase for Map.insertCounter
+! (assertEqual (Map.insertCounter 1 (ConsMap (1 1) (ConsMap (2 2) (ConsMap (3 3) NilMap)))) (ConsMap (1 2) (ConsMap (2 2) (ConsMap (3 3) NilMap))))
+! (assertEqual (Map.insertCounter 1 NilMap) (ConsMap (1 1) NilMap))
+! (assertEqual (Map.insertCounter 2 (ConsMap (2 2) (ConsMap (3 3) NilMap))) (ConsMap (2 3) (ConsMap (3 3) NilMap)))
+! (assertEqual (Map.insertCounter 7 (ConsMap (1 1) (ConsMap (2 2) (ConsMap (3 3) NilMap)))) (ConsMap (1 1) (ConsMap (2 2) (ConsMap (3 3) (ConsMap (7 1) NilMap)))))
+
 ;; Testcase for Map.remove
 ! (assertEqual (Map.remove 5 (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) NilMap)))) (Error 5 "not found"))
 ! (assertEqual (Map.remove 1 (ConsMap (1 a) (ConsMap (2 b) (ConsMap (3 c) (ConsMap (4 d) NilMap))))) (ConsMap (2 b) (ConsMap (3 c) (ConsMap (4 d) NilMap))))

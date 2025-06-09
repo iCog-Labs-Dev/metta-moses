@@ -89,3 +89,10 @@
                 (and (isApproxEq $cL $cR) 
                     (and (isApproxEq $cpL $cpR) 
                         (and (isApproxEq $upL $upR) (isApproxEq $pL $pR)))))))
+
+(: cScore>= (-> Cscore Cscore Bool)) 
+(= (cScore>= $cs1 $cs2)
+    (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
+        (if (type-cast (isnan-math $pl) Bool &self)
+            False
+            (or (> $pl $pr) (and (== $pl $pr) (< $cl $cr))))))
