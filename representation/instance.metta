@@ -35,3 +35,14 @@
             (if (cScore< $score1 $score2)
                 (Cons $scoredInst2 (Cons $scoredInst1 $rest))
                 (Cons $scoredInst1 (insertSInst $scoredInst2 $rest))))) 
+
+;; extracts the score of a scored instance object
+(= (getSInstScore (mkSInst (mkPair $inst $score))) $score)
+
+;; extracts the instance from a scored instance object
+(= (getInst (mkSInst (mkPair $inst $score))) $inst)
+
+;; Scored Instance comparator --> instance>=
+(: instance>= (-> (ScoredInstance $score) (ScoredInstance $score) Bool))
+(= (instance>= (mkSInst (mkPair $inst1 $score1)) (mkSInst (mkPair $inst2 $score2)))
+    (cScore>= $score1 $score2))    
