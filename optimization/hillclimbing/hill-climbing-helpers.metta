@@ -51,9 +51,10 @@
 (= (countNeighborhood $kbMap $inst $dist $maxCount)
 (countNeighborhoodFromIdx $kbMap $inst $dist 0 $maxCount))
 
-;; Dummy crossover for temporary simulation.
+;; Crossover function.
+;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
 (: crossover (-> Number Number Instance Deme (Deme Number)))
-(= (crossover $totalNNeighbors $nNewInstances $centerInst $deme) ($deme $nNewInstances))
+(= (crossover $demeSize $nNewInstances $centerInst $deme) (trace! (Running cross over for $centerInst) ((crossTopOne $deme $nNewInstances 0 $demeSize $centerInst) $nNewInstances))) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
 (: returnBest (-> (ScoredInstance Number) (ScoredInstance Number) (ScoredInstance Number)))
 (= (returnBest (mkSInst $inst1) (mkSInst $inst2)) (returnBest < (mkSInst $inst1) (mkSInst $inst2)) )
@@ -104,7 +105,7 @@
         (() (println! (Estimated neighbors: $totalNNeighbors)))
         (() (println! ""))
 
-        ($nNewNeighbors (min $totalNNeighbors 3))
+        ($nNewNeighbors (min $totalNNeighbors 2))
 
         ;; INFO: Since our neighborhood size is chosen to be small,
         ;; we don't need to limit the new neighbors with another function like the C++ (At least for now).
@@ -112,10 +113,10 @@
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
 
         ;; Cross over if iteration is > 1 and either neighborhood is large or last chance. Also if not already crossed over.
-        ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance))))
+        ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
         (() (println! (Crossover: $xOver)))
         (((mkDeme $rep $updatedInstSet $id) $newInstances) (if $xOver
-                                                               (crossover $totalNNeighbors $nNewNeighbors $prevCenter $deme)
+                                                               (crossover $currentNInstances $nNewNeighbors $prevCenter $deme)
                                                                (sampleNewInstances $totalNNeighbors $nNewNeighbors $prevCenter $deme $d)))
         (() (println! (Newinstances: $updatedInstSet)))
         (() (println! ""))
@@ -180,7 +181,7 @@
                               $newDeme
                               (mkTruthTableBScore $cpxCoeff $size $iTable)
                               $newCenter)
-                (trace! (Continuing to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))) )
+                (trace! (Continue to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))) )
 
             (if (< $maxDist $finalDistance)
                 (trace! (Terminating because of maximum distance reached) ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))) ;; I don't know why I didn't do this earlier but incrementing is needed here.
