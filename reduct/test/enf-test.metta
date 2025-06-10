@@ -12,6 +12,6 @@
 !(assertEqual (reduce (OR A B C D)) (AND (OR (AND A) (AND B) (AND C) (AND D))))
 !(assertEqual (reduce (AND)) (AND))
 !(assertEqual (reduce (AND)) (AND))
-!(assertEqual (reduce (OR)) (AND))
+!(assertEqual (reduce (OR)) (AND (OR)))
 
 
