@@ -1,4 +1,6 @@
 import unittest
+import re
+from typing import List, Tuple, Union
 
 
 def tokenizeExpr(expr: str):
@@ -44,6 +46,69 @@ def exprToList(expr: str):
     return list
 
 
+
+# Helper funcitons for listToExpr fucntion 
+ParsedStructure = Union[str, Tuple, List]
+
+def format_to_string(structure: ParsedStructure) -> str:
+    """
+    Recursively formats a nested Python object (lists/tuples/strings)
+    into a single Lisp-style string.
+    """
+    if isinstance(structure, (list, tuple)):
+        elements_as_strings = [format_to_string(elem) for elem in structure]
+        return f"({' '.join(elements_as_strings)})"
+    else:
+        return str(structure)
+
+def parse_from_tokens(tokens: list) -> ParsedStructure:
+    """
+    Recursively parses a list of tokens into a nested Python structure.
+    """
+    if not tokens:
+        raise ValueError("Unexpected end of input, missing ')'")
+
+    token = tokens.pop(0)
+
+    if token == '(':
+        if tokens and tokens[0] == 'Cons':
+            tokens.pop(0)
+            car = parse_from_tokens(tokens)
+            cdr = parse_from_tokens(tokens)
+            if not tokens or tokens.pop(0) != ')':
+                raise ValueError("Expected ')' to close cons expression")
+            return [car] + cdr
+        else:
+            sub_list = []
+            while tokens and tokens[0] != ')':
+                sub_list.append(parse_from_tokens(tokens))
+            if not tokens:
+                raise ValueError("Unexpected end of input, missing ')' for sub-list")
+            tokens.pop(0)
+            return tuple(sub_list)
+    elif token == 'Nil':
+        return []
+    elif token == ')':
+        raise ValueError("Unexpected ')'")
+    else:
+        return token
+
+def listToExpr(list_str: str) -> str:
+    """
+    Main function to convert a Lisp-style cons list into a
+    formatted single-line string.
+    """
+    if not list_str.strip():
+        return "()"
+        
+    tokens = re.findall(r'\(|\)|[^\s()]+', list_str)
+    
+    parsed_structure = parse_from_tokens(tokens)
+    
+    return format_to_string(parsed_structure)
+
+
+
 class TestListMethods(unittest.TestCase):
     def test_expr_to_list(self):
         self.assertEqual(exprToList("(A B C)"), "(Cons A (Cons B (Cons C Nil)))")
@@ -61,4 +126,5 @@ class TestListMethods(unittest.TestCase):
 
 
 # if __name__ == "__main__":
-#     unittest.main()
+    # print(listToExpr("(Cons (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (Cons (B) (Cons (C) (Cons D (Cons E Nil)))))"))
+    # unittest.main()
