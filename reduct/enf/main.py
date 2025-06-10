@@ -16,9 +16,11 @@ def reduce (metta: MeTTa, expr):
 
     input = parse_metta_expression(expr)  
     # if expr is op and doesn't have a child return AND
-    if input == '&' or input == '|':
+    if input == '&':
         return metta.parse_all('(AND)')
-
+    elif input == '|':
+        return metta.parse_all('(AND (OR))')
+    
     tree = BuildTree(input)
 
     root = BinaryExpressionTreeNode("Root")
