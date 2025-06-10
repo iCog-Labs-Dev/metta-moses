@@ -8,10 +8,13 @@
         (if-error $bs ;; return worst possible composite score
             (worstCscore)
             (let* (($bsum (sumBScore $bs))
+                   (() (println! (Score: $bsum)))
+                   (() (println! ""))
                    ($cpxy (treeComplexity $tree))
+                   (() (println! (Complexity: $cpxy)))
                    ($cCoef (getComplexityCoef $complexityRatio)))
 
-                   (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (pow-math 10 -308))  False)))))         
+                   (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False)))))
 
 ;; getComplexityCoef -- calcualtes the complexity coeffient of a tree   
 ;; takes complexity ratio as input and returns complexity coefficient
@@ -35,14 +38,15 @@
 (: updatePenalizedScore (-> Cscore Bool Cscore))
 (= (updatePenalizedScore (mkCscore $scor $cpxy $cpxyPenalty $uniformityPenalty $penalizedScore) $multiplyDiversity)
     (let* (($temp (- $scor $cpxyPenalty))
-           ($updatedPScore (if $multiplyDiversity (* $temp $uniformityPenalty) (- $temp $uniformityPenalty))))
+           ($updatedPScore (if $multiplyDiversity (* $temp $uniformityPenalty) (- $temp $uniformityPenalty)))
+           (() (println! (PenalizedScore: $updatedPScore))))
         
             (mkCscore $scor $cpxy $cpxyPenalty $uniformityPenalty $updatedPScore)))
 
 ;; worstCscore
 (: worstCscore (-> Cscore))
 (= (worstCscore)
-    (mkCscore (* -1 (pow-math 10 308))  0 0.0 0.0 (* -1 (pow-math 10 308))))            
+    (mkCscore (* -1 (pow-math 10 308)) 0 0.0 0.0 (* -1 (pow-math 10 308))))
 
 ;; score getters
 (: getPenScore (-> Cscore Number))

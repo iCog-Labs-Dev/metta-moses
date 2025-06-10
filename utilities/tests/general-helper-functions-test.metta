@@ -128,6 +128,17 @@
 !(assertEqual (((curry +) 1) 2) 3)
 !(assertEqual (((curry -) 5) 4) 1)
 
+;; Test case for curry 2 function
+(: addThree (-> Number Number Number Number))
+(= (addThree $x $y $z) (+ $x (+ $y $z)))
+
+!(assertEqual (get-type ((curry2 addThree) 1)) (-> Number Number Number))
+!(assertEqual (get-type (((curry2 addThree) 1) 2 3)) Number)
+!(assertEqual (((curry2 addThree) 1) 2 3) 6)
+
+!(assertEqual (get-type ((curry ((curry2 addThree) 1)) 2)) (-> Number Number))
+!(assertEqual (((curry ((curry2 addThree) 1)) 2) 3) 6)
+
 ;; ;; Test filter function ;; FIX: Failing Test case
 ;; !(assertEqual (collapse (filter isUnit (9 10 () 5 4 ()))) (() ()))
 ;; !(assertEqual (collapse (filter hasOneAtom (9 10 (Hello) 5 4 (Nop) ()))) ((Hello) (Nop)))
