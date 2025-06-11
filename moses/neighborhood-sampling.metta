@@ -19,13 +19,15 @@
 ;; Returns: List of instances.
 (: generateAllInNeighborhood (-> Multiplicity Instance Number (List Instance)))
 (= (generateAllInNeighborhood (mkMultip $m) (mkInst (Cons $x $xs)) $dist)
-   (let $multips (genList 1 (- $m 1))
-   (let $instExp (List.listToExpr (Cons $x $xs))
-   (let $listNeighbors (collapse (let $neighbors (varyNKnobs $multips $instExp $dist)
-                              (mkInst (pyExprToList $neighbors))))
-   (let $uqListNeighbors (unique-atom $listNeighbors)
-   (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (Cons $x $xs))))
-     (pyExprToList $uqListNeighbors')))))))
+   (if (== $dist 0)
+       (Cons (mkInst (Cons $x $xs)) Nil)
+       (let $multips (genList 1 (- $m 1))
+          (let $instExp (List.listToExpr (Cons $x $xs))
+          (let $listNeighbors (collapse (let $neighbors (varyNKnobs $multips $instExp $dist)
+                                      (mkInst (pyExprToList $neighbors))))
+          (let $uqListNeighbors (unique-atom $listNeighbors)
+          (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (Cons $x $xs))))
+            (pyExprToList $uqListNeighbors'))))))))
 
 
 ;; This function returns a non deterministic list of instances at the given distance.
@@ -89,6 +91,7 @@
           (if (== $knobLen $instLen)
               (let*
                 (
+                  (() (println! (Inside sampleFromNeighborhood: $sampleSize $dist $centralInst)))
                   ($selectedIndices (lazyRandomSelector 0 (- $instLen 1) $dist))
                   ($updatedInst (foldl-atom $selectedIndices $centralInst $updated $rand (updateInst $updated $disc $rand)))
                   ($inst (mkInst $updatedInst)))
@@ -156,7 +159,7 @@
 ;;   (ScoredInstance $score): Scored instance with an initial large negative score -10^37.
 (: initInstScore (-> Instance (ScoredInstance $score)))
 (= (initInstScore $inst)
-(mkSInst (mkPair $inst (pow-math -10 37))))
+(mkSInst (mkPair $inst (worstCscore))))
 
 ;; converts a Scored Instance back to a normal Instance (used to the purpose of testing the sampleNewInstances method)
 ;; Param: scored instance
@@ -177,7 +180,12 @@
 (: sampleNewInstances (-> Number Number Instance Deme Number (Deme Number)))
 (= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep $kbMp $tree) (mkSInstSet $instList) $demeId) $dist)
  (let*
-  (($updatedTotalNeighbors 
+  (
+    (() (println! (Inside sampleNewInstances: $totalNeighbors $numNewInstances $centerInst)))
+    (() (println! (Distance: $dist CenterInst: $centerInst)))
+    (() (println! ""))
+
+    ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (countNeighborhood $kbMp $centerInst $dist $numNewInstances)
              $totalNeighbors))

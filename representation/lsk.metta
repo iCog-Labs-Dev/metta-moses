@@ -82,5 +82,5 @@
                          (1  $subtree) ;; If present
                          (0  (mkNullVex (Cons $subtree Nil))))) ;; If absent
 
-                   (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
+                   (chain (APPEND_CHILD $tree $parentId $treeToAppend) $treeChIdPair
                        (first $treeChIdPair))))))) ;; INFO: Just incase if the append fails and stores the result somewhere else, we need to add a test case here to cmpare between targetNode and appendChild node.

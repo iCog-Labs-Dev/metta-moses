@@ -37,8 +37,9 @@
 
 (: getCandidate (-> Representation Instance (Tree $a)))
 (= (getCandidate $repObj $inst)
-   (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex Nil)) $candidate
-      (cleanTree $candidate)))
+   (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex Nil)) $candidate
+    (cleanTree $candidate))))
+     ;; (trace! (Done converting instance to tree $candidate) $candidate))))
 
 ;; Assumes the reverseLookupTable's order never changes during this call.
 (: getCandidateRec (-> Representation Instance NodeId NodeId (Tree $a) (Tree $a)))

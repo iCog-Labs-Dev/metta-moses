@@ -13,8 +13,14 @@ from .Utilities.ReduceToElegance import *
 
 def reduce (metta: MeTTa, expr):
     expr = str(expr)
+
     input = parse_metta_expression(expr)  
-    # print(input) 
+    # if expr is op and doesn't have a child return AND
+    if input == '&':
+        return metta.parse_all('(AND)')
+    elif input == '|':
+        return metta.parse_all('(AND (OR))')
+    
     tree = BuildTree(input)
 
     root = BinaryExpressionTreeNode("Root")
@@ -61,7 +67,6 @@ def reduce (metta: MeTTa, expr):
     
     return metta.parse_all(expr)
 
-    
 @register_atoms(pass_metta=True)
 def main(metta):
     printer_var = OperationAtom(

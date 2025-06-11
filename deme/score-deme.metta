@@ -8,7 +8,7 @@
 ;;   $listOfScoredInst: accumulator containing the scoredInstances at each call
 ;; Returns:
 ;;   $listOfScoredInst: the final list containing scoredInstances
-(: applyComplexityBasedScore (-> Representation (List Instance) (ITable $a) Number (List (ScoredInstance Cscore)) (List (ScoredInstance $a))))
+(: applyComplexityBasedScore (-> Representation (List Instance) (ITable $a) Number (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
 (= (applyComplexityBasedScore $rep Nil $itable $complexityRatio $listOfScoredInst) $listOfScoredInst)
 (= (applyComplexityBasedScore $rep (Cons $i $is) $itable $complexityRatio $listOfScoredInst)
 (let*
@@ -34,4 +34,5 @@
     ($instList (List.map removeInstScore $scoredInstList))
     ($cbsInstList (applyComplexityBasedScore $rep $instList $itable $complexityRatio Nil))
 )
-(mkSInstSet $cbsInstList)))
+(mkSInstSet $cbsInstList)))  
+

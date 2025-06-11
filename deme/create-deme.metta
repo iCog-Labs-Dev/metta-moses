@@ -1,7 +1,7 @@
 ;; Represents a population of program instances with the same representation 
 ;; but different knob settings, along with their scores
 (: Deme Type)
-(: mkDeme (-> Representation (InstanceSet Number) DemeId Deme))
+(: mkDeme (-> Representation (InstanceSet $score) DemeId Deme))
 
 ;; Creates a new deme with an empty instance set
 ;; Params:
