@@ -298,28 +298,53 @@ def constraint_tree_to_metta_expr(node) -> str:
 ## accepts Metta boolean expression and returns equivalent binary enf expression
 ## e.g 
 ##      (OR A B C D) -->  "|(a,|(b,|(c,d)))
+
 def parse_metta_expression(expr: str) -> str:
+    if not expr or not expr.strip():
+        raise ValueError("Empty expression")
+    
     def parse_tokens(tokens: list[str]) -> str:
+        if not tokens:
+            raise ValueError("Unexpected end of expression")
+            
         token = tokens.pop(0)
 
         if token != '(':
             return token.lower()
 
+        if not tokens:
+            raise ValueError("Expected operator after '('")
+            
         op = tokens.pop(0).upper()
 
+        if op == ')':  # Handle empty parentheses
+            raise ValueError("Empty parentheses are not allowed")
+
         if op == 'NOT':
+            if not tokens:
+                raise ValueError("NOT requires an argument")
             sub_expr = parse_tokens(tokens)
-            assert tokens.pop(0) == ')'
+            if not tokens or tokens.pop(0) != ')':
+                raise ValueError("Expected ')' after NOT expression")
             return f"!({sub_expr})"
 
         elif op in ('AND', 'OR'):
             symbol = '&' if op == 'AND' else '|'
             args = []
-            while tokens[0] != ')':
+            while tokens and tokens[0] != ')':
                 args.append(parse_tokens(tokens))
+            
+            if not tokens:
+                raise ValueError("Expected ')' to close expression")
             tokens.pop(0)  # remove ')'
+            
+            if not args:
+                # Handle empty AND/OR - you could return a default value or raise error
+                if op == 'AND':
+                    return "&"  # Identity for AND
+                else:  # OR
+                    return "|"  # Identity for OR
 
-            # Convert to binary expression by right-associating
             def to_binary(args):
                 if len(args) == 1:
                     return args[0]
@@ -330,5 +355,14 @@ def parse_metta_expression(expr: str) -> str:
         else:
             raise ValueError(f"Unknown operator: {op}")
 
-    tokens = re.findall(r'\(|\)|[A-Za-z]+', expr)
-    return parse_tokens(tokens)
+    # Updated regex to handle more cases
+    tokens = re.findall(r'\(|\)|[A-Za-z][A-Za-z0-9]*', expr)
+    if not tokens:
+        raise ValueError("No valid tokens found")
+        
+    result = parse_tokens(tokens)
+    
+    if tokens:  # Check for leftover tokens
+        raise ValueError("Unexpected tokens after expression")
+        
+    return result
