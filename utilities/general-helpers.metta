@@ -270,10 +270,13 @@
 
 ;; Select atom by index and returns
 (= (selectByIndex $expr $index)
-    (let*(
-        ($len (size-atom $expr))
-        ($list (genList $len))
-    )))
+    (if (== $expr ())
+        (Error (Index out of range) ())
+        (if (== $index 0)
+            (car-atom $expr)
+            (let $tail (cdr-atom $expr)
+                (selectByIndex $tail (- $index 1))
+            ))))
 
 ;; TODO: Use zipWith instead
 ;; A function that compares tuples element by element.
