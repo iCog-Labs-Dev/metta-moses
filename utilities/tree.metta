@@ -1,6 +1,5 @@
 (: Tree (-> $a Type))
 (: mkTree (-> (Node $a) (List (Tree $a)) (Tree $a)))
-(: A Bool)
 (: Node (-> $a Type))
 (: mkNode (-> $a (Node $a)))
 
