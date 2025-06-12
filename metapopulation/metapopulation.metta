@@ -80,3 +80,10 @@
 ;; Return: $bscore
 (: getExemplarBScore (-> (Exemplar $a) BehavioralScore))
 (= (getExemplarBScore (mkExemplar $tree $demeId $cscore $bscore)) $bscore)
+
+;; Extract PenScore from Exemplar
+;; Params:
+;;   (Exemplar $a): exemplar 
+;; Return: $penScore
+(: getExemplarPenScore (-> (Exemplar $a) Number))
+(= (getExemplarPenScore (mkExemplar $tree $demeId $cscore $bscore)) (getPenScore $cscore))
