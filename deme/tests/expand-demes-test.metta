@@ -17,6 +17,7 @@
 !(import! &self metta-moses:utilities:nodeId)
 !(import! &self metta-moses:utilities:list-methods)
 !(import! &self metta-moses:utilities:python-helpers)
+!(import! &self metta-moses:utilities:python-treehelpers)
 !(import! &self metta-moses:utilities:general-helpers)
 !(import! &self metta-moses:utilities:ordered-multimap)
 !(import! &self metta-moses:utilities:ordered-multiset)
