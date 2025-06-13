@@ -97,8 +97,25 @@ def print_ascii_art(text):
 # Define the command to run with the test files
 metta_run_command = "metta"
 
-root = pathlib.Path("../")
-testMettaFiles = list(root.rglob("*test.metta"))
+# Go up the directory tree to find the project root
+def find_project_root(start_path=".", marker="metta-moses"):
+    current_path = pathlib.Path(start_path).absolute()
+    while not (current_path / marker).exists():
+        if current_path.parent == current_path:
+            raise FileNotFoundError(f"Could not find project root with marker '{marker}'")
+        current_path = current_path.parent
+    return current_path / marker
+
+# Fall back option if directory structure is known
+project_root = pathlib.Path(__file__).parent.parent / "metta-moses"
+
+try:
+    meTTa_utils_dir = find_project_root()
+except FileNotFoundError:
+    meTTa_utils_dir = project_root
+
+testMettaFiles = list(meTTa_utils_dir.rglob("*test.metta"))
+print(testMettaFiles)
 total_files = len(testMettaFiles)
 results = []
 fails = 0
