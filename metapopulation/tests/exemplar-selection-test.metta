@@ -5,7 +5,7 @@
 ! (import! &self metta-moses:metapopulation:exemplar-selection)
 ! (import! &self metta-moses:metapopulation:metapopulation)
 ! (import! &self metta-moses:utilities:tree)
-
+(: A Bool)
 ;; Get penalized scores
 ! (assertEqual (getPnScore NilOS) Nil)
 ! (assertEqual 
@@ -146,3 +146,9 @@
           (mkBscore (Cons 0 (Cons 0 (Cons 1 (Cons 0 Nil))))))     
         NilOS))))
 ! (assertEqual (let $choice (selectExemplar test2-exemplars) (OS.contains test2-exemplars $choice)) True)
+
+! (bind! metaPop (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 5) (mkBScore (Cons 0 (Cons 0 Nil))))
+                 (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) 
+                 (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.006) (mkBScore (Cons 0 (Cons 0 Nil)))) NilOS))))
+               
+! (assertEqual (let $choice (selectExemplar metaPop) ((get-type $choice) (OS.contains metaPop $choice))) ((Exemplar Bool) True))
