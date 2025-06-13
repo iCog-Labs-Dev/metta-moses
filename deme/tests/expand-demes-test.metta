@@ -68,6 +68,9 @@
 ! (bind! ttable1 (mkITable (Cons (Cons True (Cons False (Cons True Nil)))
                         (Cons (Cons True (Cons True  (Cons True Nil))) Nil)) 
                         (Cons A (Cons B (Cons O Nil)))))
+        
+(: isScored (-> (ScoredInstance Cscore) Bool))
+(= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
 ;; NOTE!!!!!!!
 ;; merger -- this is a function implemented as part if the main crossTopOne in optimization/hillclimbing/cross-top-one.metta but results in error unless this is imported in the test file
@@ -86,4 +89,4 @@
 ((>= $instanceCount 4) (List.any $scoredElems)))
 (True True))
 
-;!(expandDeme metaPop 0 1 table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
+;!(expandDeme metaPop 0 1 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
