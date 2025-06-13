@@ -213,3 +213,12 @@
                (Cons 2 (Cons 3 Nil)))
 ! (assertEqual (List.takeNFrom 2 10 (Cons 0 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))))
                (Cons 2 (Cons 3 (Cons 4 Nil))))
+
+;; List.repeat test cases
+!(assertEqual
+   (List.repeat 3 5)
+   (Cons 5 (Cons 5 (Cons 5 Nil))))
+
+!(assertEqual
+   (List.repeat 5 3)
+   (Cons 3 (Cons 3 (Cons 3 (Cons 3 (Cons 3 Nil))))))
