@@ -87,3 +87,18 @@
 ;; Return: $penScore
 (: getExemplarPenScore (-> (Exemplar $a) Number))
 (= (getExemplarPenScore (mkExemplar $tree $demeId $cscore $bscore)) (getPenScore $cscore))
+
+;; Extract Cscore from Exemplar
+;; Params:
+;;   (Exemplar $a): exemplar 
+;; Return: $cscore
+(: getExemplarCscore (-> (Exemplar $a) Cscore))
+(= (getExemplarCscore (mkExemplar $tree $demeId $cscore $bscore)) $cscore)
+
+;; Extract Tree from Exemplar
+;; Params:
+;;   (Exemplar $a): exemplar 
+;; Return: $tree
+(: getExemplarTree (-> (Exemplar $a) (Tree $a)))
+(= (getExemplarTree (mkExemplar $tree $demeId $cscore $bscore)) $tree)
+
