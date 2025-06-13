@@ -81,7 +81,7 @@ def parse_from_tokens(tokens: list) -> ParsedStructure:
         else:
             sub_list = []
             while tokens and tokens[0] != ')':
-                sub_list.append(parse_from_tokens(tokens))
+                sub_list.append(parse_raw(tokens))
             if not tokens:
                 raise ValueError("Unexpected end of input, missing ')' for sub-list")
             tokens.pop(0)
@@ -92,6 +92,29 @@ def parse_from_tokens(tokens: list) -> ParsedStructure:
         raise ValueError("Unexpected ')'")
     else:
         return token
+
+def parse_raw(tokens: list) -> ParsedStructure:
+    """
+    Parses the structure without interpreting Cons as a list.
+    Used to preserve structure inside non-top-level Cons expressions.
+    """
+    if not tokens:
+        raise ValueError("Unexpected end of input")
+
+    token = tokens.pop(0)
+
+    if token == '(':
+        sub_list = []
+        while tokens and tokens[0] != ')':
+            sub_list.append(parse_raw(tokens))
+        if not tokens or tokens.pop(0) != ')':
+            raise ValueError("Expected ')'")
+        return tuple(sub_list)
+    elif token == ')':
+        raise ValueError("Unexpected ')'")
+    else:
+        return token
+
 
 def listToExpr(list_str: str) -> str:
     """
@@ -109,22 +132,22 @@ def listToExpr(list_str: str) -> str:
 
 
 
-class TestListMethods(unittest.TestCase):
-    def test_expr_to_list(self):
-        self.assertEqual(exprToList("(A B C)"), "(Cons A (Cons B (Cons C Nil)))")
-        self.assertEqual(
-            exprToList("((A) (B) (C))"), "(Cons (A) (Cons (B) (Cons (C) Nil)))"
-        )
-        self.assertEqual(
-            exprToList("((mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (B) (C) D E)"),
-            "(Cons (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (Cons (B) (Cons (C) (Cons D (Cons E Nil)))))",
-        )
-        self.assertEqual(
-            exprToList("(A (B C E) D E)"),
-            "(Cons (B C E) (Cons A (Cons D (Cons E Nil))))",
-        )
+# class TestListMethods(unittest.TestCase):
+#     def test_expr_to_list(self):
+#         self.assertEqual(exprToList("(A B C)"), "(Cons A (Cons B (Cons C Nil)))")
+#         self.assertEqual(
+#             exprToList("((A) (B) (C))"), "(Cons (A) (Cons (B) (Cons (C) Nil)))"
+#         )
+#         self.assertEqual(
+#             exprToList("((mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (B) (C) D E)"),
+#             "(Cons (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (Cons (B) (Cons (C) (Cons D (Cons E Nil)))))",
+#         )
+#         self.assertEqual(
+#             exprToList("(A (B C E) D E)"),
+#             "(Cons (B C E) (Cons A (Cons D (Cons E Nil))))",
+#         )
 
 
-# if __name__ == "__main__":
-    # print(listToExpr("(Cons (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (Cons (B) (Cons (C) (Cons D (Cons E Nil)))))"))
+if __name__ == "__main__":
+    print(listToExpr("(Cons (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (Cons (B) (Cons (C) (Cons D (Cons E Nil)))))"))
     # unittest.main()

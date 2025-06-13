@@ -35,4 +35,4 @@ jobs:
     
     - name: Run Python tests
       working-directory: ./
-      run: python -m unittest discover -s utilities/
+      run: python run_python_tests.py
