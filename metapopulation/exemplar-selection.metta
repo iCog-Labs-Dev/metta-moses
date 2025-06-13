@@ -37,7 +37,7 @@
 
 ;;  a function to normalize the score values into normalized scores of Boltzman distribution
 ;; the function is specific to this distribution type
-(: normalizeProbs (-> $a $a (List $a) (List $a)))
+(: normalizeProbs (-> Number Number (List Number) (List Number)))
 (= (normalizeProbs $invTemp $best Nil) Nil)
 (= (normalizeProbs $invTemp $best (Cons $x $xs))
     (let*
@@ -64,6 +64,7 @@
 ;;      $sIdx -- start index -- 0
 ;;      $ajstdsum -- sum of probabilities which has been multiplied with a random with random value in (0 .. 1) range
 (: roulette (-> (List Number) Number Number Number))
+(= (roulette Nil $sIdx $ajstdsum) (- $sIdx 1))
 (= (roulette (Cons $p $xs) $sIdx $ajstdsum)
     (if (<= (- $ajstdsum $p) 0)
             $sIdx
