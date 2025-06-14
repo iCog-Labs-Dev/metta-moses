@@ -82,20 +82,21 @@
 ;;      $dist: The distance from the central instance.
 ;;      $knobmapper: The knob mapper used to extract the multiplicity of the knob.
 ;;      $centralinstance: The instance from which other instances will be generated.
-(: sampleFromNeighborhood` (-> Number Number knobMap Instance Instance))
+(: sampleFromNeighborhood` (-> Number Number KnobMap Instance Instance))
 (= (sampleFromNeighborhood` $n $dist (mkKbMap (mkDscKbMp $itDiscKnob) (mkDscMp $disc)) (mkInst $centralInst))
-        (let*
-          (
-            ($knobLen (MultiMap.length $disc))
-            ($instLen (List.length $centralInst)))
-          (if (== $knobLen $instLen)
-              (let*
-                (
-                  ($selectedIndices (lazyRandomSelector 0 (- $instLen 1) $dist))
-                  ($updatedInst (foldl-atom $selectedIndices $centralInst $updated $rand (updateInst $rand $disc $updated)))
-                  ($inst (mkInst $updatedInst)))
-                $inst)
-              (Error ($knobLen $instLen) "Not Equal"))))
+        (let* 
+            (
+              ($knobLen (MultiMap.length $disc)) 
+              ($instLen (List.length $centralInst))
+              ) 
+              (if (== $knobLen $instLen) 
+                  (let* (
+                    ($selectedIndices (lazyRandomSelector 0 (- $instLen 1) $dist))
+                    ($updatedInst (foldl-atom $selectedIndices $centralInst $updated $rand (updateInst $rand $disc $updated)))
+                    ($inst (mkInst $updatedInst))
+                  )
+                  $inst) 
+                  (Error ($knobLen $instLen) "Not Equal"))))
 
 ;; This is a helper function for sfn (sampling from neighborhood) that updates the 
 ;; central instance.
@@ -124,9 +125,10 @@
 ;; and calls sampleFromNeighborhood` function for every number in the list. 
 ;; This will make the sampleFromNeighborhood` to produce $sampleSize samples. 
 ;; Then the produced expression will be made in to llist using pyExprToList
-; (: sampleFromNeighborhood (-> Number Number knobMap Instance (List Instance)))
+(: sampleFromNeighborhood (-> Number Number KnobMap Instance (List Instance)))
 (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
    (let* (
+      (() (println! (Inside sampleFromNeighborhood: $sampleSize $dist $inst)))
       ($list (genList (- $sampleSize 1)))
       ($x (map-atom $list $i (sampleFromNeighborhood` $i $dist $kbMp $inst)))
     )
