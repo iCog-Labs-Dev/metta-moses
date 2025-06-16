@@ -99,10 +99,10 @@ metta_run_command = "metta"
 
 # Get the directory where the current script is located
 script_dir = pathlib.Path(__file__).parent.parent.absolute()
-# print(f"Script directory: {script_dir}")
+print(f"Script directory: {script_dir}")
 
 testMettaFiles = list(script_dir.rglob("*test.metta"))
-# print(testMettaFiles)
+print(testMettaFiles)
 total_files = len(testMettaFiles)
 results = []
 fails = 0

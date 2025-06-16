@@ -6,7 +6,7 @@
 !(import! &self metta-moses:representation:create-representation)
 
 !(import! &self metta-moses:utilities:tree)
-!(import! &self metta-moses:utilities:list-methods)
+!(import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:list-methods)
 !(import! &self metta-moses:utilities:python-helpers)
 !(import! &self metta-moses:utilities:general-helpers)
 
