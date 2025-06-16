@@ -1,0 +1,3 @@
+[submodule "utilities/stdlib/meTTa-utils"]
+	path = utilities/stdlib/meTTa-utils
+	url = https://github.com/iCog-Labs-Dev/meTTa-utils

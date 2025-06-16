@@ -1,6 +1,6 @@
 !(register-module! ../../../metta-moses)
 
-! (import! &self metta-moses:utilities:list-methods)
+! (import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:list-methods)
 ! (import! &self metta-moses:utilities:tree)
 ! (import! &self metta-moses:utilities:nodeId)
 

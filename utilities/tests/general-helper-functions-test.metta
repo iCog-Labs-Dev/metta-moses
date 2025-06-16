@@ -1,7 +1,7 @@
 !(register-module! ../../../metta-moses)
 
 ! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:utilities:ordered-multimap)
+! (import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:ordered-multimap)
 !(import! &self metta-moses:representation:knob-representation)
 
 ! (bind! &newSpace (new-space))
