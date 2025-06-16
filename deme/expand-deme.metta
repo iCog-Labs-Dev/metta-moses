@@ -41,7 +41,7 @@
     (() (println! $deme))
     ((mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) $deme)
     ($lengthOfDscKbMp (Map.length $dscKbMp))
-    ($generatedInst (List.repeat $lengthOfDscKbMp 0))
+    ($generatedInst (List.generate $lengthOfDscKbMp 0))
     (() (println! "optimizing Demes"))
     ((Cons ($inst $optimDeme $state) Nil) (optimizeDemes (Cons $deme Nil) $truthTableBScore $generatedInst $optimize)) ;; the hillclimbing is called under this and it calls the neighborhood and stuff to first populate the deme with instances
     (() (println! $optimDeme))
