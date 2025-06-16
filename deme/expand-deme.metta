@@ -6,7 +6,7 @@
 ;;   $optimize: The optimizer function to apply to each deme.
 ;;  Returns: (List Deme): A new list where each deme has been optimized.
 (: optimizeDemes (-> (List Deme) (TruthTableBScore $a) Instance (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)) (List (Instance Deme $state))))
-(= (optimizedDemes Nil $truthTableBScore $inst $optimize) Nil)
+(= (optimizeDemes Nil $truthTableBScore $inst $optimize) Nil)
 (= (optimizeDemes (Cons $deme $demes) $truthTableBScore $inst $optimize)
 (Cons ($optimize $deme $truthTableBScore $inst) (optimizeDemes $demes $truthTableBScore $inst $optimize)))
 
