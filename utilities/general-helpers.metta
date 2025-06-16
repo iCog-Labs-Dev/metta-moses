@@ -154,6 +154,10 @@
 (: curry (-> (-> $a $b $c) (-> $a (-> $b $c))))
 (= (((curry $f) $x) $y) ($f $x $y))
 
+;; A trick to define `curry2` in MeTTa without `lambda`
+(: curry2 (-> (-> $a $b $c $d) (-> $a (-> $b $c $d))))
+(= (((curry2 $f) $x) $y $z) ($f $x $y $z))
+
 ; ;; Add numbers in an atom list
 (= (sum $list) (foldr + 0 $list))
 

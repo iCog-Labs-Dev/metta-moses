@@ -61,15 +61,16 @@
                       (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap))))
                
                       (mkDscMp (ConsMMap ((mkDiscSpec 1) lsk1) (ConsMMap ((mkDiscSpec 0) lsk2) (ConsMMap ((mkDiscSpec 1) lsk3) NilMMap))))))
-! (bind! ttable1 (mkITable (Cons (Cons True (Cons False (Cons True Nil)))
-                        (Cons (Cons True (Cons True  (Cons True Nil))) Nil)) 
-                        (Cons A (Cons B (Cons O Nil)))))
+! (bind! ttable1 (mkITable (Cons (Cons True (Cons False (Cons False (Cons True (Cons True Nil)))))
+                        (Cons (Cons True (Cons True (Cons True (Cons False (Cons True Nil))))) Nil))
+                        (Cons A (Cons B (Cons C (Cons D (Cons O Nil)) )))))
 ! (bind! ttable2 (mkITable
-                    (Cons (Cons True (Cons True (Cons True Nil)))
-                    (Cons (Cons True (Cons False (Cons False Nil)))
-                    (Cons (Cons False (Cons True (Cons False Nil)))
-                    (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
-                    (Cons A (Cons B (Cons Output Nil)))))
+                    (Cons (Cons True (Cons True (Cons False (Cons True (Cons True Nil)))))
+                    (Cons (Cons True (Cons False (Cons False (Cons True (Cons True Nil)))))
+                    (Cons (Cons False (Cons True (Cons False (Cons True (Cons False Nil)))))
+                    (Cons (Cons False (Cons False (Cons False (Cons True (Cons False Nil))))) Nil))))
+                    (Cons A (Cons B (Cons C (Cons D (Cons Output Nil)))))))
+
 ;; Testcases for the complexityBasedScorer
 !(assertEqual 
  (complexityBasedScorer 
@@ -77,7 +78,7 @@
          (mkInst (Cons 2 (Cons 0 (Cons 1 Nil))))
          ttable1
          2.0)
- (mkCscore -2 4 2.0 0.0 -4.0))
+ (mkCscore -1 4 2.0 0.0 -3.0))
 
 !(assertEqual
  (complexityBasedScorer 
@@ -85,6 +86,6 @@
          (mkInst (Cons 1 (Cons 0 (Cons 1 Nil))))
          ttable2
          2.0)
- (mkCscore -4 4 2.0 0.0 -6.0))
+ (mkCscore 0 4 2.0 0.0 -2.0))
  
 

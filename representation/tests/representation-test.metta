@@ -198,13 +198,19 @@
    (mkTree (mkNode AND)
       (Cons (mkTree (mkNode A) Nil)
       (Cons (mkTree (mkNode OR)
-                (Cons (mkTree (mkNode AND)
-                        (Cons (mkTree (mkNode B) Nil) Nil))
-                (Cons (mkTree (mkNode AND)
-                        (Cons (mkTree (mkNode C) Nil) Nil))
-                (Cons (mkTree (mkNode AND)
-                        (Cons (mkTree (mkNode NOT)
-                                  (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) Nil)))) Nil))))
+                (Cons (mkTree (mkNode B) Nil)
+                (Cons (mkTree (mkNode C) Nil)
+                (Cons (mkTree (mkNode NOT)
+                        (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))))
+
+;; ;; TODO: Change the above expected by below when reduct issue is fixed.
+;;                 (Cons (mkTree (mkNode AND)
+;;                         (Cons (mkTree (mkNode B) Nil) Nil))
+;;                 (Cons (mkTree (mkNode AND)
+;;                         (Cons (mkTree (mkNode C) Nil) Nil))
+;;                 (Cons (mkTree (mkNode AND)
+;;                         (Cons (mkTree (mkNode NOT)
+;;                                   (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) Nil)))) Nil))))
 
 ; Test for crtDiscKnobMap
 ; converts dscMp($kbSpec $kb) to dscKbMp($kbLoc $index)

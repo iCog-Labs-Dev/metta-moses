@@ -255,4 +255,4 @@
    deme 
    2)
    (List.map ((curry distance') (mkInst (Cons 0 (Cons 0 (Cons 0 Nil))))) (List.map removeInstScore $updatedInstList)))
-   Nil)
+Nil)

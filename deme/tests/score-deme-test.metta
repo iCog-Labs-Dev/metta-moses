@@ -4,6 +4,7 @@
 ! (import! &self metta-moses:scoring:cscore)
 ! (import! &self metta-moses:scoring:bscore)
 ! (import! &self metta-moses:scoring:fitness)
+
 ! (import! &self metta-moses:moses:neighborhood-sampling)
 ! (import! &self metta-moses:representation:lsk)
 ! (import! &self metta-moses:representation:knob-mapper)
@@ -81,7 +82,7 @@
       ttable1
       2.0
       Nil)
-   (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 (Cons 2 Nil)))) (mkCscore -2 5 2.5 0.0 -4.5))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (mkCscore -2 3 1.5 0.0 -3.5))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) (mkCscore -2 4 2.0 0.0 -4.0))) Nil))))
+   (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 (Cons 2 Nil)))) (mkCscore -1 5 2.5 0.0 -3.5))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (mkCscore -1 3 1.5 0.0 -2.5))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) (mkCscore -1 4 2.0 0.0 -3.0))) Nil))))
 
 !(assertEqual
    (applyComplexityBasedScore 
@@ -90,21 +91,21 @@
       ttable1
       2.0
       Nil)
-    (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) (mkCscore -2 4 2.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (mkCscore -2 3 1.5 0.0 -3.5))) Nil)))
+    (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) (mkCscore -1 4 2.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (mkCscore -1 3 1.5 0.0 -2.5))) Nil)))
 
 ;; Testcases for transform
 !(assertEqual
    (transform
-   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e37)) Nil)))
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e308)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e308)) Nil)))
    (mkRep knobMapObj tree1)
    ttable1
    2.0)
-   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (mkCscore -2 3 1.5 0.0 -3.5))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) (mkCscore -2 4 2.0 0.0 -4.0))) Nil))))
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (mkCscore -1 3 1.5 0.0 -2.5))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) (mkCscore -1 4 2.0 0.0 -3.0))) Nil))))
 
 !(assertEqual
    (transform
-   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e37)) (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e37)) Nil)))
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e308)) (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e308)) Nil)))
    (mkRep knobMapObj tree1)
    ttable2
    1)
-   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 (Cons 1 Nil)))) (mkCscore -4 4 4.0 0.0 -8.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (mkCscore -4 3 3.0 0.0 -7.0))) Nil))))
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 (Cons 1 Nil)))) (mkCscore 0 4 4.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (mkCscore -1 3 3.0 0.0 -4.0))) Nil))))
