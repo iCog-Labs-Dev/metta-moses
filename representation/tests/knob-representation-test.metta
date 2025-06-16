@@ -1,9 +1,9 @@
 !(register-module! ../../../metta-moses)
 !(import! &self metta-moses:utilities:tree)
-!(import! &self metta-moses:utilities:list-methods)
+!(import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:list-methods)
 !(import! &self metta-moses:utilities:general-helpers)
 !(import! &self metta-moses:representation:knob-representation)
-!(import! &self metta-moses:utilities:ordered-multimap) 
+!(import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:ordered-multimap) 
 
 ! (assertEqual (let $return (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) $return)  
                (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1)))

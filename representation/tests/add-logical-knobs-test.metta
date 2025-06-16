@@ -1,6 +1,6 @@
 !(register-module! ../../../metta-moses)
 !(import! &self metta-moses:utilities:tree)
-!(import! &self metta-moses:utilities:list-methods)
+!(import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:list-methods)
 !(import! &self metta-moses:utilities:general-helpers)
 !(import! &self metta-moses:representation:knob-representation)
 !(import! &self metta-moses:representation:logical-probe)
@@ -9,7 +9,7 @@
 !(import! &self metta-moses:utilities:nodeId)
 !(import! &self metta-moses:representation:sample-logical-perms) 
 !(import! &self metta-moses:representation:add-logical-knobs)
-!(import! &self metta-moses:utilities:ordered-multimap) 
+!(import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:ordered-multimap) 
 !(import! &self metta-moses:utilities:python-treehelpers)
 ! (import! &self metta-moses:utilities:python-treehelpers)
 
