@@ -5,12 +5,13 @@
 ! (import! &self metta-moses:representation:representation)
 ! (import! &self metta-moses:representation:knob-representation)
 
-! (import! &self metta-moses:utilities:map)
+! (import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:map)
 ! (import! &self metta-moses:utilities:tree)
 ! (import! &self metta-moses:utilities:nodeId)
 ! (import! &self metta-moses:utilities:list-methods)
+! (import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:list-methods)
 ! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:utilities:ordered-multimap)
+! (import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:ordered-multimap)
 
 
 !(bind! tree1

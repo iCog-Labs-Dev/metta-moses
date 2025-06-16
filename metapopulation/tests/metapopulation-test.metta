@@ -7,6 +7,7 @@
 ! (import! &self metta-moses:utilities:tree)
 ! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:utilities:list-methods)
+! (import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:list-methods)
 ! (import! &self metta-moses:deme:deme-id-creation)
 
 ;; Test cases for getBetterCandidates

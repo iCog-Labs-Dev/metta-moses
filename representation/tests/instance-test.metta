@@ -3,6 +3,7 @@
 !(import! &self metta-moses:representation:instance)
 !(import! &self metta-moses:utilities:pair)
 !(import! &self metta-moses:utilities:list-methods)
+!(import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:list-methods)
 !(import! &self metta-moses:scoring:cscore)
 
 ;; Instance related type testing

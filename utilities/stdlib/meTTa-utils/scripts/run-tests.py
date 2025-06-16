@@ -3,6 +3,8 @@ import pathlib
 import sys
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import pathlib
+import os
 
 # Define ANSI escape codes for colors
 RESET = "\033[0m"
@@ -97,13 +99,30 @@ def print_ascii_art(text):
 # Define the command to run with the test files
 metta_run_command = "metta"
 
-script_dir = pathlib.Path(__file__).parent.parent.absolute()
 
-testMettaFiles = list(script_dir.rglob("*test.metta"))
-print(testMettaFiles)
+
+# Go up the directory tree to find the project root
+def find_project_root(start_path=".", marker="meTTa-utils"):
+    current_path = pathlib.Path(start_path).absolute()
+    while not (current_path / marker).exists():
+        if current_path.parent == current_path:
+            raise FileNotFoundError(f"Could not find project root with marker '{marker}'")
+        current_path = current_path.parent
+    return current_path / marker
+
+# Fall back option if directory structure is known
+project_root = pathlib.Path(__file__).parent.parent / "meTTa-utils"
+
+try:
+    meTTa_utils_dir = find_project_root()
+except FileNotFoundError:
+    meTTa_utils_dir = project_root
+
+testMettaFiles = list(meTTa_utils_dir.rglob("*test.metta"))
 total_files = len(testMettaFiles)
 results = []
 fails = 0
+
 
 # Print ASCII art title
 print_ascii_art("Parallel Test Runner")
