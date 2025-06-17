@@ -31,7 +31,10 @@ jobs:
           python -m pip install hyperon==0.2.3
           metta --version
 
-      - name: Run tests
-        working-directory: ./
-        run: |
-          python3 scripts/run-tests.py
+    - name: Run tests
+      working-directory: ./
+      run: python3 scripts/run-tests.py
+    
+    - name: Run Python tests
+      working-directory: ./
+      run: python -m unittest discover -s ./

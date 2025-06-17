@@ -141,31 +141,31 @@ def replaceNode(tree_str, id_input, new_node_str):
     parent.children[path[-1]-1] = replacement
     return str(root)
 
-if __name__ == "__main__":
-    tree = """(mkTree (mkNode AND) 
-                (Cons (mkTree (mkNode A) Nil) 
-                (Cons (mkTree (mkNode B) Nil) 
-                (Cons (mkTree (mkNode OR) 
-                    (Cons (mkTree (mkNode AND) 
-                        (Cons (mkTree (mkNode C) Nil) Nil)) 
-                        (Cons (mkTree (mkNode D) Nil) Nil))) Nil))))"""
+# if __name__ == "__main__":
+#     tree = """(mkTree (mkNode AND)
+#                 (Cons (mkTree (mkNode A) Nil) 
+#                 (Cons (mkTree (mkNode B) Nil) 
+#                 (Cons (mkTree (mkNode OR) 
+#                     (Cons (mkTree (mkNode AND) 
+#                         (Cons (mkTree (mkNode C) Nil) Nil)) 
+#                         (Cons (mkTree (mkNode D) Nil) Nil))) Nil))))"""
 
-    # Test getById
-    print("getById tests:")
-    print(getById(tree, '3'))  # Expected: (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode D) Nil) Nil)))
-    print(getById(tree, '(3 1 2)'))  # Expected: (mkTree (mkNode C) Nil)
+#     # Test getById
+#     print("getById tests:")
+#     print(getById(tree, '3'))  # Expected: (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode D) Nil) Nil)))
+#     print(getById(tree, '(3 1 1)'))  # Expected: (mkTree (mkNode C) Nil)
 
-    # Test appendChild
-    print("\nappendChild tests:")
-    print(appendChild(tree, '3', '(mkTree (mkNode E) Nil)'))  # Expected: ((mkTree (mkNode AND) (Cons ... (Cons (mkTree (mkNode E) Nil) Nil)))) (3 3))
-    print(appendChild(tree, '0', '(mkNullVex Nil)'))  # Expected: ((mkTree (mkNode AND) (Cons ... (Cons (mkNullVex Nil) Nil))) (4))
+#     # Test appendChild
+#     print("\nappendChild tests:")
+#     print(appendChild(tree, '3', '(mkTree (mkNode E) Nil)'))  # Expected: ((mkTree (mkNode AND) (Cons ... (Cons (mkTree (mkNode E) Nil) Nil)))) (3 3))
+#     print(appendChild(tree, '0', '(mkNullVex Nil)'))  # Expected: ((mkTree (mkNode AND) (Cons ... (Cons (mkNullVex Nil) Nil))) (4))
 
-    # Test insertAbove
-    print("\ninsertAbove tests:")
-    print(insertAbove(tree, '(3 1)', '(mkTree (mkNode XOR) Nil)'))  # Expected: (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode XOR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) Nil)) (Cons (mkTree (mkNode D) Nil) Nil))) Nil))))
-    print(insertAbove(tree, '1', '(mkTree (mkNode NOT) Nil)'))  # Expected: (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode D) Nil) Nil))) Nil))))
+#     # Test insertAbove
+#     print("\ninsertAbove tests:")
+#     print(insertAbove(tree, '(3 1)', '(mkTree (mkNode XOR) Nil)'))  # Expected: (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode XOR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) Nil)) (Cons (mkTree (mkNode D) Nil) Nil))) Nil))))
+#     print(insertAbove(tree, '1', '(mkTree (mkNode NOT) Nil)'))  # Expected: (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode D) Nil) Nil))) Nil))))
 
-    # Test replaceNode
-    print("\nreplaceNode tests:")
-    print(replaceNode(tree, '3', '(mkTree (mkNode XOR) Nil)'))  # Expected: (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode XOR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode D) Nil) Nil))) Nil))))
-    print(replaceNode(tree, '(3 1 1)', '(mkTree (mkNode E) Nil)'))  # Expected: (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode E) Nil) Nil)) (Cons (mkTree (mkNode D) Nil) Nil))) Nil))))
+#     # Test replaceNode
+#     print("\nreplaceNode tests:")
+#     print(replaceNode(tree, '3', '(mkTree (mkNode XOR) Nil)'))  # Expected: (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode XOR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode D) Nil) Nil))) Nil))))
+#     print(replaceNode(tree, '(3 1 1)', '(mkTree (mkNode E) Nil)'))  # Expected: (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode E) Nil) Nil)) (Cons (mkTree (mkNode D) Nil) Nil))) Nil))))
