@@ -2,9 +2,7 @@
 ;; Definition of a List data structure with various methods for it. ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(: List (-> $a Type))
-(: Nil (List $a))
-(: Cons (-> $a (List $a) (List $a)))
+
 
 ;; Removes the element at the specified index from the list.
 ;; Params:
