@@ -3,7 +3,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-
 ;; Removes the element at the specified index from the list.
 ;; Params:
 ;;   $list: Input list.
