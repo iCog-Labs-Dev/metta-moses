@@ -340,8 +340,7 @@
              )
              (merge (sort $left $halfL $key) (sort $right (- $len $halfL) $key) $key))))
 
-;; function to partially sort the smallest $n numbers from an expression
-! (bind! toInt (py-atom int))
+;; function to partially sort the smallest $n Atoms from an expression
 (: selectionSort (-> Expression Number Expression))
 (= (selectionSort $list $n) (selectionSort $list $n <))
 (: selectionSort (-> Expression Number (-> $a $a Bool) Expression))
@@ -349,13 +348,23 @@
     (if (or (== $n 0) (== $list ()))
         $list
      (let* (
-        ($fn (if (== $op <) min-atom max-atom))
-        ($cur (toInt ($fn $list)))
+        ($initial (car-atom $list))
+        ($cur (selector $list $initial $op))
         ($newList (subtraction-atom $list ($cur)))
         ($rest (selectionSort $newList (- $n 1) $op))
     )
     (cons-atom $cur $rest)
     )))
+
+;; Helper function that compare two Atoms based on $op and return the one
+(: comparator (-> $a $a (-> $a $a Bool) $a))
+(= (comparator $x $y $op) (if ($op $x $y) $x $y))
+
+;; Helper function that select one atom from the $expr based on the comparation function $op
+(: selector (-> Expression $a (-> $a $a Bool) $a))
+(= (selector $expr $i $op) 
+    (foldl-atom $expr $i $x $acc (comparator $x $acc $op))
+)
 
 ;; A function to take an atom and repeat it n times.
 (: repeat (-> Atom Number Atom))
