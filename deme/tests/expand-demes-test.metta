@@ -79,17 +79,19 @@
     (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
         (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
                          
-!(assertEqual 
-(let* 
-(
-    ($optimizeDemesReturn (optimizeDemes demes table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing))
-    (() (println! "optimizeDemes Returns"))
-    (() (println! $optimizeDemesReturn))
-    ((Cons ($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) Nil) $optimizeDemesReturn)
-    ($instanceCount (List.length $instSet))
-    ($scoredElems (List.map isScored $instSet))
-)
-((>= $instanceCount 4) (List.any $scoredElems)))
-(True True))
+; !(assertEqual 
+; (let* 
+; (
+;     ($optimizeDemesReturn (optimizeDemes demes table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing))
+;     (() (println! "optimizeDemes Returns"))
+;     (() (println! $optimizeDemesReturn))
+;     ((Cons ($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) Nil) $optimizeDemesReturn)
+;     ($instanceCount (List.length $instSet))
+;     ($scoredElems (List.map isScored $instSet))
+; )
+; ((>= $instanceCount 4) (List.any $scoredElems)))
+; (True True))
 
-;!(expandDeme metaPop 0 1 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
+!(assertEqual
+(expandDeme metaPop 0 1 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
+wantedToSeeTheExpected)

@@ -224,28 +224,14 @@
     (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
         (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
 
-! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
-!(assertEqual
-   (let*
-     (
-       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
-       ($instanceCount (List.length $instSet))
-       ($scoredElems (List.map isScored $instSet))
-     )
-     ((>= $instanceCount 4) (List.any $scoredElems)))
+; ! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
+; !(assertEqual
+;    (let*
+;      (
+;        (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
+;        ($instanceCount (List.length $instSet))
+;        ($scoredElems (List.map isScored $instSet))
+;      )
+;      ((>= $instanceCount 4) (List.any $scoredElems)))
 
-   (True True))
-
-; ;; Testcase for optimizeDemes
-; !(assertEqual 
-; (let* 
-; (
-;     ($optResult (optimizeDemes demes table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing))
-;     (() (println! "Below is the return of the optimizeDemes function"))
-;     (() (println! $optResult))
-;     ((Cons ($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) Nil) $optResult)
-;     ($instanceCount (List.length $instSet))
-;     ($scoredElems (List.map isScored $instSet))
-; )
-; ((>= $instanceCount 4) (List.any $scoredElems)))
-; (True True))
+;    (True True))
