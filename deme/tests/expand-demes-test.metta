@@ -82,7 +82,10 @@
 !(assertEqual 
 (let* 
 (
-    ((Cons ($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) Nil) (optimizeDemes demes table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing))
+    ($optimizeDemesReturn (optimizeDemes demes table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing))
+    (() (println! "optimizeDemes Returns"))
+    (() (println! $optimizeDemesReturn))
+    ((Cons ($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) Nil) $optimizeDemesReturn)
     ($instanceCount (List.length $instSet))
     ($scoredElems (List.map isScored $instSet))
 )
