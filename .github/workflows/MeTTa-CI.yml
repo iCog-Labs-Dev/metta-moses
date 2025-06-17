@@ -15,9 +15,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository (with submodules)
+        uses: actions/checkout@v4
         with:
           submodules: 'recursive'
+
+      - name: Update submodules to latest commit from remote
+        run: git submodule update --remote --recursive
 
       - name: Setup Python Environment
         uses: actions/setup-python@v4
@@ -31,10 +35,8 @@ jobs:
           python -m pip install hyperon==0.2.3
           metta --version
 
-    - name: Run tests
-      working-directory: ./
-      run: python3 scripts/run-tests.py
-    
-    - name: Run Python tests
-      working-directory: ./
-      run: python -m unittest discover -s ./
+      - name: Run custom test script
+        run: python scripts/run-tests.py
+
+      - name: Run Python unit tests
+        run: python -m unittest discover -s .
