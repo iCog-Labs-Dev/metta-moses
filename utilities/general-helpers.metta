@@ -361,6 +361,8 @@
 (= (comparator $x $y $op) (if ($op $x $y) $x $y))
 
 ;; Helper function that select one atom from the $expr based on the comparation function $op
+(: selector (-> Expression (-> $a $a Bool) $a))
+(= (selector $expr $op) (selector $expr (car-atom $expr) $op) )
 (: selector (-> Expression $a (-> $a $a Bool) $a))
 (= (selector $expr $i $op) 
     (foldl-atom $expr $i $x $acc (comparator $x $acc $op))
