@@ -1,6 +1,7 @@
 ! (register-module! ../../../metta-moses)
 ! (import! &self metta-moses:utilities:ordered-set)
 ! (import! &self metta-moses:utilities:list-methods)
+! (import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:list-methods)
 ! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:metapopulation:exemplar-type)
 ! (import! &self metta-moses:metapopulation:exemplar-selection)

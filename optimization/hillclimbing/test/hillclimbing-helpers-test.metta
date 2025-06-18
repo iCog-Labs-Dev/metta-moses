@@ -12,14 +12,15 @@
 !(import! &self metta-moses:representation:sample-logical-perms)
 !(import! &self metta-moses:representation:create-representation)
 
-!(import! &self metta-moses:utilities:map)
+!(import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:map)
 !(import! &self metta-moses:utilities:tree)
 !(import! &self metta-moses:utilities:pair) 
 !(import! &self metta-moses:utilities:nodeId)
 !(import! &self metta-moses:utilities:list-methods)
+!(import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:list-methods)
 !(import! &self metta-moses:utilities:python-helpers)
 !(import! &self metta-moses:utilities:general-helpers)
-!(import! &self metta-moses:utilities:ordered-multimap)
+!(import! &self metta-moses:utilities:stdlib:meTTa-utils:utilities:data-structures:ordered-multimap)
 !(import! &self metta-moses:utilities:python-treehelpers)
 !(import! &self metta-moses:utilities:lazy-random-selector)
 
