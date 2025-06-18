@@ -32,22 +32,17 @@
 (= (expandDeme $metaPop $nExpansion $nDeme $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
 (let*
 (
-    (() (println! "Selecting exemplar"))
-    ($exemplar (selectExemplar $metaPop))
+    ($exemplar (trace! "Selecting Exemplar" (selectExemplar $metaPop)))
     (() (println! $exemplar))
-    (() (println! "creating Deme"))
     ($tree (getExemplarTree $exemplar))
-    ($deme (createDeme $tree $nExpansion $nDeme)) ;;createRepresentation and createDemeId are under this
+    ($deme (trace! "Creating Deme" (createDeme $tree $nExpansion $nDeme))) ;;createRepresentation and createDemeId are under this
     (() (println! $deme))
     ((mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) $deme)
     ($lengthOfDscKbMp (Map.length $dscKbMp))
-    ($generatedInst (List.generate $lengthOfDscKbMp 0))
-    (() (println! "optimizing Demes"))
-    ((Cons ($inst $optimDeme $state) Nil) (optimizeDemes (Cons $deme Nil) $truthTableBScore $generatedInst $optimize)) ;; the hillclimbing is called under this and it calls the neighborhood and stuff to first populate the deme with instances
+    ($generatedList (List.generate $lengthOfDscKbMp 0))
+    ((Cons ($inst $optimDeme $state) Nil) (trace! "Optimizing Deme" (optimizeDemes (Cons $deme Nil) $truthTableBScore (mkInst $generatedList) $optimize))) ;; the hillclimbing is called under this and it calls the neighborhood and stuff to first populate the deme with instances
     (() (println! $optimDeme))
-    (() (println! "merging Demes"))
-    ($updatedMetaPop (mergeDemes $optimDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metaPop $nToKeep $capCoef $genCount))
-    (() (println! $updatedMetaPop))
+    ($updatedMetaPop (trace! "Merging Deme" (mergeDemes $optimDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metaPop $nToKeep $capCoef $genCount)))
 )
 $updatedMetaPop))
 
