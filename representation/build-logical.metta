@@ -47,7 +47,7 @@
             ((mkTree (mkNode $op) $childrens) $subtree) 
             ($swapped (swapAndOr $op))
             (($t1 $mp1) (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap))
-            (() (println! ($t1 $mp1) ))
+            ;(() (println! ($t1 $mp1) ))
             (($updatedTree $updatedMMap) (siblingit $t1 $childrens (mkNodeId $nodeId) 1 $swapped $mp1 ))
             ;;($append (appendChild $updatedTree $nodeId (mkNode $filp)))                                 ;; this part will add much complexity to the tree, not worth the cost
         )
