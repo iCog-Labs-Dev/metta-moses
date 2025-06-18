@@ -39,7 +39,7 @@
     ($tree (getExemplarTree $exemplar))
     ($deme (createDeme $tree $nExpansion $nDeme)) ;;createRepresentation and createDemeId are under this
     (() (println! $deme))
-    ((mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) $deme)
+    ((mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) $deme)
     ($lengthOfDscKbMp (Map.length $dscKbMp))
     ($generatedInst (List.generate $lengthOfDscKbMp 0))
     (() (println! "optimizing Demes"))
