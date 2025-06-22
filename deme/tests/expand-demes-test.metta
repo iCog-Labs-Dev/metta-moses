@@ -60,7 +60,7 @@
                          (Cons (Cons False (Cons True (Cons False Nil)))
                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
                          (Cons A (Cons B (Cons O Nil))))))
-! (bind! metaPop2 (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil)))) NilOS)) 
+! (bind! metaPop2 (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (worstCscore) (mkBScore (Cons 0 (Cons 0 Nil)))) NilOS)) 
 
 ! (bind! metaPop (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil))))
                  (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) 
@@ -79,20 +79,37 @@
 (= (merger $targetInstances $baseInst $referenceInst)
     (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
         (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
-                         
-; !(assertEqual 
-; (let* 
-; (
-;     ($optimizeDemesReturn (optimizeDemes demes table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing))
-;     (() (println! "optimizeDemes Returns"))
-;     (() (println! $optimizeDemesReturn))
-;     ((Cons ($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) Nil) $optimizeDemesReturn)
-;     ($instanceCount (List.length $instSet))
-;     ($scoredElems (List.map isScored $instSet))
-; )
-; ((>= $instanceCount 4) (List.any $scoredElems)))
-; (True True))
 
+;; Testcase for optimizeDemes               
+!(assertEqual 
+(let* 
+(
+    ($optimizeDemesReturn (optimizeDemes demes table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing))
+    (() (println! "optimizeDemes Returns"))
+    (() (println! $optimizeDemesReturn))
+    ((Cons ($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) Nil) $optimizeDemesReturn)
+    ($instanceCount (List.length $instSet))
+    ($scoredElems (List.map isScored $instSet))
+)
+((>= $instanceCount 4) (List.any $scoredElems)))
+(True True))
+
+;; Testcase for expandDeme
 !(assertEqual
-(expandDeme metaPop2 0 1 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
-wantedToSeeTheExpected)
+(let*
+(
+    ($updatedMetapop (expandDeme metaPop2 0 1 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
+    ($updatedMetapopLength (OS.length $updatedMetapop))
+)
+(>= $updatedMetapopLength 1)
+) True)
+
+;; Testcase for runMoses
+!(assertEqual
+(let*
+(
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 1 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
+    ($topCandidatesLength (OS.length $topCandidates))
+)
+(>= $topCandidatesLength 1)
+) True)

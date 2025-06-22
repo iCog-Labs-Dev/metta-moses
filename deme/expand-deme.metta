@@ -16,7 +16,6 @@
 ;;   $nExpansion: Expansion count or deme index.
 ;;   $nDeme: Number of demes to create.
 ;;   $truthTableBScore: TruthTableBScore
-;;   $inst: Initial instance for optimization.
 ;;   $optimize: Optimizer function (e.g., hill climbing).
 ;;   $nEval: Maximum number of evaluations.
 ;;   $maxCandsPerDeme: Maximum candidates per deme.
@@ -46,18 +45,23 @@
 )
 $updatedMetaPop))
 
-;; the main loop
-(= (runMoses 0 $maxScore  $metaPop $maxCandOutput $nExpansion $nDeme $truthTableBScore $inst $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
-(let $topCandidates (OS.getTopN $maxCandOutput $metaPop) $topCandidates))
-(= (runMoses $maxGen $maxScore  $metaPop $nExpansion $nDeme $truthTableBScore $inst $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
-(let* 
-(
-    ($updatedMetaPop (expandDeme $metaPop $nExpansion $nDeme $truthTableBScore $inst $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount))
-    ($top (OS.getByIdx 0 $metaPop))
-    ($topScore (getExemplarCscore $top))
-    ($topCandidates (OS.getTopN $maxCandOutput $metaPop))
-)
-(if (== $topScore $maxScore) 
-    $topCandidates 
-    (runMoses (- $maxGen 1) $maxScore $metaPop $nExpansion $nDeme $truthTableBScore $inst $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
-)))
+;; The main loop 
+;; Takes 2 termination criterias:
+;;     - $maxGen : how many times we want the loop to run
+;;     - $maxScore : the maximum score we want the top Examplar to have
+;; It also takes:
+;;     - $maxCandOutput : The number of candidates to be returned
+;;     - other parameters required by the expandDeme method
+(: runMoses (-> Number Cscore Number (OS (Exemplar $a)) Number Number (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)) Number Number Number Number (ITable $a) Number Number Number (OS (Exemplar $a))))
+(= (runMoses $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
+(if (== $maxGen 0) 
+    (let $topCandidates (OS.getTopN $maxCandOutput $metaPop) $topCandidates)
+    (let* 
+     (
+       ($updatedMetaPop (expandDeme $metaPop $nExpansion $nDeme $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount))
+       ($top (OS.getByIdx 0 $metaPop))
+       ($topScore (getExemplarCscore $top))
+       ($topCandidates (OS.getTopN $maxCandOutput $metaPop)))
+     (if (cScore>= $topScore $maxScore) 
+         $topCandidates 
+         (runMoses (- $maxGen 1) $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)))))
