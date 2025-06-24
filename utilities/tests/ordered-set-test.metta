@@ -98,4 +98,37 @@
 ! (assertEqual (OS.removeByIdx (ConsOS 10 (ConsOS 20 NilOS)) 0) (ConsOS 20 NilOS))        
 ! (assertEqual (OS.removeByIdx (ConsOS a (ConsOS b (ConsOS c NilOS))) 1) (ConsOS a (ConsOS c NilOS)))
 ! (assertEqual (OS.removeByIdx (ConsOS 5 (ConsOS 6 (ConsOS 7 NilOS))) 2) (ConsOS 5 (ConsOS 6 NilOS)))
-! (assertEqual (OS.removeByIdx (ConsOS 1 (ConsOS 2 NilOS)) 5) (Error NilOS "empty set/index out of range"))        
+! (assertEqual (OS.removeByIdx (ConsOS 1 (ConsOS 2 NilOS)) 5) (Error NilOS "empty set/index out of range"))  
+
+;; Test cases -- getTopN
+!(assertEqual
+   (OS.getTopN 2
+      (mkOS
+         (Cons
+            (mkExemplar (mkTree (mkNode A) Nil) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (Cons 0 Nil)))
+            (Cons
+               (mkExemplar (mkTree (mkNode B) Nil) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (Cons 0 Nil)))
+               (Cons
+                  (mkExemplar (mkTree (mkNode C) Nil) (mkDemeId "1") (mkCscore -0.3 4 0.1 0.1 -0.5) (mkBScore (Cons 0 Nil)))
+                  Nil)))))
+   (mkOS
+      (Cons
+         (mkExemplar (mkTree (mkNode A) Nil) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (Cons 0 Nil)))
+         (Cons
+            (mkExemplar (mkTree (mkNode B) Nil) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (Cons 0 Nil)))
+            Nil))))
+
+!(assertEqual
+   (OS.getTopN 5
+      (mkOS
+         (Cons
+            (mkExemplar (mkTree (mkNode A) Nil) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (Cons 0 Nil)))
+            (Cons
+               (mkExemplar (mkTree (mkNode B) Nil) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (Cons 0 Nil)))
+               Nil))))
+   (mkOS
+      (Cons
+         (mkExemplar (mkTree (mkNode A) Nil) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (Cons 0 Nil)))
+         (Cons
+            (mkExemplar (mkTree (mkNode B) Nil) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (Cons 0 Nil)))
+            Nil))))

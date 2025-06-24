@@ -259,3 +259,9 @@
 (= (List.any Nil) False)
 (= (List.any (Cons True $xs)) True)
 (= (List.any (Cons False $xs)) (List.any $xs))
+
+;; Generates a list of a given length containing a specified number repeated. 
+(: List.generate (-> Number Number (List Number))) 
+(= (List.generate $length $element) 
+(if (> $length 0) 
+    (Cons $element (List.generate (- $length 1) $element)) Nil))

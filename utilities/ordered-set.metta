@@ -72,3 +72,16 @@
    (if (== $exemplar $x)
        True
        (OS.isMember $exemplar $xs)))
+
+; Retrieves the first N elements from an ordered set.
+; Params:
+;   $n: Number of elements to return.
+;   $os: Ordered set of exemplars.
+; Return: Ordered set containing the first N elements, or all elements if N exceeds the set size.
+(: OS.getTopN (-> Number (OS (Exemplar $a)) (OS (Exemplar $a)))) 
+(= (OS.getTopN $n NilOS) NilOS) 
+(= (OS.getTopN 0 $os) NilOS) 
+(= (OS.getTopN $n (ConsOS $x $xs)) 
+   (if (<= $n 1) 
+       (ConsOS $x NilOS) 
+       (ConsOS $x (OS.getTopN (- $n 1) $xs))))
