@@ -154,6 +154,10 @@
 (: curry (-> (-> $a $b $c) (-> $a (-> $b $c))))
 (= (((curry $f) $x) $y) ($f $x $y))
 
+;; A trick to define `curry2` in MeTTa without `lambda`
+(: curry2 (-> (-> $a $b $c $d) (-> $a (-> $b $c $d))))
+(= (((curry2 $f) $x) $y $z) ($f $x $y $z))
+
 ; ;; Add numbers in an atom list
 (= (sum $list) (foldr + 0 $list))
 
@@ -174,6 +178,12 @@
 ;; A function to check if a given atom is unit or empty tuple.
 (: isUnit (-> Atom Bool))
 (= (isUnit $expr) (== $expr ()))
+
+(: isEven (-> Number Bool))
+(= (isEven $x) (== (% $x 2) 0))
+
+(: isOdd (-> Number Bool))
+(= (isOdd $x) (not (isEven $x)))
 
 ;; A function to check if a given atom is an expression 
 ;;   with has one atom in it.
@@ -330,6 +340,34 @@
              )
              (merge (sort $left $halfL $key) (sort $right (- $len $halfL) $key) $key))))
 
+;; function to partially sort the smallest $n Atoms from an expression
+(: selectionSort (-> Expression Number Expression))
+(= (selectionSort $list $n) (selectionSort $list $n <))
+(: selectionSort (-> Expression Number (-> $a $a Bool) Expression))
+(= (selectionSort $list $n $op)
+    (if (or (== $n 0) (== $list ()))
+        $list
+     (let* (
+        ($initial (car-atom $list))
+        ($cur (selector $list $initial $op))
+        ($newList (subtraction-atom $list ($cur)))
+        ($rest (selectionSort $newList (- $n 1) $op))
+    )
+    (cons-atom $cur $rest)
+    )))
+
+;; Helper function that compare two Atoms based on $op and return the one
+(: comparator (-> $a $a (-> $a $a Bool) $a))
+(= (comparator $x $y $op) (if ($op $x $y) $x $y))
+
+;; Helper function that select one atom from the $expr based on the comparation function $op
+(: selector (-> Expression (-> $a $a Bool) $a))
+(= (selector $expr $op) (selector $expr (car-atom $expr) $op) )
+(: selector (-> Expression $a (-> $a $a Bool) $a))
+(= (selector $expr $i $op) 
+    (foldl-atom $expr $i $x $acc (comparator $x $acc $op))
+)
+
 ;; A function to take an atom and repeat it n times.
 (: repeat (-> Atom Number Atom))
 (= (repeat $a $n)
@@ -432,7 +470,7 @@
 ;                 $f
 ;                 (+ $f (sum $t)) ))))
 
-; (= (getMaxWithKey $tuple)
+; (= (getmaxWithKey $tuple)
 ;     (let $max 
 ;         (collapse 
 ;             (let*
@@ -494,3 +532,117 @@
        (== $x $y)
        (== (collapse (union (subtraction (superpose $x) (superpose $y)) (subtraction (superpose $y) (superpose $x)))) ())))
 
+;; Number compartor
+(: compareNum (-> Number Number Atom))
+(= (compareNum $num1 $num2)
+    (case ((> $num1 $num2) (== $num1 $num2))
+        (((True $t) G)
+         ((False True) E)
+         ((False False) L))))
+
+;; an equal to or grearter than comparator that is resopnsible for deconstructing numerical values from the type constructor and compare them 
+;; ($ctor $x) ($ctor $y) -- (constructor value) pair                
+(: >>= (-> $a $a Bool))
+(= (>>= ($ctor $x) ($ctor $y))(>= $x $y));; List.Sum for any (List $a) $a of (typeConstructor Number) type
+
+(: List.sum (-> (-> $a $a $a) (List $a) $a))
+(= (List.sum $adder Nil) Nil)
+(= (List.sum $adder (Cons $x $xs))
+    (if (== $xs Nil)
+        $x
+        (let $c (List.sum $adder $xs)
+            ($adder $x $c))))
+
+; ;; overloading the above function to work with list of numbers
+; (: List.sum (-> (List $a) $a))
+; (= (List.sum $list) (List.sum + $list))
+
+;; A function to take any two types which have the same constructor and add them.
+;;   params: ($ctor $a): The first argument with a constructor $ctor
+;;           ($ctor $b): The second argument with the same constructor as the first
+;;   returns: Sum of the types if they both contain numbers
+;;            An error if they can't be added together
+(: add (-> $a $a $a))
+(= (add ($ctor $a) ($ctor $b))
+     (if (== (get-type $a) Number)
+            ($ctor (+ $a $b))
+            (Error ($a or $b) "One of the argument is not a number")))
+
+;; wrapping the built-in ininf-math with custom function because the return type is not bool, it is number
+;; using the type-cast function
+(: isInf (-> Number Bool))
+(= (isInf $x) (type-cast (isinf-math $x) Bool &self))
+
+;; A trick to define composition function.
+;; Takes a function and returns another function
+;; applying the two functions in sequence.
+(: . (-> (-> $b $c) (-> $a $b) (-> $a $c)))
+(= ((. $g $f) $x) ($g ($f $x)))
+
+;; Convert an expression to a list   e.g (A B C) -> (Cons A (Cons B (Cons C Nil)))
+(= (exprToList $expr)
+    (if (== $expr ())
+        Nil
+        (let ($head $tail) (decons-atom $expr)  (Cons $head (exprToList $tail)))
+    )
+)
+
+;; From a tuple (Pair) return the first element
+(: first (-> ($a $b) $a))
+(= (first ($a $b)) $a)
+
+;; From a tuple (Pair) return the second element
+(: second (-> ($a $b) $b))
+(= (second ($a $b)) $b)
+
+;; Converts a tuple of pairs into ordered multimap
+;; Ex: ((k1 v1) (k2 v2)) -> (ConsMMap (k1 v1) (ConsMMap (k2 v2) NilMMap))
+(: expToMMap (-> Expression (MultiMap ($k $v)) (-> $k $k Bool) (MultiMap ($k $v))))
+(= (expToMMap () $map $compFunc) NilMMap)
+(= (expToMMap $tuple $map $compFunc)
+(let*
+(
+    (($head $tail) (decons-atom $tuple))
+    ($updatedMap (MultiMap.insert $head $map $compFunc))
+
+)
+(if (== $tail ()) $updatedMap (expToMMap $tail $updatedMap $compFunc))))
+
+;; A trick function to make chain reduce when using union-atom
+(: (-> unionAtom (-> Expression Expression Expression)))
+(= (unionAtom $x $y) (union-atom $x $y))
+
+
+;; helper function to generate list of numbers ranging from 0 to n
+(: genList (-> Number Expression))
+(= (genList $u) (genList 0 $u))
+
+(: genList (-> Number Number Expression))
+(= (genList $l $u)
+    (if (< $u $l)
+        ()
+        (let $res (genList $l (- $u 1))
+            (cons-atom $u $res) )))
+
+;; swap AND , OR 
+(: swapAndOr (-> Atom Atom))
+(= (swapAndOr $op)
+    (case $op
+        ((AND OR)
+         (OR AND)
+         ($else $op))
+    )
+)
+
+(: compose (-> (-> $b $c) (-> $a $b) (-> $a $c)))
+(= ((compose $g $f) $x) ($g ($f $x)))
+
+;; approximate equality -- takes the relative magnitude of the numbers into consideration
+! (bind! EPSILON (pow-math 10 -6))
+(: isApproxEq (-> Number Number Bool))
+(= (isApproxEq $x $y)
+    (let $diff (abs-math (- $x $y))
+        (if (< $diff EPSILON)
+            True
+            (let $amp (abs-math (+ $x $y))
+                (<= $diff (* EPSILON $amp))))))
