@@ -143,6 +143,16 @@
 (= (removeElement $common $tuple)
    (collapse (subtraction (superpose $tuple) (superpose $common))))
 
+;; A function to remove only one elements from a tuple
+(= (remove-exp $space $atom)
+   (if (== $space ())
+       ()
+       (let* ((($head $tail) (decons-atom $space))
+               ($new (remove-exp $tail $atom)))
+         (if (== $head $atom)
+             $tail
+             (cons-atom $head $new)))))
+
 ; ;; A function that returns True if any of the input atoms are True and False otherwise
 ; ;; Example: input ==> (True True False), output ==> True
 ; ;;          input ==> (False False False), output ==> False
@@ -350,7 +360,8 @@
      (let* (
         ($initial (car-atom $list))
         ($cur (selector $list $initial $op))
-        ($newList (subtraction-atom $list ($cur)))
+        ; ($newList (subtraction-atom $list ($cur))) ;ISSUE: On mettalog removes all occurences of that elment
+        ($newList (remove-exp $list $cur)) 
         ($rest (selectionSort $newList (- $n 1) $op))
     )
     (cons-atom $cur $rest)
