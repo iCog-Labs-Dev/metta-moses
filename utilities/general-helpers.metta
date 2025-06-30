@@ -277,6 +277,17 @@
             (let $tail (cdr-atom $expr)
                 (selectByIndex $tail (- $index 1))
             ))))
+;; XXX -- Reimplementation of the above function as indexAtom
+(: indexAtom (-> Expression Number Atom))
+(= (indexAtom $expr $index)
+    (function 
+        (eval (if-equal $expr ()
+            (return (Error description: IndexOutOfRange))
+            (eval (if-decons-expr $expr $h $t
+                (eval (if-equal $index 0
+                    (return $h)
+                    (return (indexAtom $t (- $index 1)))))
+                (return Empty)))))))   
 
 ;; TODO: Use zipWith instead
 ;; A function that compares tuples element by element.
@@ -639,10 +650,11 @@
 
 ;; approximate equality -- takes the relative magnitude of the numbers into consideration
 ! (bind! EPSILON (pow-math 10 -6))
+! (bind! abs (py-atom "abs"))
 (: isApproxEq (-> Number Number Bool))
 (= (isApproxEq $x $y)
-    (let $diff (abs-math (- $x $y))
+    (let $diff (abs (- $x $y))
         (if (< $diff EPSILON)
             True
-            (let $amp (abs-math (+ $x $y))
-                (<= $diff (* EPSILON $amp))))))
+            (let $amp (abs (+ $x $y))
+                (<= $diff (* EPSILON $amp))))))      

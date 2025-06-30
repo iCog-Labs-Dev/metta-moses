@@ -248,6 +248,10 @@
 !(assertEqual (selectByIndex (1 2 3 4) 3) 4)
 !(assertEqual (selectByIndex (1 2 3 4) 0) 1)
 
+!(assertEqual (indexAtom (1 2 3 4) 2) 3)
+!(assertEqual (indexAtom (1 2 3 4) 3) 4)
+!(assertEqual (indexAtom (1 2 3 4) 0) 1)
+
 !(assertEqual (compareElements (A B C) (1 2 3)) (False False False))
 !(assertEqual (compareElements (A B C) (A B C)) (True True True))
 !(assertEqual (compareElements (1 2 3) (1 2 3)) (True True True))

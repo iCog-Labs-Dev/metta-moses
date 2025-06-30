@@ -69,13 +69,13 @@
 ;; uses penalized scores to compare and complexity score to break ties in the penalized score
 ;; $cs1 -- composite score of the left side instance ..
 ;; $cs2 -- composite score of the right side instance or whatever
-;; the type-cast in the if .. is used because the return type of the built-in isnan-math function is not Bool so it has to be cast in to bool value
-
+;; isnan -- python binding for checking NaN values -- MeTTa's isnan-math passes the type check but doenst reduce 
+! (bind! isnan (py-atom "math.isnan"))
 (: cScore< (-> Cscore Cscore Bool)) 
 (= (cScore< $cs1 $cs2)
     (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
-        (if (type-cast (isnan-math $pl) Bool &self)
-            (not (type-cast (isnan-math $pr) Bool &self))
+        (if (isnan $pl)
+            (not (isnan $pr))
             (or (< $pl $pr) (and (== $pl $pr) (> $cl $cr))))))
             
 ;; Check for equality, to within floating-point error, EPSILON
@@ -93,6 +93,6 @@
 (: cScore>= (-> Cscore Cscore Bool)) 
 (= (cScore>= $cs1 $cs2)
     (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
-        (if (type-cast (isnan-math $pl) Bool &self)
+        (if (isnan $pl)
             False
             (or (> $pl $pr) (and (== $pl $pr) (< $cl $cr))))))
