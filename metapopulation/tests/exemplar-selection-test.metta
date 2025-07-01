@@ -52,98 +52,52 @@
 ! (bind! tree3 (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode E) Nil) Nil))))
 
 ;; rouletteSelect
+! (bind! exemplar-list0 (ConsOS (mkExemplar treeA (mkDemeId "1") (mkCscore 0.9 0.5 0.2 0.1 -0.6) (mkBscore (Cons 1 (Cons 0 Nil))))
+                        (ConsOS (mkExemplar treeB (mkDemeId "2") (mkCscore 0.85 0.6 0.1 0.05 0.6) (mkBscore (Cons 1 (Cons 0 Nil))))
+                          (ConsOS (mkExemplar treeC (mkDemeId "3") (mkCscore 0.4 0.7 0.05 0.01 0.3) (mkBscore (Cons 1 (Cons 0 Nil))))
+                            NilOS))))
 ! (assertEqual 
-  (let $choice (rouletteSelect 
-    (ConsOS 
-        (mkExemplar treeA (mkDemeId "1") 
-        (mkCscore 0.9 0.5 0.2 0.1 -0.6) 
-        (mkBscore (Cons 1 (Cons 0 Nil))))
-      (ConsOS 
-        (mkExemplar treeB (mkDemeId "2") 
-        (mkCscore 0.85 0.6 0.1 0.05 0.6) 
-        (mkBscore (Cons 1 (Cons 0 Nil))))
-        (ConsOS 
-          (mkExemplar treeC (mkDemeId "3") 
-          (mkCscore 0.4 0.7 0.05 0.01 0.3) 
-          (mkBscore (Cons 1 (Cons 0 Nil))))
-          NilOS)))
-    (Cons 0.996 (Cons 1.0 (Cons 0.9857 Nil))) 2.9817)
-  (get-type $choice)) (Exemplar Bool))
+  (let $choice (rouletteSelect exemplar-list0
+        (Cons 0.996 (Cons 1.0 (Cons 0.9857 Nil))) 2.9817)
+          (OS.contains exemplar-list0 $choice)) True)
+
+! (bind! exemplar-list1 (ConsOS (mkExemplar treeA (mkDemeId "9") (mkCscore 0.91 0.3 0.25 0.13 0.3) (mkBscore (Cons 1 (Cons 0 Nil)))) 
+                        (ConsOS (mkExemplar treeY (mkDemeId "10") (mkCscore 0.88 0.4 0.22 0.12 0.4) (mkBscore (Cons 1 (Cons 1 Nil)))) 
+                          (ConsOS (mkExemplar treeZ (mkDemeId "11") (mkCscore 0.83 0.5 0.15 0.10 0.5) (mkBscore (Cons 0 (Cons 1 Nil)))) 
+                            NilOS))))
+! (assertEqual 
+  (let $choice (rouletteSelect exemplar-list1 (Cons 0.9753 (Cons 0.9936 (Cons 1.0 Nil))) 2.9689)
+    (OS.contains exemplar-list1 $choice )) True)
+
+! (bind! exemplar-list2 (ConsOS (mkExemplar treeA (mkDemeId "7") (mkCscore 0.95 0.3 0.2 0.1 0.2) (mkBscore (Cons 1 (Cons 1 Nil))))  
+                        (ConsOS (mkExemplar tree2 (mkDemeId "8") (mkCscore 0.80 0.6 0.1 0.05 0.2) (mkBscore (Cons 1 (Cons 1 Nil))))  
+                          (ConsOS (mkExemplar tree3 (mkDemeId "12") (mkCscore 0.5 0.9 0.05 0.03 0.1) (mkBscore (Cons 1 (Cons 0 Nil))))   
+                            NilOS))))
 
 ! (assertEqual 
-  (let $choice (rouletteSelect 
-    (ConsOS 
-      (mkExemplar treeA (mkDemeId "9") 
-          (mkCscore 0.91 0.3 0.25 0.13 0.3) 
-          (mkBscore (Cons 1 (Cons 0 Nil)))) 
-      (ConsOS 
-          (mkExemplar treeY (mkDemeId "10") 
-          (mkCscore 0.88 0.4 0.22 0.12 0.4) 
-          (mkBscore (Cons 1 (Cons 1 Nil)))) 
-        (ConsOS 
-          (mkExemplar treeZ (mkDemeId "11") 
-          (mkCscore 0.83 0.5 0.15 0.10 0.5) 
-          (mkBscore (Cons 0 (Cons 1 Nil)))) 
-          NilOS)))
-    (Cons 0.9753 (Cons 0.9936 (Cons 1.0 Nil))) 2.9689)
-  (get-type $choice)) (Exemplar Bool))
-
-! (assertEqual 
-  (let $choice (rouletteSelect 
-    (ConsOS 
-      (mkExemplar treeA (mkDemeId "7") 
-          (mkCscore 0.95 0.3 0.2 0.1 0.2) 
-          (mkBscore (Cons 1 (Cons 1 Nil))))  
-      (ConsOS 
-        (mkExemplar tree2 (mkDemeId "8") 
-          (mkCscore 0.80 0.6 0.1 0.05 0.2) 
-          (mkBscore (Cons 1 (Cons 1 Nil))))  
-        (ConsOS 
-          (mkExemplar tree3 (mkDemeId "12") 
-          (mkCscore 0.5 0.9 0.05 0.03 0.1) 
-          (mkBscore (Cons 1 (Cons 0 Nil))))   
-          NilOS)))
-    (Cons 0.9654 (Cons 1.0 (Cons 0.9057 Nil))) 2.8711)
-  (get-type $choice)) (Exemplar Bool))
+  (let $choice (rouletteSelect exemplar-list2 (Cons 0.9654 (Cons 1.0 (Cons 0.9057 Nil))) 2.8711)
+  (OS.contains exemplar-list2 $choice)) True)
 
 ;; selectExemplar
 ! (assertEqual (selectExemplar NilOS) (Error NilOS "empty metapopulation"))
 
-! (bind! treeA-x (mkExemplar treeA (mkDemeId "7") 
-          (mkCscore 0.95 0.3 0.2 0.1 0.4) 
-          (mkBscore (Cons 1 (Cons 1 Nil)))))
+! (bind! treeA-x (mkExemplar treeA (mkDemeId "7") (mkCscore 0.95 0.3 0.2 0.1 0.4) (mkBscore (Cons 1 (Cons 1 Nil)))))
+
 ! (assertEqual (selectExemplar (ConsOS treeA-x NilOS)) treeA-x)
 
 ! (bind! test1-exemplars
-  (ConsOS
-    (mkExemplar treeA (mkDemeId "1") 
-          (mkCscore 0.8 0.3 0.1 0.01 0.4) 
-          (mkBscore (Cons 1 (Cons 1 Nil))))  
-    (ConsOS
-      (mkExemplar tree2 (mkDemeId "2") 
-          (mkCscore 0.7 0.4 0.05 0.05 0.5) 
-          (mkBscore (Cons 0 (Cons 1 Nil)))) 
-      (ConsOS
-        (mkExemplar tree3 (mkDemeId "3") 
-          (mkCscore 0.6 0.5 0.0 0.0 0.6) 
-          (mkBscore (Cons 1 (Cons 0 Nil))))    
+  (ConsOS (mkExemplar treeA (mkDemeId "1") (mkCscore 0.8 0.3 0.1 0.01 0.4) (mkBscore (Cons 1 (Cons 1 Nil))))  
+    (ConsOS (mkExemplar tree2 (mkDemeId "2") (mkCscore 0.7 0.4 0.05 0.05 0.5) (mkBscore (Cons 0 (Cons 1 Nil)))) 
+      (ConsOS (mkExemplar tree3 (mkDemeId "3") (mkCscore 0.6 0.5 0.0 0.0 0.6) (mkBscore (Cons 1 (Cons 0 Nil))))    
         NilOS))))
 
 ! (assertEqual (let $choice (selectExemplar test1-exemplars) (OS.contains test1-exemplars $choice)) True)
 
 ! (bind! test2-exemplars
-  (ConsOS
-    (mkExemplar treeA (mkDemeId "101") 
-          (mkCscore 0.9 0.3 0.05 0.02 0.6) 
+  (ConsOS (mkExemplar treeA (mkDemeId "101") (mkCscore 0.9 0.3 0.05 0.02 0.6) 
           (mkBscore (Cons 1 (Cons 1 (Cons 1 (Cons 1 Nil))))))  
-    (ConsOS
-      (mkExemplar treeB (mkDemeId "102") 
-          (mkCscore 0.6 0.5 0.1 0.1 0.5) 
-          (mkBscore (Cons 1 (Cons 1 (Cons 1 (Cons 1 Nil))))))  
-      (ConsOS
-        (mkExemplar treeC (mkDemeId "103") 
-          (mkCscore 0.4 0.4 0.05 0.1 0.4) 
-          (mkBscore (Cons 0 (Cons 0 (Cons 1 (Cons 0 Nil))))))     
+    (ConsOS (mkExemplar treeB (mkDemeId "102") (mkCscore 0.6 0.5 0.1 0.1 0.5) (mkBscore (Cons 1 (Cons 1 (Cons 1 (Cons 1 Nil))))))  
+      (ConsOS (mkExemplar treeC (mkDemeId "103") (mkCscore 0.4 0.4 0.05 0.1 0.4) (mkBscore (Cons 0 (Cons 0 (Cons 1 (Cons 0 Nil))))))     
         NilOS))))
 ! (assertEqual (let $choice (selectExemplar test2-exemplars) (OS.contains test2-exemplars $choice)) True)
 
@@ -151,4 +105,5 @@
                  (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) 
                  (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.006) (mkBScore (Cons 0 (Cons 0 Nil)))) NilOS))))
                
-! (assertEqual (let $choice (selectExemplar metaPop) ((get-type $choice) (OS.contains metaPop $choice))) ((Exemplar Bool) True))
+; ! (assertEqual (let $choice (selectExemplar metaPop) ((get-type $choice) (OS.contains metaPop $choice))) ((Exemplar Bool) True))
+! (assertEqual (let $choice (selectExemplar metaPop) (OS.contains metaPop $choice))  True)
