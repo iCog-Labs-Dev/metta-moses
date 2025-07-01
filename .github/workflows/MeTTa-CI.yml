@@ -18,20 +18,34 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install Dependencies
+    - name: Install Python Dependencies
       run: |
         set -e
         python -m pip install --upgrade pip
         pip install numpy pyswip janus ansi2html junit2html
+
+    - name: Install SWI-Prolog from PPA
+      run: |
+        set -e
+        # Remove default conflicting packages (if any)
+        sudo apt-get remove -y swi-prolog swi-prolog-core swi-prolog-nox swi-prolog-x || true
+        sudo apt-get update
+        sudo apt-add-repository ppa:swi-prolog/stable -y
         sudo apt-get update
         sudo apt-get install -y swi-prolog
+
+    - name: Install MeTTaLog
+      run: |
+        set -e
         git clone https://github.com/logicmoo/metta-wam --depth 1
         cd metta-wam
         chmod +x ./INSTALL.sh
-        source ./INSTALL.sh --allow-system-modifications
+        bash ./INSTALL.sh --allow-system-modifications
         cd ..
 
     - name: Run MeTTaLog Tests
+      env:
+        SWIPL_BOOT_FLAGS: "--no-pce"
       run: |
         mettalog --test examples/tests/unit_test_example.metta
         mettalog --test tests/baseline_compat/metta-morph_tests/tests0.metta
