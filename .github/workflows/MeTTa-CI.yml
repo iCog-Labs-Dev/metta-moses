@@ -16,14 +16,20 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.10'  # Changed to ensure hyperon-das compatibility
 
     - name: Install Python Dependencies
       run: |
         set -e
         python -m pip install --upgrade pip
         pip install numpy pyswip janus ansi2html junit2html
-        # pip install hyperon-das==0.9.17
+
+    - name: Clone and Install hyperon-das and atomdb from singnet/das
+      run: |
+        git clone https://github.com/singnet/das.git
+        cd das
+        pip install .
+        cd ..
 
     - name: Install SWI-Prolog from PPA
       run: |
