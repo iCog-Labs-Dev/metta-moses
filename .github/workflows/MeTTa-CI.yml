@@ -28,7 +28,7 @@ jobs:
         git clone https://github.com/logicmoo/metta-wam --depth 1
         cd metta-wam
         chmod +x ./INSTALL.sh
-        bash ./INSTALL.sh --allow-system-modifications
+        source ./INSTALL.sh --allow-system-modifications
         cd ..
 
     - name: Run MeTTaLog Tests
