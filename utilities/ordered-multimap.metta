@@ -51,8 +51,11 @@
 (: MultiMap.removeOne (-> $k (MultiMap ($k $v)) (MultiMap ($k $v))))
 (= (MultiMap.removeOne $key NilMMap) (Error $key "not found"))
 (= (MultiMap.removeOne $key (ConsMMap ($curKey $curVal) $tail)) 
-    (if (== $key $curKey) $tail (ConsMMap ($curKey $curVal) (MultiMap.removeOne $key $tail))))
-
+    (if (== $key $curKey) 
+        $tail 
+        (chain (MultiMap.removeOne $key $tail) $res 
+            (if-error $res $res (ConsMMap ($curKey $curVal) $res)))))
+            
 ;; Remove all key-value pair with a given key from the Ordered multimap
 (: MultiMap.removeAll (-> $k (MultiMap ($k $v)) (MultiMap ($k $v))))
 (= (MultiMap.removeAll $key NilMMap) NilMMap)
