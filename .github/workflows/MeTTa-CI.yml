@@ -12,17 +12,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: true    # <-- Initialize submodules on checkout
 
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.10'   # <-- Changed to 3.10 for compatibility
 
-    - name: Install Python Dependencies
+    - name: Install Python Dependencies from metta-wam requirements
       run: |
         set -e
+        cd metta-wam
         python -m pip install --upgrade pip
-        pip install numpy pyswip janus ansi2html junit2html
+        pip install -r requirements.txt
 
     - name: Install SWI-Prolog from PPA
       run: |
@@ -36,15 +39,14 @@ jobs:
     - name: Install MeTTaLog
       run: |
         set -e
-        # git clone https://github.com/logicmoo/metta-wam --depth 1
-        cd /Users/bitseat/metta-wam
+        cd metta-wam
         chmod +x ./INSTALL.sh
         source ./INSTALL.sh --allow-system-modifications
-        cd ..
 
     - name: Run MeTTaLog Tests
       env:
         SWIPL_BOOT_FLAGS: "--no-pce"
       run: |
+        cd metta-wam
         mettalog --test examples/tests/unit_test_example.metta
         mettalog --test tests/baseline_compat/metta-morph_tests/tests0.metta
