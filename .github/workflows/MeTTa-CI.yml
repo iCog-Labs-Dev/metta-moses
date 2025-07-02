@@ -36,8 +36,8 @@ jobs:
     - name: Install MeTTaLog
       run: |
         set -e
-        git clone https://github.com/logicmoo/metta-wam --depth 1
-        cd metta-wam
+        # git clone https://github.com/logicmoo/metta-wam --depth 1
+        cd /Users/bitseat/metta-wam
         chmod +x ./INSTALL.sh
         source ./INSTALL.sh --allow-system-modifications
         cd ..
