@@ -4,7 +4,7 @@
 ! (import! &self metta-moses:utilities:list-methods)
 ! (import! &self metta-moses:utilities:general-helpers)
 ! (import! &self metta-moses:representation:instance)
-!(import! &self metta-moses:scoring:cscore)
+! (import! &self metta-moses:scoring:cscore)
 
 
 ;; Test cases for List.foldr
@@ -219,3 +219,12 @@
 !(assertEqual (List.generate 5 3) (Cons 3 (Cons 3 (Cons 3 (Cons 3 (Cons 3 Nil))))))
 !(assertEqual (List.generate 0 3) Nil)
 !(assertEqual (List.generate 3 0) (Cons 0 (Cons 0 (Cons 0 Nil))))
+
+;; List.elementWise XXX -- to be fixed how to handle division by 0
+!(assertEqual (List.elementWise + (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons 4 (Cons 5 (Cons 6 Nil)))) (Cons 5 (Cons 7 (Cons 9 Nil))))
+!(assertEqual (List.elementWise - (Cons 10 (Cons 9 (Cons 8 Nil))) (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 9 (Cons 7 (Cons 5 Nil))))
+!(assertEqual (List.elementWise * (Cons 2 (Cons 4 Nil)) (Cons 3 (Cons 5 Nil))) (Cons 6 (Cons 20 Nil)))
+!(assertEqual (List.elementWise + Nil Nil) Nil)
+!(assertEqual (List.elementWise + (Cons 1 (Cons 2 Nil)) Nil) (Error ((Cons 1 (Cons 2 Nil)) Nil) "Lists of unequal length"))
+!(assertEqual (List.elementWise + Nil (Cons 3 (Cons 4 Nil))) (Error (Nil (Cons 3 (Cons 4 Nil))) "Lists of unequal length"))
+!(assertEqual (List.elementWise * (Cons 1 Nil) (Cons 2 (Cons 3 Nil))) (Error ((Cons 1 Nil) (Cons 2 (Cons 3 Nil))) "Lists of unequal length"))

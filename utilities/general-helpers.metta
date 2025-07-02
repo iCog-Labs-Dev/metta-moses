@@ -277,6 +277,36 @@
             (let $tail (cdr-atom $expr)
                 (selectByIndex $tail (- $index 1))
             ))))
+;; XXX -- Reimplementation of the above function as indexAtom
+(: indexAtom (-> Expression Number Atom))
+(= (indexAtom $expr $index)
+    (function 
+        (eval (if-equal $expr ()
+            (return (Error description: IndexOutOfRange))
+            (eval (if-decons-expr $expr $h $t
+                (eval (if-equal $index 0
+                    (return $h)
+                    (return (indexAtom $t (- $index 1)))))
+                (return Empty)))))))   
+        
+;; removeAtom -- removes a single atom (the first occurrunce) from a tuple                                
+(: removeAtom (-> Atom Expression Expression))                                
+(= (removeAtom $atom $expr $acc)
+    (function 
+        (eval (if-decons-expr $expr $head $tail
+            (eval (if-equal $head $atom
+                (return (union-atom $acc $tail))
+                (chain (appendAtom $head $acc) $carry
+                (return (removeAtom $atom $tail $carry)))))
+        $acc))))
+
+;; subtractionAtom -- replicates behaviour of MeTTa's subtraction-atom in mettalog
+(: subtractionAtom (-> Expression Expression Expression))
+(= (subtractionAtom $expr $b)
+    (if-decons-expr $b $head $tail
+        (chain (removeAtom $head $expr ()) $newexpr
+            (subtractionAtom $newexpr $tail))
+        $expr))        
 
 ;; TODO: Use zipWith instead
 ;; A function that compares tuples element by element.
@@ -350,7 +380,7 @@
      (let* (
         ($initial (car-atom $list))
         ($cur (selector $list $initial $op))
-        ($newList (subtraction-atom $list ($cur)))
+        ($newList (subtractionAtom $list ($cur)))
         ($rest (selectionSort $newList (- $n 1) $op))
     )
     (cons-atom $cur $rest)
@@ -570,8 +600,11 @@
 
 ;; wrapping the built-in ininf-math with custom function because the return type is not bool, it is number
 ;; using the type-cast function
-(: isInf (-> Number Bool))
-(= (isInf $x) (type-cast (isinf-math $x) Bool &self))
+; (: isInf (-> Number Bool))
+; (= (isInf $x) (type-cast (isinf-math $x) Bool &self))
+
+;; replace the above with python binding function
+! (bind! isinf (py-atom "math.isinf"))
 
 ;; A trick to define composition function.
 ;; Takes a function and returns another function
@@ -639,10 +672,11 @@
 
 ;; approximate equality -- takes the relative magnitude of the numbers into consideration
 ! (bind! EPSILON (pow-math 10 -6))
+! (bind! abs (py-atom "abs"))
 (: isApproxEq (-> Number Number Bool))
 (= (isApproxEq $x $y)
-    (let $diff (abs-math (- $x $y))
+    (let $diff (abs (- $x $y))
         (if (< $diff EPSILON)
             True
-            (let $amp (abs-math (+ $x $y))
-                (<= $diff (* EPSILON $amp))))))
+            (let $amp (abs (+ $x $y))
+                (<= $diff (* EPSILON $amp))))))      

@@ -7,8 +7,7 @@
 ! (import! &self metta-moses:scoring:bscore)
 ! (import! &self metta-moses:scoring:cscore)
 
-! (bind! nan (py-atom math.nan))
-
+! (bind! nan (py-atom "math.nan"))
 ; ;; Test cases for updatePenalizedScore
 ! (assertEqual (updatePenalizedScore (mkCscore  0  2  0.3 0.5  (* -1 (pow-math 10 308))) False) (mkCscore  0  2  0.3  0.5 -0.8))
 ! (assertEqual (updatePenalizedScore (mkCscore  -1  3  0.2  0.4 (* -1 (pow-math 10 308))) True) (mkCscore  -1  3  0.2  0.4  -0.48))
@@ -39,7 +38,7 @@
 ! (assertEqual (cScore< (mkCscore -0.1 2 0.1 0.1 -0.3) (mkCscore -0.2 3 0.1 0.1 -0.4)) False)
 ! (assertEqual (cScore< (mkCscore -0.5 3 0.1 0.1 -0.7) (mkCscore -0.5 2 0.1 0.1 -0.7)) True)
 ! (assertEqual (cScore< (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 3 0.1 0.1 -0.7)) False)
-! (assertEqual (cScore< (mkCscore -0.5 2 0.1 0.1 nan) (mkCscore -0.5 3 0.1 0.1 -0.7)) True)
+! (assertEqual (cScore< (mkCscore nan 2 0.1 0.1 nan) (mkCscore -0.5 3 0.1 0.1 -0.7)) True)
 
 ;; Test cases -- composite score equality comparator 
 ! (assertEqual (cScore== (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 2 0.1 0.1 -0.7)) True)
