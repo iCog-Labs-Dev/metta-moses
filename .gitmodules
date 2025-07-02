@@ -1,0 +1,3 @@
+[submodule "metta-wam"]
+	path = metta-wam
+	url = https://github.com/trueagi-io/metta-wam
