@@ -2,7 +2,10 @@ import subprocess
 import pathlib
 import sys
 import re
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import shutil
+print("🔍 mettalog path from script:", shutil.which("mettalog"))
 
 # Define ANSI escape codes for colors
 RESET = "\033[0m"
@@ -18,28 +21,24 @@ MAGENTA = "\033[95m"
 def extract_and_print(result, path, idx) -> bool:
     """
     Extracts the output from the test execution result and prints the status.
-
-    Parameters:
-        result (subprocess.CompletedProcess): The result of the subprocess call.
-        path (pathlib.Path): The path to the test file being executed.
-        idx (int): The index of the test in the sequence.
-
-    Returns:
-        bool: True if the test failed (output contains "Error"), False otherwise.
-
-    This function:
-        - Extracts the output from the result's stdout or stderr.
-        - Checks for the presence of the word "Error" to determine failure.
-        - Prints the test result in a color-coded format:
-            - Green for success.
-            - Red for failure.
-        - Displays the test's exit code and a separator line for readability.
     """
-
-    output = result.stdout if result.returncode == 0 else result.stderr
+    # Always use stdout for mettalog output
+    output = result.stdout if result.stdout else result.stderr
     extracted = output.replace("[()]\n", "")
 
-    has_failure = "Error" in extracted
+    # Check for actual failures in the LoonIt Report
+    has_failure = False
+    if "Failures:" in extracted:
+        # Extract the failures count
+        import re
+        failures_match = re.search(r"Failures:\s*(\d+)", extracted)
+        if failures_match:
+            failures_count = int(failures_match.group(1))
+            has_failure = failures_count > 0
+
+    # Also check for other error indicators
+    if "Error" in extracted or "error" in extracted.lower():
+        has_failure = True
 
     if not has_failure:
         extracted = "test passed"
@@ -52,39 +51,47 @@ def extract_and_print(result, path, idx) -> bool:
 
     return has_failure
 
-
 def run_test_file(test_file):
-    """
-    Runs a single test file using the `metta-run` command.
-
-    Parameters:
-        test_file (pathlib.Path): The path to the test file to be executed.
-
-    Returns:
-        tuple:
-            - result (subprocess.CompletedProcess | subprocess.CalledProcessError):
-              The result of the test execution.
-            - test_file (pathlib.Path): The path to the test file.
-            - has_failure (bool): True if the test failed due to a `CalledProcessError`.
-
-    This function:
-        - Invokes the `metta-run` command with the test file as an argument.
-        - Captures both stdout and stderr for the command execution.
-        - Returns the test execution result, along with the test file path and failure status.
-        - Handles errors using a try-except block and captures them in a structured format.
-    """
-
     try:
+        # Create a clean environment with bash as default shell
+        env = os.environ.copy()
+        env['SHELL'] = '/bin/bash'
+        
+        # Use the full path to mettalog
+        mettalog_path = shutil.which("mettalog")
+        command = [mettalog_path, str(test_file)]
+        
+        # Don't use check=True since mettalog returns 1 even for successful tests
         result = subprocess.run(
-            [metta_run_command, str(test_file)],
+            command,
             capture_output=True,
             text=True,
-            check=True,
+            check=False,  # Changed from True to False
+            shell=False,
+            env=env
         )
-        return result, test_file, False
-    except subprocess.CalledProcessError as e:
-        return e, test_file, True
 
+        print(GREEN + f"\n--- COMPLETED {test_file} ---" + RESET)
+        print(YELLOW + "STDOUT:\n" + result.stdout + RESET)
+        if result.stderr:
+            print(MAGENTA + "STDERR:\n" + result.stderr + RESET)
+        print("-" * 40)
+
+        return result, test_file, False
+
+    except Exception as e:
+        print(RED + f"\n--- EXCEPTION in {test_file} ---" + RESET)
+        print(RED + f"Exception: {e}" + RESET)
+        print("-" * 40)
+
+        # Create a mock result for the exception case
+        class MockResult:
+            def __init__(self):
+                self.returncode = -1
+                self.stdout = ""
+                self.stderr = str(e)
+        
+        return MockResult(), test_file, True
 
 # Function to print ASCII art
 def print_ascii_art(text):
@@ -95,10 +102,11 @@ def print_ascii_art(text):
 
 
 # Define the command to run with the test files
-metta_run_command = "metta"
+metta_run_command = "mettalog"
 
-root = pathlib.Path("../")
+root = pathlib.Path(".")
 testMettaFiles = list(root.rglob("*test.metta"))
+print(testMettaFiles)
 total_files = len(testMettaFiles)
 results = []
 fails = 0
@@ -117,8 +125,11 @@ with ThreadPoolExecutor() as executor:
         idx = future_to_test[future]
         try:
             result, path, has_failure = future.result()
-            if isinstance(result, subprocess.CalledProcessError):
-                print(RED + f"Error with {path}: {result.stderr}" + RESET)
+            
+            # Since we're no longer using check=True, we won't get CalledProcessError
+            # Just check if the result is valid
+            if result is None:
+                print(RED + f"Error with {path}: No result returned" + RESET)
                 fails += 1
                 continue
 
