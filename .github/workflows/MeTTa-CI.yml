@@ -59,6 +59,4 @@ jobs:
       - name: Run MeTTaLog Tests
         run: |
           which mettalog
-          echo "--- Listing all files recursively in the workspace ---"
-          ls -R
           python3 scripts/run-tests.py
