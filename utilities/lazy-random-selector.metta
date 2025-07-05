@@ -6,7 +6,7 @@
 ;;        $picked: list of picked numbers
 (: pick (-> Number Number Expression Number))
 (= (pick $lower $upper $picked )
-    (let $rand ((py-atom random.randint) $lower $upper)       ;; (random-int $lower $upper) 
+    (let $rand (random-int &rng $lower (+ 1 $upper))      ;; (random-int $lower $upper) 
         (if (isMember $rand $picked)
             (pick $lower $upper $picked)
             $rand
