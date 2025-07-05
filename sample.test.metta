@@ -1,2 +1,2 @@
 
-! (assertEqual (+ 1 2) 6)
+! (assertEqual (+ 1 2) 3)

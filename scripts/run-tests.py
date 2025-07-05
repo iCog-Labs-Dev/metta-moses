@@ -8,12 +8,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import shutil
 
-# Force output to appear immediately in CI logs
-sys.stdout.reconfigure(line_buffering=True)
-sys.stderr.reconfigure(line_buffering=True)
-
-print('🚀 Starting test script', flush=True)
-print("🔍 mettalog path from script:", shutil.which("mettalog"), flush=True)
+print('🚀 Starting test script')
 
 # Define ANSI escape codes for colors
 RESET = "\033[0m"
@@ -68,7 +63,6 @@ def run_test_file(test_file):
         
         # Don't use check=True since mettalog returns 1 even for successful tests
         # Add timeout to prevent hanging in CI
-        print(f"🔄 Running: {' '.join(command)}", flush=True)
         result = subprocess.run(
             command,
             capture_output=True,
@@ -79,17 +73,11 @@ def run_test_file(test_file):
             timeout=300  # 5 minute timeout to prevent hanging
         )
 
-        print(GREEN + f"\n--- COMPLETED {test_file} ---" + RESET)
-        print(YELLOW + "STDOUT:\n" + result.stdout + RESET)
-        if result.stderr:
-            print(MAGENTA + "STDERR:\n" + result.stderr + RESET)
-        print("-" * 40)
-
         return result, test_file, False
 
     except subprocess.TimeoutExpired as e:
-        print(RED + f"\n--- TIMEOUT in {test_file} ---" + RESET, flush=True)
-        print(RED + f"Test timed out after 5 minutes. Likely infinite loop in test." + RESET, flush=True)
+        print(RED + f"\n--- TIMEOUT in {test_file} ---" + RESET)
+        print(RED + f"Test timed out after 5 minutes. Likely infinite loop in test." + RESET)
         print("-" * 40)
 
         # Create a mock result for the timeout case
@@ -102,8 +90,8 @@ def run_test_file(test_file):
         return MockTimeoutResult(), test_file, True
 
     except Exception as e:
-        print(RED + f"\n--- EXCEPTION in {test_file} ---" + RESET, flush=True)
-        print(RED + f"Exception: {e}" + RESET, flush=True)
+        print(RED + f"\n--- EXCEPTION in {test_file} ---" + RESET)
+        print(RED + f"Exception: {e}" + RESET)
         print("-" * 40)
 
         # Create a mock result for the exception case
@@ -126,20 +114,15 @@ def print_ascii_art(text):
 # Define the command to run with the test files
 metta_run_command = "mettalog"
 
-print("🔍 Searching for test files...", flush=True)
 root = pathlib.Path(".")
 testMettaFiles = list(root.rglob("*test.metta"))
-print(f"📁 Found test files: {testMettaFiles}", flush=True)
 total_files = len(testMettaFiles)
 results = []
 fails = 0
 
 if total_files == 0:
-    print("⚠️  No test files found matching pattern '*test.metta'", flush=True)
-    print("✅ Exiting with success (no tests to run)", flush=True)
+    print("⚠️  No test files found matching pattern '*test.metta'")
     sys.exit(0)
-
-print(f"🎯 Will run {total_files} test file(s)", flush=True)
 
 # Print ASCII art title
 print_ascii_art("Parallel Test Runner")
