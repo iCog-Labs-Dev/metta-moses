@@ -70,7 +70,7 @@ def run_test_file(test_file):
             check=False,  # Changed from True to False
             shell=False,
             env=env,
-            timeout=300  # 5 minute timeout to prevent hanging
+            
         )
 
         return result, test_file, False
