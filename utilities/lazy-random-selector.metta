@@ -6,7 +6,7 @@
 ;;        $picked: list of picked numbers
 (: pick (-> Number Number Expression Number))
 (= (pick $lower $upper $picked )
-    (let $rand ((py-atom random.randint) $lower $upper)       ;; (random-int $lower $upper) 
+    (let $rand (random-int &rng $lower (+ 1 $upper))      ;; (random-int $lower $upper) 
         (if (isMember $rand $picked)
             (pick $lower $upper $picked)
             $rand
@@ -26,13 +26,12 @@
 ;; (: lazyRandomSelector (-> Number Number Number Expression ))
 (= (lazyRandomSelector $lower $upper $n) (lazyRandomSelector $lower $upper $n ()))
 (= (lazyRandomSelector $lower $upper $n $picked)
-    (chain (pick $lower $upper $picked ) $rand 
-        (if  (== $n 0) 
-            $picked
-            (if  (< (+ (- $upper $lower) 1) (+ (size-atom $picked) $n))
-                (Error break "number of elements to select is greater than list size")
-                (let $picked_ (cons-atom $rand $picked) (lazyRandomSelector $lower $upper (- $n 1) $picked_))
-            )
-        )
+    (let $totalSize (+ (- $upper $lower) 1)
+        (if (> $n $totalSize)
+            (Error $n "number of elements to select is greater than list size")
+            (if (== $n 0)
+                $picked
+                (chain (pick $lower $upper $picked) $rand
+                    (lazyRandomSelector $lower $upper (- $n 1) (cons-atom $rand $picked)))))
     )
 )

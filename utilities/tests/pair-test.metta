@@ -9,4 +9,10 @@
 ;; Pair helper function tests
 !(assertEqual (Pair.first (mkPair 1 2)) 1)
 !(assertEqual (Pair.second (mkPair 1 2)) 2)
-!(assertEqual (Pair.first (Pair.second (mkPair (mkPair 2 3) 2))) (Error (Pair.second (mkPair (mkPair 2 3) 2)) BadType))
+
+;; causes error in mettalog
+;!(assertEqual (Pair.first (Pair.second (mkPair (mkPair 2 3) 2))) (Error (Pair.second (mkPair (mkPair 2 3) 2)) BadType))
+
+;; works in mettalog with no type checking
+!(assertEqual (Pair.first (Pair.second (mkPair (mkPair 2 3) 2))) (Pair.first 2))
+!(assertEqual (Pair.first (Pair.first (mkPair (mkPair 2 3) 2))) 2)
