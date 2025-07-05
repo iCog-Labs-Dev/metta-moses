@@ -1,9 +1,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Definition of a List data structure with various methods for it. ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-!(register-module! ../../metta-moses)
-! (import! &self metta-moses:utilities:general-helpers)
-
 
 (: List (-> $a Type))
 (: Nil (List $a))
@@ -42,12 +39,12 @@
        (Cons $x (Cons $head $tail))
        (Cons $head (List.insert $x $tail))))
 ;; A function that converts a list to an expression
-(= (List.toExpr (List $a)) (Expression))
+; (: List.toExpr (->(List $a) Expression)
 (= (List.toExpr Nil) ())
 (= (List.toExpr (Cons $x $xs)) (let $t (List.toExpr $xs) (cons-atom $x $t)))
 
 ;; A function that converts an expression to a list
-(: List.fromExpr (-> Expression (List $a)))
+; (: List.fromExpr (-> Expression (List $a)))
 (= (List.fromExpr ()) Nil)
 (= (List.fromExpr $list)
     (let* (

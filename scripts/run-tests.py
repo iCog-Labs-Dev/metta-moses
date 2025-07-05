@@ -97,8 +97,10 @@ def print_ascii_art(text):
 # Define the command to run with the test files
 metta_run_command = "metta"
 
-root = pathlib.Path("../")
-testMettaFiles = list(root.rglob("*test.metta"))
+script_dir = pathlib.Path(__file__).parent.absolute()
+
+testMettaFiles = list(script_dir.rglob("*test.metta"))
+print(testMettaFiles)
 total_files = len(testMettaFiles)
 results = []
 fails = 0

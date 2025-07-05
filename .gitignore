@@ -2,6 +2,7 @@
 venv
 .venv
 __pycache__/
+utilities/stdlib/meTTa-utils/
 
 myTest.metta
 todo

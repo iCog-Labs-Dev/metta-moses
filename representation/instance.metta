@@ -1,6 +1,7 @@
 ;; Types, constructors and functions related to instance.
 
 ;; An instance is just a vector of numbers
+
 (: Instance Type)
 (: mkInst (-> (List Number) Instance))
 
@@ -12,29 +13,76 @@
 (: InstanceSet (-> $score Type))
 (: mkSInstSet (-> (List (ScoredInstance $score)) (InstanceSet $score)))
 
-;; sortDeme -- sort scored instances in a deme by the composite score in a decreasing order
-;; this is a wrapper for the actual sorting function sortSInst
+;; --- Conversion helpers ---
+(: instToExpr (-> Instance Expression))
+(= (instToExpr (mkInst $lst)) (List.toExpr $lst))
+
+(: exprToInst (-> Expression Instance))
+(= (exprToInst $expr) (mkInst (List.fromExpr $expr)))
+
+(: sInstToExpr (-> (ScoredInstance $score) Expression))
+(= (sInstToExpr (mkSInst (mkPair $inst $score)))
+    (let* (
+      ($instExpr (instToExpr $inst))
+      ($scoreExpr (cScoreToExpr $score))
+    )
+      (cons-atom $instExpr $scoreExpr)))
+
+(= (exprToSInst $expr)
+    (let* (
+      (($instExpr $scoreExpr) (decons-atom $expr))
+      ($inst (exprToInst $instExpr))
+      ($score (exprToCScore $scoreExpr))
+    )
+      (mkSInst (mkPair $inst $score))))
+
+(= (sInstSetToExpr (mkSInstSet $lst)) (sInstSetListToExpr $lst))
+
+(= (sInstSetListToExpr Nil) ())
+(= (sInstSetListToExpr (Cons $scoredInst $rest))
+    (let* (
+      ($sInstExpr (sInstToExpr $scoredInst))
+      ($restExpr (sInstSetListToExpr $rest))
+    )
+      (cons-atom $sInstExpr $restExpr)))
+
+(: exprToSInstSet (-> Expression (InstanceSet Cscore)))
+(= (exprToSInstSet $expr)
+    (mkSInstSet (List.map exprToSInst (List.fromExpr $expr))))
+
+;; --- Fast selectionSort implementation with conversion ---
 (: sortDeme (-> (InstanceSet Cscore) (InstanceSet Cscore)))
-(= (sortDeme (mkSInstSet Nil)) (mkSInstSet Nil))
-(= (sortDeme (mkSInstSet (Cons $scoredInst $rest)))
-    (mkSInstSet (sortSInst (Cons $scoredInst $rest))))
+(= (sortDeme $set)
+    (let* (
+      ($expr (sInstSetToExpr $set))
+      ($n (len $expr))
+      ($sortedExpr (selectionSort $expr $n sInstComparator))
+    )
+      (exprToSInstSet $sortedExpr)))
 
-;; sortSInst -- sorts list of scored instances using insertion sort     
 (: sortSInst (-> (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
-(= (sortSInst Nil) Nil)
-(= (sortSInst (Cons $scoredInst $rest))
-    (insertSInst $scoredInst (sortSInst $rest)))
+(= (sortSInst $lst)
+    (let* (
+      ($expr (sInstSetListToExpr $lst))
+      ($n (len $expr))
+      ($sortedExpr (selectionSort $expr $n sInstComparator))
+      ($sortedList (List.map exprToSInst (List.fromExpr $sortedExpr)))
+    )
+      $sortedList))
 
-;; insertSInst -- implements the decreasing oreder insertion     
 (: insertSInst (-> (ScoredInstance Cscore) (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
-(= (insertSInst $scoredInst Nil) (Cons $scoredInst Nil))
-(= (insertSInst $scoredInst1 (Cons $scoredInst2 $rest))
-    (let* (((mkSInst (mkPair (mkInst $inst1) $score1)) $scoredInst1)
-            ((mkSInst (mkPair (mkInst $inst2) $score2)) $scoredInst2))
-             
-            (if (cScore< $score1 $score2)
-                (Cons $scoredInst2 (Cons $scoredInst1 $rest))
-                (Cons $scoredInst1 (insertSInst $scoredInst2 $rest))))) 
+(= (insertSInst $sinst $lst)
+    (sortSInst (Cons $sinst $lst))) 
+
+;; --- Optimized comparator for selectionSort ---
+;; This comparator sorts in DESCENDING order (best scores first)
+(= (sInstComparator $a $b)
+    (let* (
+      (($instA $scoreA) (decons-atom $a))
+      (($instB $scoreB) (decons-atom $b))
+    )
+      ;; Use cScoreExpr< in reverse - we want better scores first
+      (cScoreExpr< $scoreB $scoreA)))
 
 ;; extracts the score of a scored instance object
 (= (getSInstScore (mkSInst (mkPair $inst $score))) $score)
@@ -45,4 +93,6 @@
 ;; Scored Instance comparator --> instance>=
 (: instance>= (-> (ScoredInstance $score) (ScoredInstance $score) Bool))
 (= (instance>= (mkSInst (mkPair $inst1 $score1)) (mkSInst (mkPair $inst2 $score2)))
-    (cScore>= $score1 $score2))    
+    (cScore>= $score1 $score2))
+
+
