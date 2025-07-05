@@ -5,6 +5,7 @@ import re
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import shutil
+print('in scrip file ')
 print("🔍 mettalog path from script:", shutil.which("mettalog"))
 
 # Define ANSI escape codes for colors
