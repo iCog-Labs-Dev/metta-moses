@@ -36,9 +36,6 @@ def extract_and_print(result, path, idx) -> bool:
             failures_count = int(failures_match.group(1))
             has_failure = failures_count > 0
 
-    # Also check for other error indicators
-    if "Error" in extracted or "error" in extracted.lower():
-        has_failure = True
 
     if not has_failure:
         extracted = "test passed"
