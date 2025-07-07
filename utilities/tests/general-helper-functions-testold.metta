@@ -19,6 +19,11 @@
 ;; !(assertEqualToResult (concatTuple (1 2) ()) ((1 2)))
 ;; !(assertEqualToResult (concatTuple () ()) (()))
 
+;; Test for the function 'concatT'
+!(assertEqual (concatT (1 2 3) (4 5)) (1 2 3 4 5))
+!(assertEqual (concatT (1 2 3) (2 3)) (1 2 3 2 3))
+!(assertEqual (concatT (1 2 3) (2)) (1 2 3 2))
+
 ;; Tests for the function 'Not'
 !(assertEqualToResult (Not (Not (Not A))) ((NOT A)))
 !(assertEqualToResult (Not (Not A)) (A))

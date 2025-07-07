@@ -19,6 +19,16 @@
         ((False True) (appendAtom $y $x))
         ((False False)  (foldr cons-atom $y $x)))))
 
+; FUnction to concatinate two tuples without using union-atom
+ (= (concatT $expr1 $expr2)
+    (if (== $expr1 ())
+        $expr2
+        (let*
+            (
+            ($head (car-atom $expr1))
+            ($tail (concatT (cdr-atom $expr1) $expr2)))
+            (cons-atom $head $tail))))
+            
 ; a helper function to the isConsistentExp function.
 ; a function which simplifies nested logical negations by reducing them to their simplest form. 
 (= (Not $a)
