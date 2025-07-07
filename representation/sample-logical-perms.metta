@@ -27,7 +27,8 @@
     (let*
         (
             (($a $b) (index-atom $PermPairs (superpose $picked)))
-            (($1 $2) ((index-atom args $a) (index-atom args $b)))
+            ($args args)
+            (($1 $2) ((index-atom $args $a) (index-atom $args $b)))
         )
         (if (< $b $a)
             ($swapedOp  $2 $1)
@@ -55,6 +56,6 @@
             ($picked (lazyRandomSelector 0 $upperbound $nPairs))
             ($perms (collapse (getArgs $swapedOp $idxPairs $picked)))
         )
-        (collapse (union (superpose args) (superpose $perms)))
+        (union-atom (A B) $perms)
     )
 )
