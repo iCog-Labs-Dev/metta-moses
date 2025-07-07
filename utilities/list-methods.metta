@@ -6,7 +6,6 @@
 (: Nil (List $a))
 (: Cons (-> $a (List $a) (List $a)))
 
-
 ;; Fold a tuple from left to right
 (: List.foldl (-> (-> $a $b $b) $b (List $a) $b))
 (= (List.foldl $f $i Nil) $i)
@@ -135,7 +134,8 @@
 (= (List.sub Nil Nil) Nil)
 (= (List.sub Nil (Cons $y $ys)) (Error (Cons $y $ys) LenghtOfListNotEqual))
 (= (List.sub (Cons $x $xs) Nil) (Error (Cons $x $xs) LenghtOfListsNotEqual))
-(= (List.sub (Cons $x $xs) (Cons $y $ys)) (Cons (- $x $y) (List.sub $xs $ys)))
+(= (List.sub (Cons $x $xs) (Cons $y $ys)) 
+    (chain (List.sub $xs $ys) $res (if-error $res $res (Cons (- $x $y) $res))))
 
 (: List.zip (-> (List $a) (List $b) (List ($a $b))))
 (= (List.zip Nil Nil) Nil)
@@ -161,7 +161,7 @@
 (= (List.flatten (Cons $x $xs))
     (case $x
        (
-         ((Cons $y Nil) (Cons $y (List.flatten $xs)))
+         ((Cons $y Nil) (chain (List.flatten $xs) $res (if-error $res $res (Cons $y $res))))
          ((Cons $y $ys) (Error $x "Can't be flattened")))))
 
 (: List.repeat (-> Number $a (List $a)))
@@ -209,14 +209,14 @@
 ;; List.partialSort -- sorts the top n values in a list and leaves the rest unsorted      
 (: List.partialSort (-> (-> $a $a Bool) (List $a) Number (List $a) (List $a)))
 (= (List.partialSort $comparator (Cons $x $xs) $n $acc)
-    (let* (($max (List.max $comparator (Cons $x $xs)))
-            ($unsortedList (List.delete $max (Cons $x $xs)))
-            ($sortedList (List.append $max $acc)))
-                
-                (if (== (- $n 1) 0)
+    (chain (List.max $comparator (Cons $x $xs)) $max
+    (chain (List.delete $max (Cons $x $xs)) $unsortedList
+    (chain (List.append $max $acc) $sortedList
+        
+        (if (== (- $n 1) 0)
                     (List.appendList $unsortedList $sortedList)
-                    (List.partialSort $comparator $unsortedList (- $n 1) $sortedList))))
-
+                    (List.partialSort $comparator $unsortedList (- $n 1) $sortedList))))))
+                    
 ;; Overloading the above partialSort for partial Sorting list of numbers -- decreasing order
 (: List.partialSort (-> (List Number) Number (List Number) (List Number)))
 (= (List.partialSort $list $n $acc) (List.partialSort >= $list $n $acc))          
@@ -226,7 +226,7 @@
 (= (List.appendList $a (Cons $x $xs))
     (if (== $xs Nil)
         (Cons $x $a)
-        (Cons $x (List.appendList $a $xs))))   
+        (chain (List.appendList $a $xs) $res (Cons $x $res))))
 
 ;; deletes the first occurence of an item in the list
 (: (List.delete (-> $a (List $a) (List $a))))
@@ -265,3 +265,16 @@
 (= (List.generate $length $element) 
 (if (> $length 0) 
     (Cons $element (List.generate (- $length 1) $element)) Nil))
+
+;; element wise operations
+(: List.elementWise (-> (-> $a $a $a) (List $a) (List $a) (List $a)))
+(= (List.elementWise $op $list1 $list2)
+    (switch ($list1 $list2)
+        (
+            ((Nil Nil) Nil)
+            ((Nil (Cons $x $xs)) (Error (Nil (Cons $x $xs)) "Unequal length list"))
+            (((Cons $x $xs) Nil) (Error ((Cons $x $xs) Nil) "Unequal length list"))
+            (((Cons $x $xs) (Cons $y $ys)) 
+                    (chain (List.elementWise $op $xs $ys) $res 
+                            (if-error $res $res (Cons ($op $x $y) $res)))))))      
+
