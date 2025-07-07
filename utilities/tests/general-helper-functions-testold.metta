@@ -133,7 +133,7 @@
 (= (addThree $x $y $z) (+ $x (+ $y $z)))
 
 !(assertEqual (get-type ((curry2 addThree) 1)) (-> Number Number Number))
-!(assertEqual (get-type (((curry2 addThree) 1) 2 3)) Number)
+!(assertEqual (let $res (((curry2 addThree) 1) 2 3) (get-type $res)) Number)
 !(assertEqual (((curry2 addThree) 1) 2 3) 6)
 
 !(assertEqual (get-type ((curry ((curry2 addThree) 1)) 2)) (-> Number Number))
@@ -215,6 +215,11 @@
 ;; !(assertEqual (appendAtom A (B C)) (B C A))
 ;; !(assertEqual (appendAtom (A) (B C)) (B C (A)))
 
+;; unionAtom
+! (assertEqual (unionAtom () (1 2)) (1 2))
+! (assertEqual (unionAtom (0) (1 2)) (0 1 2))
+! (assertEqual (unionAtom (0 1) (2 3)) (0 1 2 3))
+
 !(assertEqual (max 1 2) 2)
 !(assertEqual (max 2 4) 4)
 
@@ -247,6 +252,21 @@
 !(assertEqual (selectByIndex (1 2 3 4) 2) 3)
 !(assertEqual (selectByIndex (1 2 3 4) 3) 4)
 !(assertEqual (selectByIndex (1 2 3 4) 0) 1)
+
+!(assertEqual (indexAtom (1 2 3 4) 2) 3)
+!(assertEqual (indexAtom (1 2 3 4) 3) 4)
+!(assertEqual (indexAtom (1 2 3 4) 0) 1)
+
+! (assertEqual (removeAtom 1 ()) ()) 
+! (assertEqual (removeAtom 1 (1)) ()) 
+! (assertEqual (removeAtom 1 (1 2)) (2)) 
+! (assertEqual (removeAtom 1 (1 2 3)) (2 3))
+! (assertEqual (removeAtom 1 (1 2 3 1 1)) (2 3 1 1)) 
+
+! (assertEqual (subtractionAtom (1 2 3) ()) (1 2 3))
+! (assertEqual (subtractionAtom (1 2 3) (1)) (2 3))
+! (assertEqual (subtractionAtom (1 2 1 3 1) (1 2)) (1 3 1))
+
 
 !(assertEqual (compareElements (A B C) (1 2 3)) (False False False))
 !(assertEqual (compareElements (A B C) (A B C)) (True True True))
@@ -396,8 +416,8 @@ NilMMap discSpec<=)
 (: bySecondAtom (-> ($a Number) ($b Number) Bool))
 (= (bySecondAtom $x $y) 
     (let* (
-        ($xSecond (index-atom $x 1))
-        ($ySecond (index-atom $y 1))
+        ($xSecond (indexAtom $x 1))
+        ($ySecond (indexAtom $y 1))
     )
     (> $xSecond $ySecond)
     ))
@@ -411,8 +431,8 @@ NilMMap discSpec<=)
 !(assertEqual (bySecondAtom (b 10) (a 2)) True) 
 
 ;; Test cases -- selectionSort
-!(assertEqual (selectionSort (5 2 9 1 73 2 3 9 8 34 25) 2) (1 2 5 9 73 2 3 9 8 34 25))
-!(assertEqual (selectionSort  (5 2 9 1 73 2 3 9 8 34 25) 3 >) (73 34 25 5 2 9 1 2 3 9 8))
+!(assertEqual (selectionSort (4 1 9 2 8 3 25 2 9 73) 2 <) (1 2 4 9 8 3 25 2 9 73))
+!(assertEqual (selectionSort (5 2 9 1 73 2 3 9 8 34 25) 3 >) (73 34 25 5 2 9 1 2 3 9 8))
 !(assertEqual (selectionSort (1 73 2 3 1 9 8 34 1 25 1) 4 <) (1 1 1 1 73 2 3 9 8 34 25))
 !(assertEqual (selectionSort () 2 >) ())
 !(assertEqual (selectionSort (1 2 3) 4 >) (3 2 1))
