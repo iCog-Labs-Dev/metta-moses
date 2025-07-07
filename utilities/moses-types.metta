@@ -22,17 +22,14 @@
 (= (getNodeById $exp $NodeId)
 (let* 
    (
-      ($index (car-atom $NodeId))
-      ($nodeAtIndex (index-atom $exp $index))
+      ($index (car-atom $NodeId)) 
+      ($nodeAtIndex (indexAtom $exp $index))
       ($nodeType (get-metatype $nodeAtIndex))
       ($nextIndexes (cdr-atom $NodeId))
    )
-   (if (== $nodeType Symbol) 
-       $nodeAtIndex 
-       (if (== $nextIndexes ()) 
-           $nodeAtIndex
-           (getNodeById $nodeAtIndex (mkNodeId $nextIndexes))
-       )
-   )
-)
-)
+    (if (== $nodeType Symbol) 
+        $nodeAtIndex 
+        (if (== $nextIndexes ()) 
+            $nodeAtIndex
+            (getNodeById $nodeAtIndex (mkNodeId $nextIndexes))
+        ))))

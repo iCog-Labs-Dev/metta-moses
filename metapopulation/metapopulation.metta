@@ -101,4 +101,3 @@
 ;; Return: $tree
 (: getExemplarTree (-> (Exemplar $a) (Tree $a)))
 (= (getExemplarTree (mkExemplar $tree $demeId $cscore $bscore)) $tree)
-

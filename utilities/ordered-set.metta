@@ -23,9 +23,6 @@
 (= (OS.length NilOS) 0)
 (= (OS.length (ConsOS $x $xs)) (+ 1 (OS.length $xs)))
 
-;; Get by index
-! (bind! INDEX_ERROR "empty set/index out of range")
-
 ;; OS.getByIndx -- get by index
 (: OS.getByIdx (-> Number (OS $a) $a)) 
 (= (OS.getByIdx $idx NilOS) (Error $idx INDEX_ERROR))
@@ -52,13 +49,14 @@
         True
         (OS.contains $xs $el)))
 
-;; removeByIdx
-(OS.removeByIdx (-> (OS $a) Number (OS $a)))
-(= (OS.removeByIdx NilOS $index) (Error NilOS INDEX_ERROR))
+;; OS.removeByIdx 
+(: OS.removeByIdx (-> (OS $a) Number (OS $a)))
+(= (OS.removeByIdx NilOS $index) (Error "empty set/index out of range"))
 (= (OS.removeByIdx (ConsOS $x $xs) $index)
     (if (== $index 0)
         $xs
-        (ConsOS $x (OS.removeByIdx $xs (- $index 1)))))
+        (chain (OS.removeByIdx $xs (- $index 1)) $res
+            (if-error $res $res (ConsOS $x $res)))))
 
 ;; Check if an Exemplar is a member of an ordered set
 ;; Params:
@@ -72,16 +70,16 @@
    (if (== $exemplar $x)
        True
        (OS.isMember $exemplar $xs)))
-
+  
 ; Retrieves the first N elements from an ordered set.
 ; Params:
 ;   $n: Number of elements to return.
 ;   $os: Ordered set of exemplars.
 ; Return: Ordered set containing the first N elements, or all elements if N exceeds the set size.
 (: OS.getTopN (-> Number (OS (Exemplar $a)) (OS (Exemplar $a)))) 
-(= (OS.getTopN $n NilOS) NilOS) 
-(= (OS.getTopN 0 $os) NilOS) 
-(= (OS.getTopN $n (ConsOS $x $xs)) 
-   (if (<= $n 1) 
-       (ConsOS $x NilOS) 
-       (ConsOS $x (OS.getTopN (- $n 1) $xs))))
+(= (OS.getTopN $n NilOS) (Error NilOS "empty ordered set/ fewer items than required")) 
+(= (OS.getTopN $n (ConsOS $x $xs))
+    (if (== $n 1)
+        (ConsOS $x NilOS)
+        (chain (OS.getTopN (- $n 1) $xs) $res 
+            (if-error $res $res (ConsOS $x $res)))))

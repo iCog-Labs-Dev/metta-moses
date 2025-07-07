@@ -1,7 +1,28 @@
 (: Tree (-> $a Type))
-(: mkTree (-> (Node $a) (List (Tree $a)) (Tree $a)))
+(: mkTree (-> (Node $b) (List (Tree $a)) (Tree $a)))
 (: Node (-> $a Type))
 (: mkNode (-> $a (Node $a)))
+;; XXX -- the parametric node type seems to throw of the mettalog intepreter
+; (: mkTree (-> Node (List (Tree $a)) (Tree $a)))
+; (: Node Type)
+; (: mkNode (-> $a Node))
+
+; ;; temp addition 
+; (: List (-> $a Type))
+; (: Nil (List $a))
+; (: Cons (-> $a (List $a) (List $a)))
+; ;; temp addition 
+
+(: A Bool)
+; (: B Bool)
+; (: C Bool)
+; (: D Bool)
+
+; (: A Node)
+; (: E Node)
+; (: AND Node)
+; (: OR Node)
+; (: NOT Node)
 
 (: NullVertex (Tree $a))
 (: mkNullVex (-> (List (Tree $a)) (Tree $a)))
@@ -111,7 +132,7 @@
          (let*
            (
              ($index (+ $iter 1))
-             ($idOfSubtree (union-atom $targetId ($index)))
+             ($idOfSubtree (unionAtom $targetId ($index)))
            )
            (mkNodeId $idOfSubtree))
          (getSubtreeId $tree (mkNodeId $targetId) $subtree (+ $iter 1)))))
@@ -188,7 +209,7 @@
         ;;    cause bad type error sometimes. For example, (2 3) 's type
         ;;    is (Number Number) and (0) 's type is (Number) hence the
         ;;    interpreter throws a bad type error.
-        ( $idOfChild (if (== (mkNodeId $target) (mkNodeId (0))) ($childIndex) (union-atom $target ($childIndex))))
+        ( $idOfChild (if (== (mkNodeId $target) (mkNodeId (0))) ($childIndex) (unionAtom $target ($childIndex))))
         ( $newTargetSubtree (updateChildren $targetNode $updatedChildrenTgt))
         ( $updatedTree (replaceNodeById $tree (mkNodeId $target) $newTargetSubtree))
       )
