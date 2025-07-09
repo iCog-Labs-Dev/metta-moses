@@ -74,8 +74,8 @@
 (: cScore< (-> Cscore Cscore Bool)) 
 (= (cScore< $cs1 $cs2)
     (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
-        (if (type-cast (isnan-math $pl) Bool &self)
-            (not (type-cast (isnan-math $pr) Bool &self))
+        (if (isnan $pl)
+            (not (isnan $pr))
             (or (< $pl $pr) (and (== $pl $pr) (> $cl $cr))))))
             
 ;; Check for equality, to within floating-point error, EPSILON
@@ -93,6 +93,6 @@
 (: cScore>= (-> Cscore Cscore Bool)) 
 (= (cScore>= $cs1 $cs2)
     (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
-        (if (type-cast (isnan-math $pl) Bool &self)
+        (if (isnan $pl)
             False
             (or (> $pl $pr) (and (== $pl $pr) (< $cl $cr))))))

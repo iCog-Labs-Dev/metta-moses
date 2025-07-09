@@ -1,11 +1,14 @@
 ;; Helper functions that are going to be useful for writing any metta code
+;; python binding for non-functional metta implementaions
+!(bind! isnan (py-atom math.isnan))
+!(bind! NaN (py-atom "float ('nan')"))
 
 (: ~= (-> Atom Atom Bool))
 (= (~= $a $b) (not (== $a $b)))
 
 ;; INFO: Uncomment for the use of MeTTaLog.
-;; (: >= (-> Number Number Bool))
-;; (= (>= $a $b) (or (== $a $b) (> $a $b)))
+ (: >= (-> Number Number Bool))
+ (= (>= $a $b) (or (== $a $b) (> $a $b)))
 
 ;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
 ;; (: concatTuple (-> Expression Expression Expression))

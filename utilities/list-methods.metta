@@ -162,7 +162,7 @@
 (= (List.flatten (Cons $x $xs))
     (case $x
        (
-         ((Cons $y Nil) (Cons $y (List.flatten $xs)))
+         ((Cons $y Nil) (chain (List.flatten $xs) $res (if-error $res $res (Cons $y $res))))
          ((Cons $y $ys) (Error $x "Can't be flattened")))))
 
 (: List.repeat (-> Number $a (List $a)))
