@@ -101,10 +101,7 @@
 ! (assertEqual (OS.removeByIdx (ConsOS 10 (ConsOS 20 NilOS)) 0) (ConsOS 20 NilOS))        ! (assertEqual (OS.removeByIdx (ConsOS 1 (ConsOS 2 NilOS)) 5) (Error NilOS "empty set/index out of range"))
   
 ;; Test cases -- getTopN
-!(assertEqual
-!(assertEqual   (OS.getTopN 2
-!(assertEqual         (ConsOS
-            (mkExemplar (mkTree (mkNode A) Nil) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (Cons 0 Nil)))
+!(assertEqual ( OS.getTopN 2 (ConsOS (mkExemplar (mkTree (mkNode A) Nil) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (Cons 0 Nil)))
             (ConsOS
                (mkExemplar (mkTree (mkNode B) Nil) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (Cons 0 Nil)))
                (ConsOS
