@@ -47,7 +47,7 @@
 
 ;; interSection -- intersection function to replicate the behaviour in MeTTa
 (= (interSection $lhs $rhs) (unique (intersection (superpose $lhs) (superpose $rhs))))
-! (interSection (1 2 1 3) (1 2))
+;! (interSection (1 2 1 3) (1 2))
 ; This function assumes it receives a set1 and set2 expression as parameters.
 ; It then removes similar elements found in set2 that already exist in set1.
 ; The function uses isMember from general helpers functions.
