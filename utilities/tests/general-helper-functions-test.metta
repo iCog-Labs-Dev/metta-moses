@@ -319,7 +319,7 @@
 
 ;; Test update-atom
 !(add-atom &__ (A 2 3))
-!(let () (collapse (update-atom  &__ (A 2 3) (A 3 4))) (assertEqual (match &__ $x $x) (A 3 4))) ;; FIX: Possibly failing test
+!(let $r (collapse (update-atom  &__ (A 2 3) (A 3 4))) (assertEqual (match &__ (A 3 $x) (A 3 $x)) (A 3 4))) ;; FIX: Possibly failing test
 
 ;; Test flatten
 
