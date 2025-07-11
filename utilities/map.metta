@@ -62,9 +62,8 @@
 (: Map.remove (-> $k (Map ($k $v)) (Map ($k $v))))
 (= (Map.remove $key NilMap) (Error $key "not found"))
 (= (Map.remove $key (ConsMap ($curKey $curVal) $tail)) 
-    (if (== $key $curKey)
-	 $tail
-	 (chain (Map.remove $key $tail) $res (if-error $res $res (ConsMap ($curKey $curVal) $res)))))
+    (if (== $key $curKey) $tail 
+    (chain (Map.remove $key $tail) $res (if-error $res $res (ConsMap ($curKey $curVal) $res)))))
 
 ;; Get the all the values from the map
 (: Map.values (-> (Map ($k $v)) (List $v)))

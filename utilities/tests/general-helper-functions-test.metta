@@ -319,7 +319,7 @@
 
 ;; Test update-atom
 !(add-atom &__ (A 2 3))
-!(let $r (collapse (update-atom  &__ (A 2 3) (A 3 4))) (assertEqual (match &__ (A 3 $x) (A 3 $x)) (A 3 4))) ;; FIX: Possibly failing test
+!(let () (collapse (update-atom  &__ (A 2 3) (A 3 4))) (assertEqual (match &__ $x $x) (A 3 4))) ;; FIX: Possibly failing test
 
 ;; Test flatten
 
@@ -446,3 +446,8 @@ NilMMap discSpec<=)
 ! (assertEqual (selector (11 20 3 4 32) <) 3)
 ! (assertEqual (selector ((a b) (a b c) (d) (m o s e s)) (a b) bySize) (m o s e s))
 ! (assertEqual (selector ((a 1) (b 2) (d 10) (l 8)) (a 1) bySecondAtom) (d 10))
+
+;; Test cases -- concatT
+! (assertEqual (concatT (1 2 3) (4 5 6)) (1 2 3 4 5 6))
+! (assertEqual (concatT (1 2 3) ()) (1 2 3))
+! (assertEqual (concatT () (1 2 3)) (1 2 3))

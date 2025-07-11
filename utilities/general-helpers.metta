@@ -1,14 +1,11 @@
 ;; Helper functions that are going to be useful for writing any metta code
-;; python binding for non-functional metta implementaions
-!(bind! isnan (py-atom math.isnan))
-!(bind! NaN (py-atom "float ('nan')"))
 
 (: ~= (-> Atom Atom Bool))
 (= (~= $a $b) (not (== $a $b)))
 
 ;; INFO: Uncomment for the use of MeTTaLog.
- (: >= (-> Number Number Bool))
- (= (>= $a $b) (or (== $a $b) (> $a $b)))
+(: >= (-> Number Number Bool))
+(= (>= $a $b) (or (== $a $b) (> $a $b)))
 
 ;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
 ;; (: concatTuple (-> Expression Expression Expression))
@@ -41,13 +38,6 @@
     (not (== (collapse (intersection (superpose ($x)) (superpose $list))) ()))
 )
 
-;; intersection in mettalog keeps duplicate items if one appears in one of the expressions 
-;; e.g (intersection (superpose (1 2 1 3)) (superpose (1 2))) -- [1, 1, 2]
-;; while in metta it doesnt keep replicates -- [1, 2]
-
-;; interSection -- intersection function to replicate the behaviour in MeTTa
-(= (interSection $lhs $rhs) (unique (intersection (superpose $lhs) (superpose $rhs))))
-;! (interSection (1 2 1 3) (1 2))
 ; This function assumes it receives a set1 and set2 expression as parameters.
 ; It then removes similar elements found in set2 that already exist in set1.
 ; The function uses isMember from general helpers functions.
@@ -102,25 +92,18 @@
    (if (== $tuple ())
        $acc
        (let $next (car-atom $tuple) (foldl $f ($f $next $acc) (cdr-atom $tuple)))
-   ))
+   )
+)
 
 ;; Fold a tuple from right to left
-; (: foldr (-> (-> $a $b $b) $b $c $d))
-; (= (foldr $f $i $xs)
-;    (if (== $xs ())
-;        $i
-;        (let* (($h (car-atom $xs))
-;               ($t (cdr-atom $xs))
-;               ($ft (foldr $f $i $t)))
-;          ($f $h $ft))))
-
-;; foldr -- an alternative def for foldr
-(: foldr (-> (-> $a $a $a) Atom Expression Atom))
-(= (foldr $op $i $expr)
-    (if-decons-expr $expr $h $t
-        (chain (foldr $op $i $t) $c
-            ($op $h $c))
-        $i))         
+(: foldr (-> (-> $a $b $b) $b $c $d))
+(= (foldr $f $i $xs)
+   (if (== $xs ())
+       $i
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs))
+              ($ft (foldr $f $i $t)))
+         ($f $h $ft))))
 
 ;; Apply a given function to every element of a tuple
 (: map (-> (-> $a $b) $c $d))
@@ -294,6 +277,7 @@
             (let $tail (cdr-atom $expr)
                 (selectByIndex $tail (- $index 1))
             ))))
+ 
 ;; XXX -- Reimplementation of the above function as indexAtom
 (: indexAtom (-> Expression Number Atom))
 (= (indexAtom $expr $index)
@@ -305,7 +289,7 @@
                     (return $h)
                     (return (indexAtom $t (- $index 1)))))
                 (return Empty)))))))   
-        
+            
 ;; removeAtom -- removes a single atom (the first occurrunce) from a tuple                                
 (: removeAtom (-> Atom Expression Expression))                                
 (= (removeAtom $atom $expr)
@@ -380,7 +364,7 @@
        $list
        (let* (
                 ;; (() (println! (Sorting $list len: $len)))
-                ($halfL ((py-atom "math.floor") (/ $len 2)))
+                ($halfL ((py-atom math.floor) (/ $len 2)))
                 (($left $right) (splitAt $halfL $list))
                 ;; (() (println! (From sort Left: $left Right: $right)))
              )
@@ -391,16 +375,16 @@
 (= (selectionSort $list $n) (selectionSort $list $n <))
 (: selectionSort (-> Expression Number (-> $a $a Bool) Expression))
 (= (selectionSort $list $n $op)
-    (function 
-        (eval (if-decons-expr $list $head $tail
-            (chain (selector $list $head $op) $cur
-            (chain (subtractionAtom $list ($cur)) $newList
-            (chain (- $n 1) $newn
-            (eval (if-equal $newn 0
-                (return (cons-atom $cur $newList))
-                (chain (selectionSort $newList $newn $op) $rest
-                    (return (cons-atom $cur $rest))))))))
-                $list))))    
+    (if (or (== $n 0) (== $list ()))
+        $list
+     (let* (
+        ($initial (car-atom $list))
+        ($cur (selector $list $initial $op))
+        ($newList (subtractionAtom $list ($cur)))
+        ($rest (selectionSort $newList (- $n 1) $op))
+    )
+    (cons-atom $cur $rest)
+    )))
 
 ;; Helper function that compare two Atoms based on $op and return the one
 (: comparator (-> $a $a (-> $a $a Bool) $a))
@@ -616,11 +600,8 @@
 
 ;; wrapping the built-in ininf-math with custom function because the return type is not bool, it is number
 ;; using the type-cast function
-; (: isInf (-> Number Bool))
-; (= (isInf $x) (type-cast (isinf-math $x) Bool &self))
-
-;; replace the above with python binding function
-! (bind! isinf (py-atom math.isinf))
+(: isInf (-> Number Bool))
+(= (isInf $x) (type-cast (isinf-math $x) Bool &self))
 
 ;; A trick to define composition function.
 ;; Takes a function and returns another function
@@ -660,8 +641,6 @@
 ;; A trick function to make chain reduce when using union-atom
 (: (-> unionAtom (-> Expression Expression Expression)))
 ; (= (unionAtom $x $y) (union-atom $x $y))
-
-;; to replicate union-atom behavior in mettalog
 (= (unionAtom $a $b) 
     (if-decons-expr $a $head $tail
         (chain (unionAtom $tail $b) $rest
@@ -694,11 +673,32 @@
 
 ;; approximate equality -- takes the relative magnitude of the numbers into consideration
 ! (bind! EPSILON (pow-math 10 -6))
-! (bind! abs (py-atom "abs"))
 (: isApproxEq (-> Number Number Bool))
 (= (isApproxEq $x $y)
-    (let $diff (abs (- $x $y))
+    (let $diff (abs-math (- $x $y))
         (if (< $diff EPSILON)
             True
-            (let $amp (abs (+ $x $y))
-                (<= $diff (* EPSILON $amp))))))      
+            (let $amp (abs-math (+ $x $y))
+                (<= $diff (* EPSILON $amp))))))
+;; A function to concatenate two expressions.
+(= (concatT $expr1 $expr2)
+    (if (== $expr1 ())
+        $expr2
+        (let*
+            (
+            ($head (car-atom $expr1))
+            ($tail (concatT (cdr-atom $expr1) $expr2))
+            )
+            (cons-atom $head $tail)
+        )
+        
+
+    )
+)
+
+;; isnan -- to check if a value is NaN
+;; it happens that the NaN representation in mettalog is the weird 1.5NaN
+;; you will see this when binig "Not a Number" from pythons "float('nan')" 1.5NaN is what it returns
+;; needed because using using the direct python binding appears to cause issue with git workflow
+(: isnan (-> $a Bool))
+(= (isnan $x) (== $x 1.5NaN))

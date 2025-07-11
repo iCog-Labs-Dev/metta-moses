@@ -75,7 +75,7 @@
               (let ($_ $__ $nodeId $iter) $state $nodeId))
             (if (== $parentIdx (0)) ;; If parentIdx is (0) don't include it in the index.
                 (mkNodeId ((+ 1 $targetIdx)))
-                (mkNodeId (unionAtom $parentIdx ((+ 1 $targetIdx))))))))))
+                (mkNodeId (concatT $parentIdx ((+ 1 $targetIdx))))))))))
 
 ;; Helper function for the getNodeId function.
 ;;   The function's sole purpose is to make the
@@ -84,7 +84,7 @@
 (= (applyGetNodeId $currTree ($targetTree (mkNodeId $parentIdx) $accId $iter))
     (if (== $accId (mkNodeId (-1)))
         (chain (getNodeId $currTree $targetTree (mkNodeId ($iter))) $nodeId
-        (chain (if (== $parentIdx (0)) (mkNodeId $idx) (mkNodeId (unionAtom $parentIdx $idx))) $newId ;; If parentIdx (0) don't include it in the index.
+        (chain (if (== $parentIdx (0)) (mkNodeId $idx) (mkNodeId (concatT $parentIdx $idx))) $newId ;; If parentIdx (0) don't include it in the index.
           (let (mkNodeId $idx) $nodeId
             (if (== $idx (-1))
                 ($targetTree (mkNodeId $parentIdx) $nodeId (+ 1 $iter))
@@ -111,7 +111,7 @@
          (let*
            (
              ($index (+ $iter 1))
-             ($idOfSubtree (unionAtom $targetId ($index)))
+             ($idOfSubtree (concatT $targetId ($index)))
            )
            (mkNodeId $idOfSubtree))
          (getSubtreeId $tree (mkNodeId $targetId) $subtree (+ $iter 1)))))
@@ -188,7 +188,7 @@
         ;;    cause bad type error sometimes. For example, (2 3) 's type
         ;;    is (Number Number) and (0) 's type is (Number) hence the
         ;;    interpreter throws a bad type error.
-        ( $idOfChild (if (== (mkNodeId $target) (mkNodeId (0))) ($childIndex) (unionAtom $target ($childIndex))))
+        ( $idOfChild (if (== (mkNodeId $target) (mkNodeId (0))) ($childIndex) (concatT $target ($childIndex))))
         ( $newTargetSubtree (updateChildren $targetNode $updatedChildrenTgt))
         ( $updatedTree (replaceNodeById $tree (mkNodeId $target) $newTargetSubtree))
       )

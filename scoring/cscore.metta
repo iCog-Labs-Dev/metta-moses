@@ -4,8 +4,8 @@
 
 (: getCscore (-> (ITable $a) (Tree $a) Number Cscore))
 (= (getCscore $itable $tree $complexityRatio)
-    (let $bs (scoreTree $itable $tree)
-        (if-error $bs ;; return worst possible composite score
+    (chain (scoreTree $itable $tree) $bs 
+            (if-error $bs ;; return worst possible composite score
             (worstCscore)
             (let* (($bsum (sumBScore $bs))
                    (() (println! (Score: $bsum)))
@@ -15,6 +15,8 @@
                    ($cCoef (getComplexityCoef $complexityRatio)))
 
                    (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False)))))
+
+
 
 ;; getComplexityCoef -- calcualtes the complexity coeffient of a tree   
 ;; takes complexity ratio as input and returns complexity coefficient
@@ -69,8 +71,7 @@
 ;; uses penalized scores to compare and complexity score to break ties in the penalized score
 ;; $cs1 -- composite score of the left side instance ..
 ;; $cs2 -- composite score of the right side instance or whatever
-;; the type-cast in the if .. is used because the return type of the built-in isnan-math function is not Bool so it has to be cast in to bool value
-
+;; the type-cast in the if .. is used because the return type of the built-in isnan function is not Bool so it has to be cast in to bool value
 (: cScore< (-> Cscore Cscore Bool)) 
 (= (cScore< $cs1 $cs2)
     (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))

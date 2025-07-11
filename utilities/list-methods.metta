@@ -135,8 +135,8 @@
 (= (List.sub Nil Nil) Nil)
 (= (List.sub Nil (Cons $y $ys)) (Error (Cons $y $ys) LenghtOfListNotEqual))
 (= (List.sub (Cons $x $xs) Nil) (Error (Cons $x $xs) LenghtOfListsNotEqual))
-(= (List.sub (Cons $x $xs) (Cons $y $ys)) 
-    (chain (List.sub $xs $ys) $res (if-error $res $res (Cons (- $x $y) $res))))
+(= (List.sub (Cons $x $xs) (Cons $y $ys))
+ (chain (List.sub $xs $ys) $res (if-error $res $res (Cons (- $x $y) $res))))
 
 (: List.zip (-> (List $a) (List $b) (List ($a $b))))
 (= (List.zip Nil Nil) Nil)
