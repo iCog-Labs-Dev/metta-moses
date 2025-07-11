@@ -135,7 +135,8 @@
 (= (List.sub Nil Nil) Nil)
 (= (List.sub Nil (Cons $y $ys)) (Error (Cons $y $ys) LenghtOfListNotEqual))
 (= (List.sub (Cons $x $xs) Nil) (Error (Cons $x $xs) LenghtOfListsNotEqual))
-(= (List.sub (Cons $x $xs) (Cons $y $ys)) (Cons (- $x $y) (List.sub $xs $ys)))
+(= (List.sub (Cons $x $xs) (Cons $y $ys))
+ (chain (List.sub $xs $ys) $res (if-error $res $res (Cons (- $x $y) $res))))
 
 (: List.zip (-> (List $a) (List $b) (List ($a $b))))
 (= (List.zip Nil Nil) Nil)
@@ -161,7 +162,7 @@
 (= (List.flatten (Cons $x $xs))
     (case $x
        (
-         ((Cons $y Nil) (Cons $y (List.flatten $xs)))
+         ((Cons $y Nil) (chain (List.flatten $xs) $res (if-error $res $res (Cons $y $res))))
          ((Cons $y $ys) (Error $x "Can't be flattened")))))
 
 (: List.repeat (-> Number $a (List $a)))

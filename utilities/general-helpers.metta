@@ -4,8 +4,8 @@
 (= (~= $a $b) (not (== $a $b)))
 
 ;; INFO: Uncomment for the use of MeTTaLog.
-;; (: >= (-> Number Number Bool))
-;; (= (>= $a $b) (or (== $a $b) (> $a $b)))
+(: >= (-> Number Number Bool))
+(= (>= $a $b) (or (== $a $b) (> $a $b)))
 
 ;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
 ;; (: concatTuple (-> Expression Expression Expression))
@@ -277,6 +277,36 @@
             (let $tail (cdr-atom $expr)
                 (selectByIndex $tail (- $index 1))
             ))))
+ 
+;; XXX -- Reimplementation of the above function as indexAtom
+(: indexAtom (-> Expression Number Atom))
+(= (indexAtom $expr $index)
+    (function 
+        (eval (if-equal $expr ()
+            (return (Error description: IndexOutOfRange))
+            (eval (if-decons-expr $expr $h $t
+                (eval (if-equal $index 0
+                    (return $h)
+                    (return (indexAtom $t (- $index 1)))))
+                (return Empty)))))))   
+            
+;; removeAtom -- removes a single atom (the first occurrunce) from a tuple                                
+(: removeAtom (-> Atom Expression Expression))                                
+(= (removeAtom $atom $expr)
+    (function 
+        (eval (if-decons-expr $expr $head $tail
+            (eval (if-equal $head $atom
+                (return $tail)  ; Stop at first match
+                (chain (removeAtom $atom $tail) $rest
+                    (return (cons-atom $head $rest)))))
+        ()))))
+;; subtractionAtom -- replicates behaviour of MeTTa's subtraction-atom in mettalog
+(: subtractionAtom (-> Expression Expression Expression))
+(= (subtractionAtom $expr $b)
+    (if-decons-expr $b $head $tail
+        (chain (removeAtom $head $expr) $newexpr
+            (subtractionAtom $newexpr $tail))
+        $expr))
 
 ;; TODO: Use zipWith instead
 ;; A function that compares tuples element by element.
@@ -350,7 +380,7 @@
      (let* (
         ($initial (car-atom $list))
         ($cur (selector $list $initial $op))
-        ($newList (subtraction-atom $list ($cur)))
+        ($newList (subtractionAtom $list ($cur)))
         ($rest (selectionSort $newList (- $n 1) $op))
     )
     (cons-atom $cur $rest)
@@ -610,8 +640,12 @@
 
 ;; A trick function to make chain reduce when using union-atom
 (: (-> unionAtom (-> Expression Expression Expression)))
-(= (unionAtom $x $y) (union-atom $x $y))
-
+; (= (unionAtom $x $y) (union-atom $x $y))
+(= (unionAtom $a $b) 
+    (if-decons-expr $a $head $tail
+        (chain (unionAtom $tail $b) $rest
+            (cons-atom $head $rest))
+        $b))
 
 ;; helper function to generate list of numbers ranging from 0 to n
 (: genList (-> Number Expression))
@@ -646,3 +680,25 @@
             True
             (let $amp (abs-math (+ $x $y))
                 (<= $diff (* EPSILON $amp))))))
+;; A function to concatenate two expressions.
+(= (concatT $expr1 $expr2)
+    (if (== $expr1 ())
+        $expr2
+        (let*
+            (
+            ($head (car-atom $expr1))
+            ($tail (concatT (cdr-atom $expr1) $expr2))
+            )
+            (cons-atom $head $tail)
+        )
+        
+
+    )
+)
+
+;; isnan -- to check if a value is NaN
+;; it happens that the NaN representation in mettalog is the weird 1.5NaN
+;; you will see this when binig "Not a Number" from pythons "float('nan')" 1.5NaN is what it returns
+;; needed because using using the direct python binding appears to cause issue with git workflow
+(: isnan (-> $a Bool))
+(= (isnan $x) (== $x 1.5NaN))
