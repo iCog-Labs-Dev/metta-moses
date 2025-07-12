@@ -3,9 +3,6 @@
 ; ! (bind! COMP-TEMP 6.0)
 ; ! (bind! CAP-COEF 50)
 
-;; python int casting function
-! (bind! int (py-atom "int"))
-
 ;; Exemplar type
 (: Exemplar (-> $a Type))
 (: mkExemplar (-> (Tree $a) DemeId Cscore BehavioralScore (Exemplar $a)))
@@ -101,4 +98,3 @@
 ;; Return: $tree
 (: getExemplarTree (-> (Exemplar $a) (Tree $a)))
 (= (getExemplarTree (mkExemplar $tree $demeId $cscore $bscore)) $tree)
-
