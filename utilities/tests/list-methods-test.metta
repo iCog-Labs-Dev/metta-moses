@@ -86,3 +86,9 @@
                (Cons 2 (Cons 3 Nil)))
 ! (assertEqual (List.takeNFrom 2 10 (Cons 0 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))))
                (Cons 2 (Cons 3 (Cons 4 Nil))))
+
+;; List.generate test cases
+!(assertEqual (List.generate 3 5) (Cons 5 (Cons 5 (Cons 5 Nil))))  
+!(assertEqual (List.generate 5 3) (Cons 3 (Cons 3 (Cons 3 (Cons 3 (Cons 3 Nil))))))
+!(assertEqual (List.generate 0 3) Nil)
+!(assertEqual (List.generate 3 0) (Cons 0 (Cons 0 (Cons 0 Nil))))

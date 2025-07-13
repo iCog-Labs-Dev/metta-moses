@@ -6,71 +6,66 @@
 ! (bind! round (py-atom round))
 ! (bind! NO_EXEMPLAR "empty metapopulation")
 ! (bind! COMPXY_TEMP 4)
-! (bind! INV_TEMP (mkScoreT (/ 100.0 COMPXY_TEMP)))
+! (bind! INV_TEMP (/ 100.0 COMPXY_TEMP))
 
 ;; exemplar  selection
 ;; if the the metapopulation is empty - throw error and quit
 ;; if only one exemplar in the metapopulation select that
 ;; if more than one exemplar in mp - get the max penalized score and 
 ;; make a roulette selection on those after converting scores into probability values
-
-(: selectExemplar (-> (OS Xmplr) Xmplr))
-(= (selectExemplar $xmplrSet)
-    (case $xmplrSet
-        ((NilOS (Error $xmplrSet NO_EXEMPLAR))
+(: selectExemplar (-> (OS (Exemplar $a)) (Exemplar $a)))
+(= (selectExemplar $metaPop)
+    (case $metaPop
+        ((NilOS (Error $metaPop NO_EXEMPLAR))
         ((ConsOS $x NilOS) $x)
-        ($_ (let* (($probs (getPnScore $xmplrSet))
-                ($hstScr (List.max >>= $probs))
+        ($_ (let* (($probs (getPnScore $metaPop))
+                ($hstScr (List.max >= $probs))
                 ;; get list of normalized ScoreT values
                 ($normalizedProbs (normalizeProbs INV_TEMP $hstScr $probs))
-                ($sum (List.sum add $normalizedProbs)))
+                ($sum (List.sum $normalizedProbs)))
+                (rouletteSelect $metaPop $probs $sum) )))))
 
-                (rouletteSelect $xmplrSet $probs $sum) )))))
-
-;; get penalized scores of all the exemplars as a list of ScoreT's
+;; get penalized scores of all the exemplars as a list of Numbers
 ;;      (ConsOS $x $xs) -- pattern for the list of exemplars constructed by Cons
 ;;      made use of deconstruction by pattern matching
 
-(: getPnScore (-> (OS Xmplr) (List ScoreT)))
+(: getPnScore (-> (OS (Exemplar $a)) (List Number)))
 (= (getPnScore NilOS) Nil)
 (= (getPnScore (ConsOS $x $xs))
-   (let*
-        (((mkXmplr $tree (mkDemeId $id) (mkCscore (mkScoreT $s) (mkComplexity $cs) (mkScoreT $cp) (mkScoreT $up)) (mkBscore $bscore)) $x)
-        ($p (- (- $s $cp) $up))
-        ($c (getPnScore $xs)))
+   (let (mkExemplar $tree1 $demeId1 (mkCscore $scrr $cpxy $cpxyPen $uniPen $penScr) $bscr1) $x
+        (Cons $penScr (getPnScore $xs))))
 
-        (Cons (mkScoreT $p) $c)))
-
-;;  a function to normalize the ScoreT values into normalized scores of Boltzman distribution
+;;  a function to normalize the score values into normalized scores of Boltzman distribution
 ;; the function is specific to this distribution type
-(: normalizeProbs (-> $a $a (List $a) (List $a)))
-(= (normalizeProbs (mkScoreT $invTemp) (mkScoreT $best) Nil) Nil)
-(= (normalizeProbs (mkScoreT $invTemp) (mkScoreT $best) (Cons (mkScoreT $x) $xs))
+(: normalizeProbs (-> Number Number (List Number) (List Number)))
+(= (normalizeProbs $invTemp $best Nil) Nil)
+(= (normalizeProbs $invTemp $best (Cons $x $xs))
     (let*
-        (($new (if (isInf $x) (mkScoreT 0) (mkScoreT (pow-math EXP (* (- $x $best) $invTemp)))))
-        ($c (normalizeProbs (mkScoreT $invTemp) (mkScoreT $best) $xs)))
+        (($new (if (isInf $x) 0 (pow-math EXP (* (- $x $best) $invTemp))))
+        ($c (normalizeProbs $invTemp $best $xs)))
 
         (Cons $new $c)))
 
 ;; the main roulette select function
-;;      $xmplrSet -- (OS Xmplr) -- list of exemplars
-;;      $probs -- (List ScoreT) -- list of prob values as ScoreT types
-;;      (mkScoreT $sum) -- sum of penalized score values after normalization using the (pow-math EXP (* (- $val $higestScr) INV_TEMP)) 
+;;      $metaPop -- (OS (Exemplar $a)) -- list of exemplars
+;;      $probs -- (List Number) -- list of prob values as ScoreT types
+;;      $sum -- sum of penalized score values after normalization using the (pow-math EXP (* (- $val $higestScr) INV_TEMP)) 
 ;;      to favour the selection of high scoring exemplars -- Boltzman distribution
-(: rouletteSelect (-> (OS Xmplr) (List ScoreT) ScoreT Xmplr))
-(= (rouletteSelect $xmplrSet $probs (mkScoreT $sum))
+
+(: rouletteSelect (-> (OS (Exemplar $a)) (List Number) Number (Exemplar $a)))
+(= (rouletteSelect $metaPop $probs $sum)
     (let* (($rndfloat (rndfloat))
            ($ajstdSum (* $sum $rndfloat))
             ($index (roulette $probs 0 $ajstdSum)))
-
-        (OS.getByIdx $index $xmplrSet)))
+        (OS.getByIdx $index $metaPop)))
 
 ;; roulette function to do the roulette selection and return an index -- spin the wheel
-;;      $probs -- (List ScoreT) -- list of prob values (Cons (mkScoretT ..) .. Nil)
+;;      $probs -- (List Number) -- list of prob values 
 ;;      $sIdx -- start index -- 0
 ;;      $ajstdsum -- sum of probabilities which has been multiplied with a random with random value in (0 .. 1) range
-(: roulette (-> (List ScoreT) Number Number Number))
-(= (roulette (Cons ($custor $p) $xs) $sIdx $ajstdsum)
+(: roulette (-> (List Number) Number Number Number))
+(= (roulette Nil $sIdx $ajstdsum) (- $sIdx 1))
+(= (roulette (Cons $p $xs) $sIdx $ajstdsum)
     (if (<= (- $ajstdsum $p) 0)
             $sIdx
             (roulette $xs (+ 1 $sIdx) (- $ajstdsum $p))))

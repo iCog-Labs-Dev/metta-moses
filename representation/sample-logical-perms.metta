@@ -58,4 +58,3 @@
         (collapse (union (superpose args) (superpose $perms)))
     )
 )
-
