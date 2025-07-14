@@ -56,6 +56,6 @@
             ($picked (lazyRandomSelector 0 $upperbound $nPairs))
             ($perms (collapse (getArgs $swapedOp $idxPairs $picked)))
         )
-        (union-atom (A B) $perms)
+        (concatT (A B) $perms)
     )
 )
