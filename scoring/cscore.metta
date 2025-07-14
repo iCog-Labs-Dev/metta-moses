@@ -1,6 +1,7 @@
 ;; The probability parameter p in the scoring represents the assumed probability that the model makes an error on any given data point.
 ;; If p is small (close to 0), it means the model is expected to be very accurate, making mistakes rarely.
 ;; If p is large (approaching 0.5), it means the model is expected to be less accurate, making mistakes more often (but still better than random guessing).
+; ! (bind! isnan-math (py-atom "math.isnan"))
 
 (: getCscore (-> (ITable $a) (Tree $a) Number Cscore))
 (= (getCscore $itable $tree $complexityRatio)
@@ -44,6 +45,34 @@
            (() (println! (PenalizedScore: $updatedPScore))))
         
             (mkCscore $scor $cpxy $cpxyPenalty $uniformityPenalty $updatedPScore)))
+;converts a score to an expression
+; (: cScoreToExpr (-> Cscore Expression))
+(= (cScoreToExpr (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore))
+    (let* (
+        ($e1 (cons-atom $penalizedScore ()))
+        ($e2 (cons-atom $uniformityPenalty $e1))
+        ($e3 (cons-atom $complexityPenalty $e2))
+        ($e4 (cons-atom $cpxy $e3))
+        ($e5 (cons-atom $scor $e4))
+    )
+        ($e5)
+    )
+)
+
+; (: exprToCScore (-> Expression Cscore))
+(= (exprToCScore $exp)
+    (let* (
+        ($expr (car-atom $exp))
+        (($scor $rest1) (decons-atom $expr))
+        (($cpxy $rest2) (decons-atom $rest1))
+        (($complexityPenalty $rest3) (decons-atom $rest2))
+        (($uniformityPenalty $rest4) (decons-atom $rest3))
+        (($penalizedScore $_) (decons-atom $rest4))
+    )
+        (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)
+    )
+)
+
 
 ;; worstCscore
 (: worstCscore (-> Cscore))
@@ -75,8 +104,26 @@
 (: cScore< (-> Cscore Cscore Bool)) 
 (= (cScore< $cs1 $cs2)
     (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
-        (if (isnan $pl)
-            (not (isnan $pr))
+        (if (type-cast (isnan $pl) Bool &self)
+            (not (type-cast (isnan $pr) Bool &self))
+            (or (< $pl $pr) (and (== $pl $pr) (> $cl $cr))))))
+
+;; cScoreExpr< -- composite score less than operator for expressions
+;; works directly with expressions using index-atom to extract scores
+;; index 4 = penalized score, index 1 = complexity score
+; (: cScoreExpr< (-> Expression Expression Bool))
+(= (cScoreExpr< $cs1 $cs2)
+    (let* (
+      ($scoreExpr1 (car-atom $cs1))
+      ($scoreExpr2 (car-atom $cs2))
+      ($pl (index-atom $scoreExpr1 4))
+      ($pr (index-atom $scoreExpr2 4))
+      ($cl (index-atom $scoreExpr1 1))
+      ($cr (index-atom $scoreExpr2 1))
+    (() (println! ("Right complexity score: " $cr)))
+    )
+        (if (type-cast (isnan $pl) Bool &self)
+            (not (type-cast (isnan $pr) Bool &self))
             (or (< $pl $pr) (and (== $pl $pr) (> $cl $cr))))))
             
 ;; Check for equality, to within floating-point error, EPSILON
@@ -97,3 +144,8 @@
         (if (isnan $pl)
             False
             (or (> $pl $pr) (and (== $pl $pr) (< $cl $cr))))))
+
+;; Simple test calls for cScoreExpr<
+; !(cScoreExpr< (cScoreToExpr (mkCscore 100.0 5.0 10.0 2.0 88.0)) (cScoreToExpr (mkCscore 95.0 3.0 6.0 1.0 88.0)))
+; !(cScoreExpr< (90.0 7.0 14.0 3.0 73.0) (95.0 3.0 6.0 1.0 88.0))
+; !(cScoreToExpr (mkCscore 100.0 5.0 10.0 2.0 88.0))

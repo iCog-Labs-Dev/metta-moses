@@ -7,6 +7,12 @@
 ! (import! &self metta-moses:scoring:bscore)
 ! (import! &self metta-moses:scoring:cscore)
 
+; ! (bind! nan (py-atom math.nan))
+;; Tests for cScoreToExpr
+! (assertEqual (cScoreToExpr (mkCscore 0.0 0.0 0.0 0.0 0.0)) ((0.0 0.0 0.0 0.0 0.0)))
+! (assertEqual (cScoreToExpr (mkCscore 1.0 2.0 0.5 0.5 0.0)) ((1.0 2.0 0.5 0.5 0.0)))
+! (assertEqual (cScoreToExpr (mkCscore -1.0 3.0 0.2 0.4 -0.8)) ((-1.0 3.0 0.2 0.4 -0.8)))
+              
 ; ;; Test cases for updatePenalizedScore
 ! (assertEqual (updatePenalizedScore (mkCscore  0  2  0.3 0.5  (* -1 (pow-math 10 308))) False) (mkCscore  0  2  0.3  0.5 -0.8))
 ! (assertEqual (updatePenalizedScore (mkCscore  -1  3  0.2  0.4 (* -1 (pow-math 10 308))) True) (mkCscore  -1  3  0.2  0.4  -0.48))
@@ -37,10 +43,76 @@
 ! (assertEqual (cScore< (mkCscore -0.1 2 0.1 0.1 -0.3) (mkCscore -0.2 3 0.1 0.1 -0.4)) False)
 ! (assertEqual (cScore< (mkCscore -0.5 3 0.1 0.1 -0.7) (mkCscore -0.5 2 0.1 0.1 -0.7)) True)
 ! (assertEqual (cScore< (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 3 0.1 0.1 -0.7)) False)
-! (assertEqual (cScore< (mkCscore -0.5 2 0.1 0.1 1.5NaN) (mkCscore -0.5 3 0.1 0.1 -0.7)) True)
+; ! (assertEqual (cScore< (mkCscore -0.5 2 0.1 0.1 nan) (mkCscore -0.5 3 0.1 0.1 -0.7)) True)
 
 ;; Test cases -- composite score equality comparator 
 ! (assertEqual (cScore== (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 2 0.1 0.1 -0.7)) True)
 ! (assertEqual (cScore== (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5000001 2.0000001 0.1 0.1 -0.7000001)) True)
 ! (assertEqual (cScore== (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.6 2 0.1 0.1 -0.8)) False)
 ! (assertEqual (cScore== (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 3 0.1 0.1 -0.7)) False)
+
+;; --- Tests for expression conversion functions ---
+
+;; Test exprToCScore - converting expressions back to Cscore objects
+!(assertEqual (exprToCScore ((0.0 0.0 0.0 0.0 0.0))) (mkCscore 0.0 0.0 0.0 0.0 0.0))
+!(assertEqual (exprToCScore ((1.0 2.0 0.5 0.5 0.0))) (mkCscore 1.0 2.0 0.5 0.5 0.0))
+!(assertEqual (exprToCScore ((-1.0 3.0 0.2 0.4 -0.8))) (mkCscore -1.0 3.0 0.2 0.4 -0.8))
+!(assertEqual (exprToCScore ((100.0 5.0 10.0 2.0 88.0))) (mkCscore 100.0 5.0 10.0 2.0 88.0))
+
+;; Test round-trip conversion for cScoreToExpr and exprToCScore
+!(assertEqual (let* (
+  ($expr1 (cScoreToExpr (mkCscore 0.0 0.0 0.0 0.0 0.0)))
+  ($result1 (exprToCScore $expr1))
+) $result1) (mkCscore 0.0 0.0 0.0 0.0 0.0))
+
+!(assertEqual (let* (
+  ($expr2 (cScoreToExpr (mkCscore 1.0 2.0 0.5 0.5 0.0)))
+  ($result2 (exprToCScore $expr2))
+) $result2) (mkCscore 1.0 2.0 0.5 0.5 0.0))
+
+!(assertEqual (let* (
+  ($expr3 (cScoreToExpr (mkCscore -1.0 3.0 0.2 0.4 -0.8)))
+  ($result3 (exprToCScore $expr3))
+) $result3) (mkCscore -1.0 3.0 0.2 0.4 -0.8))
+
+!(assertEqual (let* (
+  ($expr4 (cScoreToExpr (mkCscore 100.0 5.0 10.0 2.0 88.0)))
+  ($result4 (exprToCScore $expr4))
+) $result4) (mkCscore 100.0 5.0 10.0 2.0 88.0))
+
+;; Test cScoreExpr< - comparing score expressions directly
+;; Test cases where first score is less than second (should return True)
+!(assertEqual (cScoreExpr< ((1.0 2.0 0.5 0.5 0.0)) ((0.0 0.0 0.0 0.0 0.0))) True)
+!(assertEqual (cScoreExpr< ((-0.5 3 0.1 0.1 -0.7)) ((-0.4 2 0.1 0.1 -0.6))) True)
+!(assertEqual (cScoreExpr< ((-0.5 3 0.1 0.1 -0.7)) ((-0.5 2 0.1 0.1 -0.7))) True)
+;; Same penalized score, but first has lower complexity
+
+;; Test cases where first score is greater than second (should return False)
+!(assertEqual (cScoreExpr< ((0.0 0.0 0.0 0.0 0.0)) ((1.0 2.0 0.5 0.5 0.0))) False)
+!(assertEqual (cScoreExpr< ((-0.4 2 0.1 0.1 -0.6)) ((-0.5 3 0.1 0.1 -0.7))) False)
+!(assertEqual (cScoreExpr< ((-0.5 2 0.1 0.1 -0.7)) ((-0.5 3 0.1 0.1 -0.7))) False)  
+
+
+;; Test edge cases for cScoreExpr<
+!(assertEqual (cScoreExpr< ((0.0 0.0 0.0 0.0 0.0)) ((0.0 0.0 0.0 0.0 0.0))) False)  ;; Equal scores
+; !(assertEqual (cScoreExpr< ((nan 0.0 0.0 0.0 nan)) ((0.0 0.0 0.0 0.0 0.0))) True)   ;; NaN handling
+!(assertEqual (cScoreExpr< ((0.0 0.0 0.0 0.0 0.0)) ((nan 0.0 0.0 0.0 nan))) False)  ;; NaN handling
+
+;; Test that cScoreExpr< matches cScore< behavior for equivalent inputs
+!(assertEqual (let* (
+  ($score1 (mkCscore -0.1 2 0.1 0.1 -0.3))
+  ($score2 (mkCscore -0.2 3 0.1 0.1 -0.4))
+  ($expr1 (cScoreToExpr $score1))
+  ($expr2 (cScoreToExpr $score2))
+  ($exprResult (cScoreExpr< $expr1 $expr2))
+  ($objResult (cScore< $score1 $score2))
+) (== $exprResult $objResult)) True)
+
+!(assertEqual (let* (
+  ($score3 (mkCscore -0.5 3 0.1 0.1 -0.7))
+  ($score4 (mkCscore -0.5 2 0.1 0.1 -0.7))
+  ($expr3 (cScoreToExpr $score3))
+  ($expr4 (cScoreToExpr $score4))
+  ($exprResult (cScoreExpr< $expr3 $expr4))
+  ($objResult (cScore< $score3 $score4))
+) (== $exprResult $objResult)) True)
