@@ -24,8 +24,8 @@
                 (mkLSK (mkDiscKnob (mkKnob $tree $idOfReducedSubtree) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil) $subtree))
            (let*
            (
-            (($nullVexAppendedTree $nullVexId) (APPEND_CHILD $tree (mkNodeId $target) (mkNullVex Nil)))
-            (($subtreeAppendedTree $subtreeId) (APPEND_CHILD $nullVexAppendedTree $nullVexId $subtree))
+            (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex Nil)))
+            (($subtreeAppendedTree $subtreeId) (appendChild $nullVexAppendedTree $nullVexId $subtree))
            )
            (mkLSK (mkDiscKnob (mkKnob $subtreeAppendedTree $nullVexId) (mkMultip 3)) $subtree)
            )
@@ -82,5 +82,5 @@
                          (1  $subtree) ;; If present
                          (0  (mkNullVex (Cons $subtree Nil))))) ;; If absent
 
-                   (chain (APPEND_CHILD $tree $parentId $treeToAppend) $treeChIdPair
+                   (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
                        (first $treeChIdPair))))))) ;; INFO: Just incase if the append fails and stores the result somewhere else, we need to add a test case here to cmpare between targetNode and appendChild node.
