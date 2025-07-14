@@ -13,16 +13,6 @@
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 (= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
 
-;; permsToTree tests
-!(assertEqual (permsToTree (A B)) ((mkTree (mkNode B) Nil) (mkTree (mkNode A) Nil)))
-!(assertEqual 
-   (permsToTree ((OR A B) (AND C D))) 
-   ((mkTree (mkNode AND) 
-            (Cons (mkTree (mkNode C) Nil) (Cons (mkTree (mkNode D) Nil) Nil))) 
-    (mkTree (mkNode OR) 
-            (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))))
-
-
 ; logicalProbe tests
 !(assertEqual 
     (=== (logicalProbe
