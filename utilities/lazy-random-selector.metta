@@ -6,7 +6,7 @@
 ;;        $picked: list of picked numbers
 (: pick (-> Number Number Expression Number))
 (= (pick $lower $upper $picked )
-    (let $rand (random-int &rng $lower (+ 1 $upper))      ;; (random-int $lower $upper) 
+    (let $rand ((py-dot rnd randint) $lower (+ 1 $upper))      ;; (random-int $lower $upper) 
         (if (isMember $rand $picked)
             (pick $lower $upper $picked)
             $rand
