@@ -8,21 +8,6 @@
 ;;      $knobs: the list of knobs at each iteration, () at the start
 ;; Return: a tuple containing a tuple of LSKs and the final updated tree
 
-
-;; a helper to logicalProbe
-;; Param:
-;;   $perms: a tuple of Expressions (output of sampleLogicalPerms) 
-;; Return: a tuple of Trees
-(: permsToTree (-> Expression Expression))
-(= (permsToTree $perms)
-(collapse
-   (let*
-    (
-      ($perm (superpose $perms))
-      ($permToTree (buildTree $perm))
-    )
-    $permToTree)))
-
 ;; logicalProbe
 (: logicalProbe (-> (Tree $a) NodeId Expression Bool Expression Expression))
 (= (logicalProbe $exemplar (mkNodeId $targetId) () $addIfInExemplar $knobs) ($knobs $exemplar))
@@ -37,7 +22,7 @@
     (let* 
     (
         ($updatedTree (getTree $lsk))
-        ($updatedKnobs (union-atom $knobs ($lsk)))
+        ($updatedKnobs (concatT $knobs ($lsk)))
     )
     (logicalProbe $updatedTree (mkNodeId $targetId) $tailPerms $addIfInExemplar $updatedKnobs)
     )
