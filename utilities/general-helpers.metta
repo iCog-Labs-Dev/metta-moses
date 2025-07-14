@@ -1,4 +1,6 @@
 ;; Helper functions that are going to be useful for writing any metta code
+! (bind! rnd (py-atom random))
+! ((py-dot rnd seed) 0)
 
 (: ~= (-> Atom Atom Bool))
 (= (~= $a $b) (not (== $a $b)))
