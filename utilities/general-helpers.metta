@@ -599,9 +599,10 @@
             (Error ($a or $b) "One of the argument is not a number")))
 
 ;; wrapping the built-in ininf-math with custom function because the return type is not bool, it is number
-;; using the type-cast function
-(: isInf (-> Number Bool))
-(= (isInf $x) (type-cast (isinf-math $x) Bool &self))
+;; using the type-cast function 
+;; obsolete in mettalong for now
+; (: isInf (-> Number Bool))
+; (= (isInf $x) (type-cast (isinf-math $x) Bool &self))
 
 ;; A trick to define composition function.
 ;; Takes a function and returns another function
@@ -702,3 +703,21 @@
 ;; needed because using using the direct python binding appears to cause issue with git workflow
 (: isnan (-> $a Bool))
 (= (isnan $x) (== $x 1.5NaN))
+
+;; isInf -- check if a number if Inf
+;; the same applies to this weid looking 1.0Inf thing - it is what you get when you bind (py-atom "float ('inf')") in mettalog and the followingn function works 
+(: isInf (-> $a Bool))
+(= (isInf $x) (== $x 1.0Inf))
+
+;; int -- replicates pythons int functionality -- convert floating point numbers into integer
+;; uses -- metta's floor-math function
+(: int (-> Number Number))
+(= (int $x) (if (>= $x 0) (floor-math $x) (+ 1 (floor-math $x))))
+
+! (bind! EXP 2.71828)
+
+;; random float  -- fake rnd number [0 1)
+! (bind! maxInt (pow-math 2 64)) ;; pseudo max integer not really the max integer that can be represented 
+;; the idea is to divide a random int taken from 0 upto this number by this number
+(: randomFloat (-> Number))
+(= (randomFloat) (let $rndInt (random-int &rng 0 maxInt) (/ $rndInt maxInt)))

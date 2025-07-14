@@ -2,8 +2,9 @@
 ;; random-float and random-int both require what is denoted as RandomGenerator
 ;; which, for now, is not clear what it is
 
-! (bind! rndfloat (py-atom random.random))
-! (bind! round (py-atom round))
+;; removed python binding for compatibility with workflow -- XXX 
+; ! (bind! rndfloat (py-atom random.random))
+; ! (bind! round (py-atom round))
 ! (bind! NO_EXEMPLAR "empty metapopulation")
 ! (bind! COMPXY_TEMP 4)
 ! (bind! INV_TEMP (/ 100.0 COMPXY_TEMP))
@@ -54,7 +55,7 @@
 
 (: rouletteSelect (-> (OS (Exemplar $a)) (List Number) Number (Exemplar $a)))
 (= (rouletteSelect $metaPop $probs $sum)
-    (let* (($rndfloat (rndfloat))
+    (let* (($rndfloat (randomFloat))
            ($ajstdSum (* $sum $rndfloat))
             ($index (roulette $probs 0 $ajstdSum)))
         (OS.getByIdx $index $metaPop)))
