@@ -1,6 +1,6 @@
-;; NOTE: This test file is temporarily commented out because set-seed is 
-;; not functioning correctly in the current mettalog version. 
-;;The tests will be re-enabled after fixing Python binding in the workflow.
+; ; NOTE: This test file is temporarily commented out because set-seed is 
+; ; not functioning correctly in the current mettalog version. 
+; ;The tests will be re-enabled after fixing Python binding in the workflow.
 
 ; !(register-module! ../../../metta-moses)
 ; !(import! &self metta-moses:utilities:tree)
@@ -12,6 +12,7 @@
 ; !(import! &self metta-moses:representation:lsk)
 ; !(import! &self metta-moses:utilities:nodeId)
 ; !(import! &self metta-moses:representation:sample-logical-perms) 
+; !(import! &self metta-moses:utilities:lazy-random-selector) 
 ; !(import! &self metta-moses:representation:add-logical-knobs)
 ; !(import! &self metta-moses:utilities:ordered-multimap) 
 ; !(import! &self metta-moses:representation:build-logical)
