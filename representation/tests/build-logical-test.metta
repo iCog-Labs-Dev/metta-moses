@@ -1,10 +1,6 @@
-; ; NOTE: This test file has been commented out temporarily.
-; ; It was designed to test buildLogical using the original sampleLogicalPerms implementation.
-; ; For now, we are using a simple placeholder instead of calling sampleLogicalPerms
-; ; to speed up testing and development.
-; ; Because of this simplification, this test fails due to mismatches in expected structure and output.
-; ; Once the original function is reintroduced, this test can be uncommented and adjusted if needed.
-
+; ; NOTE: This test file is temporarily commented out because set-seed is 
+; ; not functioning correctly in the current mettalog version. 
+; ; The tests will be re-enabled after fixing Python binding in the workflow.
 
 ; !(register-module! ../../../metta-moses)
 ; !(import! &self metta-moses:utilities:tree)
