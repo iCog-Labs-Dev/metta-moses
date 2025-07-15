@@ -314,7 +314,32 @@
 !(assertEqual (getChildrenByIdx (mkNullVex (Cons (mkTree (mkNode P) Nil) (Cons (mkTree (mkNode Q) Nil) Nil))) 0) (mkTree (mkNode P) Nil))
 !(assertEqual (getChildrenByIdx (mkNullVex (Cons (mkTree (mkNode R) Nil) (Cons (mkTree (mkNode S) Nil) Nil))) 1) (mkTree (mkNode S) Nil))
 
+;; Testcases for insertNodeAtPosition
+!(assertEqual
+  (insertNodeAtPosition 
+   (mkTree (mkNode AND)
+      (Cons (mkTree (mkNode A) Nil)
+        (Cons (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode B) (Cons (mkTree (mkNode Z) Nil) Nil))
+                  (Cons (mkTree (mkNode C) Nil) Nil)))
+          (Cons (mkTree (mkNode A) Nil) Nil)))) 
+    (mkNodeId (2))
+    (mkNode C))
+  (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode C) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) (Cons (mkTree (mkNode Z) Nil) Nil)) (Cons (mkTree (mkNode C) Nil) Nil))) Nil)) (Cons (mkTree (mkNode A) Nil) Nil)))))
 
+  !(assertEqual
+    (insertNodeAtPosition 
+   (mkTree (mkNode AND)
+      (Cons (mkTree (mkNode A) Nil)
+        (Cons (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode B) (Cons (mkTree (mkNode Z) Nil) Nil))
+                  (Cons (mkTree (mkNode C) Nil) Nil)))
+          (Cons (mkTree (mkNode A) Nil) Nil)))) 
+    (mkNodeId (0))
+    (mkNode OR))
+   (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) (Cons (mkTree (mkNode Z) Nil) Nil)) (Cons (mkTree (mkNode C) Nil) Nil))) (Cons (mkTree (mkNode A) Nil) Nil)))) Nil))
+  )
+  
 ;; Test cases for isEmpty
 ! (assertEqual (isEmpty (mkNullVex Nil)) True)
 ! (assertEqual (isEmpty (mkTree (mkNode A) Nil)) False)

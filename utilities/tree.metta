@@ -202,7 +202,15 @@
               ((mkNullVex $childrenTgt) (List.getByIdx $childrenTgt $idx))
               ($else (Error (Node not found or invalid))))))
 
-
+(: insertNodeAtPosition (-> (Tree $a) NodeId (Node $n) (Tree $a)))
+(= (insertNodeAtPosition $tree (mkNodeId $id) $newNode)
+   (if (or (== $id ()) (== (mkNodeId $id) (mkNodeId (0))))
+       (mkTree $newNode (Cons $tree Nil))
+       (let* (
+               ($oldNode (getNodeById $tree (mkNodeId $id)))
+               ($newSubtree (mkTree $newNode (Cons $oldNode Nil)))
+             )
+             (replaceNodeById $tree (mkNodeId $id) $newSubtree))))
 ;; check if tree is empty
 (: isEmpty (-> (Tree $a) Bool))
 (= (isEmpty $tree)
@@ -240,3 +248,4 @@
 (: alphabetSize (-> (ITable $a) Number))
 (= (alphabetSize (mkITable $rows $labels)) 
     (+ 3 (- (List.length $labels) 1)))                   
+
