@@ -226,7 +226,10 @@
      (mkDscKbMp (ConsMap ((mkNodeId (2 1 1)) 2) (ConsMap ((mkNodeId (2 2)) 0) (ConsMap ((mkNodeId (2 3 1)) 1) NilMap)))))
 
 
-;; This has been commented out for the time being because the result is nondeterministc dones't have a specific order for us to write a testcase. 
+; ; NOTE: This test is temporarily commented out because set-seed is 
+; ; not functioning correctly in the current mettalog version. 
+; ; The tests will be re-enabled after fixing Python binding in the workflow.
+
 ; ; Test for the representation
 ; ; takes exemplar and generates Representation($kbMapKnobMap $updatedExemplar)
 ; !(assertEqual (representation  (mkTree (mkNode OR) (Cons (mkTree (mkNode C) Nil) Nil)))
