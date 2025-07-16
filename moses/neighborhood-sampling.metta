@@ -26,9 +26,8 @@
           (let $listNeighbors (collapse (let $neighbors (varyNKnobs $multips $instExp $dist)
                                       (mkInst (exprToList $neighbors))))
           (let $uqListNeighbors (unique-atom $listNeighbors)
-          (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (Cons $x $xs))))
+          (let $uqListNeighbors' (subtractionAtom $uqListNeighbors ((mkInst (Cons $x $xs))))
             (exprToList $uqListNeighbors'))))))))
-
 
 ;; This function returns a non deterministic list of instances at the given distance.
 ;; It's output isn't typed and also needs further preprocessing.
@@ -147,16 +146,17 @@
        (let ($h2 $t2) (decons-atom $inst2)
           (+ (if (== $h1 $h2) 0 1) (distance $t1 $t2)))))))
 
-(: distance (-> Instance Instance Number) )
-(= (distance (mkInst Nil) (mkInst Nil)) 0)
-(= (distance (mkInst (Cons $x $xs)) (mkInst (Cons $y $ys)))
-      (+ (if (== $x $y) 0 1) (distance (mkInst $xs) (mkInst $ys))))
+;; mettalog appears to struggle with function overlaoding -- so created aliases instead of using the same name
+(: distance` (-> Instance Instance Number) )
+(= (distance` (mkInst Nil) (mkInst Nil)) 0)
+(= (distance` (mkInst (Cons $x $xs)) (mkInst (Cons $y $ys)))
+      (+ (if (== $x $y) 0 1) (distance` (mkInst $xs) (mkInst $ys))))
 
 ;; A trick function to use to prevent the type error
 ;;  bugs that may rise as a result of overloaded types
 ;;  of the distance function
 (: distance' (-> Instance Instance Number))
-(= (distance' $inst1 $inst2) (distance $inst1 $inst2))
+(= (distance' $inst1 $inst2) (distance` $inst1 $inst2))
 
 ;; Assigns an initial large negative score to an instance.
 ;; Params:
