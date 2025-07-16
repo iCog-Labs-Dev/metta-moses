@@ -24,10 +24,10 @@
        (let $multips (genList 1 (- $m 1))
           (let $instExp (List.listToExpr (Cons $x $xs))
           (let $listNeighbors (collapse (let $neighbors (varyNKnobs $multips $instExp $dist)
-                                      (mkInst (pyExprToList $neighbors))))
+                                      (mkInst (exprToList $neighbors))))
           (let $uqListNeighbors (unique-atom $listNeighbors)
           (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (Cons $x $xs))))
-            (pyExprToList $uqListNeighbors'))))))))
+            (exprToList $uqListNeighbors'))))))))
 
 
 ;; This function returns a non deterministic list of instances at the given distance.
@@ -124,7 +124,7 @@
 ;; to achive not-deterministic approach. It generates a list with the size of $sampleSize 
 ;; and calls sampleFromNeighborhood` function for every number in the list. 
 ;; This will make the sampleFromNeighborhood` to produce $sampleSize samples. 
-;; Then the produced expression will be made in to llist using pyExprToList
+;; Then the produced expression will be made in to llist using exprToList
 (: sampleFromNeighborhood (-> Number Number KnobMap Instance (List Instance)))
 (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
    (let* (
@@ -132,7 +132,7 @@
       ($list (genList (- $sampleSize 1)))
       ($x (map-atom $list $i (sampleFromNeighborhood` $i $dist $kbMp $inst)))
     )
-    (pyExprToList $x)))
+    (exprToList $x)))
 
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1
