@@ -15,6 +15,6 @@ A short example, from beginning to end, can be found in this Jupyter notebook (c
 There is also a considerable amount of information in the OpenCog wiki: http://wiki.opencog.org/w/Meta-Optimizing_Semantic_Evolutionary_Search
 
 ## Running the code
-- Make sure to install MeTTaLog `SWI-Prolog version 9.3.25` following the instruction on the [metta-wam]([https://github.com/trueagi-io/hyperon-experimental](https://github.com/trueagi-io/metta-wam?tab=readme-ov-file#windows-installation) repository.
+- Make sure to install MeTTaLog `SWI-Prolog version 9.3.25` following the instruction on the [metta-wam][https://github.com/trueagi-io/hyperon-experimental](https://github.com/trueagi-io/metta-wam?tab=readme-ov-file#windows-installation) repository.
 ## Contributing
 Before you start contributing to this repository, make sure to read the [CONTRIBUTING.md](https://github.com/iCog-Labs-Dev/metta-moses/tree/main/.github/CONTRIBUTING.md) file from our repository. 
