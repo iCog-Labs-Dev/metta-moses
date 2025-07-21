@@ -72,44 +72,45 @@
                         (Cons (Cons True (Cons True  (Cons True Nil))) Nil)) 
                         (Cons A (Cons B (Cons O Nil)))))
 ! (bind! ttable2 (mkITable
-                    (Cons (Cons True (Cons True (Cons True Nil)))
-                    (Cons (Cons True (Cons False (Cons False Nil)))
-                    (Cons (Cons False (Cons True (Cons False Nil)))
-                    (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
-                    (Cons A (Cons B (Cons Output Nil)))))
-
-;; Testcases for applyComplexityBasedScore
+                    (Cons (Cons True (Cons True (Cons True (Cons True Nil))))
+                    (Cons (Cons True (Cons False (Cons False (Cons False Nil))))
+                    (Cons (Cons False (Cons True (Cons False (Cons False Nil))))
+                    (Cons (Cons False (Cons False (Cons False (Cons False Nil)))) Nil))))
+                    (Cons A (Cons B (Cons C (Cons output Nil))))))
+;; NOTE: All the instances in the deme don't include lsk1 (or they all start with '0') because we are testing it using ttable2. 
+;;       ttable2 is a truth table which doesn't have a 'D' column.
+; Testcases for applyComplexityBasedScore
 !(assertEqual 
    (applyComplexityBasedScore 
       (mkRep knobMapObj tree1)
-      (Cons (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (Cons (mkInst (Cons 1 (Cons 2 (Cons 2 Nil)))) Nil)))
-      ttable1
+      (Cons (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (Cons (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) Nil)))
+      ttable2
       2.0
       Nil)
-   (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 (Cons 2 Nil)))) (mkCscore -1 5 2.5 0.0 -3.5))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (mkCscore -1 3 1.5 0.0 -2.5))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) (mkCscore -1 4 2.0 0.0 -3.0))) Nil))))
+   (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) (mkCscore -2 4 2.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (mkCscore 0 3 1.5 0.0 -1.5))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (mkCscore -2 3 1.5 0.0 -3.5))) Nil))))
 
 !(assertEqual
    (applyComplexityBasedScore 
       (mkRep knobMapObj tree1)
-      (Cons (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) Nil))
-      ttable1
+      (Cons (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) Nil))
+      ttable2
       2.0
       Nil)
-    (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) (mkCscore -1 4 2.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (mkCscore -1 3 1.5 0.0 -2.5))) Nil)))
+    (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) (mkCscore -1 4 2.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -1 4 2.0 0.0 -3.0))) Nil)))
 
-;; Testcases for transform
+; Testcases for transform
 !(assertEqual
    (transform
-   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e308)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e308)) Nil)))
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e308)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e308)) Nil)))
    (mkRep knobMapObj tree1)
-   ttable1
+   ttable2
    2.0)
-   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (mkCscore -1 3 1.5 0.0 -2.5))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) (mkCscore -1 4 2.0 0.0 -3.0))) Nil))))
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (mkCscore 0 3 1.5 0.0 -1.5))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (mkCscore -2 3 1.5 0.0 -3.5))) Nil))))
 
 !(assertEqual
    (transform
-   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e308)) (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e308)) Nil)))
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) -1.0000000000000001e308)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) -1.0000000000000001e308)) Nil)))
    (mkRep knobMapObj tree1)
    ttable2
    1)
-   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 (Cons 1 Nil)))) (mkCscore 0 4 4.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (mkCscore -1 3 3.0 0.0 -4.0))) Nil))))
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) (mkCscore 0 4 4.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -1 4 4.0 0.0 -5.0))) Nil))))

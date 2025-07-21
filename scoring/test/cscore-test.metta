@@ -13,7 +13,7 @@
 ! (assertEqual (cScoreToExpr (mkCscore 1.0 2.0 0.5 0.5 0.0)) ((1.0 2.0 0.5 0.5 0.0)))
 ! (assertEqual (cScoreToExpr (mkCscore -1.0 3.0 0.2 0.4 -0.8)) ((-1.0 3.0 0.2 0.4 -0.8)))
               
-; ;; Test cases for updatePenalizedScore
+;; Test cases for updatePenalizedScore
 ! (assertEqual (updatePenalizedScore (mkCscore  0  2  0.3 0.5  (* -1 (pow-math 10 308))) False) (mkCscore  0  2  0.3  0.5 -0.8))
 ! (assertEqual (updatePenalizedScore (mkCscore  -1  3  0.2  0.4 (* -1 (pow-math 10 308))) True) (mkCscore  -1  3  0.2  0.4  -0.48))
 ! (assertEqual (updatePenalizedScore (mkCscore  0  5  0.1  0.9 (* -1 (pow-math 10 308))) False) (mkCscore  0  5  0.1 0.9 -1.0))
