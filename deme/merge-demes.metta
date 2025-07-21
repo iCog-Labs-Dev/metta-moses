@@ -49,9 +49,8 @@
 ;; Return: (List (ScoredInstance Cscore)): Filtered list with low-scoring instances removed.
 (: filterDemeByScore (-> (List (ScoredInstance Cscore)) Number Number (List (ScoredInstance Cscore))))
 (= (filterDemeByScore Nil $lastIndex $botSc) Nil)
-(= (filterDemeByScore $listOfScoredInsts 0 $botSc) $listOfScoredInsts)
 (= (filterDemeByScore $listOfScoredInsts $lastIndex $botSc)
-(let*
+(if (== $lastIndex 0) $listOfScoredInsts (let*
 (
    ($lastSInst (List.getByIdx $listOfScoredInsts $lastIndex))
    ($lastSInstScore (getSInstScore $lastSInst))
@@ -61,7 +60,7 @@
     (let $lastRemovedList (List.removeAtIdx $listOfScoredInsts $lastIndex) (filterDemeByScore $lastRemovedList (- $lastIndex 1) $botSc))
     (filterDemeByScore $listOfScoredInsts (- $lastIndex 1) $botSc)
     )
-))
+)))
 
 ;; Trims a sorted list of ScoredInstances to remove low-scoring instances based on a score range derived from $complexityTemperature, unless size ≤ $minPoolSize or 1.
 ;; Params:
