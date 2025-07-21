@@ -2,9 +2,9 @@ name: MeTTaLog CI
 
 on:
   push:
-    branches: [ref/mettalog]
+    branches: [ref/reduct-to-mettalog]
   pull_request:
-    branches: [ref/mettalog]
+    branches: [ref/reduct-to-mettalog]
 
 jobs:
   mettalog-test:
@@ -17,7 +17,7 @@ jobs:
       - name: Set up Python 3.12
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12.3'
+          python-version: "3.12.3"
 
       - name: Upgrade pip and install Python dependencies
         run: |
