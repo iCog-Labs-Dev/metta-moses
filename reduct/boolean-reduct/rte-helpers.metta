@@ -31,18 +31,14 @@
            (getLiteralsND $exp)) 
        $exp))  
 
-;; A function to add a list of literals to a given expression
-;;    and keep the uniqueness of the literals.
-;; Example: input: $exp -> (AND A B (OR C D) E F), $elements -> (A B G)
-;;          output: (AND A B E F G (OR C D))
 (= (addLiterals $exp $elements)
    (let*
      (
         ($op (car-atom $exp))
         ($guardSet (getLiterals $exp))
-        ($newGuardSet (concatTuple $guardSet $elements))
+        ($newGuardSet (unionAtom $guardSet $elements))
         ($newGuardSet' (collapse (unique (superpose $newGuardSet))))
-        ($updatedSubExpression (concatTuple $newGuardSet' (getChildren $exp)))
+        ($updatedSubExpression (unionAtom $newGuardSet' (getChildren $exp)))
 
         ($newExp (cons-atom $op $updatedSubExpression))
      )
@@ -80,12 +76,12 @@
         ($op (car-atom $exp))
         ($oldChildren (getChildren $exp))
         ($newChildren (concatTuple $oldChildren $children))
-        ;  (() (println! (DEBUG: New Children Output: $newChildren)))
+         (() (println! (DEBUG: New Children Output: $newChildren)))
         ($updatedSubExpression (concatTuple (getLiterals $exp) $newChildren))
-        ;  (() (println! (DEBUG: Updated subExpression Output: $updatedSubExpression)))
+         (() (println! (DEBUG: Updated subExpression Output: $updatedSubExpression)))
 
         ($newExp (cons-atom $op $updatedSubExpression))
-        ;  (() (println! (DEBUG: New Exp Output: $newExp)))
+         (() (println! (DEBUG: New Exp Output: $newExp)))
      )
      $newExp
    )
