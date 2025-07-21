@@ -18,9 +18,14 @@
 ;;        : output: ((OR C) () True)
 ;;(: oneConstraintSubsume (-> Expression Expression Expression (Expression Expression Bool)))
 (= (oneConstraintSubsume $parent $current $commandSet)
-   (let*
+    ; (() (println! (DEBUG: One constraint inside: $parent $current $commandSet)))
+  (trace! (DEBUG: OneconstraintSubsume inside: $parent $current $commandSet) 
+  (if-decons-expr $current $head $tail 
+    (let*
       (
+        ; (() (println! (DEBUG: One constraint output: $parent $current $commandSet)))
         ($head (car-atom $current))
+        ; (() (println! (DEBUG: HEad output: $head)))
         ($tail (cdr-atom $current))
       )
       (case $head
@@ -31,7 +36,9 @@
             (let*
               (
                 ($guardSet (getGuardSet $current))
+                ; ($common (customIntersection $guardSet $commandSet))
                 ($common (collapse (intersection (superpose $guardSet) (superpose $commandSet))))
+                ; (() (println! (DEBUG: Common output: $common)))
               )
               (if (== $common ()) ($parent $current False) ((removeElement ($current) $parent) () True)) ;; remove current from parent.
             )
@@ -40,4 +47,7 @@
         )
       )
    )
+  ($parent $current False)
+  )
+)
 )
