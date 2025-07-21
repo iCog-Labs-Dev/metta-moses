@@ -22,14 +22,6 @@
 ;;                 (chain (mkDemeId $str) $demeId (Cons $demeId Nil))))))
 ;;
 ;; ;; demeIdList -- recursive function for creating list of demeId's 
-;; (= (demeIdList $nExpansion $nDeme $list)
-;;     (if (< $nDeme 0)
-;;         $list
-;;         (let* ((($str1 $str2)( (format-args "{}" ($nExpansion)) (format-args "{}" ($nDeme))))
-;;                 ($demeId (mkDemeId (format-args "{}.{}" ($str1 $str2))))
-;;                 ($newList (List.prepend $demeId $list)))
-;;
-;;                 (demeIdList $nExpansion (- $nDeme 1) $newList))))
 
 (: createDemeIds (-> Number Number (List DemeId)))
 (= (createDemeIds $nExpansion $nDeme)
@@ -45,8 +37,8 @@
 (= (demeIdList $nExpansion $nDeme $list)
     (if (< $nDeme 0)
         $list
-        (let* ((($str1 $str2)((numStr $nExpansion) (numStr $nDeme)))
-                ($demeId (mkDemeId (charsToString ($str1 "." $str2))))
+        (let* ((($str1 $str2)( (format-args "{}" ($nExpansion)) (format-args "{}" ($nDeme))))
+                ($demeId (mkDemeId (format-args "{}.{}" ($str1 $str2))))
                 ($newList (List.prepend $demeId $list)))
-                
+
                 (demeIdList $nExpansion (- $nDeme 1) $newList))))
