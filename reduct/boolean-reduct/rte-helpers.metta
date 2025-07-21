@@ -14,17 +14,22 @@
 ;;                Only AND nodes have guard sets.
 ;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 (= (getGuardSet $exp)
-    (if (== (car-atom $exp) OR)
-        ()
-        (getLiterals $exp)))
+   (if-decons-expr $exp $h $t
+       (if (== $h OR)
+           ()                
+           (getLiterals $exp)) 
+       $exp))  
+
 
 ;; A function similar to the getGuardSet function but returns a
 ;;    non deterministic list instead of a collapsed atom.
 ;; Example: (AND (NOT A) (NOT B) A) -> [(NOT A), (NOT B), A]
 (= (getGuardSetND $exp)
-    (if (== (car-atom $exp) OR)
-        (empty)
-        (getLiteralsND $exp)))
+   (if-decons-expr $exp $h $t
+       (if (== $h OR)
+           (empty)             
+           (getLiteralsND $exp)) 
+       $exp))  
 
 ;; A function to add a list of literals to a given expression
 ;;    and keep the uniqueness of the literals.
@@ -75,9 +80,12 @@
         ($op (car-atom $exp))
         ($oldChildren (getChildren $exp))
         ($newChildren (concatTuple $oldChildren $children))
+        ;  (() (println! (DEBUG: New Children Output: $newChildren)))
         ($updatedSubExpression (concatTuple (getLiterals $exp) $newChildren))
+        ;  (() (println! (DEBUG: Updated subExpression Output: $updatedSubExpression)))
 
         ($newExp (cons-atom $op $updatedSubExpression))
+        ;  (() (println! (DEBUG: New Exp Output: $newExp)))
      )
      $newExp
    )
