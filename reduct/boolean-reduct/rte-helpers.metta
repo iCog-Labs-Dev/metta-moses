@@ -76,12 +76,8 @@
         ($op (car-atom $exp))
         ($oldChildren (getChildren $exp))
         ($newChildren (concatTuple $oldChildren $children))
-         (() (println! (DEBUG: New Children Output: $newChildren)))
         ($updatedSubExpression (concatTuple (getLiterals $exp) $newChildren))
-         (() (println! (DEBUG: Updated subExpression Output: $updatedSubExpression)))
-
         ($newExp (cons-atom $op $updatedSubExpression))
-         (() (println! (DEBUG: New Exp Output: $newExp)))
      )
      $newExp
    )

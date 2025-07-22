@@ -17,33 +17,19 @@
 (= (andCut $parent $current)
         (let*
           (
-              ; (() (println! (DEBUG: Inside And Cut Output: $parent $current )))
               (($guardSet $child) (getLiteralChildren $current))
-              ; (() (println! (DEBUG: GuardSet ands Child Output: $guardSet $child)))
               ($tail (if-decons-expr $child $h $t (cdr-atom $child) ("Empty")))
-              ; ($tail (cdr-atom $child))
-              ; (() (println! (DEBUG: Tail at AndCut Output: $tail)))
           )
           (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
               (let*
                   (
-                      ; (() (println! (DEBUG: Tail ands GuardSet Output: $tail $guardSet)))
-      
                       ($childFirst (if-decons-expr $child $h $t $h (empty)))
-   
-                      ; (() (println! (DEBUG: Child carAtom Output: $childFirst $child)))
-
                       (($grandLiterals $grandChildren) (getLiteralChildren $childFirst))
-                      ; (() (println! (DEBUG: grand Literals Output: $grandLiterals $grandChildren)))
                       ($allLiterals (collapse (getGuardSet (superpose $grandChildren))))
                       ($common (intersections $allLiterals))
-                      ; (() (println! (DEBUG: Commmon Output: $common)))
                       ($updatedParent (removeElement ($current) $parent))
-                      ; (() (println! (DEBUG: Updated Parent Output: $updatedParent)))
                       ($updatedParent' (addChildren $UpdatedParent $grandChildren))
-                      ; (() (println! (DEBUG: UpdatedParentfirst Output: $updatedParent')))
                       ($updatedParent'' (addLiterals $updatedParent' $grandLiterals))
-                      ; (() (println! (DEBUG: updatedParentSecond Output: $updatedParent'')))
                   )
                   (if (== $common ())
                       ($updatedParent'' () True)
