@@ -67,9 +67,12 @@
                  (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) 
                  NilOS)))
 
-! (bind! ttable1 (mkITable (Cons (Cons True (Cons False (Cons True Nil)))
-                        (Cons (Cons True (Cons True  (Cons True Nil))) Nil)) 
-                        (Cons A (Cons B (Cons O Nil)))))
+! (bind! ttable1 (mkITable
+                         (Cons (Cons False (Cons False (Cons False Nil))) 
+                         (Cons (Cons True (Cons False (Cons False Nil))) 
+                         (Cons (Cons False (Cons True (Cons False Nil)))
+                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+                         (Cons A (Cons B (Cons O Nil)))))
         
 (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
