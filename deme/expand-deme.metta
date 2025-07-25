@@ -54,8 +54,12 @@ $updatedMetaPop))
 ;;     - other parameters required by the expandDeme method
 (: runMoses (-> Number Cscore Number (OS (Exemplar $a)) Number Number (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)) Number Number Number Number (ITable $a) Number Number Number (OS (Exemplar $a))))
 (= (runMoses $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
-(if (== $maxGen 0) 
-    (let $topCandidates (OS.getTopN $maxCandOutput $metaPop) $topCandidates)
+(if (== $maxGen 0)
+    (if (<= $maxCandOutput (OS.length $metaPop))
+        (let $topCandidates (OS.getTopN $maxCandOutput $metaPop) $topCandidates)
+        $metaPop
+  )
+    ; (trace! ($maxCandOutput $metaPop) (let $topCandidates (OS.getTopN $maxCandOutput $metaPop) $topCandidates))
     (let* 
      (
        ($updatedMetaPop (expandDeme $metaPop $nExpansion $nDeme $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount))
@@ -64,4 +68,4 @@ $updatedMetaPop))
        ($topCandidates (OS.getTopN $maxCandOutput $metaPop)))
      (if (cScore>= $topScore $maxScore) 
          $topCandidates 
-         (runMoses (- $maxGen 1) $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)))))
+         (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)))))

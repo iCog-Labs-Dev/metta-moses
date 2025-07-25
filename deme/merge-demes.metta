@@ -87,7 +87,7 @@
 ;;   $deme: A deme containing a representation, scored instance set, and demeId.
 ;;   $itable: The input table.
 ;; Return: (List (Exemplar $a)) - List of exemplars with scored trees.
-(: demeToTrees(-> Deme (ITable $a) (List (Exemplar $a))))
+(: demeToTrees (-> Deme (ITable $a) (List (Exemplar $a))))
 (= (demeToTrees (mkDeme $rep (mkSInstSet Nil) $demeId) $itable) Nil)
 (= (demeToTrees (mkDeme $rep (mkSInstSet (Cons $si $sil)) $demeId) $itable)
 (let*

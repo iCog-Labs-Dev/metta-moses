@@ -50,13 +50,17 @@
 ;; Returns: Beahvioral score for the given tree.
 (: scoreTree (-> (ITable $a) (Tree $a) BehavioralScore))
 (= (scoreTree (mkITable $table $labels) $tree)
-   (chain (preOrder $tree) $expTree
-   (trace! (Scoring $expTree)
-   (chain (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table) $scoreList
-   (chain (List.length $labels) $length
-   (chain (List.flatten (List.map ((curry List.drop) (- $length 1)) $table)) $outputs
-   (chain (List.zipWith compareAndScore $scoreList $outputs) $bScore
-      (mkBScore $bScore))))))))
+   (if (== $tree (mkTree (mkNode AND) Nil)) 
+       (worstPossibleScore (mkTruthTableBScore $compCoeff (length $table) $table))
+      (chain (preOrder $tree) $expTree
+      (trace! (Scoring $expTree)
+      (chain (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table) $scoreList
+      (chain (List.length $labels) $length
+      (chain (List.flatten (List.map ((curry List.drop) (- $length 1)) $table)) $outputs
+      (chain (List.zipWith compareAndScore $scoreList $outputs) $bScore
+         (mkBScore $bScore)))))))
+   )
+)
 
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
@@ -68,7 +72,7 @@
 ;;  Altohugh the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.
 (: worstPossibleScore (-> (TruthTableBScore $a) BehavioralScore))
-(= (worstPossibleScore (mkTruthTableBScore $compCoeff $size $table)) (mkBScore (List.repeat $size -1)))
+(= (worstPossibleScore (mkTruthTableBScore $compCoeff $size $table)) (mkBScore (List.repeat $size -10)))
 
 ;; When we have a compressed tree, the min improvement 
 ;;  will be calculated. For now it's fixed.
