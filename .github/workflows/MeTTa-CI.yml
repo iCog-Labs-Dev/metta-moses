@@ -2,12 +2,18 @@ name: MeTTaLog CI
 
 on:
   push:
-    branches: [ref/mettalog]
+    branches:
+      - main
+      - dev
+      - ref/*
   pull_request:
-    branches: [ref/mettalog]
+    branches:
+      - main
+      - dev
+      - ref/*
 
 jobs:
-  mettalog-test:
+  setup-and-test:
     runs-on: ubuntu-latest
 
     steps:
