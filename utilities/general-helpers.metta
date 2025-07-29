@@ -308,7 +308,6 @@
             (subtractionAtom $newexpr $tail))
         $expr))
 
-;; TODO: Use zipWith instead
 ;; A function that compares tuples element by element.
 (= (compareElements $first $second)
    (zipWith == $first $second)

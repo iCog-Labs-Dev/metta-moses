@@ -19,7 +19,7 @@
           ((OR (NOT $x)) ((addLiterals (removeElement ($current) $parent) ((NOT $x))) () True))
           ((OR $x) (if (== (get-metatype $x) Symbol)
                         ((addLiterals (removeElement ($current) $parent) ($x)) () True)
-                        ((addChildren (removeElement ($current) $parent) (getSubExpression $x)) () True)
+                        ((addChildrenExp (removeElement ($current) $parent) (getSubExpression $x)) () True)
                     )
           )
           ($else ($parent $current False))
@@ -41,7 +41,7 @@
           (let*
             (
               ($literals (getLiterals $exp))
-              ($children (getChildren $exp))
+              ($children (getChildrenExp $exp))
             )
             (concatTuple $literals $children)
           )

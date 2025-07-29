@@ -13,7 +13,10 @@
    (let*
    (
     ($negatedSubtree (insertAbove $subtree (mkNode NOT)))
-    ($reducedSubtree $negatedSubtree)  ;;;after the reduct integration, the reduction step will be applied here 
+    (() (println! (NegatedSubtree : $negatedSubtree)))
+    ($reducedSubtree (cleanTree $negatedSubtree))  ;;;after the reduct integration, the reduction step will be applied here 
+    (() (println! (ReducedSubtree: $reducedSubtree)))
+    ;; ($reducedSubtree $negatedSubtree)  ;;;after the reduct integration, the reduction step will be applied here 
     ($childrenOfTarget (getChildrenById $tree (mkNodeId $target)))
    )
    (if (List.contains $subtree $childrenOfTarget) 
