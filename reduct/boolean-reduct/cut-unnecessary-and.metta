@@ -28,7 +28,7 @@
                       ($allLiterals (collapse (getGuardSet (superpose $grandChildren))))
                       ($common (intersections $allLiterals))
                       ($updatedParent (removeElement ($current) $parent))
-                      ($updatedParent' (addChildren $updatedParent $grandChildren))
+                      ($updatedParent' (addChildrenExp $updatedParent $grandChildren))
                       ($updatedParent'' (addLiterals $updatedParent' $grandLiterals))
                   )
                   (if (== $common ())

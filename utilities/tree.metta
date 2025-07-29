@@ -48,10 +48,11 @@
     (let*
         (
           ($preordered (preOrder $tree))
-          ;; ($reduced (REDUCE $preordered))
-        )
-        (buildTree $preordered))) ;; TODO: Remove when REDUCE is implemented.
-        ;; (buildTree $reduced)))
+          (() (println! (Preordered: $preordered)))
+          ($reduced (reduce $preordered))
+          (() (println! (Reduced: $reduced)))
+          )
+        (buildTree $reduced)))
 
 ;; Get an id of a certain node. And (0) if the root node.
 ;; Example:

@@ -393,19 +393,19 @@
 (= (hasNoNextChild ($parent $bool ($child $remainingChildren))) (== $child ()))
 (= (hasNoNextChild ($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($nextChild $remainingChildren))) (== $nextChild ()))
 
-(: rteNotApplied (-> (Expression Expression Bool) Bool))
-(= (rteNotApplied ($parent $current $applied)) (not $applied))
-
-(: applyReduceToElegance (-> (Expression Expression Bool) (Expression Expression Bool)))
-(= (applyReduceToElegance ($parent $current $applied)) (reduceToElegance $parent $current () ()))
+(: reduceNotApplied (-> (Expression Expression Bool) Bool))
+(= (reduceNotApplied ($parent $current $applied)) (not $applied))
 
 ;; (= (reduce $expr) (trace! (Running reduce with $expr) (let ($parent $__ $applied) (reduceToElegance $expr $expr () ()) (trace! (Result: ($parent $__ $applied)) (if $applied (reduce $parent) $parent)))))
 ;; (= (reduce $expr) (let ($parent $__ $applied) (reduceToElegance $expr $expr () ()) (trace! (Result: ($parent $__ $applied)) (if $applied (reduce $parent) $parent))))
-(= (reduce $expr)
+(: applyReduce (-> (Expression Expression Bool) (Expression Expression Bool)))
+(= (applyReduce ($parent $current $applied))
    (let*
-      (
-        ($propNotExpr (propagateNot $expr))
-        ($gatherJunctorExpr (gatherJunctors $propNotExpr))
-        (() (println! (GatherJunctorsResult $gatherJunctorExpr)))
-        (($parent $__ $applied) (until rteNotApplied applyReduceToElegance ($gatherJunctorExpr $gatherJunctorExpr True))))
-      $parent))
+         (
+           ($propNotExpr (propagateNot $expr))
+           ($gatherJunctorExpr (gatherJunctors $propNotExpr))
+           (() (println! (GatherJunctorsResult $gatherJunctorExpr))))
+         (reduceToElegance $parent $current () ())))
+
+(= (reduce $expr) (let ($parent $_ $__) (until reduceNotApplied applyReduce ($expr $expr True)) $parent))
+
