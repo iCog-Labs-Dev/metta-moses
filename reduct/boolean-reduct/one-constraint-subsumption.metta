@@ -32,7 +32,6 @@
             (let*
               (
                 ($guardSet (getGuardSet $current))
-                ; ($common (customIntersection $guardSet $commandSet))
                 ($common (collapse (intersection (superpose $guardSet) (superpose $commandSet))))
               )
               (if (== $common ()) ($parent $current False) ((removeElement ($current) $parent) () True)) ;; remove current from parent.
