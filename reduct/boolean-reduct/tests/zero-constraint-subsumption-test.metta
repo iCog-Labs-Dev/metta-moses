@@ -1,8 +1,8 @@
 ! (register-module! ../../../../metta-moses) 
 
 ! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:reduct:boolean-reduct:rte-helpers)
-! (import! &self metta-moses:reduct:boolean-reduct:zero-constraint-subsumption)
+! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
+! (import! &self metta-moses:reduct/boolean-reduct:zero-constraint-subsumption)
  
 ;; Test 01
 ! (assertEqualToResult (zeroConstraintSubsume (AND (OR (AND A B) (AND))) (OR (AND A B) (AND))) (((AND) () True)))
