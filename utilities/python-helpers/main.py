@@ -1,7 +1,8 @@
 from .listMethods import *
 from hyperon import *
 from hyperon.ext import register_atoms
-from hyperon.atoms import OperationAtom
+from hyperon.atoms import OperationAtom, ValueAtom
+import time
 
 
 def py_exprToList(metta: MeTTa, expr):
@@ -31,7 +32,23 @@ def main(metta):
         unwrap=False,
     )
 
+    start_timer_atom = OperationAtom(
+        "py_start_timer",
+        lambda: py_start_timer(metta),
+        [], # No arguments
+        unwrap=False,
+    )
+
+    end_timer_atom = OperationAtom(
+        "py_end_timer",
+        lambda: py_end_timer(metta),
+        [], # No arguments
+        unwrap=False,
+    )
+
     return {
         r"py_exprToList": exprToList,
         r"py_listToExpr": listToExpr,
+        r"py_start_timer": start_timer_atom,
+        r"py_end_timer": end_timer_atom,
     }

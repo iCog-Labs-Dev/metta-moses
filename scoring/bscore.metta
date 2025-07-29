@@ -63,6 +63,28 @@
    )
 )
 
+(= (scoreTree (mkITable $table $labels) $tree)
+   (if (== $tree (mkTree (mkNode AND) Nil)) 
+       ;; (worstPossibleScore (mkTruthTableBScore $compCoeff (length $table) $table))
+       (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
+      ;  (let* (
+      ;       ($expTree (preOrder $tree))
+      ;        ($scoreList (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table))
+      ;        ($length (List.length $labels))
+      ;        ($outputs (List.flatten (List.map ((curry List.drop) (- $length 1)) $table)))
+      ;        ($bScore (List.zipWith compareAndScore $scoreList $outputs))
+      ;        )
+      ;    (mkBScore $bScore)))
+      (chain (preOrder $tree) $expTree
+      (trace! (Scoring $expTree)
+      (chain (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table) $scoreList
+      (chain (List.length $labels) $length
+      (chain (List.flatten (List.map ((curry List.drop) (- $length 1)) $table)) $outputs
+      (chain (List.zipWith compareAndScore $scoreList $outputs) $bScore
+         (mkBScore $bScore)))))))
+   )
+)
+
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.

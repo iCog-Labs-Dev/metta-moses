@@ -11,3 +11,4 @@ run_python_tests.py
 # Ignore HTML and Prolog files
 *.html
 *.pl
+utilities/python-helpers/benchmark_metta_let_chain.py

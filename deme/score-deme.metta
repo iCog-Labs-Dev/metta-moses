@@ -11,13 +11,10 @@
 (: applyComplexityBasedScore (-> Representation (List Instance) (ITable $a) Number (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
 (= (applyComplexityBasedScore $rep Nil $itable $complexityRatio $listOfScoredInst) $listOfScoredInst)
 (= (applyComplexityBasedScore $rep (Cons $i $is) $itable $complexityRatio $listOfScoredInst)
-(let*
-(
-    ($score (complexityBasedScorer $rep $i $itable $complexityRatio))
-    ($scoredInst (mkSInst (mkPair $i $score)))
-    ($uListofScoredInst (Cons $scoredInst $listOfScoredInst))
-)
-(applyComplexityBasedScore $rep $is $itable $complexityRatio $uListofScoredInst)))
+    (chain (complexityBasedScorer $rep $i $itable $complexityRatio) $score
+    (chain (mkSInst (mkPair $i $score)) $scoredInst
+    (chain (Cons $scoredInst $listOfScoredInst) $uListofScoredInst
+    (applyComplexityBasedScore $rep $is $itable $complexityRatio $uListofScoredInst)))))
 
 ;; Scores each instance in an InstanceSet. 
 ;; Params:
