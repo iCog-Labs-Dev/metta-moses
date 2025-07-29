@@ -18,7 +18,7 @@
         (let*
           (
               (($guardSet $child) (getLiteralChildren $current))
-              ($tail (if-decons-expr $child $h $t (cdr-atom $child) ("Empty")))
+              ($tail (if-decons-expr $child $h $t (cdr-atom $child) "No child"))
           )
           (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
               (let*
