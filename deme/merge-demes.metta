@@ -198,7 +198,8 @@
 (if (== $demes ()) $metapop
 (let*
 ( 
-    ((mkDeme $rep $sInstList $demeId) (car-atom $demes))
+    (($headDeme $tailDeme) (decons-atom $demes))
+    ((mkDeme $rep $sInstList $demeId) $headDeme)
     ($sortedSInstList (sortDeme $sInstList)) ;; sorting the instances inside the deme by decreasing order
     ($unqCandidates (keepTopUniqueCandidates $sortedSInstList $nEval $maxCandsPerDeme))  ;;remove duplicates and limits the size by keeping the top scoring
     ($trimmedDeme (trimDownDeme $unqCandidates $minPoolSize $complexityTemperature))  ;; further trims the deme
@@ -208,5 +209,5 @@
     ($updatedMetaPop (mergeCandidates $removedDominated $metapop))  ;;merge candidates into metapop
     ($resizedMetapop (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount))  ;;resize the metapop
 )
-(mergeDemes (cdr-atom $demes) $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $resizedMetapop $nToKeep $capCoef $genCount))
+(mergeDemes $tailDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $resizedMetapop $nToKeep $capCoef $genCount))
 ))
