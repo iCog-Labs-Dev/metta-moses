@@ -8,7 +8,7 @@
 ;;  $subtree: The subtree to be appended.
 ;; Returns:
 ;;  A LogicalSubtreeKnob (LSK) configured based on the subtree's presence or its appended state.
-(: logicalSubtreeKnob (-> (Tree $a) NodeId (Tree $a) LogicalSubtreeKnob))
+(: logicalSubtreeKnob (-> (Tree $a) NodeId (Tree $a) (Tree $a LogicalSubtreeKnob)))
 (= (logicalSubtreeKnob $tree (mkNodeId $target) $subtree)
    (let*
    (
@@ -18,16 +18,17 @@
    )
    (if (List.contains $subtree $childrenOfTarget) 
        (let $idOfSubtree (getSubtreeId $tree (mkNodeId $target) $subtree 0)
-           (mkLSK (mkDiscKnob (mkKnob $tree $idOfSubtree) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil) $subtree))
+           ($tree (mkLSK (mkDiscKnob (mkKnob $idOfSubtree) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
+       )
        (if (List.contains $reducedSubtree $childrenOfTarget)
            (let $idOfReducedSubtree (getSubtreeId $tree (mkNodeId $target) $reducedSubtree 0)
-                (mkLSK (mkDiscKnob (mkKnob $tree $idOfReducedSubtree) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil) $subtree))
+                ($tree (mkLSK (mkDiscKnob (mkKnob $idOfReducedSubtree) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil))))
            (let*
            (
             (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex Nil)))
             (($subtreeAppendedTree $subtreeId) (appendChild $nullVexAppendedTree $nullVexId $subtree))
            )
-           (mkLSK (mkDiscKnob (mkKnob $subtreeAppendedTree $nullVexId) (mkMultip 3)) $subtree)
+           ($subtreeAppendedTree (mkLSK (mkDiscKnob (mkKnob $nullVexId) (mkMultip 3))))
            )
        )
    )
@@ -37,18 +38,19 @@
 
 ;; Retrieves the node ID from a Logical Subtree Knob (LSK).
 (: getNodeId (-> LogicalSubtreeKnob NodeId))
-(= (getNodeId (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multi $default $current $discSpecList) $subtree))
+(= (getNodeId (mkLSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
    $nodeId)
 
 ;; Retrieves the current and default disc specifications from an LSK.
 (: getDiscSpec (-> LogicalSubtreeKnob (DiscSpec DiscSpec)))
-(= (getDiscSpec (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multi $default $current $discSpecList) $subtree))
+(= (getDiscSpec (mkLSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
     (let ((mkDiscSpec $def) (mkDiscSpec $cur)) ($default $current) ($def $cur)))
 
 ;; Retrieves the subtree associated with a Logical Subtree Knob (LSK).
-(: getSubtree (-> LogicalSubtreeKnob (Tree $a)))
-(= (getSubtree (mkLSK $disknob $subtree))
-    $subtree)
+;; OLD->: substituted with getNodeById
+; (: getSubtree (-> LogicalSubtreeKnob (Tree $a)))
+; (= (getSubtree (mkLSK $disknob $subtree))
+;     $subtree)
 
 ;; Appends a subtree or a null vertex in place of a logical subtree 
 ;;  using information from the LSK and a knob setting specified.
