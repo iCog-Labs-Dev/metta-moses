@@ -15,29 +15,30 @@
 ;;          output: ((OR C (AND B D) (NOT E)) () True)
 (: andCut (-> Expression Expression (Expression Expression Bool)))
 (= (andCut $parent $current)
-    (let*
-        (
-            (($guardSet $child) (getLiteralChildren $current))
-            ($tail (cdr-atom $child))
+        (let*
+          (
+              (($guardSet $child) (getLiteralChildren $current))
+              ($tail (if-decons-expr $child $h $t (cdr-atom $child) ("Empty")))
+          )
+          (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
+              (let*
+                  (
+                      ($childFirst (if-decons-expr $child $h $t $h (empty)))
+                      (($grandLiterals $grandChildren) (getLiteralChildren $childFirst))
+                      ($allLiterals (collapse (getGuardSet (superpose $grandChildren))))
+                      ($common (intersections $allLiterals))
+                      ($updatedParent (removeElement ($current) $parent))
+                      ($updatedParent' (addChildren $updatedParent $grandChildren))
+                      ($updatedParent'' (addLiterals $updatedParent' $grandLiterals))
+                  )
+                  (if (== $common ())
+                      ($updatedParent'' () True)
+                      ($parent $current False)
+                  )
+              )
+              ($parent $current False)
+          )
         )
-        (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
-            (let*
-                (
-                    (($grandLiterals $grandChildren) (getLiteralChildren (car-atom $child)))
-                    ($allLiterals (collapse (getGuardSet (superpose $grandChildren))))
-                    ($common (intersections $allLiterals))
-                    ($updatedParent (removeElement ($current) $parent))
-                    ($updatedParent' (addChildren $updatedParent $grandChildren))
-                    ($updatedParent'' (addLiterals $updatedParent' $grandLiterals))
-                )
-                (if (== $common ())
-                    ($updatedParent'' () True)
-                    ($parent $current False)
-                )
-            )
-            ($parent $current False)
-        )
-    )
 )
 
 ;; Function to find intersections between all literals in a nested tuple

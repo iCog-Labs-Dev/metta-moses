@@ -1,7 +1,7 @@
  ! (register-module! ../../../../metta-moses)
 
 ! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:reduct:boolean-reduct:n-ary-gather-junctors)
+! (import! &self metta-moses:reduct/boolean-reduct:n-ary-gather-junctors)
 
 
 ;; Test 01

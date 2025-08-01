@@ -1,8 +1,8 @@
 ! (register-module! ../../../../metta-moses) 
 
 ! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:reduct:boolean-reduct:rte-helpers)
-! (import! &self metta-moses:reduct:boolean-reduct:one-constraint-subsumption)
+! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
+! (import! &self metta-moses:reduct/boolean-reduct:one-constraint-subsumption)
 
 ;; Test-01:applied on an empty set(not affected)
 ! (assertEqualToResult (oneConstraintSubsume (OR) () (A B C)) (((OR) () False)))
