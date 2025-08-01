@@ -3,60 +3,7 @@
 
 
 
-; !(bind! perf_counter (py-atom "time.perf_counter"))
-; !(bind! round (py-atom "round"))
-; Define measure-execution-time function
-; internal profiling of a single expression
 
-(= (profilen $expr)
-  (let*
-    (
-      ($start_time (perf_counter))
-      ($result (eval $expr))
-      ($end_time (perf_counter))
-      ($elapsed_time (- $end_time $start_time))
-    )
-    (cons-atom $elapsed_time $result)
-  ))
-
-; internal recursive accumulation
-(= (profile-helper $expr $n $acc)
-  (if (== $n 0)
-      $acc
-      (let*
-          (
-            ($pair (profilen $expr))
-            ($time (car-atom $pair))
-            ($new-acc (cons-atom $time $acc))
-            ($next (profile-helper $expr (- $n 1) $new-acc))
-          )
-          $next
-      )))
-
-; main entry point — user only calls this
-(= (profile $expr $n)
-  (let*
-    (
-      ($times (profile-helper $expr $n ()))
-      (() (println! (times: $times)))
-      ($avg (average $times))
-      ($avgR (round $avg 3))
-    )
-    $avgR
-  ))
-
-(= (average $lst)
-    (let*
-        (
-            ($total (sum $lst))
-            ($count (size-atom $lst))
-        )
-        (if (== $count 0)
-            0
-            (/ $total $count)
-        )
-    )
-)
 
 
 (: ~= (-> Atom Atom Bool))
