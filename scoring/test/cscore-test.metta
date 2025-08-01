@@ -95,7 +95,7 @@
 
 ;; Test edge cases for cScoreExpr<
 !(assertEqual (cScoreExpr< ((0.0 0.0 0.0 0.0 0.0)) ((0.0 0.0 0.0 0.0 0.0))) False)  ;; Equal scores
-; !(assertEqual (cScoreExpr< ((nan 0.0 0.0 0.0 nan)) ((0.0 0.0 0.0 0.0 0.0))) True)   ;; NaN handling
+!(assertEqual (cScoreExpr< ((nan 0.0 0.0 0.0 nan)) ((0.0 0.0 0.0 0.0 0.0))) False)   ;; NaN handling
 !(assertEqual (cScoreExpr< ((0.0 0.0 0.0 0.0 0.0)) ((nan 0.0 0.0 0.0 nan))) False)  ;; NaN handling
 
 ;; Test that cScoreExpr< matches cScore< behavior for equivalent inputs
