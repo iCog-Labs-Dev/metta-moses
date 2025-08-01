@@ -11,9 +11,9 @@
 !(bind! &stochasticGrammarSpace (new-space))
 !(bind! &alphabetSpace (new-space))
 !(bind! &trainingSpace (new-space))
-!(bind! rand (py-atom random.randint)) ;;pseudo random integers
-!(bind! random (py-atom random.random)) ;;pseudo random real numbers from 0 to 1
-!(bind! pow (py-atom pow))
+; !(bind! rand (py-atom random.randint)) ;;pseudo random integers
+; !(bind! random (py-atom random.random)) ;;pseudo random real numbers from 0 to 1
+; !(bind! pow (py-atom pow))
 
 
 ;;The below procedure will initialize the grammarSpace with a cfg

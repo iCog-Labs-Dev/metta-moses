@@ -12,8 +12,8 @@
 ;; ! (import! &self scoring:fitness)
 
 ;; python bindings for random number generation and rounding
-! (bind! np (py-atom numpy))
-! (bind! rd (py-atom round))
+; ! (bind! np (py-atom numpy))
+; ! (bind! rd (py-atom round))
 
 ;;;;;;;;;           ;;;;;;;;;;
 ;;;;;;;;;  spaces   ;;;;;;;;;;

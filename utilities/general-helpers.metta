@@ -3,8 +3,8 @@
 
 
 
-!(bind! perf_counter (py-atom "time.perf_counter"))
-!(bind! round (py-atom "round"))
+; !(bind! perf_counter (py-atom "time.perf_counter"))
+; !(bind! round (py-atom "round"))
 ; Define measure-execution-time function
 ; internal profiling of a single expression
 
