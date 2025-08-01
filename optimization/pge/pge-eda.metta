@@ -7,8 +7,8 @@
 
 ;; python bindings for random number generation and rounding
 
-! (bind! np (py-atom numpy))
-! (bind! round (py-atom round))
+; ! (bind! np (py-atom numpy))
+; ! (bind! round (py-atom round))
 
 ;; space bindings
 
