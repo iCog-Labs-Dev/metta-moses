@@ -14,6 +14,7 @@
 (= (logicalProbe $exemplar (mkNodeId $targetId) $perms $addIfInExemplar $knobs)
 (let*
 (
+    ; (()(println! "checking up in logicalproble"))
     (($headPerms $tailPerms) (decons-atom $perms))
     (($updatedTree $lsk) (logicalSubtreeKnob $exemplar (mkNodeId $targetId) $headPerms))
     ($discKnob (getDiscKnob $lsk))
