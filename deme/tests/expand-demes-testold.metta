@@ -11,6 +11,17 @@
 !(import! &self metta-moses:representation:sample-logical-perms)
 !(import! &self metta-moses:representation:create-representation)
 
+! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
+! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-or)
+! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-and)
+! (import! &self metta-moses:reduct/boolean-reduct:delete-inconsistent-handle)
+! (import! &self metta-moses:reduct/boolean-reduct:zero-constraint-subsumption)
+! (import! &self metta-moses:reduct/boolean-reduct:one-constraint-subsumption)
+! (import! &self metta-moses:reduct/boolean-reduct:promote-common-constraints)
+! (import! &self metta-moses:reduct/boolean-reduct:reduce-to-elegance)
+! (import! &self metta-moses:reduct/boolean-reduct:n-ary-propagate-not)
+! (import! &self metta-moses:reduct/boolean-reduct:n-ary-gather-junctors)
+
 !(import! &self metta-moses:utilities:map)
 !(import! &self metta-moses:utilities:tree)
 !(import! &self metta-moses:utilities:pair) 
@@ -112,4 +123,4 @@
 ; (>= $topCandidatesLength 1)
 ; ) True)
 
-! (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
+;! (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 1 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
