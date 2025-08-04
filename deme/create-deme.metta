@@ -5,16 +5,21 @@
 
 ;; Creates a new deme with an empty instance set
 ;; Params:
+;;   $demeIds: List of DemeIds to create the deme
 ;;   $exemplar: The exemplar tree
 ;;   $nExpansion: total number of deme expansions (generations) set to 0 -- a constant number or a generation demes
 ;;   $nDemes: Number of feature sets to select out of feature selection and demes to spawn
-;; Return: A new empty deme with the specified representation and ID
-(: createDeme (-> (Tree $a) Number Number Deme)) 
-(= (createDeme $exemplar $nExpansion $nDeme)
+;;   $acc: Accumulator for the demes being created
+;; Returns: A list of demes created from the given parameters
+(: createDeme (-> (List DemeId) (Tree $a) Number Number Expression Expression)) 
+(= (createDeme $demeIds $exemplar $nExpansion $nDeme $acc)
+   (if (== $demeIds Nil) $acc
    (let*
    (
-    ($demeIds (createDemeIds $nExpansion $nDeme))
     ($representation (createRepresentation $exemplar))
-    ($demeId (List.getByIdx $demeIds 0))
+    ($demeId (List.head $demeIds))
+    ($updatedDemesList (cons-atom (mkDeme $representation (mkSInstSet Nil) $demeId) $acc))
    )
-   (mkDeme $representation (mkSInstSet Nil) $demeId)))
+   (createDeme (List.tail $demeIds) $exemplar $nExpansion $nDeme $updatedDemesList)
+   )))
+

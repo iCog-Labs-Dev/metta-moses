@@ -182,7 +182,7 @@
 
 ;; Merges a deme's candidates into a metapopulation, processing through sorting, deduplication, trimming, tree conversion, filtering, dominance removal, merging, and resizing.
 ;; Params:
-;;   $deme: Input deme
+;;   $demes: List of demes to process.
 ;;   $nEval: Number of evaluations for candidate selection.
 ;;   $maxCandsPerDeme: Maximum candidates per deme.
 ;;   $minPoolSize: Minimum deme size to retain.
@@ -193,10 +193,13 @@
 ;;   $capCoef: Capacity coefficient for resizing.
 ;;   $genCount: Generation count for resizing.
 ;; Return: Updated and resized metapopulation.
-(: mergeDemes (-> Deme Number Number Number Number (ITable $a) (OS (Exemplar $a)) Number Number Number (OS (Exemplar $a))))
-(= (mergeDemes (mkDeme $rep $sInstList $demeId) $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metapop $nToKeep $capCoef $genCount)
+(: mergeDemes (-> Expression Number Number Number Number (ITable $a) (OS (Exemplar $a)) Number Number Number (OS (Exemplar $a))))
+(= (mergeDemes $demes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metapop $nToKeep $capCoef $genCount)
+(if (== $demes ()) $metapop
 (let*
 ( 
+    (($headDeme $tailDeme) (decons-atom $demes))
+    ((mkDeme $rep $sInstList $demeId) $headDeme)
     ($sortedSInstList (sortDeme $sInstList)) ;; sorting the instances inside the deme by decreasing order
     ($unqCandidates (keepTopUniqueCandidates $sortedSInstList $nEval $maxCandsPerDeme))  ;;remove duplicates and limits the size by keeping the top scoring
     ($trimmedDeme (trimDownDeme $unqCandidates $minPoolSize $complexityTemperature))  ;; further trims the deme
@@ -206,5 +209,5 @@
     ($updatedMetaPop (mergeCandidates $removedDominated $metapop))  ;;merge candidates into metapop
     ($resizedMetapop (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount))  ;;resize the metapop
 )
-$resizedMetapop))
-
+(mergeDemes $tailDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $resizedMetapop $nToKeep $capCoef $genCount))
+))
