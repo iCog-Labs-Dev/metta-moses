@@ -73,24 +73,6 @@ def run_test_file(test_file):
 
         return result, test_file, False
 
-    except subprocess.TimeoutExpired as e:
-        print(RED + f"\n--- TIMEOUT in {test_file} ---" + RESET)
-        print(
-            RED
-            + f"Test timed out after 5 minutes. Likely infinite loop in test."
-            + RESET
-        )
-        print("-" * 40)
-
-        # Create a mock result for the timeout case
-        class MockTimeoutResult:
-            def __init__(self):
-                self.returncode = -2
-                self.stdout = ""
-                self.stderr = "Test timed out after 5 minutes"
-
-        return MockTimeoutResult(), test_file, True
-
     except Exception as e:
         print(RED + f"\n--- EXCEPTION in {test_file} ---" + RESET)
         print(RED + f"Exception: {e}" + RESET)
