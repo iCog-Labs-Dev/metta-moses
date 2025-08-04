@@ -41,8 +41,9 @@ jobs:
       - name: Install MeTTaLog (runs INSTALL.sh)
         run: |
           # 1) Clone into $HOME so INSTALL.sh installs here
-          git clone https://github.com/trueagi-io/metta-wam.git --depth 1 $HOME/metta-wam
+          git clone https://github.com/trueagi-io/metta-wam.git $HOME/metta-wam
           cd $HOME/metta-wam
+          git checkout 8c821a903933abc8bdd0d10cab2e4dd0c656626f
 
           # 2) Run the installer
           chmod +x ./INSTALL.sh
