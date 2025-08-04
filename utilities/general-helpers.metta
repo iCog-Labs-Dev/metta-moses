@@ -6,8 +6,8 @@
 ; input Expression
 ;        n (number of times to run the function)
 ;; output average time taken to run the function
-!(bind! perf_counter (py-atom "time.perf_counter"))
-!(bind! round (py-atom "round"))
+; !(bind! perf_counter (py-atom "time.perf_counter"))
+; !(bind! round (py-atom "round"))
 ; Define measure-execution-time function
 ; internal profiling of a single expression
 ; main entry point — user only calls this
