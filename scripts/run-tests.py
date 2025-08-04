@@ -131,7 +131,7 @@ if total_files == 0:
 print_ascii_art("Parallel Test Runner")
 
 # Execute tests in parallel
-with ThreadPoolExecutor() as executor:
+with ThreadPoolExecutor(max_workers=1) as executor:
     future_to_test = {
         executor.submit(run_test_file, test_file): idx
         for idx, test_file in enumerate(testMettaFiles)
@@ -141,6 +141,9 @@ with ThreadPoolExecutor() as executor:
         idx = future_to_test[future]
         try:
             result, path, has_failure = future.result()
+            # print("")
+            # print("Result: ", result)
+            # print("")
 
             # Since we're no longer using check=True, we won't get CalledProcessError
             # Just check if the result is valid
@@ -167,4 +170,3 @@ print(GREEN + f"{total_files - fails} succeeded." + RESET)
 if fails > 0:
     print(RED + "Tests failed. Process Exiting with exit code 1" + RESET)
     sys.exit(1)
-
