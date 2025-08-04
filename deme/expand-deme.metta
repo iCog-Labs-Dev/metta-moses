@@ -6,9 +6,8 @@
 ;;   $optimize: The optimizer function to apply to each deme.
 ;;  Returns: (List Deme): A new list where each deme has been optimized.
 (: optimizeDemes (-> (List Deme) (TruthTableBScore $a) Instance (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)) (List (Instance Deme $state))))
-(= (optimizeDemes Nil $truthTableBScore $inst $optimize) Nil)
-(= (optimizeDemes (Cons $deme $demes) $truthTableBScore $inst $optimize)
-(Cons ($optimize $deme $truthTableBScore $inst) (optimizeDemes $demes $truthTableBScore $inst $optimize)))
+(= (optimizeDemes $deme $truthTableBScore $inst $optimize)
+($optimize $deme $truthTableBScore $inst))
 
 ;; Runs one deme-creation and optimization step, then merges the optimized deme into the metapopulation.
 ;; Params:
@@ -29,21 +28,21 @@
 ;;   $updatedMetaPop: Updated metapopulation with the new optimized deme merged in.
 (: expandDeme (-> (OS (Exemplar $a)) Number Number (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)) Number Number Number Number (ITable $a) Number Number Number (OS (Exemplar $a))))
 (= (expandDeme $metaPop $nExpansion $nDeme $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
-(let*
+(collapse
+  (let*
 (
     ($exemplar (trace! "Selecting Exemplar" (selectExemplar $metaPop)))
     (() (println! $exemplar))
     ($tree (getExemplarTree $exemplar))
-    ($deme (trace! "Creating Deme" (createDeme $tree $nExpansion $nDeme))) ;;createRepresentation and createDemeId are under this
-    (() (println! $deme))
-    ((mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) $deme)
+    ($demeIds (createDemeIds $nExpansion $nDeme))
+    ($demes (trace! "Creating Deme" (createDeme $demeIds $tree $nExpansion $nDeme ()))) ;;createRepresentation and createDemeId are under this
+    ((mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) (superpose $demes))
     ($lengthOfDscKbMp (Map.length $dscKbMp))
     ($generatedList (List.generate $lengthOfDscKbMp 0))
-    ((Cons ($inst $optimDeme $state) Nil) (trace! "Optimizing Deme" (optimizeDemes (Cons $deme Nil) $truthTableBScore (mkInst $generatedList) $optimize))) ;; the hillclimbing is called under this and it calls the neighborhood and stuff to first populate the deme with instances
-    (() (println! $optimDeme))
-    ($updatedMetaPop (trace! "Merging Deme" (mergeDemes $optimDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metaPop $nToKeep $capCoef $genCount)))
+    ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
+    (($inst $optimDeme $state) (trace! "Optimizing Deme" (optimizeDemes $deme $truthTableBScore (mkInst $generatedList) $optimize))) ;; the hillclimbing is called under this and it calls the neighborhood and stuff to first populate the deme with instances
 )
-$updatedMetaPop))
+$optimDeme)))
 
 ;; The main loop 
 ;; Takes 2 termination criterias:
@@ -54,14 +53,19 @@ $updatedMetaPop))
 ;;     - other parameters required by the expandDeme method
 (: runMoses (-> Number Cscore Number (OS (Exemplar $a)) Number Number (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)) Number Number Number Number (ITable $a) Number Number Number (OS (Exemplar $a))))
 (= (runMoses $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
-(if (== $maxGen 0) 
-    (let $topCandidates (OS.getTopN $maxCandOutput $metaPop) $topCandidates)
+(if (== $maxGen 0)
+    (if (<= $maxCandOutput (OS.length $metaPop))
+        (let $topCandidates (OS.getTopN $maxCandOutput $metaPop) $topCandidates)
+        $metaPop
+  )
+    ; (trace! ($maxCandOutput $metaPop) (let $topCandidates (OS.getTopN $maxCandOutput $metaPop) $topCandidates))
     (let* 
      (
-       ($updatedMetaPop (expandDeme $metaPop $nExpansion $nDeme $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount))
+       ($optimizedDemes (expandDeme $metaPop $nExpansion $nDeme $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount))
+       ($updatedMetaPop (trace! "Merging Deme" (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metaPop $nToKeep $capCoef $genCount)))
        ($top (OS.getByIdx 0 $metaPop))
        ($topScore (getExemplarCscore $top))
        ($topCandidates (OS.getTopN $maxCandOutput $metaPop)))
      (if (cScore>= $topScore $maxScore) 
          $topCandidates 
-         (runMoses (- $maxGen 1) $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)))))
+         (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)))))

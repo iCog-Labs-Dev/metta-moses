@@ -1,9 +1,6 @@
-; NOTE: This test file has been commented out temporarily.
-; It was designed to test createRepresentation using the original sampleLogicalPerms implementation.
-; For now, we are using a simple placeholder instead of calling sampleLogicalPerms
-; to speed up testing and development.
-; Because of this simplification, this test fails due to mismatches in expected structure and output.
-; Once the original function is reintroduced, this test can be uncommented and adjusted if needed.
+; ; NOTE: This test file is temporarily commented out because set-seed is 
+; ; not functioning correctly in the current mettalog version. 
+; ; The tests will be re-enabled after fixing Python binding in the workflow.
 
 ; !(register-module! ../../../metta-moses)
 
@@ -16,6 +13,7 @@
 ; ! (import! &self metta-moses:representation:build-logical)
 ; ! (import! &self metta-moses:representation:build-knobs)
 ; !(import! &self metta-moses:representation:sample-logical-perms) 
+; ! (import! &self metta-moses:utilities:lazy-random-selector)
 ; !(import! &self metta-moses:representation:add-logical-knobs)
 
 ; ! (import! &self metta-moses:utilities:map)
@@ -32,7 +30,6 @@
 ; (= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
 
 ; (= (INSERT_ABOVE $tree $nodeId $subtree) (py_insertAbove  $tree $nodeId $subtree))
-
 
 
 ; ;; Test for the create representation

@@ -24,11 +24,10 @@
        (let $multips (genList 1 (- $m 1))
           (let $instExp (List.listToExpr (Cons $x $xs))
           (let $listNeighbors (collapse (let $neighbors (varyNKnobs $multips $instExp $dist)
-                                      (mkInst (pyExprToList $neighbors))))
+                                      (mkInst (exprToList $neighbors))))
           (let $uqListNeighbors (unique-atom $listNeighbors)
-          (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (Cons $x $xs))))
-            (pyExprToList $uqListNeighbors'))))))))
-
+          (let $uqListNeighbors' (subtractionAtom $uqListNeighbors ((mkInst (Cons $x $xs))))
+            (exprToList $uqListNeighbors'))))))))
 
 ;; This function returns a non deterministic list of instances at the given distance.
 ;; It's output isn't typed and also needs further preprocessing.
@@ -124,7 +123,7 @@
 ;; to achive not-deterministic approach. It generates a list with the size of $sampleSize 
 ;; and calls sampleFromNeighborhood` function for every number in the list. 
 ;; This will make the sampleFromNeighborhood` to produce $sampleSize samples. 
-;; Then the produced expression will be made in to llist using pyExprToList
+;; Then the produced expression will be made in to llist using exprToList
 (: sampleFromNeighborhood (-> Number Number KnobMap Instance (List Instance)))
 (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
    (let* (
@@ -132,7 +131,7 @@
       ($list (genList (- $sampleSize 1)))
       ($x (map-atom $list $i (sampleFromNeighborhood` $i $dist $kbMp $inst)))
     )
-    (pyExprToList $x)))
+    (exprToList $x)))
 
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1
@@ -147,16 +146,17 @@
        (let ($h2 $t2) (decons-atom $inst2)
           (+ (if (== $h1 $h2) 0 1) (distance $t1 $t2)))))))
 
-(: distance (-> Instance Instance Number) )
-(= (distance (mkInst Nil) (mkInst Nil)) 0)
-(= (distance (mkInst (Cons $x $xs)) (mkInst (Cons $y $ys)))
-      (+ (if (== $x $y) 0 1) (distance (mkInst $xs) (mkInst $ys))))
+;; mettalog appears to struggle with function overlaoding -- so created aliases instead of using the same name
+(: distance` (-> Instance Instance Number) )
+(= (distance` (mkInst Nil) (mkInst Nil)) 0)
+(= (distance` (mkInst (Cons $x $xs)) (mkInst (Cons $y $ys)))
+      (+ (if (== $x $y) 0 1) (distance` (mkInst $xs) (mkInst $ys))))
 
 ;; A trick function to use to prevent the type error
 ;;  bugs that may rise as a result of overloaded types
 ;;  of the distance function
 (: distance' (-> Instance Instance Number))
-(= (distance' $inst1 $inst2) (distance $inst1 $inst2))
+(= (distance' $inst1 $inst2) (distance` $inst1 $inst2))
 
 ;; Assigns an initial large negative score to an instance.
 ;; Params:

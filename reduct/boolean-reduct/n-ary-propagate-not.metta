@@ -17,17 +17,18 @@
 (= (propagateNot NOT $symbol ()) (NOT $symbol))
 (= (propagateNot NOT $expr)
    ( if (== (get-metatype $expr) Expression) ;; check if the the variable is expression 
-     ( let $tuple (car-atom $expr) 
-       ( if(== (get-metatype $tuple) Expression)
+     (let $tuple (car-atom $expr) 
+       ( if (== (get-metatype $tuple) Expression)
           (propagateNot NOT (car-atom $tuple) (cdr-atom $tuple))
           (propagateNot NOT $tuple (cdr-atom $expr))
        )
       )
       (NOT $expr)
-))
+  )
+)
 
-(=(propagateNot $expr ()) (propagateNot $expr))
-(=(propagateNot $expr) 
+(= (propagateNot $expr ()) (propagateNot $expr))
+(= (propagateNot $expr) 
   (
     if (== (get-metatype $expr) Expression)
        ( let* (

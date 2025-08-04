@@ -49,9 +49,8 @@
 ;; Return: (List (ScoredInstance Cscore)): Filtered list with low-scoring instances removed.
 (: filterDemeByScore (-> (List (ScoredInstance Cscore)) Number Number (List (ScoredInstance Cscore))))
 (= (filterDemeByScore Nil $lastIndex $botSc) Nil)
-(= (filterDemeByScore $listOfScoredInsts 0 $botSc) $listOfScoredInsts)
 (= (filterDemeByScore $listOfScoredInsts $lastIndex $botSc)
-(let*
+(if (== $lastIndex 0) $listOfScoredInsts (let*
 (
    ($lastSInst (List.getByIdx $listOfScoredInsts $lastIndex))
    ($lastSInstScore (getSInstScore $lastSInst))
@@ -61,7 +60,7 @@
     (let $lastRemovedList (List.removeAtIdx $listOfScoredInsts $lastIndex) (filterDemeByScore $lastRemovedList (- $lastIndex 1) $botSc))
     (filterDemeByScore $listOfScoredInsts (- $lastIndex 1) $botSc)
     )
-))
+)))
 
 ;; Trims a sorted list of ScoredInstances to remove low-scoring instances based on a score range derived from $complexityTemperature, unless size ≤ $minPoolSize or 1.
 ;; Params:
@@ -88,7 +87,7 @@
 ;;   $deme: A deme containing a representation, scored instance set, and demeId.
 ;;   $itable: The input table.
 ;; Return: (List (Exemplar $a)) - List of exemplars with scored trees.
-(: demeToTrees(-> Deme (ITable $a) (List (Exemplar $a))))
+(: demeToTrees (-> Deme (ITable $a) (List (Exemplar $a))))
 (= (demeToTrees (mkDeme $rep (mkSInstSet Nil) $demeId) $itable) Nil)
 (= (demeToTrees (mkDeme $rep (mkSInstSet (Cons $si $sil)) $demeId) $itable)
 (let*
@@ -183,7 +182,7 @@
 
 ;; Merges a deme's candidates into a metapopulation, processing through sorting, deduplication, trimming, tree conversion, filtering, dominance removal, merging, and resizing.
 ;; Params:
-;;   $deme: Input deme
+;;   $demes: List of demes to process.
 ;;   $nEval: Number of evaluations for candidate selection.
 ;;   $maxCandsPerDeme: Maximum candidates per deme.
 ;;   $minPoolSize: Minimum deme size to retain.
@@ -194,10 +193,13 @@
 ;;   $capCoef: Capacity coefficient for resizing.
 ;;   $genCount: Generation count for resizing.
 ;; Return: Updated and resized metapopulation.
-(: mergeDemes (-> Deme Number Number Number Number (ITable $a) (OS (Exemplar $a)) Number Number Number (OS (Exemplar $a))))
-(= (mergeDemes (mkDeme $rep $sInstList $demeId) $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metapop $nToKeep $capCoef $genCount)
+(: mergeDemes (-> Expression Number Number Number Number (ITable $a) (OS (Exemplar $a)) Number Number Number (OS (Exemplar $a))))
+(= (mergeDemes $demes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metapop $nToKeep $capCoef $genCount)
+(if (== $demes ()) $metapop
 (let*
 ( 
+    (($headDeme $tailDeme) (decons-atom $demes))
+    ((mkDeme $rep $sInstList $demeId) $headDeme)
     ($sortedSInstList (sortDeme $sInstList)) ;; sorting the instances inside the deme by decreasing order
     ($unqCandidates (keepTopUniqueCandidates $sortedSInstList $nEval $maxCandsPerDeme))  ;;remove duplicates and limits the size by keeping the top scoring
     ($trimmedDeme (trimDownDeme $unqCandidates $minPoolSize $complexityTemperature))  ;; further trims the deme
@@ -207,5 +209,5 @@
     ($updatedMetaPop (mergeCandidates $removedDominated $metapop))  ;;merge candidates into metapop
     ($resizedMetapop (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount))  ;;resize the metapop
 )
-$resizedMetapop))
-
+(mergeDemes $tailDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $resizedMetapop $nToKeep $capCoef $genCount))
+))

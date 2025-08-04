@@ -1,4 +1,3 @@
-
 ;; siblingit => Itreate over list of Tree childrens and build logical knobs for each node
 ;;params:
 ;;       $tree: The tree being updated
@@ -13,23 +12,20 @@
 (= (siblingit $tree (Cons $head $tail) (mkNodeId $parentId) $childNum $swapedOp $MMap)
         (let*
              (
-                ;; (() (println! ("tree" $tree)))
-                ($curId (union-atom $parentId ($childNum)))
+                ;; (() (println! "siblingit called"))
+                ($curId (concatT $parentId ($childNum)))
                 ((mkTree (mkNode $node) $childern) $head)
-                ;; (() (println!( "curId: " $curId "node :"$node)))
-                ;; (() (println!( "head: " $head "tail :"$tail)))
+                ;; (() (println!( "curId: " $curId "node :" $node)))
+                ;; (() (println!( "head: " $head "tail :" $tail)))
                 (($tNew  $mNew) (if (isMember $node (AND OR NOT));;
                                 (buildLogical $tree (mkNodeId $curId) $MMap)
-                                (chain (INSERT_ABOVE $tree (mkNodeId $curId) (mkTree (mkNode $swapedOp) Nil)) $itree (addLogicalKnobs $itree (mkNodeId $curId) True $MMap))
+                                (let  $itree (insertNodeAtPosition $tree (mkNodeId $curId) (mkNode $swapedOp))  (addLogicalKnobs $itree (mkNodeId $curId) True $MMap))
                             ))
-                
-                ;; (() (println!("tail: " $tail)))
+                ;;(() (println! $tNew))
                 (($tailT $tailM) (siblingit $tNew $tail (mkNodeId $parentId )(+ $childNum 1) $swapedOp $mNew))
                 
              )
-             ($tailT $tailM)
-        )
-)
+             ($tailT $tailM)))
 
 ;; buildLogical => Build logical knobs for a given NodeId and its children
 ;;params:
@@ -47,7 +43,6 @@
             ((mkTree (mkNode $op) $childrens) $subtree) 
             ($swapped (swapAndOr $op))
             (($t1 $mp1) (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap))
-            ;(() (println! ($t1 $mp1) ))
             (($updatedTree $updatedMMap) (siblingit $t1 $childrens (mkNodeId $nodeId) 1 $swapped $mp1 ))
             ;;($append (appendChild $updatedTree $nodeId (mkNode $filp)))                                 ;; this part will add much complexity to the tree, not worth the cost
         )
