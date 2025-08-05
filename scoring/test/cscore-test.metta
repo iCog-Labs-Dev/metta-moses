@@ -7,7 +7,6 @@
 ! (import! &self metta-moses:scoring:bscore)
 ! (import! &self metta-moses:scoring:cscore)
 
-; ! (bind! nan (py-atom math.nan))
 ;; Tests for cScoreToExpr
 ! (assertEqual (cScoreToExpr (mkCscore 0.0 0.0 0.0 0.0 0.0)) ((0.0 0.0 0.0 0.0 0.0)))
 ! (assertEqual (cScoreToExpr (mkCscore 1.0 2.0 0.5 0.5 0.0)) ((1.0 2.0 0.5 0.5 0.0)))
@@ -43,7 +42,7 @@
 ! (assertEqual (cScore< (mkCscore -0.1 2 0.1 0.1 -0.3) (mkCscore -0.2 3 0.1 0.1 -0.4)) False)
 ! (assertEqual (cScore< (mkCscore -0.5 3 0.1 0.1 -0.7) (mkCscore -0.5 2 0.1 0.1 -0.7)) True)
 ! (assertEqual (cScore< (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 3 0.1 0.1 -0.7)) False)
-; ! (assertEqual (cScore< (mkCscore -0.5 2 0.1 0.1 nan) (mkCscore -0.5 3 0.1 0.1 -0.7)) True)
+! (assertEqual (cScore< (mkCscore -0.5 2 0.1 0.1 1.5NaN) (mkCscore -0.5 3 0.1 0.1 -0.7)) True)
 
 ;; Test cases -- composite score equality comparator 
 ! (assertEqual (cScore== (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 2 0.1 0.1 -0.7)) True)
@@ -95,8 +94,8 @@
 
 ;; Test edge cases for cScoreExpr<
 !(assertEqual (cScoreExpr< ((0.0 0.0 0.0 0.0 0.0)) ((0.0 0.0 0.0 0.0 0.0))) False)  ;; Equal scores
-; !(assertEqual (cScoreExpr< ((nan 0.0 0.0 0.0 nan)) ((0.0 0.0 0.0 0.0 0.0))) True)   ;; NaN handling
-!(assertEqual (cScoreExpr< ((0.0 0.0 0.0 0.0 0.0)) ((nan 0.0 0.0 0.0 nan))) False)  ;; NaN handling
+!(assertEqual (cScoreExpr< ((1.5NaN 0.0 0.0 0.0 1.5NaN)) ((0.0 0.0 0.0 0.0 0.0))) True)   ;; 1.5NaN handling
+!(assertEqual (cScoreExpr< ((0.0 0.0 0.0 0.0 0.0)) ((1.5NaN 0.0 0.0 0.0 1.5NaN))) False)  ;; 1.5NaN handling
 
 ;; Test that cScoreExpr< matches cScore< behavior for equivalent inputs
 !(assertEqual (let* (
