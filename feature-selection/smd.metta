@@ -29,6 +29,9 @@
     (chain (List.length $labels) $len
     (chain (Table.getColumn (- $len 1) $table ) $oc ;; output column
     (chain (range 0 1 (- $len 1)) $indices          ;; input feature indices    
+    (smdIterator $th $numFeatures $topsCount $len $oc $indices (mkITable $table $labels) $scorer $acc)))))              ;; just to avoid 
+
+(= (smdIterator $th $numFeatures $topsCount $len $oc $indices (mkITable $table $labels) $scorer $acc)
     (if (== $acc ())
         (chain 
             (collapse 
@@ -39,7 +42,7 @@
                         (Empty))))) $index-mi-pair
                         ;; get each feature and and calculate MI agains output feature
                         (chain (sortPairs pairMax $index-mi-pair $topsCount ()) $topNSeed 
-                            (stochasticMaxDependency $th $numFeatures $topsCount (mkITable $table $labels) $scorer $topNSeed)))
+                            (smdIterator $th $numFeatures $topsCount $len $oc $indices (mkITable $table $labels) $scorer $topNSeed)))
         (chain (first (car-atom $acc)) $sample-tuple
             (if (== (size-atom $sample-tuple) $numFeatures)
                 (collapse (chain (superpose $acc) $pair (first $pair)))                                 ;; cleand acc and return the feature indices only
@@ -51,7 +54,7 @@
                     (chain (second (car-atom $topN)) $topScore                              ;; $topScore                  ;; shuffling to give pairs with equal scores better chance of being selected for variety
                     (if (< (- $topScore $prev-highest-score) $th)                           ;; terminate the loop if there is no significant improvement
                         (collapse (chain (superpose $acc) $pair (first $pair)))
-                        (stochasticMaxDependency $th $numFeatures $topsCount (mkITable $table $labels) $scorer $topN))))))))))))))
+                        (smdIterator $th $numFeatures $topsCount $len $oc $indices (mkITable $table $labels) $scorer $topN)))))))))))
 
 (= (inputPairMiCalculator $table $oc $indices $acc) ;; adds a feature to the previous pair thus grown the index size and calculates the mutual information for that pair, triplet ... of input features
     (collapse 
@@ -60,5 +63,5 @@
                 (chain (second $pair) $probs $probs
                     (chain (subtraction-atom $indices $used-indices) $candidate-indices                   ;; removed used indices from index list
                         (chain (union-atom $used-indices ((superpose $candidate-indices))) $new-indices ;; form a union of used indices tuple and one unused index for each such an index
-                            (chain (ListZip $new-indices $table) $zipped-input-feature                  ;; form a zipped pair, triplet .. of input feature values from the table
+                            (chain (zipColumn $new-indices $table) $zipped-input-feature                  ;; form a zipped pair, triplet .. of input feature values from the table
                                 ($new-indices (mutualInformation $zipped-input-feature $oc))))))))))
