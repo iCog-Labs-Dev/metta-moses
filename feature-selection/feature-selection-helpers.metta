@@ -176,7 +176,7 @@
 ;;          $of             --  out feature list as (Cons ..)
 (: mutualInformation (-> (List $a) (List $a) Number))
 (= (mutualInformation $if $of)
-    (chain (List.zip $if $of) $io-zip $io-zip
+    (chain (List.zip $if $of) $io-zip
     (chain (List.uniqueValuesCount $io-zip ()) $io-c
     (chain (List.length $if) $rowNum
     (chain (List.uniqueValuesCount $if ()) $ic                  ;; input feature unique values count pairs
