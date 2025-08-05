@@ -3,8 +3,10 @@
 
 ! (bind! maxInt (pow-math 2 64))
 ;; rndFloat -- random float between [0 1] inclsive 
+(: rndFloat (-> Number))
 (= (rndFloat) (/ (random-int 0 (+ maxInt 1)) maxInt))        
 
+(: List.at (-> Number (List $a) $a))
 (= (List.at $i $list)
     (unify $list Nil (Error $list "Empty list")
         (unify $list (Cons $el $els) 
@@ -12,6 +14,7 @@
                        
 ;; return tuple of unique values and their count
 ;; this one is assuming the list of values have been returned contains the row information. 
+(: List.uniqueValuesCount (-> (List $a) Expression))
 (= (List.uniqueValuesCount $list $acc)
     (unify $list Nil $acc
         (unify $list (Cons $x $xs)
@@ -68,18 +71,20 @@
         Nil (Error "Empty list has no head")
         (unify $list (Cons $h $t) $h ())))
 
-;; (: List.range (-> Number Number (List Number))) ;; inclusive start, exclusive end
+(: List.range (-> Number Number (List Number))) ;; inclusive start, exclusive end
 (= (List.range $start $end)
     (if (>= $start $end)
         Nil
         (chain (List.range (+ 1 $start) $end) $res (Cons $start $res))))
 
 ;; check for a pattern in tuple of tuples                
+(: patternExists (-> Expression Expression Bool))
 (= (patternExists $pat $collection)
     (let $a (collapse (chain (superpose $collection) $s
         (unify $s $pat True False))) (foldl-atom $a False $acc $i (or $i $acc))))        
         
 ;; replace value and count pair in collection with one higher count pair        
+(: updateCount (-> Expression Expression Expression))
 (= (updateCount $val $collection)
     (collapse (chain (superpose $collection) $s 
                 (unify $s ($val $count) ($val (+ 1 $count)) $s)))) 
@@ -100,6 +105,8 @@
 
 ;; a slight tweak to the above sorting function removes duplicate expressions in the form of differently ordered tuples
 ;; assumes pairs having numerical values as second part
+
+(: sortPairs (-> (-> $a $a $a) Expression Number Expression Expression))
 (= (sortPairs $op $pairTuple $count $acc)
     (if (or (<= $count 0) (== $pairTuple ()))
         ; (union-atom $acc $pairTuple)                                                          ;; started as a partial sort
@@ -116,6 +123,7 @@
 ;; $op -- comparison operator
 ;; $list -- tuple of item value-label pairs 
 ;; XXX : make sure to use strict comparators > as the comparator
+(: insertPair (-> (-> ($a $b) ($a $b) Bool) ($a $b) Expression Expression))
 (= (insertPair $op ($mi $new-i) $list)
     (if-decons-expr $list $h $t
         (unify ($mi-old $i) $h
@@ -131,7 +139,7 @@
 
 ;; find maximum of two pairs
 ;; XXX notice the use of => for comparison -- as per current mettlog interpreter implementation
-(: pairMax (-> (Number Symbol) (Number Symbol) (Number Symbol)))
+(: pairMax (-> ($a Number) ($a Number) ($a Number)))
 (= (pairMax ($label1 $val1) ($label2 $val2)) (if (=> $val1 $val2) ($label1 $val1) ($label2 $val2 )))
 
 ;; take N values from tuple
@@ -147,6 +155,7 @@
 ;; mutualInformation    
 ;;          $if             --  input feature list as (Cons ..)
 ;;          $of             --  out feature list as (Cons ..)
+(: mutualInformation (-> (List $a) (List $a) Number))
 (= (mutualInformation $if $of)
     (chain (List.zip $if $of) $io-zip $io-zip
     (chain (List.uniqueValuesCount $io-zip ()) $io-c
@@ -156,35 +165,40 @@
     (chain (marginalProbs $rowNum $io-c) $io-p                  ;; input output mutual probs
     (chain (collapse (chain (superpose $io-p) $io-prob-pair     ;; ((inout output)  prob) piar -- single -- superposed
         (unify $io-prob-pair ($pair $prob)
-                (* $prob (logMath 2 (/ $prob (* (/ (matchCount $ic (first $pair)) $rowNum) (/ (matchCount $oc (second $pair)) $rowNum)))))))) ;; functions named "first" and "second" from `general helpers` could be used 
+                (* $prob (logMath 2 (/ $prob (* (/ (getCount $ic (first $pair)) $rowNum) (/ (getCount $oc (second $pair)) $rowNum)))))))) ;; functions named "first" and "second" from `general helpers` could be used 
         $probTuple 
         (chain (foldl-atom $probTuple 0 $acc $x (+ $acc $x)) $final-result (round $final-result 3))))))))))
 
-(= (ListZip $indices $datarows)
+(: zipColumn (-> Expression (List (List $a)) (List $a)))        
+(= (zipColumn $indices $datarows)
     (if (== $indices ())
         Nil
         (unify $datarows Nil Nil
             (unify $datarows (Cons $row $rows)
                 (chain (collapse (let (superpose $indices) $i (List.at $i $row))) $dataTuple
-                    (Cons $dataTuple (ListZip $indices $rows)))
+                    (Cons $dataTuple (zipColumn $indices $rows)))
                 ()))))         
 
 ;; return marginal probabilities as tuple (p1 p2)
-(= (marginalProbs $len $countTuple) ;; depending on how the above goes most of the code for calculating frequencies could be included in this function
+(: marginalProbs (-> Number Expression Expression))
+(= (marginalProbs $len $countTuple)                         ;; depending on how the above goes most of the code for calculating frequencies could be included in this function
     (collapse (chain (superpose $countTuple) $pair (unify $pair ($val $count) ($val (/ $count $len)) ())))) 
 
 ;; return the value associated with a value in a tuple of pairs
 ;; as in ((True 0.6) (False 0.4)) -- if one wants to get value associated with True
-(= (matchCount $tuples $cue)
+(: getCount (-> Expression $a Number))
+(= (getCount $tuples $cue)
     (chain (superpose $tuples) $pair 
         (unify $pair ($cue $prob) $prob (Empty))))
 
 ;; check for equality of expressions -- to make up for ordering issues     
+(: isEqual (-> $a $b Bool))
 (= (isEqual $a $b)
     (chain (subtraction-atom $a $b) $a-diff 
         (chain (subtraction-atom $b $a) $b-diff (and (== (size-atom $a) (size-atom $b)) (== $a-diff $b-diff)))))
 
 ;; generate from $l to $u (excluding) in $step steps         
+(: range (-> Number Number Number Expression))
 (= (range $l $step $u)
     (if (== $step 0)
         (Error $step "Step value of 0 not allowed!!")
@@ -194,11 +208,13 @@
                 (cons-atom $l $res)))))
 
 ;; check for equality of pairs -- to make up for ordering issues   
+(: isPairEqual (-> ($a Number) ($b Number) Bool))
 (= (isPairEqual ($item1 $val1) ($item2 $val2))
     (if (== $val1 $val2)
         (isEqual $item1 $item2)
         False))
 
+(: shuffle (-> Atom Atom Atom))        
 (= (shuffle $expr $acc)
     (if (== $expr ())
         $acc
@@ -212,7 +228,7 @@
 
 ;; better log implementation using mercator series expansion and log properties
 !(bind! ln2 0.6931471805599453)
-
+(: logMath (-> Number Number Number))
 (= (logMath $baseValue $inputValue)
     (if (or (<= $baseValue 0) (or (== $baseValue 1) (<= $inputValue 0)))
         (Error "Invalid input: base must be > 1, value must be > 0")
@@ -221,7 +237,7 @@
             (if (== $inputValue $baseValue)                                     ;; log_b(b) = 1 for any base
                 1                                                               
                 (/ (lnMercator $inputValue 0) (lnMercator $baseValue 0))))))    ;; log_b(x) = ln(x) / ln(b)
-
+(: lnMercator (-> Number Number Number))
 (= (lnMercator $inputNumber $reductionCount)
     (if (>= $inputNumber 2)
         (lnMercator (/ $inputNumber 2) (+ $reductionCount 1))                   ;; inputNumber too large: reduce by factor of 2 -- ln(x) = ln(x/2) + ln(2), so increment reductionCount counter
@@ -233,6 +249,7 @@
                         (+ $seriesResult (* $reductionCount ln2)) ;; Add reductionCount*ln(2)
                         ))))))
 
+(: mercatorSeriesSum (-> Number Number Number Number Number))
 (= (mercatorSeriesSum $uSquared $currentPower $denominator $accumulator)
   (chain (* 2 (/ $currentPower $denominator)) $currentTerm
     (if (< (abs-math $currentTerm) 0.00000001)
