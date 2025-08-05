@@ -104,9 +104,9 @@
             (Cons (Cons False (Cons True (Cons False (Cons True (Cons False Nil)))))
             (Cons (Cons False (Cons False (Cons False (Cons True (Cons False Nil))))) Nil)))))
 
-! (assertEqual (ListZip (1 3) table) (Cons (True True) (Cons (False True) (Cons (True True) (Cons (False True) Nil)))))
-! (assertEqual (ListZip (0 1 4) table) (Cons (True True True) (Cons (True False True) (Cons (False True False) (Cons (False False False) Nil)))))
-! (assertEqual (ListZip (2) table) (Cons (False) (Cons (False) (Cons (False) (Cons (False) Nil))))) 
+! (assertEqual (zipColumn (1 3) table) (Cons (True True) (Cons (False True) (Cons (True True) (Cons (False True) Nil)))))
+! (assertEqual (zipColumn (0 1 4) table) (Cons (True True True) (Cons (True False True) (Cons (False True False) (Cons (False False False) Nil)))))
+! (assertEqual (zipColumn (2) table) (Cons (False) (Cons (False) (Cons (False) (Cons (False) Nil))))) 
 
 ! (assertEqual (logMath 2 8)  3)
 ! (assertEqual (logMath 10 1000)  3)
