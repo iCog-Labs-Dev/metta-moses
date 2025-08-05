@@ -142,6 +142,25 @@
 (: pairMax (-> ($a Number) ($a Number) ($a Number)))
 (= (pairMax ($label1 $val1) ($label2 $val2)) (if (=> $val1 $val2) ($label1 $val1) ($label2 $val2 )))
 
+;; exponentialSelection
+;;          $mean                   -- mean of num desired for the exponential dist -- decay factor
+;;          $numDesired             -- number of features to be selected
+;;          $scoreLableTuple        -- tuple of MI scores and corresponding labels -- this might change into index values
+;;          $xn                     -- factor controlling what gets selected -- starts as 1
+;;          $acc                    -- accumulator for selected features
+
+(: exponentialSelection (-> Number Number Expression Number Expression Expression))
+(= (exponentialSelection $mean $numDesired $scoreLabelTuple $xn $acc)
+    (if (== $numDesired 0)
+        $acc
+        (trace! ($rndFloat $xn) (if-decons-expr $scoreLabelTuple $h $t
+            (chain (rndFloat) $rndFloat
+            (if (< $rndFloat $xn)
+                (chain (union-atom $acc ($h)) $new-acc
+                    (exponentialSelection $mean (- $numDesired 1) $t (* $xn $mean) $new-acc))
+                (exponentialSelection $mean $numDesired $t (* $xn $mean) $acc))) ;; some adjustment needed here to make sure numDesired amount is returned check if numDesired is equal to what is left. if so append all to the acc to make sure  
+        $acc))))
+
 ;; take N values from tuple
 (: takeN (-> Number Expression Expression))
 (= (takeN $n $expr) 
