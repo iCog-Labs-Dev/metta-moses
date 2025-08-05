@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import subprocess
 import pathlib
 import sys
@@ -8,7 +6,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import shutil
 
-print('🚀 Starting test script')
+print("🚀 Starting test script")
 
 # Define ANSI escape codes for colors
 RESET = "\033[0m"
@@ -34,11 +32,11 @@ def extract_and_print(result, path, idx) -> bool:
     if "Failures:" in extracted:
         # Extract the failures count
         import re
+
         failures_match = re.search(r"Failures:\s*(\d+)", extracted)
         if failures_match:
             failures_count = int(failures_match.group(1))
             has_failure = failures_count > 0
-
 
     if not has_failure:
         extracted = "test passed"
@@ -51,16 +49,17 @@ def extract_and_print(result, path, idx) -> bool:
 
     return has_failure
 
+
 def run_test_file(test_file):
     try:
         # Create a clean environment with bash as default shell
         env = os.environ.copy()
-        env['SHELL'] = '/bin/bash'
-        
+        env["SHELL"] = "/bin/bash"
+
         # Use the full path to mettalog
         mettalog_path = shutil.which("mettalog")
         command = [mettalog_path, str(test_file)]
-        
+
         # Don't use check=True since mettalog returns 1 even for successful tests
         # Add timeout to prevent hanging in CI
         result = subprocess.run(
@@ -70,24 +69,9 @@ def run_test_file(test_file):
             check=False,  # Changed from True to False
             shell=False,
             env=env,
-            
         )
 
         return result, test_file, False
-
-    except subprocess.TimeoutExpired as e:
-        print(RED + f"\n--- TIMEOUT in {test_file} ---" + RESET)
-        print(RED + f"Test timed out after 5 minutes. Likely infinite loop in test." + RESET)
-        print("-" * 40)
-
-        # Create a mock result for the timeout case
-        class MockTimeoutResult:
-            def __init__(self):
-                self.returncode = -2
-                self.stdout = ""
-                self.stderr = "Test timed out after 5 minutes"
-
-        return MockTimeoutResult(), test_file, True
 
     except Exception as e:
         print(RED + f"\n--- EXCEPTION in {test_file} ---" + RESET)
@@ -102,6 +86,7 @@ def run_test_file(test_file):
                 self.stderr = str(e)
 
         return MockResult(), test_file, True
+
 
 # Function to print ASCII art
 def print_ascii_art(text):
@@ -128,7 +113,7 @@ if total_files == 0:
 print_ascii_art("Parallel Test Runner")
 
 # Execute tests in parallel
-with ThreadPoolExecutor() as executor:
+with ThreadPoolExecutor(max_workers=1) as executor:
     future_to_test = {
         executor.submit(run_test_file, test_file): idx
         for idx, test_file in enumerate(testMettaFiles)
@@ -138,7 +123,10 @@ with ThreadPoolExecutor() as executor:
         idx = future_to_test[future]
         try:
             result, path, has_failure = future.result()
-            
+            # print("")
+            # print("Result: ", result)
+            # print("")
+
             # Since we're no longer using check=True, we won't get CalledProcessError
             # Just check if the result is valid
             if result is None:
