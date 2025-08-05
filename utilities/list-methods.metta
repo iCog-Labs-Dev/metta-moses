@@ -38,32 +38,22 @@
    (if (< $x $head)
        (Cons $x (Cons $head $tail))
        (Cons $head (List.insert $x $tail))))
-;; A function that converts a list to an expression
-; (: List.toExpr (->(List $a) Expression)
-(= (List.toExpr Nil) ())
-(= (List.toExpr (Cons $x $xs)) (let $t (List.toExpr $xs) (cons-atom $x $t)))
-
-;; A function that converts an expression to a list
-; (: List.fromExpr (-> Expression (List $a)))
-(= (List.fromExpr ()) Nil)
-(= (List.fromExpr $list)
-    (let* (
-        (($head $tail) (decons-atom $list))
-        ($new (List.fromExpr $tail)) 
-    )
-        (Cons $head $new)))
-
-;;Test for List.fromExpr
 
 ;; Sort a List in ascending order
 (: List.sort (-> (List $a) (List $a)))
 (= (List.sort Nil) Nil)
+
+;; Default to sort in asecnding order
 (= (List.sort (Cons $head $tail)) 
-    (let* (($expr (List.toExpr (Cons $head $tail)))
+    (List.sort (Cons $head $tail) <))
+;;sort using custome oparator
+(= (List.sort (Cons $head $tail) $op)
+    (let* (($expr (List.listToExpr  (Cons $head $tail)))
             ($n (size-atom $expr))
-           ($sortedExpr (selectionSort $expr $n))
-           ($sortedList (List.fromExpr $sortedExpr)))
-        $sortedList))
+           ($sortedExpr (selectionSort $expr $n $op))
+           ($sortedList (exprToList $sortedExpr)))
+        $sortedList)
+)
 
 ;; helper function to find the length of the list
 (: List.length (-> (List $a) Number))

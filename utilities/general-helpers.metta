@@ -1,15 +1,15 @@
 ;; Helper functions that are going to be useful for writing any metta code
 
+!(bind! perf_counter (py-atom "time.perf_counter"))
+!(bind! round (py-atom "round"))
 
+;; Measures the average execution time of a given expression over multiple runs.
+;; Parameters:
+;;   $expr: The expression to be evaluated and profiled.
+;;   $n: The number of times to execute $expr for timing.
+;; Returns:
+;;   The average time (rounded to 3 decimal places) taken to evaluate $expr, computed over $n
 
-;; This function is used to prfile a function 
-; input Expression
-;        n (number of times to run the function)
-;; output average time taken to run the function
-; !(bind! perf_counter (py-atom "time.perf_counter"))
-; !(bind! round (py-atom "round"))
-; Define measure-execution-time function
-; internal profiling of a single expression
 ; main entry point — user only calls this
 (= (profile $expr $n)
   (let*

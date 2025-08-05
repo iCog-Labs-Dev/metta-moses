@@ -15,10 +15,10 @@
 
 ;; --- Conversion helpers ---
 (: instToExpr (-> Instance Expression))
-(= (instToExpr (mkInst $lst)) (List.toExpr $lst))
+(= (instToExpr (mkInst $lst)) (List.listToExpr $lst))
 
 (: exprToInst (-> Expression Instance))
-(= (exprToInst $expr) (mkInst (List.fromExpr $expr)))
+(= (exprToInst $expr) (mkInst (exprToList $expr)))
 
 (: sInstToExpr (-> (ScoredInstance $score) Expression))
 (= (sInstToExpr (mkSInst (mkPair $inst $score)))
@@ -38,17 +38,12 @@
 
 (= (sInstSetToExpr (mkSInstSet $lst)) (sInstSetListToExpr $lst))
 
-(= (sInstSetListToExpr Nil) ())
-(= (sInstSetListToExpr (Cons $scoredInst $rest))
-    (let* (
-      ($sInstExpr (sInstToExpr $scoredInst))
-      ($restExpr (sInstSetListToExpr $rest))
-    )
-      (cons-atom $sInstExpr $restExpr)))
+(= (sInstSetListToExpr $lst)
+    (List.listToExpr (List.map sInstToExpr $lst)))
 
 (: exprToSInstSet (-> Expression (InstanceSet Cscore)))
 (= (exprToSInstSet $expr)
-    (mkSInstSet (List.map exprToSInst (List.fromExpr $expr))))
+    (mkSInstSet (List.map exprToSInst (exprToList $expr))))
 
 ;; --- Fast selectionSort implementation with conversion ---
 (: sortDeme (-> (InstanceSet Cscore) (InstanceSet Cscore)))
@@ -60,17 +55,17 @@
     )
       (exprToSInstSet $sortedExpr)))
 
-; (: sortSInst (-> (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
+(: sortSInst (-> (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
 (= (sortSInst $lst)
     (let* (
       ($expr (sInstSetListToExpr $lst))
-      ($n (len $expr))
+      ($n (size-atom $expr))
       ($sortedExpr (selectionSort $expr $n sInstComparator))
-      ($sortedList (List.map exprToSInst (List.fromExpr $sortedExpr)))
+      ($sortedList (List.map exprToSInst (exprToList $sortedExpr)))
     )
       $sortedList))
 
-; (: insertSInst (-> (ScoredInstance Cscore) (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
+(: insertSInst (-> (ScoredInstance Cscore) (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
 (= (insertSInst $sinst $lst)
     (sortSInst (Cons $sinst $lst))) 
 
@@ -92,7 +87,7 @@
 (= (getInst (mkSInst (mkPair $inst $score))) $inst)
 
 ;; Scored Instance comparator --> instance>=
-; (: instance>= (-> (ScoredInstance $score) (ScoredInstance $score) Bool))
+(: instance>= (-> (ScoredInstance $score) (ScoredInstance $score) Bool))
 (= (instance>= (mkSInst (mkPair $inst1 $score1)) (mkSInst (mkPair $inst2 $score2)))
     (cScore>= $score1 $score2))
 
