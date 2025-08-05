@@ -35,4 +35,4 @@
                 (if (=> $mi $th)
                     (chain (insertPair > ($mi $counter) $acc) $new-acc
                         (selectorIterator $th $rowNum $oc $labels $rem-table (+ $counter 1) $new-acc))
-                    (selectorIterator $th $rowNum $oc $labels $rem-table (+ $counter 1) $acc))))))))   ;; an improvement point --> instead of calculating output feature entropy every time, calcualte once and pass it to the MI calculator
+                    (selectorIterator $th $rowNum $oc $labels $rem-table (+ $counter 1) $acc))))))))

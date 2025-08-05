@@ -22,34 +22,35 @@
 ;;  start from an empty feature set ()
 ;;  score each feature using mutual information and add them to the accumulator as (($feature) $score)
 ;;  keep only features that score above a certain threshold -- can be done non-deterministicly
-;;  keep the feature set shuffled -- or pick from the labels with randomness -- a concern here -- picking at random could cause the features sets to be redundant - i guess a simple check could avoid that from happening
+;;  keep the feature set shuffled -- or pick from the labels with randomness 
 ;;  label indices will be used to form the set of features ... the final output will be tuple of tuples containing indices of columns selected
 
 (= (stochasticMaxDependency $th $numFeatures $topsCount (mkITable $table $labels) $scorer $acc)
     (chain (List.length $labels) $len
     (chain (Table.getColumn (- $len 1) $table ) $oc ;; output column
     (chain (range 0 1 (- $len 1)) $indices          ;; input feature indices    
-    (smdIterator $th $numFeatures $topsCount $len $oc $indices (mkITable $table $labels) $scorer $acc)))))              ;; just to avoid 
+        (if (> $numFeatures (- $len 1))             ;; makes sure the desire number of features is not more than what is available
+            (smdIterator $th (- $len 1) $topsCount $len $oc $indices (mkITable $table $labels) $scorer $acc)
+            (smdIterator $th $numFeatures $topsCount $len $oc $indices (mkITable $table $labels) $scorer $acc))))))
 
 (= (smdIterator $th $numFeatures $topsCount $len $oc $indices (mkITable $table $labels) $scorer $acc)
     (if (== $acc ())
         (chain 
             (collapse 
                 (chain (superpose $indices) $i
-                (chain (mutualInformation (Table.getColumn $i $table) $oc) $mi 
-                    (if (>= $mi $th)
-                        (($i) $mi)
-                        (Empty))))) $index-mi-pair
-                        ;; get each feature and and calculate MI agains output feature
-                        (chain (sortPairs pairMax $index-mi-pair $topsCount ()) $topNSeed 
-                            (smdIterator $th $numFeatures $topsCount $len $oc $indices (mkITable $table $labels) $scorer $topNSeed)))
+                (chain (mutualInformation (Table.getColumn $i $table) $oc) $mi (($i) $mi)))) $index-mi-pair
+                        (if (== $index-mi-pair ())
+                            (Error $index-mi-pair "No relevant feature found ... Exiting")              ;; No feature selected -- low MI values
+                            ;; get each feature and and calculate MI agains output feature
+                            (chain (sortPairs pairMax $index-mi-pair $topsCount ()) $topNSeed 
+                                (smdIterator $th $numFeatures $topsCount $len $oc $indices (mkITable $table $labels) $scorer $topNSeed))))        
         (chain (first (car-atom $acc)) $sample-tuple
             (if (== (size-atom $sample-tuple) $numFeatures)
                 (collapse (chain (superpose $acc) $pair (first $pair)))                                 ;; cleand acc and return the feature indices only
                 (chain (second (car-atom $acc)) $prev-highest-score
                 (chain 
                     (inputPairMiCalculator $table $oc $indices $acc) $res                                                       ;; collapsed result of pairing scoring
-                    (chain (shuffle $res ()) $shuffled-pairs 
+                    (chain (shuffle $res ()) $shuffled-pairs
                     (chain (sortPairs pairMax $shuffled-pairs $topsCount ()) $topN
                     (chain (second (car-atom $topN)) $topScore                              ;; $topScore                  ;; shuffling to give pairs with equal scores better chance of being selected for variety
                     (if (< (- $topScore $prev-highest-score) $th)                           ;; terminate the loop if there is no significant improvement
@@ -60,8 +61,9 @@
     (collapse 
         (chain (superpose $acc) $pair
             (chain (first $pair) $used-indices
-                (chain (second $pair) $probs $probs
+                (chain (second $pair) $probs 
                     (chain (subtraction-atom $indices $used-indices) $candidate-indices                   ;; removed used indices from index list
-                        (chain (union-atom $used-indices ((superpose $candidate-indices))) $new-indices ;; form a union of used indices tuple and one unused index for each such an index
+                        (chain (union-atom $used-indices ((superpose $candidate-indices))) $new-indices   ;; form a union of used indices tuple and one unused index for each such an index
                             (chain (zipColumn $new-indices $table) $zipped-input-feature                  ;; form a zipped pair, triplet .. of input feature values from the table
                                 ($new-indices (mutualInformation $zipped-input-feature $oc))))))))))
+! (collapse (Empty))

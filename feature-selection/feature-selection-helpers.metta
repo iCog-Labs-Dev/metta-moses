@@ -143,10 +143,10 @@
 (= (pairMax ($label1 $val1) ($label2 $val2)) (if (=> $val1 $val2) ($label1 $val1) ($label2 $val2 )))
 
 ;; exponentialSelection
-;;          $mean                   -- mean of num desired for the exponential dist -- decay factor
+;;          $mean                   -- mean of num desired for the exponential dist -- controls steepness of selection
 ;;          $numDesired             -- number of features to be selected
 ;;          $scoreLableTuple        -- tuple of MI scores and corresponding labels -- this might change into index values
-;;          $xn                     -- factor controlling what gets selected -- starts as 1
+;;          $xn                     -- factor controlling what gets selected -- starts as 1 -- the current exponential decay multiplier.
 ;;          $acc                    -- accumulator for selected features
 
 (: exponentialSelection (-> Number Number Expression Number Expression Expression))
@@ -171,7 +171,8 @@
                 (cons-atom $h $res))
             ())))
 
-;; mutualInformation    
+
+;; mutualInformation        -- mutual information based on =∑p(x1,x2..:y)/ (p(x1, x2 ..)*p(y) )
 ;;          $if             --  input feature list as (Cons ..)
 ;;          $of             --  out feature list as (Cons ..)
 (: mutualInformation (-> (List $a) (List $a) Number))
@@ -184,8 +185,8 @@
     (chain (marginalProbs $rowNum $io-c) $io-p                  ;; input output mutual probs
     (chain (collapse (chain (superpose $io-p) $io-prob-pair     ;; ((inout output)  prob) piar -- single -- superposed
         (unify $io-prob-pair ($pair $prob)
-                (* $prob (logMath 2 (/ $prob (* (/ (getCount $ic (first $pair)) $rowNum) (/ (getCount $oc (second $pair)) $rowNum)))))))) ;; functions named "first" and "second" from `general helpers` could be used 
-        $probTuple 
+                (* $prob (logMath 2 (/ $prob (* (/ (getCount $ic (first $pair)) $rowNum) (/ (getCount $oc (second $pair)) $rowNum)))))
+                ()))) $probTuple 
         (chain (foldl-atom $probTuple 0 $acc $x (+ $acc $x)) $final-result (round $final-result 3))))))))))
 
 (: zipColumn (-> Expression (List (List $a)) (List $a)))        
