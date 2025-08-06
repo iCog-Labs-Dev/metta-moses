@@ -66,4 +66,3 @@
                         (chain (union-atom $used-indices ((superpose $candidate-indices))) $new-indices   ;; form a union of used indices tuple and one unused index for each such an index
                             (chain (zipColumn $new-indices $table) $zipped-input-feature                  ;; form a zipped pair, triplet .. of input feature values from the table
                                 ($new-indices (mutualInformation $zipped-input-feature $oc))))))))))
-! (collapse (Empty))
