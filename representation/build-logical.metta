@@ -13,7 +13,11 @@
         (let*
              (
                 ;; (() (println! "siblingit called"))
-                ($curId (concatT $parentId ($childNum)))
+                ($curId (if (== $parentId (0))
+                            ($childNum)
+                           (concatT $parentId ($childNum))      
+                        ))
+                ;(concatT $parentId ($childNum))
                 ((mkTree (mkNode $node) $childern) $head)
                 ;; (() (println!( "curId: " $curId "node :" $node)))
                 ;; (() (println!( "head: " $head "tail :" $tail)))
@@ -26,7 +30,6 @@
                 
              )
              ($tailT $tailM)))
-
 ;; buildLogical => Build logical knobs for a given NodeId and its children
 ;;params:
 ;;       $tree: The tree being updated
@@ -41,7 +44,10 @@
         (let*
         (
             ((mkTree (mkNode $op) $childrens) $subtree) 
+            ; (() (println! ("subtree: " $subtree "op" $op " and children " $childrens)))
             ($swapped (swapAndOr $op))
+            ; (() (println! (" swapped" $swapped)))
+            ;  (() (println! "nodeId: " $nodeId))
             (($t1 $mp1) (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap))
             (($updatedTree $updatedMMap) (siblingit $t1 $childrens (mkNodeId $nodeId) 1 $swapped $mp1 ))
             ;;($append (appendChild $updatedTree $nodeId (mkNode $filp)))                                 ;; this part will add much complexity to the tree, not worth the cost
