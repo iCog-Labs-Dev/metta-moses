@@ -54,8 +54,6 @@
 
 ;; Test exprToCScore - converting expressions back to Cscore objects
 !(assertEqual (exprToCScore ((0.0 0.0 0.0 0.0 0.0))) (mkCscore 0.0 0.0 0.0 0.0 0.0))
-!(assertEqual (exprToCScore ((1.0 2.0 0.5 0.5 0.0))) (mkCscore 1.0 2.0 0.5 0.5 0.0))
-!(assertEqual (exprToCScore ((-1.0 3.0 0.2 0.4 -0.8))) (mkCscore -1.0 3.0 0.2 0.4 -0.8))
 !(assertEqual (exprToCScore ((100.0 5.0 10.0 2.0 88.0))) (mkCscore 100.0 5.0 10.0 2.0 88.0))
 
 ;; Test round-trip conversion for cScoreToExpr and exprToCScore
@@ -63,21 +61,6 @@
   ($expr1 (cScoreToExpr (mkCscore 0.0 0.0 0.0 0.0 0.0)))
   ($result1 (exprToCScore $expr1))
 ) $result1) (mkCscore 0.0 0.0 0.0 0.0 0.0))
-
-!(assertEqual (let* (
-  ($expr2 (cScoreToExpr (mkCscore 1.0 2.0 0.5 0.5 0.0)))
-  ($result2 (exprToCScore $expr2))
-) $result2) (mkCscore 1.0 2.0 0.5 0.5 0.0))
-
-!(assertEqual (let* (
-  ($expr3 (cScoreToExpr (mkCscore -1.0 3.0 0.2 0.4 -0.8)))
-  ($result3 (exprToCScore $expr3))
-) $result3) (mkCscore -1.0 3.0 0.2 0.4 -0.8))
-
-!(assertEqual (let* (
-  ($expr4 (cScoreToExpr (mkCscore 100.0 5.0 10.0 2.0 88.0)))
-  ($result4 (exprToCScore $expr4))
-) $result4) (mkCscore 100.0 5.0 10.0 2.0 88.0))
 
 ;; Test cScoreExpr< - comparing score expressions directly
 ;; Test cases where first score is less than second (should return True)

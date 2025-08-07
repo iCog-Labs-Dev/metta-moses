@@ -1,25 +1,63 @@
+;; ============================================================
 ;; Types, constructors and functions related to instance.
+;; ============================================================
 
-;; An instance is just a vector of numbers
-
+;;------------------------------------------------------------
+;;  Instance
+;;------------------------------------------------------------
+;;  +-------------+
+;;  | List Number |  -->  Instance
+;;  +-------------+
+;;  Represents a vector of numbers as an Instance.
 (: Instance Type)
 (: mkInst (-> (List Number) Instance))
 
-;; A scored instance is just a pair of instance and it's score.
+;;------------------------------------------------------------
+;;  ScoredInstance
+;;------------------------------------------------------------
+;;  +---------------------+
+;;  | Pair Instance Score |  -->  ScoredInstance<Score>
+;;  +---------------------+
+;;  Combines an Instance with a score value.
 (: ScoredInstance (-> $score Type))
 (: mkSInst (-> (Pair Instance $score) (ScoredInstance $score)))
 
-;; An instance set is a list of scored instances.
+;;------------------------------------------------------------
+;;  InstanceSet
+;;------------------------------------------------------------
+;;  +-----------------------------------------+
+;;  | List of ScoredInstance<Score>           |  -->  InstanceSet<Score>
+;;  +-----------------------------------------+
+;;  Represents a list of scored instances.
 (: InstanceSet (-> $score Type))
 (: mkSInstSet (-> (List (ScoredInstance $score)) (InstanceSet $score)))
 
-;; --- Conversion helpers ---
+;; ============================================================
+;; Conversion Helpers
+;; ============================================================
+
+;;------------------------------------------------------------
+;; instToExpr
+;;------------------------------------------------------------
+;;  Instance  -->  Expression
+;;  Converts an Instance into an Expression form.
 (: instToExpr (-> Instance Expression))
 (= (instToExpr (mkInst $lst)) (List.listToExpr $lst))
 
+;;------------------------------------------------------------
+;; exprToInst
+;;------------------------------------------------------------
+;;  Expression  -->  Instance
+;;  Parses an Expression into an Instance.
 (: exprToInst (-> Expression Instance))
 (= (exprToInst $expr) (mkInst (exprToList $expr)))
 
+;;------------------------------------------------------------
+;; sInstToExpr
+;;------------------------------------------------------------
+;;  ScoredInstance<Score>  -->  Expression
+;;  Converts a scored instance into an Expression
+;;  combining instance and score.
 (: sInstToExpr (-> (ScoredInstance $score) Expression))
 (= (sInstToExpr (mkSInst (mkPair $inst $score)))
     (let* (
@@ -28,6 +66,12 @@
     )
       (cons-atom $instExpr $scoreExpr)))
 
+;;------------------------------------------------------------
+;; exprToSInst
+;;------------------------------------------------------------
+;;  Expression  -->  ScoredInstance<Score>
+;;  Parses an Expression into a scored instance.
+; (: exprToSInst (-> Expression ScoredInstance))
 (= (exprToSInst $expr)
     (let* (
       (($instExpr $scoreExpr) (decons-atom $expr))
@@ -36,16 +80,42 @@
     )
       (mkSInst (mkPair $inst $score))))
 
+;;------------------------------------------------------------
+;; sInstSetToExpr
+;;------------------------------------------------------------
+;;  InstanceSet<Score>  -->  Expression
+;;  Converts a scored instance set into Expression form.
+(: sInstSetToExpr (-> (InstanceSet $score) Expression))
 (= (sInstSetToExpr (mkSInstSet $lst)) (sInstSetListToExpr $lst))
 
+;;------------------------------------------------------------
+;; sInstSetListToExpr
+;;------------------------------------------------------------
+;;  List<ScoredInstance<Score>>  -->  Expression
+;;  Converts a list of scored instances to Expression.
+; (: sInstSetListToExpr (-> (List (ScoredInstance $score)) Expression))
 (= (sInstSetListToExpr $lst)
     (List.listToExpr (List.map sInstToExpr $lst)))
 
+;;------------------------------------------------------------
+;; exprToSInstSet
+;;------------------------------------------------------------
+;;  Expression  -->  InstanceSet<Cscore>
+;;  Parses Expression into a scored instance set.
 (: exprToSInstSet (-> Expression (InstanceSet Cscore)))
 (= (exprToSInstSet $expr)
     (mkSInstSet (List.map exprToSInst (exprToList $expr))))
 
-;; --- Fast selectionSort implementation with conversion ---
+;; ============================================================
+;; Sorting
+;; ============================================================
+
+;;------------------------------------------------------------
+;; sortDeme
+;;------------------------------------------------------------
+;;  InstanceSet<Cscore>  -->  InstanceSet<Cscore>
+;;  Sorts a scored instance set in descending score order.
+;;  (Replaces need for sortSInst and insertSInst helpers.)
 (: sortDeme (-> (InstanceSet Cscore) (InstanceSet Cscore)))
 (= (sortDeme $set)
     (let* (
@@ -55,40 +125,47 @@
     )
       (exprToSInstSet $sortedExpr)))
 
-(: sortSInst (-> (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
-(= (sortSInst $lst)
-    (let* (
-      ($expr (sInstSetListToExpr $lst))
-      ($n (size-atom $expr))
-      ($sortedExpr (selectionSort $expr $n sInstComparator))
-      ($sortedList (List.map exprToSInst (exprToList $sortedExpr)))
-    )
-      $sortedList))
+;; ============================================================
+;; Comparators and Accessors
+;; ============================================================
 
-(: insertSInst (-> (ScoredInstance Cscore) (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
-(= (insertSInst $sinst $lst)
-    (sortSInst (Cons $sinst $lst))) 
-
-;; --- Optimized comparator for selectionSort ---
-;; This comparator sorts in DESCENDING order (best scores first)
+;;------------------------------------------------------------
+;; sInstComparator
+;;------------------------------------------------------------
+;;  Expression, Expression  -->  Bool
+;;  Compares two scored instance expressions by score
+;;  (descending: highest score first).
+(: sInstComparator (-> Expression Expression Bool))
 (= (sInstComparator $a $b)
     (let* (
       (($instA $scoreA) (decons-atom $a))
       (($instB $scoreB) (decons-atom $b))
       ($result (cScoreExpr< $scoreB $scoreA))
     )
-      ;; Use cScoreExpr< in reverse - we want better scores first
       $result))
 
-;; extracts the score of a scored instance object
+;;------------------------------------------------------------
+;; getSInstScore
+;;------------------------------------------------------------
+;;  ScoredInstance<Score>  -->  Score
+;;  Extracts score from a scored instance.
+(: getSInstScore (-> (ScoredInstance $score) $score))
 (= (getSInstScore (mkSInst (mkPair $inst $score))) $score)
 
-;; extracts the instance from a scored instance object
+;;------------------------------------------------------------
+;; getInst
+;;------------------------------------------------------------
+;;  ScoredInstance<Score>  -->  Instance
+;;  Extracts the instance from a scored instance.
+(: getInst (-> (ScoredInstance $score) Instance))
 (= (getInst (mkSInst (mkPair $inst $score))) $inst)
 
-;; Scored Instance comparator --> instance>=
+;;------------------------------------------------------------
+;; instance>=
+;;------------------------------------------------------------
+;;  ScoredInstance<Score>, ScoredInstance<Score>  -->  Bool
+;;  True if first scored instance has a score >= second.
 (: instance>= (-> (ScoredInstance $score) (ScoredInstance $score) Bool))
-(= (instance>= (mkSInst (mkPair $inst1 $score1)) (mkSInst (mkPair $inst2 $score2)))
+(= (instance>= (mkSInst (mkPair $inst1 $score1))
+               (mkSInst (mkPair $inst2 $score2)))
     (cScore>= $score1 $score2))
-
-

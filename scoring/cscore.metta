@@ -110,20 +110,13 @@
 ;; cScoreExpr< -- composite score less than operator for expressions
 ;; works directly with expressions using index-atom to extract scores
 ;; index 4 = penalized score, index 1 = complexity score
-; (: cScoreExpr< (-> Expression Expression Bool))
-(= (cScoreExpr< $cs1 $cs2)
-    (let* (
-      ($scoreExpr1 (car-atom $cs1))
-      ($scoreExpr2 (car-atom $cs2))
-      ($pl (index-atom $scoreExpr1 4))
-      ($pr (index-atom $scoreExpr2 4))
-      ($cl (index-atom $scoreExpr1 1))
-      ($cr (index-atom $scoreExpr2 1))
-    (() (println! ("Right complexity score: " $cr)))
-    )
-        (if (type-cast (isnan $pl) Bool &self)
-            (not (type-cast (isnan $pr) Bool &self))
-            (or (< $pl $pr) (and (== $pl $pr) (> $cl $cr))))))
+(: cScoreExpr< (-> Expression Expression Bool))
+(= (cScoreExpr< (($scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) 
+                    (($scor2 $cpxy2 $complexityPenalty2 $uniformityPenalty2 $penalizedScore2)))
+    
+        (if (type-cast (isnan $penalizedScore) Bool &self)
+            (not (type-cast (isnan $penalizedScore2) Bool &self))
+            (or (< $penalizedScore $penalizedScore2) (and (== $penalizedScore $penalizedScore2) (> $cpxy $cpxy2)))))
             
 ;; Check for equality, to within floating-point error, EPSILON
 (: cScore== (-> Cscore Cscore Bool))
@@ -143,8 +136,3 @@
         (if (isnan $pl)
             False
             (or (> $pl $pr) (and (== $pl $pr) (< $cl $cr))))))
-
-;; Simple test calls for cScoreExpr<
-; !(cScoreExpr< (cScoreToExpr (mkCscore 100.0 5.0 10.0 2.0 88.0)) (cScoreToExpr (mkCscore 95.0 3.0 6.0 1.0 88.0)))
-; !(cScoreExpr< (90.0 7.0 14.0 3.0 73.0) (95.0 3.0 6.0 1.0 88.0))
-; !(cScoreToExpr (mkCscore 100.0 5.0 10.0 2.0 88.0))

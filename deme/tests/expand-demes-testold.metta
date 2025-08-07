@@ -10,8 +10,6 @@
 !(import! &self metta-moses:representation:knob-representation)
 !(import! &self metta-moses:representation:sample-logical-perms)
 !(import! &self metta-moses:representation:create-representation)
-
-! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
 ! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-or)
 ! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-and)
 ! (import! &self metta-moses:reduct/boolean-reduct:delete-inconsistent-handle)
