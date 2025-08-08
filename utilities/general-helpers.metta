@@ -721,3 +721,8 @@
 ;; the idea is to divide a random int taken from 0 upto this number by this number
 (: randomFloat (-> Number))
 (= (randomFloat) (let $rndInt (random-int &rng 0 maxInt) (/ $rndInt maxInt)))
+
+! (bind! rnd (py-atom random))
+! ((py-dot rnd seed) 0)
+
+
