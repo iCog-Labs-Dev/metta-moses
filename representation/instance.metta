@@ -85,6 +85,20 @@
 ;;------------------------------------------------------------
 ;;  InstanceSet<Score>  -->  Expression
 ;;  Converts a scored instance set into Expression form.
+;;
+;;  How it works:
+;;    - Input: An InstanceSet<Score>
+;;    - The function sInstSetToExpr calls sInstSetListToExpr on the list inside the set.
+;;    - sInstSetListToExpr maps sInstToExpr over each element (scored instance) in the list.
+;;    - sInstToExpr turns each scored instance into an Expression by combining the instance and its score.
+;;    - Finally, List.listToExpr collects all these expressions into a single Expression list.
+;;
+;;  Example input:
+;;    (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 100.0 5.0 10.0 2.0 88.0))) Nil)
+;;
+;;  Output Expression:
+;;    ((1 2) (100.0 5.0 10.0 2.0 88.0))
+;;
 (: sInstSetToExpr (-> (InstanceSet $score) Expression))
 (= (sInstSetToExpr (mkSInstSet $lst)) (sInstSetListToExpr $lst))
 

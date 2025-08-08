@@ -8,7 +8,7 @@
 
 ;; --- Tests for conversion helpers ---
 
-; Test instToExpr and exprToInst
+Test instToExpr and exprToInst
 !(assertEqual (instToExpr (mkInst Nil)) ())
 !(assertEqual (instToExpr (mkInst (Cons 1 (Cons 2 (Cons 3 Nil))))) (1 2 3))
 !(assertEqual (exprToInst ()) (mkInst Nil))
@@ -38,11 +38,7 @@
 ;; Test getSInstScore and getInst
 !(assertEqual (getSInstScore (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 100.0 5.0 10.0 2.0 88.0)))) (mkCscore 100.0 5.0 10.0 2.0 88.0))
 !(assertEqual (getInst (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 100.0 5.0 10.0 2.0 88.0)))) (mkInst (Cons 1 (Cons 2 Nil))))
-
-;; Test instance>= comparator
-!(assertEqual (instance>= (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 3 1.0 0.5 -3.5))) (mkSInst (mkPair (mkInst Nil) (mkCscore -3.0 2 1.0 0.5 -4.5)))) True)
-!(assertEqual (instance>= (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 2 1.0 0.5 -3.5))) (mkSInst (mkPair (mkInst Nil) (mkCscore -1.0 4 1.0 0.5 -2.5)))) False)
-
+ 
 ;; Instance related type testing
 !(assertEqual (let $a (mkInst (Cons 1 (Cons 2 (Cons 3 (Cons 2.0 Nil))))) (get-type $a)) Instance)
 !(assertEqual (let $a (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 (Cons 3 (Cons 2.0 Nil))))) 3.2)) (get-type $a)) (ScoredInstance Number))
@@ -64,4 +60,10 @@
                                         (Cons (mkSInst (mkPair (mkInst (Cons 4 Nil)) (mkCscore -0.1 2 0.2 0.3 -0.6))) Nil)))) 
                                         
                                             (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 3 Nil)) (mkCscore -0.4 1 0.1 0.1 -0.6)))
-                                                            (Cons (mkSInst (mkPair (mkInst (Cons 4 Nil)) (mkCscore -0.1 2 0.2 0.3 -0.6))) Nil))))
+                                                            (Cons (mkSInst (mkPair (mkInst (Cons 4 Nil)) (mkCscore -0.1 2 0.2 0.3 -0.6))) Nil))))                                              
+
+;; Test instance>= comparator
+!(assertEqual (instance>= (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 3 1.0 0.5 -3.5))) (mkSInst (mkPair (mkInst Nil) (mkCscore -3.0 2 1.0 0.5 -4.5)))) True)
+!(assertEqual (instance>= (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 2 1.0 0.5 -3.5))) (mkSInst (mkPair (mkInst Nil) (mkCscore -1.0 4 1.0 0.5 -2.5)))) False)
+! (assertEqual (instance>= (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 2 1.0 0.5 -3.5)))
+                        (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 3 2.0 0.5 -4.5) ))) True) 
