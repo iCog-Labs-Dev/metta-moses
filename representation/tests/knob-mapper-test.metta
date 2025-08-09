@@ -13,46 +13,36 @@
 ! (import! &self metta-moses:utilities:ordered-multimap)
 
 
-!(bind! tree1
-        (mkTree (mkNode AND)
-          (Cons (mkTree (mkNode A) Nil)
-          (Cons (mkTree (mkNode OR)
-                  (Cons (mkTree (mkNode B) Nil)
-                  (Cons (mkTree (mkNode C) Nil)
-                  (Cons (mkNullVex
-                          (Cons (mkTree (mkNode D) Nil) Nil)) Nil))))
-          (Cons (mkNullVex
-                  (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil)))))
 
 !(bind! lsk1
         (mkLSK
             (mkDiscKnob
-              (mkKnob tree1 (mkNodeId (2 3)))
+              (mkKnob (mkNodeId (2 3)))
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
               Nil)
-            (mkTree (mkNode D) Nil)))
+            ))
 
 !(bind! lsk2
         (mkLSK
             (mkDiscKnob
-              (mkKnob tree1 (mkNodeId (3)))
+              (mkKnob (mkNodeId (3)))
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
               Nil)
-            (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil))))
+            ))
 
 !(bind! lsk3
         (mkLSK
             (mkDiscKnob
-              (mkKnob tree1 (mkNodeId (1)))
+              (mkKnob (mkNodeId (1)))
               (mkMultip 3)
               (mkDiscSpec 1)
               (mkDiscSpec 1)
               Nil)
-            (mkTree (mkNode A) Nil)))
+            ))
 
 !(bind! knobMapObj (mkKbMap
                       (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap))))

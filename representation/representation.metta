@@ -48,7 +48,7 @@
    (chain (findDiscKnob $knobMapObj $srcId) $knobIdxPair
       (if (~= (second $knobIdxPair) -1)
           (chain (List.getByIdx $inst (second $knobIdxPair)) $d
-          (chain (appendTo (first $knobIdxPair) $candidate $parentId $d) $updatedCnd
+          (chain (appendTo $tree (first $knobIdxPair) $candidate $parentId $d) $updatedCnd
 
           ;; The C++ version needs to call the getCandidateRec 
           ;;  on the newly added node of the candidate but we 
