@@ -22,7 +22,7 @@
 (if (or $addIfInExemplar (not (inExemplar $discKnob)))
     (let* 
     (
-        ; ($updatedTree (getTree $lsk))
+
         ($updatedKnobs (concatT $knobs ($lsk)))
     )
     (logicalProbe $updatedTree (mkNodeId $targetId) $tailPerms $addIfInExemplar $updatedKnobs)

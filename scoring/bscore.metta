@@ -51,7 +51,8 @@
 (: scoreTree (-> (ITable $a) (Tree $a) BehavioralScore))
 (= (scoreTree (mkITable $table $labels) $tree)
    (if (== $tree (mkTree (mkNode AND) Nil)) 
-       (worstPossibleScore (mkTruthTableBScore $compCoeff (length $table) $table))
+       ;; (worstPossibleScore (mkTruthTableBScore $compCoeff (length $table) $table))
+       (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
       (chain (preOrder $tree) $expTree
       (trace! (Scoring $expTree)
       (chain (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table) $scoreList
@@ -72,7 +73,7 @@
 ;;  Altohugh the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.
 (: worstPossibleScore (-> (TruthTableBScore $a) BehavioralScore))
-(= (worstPossibleScore (mkTruthTableBScore $compCoeff $size $table)) (mkBScore (List.repeat $size -10)))
+(= (worstPossibleScore (mkTruthTableBScore $compCoeff $size $table)) (mkBScore (List.repeat $size -1)))
 
 ;; When we have a compressed tree, the min improvement 
 ;;  will be calculated. For now it's fixed.

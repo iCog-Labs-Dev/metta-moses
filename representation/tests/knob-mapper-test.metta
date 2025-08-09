@@ -13,16 +13,6 @@
 ! (import! &self metta-moses:utilities:ordered-multimap)
 
 
-!(bind! tree1
-        (mkTree (mkNode AND)
-          (Cons (mkTree (mkNode A) Nil)
-          (Cons (mkTree (mkNode OR)
-                  (Cons (mkTree (mkNode B) Nil)
-                  (Cons (mkTree (mkNode C) Nil)
-                  (Cons (mkNullVex
-                          (Cons (mkTree (mkNode D) Nil) Nil)) Nil))))
-          (Cons (mkNullVex
-                  (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil)))))
 
 !(bind! lsk1
         (mkLSK
@@ -37,7 +27,8 @@
 !(bind! lsk2
         (mkLSK
             (mkDiscKnob
-              (mkKnob  (mkNodeId (3)))
+
+              (mkKnob (mkNodeId (3)))
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
@@ -47,7 +38,9 @@
 !(bind! lsk3
         (mkLSK
             (mkDiscKnob
-              (mkKnob  (mkNodeId (1)))
+
+              (mkKnob (mkNodeId (1)))
+
               (mkMultip 3)
               (mkDiscSpec 1)
               (mkDiscSpec 1)

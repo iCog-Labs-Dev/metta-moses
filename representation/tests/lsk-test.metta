@@ -78,8 +78,6 @@
       Nil))
     ))
 
-(mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
-
 
 ;; getNodeId test cases
 !(assertEqual (getNodeId (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 0))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (mkNodeId (1 0)))
@@ -90,14 +88,32 @@
 ! (assertEqual (getDiscSpec (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4 1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 1) Nil))) (0 1))
 
 
+! (bind! tree1 (mkTree (mkNode AND)
+    (Cons (mkTree (mkNode A) Nil)
+      (Cons (mkTree (mkNode B) Nil) Nil))))
 
+
+! (bind! tree2 (mkTree (mkNode OR)
+            (Cons (mkTree (mkNode A) Nil)
+            (Cons (mkNullVex
+                    (Cons (mkTree (mkNode OR)
+                             (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil))))
+! (bind! tree3 (mkTree (mkNode OR)
+            (Cons (mkTree (mkNode A) Nil)
+            (Cons (mkTree (mkNode AND)
+                    (Cons (mkNullVex
+                            (Cons (mkTree (mkNode OR)
+                                    (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)) Nil))))
 ;; appendTo
 ;; invalid disc specification
 ! (assertEqual
   (appendTo
+    tree1
     (mkLSK
       (mkDiscKnob
-        (mkKnob (mkNodeId (0)))
+
+        (mkKnob (mkNodeId (2)))
+
         (mkMultip 1)
         (mkDiscSpec 4)
         (mkDiscSpec 0)
@@ -109,34 +125,31 @@
     )
   (Error 4 "Invalid disc specification:- cannot exceed 2."))
 
-
-
-
-; appending to empty tree
-; ! (assertEqual
-  ; (appendTo
-  ;   (mkLSK
-  ;     (mkDiscKnob
-  ;        (mkKnob
-  ;           (mkNullVex Nil)
-  ;           (mkNodeId (0)))
-  ;        (mkMultip 1)
-  ;        (mkDiscSpec 1)
-  ;        (mkDiscSpec 0)
-  ;        Nil)
-  ;   (mkTree (mkNode AND)
-  ;       (Cons (mkTree (mkNode P) Nil) Nil)))
-  ;   (mkNullVex  Nil)
-  ;   (mkNodeId (0))
-  ;   1)
-  ;   (mkTree (mkNode AND)
-  ;       (Cons (mkTree (mkNode P) Nil) Nil)))
-
+;; appending to empty tree
+! (assertEqual
+  (appendTo
+    tree1
+    (mkLSK
+      (mkDiscKnob
+         (mkKnob
+            (mkNodeId (0)))
+         (mkMultip 1)
+         (mkDiscSpec 1)
+         (mkDiscSpec 0)
+         Nil)
+      )
+    (mkNullVex  Nil)
+    (mkNodeId (0))
+    1)
+    (mkTree (mkNode AND) 
+        (Cons (mkTree (mkNode A) Nil) 
+        (Cons (mkTree (mkNode B) Nil) Nil))))
 
 ; ;; Test case for insertion at a node
 ; ;; KnobSetting 2: (OR A) => (OR A (NOT (OR B)))
 ! (assertEqual
   (appendTo
+    tree2
     (mkLSK
       (mkDiscKnob
         (mkKnob
@@ -159,6 +172,7 @@
 ;; KnobSetting 2: (OR A (AND)) => (OR A (AND (NOT (OR B))))
 ! (assertEqual
   (appendTo
+    tree3
     (mkLSK
       (mkDiscKnob
         (mkKnob
@@ -180,6 +194,7 @@
 ; KnobSetting 0: (OR A) => (OR A)
 ! (assertEqual
   (appendTo
+    tree2
     (mkLSK
       (mkDiscKnob
         (mkKnob

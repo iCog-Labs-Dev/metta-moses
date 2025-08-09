@@ -1,8 +1,10 @@
 ;;;knob base representation
-;      Tree: a tree reference
-;      NodeId: a position pointing to current position in the tree
+;;    <- TODO ->
+;; knob representation only contains nodeid
+;; we don't need this constractor since we are passing the updated tree as state
+
 (: Knob Type)
-(: mkKnob (-> (Tree $a) NodeId Knob)) 
+(: mkKnob (-> NodeId Knob)) 
 
 ;;; Discrete knob representation
 ;      Multiplicity: number of possible distinct states/settings a knob can have
@@ -23,7 +25,7 @@
 ;; Logical subtree knob representation
        ;Subtree: represents a portion of the tree that will be controlled by the knob
 (: LogicalSubtreeKnob Type)
-(: mkLSK (-> DiscreteKnob (Tree $a) LogicalSubtreeKnob))
+(: mkLSK (-> DiscreteKnob LogicalSubtreeKnob))
 
 ;; Checks if a DiscreteKnob is considered part of the exemplar based on its default specifier.
 ;; Params:

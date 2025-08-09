@@ -4,7 +4,7 @@
 ;; the number of expansion is set to zero (0) in moses_params.h in the moses_statistics struct
 
 ;; for number to string conversion
-;; ! (bind! numStr (py-atom str)) ;; -- commented out for workflow compatibility
+! (bind! numStr (py-atom str)) ;; -- commented out for workflow compatibility
 
 ;; DemeId Type
 (: DemeId Type)
@@ -18,7 +18,7 @@
     (if (> $nDeme 1)
         (demeIdList (+ $nExpansion 1) (- $nDeme 1) Nil)
         (chain (+ $nExpansion 1) $n 
-            (chain (format-args "{}" ($n)) $str 
+            (chain (numStr $n) $str
                 (chain (mkDemeId $str) $demeId (Cons $demeId Nil))))))
 
 ;; demeIdList -- recursive function for creating list of demeId's 

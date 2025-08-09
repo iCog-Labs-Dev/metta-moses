@@ -1,8 +1,8 @@
 ! (register-module! ../../../../metta-moses)
 
 ! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:reduct:boolean-reduct:rte-helpers)
-! (import! &self metta-moses:reduct:boolean-reduct:delete-inconsistent-handle)
+! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
+! (import! &self metta-moses:reduct/boolean-reduct:delete-inconsistent-handle)
 
 ;; Testcases
 

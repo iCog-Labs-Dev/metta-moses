@@ -339,7 +339,7 @@
     (mkNode OR))
    (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) (Cons (mkTree (mkNode Z) Nil) Nil)) (Cons (mkTree (mkNode C) Nil) Nil))) (Cons (mkTree (mkNode A) Nil) Nil)))) Nil))
   )
-  
+
 ;; Test cases for isEmpty
 ! (assertEqual (isEmpty (mkNullVex Nil)) True)
 ! (assertEqual (isEmpty (mkTree (mkNode A) Nil)) False)

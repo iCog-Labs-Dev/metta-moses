@@ -7,6 +7,7 @@
 ;;           will be added is pointed by the target node.
 ;;  $subtree: The subtree to be appended.
 ;; Returns:
+;;  $tree 
 ;;  A LogicalSubtreeKnob (LSK) configured based on the subtree's presence or its appended state.
 (: logicalSubtreeKnob (-> (Tree $a) NodeId (Tree $a) (Tree $a LogicalSubtreeKnob)))
 (= (logicalSubtreeKnob $tree (mkNodeId $target) $subtree)
@@ -46,11 +47,7 @@
 (= (getDiscSpec (mkLSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
     (let ((mkDiscSpec $def) (mkDiscSpec $cur)) ($default $current) ($def $cur)))
 
-;; Retrieves the subtree associated with a Logical Subtree Knob (LSK).
-;; OLD->: substituted with getNodeById
-; (: getSubtree (-> LogicalSubtreeKnob (Tree $a)))
-; (= (getSubtree (mkLSK $disknob $subtree))
-;     $subtree)
+
 
 ;; Appends a subtree or a null vertex in place of a logical subtree 
 ;;  using information from the LSK and a knob setting specified.
@@ -60,12 +57,17 @@
 ;;            reference and it may also contain knobs if $d is 0
 ;;  $parentId: The location where the new node will be added.
 ;;  $d: The current setting of the knob.
-(: appendTo (-> LogicalSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
-(= (appendTo $lsk $tree $parentId $d)
+(: appendTo (-> (Tree $a) LogicalSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
+(= (appendTo $updatedTree $lsk $tree $parentId $d)
     (let*
-      (
-        ($targetNode (getNodeId $lsk))
-        ($subtree (getSubtree $lsk)))
+       (
+        ($targetId (getNodeId $lsk))
+        ($targetTree (getNodeById  $updatedTree $targetId))
+        ($subtree (if (isNullVertex $targetTree) 
+                        (let (mkNullVex (Cons $child Nil)) $targetTree $child)
+                        $targetTree
+                    ))        
+      )
       (if (> $d 2)
           (Error $d "Invalid disc specification:- cannot exceed 2.")
           (if (isEmpty $tree)
