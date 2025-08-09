@@ -78,7 +78,6 @@
       Nil))
     ))
 
-
 ;; getNodeId test cases
 !(assertEqual (getNodeId (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 0))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (mkNodeId (1 0)))
 !(assertEqual (getNodeId (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 5))) (mkMultip 1) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (mkNodeId (3 5)))
@@ -87,11 +86,9 @@
 ! (assertEqual (getDiscSpec (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 1) (mkDiscSpec 1) (mkDiscSpec 2) Nil) )) (1 2))
 ! (assertEqual (getDiscSpec (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4 1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 1) Nil))) (0 1))
 
-
 ! (bind! tree1 (mkTree (mkNode AND)
     (Cons (mkTree (mkNode A) Nil)
       (Cons (mkTree (mkNode B) Nil) Nil))))
-
 
 ! (bind! tree2 (mkTree (mkNode OR)
             (Cons (mkTree (mkNode A) Nil)
@@ -111,9 +108,7 @@
     tree1
     (mkLSK
       (mkDiscKnob
-
         (mkKnob (mkNodeId (2)))
-
         (mkMultip 1)
         (mkDiscSpec 4)
         (mkDiscSpec 0)
@@ -164,7 +159,11 @@
         (Cons (mkTree (mkNode A) Nil) Nil))
     (mkNodeId (0))
     2)
-    (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode NOT) (Cons (getSubtree (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 2) (mkDiscSpec 0) Nil))) Nil)) Nil)))
+    (mkTree (mkNode OR)
+        (Cons (mkTree (mkNode A) Nil)
+        (Cons (mkTree (mkNode NOT)
+                 (Cons (mkTree (mkNode OR)
+                 (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
     )
 
 
@@ -187,7 +186,12 @@
             (Cons (mkTree (mkNode AND) Nil) Nil)))
     (mkNodeId (2))
     2)
-    (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (getSubtree (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 1))) (mkMultip 3) (mkDiscSpec 2) (mkDiscSpec 1) Nil))) Nil)) Nil)) Nil)))
+    (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode A) Nil)
+                (Cons (mkTree (mkNode AND)
+                        (Cons (mkTree (mkNode NOT)
+                                 (Cons (mkTree (mkNode OR)
+                                 (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)) Nil)))
 )
 
 
@@ -208,4 +212,8 @@
     (mkNodeId (0))
     0)
 
-    (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkNullVex (Cons (getSubtree (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 2) (mkDiscSpec 0) Nil))) Nil)) Nil))))
+    (mkTree (mkNode OR)
+             (Cons (mkTree (mkNode A) Nil)
+             (Cons (mkNullVex
+                     (Cons (mkTree (mkNode OR)
+                              (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil))))
