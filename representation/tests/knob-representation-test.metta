@@ -1,28 +1,9 @@
-; !(register-module! ../../../metta-moses)
-; !(import! &self metta-moses:utilities:tree)
-; !(import! &self metta-moses:utilities:list-methods)
-; !(import! &self metta-moses:utilities:general-helpers)
-; !(import! &self metta-moses:representation:knob-representation)
-; !(import! &self metta-moses:utilities:ordered-multimap) 
-
-; ! (assertEqual (let $return (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) $return)  
-;                (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1)))
-;                )
-; ! (assertEqual (let $return (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) $return)
-;                (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
-;                )
-; ! (assertEqual (let $return (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2)) $return)
-;                (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2))
-;                ) 
-; ! (assertEqual (let $return (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) ) $return)
-;                (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2)) )
-;                )             
-; ! (assertEqual (let $return (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)) $return)
-;                (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2)))
-;                )
-
-
-
+!(register-module! ../../../metta-moses)
+!(import! &self metta-moses:utilities:tree)
+!(import! &self metta-moses:utilities:list-methods)
+!(import! &self metta-moses:utilities:general-helpers)
+!(import! &self metta-moses:representation:knob-representation)
+!(import! &self metta-moses:utilities:ordered-multimap) 
 
 ! (assertEqual (let $return (mkKnob  (mkNodeId (1))) $return)  
                (mkKnob (mkNodeId (1)))
@@ -41,12 +22,12 @@
                )
 
 ; ; these type tests have been commented out because they fail on mettalog
-
 ; ! (assertEqual (let $type (get-type (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1)))) $type) Knob)
 ; ! (assertEqual (let $type (get-type (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)) $type) DiscreteKnob)
 ; ! (assertEqual (let $type (get-type (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2))) $type) DiscreteKnob)
 ; ! (assertEqual (let $type (get-type (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) $type) LogicalSubtreeKnob)
 ; ! (assertEqual (let $type (get-type (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2)) )) $type) LogicalSubtreeKnob)
+
 
 ; inExemplar tests
 !(assertEqual (inExemplar (mkDiscKnob $knob $multiplicity (mkDiscSpec 0) (mkDiscSpec 1) Nil)) True)
@@ -89,5 +70,3 @@
 !(assertEqual (nodeId< (mkNodeId (2 2 3)) (mkNodeId (2 3))) True)
 !(assertEqual (nodeId< (mkNodeId (2 3)) (mkNodeId (1 2))) False)
 !(assertEqual (nodeId< (mkNodeId (2 3)) (mkNodeId (2 3))) False)
-
-
