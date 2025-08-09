@@ -43,8 +43,7 @@
 !(assertEqual (List.sort (Cons 3 (Cons 2 (Cons 3 Nil)))) (Cons 2 (Cons 3 (Cons 3 Nil))))
 !(assertEqual (List.sort (Cons 5 (Cons 3 (Cons 1 (Cons 4 Nil))))) (Cons 1 (Cons 3 (Cons 4 (Cons 5 Nil)))))
 !(assertEqual (List.sort (Cons 9 (Cons 7 (Cons 8 (Cons 6 Nil))))) (Cons 6 (Cons 7 (Cons 8 (Cons 9 Nil)))))
-
-
+!(assertEqual (List.sort (Cons 9 (Cons 7 (Cons 8 (Cons 6 Nil)))) >) (Cons 9 (Cons 8 (Cons 7 (Cons 6 Nil)))))
 ;; Test cases for List.length
 !(assertEqual (List.length (Cons 1 (Cons 2 (Cons 3 Nil)))) 3)
 !(assertEqual (List.length (Cons 10 (Cons 20 (Cons 30 (Cons 40 Nil))))) 4)

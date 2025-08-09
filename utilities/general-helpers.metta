@@ -1,5 +1,68 @@
 ;; Helper functions that are going to be useful for writing any metta code
 
+!(bind! perf_counter (py-atom "time.perf_counter"))
+!(bind! round (py-atom "round"))
+
+;; Measures the average execution time of a given expression over multiple runs.
+;; Parameters:
+;;   $expr: The expression to be evaluated and profiled.
+;;   $n: The number of times to execute $expr for timing.
+;; Returns:
+;;   The average time (rounded to 3 decimal places) taken to evaluate $expr, computed over $n
+
+; main entry point — user only calls this
+(= (profile $expr $n)
+  (let*
+    (
+      ($times (profile-helper $expr $n ()))
+      (() (println! (times: $times)))
+      ($avg (average $times))
+      ($avgR (round $avg 3))
+    )
+    $avgR
+  ))
+(= (profilen $expr)
+  (let*
+    (
+      ($start_time (perf_counter))
+      ($result (eval $expr))
+      ($end_time (perf_counter))
+      ($elapsed_time (- $end_time $start_time))
+    )
+    (cons-atom $elapsed_time $result)
+  ))
+
+; internal recursive accumulation
+(= (profile-helper $expr $n $acc)
+  (if (== $n 0)
+      $acc
+      (let*
+          (
+            ($pair (profilen $expr))
+            ($time (car-atom $pair))
+            ($new-acc (cons-atom $time $acc))
+            ($next (profile-helper $expr (- $n 1) $new-acc))
+          )
+          $next
+      )))
+
+
+
+(= (average $lst)
+    (let*
+        (
+            ($total (sum $lst))
+            ($count (size-atom $lst))
+        )
+        (if (== $count 0)
+            0
+            (/ $total $count)
+        )
+    )
+)
+
+
+
 (: ~= (-> Atom Atom Bool))
 (= (~= $a $b) (not (== $a $b)))
 

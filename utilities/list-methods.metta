@@ -42,7 +42,18 @@
 ;; Sort a List in ascending order
 (: List.sort (-> (List $a) (List $a)))
 (= (List.sort Nil) Nil)
-(= (List.sort (Cons $head $tail)) (List.insert $head (List.sort $tail)))
+
+;; Default to sort in asecnding order
+(= (List.sort (Cons $head $tail)) 
+    (List.sort (Cons $head $tail) <))
+;;sort using custome oparator
+(= (List.sort (Cons $head $tail) $op)
+    (let* (($expr (List.listToExpr  (Cons $head $tail)))
+            ($n (size-atom $expr))
+           ($sortedExpr (selectionSort $expr $n $op))
+           ($sortedList (exprToList $sortedExpr)))
+        $sortedList)
+)
 
 ;; helper function to find the length of the list
 (: List.length (-> (List $a) Number))

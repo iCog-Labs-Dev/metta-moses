@@ -44,6 +44,34 @@
            (() (println! (PenalizedScore: $updatedPScore))))
         
             (mkCscore $scor $cpxy $cpxyPenalty $uniformityPenalty $updatedPScore)))
+;converts a score to an expression
+; (: cScoreToExpr (-> Cscore Expression))
+(= (cScoreToExpr (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore))
+    (let* (
+        ($e1 (cons-atom $penalizedScore ()))
+        ($e2 (cons-atom $uniformityPenalty $e1))
+        ($e3 (cons-atom $complexityPenalty $e2))
+        ($e4 (cons-atom $cpxy $e3))
+        ($e5 (cons-atom $scor $e4))
+    )
+        ($e5)
+    )
+)
+
+; (: exprToCScore (-> Expression Cscore))
+(= (exprToCScore $exp)
+    (let* (
+        ($expr (car-atom $exp))
+        (($scor $rest1) (decons-atom $expr))
+        (($cpxy $rest2) (decons-atom $rest1))
+        (($complexityPenalty $rest3) (decons-atom $rest2))
+        (($uniformityPenalty $rest4) (decons-atom $rest3))
+        (($penalizedScore $_) (decons-atom $rest4))
+    )
+        (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)
+    )
+)
+
 
 ;; worstCscore
 (: worstCscore (-> Cscore))
@@ -75,9 +103,20 @@
 (: cScore< (-> Cscore Cscore Bool)) 
 (= (cScore< $cs1 $cs2)
     (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
-        (if (isnan $pl)
-            (not (isnan $pr))
+        (if (type-cast (isnan $pl) Bool &self)
+            (not (type-cast (isnan $pr) Bool &self))
             (or (< $pl $pr) (and (== $pl $pr) (> $cl $cr))))))
+
+;; cScoreExpr< -- composite score less than operator for expressions
+;; works directly with expressions using index-atom to extract scores
+;; index 4 = penalized score, index 1 = complexity score
+(: cScoreExpr< (-> Expression Expression Bool))
+(= (cScoreExpr< (($scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) 
+                    (($scor2 $cpxy2 $complexityPenalty2 $uniformityPenalty2 $penalizedScore2)))
+    
+        (if (type-cast (isnan $penalizedScore) Bool &self)
+            (not (type-cast (isnan $penalizedScore2) Bool &self))
+            (or (< $penalizedScore $penalizedScore2) (and (== $penalizedScore $penalizedScore2) (> $cpxy $cpxy2)))))
             
 ;; Check for equality, to within floating-point error, EPSILON
 (: cScore== (-> Cscore Cscore Bool))
