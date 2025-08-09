@@ -13,11 +13,11 @@
 !(assertEqualToResult (~= Something Something) (False))
 !(assertEqualToResult (~= Something something) (True))
 
-;; ;; Tests for the function 'concatTuple' ;; FIX: Failing Test case
-;; !(assertEqualToResult (concatTuple () (3 4)) ((3 4)))
-;; !(assertEqualToResult (concatTuple (1 2) (3 4)) ((1 2 3 4)))
-;; !(assertEqualToResult (concatTuple (1 2) ()) ((1 2)))
-;; !(assertEqualToResult (concatTuple () ()) (()))
+;; ;; Tests for the function 'concatTuple' ;; FIXED failing tests
+!(assertEqualToResult (concatTuple () (3 4)) ((3 4)))
+!(assertEqualToResult (concatTuple (1 2) (3 4)) ((1 2 3 4)))
+!(assertEqualToResult (concatTuple (1 2) ()) ((1 2)))
+!(assertEqualToResult (concatTuple () ()) (()))
 
 ;; Tests for the function 'Not'
 !(assertEqualToResult (Not (Not (Not A))) ((NOT A)))
