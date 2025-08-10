@@ -8,7 +8,7 @@
 
 ;; --- Tests for conversion helpers ---
 
-Test instToExpr and exprToInst
+;Test instToExpr and exprToInst
 !(assertEqual (instToExpr (mkInst Nil)) ())
 !(assertEqual (instToExpr (mkInst (Cons 1 (Cons 2 (Cons 3 Nil))))) (1 2 3))
 !(assertEqual (exprToInst ()) (mkInst Nil))

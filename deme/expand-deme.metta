@@ -35,7 +35,8 @@
     (() (println! $exemplar))
     ($tree (getExemplarTree $exemplar))
     ($demeIds (createDemeIds $nExpansion $nDeme))
-    ($demes (trace! "Creating Deme" (createDeme $demeIds $tree $nExpansion $nDeme ()))) ;;createRepresentation and createDemeId are under this
+    ($argLabels (getArgLabels $itable))
+    ($demes (trace! "Creating Deme" (createDeme $demeIds $tree $nExpansion $nDeme () $argLabels))) ;;createRepresentation and createDemeId are under this
     ((mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) (superpose $demes))
     ($lengthOfDscKbMp (Map.length $dscKbMp))
     ($generatedList (List.generate $lengthOfDscKbMp 0))

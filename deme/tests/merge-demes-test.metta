@@ -28,8 +28,8 @@
 ! (import! &self metta-moses:reduct:enf)
 ! (import! &self metta-moses:metapopulation:exemplar-type)
 ! (import! &self metta-moses:metapopulation:metapopulation)
+!(import! &self metta-moses:scoring:bscore)
 
-(= (ARGS) args) 
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 (= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
 (= (INSERT_ABOVE $tree $nodeId $subtree) (py_insertAbove  $tree $nodeId $subtree))

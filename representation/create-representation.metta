@@ -18,7 +18,11 @@
 ;; calling the representation constructor directly on the exemplar tree
 
 ;; create representation 
-(: createRepresentation (-> (Tree $a) Representation))
-(= (createRepresentation $tree)
-    (representation $tree)
+;; Params:
+;;   $tree: The exemplar tree
+;;   $argLabels: list of argument labels (input variables) from the ITable
+;; Returns: Representation
+ (: createRepresentation (-> (Tree $a) Expression Representation))
+(= (createRepresentation $tree $argLabels)
+    (representation $tree $argLabels)
 )
