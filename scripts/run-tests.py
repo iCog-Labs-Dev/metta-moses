@@ -29,15 +29,17 @@ def extract_and_print(result, path, idx) -> bool:
 
     # Check for actual failures in the LoonIt Report
     has_failure = False
-    if "Failures:" in extracted:
+    # Treat exit code 1 as success, anything else as failure
+    if result.returncode != 1:
+        has_failure = True
+        extracted = f"test failed (exit code {result.returncode})"
+    elif "Failures:" in extracted:
         # Extract the failures count
         import re
-
         failures_match = re.search(r"Failures:\s*(\d+)", extracted)
         if failures_match:
             failures_count = int(failures_match.group(1))
             has_failure = failures_count > 0
-
     if not has_failure:
         extracted = "test passed"
 
