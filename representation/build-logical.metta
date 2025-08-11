@@ -13,7 +13,10 @@
         (let*
              (
                 ;; (() (println! "siblingit called"))
-                ($curId (concatT $parentId ($childNum)))
+                ($curId (if (== $parentId (0))
+                            ($childNum)
+                           (concatT $parentId ($childNum))      
+                        ))
                 ((mkTree (mkNode $node) $childern) $head)
                 ;; (() (println!( "curId: " $curId "node :" $node)))
                 ;; (() (println!( "head: " $head "tail :" $tail)))
