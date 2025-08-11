@@ -29,15 +29,17 @@ def extract_and_print(result, path, idx) -> bool:
 
     # Check for actual failures in the LoonIt Report
     has_failure = False
-    if "Failures:" in extracted:
+    # Treat exit code 1 as success, anything else as failure
+    if result.returncode != 1: #NOTE: here its due to mettalog treating exit code 1 as success in the future it should be changed to 0
+        has_failure = True
+        extracted = f"test failed (exit code {result.returncode})"
+    elif "Failures:" in extracted:
         # Extract the failures count
         import re
-
         failures_match = re.search(r"Failures:\s*(\d+)", extracted)
         if failures_match:
             failures_count = int(failures_match.group(1))
             has_failure = failures_count > 0
-
     if not has_failure:
         extracted = "test passed"
 
@@ -104,6 +106,7 @@ testMettaFiles = list(root.rglob("*test.metta"))
 total_files = len(testMettaFiles)
 results = []
 fails = 0
+failed_tests = []
 
 if total_files == 0:
     print("⚠️  No test files found matching pattern '*test.metta'")
@@ -138,6 +141,7 @@ with ThreadPoolExecutor(max_workers=1) as executor:
             has_failure = extract_and_print(result, path, idx)
             if has_failure:
                 fails += 1
+                failed_tests.append(str(path))
 
         except Exception as exc:
             print(RED + f"Test {idx + 1}: generated an exception: {exc}" + RESET)
@@ -148,6 +152,10 @@ print(CYAN + "\nTest Summary" + RESET)
 print(f"{total_files} files tested.")
 print(RED + f"{fails} failed." + RESET)
 print(GREEN + f"{total_files - fails} succeeded." + RESET)
+if fails > 0:
+    print(RED + "Failed test files:" + RESET)
+    for failed in failed_tests:
+        print(RED + f" - {failed}" + RESET)
 
 if fails > 0:
     print(RED + "Tests failed. Process Exiting with exit code 1" + RESET)
