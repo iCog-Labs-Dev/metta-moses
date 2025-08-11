@@ -24,12 +24,13 @@
 
 ;; representation constructor
 ;; Params: Tree (Exemplar)
+;;         $argLabels: list of argument labels (input variables) from the ITable
 ;; Returns: Representation
-(: representation (-> (Tree $a) Representation))
-(= (representation $exemplar)
+(: representation (-> (Tree $a) Expression Representation))
+(= (representation $exemplar $argLabels)
 (let*
 (
-    (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap))
+    (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap $argLabels))
     ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
 )   
 (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)

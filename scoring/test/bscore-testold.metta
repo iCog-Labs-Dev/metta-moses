@@ -111,3 +111,19 @@
    (getComplexity (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))
    1
  )
+
+;; Test getArgLabels function to extract argument labels from an ITable
+
+! (assertEqual (getArgLabels (mkITable
+  (Cons (Cons True (Cons False (Cons True Nil))) Nil)
+  (Cons A (Cons B (Cons Y Nil)))
+))
+  (A B)
+)
+
+! (assertEqual (getArgLabels (mkITable
+  (Cons (Cons 1 (Cons 2 (Cons 3 Nil))) Nil)
+  (Cons X (Cons Y (Cons Z Nil)))
+))
+  (X Y)
+)

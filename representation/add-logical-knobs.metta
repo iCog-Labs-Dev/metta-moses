@@ -5,6 +5,7 @@
 ;;   (mkNodeId $targetId): ID of the target node in the exemplar.
 ;;   $addIfInExemplar: If true, include knobs even if in exemplar.
 ;;   $map: a multimap to add the new knobs into
+;;   $argLabels: list of argument labels (input variables) from the ITable
 ;; Return: a multimap of ($knobSpec $knob) and the updated tree
 
 ;; helper function to the addLogicalKnobs
@@ -21,11 +22,11 @@
 
 
 ;; addLogicalKnobs
-(: addLogicalKnobs (-> (Tree $a) NodeId Bool (MultiMap ($k $v)) Expression))
-(= (addLogicalKnobs $exemplar $nodeId $addIfInExemplar $map) 
+(: addLogicalKnobs (-> (Tree $a) NodeId Bool (MultiMap ($k $v)) Expression Expression))
+(= (addLogicalKnobs $exemplar $nodeId $addIfInExemplar $map $argLabels) 
 (let (mkTree (mkNode $op) $children) (getNodeById $exemplar $nodeId)
-       (let  $lengthOfArgs (len (ARGS))
-          (let  $perms (sampleLogicalPerms $op $lengthOfArgs)
+       (let  $lengthOfArgs (size-atom $argLabels)
+          (let  $perms (sampleLogicalPerms $op $lengthOfArgs $argLabels)
             (let  $treePerms (map-atom $perms $perm (buildTree $perm))
               (let ($knobs $updatedTree) (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ())
                 (let  $pairs (pairKnobWithSpec $knobs)

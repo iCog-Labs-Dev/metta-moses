@@ -55,7 +55,6 @@
 ! (import! &self metta-moses:metapopulation:exemplar-selection)
 ! (import! &self metta-moses:metapopulation:metapopulation)
 
-(= (ARGS) args) 
 
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 
