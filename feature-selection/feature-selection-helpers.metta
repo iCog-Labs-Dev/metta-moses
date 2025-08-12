@@ -275,3 +275,122 @@
     (if (< (abs-math $currentTerm) 0.00000001)
         $accumulator
         (mercatorSeriesSum $uSquared (* $currentPower $uSquared) (+ $denominator 2) (+ $accumulator $currentTerm)))))                        
+
+;; Incremental Selection Utility Functions
+
+;; Remove duplicate elements from a list while preserving order
+(= (List.removeDuplicates $list)
+   (unify $list Nil Nil
+       (unify $list (Cons $head $tail)
+           (if (List.isMember $head $tail)
+               (List.removeDuplicates $tail)
+               (Cons $head (List.removeDuplicates $tail))))))
+
+;; Combine two lists and remove duplicates (set union operation)
+(= (List.union $list1 $list2)
+  (List.removeDuplicates (List.concat $list1 $list2)))
+
+
+;; Elements in first list but not in second (set difference operation)
+(= (List.difference $list1 $list2)
+  (unify $list1 Nil Nil
+    (unify $list1 (Cons $head $tail)
+      (if (List.isMember $head $list2)
+          (List.difference $tail $list2)
+          (Cons $head (List.difference $tail $list2))))))
+
+;; Check if a combination already exists in a list using isEqual for order-independent comparison like (A B) == (B A)
+(= (List.containsEquivalent $combo $list)
+   (unify $list Nil False
+       (unify $list (Cons $head $tail)
+         (chain (List.listToExpr $head) $headExpr
+           (if (isEqual $combo $headExpr)
+               True
+               (List.containsEquivalent $combo $tail))))))
+
+;; Remove duplicate combinations using order-independent equality check
+(= (List.removeDuplicateCombinations $combinations)
+   (unify $combinations Nil Nil
+       (unify $combinations (Cons $combo $rest)
+           (chain (List.removeDuplicateCombinations $rest) $filteredRest
+               (if (List.containsEquivalent $combo $filteredRest)
+                    $filteredRest
+                   (Cons (exprToList $combo) $filteredRest))))))
+
+;; Check if difference between two numbers is within epsilon tolerance
+;; This is reffered from: https://github.com/opencog/cogutil/blob/6b149c457c9cfbf5edccefb166a7a9a1d2d74196/opencog/util/numeric.h#L178
+(= (isWithin $min $max $epsilon)
+   (<= (abs-math (- $max $min)) $epsilon))
+
+
+;; Recursively generate multi-element combinations using superpose
+;; This function leverages MeTTa's non-deterministic features for efficient combination generation
+;;
+;; Parameters:
+;;   $expr - Expression to generate combinations from
+;;   $k - Current combination size being generated
+;; Returns:
+;;   Non-deterministic results that will be collapsed by caller
+(= (generateMultiElementCombos $expr $k)
+   (if (> $k 1)
+       (let* (($elem (superpose $expr))  
+              ($remaining (removeElement ($elem) $expr))
+              ($subCombo (generateMultiElementCombos $remaining (- $k 1))))
+           (cons-atom $elem $subCombo))
+       (if (== $k 1)
+           (let $elem (superpose $expr) ($elem))
+           (if (== $k 0) (()) (empty)))))
+
+
+;; Generate all unique combinations of specified size from an expression
+;; Uses non-deterministic superpose for efficient exploration of possibilities
+;; Automatically handles duplicate removal using isEqual comparison
+;;
+;; Parameters:
+;;   $expr - Expression containing elements to combine
+;;   $size - Size of combinations to generate (1, 2, 3, etc.)
+;; Returns:
+;;   Expression of unique combinations, e.g., ((0 1) (0 2) (1 2))
+(= (generateCombinations $expr $size)
+   (if (== $size 0)
+       (())  ;; Empty combination for size 0
+       (if (== $size 1)
+           ;; Single element combinations - direct superpose application
+           (collapse (let $elem (superpose $expr) (exprToList ($elem))))
+           ;; Multi-element combinations with duplicate removal
+           (chain (() (println! (DEBUG generateCombinations expr: $expr size: $size))) $debug1
+           (chain (collapse (generateMultiElementCombos $expr $size)) $rawCombinations
+           (chain (exprToList $rawCombinations) $combinationList
+           (chain (List.removeDuplicateCombinations $combinationList) $uniqueCombinations
+           (chain (() (println! (DEBUG generateCombinations unique: (List.length $uniqueCombinations) total: (List.length $combinationList)))) $debug2
+               (List.listToExpr $uniqueCombinations)))))))))
+
+;; Extract column values by index from table rows
+;; More efficient than name-based lookup for programmatic access
+;;
+;; Parameters:
+;;   $rows - List of table rows (each row is a list of values)
+;;   $index - Zero-based column index to extract
+;; Returns:
+;;   List of values from the specified column
+(= (extractColumnByIndex $rows $index)
+   (unify $rows Nil Nil
+       (unify $rows (Cons $row $rest)
+           (chain (List.getByIdx $row $index) $value
+               (chain (extractColumnByIndex $rest $index) $restValues
+                   (Cons $value $restValues))))))
+
+;; Combine multiple feature columns into joint tuples for interaction analysis
+;; Essential for calculating mutual information of feature combinations
+;;
+;; Parameters:
+;;   $itable - ITable structure
+;;   $featureIndices - List of feature indices to combine
+;; Returns:
+;;   List of tuples, each containing values from specified features for one row
+(= (combineFeatureColumns $itable $featureIndices)
+   (let (mkITable $rows $labels) $itable
+       (chain (List.listToExpr $featureIndices) $indices
+           (zipColumn $indices $rows))))
+
+; 
