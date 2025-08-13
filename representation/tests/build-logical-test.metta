@@ -17,8 +17,7 @@
 ; !(import! &self metta-moses:utilities:ordered-multimap) 
 ; !(import! &self metta-moses:representation:build-logical)
 ; ! (import! &self metta-moses:utilities:python-treehelpers)
-
-; (= (ARGS) args) 
+; !(import! &self metta-moses:scoring:bscore)
 
 ; !(bind! tree1 (mkTree (mkNode AND) 
 ;                   (Cons (mkTree (mkNode A) Nil) 

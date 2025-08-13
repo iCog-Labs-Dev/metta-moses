@@ -18,8 +18,8 @@
 ; !(import! &self metta-moses:representation:build-logical)
 ; !(import! &self metta-moses:representation:build-knobs)
 ; ! (import! &self metta-moses:utilities:python-treehelpers)
+; !(import! &self metta-moses:scoring:bscore)
 
-; (= (ARGS) args) 
 ; (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 ; (= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
 

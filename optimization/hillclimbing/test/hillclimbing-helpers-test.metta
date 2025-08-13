@@ -39,8 +39,7 @@
 
 !(import! &self metta-moses:optimization/hillclimbing:cross-top-one)
 !(import! &self metta-moses:optimization/hillclimbing:hill-climbing-helpers)
-
-(= (ARGS) args) 
+!(import! &self metta-moses:scoring:bscore)
 
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 
