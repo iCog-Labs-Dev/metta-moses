@@ -358,12 +358,14 @@
            ;; Single element combinations - direct superpose application
            (collapse (let $elem (superpose $expr) (exprToList ($elem))))
            ;; Multi-element combinations with duplicate removal
-           (chain (() (println! (DEBUG generateCombinations expr: $expr size: $size))) $debug1
            (chain (collapse (generateMultiElementCombos $expr $size)) $rawCombinations
            (chain (exprToList $rawCombinations) $combinationList
            (chain (List.removeDuplicateCombinations $combinationList) $uniqueCombinations
-           (chain (() (println! (DEBUG generateCombinations unique: (List.length $uniqueCombinations) total: (List.length $combinationList)))) $debug2
-               (List.listToExpr $uniqueCombinations)))))))))
+               (List.listToExpr $uniqueCombinations)
+            )))
+        )
+    )
+)
 
 ;; Extract column values by index from table rows
 ;; More efficient than name-based lookup for programmatic access
