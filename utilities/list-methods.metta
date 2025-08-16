@@ -17,6 +17,17 @@
 (= (List.foldr $f $i Nil) $i)
 (= (List.foldr $f $i (Cons $h $t)) ($f $h (List.foldr $f $i $t)))
 
+;; generalized foldl and foldr
+;; considering potential transfomration of input values before applying a function over them
+(= (id $x) $x)
+(= (exp $x) ($x))
+;;??? is the name List.tFoldl/tFoldr is better than List.t-foldl	
+(= (List.tFoldl Nil $f $t $acc) $acc)		
+(= (List.tFoldl (Cons $x $xs) $f $t $acc) (let $tr ($t $x) (let $new-acc ($f $tr $acc) (List.tFoldl $xs $f $t $new-acc))))		
+
+(= (List.tFoldr Nil $f $t $acc) $acc)		
+(= (List.tFoldr (Cons $x $xs) $f $t $acc) (let $new-acc (List.tFoldr $xs $f $t $acc) (let $tr ($t $x) ($f $tr $new-acc))))	        
+
 ;; Define List.sum
 (: List.sum (-> (List Number) Number))
 (= (List.sum $xs) (List.foldr + 0 $xs))
