@@ -94,19 +94,6 @@
 (: getUniPen (-> Cscore Number))
 (= (getUniPen (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $uniformityPenalty)
 
-;; comparing composite scores
-;; cScore< -- composite score less than operator
-;; uses penalized scores to compare and complexity score to break ties in the penalized score
-;; $cs1 -- composite score of the left side instance ..
-;; $cs2 -- composite score of the right side instance or whatever
-;; the type-cast in the if .. is used because the return type of the built-in isnan function is not Bool so it has to be cast in to bool value
-(: cScore< (-> Cscore Cscore Bool)) 
-(= (cScore< $cs1 $cs2)
-    (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
-        (if (type-cast (isnan $pl) Bool &self)
-            (not (type-cast (isnan $pr) Bool &self))
-            (or (< $pl $pr) (and (== $pl $pr) (> $cl $cr))))))
-
 ;; cScoreExpr< -- composite score less than operator for expressions
 ;; works directly with expressions using index-atom to extract scores
 ;; index 4 = penalized score, index 1 = complexity score
@@ -117,22 +104,3 @@
         (if (type-cast (isnan $penalizedScore) Bool &self)
             (not (type-cast (isnan $penalizedScore2) Bool &self))
             (or (< $penalizedScore $penalizedScore2) (and (== $penalizedScore $penalizedScore2) (> $cpxy $cpxy2)))))
-            
-;; Check for equality, to within floating-point error, EPSILON
-(: cScore== (-> Cscore Cscore Bool))
-(= (cScore== $cs1 $cs2)
-    (let ($sL $cL $cpL $upL $pL $sR $cR $cpR $upR $pR) 
-            ((getScore $cs1) (getComp $cs1) (getCompPen $cs1) (getUniPen $cs1) (getPenScore $cs1)
-            (getScore $cs2) (getComp $cs2) (getCompPen $cs2) (getUniPen $cs2) (getPenScore $cs2)) 
-        
-            (and (isApproxEq $sL $sR) 
-                (and (isApproxEq $cL $cR) 
-                    (and (isApproxEq $cpL $cpR) 
-                        (and (isApproxEq $upL $upR) (isApproxEq $pL $pR)))))))
-
-(: cScore>= (-> Cscore Cscore Bool)) 
-(= (cScore>= $cs1 $cs2)
-    (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
-        (if (isnan $pl)
-            False
-            (or (> $pl $pr) (and (== $pl $pr) (< $cl $cr))))))

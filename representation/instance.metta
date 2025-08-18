@@ -182,4 +182,4 @@
 (: instance>= (-> (ScoredInstance $score) (ScoredInstance $score) Bool))
 (= (instance>= (mkSInst (mkPair $inst1 $score1))
                (mkSInst (mkPair $inst2 $score2)))
-    (cScore>= $score1 $score2))
+    (apply >= $score1 $score2))

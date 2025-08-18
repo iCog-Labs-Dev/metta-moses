@@ -61,7 +61,7 @@
 
 (: returnBest (-> (-> $score $score Bool) (ScoredInstance $score) (ScoredInstance $score) (ScoredInstance $score)))
 (= (returnBest $lessFn (mkSInst $inst1) (mkSInst $inst2))
-   (if ($lessFn (Pair.second $inst1) (Pair.second $inst2))
+   (if (apply $lessFn (Pair.second $inst1) (Pair.second $inst2))
        (mkSInst $inst2)
        (mkSInst $inst1)))
 
@@ -131,7 +131,7 @@
 
         ;; Check if there's an instance in the deme
         ;;  better than the best candidate so far.
-        ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) cScore<) (mkSInst (mkPair $centerInst $bestCscore)) $scoredInstances))
+        ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $centerInst $bestCscore)) $scoredInstances))
 
         ($newBestScore (getPenScore (Pair.second $newBestInstPair))) ;; This could be the original best candidate or a new one.
         ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.

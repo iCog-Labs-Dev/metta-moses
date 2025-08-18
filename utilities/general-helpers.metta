@@ -786,3 +786,174 @@
 (= (randomFloat) (let $rndInt (random-int &rng 0 maxInt) (/ $rndInt maxInt)))
 ! (bind! rnd (py-atom random))
 ! ((py-dot rnd seed) 0)
+
+;; ============================================================
+;; Apply Function - Universal Function Application Bridge
+;; ============================================================
+;;
+;; The apply function serves as a bridge between standard library functions 
+;; and custom data structures, reducing code redundancy and improving usability.
+;; It deconstructs data structures according to their type and applies the given function.
+;;
+;; General Structure: (apply function <data>)
+;;
+;; This implementation follows a more generic approach similar to Haskell:
+;; - For most types, it extracts the underlying data and applies the function
+;; - For Cscore, it implements custom comparison logic since it has special semantics
+;; - For wrapper types, it delegates to the wrapped value
+;;
+;; Examples:
+;;   (apply >= cscore1 cscore2)     ; uses custom Cscore comparison logic
+;;   (apply length instance)        ; extracts list and calls List.length
+;;   (apply contains map key)       ; delegates to Map.contains
+;;   (apply + num1 num2)            ; direct application to numbers
+;;
+;; Type Signature:
+;;   (: apply (-> (-> $a $b $c) $d $e))
+;;   where $d and $e are the appropriate types for the function and data
+
+(: apply (-> (-> $a $b $c) $d $e))
+
+;; ------------------------------------------------------------
+;; Generic projection and comparators to support reusable apply
+;; ------------------------------------------------------------
+
+;; key: project a value into a comparable key
+;; Deterministic single-clause definition to avoid multiple matches.
+;; - Cscore -> KPair(penScore, -complexity) with NaN mapped to low sentinel
+;; - ScoredInstance/Exemplar variants -> delegate to inner Cscore
+;; - Default -> KScalar(x) (works for Number and other simple types)
+(: key (-> $a $k))
+(= (key $x)
+   (case $x
+     (
+       ;; 5-field Cscore (scoring/cscore.metta)
+       ((mkCscore $scor $cpxy $cpxyPen $uniPen $penScore)
+        (let $p (if (isnan $penScore) (* -1 (pow-math 10 308)) $penScore)
+             (KPair $p (* -1 $cpxy))))
+       ;; 4-field Cscore (metapopulation/exemplar-type.metta)
+       ;; Compute penalized score as scor - cpxyPen - uniPen
+       ((mkCscore (mkScoreT $scor) (mkComplexity $cpxy) (mkScoreT $cpxyPen) (mkScoreT $uniPen))
+         (let $p (- (- $scor $cpxyPen) $uniPen)
+              (KPair $p (* -1 $cpxy))))
+       ((mkSInst (mkPair $inst $score))
+         (key $score))
+       ((mkExemplar $tree $demeId $cscore $bscr)
+         (key $cscore))
+       ((mkXmplr $tree $demeId $cscore $bscr)
+         (key $cscore))
+       ($else (KScalar $x))
+     )))
+
+;; No generic ge/lt/eq helpers to avoid overlap; compare in apply by shape
+
+;; ============================================================
+;; Generic Wrapper Type Operations
+;; ============================================================
+
+;; For wrapper types, extract the underlying data and apply the function
+;; This is the generic pattern that works for most types
+
+;; ScoredInstance - extract score and apply function
+(= (apply $f (mkSInst (mkPair $inst $score)) $arg)
+   (apply $f $score $arg))
+
+;; Exemplar - extract cscore and apply function  
+(= (apply $f (mkExemplar $tree $demeId $cscore $bscr) $arg)
+   (apply $f $cscore $arg))
+;; Metapopulation Exemplar variant (mkXmplr)
+(= (apply $f (mkXmplr $tree $demeId $cscore $bscr) $arg)
+   (apply $f $cscore $arg))
+
+;; Instance - extract underlying list and apply function
+(= (apply $f (mkInst $list) $arg)
+   (apply $f $list $arg))
+
+;; InstanceSet - extract underlying list and apply function
+(= (apply $f (mkSInstSet $instList) $arg)
+   (apply $f $instList $arg))
+
+;; BehavioralScore - extract underlying list and apply function
+(= (apply $f (mkBScore $scoreList) $arg)
+   (apply $f $scoreList $arg))
+
+;; Deme - extract instance list and apply function
+(= (apply $f (mkDeme $rep (mkSInstSet $instList) $demeId) $arg)
+   (apply $f $instList $arg))
+
+;; ============================================================
+;; Generic Data Structure Operations
+;; ============================================================
+
+;; For data structures, delegate to their specific functions
+;; This pattern works for Map, MultiMap, OrderedSet, OrderedMultiset, List
+
+;; Map operations - delegate to Map functions
+(= (apply length $map)
+   (Map.length $map))
+
+(= (apply contains $key $map)
+   (Map.contains $key $map))
+
+;; MultiMap operations - delegate to MultiMap functions
+(= (apply length $mmap)
+   (MultiMap.length $mmap))
+
+(= (apply contains $key $mmap)
+   (MultiMap.contains $key $mmap))
+
+;; OrderedSet operations - delegate to OS functions
+(= (apply length $os)
+   (OS.length $os))
+
+(= (apply contains $os $el)
+   (OS.contains $os $el))
+
+;; OrderedMultiset operations - delegate to OMS functions
+(= (apply length $oms)
+   (OMS.length $oms))
+
+(= (apply contains $oms $x)
+   (OMS.contains $oms $x))
+
+;; List operations - delegate to List functions
+(= (apply length $list)
+   (List.length $list))
+
+;; ============================================================
+;; Basic Type Operations (Direct Application)
+;; ============================================================
+
+;; Generic comparison via key-projection and comparators
+(= (apply >= $x $y)
+   (case ((key $x) (key $y))
+     (
+       (((KPair $a1 $b1) (KPair $a2 $b2)) (or (> $a1 $a2) (and (== $a1 $a2) (>= $b1 $b2))))
+       (((KScalar $kx) (KScalar $ky)) (>= $kx $ky))
+     )))
+
+(= (apply < $x $y)
+   (case ((key $x) (key $y))
+     (
+       (((KPair $a1 $b1) (KPair $a2 $b2)) (or (< $a1 $a2) (and (== $a1 $a2) (< $b1 $b2))))
+       (((KScalar $kx) (KScalar $ky)) (< $kx $ky))
+     )))
+
+(= (apply == $x $y)
+   (case ((key $x) (key $y))
+     (
+       (((KPair $a1 $b1) (KPair $a2 $b2)) (and (isApproxEq $a1 $a2) (isApproxEq $b1 $b2)))
+       (((KScalar $kx) (KScalar $ky)) (== $kx $ky))
+     )))
+
+(= (apply + $num1 $num2)
+   (+ $num1 $num2))
+
+(= (apply - $num1 $num2)
+   (- $num1 $num2))
+
+(= (apply * $num1 $num2)
+   (* $num1 $num2))
+
+(= (apply / $num1 $num2)
+   (/ $num1 $num2))

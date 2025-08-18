@@ -14,7 +14,7 @@
 (= (removeDupInsts (Cons $x (Cons $y $rest)) $topCnd)
    (let $lengthOfTail (List.length (Cons $y $rest))
    (if (> $topCnd 0)
-       (if (apply == $x $y)
+       (if (== $x $y)
            (removeDupInsts
              (Cons $y $rest)
              (min-atom ($topCnd $lengthOfTail)))  ;; Update topCnd

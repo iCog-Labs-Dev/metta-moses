@@ -451,3 +451,51 @@ NilMMap discSpec<=)
 ! (assertEqual (concatT (1 2 3) (4 5 6)) (1 2 3 4 5 6))
 ! (assertEqual (concatT (1 2 3) ()) (1 2 3))
 ! (assertEqual (concatT () (1 2 3)) (1 2 3))
+
+;; Basic Number comparisons via apply (inline values)
+!(assertEqual (apply >= 3 2) True)
+!(assertEqual (apply <  1 2) True)
+!(assertEqual (apply == 5 5) True)
+
+;; Cscore comparisons via apply (inline mkCscore)
+!(assertEqual
+  (apply >= (mkCscore -2.0 3.0 1.0 0.5 -3.5)
+               (mkCscore -3.0 2.0 1.0 0.5 -4.5))
+  True)
+!(assertEqual
+  (apply <  (mkCscore -3.0 2.0 1.0 0.5 -4.5)
+               (mkCscore -2.0 3.0 1.0 0.5 -3.5))
+  True)
+
+;; Tie-breaker on complexity: equal pen score but lower complexity is greater
+!(assertEqual
+  (apply >= (mkCscore -2.0 2.0 1.0 0.5 -3.5)
+               (mkCscore -2.0 3.0 1.0 0.5 -3.5))
+  True)
+!(assertEqual
+  (apply <  (mkCscore -2.0 2.0 1.0 0.5 -3.5)
+               (mkCscore -2.0 3.0 1.0 0.5 -3.5))
+  False)
+
+;; NaN penalized score ordering: NaN should be treated as very low
+!(assertEqual
+  (apply >= (mkCscore -2.0 3.0 1.0 0.5 -3.5)
+               (mkCscore -1.0 2.0 1.0 0.5 1.5NaN))
+  True)
+!(assertEqual
+  (apply <  (mkCscore -1.0 2.0 1.0 0.5 1.5NaN)
+               (mkCscore -2.0 3.0 1.0 0.5 -3.5))
+  True)
+
+;; Approximate equality for Cscore via apply == (inline)
+!(assertEqual
+  (apply == (mkCscore 1.0000005 2.0 0.0 0.0 0.5)
+               (mkCscore 1.0000006 2.0 0.0 0.0 0.5))
+  True)
+
+;; ScoredInstance comparisons via apply should project to inner Cscore (inline)
+!(assertEqual
+  (apply >=
+    (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore -2.0 3.0 1.0 0.5 -3.5)))
+    (mkSInst (mkPair (mkInst (Cons 3 Nil))               (mkCscore -3.0 2.0 1.0 0.5 -4.5))))
+  True)
