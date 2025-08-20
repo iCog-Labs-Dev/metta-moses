@@ -124,3 +124,8 @@
                (mkExemplar (mkTree (mkNode B) Nil) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (Cons 0 Nil)))
                NilOS)))
         (Error NilOS "empty ordered set/ fewer items than required"))
+
+;; added test for Os.contains
+! (assertEqual (OS.contains (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))) 2) True)
+! (assertEqual (OS.contains (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))) 4) False)
+! (assertEqual (OS.contains NilOS 5) False)

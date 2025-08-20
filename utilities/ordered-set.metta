@@ -43,7 +43,7 @@
 
 ;; OS.contains -- check is an ordered list contains a particular element
 (: OS.contains (-> (OS $a) $a Bool))
-(= (OS.contains Nil $el) False)
+(= (OS.contains NilOS $el) False)
 (= (OS.contains (ConsOS $x $xs) $el)
     (if (== $x $el)
         True
