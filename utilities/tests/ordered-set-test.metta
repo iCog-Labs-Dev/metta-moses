@@ -129,3 +129,44 @@
 ! (assertEqual (OS.contains (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))) 2) True)
 ! (assertEqual (OS.contains (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))) 4) False)
 ! (assertEqual (OS.contains NilOS 5) False)
+
+! (assertEqual (genericCompare 2 1) L)      
+! (assertEqual (genericCompare 1 2) G)      
+! (assertEqual (genericCompare 5 5) E)      
+! (assertEqual (genericCompare 0 1) G)    
+! (assertEqual (genericCompare 10 5) L)     
+
+! (assertEqual (OS.range 0 3 NilOS) (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))))
+! (assertEqual (OS.range 1 4 NilOS) (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))))
+! (assertEqual (OS.range 5 5 NilOS) NilOS)     ;; Empty range
+! (assertEqual (OS.range 2 6 NilOS) (ConsOS 2 (ConsOS 3 (ConsOS 4 (ConsOS 5 NilOS)))))
+! (assertEqual (OS.range 0 1 NilOS) (ConsOS 0 NilOS))  ;; Single element
+
+! (assertEqual (OS.union (ConsOS 0 (ConsOS 1 NilOS)) (ConsOS 2 NilOS)) 
+               (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))))
+! (assertEqual (OS.union (ConsOS 1 (ConsOS 3 NilOS)) (ConsOS 0 (ConsOS 2 NilOS))) 
+               (ConsOS 0 (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS)))))
+! (assertEqual (OS.union NilOS (ConsOS 5 NilOS)) (ConsOS 5 NilOS))    ;; Empty first set
+! (assertEqual (OS.union (ConsOS 5 NilOS) NilOS) (ConsOS 5 NilOS))    ;; Empty second set
+! (assertEqual (OS.union (ConsOS 1 (ConsOS 2 NilOS)) (ConsOS 2 (ConsOS 3 NilOS))) 
+               (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))))               ;; Overlapping sets
+
+! (assertEqual (OS.difference (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))) (ConsOS 1 NilOS) NilOS) 
+               (ConsOS 0 (ConsOS 2 NilOS)))
+! (assertEqual (OS.difference (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))) (ConsOS 2 (ConsOS 4 NilOS)) NilOS) 
+               (ConsOS 1 (ConsOS 3 NilOS)))
+! (assertEqual (OS.difference NilOS (ConsOS 1 NilOS) NilOS) NilOS)    ;; Empty first set
+! (assertEqual (OS.difference (ConsOS 1 (ConsOS 2 NilOS)) NilOS NilOS) 
+               (ConsOS 1 (ConsOS 2 NilOS)))                          ;; Empty second set
+! (assertEqual (OS.difference (ConsOS 1 (ConsOS 2 NilOS)) (ConsOS 1 (ConsOS 2 NilOS)) NilOS) 
+               NilOS)                                                 ;; Identical sets
+
+! (assertEqual (osToExpression (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))) ()) (0 1 2))
+! (assertEqual (osToExpression NilOS ()) ())                          ;; Empty set
+! (assertEqual (osToExpression (ConsOS 5 NilOS) ()) (5))              ;; Single element
+! (assertEqual (osToExpression (ConsOS 3 (ConsOS 1 (ConsOS 4 NilOS))) ()) (3 1 4))  ;; Order preserved
+
+! (assertEqual (expressionToOS (2 0 1) NilOS) (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))))
+! (assertEqual (expressionToOS () NilOS) NilOS)                       ;; Empty expression
+! (assertEqual (expressionToOS (5) NilOS) (ConsOS 5 NilOS))           ;; Single element
+! (assertEqual (expressionToOS (3 1 4 1 5 9) NilOS) (ConsOS 1 (ConsOS 3 (ConsOS 4 (ConsOS 5 (ConsOS 9 NilOS))))))  ;; Duplicates removed, sorted
