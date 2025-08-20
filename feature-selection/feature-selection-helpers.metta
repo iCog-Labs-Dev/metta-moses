@@ -277,122 +277,71 @@
         (mercatorSeriesSum $uSquared (* $currentPower $uSquared) (+ $denominator 2) (+ $accumulator $currentTerm)))))                        
 
 ;; Incremental Selection Utility Functions
-
-;; Remove duplicate elements from a list while preserving order
-(= (List.removeDuplicates $list)
-   (unify $list Nil Nil
-       (unify $list (Cons $head $tail)
-           (if (List.isMember $head $tail)
-               (List.removeDuplicates $tail)
-               (Cons $head (List.removeDuplicates $tail))))))
-
-;; Combine two lists and remove duplicates (set union operation)
-(= (List.union $list1 $list2)
-  (List.removeDuplicates (List.concat $list1 $list2)))
-
-
-;; Elements in first list but not in second (set difference operation)
-(= (List.difference $list1 $list2)
-  (unify $list1 Nil Nil
-    (unify $list1 (Cons $head $tail)
-      (if (List.isMember $head $list2)
-          (List.difference $tail $list2)
-          (Cons $head (List.difference $tail $list2))))))
-
-;; Check if a combination already exists in a list using isEqual for order-independent comparison like (A B) == (B A)
-(= (List.containsEquivalent $combo $list)
-   (unify $list Nil False
-       (unify $list (Cons $head $tail)
-         (chain (List.listToExpr $head) $headExpr
-           (if (isEqual $combo $headExpr)
-               True
-               (List.containsEquivalent $combo $tail))))))
-
-;; Remove duplicate combinations using order-independent equality check
-(= (List.removeDuplicateCombinations $combinations)
-   (unify $combinations Nil Nil
-       (unify $combinations (Cons $combo $rest)
-           (chain (List.removeDuplicateCombinations $rest) $filteredRest
-               (if (List.containsEquivalent $combo $filteredRest)
-                    $filteredRest
-                   (Cons (exprToList $combo) $filteredRest))))))
-
-;; Check if difference between two numbers is within epsilon tolerance
-;; This is reffered from: https://github.com/opencog/cogutil/blob/6b149c457c9cfbf5edccefb166a7a9a1d2d74196/opencog/util/numeric.h#L178
-(= (isWithin $min $max $epsilon)
-   (<= (abs-math (- $max $min)) $epsilon))
-
-
-;; Recursively generate multi-element combinations using superpose
-;; This function leverages MeTTa's non-deterministic features for efficient combination generation
-;;
+;; Purpose: Remove duplicate expressions from list using isExpEqual
+;; Recursively processes expressions and maintains unique accumulator
 ;; Parameters:
-;;   $expr - Expression to generate combinations from
-;;   $k - Current combination size being generated
-;; Returns:
-;;   Non-deterministic results that will be collapsed by caller
-(= (generateMultiElementCombos $expr $k)
-   (if (> $k 1)
-       (let* (($elem (superpose $expr))  
-              ($remaining (removeElement ($elem) $expr))
-              ($subCombo (generateMultiElementCombos $remaining (- $k 1))))
-           (cons-atom $elem $subCombo))
-       (if (== $k 1)
-           (let $elem (superpose $expr) ($elem))
-           (if (== $k 0) (()) (empty)))))
+;;   $expr (Expression) → Expression containing potentially duplicate sub-expressions
+;;   $acc (Expression) → Accumulator for unique expressions
+;; Returns: (Expression) → Expression with duplicates removed
+;; Example: (featureSet ((A B) (B A) (C D)) ()) → ((A B) (C D))
+(: featureSet (-> Expression Expression Expression))
+(= (featureSet $expr $acc)
+    (if-decons-expr $expr $h $t
+        (let $carry (union-atom $acc ($h))
+            (let $rest (collapse 
+                (let $h-s (superpose $t)
+                    (if (isEqual $h-s $h)
+                        (Empty)
+                        $h-s))) 
+                (featureSet $rest $carry)
+            )
+        )
+        $acc
+    )
+)
 
-
-;; Generate all unique combinations of specified size from an expression
-;; Uses non-deterministic superpose for efficient exploration of possibilities
-;; Automatically handles duplicate removal using isEqual comparison
-;;
+;; Purpose: Generate powerSet (all combinations) of specified size from expression
+;; This is the core combination generation function used throughout the algorithm
 ;; Parameters:
-;;   $expr - Expression containing elements to combine
-;;   $size - Size of combinations to generate (1, 2, 3, etc.)
-;; Returns:
-;;   Expression of unique combinations, e.g., ((0 1) (0 2) (1 2))
-(= (generateCombinations $expr $size)
-   (if (== $size 0)
-       (())  ;; Empty combination for size 0
-       (if (== $size 1)
-           ;; Single element combinations - direct superpose application
-           (collapse (let $elem (superpose $expr) (exprToList ($elem))))
-           ;; Multi-element combinations with duplicate removal
-           (chain (collapse (generateMultiElementCombos $expr $size)) $rawCombinations
-           (chain (exprToList $rawCombinations) $combinationList
-           (chain (List.removeDuplicateCombinations $combinationList) $uniqueCombinations
-               (List.listToExpr $uniqueCombinations)
-            )))
+;;   $set (Expression) → Set of elements to generate combinations from
+;;   $n (Number) → Size of combinations to generate
+;;   $exact (Bool) → If True, return only n-sized combinations; if False, return all sizes ≤ n
+;; Returns: (Expression) → All combinations of specified size
+;; Example: (powerSet (0 1 2) 2 True) → ((0 1) (0 2) (1 2))
+; Reference: https://github.com/opencog/cogutil/blob/88da482e38ba7ecec734dd0282d6c9b9be2c3bfd/opencog/util/algorithm.h#L282
+(: powerSet (-> Expression Number Bool Expression))
+(= (powerSet $set $n $exact)
+   (if (== $n 0)
+       (()) 
+       (let* (($ps   (powerSet $set (- $n 1) $exact))
+              ($new  (collapse 
+                       (let $subset (superpose $ps)
+                         (let $el (superpose $set)
+                           (if (== (isMember $el $subset) False)
+                               (cons-atom $el $subset)
+                               (empty)))
+                        )
+                    )
+                )
+              ($filteredNew (featureSet $new ()))
+              ($res  (if (== $exact False)
+                        (union-atom  $filteredNew $ps)
+                        $filteredNew
+                    )
+              )
+            )
+             $res
         )
     )
 )
 
-;; Extract column values by index from table rows
-;; More efficient than name-based lookup for programmatic access
-;;
+;; Purpose: Check if difference between two numbers is within epsilon tolerance
 ;; Parameters:
-;;   $rows - List of table rows (each row is a list of values)
-;;   $index - Zero-based column index to extract
-;; Returns:
-;;   List of values from the specified column
-(= (extractColumnByIndex $rows $index)
-   (unify $rows Nil Nil
-       (unify $rows (Cons $row $rest)
-           (chain (List.getByIdx $row $index) $value
-               (chain (extractColumnByIndex $rest $index) $restValues
-                   (Cons $value $restValues))))))
+;;   $min (Number) → Lower bound
+;;   $max (Number) → Upper bound  
+;;   $epsilon (Number) → Tolerance
+;; Returns: (Bool) → True if within epsilon
+;; Reference: https://github.com/opencog/cogutil/blob/6b149c457c9cfbf5edccefb166a7a9a1d2d74196/opencog/util/numeric.h#L178(: isWithin (-> Number Number Number Bool))
+(= (isWithin $min $max $epsilon)
+   (<= (abs-math (- $max $min)) $epsilon))
 
-;; Combine multiple feature columns into joint tuples for interaction analysis
-;; Essential for calculating mutual information of feature combinations
-;;
-;; Parameters:
-;;   $itable - ITable structure
-;;   $featureIndices - List of feature indices to combine
-;; Returns:
-;;   List of tuples, each containing values from specified features for one row
-(= (combineFeatureColumns $itable $featureIndices)
-   (let (mkITable $rows $labels) $itable
-       (chain (List.listToExpr $featureIndices) $indices
-           (zipColumn $indices $rows))))
-
-; 

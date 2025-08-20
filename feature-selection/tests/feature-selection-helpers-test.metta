@@ -112,44 +112,25 @@
 ! (assertEqual (logMath 10 1000)  3)
 
 ;; test for incremental selection Utility functions
-! (assertEqual (List.removeDuplicates (Cons 1 (Cons 2 (Cons 1 (Cons 3 (Cons 2 Nil)))))) (Cons 1 (Cons 3 (Cons 2 Nil))))
-! (assertEqual (List.removeDuplicates (Cons A (Cons B (Cons A (Cons C (Cons B Nil)))))) (Cons A (Cons C (Cons B Nil))))
-! (assertEqual (List.removeDuplicates (Cons 7 (Cons 7 (Cons 7 (Cons 7 (Cons 7 Nil)))))) (Cons 7 Nil))
-! (assertEqual (List.removeDuplicates Nil) Nil)
+! (assertEqual  (featureSet ((A B) (B A) (C D)) ())  ((A B) (C D)))
+! (assertEqual  (featureSet ((X Y) (Z W)) ()) ((X Y) (Z W)))
+! (assertEqual (featureSet ((A B)) ()) ((A B)))
+! (assertEqual  (featureSet () ())  ())
+! (assertEqual (featureSet ((A A) (A A) (A A)) ()) ((A A)))
 
-! (assertEqual (List.union (Cons 1 (Cons 2 Nil)) (Cons 2 (Cons 3 Nil))) (Cons 1 (Cons 2 (Cons 3 Nil))))
-! (assertEqual (List.union Nil (Cons X (Cons Y Nil))) (Cons X (Cons Y Nil)))
-! (assertEqual (List.union (Cons A (Cons B Nil)) (Cons B (Cons C Nil))) (Cons A (Cons B (Cons C Nil))))
+;; powerset test
+! (assertEqual (powerSet (0 1 2) 0 True) (()))
+! (assertEqual (powerSet (0 1) 1 False) ((0) (1) ()))
+! (assertEqual (powerSet (2 0 1) 1 True) ((2) (0) (1)))
+! (assertEqual (powerSet (0 1 2) 2 True) ((1 0) (2 0) (2 1))) 
+! (assertEqual (powerSet (0 1 2) 3 True) ((2 1 0)))
+! (assertEqual (powerSet (0 1 2) 3 False) ((2 1 0) (1 0) (2 0) (2 1) (0) (1) (2) ()))
+! (assertEqual (powerSet (0 1 2 3) 3 True) ((2 1 0) (3 1 0) (3 2 0) (3 2 1)))
+! (assertEqual (powerSet (0 1) 3 True) ())  ;; Impossible combination size
 
-! (assertEqual (List.difference (Cons 1 (Cons 2 (Cons 3 Nil))) (Cons 2 Nil))  (Cons 1 (Cons 3 Nil)))
-! (assertEqual (List.difference (Cons A (Cons B Nil)) (Cons A (Cons B Nil))) Nil)
-! (assertEqual (List.difference Nil (Cons 1 (Cons 2 Nil))) Nil)  
+! (assertEqual (isWithin 0.0 0.0001 0.0001) True)   ;; Exactly at tolerance
+! (assertEqual (isWithin 0.0 0.05 0.1) True)        ;; Within tolerance
+! (assertEqual (isWithin 0.0 0.2 0.1) False)        ;; Outside tolerance
+! (assertEqual (isWithin 1.0 1.005 0.01) True)      ;; Small difference
+! (assertEqual (isWithin 5.0 5.1 0.05) False)       ;; Difference too large
 
-! (assertEqual (isWithin 0.0 0.0001 0.0001)  True)
-! (assertEqual (isWithin 0.0 0.05 0.1) True)        
-! (assertEqual (isWithin 0.0 0.2 0.1) False)
-
-
-! (assertEqual (generateCombinations (0 1 3) 2) ((Cons 1 (Cons 0 Nil)) (Cons 3 (Cons 0 Nil)) (Cons 3 (Cons 1 Nil))))
-! (assertEqual (generateCombinations (0 1) 1) ((Cons 0 Nil) (Cons 1 Nil)))                           ;; k=1
-! (assertEqual (generateCombinations (0 1 2) 3) ((Cons 2 (Cons 1 (Cons 0 Nil)))))                     ;; k = length
-! (assertEqual (generateCombinations () 0) (()))  
-
-! (bind! xorTable (mkITable
-    (Cons (Cons True  (Cons True  (Cons False Nil)))
-    (Cons (Cons True  (Cons False (Cons True  Nil)))
-    (Cons (Cons False (Cons True  (Cons True  Nil)))
-    (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
-    (Cons A (Cons B (Cons Output Nil)))))
-
-
-! (assertEqual (extractColumnByIndex (let (mkITable $rows $labels) xorTable $rows) 0) (Cons True (Cons True (Cons False (Cons False Nil)))))
-! (assertEqual (extractColumnByIndex (let (mkITable $rows $labels) xorTable $rows) 1) (Cons True (Cons False (Cons True (Cons False Nil))))) 
-! (assertEqual (extractColumnByIndex (let (mkITable $rows $labels) xorTable $rows) 2) (Cons False (Cons True (Cons True (Cons False Nil))))) 
-
-
-! (assertEqual (combineFeatureColumns xorTable (Cons 0 (Cons 1 Nil))) (Cons (True True) (Cons (True False) (Cons (False True) (Cons (False False) Nil)))))
-! (assertEqual (combineFeatureColumns xorTable (Cons 0 Nil)) (Cons (True) (Cons (True) (Cons (False) (Cons (False) Nil))))) ;; single column
-! (assertEqual (combineFeatureColumns (mkITable (Cons (Cons 1 (Cons 2 Nil)) (Cons (Cons 3 (Cons 4 Nil)) Nil)) (Cons X (Cons Y Nil))) (Cons 0 (Cons 1 Nil)))
-    (Cons (1 2) (Cons (3 4) Nil)))
-; 
