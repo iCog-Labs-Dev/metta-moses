@@ -451,3 +451,7 @@ NilMMap discSpec<=)
 ! (assertEqual (concatT (1 2 3) (4 5 6)) (1 2 3 4 5 6))
 ! (assertEqual (concatT (1 2 3) ()) (1 2 3))
 ! (assertEqual (concatT () (1 2 3)) (1 2 3))
+
+;; Test cases -- updateID
+!(assertEqual (updateID (mkNodeId (0 1 2))) (mkNodeId (1 2)))
+!(assertEqual (updateID (mkNodeId (1 2 3))) (mkNodeId (1 2 3)))
