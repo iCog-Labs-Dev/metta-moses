@@ -4,7 +4,6 @@ venv
 __pycache__/
 
 myTest.metta
-# simulated-annealing-algo/
 todo
 tree-helper-registration-test.metta
 run_python_tests.py
