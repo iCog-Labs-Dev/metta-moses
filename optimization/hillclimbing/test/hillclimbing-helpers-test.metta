@@ -37,7 +37,7 @@
 
 !(import! &self metta-moses:moses:neighborhood-sampling)
 
-!(import! &self metta-moses:optimization/hillclimbing:cross-top-one)
+!(import! &self metta-moses:optimization/hillclimbing/cross-top-one)
 !(import! &self metta-moses:optimization/hillclimbing:hill-climbing-helpers)
 !(import! &self metta-moses:feature-selection:feature-selection-helpers)
 !(import! &self metta-moses:optimization/hillclimbing:cross-top-one-helpers)
