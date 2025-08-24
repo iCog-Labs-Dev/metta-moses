@@ -164,3 +164,6 @@
 ! (assertEqual (isWithin 0.0 0.2 0.1) False)        ;; Outside tolerance
 ! (assertEqual (isWithin 1.0 1.005 0.01) True)      ;; Small difference
 ! (assertEqual (isWithin 5.0 5.1 0.05) False)       ;; Difference too large
+
+! (assertEqual (getInputLabels (Cons A (Cons B (Cons O Nil)))) (B A))                            
+! (assertEqual (getInputLabels (Cons A Nil)) ())                            
