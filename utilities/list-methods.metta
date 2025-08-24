@@ -23,7 +23,7 @@
 (= (exp $x) ($x))
 ;;??? is the name List.tFoldl/tFoldr is better than List.t-foldl	
 (= (List.tFoldl Nil $f $t $acc) $acc)		
-(= (List.tFoldl (Cons $x $xs) $f $t $acc) (let $tr ($t $x) (let $new-acc ($f $tr $acc) (List.tFoldl $xs $f $t $new-acc))))		
+(= (List.tFoldl (Cons $x $xs) $f $t $acc) (let $tr ($t $x) (let $new-acc ($f $acc $tr) (List.tFoldl $xs $f $t $new-acc))))		
 
 (= (List.tFoldr Nil $f $t $acc) $acc)		
 (= (List.tFoldr (Cons $x $xs) $f $t $acc) (let $new-acc (List.tFoldr $xs $f $t $acc) (let $tr ($t $x) ($f $tr $new-acc))))	        
