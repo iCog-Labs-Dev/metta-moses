@@ -119,11 +119,16 @@
                               (List.replaceAt $newInst $rand $randomSpec))))
           $updatedInst))
 
-;; This function is Pre and post-processor function for sampleFromNeighborhood` 
-;; to achive not-deterministic approach. It generates a list with the size of $sampleSize 
-;; and calls sampleFromNeighborhood` function for every number in the list. 
-;; This will make the sampleFromNeighborhood` to produce $sampleSize samples. 
-;; Then the produced expression will be made in to llist using exprToList
+;; Pre/post-processor for `sampleFromNeighborhood` to ensure non-deterministic sampling.
+;; It checks if $sampleSize neighbors can be generated; if not, returns an error.
+;; Otherwise, it calls `selectUnique` to produce $sampleSize unique instances at the given distance.
+;; Parameters:
+;;      $sampleSize: Number of instances to generate
+;;      $dist: Distance from the center instance
+;;      $kbMp: Knob map for variations
+;;      $inst: Center instance
+;; Returns: A list of $sampleSize instances or an error if generation is not possible.
+
 (: sampleFromNeighborhood (-> Number Number KnobMap Instance (List Instance)))
 (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
    (let* (
