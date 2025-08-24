@@ -128,8 +128,8 @@
                ))
             NilMMap))))) (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) Nil))))))) (mkSInstSet Nil) (mkDemeId "1")))
 
-;; Test case for sampleFromNeighborhood function
-;; Function should returned two instances at the specified distance
+; Test case for sampleFromNeighborhood function
+; Function should returned two instances at the specified distance
 ! (assertEqual
      (let $returned (sampleFromNeighborhood 2 2 knobMapObj (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))))
        (List.map ((curry distance') (mkInst (Cons 1 (Cons 2 (Cons 0 Nil))))) $returned))
@@ -210,3 +210,14 @@
    2)
    (List.map ((curry distance') (mkInst (Cons 0 (Cons 0 (Cons 0 Nil))))) (List.map removeInstScore $updatedInstList)))
 Nil)
+
+; Testcase for sampleFromNeighborhood function when requested sample size is more than possible instances
+!(assertEqual (sampleFromNeighborhood 13 2 knobMapObj (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))))
+        (Error ("Cannot generate " 13 " instances at distance " 2 " from " (mkInst (Cons 1 (Cons 2 (Cons 0 Nil))))) (Requested sample size too large)))
+  
+
+
+;testcase for isPossibleSize function
+; Formula: n! / ((n - d)! * d!) * m^d  (n = instance length, d = distance, m = knob multiplicity)
+ !(assertEqual (isPossibleSize 13 2 (mkInst (Cons 1 (Cons 2 (Cons 0 Nil))))) False)
+ !(assertEqual (isPossibleSize 10 2 (mkInst (Cons 1 (Cons 2 (Cons 0 Nil))))) True)
