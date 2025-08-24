@@ -8,6 +8,12 @@
         (chain (List.foldr add (mkMultip 0) $multips) $res
           (let (mkMultip $val) $res $val)))))
 
+;; feature selection version of the informationTheoreticBits function
+;; In the case of feature selection, the information theoretic bits is simply the number of features we have
+(: informationTheoreticBitsFs (-> ITable Number))
+(= (informationTheoreticBitsFs (mkITable (Cons $row $rows) $labels))
+   (- (List.length $labels) 1))
+
 ;; Verbatim port of the Estimate neighborhood function from c++
 ;; Params: $distance: The hamming distance from the current knob
 ;;         $knobMap: A map of knobs with their multiplicities
@@ -17,6 +23,13 @@
    (if (== $distance 0)
        1
        (let $nnEstimate (informationTheoreticBits $knobMap) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
+
+;; similar to the above 'estimateNeighborhood' but this one uses the informationTheoreticBitsFs which is for feature selection
+(: estimateNeighborhoodFs (-> Number ITable Number))
+(= (estimateNeighborhoodFs $distance $itable)
+   (if (== $distance 0)
+       1
+       (let $nnEstimate (informationTheoreticBitsFs $itable) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
 
 ;; Counts the number of instances at a specific distance from a given instance.
 ;; Params:
@@ -51,10 +64,44 @@
 (= (countNeighborhood $kbMap $inst $dist $maxCount)
 (countNeighborhoodFromIdx $kbMap $inst $dist 0 $maxCount))
 
+;; factorial
+(: factorial (-> Number Number))
+(= (factorial $n)
+   (if (<= $n 1) 1 (* $n (factorial (- $n 1)))))
+
+;; binomial coefficient
+(: binomial (-> Number Number Number))
+(= (binomial $n $k)
+   (if (or (< $k 0) (> $k $n))
+       0
+       (/ (factorial $n) (* (factorial $k) (factorial (- $n $k))))))
+
+;; Feature selection version of countNeighborhoodFromIdx
+;; uses the BInomial coefficient to count the number of instances at a specific distance from a given instance.
+(: countNeighborhoodFromIdxFs (-> Instance Number Number Number Number))
+(= (countNeighborhoodFromIdxFs $instance $dist $startIdx $maxCount)
+   (let $n (- (List.length $instance) $startIdx)
+     (if (== $dist 0)
+         1
+         (if (> $dist $n)
+             0
+             (let $count (binomial $n $dist)
+               (if (> $count $maxCount) $maxCount $count))))))
+
+;; Feature selection version of countNeighborhood
+;; uses the countNeighborhoodFromIdxFs
+(: countNeighborhoodFs (-> Instance Number Number Number))
+(= (countNeighborhoodFs $instance $dist $maxCount)
+   (countNeighborhoodFromIdxFs $instance $dist 0 $maxCount))
+
 ;; Crossover function.
 ;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
 (: crossover (-> Number Number Instance Deme (Deme Number)))
 (= (crossover $demeSize $nNewInstances $centerInst $deme) (trace! (Running cross over for $centerInst) ((crossTopOne $deme $nNewInstances 0 $demeSize $centerInst) $nNewInstances))) ;; WARN: The $nNewInstances might not be the actual number of instances created.
+
+;; crossover for feature selection
+(: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
+(= (crossoverFs $size $nNewInstances $centerInst $scoredInstSet) (trace! (Running cross over for $centerInst) ((crossTopOneFs $scoredInstSet $nNewInstances 0 $size $centerInst) $nNewInstances))) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
 (: returnBest (-> (ScoredInstance Number) (ScoredInstance Number) (ScoredInstance Number)))
 (= (returnBest (mkSInst $inst1) (mkSInst $inst2)) (returnBest < (mkSInst $inst1) (mkSInst $inst2)) )
@@ -190,3 +237,114 @@
                               $finalDeme
                               (mkTruthTableBScore $cpxCoeff $size $iTable)
                               $finalCenter))))))
+
+
+;; hillclimbing implementation for feature selection
+(: hillClimbingFs (-> (InstanceSet $a) (TruthTableBScore $a) Instance (Instance (InstanceSet $a) $state)))
+(= (hillClimbingFs $deme $tTableBscorer $centerInst) (hillClimbingFs (3 3 1) (False False False $centerInst 0 0 0 0 1) $deme $tTableBscorer $centerInst))
+
+(: hillClimbingFs (-> $params $state (InstanceSet $a) (TruthTableBScore $a) Instance (Instance (InstanceSet $a) $state)))
+(= (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
+                 ($alreadyXover $lastChance $_ $prevCenter $bestCscore $bestScore $currentNInstances $d $i) ;; Mutable states
+                 $instSet
+                 (mkTruthTableBScore $cpxCoeff $size $iTable) ;; Input table scorer
+                 $centerInst) ;; Center instance or init instance
+   (let*
+      (
+        (() (println! (Iteration $i running)))
+        (() (println! ""))
+
+        ($totalNNeighbors (estimateNeighborhoodFs $d $iTable))
+
+        (() (println! (Estimated neighbors: $totalNNeighbors)))
+        (() (println! ""))
+
+        ($nNewNeighbors (min $totalNNeighbors 2))
+
+        ;; INFO: Since our neighborhood size is chosen to be small,
+        ;; we don't need to limit the new neighbors with another function like the C++ (At least for now).
+
+        ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
+
+        ;; Cross over if iteration is > 1 and either neighborhood is large or last chance. Also if not already crossed over.
+        ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
+        (() (println! (Crossover: $xOver)))
+        (($updatedInstSet $newInstances) (if $xOver
+                                                               (crossoverFs $currentNInstances $nNewNeighbors $prevCenter $instSet)
+                                                               (sampleNewInstancesFs $totalNNeighbors $nNewNeighbors $prevCenter $iTable $instSet $d)))
+        (() (println! (Newinstances: $updatedInstSet)))
+        (() (println! ""))
+
+        ;; Score all demes in the instance set.
+        ((mkSInstSet $scoredInstances) (transformFs $updatedInstSet $iTable))
+
+        ($updatedDeme (mkSInstSet $scoredInstances))
+
+        (() (println! (Scored instances: $scoredInstances)))
+        (() (println! ""))
+
+        ;; Check if there's an instance in the deme
+        ;;  better than the best candidate so far.
+
+        ;;;;;;;;;;;; RIGHT HERE THE CODE CRASHES for feature selection
+        ;;;;;;;;;;;; I DON'T KNOW WHY
+        ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $centerInst $bestCscore)) $scoredInstances))
+
+        ($newBestScore (Pair.second $newBestInstPair)) ;; This could be the original best candidate or a new one.
+        ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
+
+        (() (println! (Best instance: $newBestInstPair)))
+        (() (println! (New best score: $newBestScore)))
+        (() (println! ""))
+
+        ($nextCenterInst (if $hasImproved (Pair.first $newBestInstPair) $centerInst))
+        ($nextDistance (if $hasImproved 1 (if (not $xOver) (+ 1 $d) $d)))
+
+        (() (println! (NextDistance: $nextDistance)))
+
+        ;; If this is the first time throught the iteration,
+        ;;  then distance was zero, there was only one instance
+        ;;  at dist=0, and we just scored it. Be sure to go
+        ;;  around and do at leat the distance == 1 nearest-neighbor
+        ;;  exploration. Note that it is possible that to have only 1
+        ;;  neighbor with a distance greater than 0 (when the distance
+        ;;  has reached the deme dimension), which is why we check that
+        ;;  distance == 1 as well.
+        (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
+                              (if (and (== $totalNNeighbors 1) (== $nextDistance 1))
+                                  (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
+                                                ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i)) ;; Updated state
+                                                $updatedDeme
+                                                (mkTruthTableBScore $cpxCoeff $size $iTable)
+                                                $nextCenterInst)
+                                  ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
+
+        ($scoreToCompareBelow $newBestCscore)
+        (() (println! (Found NewBestCscore After (+ 1 $i) iteration is: $newBestCscore $scoreToCompareBelow)))
+        (() (println! ""))
+        )
+
+      (if (<= $bestPossibleScore $scoreToCompareBelow)
+          (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
+          (let ($finalCenter $finalDeme ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
+            ;; TODO: The C++ version checks the hyper parameter hc_params.crossover before getting here.
+            ;; TODO: The C++ version checks for the hc_params.widen_search too. For now, we're assuming it is always true. 
+            ;;       Hence the omission of the distance check from the C++ Hence the omission of the distance check from the C++
+            (if (and (and (not $newHasImproved) (not $newLastChance)) (not $newXover))
+                ;; If we just did the nearest neighbors and found no improvement,
+                ;;  then try again one last time, we may get lucky.
+                (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
+                              ($newXover True $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI)) ;; Updated state
+                              $newDeme
+                              (mkTruthTableBScore $cpxCoeff $size $iTable)
+                              $newCenter)
+                (trace! (Continue to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))) )
+
+            (if (< $maxDist $finalDistance)
+                (trace! (Terminating because of maximum distance reached) ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))) ;; I don't know why I didn't do this earlier but incrementing is needed here.
+                (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
+                              ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
+                              $finalDeme
+                              (mkTruthTableBScore $cpxCoeff $size $iTable)
+                              $finalCenter))))
+                            ))
