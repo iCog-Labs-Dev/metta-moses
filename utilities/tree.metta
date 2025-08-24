@@ -269,3 +269,37 @@
             ($arg-set (List.tFoldl $exemplar-labels union-atom exp ())))
             
             (map-atom $arg-set $arg (List.index $labels $arg))))     
+
+
+(= (pruneExemplar $exemplar $arg-set)
+    (foldl-atom $arg-set $exemplar $acc $arg (removeLiteral $acc $arg)))   
+    
+(: removeLiteral (-> (Tree $a) Symbol (Tree $a)))
+(= (removeLiteral (mkTree (mkNode $node) $children) $symbol)
+    (if (isMember $node (AND OR NOT))
+        (mkTree (mkNode $node) (removeLiteralsFromList $children $symbol))
+        (if (== $node $symbol)
+            Nil
+            (mkTree (mkNode $node) Nil))))
+
+(: removeLiteralsFromList (-> List Symbol List))
+(= (removeLiteralsFromList Nil $symbol) Nil)
+(= (removeLiteralsFromList (Cons $head $tail) $symbol)
+    (let $newHead (removeLiteral $head $symbol)
+        (if (== $newHead Nil)
+            (removeLiteralsFromList $tail $symbol)
+            (Cons $newHead (removeLiteralsFromList $tail $symbol)))))
+            
+; !(removeLiteral
+;     (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+;                 (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+;     A) 	;; (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil))
+
+; !(removeLiteral
+;     (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+;                 (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+;     B) 	;; (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))
+
+; ! (removeLiteral (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) 
+; 				(Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) A)
+; 		;; (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) Nil) Nil))
