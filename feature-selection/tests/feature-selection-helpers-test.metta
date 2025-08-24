@@ -167,3 +167,6 @@
 
 ! (assertEqual (getInputLabels (Cons A (Cons B (Cons O Nil)))) (B A))                            
 ! (assertEqual (getInputLabels (Cons A Nil)) ())                            
+
+! (assertEqual (fsToNames (Cons A (Cons B (Cons C Nil))) (1)) (B))
+! (assertEqual (fsToNames (Cons A (Cons B (Cons C Nil))) ()) ())

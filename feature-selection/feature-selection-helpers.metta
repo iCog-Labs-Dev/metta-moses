@@ -316,3 +316,8 @@
             (if (== $as Nil)
                 Nil
                 (Cons $a (inputLables $as))) (Error $labels UnrecognizedFormat))))
+
+(: fsToNames (-> (List Symbol) Expression Expression))
+(= (fsToNames $labels $ft-indices)
+	(collapse (chain (superpose $ft-indices) $ft 
+		(List.at $ft $labels))))                
