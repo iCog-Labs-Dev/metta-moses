@@ -110,3 +110,25 @@
 
 ! (assertEqual (logMath 2 8)  3)
 ! (assertEqual (logMath 10 1000)  3)
+
+! (bind! table1 
+    (mkITable
+        (Cons (Cons True (Cons False (Cons True Nil))) 
+        (Cons (Cons False (Cons True (Cons False Nil))) Nil))
+        (Cons A (Cons B (Cons O Nil)))))
+
+!(assertEqual (filterTable (0) table1) 
+                    (mkITable 
+                            (Cons (Cons False (Cons True Nil)) 
+                            (Cons (Cons True (Cons False Nil)) Nil)) 
+                            (Cons B (Cons O Nil)))) 
+!(assertEqual (filterTable (1) table1) 
+                    (mkITable 
+                            (Cons (Cons True (Cons True Nil)) 
+                            (Cons (Cons False (Cons False Nil)) Nil)) 
+                            (Cons A (Cons O Nil)))) 
+!(assertEqual (filterTable (0 1) table1) 
+                    (mkITable 
+                            (Cons (Cons True Nil)
+                            (Cons (Cons False Nil) Nil))
+                            (Cons O Nil)))
