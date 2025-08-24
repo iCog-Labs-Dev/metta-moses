@@ -4,7 +4,7 @@
 ;;                          -- -ve value means all interaction -- so make the calcualtions using the whole set
 ;;                          -- anything else requires computation of powerset(all possible subsets of a set) and finding the mutual information betweeen all the possible combinations in a nested loop simulated here with nested map-atom
 
-(= (mi $set1 $set2 $div-interaction (mkITable $table $lables))
+(= (mi $set1 $set2 $div-interaction (mkITable $table $labels))
     (if (< $div-interaction 0)
             (mutualInformationBtwSets $set1 $set2 (mkITable $table $labels))
             (let* (($sss (+ $div-interaction 1))

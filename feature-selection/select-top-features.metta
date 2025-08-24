@@ -5,11 +5,11 @@
 ;;          $sim-scorer     -- ja or mi
 ;;          $ft-sets        -- pop of feature set oreded by raw score
 ;;NOTe -- this implementation requires the feature sets to come with their MI score
-(= (selectTopFts $div-pres $div-interaction $multi-diversity $sim-scorer $ft-sets $nDeme)
+(= (selectTopFts (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $ft-sets $nDeme)
     (chain (size-atom $ft-sets) $fts-size 
         (chain (min-atom ($fts-size $nDeme)) $res-size 
             (if (> $div-pres 0)
-                (let $ranked-set (rankFtSet $div-pres $div-interaction $multi-diversity $sim-scorer $ft-sets ())
+                (let $ranked-set (rankFtSet (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $ft-sets ())
                     (takeN $res-size $ranked-set))
                 (let $ft-sets-less-score (map-atom $ft-sets $ft-set (second $ft-set)) (takeN $res-size $ft-sets-less-score)))))) ;; strip the scores off the feature sets
 
@@ -22,15 +22,15 @@
 ;;          $sim-scorer         -- type of the similarity scorer used -- either jaccard index or mutual information between sets
 ;;          $ft-sets            -- pop of featuresets returned by the feature selection procedure
 ;;          $acc                -- empty accumulator ()
-(= (rankFtSet $div-pres $div-interaction $multi-diversity $sim-scorer $ft-sets $acc)
+(= (rankFtSet (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $ft-sets $acc)
     ;; convert each feature set into composite scoreed set -- 
     (let $csc-ft-set 
         (map-atom $ft-sets $ft-set ((mkCscore (first $ft-set) (let $set (second $ft-set) (size-atom $set)) 0.0 0.0 (first $ft-set)) (second $ft-set)))
-            (rankIterator $div-pres $div-interaction $multi-diversity $sim-scorer $csc-ft-set $acc)))
+            (rankIterator (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $csc-ft-set $acc)))
 
-(= (rankIterator $div-pres $div-interaction $multi-diversity $sim-scorer $csc-ft-set $acc)
+(= (rankIterator (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $csc-ft-set $acc)
     (if (== $acc ())
-        (rankIterator $div-pres $div-interaction $multi-diversity $sim-scorer (cdr-atom $csc-ft-set) ((car-atom $csc-ft-set))) ;; add the first feature -- since this is the one with the best raw score
+        (rankIterator (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer (cdr-atom $csc-ft-set) ((car-atom $csc-ft-set))) ;; add the first feature -- since this is the one with the best raw score
         (if (== $csc-ft-set ())
             (map-atom $acc $a (second $a))          ;; return only the indices -- drop the score values
             (let* (($current-ft-set (car-atom $csc-ft-set))                 ;; current feature set under consideration (score set) pair
@@ -47,9 +47,9 @@
                     ($agg-dp (max-atom ($last-dp $current-unipen-score))) 
                     ($updated-uniPen-score (setUniPen $current-cscore $agg-dp)) 
                     ($updatd-pen-score (updatePenalizedScore $updated-uniPen-score $multi-diversity)) 
-                    ($new-acc (insertPair cScore>= ($updatd-pen-score $current-ft) $acc)))          ;; ordered insertion using the composite score
+                    ($new-acc (insertPair cScore>= ($updatd-pen-score $current-ft) $acc)))         ;; ordered insertion using the composite score
 
-                (rankIterator $div-pres $div-interaction $multi-diversity $sim-scorer (cdr-atom $csc-ft-set) $new-acc)))))
+                (rankIterator (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer (cdr-atom $csc-ft-set) $new-acc)))))
 
 
 ;; simToPen similarity to penality                    
