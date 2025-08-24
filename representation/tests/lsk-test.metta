@@ -47,7 +47,7 @@
     (mkLSK
     (mkDiscKnob
       (mkKnob
-        (mkNodeId (0 2)))
+        (mkNodeId (2)))
       (mkMultip 3)
       (mkDiscSpec 1)
       (mkDiscSpec 1)
