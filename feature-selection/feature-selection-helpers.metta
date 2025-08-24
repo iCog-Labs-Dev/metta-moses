@@ -295,5 +295,5 @@
         (let* (($filtered-data (Table.pop $h $table))
                 ($filtered-label (List.pop $h $labels)))
             
-            (filterTable $t (mkITable $filtered-data $filtered-label)))
+            (filterTable (map-atom $t $x (- $x 1)) (mkITable $filtered-data $filtered-label)))
         (mkITable $table $labels)))          
