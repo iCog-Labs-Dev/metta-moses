@@ -131,12 +131,12 @@
 
 (: sampleFromNeighborhood (-> Number Number KnobMap Instance (List Instance)))
 (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
-   (let* (
-      (() (println! (Inside sampleFromNeighborhood: $sampleSize $dist $inst)))
-      ($list (genList (- $sampleSize 1)))
-      ($x (map-atom $list $i (sampleFromNeighborhood` $i $dist $kbMp $inst)))
-    )
-    (exprToList $x)))
+      ( if (== (isPossibleSize $sampleSize $dist $inst) False)
+          (Error ("Cannot generate " $sampleSize " instances at distance " $dist " from " $inst) (Requested sample size too large))
+          (selectUnique () $sampleSize $dist $kbMp $inst)
+      )
+  
+)
 
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1
