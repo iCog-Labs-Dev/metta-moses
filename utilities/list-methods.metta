@@ -288,3 +288,11 @@
 (= (List.generate $length $element) 
 (if (> $length 0) 
     (Cons $element (List.generate (- $length 1) $element)) Nil))
+
+;; remove an element from List    
+(= (List.pop $i $list)
+	(unify $list Nil (Error $list EmptyList)
+		(unify $list (Cons $x $xs)
+			(if (== $i 0)
+				$xs
+				(chain (List.pop (- $i 1) $xs) $res (if-error $res (Cons $x Nil) (Cons $x $res)))))))    
