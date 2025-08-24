@@ -164,6 +164,44 @@
        )
    ) 
 
+   
+;; this function calculates factorial of a number which can be used in " isPossibleSize " function
+(: factorial (-> Number Number))
+(= (factorial $n) 
+(if (<= $n 1) 1 
+(* $n (factorial (- $n 1)
+))))
+
+;;  isPossibleSize: Calculates if the requested number of neighbors can be generated at a given distance from a center instance.
+;; Uses combinatorics: chooses $dist positions from instance length and counts variations based on knob multiplicity.
+;; Parameters:
+;;      $sampleSize: Number of instances to generate
+;;      $dist: Distance from the center
+;;      $inst: Center instance
+;; Returns: true if total neighbors ≥ $sampleSize, else false
+;; Formula: n! / ((n - d)! * d!) * m^d  (n = instance length, d = distance, m = knob multiplicity)
+
+(: isPossibleSize (-> Instance Number Number Bool))
+(= (isPossibleSize $sampleSize $dist $inst) 
+    
+            (let* (
+                ($list (cdr-atom $inst))
+                ; (() (println! (Inside isPossibleSize: $inst $dist $sampleSize)))
+                ($centralInst (car-atom $list))
+                ($instLen (List.length $centralInst))
+                ;  (() (println! (Instance Length: $instLen)))
+                ($n (factorial $instLen))
+                ($r (factorial (- $instLen $dist)))
+                ($d (factorial $dist))
+                ($m (pow-math 2 $dist))
+                ($maxNeighbors (/ $n (* $r $d)))
+                ($totalNeighbors (* $maxNeighbors $m))
+              ) 
+                (>= $totalNeighbors $sampleSize)
+                ; $totalNeighbors
+               
+           )
+)
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1
 ;;          inst1: (0 1 0 1), inst2: (0 0 0 0) => distance: 2
