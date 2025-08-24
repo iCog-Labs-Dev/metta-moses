@@ -45,6 +45,14 @@
         (unify $rows (Cons (Cons $d $ds) $rest)
             (Cons $ds (Table.pop $rest)))))
 
+;; returns the last column of the table
+(: Table.getOutputColumn (-> ITable (List $a)))
+(= (Table.getOutputColumn (mkITable $table $labels))
+    (chain (List.length $labels) $colNum 
+    (chain (Table.getColumn (- $colNum 1) $table) $oc   
+    $oc  ))
+)
+
 ;;;;;;;;;;;;;;
 ;; Transpose;;
 ;;;;;;;;;;;;;;
