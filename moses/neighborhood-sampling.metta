@@ -138,6 +138,32 @@
   
 )
 
+;; this function helps the 'sampleFromNeighborhood' function in which Recursively collects unique instances with identical Hamming distance.
+;;  and Terminates when sample size reaches zero, returning the final filtered list.
+
+(= selectunique (-> (List Expression) Number Number KnobMap Instance (List Instance)))
+(= (selectUnique $expr $n $dist $kbMp $inst)
+   (if (== $n 0)
+      (exprToList $expr)
+       (if (== $expr ())
+           (let $generatedFirst (sampleFromNeighborhood` $n $dist $kbMp $inst)
+                ( if (== $generatedFirst $inst)
+                    (selectUnique $expr $n $dist $kbMp $inst)
+                    (selectUnique ($generatedFirst) (- $n 1) $dist $kbMp $inst)
+                )
+           )
+           (let $generatedInstance (sampleFromNeighborhood` $n $dist $kbMp $inst)
+                           (if (isMember $generatedInstance $expr)
+                               (selectUnique $expr $n $dist $kbMp $inst)
+                               (selectUnique (concatT  ($generatedInstance) $expr )(- $n 1) $dist $kbMp $inst)
+                            )
+                   
+              )
+                
+           )  
+       )
+   ) 
+
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1
 ;;          inst1: (0 1 0 1), inst2: (0 0 0 0) => distance: 2
