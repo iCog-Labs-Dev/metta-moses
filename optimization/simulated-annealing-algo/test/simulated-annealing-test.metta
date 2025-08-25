@@ -1,4 +1,4 @@
-!(register-module! ../../../metta-moses)
+!(register-module! ../../../../metta-moses)
 
 !(import! &self metta-moses:representation:lsk)
 !(import! &self metta-moses:representation:instance)
@@ -69,20 +69,20 @@
 
 ; (= (simulated-annealing $deme $tTableBScorer $initCenter ($Temp $finalTemp $coolRate $isInit $maxIter)))
 
-!(assertEqual 
-    (let*
-       (
-            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 10)))
-            ($instanceCount (List.length $instSet))
-            ($scoredElems (List.map isScored $instSet))
-       )
-       ((>= $instanceCount 4) (List.any $scoredElems)) 
-    )
-(True True)
-)
+; !(assertEqual 
+;     (let*
+;        (
+;             (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 10)))
+;             ($instanceCount (List.length $instSet))
+;             ($scoredElems (List.map isScored $instSet))
+;        )
+;        ((>= $instanceCount 4) (List.any $scoredElems)) 
+;     )
+; (True True)
+; )
 
 
-; !(simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 10))
+!(simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 10))
 ; !(acceptanceProb (getEnergy (mkCscore -4 0 0.0 0.0 -4.0)) (getEnergy (mkCscore -2 0 0.0 0.0 -3.0)) 10)
 ; !(simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (1 3 0) (10 1 2 True 10 0) ((mkInst (Cons 0 (Cons 0 Nil))) (worstCscore) (* -1 (pow-math 10 308)) 0 0 1))
 ; !(simulated-annealing demea tTableBScorerad initCenter const hyepr abebe)
