@@ -66,6 +66,6 @@
 ;; takes tuple of pairs containing feaures and probability values of being included in deme creation 
 ;; sth like this ((A 0.4) (B 0.3) (C 0.73) ...)
 
-(= (sampleEnforcedFts $enforced-fts $labels)
+(= (sampleEnforcedFts $enforced-fts)
     (collapse (let $enforced-ft (superpose $enforced-fts)
-            (let $p (second $enforced-ft) (if (biasedRandBool $p) (let $ft (first $enforced-ft) (List.index $labels $ft)) (Empty))))))
+            (let $p (second $enforced-ft) (if (biasedRandBool $p) (first $enforced-ft) (Empty))))))
