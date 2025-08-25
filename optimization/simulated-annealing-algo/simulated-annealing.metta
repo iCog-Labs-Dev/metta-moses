@@ -352,7 +352,7 @@
 )
 
 (: simulated-annealing (-> Deme (TruthTableBScore $a) Instance $constParams $hyperParams $params (Instance Deme $state)))
-(= (simulated-annealing (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) $instSet $id) ;; $deme
+(= (simulated-annealing (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) $instSet $id) ;; $deme)
                          (mkTruthTableBScore $cpxCoeff $size $iTable) ;; $table
                          $initCenter
                          ($maxDist $minXoverNeighbors $bestPossibleScore) ;; $constParams

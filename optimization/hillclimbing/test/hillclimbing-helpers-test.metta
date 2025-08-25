@@ -227,12 +227,21 @@
 
    (True True))
 
-!(let*
+!(assertEqual (let*
      (
        (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
        ($instanceCount (List.length $instSet))
        ($scoredElems (List.map isScored $instSet))
      )
-     ($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state)
-     
-)
+     ((>= $instanceCount 4) (List.any $scoredElems)))
+
+   (True True))
+
+; !(let*
+;      (
+;        (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
+;        ($instanceCount (List.length $instSet))
+;        ($scoredElems (List.map isScored $instSet))
+;      )
+;      ($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) 
+; )
