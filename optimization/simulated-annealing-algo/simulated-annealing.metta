@@ -308,8 +308,9 @@
 ;; 8. decrement the max iterations
 ;; 9. repeat from step 1
 
+;; Calculates the difference between two composite scores.
 (= (cDelta $c1 $c2)
-  (let* 
+  (let*
     (
       (($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2)))
       ($pD (- $pl $pr))
