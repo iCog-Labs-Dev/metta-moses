@@ -72,7 +72,7 @@
 !(assertEqual 
     (let*
        (
-            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
+            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 10)))
             ($instanceCount (List.length $instSet))
             ($scoredElems (List.map isScored $instSet))
        )
