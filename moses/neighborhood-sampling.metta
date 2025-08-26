@@ -176,7 +176,7 @@
 ;;      $dist: Distance from the center
 ;;      $inst: Center instance
 ;; Returns: true if total neighbors ≥ $sampleSize, else false
-;; Formula: n! / ((n - d)! * d!) * m^d  ( where n = instance length, d = hamming distance, m = knob multiplicity)
+;; Formula: n! / ((n - d)! * d!) * (m-1)^d  ( where n = instance length, d = hamming distance, m = knob multiplicity)
 
 (: isPossibleSize (-> Instance Number Number Bool))
 (= (isPossibleSize $sampleSize $dist $inst) 
@@ -190,7 +190,7 @@
                 ($n (factorial $instLen))
                 ($r (factorial (- $instLen $dist)))
                 ($d (factorial $dist))
-                ($m (pow-math 2 $dist))
+                ($m (pow-math 2 $dist)) ; assuming knob multiplicty is 3, so m-1 = 1, hence m = 2 that is why (pow-math 2 $dist)
                 ($maxNeighbors (/ $n (* $r $d)))
                 ($totalNeighbors (* $maxNeighbors $m))
               ) 
