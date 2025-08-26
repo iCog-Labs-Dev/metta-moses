@@ -142,20 +142,17 @@
 ;;  and Terminates when sample size reaches zero, returning the final filtered list.
 
 (= selectunique (-> (List Expression) Number Number KnobMap Instance (List Instance)))
-(= (selectUnique $expr $n $dist $kbMp $inst)
-   (if (== $n 0)
+(= (selectUnique $expr $sampleSize $dist $kbMp $inst)
+   (if (== $sampleSize 0)
       (exprToList $expr)
        (if (== $expr ())
-           (let $generatedFirst (sampleFromNeighborhood` $n $dist $kbMp $inst)
-                ( if (== $generatedFirst $inst)
-                    (selectUnique $expr $n $dist $kbMp $inst)
-                    (selectUnique ($generatedFirst) (- $n 1) $dist $kbMp $inst)
-                )
+           (let $generatedFirst (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)  
+                    (selectUnique ($generatedFirst) (- $sampleSize 1) $dist $kbMp $inst)
            )
-           (let $generatedInstance (sampleFromNeighborhood` $n $dist $kbMp $inst)
+           (let $generatedInstance (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)
                            (if (isMember $generatedInstance $expr)
-                               (selectUnique $expr $n $dist $kbMp $inst)
-                               (selectUnique (concatT  ($generatedInstance) $expr )(- $n 1) $dist $kbMp $inst)
+                               (selectUnique $expr $sampleSize $dist $kbMp $inst)
+                               (selectUnique (concatT  ($generatedInstance) $expr )(- $sampleSize 1) $dist $kbMp $inst)
                             )
                    
               )
@@ -179,7 +176,7 @@
 ;;      $dist: Distance from the center
 ;;      $inst: Center instance
 ;; Returns: true if total neighbors ≥ $sampleSize, else false
-;; Formula: n! / ((n - d)! * d!) * m^d  (n = instance length, d = distance, m = knob multiplicity)
+;; Formula: n! / ((n - d)! * d!) * m^d  ( where n = instance length, d = hamming distance, m = knob multiplicity)
 
 (: isPossibleSize (-> Instance Number Number Bool))
 (= (isPossibleSize $sampleSize $dist $inst) 
