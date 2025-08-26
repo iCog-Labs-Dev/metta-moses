@@ -45,23 +45,20 @@
 ;; Returns: (OS Number) → OrderedSet of relevant feature indices
 (: filterRelevantCombinations (-> ITable (OS Expression) Number (OS Number) (OS Number)))
 (= (filterRelevantCombinations $itable $combinations $threshold $resultSet)
-       (unify $combinations NilOS $resultSet
-            (unify $combinations (ConsOS $combo $rest)
-                (chain (expressionToOS $combo NilOS) $comboOS
-                    (chain (calculateMutualInformation $itable $comboOS) $mutualInfo
-                        (if (> $mutualInfo $threshold)
-                            ;; Add all indices from this relevant combination
-                            (chain (OS.union $resultSet $comboOS) $newResultSet
-                                (filterRelevantCombinations $itable $rest $threshold $newResultSet)
-                            )
-                            ;; Skip this combination
-                            (filterRelevantCombinations $itable $rest $threshold $resultSet)
-                        )
-                    )
-                )
-            )
-        )
+   (unify $combinations NilOS
+     $resultSet
+     (unify $combinations (ConsOS $combo $rest)
+       (chain (expressionToOS $combo NilOS) $comboOS
+         (chain (calculateMutualInformation $itable $comboOS) $mutualInfo
+           (if (> $mutualInfo $threshold)
+             (chain (OS.union $resultSet $comboOS) $newResultSet
+               (filterRelevantCombinations $itable $rest $threshold $newResultSet))
+             (filterRelevantCombinations $itable $rest $threshold $resultSet))))
+       ;;  fallback
+       $resultSet)
+    )
 )
+
 
 ;; Purpose: Find best subset with highest MI score
 ;; Parameters:
@@ -70,21 +67,21 @@
 ;;   $currentBest (Expression) → Current best subset
 ;;   $currentScore (Number) → Current best score
 ;; Returns: (List Expression) → (best-subset best-score)
+(: findBestSubset (-> ITable (OS Expression) Expression Number (List Expression)))
 (= (findBestSubset $itable $subsetCombinations $currentBest $currentScore)
-    (unify $subsetCombinations NilOS (Cons $currentBest (Cons $currentScore Nil))
-        (unify $subsetCombinations (ConsOS $subset $rest)
-            (chain (expressionToOS $subset NilOS) $subsetOS
-                (chain (calculateMutualInformation $itable $subsetOS) $score
-                    (if (> $score $currentScore)
-                        (findBestSubset $itable $rest $subset $score)
-                        (findBestSubset $itable $rest $currentBest $currentScore)
-                    )
-                )
-            )
-        )
+   (unify $subsetCombinations NilOS
+     (Cons $currentBest (Cons $currentScore Nil))
+     (unify $subsetCombinations (ConsOS $subset $rest)
+       (chain (expressionToOS $subset NilOS) $subsetOS
+         (chain (calculateMutualInformation $itable $subsetOS) $score
+           (if (> $score $currentScore)
+             (findBestSubset $itable $rest $subset $score)
+             (findBestSubset $itable $rest $currentBest $currentScore))))
+       ;; fallback
+       (Cons $currentBest (Cons $currentScore Nil))
+     )
     )
 )
-
 ;; Purpose: Find redundant features using subset search
 ;; Parameters:
 ;;   $itable (ITable) → Input table
