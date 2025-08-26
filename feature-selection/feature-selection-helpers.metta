@@ -317,14 +317,14 @@
               ($new  (collapse 
                        (let $subset (superpose $ps)
                          (let $el (superpose $set)
-                           (if (== (isMember $el $subset) False)
+                           (if (not (isMember $el $subset))
                                (cons-atom $el $subset)
                                (empty)))
                         )
                     )
                 )
               ($filteredNew (featureSet $new ()))
-              ($res  (if (== $exact False)
+              ($res  (if (not $exact)
                         (union-atom  $filteredNew $ps)
                         $filteredNew
                     )
