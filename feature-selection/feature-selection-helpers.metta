@@ -283,9 +283,9 @@
 ;;   $expr (Expression) → Expression containing potentially duplicate sub-expressions
 ;;   $acc (Expression) → Accumulator for unique expressions
 ;; Returns: (Expression) → Expression with duplicates removed
-;; Example: (featureSet ((A B) (B A) (C D)) ()) → ((A B) (C D))
-(: featureSet (-> Expression Expression Expression))
-(= (featureSet $expr $acc)
+;; Example: (set ((A B) (B A) (C D)) ()) → ((A B) (C D))
+(: set (-> Expression Expression Expression))
+(= (set $expr $acc)
     (if-decons-expr $expr $h $t
         (let $carry (union-atom $acc ($h))
             (let $rest (collapse 
@@ -293,7 +293,7 @@
                     (if (isEqual $h-s $h)
                         (Empty)
                         $h-s))) 
-                (featureSet $rest $carry)
+                (set $rest $carry)
             )
         )
         $acc
@@ -323,7 +323,7 @@
                         )
                     )
                 )
-              ($filteredNew (featureSet $new ()))
+              ($filteredNew (set $new ()))
               ($res  (if (not $exact)
                         (union-atom  $filteredNew $ps)
                         $filteredNew

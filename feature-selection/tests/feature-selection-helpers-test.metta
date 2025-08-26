@@ -112,11 +112,11 @@
 ! (assertEqual (logMath 10 1000)  3)
 
 ;; test for incremental selection Utility functions
-! (assertEqual  (featureSet ((A B) (B A) (C D)) ())  ((A B) (C D)))
-! (assertEqual  (featureSet ((X Y) (Z W)) ()) ((X Y) (Z W)))
-! (assertEqual (featureSet ((A B)) ()) ((A B)))
-! (assertEqual  (featureSet () ())  ())
-! (assertEqual (featureSet ((A A) (A A) (A A)) ()) ((A A)))
+! (assertEqual  (set ((A B) (B A) (C D)) ())  ((A B) (C D)))
+! (assertEqual  (set ((X Y) (Z W)) ()) ((X Y) (Z W)))
+! (assertEqual (set ((A B)) ()) ((A B)))
+! (assertEqual  (set () ())  ())
+! (assertEqual (set ((A A) (A A) (A A)) ()) ((A A)))
 
 ;; powerset test
 ! (assertEqual (powerSet (0 1 2) 0 True) (()))
