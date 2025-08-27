@@ -111,9 +111,8 @@
                   (let* (
                     ($selectedIndices (lazyRandomSelector 0 (- $instLen 1) $cappedDist))
                     ($updatedInst (foldl-atom $selectedIndices $centralInst $updated $rand (updatedInstFs $rand $updated)))
-                    ($inst (mkInst $updatedInst))
                   )
-                  $inst) 
+                  (mkInst $updatedInst)) 
                   (Error ($featureLen $instLen) "Not Equal"))))
 ;; This is a helper function for sfn (sampling from neighborhood) that updates the 
 ;; central instance.
