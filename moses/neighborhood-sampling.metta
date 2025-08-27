@@ -131,10 +131,10 @@
             ($curSpec (List.getByIdx $newInst $rand))
             ($upper (- $multi 1))
             ($randomSpec (+ (random-int &rng 0 $upper) 1))
-            ($updatedInst (if (== $randomSpec $curSpec)
+          )
+          (if (== $randomSpec $curSpec)
                               (List.replaceAt $newInst $rand 0)
                               (List.replaceAt $newInst $rand $randomSpec))))
-          $updatedInst))
 
 ;; similar to the above 'updateInst' with slight change on the range of the randomSpec to make it work for the feature selection
 (: updatedInstFs (-> Number Instance Instance))
@@ -143,10 +143,10 @@
           (
             ($curSpec (List.getByIdx $newInst $rand))
             ($randomSpec (+ (random-int &rng 0 1) 1))
-            ($updatedInst (if (== $randomSpec $curSpec)
+          )
+          (if (== $randomSpec $curSpec)
                               (List.replaceAt $newInst $rand 0)
                               (List.replaceAt $newInst $rand $randomSpec))))
-          $updatedInst))
 
 ;; This function is Pre and post-processor function for sampleFromNeighborhood` 
 ;; to achive not-deterministic approach. It generates a list with the size of $sampleSize 
