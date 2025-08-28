@@ -121,12 +121,7 @@
 
 ; Testcase for estimateNeighborhoodFs
 !(assertEqual
-  (estimateNeighborhoodFs 3 (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil))))) 4)
+  (estimateNeighborhoodFs 3 (Cons A (Cons B (Cons O Nil)))) 4)
 
 ; Testcase for countNeighborhoodFs
 !(assertEqual (countNeighborhoodFs (Cons 1 (Cons 0 (Cons 1 Nil))) 2 20) 3)
