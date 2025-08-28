@@ -10,8 +10,8 @@
 
 ;; feature selection version of the informationTheoreticBits function
 ;; In the case of feature selection, the information theoretic bits is simply the number of features we have
-(: informationTheoreticBitsFs (-> ITable Number))
-(= (informationTheoreticBitsFs (mkITable (Cons $row $rows) $labels))
+(: informationTheoreticBitsFs (-> (List Symbol) Number))
+(= (informationTheoreticBitsFs $labels)
    (- (List.length $labels) 1))
 
 ;; Verbatim port of the Estimate neighborhood function from c++
@@ -25,11 +25,11 @@
        (let $nnEstimate (informationTheoreticBits $knobMap) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
 
 ;; similar to the above 'estimateNeighborhood' but this one uses the informationTheoreticBitsFs which is for feature selection
-(: estimateNeighborhoodFs (-> Number ITable Number))
-(= (estimateNeighborhoodFs $distance $itable)
+(: estimateNeighborhoodFs (-> Number (ITable Bool) Number))
+(= (estimateNeighborhoodFs $distance (mkITable $rows $labels))
    (if (== $distance 0)
        1
-       (let $nnEstimate (informationTheoreticBitsFs $itable) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
+       (let $nnEstimate (informationTheoreticBitsFs $labels) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
 
 ;; Counts the number of instances at a specific distance from a given instance.
 ;; Params:
@@ -240,14 +240,14 @@
 
 
 ;; hillclimbing implementation for feature selection
-(: hillClimbingFs (-> (InstanceSet $a) (TruthTableBScore $a) Instance (Instance (InstanceSet $a) $state)))
-(= (hillClimbingFs $deme $tTableBscorer $centerInst) (hillClimbingFs (3 3 1) (False False False $centerInst 0 0 0 0 1) $deme $tTableBscorer $centerInst))
+(: hillClimbingFs (-> (InstanceSet $a) (ITable Bool) Instance (Instance (InstanceSet $a) $state)))
+(= (hillClimbingFs $instSet $iTable $centerInst) (hillClimbingFs (3 3 1) (False False False $centerInst 0 0 0 0 1) $instSet $iTable $centerInst))
 
-(: hillClimbingFs (-> $params $state (InstanceSet $a) (TruthTableBScore $a) Instance (Instance (InstanceSet $a) $state)))
+(: hillClimbingFs (-> $params $state (InstanceSet $a) (ITable Bool) Instance (Instance (InstanceSet $a) $state)))
 (= (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
-                 ($alreadyXover $lastChance $_ $prevCenter $bestCscore $bestScore $currentNInstances $d $i) ;; Mutable states
+                 ($alreadyXover $lastChance $_ $prevCenter $bestMIscore $bestScore $currentNInstances $d $i) ;; Mutable states
                  $instSet
-                 (mkTruthTableBScore $cpxCoeff $size $iTable) ;; Input table scorer
+                 $iTable ;; Input table 
                  $centerInst) ;; Center instance or init instance
    (let*
       (
@@ -288,7 +288,7 @@
 
         ;;;;;;;;;;;; RIGHT HERE THE CODE CRASHES for feature selection
         ;;;;;;;;;;;; I DON'T KNOW WHY
-        ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $centerInst $bestCscore)) $scoredInstances))
+        ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $centerInst $bestMIscore)) $scoredInstances))
 
         ($newBestScore (Pair.second $newBestInstPair)) ;; This could be the original best candidate or a new one.
         ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
@@ -315,7 +315,7 @@
                                   (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
                                                 ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i)) ;; Updated state
                                                 $updatedDeme
-                                                (mkTruthTableBScore $cpxCoeff $size $iTable)
+                                                $iTable
                                                 $nextCenterInst)
                                   ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
 
@@ -336,7 +336,7 @@
                 (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
                               ($newXover True $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI)) ;; Updated state
                               $newDeme
-                              (mkTruthTableBScore $cpxCoeff $size $iTable)
+                              $iTable
                               $newCenter)
                 (trace! (Continue to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))) )
 
@@ -345,6 +345,6 @@
                 (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
                               ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
                               $finalDeme
-                              (mkTruthTableBScore $cpxCoeff $size $iTable)
+                              $iTable
                               $finalCenter))))
                             ))
