@@ -111,12 +111,7 @@
 
 ; Testcase for informationTheoreticBitsFs
 !(assertEqual
-  (informationTheoreticBitsFs (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil))))) 2)
+  (informationTheoreticBitsFs (Cons A (Cons B (Cons O Nil)))) 2)
 
 ;; Testing estimateNeighborhood on the above knob maps
 !(assertEqual (estimateNeighborhood 0 knobmap1) 1)
@@ -197,33 +192,42 @@
                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
                          (Cons A (Cons B (Cons O Nil))))))
 
+!(bind! itable (mkITable
+                         (Cons (Cons False (Cons False (Cons False Nil))) 
+                         (Cons (Cons True (Cons False (Cons False Nil))) 
+                         (Cons (Cons False (Cons True (Cons False Nil)))
+                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+                         (Cons A (Cons B (Cons O Nil)))))
+
 (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
 (: isScoredFs (-> (ScoredInstance Cscore) Bool))
 (= (isScoredFs (mkSInst (mkPair $instance $score))) (~= $score 0))
 
+;;;;;; Testcase for hillClimbing for deme optimization
+! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
+!(assertEqual
+   (let*
+     (
+       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
+       ($instanceCount (List.length $instSet))
+       ($scoredElems (List.map isScored $instSet))
+     )
+     ((>= $instanceCount 4) (List.any $scoredElems)))
 
-; ! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
-; !(assertEqual
-;    (let*
-;      (
-;        (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
-;        ($instanceCount (List.length $instSet))
-;        ($scoredElems (List.map isScored $instSet))
-;      )
-;      ((>= $instanceCount 4) (List.any $scoredElems)))
+   (True True))
 
-;    (True True))
 
-; ! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
-; !(assertEqual
-;    (let*
-;      (
-;        (($instance (mkSInstSet $instSet) $state) (hillClimbingFs (mkSInstSet Nil) table (mkInst (Cons 1 (Cons 0 Nil)))))
-;        ($instanceCount (List.length $instSet))
-;        ($scoredElems (List.map isScored $instSet))
-;      )
-;      ((>= $instanceCount 4) (List.any $scoredElems)))
+;;;;;;; Testcase for hillClimbing for feature selection
+! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
+!(assertEqual
+   (let*
+     (
+       (($instance (mkSInstSet $instSet) $state) (hillClimbingFs (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil)))))
+       ($instanceCount (List.length $instSet))
+       ($scoredElems (List.map isScored $instSet))
+     )
+     ((>= $instanceCount 4) (List.any $scoredElems)))
 
-;    (True True))
+   (True True))
