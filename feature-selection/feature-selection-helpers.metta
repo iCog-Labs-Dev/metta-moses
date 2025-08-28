@@ -36,7 +36,7 @@
         (unify $rows (Cons (Cons $d $ds) $rest)  ;; $d and $ds for data and rest of data
             (if (== $i 0)
                 (Cons $ds (Table.pop $i $rest))
-                (Cons (Cons $d (List.pop (- $i 1) $ds)) (Table.pop $i $rest))))))
+                (Cons (Cons $d (List.pop (- $i 1) $ds)) (Table.pop $i $rest))) ())))
 ; ;; removes the first column from table
 ; (: Table.pop (-> (List (List $a)) (List (List $a))))
 ; (= (Table.pop $rows)
@@ -72,11 +72,11 @@
 ;; Transpose;;
 ;;;;;;;;;;;;;;
 
-(: List.head (-> (List $a) $a))
-(= (List.head $list)
-    (unify $list 
-        Nil (Error "Empty list has no head")
-        (unify $list (Cons $h $t) $h ())))
+;;(: List.head (-> (List $a) $a))
+;;(= (List.head $list)
+;;    (unify $list 
+;;        Nil (Error "Empty list has no head")
+;;        (unify $list (Cons $h $t) $h ())))
 
 (: List.range (-> Number Number (List Number))) ;; inclusive start, exclusive end
 (= (List.range $start $end)
@@ -321,3 +321,17 @@
 (= (fsToNames $labels $ft-indices)
 	(collapse (chain (superpose $ft-indices) $ft 
 		(List.at $ft $labels))))                
+
+;; readjustIndices  -- when a table is filtered based on requirements in filter selection when, for example, exemplar features are required to be ignored,
+;;                  -- the returned index values no longer refer to the original table which is kept for reference in subsequent steps
+;;                  -- so unless the indices are readjusted to the orginal labels list, the will be referring to the filtered labels 
+;;                  $ft-set-pop         -- pop of selected features as (score feature-set) pairs
+;;                  $filtered-labels    -- filtered table labels
+;;                  $original-labels    -- original table labels
+(= (readjustIndices $ft-set-pop $filtered-labels $original-labels)
+    (map-atom $ft-set-pop $ft-set
+                            (let* ((($score $indices) ((first $ft-set) (second $ft-set)))
+                                    ($shifted-labels (map-atom $indices $index (List.at $index $filtered-labels)))
+                                    ($adjusted-indices (map-atom $shifted-labels $label (List.index $original-labels $label))))
+                                    
+                                        ($score $adjusted-indices))))        

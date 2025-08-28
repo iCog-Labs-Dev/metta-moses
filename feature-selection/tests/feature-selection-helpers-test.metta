@@ -170,3 +170,8 @@
 
 ! (assertEqual (fsToNames (Cons A (Cons B (Cons C Nil))) (1)) (B))
 ! (assertEqual (fsToNames (Cons A (Cons B (Cons C Nil))) ()) ())
+
+!(assertEqual (readjustIndices ((0.9 (0 2))) (Cons A (Cons B (Cons C (Cons D Nil)))) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.9 (0 2))))
+!(assertEqual (readjustIndices ((0.8 (0 1))) (Cons A (Cons C Nil)) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.8 (0 2))))
+!(assertEqual (readjustIndices ((0.6 (0 2)) (0.4 (1))) (Cons B (Cons C (Cons D Nil))) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.6 (1 3)) (0.4 (2))))
+!(assertEqual (readjustIndices ((0.4 (1)) (0.5 (1 2))) (Cons A (Cons C (Cons D Nil))) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.4 (2)) (0.5 (2 3))))
