@@ -25,8 +25,8 @@
        (let $nnEstimate (informationTheoreticBits $knobMap) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
 
 ;; similar to the above 'estimateNeighborhood' but this one uses the informationTheoreticBitsFs which is for feature selection
-(: estimateNeighborhoodFs (-> Number (ITable Bool) Number))
-(= (estimateNeighborhoodFs $distance (mkITable $rows $labels))
+(: estimateNeighborhoodFs (-> Number (List Symbol) Number))
+(= (estimateNeighborhoodFs $distance $labels)
    (if (== $distance 0)
        1
        (let $nnEstimate (informationTheoreticBitsFs $labels) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
@@ -247,14 +247,14 @@
 (= (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
                  ($alreadyXover $lastChance $_ $prevCenter $bestMIscore $bestScore $currentNInstances $d $i) ;; Mutable states
                  $instSet
-                 $iTable ;; Input table 
+                 (mkITable $rows $labels) ;; Input table 
                  $centerInst) ;; Center instance or init instance
    (let*
       (
         (() (println! (Iteration $i running)))
         (() (println! ""))
 
-        ($totalNNeighbors (estimateNeighborhoodFs $d $iTable))
+        ($totalNNeighbors (estimateNeighborhoodFs $d $labels))
 
         (() (println! (Estimated neighbors: $totalNNeighbors)))
         (() (println! ""))
@@ -271,12 +271,12 @@
         (() (println! (Crossover: $xOver)))
         (($updatedInstSet $newInstances) (if $xOver
                                                                (crossoverFs $currentNInstances $nNewNeighbors $prevCenter $instSet)
-                                                               (sampleNewInstancesFs $totalNNeighbors $nNewNeighbors $prevCenter $iTable $instSet $d)))
+                                                               (sampleNewInstancesFs $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rows $labels) $instSet $d)))
         (() (println! (Newinstances: $updatedInstSet)))
         (() (println! ""))
 
         ;; Score all demes in the instance set.
-        ((mkSInstSet $scoredInstances) (transformFs $updatedInstSet $iTable))
+        ((mkSInstSet $scoredInstances) (transformFs $updatedInstSet (mkITable $rows $labels)))
 
         ($updatedDeme (mkSInstSet $scoredInstances))
 
@@ -315,7 +315,7 @@
                                   (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
                                                 ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i)) ;; Updated state
                                                 $updatedDeme
-                                                $iTable
+                                                (mkITable $rows $labels)
                                                 $nextCenterInst)
                                   ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
 
@@ -336,7 +336,7 @@
                 (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
                               ($newXover True $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI)) ;; Updated state
                               $newDeme
-                              $iTable
+                              (mkITable $rows $labels)
                               $newCenter)
                 (trace! (Continue to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))) )
 
@@ -345,6 +345,6 @@
                 (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
                               ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
                               $finalDeme
-                              $iTable
+                              (mkITable $rows $labels)
                               $finalCenter))))
                             ))
