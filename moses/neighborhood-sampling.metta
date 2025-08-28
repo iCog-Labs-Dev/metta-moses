@@ -110,7 +110,7 @@
               (if (== $featureLen $instLen) 
                   (let* (
                     ($selectedIndices (lazyRandomSelector 0 (- $instLen 1) $cappedDist))
-                    ($updatedInst (foldl-atom $selectedIndices $centralInst $updated $rand (updatedInstFs $rand $updated)))
+                    ($updatedInst (foldl-atom $selectedIndices $centralInst $updated $rand (updateInstFs $rand $updated)))
                   )
                   (mkInst $updatedInst)) 
                   (Error ($featureLen $instLen) "Not Equal"))))
@@ -137,8 +137,8 @@
                               (List.replaceAt $newInst $rand $randomSpec))))
 
 ;; similar to the above 'updateInst' with slight change on the range of the randomSpec to make it work for the feature selection
-(: updatedInstFs (-> Number Instance Instance))
-(= (updatedInstFs $rand $newInst)
+(: updateInstFs (-> Number Instance Instance))
+(= (updateInstFs $rand $newInst)
         (let*
           (
             ($curSpec (List.getByIdx $newInst $rand))
