@@ -91,10 +91,10 @@
 ;; Get the index of a key value pair given a key
 (: Map.find (-> (Map ($k $v)) $k Number))
 (= (Map.find NilMap $k) -1)
-(= (Map.find (ConsMap ($k $v) $xs) $k')
-   (if (== $k $k')
+(= (Map.find (ConsMap ($curKey $curVal) $xs) $k')
+   (if (== $curKey $k')
        0
-       (chain (Map.find $xs $k'' ) $targetIdx
+       (chain (Map.find $xs $k') $targetIdx
                       (if (== $targetIdx -1)
                           $targetIdx
                           (+ 1 $targetIdx)))))
