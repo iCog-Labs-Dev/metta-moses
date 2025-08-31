@@ -34,37 +34,3 @@
 			($uni (union-atom $s1 $s2)))
 		
 		(/ (size-atom $comm) (size-atom $uni))))
-
-;; tupleSet -- changes tuple tuples into set of tuples -- removes duplicates            
-(: tupleSet (-> Expression Expression Expression))
-(= (tupleSet $expr $acc)
-    (if-decons-expr $expr $h $t
-        (let $carry (union-atom $acc ($h))
-            (let $rest (collapse 
-                (let $h-s (superpose $t)
-                    (if (isEqual $h-s $h)
-                        (Empty)
-                        $h-s))) 
-                (tupleSet $rest $carry)))
-        $acc))             
-
-;; powerset -- generates all the subsets of $set including 
-;;          -- $n number of interaction
-;;          -- $exact bool indicating whether to generate all combinations or just the exact number of interaction set sizes only True -- means exactly that amount False -- all combinations
-
-(: powerSet (-> Expression Number Bool Expression))
-(= (powerSet $set $n $exact)
-   (if (== $n 0)
-       (()) 
-       (let* (($ps (powerSet $set (- $n 1) $exact))
-              ($new (collapse 
-                       (let $subset (superpose $ps)
-                         (let $el (superpose $set)
-                           (if (== (isMember $el $subset) False)
-                               (cons-atom $el $subset)
-                               (Empty))))))
-              ($filteredNew (tupleSet $new ()))
-              ($res  (if (== $exact False)
-                        (union-atom $filteredNew $ps)
-                        $filteredNew)))
-             $res )))        
