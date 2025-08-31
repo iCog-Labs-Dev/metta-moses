@@ -2,7 +2,7 @@
 ;; Univariate Optimization (translated from moses/moses/optimization/univariate.cc)
 ;; ================================================================================
 ;;
-;; ASCII overview
+;; 
 ;; - Inputs: Deme, Center instance, TruthTableBScore
 ;; - Loop steps:
 ;;   1. Estimate neighborhood size from Deme
@@ -33,34 +33,69 @@
        (
          (() (println! (Entering univariate with center: $centerInst)))
          ((mkTruthTableBScore $cpxCoeff $size $iTable) $tTableBscorer)
-         ((mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) (mkSInstSet $instSet) $id) $deme)
-         ($maxGens (max 1 (MultiMap.length $disc)))
+         (() (println! (Deme: $deme)))
+         ((mkDeme $rep (mkSInstSet $instSet) $id) $deme)
+         (() (println! (Rep: $rep)))
+         (() (println! (About to call getDiscMap)))
+         ($discMap (getDiscMap $rep))
+         (() (println! (getDiscMap returned: $discMap)))
+         (() (println! (About to call MultiMap.length on: $discMap)))
+         ($discMapLength (MultiMap.length $discMap))
+         (() (println! (MultiMap.length returned: $discMapLength)))
+         ($maxGens (max 1 $discMapLength))
+         (() (println! (Max generations: $maxGens)))
        )
        (univariateLoop $deme $cpxCoeff $iTable $centerInst 0 $maxGens)
    ))
 
 ; (: univariateLoop (-> Deme Number (ITable $a) Instance Number Number (Instance Deme $state)))
-(= (univariateLoop (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) (mkSInstSet $instSet) $id)
+(= (univariateLoop (mkDeme $rep (mkSInstSet $instSet) $id)
                     $cpxCoeff $iTable $centerInst $gen $maxGens)
    (if (>= $gen $maxGens)
-       ($centerInst (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) (mkSInstSet $instSet) $id) ())
-       (let*
-           (
+       (let* (
+         (() (println! (Reached max generations: $gen)))
+         ($result ($centerInst (mkDeme $rep (mkSInstSet $instSet) $id) ()))
+       )
+       $result)
+       (let* (
              (() (println! (Univariate loop gen: $gen)))
-             ($totalNeighbors (estimateNeighborhood 1 $disc))
+             (() (println! (Total neighbors: $totalNeighbors)))
+             ($totalNeighbors (estimateNeighborhood 1 (getDiscMap $rep)))
              ($nNew (min $totalNeighbors 3))
-             (((mkDeme (mkRep $repKb $repTree) (mkSInstSet $insts1) $id1) $added)
-                 (sampleNewInstances $totalNeighbors $nNew $centerInst (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) (mkSInstSet $instSet) $id) 1))
-             ((mkSInstSet $scored) (transform (mkSInstSet $insts1) $repKb $iTable $cpxCoeff))
-             ($demeScored (mkDeme (mkRep $repKb $repTree) (mkSInstSet $scored) $id1))
+             (() (println! (nNew: $nNew)))
+             (() (println! (About to call sampleNewInstances)))
+             (($demeWithNewInsts $added) (sampleNewInstances $totalNeighbors $nNew $centerInst (mkDeme $rep (mkSInstSet $instSet) $id) 1))
+             (() (println! (sampleNewInstances returned: $demeWithNewInsts $added)))
+             (() (println! (About to use deme directly: $demeWithNewInsts)))
+             (() (println! (About to call transform)))
+             ((mkSInstSet $scored) (transform (getInstanceSet $demeWithNewInsts) (getRep $demeWithNewInsts) $iTable $cpxCoeff))
+             (() (println! (Transform returned: $scored)))
+             ($demeScored (mkDeme (getRep $demeWithNewInsts) (mkSInstSet $scored) (getDemeId $demeWithNewInsts)))
+             (() (println! (About to call returnBest)))
              ((mkSInst $bestPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $centerInst (worstCscore))) $scored))
+             (() (println! (returnBest returned: $bestPair)))
              ($nextCenter (Pair.first $bestPair))
+             (() (println! (Next center: $nextCenter)))
            )
            (univariateLoop $demeScored $cpxCoeff $iTable $nextCenter (+ $gen 1) $maxGens)
+        )
        )
-   ))
+   )
 
-;; Public entrypoint, mirrors univariate_optimization::operator()
-;; (Removed scaffolded evolve/population utilities; univariate operates on Deme/Instance only.)
+;; Helper function to extract the discrete map from a representation
+(: getDiscMap (-> Representation (MultiMap (DiscSpec $knob))))
+(= (getDiscMap (mkRep (mkKbMap $dscKbMp $dscMp) $tree)) (extractMultiMap $dscMp))
 
+;; Helper function to extract MultiMap from DiscMap
+(: extractMultiMap (-> DiscMap (MultiMap (DiscSpec $knob))))
+(= (extractMultiMap (mkDscMp $multiMap)) $multiMap)
 
+;; Helper functions to extract components from a deme
+(: getRep (-> Deme Representation))
+(= (getRep (mkDeme $rep $instSet $id)) $rep)
+
+(: getInstanceSet (-> Deme (InstanceSet $score)))
+(= (getInstanceSet (mkDeme $rep $instSet $id)) $instSet)
+
+(: getDemeId (-> Deme DemeId))
+(= (getDemeId (mkDeme $rep $instSet $id)) $id)

@@ -4,6 +4,11 @@
 !(import! &self metta-moses:representation:representation)
 !(import! &self metta-moses:representation:knob-representation)
 !(import! &self metta-moses:representation:create-representation)
+!(import! &self metta-moses:representation:sample-logical-perms)
+!(import! &self metta-moses:representation:build-knobs)
+!(import! &self metta-moses:representation:build-logical)
+!(import! &self metta-moses:representation:add-logical-knobs)
+!(import! &self metta-moses:representation:logical-probe)
 
 !(import! &self metta-moses:utilities:map)
 !(import! &self metta-moses:utilities:tree)
@@ -24,15 +29,15 @@
 !(import! &self metta-moses:moses:neighborhood-sampling)
 !(import! &self metta-moses:optimization/univariate:un)
 
-;; Build a minimal Deme like hillclimbing tests
-
-!(bind! deme (mkDeme (mkRep (mkKbMap
-  (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) NilMap))
-  (mkDscMp (ConsMMap ((mkDiscSpec 1) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap))) (mkTree (mkNodeId (1)) Nil)) (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 Nil)) (worstCscore))) Nil)) 0))
+!(bind! deme (mkDeme (mkRep 
+  (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) NilMap))
+  (mkDscMp (ConsMMap ((mkDiscSpec 1) (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)) NilMMap)))
+  (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))
+) (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 Nil)) (worstCscore))) Nil)) 0))
 
 ;; Truth table based scorer object
 !(bind! ttb
-  (createTruthTableBScore 0.1
+  (createTruthTableBScore 3.5
     (mkITable
       (Cons (Cons False (Cons False (Cons False Nil)))
       (Cons (Cons True  (Cons False (Cons False Nil)))
@@ -43,7 +48,5 @@
 ;; Center instance
 !(bind! center (mkInst (Cons 0 Nil)))
 
-;; Run univariate optimizer
-!(univariate deme ttb center)
 
-
+!(assertEqual (univariate deme ttb center) ((mkInst (Cons 0 Nil)) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) NilMap)) (mkDscMp (ConsMMap ((mkDiscSpec 1) (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)) NilMMap))) (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))) (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore -4 20 5.7142857142857135 0.0 -9.714285714285714))) (Cons (mkSInst (mkPair (mkInst (Cons 2 Nil)) (mkCscore -4 20 5.7142857142857135 0.0 -9.714285714285714))) (Cons (mkSInst (mkPair (mkInst (Cons 0 Nil)) (mkCscore -4 20 5.7142857142857135 0.0 -9.714285714285714))) Nil)))) 0) ()))
