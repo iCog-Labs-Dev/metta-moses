@@ -145,7 +145,7 @@
               ; ($isAccepted (or (< $newEnergy $energy) (< $randomFloat $acceptanceProb)))
               
               (() (println! (Is accepted: $isAccepted)))
-              (() (println! ($newInstances)))
+              (() (println! (New instances: $newInstances)))
               (() (println! ""))
               
               ($newDeme (if $isAccepted $updatedDeme $deme))

@@ -116,12 +116,13 @@
 ;             ((mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -1 1 0.5 0.0 -1.5) -1.5 5 1 4))
 ; )
 
-; !(assertEqual 
-    !(let*
+!(assertEqual 
+    (let*
         (
             (($instance (mkDeme $rep (mkSInstSet $instSet) $id) ($_ $bestCScore $bestScore $_ $_ $_)) 
                 (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 7)))
         )
-        ($bestCScore $bestScore) 
+        (== ($bestCScore $bestScore) ((mkCscore 0 2 1.0 0.0 -1.0) -1.0))
     )
-; )
+    True
+)
