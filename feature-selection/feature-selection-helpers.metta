@@ -275,3 +275,73 @@
     (if (< (abs-math $currentTerm) 0.00000001)
         $accumulator
         (mercatorSeriesSum $uSquared (* $currentPower $uSquared) (+ $denominator 2) (+ $accumulator $currentTerm)))))                        
+
+;; Incremental Selection Utility Functions
+;; Purpose: Remove duplicate expressions from list using isExpEqual
+;; Recursively processes expressions and maintains unique accumulator
+;; Parameters:
+;;   $expr (Expression) → Expression containing potentially duplicate sub-expressions
+;;   $acc (Expression) → Accumulator for unique expressions
+;; Returns: (Expression) → Expression with duplicates removed
+;; Example: (set ((A B) (B A) (C D)) ()) → ((A B) (C D))
+(: set (-> Expression Expression Expression))
+(= (set $expr $acc)
+    (if-decons-expr $expr $h $t
+        (let $carry (union-atom $acc ($h))
+            (let $rest (collapse 
+                (let $h-s (superpose $t)
+                    (if (isEqual $h-s $h)
+                        (Empty)
+                        $h-s))) 
+                (set $rest $carry)
+            )
+        )
+        $acc
+    )
+)
+
+;; Purpose: Generate powerSet (all combinations) of specified size from expression
+;; This is the core combination generation function used throughout the algorithm
+;; Parameters:
+;;   $set (Expression) → Set of elements to generate combinations from
+;;   $n (Number) → Size of combinations to generate
+;;   $exact (Bool) → If True, return only n-sized combinations; if False, return all sizes ≤ n
+;; Returns: (Expression) → All combinations of specified size
+;; Example: (powerSet (0 1 2) 2 True) → ((0 1) (0 2) (1 2))
+; Reference: https://github.com/opencog/cogutil/blob/88da482e38ba7ecec734dd0282d6c9b9be2c3bfd/opencog/util/algorithm.h#L282
+(: powerSet (-> Expression Number Bool Expression))
+(= (powerSet $set $n $exact)
+   (if (== $n 0)
+       (()) 
+       (let* (($ps   (powerSet $set (- $n 1) $exact))
+              ($new  (collapse 
+                       (let $subset (superpose $ps)
+                         (let $el (superpose $set)
+                           (if (not (isMember $el $subset))
+                               (cons-atom $el $subset)
+                               (empty)))
+                        )
+                    )
+                )
+              ($filteredNew (set $new ()))
+              ($res  (if (not $exact)
+                        (union-atom  $filteredNew $ps)
+                        $filteredNew
+                    )
+              )
+            )
+             $res
+        )
+    )
+)
+
+;; Purpose: Check if difference between two numbers is within epsilon tolerance
+;; Parameters:
+;;   $min (Number) → Lower bound
+;;   $max (Number) → Upper bound  
+;;   $epsilon (Number) → Tolerance
+;; Returns: (Bool) → True if within epsilon
+;; Reference: https://github.com/opencog/cogutil/blob/6b149c457c9cfbf5edccefb166a7a9a1d2d74196/opencog/util/numeric.h#L178(: isWithin (-> Number Number Number Bool))
+(= (isWithin $min $max $epsilon)
+   (<= (abs-math (- $max $min)) $epsilon))
+

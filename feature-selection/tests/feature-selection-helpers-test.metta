@@ -110,3 +110,27 @@
 
 ! (assertEqual (logMath 2 8)  3)
 ! (assertEqual (logMath 10 1000)  3)
+
+;; test for incremental selection Utility functions
+! (assertEqual  (set ((A B) (B A) (C D)) ())  ((A B) (C D)))
+! (assertEqual  (set ((X Y) (Z W)) ()) ((X Y) (Z W)))
+! (assertEqual (set ((A B)) ()) ((A B)))
+! (assertEqual  (set () ())  ())
+! (assertEqual (set ((A A) (A A) (A A)) ()) ((A A)))
+
+;; powerset test
+! (assertEqual (powerSet (0 1 2) 0 True) (()))
+! (assertEqual (powerSet (0 1) 1 False) ((0) (1) ()))
+! (assertEqual (powerSet (2 0 1) 1 True) ((2) (0) (1)))
+! (assertEqual (powerSet (0 1 2) 2 True) ((1 0) (2 0) (2 1))) 
+! (assertEqual (powerSet (0 1 2) 3 True) ((2 1 0)))
+! (assertEqual (powerSet (0 1 2) 3 False) ((2 1 0) (1 0) (2 0) (2 1) (0) (1) (2) ()))
+! (assertEqual (powerSet (0 1 2 3) 3 True) ((2 1 0) (3 1 0) (3 2 0) (3 2 1)))
+! (assertEqual (powerSet (0 1) 3 True) ())  ;; Impossible combination size
+
+! (assertEqual (isWithin 0.0 0.0001 0.0001) True)   ;; Exactly at tolerance
+! (assertEqual (isWithin 0.0 0.05 0.1) True)        ;; Within tolerance
+! (assertEqual (isWithin 0.0 0.2 0.1) False)        ;; Outside tolerance
+! (assertEqual (isWithin 1.0 1.005 0.01) True)      ;; Small difference
+! (assertEqual (isWithin 5.0 5.1 0.05) False)       ;; Difference too large
+
