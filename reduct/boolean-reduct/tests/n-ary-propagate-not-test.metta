@@ -1,5 +1,7 @@
 ! (register-module! ../../../../metta-moses)
 ! (import! &self metta-moses:reduct/boolean-reduct:n-ary-propagate-not)
+! (import! $self metta-moses:reduct/boolean-reduct:gather-junctors)
+
 
 !(assertEqual 
   (propagateNot (AND (NOT (OR A B)) (NOT (AND C D E)) (OR A B) A B))
@@ -26,6 +28,9 @@
       (propagateNot (OR (AND A B) (OR A C)))
       (OR (AND A B) (OR A C))
   )
+
+
+
 !(assertEqual
       (propagateNot (AND A B))
       (AND A B)

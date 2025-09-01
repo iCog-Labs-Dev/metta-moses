@@ -18,7 +18,7 @@
         (let*
           (
               (($guardSet $child) (getLiteralChildren $current))
-              ($tail (if-decons-expr $child $h $t (cdr-atom $child) ("Empty")))
+              ($tail (if-decons-expr $child $h $t (cdr-atom $child) "No child"))
           )
           (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
               (let*
@@ -28,7 +28,7 @@
                       ($allLiterals (collapse (getGuardSet (superpose $grandChildren))))
                       ($common (intersections $allLiterals))
                       ($updatedParent (removeElement ($current) $parent))
-                      ($updatedParent' (addChildren $updatedParent $grandChildren))
+                      ($updatedParent' (addChildrenExp $updatedParent $grandChildren))
                       ($updatedParent'' (addLiterals $updatedParent' $grandLiterals))
                   )
                   (if (== $common ())
