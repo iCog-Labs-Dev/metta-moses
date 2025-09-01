@@ -120,7 +120,7 @@
     !(let*
         (
             (($instance (mkDeme $rep (mkSInstSet $instSet) $id) ($_ $bestCScore $bestScore $_ $_ $_)) 
-                (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 3)))
+                (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 10)))
         )
         ($bestCScore $bestScore) 
     )
