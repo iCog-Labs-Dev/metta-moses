@@ -26,4 +26,4 @@ jobs:
         run: |
           pip3 install ansi2html
           # python3 scripts/run-tests.py
-          mettalog optimization/simulated-annealing-algo/simulated-annealing-test.metta
+          mettalog optimization/simulated-annealing-algo/test/simulated-annealing-test.metta
