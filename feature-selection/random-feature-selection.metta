@@ -7,8 +7,7 @@
 ;;   Input:  !(randomFeatureSelection table1 3)
 ;;   Output: (2 0 1)   ; Selected indices may vary due to randomness.
 (: randomFeatureSelection (-> ITable Number Expression))
-(= (randomFeatureSelection $itable $targetSize)
-   (let (mkITable $data $labels) $itable
+(= (randomFeatureSelection (mkITable $data $labels) $targetSize)
        (chain (- (List.length $labels) 1) $numFeatures
            (if (<= $targetSize 0)
                ()
@@ -18,7 +17,6 @@
                )
            )
        )
-   )
 )
 
 
