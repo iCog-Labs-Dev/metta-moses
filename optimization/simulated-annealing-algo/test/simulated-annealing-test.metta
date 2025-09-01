@@ -38,6 +38,7 @@
 !(import! &self metta-moses:moses:neighborhood-sampling)
 
 !(import! &self metta-moses:optimization/hillclimbing:cross-top-one)
+!(import! &self metta-moses:optimization/hillclimbing:cross-top-one-helpers)
 !(import! &self metta-moses:optimization/hillclimbing:hill-climbing-helpers)
 !(import! &self metta-moses:optimization/simulated-annealing-algo:simulated-annealing)
 
@@ -45,7 +46,11 @@
 
 !(bind! math-exp (py-atom math.exp))
 !(bind! rand-random (py-atom random.random))
+!(bind! rand-seed (py-atom random.seed))
 
+!(rand-seed 42)
+; ! (bind! rnd (py-atom random))
+; ! ((py-dot rnd seed) 42)
 
 !(bind! deme (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
 !(bind! demes (Cons (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")) Nil))
@@ -62,27 +67,61 @@
 
 ;; NOTE!!!!!!!
 ;; merger -- this is a function implemented as part if the main crossTopOne in optimization/hillclimbing/cross-top-one.metta but results in error unless this is imported in the test file
-(: merger (-> Expression Instance Instance Expression))
-(= (merger $targetInstances $baseInst $referenceInst)
-    (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
-        (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
+; (: merger (-> Expression Instance Instance Expression))
+; (= (merger $targetInstances $baseInst $referenceInst)
+;     (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
+;         (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
 
 ; (= (simulated-annealing $deme $tTableBScorer $initCenter ($Temp $finalTemp $coolRate $isInit $maxIter)))
 
-!(assertEqual 
-    (let*
-       (
-            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 7)))
-            ($instanceCount (List.length $instSet))
-            ($scoredElems (List.map isScored $instSet))
-       )
-       ((>= $instanceCount 4) (List.any $scoredElems)) 
-    )
-(True True)
-)
+; !(assertEqual 
+;     (let*
+;        (
+;             (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 7)))
+;             ($instanceCount (List.length $instSet))
+;             ($scoredElems (List.map isScored $instSet))
+;        )
+;        ((>= $instanceCount 4) (List.any $scoredElems)) 
+;     )
+; (True True)
+; )
 
 
 ; !(simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 3))
-; !(acceptanceProb (getEnergy (mkCscore -4 0 0.0 0.0 -4.0)) (getEnergy (mkCscore -2 0 0.0 0.0 -3.0)) 10)
-; !(simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (1 3 0) (10 1 2 True 10 0) ((mkInst (Cons 0 (Cons 0 Nil))) (worstCscore) (* -1 (pow-math 10 308)) 0 0 1))
-; !(simulated-annealing demea tTableBScorerad initCenter const hyepr abebe)
+
+
+; !(assertEqual (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 3))
+
+;             ((mkInst (Cons 1 (Cons 0 Nil))) (mkDeme 
+;                     (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) 
+;                         (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) 
+;                             (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 Nil))) (mkCscore -1 1 0.5 0.0 -1.5))) 
+;                                 (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 Nil))) (mkCscore -4 0 0.0 0.0 -4.0))) 
+;                                 (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -1 1 0.5 0.0 -1.5))) 
+;                                 (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 Nil))) (mkCscore -1 1 0.5 0.0 -1.5))) Nil))))) 
+;                                 (mkDemeId "1")) ((mkInst (Cons 1 (Cons 0 Nil))) (mkCscore -1 1 0.5 0.0 -1.5) -1.5 5 1 4))    
+; )
+
+
+; !(assertEqual
+;     (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 3))
+    
+;     ((mkInst (Cons 0 (Cons 1 Nil))) (mkDeme 
+;         (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) 
+;             (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) 
+;             (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 Nil))) (mkCscore -3 1 0.5 0.0 -3.5))) 
+;             (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 Nil))) (mkCscore -4 0 0.0 0.0 -4.0))) 
+;             (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -1 1 0.5 0.0 -1.5))) 
+;             (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 Nil))) (mkCscore -3 1 0.5 0.0 -3.5))) Nil))))) (mkDemeId "1")) 
+;             ((mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -1 1 0.5 0.0 -1.5) -1.5 5 1 4))
+; )
+
+; !(assertEqual 
+    !(let*
+        (
+            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) ($_ $bestCScore $bestScore $_ $_ $_)) 
+                (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 3)))
+        )
+        ($bestCScore $bestScore) 
+    )
+; )
