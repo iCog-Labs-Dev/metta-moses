@@ -218,3 +218,9 @@
 !(assertEqual (List.generate 5 3) (Cons 3 (Cons 3 (Cons 3 (Cons 3 (Cons 3 Nil))))))
 !(assertEqual (List.generate 0 3) Nil)
 !(assertEqual (List.generate 3 0) (Cons 0 (Cons 0 (Cons 0 Nil))))
+
+;; Normal removal from head
+!(assertEqual (List.pop 0 (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 2 (Cons 3 Nil)))
+!(assertEqual (List.pop 1 (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 1 (Cons 3 Nil)))
+!(assertEqual (List.pop 0 (Cons 42 Nil)) Nil)
+!(assertEqual (List.pop 0 Nil) (Error Nil EmptyList))
