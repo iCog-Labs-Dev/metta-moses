@@ -148,19 +148,47 @@
                               (List.replaceAt $newInst $rand 0)
                               (List.replaceAt $newInst $rand $randomSpec))))
 
-;; This function is Pre and post-processor function for sampleFromNeighborhood` 
-;; to achive not-deterministic approach. It generates a list with the size of $sampleSize 
-;; and calls sampleFromNeighborhood` function for every number in the list. 
-;; This will make the sampleFromNeighborhood` to produce $sampleSize samples. 
-;; Then the produced expression will be made in to llist using exprToList
+;; Pre/post-processor for `sampleFromNeighborhood` to ensure non-deterministic sampling.
+;; It checks if $sampleSize neighbors can be generated; if not, returns an error.
+;; Otherwise, it calls `selectUnique` to produce $sampleSize unique instances at the given distance.
+;; Parameters:
+;;      $sampleSize: Number of instances to generate
+;;      $dist: Distance from the center instance
+;;      $kbMp: Knob map for variations
+;;      $inst: Center instance
+;; Returns: A list of $sampleSize instances or an error if generation is not possible.
+
 (: sampleFromNeighborhood (-> Number Number KnobMap Instance (List Instance)))
 (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
-   (let* (
-      (() (println! (Inside sampleFromNeighborhood: $sampleSize $dist $inst)))
-      ($list (genList (- $sampleSize 1)))
-      ($x (map-atom $list $i (sampleFromNeighborhood` $i $dist $kbMp $inst)))
-    )
-    (exprToList $x)))
+      ( if (== (isPossibleSize $sampleSize $dist $inst) False)
+          (Error ("Cannot generate " $sampleSize " instances at distance " $dist " from " $inst) (Requested sample size too large))
+          (selectUnique () $sampleSize $dist $kbMp $inst)
+      )
+  
+)
+
+;; this function helps the 'sampleFromNeighborhood' function in which Recursively collects unique instances with identical Hamming distance.
+;;  and Terminates when sample size reaches zero, returning the final filtered list.
+
+(= selectunique (-> (List Expression) Number Number KnobMap Instance (List Instance)))
+(= (selectUnique $expr $sampleSize $dist $kbMp $inst)
+   (if (== $sampleSize 0)
+      (exprToList $expr)
+       (if (== $expr ())
+           (let $generatedFirst (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)  
+                    (selectUnique ($generatedFirst) (- $sampleSize 1) $dist $kbMp $inst)
+           )
+           (let $generatedInstance (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)
+                           (if (isMember $generatedInstance $expr)
+                               (selectUnique $expr $sampleSize $dist $kbMp $inst)
+                               (selectUnique (concatT  ($generatedInstance) $expr )(- $sampleSize 1) $dist $kbMp $inst)
+                            )
+                   
+              )
+                
+           )  
+       )
+   ) 
 
 ;; similar to the above 'sampleFromNeighborhood' but with slight modification to make it compatible with the feature selection
 ;; uses the sampleFromNeighborhoodFs` function to sample from the neighborhood
@@ -172,6 +200,44 @@
       ($x (map-atom $list $i (sampleFromNeighborhoodFs` $i $dist $itable $inst)))
     )
     (exprToList $x)))
+   
+;; this function calculates factorial of a number which can be used in " isPossibleSize " function
+(: factorial (-> Number Number))
+(= (factorial $n) 
+(if (<= $n 1) 1 
+(* $n (factorial (- $n 1)
+))))
+
+;;  isPossibleSize: Calculates if the requested number of neighbors can be generated at a given distance from a center instance.
+;; Uses combinatorics: chooses $dist positions from instance length and counts variations based on knob multiplicity.
+;; Parameters:
+;;      $sampleSize: Number of instances to generate
+;;      $dist: Distance from the center
+;;      $inst: Center instance
+;; Returns: true if total neighbors ≥ $sampleSize, else false
+;; Formula: n! / ((n - d)! * d!) * (m-1)^d  ( where n = instance length, d = hamming distance, m = knob multiplicity)
+
+(: isPossibleSize (-> Instance Number Number Bool))
+(= (isPossibleSize $sampleSize $dist $inst) 
+    
+            (let* (
+                ($list (cdr-atom $inst))
+                ; (() (println! (Inside isPossibleSize: $inst $dist $sampleSize)))
+                ($centralInst (car-atom $list))
+                ($instLen (List.length $centralInst))
+                ;  (() (println! (Instance Length: $instLen)))
+                ($n (factorial $instLen))
+                ($r (factorial (- $instLen $dist)))
+                ($d (factorial $dist))
+                ($m (pow-math 2 $dist)) ; assuming knob multiplicty is 3, so m-1 = 1, hence m = 2 that is why (pow-math 2 $dist)
+                ($maxNeighbors (/ $n (* $r $d)))
+                ($totalNeighbors (* $maxNeighbors $m))
+              ) 
+                (>= $totalNeighbors $sampleSize)
+                ; $totalNeighbors
+               
+           )
+)
 
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1

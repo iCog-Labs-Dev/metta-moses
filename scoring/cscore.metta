@@ -136,3 +136,6 @@
         (if (isnan $pl)
             False
             (or (> $pl $pr) (and (== $pl $pr) (< $cl $cr))))))
+
+(= (setUniPen (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore) $newUniPen)
+    (mkCscore $scor $cpxy $complexityPenalty $newUniPen $penalizedScore))
