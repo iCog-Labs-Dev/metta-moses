@@ -46,13 +46,13 @@
             ($swapedOp (swapAndOr $op))
             ($list (genList (- $arity 1)))
             ($idxPairs (collapse (genPairs $list)))
-            ($nPairs $arity) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
-            ($upperbound (- (* $arity (- $arity 1)) 1)) ;; we will have n * (n-1) pairs, since index substract 1
-            ($picked (lazyRandomSelector 0 $upperbound $nPairs))
-            ($perms (collapse (getArgs $swapedOp $idxPairs $picked $argLabels)))
-        )
-        (concatT $argLabels $perms)
-    )
-)
+            ($nPairs $arity)) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
+            (if (<= $nPairs 1)
+                (let $arg (car-atom $argLabels) ($arg (NOT $arg)))  ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage
+                (let* (($upperbound (- (* $arity (- $arity 1)) 1))
+                        ($picked (lazyRandomSelector 0 $upperbound $nPairs))
+                        ($perms (collapse (getArgs $swapedOp $idxPairs $picked $argLabels))))
+                    (concatT $argLabels $perms)))))
+
 
 
