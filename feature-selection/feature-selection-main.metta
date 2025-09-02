@@ -69,7 +69,7 @@
             $init-fts           ;; indices of initial features -- ne
             ) 
 	(case $algo
-		((hc (hillclimbing ))
+		((hc (hcFtSetPop (mkITable $table $labels) (Cons 1 (Cons 0 (Cons 0 (Cons 0 Nil))))))
 		 (rd (randomFeatureSelection (mkITable $table $labels) $num-desired))                                       
 		 (sim (simpleFeatureSelector $th $target-size False (mkITable $table $labels) ()))                           ;; False -- default value for using exp distribution for selection of top N features -- and start with empty feature list as initial features -- th here refers to the minimum score required for feature set to be selected
 		 (inc (incrementatl .. ))
