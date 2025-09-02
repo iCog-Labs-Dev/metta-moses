@@ -7,22 +7,9 @@
 ;; 2. Creating multiple representations with different feature sets
 ;; 3. Pruning exemplars based on selected features
 ;; 4. Enforcing specific features
-;; 5. Creating ignore_ops sets for non-selected features
-;;
-;; Our simplified version just creates a single representation directly
-;; from the exemplar without any feature filtering or manipulation.
-;; This is equivalent to the "no dynamic feature selection" path in
-;; the original code, but even simpler as we don't use ignore_ops either.
-;;
-;; The simplified representation creation can be expressed as:
-;; calling the representation constructor directly on the exemplar tree
+;; 5. Creating ignore_ops sets for non-selected features ↠ not implemented as a separate container for ignored args rather if exemplar features are ignored, they are subtracted from args list in representation building
 
-;; create representation 
-;; Params:
-;;   $tree: The exemplar tree
-;;   $argLabels: list of argument labels (input variables) from the ITable
-;; Returns: Representation
- (: createRepresentation (-> (Tree $a) Expression Representation))
-(= (createRepresentation $tree $argLabels)
-    (representation $tree $argLabels)
-)
+;; createRepresentation -- calls on the representation building procedure
+(: createRepresentation (-> Number (Tree $a) (ITable $a) Symbol Bool Expression Representation))
+(= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts)
+    (representation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts))
