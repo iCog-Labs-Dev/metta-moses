@@ -39,6 +39,10 @@
 
 !(import! &self metta-moses:optimization/hillclimbing/cross-top-one)
 !(import! &self metta-moses:optimization/hillclimbing:hill-climbing-helpers)
+!(import! &self metta-moses:feature-selection:feature-selection-helpers)
+!(import! &self metta-moses:optimization/hillclimbing:cross-top-one-helpers)
+
+(= (ARGS) args) 
 !(import! &self metta-moses:scoring:bscore)
 
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
@@ -105,11 +109,28 @@
 ; ;; map containing two knobs with different multiplicity of 2 and 3
 ; !(assertEqual (informationTheoreticBits knobmap2) 5)
 
-; ;; Testing estimateNeighborhood on the above knob maps
-; !(assertEqual (estimateNeighborhood 0 knobmap1) 1)
-; !(assertEqual (estimateNeighborhood 1 knobmap2) 10)
-; !(assertEqual (estimateNeighborhood 2 knobmap1) 12)
-; !(assertEqual (estimateNeighborhood 2 knobmap2) 10)
+; Testcase for informationTheoreticBitsFs
+!(assertEqual
+  (informationTheoreticBitsFs (Cons A (Cons B (Cons O Nil)))) 2)
+
+;; Testing estimateNeighborhood on the above knob maps
+!(assertEqual (estimateNeighborhood 0 knobmap1) 1)
+!(assertEqual (estimateNeighborhood 1 knobmap2) 10)
+!(assertEqual (estimateNeighborhood 2 knobmap1) 12)
+!(assertEqual (estimateNeighborhood 2 knobmap2) 10)
+
+; Testcase for estimateNeighborhoodFs
+!(assertEqual
+  (estimateNeighborhoodFs 3 (Cons A (Cons B (Cons O Nil)))) 4)
+
+; Testcase for countNeighborhoodFs
+!(assertEqual (countNeighborhoodFs (Cons 1 (Cons 0 (Cons 1 Nil))) 2 20) 3)
+
+; Testcase for factorial
+!(assertEqual (factorial 3) 6)
+
+; Testcase for binomial
+!(assertEqual (binomial 5 2) 10)
 
 ; ;Testcase 1 for countNeighborhood
 ; !(assertEqual 
@@ -166,6 +187,13 @@
                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
                          (Cons A (Cons B (Cons O Nil))))))
 
+!(bind! itable (mkITable
+                         (Cons (Cons False (Cons False (Cons False Nil))) 
+                         (Cons (Cons True (Cons False (Cons False Nil))) 
+                         (Cons (Cons False (Cons True (Cons False Nil)))
+                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+                         (Cons A (Cons B (Cons O Nil)))))
+
 (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
@@ -186,7 +214,7 @@
 ;      )
 ;      ((>= $instanceCount 4) (List.any $scoredElems)))
 
-;    (True True))
+   (True True))
 
 ; !(let*
 ;      (
