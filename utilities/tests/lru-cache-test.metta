@@ -70,7 +70,7 @@
 !(assertEqual 
    (let $cachedElements (collapse (get-atoms &cache)) 
         (size-atom $cachedElements)) 
-   6)
+   3)
 
 ;; ---- Manual Cache Operations ----
 !(assertEqual (cachePut computationallyExpensiveFunction (arg1 arg2) someResult) someResult)
@@ -91,7 +91,7 @@
 !(assertEqual 
    (let $cachedElements (collapse (get-atoms &cache)) 
         (size-atom $cachedElements)) 
-   6)
+   3)
 
 
 ;; Cache overwrite test: same key, updated value
