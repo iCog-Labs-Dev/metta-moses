@@ -29,10 +29,10 @@
     )
 )
 
-;; Function: nextTimestamp  
-;; Purpose: Generate next sequential timestamp for cache ordering
-(: nextTimestamp (-> Number))
-(= (nextTimestamp)
+;; Function: counter  
+;; Purpose: Generate next sequential number for cache ordering
+(: counter (-> Number))
+(= (counter)
    (let* 
        (
            ($currentCounter (get-state accessCounter))
@@ -60,7 +60,7 @@
             (let* 
                 (
                     ((($cachedResult $oldTimeStamp)) $retrievedCache)
-                    ($newTimeStamp (nextTimestamp))
+                    ($newTimeStamp (counter))
                     ; (() (println! (DEBUG New Time Stamp: $newTimeStamp)))
                     ;; Remove old cache entries
                     (() (remove-atom &cache (cacheEntry $functionName $argument $cachedResult $oldTimeStamp)))
@@ -130,7 +130,7 @@
 (= (cachePut $functionName $argument $result)
     (let* 
         (
-            ($timestamp (nextTimestamp))
+            ($timestamp (counter))
             ; (() (println! (DEBUG function timestamp: $timestamp)))
             ($currentSize (get-state cacheSize))
             ($maxSize (get-state maxCacheSize))
