@@ -1106,3 +1106,11 @@
 (: coll.getTopN (-> Number $os $os))
 (= (coll.getTopN $n NilOS) (Error NilOS "empty ordered set/ fewer items than required"))
 (= (coll.getTopN $n (ConsOS $x $xs)) (OS.getTopN $n (ConsOS $x $xs)))
+;; helper function to remove leading zeros from a node id
+(: updateID (-> ($a $b) ($a $b)))
+(= (updateID (mkNodeId $id)) 
+    (if (== (car-atom $id) 0)
+        (mkNodeId (cdr-atom $id))
+        (mkNodeId $id)
+
+    ))

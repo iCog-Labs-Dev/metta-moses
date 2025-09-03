@@ -466,3 +466,11 @@
 ;       (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode P) Nil) (Cons (mkTree (mkNode Q) Nil) Nil))) 
 ;           (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode P) Nil) Nil)) Nil)))) 
 ;       2)      
+
+! (assertEqual (extractArgs (mkTree (mkNode A) Nil)) (Cons A Nil))
+! (assertEqual (extractArgs (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)))	(Cons A Nil))
+! (assertEqual (extractArgs (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))))) (Cons A (Cons B (Cons C Nil))))	
+
+! (assertEqual (treeFtsIndices (mkTree (mkNode A) Nil) (Cons A (Cons B (Cons C (Cons O Nil))))) (0))
+! (assertEqual (treeFtsIndices (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons A (Cons B (Cons C (Cons O Nil)))))	(0))
+! (assertEqual (treeFtsIndices (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil)))) (Cons A (Cons B (Cons C (Cons O Nil))))) (0 1 2))	

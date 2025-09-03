@@ -570,3 +570,8 @@ NilMMap discSpec<=)
     (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore -2.0 3.0 1.0 0.5 -3.5)))
     (mkSInst (mkPair (mkInst (Cons 3 Nil))               (mkCscore -3.0 2.0 1.0 0.5 -4.5))))
   True)
+
+
+;; Test cases -- updateID
+!(assertEqual (updateID (mkNodeId (0 1 2))) (mkNodeId (1 2)))
+!(assertEqual (updateID (mkNodeId (1 2 3))) (mkNodeId (1 2 3)))
