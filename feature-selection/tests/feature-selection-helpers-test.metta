@@ -47,6 +47,15 @@
 ! (assertEqual (Table.getColumn 1 table) (Cons False (Cons True Nil)))
 ! (assertEqual (Table.getColumn 2 table) (Cons True (Cons False Nil)))
 
+;; Testcase for Table.getOutputColumn
+!(assertEqual
+    (Table.getOutputColumn (mkITable (Cons (Cons True (Cons False (Cons False Nil))) 
+                                      (Cons (Cons False (Cons True (Cons False Nil))) 
+                                      (Cons (Cons True (Cons True (Cons False Nil))) 
+                                      Nil)))
+                                      (Cons A (Cons B (Cons O Nil)))))                              
+    (Cons False (Cons False (Cons False Nil))))
+
 ;; Test
 ! (assertEqual (Table.pop 0 Nil) Nil)
 ! (assertEqual (Table.pop 0 table) 

@@ -97,6 +97,23 @@
                   $inst) 
                   (Error ($knobLen $instLen) "Not Equal"))))
 
+;; similar to the above 'sampleFromNeighborhood`' but slight changes for the feature selection
+;; applies capping to the distance because at somepoint the distance would be greater that the length of the instance and lazyRandomSelector would cause error
+(: sampleFromNeighborhoodFs` (-> Number Number (ITable Bool) Instance Instance))
+(= (sampleFromNeighborhoodFs` $n $dist (mkITable (Cons $row $rows) $labels) (mkInst $centralInst))
+        (let* 
+            (
+              ($featureLen (- (List.length $labels) 1)) 
+              ($instLen (List.length $centralInst))
+              ($cappedDist (min-atom ($dist $instLen)))
+              ) 
+              (if (== $featureLen $instLen) 
+                  (let* (
+                    ($selectedIndices (lazyRandomSelector 0 (- $instLen 1) $cappedDist))
+                    ($updatedInst (foldl-atom $selectedIndices $centralInst $updated $rand (updateInstFs $rand $updated)))
+                  )
+                  (mkInst $updatedInst)) 
+                  (Error ($featureLen $instLen) "Not Equal"))))
 ;; This is a helper function for sfn (sampling from neighborhood) that updates the 
 ;; central instance.
 ;; 
@@ -106,7 +123,7 @@
 ;;             used to retrieve the lsk (logical subtree knob) from which the knob multiplicity 
 ;;             can be obtained.
 ;;      $newInst: The original central instance.
-(: updatedInst (-> Number (MultiMap (DiscSpec LogicalSubtreeKnob)) Instance Instance))
+(: updateInst (-> Number (MultiMap (DiscSpec LogicalSubtreeKnob)) Instance Instance))
 (= (updateInst $rand $disc $newInst)
         (let*
           (
@@ -114,10 +131,22 @@
             ($curSpec (List.getByIdx $newInst $rand))
             ($upper (- $multi 1))
             ($randomSpec (+ (random-int &rng 0 $upper) 1))
-            ($updatedInst (if (== $randomSpec $curSpec)
+          )
+          (if (== $randomSpec $curSpec)
                               (List.replaceAt $newInst $rand 0)
                               (List.replaceAt $newInst $rand $randomSpec))))
-          $updatedInst))
+
+;; similar to the above 'updateInst' with slight change on the range of the randomSpec to make it work for the feature selection
+(: updateInstFs (-> Number Instance Instance))
+(= (updateInstFs $rand $newInst)
+        (let*
+          (
+            ($curSpec (List.getByIdx $newInst $rand))
+            ($randomSpec (+ (random-int &rng 0 1) 1))
+          )
+          (if (== $randomSpec $curSpec)
+                              (List.replaceAt $newInst $rand 0)
+                              (List.replaceAt $newInst $rand $randomSpec))))
 
 ;; Pre/post-processor for `sampleFromNeighborhood` to ensure non-deterministic sampling.
 ;; It checks if $sampleSize neighbors can be generated; if not, returns an error.
@@ -161,6 +190,16 @@
        )
    ) 
 
+;; similar to the above 'sampleFromNeighborhood' but with slight modification to make it compatible with the feature selection
+;; uses the sampleFromNeighborhoodFs` function to sample from the neighborhood
+(: sampleFromNeighborhoodFs (-> Number Number (ITable Bool) Instance (List Instance)))
+(= (sampleFromNeighborhoodFs $sampleSize $dist $itable $inst)
+   (let* (
+      (() (println! (Inside sampleFromNeighborhoodFs: $sampleSize $dist $inst)))
+      ($list (genList (- $sampleSize 1)))
+      ($x (map-atom $list $i (sampleFromNeighborhoodFs` $i $dist $itable $inst)))
+    )
+    (exprToList $x)))
    
 ;; this function calculates factorial of a number which can be used in " isPossibleSize " function
 (: factorial (-> Number Number))
@@ -199,6 +238,7 @@
                
            )
 )
+
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1
 ;;          inst1: (0 1 0 1), inst2: (0 0 0 0) => distance: 2
@@ -232,6 +272,11 @@
 (: initInstScore (-> Instance (ScoredInstance $score)))
 (= (initInstScore $inst)
 (mkSInst (mkPair $inst (worstCscore))))
+
+;; similar to the above 'initInstScore' but for feature selection to make the initial score 0 (the minimum Mutual Information score)
+(: initInstScoreFs (-> Instance (ScoredInstance $score)))
+(= (initInstScoreFs $inst)
+(mkSInst (mkPair $inst 0)))
 
 ;; converts a Scored Instance back to a normal Instance (used to the purpose of testing the sampleNewInstances method)
 ;; Param: scored instance
@@ -272,3 +317,31 @@
     ($updatedInstList (List.concat $instList $scoredNewInstances))
  )
  ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId) $updatedNumNewInstances)))
+
+;; similar to the above 'sampleNewInstances' but with slight changes for the feature selection
+;; Uses the countNeighborhoodFs, sampleFromNeighborhoodFs, initInstScoreFs
+;; It sets the multiplicy to 2 which is 0 and 1 for the feature selection
+
+(: sampleNewInstancesFs (-> Number Number Instance (ITable Bool) (InstanceSet $a) Number ((InstanceSet $a) Number)))
+(= (sampleNewInstancesFs $totalNeighbors $numNewInstances $centerInst $itable (mkSInstSet $instList) $dist)
+ (let*
+  (
+    (() (println! (Inside sampleNewInstancesFs: $totalNeighbors $numNewInstances $centerInst)))
+    (() (println! (Distance: $dist CenterInst: $centerInst)))
+    (() (println! ""))
+
+    ($updatedTotalNeighbors
+         (if (> (* 2 $numNewInstances) $totalNeighbors)
+             (countNeighborhoodFs $centerInst $dist $numNewInstances)
+             $totalNeighbors))
+    ($updatedNumNewInstances 
+         (if (< $numNewInstances $updatedTotalNeighbors)  
+             $numNewInstances
+             $updatedTotalNeighbors))
+    ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
+                       (sampleFromNeighborhoodFs $numNewInstances $dist $itable $centerInst)
+                       (generateAllInNeighborhood (mkMultip 2) $centerInst $dist)))
+    ($scoredNewInstances (List.map initInstScoreFs $newInstances))
+    ($updatedInstList (List.concat $instList $scoredNewInstances))
+ )
+ ((mkSInstSet $updatedInstList) $updatedNumNewInstances)))
