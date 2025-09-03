@@ -786,3 +786,11 @@
 (= (randomFloat) (let $rndInt (random-int &rng 0 maxInt) (/ $rndInt maxInt)))
 ! (bind! rnd (py-atom random))
 ! ((py-dot rnd seed) 0)
+;; helper function to remove leading zeros from a node id
+(: updateID (-> ($a $b) ($a $b)))
+(= (updateID (mkNodeId $id)) 
+    (if (== (car-atom $id) 0)
+        (mkNodeId (cdr-atom $id))
+        (mkNodeId $id)
+
+    ))

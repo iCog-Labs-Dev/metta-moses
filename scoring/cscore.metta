@@ -3,19 +3,24 @@
 ;; If p is large (approaching 0.5), it means the model is expected to be less accurate, making mistakes more often (but still better than random guessing).
 
 (: getCscore (-> (ITable $a) (Tree $a) Number Cscore))
-(= (getCscore $itable $tree $complexityRatio)
-    (chain (scoreTree $itable $tree) $bs 
-            (if-error $bs ;; return worst possible composite score
-            (worstCscore)
-            (let* (($bsum (sumBScore $bs))
-                   (() (println! (Score: $bsum)))
-                   (() (println! ""))
-                   ($cpxy (treeComplexity $tree))
-                   (() (println! (Complexity: $cpxy)))
-                   ($cCoef (getComplexityCoef $complexityRatio)))
+(= (getCscore $itable $tree $complexityRatio $scoreSpace)
+    (unify $scoreSpace 
+            ($tree $score) 
+            (let $score (trace! "USED from cache XXXXXXXXXXXXXXXXXXXXXXXXXXX " $score) $score)
+            (chain (scoreTree $itable $tree) $bs 
+                (if-error $bs ;; return worst possible composite score
+                (worstCscore)
+                (let* (($bsum (sumBScore $bs))
+                    (() (println! (Score: $bsum)))
+                    (() (println! ""))
+                    ($cpxy (treeComplexity $tree))
+                    (() (println! (Complexity: $cpxy)))
+                    ($cCoef (getComplexityCoef $complexityRatio))
+                    ($res (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False))
+                    (() (add-atom $scoreSpace ($tree $res)))
+                    )
 
-                   (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False)))))
-
+                    $res )))))
 
 
 ;; getComplexityCoef -- calcualtes the complexity coeffient of a tree   
