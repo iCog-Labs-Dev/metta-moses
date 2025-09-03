@@ -36,6 +36,7 @@
 !(import! &self metta-moses:scoring:bscore)
 !(import! &self metta-moses:scoring:fitness)
 !(import! &self metta-moses:scoring:complexity-based-scorer)
+!(import! &self metta-moses:scoring:cacheSpace)
 
 !(import! &self metta-moses:moses:neighborhood-sampling)
 

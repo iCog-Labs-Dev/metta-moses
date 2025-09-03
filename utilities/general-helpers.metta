@@ -779,7 +779,7 @@
 
 ! (bind! EXP 2.71828)
 
-;; random float  -- fake rnd number [0 1)
+;; random float  -- fake rnd number [0 1]
 ! (bind! maxInt (pow-math 2 64)) ;; pseudo max integer not really the max integer that can be represented 
 ;; the idea is to divide a random int taken from 0 upto this number by this number
 (: randomFloat (-> Number))
@@ -788,34 +788,24 @@
 ! ((py-dot rnd seed) 0)
 
 ;; ============================================================
-;; Apply Function - Universal Function Application Bridge
+;; Apply Function — restricted to value comparisons only
 ;; ============================================================
 ;;
-;; The apply function serves as a bridge between standard library functions 
-;; and custom data structures, reducing code redundancy and improving usability.
-;; It deconstructs data structures according to their type and applies the given function.
+;; Guidance for team:
+;; - Use apply strictly for value comparisons that require domain semantics
+;;   (e.g., Cscore-aware ordering/equality).
+;; - DO NOT use apply for collection operations (length, contains, append, remove, etc.).
+;;   Use the unified coll.* API instead to avoid non-deterministic matches.
 ;;
-;; General Structure: (apply function <data>)
+;; Supported usage examples:
+;;   (apply >= cscore1 cscore2)
+;;   (apply < cscore1 cscore2)
+;;   (apply == cscore1 cscore2)
 ;;
-;; This implementation follows a more generic approach similar to Haskell:
-;; - For most types, it extracts the underlying data and applies the function
-;; - For Cscore, it implements custom comparison logic since it has special semantics
-;; - For wrapper types, it delegates to the wrapped value
-;;
-;; Examples:
-;;   (apply >= cscore1 cscore2)     ; uses custom Cscore comparison logic
-;;   (apply length instance)        ; extracts list and calls List.length
-;;   (apply contains map key)       ; delegates to Map.contains
-;;   (apply + num1 num2)            ; direct application to numbers
-;;
-;; Type Signature:
-;;   (: apply (-> (-> $a $b $c) $d $e))
-;;   where $d and $e are the appropriate types for the function and data
-
 (: apply (-> (-> $a $b $c) $d $e))
 
 ;; ------------------------------------------------------------
-;; Generic projection and comparators to support reusable apply
+;; Generic projection and comparators to support reusable apply (comparisons only)
 ;; ------------------------------------------------------------
 
 ;; key: project a value into a comparable key
@@ -831,94 +821,17 @@
        ((mkCscore $scor $cpxy $cpxyPen $uniPen $penScore)
         (let $p (if (isnan $penScore) (* -1 (pow-math 10 308)) $penScore)
              (KPair $p (* -1 $cpxy))))
-       ;; 4-field Cscore (metapopulation/exemplar-type.metta)
-       ;; Compute penalized score as scor - cpxyPen - uniPen
-       ((mkCscore (mkScoreT $scor) (mkComplexity $cpxy) (mkScoreT $cpxyPen) (mkScoreT $uniPen))
-         (let $p (- (- $scor $cpxyPen) $uniPen)
-              (KPair $p (* -1 $cpxy))))
        ((mkSInst (mkPair $inst $score))
          (key $score))
        ((mkExemplar $tree $demeId $cscore $bscr)
          (key $cscore))
-       ((mkXmplr $tree $demeId $cscore $bscr)
-         (key $cscore))
        ($else (KScalar $x))
      )))
 
-;; No generic ge/lt/eq helpers to avoid overlap; compare in apply by shape
+;; Compare in apply by shape; no collection support here
 
 ;; ============================================================
-;; Generic Wrapper Type Operations
-;; ============================================================
-
-;; For wrapper types, extract the underlying data and apply the function
-;; This is the generic pattern that works for most types
-
-;; ScoredInstance - extract score and apply function
-(= (apply $f (mkSInst (mkPair $inst $score)) $arg)
-   (apply $f $score $arg))
-
-;; Exemplar - extract cscore and apply function  
-(= (apply $f (mkExemplar $tree $demeId $cscore $bscr) $arg)
-   (apply $f $cscore $arg))
-;; Metapopulation Exemplar variant (mkXmplr)
-(= (apply $f (mkXmplr $tree $demeId $cscore $bscr) $arg)
-   (apply $f $cscore $arg))
-
-;; Instance - extract underlying list and apply function
-(= (apply $f (mkInst $list) $arg)
-   (apply $f $list $arg))
-
-;; InstanceSet - extract underlying list and apply function
-(= (apply $f (mkSInstSet $instList) $arg)
-   (apply $f $instList $arg))
-
-;; BehavioralScore - extract underlying list and apply function
-(= (apply $f (mkBScore $scoreList) $arg)
-   (apply $f $scoreList $arg))
-
-;; Deme - extract instance list and apply function
-(= (apply $f (mkDeme $rep (mkSInstSet $instList) $demeId) $arg)
-   (apply $f $instList $arg))
-
-;; ============================================================
-;; Generic Data Structure Operations
-;; ============================================================
-
-;; For data structures, delegate to their specific functions
-;; This pattern works for Map, MultiMap, OrderedSet, OrderedMultiset, List
-
-;; Map operations - delegate to Map functions
-(= (apply length $map)
-   (Map.length $map))
-
-(= (apply contains $key $map)
-   (Map.contains $key $map))
-
-;; MultiMap operations - delegate to MultiMap functions
-(= (apply length $mmap)
-   (MultiMap.length $mmap))
-
-(= (apply contains $key $mmap)
-   (MultiMap.contains $key $mmap))
-
-;; OrderedSet operations - delegate to OS functions
-(= (apply length $os)
-   (OS.length $os))
-
-(= (apply contains $os $el)
-   (OS.contains $os $el))
-
-;; OrderedMultiset operations - delegate to OMS functions
-(= (apply length $oms)
-   (OMS.length $oms))
-
-(= (apply contains $oms $x)
-   (OMS.contains $oms $x))
-
-;; List operations - delegate to List functions
-(= (apply length $list)
-   (List.length $list))
+;; No collection operations via apply — use coll.* instead
 
 ;; ============================================================
 ;; Basic Type Operations (Direct Application)
@@ -946,14 +859,258 @@
        (((KScalar $kx) (KScalar $ky)) (== $kx $ky))
      )))
 
-(= (apply + $num1 $num2)
-   (+ $num1 $num2))
+;; ============================================================
+;; Unified collection API (no overloading, explicit dispatch)
+;; ============================================================
 
-(= (apply - $num1 $num2)
-   (- $num1 $num2))
+;;
+;; coll.length — length of supported collections and wrappers
+;;
+(: coll.length (-> $a Number))
 
-(= (apply * $num1 $num2)
-   (* $num1 $num2))
+;; List ADT — constructor-specific to avoid ambiguous matches
+(= (coll.length Nil) 0)
+(= (coll.length (Cons $h $t)) (List.length (Cons $h $t)))
 
-(= (apply / $num1 $num2)
-   (/ $num1 $num2))
+;; Map — constructor-specific
+(= (coll.length NilMap) 0)
+(= (coll.length (ConsMap $pair $tail)) (Map.length (ConsMap $pair $tail)))
+
+;; MultiMap — constructor-specific
+(= (coll.length NilMMap) 0)
+(= (coll.length (ConsMMap $pair $tail)) (MultiMap.length (ConsMMap $pair $tail)))
+
+;; Ordered Set — constructor-specific
+(= (coll.length NilOS) 0)
+(= (coll.length (ConsOS $x $xs)) (OS.length (ConsOS $x $xs)))
+
+;; Ordered Multiset — constructor-specific
+(= (coll.length NilOMS) 0)
+(= (coll.length (ConsOMS $x $xs)) (OMS.length (ConsOMS $x $xs)))
+
+;; Wrappers -> delegate to inner lists
+(= (coll.length (mkInst $list)) (coll.length $list))
+(= (coll.length (mkSInstSet $list)) (coll.length $list))
+(= (coll.length (mkBScore $list)) (coll.length $list))
+(= (coll.length (mkDeme $rep (mkSInstSet $instList) $demeId)) (coll.length $instList))
+
+;;
+;; coll.append — append/insert one element into supported collections
+;;
+(: coll.append (-> $coll $el $coll))
+
+;; List ADT (append to tail)
+(= (coll.append Nil $el) (Cons $el Nil))
+(= (coll.append (Cons $h $t) $el) (Cons $h (coll.append $t $el)))
+
+;; Instance — append Number to underlying list
+(= (coll.append (mkInst $list) $el)
+   (if (== (get-type $el) Number)
+       (mkInst (coll.append $list $el))
+       (Error $el "Instance.append expects Number")))
+
+;; InstanceSet — append ScoredInstance to underlying list
+(= (coll.append (mkSInstSet $list) $el)
+   (mkSInstSet (coll.append $list $el)))
+
+;; BehavioralScore — append Number
+(= (coll.append (mkBScore $list) $el)
+   (if (== (get-type $el) Number)
+       (mkBScore (coll.append $list $el))
+       (Error $el "BScore.append expects Number")))
+
+;; Map — insert pair ($k $v) (constructor-specific)
+(= (coll.append NilMap ($k $v)) (Map.insert ($k $v) NilMap))
+(= (coll.append (ConsMap $pair $tail) ($k $v)) (Map.insert ($k $v) (ConsMap $pair $tail)))
+
+;; MultiMap — insert pair ($k $v) (constructor-specific)
+(= (coll.append NilMMap ($k $v)) (MultiMap.insert ($k $v) NilMMap))
+(= (coll.append (ConsMMap $pair $tail) ($k $v)) (MultiMap.insert ($k $v) (ConsMMap $pair $tail)))
+
+;; Ordered Multiset — insert element
+(= (coll.append NilOMS $el) (OMS.insert $el NilOMS))
+(= (coll.append (ConsOMS $x $xs) $el) (OMS.insert $el (ConsOMS $x $xs)))
+
+;; Ordered Set — requires comparator; cannot infer here
+(= (coll.append NilOS $el) (Error (NilOS $el) "Use OS.insert with comparator"))
+(= (coll.append (ConsOS $x $xs) $el) (Error ((ConsOS $x $xs) $el) "Use OS.insert with comparator"))
+
+;; Deme — append ScoredInstance to its InstanceSet
+(= (coll.append (mkDeme $rep (mkSInstSet $list) $demeId) $el)
+   (mkDeme $rep (mkSInstSet (coll.append $list $el)) $demeId))
+
+;; coll.insert — alias to coll.append
+(: coll.insert (-> $coll $el $coll))
+(= (coll.insert $c $el) (coll.append $c $el))
+
+;;
+;; coll.remove — remove one occurrence (by equality) or by key where applicable
+;;
+(: coll.remove (-> $coll $el $coll))
+
+;; List ADT — remove first occurrence
+(= (coll.remove Nil $el) Nil)
+(= (coll.remove (Cons $h $t) $el)
+   (if (== $h $el) $t (Cons $h (coll.remove $t $el))))
+
+;; Instance — remove first occurrence of Number
+(= (coll.remove (mkInst $list) $el)
+   (if (== (get-type $el) Number)
+       (mkInst (coll.remove $list $el))
+       (Error $el "Instance.remove expects Number")))
+
+;; InstanceSet — remove first occurrence of element
+(= (coll.remove (mkSInstSet $list) $el)
+   (mkSInstSet (coll.remove $list $el)))
+
+;; BehavioralScore — remove first occurrence of Number
+(= (coll.remove (mkBScore $list) $el)
+   (if (== (get-type $el) Number)
+       (mkBScore (coll.remove $list $el))
+       (Error $el "BScore.remove expects Number")))
+
+;; Map — remove by key; if pair given, use its key (constructor-specific)
+(= (coll.remove NilMap ($k $v)) NilMap)
+(= (coll.remove (ConsMap $pair $tail) ($k $v)) (Map.remove $k (ConsMap $pair $tail)))
+(= (coll.remove NilMap $k) NilMap)
+(= (coll.remove (ConsMap $pair $tail) $k) (Map.remove $k (ConsMap $pair $tail)))
+
+;; MultiMap — remove by key; if pair given, remove one; if key given, remove all
+(= (coll.remove NilMMap ($k $v)) NilMMap)
+(= (coll.remove (ConsMMap $pair $tail) ($k $v)) (MultiMap.removeOne $k (ConsMMap $pair $tail)))
+(= (coll.remove NilMMap $k) NilMMap)
+(= (coll.remove (ConsMMap $pair $tail) $k) (MultiMap.removeAll $k (ConsMMap $pair $tail)))
+
+;; Ordered Multiset — remove one occurrence (constructor-specific)
+(= (coll.remove NilOMS $el) NilOMS)
+(= (coll.remove (ConsOMS $x $xs) $el) (OMS.remove $el (ConsOMS $x $xs)))
+
+;; Ordered Set — remove first matching element
+(= (coll.remove NilOS $el) NilOS)
+(= (coll.remove (ConsOS $x $xs) $el)
+   (if (== $x $el) $xs (ConsOS $x (coll.remove $xs $el))))
+
+;; Deme — remove one ScoredInstance from its InstanceSet
+(= (coll.remove (mkDeme $rep (mkSInstSet $list) $demeId) $el)
+   (mkDeme $rep (mkSInstSet (coll.remove $list $el)) $demeId))
+
+;;
+;; coll.contains — membership/lookup presence
+;;
+(: coll.contains (-> $coll $key Bool))
+
+;; List — linear search
+(= (coll.contains Nil $el) False)
+(= (coll.contains (Cons $h $t) $el) (if (== $h $el) True (coll.contains $t $el)))
+
+;; Map / MultiMap / OS / OMS — delegate
+(= (coll.contains NilMap $key) False)
+(= (coll.contains (ConsMap $pair $tail) $key) (Map.contains $key (ConsMap $pair $tail)))
+(= (coll.contains NilMMap $key) False)
+(= (coll.contains (ConsMMap $pair $tail) $key) (MultiMap.contains $key (ConsMMap $pair $tail)))
+(= (coll.contains NilOS $el) False)
+(= (coll.contains (ConsOS $x $xs) $el) (OS.contains (ConsOS $x $xs) $el))
+(= (coll.contains NilOMS $el) False)
+(= (coll.contains (ConsOMS $x $xs) $el) (OMS.contains $el (ConsOMS $x $xs)))
+
+;; Wrappers — delegate to inner lists
+(= (coll.contains (mkInst $list) $el) (coll.contains $list $el))
+(= (coll.contains (mkSInstSet $list) $el) (coll.contains $list $el))
+(= (coll.contains (mkBScore $list) $el) (coll.contains $list $el))
+(= (coll.contains (mkDeme $rep (mkSInstSet $instList) $demeId) $el) (coll.contains $instList $el))
+
+;;
+;; coll.getByIdx — index-based access where supported
+;;
+(: coll.getByIdx (-> $coll Number $el))
+
+;; List — from List methods
+(= (coll.getByIdx (Cons $h $t) $i) (List.getByIdx (Cons $h $t) $i))
+(= (coll.getByIdx Nil $i) (Error $i "Index out of range"))
+
+;; Map / MultiMap — pair access
+(= (coll.getByIdx (ConsMap $pair $tail) $i) (Map.getByIdx (ConsMap $pair $tail) $i))
+(= (coll.getByIdx NilMap $i) (Error $i "Index out of range"))
+(= (coll.getByIdx (ConsMMap $pair $tail) $i) (MultiMap.getByIdx $i (ConsMMap $pair $tail)))
+(= (coll.getByIdx NilMMap $i) (Error $i "Index out of range"))
+
+;; OS / OMS — delegate
+(= (coll.getByIdx (ConsOS $x $xs) $i) (OS.getByIdx $i (ConsOS $x $xs)))
+(= (coll.getByIdx NilOS $i) (Error $i "Index out of range"))
+(= (coll.getByIdx (ConsOMS $x $xs) $i) (OMS.getByIdx $i (ConsOMS $x $xs)))
+(= (coll.getByIdx NilOMS $i) (Error $i "Index out of range"))
+
+;; Wrappers — delegate to inner lists
+(= (coll.getByIdx (mkInst $list) $i) (coll.getByIdx $list $i))
+(= (coll.getByIdx (mkSInstSet $list) $i) (coll.getByIdx $list $i))
+(= (coll.getByIdx (mkBScore $list) $i) (coll.getByIdx $list $i))
+(= (coll.getByIdx (mkDeme $rep (mkSInstSet $instList) $demeId) $i) (coll.getByIdx $instList $i))
+
+;;
+;; Map/MultiMap key-centric APIs
+;;
+(: coll.keys (-> $map (List $k)))
+(= (coll.keys NilMap) Nil)
+(= (coll.keys (ConsMap $pair $tail)) (Map.keys (ConsMap $pair $tail)))
+
+(: coll.values (-> $map (List $v)))
+(= (coll.values NilMap) Nil)
+(= (coll.values (ConsMap $pair $tail)) (Map.values (ConsMap $pair $tail)))
+
+(: coll.items (-> $map (List ($k $v))))
+(= (coll.items NilMap) Nil)
+(= (coll.items (ConsMap $pair $tail)) (Map.items (ConsMap $pair $tail)))
+
+(: coll.find (-> $map $k Number))
+(= (coll.find NilMap $k) -1)
+(= (coll.find (ConsMap $pair $tail) $k) (Map.find (ConsMap $pair $tail) $k))
+
+(: coll.getByKey (-> $map $k $v))
+(= (coll.getByKey (ConsMap $pair $tail) $k) (Map.getByKey $k (ConsMap $pair $tail)))
+(= (coll.getByKey NilMap $k) (Error $k "not found"))
+
+(: coll.findOne (-> $mmap $k $v))
+(= (coll.findOne (ConsMMap $pair $tail) $k) (MultiMap.findOne $k (ConsMMap $pair $tail)))
+(= (coll.findOne NilMMap $k) (Error $k "not found"))
+
+(: coll.findAll (-> $mmap $k (List $v)))
+(= (coll.findAll (ConsMMap $pair $tail) $k) (MultiMap.findAll $k (ConsMMap $pair $tail)))
+(= (coll.findAll NilMMap $k) Nil)
+
+;;
+;; Index-based removal (where supported)
+;;
+(: coll.removeByIdx (-> $coll Number $coll))
+
+;; List — via List.removeAtIdx
+(= (coll.removeByIdx (Cons $h $t) $i) (List.removeAtIdx (Cons $h $t) $i))
+(= (coll.removeByIdx Nil $i) (Error "empty/idx out of range"))
+
+;; OS — direct
+(= (coll.removeByIdx (ConsOS $x $xs) $i) (OS.removeByIdx (ConsOS $x $xs) $i))
+(= (coll.removeByIdx NilOS $i) (Error "empty/idx out of range"))
+
+;; Deme/InstanceSet/BehavioralScore/Instance — delegate to inner lists
+(= (coll.removeByIdx (mkInst $list) $i) (mkInst (coll.removeByIdx $list $i)))
+(= (coll.removeByIdx (mkSInstSet $list) $i) (mkSInstSet (coll.removeByIdx $list $i)))
+(= (coll.removeByIdx (mkBScore $list) $i) (mkBScore (coll.removeByIdx $list $i)))
+(= (coll.removeByIdx (mkDeme $rep (mkSInstSet $list) $demeId) $i) (mkDeme $rep (mkSInstSet (coll.removeByIdx $list $i)) $demeId))
+
+;;
+;; OS-specific helpers
+;;
+(: coll.takeN (-> Number $os $os))
+(= (coll.takeN $n NilOS) NilOS)
+(= (coll.takeN $n (ConsOS $x $xs)) (OS.takeN $n (ConsOS $x $xs)))
+
+(: coll.getTopN (-> Number $os $os))
+(= (coll.getTopN $n NilOS) (Error NilOS "empty ordered set/ fewer items than required"))
+(= (coll.getTopN $n (ConsOS $x $xs)) (OS.getTopN $n (ConsOS $x $xs)))
+;; helper function to remove leading zeros from a node id
+(: updateID (-> ($a $b) ($a $b)))
+(= (updateID (mkNodeId $id)) 
+    (if (== (car-atom $id) 0)
+        (mkNodeId (cdr-atom $id))
+        (mkNodeId $id)
+
+    ))
