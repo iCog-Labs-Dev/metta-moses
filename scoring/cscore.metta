@@ -99,19 +99,6 @@
 (: getUniPen (-> Cscore Number))
 (= (getUniPen (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $uniformityPenalty)
 
-;; comparing composite scores
-;; cScore< -- composite score less than operator
-;; uses penalized scores to compare and complexity score to break ties in the penalized score
-;; $cs1 -- composite score of the left side instance ..
-;; $cs2 -- composite score of the right side instance or whatever
-;; the type-cast in the if .. is used because the return type of the built-in isnan function is not Bool so it has to be cast in to bool value
-(: cScore< (-> Cscore Cscore Bool)) 
-(= (cScore< $cs1 $cs2)
-    (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
-        (if (type-cast (isnan $pl) Bool &self)
-            (not (type-cast (isnan $pr) Bool &self))
-            (or (< $pl $pr) (and (== $pl $pr) (> $cl $cr))))))
-
 ;; cScoreExpr< -- composite score less than operator for expressions
 ;; works directly with expressions using index-atom to extract scores
 ;; index 4 = penalized score, index 1 = complexity score
