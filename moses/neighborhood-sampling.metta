@@ -136,9 +136,11 @@
                               (List.replaceAt $newInst $rand 0)
                               (List.replaceAt $newInst $rand $randomSpec))))
 
-;; similar to the above 'updateInst' with slight change on the range of the randomSpec to make it work for the feature selection
-(: updateInstFs (-> Number Instance Instance))
-(= (updateInstFs $rand $newInst)
+;; this one is overloaded function to handle a feature selection optimization
+;; similar to the above 'updateInst' with slight change on the range of the randomSpec to make it work for the feature selection.
+;; Since the updateInst functions for deme optimization and feature selection already have a different number of parameters, we don’t need to use the flag boolean for Metta to distinguish between them.
+(: updateInst (-> Number Instance Instance))
+(= (updateInst  $rand $newInst)
         (let*
           (
             ($curSpec (List.getByIdx $newInst $rand))
