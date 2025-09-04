@@ -1,4 +1,4 @@
-;; LRU CACHE IMPLEMENTATION (single cacheEntry with counter)
+;; LRU CACHE IMPLEMENTATION 
 ;; A Least Recently Used (LRU) cache implementation in MeTTa that automatically
 ;; evicts the least recently accessed items when the cache reaches capacity.
 
@@ -15,7 +15,7 @@
 
 ;; Function: cacheExists
 ;; Purpose: Check if a function call with given arguments exists in cache
-(: cacheExists (-> Symbol Any Bool))
+(: cacheExists (-> Symbol $a Bool))
 (= (cacheExists $functionName $argument)
     (let* 
         (
@@ -41,7 +41,7 @@
 
 ;; Function: getCached
 ;; Purpose: Retrieve cached result and update its access counter (move to front)
-(: getCached (-> Symbol Any Any))
+(: getCached (-> Symbol $a $a))
 (= (getCached $functionName $argument)
     (let* 
         (
@@ -81,7 +81,7 @@
 
 ;; Function: removeLeastRecentlyUsed
 ;; Purpose: Evict the least recently used cache entry to make room for new entry
-(: removeLeastRecentlyUsed (-> Symbol Any Any Any))
+(: removeLeastRecentlyUsed (-> Symbol $a $a $a))
 (= (removeLeastRecentlyUsed $funcs $arguments $results) 
     (let* 
         (
@@ -111,7 +111,7 @@
 
 ;; Function: cachePut
 ;; Purpose: Add a new entry to the cache, handling capacity limits
-(: cachePut (-> Symbol Any Any Any))
+(: cachePut (-> Symbol $a $a $a))
 (= (cachePut $functionName $argument $result)
     (let* 
         (
@@ -138,7 +138,7 @@
 
 ;; Function: lruCache
 ;; Purpose: Main LRU cache interface - checks cache first, computes if needed
-(: lruCache (-> Number Expression Any))
+(: lruCache (-> Number Expression $a))
 (= (lruCache $maxSize $functionCall) 
     (let* 
         (
