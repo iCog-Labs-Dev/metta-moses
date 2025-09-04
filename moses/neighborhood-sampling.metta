@@ -99,8 +99,9 @@
 
 ;; similar to the above 'sampleFromNeighborhood`' but slight changes for the feature selection
 ;; applies capping to the distance because at somepoint the distance would be greater that the length of the instance and lazyRandomSelector would cause error
-(: sampleFromNeighborhoodFs` (-> Number Number (ITable Bool) Instance Instance))
-(= (sampleFromNeighborhoodFs` $n $dist (mkITable (Cons $row $rows) $labels) (mkInst $centralInst))
+;; the $flag (boolean False) is used to distinguish the function from its equivalent  deme optimzation version function. 
+(: sampleFromNeighborhood` (-> Number Number (ITable Bool) Instance Bool Instance))
+(= (sampleFromNeighborhood` $n $dist (mkITable (Cons $row $rows) $labels) (mkInst $centralInst) $flag)
         (let* 
             (
               ($featureLen (- (List.length $labels) 1)) 
@@ -110,7 +111,7 @@
               (if (== $featureLen $instLen) 
                   (let* (
                     ($selectedIndices (lazyRandomSelector 0 (- $instLen 1) $cappedDist))
-                    ($updatedInst (foldl-atom $selectedIndices $centralInst $updated $rand (updateInstFs $rand $updated)))
+                    ($updatedInst (foldl-atom $selectedIndices $centralInst $updated $rand (updateInst $rand $updated)))
                   )
                   (mkInst $updatedInst)) 
                   (Error ($featureLen $instLen) "Not Equal"))))
