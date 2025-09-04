@@ -129,7 +129,7 @@
 
 ;; Testcase for transformFs
 !(assertEqual
-   (transformFs
+   (transform
    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0)) Nil)))
-   ttable2)
+   ttable2 False)
    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0.311)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0.811)) Nil))))
