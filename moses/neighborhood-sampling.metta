@@ -160,7 +160,7 @@
 
 (: sampleFromNeighborhood (-> Number Number KnobMap Instance (List Instance)))
 (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
-      ( if (== (isPossibleSize $sampleSize $dist $inst) False)
+      ( if (== (isPossibleSize $sampleSize $dist 3 $inst) False)
           (Error ("Cannot generate " $sampleSize " instances at distance " $dist " from " $inst) (Requested sample size too large))
           (selectUnique () $sampleSize $dist $kbMp $inst)
       )
