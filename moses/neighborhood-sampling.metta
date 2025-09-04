@@ -228,9 +228,9 @@
                 ($n (factorial $instLen))
                 ($r (factorial (- $instLen $dist)))
                 ($d (factorial $dist))
-                ($m (pow-math 2 $dist)) ; assuming knob multiplicty is 3, so m-1 = 1, hence m = 2 that is why (pow-math 2 $dist)
+                ($p (pow-math (- $m 1) $dist)) ; assuming knob multiplicty is 3, so m-1 = 1, hence m = 2 that is why (pow-math 2 $dist)
                 ($maxNeighbors (/ $n (* $r $d)))
-                ($totalNeighbors (* $maxNeighbors $m))
+                ($totalNeighbors (* $maxNeighbors $p))
               ) 
                 (>= $totalNeighbors $sampleSize)
                 ; $totalNeighbors
