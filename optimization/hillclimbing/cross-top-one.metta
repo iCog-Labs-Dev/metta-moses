@@ -24,8 +24,9 @@
                 (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet (List.appendList (exprToList $newInstances) $instSet)) $demeId)))
 
 ;; similar to the above 'crossTopOne' but with slight changes on the comparison function that is passed to the Lost.partialSort to compare the mutualInformation based scores
-(: crossTopOneFs (-> (InstanceSet $a) Number Number Number Instance (InstanceSet $a)))
-(= (crossTopOneFs (mkSInstSet $instSet) $nToMake $sampleStart $sampleSize $baseInstance)
+;; this overloaded function adds an extra parameter $flag (set Boolean False) at the end, so Metta can tell it apart from the equivalent function used in deme optimization.
+(: crossTopOne (-> (InstanceSet $a) Number Number Number Instance Bool (InstanceSet $a)))
+(= (crossTopOne (mkSInstSet $instSet) $nToMake $sampleStart $sampleSize $baseInstance $flag)
    ; (trace! (Inside crossTopOne: $nToMake $sampleStart $sampleSize) 
             (let* (
                     (() (println! (Inside crossTopOneFs)))
