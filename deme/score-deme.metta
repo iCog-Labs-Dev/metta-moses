@@ -77,9 +77,10 @@
 ;; Params:
 ;;   (mkSInstSet $scoredInstList): The unscored InstanceSet(or that of with an initial worst score)
 ;;   $itable: The input table
-;; Returns: Scored InstanceSet
-(: transformFs (-> (InstanceSet $a) (ITable Bool) (InstanceSet Cscore)))
-(= (transformFs (mkSInstSet $scoredInstList) $itable)
+;;   Returns: Scored InstanceSet
+;;    this overloaded function adds an extra parameter $flag (set to False) at the end, so Metta can execute it apart from the equivalent function used in deme optimization
+(: transform (-> (InstanceSet $a) (ITable Bool) Bool (InstanceSet Cscore)))
+(= (transform (mkSInstSet $scoredInstList) $itable $flag)
 (let*
 (
     (() (println! "inside transformFs"))
