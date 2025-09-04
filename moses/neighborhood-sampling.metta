@@ -190,11 +190,14 @@
        )
    ) 
 
+;; this is overloaded function of sampleFromNeighborhood to handle feature selection.
 ;; similar to the above 'sampleFromNeighborhood' but with slight modification to make it compatible with the feature selection
-;; uses the sampleFromNeighborhoodFs` function to sample from the neighborhood
-(: sampleFromNeighborhoodFs (-> Number Number (ITable Bool) Instance (List Instance)))
-(= (sampleFromNeighborhoodFs $sampleSize $dist $itable $inst)
-   (let* (
+;; uses the sampleFromNeighborhood` (feature selection version) function to sample from the neighborhood
+;; this overloaded function uses a $flag (boolean False) as its last parameter to tell it apart from the similar deme optimization version of the function.
+(: sampleFromNeighborhood (-> Number Number (ITable Bool) Instance Bool (List Instance)))
+(= (sampleFromNeighborhood $sampleSize $dist $itable $inst $flag)
+  
+  (let* (
       (() (println! (Inside sampleFromNeighborhoodFs: $sampleSize $dist $inst)))
       ($list (genList (- $sampleSize 1)))
       ($x (map-atom $list $i (sampleFromNeighborhoodFs` $i $dist $itable $inst)))
