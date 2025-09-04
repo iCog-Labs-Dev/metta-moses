@@ -217,7 +217,25 @@ Nil)
   
 
 
-;testcase for isPossibleSize function
+; ; testcase for isPossibleSize function
 ; Formula: n! / ((n - d)! * d!) * (m-1)^d  (n = instance length, d = distance, m = knob multiplicity)
- !(assertEqual (isPossibleSize 13 2 (mkInst (Cons 1 (Cons 2 (Cons 0 Nil))))) False)
- !(assertEqual (isPossibleSize 10 2 (mkInst (Cons 1 (Cons 2 (Cons 0 Nil))))) True)
+ !(assertEqual (isPossibleSize 13 2 3 (mkInst (Cons 1 (Cons 2 (Cons 0 Nil))))) False)
+ !(assertEqual (isPossibleSize 10 2 3 (mkInst (Cons 1 (Cons 2 (Cons 0 Nil))))) True)
+
+; test cases for overloaded function sampleFromNeighborhood`  and sampleFromNeighborhood using for feature selection.
+!(bind! table (mkITable
+                         (Cons (Cons False (Cons False (Cons False Nil))) 
+                         (Cons (Cons True (Cons False (Cons False Nil))) 
+                         (Cons (Cons False (Cons True (Cons False Nil)))
+                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+                         (Cons A (Cons B (Cons O (Cons Output Nil))))))
+
+
+; ;Testcase for sampleFromNeighborhood function when requested sample size is more than possible instances in feature selection overloaded function.
+
+; !(assertEqual (sampleFromNeighborhood 3 2 table (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) False)
+; (Cons (mkInst (Cons 1 (Cons 1 (Cons 1 Nil)))) (Cons (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) (Cons (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) Nil))))
+
+; !(assertEqual (sampleFromNeighborhood 3 1 table (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) False)
+; (Cons (mkInst (Cons 1 (Cons 0 (Cons 1 Nil)))) (Cons (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) (Cons (mkInst (Cons 1 (Cons 0 (Cons 1 Nil)))) Nil)))
+; )
