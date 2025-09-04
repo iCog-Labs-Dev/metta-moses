@@ -331,14 +331,14 @@
 
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
-             (countNeighborhoodFs $centerInst $dist $numNewInstances)
+             (countNeighborhood $centerInst $dist $numNewInstances) ;;  overloaded function for feature selection.
              $totalNeighbors))
     ($updatedNumNewInstances 
          (if (< $numNewInstances $updatedTotalNeighbors)  
              $numNewInstances
              $updatedTotalNeighbors))
     ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
-                       (sampleFromNeighborhoodFs $numNewInstances $dist $itable $centerInst)
+                       (sampleFromNeighborhood $numNewInstances $dist $itable $centerInst False)
                        (generateAllInNeighborhood (mkMultip 2) $centerInst $dist)))
     ($scoredNewInstances (List.map initInstScoreFs $newInstances))
     ($updatedInstList (List.concat $instList $scoredNewInstances))
