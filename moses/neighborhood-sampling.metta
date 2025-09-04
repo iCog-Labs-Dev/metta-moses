@@ -318,11 +318,11 @@
  ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId) $updatedNumNewInstances)))
 
 ;; similar to the above 'sampleNewInstances' but with slight changes for the feature selection
-;; Uses the countNeighborhoodFs, sampleFromNeighborhoodFs, initInstScoreFs
+;; Uses the countNeighborhood, sampleFromNeighborhood, initInstScoreFs
 ;; It sets the multiplicy to 2 which is 0 and 1 for the feature selection
-
-(: sampleNewInstancesFs (-> Number Number Instance (ITable Bool) (InstanceSet $a) Number ((InstanceSet $a) Number)))
-(= (sampleNewInstancesFs $totalNeighbors $numNewInstances $centerInst $itable (mkSInstSet $instList) $dist)
+;;this overloaded function uses a $flag (boolean False) as its last parameter to tell it apart from the similar deme optimization version of the function.
+(: sampleNewInstances (-> Number Number Instance (ITable Bool) (InstanceSet $a) Number Bool ((InstanceSet $a) Number)))
+(= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst $itable (mkSInstSet $instList) $dist $flag)
  (let*
   (
     (() (println! (Inside sampleNewInstancesFs: $totalNeighbors $numNewInstances $centerInst)))
