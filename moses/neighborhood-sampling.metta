@@ -200,7 +200,7 @@
   (let* (
       (() (println! (Inside sampleFromNeighborhoodFs: $sampleSize $dist $inst)))
       ($list (genList (- $sampleSize 1)))
-      ($x (map-atom $list $i (sampleFromNeighborhoodFs` $i $dist $itable $inst)))
+      ($x (map-atom $list $i (sampleFromNeighborhood` $i $dist $itable $inst False)))
     )
     (exprToList $x)))
    
