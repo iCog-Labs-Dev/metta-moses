@@ -221,7 +221,6 @@
 (= (isPossibleSize $sampleSize $dist $m (mkInst $inst)) 
     
             (let* (
-                ($list (cdr-atom $inst))
                 ; (() (println! (Inside isPossibleSize: $inst $dist $sampleSize)))
                 ($centralInst (car-atom $list))
                 ($instLen (List.length $centralInst))
