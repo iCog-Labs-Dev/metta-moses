@@ -217,8 +217,8 @@
 ;; Returns: true if total neighbors ≥ $sampleSize, else false
 ;; Formula: n! / ((n - d)! * d!) * (m-1)^d  ( where n = instance length, d = hamming distance, m = knob multiplicity)
 
-(: isPossibleSize (-> Instance Number Number Bool))
-(= (isPossibleSize $sampleSize $dist $inst) 
+(: isPossibleSize (-> Number Number Number Instance Bool))
+(= (isPossibleSize $sampleSize $dist $m (mkInst $inst)) 
     
             (let* (
                 ($list (cdr-atom $inst))
