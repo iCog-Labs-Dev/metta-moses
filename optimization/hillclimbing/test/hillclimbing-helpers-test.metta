@@ -111,7 +111,7 @@
 
 ; Testcase for informationTheoreticBitsFs
 !(assertEqual
-  (informationTheoreticBitsFs (Cons A (Cons B (Cons O Nil)))) 2)
+  (informationTheoreticBits (Cons A (Cons B (Cons O Nil))) False)  2)
 
 ;; Testing estimateNeighborhood on the above knob maps
 !(assertEqual (estimateNeighborhood 0 knobmap1) 1)
@@ -121,10 +121,10 @@
 
 ; Testcase for estimateNeighborhoodFs
 !(assertEqual
-  (estimateNeighborhoodFs 3 (Cons A (Cons B (Cons O Nil)))) 4)
+  (estimateNeighborhood 3 (Cons A (Cons B (Cons O Nil))) False) 4)
 
 ; Testcase for countNeighborhoodFs
-!(assertEqual (countNeighborhoodFs (Cons 1 (Cons 0 (Cons 1 Nil))) 2 20) 3)
+!(assertEqual (countNeighborhood (Cons 1 (Cons 0 (Cons 1 Nil))) 2 20) 3)
 
 ; Testcase for factorial
 !(assertEqual (factorial 3) 6)
@@ -201,7 +201,7 @@
 (= (isScoredFs (mkSInst (mkPair $instance $score))) (~= $score 0))
 
 ;;;;;; Testcase for hillClimbing for deme optimization
-! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
+; ! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
 !(assertEqual
    (let*
      (
@@ -215,11 +215,11 @@
 
 
 ;;;;;;; Testcase for hillClimbing for feature selection
-! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
+; ! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
 !(assertEqual
    (let*
      (
-       (($instance (mkSInstSet $instSet) $state) (hillClimbingFs (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil)))))
+       (($instance (mkSInstSet $instSet) $state) (hillClimbing (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil))) False))
        ($instanceCount (List.length $instSet))
        ($scoredElems (List.map isScored $instSet))
      )
