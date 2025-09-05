@@ -80,8 +80,8 @@
 
 ;; Feature selection version of countNeighborhoodFromIdx
 ;; uses the BInomial coefficient to count the number of instances at a specific distance from a given instance.
-(: countNeighborhoodFromIdxFs (-> Instance Number Number Number Number))
-(= (countNeighborhoodFromIdxFs $instance $dist $startIdx $maxCount)
+(: countNeighborhoodFromIdx (-> Instance Number Number Number Number))
+(= (countNeighborhoodFromIdx $instance $dist $startIdx $maxCount )
    (let $n (- (List.length $instance) $startIdx)
      (if (== $dist 0)
          1
@@ -91,10 +91,10 @@
                (if (> $count $maxCount) $maxCount $count))))))
 
 ;; Feature selection version of countNeighborhood
-;; uses the countNeighborhoodFromIdxFs
-(: countNeighborhoodFs (-> Instance Number Number Number))
-(= (countNeighborhoodFs $instance $dist $maxCount)
-   (countNeighborhoodFromIdxFs $instance $dist 0 $maxCount))
+;; uses the countNeighborhoodFromIdx (feature selection version)
+(: countNeighborhood (-> Instance Number Number  Number))
+(= (countNeighborhood $instance $dist $maxCount)
+   (countNeighborhoodFromIdx $instance $dist 0 $maxCount))
 
 ;; Crossover function.
 ;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
