@@ -180,28 +180,26 @@
     (if (<= $targetSize 0)
         NilOS
         (chain (/ (+ $minThreshold $maxThreshold) 2) $meanThreshold
-            (chain 
-                    (chain (- (List.length $labels) 1) $numFeatures
-                        (chain (OS.range 0 $numFeatures NilOS) $allIndices
-                            (incrementalIterator (mkITable $rows $labels) $allIndices $meanThreshold $maxTerms $redundancyThreshold 1 NilOS)
-                        )
-                    )
-                   ) $resultIndices
-                (chain (OS.length $resultIndices) $resultSize
-                    (if (or (isWithin $minThreshold $maxThreshold $epsilon) (== $resultSize $targetSize))
-                        $resultIndices
-                        (if (< $resultSize $targetSize)
-                            ;; need more features lower the threshold
-                            (adaptiveSelection (mkITable $rows $labels) $targetSize $maxTerms $redundancyThreshold $minThreshold $meanThreshold $epsilon)
-                            ;; too many features raise the threshold
-                            (adaptiveSelection (mkITable $rows $labels) $targetSize $maxTerms $redundancyThreshold $meanThreshold $maxThreshold $epsilon)
+            (chain (- (List.length $labels) 1) $numFeatures
+                (chain (OS.range 0 $numFeatures NilOS) $allIndices
+                    (chain (incrementalIterator (mkITable $rows $labels) $allIndices $meanThreshold $maxTerms $redundancyThreshold 1 NilOS) $resultIndices
+                        (chain (OS.length $resultIndices) $resultSize
+                            (if (or (isWithin $minThreshold $maxThreshold $epsilon) (== $resultSize $targetSize))
+                                $resultIndices
+                                (if (< $resultSize $targetSize)
+                                    ;; need more features lower the threshold
+                                    (adaptiveSelection (mkITable $rows $labels) $targetSize $maxTerms $redundancyThreshold $minThreshold $meanThreshold $epsilon)
+                                    ;; too many features raise the threshold
+                                    (adaptiveSelection (mkITable $rows $labels) $targetSize $maxTerms $redundancyThreshold $meanThreshold $maxThreshold $epsilon)
+                                )
+                            )
                         )
                     )
                 )
             )
         )
     )
-
+)
 ;; Purpose: Main incremental feature selection interface
 ;; Parameters:
 ;;   (mkITable $rows $labels) → Input table
@@ -218,7 +216,7 @@
             (chain (OS.range 0 $numFeatures NilOS) $allIndices
                 (chain (cachedMutualInformation (mkITable $rows $labels) $allIndices) $score
                     (chain (osToExpression $allIndices ()) $indicesExpr
-                        ($score $indicesExpr) ;; return Indices and score
+                        (($score $indicesExpr)) ;; return Indices and score as tupe of pairs of score and feature set tuple
                     )
                 )
             )

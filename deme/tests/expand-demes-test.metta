@@ -23,6 +23,7 @@
 !(import! &self metta-moses:utilities:ordered-multiset)
 !(import! &self metta-moses:utilities:ordered-set)
 !(import! &self metta-moses:utilities:lazy-random-selector)
+!(import! &self metta-moses:utilities:lru-cache)
 
 !(import! &self metta-moses:reduct:enf)
 
@@ -119,7 +120,7 @@
                         
                         (Cons A (Cons B (Cons C (Cons D (Cons E (Cons T Nil))))))))                     
 ;; truthTableBScore for  bigtable
-; ! (bind! bigtablet (createTruthTableBScore 2 bigtable))                        
+! (bind! bigtablet (createTruthTableBScore 2 bigtable))                        
 
 ! (bind! bigtable2 (mkITable
                         (Cons (Cons True  (Cons False (Cons True  (Cons False (Cons True  (Cons True  Nil))))))
@@ -141,49 +142,49 @@
 
                         (Cons A (Cons B (Cons C (Cons D (Cons E (Cons T Nil))))))))
 
-; ! (bind! bigtablet2 (createTruthTableBScore 2 bigtable2))                        
+! (bind! bigtablet2 (createTruthTableBScore 2 bigtable2))                        
 
 (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
 
-; ;; Testcase for optimizeDemes               
-; !(assertEqual 
-; (let* 
-; (
-;     ($optimizeDemesReturn (optimizeDemes deme table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing))
-;     (() (println! "optimizeDemes Returns"))
-;     (() (println! $optimizeDemesReturn))
-;     (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemesReturn)
-;     ($instanceCount (List.length $instSet))
-;     ($scoredElems (List.map isScored $instSet))
-; )
-; ((>= $instanceCount 4) (List.any $scoredElems)))
-; (True True))
+;; Testcase for optimizeDemes               
+!(assertEqual 
+(let* 
+(
+    ($optimizeDemesReturn (optimizeDemes deme table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing))
+    (() (println! "optimizeDemes Returns"))
+    (() (println! $optimizeDemesReturn))
+    (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemesReturn)
+    ($instanceCount (List.length $instSet))
+    ($scoredElems (List.map isScored $instSet))
+)
+((>= $instanceCount 4) (List.any $scoredElems)))
+(True True))
 
-; ;; Testcase for expandDeme
-; !(assertEqual
-; (let*
-; (
-;     ($updatedDeme (expandDeme metaPop2 0 1 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
-;     ($updatedDemeLength (size-atom $updatedDeme))
-; )
-; (>= $updatedDemeLength 1)
-; ) True)
+; Testcase for expandDeme
+!(assertEqual
+(let*
+(
+    ($updatedDeme (expandDeme metaPop2 0 1 False sim table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
+    ($updatedDemeLength (size-atom $updatedDeme))
+)
+(>= $updatedDemeLength 1)
+) True)
 
 ; ;; Testcase for runMoses
-; !(assertEqual
-; (let*
-; (
-;     ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 1 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
-;     ($topCandidatesLength (OS.length $topCandidates))
-; )
-; (>= $topCandidatesLength 1)
-; ) True)
+!(assertEqual
+(let*
+(
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False inc table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
+    ($topCandidatesLength (OS.length $topCandidates))
+)
+(>= $topCandidatesLength 1)
+) True)
 
 ; ! (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
 ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     rd      ;; the new arguments for feature selection algo
+;     inc      ;; the new arguments for feature selection algo
 ;     table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
 
 ; with OR table and AND init exemplar     
@@ -198,4 +199,16 @@
 ; ! (stochasticMaxDependency 0.0 3 3 bigtable2 mi ())  ;; ((0.704 (0 2 1)) (0.407 (2 1 3)) (0.407 (2 4 1)))
 ; (incrementalSelection $itable $threshold $targetSize $maxInteractionTerms $redundancyThreshold)
 ; ! (incrementalSelection ttable1 0.0 3 3 0.05)  ;; 
-; ! (incrementalSelection ttable1 0.02 0 2 0)
+; ! (incrementalSelection ttable1 0.02 0 3 0)
+; ! (incrementalSelection bigtable 0.02 0 3 0)
+; ! (incrementalSelection ttable1 0.0 0 1 0)
+
+; ! (representation 
+;         2
+;         (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) 
+;         ttable1 
+;         sim 
+;         False
+;         ; ((E 0.4) (F 0.3) (G 0.73))
+;         ()
+;         )
