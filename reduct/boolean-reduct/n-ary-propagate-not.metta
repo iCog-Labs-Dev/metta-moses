@@ -1,15 +1,16 @@
-;; functions to Constract expression i.e (AND (A B) ) => (AND A B)
-(= (singleton-operator $op $x) (cons-atom $op $x))
+;; functions to Constract expression i.e (AND (A B) ) => (AND A B) 
+(= (AND $x) (cons-atom AND $x))
+(= (OR $x) (cons-atom OR $x))
 
 ;; function to propagate to all of nested tuples by  mapping a propagetNot function to them
 (= (propagateNotChildrens () $tuple) (collapse (propagateNot (superpose $tuple))))
 (= (propagateNotChildrens $tuple) (collapse (propagateNot NOT (superpose $tuple))))
 
 ;; Rules to propagete
-(= (propagateNot AND $tuple) (singleton-operator AND (propagateNotChildrens () $tuple)))
-(= (propagateNot OR $tuple) (singleton-operator OR (propagateNotChildrens () $tuple)))
-(= (propagateNot NOT AND $tuple) (singleton-operator OR (propagateNotChildrens $tuple)))
-(= (propagateNot NOT OR $tuple) (singleton-operator AND (propagateNotChildrens $tuple)))
+(= (propagateNot AND $tuple) (AND (propagateNotChildrens () $tuple)))
+(= (propagateNot OR $tuple) (OR  (propagateNotChildrens () $tuple)))
+(= (propagateNot NOT AND $tuple) (OR (propagateNotChildrens $tuple)))
+(= (propagateNot NOT OR $tuple) (AND (propagateNotChildrens $tuple)))
 (= (propagateNot NOT NOT $tuple) (propagateNot $tuple))
 
 ;;functions to Extract the operators form operands and make oprands tuple  from the expression

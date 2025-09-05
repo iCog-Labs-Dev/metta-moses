@@ -12,6 +12,3 @@ run_python_tests.py
 # Ignore HTML and Prolog files
 *.html
 *.pl
-
-# Ignore meTTa-utils
-meTTa-utils

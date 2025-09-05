@@ -80,13 +80,13 @@
 ! (assertEqual (filterChildren (AND A B C)) (AND A B C))
 ! (assertEqual (filterChildren (OR A)) (OR A))
 
-;; Test for getChildrenExp
+;; Test for getChildren
 
-! (assertEqual (getChildrenExp ()) ())
-! (assertEqual (getChildrenExp (AND A B (OR A B) C E (OR E F) (OR A) (NOT F))) ((OR A B) (OR E F) (OR A)))
-! (assertEqual (getChildrenExp (AND (OR A B) A B C E (NOT F) (OR E F) (OR A))) ((OR A B) (OR E F) (OR A)))
-! (assertEqual (getChildrenExp (OR A B (AND A B) C E (AND E F) (AND A) (NOT F))) ((AND A B) (AND E F) (AND A)))
-! (assertEqual (getChildrenExp (OR (AND A B) A B C E (NOT F) (AND E F) (AND A))) ((AND A B) (AND E F) (AND A)))
+! (assertEqual (getChildren ()) ())
+! (assertEqual (getChildren (AND A B (OR A B) C E (OR E F) (OR A) (NOT F))) ((OR A B) (OR E F) (OR A)))
+! (assertEqual (getChildren (AND (OR A B) A B C E (NOT F) (OR E F) (OR A))) ((OR A B) (OR E F) (OR A)))
+! (assertEqual (getChildren (OR A B (AND A B) C E (AND E F) (AND A) (NOT F))) ((AND A B) (AND E F) (AND A)))
+! (assertEqual (getChildren (OR (AND A B) A B C E (NOT F) (AND E F) (AND A))) ((AND A B) (AND E F) (AND A)))
 
 ;; Test for getLiterals
 ! (assertEqual (getLiterals ()) ())
@@ -124,18 +124,18 @@
 ! (assertEqual (addLiterals (AND A B C (OR A B)) (A B C)) (AND A B C (OR A B)))
 ! (assertEqual (addLiterals (AND A (OR A B) B C) (E F G)) (AND A B C E F G (OR A B)))
 
-;; Test for addChildrenExp
-! (assertEqual (addChildrenExp (AND A B C) ()) (AND A B C))
-! (assertEqual (addChildrenExp (OR A B C) ()) (OR A B C))
-! (assertEqual (addChildrenExp (OR) ((AND B C))) (OR (AND B C)))
-! (assertEqual (addChildrenExp (AND) ((OR B C))) (AND (OR B C)))
-! (assertEqual (addChildrenExp (AND (OR A B)) ((OR C D) (OR E F))) (AND (OR A B) (OR C D) (OR E F)))
-! (assertEqual (addChildrenExp (OR (AND A B)) ((AND C D) (AND E F))) (OR (AND A B) (AND C D) (AND E F)))
-! (assertEqual (addChildrenExp (AND A B C (OR A B)) ((OR A E) (OR B C) (OR A B E (AND A F)))) (AND A B C (OR A B) (OR A E) (OR B C) (OR A B E (AND A F))))
-! (assertEqual (addChildrenExp (OR A B C (AND A B)) ((AND A E) (AND B C) (AND A B E (OR A F)))) (OR A B C (AND A B) (AND A E) (AND B C) (AND A B E (OR A F))))
-! (assertEqual (addChildrenExp (AND A (OR A B) B C) ((OR B C))) (AND A B C (OR A B) (OR B C)))
-! (assertEqual (addChildrenExp (OR A (AND A B) B C) ((AND B C))) (OR A B C (AND A B) (AND B C)))
-! (assertEqual (addChildrenExp (OR A B C) ((AND A E) (AND B C) (AND A B E (OR A F)))) (OR A B C (AND A E) (AND B C) (AND A B E (OR A F))))
+;; Test for addChildren
+! (assertEqual (addChildren (AND A B C) ()) (AND A B C))
+! (assertEqual (addChildren (OR A B C) ()) (OR A B C))
+! (assertEqual (addChildren (OR) ((AND B C))) (OR (AND B C)))
+! (assertEqual (addChildren (AND) ((OR B C))) (AND (OR B C)))
+! (assertEqual (addChildren (AND (OR A B)) ((OR C D) (OR E F))) (AND (OR A B) (OR C D) (OR E F)))
+! (assertEqual (addChildren (OR (AND A B)) ((AND C D) (AND E F))) (OR (AND A B) (AND C D) (AND E F)))
+! (assertEqual (addChildren (AND A B C (OR A B)) ((OR A E) (OR B C) (OR A B E (AND A F)))) (AND A B C (OR A B) (OR A E) (OR B C) (OR A B E (AND A F))))
+! (assertEqual (addChildren (OR A B C (AND A B)) ((AND A E) (AND B C) (AND A B E (OR A F)))) (OR A B C (AND A B) (AND A E) (AND B C) (AND A B E (OR A F))))
+! (assertEqual (addChildren (AND A (OR A B) B C) ((OR B C))) (AND A B C (OR A B) (OR B C)))
+! (assertEqual (addChildren (OR A (AND A B) B C) ((AND B C))) (OR A B C (AND A B) (AND B C)))
+! (assertEqual (addChildren (OR A B C) ((AND A E) (AND B C) (AND A B E (OR A F)))) (OR A B C (AND A E) (AND B C) (AND A B E (OR A F))))
 
 ;; Test for foldl
 !(assertEqual (foldl + 0 (1 2 3 4 5)) 15)

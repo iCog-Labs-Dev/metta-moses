@@ -21,7 +21,7 @@
         (let*
           (
             ($head (car-atom $current))
-            ($children (getChildrenExp $current))
+            ($children (getChildren $current))
             ($childrenHasChildOrGuard (collapse (nodeHasChildOrGuard (superpose $children))))
           )
           (case ($head $children)
@@ -59,7 +59,7 @@
       ((Expression $current)
         (let*
           (
-            ($children (getChildrenExp $current))
+            ($children (getChildren $current))
             ($literals (getLiterals $current))
           )
           ;; POA is AND and has no children and guardSet
@@ -75,4 +75,4 @@
 
 
 ;; a helper function which checks if an expression has a child (subexpression) or a literal or not
-(= (nodeHasChildOrGuard $node) (or (~= (getLiterals $node) ()) (~= (getChildrenExp $node) ())))
+(= (nodeHasChildOrGuard $node) (or (~= (getLiterals $node) ()) (~= (getChildren $node) ())))

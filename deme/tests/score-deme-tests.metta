@@ -21,6 +21,7 @@
 ! (import! &self metta-moses:utilities:python-treehelpers)
 ! (import! &self metta-moses:feature-selection:feature-selection-helpers)
 
+;; TODO: Add REDUCE Function here when it's edge case if fixed.
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 
 !(bind! tree1

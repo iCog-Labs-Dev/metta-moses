@@ -38,7 +38,7 @@
         ($guardSet (getLiterals $exp))
         ($newGuardSet (unionAtom $guardSet $elements))
         ($newGuardSet' (collapse (unique (superpose $newGuardSet))))
-        ($updatedSubExpression (unionAtom $newGuardSet' (getChildrenExp $exp)))
+        ($updatedSubExpression (unionAtom $newGuardSet' (getChildren $exp)))
 
         ($newExp (cons-atom $op $updatedSubExpression))
      )
@@ -60,7 +60,7 @@
 ;; A child of a given expression is any subExpression.
 ;; An expression (NOT A) is also considered as a literal 
 ;;    in the case of boolean expression. Hence not included as a child.
-(= (getChildrenExp $exp)
+(= (getChildren $exp)
      (case $exp
        (
          (() $exp)
@@ -70,11 +70,11 @@
 ;; A function to add a list of children to a given expression.
 ;; Example: input: $exp -> (AND A B (OR C D)), $children -> ((OR A B) (OR E F) (OR D))
 ;;          output: (AND A B (OR C D) (OR A B) (OR E F) (OR D))
-(= (addChildrenExp $exp $children)
+(= (addChildren $exp $children)
    (let*
      (
         ($op (car-atom $exp))
-        ($oldChildren (getChildrenExp $exp))
+        ($oldChildren (getChildren $exp))
         ($newChildren (concatTuple $oldChildren $children))
         ($updatedSubExpression (concatTuple (getLiterals $exp) $newChildren))
         ($newExp (cons-atom $op $updatedSubExpression))
@@ -110,7 +110,7 @@
 
 ;;A function that will return both literals (Also called guard sets for AND nodes)
 ;;  and the children as a tuple ((...literals...), (...children...))
-(= (getLiteralChildren $expr) ((getLiterals $expr) (getChildrenExp $expr)))
+(= (getLiteralChildren $expr) ((getLiterals $expr) (getChildren $expr)))
 
 ;; Function to find common literals between a tuple and a nested tuple 
 (= (findCommonLiterals $tuple $nestedTuple)
