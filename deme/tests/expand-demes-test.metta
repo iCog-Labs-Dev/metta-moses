@@ -55,7 +55,6 @@
 !(import! &self metta-moses:feature-selection:simple)
 !(import! &self metta-moses:feature-selection:smd)
 !(import! &self metta-moses:feature-selection:incremental)
-!(import! &self metta-moses:utilities:lru-cache)
 !(import! &self metta-moses:feature-selection:hc)
 !(import! &self metta-moses:feature-selection:random-feature-selection)
 
@@ -121,7 +120,7 @@
                         
                         (Cons A (Cons B (Cons C (Cons D (Cons E (Cons T Nil))))))))                     
 ;; truthTableBScore for  bigtable
-! (bind! bigtablet (createTruthTableBScore 2 bigtable))                        
+; ! (bind! bigtablet (createTruthTableBScore 2 bigtable))                        
 
 ! (bind! bigtable2 (mkITable
                         (Cons (Cons True  (Cons False (Cons True  (Cons False (Cons True  (Cons True  Nil))))))
@@ -143,7 +142,7 @@
 
                         (Cons A (Cons B (Cons C (Cons D (Cons E (Cons T Nil))))))))
 
-! (bind! bigtablet2 (createTruthTableBScore 2 bigtable2))                        
+; ! (bind! bigtablet2 (createTruthTableBScore 2 bigtable2))                        
 
 (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
@@ -173,6 +172,24 @@
 (>= $updatedDemeLength 1)
 ) True)
 
+;; Testcase for runMoses
+!(assertEqual
+(let*
+(
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 1 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
+    ($topCandidatesLength (OS.length $topCandidates))
+)
+(>= $topCandidatesLength 1)
+) True)
+;; Testcase for runMoses
+!(assertEqual
+(let*
+(
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 1 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
+    ($topCandidatesLength (OS.length $topCandidates))
+)
+(>= $topCandidatesLength 1)
+) True)
 ; ;; Testcase for runMoses
 !(assertEqual
 (let*
@@ -188,6 +205,16 @@
 ;     inc      ;; the new arguments for feature selection algo
 ;     table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
 
+; ! (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
+;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
+;     rd      ;; the new arguments for feature selection algo
+;     table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
+
+; with OR table and AND init exemplar     
+; ! (runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
+;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
+;     smd      ;; the new arguments for feature selection algo
+;     ortable hillClimbing 5 2 0 1 orttable 3 0.004 1000)
 ; with OR table and AND init exemplar     
 ; ! (runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
 ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
