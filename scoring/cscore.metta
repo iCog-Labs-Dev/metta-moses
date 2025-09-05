@@ -6,7 +6,7 @@
 (= (getCscore $itable $tree $complexityRatio $scoreSpace)
     (unify $scoreSpace 
             ($tree $score) 
-            (let $score (trace! "USED from cache XXXXXXXXXXXXXXXXXXXXXXXXXXX " $score) $score)
+            (let $cached-score (trace! "USED from cache XXXXXXXXXXXXXXXXXXXXXXXXXXX " $score) $cached-score)
             (chain (scoreTree $itable $tree) $bs 
                 (if-error $bs ;; return worst possible composite score
                 (worstCscore)
