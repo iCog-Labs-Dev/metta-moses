@@ -18,6 +18,7 @@
 ! (import! &self metta-moses:utilities:ordered-multimap)
 ! (import! &self metta-moses:utilities:python-treehelpers)
 
+;; TODO: Add REDUCE Function here when it's edge case if fixed.
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 
 !(bind! tree1
