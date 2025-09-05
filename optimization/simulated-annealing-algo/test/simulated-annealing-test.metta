@@ -70,8 +70,6 @@
             (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 5)))
             ($instanceCount (List.length $instSet))
             ($scoredElems (List.map isScored $instSet))
-            ; (() (println! "Instance count: " $instanceCount))
-            ; (() (println! "Scored elems: " $scoredElems))
        )
        ((>= $instanceCount 4) (List.any $scoredElems)) 
     )

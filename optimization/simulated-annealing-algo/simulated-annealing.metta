@@ -39,8 +39,6 @@
   )
 )
 
-;; APPLY< helper for apply <
-(= (APPLY< $x $b))
 
 ;; Calculates instance energy using the composite score of that instance 
 ;;  (this is based on the C++ version) the composite score is the sum of
@@ -57,13 +55,6 @@
     1.0
     (math-exp (/ (- $energy1 $energy2) $Temp))
   )
-)
-
-;; Actual acceptance probabitlity which is the product of the intensity and acceptance probability.
-;;  (This is based on the C++ implementation)
-(: actualAcceptanceProb (-> Number Number Number))
-(= (actualAcceptanceProb $acceptanceProb $intensity)
-  (* $intensity $acceptanceProb)
 )
 
 
@@ -135,7 +126,8 @@
               ($newEnergy (getEnergy (Pair.second $newBestInstPair)))
               ($acceptanceProb (acceptanceProb $energy $newEnergy $Temp))
               ($randomFloat (rand-random)) ;; using random.random instead of numpy.random.rand
-              ($actualAcceptanceProb (actualAcceptanceProb $acceptanceProb 0.85)) ;; Using the default value of 0.5 for intensity
+              ;; Actual acceptance probabitlity which is the product of the intensity and acceptance probability.
+              ($actualAcceptanceProb (* $acceptanceProb 0.85))
 
               (() (println! (Energy: $energy)))
               (() (println! (New energy: $newEnergy)))
@@ -164,12 +156,11 @@
                           
             )
 
-            (simulated-annealing $newDeme $table ;; $table
+            (simulated-annealing $newDeme $table
                          $initCenter
                          ($maxDist $minXoverNeighbors $bestPossibleScore) ;; $constParams
                          ($newTemp $finalTemp $coolRate False $newIterCount) ;; $hyperParams
                          ((and $xOver (not $hasImproved)) $lastChance $newCenter $newBestCScore $newBestScore $updatedNumInstances $newDistance (+ 1 $i))) ;; $params
-            ; (println! ("it worked"))
           )
           )
 )
