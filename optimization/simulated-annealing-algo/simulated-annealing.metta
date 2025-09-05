@@ -39,6 +39,9 @@
   )
 )
 
+;; APPLY< helper for apply <
+(= (APPLY< $x $b))
+
 ;; Calculates instance energy using the composite score of that instance 
 ;;  (this is based on the C++ version) the composite score is the sum of
 ;;  the bScore and the penalized score.
@@ -116,7 +119,8 @@
               (() (println! (Scored instances: $scoredInstances)))
               (() (println! ""))
 
-              ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) cScore<) (mkSInst (mkPair $initCenter $bestCscore)) $scoredInstances))
+              ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $initCenter $bestCscore)) $scoredInstances))
+
 
               ($newBestScore (getPenScore (Pair.second $newBestInstPair))) ;; This could be the original best candidate or a new one.
               ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
