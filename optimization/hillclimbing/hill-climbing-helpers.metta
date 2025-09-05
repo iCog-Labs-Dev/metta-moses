@@ -240,21 +240,22 @@
 
 
 ;; hillclimbing implementation for feature selection
-(: hillClimbingFs (-> (InstanceSet $a) (ITable Bool) Instance (Instance (InstanceSet $a) $state)))
-(= (hillClimbingFs $instSet $iTable $centerInst) (hillClimbingFs (3 3 1) (False False False $centerInst 0 0 0 0 1) $instSet $iTable $centerInst))
+;; This overloaded function adds an extra parameter $flag (set to False) at the end, so Metta can execute it apart from the equivalent function used in deme optimization.
+(: hillClimbing (-> (InstanceSet $a) (ITable Bool) Instance Bool (Instance (InstanceSet $a) $state)))
+(= (hillClimbing $instSet $iTable $centerInst $flag) (hillClimbing (3 3 1) (False False False $centerInst 0 0 0 0 1) $instSet $iTable $centerInst $flag))
 
-(: hillClimbingFs (-> $params $state (InstanceSet $a) (ITable Bool) Instance (Instance (InstanceSet $a) $state)))
-(= (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
+(: hillClimbing (-> $params $state (InstanceSet $a) (ITable Bool) Instance Bool (Instance (InstanceSet $a) $state)))
+(= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
                  ($alreadyXover $lastChance $_ $prevCenter $bestMIscore $bestScore $currentNInstances $d $i) ;; Mutable states
                  $instSet
                  (mkITable $rows $labels) ;; Input table 
-                 $centerInst) ;; Center instance or init instance
+                 $centerInst $flag) ;; Center instance or init instance and the boolean flag for feature selection detecion functoion
    (let*
       (
         (() (println! (Iteration $i running)))
         (() (println! ""))
-
-        ($totalNNeighbors (estimateNeighborhoodFs $d $labels))
+       ;we have added False (boolean flag) to distinguish from its respective deme optimization function. 
+        ($totalNNeighbors (estimateNeighborhood $d $labels False))
 
         (() (println! (Estimated neighbors: $totalNNeighbors)))
         (() (println! ""))
@@ -270,13 +271,13 @@
         ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
         (() (println! (Crossover: $xOver)))
         (($updatedInstSet $newInstances) (if $xOver
-                                                               (crossoverFs $currentNInstances $nNewNeighbors $prevCenter $instSet)
-                                                               (sampleNewInstancesFs $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rows $labels) $instSet $d)))
+                                                               (crossover $currentNInstances $nNewNeighbors $prevCenter $instSet False)
+                                                               (sampleNewInstances $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rows $labels) $instSet $d False)))
         (() (println! (Newinstances: $updatedInstSet)))
         (() (println! ""))
 
         ;; Score all demes in the instance set.
-        ((mkSInstSet $scoredInstances) (transformFs $updatedInstSet (mkITable $rows $labels)))
+        ((mkSInstSet $scoredInstances) (transform $updatedInstSet (mkITable $rows $labels) False))
 
         ($updatedDeme (mkSInstSet $scoredInstances))
 
@@ -312,11 +313,11 @@
         ;;  distance == 1 as well.
         (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
                               (if (and (== $totalNNeighbors 1) (== $nextDistance 1))
-                                  (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
+                                  (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
                                                 ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i)) ;; Updated state
                                                 $updatedDeme
                                                 (mkITable $rows $labels)
-                                                $nextCenterInst)
+                                                $nextCenterInst $flag)
                                   ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
 
         ($scoreToCompareBelow $newBestCscore)
@@ -333,18 +334,18 @@
             (if (and (and (not $newHasImproved) (not $newLastChance)) (not $newXover))
                 ;; If we just did the nearest neighbors and found no improvement,
                 ;;  then try again one last time, we may get lucky.
-                (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
+                (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
                               ($newXover True $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI)) ;; Updated state
                               $newDeme
                               (mkITable $rows $labels)
-                              $newCenter)
+                              $newCenter $flag)
                 (trace! (Continue to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))) )
 
             (if (< $maxDist $finalDistance)
                 (trace! (Terminating because of maximum distance reached) ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))) ;; I don't know why I didn't do this earlier but incrementing is needed here.
-                (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
+                (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
                               ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
                               $finalDeme
                               (mkITable $rows $labels)
-                              $finalCenter))))
+                              $finalCenter $flag))))
                             ))
