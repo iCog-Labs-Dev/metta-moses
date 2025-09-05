@@ -26,11 +26,12 @@
        (let $nnEstimate (informationTheoreticBits $knobMap) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
 
 ;; similar to the above 'estimateNeighborhood' but this one uses the informationTheoreticBitsFs which is for feature selection
-(: estimateNeighborhoodFs (-> Number (List Symbol) Number))
-(= (estimateNeighborhoodFs $distance $labels)
+; this overloaded function adds an extra parameter $flag (set to False) at the end, so Metta can executeas  it apart from the equivalent function used in deme optimization.
+(: estimateNeighborhood (-> Number (List Symbol) Bool Number))
+(= (estimateNeighborhood $distance $labels $flag)
    (if (== $distance 0)
        1
-       (let $nnEstimate (informationTheoreticBitsFs $labels) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
+       (let $nnEstimate (informationTheoreticBits $labels False) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
 
 ;; Counts the number of instances at a specific distance from a given instance.
 ;; Params:
