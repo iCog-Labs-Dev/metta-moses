@@ -100,8 +100,9 @@
 (= (crossover $demeSize $nNewInstances $centerInst $deme) (trace! (Running cross over for $centerInst) ((crossTopOne $deme $nNewInstances 0 $demeSize $centerInst) $nNewInstances))) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
 ;; crossover for feature selection
-(: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
-(= (crossoverFs $size $nNewInstances $centerInst $scoredInstSet) (trace! (Running cross over for $centerInst) ((crossTopOneFs $scoredInstSet $nNewInstances 0 $size $centerInst) $nNewInstances))) ;; WARN: The $nNewInstances might not be the actual number of instances created.
+; this overloaded function adds an extra parameter $flag (set to False) at the end, so Metta can execute it apart from the equivalent function used in deme optimization.
+(: crossover (-> Number Number Instance (InstanceSet $a) Bool ((InstanceSet $a) Number)))
+(= (crossover $size $nNewInstances $centerInst $scoredInstSet $flag) (trace! (Running cross over for $centerInst) ((crossTopOne $scoredInstSet $nNewInstances 0 $size $centerInst False) $nNewInstances))) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
 (: returnBest (-> (ScoredInstance Number) (ScoredInstance Number) (ScoredInstance Number)))
 (= (returnBest (mkSInst $inst1) (mkSInst $inst2)) (returnBest < (mkSInst $inst1) (mkSInst $inst2)) )
