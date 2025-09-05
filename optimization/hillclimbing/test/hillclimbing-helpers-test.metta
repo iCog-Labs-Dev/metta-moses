@@ -101,13 +101,13 @@
                  (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
                ))
             NilMMap))))))
-; ;; Test informationTheoreticBits with a knob 
-; ;; map containing two knobs with same multiplicity of 3
-; !(assertEqual (informationTheoreticBits knobmap1) 6)
+;; Test informationTheoreticBits with a knob 
+;; map containing two knobs with same multiplicity of 3
+!(assertEqual (informationTheoreticBits knobmap1) 6)
 
-; ;; Test informationTheoreticBits with a knob
-; ;; map containing two knobs with different multiplicity of 2 and 3
-; !(assertEqual (informationTheoreticBits knobmap2) 5)
+;; Test informationTheoreticBits with a knob
+;; map containing two knobs with different multiplicity of 2 and 3
+!(assertEqual (informationTheoreticBits knobmap2) 5)
 
 ; Testcase for informationTheoreticBitsFs
 !(assertEqual
@@ -132,50 +132,50 @@
 ; Testcase for binomial
 !(assertEqual (binomial 5 2) 10)
 
-; ;Testcase 1 for countNeighborhood
-; !(assertEqual 
-;  (countNeighborhood
-;   knobmap3  ;knobmap
-;   (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) ;instance
-;   2 ; distance
-;   20) ; maximum count
-;   12)
+;Testcase 1 for countNeighborhood
+!(assertEqual 
+ (countNeighborhood
+  knobmap3  ;knobmap
+  (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) ;instance
+  2 ; distance
+  20) ; maximum count
+  12)
 
-; ;Testcase 2 for countNeighborhood
-; !(assertEqual 
-;  (countNeighborhood
-;   knobmap3 ;knobmap
-;   (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) ;instance
-;   3 ;distance
-;   20) ;maxCount
-;   8) 
+;Testcase 2 for countNeighborhood
+!(assertEqual 
+ (countNeighborhood
+  knobmap3 ;knobmap
+  (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) ;instance
+  3 ;distance
+  20) ;maxCount
+  8) 
 
-; ;Testcase 3 for countNeighborhood
-; !(assertEqual 
-;  (let*
-;     (
-;        ($totalSize (countNeighborhood knobmap3 (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3 20))
-;        ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3)))
-;     )
-;     (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
+;Testcase 3 for countNeighborhood
+!(assertEqual 
+ (let*
+    (
+       ($totalSize (countNeighborhood knobmap3 (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3 20))
+       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3)))
+    )
+    (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
-; ;Testcase 4 for countNeighborhood
-; !(assertEqual 
-;  (let*
-;     (
-;        ($totalSize (countNeighborhood knobmap3 (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2 20))
-;        ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2)))
-;     )
-;     (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
+;Testcase 4 for countNeighborhood
+!(assertEqual 
+ (let*
+    (
+       ($totalSize (countNeighborhood knobmap3 (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2 20))
+       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2)))
+    )
+    (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
-; ;Testcase 5 for countNeighborhood
-; !(assertEqual
-;  (let*
-;     (
-;        ($totalSize (countNeighborhood knobmap3 (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 1 20))
-;        ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 1)))
-;     )
-; (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
+;Testcase 5 for countNeighborhood
+!(assertEqual
+ (let*
+    (
+       ($totalSize (countNeighborhood knobmap3 (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 1 20))
+       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 1)))
+    )
+(<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
 !(bind! deme (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
 !(bind! demes (Cons (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")) Nil))
@@ -205,22 +205,13 @@
         (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
 
 ; ! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
-; !(assertEqual
-;    (let*
-;      (
-;        (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
-;        ($instanceCount (List.length $instSet))
-;        ($scoredElems (List.map isScored $instSet))
-;      )
-;      ((>= $instanceCount 4) (List.any $scoredElems)))
+!(assertEqual
+   (let*
+     (
+       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
+       ($instanceCount (List.length $instSet))
+       ($scoredElems (List.map isScored $instSet))
+     )
+     ((>= $instanceCount 4) (List.any $scoredElems)))
 
-  ;  (True True))
-
-; !(let*
-;      (
-;        (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
-;        ($instanceCount (List.length $instSet))
-;        ($scoredElems (List.map isScored $instSet))
-;      )
-;      ($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) 
-; )
+   (True True))
