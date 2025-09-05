@@ -11,8 +11,8 @@
 ;; feature selection version of the informationTheoreticBits function
 ; this overloaded function adds an extra parameter $flag (set to False) at the end, so Metta can take it apart from the equivalent function used in deme optimization.
 ;; In the case of feature selection, the information theoretic bits is simply the number of features we have
-(: informationTheoreticBitsFs (-> (List Symbol) Number))
-(= (informationTheoreticBitsFs $labels)
+(: informationTheoreticBits (-> (List Symbol) Bool Number))
+(= (informationTheoreticBits $labels $flag)
    (- (List.length $labels) 1))
 
 ;; Verbatim port of the Estimate neighborhood function from c++
