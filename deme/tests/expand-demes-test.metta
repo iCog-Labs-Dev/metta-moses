@@ -120,7 +120,7 @@
                         
                         (Cons A (Cons B (Cons C (Cons D (Cons E (Cons T Nil))))))))                     
 ;; truthTableBScore for  bigtable
-; ! (bind! bigtablet (createTruthTableBScore 2 bigtable))                        
+! (bind! bigtablet (createTruthTableBScore 2 bigtable))                        
 
 ! (bind! bigtable2 (mkITable
                         (Cons (Cons True  (Cons False (Cons True  (Cons False (Cons True  (Cons True  Nil))))))
@@ -142,7 +142,7 @@
 
                         (Cons A (Cons B (Cons C (Cons D (Cons E (Cons T Nil))))))))
 
-; ! (bind! bigtablet2 (createTruthTableBScore 2 bigtable2))                        
+! (bind! bigtablet2 (createTruthTableBScore 2 bigtable2))                        
 
 (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
@@ -207,7 +207,7 @@
 
 ; ! (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
 ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     rd      ;; the new arguments for feature selection algo
+;     inc      ;; the new arguments for feature selection algo
 ;     table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
 
 ; with OR table and AND init exemplar     
