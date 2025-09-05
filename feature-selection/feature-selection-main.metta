@@ -7,21 +7,7 @@
 ;;                          $targetSize -- the number of features sets to be returned
 ;;                          $increaseTargetSize -- bool -- to increase number of features in a feature set by the number of features already in the exemplar
 
-; (: featureSelector (-> 
-;                         Symbol
-;                         (ITable $a)
-;                         Number
-;                         (Tree $a)
-;                         Number
-;                         Number
-;                         Bool
-;                         Expression
-;                         Bool
-;                         Number
-;                         Bool
-;                         Symbol
-;                         Number
-;                         Expression))
+(: featureSelector (->  Symbol (ITable $a) Number (Tree $a) Number Number Bool Expression Bool Number Bool Symbol Number Expression))
 (= (featureSelector 
             $algo               ;; feature selection algo one of the following symbols hc, rnd, sim, inc, smd for hillclimbing, random, simple, incremental and stochasticMaxDependency selection algos
             (mkITable $table $labels)   ;; the table
@@ -56,11 +42,10 @@
                 ($ft-set-pop-size (size-atom $ft-set-pop))                     
                 ($capped-ft-set-pop (if (and (> $diversity-cap 0) (< $diversity-cap $ft-set-pop-size))                  ;; limmit the size of feature set pop to diversity cap value
                                         (takeN $diversity-cap $ft-set-pop)
-                                        $ft-set-pop)))
-                ;; -1 a default value divesity interaction used here meaning just use the top level sets without needing to calculate the powersets
-                ;; 2 for divesity pressure -- just for testing good values should be verfied by more tests with larger data sets
-                (selectTopFts (mkITable $table $labels) $div-pres -1 $multi-diversity $sim-scorer $capped-ft-set-pop $nDeme)))                   ;; select top features out of set of selected features after applying uniformity penality 
-
+                                        $ft-set-pop))
+                (() (println! (Selected features set pop $capped-ft-set-pop))))
+                (selectTopFts (mkITable $table $labels) $div-pres -1 $multi-diversity $sim-scorer $capped-ft-set-pop $nDeme)))                                                              
+                                                                                                                                
 (= (featureSelection            ;; for sake of clarity I chose to list the parameteres top-down style
             $algo
             (mkITable $table $labels)
@@ -70,17 +55,17 @@
             ) 
 	(case $algo
 		((hc (let $init-instance (List.generate (- (List.length $labels) 1) 0) 
-                        (hcFtSet (mkITable $table $labels) $init-instance)))
-		 (rd (randomFeatureSelection (mkITable $table $labels) $num-desired))                                       
+                        (hcFtSetPop (mkITable $table $labels) $init-instance)))
+		 (rd (randomFeatureSelection (mkITable $table $labels) $target-size))                                       
 		 (sim (simpleFeatureSelector $th $target-size False (mkITable $table $labels) ()))                           ;; False -- default value for using exp distribution for selection of top N features -- and start with empty feature list as initial features -- th here refers to the minimum score required for feature set to be selected
-		 (inc (incrementatl .. ))
+		 (inc (incrementalSelection (mkITable $table $labels) $th $target-size 1 $red-threshold))                    ;; 1 -- default value of max-interaction-terms -- the maximum size of each feature set tested in the scorer
 		 (smd (if (== $init-fts ())
-                (stochasticMaxDependency $th 3 $target-size (mkITable $table $labels) mi ())
-                (let* (($len (List.length $labels))
-                        ($oc (Table.getColumn (- $len 1) $table))      ;; output column to calculate MI for initial ft set
-                        ($init-ft-zip (zipColumn $init-fts $table))     ;; 
-                        ($mi (mutualInformation $init-ft-zip $oc)))
-                        
-                        (stochasticMaxDependency $th $target-size 3 (mkITable $table $labels) mi (($mi $init-fts))))))          ;; this `th` is a vlue used to check marginal score improvements as a features are added to the set. feature-count refers to the number of features in a single feature set
+                        (stochasticMaxDependency $th 3 $target-size (mkITable $table $labels) mi ())
+                        (let* (($len (List.length $labels))
+                                ($oc (Table.getColumn (- $len 1) $table))      ;; output column to calculate MI for initial ft set
+                                ($init-ft-zip (zipColumn $init-fts $table))     ;; 
+                                ($mi (mutualInformation $init-ft-zip $oc)))
+                                
+                                (stochasticMaxDependency $th $target-size 3 (mkITable $table $labels) mi (($mi $init-fts))))))          ;; this `th` is a vlue used to check marginal score improvements as a features are added to the set. feature-count refers to the number of features in a single feature set
 		))) 
 
