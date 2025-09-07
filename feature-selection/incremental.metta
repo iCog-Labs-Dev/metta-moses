@@ -36,6 +36,10 @@
     )
 )
 
+;** Implement caching for the mutual Information
+(= (cachedMutualInformation $itable $featureIndices)
+    (lruCache DEFAULT_CACHE_SIZE ((calculateMutualInformation) ($itable $featureIndices)))
+)
 ;; Purpose: Filter relevant combinations based on MI threshold
 ;; Parameters:
 ;;   $itable (ITable) → Input table
@@ -44,18 +48,18 @@
 ;;   $resultSet (OS Number) → Accumulator for relevant indices
 ;; Returns: (OS Number) → OrderedSet of relevant feature indices
 (: filterRelevantCombinations (-> ITable (OS Expression) Number (OS Number) (OS Number)))
-(= (filterRelevantCombinations $itable $combinations $threshold $resultSet)
-   (unify $combinations NilOS
-     $resultSet
-     (unify $combinations (ConsOS $combo $rest)
-       (chain (expressionToOS $combo NilOS) $comboOS
-         (chain (calculateMutualInformation $itable $comboOS) $mutualInfo
-           (if (> $mutualInfo $threshold)
-             (chain (OS.union $resultSet $comboOS) $newResultSet
-               (filterRelevantCombinations $itable $rest $threshold $newResultSet))
-             (filterRelevantCombinations $itable $rest $threshold $resultSet))))
-       ;;  fallback
-       $resultSet)
+(= (filterRelevantCombinations $itable NilOS $threshold $resultSet)
+ $resultSet)
+
+(= (filterRelevantCombinations $itable (ConsOS $combo $rest) $threshold $resultSet)
+   (chain (expressionToOS $combo NilOS) $comboOS
+     (chain (cachedMutualInformation $itable $comboOS) $mutualInfo
+       (if (> $mutualInfo $threshold)
+           (chain (OS.union $resultSet $comboOS) $newResultSet
+             (filterRelevantCombinations $itable $rest $threshold $newResultSet))
+           (filterRelevantCombinations $itable $rest $threshold $resultSet)
+        )
+      )
     )
 )
 
@@ -68,19 +72,18 @@
 ;;   $currentScore (Number) → Current best score
 ;; Returns: (List Expression) → (best-subset best-score)
 (: findBestSubset (-> ITable (OS Expression) Expression Number (List Expression)))
-(= (findBestSubset $itable $subsetCombinations $currentBest $currentScore)
-   (unify $subsetCombinations NilOS
-     (Cons $currentBest (Cons $currentScore Nil))
-     (unify $subsetCombinations (ConsOS $subset $rest)
-       (chain (expressionToOS $subset NilOS) $subsetOS
-         (chain (calculateMutualInformation $itable $subsetOS) $score
-           (if (> $score $currentScore)
-             (findBestSubset $itable $rest $subset $score)
-             (findBestSubset $itable $rest $currentBest $currentScore))))
-       ;; fallback
-       (Cons $currentBest (Cons $currentScore Nil))
+(= (findBestSubset $itable NilOS $currentBest $currentScore)
+   (Cons $currentBest (Cons $currentScore Nil)))
+
+(= (findBestSubset $itable (ConsOS $subset $rest) $currentBest $currentScore)
+   (chain (expressionToOS $subset NilOS) $subsetOS
+     (chain (cachedMutualInformation $itable $subsetOS) $score
+       (if (> $score $currentScore)
+           (findBestSubset $itable $rest $subset $score)
+           (findBestSubset $itable $rest $currentBest $currentScore)
+       )
      )
-    )
+   )
 )
 ;; Purpose: Find redundant features using subset search
 ;; Parameters:
@@ -103,7 +106,7 @@
                                 (chain (findBestSubset $itable $subsetCombinations () -1) $bestResult
                                     (chain (List.getByIdx $bestResult 0) $bestSubsetExpr
                                         (chain (List.getByIdx $bestResult 1) $bestScore
-                                            (chain (calculateMutualInformation $itable $indices) $fullScore
+                                            (chain (cachedMutualInformation $itable $indices) $fullScore
                                                 (if (< (- $fullScore $bestScore) $threshold)
                                                     (chain (expressionToOS $bestSubsetExpr NilOS) $bestSubset
                                                         (chain (OS.difference $indices $bestSubset NilOS) $redundant
@@ -215,7 +218,7 @@
         (let (mkITable $rows $labels) $itable
             (chain (- (List.length $labels) 1) $numFeatures
                 (chain (OS.range 0 $numFeatures NilOS) $allIndices
-                    (chain (calculateMutualInformation $itable $allIndices) $score
+                    (chain (cachedMutualInformation $itable $allIndices) $score
                         (chain (osToExpression $allIndices ()) $indicesExpr
                             ($score $indicesExpr) ;; return Indices and score
                         )
@@ -238,7 +241,7 @@
                 ) $selectedIndices
             (chain (if (== (OS.length $selectedIndices) 0)
                         0
-                        (calculateMutualInformation $itable $selectedIndices)
+                        (cachedMutualInformation $itable $selectedIndices)
                     ) $finalScore
                 (chain (osToExpression $selectedIndices ()) $indicesExpr
                     ($finalScore $indicesExpr)
