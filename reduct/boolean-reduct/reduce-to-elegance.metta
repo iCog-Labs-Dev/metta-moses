@@ -402,10 +402,14 @@
 (= (applyReduce ($parent $current $applied))
    (let*
          (
-           ($propNotExpr (propagateNot $expr))
+           ($propNotExpr (propagateNot $current))
            ($gatherJunctorExpr (gatherJunctors $propNotExpr))
-           (() (println! (GatherJunctorsResult $gatherJunctorExpr))))
-         (reduceToElegance $parent $current () ())))
+           ($initAdd (map-atom $gatherJunctorExpr $x (addAND $x)))
+           ($finalAdd (addAND $initAdd True))
+           (() (println! (GatherJunctorsResult $gatherJunctorExpr)))
+           (() (println! (AddANDResult: $finalAdd)))
+        )
+         (reduceToElegance $parent $finalAdd () ())))
 
 (= (reduce $expr) (let ($parent $_ $__) (until reduceNotApplied applyReduce ($expr $expr True)) $parent))
 

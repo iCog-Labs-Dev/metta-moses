@@ -17,6 +17,32 @@
 )
 
 
+(= (getFirst $expr) (car-atom $expr))
+(= (addAND $expr $isFinal)
+    (if (and $isFinal (or (== (car-atom $expr) OR) (== (car-atom $expr) NOT)))
+        (AND $expr)
+        $expr
+    )
+)
+(= (addAND $expr) (case (get-metatype $expr)
+        (
+            (Symbol (if (or (or (== AND $expr) (== OR $expr)) (== NOT $expr)) $expr (AND $expr)))
+            (Expression 
+                (let $h (getFirst $expr)
+                    (case $h
+                        (
+                            (NOT (AND $expr))
+                            (OR (AND (collapse (addAND (superpose $expr)))))
+                            (AND (collapse (addAND (superpose $expr))))
+                        )
+                    )
+                )
+            )
+        )
+    )
+)
+
+
 (= (nary-gather-junctors $expr $prev)
     (
         if (== (get-metatype $expr) Expression)

@@ -9,10 +9,6 @@
 ;      A  -> (1 0)
 ;      C  -> (2 1)
 
-(: NodeId Type)
-(: mkNodeId (-> $tuple NodeId))
-(= (mkNodeId $tuple) $tuple)
-(: Node Type)
 
 ;;Finds and returns a specific node from an expressions using its NodeId
 ;;   params: $exp: the expression

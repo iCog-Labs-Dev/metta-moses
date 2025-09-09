@@ -82,3 +82,13 @@
 ;; Test 15
 ! (assertEqual (gatherJunctors (AND (NOT A) (AND B (NOT V) (OR C (OR (NOT D) (NOT K) (AND E (AND F (NOT G))))))))
                  (AND (NOT A) B (NOT V) (OR C (NOT D) (NOT K) (AND E F (NOT G)))) )
+
+;; Test for andAND function
+! (assertEqual (addAND (map-atom (OR A B C D) $x (addAND $x)) True) 
+                (AND (OR (AND A) (AND B) (AND C) (AND D))))
+
+! (assertEqual (addAND (NOT A) True) 
+                (AND (NOT A)))
+
+! (assertEqual (addAND (map-atom (OR (NOT A) B (NOT C) (AND C (OR A B)) D) $x (addAND $x)) True)
+                (AND (OR (AND (NOT A)) (AND B) (AND (NOT C)) (AND (AND C) (AND (OR (AND A) (AND B)))) (AND D))) )

@@ -48,9 +48,9 @@
 
 (: getChildren (-> Expression List List))
 (= (getChildren $exp $guard-set)
-  (if (==(get-metatype $exp) Symbol)
+  (if (== (get-metatype $exp) Symbol)
     Nil
-    (if (==(get-metatype $exp) Expression)
+    (if (== (get-metatype $exp) Expression)
       (case $exp 
         (
           ($op $exp1 $exp2)

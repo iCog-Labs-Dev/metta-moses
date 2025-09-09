@@ -63,6 +63,7 @@
 (= (appendTo $updatedTree $lsk $tree $parentId $d)
     (let*
        (
+        (() (println! (lsk: $lsk)))
         ($targetId (getNodeId $lsk))
         ($targetTree (getNodeById  $updatedTree $targetId))
         ($subtree (if (isNullVertex $targetTree) 

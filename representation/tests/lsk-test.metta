@@ -2,11 +2,29 @@
 
 ! (import! &self metta-moses:utilities:list-methods)
 ! (import! &self metta-moses:utilities:tree)
-! (import! &self metta-moses:representation:knob-representation)
 ! (import! &self metta-moses:utilities:nodeId)
 ! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:representation:lsk)
 ! (import! &self metta-moses:utilities:python-treehelpers)
+
+! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
+! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-or)
+! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-and)
+! (import! &self metta-moses:reduct/boolean-reduct:n-ary-propagate-not)
+! (import! &self metta-moses:reduct/boolean-reduct:n-ary-gather-junctors)
+! (import! &self metta-moses:reduct/boolean-reduct:delete-inconsistent-handle)
+! (import! &self metta-moses:reduct/boolean-reduct:zero-constraint-subsumption)
+! (import! &self metta-moses:reduct/boolean-reduct:one-constraint-subsumption)
+! (import! &self metta-moses:reduct/boolean-reduct:promote-common-constraints)
+! (import! &self metta-moses:reduct/boolean-reduct:reduce-to-elegance)
+
+! (import! &self metta-moses:representation:lsk)
+! (import! &self metta-moses:representation:knob-representation)
+! (import! &self metta-moses:representation:logical-probe) 
+! (import! &self metta-moses:representation:build-logical)
+! (import! &self metta-moses:representation:build-knobs)
+! (import! &self metta-moses:representation:sample-logical-perms) 
+! (import! &self metta-moses:representation:add-logical-knobs)
+
 
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 ; Testcases for logicalSubtreeKnob
