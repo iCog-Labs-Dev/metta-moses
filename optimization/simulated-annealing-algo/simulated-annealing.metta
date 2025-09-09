@@ -40,12 +40,12 @@
 )
 
 
-;; Calculates instance energy using the composite score of that instance 
+;; Calculates instance energy using the composite score of that instance (
 ;;  (this is based on the C++ version) the composite score is the sum of
 ;;  the bScore and the penalized score.
 (: getEnergy (-> Cscore Number))
 (= (getEnergy $cScore)
-  (let ($pScore $bScore) ((getPenScore $cScore) (getScore $cScore)) (* -1 (+ $pScore $bScore)))
+  (let $pScore (getPenScore $cScore) (* -1 $pScore))
 )
 
 ;; Acceptance probability which is based on the energy of the current and new instance, and the temperature.
@@ -83,7 +83,6 @@
               ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) $instSet $id))
               ($table (mkTruthTableBScore $cpxCoeff $size $iTable))
               ($totalNNeighbors (estimateNeighborhood $d $disc))
-              ; (($alreadyXover $lastchance) (False False))
 
               (() (println! (Estimated neighbors: $totalNNeighbors)))
               (() (println! ""))
@@ -138,7 +137,6 @@
 
               ;; Check for acceptance
               ($isAccepted (> $actualAcceptanceProb $randomFloat))
-              ; ($isAccepted (or (< $newEnergy $energy) (< $randomFloat $acceptanceProb)))
               
               (() (println! (Is accepted: $isAccepted)))
               (() (println! (New instances: $newInstances)))
