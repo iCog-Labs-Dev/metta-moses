@@ -28,8 +28,7 @@
                 ($init-ft-indices (map-atom $init-fts $ft (List.index $labels $ft)))                  ;; initial ft names changed into index values
 
                 ($ft-set-pop (if $init-xmplr-fts                                                      ;; if the featue selection is to be initialized with exemplar features
-                                (let* (($updated-init-fts (union-atom $init-fts $exemplar-fts))       ;; include exemplar featues in the init features list(tuple)
-                                        ($updated-target-size (+ $target-size $exemplar-fts-size))    ;; target size also should be updated
+                                (let* (($updated-target-size (+ $target-size $exemplar-fts-size))    ;; target size also should be updated
                                         ($updated-init-fts (union-atom $init-ft-indices $exemplar-fts))) 
 
                                         (featureSelection $algo (mkITable $table $labels) $th $updated-target-size $updated-init-fts))     ;; do the feature selection using the new target-size
