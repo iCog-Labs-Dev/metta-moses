@@ -25,8 +25,7 @@
 (= (demeIdList $nExpansion $nDeme $list)
     (if (< $nDeme 0)
         $list
-        (let* ((($str1 $str2)( (format-args "{}" ($nExpansion)) (format-args "{}" ($nDeme))))
-                ($demeId (mkDemeId (format-args "{}.{}" ($str1 $str2))))
+        (let* (($demeId (mkDemeId (format-args "{}.{}" ($nExpansion $nDeme))))
                 ($newList (List.prepend $demeId $list)))
 
                 (demeIdList $nExpansion (- $nDeme 1) $newList))))
