@@ -6,11 +6,13 @@ on:
       - main
       - dev
       - ref/*
+      - reduct-refactoring
   pull_request:
     branches:
       - main
       - dev
       - ref/*
+      - reduct-refactoring
 
 jobs:
   setup-and-test:
