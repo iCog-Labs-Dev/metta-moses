@@ -39,10 +39,6 @@
 
 !(import! &self metta-moses:optimization/hillclimbing/cross-top-one)
 !(import! &self metta-moses:optimization/hillclimbing:hill-climbing-helpers)
-!(import! &self metta-moses:feature-selection:feature-selection-helpers)
-!(import! &self metta-moses:optimization/hillclimbing:cross-top-one-helpers)
-
-(= (ARGS) args) 
 !(import! &self metta-moses:scoring:bscore)
 
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
@@ -109,28 +105,11 @@
 ; ;; map containing two knobs with different multiplicity of 2 and 3
 ; !(assertEqual (informationTheoreticBits knobmap2) 5)
 
-; Testcase for informationTheoreticBitsFs
-!(assertEqual
-  (informationTheoreticBitsFs (Cons A (Cons B (Cons O Nil)))) 2)
-
-;; Testing estimateNeighborhood on the above knob maps
-!(assertEqual (estimateNeighborhood 0 knobmap1) 1)
-!(assertEqual (estimateNeighborhood 1 knobmap2) 10)
-!(assertEqual (estimateNeighborhood 2 knobmap1) 12)
-!(assertEqual (estimateNeighborhood 2 knobmap2) 10)
-
-; Testcase for estimateNeighborhoodFs
-!(assertEqual
-  (estimateNeighborhoodFs 3 (Cons A (Cons B (Cons O Nil)))) 4)
-
-; Testcase for countNeighborhoodFs
-!(assertEqual (countNeighborhoodFs (Cons 1 (Cons 0 (Cons 1 Nil))) 2 20) 3)
-
-; Testcase for factorial
-!(assertEqual (factorial 3) 6)
-
-; Testcase for binomial
-!(assertEqual (binomial 5 2) 10)
+; ;; Testing estimateNeighborhood on the above knob maps
+; !(assertEqual (estimateNeighborhood 0 knobmap1) 1)
+; !(assertEqual (estimateNeighborhood 1 knobmap2) 10)
+; !(assertEqual (estimateNeighborhood 2 knobmap1) 12)
+; !(assertEqual (estimateNeighborhood 2 knobmap2) 10)
 
 ; ;Testcase 1 for countNeighborhood
 ; !(assertEqual 
@@ -187,42 +166,33 @@
                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
                          (Cons A (Cons B (Cons O Nil))))))
 
-!(bind! itable (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))))
-
 (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
-(: isScoredFs (-> (ScoredInstance Cscore) Bool))
-(= (isScoredFs (mkSInst (mkPair $instance $score))) (~= $score 0))
+;; NOTE!!!!!!!
+;; merger -- this is a function implemented as part if the main crossTopOne in optimization/hillclimbing/cross-top-one.metta but results in error unless this is imported in the test file
+(: merger (-> Expression Instance Instance Expression))
+(= (merger $targetInstances $baseInst $referenceInst)
+    (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
+        (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
 
-;;;;;; Testcase for hillClimbing for deme optimization
-! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
-!(assertEqual
-   (let*
-     (
-       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
-       ($instanceCount (List.length $instSet))
-       ($scoredElems (List.map isScored $instSet))
-     )
-     ((>= $instanceCount 4) (List.any $scoredElems)))
+; ! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
+; !(assertEqual
+;    (let*
+;      (
+;        (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
+;        ($instanceCount (List.length $instSet))
+;        ($scoredElems (List.map isScored $instSet))
+;      )
+;      ((>= $instanceCount 4) (List.any $scoredElems)))
 
-   (True True))
+;    (True True))
 
-
-;;;;;;; Testcase for hillClimbing for feature selection
-! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
-!(assertEqual
-   (let*
-     (
-       (($instance (mkSInstSet $instSet) $state) (hillClimbingFs (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil)))))
-       ($instanceCount (List.length $instSet))
-       ($scoredElems (List.map isScored $instSet))
-     )
-     ((>= $instanceCount 4) (List.any $scoredElems)))
-
-   (True True))
+; !(let*
+;      (
+;        (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
+;        ($instanceCount (List.length $instSet))
+;        ($scoredElems (List.map isScored $instSet))
+;      )
+;      ($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) 
+; )

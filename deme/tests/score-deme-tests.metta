@@ -19,7 +19,6 @@
 ! (import! &self metta-moses:utilities:general-helpers) 
 ! (import! &self metta-moses:utilities:ordered-multimap)
 ! (import! &self metta-moses:utilities:python-treehelpers)
-! (import! &self metta-moses:feature-selection:feature-selection-helpers)
 
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 
@@ -114,21 +113,3 @@
    ttable2
    1)
    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) (mkCscore 0 4 4.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -1 4 4.0 0.0 -5.0))) Nil))))
-
-;; Testcase for the bitsToIndices
-!(assertEqual (bitsToIndices (Cons 1 (Cons 0 (Cons 1 (Cons 0 Nil)))) 0 ()) (0 2))
-
-;; Testcase for applyMutualInformationBasedScore
-!(assertEqual
-  (applyMutualInformationBasedScore 
-      (Cons (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (Cons (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) Nil)))
-      ttable2
-      Nil)
-  (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) 0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) 0.811)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) 0)) Nil))))
-
-;; Testcase for transformFs
-!(assertEqual
-   (transformFs
-   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0)) Nil)))
-   ttable2)
-   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0.311)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0.811)) Nil))))

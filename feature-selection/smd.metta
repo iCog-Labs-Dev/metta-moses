@@ -38,30 +38,31 @@
         (chain 
             (collapse 
                 (chain (superpose $indices) $i
-                (chain (mutualInformation (Table.getColumn $i $table) $oc) $mi ($mi ($i))))) $index-mi-pair
+                (chain (mutualInformation (Table.getColumn $i $table) $oc) $mi (($i) $mi)))) $index-mi-pair
                         (if (== $index-mi-pair ())
                             (Error $index-mi-pair "No relevant feature found ... Exiting")              ;; No feature selected -- low MI values
-                            ;; get each feature and and calculate MI against output feature
+                            ;; get each feature and and calculate MI agains output feature
                             (chain (sortPairs pairMax $index-mi-pair $topsCount ()) $topNSeed 
                                 (smdIterator $th $numFeatures $topsCount $len $oc $indices (mkITable $table $labels) $scorer $topNSeed))))        
-        (chain (second (car-atom $acc)) $sample-tuple 
+        (chain (first (car-atom $acc)) $sample-tuple
             (if (== (size-atom $sample-tuple) $numFeatures)
-                $acc                                 ;; return the score and feature indices pair
-                (chain (first (car-atom $acc)) $prev-highest-score
+                (collapse (chain (superpose $acc) $pair (first $pair)))                                 ;; cleand acc and return the feature indices only
+                (chain (second (car-atom $acc)) $prev-highest-score
                 (chain 
                     (inputPairMiCalculator $table $oc $indices $acc) $res                                                       ;; collapsed result of pairing scoring
-                    (chain (shuffle $res ()) $shuffled-pairs 
+                    (chain (shuffle $res ()) $shuffled-pairs
                     (chain (sortPairs pairMax $shuffled-pairs $topsCount ()) $topN
-                    (chain (first (car-atom $topN)) $topScore                              ;; $topScore                  ;; shuffling to give pairs with equal scores better chance of being selected for variety
+                    (chain (second (car-atom $topN)) $topScore                              ;; $topScore                  ;; shuffling to give pairs with equal scores better chance of being selected for variety
                     (if (< (- $topScore $prev-highest-score) $th)                           ;; terminate the loop if there is no significant improvement
-                        $acc
+                        (collapse (chain (superpose $acc) $pair (first $pair)))
                         (smdIterator $th $numFeatures $topsCount $len $oc $indices (mkITable $table $labels) $scorer $topN)))))))))))
 
-(= (inputPairMiCalculator $table $oc $indices $acc) ;; adds a feature to the previous pair thus growing the index size and calculates the mutual information for that pair, triplet ... of input features
+(= (inputPairMiCalculator $table $oc $indices $acc) ;; adds a feature to the previous pair thus grown the index size and calculates the mutual information for that pair, triplet ... of input features
     (collapse 
         (chain (superpose $acc) $pair
-            (chain (second $pair) $used-indices
+            (chain (first $pair) $used-indices
+                (chain (second $pair) $probs 
                     (chain (subtraction-atom $indices $used-indices) $candidate-indices                   ;; removed used indices from index list
                         (chain (union-atom $used-indices ((superpose $candidate-indices))) $new-indices   ;; form a union of used indices tuple and one unused index for each such an index
                             (chain (zipColumn $new-indices $table) $zipped-input-feature                  ;; form a zipped pair, triplet .. of input feature values from the table
-                                ((mutualInformation $zipped-input-feature $oc) $new-indices))))))))
+                                ($new-indices (mutualInformation $zipped-input-feature $oc))))))))))

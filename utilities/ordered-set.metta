@@ -142,12 +142,15 @@
 ;; Returns: (OS Number) → Union of both sets
 ;; Example: (OS.union (ConsOS 0 (ConsOS 1 NilOS)) (ConsOS 2 NilOS)) → (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS)))
 (: OS.union (-> (OS Number) (OS Number) (OS Number)))
-(: OS.union (-> (OS Number) (OS Number) (OS Number)))
-(= (OS.union NilOS $set2) $set2)
-(= (OS.union (ConsOS $head $tail) $set2)
-   (chain (OS.insert genericCompare $head $set2) $newSet2
-     (OS.union $tail $newSet2)
-   )
+(= (OS.union $set1 $set2)
+   (unify $set1 NilOS
+     $set2
+     (unify $set1 (ConsOS $head $tail)
+       (chain (OS.insert genericCompare $head $set2) $newSet2
+         (OS.union $tail $newSet2))
+       $set2
+     )
+    )
 )
 
 ;; Purpose: Difference of two OrderedSets (set1 - set2)
@@ -158,13 +161,16 @@
 ;; Returns: (OS Number) → Elements in set1 but not in set2
 ;; Example: (OS.difference (ConsOS 0 (ConsOS 1 NilOS)) (ConsOS 1 NilOS) NilOS) → (ConsOS 0 NilOS)
 (: OS.difference (-> (OS Number) (OS Number) (OS Number) (OS Number)))
-(= (OS.difference NilOS $set2 $result) $result)
-(= (OS.difference (ConsOS $head $tail) $set2 $result)
-   (if (OS.contains $set2 $head)
-       (OS.difference $tail $set2 $result)
-       (chain (OS.insert genericCompare $head $result) $newResult
-         (OS.difference $tail $set2 $newResult)
-       )
+(= (OS.difference $set1 $set2 $result)
+   (unify $set1 NilOS
+     $result
+     (unify $set1 (ConsOS $head $tail)
+       (if (OS.contains $set2 $head)
+         (OS.difference $tail $set2 $result)
+         (chain (OS.insert genericCompare $head $result) $newResult
+           (OS.difference $tail $set2 $newResult)))
+       $result
+     )
     )
 )
 
@@ -176,10 +182,14 @@
 ;; Returns: (Expression) → Expression with OS elements
 ;; Example: (osToExpression (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))) ()) → (0 1 2)
 (: osToExpression (-> (OS $a) Expression Expression))
-(= (osToExpression NilOS $acc) $acc)
-(= (osToExpression (ConsOS $head $tail) $acc)
-   (let $rest (osToExpression $tail $acc)
-     (cons-atom $head $rest)
+(= (osToExpression $os $acc)
+   (unify $os NilOS
+     $acc
+     (unify $os (ConsOS $head $tail)
+       (let $rest (osToExpression $tail $acc)
+         (cons-atom $head $rest))
+       $acc
+     )
    )
 )
 

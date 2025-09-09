@@ -28,11 +28,11 @@
 (= (selectorIterator $th $rowNum $oc (Cons $label $labels) $dataRows $counter $acc)
     (chain (List.length (Cons $label $labels)) $list-len
         (if (== $list-len 1)                                                ;; this means we are at the output label
-             $acc     ;; result -- pair of score and column index for consistent formatting across different feature selection algorithms            (chain (Table.getColumn 0 $dataRows) $if                        ;; input feature taken from the table ,, always the first column
+            (collapse (chain (superpose $acc) $pair ((second $pair))))      ;; enclosing every result on a pair of brackets for consistent formatting across different feature selection algorithms            (chain (Table.getColumn 0 $dataRows) $if                        ;; input feature taken from the table ,, always the first column
             (chain (Table.getColumn 0 $dataRows) $if
-            (chain (Table.pop 0 $dataRows) $rem-table                         ;; remove the first column -- better than carrying around the whole table
+            (chain (Table.pop $dataRows) $rem-table                         ;; remove the first column -- better than carrying around the whole table
             (chain (mutualInformation $if $oc) $mi                          ;; mutual information calculated for the input feature
                 (if (=> $mi $th)
-                    (chain (insertPair > ($mi ($counter)) $acc) $new-acc
+                    (chain (insertPair > ($mi $counter) $acc) $new-acc
                         (selectorIterator $th $rowNum $oc $labels $rem-table (+ $counter 1) $new-acc))
                     (selectorIterator $th $rowNum $oc $labels $rem-table (+ $counter 1) $acc))))))))

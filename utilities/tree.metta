@@ -250,23 +250,3 @@
 (= (alphabetSize (mkITable $rows $labels)) 
     (+ 3 (- (List.length $labels) 1)))                   
 
-;; extract labels from a tree structure as list of symbols
-(: extractArgs (-> (Tree $a) (List Symbol)))
-(= (extractArgs (mkTree (mkNode $node) $children))
-    (if (isMember $node (AND OR NOT))
-        (extractArgsFromList $children)         ;; if it's an operator, collect args from children
-        (Cons $node Nil)))                       ;; else it's a literal, return it in a singleton list
-    
-
-;; apply the above function recursively accross the tree's children        
-(: extractArgsFromList (-> (List (Tree $a)) (List Symbol)))
-(= (extractArgsFromList Nil) Nil)
-(= (extractArgsFromList (Cons $head $tail))
-    (List.appendList (extractArgsFromList $tail) (extractArgs $head)))   
-
-;; treeFtsIndices -- extract integer indices of literals used in a tree
-(= (treeFtsIndices $exemplar $labels)
-    (let* (($exemplar-labels (extractArgs $exemplar))
-            ($arg-set (List.tFoldl $exemplar-labels union-atom exp ())))
-            
-            (map-atom $arg-set $arg (List.index $labels $arg))))     

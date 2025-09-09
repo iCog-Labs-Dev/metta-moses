@@ -13,12 +13,12 @@
             (Cons A (Cons B (Cons C (Cons D (Cons Output Nil)))))))
 
 ;; MI threshold 0.0
-! (assertEqual (simpleFeatureSelector 0.0 2 False ttable ()) ((1.0 (0)) (0.0 (1))))
-! (assertEqual (simpleFeatureSelector 0.0 3 False ttable ()) ((1.0 (0)) (0.0 (1)) (0.0 (2))))
-! (assertEqual (simpleFeatureSelector 0.0 1 False ttable ()) ((1.0 (0))))
+! (assertEqual (simpleFeatureSelector 0.0 2 False ttable ()) ((0) (1)))
+! (assertEqual (simpleFeatureSelector 0.0 3 False ttable ()) ((0) (1) (2)))
+! (assertEqual (simpleFeatureSelector 0.0 1 False ttable ()) ((0)))
 
 ;; MI threshold 0.5
-! (assertEqual (simpleFeatureSelector 0.5 2 False ttable ()) ((1.0 (0))))
+! (assertEqual (simpleFeatureSelector 0.5 2 False ttable ()) ((0)))
 
 ;; MI threshold 1.1
 ! (assertEqual (simpleFeatureSelector 1.1 3 False ttable ()) ())

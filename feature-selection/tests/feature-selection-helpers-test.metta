@@ -21,9 +21,9 @@
 ! (assertEqual (updateCount True ((False 5) (True 3))) ((False 5) (True 4)))  
 
 ;; Test
-! (assertEqual (pairMax (7 foo) (4 bar)) (7 foo))
-! (assertEqual (pairMax (3.5 alpha) (3.5 beta)) (3.5 alpha))
-! (assertEqual (pairMax (1 x) (9 y)) (9 y))
+! (assertEqual (pairMax (foo 7) (bar 4)) (foo 7))
+! (assertEqual (pairMax (alpha 3.5) (beta 3.5)) (alpha 3.5))
+! (assertEqual (pairMax (x 1) (y 9)) (y 9))
 
 ;; Test
 ! (assertEqual (takeN 0 (True False True)) ())
@@ -47,18 +47,9 @@
 ! (assertEqual (Table.getColumn 1 table) (Cons False (Cons True Nil)))
 ! (assertEqual (Table.getColumn 2 table) (Cons True (Cons False Nil)))
 
-;; Testcase for Table.getOutputColumn
-!(assertEqual
-    (Table.getOutputColumn (mkITable (Cons (Cons True (Cons False (Cons False Nil))) 
-                                      (Cons (Cons False (Cons True (Cons False Nil))) 
-                                      (Cons (Cons True (Cons True (Cons False Nil))) 
-                                      Nil)))
-                                      (Cons A (Cons B (Cons O Nil)))))                              
-    (Cons False (Cons False (Cons False Nil))))
-
 ;; Test
-! (assertEqual (Table.pop 0 Nil) Nil)
-! (assertEqual (Table.pop 0 table) 
+! (assertEqual (Table.pop Nil) Nil)
+! (assertEqual (Table.pop table) 
         (Cons (Cons False (Cons True Nil)) 
         (Cons (Cons True (Cons False Nil)) Nil)))
 
@@ -91,21 +82,21 @@
 ! (assertEqual (range 5 0 10) (Error 0 "Step value of 0 not allowed!!"))
 ! (assertEqual (range 10 1 5) ())
 
-! (assertEqual (isPairEqual (3 (A B)) (3 (B A))) True)
-! (assertEqual (isPairEqual (5 (A B C)) (5 (C B A))) True)
-! (assertEqual (isPairEqual (5 (A B C)) (4 (C B A))) False)
-! (assertEqual (isPairEqual (3 (A B)) (2 (B A))) False)
-! (assertEqual (isPairEqual (2 (X Y Z)) (2 (X Y W))) False)
+! (assertEqual (isPairEqual ((A B) 3) ((B A) 3)) True)
+! (assertEqual (isPairEqual ((A B C) 5) ((C B A) 5)) True)
+! (assertEqual (isPairEqual ((A B C) 4) ((C B A) 5)) False)
+! (assertEqual (isPairEqual ((A B) 4) ((B A) 3)) False)
+! (assertEqual (isPairEqual ((X Y Z) 2) ((X Y W) 2)) False)
 
 ! (assertTrue (isEqual (shuffle (A B C) ()) (A B C)))
 ! (assertTrue (isEqual (shuffle (X Y) ()) (X Y)))
 ! (assertTrue (isEqual (shuffle () ()) ()))
 ! (assertTrue (isEqual (shuffle (1 2 3 4) ()) (1 2 3 4)))
 
-! (assertEqual (sortPairs pairMax ((0.2 (A)) (0.8 (B)) (0.6 (C)) (0.4 (D))) 2 ()) ((0.8 (B)) (0.6 (C))))
-! (assertEqual (sortPairs pairMax ((0.9 (X)) (0.1 (Y)) (0.5 (Z))) 1 ()) ((0.9 (X))))
-! (assertEqual (sortPairs pairMax ((0.3 (P)) (0.3 (Q)) (0.2 (R))) 2 ()) ((0.3 (P)) (0.3 (Q))))
-! (assertEqual (sortPairs pairMax ((0.7 (M)) (0.4 (N)) (0.9 (O)) (0.1 (P))) 3 ()) ((0.9 (O)) (0.7 (M)) (0.4 (N))))
+! (assertEqual (sortPairs pairMax (((A) 0.2) ((B) 0.8) ((C) 0.6) ((D) 0.4)) 2 ()) (((B) 0.8) ((C) 0.6)))
+! (assertEqual (sortPairs pairMax (((X) 0.9) ((Y) 0.1) ((Z) 0.5)) 1 ()) (((X) 0.9)))
+! (assertEqual (sortPairs pairMax (((P) 0.3) ((Q) 0.3) ((R) 0.2)) 2 ()) (((P) 0.3) ((Q) 0.3)))
+! (assertEqual (sortPairs pairMax (((M) 0.7) ((N) 0.4) ((O) 0.9) ((P) 0.1)) 3 ()) (((O) 0.9) ((M) 0.7) ((N) 0.4)))
 
 ! (bind! table 
             (Cons (Cons True (Cons True (Cons False (Cons True (Cons True Nil)))))
@@ -119,28 +110,6 @@
 
 ! (assertEqual (logMath 2 8)  3)
 ! (assertEqual (logMath 10 1000)  3)
-
-! (bind! table1 
-    (mkITable
-        (Cons (Cons True (Cons False (Cons True Nil))) 
-        (Cons (Cons False (Cons True (Cons False Nil))) Nil))
-        (Cons A (Cons B (Cons O Nil)))))
-
-!(assertEqual (filterTable (0) table1) 
-                    (mkITable 
-                            (Cons (Cons False (Cons True Nil)) 
-                            (Cons (Cons True (Cons False Nil)) Nil)) 
-                            (Cons B (Cons O Nil)))) 
-!(assertEqual (filterTable (1) table1) 
-                    (mkITable 
-                            (Cons (Cons True (Cons True Nil)) 
-                            (Cons (Cons False (Cons False Nil)) Nil)) 
-                            (Cons A (Cons O Nil)))) 
-!(assertEqual (filterTable (0 1) table1) 
-                    (mkITable 
-                            (Cons (Cons True Nil)
-                            (Cons (Cons False Nil) Nil))
-                            (Cons O Nil)))
 
 ;; test for incremental selection Utility functions
 ! (assertEqual  (set ((A B) (B A) (C D)) ())  ((A B) (C D)))
@@ -164,3 +133,4 @@
 ! (assertEqual (isWithin 0.0 0.2 0.1) False)        ;; Outside tolerance
 ! (assertEqual (isWithin 1.0 1.005 0.01) True)      ;; Small difference
 ! (assertEqual (isWithin 5.0 5.1 0.05) False)       ;; Difference too large
+
