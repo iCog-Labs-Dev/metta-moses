@@ -14,21 +14,21 @@
 ;;   params: $exp: the expression
 ;;           $NodeId: the NodeId of the node to be found from the $exp
 ;;   returns: the node at the positions specified by the NodeId
-(: getNodeById (-> Tree NodeId Node))
-(= (getNodeById $exp $NodeId)
-(let* 
-   (
-      ($index (car-atom $NodeId))
-      ($nodeAtIndex (index-atom $exp $index))
-      ($nodeType (get-metatype $nodeAtIndex))
-      ($nextIndexes (cdr-atom $NodeId))
-   )
-   (if (== $nodeType Symbol) 
-       $nodeAtIndex 
-       (if (== $nextIndexes ()) 
-           $nodeAtIndex
-           (getNodeById $nodeAtIndex (mkNodeId $nextIndexes))
-       )
-   )
-)
-)
+; (: getNodeById (-> Tree NodeId Node))
+; (= (getNodeById $exp $NodeId)
+; (let* 
+;    (
+;       ($index (car-atom $NodeId))
+;       ($nodeAtIndex (index-atom $exp $index))
+;       ($nodeType (get-metatype $nodeAtIndex))
+;       ($nextIndexes (cdr-atom $NodeId))
+;    )
+;    (if (== $nodeType Symbol) 
+;        $nodeAtIndex 
+;        (if (== $nextIndexes ()) 
+;            $nodeAtIndex
+;            (getNodeById $nodeAtIndex (mkNodeId $nextIndexes))
+;        )
+;    )
+; )
+; )
