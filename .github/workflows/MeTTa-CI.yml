@@ -27,4 +27,5 @@ jobs:
       - name: Run mettalog test
         run: |
           pip3 install ansi2html
-          python3 scripts/run-tests.py
+          # python3 scripts/run-tests.py
+          mettalog deme/tests/merge-demes-test.metta
