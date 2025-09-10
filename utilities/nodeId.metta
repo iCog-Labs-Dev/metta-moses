@@ -40,10 +40,13 @@
 (= (getNodeById $tree (mkNodeId $id))
    (let*
      (
+       (() (println! (getNodeById called with id: $id)))
+       (() (println! (getNodeById called with Tree: $tree)))
        (($head $tail) (decons-atom $id))
        ($level (getLevelById $tree $head))
      )
      (if (== $tail ())
+     
           $level
           (let*
               (
