@@ -19,8 +19,10 @@
 
 ! (import! &self metta-moses:scoring:fitness)
 ! (import! &self metta-moses:scoring:bscore) 
-! (import! &self metta-moses:scoring:cscore) 
+! (import! &self metta-moses:scoring:cscore)
+! (import! &self metta-moses:scoring:complexity-based-scorer)
 
+! (import! &self metta-moses:moses:neighborhood-sampling)
 ! (import! &self metta-moses:representation:representation)
 ! (import! &self metta-moses:representation:knob-representation)
 ! (import! &self metta-moses:representation:instance)  
