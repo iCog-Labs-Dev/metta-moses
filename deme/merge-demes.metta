@@ -203,6 +203,7 @@
     (if (== $demes ()) $metapop
         (let*
         (
+            (() (println! ("--------------------------------")))
             (() (println! (mergeDemes Starting...)))
             (($headDeme $tailDeme) (decons-atom $demes))
             ((mkDeme $rep $sInstList $demeId) $headDeme)
@@ -223,6 +224,7 @@
             ($resizedMetapop (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount))  ;;resize the metapop
             (() (println! (Resized Metapop: $resizedMetapop)))
             (() (println! (TailDemes: $tailDeme)))
+            (() (println! ("--------------------------------")))
         )
             (mergeDemes $tailDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $resizedMetapop $nToKeep $capCoef $genCount)
         )

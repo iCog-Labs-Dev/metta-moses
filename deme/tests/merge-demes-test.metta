@@ -54,7 +54,7 @@
 (= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
 (= (INSERT_ABOVE $tree $nodeId $subtree) (py_insertAbove  $tree $nodeId $subtree))
 ; Helper function for clean tree
-(= (REDUCE $expr) (reduce $expr))
+; (= (REDUCE $expr) (reduce $expr))
 
 !(bind! tree1
         (mkTree (mkNode AND)
