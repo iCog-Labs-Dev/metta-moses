@@ -226,7 +226,9 @@
             (() (println! (TailDemes: $tailDeme)))
             (() (println! ("--------------------------------")))
         )
-            (mergeDemes $tailDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $resizedMetapop $nToKeep $capCoef $genCount)
+            (if (== $tailDeme ()) $resizedMetapop
+                (mergeDemes $tailDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $resizedMetapop $nToKeep $capCoef $genCount)
+            )
         )
     )
 )
