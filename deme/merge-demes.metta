@@ -222,6 +222,7 @@
             (() (println! (merged Candidate: $updatedMetaPop)))
             ($resizedMetapop (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount))  ;;resize the metapop
             (() (println! (Resized Metapop: $resizedMetapop)))
+            (() (println! (TailDemes: $tailDeme)))
         )
             (mergeDemes $tailDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $resizedMetapop $nToKeep $capCoef $genCount)
         )

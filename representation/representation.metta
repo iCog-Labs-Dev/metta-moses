@@ -90,7 +90,6 @@
       (if (~= (second $knobIdxPair) -1)
          (let*
             (
-               ; ($pID (if (not $parentId) (mkNodeId (0)) $parentId))
                (() (println! (Inside getCandidateRec with parentId: $parentId , srcId: $srcId)))
                (() (println! (Evaluating Instance: $inst : (second $knobIdxPair))))
                ($d (List.getByIdx $inst (second $knobIdxPair)))
@@ -101,7 +100,6 @@
          )
          (let*
             (
-               ; ($pID (if (not $parentId) (mkNodeId (0)) $parentId))
                (() (println! (Inside getCandidateRec with parentId: $parentId , srcId: $srcId)))
                (() (println! (No Knob found just copy...)))
                ($src (getNodeById $tree $srcId))
