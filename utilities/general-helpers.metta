@@ -130,22 +130,35 @@
 ;; INFO: This function needs to change so that it can preserve the
 ;;        operator's position when MeTTa version is upgraded.
 (= (findAndReplace $old $new $list) ;; FIX: No longer working on version 0.2.3
-    ;; (let*
-    ;;   (
-    ;;     (() (println! ""))
-    ;;     (() (println! (==> === Inside findAndReplace === <==)))
-    ;;     (() (println! (Parameters ==> Old: $old New: $new List: $list)))
-    ;;     (() (println! (Result ==> (collapse (replace $old $new (superpose $list))))))
-    ;;     (() (println! ""))
-    ;;   )
-      (collapse (replace $old $new (superpose $list)))
-    ;; )
+    ; (let*
+    ;   (
+    ;     (() (println! ""))
+    ;     (() (println! (==> === Inside findAndReplace === <==)))
+    ;     (() (println! (Parameters ==> Old: $old New: $new List: $list)))
+    ;     (() (println! (Result ==> (collapse (replace $old $new (superpose $list))))))
+    ;     (() (println! ""))
+    ;   )
+      (if (== $old $list) $new
+      (collapse (replace $old $new (superpose $list))))
+    ; )
 )
 
 ;; A function that behaves like a do while loop.
 ;; It executes the functions in the given list and returns the last result.
 (: until (-> (-> $a Bool) (-> $a $a) $a $a))
-(= (until $predicate $function $x) (if ($predicate $x) $x (let $x' ($function $x) (until $predicate $function $x'))))
+(= (until $predicate $function $x) 
+    (let* ( 
+        (() (println! (Inside until...)))
+        ($isTrue ($predicate $x))
+        (() (println! (Predicate result: $isTrue)))
+        ($x' ($function $x))
+        (() (println! (Function result: $x')))
+    )
+    (if $isTrue
+        $x
+        (until $predicate $function $x'))
+    ))
+;(( (if ($predicate $x) $x (let $x' ($function $x) (until $predicate $function $x'))))
 
 ;; A foldleft function like the implementation in Haskell.
 ;; It takes a binary function that expects two atoms and

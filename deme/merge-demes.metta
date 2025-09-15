@@ -91,19 +91,24 @@
 (= (demeToTrees (mkDeme $rep (mkSInstSet Nil) $demeId) $itable) Nil)
 (= (demeToTrees (mkDeme $rep (mkSInstSet (Cons $si $sil)) $demeId) $itable)
 (let*
-(
-    ($cscore (getSInstScore $si))
-    ($inst (getInst $si))
-    (() (println! (getCandidate Starting...)))
-    (()(println! (Representation: $rep)))
-    (()(println! (Instance: $inst)))
-    ($tree (getCandidate $rep $inst))
-    (() (println! (scoreTree Starting...)))
-    ($bscore (scoreTree $itable $tree))
-    ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
+    (
+        ($cscore (getSInstScore $si))
+        ($inst (getInst $si))
+        (() (println! (GetCandidate Starting...)))
+        (()(println! (Representation: $rep)))
+        (()(println! (Instance: $inst)))
+        ($tree (getCandidate $rep $inst))
+        (() (println! (scoreTree Starting...)))
+        ($bscore (scoreTree $itable $tree))
+        ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
+    )
+    ; ("DONE")
+        ; (if (== $sil Nil) 
+        ;     (Cons $scoredTree Nil)
+            (Cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) $demeId) $itable))
+            ; )
+    )
 )
-(Cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) $demeId) $itable))
-))
 
 ;; Filters a list of Exemplars, keeping only those not already in the metaPop (ordered set).
 ;; Params:
@@ -224,6 +229,7 @@
             ($resizedMetapop (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount))  ;;resize the metapop
             (() (println! (Resized Metapop: $resizedMetapop)))
             (() (println! (TailDemes: $tailDeme)))
+            (() (println! (== $tailDeme ())))
             (() (println! ("--------------------------------")))
         )
             (if (== $tailDeme ()) $resizedMetapop

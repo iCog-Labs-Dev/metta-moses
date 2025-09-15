@@ -91,4 +91,6 @@
                 (AND (NOT A)))
 
 ! (assertEqual (addAND (map-atom (OR (NOT A) B (NOT C) (AND C (OR A B)) D) $x (addAND $x)) True)
-                (AND (OR (AND (NOT A)) (AND B) (AND (NOT C)) (AND (AND C) (AND (OR (AND A) (AND B)))) (AND D))) )
+                (AND (OR (AND (NOT A)) (AND B) (AND (NOT C)) (AND C (OR (AND A) (AND B))) (AND D))))
+
+! (asserEqual (addAND (AND (OR A B) A)))
