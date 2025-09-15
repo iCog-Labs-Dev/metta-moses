@@ -76,6 +76,15 @@
 (= (List.map $f Nil) Nil)
 (= (List.map $f (Cons $x $xs)) (Cons ($f $x) (List.map $f $xs)))
 
+;; Map a function that takes an additional arg
+(: List.mapOverArg (-> (-> $a $b $a) $b (List $a)))
+(= (List.mapOverArg $f Nil $arg) Nil)
+(= (List.mapOverArg $f (Cons $head $tail) $arg)
+    (let $new-head ($f $head $arg)
+        (if (== $new-head Nil)
+            (List.mapOverArg $f $tail $arg)
+            (Cons $new-head (List.mapOverArg $f $tail $arg)))))
+
 ;; Filter a list based on a predicate.
 (: List.filter (-> (-> $a Bool) (List $a) (List $a)))
 (= (List.filter $p Nil) Nil)

@@ -277,15 +277,7 @@
 (: removeLiteral (-> (Tree $a) Symbol (Tree $a)))
 (= (removeLiteral (mkTree (mkNode $node) $children) $symbol)
     (if (isMember $node (AND OR NOT))
-        (mkTree (mkNode $node) (removeLiteralsFromList $children $symbol))
+        (mkTree (mkNode $node) (List.mapOverArg removeLiteral $children $symbol))
         (if (== $node $symbol)
             Nil
             (mkTree (mkNode $node) Nil))))
-
-(: removeLiteralsFromList (-> List Symbol List))
-(= (removeLiteralsFromList Nil $symbol) Nil)
-(= (removeLiteralsFromList (Cons $head $tail) $symbol)
-    (let $newHead (removeLiteral $head $symbol)
-        (if (== $newHead Nil)
-            (removeLiteralsFromList $tail $symbol)
-            (Cons $newHead (removeLiteralsFromList $tail $symbol)))))
