@@ -55,6 +55,7 @@
 !(import! &self metta-moses:feature-selection:simple)
 !(import! &self metta-moses:feature-selection:smd)
 !(import! &self metta-moses:feature-selection:incremental)
+!(import! &self metta-moses:utilities:lru-cache)
 !(import! &self metta-moses:feature-selection:hc)
 !(import! &self metta-moses:feature-selection:random-feature-selection)
 
@@ -193,22 +194,8 @@
 ;     smd      ;; the new arguments for feature selection algo
 ;     ortable hillClimbing 5 2 0 1 orttable 3 0.004 1000)
 
-; ! (hcFtSetPop ttable1 (Cons 0 (Cons 0 Nil)))
 
-; ! (simpleFeatureSelector 0.0 4 False bigtable2 ()) ;; ((0.205 (2)) (0.049 (0)) (0.049 (1)) (0.007 (3)))
-; ! (stochasticMaxDependency 0.0 3 3 bigtable2 mi ())  ;; ((0.704 (0 2 1)) (0.407 (2 1 3)) (0.407 (2 4 1)))
-; (incrementalSelection $itable $threshold $targetSize $maxInteractionTerms $redundancyThreshold)
-; ! (incrementalSelection ttable1 0.0 3 3 0.05)  ;; 
-; ! (incrementalSelection ttable1 0.02 0 3 0)
-; ! (incrementalSelection bigtable 0.02 0 3 0)
-; ! (incrementalSelection ttable1 0.0 0 1 0)
-
-; ! (representation 
-;         2
-;         (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) 
-;         ttable1 
-;         sim 
-;         False
-;         ; ((E 0.4) (F 0.3) (G 0.73))
-;         ()
-;         )
+; ! (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
+;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
+;     smd      ;; the new arguments for feature selection algo
+;     bigtablet hillClimbing 5 2 0 1 bigtable 3 0.004 1000)
