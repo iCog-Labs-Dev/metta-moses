@@ -55,6 +55,7 @@
 !(import! &self metta-moses:feature-selection:simple)
 !(import! &self metta-moses:feature-selection:smd)
 !(import! &self metta-moses:feature-selection:incremental)
+!(import! &self metta-moses:utilities:lru-cache)
 !(import! &self metta-moses:feature-selection:hc)
 !(import! &self metta-moses:feature-selection:random-feature-selection)
 
