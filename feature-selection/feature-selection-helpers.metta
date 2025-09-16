@@ -246,7 +246,7 @@
     (if (== $expr ())
         $acc
         (chain (size-atom $expr) $len
-            (chain (random-int 0 $len) $rnd-index
+            (chain ((py-dot rnd randint) 0 (- $len 1)) $rnd-index ;; by using py-atom bound rnd function from general-helpers
                 (chain (index-atom $expr $rnd-index) $val
                 (chain (cons-atom $val $acc) $new-acc
                     (chain (subtraction-atom $expr ($val)) $rem ;; if we are certain that a pattern is never repeated in the original expression
@@ -404,3 +404,5 @@
 ;; Reference: https://github.com/opencog/cogutil/blob/6b149c457c9cfbf5edccefb166a7a9a1d2d74196/opencog/util/numeric.h#L178(: isWithin (-> Number Number Number Bool))
 (= (isWithin $min $max $epsilon)
    (<= (abs-math (- $max $min)) $epsilon))                                        
+;; checking the random numebr generator
+ 

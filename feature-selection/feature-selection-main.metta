@@ -57,9 +57,9 @@
                         (hcFtSetPop (mkITable $table $labels) $init-instance)))
 		 (rd (randomFeatureSelection (mkITable $table $labels) $target-size))                                       
 		 (sim (simpleFeatureSelector $th $target-size False (mkITable $table $labels) ()))                           ;; False -- default value for using exp distribution for selection of top N features -- and start with empty feature list as initial features -- th here refers to the minimum score required for feature set to be selected
-		 (inc (incrementalSelection (mkITable $table $labels) $th $target-size 1 0))                    ;; 1 -- default value of max-interaction-terms -- the maximum size of each feature set tested in the scorer -- the last value is a value redundancy threshold values
+		 (inc (incrementalSelection (mkITable $table $labels) $th $target-size 1 0))                                 ;; 1 -- default value of max-interaction-terms -- the maximum size of each feature set tested in the scorer -- the last value is a value redundancy threshold values
 		 (smd (if (== $init-fts ())
-                        (stochasticMaxDependency $th 3 $target-size (mkITable $table $labels) mi ())
+                        (stochasticMaxDependency $th $target-size 3 (mkITable $table $labels) mi ())
                         (let* (($len (List.length $labels))
                                 ($oc (Table.getColumn (- $len 1) $table))      ;; output column to calculate MI for initial ft set
                                 ($init-ft-zip (zipColumn $init-fts $table))     ;; 
