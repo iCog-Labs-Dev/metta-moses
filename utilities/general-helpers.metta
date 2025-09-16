@@ -135,10 +135,10 @@
     ;     (() (println! ""))
     ;     (() (println! (==> === Inside findAndReplace === <==)))
     ;     (() (println! (Parameters ==> Old: $old New: $new List: $list)))
-    ;     (() (println! (Result ==> (collapse (replace $old $new (superpose $list))))))
+    ;     ; (() (println! (Result ==> (collapse (replace $old $new (superpose $list))))))
     ;     (() (println! ""))
     ;   )
-      (if (== $old $list) $new
+      (if (== () (subtraction-atom $old $list)) $new
       (collapse (replace $old $new (superpose $list))))
     ; )
 )
@@ -148,11 +148,11 @@
 (: until (-> (-> $a Bool) (-> $a $a) $a $a))
 (= (until $predicate $function $x) 
     (let* ( 
-        (() (println! (Inside until...)))
+        ; (() (println! (Inside until...)))
         ($isTrue ($predicate $x))
-        (() (println! (Predicate result: $isTrue)))
+        ; (() (println! (Predicate result: $isTrue)))
         ($x' ($function $x))
-        (() (println! (Function result: $x')))
+        ; (() (println! (Function result: $x')))
     )
     (if $isTrue
         $x

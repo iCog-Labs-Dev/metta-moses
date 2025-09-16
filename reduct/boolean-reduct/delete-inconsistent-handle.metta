@@ -20,7 +20,9 @@
           ($handleSet (concatTuple $dominantSet $guardSet))
           ($isConsistent (isConsistentExp $handleSet))
         )
-        (if $isConsistent ($parent $current False) ((removeElement ($current) $parent) () True)) ;; Remove current from parent.
+        (if $isConsistent 
+              ($parent $current False) 
+              ((findAndReplace $current (AND) $parent) (AND) True)) ;; Remove current from parent and return an empty AND.
     )
 )
 

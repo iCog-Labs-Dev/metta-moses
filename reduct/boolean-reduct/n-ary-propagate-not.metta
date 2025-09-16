@@ -26,7 +26,7 @@
   )
 )
 
-(= (propagateNot $expr ()) (propagateNot $expr))
+(= (propagateNot $expr ()) (if (== (get-metatype $expr) Expression) (propagateNot $expr) (empty))) ;; Returns in ND result when given => (AND)
 (= (propagateNot $expr) 
   (
     if (== (get-metatype $expr) Expression)
@@ -35,7 +35,7 @@
                 ($tuple (cdr-atom $expr))
               )
               (propagateNot $op $tuple)
-       ) 
+       )
        $expr
   )
 )

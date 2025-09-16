@@ -84,13 +84,15 @@
                  (AND (NOT A) B (NOT V) (OR C (NOT D) (NOT K) (AND E F (NOT G)))) )
 
 ;; Test for andAND function
-! (assertEqual (addAND (map-atom (OR A B C D) $x (addAND $x)) True) 
+! (assertEqual (addAND (OR A B C D)) 
                 (AND (OR (AND A) (AND B) (AND C) (AND D))))
 
-! (assertEqual (addAND (NOT A) True) 
+! (assertEqual (addAND (NOT A)) 
                 (AND (NOT A)))
 
-! (assertEqual (addAND (map-atom (OR (NOT A) B (NOT C) (AND C (OR A B)) D) $x (addAND $x)) True)
+! (assertEqual (addAND (OR (NOT A) B (NOT C) (AND C (OR A B)) D))
                 (AND (OR (AND (NOT A)) (AND B) (AND (NOT C)) (AND C (OR (AND A) (AND B))) (AND D))))
 
-! (asserEqual (addAND (AND (OR A B) A)))
+! (assertEqual (addAND (AND (OR A B) A)) (AND (OR (AND A) (AND B)) A))
+
+! (assertEqual (addAND (OR (AND (NOT A) (OR B C) A)) (AND (OR (AND (NOT A) (OR (AND B) (AND C)) A)))))

@@ -102,11 +102,7 @@
         ($bscore (scoreTree $itable $tree))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
     )
-    ; ("DONE")
-        ; (if (== $sil Nil) 
-        ;     (Cons $scoredTree Nil)
-            (Cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) $demeId) $itable))
-            ; )
+    (Cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) $demeId) $itable))
     )
 )
 

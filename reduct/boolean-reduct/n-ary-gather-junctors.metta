@@ -17,43 +17,44 @@
 )
 
 
-; (: addAND (-> Expression Symbol Bool Expression))
-(= (addAND $expr $prev $isFinal)
+(: addAND (-> Expression Bool Expression))
+(= (addAND $expr $isFinal)
     (if (and $isFinal (or (== (car-atom $expr) OR) (== (car-atom $expr) NOT)))
         (AND $expr)
         $expr
     )
 )
 
+(: addAND (-> Expression Expression))
 (= (addAND $expr)
   (if (== (get-metatype $expr) Expression)
-      (addAND $expr (car-atom $expr))
-      (addAND $expr ())
-  )
-  ; (addAND $expr (car-atom $expr))
-  )
+      (addAND $expr (car-atom $expr) ())
+      (addAND $expr () ())
+  ))
 
-(= (addAND $expr $parent)
+(: addAND (-> Expression Symbol Symbol Expression))
+(= (addAND $expr $parent $prev)
     (case (get-metatype $expr)
         (
-            (Symbol (if (or (or (or (== AND $expr) (== OR $expr)) (== NOT $expr)) (== $parent AND)) $expr (AND $expr))) ;; track the parent instead of the previous one
+            (Symbol (if (or (or (or (== AND $expr) (== OR $expr)) (== NOT $expr))
+                            (or (== $parent AND) (== $prev AND)))
+                          $expr
+                          (AND $expr)
+                    )
+            ) ;; track the parent instead of the previous one
             (Expression
                 (let* (
-                  ($h (car-atom $expr)) 
-                  ($parentIsAND (== AND $parent))
+                    (($h $t) (decons-atom $expr))
+                    ($parentIsAND (== AND $parent))
+
                   )
                     (case ($h $parentIsAND)
                         (
-                            ; (NOT (AND $expr))
-                            ; (OR (AND (collapse (addAND (superpose $expr)))))
-                            ; (AND (collapse (addAND (superpose $expr))))
-                            ;; (AND (OR A B) A)
-                            ;; (AND (NOT A))
-                            ((NOT True) (map-atom $expr $x (addAND $x $h)))
+                            ((NOT True) $expr)
                             ((NOT False) (AND $expr))
-                            ((OR True) (map-atom $expr $x (addAND $x $h)))
-                            ((OR False) (AND (map-atom $expr $x (addAND $x $h))))
-                            ((AND $_) (map-atom $expr $x (addAND $x $parent)))
+                            ((OR True) (map-atom $expr $x (addAND $x $h $h)))
+                            ((OR False) (AND (map-atom $expr $x (addAND $x $h $h))))
+                            ((AND $_) (map-atom $expr $x (addAND $x AND $h)))
                         )
                     )
                 )

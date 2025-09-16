@@ -95,3 +95,5 @@
       (propagateNot (OR (AND (AND C D) B) (NOT A)))
       (OR (AND (AND C D) B ) (NOT A) )
   )
+
+!(assertEqual (propagateNot (AND)) (AND)) ;; check for empty AND
