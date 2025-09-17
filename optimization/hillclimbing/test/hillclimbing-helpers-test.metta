@@ -279,11 +279,14 @@
 (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
-(: isScoredFs (-> (ScoredInstance Cscore) Bool))
-(= (isScoredFs (mkSInst (mkPair $instance $score))) (~= $score 0))
+;; NOTE!!!!!!!
+;; merger -- this is a function implemented as part if the main crossTopOne in optimization/hillclimbing/cross-top-one.metta but results in error unless this is imported in the test file
+(: merger (-> Expression Instance Instance Expression))
+(= (merger $targetInstances $baseInst $referenceInst)
+    (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
+        (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
 
-;;;;;; Testcase for hillClimbing for deme optimization
-! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
+; ! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
 !(assertEqual
    (let*
      (
@@ -301,7 +304,6 @@
     (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
         (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
 
-! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
 !(assertEqual
    (let*
      (
@@ -310,21 +312,8 @@
        ($scoredElems (List.map isScored $instSet))
      )
      ((>= $instanceCount 4) (List.any $scoredElems)))
-; ! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
-!(assertEqual
-   (let*
-     (
-       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
-       ($instanceCount (List.length $instSet))
-       ($scoredElems (List.map isScored $instSet))
-     )
-     ((>= $instanceCount 4) (List.any $scoredElems)))
-
    (True True))
 
-
-;;;;;;; Testcase for hillClimbing for feature selection
-! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
 !(assertEqual
    (let*
      (
@@ -333,25 +322,4 @@
        ($scoredElems (List.map isScored $instSet))
      )
      ((>= $instanceCount 4) (List.any $scoredElems)))
-
-   (True True))
-
-!(assertEqual (let*
-     (
-       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
-       ($instanceCount (List.length $instSet))
-       ($scoredElems (List.map isScored $instSet))
-     )
-     ((>= $instanceCount 4) (List.any $scoredElems)))
-
-   (True True))
-
-!(let*
-     (
-       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
-       ($instanceCount (List.length $instSet))
-       ($scoredElems (List.map isScored $instSet))
-     )
-     ($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) 
-)
    (True True))
