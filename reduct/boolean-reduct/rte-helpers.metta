@@ -78,6 +78,11 @@
         ($newChildren (concatTuple $oldChildren $children))
         ($updatedSubExpression (concatTuple (getLiterals $exp) $newChildren))
         ($newExp (cons-atom $op $updatedSubExpression))
+        
+        ; (() (println! (OldChildren: $oldChildren)))
+        ; (() (println! (ChildrenToAdd: $children)))
+        ; (() (println! (NewChildren: $newChildren)))
+        ; (() (println! (SubExprs: $updatedSubExpression)))
      )
      $newExp
    )

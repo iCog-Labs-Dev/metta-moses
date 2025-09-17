@@ -23,13 +23,29 @@
           (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
               (let*
                   (
+                      ; (() (println! (===Inside AndCut===)))
+                      ; (() (println! (Current $current : Parent : $parent)))
+
                       ($childFirst (if-decons-expr $child $h $t $h (empty)))
                       (($grandLiterals $grandChildren) (getLiteralChildren $childFirst))
                       ($allLiterals (collapse (getGuardSet (superpose $grandChildren))))
                       ($common (intersections $allLiterals))
                       ($updatedParent (removeElement ($current) $parent))
-                      ($updatedParent' (addChildrenExp $updatedParent $grandChildren))
+                      ; ($updatedParent' (addChildrenExp $updatedParent $grandChildren))
+                      ($updatedParent' (if (=== $parent $current)
+                                        $updatedParent
+                                        (addChildrenExp $updatedParent $grandChildren)))
                       ($updatedParent'' (addLiterals $updatedParent' $grandLiterals))
+
+                      ; (() (println! (All Literals: $allLiterals)))
+                      ; (() (println! (GrandChildren: $grandChildren : GrandLiterals: $grandLiterals)))
+                      ; (() (println! (UpdatedParent: $updatedParent : UpdatedParent': $updatedParent' )))
+                      ; (() (println! (UpdatedParent'': $updatedParent'' )))
+                      ; (() (println! (ChildFirst: $childFirst)))
+                      ; (() (println! (Child: $child)))
+                      ; (() (println! (AllLiterals: $allLiterals)))
+                      ; (() (println! (Common: $common)))
+
                   )
                   (if (== $common ())
                       ($updatedParent'' () True)

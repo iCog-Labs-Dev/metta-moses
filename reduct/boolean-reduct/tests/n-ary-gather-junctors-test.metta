@@ -95,4 +95,4 @@
 
 ! (assertEqual (addAND (AND (OR A B) A)) (AND (OR (AND A) (AND B)) A))
 
-! (assertEqual (addAND (OR (AND (NOT A) (OR B C) A)) (AND (OR (AND (NOT A) (OR (AND B) (AND C)) A)))))
+! (assertEqual (addAND (OR (AND (NOT A) (OR B C) A))) (AND (OR (AND (NOT A) (OR (AND B) (AND C)) A))))

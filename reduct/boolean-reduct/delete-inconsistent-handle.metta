@@ -19,6 +19,8 @@
           ($guardSet (getGuardSet $current))
           ($handleSet (concatTuple $dominantSet $guardSet))
           ($isConsistent (isConsistentExp $handleSet))
+          (() (println! (===Inside DeleteInconsistentHandle===)))
+          (() (println! (GuardSet : $guardSet : HandleSet : $handleSet : IsConsistent : $isConsistent)))
         )
         (if $isConsistent 
               ($parent $current False) 
