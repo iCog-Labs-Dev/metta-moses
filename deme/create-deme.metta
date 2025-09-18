@@ -2,6 +2,21 @@
 ;; but different knob settings, along with their scores
 (: Deme Type)
 (: mkDeme (-> Representation (InstanceSet $score) DemeId Deme))
+;; createDeme create demes with empty instance set -- appends deme ID's to them as well
+;;             $demeIds --    list of deme ids (Cons ...)
+;;             $exemplar --   the exemplar tree which the demes are going to be based on 
+;;             $table    --   table of input data 
+;;             $algo     --   the chosen feature selection algo
+;;             $prune-exemplar     --   bool shall we prune the exemplar or not?
+;;             $enforced-features  --   tuple of enorced features to be sample during feature selection, if any, in the form of arg selection-probabality pair
+;;             returns ↠ tuple of demes
+(: createDeme (-> Number (List DemeId) (Tree $a) (ITable $a) Symbol Bool Expression Expression)) 
+(= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts)
+      (let* ((() (println! (creating representations ....)))
+             ($reps (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts))
+             (() (println! (done making representations ...))))  
+         (loopCreateDeme $demeIds $reps ())))
+
 
 ;; ================================================================================
 ;; Helper Functions
@@ -35,4 +50,14 @@
    )
    (createDeme (List.tail $demeIds) $exemplar $nExpansion $nDeme $updatedDemesList $argLabels)
    )))
+
+
+(= (loopCreateDeme $demeIds $reps $acc)
+      (if-decons-expr $reps $h $t
+            (let* (($demeId (List.head $demeIds)) 
+                   ($deme (mkDeme $h (mkSInstSet Nil) $demeId))
+                   ($new-acc (union-atom $acc ($deme))))
+                  
+                  (loopCreateDeme (List.tail $demeIds) $t $new-acc))
+               $acc))    
 

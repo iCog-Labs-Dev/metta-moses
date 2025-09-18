@@ -286,8 +286,6 @@
         ;; Check if there's an instance in the deme
         ;;  better than the best candidate so far.
 
-        ;;;;;;;;;;;; RIGHT HERE THE CODE CRASHES for feature selection
-        ;;;;;;;;;;;; I DON'T KNOW WHY
         ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $centerInst $bestMIscore)) $scoredInstances))
 
         ($newBestScore (Pair.second $newBestInstPair)) ;; This could be the original best candidate or a new one.

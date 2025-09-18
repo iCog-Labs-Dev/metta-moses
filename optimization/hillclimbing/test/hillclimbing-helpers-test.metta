@@ -108,6 +108,48 @@
 ;; Test informationTheoreticBits with a knob
 ;; map containing two knobs with different multiplicity of 2 and 3
 !(assertEqual (informationTheoreticBits knobmap2) 5)
+; ;; Test informationTheoreticBits with a knob 
+; ;; map containing two knobs with same multiplicity of 3
+; !(assertEqual (informationTheoreticBits knobmap1) 6)
+!(bind! knobmap3
+  (mkKbMap
+    (mkDscKbMp
+      (ConsMap ((mkNodeId (1 2)) 0)
+        (ConsMap ((mkNodeId (2)) 1)
+          (ConsMap ((mkNodeId (3)) 2) NilMap))))
+    (mkDscMp 
+      (ConsMMap 
+        ((mkDiscSpec 3)
+         (mkLSK 
+           (mkDiscKnob 
+             (mkKnob 
+               (mkNodeId (1 2)))
+             (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+           ))
+        (ConsMMap 
+          ((mkDiscSpec 3)
+           (mkLSK 
+             (mkDiscKnob 
+               (mkKnob 
+                 (mkNodeId (2)))
+               (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+             ))
+          (ConsMMap 
+            ((mkDiscSpec 3)
+             (mkLSK 
+               (mkDiscKnob 
+                 (mkKnob 
+                   (mkNodeId (3)))
+                 (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+               ))
+            NilMMap))))))
+;; Test informationTheoreticBits with a knob 
+;; map containing two knobs with same multiplicity of 3
+!(assertEqual (informationTheoreticBits knobmap1) 6)
+
+;; Test informationTheoreticBits with a knob
+;; map containing two knobs with different multiplicity of 2 and 3
+!(assertEqual (informationTheoreticBits knobmap2) 5)
 
 ; Testcase for informationTheoreticBitsFs
 !(assertEqual
@@ -140,7 +182,23 @@
   2 ; distance
   20) ; maximum count
   12)
+;Testcase 1 for countNeighborhood
+!(assertEqual 
+ (countNeighborhood
+  knobmap3  ;knobmap
+  (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) ;instance
+  2 ; distance
+  20) ; maximum count
+  12)
 
+;Testcase 2 for countNeighborhood
+!(assertEqual 
+ (countNeighborhood
+  knobmap3 ;knobmap
+  (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) ;instance
+  3 ;distance
+  20) ;maxCount
+  8) 
 ;Testcase 2 for countNeighborhood
 !(assertEqual 
  (countNeighborhood
@@ -158,6 +216,14 @@
        ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3)))
     )
     (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
+;Testcase 3 for countNeighborhood
+!(assertEqual 
+ (let*
+    (
+       ($totalSize (countNeighborhood knobmap3 (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3 20))
+       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3)))
+    )
+    (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
 ;Testcase 4 for countNeighborhood
 !(assertEqual 
@@ -167,7 +233,23 @@
        ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2)))
     )
     (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
+;Testcase 4 for countNeighborhood
+!(assertEqual 
+ (let*
+    (
+       ($totalSize (countNeighborhood knobmap3 (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2 20))
+       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2)))
+    )
+    (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
+;Testcase 5 for countNeighborhood
+!(assertEqual
+ (let*
+    (
+       ($totalSize (countNeighborhood knobmap3 (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 1 20))
+       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 1)))
+    )
+(<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 ;Testcase 5 for countNeighborhood
 !(assertEqual
  (let*
@@ -197,11 +279,14 @@
 (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
-(: isScoredFs (-> (ScoredInstance Cscore) Bool))
-(= (isScoredFs (mkSInst (mkPair $instance $score))) (~= $score 0))
+;; NOTE!!!!!!!
+;; merger -- this is a function implemented as part if the main crossTopOne in optimization/hillclimbing/cross-top-one.metta but results in error unless this is imported in the test file
+(: merger (-> Expression Instance Instance Expression))
+(= (merger $targetInstances $baseInst $referenceInst)
+    (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
+        (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
 
-;;;;;; Testcase for hillClimbing for deme optimization
-! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
+; ! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
 !(assertEqual
    (let*
      (
@@ -210,12 +295,25 @@
        ($scoredElems (List.map isScored $instSet))
      )
      ((>= $instanceCount 4) (List.any $scoredElems)))
+     
+     (True True))
+;; NOTE!!!!!!!
+;; merger -- this is a function implemented as part if the main crossTopOne in optimization/hillclimbing/cross-top-one.metta but results in error unless this is imported in the test file
+(: merger (-> Expression Instance Instance Expression))
+(= (merger $targetInstances $baseInst $referenceInst)
+    (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
+        (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
 
+!(assertEqual
+   (let*
+     (
+       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
+       ($instanceCount (List.length $instSet))
+       ($scoredElems (List.map isScored $instSet))
+     )
+     ((>= $instanceCount 4) (List.any $scoredElems)))
    (True True))
 
-
-;;;;;;; Testcase for hillClimbing for feature selection
-! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
 !(assertEqual
    (let*
      (
@@ -224,5 +322,4 @@
        ($scoredElems (List.map isScored $instSet))
      )
      ((>= $instanceCount 4) (List.any $scoredElems)))
-
    (True True))

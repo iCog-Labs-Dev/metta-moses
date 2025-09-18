@@ -269,3 +269,15 @@
             ($arg-set (List.tFoldl $exemplar-labels union-atom exp ())))
             
             (map-atom $arg-set $arg (List.index $labels $arg))))     
+
+
+(= (pruneExemplar $exemplar $arg-set)
+    (foldl-atom $arg-set $exemplar $acc $arg (removeLiteral $acc $arg)))   
+    
+(: removeLiteral (-> (Tree $a) Symbol (Tree $a)))
+(= (removeLiteral (mkTree (mkNode $node) $children) $symbol)
+    (if (isMember $node (AND OR NOT))
+        (mkTree (mkNode $node) (List.mapOverArg removeLiteral $children $symbol))
+        (if (== $node $symbol)
+            Nil
+            (mkTree (mkNode $node) Nil))))
