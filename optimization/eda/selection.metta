@@ -74,6 +74,7 @@
           )
           (mkPair (Cons $selected $restSel) $restRem))))
 
+
 ;; Select best individual from list
 (: select-best (-> (List (ScoredInstance $score)) (ScoredInstance $score)))
 (= (select-best $instances)
@@ -87,10 +88,5 @@
 
 (: select-best-step (-> (ScoredInstance $score) (ScoredInstance $score) (ScoredInstance $score)))
 (= (select-best-step $bestSoFar $candidate)
-  (if (instance>= $candidate $bestSoFar) $candidate $bestSoFar))
+  (if (apply >= $candidate $bestSoFar) $candidate $bestSoFar))
 
-;; List.tail function moved to utilities/list-methods.metta
-
-;; Helper functions moved to their appropriate files:
-;; - getRep and getInstanceSet moved to deme/create-deme.metta
-;; - getScoredInstances moved to representation/instance.metta
