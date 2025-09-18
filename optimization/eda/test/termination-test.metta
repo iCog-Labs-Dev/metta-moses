@@ -1,7 +1,6 @@
 !(register-module! ../../../../metta-moses)
 
 !(import! &self metta-moses:optimization:eda/termination)
-!(import! &self metta-moses:optimization:eda/sampling)
 !(import! &self metta-moses:utilities:general-helpers)
 !(import! &self metta-moses:utilities:list-methods)
 !(import! &self metta-moses:representation:instance)
