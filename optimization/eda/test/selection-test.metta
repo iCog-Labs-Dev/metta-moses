@@ -1,7 +1,6 @@
 !(register-module! ../../../../metta-moses)
 
 !(import! &self metta-moses:optimization:eda/selection)
-!(import! &self metta-moses:optimization:eda/sampling)
 !(import! &self metta-moses:utilities:general-helpers)
 !(import! &self metta-moses:utilities:list-methods)
 !(import! &self metta-moses:representation:instance)
@@ -43,7 +42,4 @@
 !(assertEqual
   (tournament-selection 2 test_deme 1)
   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -1 1 0.5 0.0 -1.5))) Nil)))
-;; Test list tail function
-!(assertEqual (list-tail Nil) Nil)
-!(assertEqual (list-tail (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 2 (Cons 3 Nil)))
 

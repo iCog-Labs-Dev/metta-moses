@@ -64,10 +64,14 @@
       )
       (count-knob-values-over-instances $dkm $lst NilMap)))
 
-;; Count knob values over all instances using fold
+;; Count knob values over all instances
 ; (: count-knob-values-over-instances (-> (Map (NodeId Number)) (List (ScoredInstance $score)) (Map NodeId (Map KnobValue Number)) (Map NodeId (Map KnobValue Number))))
-(= (count-knob-values-over-instances $dkm $instances $acc)
-  (List.foldl (count-knob-values-for-instance $dkm) $acc $instances))
+(= (count-knob-values-over-instances $dkm Nil $acc) $acc)
+(= (count-knob-values-over-instances $dkm (Cons $h $t) $acc)
+  (let* (
+        ($acc2 (count-knob-values-for-instance $dkm $acc $h))
+      )
+      (count-knob-values-over-instances $dkm $t $acc2)))
 
 ;; Count knob values for a single instance
 ; (: count-knob-values-for-instance (-> (Map (NodeId Number)) (Map NodeId (Map KnobValue Number)) (ScoredInstance $score) (Map NodeId (Map KnobValue Number))))

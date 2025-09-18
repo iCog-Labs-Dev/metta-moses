@@ -23,11 +23,8 @@
 (: tournament-selection (-> Number Deme Number (InstanceSet $score)))
 (= (tournament-selection $tournamentSize $deme $nSelect)
    (let* (
-          (() (println! (Tournament selection: tournamentSize= $tournamentSize deme= $deme nSelect= $nSelect)))
          ((mkDeme $rep (mkSInstSet $instSet) $id) $deme)
-         (() (println! (Tournament selection: instSet= $instSet)))
          ($scoredInstances $instSet)
-         (() (println! (Tournament selection: scoredInstances= $scoredInstances)))
          ($selected (select-tournament $tournamentSize $scoredInstances $nSelect))
        )
        (mkSInstSet $selected)))
@@ -56,7 +53,7 @@
         ($winner (if (== (coll.length $participants) 0)
                      (coll.getByIdx $instances 0)
                      (select-best $participants)))
-        ($participantsTail (list-tail $participants))
+        ($participantsTail (List.tail $participants))
         ($remainingAfter (List.concat $rest $participantsTail))
       )
       (mkPair $winner $remainingAfter)))
@@ -83,11 +80,8 @@
   (if (== (coll.length $instances) 0)
       (coll.getByIdx (Cons (mkSInst (mkPair (mkInst Nil) (worstCscore))) Nil) 0)
       (let* (
-            (() (println! (Select best: instances= $instances)))
             ($head (coll.getByIdx $instances 0))
-            (() (println! (Select best: head= $head)))
             ($tail (List.drop 1 $instances))
-            (() (println! (Select best: tail= $tail)))
           )
           (List.foldl select-best-step $head $tail))))
 
@@ -95,22 +89,8 @@
 (= (select-best-step $bestSoFar $candidate)
   (if (instance>= $candidate $bestSoFar) $candidate $bestSoFar))
 
-;; Helper: safe list tail
-(: list-tail (-> (List $a) (List $a)))
-(= (list-tail Nil) Nil)
-(= (list-tail (Cons $h $t)) $t)
+;; List.tail function moved to utilities/list-methods.metta
 
-;; ================================================================================
-;; Helper Functions
-;; ================================================================================
-
-;; Get instance set from deme (moved to sampling as common helper)
-; (: getInstanceSet (-> Deme (InstanceSet $score)))
-
-;; Get representation from deme
-; (: getRep (-> Deme Representation))
-(= (getRep (mkDeme $rep $instSet $id)) $rep)
-
-;; Get scored instances from instance set
-; (: getScoredInstances (-> (InstanceSet $score) (List (ScoredInstance $score))))
-(= (getScoredInstances (mkSInstSet $instances)) $instances)
+;; Helper functions moved to their appropriate files:
+;; - getRep and getInstanceSet moved to deme/create-deme.metta
+;; - getScoredInstances moved to representation/instance.metta

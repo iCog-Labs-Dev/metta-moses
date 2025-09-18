@@ -295,4 +295,9 @@
 		(unify $list (Cons $x $xs)
 			(if (== $i 0)
 				$xs
-				(chain (List.pop (- $i 1) $xs) $res (if-error $res (Cons $x Nil) (Cons $x $res)))))))    
+				(chain (List.pop (- $i 1) $xs) $res (if-error $res (Cons $x Nil) (Cons $x $res)))))))
+
+;; Get the tail of a list (all elements except the first)
+(: List.tail (-> (List $a) (List $a)))
+(= (List.tail Nil) Nil)
+(= (List.tail (Cons $h $t)) $t)    
