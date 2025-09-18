@@ -10,10 +10,10 @@
 (= (randomFeatureSelection (mkITable $data $labels) $targetSize)
        (chain (- (List.length $labels) 1) $numFeatures
            (if (<= $targetSize 0)
-               ()
+               ((0 ()))
                (if (>= $targetSize $numFeatures)
-                   (range 0 1 $numFeatures)
-                   (randomSelectHelper $numFeatures $targetSize ())
+                   ((0 (range 0 1 $numFeatures)))
+                   ((0 (randomSelectHelper $numFeatures $targetSize ())))
                )
            )
        )

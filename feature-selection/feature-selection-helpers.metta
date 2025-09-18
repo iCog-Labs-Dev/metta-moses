@@ -36,7 +36,7 @@
         (unify $rows (Cons (Cons $d $ds) $rest)  ;; $d and $ds for data and rest of data
             (if (== $i 0)
                 (Cons $ds (Table.pop $i $rest))
-                (Cons (Cons $d (List.pop (- $i 1) $ds)) (Table.pop $i $rest))))))
+                (Cons (Cons $d (List.pop (- $i 1) $ds)) (Table.pop $i $rest))) ())))
 ; ;; removes the first column from table
 ; (: Table.pop (-> (List (List $a)) (List (List $a))))
 ; (= (Table.pop $rows)
@@ -72,11 +72,11 @@
 ;; Transpose;;
 ;;;;;;;;;;;;;;
 
-(: List.head (-> (List $a) $a))
-(= (List.head $list)
-    (unify $list 
-        Nil (Error "Empty list has no head")
-        (unify $list (Cons $h $t) $h ())))
+;;(: List.head (-> (List $a) $a))
+;;(= (List.head $list)
+;;    (unify $list 
+;;        Nil (Error "Empty list has no head")
+;;        (unify $list (Cons $h $t) $h ())))
 
 (: List.range (-> Number Number (List Number))) ;; inclusive start, exclusive end
 (= (List.range $start $end)
@@ -246,7 +246,7 @@
     (if (== $expr ())
         $acc
         (chain (size-atom $expr) $len
-            (chain (random-int 0 $len) $rnd-index
+            (chain ((py-dot rnd randint) 0 (- $len 1)) $rnd-index ;; by using py-atom bound rnd function from general-helpers
                 (chain (index-atom $expr $rnd-index) $val
                 (chain (cons-atom $val $acc) $new-acc
                     (chain (subtraction-atom $expr ($val)) $rem ;; if we are certain that a pattern is never repeated in the original expression
@@ -304,6 +304,37 @@
             
             (filterTable (map-atom $t $x (- $x 1)) (mkITable $filtered-data $filtered-label)))
         (mkITable $table $labels)))          
+
+(: getInputLabels (-> (List Symbol) Expression))
+(= (getInputLabels $labels)
+    (let $res (inputLables $labels) (List.foldl cons-atom () $res)))
+
+(: inputLables (-> (List Symbol) (List Symbol)))    
+(= (inputLables $labels)
+    (unify $labels Nil (Error $labels NoLabelsSpecified)
+        (unify $labels (Cons $a $as)
+            (if (== $as Nil)
+                Nil
+                (Cons $a (inputLables $as))) (Error $labels UnrecognizedFormat))))
+
+(: fsToNames (-> (List Symbol) Expression Expression))
+(= (fsToNames $labels $ft-indices)
+	(collapse (chain (superpose $ft-indices) $ft 
+		(List.at $ft $labels))))                
+
+;; readjustIndices  -- when a table is filtered based on requirements in filter selection when, for example, exemplar features are required to be ignored,
+;;                  -- the returned index values no longer refer to the original table which is kept for reference in subsequent steps
+;;                  -- so unless the indices are readjusted to the orginal labels list, the will be referring to the filtered labels 
+;;                  $ft-set-pop         -- pop of selected features as (score feature-set) pairs
+;;                  $filtered-labels    -- filtered table labels
+;;                  $original-labels    -- original table labels
+(= (readjustIndices $ft-set-pop $filtered-labels $original-labels)
+    (map-atom $ft-set-pop $ft-set
+                            (let* ((($score $indices) ((first $ft-set) (second $ft-set)))
+                                    ($shifted-labels (map-atom $indices $index (List.at $index $filtered-labels)))
+                                    ($adjusted-indices (map-atom $shifted-labels $label (List.index $original-labels $label))))
+                                    
+                                        ($score $adjusted-indices))))        
 
 ;; Incremental Selection Utility Functions
 ;; Purpose: Remove duplicate expressions from list using isExpEqual
@@ -372,4 +403,6 @@
 ;; Returns: (Bool) → True if within epsilon
 ;; Reference: https://github.com/opencog/cogutil/blob/6b149c457c9cfbf5edccefb166a7a9a1d2d74196/opencog/util/numeric.h#L178(: isWithin (-> Number Number Number Bool))
 (= (isWithin $min $max $epsilon)
-   (<= (abs-math (- $max $min)) $epsilon))
+   (<= (abs-math (- $max $min)) $epsilon))                                        
+;; checking the random numebr generator
+ 

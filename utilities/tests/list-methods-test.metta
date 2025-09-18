@@ -53,6 +53,8 @@
 !(assertEqual (List.map isEven (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons False (Cons True (Cons False Nil))))
 !(assertEqual (List.map isOdd Nil) Nil)
 
+! (assertEqual (List.mapOverArg $f Nil $arg) Nil)
+! (assertEqual (List.mapOverArg + (Cons 1 Nil) 1) (Cons 2 Nil))
 
 ;; Test cases for List.filter
 !(assertEqual (List.filter isEven (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 2 Nil))

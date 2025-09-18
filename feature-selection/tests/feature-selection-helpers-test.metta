@@ -164,3 +164,14 @@
 ! (assertEqual (isWithin 0.0 0.2 0.1) False)        ;; Outside tolerance
 ! (assertEqual (isWithin 1.0 1.005 0.01) True)      ;; Small difference
 ! (assertEqual (isWithin 5.0 5.1 0.05) False)       ;; Difference too large
+
+! (assertEqual (getInputLabels (Cons A (Cons B (Cons O Nil)))) (B A))                            
+! (assertEqual (getInputLabels (Cons A Nil)) ())                            
+
+! (assertEqual (fsToNames (Cons A (Cons B (Cons C Nil))) (1)) (B))
+! (assertEqual (fsToNames (Cons A (Cons B (Cons C Nil))) ()) ())
+
+!(assertEqual (readjustIndices ((0.9 (0 2))) (Cons A (Cons B (Cons C (Cons D Nil)))) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.9 (0 2))))
+!(assertEqual (readjustIndices ((0.8 (0 1))) (Cons A (Cons C Nil)) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.8 (0 2))))
+!(assertEqual (readjustIndices ((0.6 (0 2)) (0.4 (1))) (Cons B (Cons C (Cons D Nil))) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.6 (1 3)) (0.4 (2))))
+!(assertEqual (readjustIndices ((0.4 (1)) (0.5 (1 2))) (Cons A (Cons C (Cons D Nil))) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.4 (2)) (0.5 (2 3))))

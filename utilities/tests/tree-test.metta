@@ -474,3 +474,29 @@
 ! (assertEqual (treeFtsIndices (mkTree (mkNode A) Nil) (Cons A (Cons B (Cons C (Cons O Nil))))) (0))
 ! (assertEqual (treeFtsIndices (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons A (Cons B (Cons C (Cons O Nil)))))	(0))
 ! (assertEqual (treeFtsIndices (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil)))) (Cons A (Cons B (Cons C (Cons O Nil))))) (0 1 2))	
+
+!(assertEqual (removeLiteral
+    (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+    A) 	(mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))
+
+!(assertEqual (removeLiteral
+    (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+    B) 	(mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))))
+
+!(assertEqual (removeLiteral (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) 
+				(Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) A)
+		(mkTree (mkNode AND) (Cons (mkTree (mkNode OR) Nil) Nil)))
+
+! (assertEqual (pruneExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+                    (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+            (A))   
+        (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))
+
+! (assertEqual (pruneExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+                    (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+  (A B))   (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) Nil) Nil)))
+
+! (assertEqual (pruneExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) (A B)) 
+           (mkTree (mkNode AND) Nil))
