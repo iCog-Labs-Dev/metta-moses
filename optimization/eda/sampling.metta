@@ -15,9 +15,6 @@
 ;; - Uses learned probability distributions to generate new instances
 ;; - Samples each knob independently (univariate assumption)
 ;; - Creates valid instances compatible with the representation
-;; ================================================================================
-;; Model Sampling
-;; ================================================================================
 
 
 ;; Sample new instances from the learned probability model
@@ -30,17 +27,9 @@
       )
       (mkSInstSet $wrapped)))
 
-;; Common helper: extract Representation from Deme
-; (: getRep (-> Deme Representation))
-(= (getRep (mkDeme $rep $instSet $id)) $rep)
-
-;; Common helper: extract InstanceSet from Deme
-; (: getInstanceSet (-> Deme (InstanceSet $score)))
-(= (getInstanceSet (mkDeme $rep $instSet $id)) $instSet)
-
-;; Common helper: unwrap list of ScoredInstances from InstanceSet
-; (: getScoredInstances (-> (InstanceSet $score) (List (ScoredInstance $score))))
-(= (getScoredInstances (mkSInstSet $instances)) $instances)
+;; Helper functions moved to their appropriate files:
+;; - getRep and getInstanceSet moved to deme/create-deme.metta
+;; - getScoredInstances moved to representation/instance.metta
 
 ;; Generate new instances from the probability model
 (: generate-instances (-> (KnobProbabilityModel) Representation Number (List Instance)))
@@ -63,7 +52,7 @@
        $instance))
 
 ;; Sample knob values according to learned probabilities
-; (: sample-knob-values (-> (KnobProbabilityModel) Representation (Map KnobId KnobValue)))
+; (: sample-knob-values (-> (KnobProbabilityModel) Representation (Map NodeId KnobValue)))
 (= (sample-knob-values $probModel $rep)
   (let* (
         (() (println! (sample-knob-values: probModel= $probModel rep= $rep)))
@@ -82,7 +71,7 @@
       $knobValues))
 
 ;; Helper to accumulate sampled knob values - build map manually to avoid comparison issues
-(: sample-knob-values-acc (-> (KnobProbabilityModel) (List KnobId) (Map KnobId KnobValue) (Map KnobId KnobValue)))
+(: sample-knob-values-acc (-> (KnobProbabilityModel) (List NodeId) (Map NodeId KnobValue) (Map NodeId KnobValue)))
 (= (sample-knob-values-acc $probModel Nil $acc) 
   (let* (
         (() (println! (sample-knob-values-acc: base case, returning acc= $acc)))
@@ -99,7 +88,7 @@
       (sample-knob-values-acc $probModel $rest $acc2)))
 
 ;; Sample a single knob value
-(: sample-knob-value (-> (KnobProbabilityModel) KnobId KnobValue))
+(: sample-knob-value (-> (KnobProbabilityModel) NodeId KnobValue))
 (= (sample-knob-value $probModel $knobId)
    (let* (
          ($probabilities (get-knob-probabilities $probModel $knobId))
@@ -108,7 +97,7 @@
        $randomValue))
 
 ;; Get knob probabilities from model
-(: get-knob-probabilities (-> (KnobProbabilityModel) KnobId (Map KnobValue Number)))
+(: get-knob-probabilities (-> (KnobProbabilityModel) NodeId (Map KnobValue Number)))
 (= (get-knob-probabilities (mkKnobProbabilityModel $probabilities) $knobId)
    (let* (
          ($idx (Map.find $probabilities $knobId))
@@ -138,7 +127,7 @@
            (select-from-cumulative-list $tail $target $newCumulative))))
 
 ;; Create instance from knob values
-(: create-instance (-> Representation (Map KnobId KnobValue) Instance))
+(: create-instance (-> Representation (Map NodeId KnobValue) Instance))
 (= (create-instance (mkRep (mkKbMap (mkDscKbMp $discKbMap) (mkDscMp $discMap)) $tree) $knobValues)
    (let* (
          ($n (MultiMap.length $discMap))
@@ -147,7 +136,7 @@
        )
        (mkInst $filled)))
 
-(: fill-instance-by-map (-> (List Number) (Map (NodeId Number)) (Map KnobId KnobValue) (List Number)))
+(: fill-instance-by-map (-> (List Number) (Map (NodeId Number)) (Map NodeId KnobValue) (List Number)))
 (= (fill-instance-by-map $vec $discKbMap NilMap) $vec)
 (= (fill-instance-by-map $vec $discKbMap (ConsMap ($kid $val) $tail))
    (let* (

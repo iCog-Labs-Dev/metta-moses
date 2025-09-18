@@ -14,6 +14,8 @@
 !(import! &self metta-moses:utilities:ordered-set)
 !(import! &self metta-moses:representation:knob-representation)
 !(import! &self metta-moses:moses:neighborhood-sampling)
+!(import! &self metta-moses:deme:create-deme)
+!(import! &self metta-moses:representation:instance)
 
 
 ;; ================================================================================

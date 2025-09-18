@@ -3,6 +3,18 @@
 (: Deme Type)
 (: mkDeme (-> Representation (InstanceSet $score) DemeId Deme))
 
+;; ================================================================================
+;; Helper Functions
+;; ================================================================================
+
+;; Get representation from deme
+(: getRep (-> Deme Representation))
+(= (getRep (mkDeme $rep $instSet $id)) $rep)
+
+;; Get instance set from deme
+(: getInstanceSet (-> Deme (InstanceSet $score)))
+(= (getInstanceSet (mkDeme $rep $instSet $id)) $instSet)
+
 ;; Creates a new deme with an empty instance set
 ;; Params:
 ;;   $demeIds: List of DemeIds to create the deme

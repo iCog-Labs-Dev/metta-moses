@@ -32,6 +32,14 @@
 (: InstanceSet (-> $score Type))
 (: mkSInstSet (-> (List (ScoredInstance $score)) (InstanceSet $score)))
 
+;;------------------------------------------------------------
+;;  getScoredInstances
+;;------------------------------------------------------------
+;;  InstanceSet<Score>  -->  List<ScoredInstance<Score>>
+;;  Unwrap list of ScoredInstances from InstanceSet
+(: getScoredInstances (-> (InstanceSet $score) (List (ScoredInstance $score))))
+(= (getScoredInstances (mkSInstSet $instances)) $instances)
+
 ;; ============================================================
 ;; Conversion Helpers
 ;; ============================================================
