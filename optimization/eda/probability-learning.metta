@@ -23,7 +23,6 @@
 ;; Knob Value and Probability Model
 (: KnobValue Type)
 (: mkKnobValue (-> Number KnobValue))
-;; KnobId is just NodeId - no need for separate type
 (: KnobProbabilityModel Type)
 (: mkKnobProbabilityModel (-> (Map NodeId (Map KnobValue Number)) KnobProbabilityModel))
 
@@ -32,16 +31,12 @@
 ;; ================================================================================
 
 ;; Learn probability distributions from selected instances
-; (: learn-probability-model (-> Deme (InstanceSet $score) KnobProbabilityModel))
+(: learn-probability-model (-> Deme (InstanceSet $score) KnobProbabilityModel))
 (= (learn-probability-model $deme $selectedInstances)
   (let* (
-        (() (println! (learn-probability-model: starting)))
         ((mkDeme $rep (mkSInstSet $instSet) $id) $deme)
-        (() (println! (learn-probability-model: got rep $rep)))
         ($discMap (getDiscMap $rep))
-        (() (println! (learn-probability-model: got discMap $discMap)))
         ($probModel (learn-knob-probabilities $discMap $selectedInstances))
-        (() (println! (learn-probability-model: got probModel $probModel)))
       )
       $probModel))
 

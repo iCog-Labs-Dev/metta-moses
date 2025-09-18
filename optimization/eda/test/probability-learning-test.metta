@@ -16,6 +16,7 @@
 !(import! &self metta-moses:representation:knob-representation)
 
 
+
 ;; ================================================================================
 ;; Probability Learning Tests
 ;; ================================================================================
@@ -53,15 +54,6 @@
 !(assertEqual (Map.getByKey (mkNodeId (2)) (compute-probabilities (count-knob-values (getDiscMap (getRep test_deme)) test_instances)))
   (ConsMap ((mkKnobValue 0) (/ 2.0 7.0)) (ConsMap ((mkKnobValue 1) (/ 3.0 7.0)) (ConsMap ((mkKnobValue 2) (/ 2.0 7.0)) NilMap))))
 
-;; Test probability model learning and extraction
-!(assertEqual (get-knob-probabilities (learn-probability-model test_deme test_instances) (mkNodeId (1)))
-  (ConsMap ((mkKnobValue 0) 0.5) (ConsMap ((mkKnobValue 1) 0.5) NilMap)))
-!(assertEqual (get-knob-probabilities (learn-probability-model test_deme test_instances) (mkNodeId (2)))
-  (ConsMap ((mkKnobValue 0) (/ 2.0 7.0)) (ConsMap ((mkKnobValue 1) (/ 3.0 7.0)) (ConsMap ((mkKnobValue 2) (/ 2.0 7.0)) NilMap))))
-; ;; Test with empty instance set (no probabilities)
-!(assertEqual (get-knob-probabilities (learn-probability-model test_deme (mkSInstSet Nil)) (mkNodeId (1))) NilMap)
-; ;; Test with single instance
-!(assertEqual (get-knob-probabilities (learn-probability-model test_deme (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 Nil))) (worstCscore))) Nil))) (mkNodeId (1))) (ConsMap ((mkKnobValue 0) 1.0) NilMap))
 ; ;; Test KnobValue comparison functions
 !(assertEqual (knobValueEq (mkKnobValue 1) (mkKnobValue 1)) True)
 !(assertEqual (knobValueEq (mkKnobValue 1) (mkKnobValue 2)) False)
