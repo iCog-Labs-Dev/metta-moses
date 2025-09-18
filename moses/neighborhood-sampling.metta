@@ -221,10 +221,8 @@
 (= (isPossibleSize $sampleSize $dist $m (mkInst $inst)) 
     
             (let* (
-                ($list (cdr-atom $inst))
                 ; (() (println! (Inside isPossibleSize: $inst $dist $sampleSize)))
-                ($centralInst (car-atom $list))
-                ($instLen (List.length $centralInst))
+                ($instLen (List.length $inst))
                 ;  (() (println! (Instance Length: $instLen)))
                 ($n (factorial $instLen))
                 ($r (factorial (- $instLen $dist)))
