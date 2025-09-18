@@ -6,7 +6,7 @@
 (= (getCscore $itable $tree $complexityRatio $scoreSpace)
     (unify $scoreSpace 
             ($tree $score) 
-            (trace! "USED from cache XXXXXXXXXXXXXXXXXXXXXXXXXXX " $score)
+            (trace! "USED from cache XXXXXXXXXXXXXXXXXXXXXXXXXXX " (let $duplicateScoreList (collapse (match $scoreSpace ($tree $score) $score)) (car-atom $duplicateScoreList)))
             (chain (scoreTree $itable $tree) $bs 
                 (if-error $bs ;; return worst possible composite score
                 (worstCscore)
