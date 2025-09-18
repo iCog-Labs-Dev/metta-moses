@@ -224,3 +224,10 @@
 !(assertEqual (List.pop 1 (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 1 (Cons 3 Nil)))
 !(assertEqual (List.pop 0 (Cons 42 Nil)) Nil)
 !(assertEqual (List.pop 0 Nil) (Error Nil EmptyList))
+
+;; Test cases for List.tail
+!(assertEqual (List.tail Nil) Nil)
+!(assertEqual (List.tail (Cons 1 Nil)) Nil)
+!(assertEqual (List.tail (Cons 1 (Cons 2 Nil))) (Cons 2 Nil))
+!(assertEqual (List.tail (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 2 (Cons 3 Nil)))
+!(assertEqual (List.tail (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))) (Cons 2 (Cons 3 (Cons 4 Nil))))
