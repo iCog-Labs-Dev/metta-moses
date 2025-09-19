@@ -156,13 +156,7 @@
 
 ;; Make result tuple for compatibility
 (: make-result (-> Instance Deme Expression))
-(= (make-result $inst $deme)
-  (let* (
-        ($e3 (cons-atom () ()))
-        ($e2 (cons-atom $deme $e3))
-        ($e1 (cons-atom $inst $e2))
-      )
-      $e1))
+(= (make-result $inst $deme) ($inst $deme ()))
 
 ;; ================================================================================
 ;; Legacy Simple Implementation (for comparison)
