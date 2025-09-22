@@ -84,10 +84,11 @@
 ;; !(assertEqual (cleanTree (buildTree (OR A (AND B C)))) (buildTree (AND (OR (AND A) (AND B C)))))
 ;; !(assertEqual (cleanTree (buildTree (OR A B C D))) (buildTree (AND (OR (AND A) (AND B) (AND C) (AND D)))))
 
-(: A Bool)
+;; type system is not working properly in mettalog 
+; (: A Bool)
 
-!(assertEqual (get-type tree1) (Tree Bool))
-!(assertEqual (get-type tree2) (Tree Bool))
+; !(assertEqual (get-type tree1) (Tree Bool))
+; !(assertEqual (get-type tree2) (Tree Bool))
 
 
 ! (assertEqual (buildTree (AND (OR (AND (OR A B) (OR C D)) D) C)) tree3)
@@ -313,6 +314,31 @@
 !(assertEqual (getChildrenByIdx (mkNullVex (Cons (mkTree (mkNode P) Nil) (Cons (mkTree (mkNode Q) Nil) Nil))) 0) (mkTree (mkNode P) Nil))
 !(assertEqual (getChildrenByIdx (mkNullVex (Cons (mkTree (mkNode R) Nil) (Cons (mkTree (mkNode S) Nil) Nil))) 1) (mkTree (mkNode S) Nil))
 
+;; Testcases for insertNodeAtPosition
+!(assertEqual
+  (insertNodeAtPosition 
+   (mkTree (mkNode AND)
+      (Cons (mkTree (mkNode A) Nil)
+        (Cons (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode B) (Cons (mkTree (mkNode Z) Nil) Nil))
+                  (Cons (mkTree (mkNode C) Nil) Nil)))
+          (Cons (mkTree (mkNode A) Nil) Nil)))) 
+    (mkNodeId (2))
+    (mkNode C))
+  (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode C) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) (Cons (mkTree (mkNode Z) Nil) Nil)) (Cons (mkTree (mkNode C) Nil) Nil))) Nil)) (Cons (mkTree (mkNode A) Nil) Nil)))))
+
+  !(assertEqual
+    (insertNodeAtPosition 
+   (mkTree (mkNode AND)
+      (Cons (mkTree (mkNode A) Nil)
+        (Cons (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode B) (Cons (mkTree (mkNode Z) Nil) Nil))
+                  (Cons (mkTree (mkNode C) Nil) Nil)))
+          (Cons (mkTree (mkNode A) Nil) Nil)))) 
+    (mkNodeId (0))
+    (mkNode OR))
+   (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) (Cons (mkTree (mkNode Z) Nil) Nil)) (Cons (mkTree (mkNode C) Nil) Nil))) (Cons (mkTree (mkNode A) Nil) Nil)))) Nil))
+  )
 
 ;; Test cases for isEmpty
 ! (assertEqual (isEmpty (mkNullVex Nil)) True)
@@ -440,3 +466,37 @@
 ;       (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode P) Nil) (Cons (mkTree (mkNode Q) Nil) Nil))) 
 ;           (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode P) Nil) Nil)) Nil)))) 
 ;       2)      
+
+! (assertEqual (extractArgs (mkTree (mkNode A) Nil)) (Cons A Nil))
+! (assertEqual (extractArgs (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)))	(Cons A Nil))
+! (assertEqual (extractArgs (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))))) (Cons A (Cons B (Cons C Nil))))	
+
+! (assertEqual (treeFtsIndices (mkTree (mkNode A) Nil) (Cons A (Cons B (Cons C (Cons O Nil))))) (0))
+! (assertEqual (treeFtsIndices (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons A (Cons B (Cons C (Cons O Nil)))))	(0))
+! (assertEqual (treeFtsIndices (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil)))) (Cons A (Cons B (Cons C (Cons O Nil))))) (0 1 2))	
+
+!(assertEqual (removeLiteral
+    (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+    A) 	(mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))
+
+!(assertEqual (removeLiteral
+    (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+                (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+    B) 	(mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))))
+
+!(assertEqual (removeLiteral (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) 
+				(Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) A)
+		(mkTree (mkNode AND) (Cons (mkTree (mkNode OR) Nil) Nil)))
+
+! (assertEqual (pruneExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+                    (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+            (A))   
+        (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))
+
+! (assertEqual (pruneExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
+                    (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
+  (A B))   (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) Nil) Nil)))
+
+! (assertEqual (pruneExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) (A B)) 
+           (mkTree (mkNode AND) Nil))

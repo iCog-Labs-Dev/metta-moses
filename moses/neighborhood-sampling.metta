@@ -24,11 +24,10 @@
        (let $multips (genList 1 (- $m 1))
           (let $instExp (List.listToExpr (Cons $x $xs))
           (let $listNeighbors (collapse (let $neighbors (varyNKnobs $multips $instExp $dist)
-                                      (mkInst (pyExprToList $neighbors))))
+                                      (mkInst (exprToList $neighbors))))
           (let $uqListNeighbors (unique-atom $listNeighbors)
-          (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (Cons $x $xs))))
-            (pyExprToList $uqListNeighbors'))))))))
-
+          (let $uqListNeighbors' (subtractionAtom $uqListNeighbors ((mkInst (Cons $x $xs))))
+            (exprToList $uqListNeighbors'))))))))
 
 ;; This function returns a non deterministic list of instances at the given distance.
 ;; It's output isn't typed and also needs further preprocessing.
@@ -98,6 +97,23 @@
                   $inst) 
                   (Error ($knobLen $instLen) "Not Equal"))))
 
+;; similar to the above 'sampleFromNeighborhood`' but slight changes for the feature selection
+;; applies capping to the distance because at somepoint the distance would be greater that the length of the instance and lazyRandomSelector would cause error
+(: sampleFromNeighborhoodFs` (-> Number Number (ITable Bool) Instance Instance))
+(= (sampleFromNeighborhoodFs` $n $dist (mkITable (Cons $row $rows) $labels) (mkInst $centralInst))
+        (let* 
+            (
+              ($featureLen (- (List.length $labels) 1)) 
+              ($instLen (List.length $centralInst))
+              ($cappedDist (min-atom ($dist $instLen)))
+              ) 
+              (if (== $featureLen $instLen) 
+                  (let* (
+                    ($selectedIndices (lazyRandomSelector 0 (- $instLen 1) $cappedDist))
+                    ($updatedInst (foldl-atom $selectedIndices $centralInst $updated $rand (updateInstFs $rand $updated)))
+                  )
+                  (mkInst $updatedInst)) 
+                  (Error ($featureLen $instLen) "Not Equal"))))
 ;; This is a helper function for sfn (sampling from neighborhood) that updates the 
 ;; central instance.
 ;; 
@@ -107,32 +123,121 @@
 ;;             used to retrieve the lsk (logical subtree knob) from which the knob multiplicity 
 ;;             can be obtained.
 ;;      $newInst: The original central instance.
-(: updatedInst (-> Number (MultiMap (DiscSpec LogicalSubtreeKnob)) Instance Instance))
+(: updateInst (-> Number (MultiMap (DiscSpec LogicalSubtreeKnob)) Instance Instance))
 (= (updateInst $rand $disc $newInst)
         (let*
           (
-            (($decSpec (mkLSK (mkDiscKnob $knob (mkMultip $multi) $spec $spec1 $specList) $tree)) (MultiMap.getByIdx $rand $disc))
+            (($decSpec (mkLSK (mkDiscKnob $knob (mkMultip $multi) $spec $spec1 $specList))) (MultiMap.getByIdx $rand $disc))
             ($curSpec (List.getByIdx $newInst $rand))
             ($upper (- $multi 1))
             ($randomSpec (+ (random-int &rng 0 $upper) 1))
-            ($updatedInst (if (== $randomSpec $curSpec)
+          )
+          (if (== $randomSpec $curSpec)
                               (List.replaceAt $newInst $rand 0)
                               (List.replaceAt $newInst $rand $randomSpec))))
-          $updatedInst))
 
-;; This function is Pre and post-processor function for sampleFromNeighborhood` 
-;; to achive not-deterministic approach. It generates a list with the size of $sampleSize 
-;; and calls sampleFromNeighborhood` function for every number in the list. 
-;; This will make the sampleFromNeighborhood` to produce $sampleSize samples. 
-;; Then the produced expression will be made in to llist using pyExprToList
+;; similar to the above 'updateInst' with slight change on the range of the randomSpec to make it work for the feature selection
+(: updateInstFs (-> Number Instance Instance))
+(= (updateInstFs $rand $newInst)
+        (let*
+          (
+            ($curSpec (List.getByIdx $newInst $rand))
+            ($randomSpec (+ (random-int &rng 0 1) 1))
+          )
+          (if (== $randomSpec $curSpec)
+                              (List.replaceAt $newInst $rand 0)
+                              (List.replaceAt $newInst $rand $randomSpec))))
+
+;; Pre/post-processor for `sampleFromNeighborhood` to ensure non-deterministic sampling.
+;; It checks if $sampleSize neighbors can be generated; if not, returns an error.
+;; Otherwise, it calls `selectUnique` to produce $sampleSize unique instances at the given distance.
+;; Parameters:
+;;      $sampleSize: Number of instances to generate
+;;      $dist: Distance from the center instance
+;;      $kbMp: Knob map for variations
+;;      $inst: Center instance
+;; Returns: A list of $sampleSize instances or an error if generation is not possible.
+
 (: sampleFromNeighborhood (-> Number Number KnobMap Instance (List Instance)))
 (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
+      ( if (== (isPossibleSize $sampleSize $dist $inst) False)
+          (Error ("Cannot generate " $sampleSize " instances at distance " $dist " from " $inst) (Requested sample size too large))
+          (selectUnique () $sampleSize $dist $kbMp $inst)
+      )
+  
+)
+
+;; this function helps the 'sampleFromNeighborhood' function in which Recursively collects unique instances with identical Hamming distance.
+;;  and Terminates when sample size reaches zero, returning the final filtered list.
+
+(= selectunique (-> (List Expression) Number Number KnobMap Instance (List Instance)))
+(= (selectUnique $expr $sampleSize $dist $kbMp $inst)
+   (if (== $sampleSize 0)
+      (exprToList $expr)
+       (if (== $expr ())
+           (let $generatedFirst (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)  
+                    (selectUnique ($generatedFirst) (- $sampleSize 1) $dist $kbMp $inst)
+           )
+           (let $generatedInstance (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)
+                           (if (isMember $generatedInstance $expr)
+                               (selectUnique $expr $sampleSize $dist $kbMp $inst)
+                               (selectUnique (concatT  ($generatedInstance) $expr )(- $sampleSize 1) $dist $kbMp $inst)
+                            )
+                   
+              )
+                
+           )  
+       )
+   ) 
+
+;; similar to the above 'sampleFromNeighborhood' but with slight modification to make it compatible with the feature selection
+;; uses the sampleFromNeighborhoodFs` function to sample from the neighborhood
+(: sampleFromNeighborhoodFs (-> Number Number (ITable Bool) Instance (List Instance)))
+(= (sampleFromNeighborhoodFs $sampleSize $dist $itable $inst)
    (let* (
-      (() (println! (Inside sampleFromNeighborhood: $sampleSize $dist $inst)))
+      (() (println! (Inside sampleFromNeighborhoodFs: $sampleSize $dist $inst)))
       ($list (genList (- $sampleSize 1)))
-      ($x (map-atom $list $i (sampleFromNeighborhood` $i $dist $kbMp $inst)))
+      ($x (map-atom $list $i (sampleFromNeighborhoodFs` $i $dist $itable $inst)))
     )
-    (pyExprToList $x)))
+    (exprToList $x)))
+   
+;; this function calculates factorial of a number which can be used in " isPossibleSize " function
+(: factorial (-> Number Number))
+(= (factorial $n) 
+(if (<= $n 1) 1 
+(* $n (factorial (- $n 1)
+))))
+
+;;  isPossibleSize: Calculates if the requested number of neighbors can be generated at a given distance from a center instance.
+;; Uses combinatorics: chooses $dist positions from instance length and counts variations based on knob multiplicity.
+;; Parameters:
+;;      $sampleSize: Number of instances to generate
+;;      $dist: Distance from the center
+;;      $inst: Center instance
+;; Returns: true if total neighbors ≥ $sampleSize, else false
+;; Formula: n! / ((n - d)! * d!) * (m-1)^d  ( where n = instance length, d = hamming distance, m = knob multiplicity)
+
+(: isPossibleSize (-> Instance Number Number Bool))
+(= (isPossibleSize $sampleSize $dist $inst) 
+    
+            (let* (
+                ($list (cdr-atom $inst))
+                ; (() (println! (Inside isPossibleSize: $inst $dist $sampleSize)))
+                ($centralInst (car-atom $list))
+                ($instLen (List.length $centralInst))
+                ;  (() (println! (Instance Length: $instLen)))
+                ($n (factorial $instLen))
+                ($r (factorial (- $instLen $dist)))
+                ($d (factorial $dist))
+                ($m (pow-math 2 $dist)) ; assuming knob multiplicty is 3, so m-1 = 1, hence m = 2 that is why (pow-math 2 $dist)
+                ($maxNeighbors (/ $n (* $r $d)))
+                ($totalNeighbors (* $maxNeighbors $m))
+              ) 
+                (>= $totalNeighbors $sampleSize)
+                ; $totalNeighbors
+               
+           )
+)
 
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1
@@ -147,16 +252,17 @@
        (let ($h2 $t2) (decons-atom $inst2)
           (+ (if (== $h1 $h2) 0 1) (distance $t1 $t2)))))))
 
-(: distance (-> Instance Instance Number) )
-(= (distance (mkInst Nil) (mkInst Nil)) 0)
-(= (distance (mkInst (Cons $x $xs)) (mkInst (Cons $y $ys)))
-      (+ (if (== $x $y) 0 1) (distance (mkInst $xs) (mkInst $ys))))
+;; mettalog appears to struggle with function overlaoding -- so created aliases instead of using the same name
+(: distance` (-> Instance Instance Number) )
+(= (distance` (mkInst Nil) (mkInst Nil)) 0)
+(= (distance` (mkInst (Cons $x $xs)) (mkInst (Cons $y $ys)))
+      (+ (if (== $x $y) 0 1) (distance` (mkInst $xs) (mkInst $ys))))
 
 ;; A trick function to use to prevent the type error
 ;;  bugs that may rise as a result of overloaded types
 ;;  of the distance function
 (: distance' (-> Instance Instance Number))
-(= (distance' $inst1 $inst2) (distance $inst1 $inst2))
+(= (distance' $inst1 $inst2) (distance` $inst1 $inst2))
 
 ;; Assigns an initial large negative score to an instance.
 ;; Params:
@@ -166,6 +272,11 @@
 (: initInstScore (-> Instance (ScoredInstance $score)))
 (= (initInstScore $inst)
 (mkSInst (mkPair $inst (worstCscore))))
+
+;; similar to the above 'initInstScore' but for feature selection to make the initial score 0 (the minimum Mutual Information score)
+(: initInstScoreFs (-> Instance (ScoredInstance $score)))
+(= (initInstScoreFs $inst)
+(mkSInst (mkPair $inst 0)))
 
 ;; converts a Scored Instance back to a normal Instance (used to the purpose of testing the sampleNewInstances method)
 ;; Param: scored instance
@@ -206,3 +317,31 @@
     ($updatedInstList (List.concat $instList $scoredNewInstances))
  )
  ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId) $updatedNumNewInstances)))
+
+;; similar to the above 'sampleNewInstances' but with slight changes for the feature selection
+;; Uses the countNeighborhoodFs, sampleFromNeighborhoodFs, initInstScoreFs
+;; It sets the multiplicy to 2 which is 0 and 1 for the feature selection
+
+(: sampleNewInstancesFs (-> Number Number Instance (ITable Bool) (InstanceSet $a) Number ((InstanceSet $a) Number)))
+(= (sampleNewInstancesFs $totalNeighbors $numNewInstances $centerInst $itable (mkSInstSet $instList) $dist)
+ (let*
+  (
+    (() (println! (Inside sampleNewInstancesFs: $totalNeighbors $numNewInstances $centerInst)))
+    (() (println! (Distance: $dist CenterInst: $centerInst)))
+    (() (println! ""))
+
+    ($updatedTotalNeighbors
+         (if (> (* 2 $numNewInstances) $totalNeighbors)
+             (countNeighborhoodFs $centerInst $dist $numNewInstances)
+             $totalNeighbors))
+    ($updatedNumNewInstances 
+         (if (< $numNewInstances $updatedTotalNeighbors)  
+             $numNewInstances
+             $updatedTotalNeighbors))
+    ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
+                       (sampleFromNeighborhoodFs $numNewInstances $dist $itable $centerInst)
+                       (generateAllInNeighborhood (mkMultip 2) $centerInst $dist)))
+    ($scoredNewInstances (List.map initInstScoreFs $newInstances))
+    ($updatedInstList (List.concat $instList $scoredNewInstances))
+ )
+ ((mkSInstSet $updatedInstList) $updatedNumNewInstances)))

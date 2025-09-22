@@ -7,8 +7,9 @@
 ;;           will be added is pointed by the target node.
 ;;  $subtree: The subtree to be appended.
 ;; Returns:
+;;  $tree 
 ;;  A LogicalSubtreeKnob (LSK) configured based on the subtree's presence or its appended state.
-(: logicalSubtreeKnob (-> (Tree $a) NodeId (Tree $a) LogicalSubtreeKnob))
+(: logicalSubtreeKnob (-> (Tree $a) NodeId (Tree $a) (Tree $a LogicalSubtreeKnob)))
 (= (logicalSubtreeKnob $tree (mkNodeId $target) $subtree)
    (let*
    (
@@ -18,16 +19,17 @@
    )
    (if (List.contains $subtree $childrenOfTarget) 
        (let $idOfSubtree (getSubtreeId $tree (mkNodeId $target) $subtree 0)
-           (mkLSK (mkDiscKnob (mkKnob $tree $idOfSubtree) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil) $subtree))
+           ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
+       )
        (if (List.contains $reducedSubtree $childrenOfTarget)
            (let $idOfReducedSubtree (getSubtreeId $tree (mkNodeId $target) $reducedSubtree 0)
-                (mkLSK (mkDiscKnob (mkKnob $tree $idOfReducedSubtree) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil) $subtree))
+                ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfReducedSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil))))
            (let*
            (
-            (($nullVexAppendedTree $nullVexId) (APPEND_CHILD $tree (mkNodeId $target) (mkNullVex Nil)))
-            (($subtreeAppendedTree $subtreeId) (APPEND_CHILD $nullVexAppendedTree $nullVexId $subtree))
+            (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex Nil)))
+            (($subtreeAppendedTree $subtreeId) (appendChild $nullVexAppendedTree $nullVexId $subtree))
            )
-           (mkLSK (mkDiscKnob (mkKnob $subtreeAppendedTree $nullVexId) (mkMultip 3)) $subtree)
+           ($subtreeAppendedTree (mkLSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 3))))
            )
        )
    )
@@ -37,18 +39,14 @@
 
 ;; Retrieves the node ID from a Logical Subtree Knob (LSK).
 (: getNodeId (-> LogicalSubtreeKnob NodeId))
-(= (getNodeId (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multi $default $current $discSpecList) $subtree))
+(= (getNodeId (mkLSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
    $nodeId)
 
 ;; Retrieves the current and default disc specifications from an LSK.
 (: getDiscSpec (-> LogicalSubtreeKnob (DiscSpec DiscSpec)))
-(= (getDiscSpec (mkLSK (mkDiscKnob (mkKnob $tree $nodeId) $multi $default $current $discSpecList) $subtree))
+(= (getDiscSpec (mkLSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
     (let ((mkDiscSpec $def) (mkDiscSpec $cur)) ($default $current) ($def $cur)))
 
-;; Retrieves the subtree associated with a Logical Subtree Knob (LSK).
-(: getSubtree (-> LogicalSubtreeKnob (Tree $a)))
-(= (getSubtree (mkLSK $disknob $subtree))
-    $subtree)
 
 ;; Appends a subtree or a null vertex in place of a logical subtree 
 ;;  using information from the LSK and a knob setting specified.
@@ -58,12 +56,17 @@
 ;;            reference and it may also contain knobs if $d is 0
 ;;  $parentId: The location where the new node will be added.
 ;;  $d: The current setting of the knob.
-(: appendTo (-> LogicalSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
-(= (appendTo $lsk $tree $parentId $d)
+(: appendTo (-> (Tree $a) LogicalSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
+(= (appendTo $updatedTree $lsk $tree $parentId $d)
     (let*
-      (
-        ($targetNode (getNodeId $lsk))
-        ($subtree (getSubtree $lsk)))
+       (
+        ($targetId (getNodeId $lsk))
+        ($targetTree (getNodeById  $updatedTree $targetId))
+        ($subtree (if (isNullVertex $targetTree) 
+                        (let (mkNullVex (Cons $child Nil)) $targetTree $child)
+                        $targetTree
+                    ))        
+      )
       (if (> $d 2)
           (Error $d "Invalid disc specification:- cannot exceed 2.")
           (if (isEmpty $tree)
@@ -82,5 +85,5 @@
                          (1  $subtree) ;; If present
                          (0  (mkNullVex (Cons $subtree Nil))))) ;; If absent
 
-                   (chain (APPEND_CHILD $tree $parentId $treeToAppend) $treeChIdPair
+                   (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
                        (first $treeChIdPair))))))) ;; INFO: Just incase if the append fails and stores the result somewhere else, we need to add a test case here to cmpare between targetNode and appendChild node.

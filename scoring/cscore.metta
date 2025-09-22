@@ -3,18 +3,25 @@
 ;; If p is large (approaching 0.5), it means the model is expected to be less accurate, making mistakes more often (but still better than random guessing).
 
 (: getCscore (-> (ITable $a) (Tree $a) Number Cscore))
-(= (getCscore $itable $tree $complexityRatio)
-    (let $bs (scoreTree $itable $tree)
-        (if-error $bs ;; return worst possible composite score
-            (worstCscore)
-            (let* (($bsum (sumBScore $bs))
-                   (() (println! (Score: $bsum)))
-                   (() (println! ""))
-                   ($cpxy (treeComplexity $tree))
-                   (() (println! (Complexity: $cpxy)))
-                   ($cCoef (getComplexityCoef $complexityRatio)))
+(= (getCscore $itable $tree $complexityRatio $scoreSpace)
+    (unify $scoreSpace 
+            ($tree $score) 
+            (trace! "USED from cache XXXXXXXXXXXXXXXXXXXXXXXXXXX " $score)
+            (chain (scoreTree $itable $tree) $bs 
+                (if-error $bs ;; return worst possible composite score
+                (worstCscore)
+                (let* (($bsum (sumBScore $bs))
+                    (() (println! (Score: $bsum)))
+                    (() (println! ""))
+                    ($cpxy (treeComplexity $tree))
+                    (() (println! (Complexity: $cpxy)))
+                    ($cCoef (getComplexityCoef $complexityRatio))
+                    ($res (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False))
+                    (() (add-atom $scoreSpace ($tree $res)))
+                    )
 
-                   (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False)))))
+                    $res )))))
+
 
 ;; getComplexityCoef -- calcualtes the complexity coeffient of a tree   
 ;; takes complexity ratio as input and returns complexity coefficient
@@ -42,6 +49,34 @@
            (() (println! (PenalizedScore: $updatedPScore))))
         
             (mkCscore $scor $cpxy $cpxyPenalty $uniformityPenalty $updatedPScore)))
+;converts a score to an expression
+; (: cScoreToExpr (-> Cscore Expression))
+(= (cScoreToExpr (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore))
+    (let* (
+        ($e1 (cons-atom $penalizedScore ()))
+        ($e2 (cons-atom $uniformityPenalty $e1))
+        ($e3 (cons-atom $complexityPenalty $e2))
+        ($e4 (cons-atom $cpxy $e3))
+        ($e5 (cons-atom $scor $e4))
+    )
+        ($e5)
+    )
+)
+
+; (: exprToCScore (-> Expression Cscore))
+(= (exprToCScore $exp)
+    (let* (
+        ($expr (car-atom $exp))
+        (($scor $rest1) (decons-atom $expr))
+        (($cpxy $rest2) (decons-atom $rest1))
+        (($complexityPenalty $rest3) (decons-atom $rest2))
+        (($uniformityPenalty $rest4) (decons-atom $rest3))
+        (($penalizedScore $_) (decons-atom $rest4))
+    )
+        (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)
+    )
+)
+
 
 ;; worstCscore
 (: worstCscore (-> Cscore))
@@ -64,19 +99,16 @@
 (: getUniPen (-> Cscore Number))
 (= (getUniPen (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $uniformityPenalty)
 
-;; comparing composite scores
-;; cScore< -- composite score less than operator
-;; uses penalized scores to compare and complexity score to break ties in the penalized score
-;; $cs1 -- composite score of the left side instance ..
-;; $cs2 -- composite score of the right side instance or whatever
-;; the type-cast in the if .. is used because the return type of the built-in isnan-math function is not Bool so it has to be cast in to bool value
-
-(: cScore< (-> Cscore Cscore Bool)) 
-(= (cScore< $cs1 $cs2)
-    (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
-        (if (type-cast (isnan-math $pl) Bool &self)
-            (not (type-cast (isnan-math $pr) Bool &self))
-            (or (< $pl $pr) (and (== $pl $pr) (> $cl $cr))))))
+;; cScoreExpr< -- composite score less than operator for expressions
+;; works directly with expressions using index-atom to extract scores
+;; index 4 = penalized score, index 1 = complexity score
+(: cScoreExpr< (-> Expression Expression Bool))
+(= (cScoreExpr< (($scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) 
+                    (($scor2 $cpxy2 $complexityPenalty2 $uniformityPenalty2 $penalizedScore2)))
+    
+        (if (type-cast (isnan $penalizedScore) Bool &self)
+            (not (type-cast (isnan $penalizedScore2) Bool &self))
+            (or (< $penalizedScore $penalizedScore2) (and (== $penalizedScore $penalizedScore2) (> $cpxy $cpxy2)))))
             
 ;; Check for equality, to within floating-point error, EPSILON
 (: cScore== (-> Cscore Cscore Bool))
@@ -93,6 +125,9 @@
 (: cScore>= (-> Cscore Cscore Bool)) 
 (= (cScore>= $cs1 $cs2)
     (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
-        (if (type-cast (isnan-math $pl) Bool &self)
+        (if (isnan $pl)
             False
             (or (> $pl $pr) (and (== $pl $pr) (< $cl $cr))))))
+
+(= (setUniPen (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore) $newUniPen)
+    (mkCscore $scor $cpxy $complexityPenalty $newUniPen $penalizedScore))
