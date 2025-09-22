@@ -17,6 +17,19 @@
              (() (println! (done making representations ...))))  
          (loopCreateDeme $demeIds $reps ())))
 
+
+;; ================================================================================
+;; Helper Functions
+;; ================================================================================
+
+;; Get representation from deme
+(: getRep (-> Deme Representation))
+(= (getRep (mkDeme $rep $instSet $id)) $rep)
+
+;; Get instance set from deme
+(: getInstanceSet (-> Deme (InstanceSet $score)))
+(= (getInstanceSet (mkDeme $rep $instSet $id)) $instSet)
+
 (= (loopCreateDeme $demeIds $reps $acc)
       (if-decons-expr $reps $h $t
             (let* (($demeId (List.head $demeIds)) 
@@ -25,3 +38,4 @@
                   
                   (loopCreateDeme (List.tail $demeIds) $t $new-acc))
                $acc))    
+

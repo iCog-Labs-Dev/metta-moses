@@ -66,4 +66,17 @@
 !(assertEqual (instance>= (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 3 1.0 0.5 -3.5))) (mkSInst (mkPair (mkInst Nil) (mkCscore -3.0 2 1.0 0.5 -4.5)))) True)
 !(assertEqual (instance>= (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 2 1.0 0.5 -3.5))) (mkSInst (mkPair (mkInst Nil) (mkCscore -1.0 4 1.0 0.5 -2.5)))) False)
 ! (assertEqual (instance>= (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 2 1.0 0.5 -3.5)))
-                        (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 3 2.0 0.5 -4.5) ))) True) 
+                        (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 3 2.0 0.5 -4.5) ))) True)
+
+;; ================================================================================
+;; Helper Function Tests
+;; ================================================================================
+
+;; Test getScoredInstances helper function
+! (assertEqual (getScoredInstances (mkSInstSet Nil)) Nil)
+! (assertEqual (getScoredInstances (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 0.5 1.0 0.2 0.3 0.8))) Nil))) 
+                (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 0.5 1.0 0.2 0.3 0.8))) Nil))
+! (assertEqual (getScoredInstances (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 0.5 1.0 0.2 0.3 0.8))) 
+                                                   (Cons (mkSInst (mkPair (mkInst (Cons 2 Nil)) (mkCscore 0.3 0.8 0.1 0.2 0.6))) Nil)))) 
+                (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 0.5 1.0 0.2 0.3 0.8))) 
+                      (Cons (mkSInst (mkPair (mkInst (Cons 2 Nil)) (mkCscore 0.3 0.8 0.1 0.2 0.6))) Nil))) 

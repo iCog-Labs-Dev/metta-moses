@@ -149,6 +149,31 @@
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
 
+
+; ;; Testcase for optimizeDemes               
+; !(assertEqual 
+; (let* 
+; (
+;     ($optimizeDemesReturn (optimizeDemes deme table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing))
+;     (() (println! "optimizeDemes Returns"))
+;     (() (println! $optimizeDemesReturn))
+;     (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemesReturn)
+;     ($instanceCount (List.length $instSet))
+;     ($scoredElems (List.map isScored $instSet))
+; )
+; ((>= $instanceCount 4) (List.any $scoredElems)))
+; (True True))
+
+; ;; Testcase for expandDeme
+; !(assertEqual
+; (let*
+; (
+;     ($updatedDeme (expandDeme metaPop2 0 1 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
+;     ($updatedDemeLength (size-atom $updatedDeme))
+; )
+; (>= $updatedDemeLength 1)
+; ) True)
+=======
 ;; Testcase for optimizeDemes               
 !(assertEqual 
 (let* 
@@ -172,6 +197,7 @@
 )
 (>= $updatedDemeLength 1)
 ) True)
+
 
 ;; Testcase for runMoses
 !(assertEqual
