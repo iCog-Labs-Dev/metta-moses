@@ -6,7 +6,6 @@
 ! (import! &self metta-moses:scoring:fitness)
 ! (import! &self metta-moses:scoring:bscore)
 ! (import! &self metta-moses:scoring:cscore)
-
 ;; Tests for cScoreToExpr
 ! (assertEqual (cScoreToExpr (mkCscore 0.0 0.0 0.0 0.0 0.0)) ((0.0 0.0 0.0 0.0 0.0)))
 ! (assertEqual (cScoreToExpr (mkCscore 1.0 2.0 0.5 0.5 0.0)) ((1.0 2.0 0.5 0.5 0.0)))
@@ -28,6 +27,9 @@
                     (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
                     (Cons A (Cons B (Cons Output Nil)))))
 
+! (assertEqual (getCscore ttable1 (buildTree (AND A B)) 2.0 &cacheSpace) (mkCscore -1 2 1 0 -2))
+! (assertEqual (getCscore ttable1 (buildTree (OR A B)) 4 &cacheSpace) (mkCscore 0 2 0.5 0 -0.5))
+; the results of the following two tests will be the same as the above two. it uses the cacheSpace
 ! (assertEqual (getCscore ttable1 (buildTree (AND A B)) 2.0 &cacheSpace) (mkCscore -1 2 1 0 -2))
 ! (assertEqual (getCscore ttable1 (buildTree (OR A B)) 4 &cacheSpace) (mkCscore 0 2 0.5 0 -0.5))
 ;; the results of the following two tests will be the same as the above two because the trees are the same because it uses the cacheSpace
