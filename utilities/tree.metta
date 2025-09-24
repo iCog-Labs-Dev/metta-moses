@@ -47,6 +47,7 @@
               (($head $tail) (decons-atom $expr))
               ($children (exprToList (map buildTree $tail)))
               (() (println! (Building tree with head: $head And children: $children)))
+              (() (println! (FinalAnswer: (mkTree (mkNode $head) $children))))
             )
             (mkTree (mkNode $head) $children)
             )

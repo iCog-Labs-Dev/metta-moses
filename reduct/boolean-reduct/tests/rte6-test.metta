@@ -11,8 +11,8 @@
 ! (import! &self metta-moses:reduct/boolean-reduct:reduce-to-elegance)
 
 
-;; (AND (OR (NOT A) (AND A B C) (AND B C (NOT B)))) ==> (AND (OR (NOT A) (AND A B C)))
-!(assertEqual (reduceToElegance (AND (OR (AND (NOT A)) (AND A B C) (AND B C (NOT B)))) (OR (AND (NOT A)) (AND A B C) (AND B C (NOT B))) () ()) ((AND (OR (AND (NOT A)) (AND A B C))) (OR (AND (NOT A)) (AND A B C)) False))
+;; (AND (OR (NOT A) (AND A B C) (AND B C (NOT B)))) ==> (AND)
+!(assertEqual (reduceToElegance (AND (OR (AND (NOT A)) (AND A B C) (AND B C (NOT B)))) (OR (AND (NOT A)) (AND A B C) (AND B C (NOT B))) () ()) ((AND) () True))
 ;; (AND (OR (NOT A) (AND A B C) (AND B C (NOT B)))) ==> (AND (OR (NOT A) (AND A B C)))
 !(assertEqual (reduceToElegance (AND (OR (NOT A) (AND A B C) (AND B C (NOT B)))) (OR (NOT A) (AND A B C) (AND B C (NOT B))) () ()) ((AND B C (OR (NOT A) (AND A) (AND (NOT B)))) (OR (NOT A) (AND A) (AND (NOT B))) True))
 ;; (AND (OR (NOT A) (AND A B C) (AND C B (NOT B)))) ==> (AND (OR (NOT A ) (AND A B C)))

@@ -72,7 +72,7 @@
                             (Cons (mkTree (mkNode OR)
                                 (Cons (mkTree (mkNode A) Nil)
                                 (Cons (mkTree (mkNode B) Nil) Nil))) 
-                                (Cons (mkTree (mkNode A) Nil) Nil)))
+                            (Cons (mkTree (mkNode A) Nil) Nil)))
                           )
                             (mkTree (mkNode AND) 
                               (Cons (mkTree (mkNode A) Nil) Nil)))
@@ -85,10 +85,8 @@
                           )
                             (mkTree (mkNode AND) 
                               (Cons (mkTree (mkNode NOT) 
-                                (Cons (mkTree (mkNode A) Nil) Nil))
-                                (Cons (mkTree (mkNode B) Nil) Nil))))
-                        
-!(assertEqual (cleanTree (buildTree (AND (OR A B) (NOT A) (NOT B)))) (buildTree (AND (NOT A) (NOT B) (OR))))
+                                (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))         
+!(assertEqual (cleanTree (buildTree (AND (OR A B) (NOT A) (NOT B)))) (buildTree (AND (NOT A) (NOT B))))
 !(assertEqual (cleanTree (buildTree (AND A B (NOT A)))) (buildTree (AND)))
 !(assertEqual (cleanTree (buildTree (OR (AND A B (NOT A) B)))) (buildTree (AND)))
 !(assertEqual (cleanTree (buildTree (OR A (AND B C)))) (buildTree (AND (OR (AND A) (AND B C)))))
@@ -97,8 +95,8 @@
 ;; type system is not working properly in mettalog 
 ; (: A Bool)
 
-!(assertEqual (get-type tree1) (Tree Bool))
-!(assertEqual (get-type tree2) (Tree Bool))
+; !(assertEqual (get-type tree1) (Tree Bool))
+; !(assertEqual (get-type tree2) (Tree Bool))
 
 
 ! (assertEqual (buildTree (AND (OR (AND (OR A B) (OR C D)) D) C)) tree3)

@@ -130,18 +130,18 @@
 ;; INFO: This function needs to change so that it can preserve the
 ;;        operator's position when MeTTa version is upgraded.
 (= (findAndReplace $old $new $list) ;; FIX: No longer working on version 0.2.3
-    (let*
-      (
-        (() (println! ""))
-        (() (println! (==> === Inside findAndReplace === <==)))
-        (() (println! (Parameters ==> Old: $old New: $new List: $list)))
+    ; (let*
+    ;   (
+        ; (() (println! ""))
+        ; (() (println! (==> === Inside findAndReplace === <==)))
+        ; (() (println! (Parameters ==> Old: $old New: $new List: $list)))
         ; (() (println! (Result ==> (collapse (replace $old $new (superpose $list))))))
-        (() (println! ""))
-      )
+        ; (() (println! ""))
+    ;   )
       (if (== () (subtraction-atom $old $list)) 
         $new
       (collapse (replace $old $new (superpose $list))))
-    )
+    ; )
 )
 
 ;; A function that behaves like a do while loop.
@@ -149,10 +149,11 @@
 (: until (-> (-> $a Bool) (-> $a $a) $a $a))
 (= (until $predicate $function $x) 
     (let* ( 
-        (() (println! (Inside until...)))
+        (() (println! (Inside until with function: $function ...)))
         ($isTrue ($predicate $x))
         (() (println! (Predicate result: $isTrue)))
-        ($x' ($function $x))
+        ; ($x' ($function $x))
+        ($x' (if $isTrue ("Predicate True Skipping Function Application") ($function $x)))
         (() (println! (Function result: $x')))
     )
     (if $isTrue

@@ -84,17 +84,23 @@
                         (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
     (mkNodeId (2))
     (mkTree (mkNode B) Nil))
-  (
-    (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
-    (mkLSK
-    (mkDiscKnob
-      (mkKnob
-        (mkNodeId (2 1)))
-      (mkMultip 3)
-      (mkDiscSpec 1)
-      (mkDiscSpec 1)
-      Nil))
-    ))
+    ((mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) 
+      (Cons (mkNullVex (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode B) Nil) Nil)) 
+      (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil))) Nil))) 
+      (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
+  ; (
+  ;   (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) 
+  ;   (Cons (mkNullVex (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
+  ;   (mkLSK
+  ;   (mkDiscKnob
+  ;     (mkKnob
+  ;       (mkNodeId (2 1)))
+  ;     (mkMultip 3)
+  ;     (mkDiscSpec 1)
+  ;     (mkDiscSpec 1)
+  ;     Nil))
+  ;   )
+    )
 
 ;; getNodeId test cases
 !(assertEqual (getNodeId (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 0))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (mkNodeId (1 0)))

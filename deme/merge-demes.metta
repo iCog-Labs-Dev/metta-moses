@@ -92,6 +92,7 @@
 (= (demeToTrees (mkDeme $rep (mkSInstSet (Cons $si $sil)) $demeId) $itable)
 (let*
     (
+        (() (println! (===Inside DemeToTrees===)))
         ($cscore (getSInstScore $si))
         ($inst (getInst $si))
         (() (println! (GetCandidate Starting...)))
@@ -205,7 +206,7 @@
         (let*
         (
             (() (println! ("--------------------------------")))
-            (() (println! (mergeDemes Starting...)))
+            (() (println! (===== mergeDemes Starting =====)))
             (($headDeme $tailDeme) (decons-atom $demes))
             ((mkDeme $rep $sInstList $demeId) $headDeme)
             ($sortedSInstList (sortDeme $sInstList)) ;; sorting the instances inside the deme by decreasing order

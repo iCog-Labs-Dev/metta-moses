@@ -57,16 +57,24 @@
       ((Expression (NOT $x)) ($parent $current False))
       ((Symbol $current) ($parent $current False))
       ((Expression $current)
-        (let*
-          (
-            ($children (getChildrenExp $current))
-            ($literals (getLiterals $current))
-          )
-          ;; POA is AND and has no children and guardSet
-          (if (and (== $literals ()) (== $children ()))
-              ((removeElement ($current) $parent) () True)
-              ($parent $current False)
-          )
+        (if (and (== (car-atom $parent) OR) (== $current (AND)))
+            ((findAndReplace $parent (AND) $parent) (AND) True) ;; Removes the entire OR if it has an empty AND as child
+            (let*
+              (
+                ; (() (println! (===Inside ZeroConstraintSubsume'===)))
+                ; (() (println! (Current: $current : Parent: $parent)))
+                ($children (getChildrenExp $current))
+                ($literals (getLiterals $current))
+              )
+              ;; POA is AND & OR and has no children and guardSet
+              (if (and (~= $current $parent) (~= $parent AND))
+                (if (and (== $literals ()) (== $children ()))
+                    ((removeElement ($current) $parent) () True)
+                    ($parent $current False)
+                )
+                ($parent $current False)
+              )
+            )
         )
       )
     )
