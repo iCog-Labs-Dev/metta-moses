@@ -149,12 +149,12 @@
 (: until (-> (-> $a Bool) (-> $a $a) $a $a))
 (= (until $predicate $function $x) 
     (let* ( 
-        (() (println! (Inside until with function: $function ...)))
+        ; (() (println! (Inside until with function: $function ...)))
         ($isTrue ($predicate $x))
-        (() (println! (Predicate result: $isTrue)))
+        ; (() (println! (Predicate result: $isTrue)))
         ; ($x' ($function $x))
         ($x' (if $isTrue ("Predicate True Skipping Function Application") ($function $x)))
-        (() (println! (Function result: $x')))
+        ; (() (println! (Function result: $x')))
     )
     (if $isTrue
         $x

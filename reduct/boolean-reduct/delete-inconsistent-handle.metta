@@ -91,7 +91,7 @@
                     ($updatedParent (findAndReplace $newCurrent $updatedCurrent $newParent))
                     ; (()(println! (Updated Parent: $UpdatedParent : UpdatedCurrent: $updatedCurrent Bool: (any $appliedOnCurrent $appliedOnChild $applied) )))
                 )
-                (applyDeleteIncons $UpdatedParent $updatedCurrent $dominantSet (any $appliedOnCurrent $appliedOnChild $applied) $rest)
+                (applyDeleteIncons $UpdatedParent $updatedCurrent $dominantSet (any ($appliedOnCurrent $appliedOnChild $applied)) $rest)
             )    
         )
     )
