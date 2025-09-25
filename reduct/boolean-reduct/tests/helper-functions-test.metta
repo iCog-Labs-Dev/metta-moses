@@ -82,11 +82,11 @@
 
 ;; Test for getChildren
 
-! (assertEqual (getChildren ()) ())
-! (assertEqual (getChildren (AND A B (OR A B) C E (OR E F) (OR A) (NOT F))) ((OR A B) (OR E F) (OR A)))
-! (assertEqual (getChildren (AND (OR A B) A B C E (NOT F) (OR E F) (OR A))) ((OR A B) (OR E F) (OR A)))
-! (assertEqual (getChildren (OR A B (AND A B) C E (AND E F) (AND A) (NOT F))) ((AND A B) (AND E F) (AND A)))
-! (assertEqual (getChildren (OR (AND A B) A B C E (NOT F) (AND E F) (AND A))) ((AND A B) (AND E F) (AND A)))
+! (assertEqual (getChildrenExp ()) ())
+! (assertEqual (getChildrenExp (AND A B (OR A B) C E (OR E F) (OR A) (NOT F))) ((OR A B) (OR E F) (OR A)))
+! (assertEqual (getChildrenExp (AND (OR A B) A B C E (NOT F) (OR E F) (OR A))) ((OR A B) (OR E F) (OR A)))
+! (assertEqual (getChildrenExp (OR A B (AND A B) C E (AND E F) (AND A) (NOT F))) ((AND A B) (AND E F) (AND A)))
+! (assertEqual (getChildrenExp (OR (AND A B) A B C E (NOT F) (AND E F) (AND A))) ((AND A B) (AND E F) (AND A)))
 
 ;; Test for getLiterals
 ! (assertEqual (getLiterals ()) ())
