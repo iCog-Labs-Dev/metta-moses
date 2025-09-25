@@ -17,7 +17,7 @@
 !(assertEqual (reduceToElegance (AND (OR (AND A B) (AND A C (OR (AND D) (AND E) (AND (NOT A)))))) (OR (AND A B) (AND A C (OR (AND D) (AND E) (AND (NOT A))))) () ()) ((AND A (OR (AND B) (AND C (OR (AND D) (AND E) (AND (NOT A)))))) (OR (AND B) (AND C (OR (AND D) (AND E) (AND (NOT A))))) True))  ;; INFO: This test case fails becuase RTE needs to be called again if the parent chang ed
 !(assertEqual (reduceToElegance (AND (AND A (OR (AND B) (AND C (OR (AND D) (AND E) (AND (NOT A))))))) (AND A (OR (AND B) (AND C (OR (AND D) (AND E) (AND (NOT A)))))) () ()) ((AND (AND A (OR (AND B) (AND C)))) (AND A (OR (AND B) (AND C))) False)) ;; removes the entire OR node containing inconsistancy 
 ;; (AND (OR (AND A B) (AND A C (OR D (AND E (NOT A)))))) ==> (AND A (OR B (AND C)))
-!(assertEqual (reduceToElegance (AND (AND A (OR (AND B) (AND C (OR (AND D) (AND E (NOT A))))))) (AND A (OR (AND B) (AND C (OR (AND D) (AND E (NOT A)))))) () ()) ((AND (AND A (OR (AND B) (AND C)))) (AND A (OR (AND B) (AND C))) False))
+!(assertEqual (reduceToElegance (AND A (OR (AND B) (AND C (OR (AND D) (AND E (NOT A)))))) (AND A (OR (AND B) (AND C (OR (AND D) (AND E (NOT A)))))) () ()) ((AND A (OR (AND B) (AND C))) (AND A (OR (AND B) (AND C))) False))
 ;; (AND (OR (AND A B) (AND A C (OR D (AND E (NOT A)))))) ==> (AND A (OR B (AND C D)))
 !(assertEqual (reduceToElegance (AND (OR (AND A B) (AND A C (OR (AND D) (AND E (NOT A)))))) (OR (AND A B) (AND A C (OR (AND D) (AND E (NOT A))))) () ()) ((AND A (OR (AND B) (AND C (OR (AND D) (AND E (NOT A)))))) (OR (AND B) (AND C (OR (AND D) (AND E (NOT A))))) True))   ;; INFO: This test case fails becuase RTE needs to be called again if the parent chang ed
 
