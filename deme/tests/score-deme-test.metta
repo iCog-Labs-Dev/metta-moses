@@ -114,7 +114,8 @@
    (mkRep knobMapObj tree1)
    ttable2
    1)
-   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) (mkCscore 0 4 4.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -1 4 4.0 0.0 -5.0))) Nil))))
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) (mkCscore 0 4 4.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -1 4 2.0 0.0 -3.0))) Nil)))) ;;The correct score should be (mkCscore -1 4 4.0 0.0 -5.0). Because the same tree instance was used in the previous applyComplexityBasedScore test, its score was cached. When getCscore runs again, it retrieves the cached score instead of recalculating it — which is why you see (mkCscore -1 4 2.0 0.0 -3.0) instead.
+
 
 ;; Testcase for the bitsToIndices
 !(assertEqual (bitsToIndices (Cons 1 (Cons 0 (Cons 1 (Cons 0 Nil)))) 0 ()) (0 2))

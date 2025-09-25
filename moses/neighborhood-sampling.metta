@@ -160,7 +160,7 @@
 
 (: sampleFromNeighborhood (-> Number Number KnobMap Instance (List Instance)))
 (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
-      ( if (== (isPossibleSize $sampleSize $dist $inst) False)
+      ( if (== (isPossibleSize $sampleSize $dist 3 $inst) False)
           (Error ("Cannot generate " $sampleSize " instances at distance " $dist " from " $inst) (Requested sample size too large))
           (selectUnique () $sampleSize $dist $kbMp $inst)
       )
@@ -217,21 +217,19 @@
 ;; Returns: true if total neighbors ≥ $sampleSize, else false
 ;; Formula: n! / ((n - d)! * d!) * (m-1)^d  ( where n = instance length, d = hamming distance, m = knob multiplicity)
 
-(: isPossibleSize (-> Instance Number Number Bool))
-(= (isPossibleSize $sampleSize $dist $inst) 
+(: isPossibleSize (-> Number Number Number Instance  Bool))
+(= (isPossibleSize $sampleSize $dist $m (mkInst $inst)) 
     
             (let* (
-                ($list (cdr-atom $inst))
                 ; (() (println! (Inside isPossibleSize: $inst $dist $sampleSize)))
-                ($centralInst (car-atom $list))
-                ($instLen (List.length $centralInst))
+                ($instLen (List.length $inst))
                 ;  (() (println! (Instance Length: $instLen)))
                 ($n (factorial $instLen))
                 ($r (factorial (- $instLen $dist)))
                 ($d (factorial $dist))
-                ($m (pow-math 2 $dist)) ; assuming knob multiplicty is 3, so m-1 = 1, hence m = 2 that is why (pow-math 2 $dist)
+                ($k (pow-math (- $m 1) $dist)) ; assuming knob multiplicty is 3, so m-1 = 1, hence m = 2 that is why (pow-math 2 $dist)
                 ($maxNeighbors (/ $n (* $r $d)))
-                ($totalNeighbors (* $maxNeighbors $m))
+                ($totalNeighbors (* $maxNeighbors $k))
               ) 
                 (>= $totalNeighbors $sampleSize)
                 ; $totalNeighbors
