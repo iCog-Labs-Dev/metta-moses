@@ -105,21 +105,24 @@
 ; ;; MAIN INTERFACE TESTS
 
 ; ;; XOR table with low threshold - both features needed
-! (assertEqual (incrementalSelection xorTable 0.1 0 3 0.5) (1.0 (0 1)))
+! (assertEqual (incrementalSelection xorTable 0.1 0 3 0.5) ((1.0 (0 1))))
 
 ;; AND table with moderate threshold
-! (assertEqual (incrementalSelection andTable 0.02 0 2 0) (0.811 (0 1)))
+! (assertEqual (incrementalSelection andTable 0.02 0 2 0) ((0.811 (0 1))))
 
 ;; Redundant table with redundancy removal
-! (assertEqual (incrementalSelection redundantTable 0.1 0 3 0.4) (1.0 (0)))
+! (assertEqual (incrementalSelection redundantTable 0.1 0 3 0.4) ((1.0 (0))))
 
 ;; Complex table with moderate threshold
-! (assertEqual (incrementalSelection complexTable 0.05 0 2 0) (1.0 (0 1 2)))
+! (assertEqual (incrementalSelection complexTable 0.05 0 2 0) ((1.0 (0 1 2))))
 
 ;; Return all features when both threshold and target are 0
-! (assertEqual (incrementalSelection complexTable 0 0 0 0) (1.0 (0 1 2 3)))
-! (assertEqual (incrementalSelection complexTable 0 2 3 0.4) (1.0 (0 2)))
-! (assertEqual (incrementalSelection xorTable 0 1 3 0.5) (1.0 (0 1)))  ;; Single XOR feature has 0 MI
-! (assertEqual (incrementalSelection redundantTable 0 3 3 0.5) (1.0 (0)))  ;; Only 1 non-redundant feature
-! (assertEqual (incrementalSelection xorTable 2.0 0 3 0.0) (0 ()))  ;; Threshold too high
-! (assertEqual (incrementalSelection xorTable -1.0 0 3 0.0) (1.0 (0 1)))  ;; Negative threshold (all features)
+! (assertEqual (incrementalSelection complexTable 0 0 0 0) ((1.0 (0 1 2 3))))
+! (assertEqual (incrementalSelection complexTable 0 2 3 0.4) ((1.0 (0 2))))
+! (assertEqual (incrementalSelection xorTable 0 1 3 0.5) ((1.0 (0 1))))  ;; Single XOR feature has 0 MI
+! (assertEqual (incrementalSelection redundantTable 0 3 3 0.5) ((1.0 (0))))  ;; Only 1 non-redundant feature
+! (assertEqual (incrementalSelection xorTable 2.0 0 3 0.0) ((0 ())))  ;; Threshold too high
+! (assertEqual (incrementalSelection xorTable -1.0 0 3 0.0) ((1.0 (0 1))))  ;; Negative threshold (all features)
+
+
+; ! (adaptiveSelection complexTable 2 3 0.4 0.0 1.0 0.01)

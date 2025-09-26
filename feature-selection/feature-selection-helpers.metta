@@ -31,19 +31,26 @@
             (Cons (List.at $i $row) (Table.getColumn $i $rest)) ())))
 ; ;; Table.pop        -- gets and removes a column from the current ttable structure
 ; ;;                  -- returns the remaining table and the culumn asked for
-; (= (Table.pop $i $rows)
-;     (unify $rows Nil Nil
-;         (unify $rows (Cons (Cons $d $ds) $rest)  ;; $d and $ds for data and rest of data
-;             (if (== $i 0)
-;                 (Cons $ds (Table.pop $i $rest))
-;                 (Cons (Cons $d (List.pop $i $ds)) (Table.pop (- $i 1) $rest))))))
-
-;; removes the first column from table
-(: Table.pop (-> (List (List $a)) (List (List $a))))
-(= (Table.pop $rows)
+(= (Table.pop $i $rows)
     (unify $rows Nil Nil
-        (unify $rows (Cons (Cons $d $ds) $rest)
-            (Cons $ds (Table.pop $rest)))))
+        (unify $rows (Cons (Cons $d $ds) $rest)  ;; $d and $ds for data and rest of data
+            (if (== $i 0)
+                (Cons $ds (Table.pop $i $rest))
+                (Cons (Cons $d (List.pop (- $i 1) $ds)) (Table.pop $i $rest))) ())))
+; ;; removes the first column from table
+; (: Table.pop (-> (List (List $a)) (List (List $a))))
+; (= (Table.pop $rows)
+;     (unify $rows Nil Nil
+;         (unify $rows (Cons (Cons $d $ds) $rest)
+;             (Cons $ds (Table.pop $rest)))))
+
+;; returns the last column of the table
+(: Table.getOutputColumn (-> ITable (List $a)))
+(= (Table.getOutputColumn (mkITable $table $labels))
+    (chain (List.length $labels) $colNum 
+    (chain (Table.getColumn (- $colNum 1) $table) $oc   
+    $oc  ))
+)
 
 ;;;;;;;;;;;;;;
 ;; Transpose;;
@@ -65,11 +72,11 @@
 ;; Transpose;;
 ;;;;;;;;;;;;;;
 
-(: List.head (-> (List $a) $a))
-(= (List.head $list)
-    (unify $list 
-        Nil (Error "Empty list has no head")
-        (unify $list (Cons $h $t) $h ())))
+;;(: List.head (-> (List $a) $a))
+;;(= (List.head $list)
+;;    (unify $list 
+;;        Nil (Error "Empty list has no head")
+;;        (unify $list (Cons $h $t) $h ())))
 
 (: List.range (-> Number Number (List Number))) ;; inclusive start, exclusive end
 (= (List.range $start $end)
@@ -111,7 +118,7 @@
     (if (or (<= $count 0) (== $pairTuple ()))
         ; (union-atom $acc $pairTuple)                                                          ;; started as a partial sort
         $acc                                                                                    ;; but later turned out that we do not need the unsorted part -just sort the top N and return that
-        (chain (foldl-atom $pairTuple (((1) 0) -inf) $ac $pair ($op $ac $pair)) $max-pair       ;; find max pair from the tuple of pairs    
+        (chain (foldl-atom $pairTuple (-inf (1 0)) $ac $pair ($op $ac $pair)) $max-pair       ;; find max pair from the tuple of pairs    
         (chain (union-atom $acc ($max-pair)) $new-acc                                           ;; use of union assumes the pairs are non repeating -- same score is possible but always different label (due to ordering of tuple elem)
         (chain (collapse 
                 (chain (superpose $pairTuple) $el 
@@ -139,8 +146,8 @@
 
 ;; find maximum of two pairs
 ;; XXX notice the use of => for comparison -- as per current mettlog interpreter implementation
-(: pairMax (-> ($a Number) ($a Number) ($a Number)))
-(= (pairMax ($label1 $val1) ($label2 $val2)) (if (=> $val1 $val2) ($label1 $val1) ($label2 $val2 )))
+(: pairMax (-> (Number $a) (Number $a) (Number $a)))
+(= (pairMax ($val1 $label1) ($val2 $label2)) (if (=> $val1 $val2) ($val1 $label1) ($val2 $label2)))
 
 ;; exponentialSelection
 ;;          $mean                   -- mean of num desired for the exponential dist -- controls steepness of selection
@@ -228,8 +235,8 @@
                 (cons-atom $l $res)))))
 
 ;; check for equality of pairs -- to make up for ordering issues   
-(: isPairEqual (-> ($a Number) ($b Number) Bool))
-(= (isPairEqual ($item1 $val1) ($item2 $val2))
+(: isPairEqual (-> (Number $a) (Number $b) Bool))
+(= (isPairEqual ($val1 $item1) ($val2 $item2))
     (if (== $val1 $val2)
         (isEqual $item1 $item2)
         False))
@@ -239,7 +246,7 @@
     (if (== $expr ())
         $acc
         (chain (size-atom $expr) $len
-            (chain (random-int 0 $len) $rnd-index
+            (chain ((py-dot rnd randint) 0 (- $len 1)) $rnd-index ;; by using py-atom bound rnd function from general-helpers
                 (chain (index-atom $expr $rnd-index) $val
                 (chain (cons-atom $val $acc) $new-acc
                     (chain (subtraction-atom $expr ($val)) $rem ;; if we are certain that a pattern is never repeated in the original expression
@@ -275,6 +282,59 @@
     (if (< (abs-math $currentTerm) 0.00000001)
         $accumulator
         (mercatorSeriesSum $uSquared (* $currentPower $uSquared) (+ $denominator 2) (+ $accumulator $currentTerm)))))                        
+
+!(bind! lg (py-atom math.log))             
+;; compute entropy
+(= (entropy $countTuple $totalCount $sum)
+    (if-decons-expr $countTuple $h $t
+        (unify $h ($item $count)
+            (chain (/ $count $totalCount) $p-i ;; need a condition to skip calculation of log of 0 values
+                (chain (if (== $p-i 0) $p-i (round (lg $p-i 2) 2)) $log-val  ;; might need to find new ways of calculating rounded values without python binding
+                    (chain (* $p-i $log-val) $product
+                        (entropy $t $totalCount (- $sum $product))))))
+        $sum))                     
+
+
+;; filterTable -- filters table by removing features in $ft-to-remove
+
+(= (filterTable $ft-to-remove (mkITable $table $labels))
+    (if-decons-expr $ft-to-remove $h $t
+        (let* (($filtered-data (Table.pop $h $table))
+                ($filtered-label (List.pop $h $labels)))
+            
+            (filterTable (map-atom $t $x (- $x 1)) (mkITable $filtered-data $filtered-label)))
+        (mkITable $table $labels)))          
+
+(: getInputLabels (-> (List Symbol) Expression))
+(= (getInputLabels $labels)
+    (let $res (inputLables $labels) (List.foldl cons-atom () $res)))
+
+(: inputLables (-> (List Symbol) (List Symbol)))    
+(= (inputLables $labels)
+    (unify $labels Nil (Error $labels NoLabelsSpecified)
+        (unify $labels (Cons $a $as)
+            (if (== $as Nil)
+                Nil
+                (Cons $a (inputLables $as))) (Error $labels UnrecognizedFormat))))
+
+(: fsToNames (-> (List Symbol) Expression Expression))
+(= (fsToNames $labels $ft-indices)
+	(collapse (chain (superpose $ft-indices) $ft 
+		(List.at $ft $labels))))                
+
+;; readjustIndices  -- when a table is filtered based on requirements in filter selection when, for example, exemplar features are required to be ignored,
+;;                  -- the returned index values no longer refer to the original table which is kept for reference in subsequent steps
+;;                  -- so unless the indices are readjusted to the orginal labels list, the will be referring to the filtered labels 
+;;                  $ft-set-pop         -- pop of selected features as (score feature-set) pairs
+;;                  $filtered-labels    -- filtered table labels
+;;                  $original-labels    -- original table labels
+(= (readjustIndices $ft-set-pop $filtered-labels $original-labels)
+    (map-atom $ft-set-pop $ft-set
+                            (let* ((($score $indices) ((first $ft-set) (second $ft-set)))
+                                    ($shifted-labels (map-atom $indices $index (List.at $index $filtered-labels)))
+                                    ($adjusted-indices (map-atom $shifted-labels $label (List.index $original-labels $label))))
+                                    
+                                        ($score $adjusted-indices))))        
 
 ;; Incremental Selection Utility Functions
 ;; Purpose: Remove duplicate expressions from list using isExpEqual
@@ -343,5 +403,6 @@
 ;; Returns: (Bool) → True if within epsilon
 ;; Reference: https://github.com/opencog/cogutil/blob/6b149c457c9cfbf5edccefb166a7a9a1d2d74196/opencog/util/numeric.h#L178(: isWithin (-> Number Number Number Bool))
 (= (isWithin $min $max $epsilon)
-   (<= (abs-math (- $max $min)) $epsilon))
-
+   (<= (abs-math (- $max $min)) $epsilon))                                        
+;; checking the random numebr generator
+ 

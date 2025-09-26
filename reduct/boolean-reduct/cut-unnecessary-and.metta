@@ -37,7 +37,7 @@
                       ($updatedParent' (if
                                         (== () (subtraction-atom $parentSec $currentSec))
                                         $updatedParent
-                                        (addChildrenExp $updatedParent $grandChildren)))
+                                        (addChildren $updatedParent $grandChildren)))
                       ($updatedParent'' (addLiterals $updatedParent' $grandLiterals))
 
                       ; (() (println! (=== Inside AndCut Log ===)))

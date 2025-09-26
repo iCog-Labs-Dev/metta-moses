@@ -18,13 +18,14 @@
 ;;                 dominantSet ==> (A)
 ;;                 commandSet ==> ()
 ;;        : output: ((AND A (NOT B) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))) () True)
+;; TODO: You need to call the RTE until it's no longer applied in the entry point. 
 (: reduceToElegance (-> Expression Expression Expression Expression (Expression Expression Bool)))
 (= (reduceToElegance $parent $current $dominantSet $commandSet)
    (case ((get-metatype $current) $current)
         (
           ((Symbol $symbol) ($parent $symbol False))
           ((Expression ()) ($parent $current False))
-          ((Expression (NOT $a)) ($parent $current False))
+          ((Expression (NOT A)) ($parent $current False))
           ((Expression $current)
             (case (car-atom $current)
               (

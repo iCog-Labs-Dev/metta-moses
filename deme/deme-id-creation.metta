@@ -4,7 +4,7 @@
 ;; the number of expansion is set to zero (0) in moses_params.h in the moses_statistics struct
 
 ;; for number to string conversion
-! (bind! numStr (py-atom str)) ;; -- commented out for workflow compatibility
+! (bind! numStr (py-atom str))
 
 ;; DemeId Type
 (: DemeId Type)

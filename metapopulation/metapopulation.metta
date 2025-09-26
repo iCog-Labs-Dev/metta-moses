@@ -68,8 +68,8 @@
 (= (compareExemplar 
         (mkExemplar $tree1 $demeId1 $cscore1 $bscr1)
         (mkExemplar $tree2 $demeId2 $cscore2 $bscr2))
-   (if (cScore< $cscore1 $cscore2) L
-       (if (cScore== $cscore1 $cscore2) E G)))
+   (if (apply < $cscore1 $cscore2) L
+       (if (apply == $cscore1 $cscore2) E G)))
 
 ;; Extract BScore from Exemplar
 ;; Params:

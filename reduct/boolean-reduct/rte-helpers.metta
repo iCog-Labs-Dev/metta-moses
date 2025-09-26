@@ -70,7 +70,7 @@
 ;; A function to add a list of children to a given expression.
 ;; Example: input: $exp -> (AND A B (OR C D)), $children -> ((OR A B) (OR E F) (OR D))
 ;;          output: (AND A B (OR C D) (OR A B) (OR E F) (OR D))
-(= (addChildrenExp $exp $children)
+(= (addChildren $exp $children)
    (let*
      (
         ($op (car-atom $exp))

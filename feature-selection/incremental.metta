@@ -22,7 +22,7 @@
 ;;   $featureIndices (OS Number) → OrderedSet of feature indices
 ;; Returns: (Number) → Mutual information score
 ;; Example: (calculateMutualInformation xorTable (ConsOS 0 (ConsOS 1 NilOS))) → 1.0
-(: calculateMutualInformation (-> ITable (OS Number) Number))
+(: calculateMutualInformation (-> (ITable $a) (OS Number) Number))
 (= (calculateMutualInformation (mkITable $rows $labels) $featureIndices)
     (chain (- (List.length $labels) 1) $targetIndex
         (chain (Table.getColumn $targetIndex $rows) $targetColumn
@@ -43,19 +43,19 @@
 ;;   $threshold (Number) → MI threshold
 ;;   $resultSet (OS Number) → Accumulator for relevant indices
 ;; Returns: (OS Number) → OrderedSet of relevant feature indices
-(: filterRelevantCombinations (-> ITable (OS Expression) Number (OS Number) (OS Number)))
-(= (filterRelevantCombinations $itable $combinations $threshold $resultSet)
-   (unify $combinations NilOS
-     $resultSet
-     (unify $combinations (ConsOS $combo $rest)
-       (chain (expressionToOS $combo NilOS) $comboOS
-         (chain (calculateMutualInformation $itable $comboOS) $mutualInfo
-           (if (> $mutualInfo $threshold)
-             (chain (OS.union $resultSet $comboOS) $newResultSet
-               (filterRelevantCombinations $itable $rest $threshold $newResultSet))
-             (filterRelevantCombinations $itable $rest $threshold $resultSet))))
-       ;;  fallback
-       $resultSet)
+(: filterRelevantCombinations (-> (ITable $a) (OS Expression) Number (OS Number) (OS Number)))
+(= (filterRelevantCombinations $itable NilOS $threshold $resultSet)
+ $resultSet)
+
+(= (filterRelevantCombinations $itable (ConsOS $combo $rest) $threshold $resultSet)
+   (chain (expressionToOS $combo NilOS) $comboOS
+     (chain (cachedMutualInformation $itable $comboOS) $mutualInfo
+       (if (> $mutualInfo $threshold)
+           (chain (OS.union $resultSet $comboOS) $newResultSet
+             (filterRelevantCombinations $itable $rest $threshold $newResultSet))
+           (filterRelevantCombinations $itable $rest $threshold $resultSet)
+        )
+      )
     )
 )
 
@@ -67,18 +67,17 @@
 ;;   $currentBest (Expression) → Current best subset
 ;;   $currentScore (Number) → Current best score
 ;; Returns: (List Expression) → (best-subset best-score)
-(: findBestSubset (-> ITable (OS Expression) Expression Number (List Expression)))
-(= (findBestSubset $itable $subsetCombinations $currentBest $currentScore)
-   (unify $subsetCombinations NilOS
-     (Cons $currentBest (Cons $currentScore Nil))
-     (unify $subsetCombinations (ConsOS $subset $rest)
-       (chain (expressionToOS $subset NilOS) $subsetOS
-         (chain (calculateMutualInformation $itable $subsetOS) $score
-           (if (> $score $currentScore)
-             (findBestSubset $itable $rest $subset $score)
-             (findBestSubset $itable $rest $currentBest $currentScore))))
-       ;; fallback
-       (Cons $currentBest (Cons $currentScore Nil))
+(: findBestSubset (-> (ITable $a) (OS Expression) Expression Number (List Expression)))
+(= (findBestSubset $itable NilOS $currentBest $currentScore)
+   (Cons $currentBest (Cons $currentScore Nil)))
+
+(= (findBestSubset $itable (ConsOS $subset $rest) $currentBest $currentScore)
+   (chain (expressionToOS $subset NilOS) $subsetOS
+     (chain (cachedMutualInformation $itable $subsetOS) $score
+       (if (> $score $currentScore)
+           (findBestSubset $itable $rest $subset $score)
+           (findBestSubset $itable $rest $currentBest $currentScore)
+       )
      )
     )
 )
@@ -89,7 +88,7 @@
 ;;   $threshold (Number) → Redundancy threshold
 ;;   $subsetSize (Number) → Current subset size being tested
 ;; Returns: (OS Number) → OrderedSet of redundant indices
-(: findRedundantSubsets (-> ITable (OS Number) Number Number (OS Number)))
+(: findRedundantSubsets (-> (ITable $a) (OS Number) Number Number (OS Number)))
 (= (findRedundantSubsets $itable $indices $threshold $subsetSize)
     (if (<= (OS.length $indices) 1)
         NilOS
@@ -134,7 +133,7 @@
 ;;   $currentTermSize (Number) → Current term size
 ;;   $selectedIndices (OS Number) → Previously selected indices
 ;; Returns: (OS Number) → Final selected indices
-(: incrementalIterator (-> ITable (OS Number) Number Number Number Number (OS Number) (OS Number)))
+(: incrementalIterator (-> (ITable $a) (OS Number) Number Number Number Number (OS Number) (OS Number)))
 ( = (incrementalIterator $itable $remainingIndices $threshold $maxTerms $redundancyThreshold $currentTermSize $selectedIndices)
         (if (or (> $currentTermSize $maxTerms) (== (OS.length $remainingIndices) 0))
             $selectedIndices
@@ -164,7 +163,7 @@
 
 ;; Purpose: Adaptive selection using binary search
 ;; Parameters:
-;;   $itable (ITable) → Input table
+;;   (mkITable $rows $labels) → Input table
 ;;   $targetSize (Number) → Target number of features
 ;;   $maxTerms (Number) → Maximum interaction terms
 ;;   $redundancyThreshold (Number) → Redundancy threshold
@@ -172,26 +171,24 @@
 ;;   $maxThreshold (Number) → Upper threshold bound
 ;;   $epsilon (Number) → Convergence tolerance
 ;; Returns: (OS Number) → OrderedSet of selected indices
-(: adaptiveSelection (-> ITable Number Number Number Number Number Number (OS Number)))
-(= (adaptiveSelection $itable $targetSize $maxTerms $redundancyThreshold $minThreshold $maxThreshold $epsilon)
+(: adaptiveSelection (-> (ITable $a) Number Number Number Number Number Number (OS Number)))
+(= (adaptiveSelection (mkITable $rows $labels) $targetSize $maxTerms $redundancyThreshold $minThreshold $maxThreshold $epsilon)
     (if (<= $targetSize 0)
         NilOS
         (chain (/ (+ $minThreshold $maxThreshold) 2) $meanThreshold
-            (chain (let (mkITable $rows $labels) $itable 
-                       (chain (- (List.length $labels) 1) $numFeatures
-                           (chain (OS.range 0 $numFeatures NilOS) $allIndices
-                               (incrementalIterator $itable $allIndices $meanThreshold $maxTerms $redundancyThreshold 1 NilOS)
-                           )
-                       )
-                   ) $resultIndices
-                (chain (OS.length $resultIndices) $resultSize
-                    (if (or (isWithin $minThreshold $maxThreshold $epsilon) (== $resultSize $targetSize))
-                        $resultIndices
-                        (if (< $resultSize $targetSize)
-                            ;; need more features lower the threshold
-                            (adaptiveSelection $itable $targetSize $maxTerms $redundancyThreshold $minThreshold $meanThreshold $epsilon)
-                            ;; too many features raise the threshold
-                            (adaptiveSelection $itable $targetSize $maxTerms $redundancyThreshold $meanThreshold $maxThreshold $epsilon)
+            (chain (- (List.length $labels) 1) $numFeatures
+                (chain (OS.range 0 $numFeatures NilOS) $allIndices
+                    (chain (incrementalIterator (mkITable $rows $labels) $allIndices $meanThreshold $maxTerms $redundancyThreshold 1 NilOS) $resultIndices
+                        (chain (OS.length $resultIndices) $resultSize
+                            (if (or (isWithin $minThreshold $maxThreshold $epsilon) (== $resultSize $targetSize))
+                                $resultIndices
+                                (if (< $resultSize $targetSize)
+                                    ;; need more features lower the threshold
+                                    (adaptiveSelection (mkITable $rows $labels) $targetSize $maxTerms $redundancyThreshold $minThreshold $meanThreshold $epsilon)
+                                    ;; too many features raise the threshold
+                                    (adaptiveSelection (mkITable $rows $labels) $targetSize $maxTerms $redundancyThreshold $meanThreshold $maxThreshold $epsilon)
+                                )
+                            )
                         )
                     )
                 )
@@ -199,26 +196,23 @@
         )
     )
 )
-
 ;; Purpose: Main incremental feature selection interface
 ;; Parameters:
-;;   $itable (ITable) → Input table
+;;   (mkITable $rows $labels) → Input table
 ;;   $threshold (Number) → MI threshold (use 0 for adaptive)
 ;;   $targetSize (Number) → Target number of features (use 0 for threshold-based)
 ;;   $maxInteractionTerms (Number) → Maximum interaction term size
 ;;   $redundancyThreshold (Number) → Redundancy removal intensity
 ;; Returns: (Expression) → (score selected-indices-expression)
-(: incrementalSelection (-> ITable Number Number Number Number Expression))
-(= (incrementalSelection $itable $threshold $targetSize $maxInteractionTerms $redundancyThreshold)
+(: incrementalSelection (-> (ITable $a) Number Number Number Number Expression))
+(= (incrementalSelection (mkITable $rows $labels) $threshold $targetSize $maxInteractionTerms $redundancyThreshold)
     (if (and (<= $threshold 0) (<= $targetSize 0))
         ;; return all the features with their score
-        (let (mkITable $rows $labels) $itable
-            (chain (- (List.length $labels) 1) $numFeatures
-                (chain (OS.range 0 $numFeatures NilOS) $allIndices
-                    (chain (calculateMutualInformation $itable $allIndices) $score
-                        (chain (osToExpression $allIndices ()) $indicesExpr
-                            ($score $indicesExpr) ;; return Indices and score
-                        )
+        (chain (- (List.length $labels) 1) $numFeatures
+            (chain (OS.range 0 $numFeatures NilOS) $allIndices
+                (chain (cachedMutualInformation (mkITable $rows $labels) $allIndices) $score
+                    (chain (osToExpression $allIndices ()) $indicesExpr
+                        (($score $indicesExpr)) ;; return Indices and score as tupe of pairs of score and feature set tuple
                     )
                 )
             )
@@ -226,22 +220,20 @@
         ;; do incremental feature selection 
         (chain (if (> $targetSize 0)
                 ; do binary search 
-                (adaptiveSelection $itable $targetSize $maxInteractionTerms $redundancyThreshold 0.0 1.0 0.01)
+                (adaptiveSelection (mkITable $rows $labels) $targetSize $maxInteractionTerms $redundancyThreshold 0.0 1.0 0.01)
                 ; just do incrementalInteration
-                (let (mkITable $rows $labels) $itable
-                    (chain (- (List.length $labels) 1) $numFeatures
-                        (chain (OS.range 0 $numFeatures NilOS) $allIndices
-                            (incrementalIterator $itable $allIndices $threshold $maxInteractionTerms $redundancyThreshold 1 NilOS)
-                        )
+                (chain (- (List.length $labels) 1) $numFeatures
+                    (chain (OS.range 0 $numFeatures NilOS) $allIndices
+                        (incrementalIterator (mkITable $rows $labels) $allIndices $threshold $maxInteractionTerms $redundancyThreshold 1 NilOS)
                     )
                 )
                 ) $selectedIndices
             (chain (if (== (OS.length $selectedIndices) 0)
                         0
-                        (calculateMutualInformation $itable $selectedIndices)
+                        (cachedMutualInformation (mkITable $rows $labels) $selectedIndices)
                     ) $finalScore
                 (chain (osToExpression $selectedIndices ()) $indicesExpr
-                    ($finalScore $indicesExpr)
+                    (($finalScore $indicesExpr))
                 )
             )
         )

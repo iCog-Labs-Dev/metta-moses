@@ -3,19 +3,24 @@
 ;; If p is large (approaching 0.5), it means the model is expected to be less accurate, making mistakes more often (but still better than random guessing).
 
 (: getCscore (-> (ITable $a) (Tree $a) Number Cscore))
-(= (getCscore $itable $tree $complexityRatio)
-    (chain (scoreTree $itable $tree) $bs 
-            (if-error $bs ;; return worst possible composite score
-            (worstCscore)
-            (let* (($bsum (sumBScore $bs))
-                   (() (println! (Score: $bsum)))
-                   (() (println! ""))
-                   ($cpxy (treeComplexity $tree))
-                   (() (println! (Complexity: $cpxy)))
-                   ($cCoef (getComplexityCoef $complexityRatio)))
+(= (getCscore $itable $tree $complexityRatio $scoreSpace)
+    (unify $scoreSpace 
+            ($tree $score) 
+            (trace! "USED from cache XXXXXXXXXXXXXXXXXXXXXXXXXXX " $score)
+            (chain (scoreTree $itable $tree) $bs 
+                (if-error $bs ;; return worst possible composite score
+                (worstCscore)
+                (let* (($bsum (sumBScore $bs))
+                    (() (println! (Score: $bsum)))
+                    (() (println! ""))
+                    ($cpxy (treeComplexity $tree))
+                    (() (println! (Complexity: $cpxy)))
+                    ($cCoef (getComplexityCoef $complexityRatio))
+                    ($res (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False))
+                    (() (add-atom $scoreSpace ($tree $res)))
+                    )
 
-                   (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False)))))
-
+                    $res )))))
 
 
 ;; getComplexityCoef -- calcualtes the complexity coeffient of a tree   
@@ -94,19 +99,6 @@
 (: getUniPen (-> Cscore Number))
 (= (getUniPen (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $uniformityPenalty)
 
-;; comparing composite scores
-;; cScore< -- composite score less than operator
-;; uses penalized scores to compare and complexity score to break ties in the penalized score
-;; $cs1 -- composite score of the left side instance ..
-;; $cs2 -- composite score of the right side instance or whatever
-;; the type-cast in the if .. is used because the return type of the built-in isnan function is not Bool so it has to be cast in to bool value
-(: cScore< (-> Cscore Cscore Bool)) 
-(= (cScore< $cs1 $cs2)
-    (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
-        (if (type-cast (isnan $pl) Bool &self)
-            (not (type-cast (isnan $pr) Bool &self))
-            (or (< $pl $pr) (and (== $pl $pr) (> $cl $cr))))))
-
 ;; cScoreExpr< -- composite score less than operator for expressions
 ;; works directly with expressions using index-atom to extract scores
 ;; index 4 = penalized score, index 1 = complexity score
@@ -136,3 +128,6 @@
         (if (isnan $pl)
             False
             (or (> $pl $pr) (and (== $pl $pr) (< $cl $cr))))))
+
+(= (setUniPen (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore) $newUniPen)
+    (mkCscore $scor $cpxy $complexityPenalty $newUniPen $penalizedScore))

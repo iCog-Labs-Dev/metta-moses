@@ -26,29 +26,71 @@
 ;; Params: Tree (Exemplar)
 ;;         $argLabels: list of argument labels (input variables) from the ITable
 ;; Returns: Representation
-(: representation (-> (Tree $a) Expression Representation))
-(= (representation $exemplar $argLabels)
-(let*
-(
-    (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap $argLabels))
-    ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
-)   
-(mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
-))
+; (: representation (-> (Tree $a) Expression Representation))
+; (= (representation $exemplar $argLabels)
+; (let*
+; (
+;     (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap $argLabels))
+;     ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
+; )   
+; (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
+; ))
+
+(: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Expression))
+(= (representation 
+            $nDeme                      ;; number of demes to spawn (number of distinct feature sets)
+            $exemplar                   ;; tree around which multiple representations are to be built
+            (mkITable $table $labels)   ;; table from which to select features and base the representations with
+            $ft-selection-algo          ;; feature selection algorithm to be used -- symbol 
+            $prune-exemplar             ;; bool to decide to prune the exemplar or keep the exemplar as is
+            $enforced-fts               ;; set of features to be enforced in to selected features
+        )
+        
+        (let*   (($exemplar-fts (treeFtsIndices $exemplar $labels))           ;; exemplarFtsIndices function in deme/expand-deme.metta
+                 ($all-labels (getInputLabels $labels))                       ;; getInputLabels in deme/expand-deme.metta
+                 ($ft-set-pop (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme))     ;; applies the right parameteres for feature selection based on selected selection algorithm 
+                 ($exemplar-arg-seq                                           ;; apply exemplar feature pruning
+                     (if $prune-exemplar
+                           (map-atom $ft-set-pop $ft-set 
+                              (let* (($diff-ft (subtraction-atom $exemplar-fts $ft-set))
+                                     ($ft-names (fsToNames $labels $diff-ft))
+                                     ($pruned-xmplr (pruneExemplar $exemplar $ft-names))
+                                     ($final-args (subtraction-atom $ft-set $exemplar-fts)))  
+
+                                 ($pruned-xmplr (fsToNames $labels $final-args))))
+                           
+                           (map-atom $ft-set-pop $ft-set 
+                                 (let* (($agg (union-atom $ft-set $exemplar-fts))
+                                        ($final-args (fsToNames $labels $agg)))  
+                                        
+                                    ($exemplar $final-args))))) 
+                  ($with-enforced-fts                                         ;; enforce features
+                     (if (== $enforced-fts ())
+                           $exemplar-arg-seq
+                           (let $sampled-enforced-fts (sampleEnforcedFts $enforced-fts)           ;; from feature-selection/select-top-features.metta
+                                    (map-atom $exemplar-arg-seq ($xmplr $args)
+                                             (let $acc (union-atom $args $sampled-enforced-fts) ($xmplr $acc))))))  
+                  ($filter-empty-args (filter-atom $with-enforced-fts ($xmplr $args) (eval (not (== $args ()))))))      ;; filter out exemplar arg pairs that have empty arg list
+
+                     (map-atom $filter-empty-args ($xmplr $argLabels) 
+                           (let* ((($updatedTree $dscMp) (buildKnobs $xmplr NilMMap $argLabels))            ;; BUILD representations on 
+                                  ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0)))        ;; MULITPLE args selected using the feature selection
+                                 
+                                 (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))))
 
 (: getCandidate (-> Representation Instance (Tree $a)))
 (= (getCandidate $repObj $inst)
    ; (println! (inside getCandidate))
    (let*
       (
-         (() (println! (Inside getCandidate)))
+         ; (() (println! (Inside getCandidate)))
          ($parentid (mkNodeId (0)))
          ($srcid (mkNodeId (0)))
          ; (() (println! ($parentid   $srcid)))
          ($candidate (getCandidateRec $repObj $inst $parentid $srcid (mkNullVex Nil)))
-         (() (println! (Found candidate: $candidate)))
+         ; (() (println! (Found candidate: $candidate)))
          ($cleanedTree (cleanTree $candidate))
-         (() (println! (Cleaned Tree: $cleanedTree)))
+         ; (() (println! (Cleaned Tree: $cleanedTree)))
       )
       $cleanedTree
    )
@@ -89,7 +131,7 @@
       (if (~= (second $knobIdxPair) -1)
          (let*
             (
-               ; (() (println! (Inside getCandidateRec with parentId: $parentId , srcId: $srcId)))
+               (() (println! (Inside getCandidateRec with parentId: $parentId , srcId: $srcId)))
                ; (() (println! (Evaluating Instance: $inst : (second $knobIdxPair))))
                ($d (List.getByIdx $inst (second $knobIdxPair)))
                ; (() (println! (KnobIdPari: $knobIdxPair)))
@@ -100,7 +142,7 @@
          (let*
             (
                ; (() (println! (Inside getCandidateRec with parentId: $parentId , srcId: $srcId)))
-               ; (() (println! (No Knob found just copy...)))
+               (() (println! (No Knob found just copy...)))
                ($src (getNodeById $tree $srcId))
                ; (() (println! (starting to appendChild...)))
                ($cndChIdPair (appendChild $candidate $parentId (mkTree (getNodeValue $src) Nil)))

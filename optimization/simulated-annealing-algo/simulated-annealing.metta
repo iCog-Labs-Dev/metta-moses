@@ -39,12 +39,13 @@
   )
 )
 
-;; Calculates instance energy using the composite score of that instance 
+
+;; Calculates instance energy using the composite score of that instance (
 ;;  (this is based on the C++ version) the composite score is the sum of
 ;;  the bScore and the penalized score.
 (: getEnergy (-> Cscore Number))
 (= (getEnergy $cScore)
-  (let ($pScore $bScore) ((getPenScore $cScore) (getScore $cScore)) (* -1 (+ $pScore $bScore)))
+  (let $pScore (getPenScore $cScore) (* -1 $pScore))
 )
 
 ;; Acceptance probability which is based on the energy of the current and new instance, and the temperature.
@@ -54,13 +55,6 @@
     1.0
     (math-exp (/ (- $energy1 $energy2) $Temp))
   )
-)
-
-;; Actual acceptance probabitlity which is the product of the intensity and acceptance probability.
-;;  (This is based on the C++ implementation)
-(: actualAcceptanceProb (-> Number Number Number))
-(= (actualAcceptanceProb $acceptanceProb $intensity)
-  (* $intensity $acceptanceProb)
 )
 
 
@@ -89,7 +83,6 @@
               ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) $instSet $id))
               ($table (mkTruthTableBScore $cpxCoeff $size $iTable))
               ($totalNNeighbors (estimateNeighborhood $d $disc))
-              ; (($alreadyXover $lastchance) (False False))
 
               (() (println! (Estimated neighbors: $totalNNeighbors)))
               (() (println! ""))
@@ -116,7 +109,8 @@
               (() (println! (Scored instances: $scoredInstances)))
               (() (println! ""))
 
-              ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) cScore<) (mkSInst (mkPair $initCenter $bestCscore)) $scoredInstances))
+              ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $initCenter $bestCscore)) $scoredInstances))
+
 
               ($newBestScore (getPenScore (Pair.second $newBestInstPair))) ;; This could be the original best candidate or a new one.
               ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
@@ -131,7 +125,8 @@
               ($newEnergy (getEnergy (Pair.second $newBestInstPair)))
               ($acceptanceProb (acceptanceProb $energy $newEnergy $Temp))
               ($randomFloat (rand-random)) ;; using random.random instead of numpy.random.rand
-              ($actualAcceptanceProb (actualAcceptanceProb $acceptanceProb 0.85)) ;; Using the default value of 0.5 for intensity
+              ;; Actual acceptance probabitlity which is the product of the intensity and acceptance probability.
+              ($actualAcceptanceProb (* $acceptanceProb 0.85))
 
               (() (println! (Energy: $energy)))
               (() (println! (New energy: $newEnergy)))
@@ -142,7 +137,6 @@
 
               ;; Check for acceptance
               ($isAccepted (> $actualAcceptanceProb $randomFloat))
-              ; ($isAccepted (or (< $newEnergy $energy) (< $randomFloat $acceptanceProb)))
               
               (() (println! (Is accepted: $isAccepted)))
               (() (println! (New instances: $newInstances)))
@@ -160,12 +154,11 @@
                           
             )
 
-            (simulated-annealing $newDeme $table ;; $table
+            (simulated-annealing $newDeme $table
                          $initCenter
                          ($maxDist $minXoverNeighbors $bestPossibleScore) ;; $constParams
                          ($newTemp $finalTemp $coolRate False $newIterCount) ;; $hyperParams
                          ((and $xOver (not $hasImproved)) $lastChance $newCenter $newBestCScore $newBestScore $updatedNumInstances $newDistance (+ 1 $i))) ;; $params
-            ; (println! ("it worked"))
           )
           )
 )

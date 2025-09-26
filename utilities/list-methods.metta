@@ -17,6 +17,17 @@
 (= (List.foldr $f $i Nil) $i)
 (= (List.foldr $f $i (Cons $h $t)) ($f $h (List.foldr $f $i $t)))
 
+;; generalized foldl and foldr
+;; considering potential transfomration of input values before applying a function over them
+(= (id $x) $x)
+(= (exp $x) ($x))
+;;??? is the name List.tFoldl/tFoldr is better than List.t-foldl	
+(= (List.tFoldl Nil $f $t $acc) $acc)		
+(= (List.tFoldl (Cons $x $xs) $f $t $acc) (let $tr ($t $x) (let $new-acc ($f $acc $tr) (List.tFoldl $xs $f $t $new-acc))))		
+
+(= (List.tFoldr Nil $f $t $acc) $acc)		
+(= (List.tFoldr (Cons $x $xs) $f $t $acc) (let $new-acc (List.tFoldr $xs $f $t $acc) (let $tr ($t $x) ($f $tr $new-acc))))	        
+
 ;; Define List.sum
 (: List.sum (-> (List Number) Number))
 (= (List.sum $xs) (List.foldr + 0 $xs))
@@ -64,6 +75,15 @@
 (: List.map (-> (-> $a $b) (List $a) (List $b)))
 (= (List.map $f Nil) Nil)
 (= (List.map $f (Cons $x $xs)) (Cons ($f $x) (List.map $f $xs)))
+
+;; Map a function that takes an additional arg
+(: List.mapOverArg (-> (-> $a $b $a) $b (List $a)))
+(= (List.mapOverArg $f Nil $arg) Nil)
+(= (List.mapOverArg $f (Cons $head $tail) $arg)
+    (let $new-head ($f $head $arg)
+        (if (== $new-head Nil)
+            (List.mapOverArg $f $tail $arg)
+            (Cons $new-head (List.mapOverArg $f $tail $arg)))))
 
 ;; Filter a list based on a predicate.
 (: List.filter (-> (-> $a Bool) (List $a) (List $a)))
@@ -277,3 +297,11 @@
 (= (List.generate $length $element) 
 (if (> $length 0) 
     (Cons $element (List.generate (- $length 1) $element)) Nil))
+
+;; remove an element from List    
+(= (List.pop $i $list)
+	(unify $list Nil (Error $list EmptyList)
+		(unify $list (Cons $x $xs)
+			(if (== $i 0)
+				$xs
+				(chain (List.pop (- $i 1) $xs) $res (if-error $res (Cons $x Nil) (Cons $x $res)))))))
