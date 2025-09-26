@@ -12,9 +12,9 @@
 (: hcFtSetPop (-> (ITable $a) Instance Expression))      
 (= (hcFtSetPop $iTable $centerInst)
   (let* (
-         (() (println! (====Inside hcFtSetPop ====)))
+        ;  (() (println! (====Inside hcFtSetPop ====)))
          (((mkInst $inst1) (mkSInstSet $list) $state) (hillClimbingFs (mkSInstSet Nil) $iTable (mkInst $centerInst))) ;; runs the hillclimbing feature selector
-         (() (println! (First Arg: ((mkInst $inst1) (mkSInstSet $list) $state))))
+        ;  (() (println! (First Arg: ((mkInst $inst1) (mkSInstSet $list) $state))))
          ($list-of-scoreset-pairs (getHcFtPop $list ()))
         ;  (() (println! (list of ScoreSet: $list-of-scoreset-pairs)))                                                    ;; separates the scores from the the previous output and puts them in a score feature-set pair tuple -- as list of
          ($unique-pairs (List.tFoldl $list-of-scoreset-pairs union-atom exp ()))
