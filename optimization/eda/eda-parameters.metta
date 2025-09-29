@@ -49,4 +49,4 @@
 (= (getModelComplexity (mkEDAParameters $selection $selectionRatio $replacementRatio $modelComplexity)) $modelComplexity)
 
 ;; Default EDA parameters
-(= (defaultEdaParameters) (mkEDAParameters 2 1.0 0.5 1.0))
+(= (defaultEdaParameters) (mkEDAParameters 2.0 1.0 0.5 1.0))
