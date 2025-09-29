@@ -317,7 +317,7 @@
 !(assertEqual
    (let*
      (
-       (($instance (mkSInstSet $instSet) $state) (hillClimbingFs (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil)))))
+       (($instance (mkSInstSet $instSet) $state) (hillClimbingFs (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil))) mi))
        ($instanceCount (List.length $instSet))
        ($scoredElems (List.map isScored $instSet))
      )
