@@ -1,21 +1,38 @@
 ;; ================================================================================
-;; Probability Learning Policy
+;; Probability Learning Policy for EDA (Estimation of Distribution Algorithm)
 ;; ================================================================================
 ;;
-;; This file implements the probability learning policy for EDA.
-;; Equivalent to the model building logic in local_structure.h/cc in the C++ implementation.
+;; This file implements the probability learning policy for EDA, which is equivalent
+;; to the model building logic in local_structure.h/cc in the C++ implementation.
 ;;
-;; Key Components:
-;; - Learn probability distributions from selected instances
-;; - Count knob value occurrences
-;; - Compute probabilities with Laplace smoothing
-;; - Normalize probability distributions
+;; MATHEMATICAL FOUNDATION:
+;; The probability learning process follows these steps:
 ;;
-;; Data Structures:
-;; - KnobProbabilityModel: mkKnobProbabilityModel (Map NodeId (Map KnobValue Number))
-;; - KnobValue: mkKnobValue Number
-;; - KnobId: NodeId
-
+;; 1. COUNTING PHASE:
+;;    - Count occurrences of each knob value in selected instances
+;;    - For each knob k and value v: count[k][v] = number of times v appears for knob k
+;;
+;; 2. LAPLACE SMOOTHING PHASE:
+;;    - Apply Laplace smoothing to prevent zero probabilities
+;;    - Formula: smoothed_count[k][v] = count[k][v] + α
+;;    - Where α = 1 (smoothing parameter)
+;;
+;; 3. NORMALIZATION PHASE:
+;;    - Convert counts to probabilities by normalization
+;;    - Formula: P(k,v) = smoothed_count[k][v] / Σ(smoothed_count[k][v'] for all v')
+;;    - This ensures Σ P(k,v) = 1 for each knob k
+;;
+;; PROBABILITY MODEL STRUCTURE:
+;; - KnobProbabilityModel: Map<NodeId, Map<KnobValue, Probability>>
+;; - Each knob (NodeId) has a probability distribution over its possible values
+;; - Probabilities sum to 1.0 for each knob
+;;
+;; EXAMPLE CALCULATION:
+;; Given knob values: [0,1,0,1,1] for knob k
+;; - Raw counts: count[k][0] = 2, count[k][1] = 3
+;; - Laplace smoothing: smoothed[k][0] = 3, smoothed[k][1] = 4
+;; - Normalization: P(k,0) = 3/7, P(k,1) = 4/7
+;;
 ;; ================================================================================
 ;; Type Definitions
 ;; ================================================================================
@@ -27,76 +44,83 @@
 (: mkKnobProbabilityModel (-> (Map NodeId (Map KnobValue Number)) KnobProbabilityModel))
 
 ;; ================================================================================
-;; Probability Learning Policy
+;; Main Probability Learning Functions
 ;; ================================================================================
 
 ;; Learn probability distributions from selected instances
-(: learn-probability-model (-> Deme (InstanceSet $score) KnobProbabilityModel))
-(= (learn-probability-model $deme $selectedInstances)
+;; This is the main entry point for probability learning in EDA
+(: learnProbabilityModel (-> Deme (InstanceSet $score) KnobProbabilityModel))
+(= (learnProbabilityModel $deme $selectedInstances)
   (let* (
         ((mkDeme $rep (mkSInstSet $instSet) $id) $deme)
         ($discMap (getDiscMap $rep))
-        ($probModel (learn-knob-probabilities $discMap $selectedInstances))
+        ($probModel (learnKnobProbabilities $discMap $selectedInstances))
       )
       $probModel))
 
 ;; Learn probability distributions for each knob from selected instances
-; (: learn-knob-probabilities (-> (MultiMap (DiscSpec $knob)) (InstanceSet $score) KnobProbabilityModel))
-(= (learn-knob-probabilities $discMap $selectedInstances)
+;; This function orchestrates the three-phase process: count → smooth → normalize
+(: learnKnobProbabilities (-> (MultiMap (DiscSpec $knob)) (InstanceSet $score) KnobProbabilityModel))
+(= (learnKnobProbabilities $discMap $selectedInstances)
   (let* (
-        ($knobCounts (count-knob-values $discMap $selectedInstances))
-        ($probabilities (compute-probabilities $knobCounts))
+        ($knobCounts (countKnobValues $discMap $selectedInstances))
+        ($probabilities (computeProbabilities $knobCounts))
       )
       (mkKnobProbabilityModel $probabilities)))
 
+;; ================================================================================
+;; Phase 1: Counting Knob Values
+;; ================================================================================
+
 ;; Count occurrences of each knob value in selected instances
-; (: count-knob-values (-> (MultiMap (DiscSpec $knob)) (InstanceSet $score) (Map NodeId (Map KnobValue Number))))
-(= (count-knob-values $discMap $selectedInstances)
+;; Returns: Map<NodeId, Map<KnobValue, Count>>
+(: countKnobValues (-> (MultiMap (DiscSpec $knob)) (InstanceSet $score) (Map NodeId (Map KnobValue Number))))
+(= (countKnobValues $discMap $selectedInstances)
   (let* (
         ($dkmWrapped (crtDiscKnobMap (mkDscMp $discMap) (mkDscKbMp NilMap) 0))
         ((mkDscKbMp $dkm) $dkmWrapped)
-        ((mkSInstSet $lst) $selectedInstances)
+        ((mkSInstSet $instances) $selectedInstances)
       )
-      (count-knob-values-over-instances $dkm $lst NilMap)))
+      (countKnobValuesOverInstances $dkm $instances NilMap)))
 
-;; Count knob values over all instances
-; (: count-knob-values-over-instances (-> (Map (NodeId Number)) (List (ScoredInstance $score)) (Map NodeId (Map KnobValue Number)) (Map NodeId (Map KnobValue Number))))
-(= (count-knob-values-over-instances $dkm Nil $acc) $acc)
-(= (count-knob-values-over-instances $dkm (Cons $h $t) $acc)
+;; Count knob values over all instances using fold pattern
+(: countKnobValuesOverInstances (-> (Map (NodeId Number)) (List (ScoredInstance $score)) (Map NodeId (Map KnobValue Number)) (Map NodeId (Map KnobValue Number))))
+(= (countKnobValuesOverInstances $dkm Nil $acc) $acc)
+(= (countKnobValuesOverInstances $dkm (Cons $instance $rest) $acc)
   (let* (
-        ($acc2 (count-knob-values-for-instance $dkm $acc $h))
+        ($updatedAcc (countKnobValuesForInstance $dkm $acc $instance))
       )
-      (count-knob-values-over-instances $dkm $t $acc2)))
+      (countKnobValuesOverInstances $dkm $rest $updatedAcc)))
 
 ;; Count knob values for a single instance
-; (: count-knob-values-for-instance (-> (Map (NodeId Number)) (Map NodeId (Map KnobValue Number)) (ScoredInstance $score) (Map NodeId (Map KnobValue Number))))
-(= (count-knob-values-for-instance $dkm $counts (mkSInst (mkPair (mkInst $vals) $score)))
+(: countKnobValuesForInstance (-> (Map (NodeId Number)) (Map NodeId (Map KnobValue Number)) (ScoredInstance $score) (Map NodeId (Map KnobValue Number))))
+(= (countKnobValuesForInstance $dkm $counts (mkSInst (mkPair (mkInst $values) $score)))
   (let* (
         ($n (Map.length $dkm))
       )
-      (count-kv-by-idx $dkm $vals $counts 0 $n)))
+      (countKnobValuesByIndex $dkm $values $counts 0 $n)))
 
-;; Count knob values by index
-; (: count-kv-by-idx (-> (Map (NodeId Number)) (List Number) (Map NodeId (Map KnobValue Number)) Number Number (Map NodeId (Map KnobValue Number))))
-(= (count-kv-by-idx $dkm $vals $counts $i $n)
+;; Count knob values by index using iterative approach
+(: countKnobValuesByIndex (-> (Map (NodeId Number)) (List Number) (Map NodeId (Map KnobValue Number)) Number Number (Map NodeId (Map KnobValue Number))))
+(= (countKnobValuesByIndex $dkm $values $counts $i $n)
   (if (>= $i $n)
       $counts
       (let* (
             ($pair (Map.getByIdx $dkm $i))
             (($knobId $idx) $pair)
-            ($knobValueNum (List.getByIdx $vals $idx))
+            ($knobValueNum (List.getByIdx $values $idx))
             ($existingIdx (Map.find $counts $knobId))
             ($existing (if (== $existingIdx -1)
                            NilMap
                            (let ($k $v) (Map.getByIdx $counts $existingIdx) $v)))
-            ($updatedInner (increment-knob-value-count $knobValueNum $existing))
+            ($updatedInner (incrementKnobValueCount $knobValueNum $existing))
             ($updated (Map.insert ($knobId $updatedInner) $counts == nodeId<))
           )
-          (count-kv-by-idx $dkm $vals $updated (+ $i 1) $n))))
+          (countKnobValuesByIndex $dkm $values $updated (+ $i 1) $n))))
 
-;; Increment knob value count
-(: increment-knob-value-count (-> Number (Map KnobValue Number) (Map KnobValue Number)))
-(= (increment-knob-value-count $knobValueNum $existing)
+;; Increment count for a specific knob value
+(: incrementKnobValueCount (-> Number (Map KnobValue Number) (Map KnobValue Number)))
+(= (incrementKnobValueCount $knobValueNum $existing)
    (let* (
         ($knobValue (mkKnobValue $knobValueNum))
         ($existingIdx (Map.find $existing $knobValue))
@@ -107,115 +131,133 @@
       )
       (Map.insert ($knobValue $newCount) $existing knobValueEq knobValueLt)))
 
+;; ================================================================================
+;; Phase 2: Laplace Smoothing
+;; ================================================================================
+
 ;; Compute probabilities from counts with Laplace smoothing
-(: compute-probabilities (-> (Map NodeId (Map KnobValue Number)) (Map NodeId (Map KnobValue Number))))
-(= (compute-probabilities $counts)
+;; This applies the formula: smoothed_count = count + α, where α = 1
+(: computeProbabilities (-> (Map NodeId (Map KnobValue Number)) (Map NodeId (Map KnobValue Number))))
+(= (computeProbabilities $counts)
   (let* (
-        ($smoothed (laplace-smooth-outer $counts 1))
-        ($normalized (normalize-outer $smoothed))
+        ($smoothed (applyLaplaceSmoothing $counts 1))
+        ($normalized (normalizeProbabilityDistributions $smoothed))
       )
       $normalized))
 
-;; Normalize outer map (normalize each inner map)
-(: normalize-outer (-> (Map NodeId (Map KnobValue Number)) (Map NodeId (Map KnobValue Number))))
-(= (normalize-outer $m)
+;; Apply Laplace smoothing to all knob distributions
+;; Formula: smoothed[k][v] = count[k][v] + α
+(: applyLaplaceSmoothing (-> (Map NodeId (Map KnobValue Number)) Number (Map NodeId (Map KnobValue Number))))
+(= (applyLaplaceSmoothing $counts $alpha)
   (let* (
-        ($n (Map.length $m))
+        ($n (Map.length $counts))
       )
-      (normalize-outer-idx $m 0 $n NilMap)))
+      (applyLaplaceSmoothingByIndex $counts $alpha 0 $n NilMap)))
 
-(: normalize-outer-idx (-> (Map NodeId (Map KnobValue Number)) Number Number (Map NodeId (Map KnobValue Number)) (Map NodeId (Map KnobValue Number))))
-(= (normalize-outer-idx $m $i $n $acc)
+;; Apply Laplace smoothing using index-based iteration
+(: applyLaplaceSmoothingByIndex (-> (Map NodeId (Map KnobValue Number)) Number Number Number (Map NodeId (Map KnobValue Number)) (Map NodeId (Map KnobValue Number))))
+(= (applyLaplaceSmoothingByIndex $counts $alpha $i $n $acc)
   (if (>= $i $n)
       $acc
       (let* (
-            ($pair (Map.getByIdx $m $i))
-            (($kid $inner) $pair)
-            ($innerNormalized (normalize-counts $inner))
-            ($acc2 (Map.insert ($kid $innerNormalized) $acc == nodeId<))
+            ($pair (Map.getByIdx $counts $i))
+            (($knobId $innerCounts) $pair)
+            ($smoothedInner (applyLaplaceSmoothingToInner $innerCounts $alpha))
+            ($updatedAcc (Map.insert ($knobId $smoothedInner) $acc == nodeId<))
           )
-          (normalize-outer-idx $m (+ $i 1) $n $acc2))))
+          (applyLaplaceSmoothingByIndex $counts $alpha (+ $i 1) $n $updatedAcc))))
 
-;; Laplace smoothing for outer map
-(: laplace-smooth-outer (-> (Map NodeId (Map KnobValue Number)) Number (Map NodeId (Map KnobValue Number))))
-(= (laplace-smooth-outer $m $alpha)
+;; Apply Laplace smoothing to a single knob's value counts
+(: applyLaplaceSmoothingToInner (-> (Map KnobValue Number) Number (Map KnobValue Number)))
+(= (applyLaplaceSmoothingToInner $innerCounts $alpha)
   (let* (
-        ($n (Map.length $m))
+        ($len (Map.length $innerCounts))
       )
-      (laplace-smooth-outer-idx $m $alpha 0 $n NilMap)))
+      (applyLaplaceSmoothingToInnerByIndex $innerCounts $alpha 0 $len NilMap)))
 
-(: laplace-smooth-outer-idx (-> (Map NodeId (Map KnobValue Number)) Number Number Number (Map NodeId (Map KnobValue Number)) (Map NodeId (Map KnobValue Number))))
-(= (laplace-smooth-outer-idx $m $alpha $i $n $acc)
+;; Apply Laplace smoothing to inner map using index-based iteration
+(: applyLaplaceSmoothingToInnerByIndex (-> (Map KnobValue Number) Number Number Number (Map KnobValue Number) (Map KnobValue Number)))
+(= (applyLaplaceSmoothingToInnerByIndex $innerCounts $alpha $i $n $acc)
   (if (>= $i $n)
       $acc
       (let* (
-            ($pair (Map.getByIdx $m $i))
-            (($kid $inner) $pair)
-            ($innerSmoothed (laplace-smooth-inner $inner $alpha))
-            ($acc2 (Map.insert ($kid $innerSmoothed) $acc == nodeId<))
+            ($pair (Map.getByIdx $innerCounts $i))
+            (($knobValue $count) $pair)
+            ($smoothedCount (+ $count $alpha))
+            ($updatedAcc (Map.insert ($knobValue $smoothedCount) $acc knobValueEq knobValueLt))
           )
-          (laplace-smooth-outer-idx $m $alpha (+ $i 1) $n $acc2))))
+          (applyLaplaceSmoothingToInnerByIndex $innerCounts $alpha (+ $i 1) $n $updatedAcc))))
 
-;; Laplace smoothing for inner map
-(: laplace-smooth-inner (-> (Map KnobValue Number) Number (Map KnobValue Number)))
-(= (laplace-smooth-inner $inner $alpha)
+;; ================================================================================
+;; Phase 3: Probability Normalization
+;; ================================================================================
+
+;; Normalize probability distributions for all knobs
+;; This ensures that probabilities sum to 1.0 for each knob
+(: normalizeProbabilityDistributions (-> (Map NodeId (Map KnobValue Number)) (Map NodeId (Map KnobValue Number))))
+(= (normalizeProbabilityDistributions $smoothedCounts)
   (let* (
-        ($len (Map.length $inner))
+        ($n (Map.length $smoothedCounts))
       )
-      (laplace-smooth-inner-idx $inner $alpha 0 $len NilMap)))
+      (normalizeProbabilityDistributionsByIndex $smoothedCounts 0 $n NilMap)))
 
-(: laplace-smooth-inner-idx (-> (Map KnobValue Number) Number Number Number (Map KnobValue Number) (Map KnobValue Number)))
-(= (laplace-smooth-inner-idx $m $alpha $i $n $acc)
+;; Normalize probability distributions using index-based iteration
+(: normalizeProbabilityDistributionsByIndex (-> (Map NodeId (Map KnobValue Number)) Number Number (Map NodeId (Map KnobValue Number)) (Map NodeId (Map KnobValue Number))))
+(= (normalizeProbabilityDistributionsByIndex $smoothedCounts $i $n $acc)
   (if (>= $i $n)
       $acc
       (let* (
-            ($pair (Map.getByIdx $m $i))
-            (($kv $cnt) $pair)
-            ($acc2 (Map.insert ($kv (+ $cnt $alpha)) $acc knobValueEq knobValueLt))
+            ($pair (Map.getByIdx $smoothedCounts $i))
+            (($knobId $innerCounts) $pair)
+            ($normalizedInner (normalizeSingleKnobDistribution $innerCounts))
+            ($updatedAcc (Map.insert ($knobId $normalizedInner) $acc == nodeId<))
           )
-          (laplace-smooth-inner-idx $m $alpha (+ $i 1) $n $acc2))))
+          (normalizeProbabilityDistributionsByIndex $smoothedCounts (+ $i 1) $n $updatedAcc))))
 
-;; Normalize counts to probabilities
-(: normalize-counts (-> (Map KnobValue Number) (Map KnobValue Number)))
-(= (normalize-counts $counts)
+;; Normalize a single knob's distribution to probabilities
+;; Formula: P(k,v) = count[k][v] / Σ(count[k][v'] for all v')
+(: normalizeSingleKnobDistribution (-> (Map KnobValue Number) (Map KnobValue Number)))
+(= (normalizeSingleKnobDistribution $counts)
    (let* (
          ($n (Map.length $counts))
-         ($total (normalize-counts-sum $counts 0 $n 0))
+         ($total (calculateTotalCount $counts 0 $n 0))
        )
-       (normalize-counts-build $counts 0 $n $total NilMap)))
+       (buildNormalizedProbabilities $counts 0 $n $total NilMap)))
 
-(: normalize-counts-sum (-> (Map KnobValue Number) Number Number Number Number))
-(= (normalize-counts-sum $m $i $n $acc)
+;; Calculate total count for normalization
+(: calculateTotalCount (-> (Map KnobValue Number) Number Number Number Number))
+(= (calculateTotalCount $counts $i $n $acc)
    (if (>= $i $n)
        $acc
        (let* (
-             ($pair (Map.getByIdx $m $i))
-             (($k $cnt) $pair)
+             ($pair (Map.getByIdx $counts $i))
+             (($knobValue $count) $pair)
            )
-           (normalize-counts-sum $m (+ $i 1) $n (+ $acc $cnt)))))
+           (calculateTotalCount $counts (+ $i 1) $n (+ $acc $count)))))
 
-(: normalize-counts-build (-> (Map KnobValue Number) Number Number Number (Map KnobValue Number) (Map KnobValue Number)))
-(= (normalize-counts-build $m $i $n $total $acc)
+;; Build normalized probabilities from counts
+(: buildNormalizedProbabilities (-> (Map KnobValue Number) Number Number Number (Map KnobValue Number) (Map KnobValue Number)))
+(= (buildNormalizedProbabilities $counts $i $n $total $acc)
   (if (>= $i $n)
       $acc
       (let* (
-            ($pair (Map.getByIdx $m $i))
-            (($kv $cnt) $pair)
-            ($p (if (== $total 0) 0 (/ $cnt $total)))
-            ($acc2 (Map.insert ($kv $p) $acc knobValueEq knobValueLt))
+            ($pair (Map.getByIdx $counts $i))
+            (($knobValue $count) $pair)
+            ($probability (if (== $total 0) 0 (/ $count $total)))
+            ($updatedAcc (Map.insert ($knobValue $probability) $acc knobValueEq knobValueLt))
           )
-          (normalize-counts-build $m (+ $i 1) $n $total $acc2))))
+          (buildNormalizedProbabilities $counts (+ $i 1) $n $total $updatedAcc))))
 
 ;; ================================================================================
 ;; Helper Functions
 ;; ================================================================================
 
 ;; Get discrete map from representation
-; (: getDiscMap (-> Representation (MultiMap (DiscSpec $knob))))
+(: getDiscMap (-> Representation (MultiMap (DiscSpec $knob))))
 (= (getDiscMap (mkRep (mkKbMap $dscKbMp $dscMp) $tree)) (extractMultiMap $dscMp))
 
 ;; Extract MultiMap from DiscMap
-; (: extractMultiMap (-> DiscMap (MultiMap (DiscSpec $knob))))
+(: extractMultiMap (-> DiscMap (MultiMap (DiscSpec $knob))))
 (= (extractMultiMap (mkDscMp $multiMap)) $multiMap)
 
 ;; Comparison functions for KnobValue

@@ -1,37 +1,34 @@
 ;; ================================================================================
-;; Selection Policy (Tournament Selection)
+;; Selection Policy (Tournament)
 ;; ================================================================================
 ;;
-;; This file implements the selection policy for EDA.
-;; Equivalent to selection logic in optimize.h in the C++ implementation.
+;; Purpose
+;; - Select promising individuals via tournament selection.
+;; - Maintain diversity by sampling k random participants per tournament.
 ;;
-;; Key Components:
-;; - Tournament selection for selecting promising individuals
-;; - Random K selection for tournament participants
-;; - Best individual selection from tournament participants
-;;
-;; Selection Strategy:
-;; - Uses tournament selection to maintain diversity
-;; - Selects n individuals using tournament selection
-;; - Each tournament selects the best from k random participants
+;; Notes
+;; - Non-deterministic due to randomness; tests check sizes, not identities.
 
 ;; ================================================================================
 ;; Selection Policy (Tournament Selection)
 ;; ================================================================================
 
 ;; Tournament selection - select n individuals using tournament selection
-(: tournament-selection (-> Number Deme Number (InstanceSet $score)))
-(= (tournament-selection $tournamentSize $deme $nSelect)
+(: tournamentSelection (-> Number Deme Number (InstanceSet $score)))
+(= (tournamentSelection $tournamentSize $deme $nSelect)
    (let* (
          ((mkDeme $rep (mkSInstSet $instSet) $id) $deme)
          ($scoredInstances $instSet)
-         ($selected (select-tournament $tournamentSize $scoredInstances $nSelect))
+         ;; Assert valid parameters
+         ($validTournamentSize (if (<= $tournamentSize 0) 1 $tournamentSize))
+         ($validNSelect (if (<= $nSelect 0) 0 $nSelect))
+         ($selected (selectTournament $validTournamentSize $scoredInstances $validNSelect))
        )
        (mkSInstSet $selected)))
 
 ;; Select individuals using tournament selection
-(: select-tournament (-> Number (List (ScoredInstance $score)) Number (List (ScoredInstance $score))))
-(= (select-tournament $tournamentSize $instances $nSelect)
+(: selectTournament (-> Number (List (ScoredInstance $score)) Number (List (ScoredInstance $score))))
+(= (selectTournament $tournamentSize $instances $nSelect)
   (let* (
         ($len (coll.length $instances))
         ($need (min $nSelect $len))
@@ -40,53 +37,77 @@
       (if (or (<= $need 0) (<= $len 0))
           Nil
           (let* (
-                ((mkPair $winner $remainingAfter) (run-tournament $ts $instances))
-                ($rest (select-tournament $ts $remainingAfter (- $need 1)))
+                ((mkPair $winner $remainingAfter) (runTournament $ts $instances))
+                ($rest (selectTournament $ts $remainingAfter (- $need 1)))
               )
               (Cons $winner $rest)))))
 
 ;; Run a single tournament
-(: run-tournament (-> Number (List (ScoredInstance $score)) (Pair (ScoredInstance $score) (List (ScoredInstance $score)))))
-(= (run-tournament $tournamentSize $instances)
+(: runTournament (-> Number (List (ScoredInstance $score)) (Pair (ScoredInstance $score) (List (ScoredInstance $score)))))
+(= (runTournament $tournamentSize $instances)
   (let* (
-        ((mkPair $participants $rest) (select-random-k $tournamentSize $instances))
-        ($winner (if (== (coll.length $participants) 0)
-                     (coll.getByIdx $instances 0)
-                     (select-best $participants)))
+        ((mkPair $participants $rest) (selectRandomK $tournamentSize $instances))
+        ($winner (selectTournamentWinner $participants $instances))
         ($participantsTail (List.tail $participants))
         ($remainingAfter (List.concat $rest $participantsTail))
       )
       (mkPair $winner $remainingAfter)))
 
+;; Helper function to select tournament winner
+(: selectTournamentWinner (-> (List (ScoredInstance $score)) (List (ScoredInstance $score)) (ScoredInstance $score)))
+(= (selectTournamentWinner $participants $instances)
+  (if (== (coll.length $participants) 0)
+      (if (== (coll.length $instances) 0)
+          (getDefaultWorstInstance)  ; Both empty - return default
+          (coll.getByIdx $instances 0))  ; Participants empty - use first instance
+      (selectBest $participants)))  ; Participants available - select best
+
 ;; Select random K participants
-(: select-random-k (-> Number (List (ScoredInstance $score)) (Pair (List (ScoredInstance $score)) (List (ScoredInstance $score)))))
-(= (select-random-k $k $instances)
+(: selectRandomK (-> Number (List (ScoredInstance $score)) (mkPair (List (ScoredInstance $score)) (List (ScoredInstance $score)))))
+(= (selectRandomK $k $instances)
   (if (or (<= $k 0) (== (coll.length $instances) 0))
       (mkPair Nil $instances)
-      (let* (
-            ($len (coll.length $instances))
-            ($rf (randomFloat))
-            ($idx (int (* $rf $len)))
-            ($safeIdx (if (== $idx $len) (- $len 1) $idx))
-            ($selected (coll.getByIdx $instances $safeIdx))
-            ($remaining (coll.removeByIdx $instances $safeIdx))
-            ((mkPair $restSel $restRem) (select-random-k (- $k 1) $remaining))
-          )
-          (mkPair (Cons $selected $restSel) $restRem))))
+      (if (> $k (coll.length $instances))
+          (mkPair $instances Nil)  ; Return all instances if k > length
+          (selectRandomKHelper $k $instances))))
+
+;; Helper function to reduce nesting in selectRandomK
+(: selectRandomKHelper (-> Number (List (ScoredInstance $score)) (Pair (List (ScoredInstance $score)) (List (ScoredInstance $score)))))
+(= (selectRandomKHelper $k $instances)
+  (let* (
+        ($len (coll.length $instances))
+        ($rf (randomFloat))
+        ($idx (int (* $rf $len)))
+        ($safeIdx (if (== $idx $len) (- $len 1) $idx))
+        ($selected (coll.getByIdx $instances $safeIdx))
+        ($remaining (coll.removeByIdx $instances $safeIdx))
+        ((mkPair $restSel $restRem) (selectRandomK (- $k 1) $remaining))
+      )
+      (mkPair (Cons $selected $restSel) $restRem)))
 
 
 ;; Select best individual from list
-(: select-best (-> (List (ScoredInstance $score)) (ScoredInstance $score)))
-(= (select-best $instances)
+(: selectBest (-> (List (ScoredInstance $score)) (ScoredInstance $score)))
+(= (selectBest $instances)
   (if (== (coll.length $instances) 0)
-      (coll.getByIdx (Cons (mkSInst (mkPair (mkInst Nil) (worstCscore))) Nil) 0)
-      (let* (
-            ($head (coll.getByIdx $instances 0))
-            ($tail (List.drop 1 $instances))
-          )
-          (List.foldl select-best-step $head $tail))))
+      (getDefaultWorstInstance)
+      (selectBestFromNonEmpty $instances)))
 
-(: select-best-step (-> (ScoredInstance $score) (ScoredInstance $score) (ScoredInstance $score)))
-(= (select-best-step $bestSoFar $candidate)
+;; Helper function to get default worst instance
+(: getDefaultWorstInstance (-> (ScoredInstance $score)))
+(= (getDefaultWorstInstance)
+  (coll.getByIdx (Cons (mkSInst (mkPair (mkInst Nil) (worstCscore))) Nil) 0))
+
+;; Helper function to select best from non-empty list
+(: selectBestFromNonEmpty (-> (List (ScoredInstance $score)) (ScoredInstance $score)))
+(= (selectBestFromNonEmpty $instances)
+  (let* (
+        ($head (coll.getByIdx $instances 0))
+        ($tail (List.drop 1 $instances))
+      )
+      (List.foldl selectBestStep $head $tail)))
+
+(: selectBestStep (-> (ScoredInstance $score) (ScoredInstance $score) (ScoredInstance $score)))
+(= (selectBestStep $bestSoFar $candidate)
   (if (apply >= $candidate $bestSoFar) $candidate $bestSoFar))
 

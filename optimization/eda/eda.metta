@@ -100,16 +100,16 @@
 ;; (tournament-selection $tournamentSize $deme $nSelect)
 ;;
 ;; ;; Learn probability model
-;; (learn-probability-model $deme $selectedInstances)
+;; (learnProbabilityModel $deme $selectedInstances)
 ;;
 ;; ;; Sample new individuals
 ;; (sample-from-model $probModel $deme $nGenerate)
 ;;
 ;; ;; Replace worst individuals
-;; (replace-the-worst $newInstances $deme)
+;; (replaceTheWorst $newInstances $deme)
 ;;
 ;; ;; Check termination
-;; (terminate-if-gte-or-no-improv $threshold $maxGens $deme)
+;; (terminateIfGteOrNoImprovSimple $threshold $maxGens $deme)
 ;; ```
 
 ;; ================================================================================

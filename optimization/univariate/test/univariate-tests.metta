@@ -28,6 +28,7 @@
 !(import! &self metta-moses:deme:score-deme)
 !(import! &self metta-moses:deme:create-deme)
 !(import! &self metta-moses:moses:neighborhood-sampling)
+!(import! &self metta-moses:feature-selection:feature-selection-helpers)
 
 
 ;; ================================================================================
@@ -61,14 +62,14 @@
 ;; ================================================================================
 
 ;; EDA parameters (deterministic)
-!(bind! default_params (default-eda-parameters))
-!(assertEqual (getSelection default_params) 2)
-!(assertEqual (getSelectionRatio default_params) 1.0)
-!(assertEqual (getReplacementRatio default_params) 0.5)
-!(assertEqual (getModelComplexity default_params) 1.0)
+!(bind! DEFAULT_PARAMS (defaultEdaParameters))
+!(assertEqual (getSelection DEFAULT_PARAMS) 2)
+!(assertEqual (getSelectionRatio DEFAULT_PARAMS) 1.0)
+!(assertEqual (getReplacementRatio DEFAULT_PARAMS) 0.5)
+!(assertEqual (getModelComplexity DEFAULT_PARAMS) 1.0)
 
 ;; Information theoretic calculations
-!(assertEqual (disc-spec-multiplicity (mkDiscSpec 3)) 3)
+!(assertEqual (discSpecMultiplicity (mkDiscSpec 3)) 3)
 !(assertEqual (ilog2ceil 1) 0)
 !(assertEqual (ilog2ceil 2) 1)
 !(assertEqual (ilog2ceil 3) 2)
@@ -84,4 +85,4 @@
   (getRep test_deme))
 
 ;; univariate-with-eda with explicit params
-!(assertEqual (let $val (univariate-with-eda test_deme test_ttb test_center (mkEDAParameters 2 1.0 0.5 1.0)) (car-atom $val)) (mkInst (Cons 0 (Cons 0 Nil))))
+!(assertEqual (let $val (univariateEdaLoop test_deme test_ttb test_center (mkEDAParameters 2 1.0 0.5 1.0)) (car-atom $val)) (mkInst (Cons 0 (Cons 0 Nil))))
