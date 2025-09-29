@@ -22,16 +22,20 @@
 ;;   $featureIndices (OS Number) → OrderedSet of feature indices
 ;; Returns: (Number) → Mutual information score
 ;; Example: (calculateMutualInformation xorTable (ConsOS 0 (ConsOS 1 NilOS))) → 1.0
-(: calculateMutualInformation (-> (ITable $a) (OS Number) Number))
+
+(: calculateMutualInformation (-> (ITable $a) Expression Number))
 (= (calculateMutualInformation (mkITable $rows $labels) $featureIndices)
     (chain (- (List.length $labels) 1) $targetIndex
         (chain (Table.getColumn $targetIndex $rows) $targetColumn
                     ;; feature MI calculation
-                (chain (osToExpression $featureIndices ()) $indicesExpr
-                    (chain (zipColumn $indicesExpr $rows) $jointColumn
-                        (mutualInformation $jointColumn $targetColumn)
-                    )
+            (chain (zipColumn $featureIndices $rows) $jointColumn
+                (chain (mutualInformation $jointColumn $targetColumn) $miScore
+                                                                                            ;; the default confidence scaling parameter
+                        (chain (calculateConfidence (size-atom $featureIndices) (List.length $rows) 50.0) $confidence
+                                (* $miScore $confidence)
+                        )
                 )
+            )
         )
     )
 )
@@ -53,7 +57,7 @@
 
 (= (filterRelevantCombinations $itable (ConsOS $combo $rest) $threshold $resultSet)
    (chain (expressionToOS $combo NilOS) $comboOS
-     (chain (cachedMutualInformation $itable $comboOS) $mutualInfo
+     (chain (cachedMutualInformation $itable $combo) $mutualInfo
        (if (> $mutualInfo $threshold)
            (chain (OS.union $resultSet $comboOS) $newResultSet
              (filterRelevantCombinations $itable $rest $threshold $newResultSet))
@@ -76,14 +80,12 @@
    (Cons $currentBest (Cons $currentScore Nil)))
 
 (= (findBestSubset $itable (ConsOS $subset $rest) $currentBest $currentScore)
-   (chain (expressionToOS $subset NilOS) $subsetOS
-     (chain (cachedMutualInformation $itable $subsetOS) $score
+     (chain (cachedMutualInformation $itable $subset) $score
        (if (> $score $currentScore)
            (findBestSubset $itable $rest $subset $score)
            (findBestSubset $itable $rest $currentBest $currentScore)
        )
      )
-   )
 )
 ;; Purpose: Find redundant features using subset search
 ;; Parameters:
@@ -106,7 +108,7 @@
                                 (chain (findBestSubset $itable $subsetCombinations () -1) $bestResult
                                     (chain (List.getByIdx $bestResult 0) $bestSubsetExpr
                                         (chain (List.getByIdx $bestResult 1) $bestScore
-                                            (chain (cachedMutualInformation $itable $indices) $fullScore
+                                            (chain (cachedMutualInformation $itable $indicesExpr) $fullScore
                                                 (if (< (- $fullScore $bestScore) $threshold)
                                                     (chain (expressionToOS $bestSubsetExpr NilOS) $bestSubset
                                                         (chain (OS.difference $indices $bestSubset NilOS) $redundant
@@ -212,12 +214,10 @@
 (= (incrementalSelection (mkITable $rows $labels) $threshold $targetSize $maxInteractionTerms $redundancyThreshold)
     (if (and (<= $threshold 0) (<= $targetSize 0))
         ;; return all the features with their score
-        (chain (- (List.length $labels) 1) $numFeatures
-            (chain (OS.range 0 $numFeatures NilOS) $allIndices
+        (chain (- (List.length $labels) 1) $numFeatures 
+            (chain (range 0 1 $numFeatures) $allIndices
                 (chain (cachedMutualInformation (mkITable $rows $labels) $allIndices) $score
-                    (chain (osToExpression $allIndices ()) $indicesExpr
-                        (($score $indicesExpr)) ;; return Indices and score as tupe of pairs of score and feature set tuple
-                    )
+                        (($score $allIndices)) ;; return Indices and score as tupe of pairs of score and feature set tuple
                 )
             )
         )
@@ -232,11 +232,11 @@
                     )
                 )
                 ) $selectedIndices
-            (chain (if (== (OS.length $selectedIndices) 0)
+            (chain (osToExpression $selectedIndices ()) $indicesExpr
+                (chain (if (== (OS.length $selectedIndices) 0)
                         0
-                        (cachedMutualInformation (mkITable $rows $labels) $selectedIndices)
+                        (cachedMutualInformation (mkITable $rows $labels) $indicesExpr)
                     ) $finalScore
-                (chain (osToExpression $selectedIndices ()) $indicesExpr
                     (($finalScore $indicesExpr))
                 )
             )
