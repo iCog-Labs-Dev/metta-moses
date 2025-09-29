@@ -55,6 +55,7 @@
                             ((OR True) (map-atom $expr $x (addAND $x $h $h)))
                             ((OR False) (AND (map-atom $expr $x (addAND $x $h $h))))
                             ((AND $_) (map-atom $expr $x (addAND $x AND $h)))
+                            (($else $__) (if (== $t ()) (addAND $h () ()) (AND)))
                         )
                     )
                 )

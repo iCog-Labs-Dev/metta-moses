@@ -26,11 +26,10 @@
   )
 )
 
-(= (propagateNot $expr ()) (if (== (get-metatype $expr) Expression) (propagateNot $expr) (empty))) ;; Returns in ND result when given => (AND)
+(= (propagateNot $expr ()) (if (== (get-metatype $expr) Expression) (propagateNot $expr) $expr)) ;; Returns in ND result when given => (AND)
 (= (propagateNot $expr) 
-  (
-    if (== (get-metatype $expr) Expression)
-       ( let* (
+  (if (== (get-metatype $expr) Expression)
+       (let* (
                 ($op (car-atom $expr))
                 ($tuple (cdr-atom $expr))
               )

@@ -36,6 +36,10 @@
     )
 )
 
+;** Implement caching for the mutual Information
+(= (cachedMutualInformation $itable $featureIndices)
+    (lruCache DEFAULT_CACHE_SIZE ((calculateMutualInformation) ($itable $featureIndices)))
+)
 ;; Purpose: Filter relevant combinations based on MI threshold
 ;; Parameters:
 ;;   $itable (ITable) → Input table
@@ -57,6 +61,19 @@
         )
       )
     )
+    ; (let*
+    ;     (
+    ;         ($comboOs (expressionToOS $combo NilOS))
+    ;         (() (println! (Combo $comboOs)))
+    ;         ($mutualInfo (cachedMutualInformation $itable $comboOs))
+    ;         (() (println! (MutualInfo $mutualInfo)))
+    ;         ($newResultSet (if (> $mutualInfo $threshold) (let $oldResultSet (OS.union $resultSet $comboOs) 
+    ;                                                             (filterRelevantCombinations $itable $rest $threshold $oldResultSet)) 
+    ;                                                         (filterRelevantCombinations $itable $rest $threshold $resultSet)))
+    ;         (() (println! (Final result: $newResultSet)))
+    ;     )
+    ;     $newResultSet
+    ; )
 )
 
 
@@ -79,7 +96,7 @@
            (findBestSubset $itable $rest $currentBest $currentScore)
        )
      )
-    )
+   )
 )
 ;; Purpose: Find redundant features using subset search
 ;; Parameters:
@@ -102,7 +119,7 @@
                                 (chain (findBestSubset $itable $subsetCombinations () -1) $bestResult
                                     (chain (List.getByIdx $bestResult 0) $bestSubsetExpr
                                         (chain (List.getByIdx $bestResult 1) $bestScore
-                                            (chain (calculateMutualInformation $itable $indices) $fullScore
+                                            (chain (cachedMutualInformation $itable $indices) $fullScore
                                                 (if (< (- $fullScore $bestScore) $threshold)
                                                     (chain (expressionToOS $bestSubsetExpr NilOS) $bestSubset
                                                         (chain (OS.difference $indices $bestSubset NilOS) $redundant

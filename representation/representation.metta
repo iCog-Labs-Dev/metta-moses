@@ -47,8 +47,11 @@
         )
         
         (let*   (($exemplar-fts (treeFtsIndices $exemplar $labels))           ;; exemplarFtsIndices function in deme/expand-deme.metta
+                 (() (println! (Exemplar features indices: $exemplar-fts)))
                  ($all-labels (getInputLabels $labels))                       ;; getInputLabels in deme/expand-deme.metta
+                 (() (println! (allLabels: $all-labels)))
                  ($ft-set-pop (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme))     ;; applies the right parameteres for feature selection based on selected selection algorithm 
+                 (() (println! (featureSetPOP: $ft-set-pop)))
                  ($exemplar-arg-seq                                           ;; apply exemplar feature pruning
                      (if $prune-exemplar
                            (map-atom $ft-set-pop $ft-set 
@@ -63,14 +66,18 @@
                                  (let* (($agg (union-atom $ft-set $exemplar-fts))
                                         ($final-args (fsToNames $labels $agg)))  
                                         
-                                    ($exemplar $final-args))))) 
+                                    ($exemplar $final-args)))))
+                  (() (println! (Exemplar arg sets after pruning: $exemplar-arg-seq))) 
                   ($with-enforced-fts                                         ;; enforce features
                      (if (== $enforced-fts ())
                            $exemplar-arg-seq
                            (let $sampled-enforced-fts (sampleEnforcedFts $enforced-fts)           ;; from feature-selection/select-top-features.metta
                                     (map-atom $exemplar-arg-seq ($xmplr $args)
                                              (let $acc (union-atom $args $sampled-enforced-fts) ($xmplr $acc))))))  
-                  ($filter-empty-args (filter-atom $with-enforced-fts ($xmplr $args) (eval (not (== $args ()))))))      ;; filter out exemplar arg pairs that have empty arg list
+                  (() (println! (With enforced features: $with-enforced-fts)))
+                  ($filter-empty-args (filter-atom $with-enforced-fts ($xmplr $args) (eval (not (== $args ())))))
+                  (() (println! (After filtering empty args: $filter-empty-args)))
+                  )      ;; filter out exemplar arg pairs that have empty arg list
 
                      (map-atom $filter-empty-args ($xmplr $argLabels) 
                            (let* ((($updatedTree $dscMp) (buildKnobs $xmplr NilMMap $argLabels))            ;; BUILD representations on 
