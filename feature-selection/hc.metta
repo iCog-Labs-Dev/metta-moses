@@ -9,11 +9,16 @@
 
 ;; hcFtSetPop  -- runs the hill climbing feature selector using a center instance 
 ;;             -- returns tuple of (score ft-set) pairs
-(: hcFtSetPop (-> (ITable $a) Instance Expression))      
-(= (hcFtSetPop $iTable $centerInst)
-  (let* ((((mkInst $inst1) (mkSInstSet $list) $state) (hillClimbingFs (mkSInstSet Nil) $iTable (mkInst $centerInst))) ;; runs the hillclimbing feature selector
+(: hcFtSetPop (-> (ITable $a) Instance Number Number Number Number Bool Symbol Expression))      
+(= (hcFtSetPop $iTable $centerInst $miConf $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)
+  (let* (
+          (() (println! (debug inside hcFtSetPop)))
+          (((mkInst $inst1) (mkSInstSet $list) $state) (hillClimbingFs (3 3 1) (False False False (mkInst $centerInst) 0 0 0 0 1) (mkSInstSet Nil) $iTable (mkInst $centerInst) $miConf $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)) ;; runs the hillclimbing feature selector
          ($list-of-scoreset-pairs (getHcFtPop $list ()))                                                    ;; separates the scores from the the previous output and puts them in a score feature-set pair tuple -- as list of
          ($unique-pairs (List.tFoldl $list-of-scoreset-pairs union-atom exp ()))                            ;; finds unquie such pairs duplicats removed -- by way of union-atom
-         ($size (size-atom $unique-pairs)))
+         ($size (size-atom $unique-pairs))
+        )
 
-         (sortPairs pairMax $unique-pairs $size ())))                                                       ;; sort using score
+         (sortPairs pairMax $unique-pairs $size ())
+  )
+)                                                       ;; sort using score
