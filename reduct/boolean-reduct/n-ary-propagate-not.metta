@@ -26,7 +26,7 @@
   )
 )
 
-(= (propagateNot $expr ()) (if (== (get-metatype $expr) Expression) (propagateNot $expr) $expr)) ;; Returns in ND result when given => (AND)
+(= (propagateNot $expr ()) (if (== (get-metatype $expr) Expression) (propagateNot $expr) (if (== $expr AND) (empty) $expr))) ;; Returns in ND result when given => (AND)
 (= (propagateNot $expr) 
   (if (== (get-metatype $expr) Expression)
        (let* (

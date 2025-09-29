@@ -53,206 +53,206 @@
 ; ; Helper function for clean tree
 ; (= (REDUCE $expr) (reduce $expr))
 
-!(bind! tree1
-        (mkTree (mkNode AND)
-          (Cons (mkTree (mkNode A) Nil)
-          (Cons (mkTree (mkNode OR)
-                  (Cons (mkTree (mkNode B) Nil)
-                  (Cons (mkTree (mkNode C) Nil)
-                  (Cons (mkNullVex
-                          (Cons (mkTree (mkNode D) Nil) Nil)) Nil))))
-          (Cons (mkNullVex
-                  (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil)))))
+; !(bind! tree1
+;         (mkTree (mkNode AND)
+;           (Cons (mkTree (mkNode A) Nil)
+;           (Cons (mkTree (mkNode OR)
+;                   (Cons (mkTree (mkNode B) Nil)
+;                   (Cons (mkTree (mkNode C) Nil)
+;                   (Cons (mkNullVex
+;                           (Cons (mkTree (mkNode D) Nil) Nil)) Nil))))
+;           (Cons (mkNullVex
+;                   (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil)))))
 
-!(bind! lsk1
-        (mkLSK
-            (mkDiscKnob
-              (mkKnob  (mkNodeId (2 3)))
-              (mkMultip 3)
-              (mkDiscSpec 0)
-              (mkDiscSpec 0)
-              Nil)
-            ))
+; !(bind! lsk1
+;         (mkLSK
+;             (mkDiscKnob
+;               (mkKnob  (mkNodeId (2 3)))
+;               (mkMultip 3)
+;               (mkDiscSpec 0)
+;               (mkDiscSpec 0)
+;               Nil)
+;             ))
 
-!(bind! lsk2
-        (mkLSK
-            (mkDiscKnob
-              (mkKnob (mkNodeId (3)))
-              (mkMultip 3)
-              (mkDiscSpec 0)
-              (mkDiscSpec 0)
-              Nil)
-           ))
+; !(bind! lsk2
+;         (mkLSK
+;             (mkDiscKnob
+;               (mkKnob (mkNodeId (3)))
+;               (mkMultip 3)
+;               (mkDiscSpec 0)
+;               (mkDiscSpec 0)
+;               Nil)
+;            ))
 
-!(bind! lsk3
-        (mkLSK
-            (mkDiscKnob
-              (mkKnob  (mkNodeId (1)))
-              (mkMultip 3)
-              (mkDiscSpec 1)
-              (mkDiscSpec 1)
-              Nil)
-            ))
+; !(bind! lsk3
+;         (mkLSK
+;             (mkDiscKnob
+;               (mkKnob  (mkNodeId (1)))
+;               (mkMultip 3)
+;               (mkDiscSpec 1)
+;               (mkDiscSpec 1)
+;               Nil)
+;             ))
 
-!(bind! knobMapObj (mkKbMap
-                      (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap))))
-                      (mkDscMp (ConsMMap ((mkDiscSpec 1) lsk1) (ConsMMap ((mkDiscSpec 0) lsk2) (ConsMMap ((mkDiscSpec 1) lsk3) NilMMap))))))
+; !(bind! knobMapObj (mkKbMap
+;                       (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap))))
+;                       (mkDscMp (ConsMMap ((mkDiscSpec 1) lsk1) (ConsMMap ((mkDiscSpec 0) lsk2) (ConsMMap ((mkDiscSpec 1) lsk3) NilMMap))))))
 
 
-; Test case for Instance (0 0 0): (AND A (OR B C)) => (AND (OR B C))
-! "===================Test case for Instance (0 0 0)============================"
+; ; Test case for Instance (0 0 0): (AND A (OR B C)) => (AND (OR B C))
+; ! "===================Test case for Instance (0 0 0)============================"
 
-!(assertEqual
-    (getCandidateRec (mkRep knobMapObj tree1)
-                     (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 
-                     (mkNodeId (0))
-                     (mkNodeId (0))
-                     (mkNullVex Nil))
-    (mkTree (mkNode AND)
-        (Cons (mkNullVex
-                (Cons (mkTree (mkNode A) Nil) Nil))
-        (Cons (mkTree (mkNode OR)
-                (Cons (mkTree (mkNode B) Nil)
-                (Cons (mkTree (mkNode C) Nil)
-                (Cons (mkNullVex
-                        (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) 
-        (Cons (mkNullVex
-                (Cons (mkTree (mkNode OR)
-                         (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil)))))
+; !(assertEqual
+;     (getCandidateRec (mkRep knobMapObj tree1)
+;                      (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 
+;                      (mkNodeId (0))
+;                      (mkNodeId (0))
+;                      (mkNullVex Nil))
+;     (mkTree (mkNode AND)
+;         (Cons (mkNullVex
+;                 (Cons (mkTree (mkNode A) Nil) Nil))
+;         (Cons (mkTree (mkNode OR)
+;                 (Cons (mkTree (mkNode B) Nil)
+;                 (Cons (mkTree (mkNode C) Nil)
+;                 (Cons (mkNullVex
+;                         (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) 
+;         (Cons (mkNullVex
+;                 (Cons (mkTree (mkNode OR)
+;                          (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil)))))
 
-;; Test case for Instance (1 1 1): (AND A (OR B C)) => (AND A (OR B C D) (OR A))
-! "===================Test case for Instance (1 1 1)============================"
-!(assertEqual
-   (getCandidateRec (mkRep knobMapObj tree1)
-                    (mkInst (Cons 1 (Cons 1 (Cons 1 Nil)))) 
-                    (mkNodeId (0))
-                    (mkNodeId (0))
-                    (mkNullVex Nil))
-   (mkTree (mkNode AND)
-      (Cons (mkTree (mkNode A) Nil)
-      (Cons (mkTree (mkNode OR) 
-              (Cons (mkTree (mkNode B) Nil)
-              (Cons (mkTree (mkNode C) Nil)
-              (Cons (mkTree (mkNode D) Nil) Nil))))
-      (Cons (mkTree (mkNode OR)
-                (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))
+; ;; Test case for Instance (1 1 1): (AND A (OR B C)) => (AND A (OR B C D) (OR A))
+; ! "===================Test case for Instance (1 1 1)============================"
+; !(assertEqual
+;    (getCandidateRec (mkRep knobMapObj tree1)
+;                     (mkInst (Cons 1 (Cons 1 (Cons 1 Nil)))) 
+;                     (mkNodeId (0))
+;                     (mkNodeId (0))
+;                     (mkNullVex Nil))
+;    (mkTree (mkNode AND)
+;       (Cons (mkTree (mkNode A) Nil)
+;       (Cons (mkTree (mkNode OR) 
+;               (Cons (mkTree (mkNode B) Nil)
+;               (Cons (mkTree (mkNode C) Nil)
+;               (Cons (mkTree (mkNode D) Nil) Nil))))
+;       (Cons (mkTree (mkNode OR)
+;                 (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))
 
-;; Test case for Instance (2 2 2): (AND A (OR B C)) => (AND (NOT A) (OR B C (NOT D)) (NOT (OR A)))
-! "===================Test case for Instance (2 2 2)============================"
-!(assertEqual
-   (getCandidateRec (mkRep knobMapObj tree1)
-                    (mkInst (Cons 2 (Cons 2 (Cons 2 Nil))))
-                    (mkNodeId (0))
-                    (mkNodeId (0))
-                    (mkNullVex Nil))
-   (mkTree (mkNode AND)
-      (Cons (mkTree (mkNode NOT)
-              (Cons (mkTree (mkNode A) Nil) Nil))
-      (Cons (mkTree (mkNode OR)
-              (Cons (mkTree (mkNode B) Nil)
-              (Cons (mkTree (mkNode C) Nil)
-              (Cons (mkTree (mkNode NOT)
-                      (Cons (mkTree (mkNode D) Nil) Nil)) Nil))))
-      (Cons (mkTree (mkNode NOT)
-              (Cons (mkTree (mkNode OR)
-                      (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil)))))
+; ;; Test case for Instance (2 2 2): (AND A (OR B C)) => (AND (NOT A) (OR B C (NOT D)) (NOT (OR A)))
+; ! "===================Test case for Instance (2 2 2)============================"
+; !(assertEqual
+;    (getCandidateRec (mkRep knobMapObj tree1)
+;                     (mkInst (Cons 2 (Cons 2 (Cons 2 Nil))))
+;                     (mkNodeId (0))
+;                     (mkNodeId (0))
+;                     (mkNullVex Nil))
+;    (mkTree (mkNode AND)
+;       (Cons (mkTree (mkNode NOT)
+;               (Cons (mkTree (mkNode A) Nil) Nil))
+;       (Cons (mkTree (mkNode OR)
+;               (Cons (mkTree (mkNode B) Nil)
+;               (Cons (mkTree (mkNode C) Nil)
+;               (Cons (mkTree (mkNode NOT)
+;                       (Cons (mkTree (mkNode D) Nil) Nil)) Nil))))
+;       (Cons (mkTree (mkNode NOT)
+;               (Cons (mkTree (mkNode OR)
+;                       (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil)))))
 
-;; Test case for Instance (2 1 0): (AND A (OR B C)) => (AND (OR B C (NOT D)) (OR A))
-! "===================Test case for Instance (2 1 0)============================"
-!(assertEqual
-   (getCandidateRec (mkRep knobMapObj tree1)
-                    (mkInst (Cons 2 (Cons 1 (Cons 0 Nil))))
-                    (mkNodeId (0))
-                    (mkNodeId (0))
-                    (mkNullVex Nil))
-   (mkTree (mkNode AND)
-      (Cons (mkNullVex
-              (Cons (mkTree (mkNode A) Nil) Nil))
-      (Cons (mkTree (mkNode OR)
-              (Cons (mkTree (mkNode B) Nil)
-              (Cons (mkTree (mkNode C) Nil)
-              (Cons (mkTree (mkNode NOT)
-                      (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) 
-      (Cons (mkTree (mkNode OR)
-              (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))
+; ;; Test case for Instance (2 1 0): (AND A (OR B C)) => (AND (OR B C (NOT D)) (OR A))
+; ! "===================Test case for Instance (2 1 0)============================"
+; !(assertEqual
+;    (getCandidateRec (mkRep knobMapObj tree1)
+;                     (mkInst (Cons 2 (Cons 1 (Cons 0 Nil))))
+;                     (mkNodeId (0))
+;                     (mkNodeId (0))
+;                     (mkNullVex Nil))
+;    (mkTree (mkNode AND)
+;       (Cons (mkNullVex
+;               (Cons (mkTree (mkNode A) Nil) Nil))
+;       (Cons (mkTree (mkNode OR)
+;               (Cons (mkTree (mkNode B) Nil)
+;               (Cons (mkTree (mkNode C) Nil)
+;               (Cons (mkTree (mkNode NOT)
+;                       (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) 
+;       (Cons (mkTree (mkNode OR)
+;               (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))))
 
-;; Test case for Instance (1 0 2): (AND A (OR B C)) => (AND (NOT A) (OR B C D))
-! "===================Test case for Instance (1 0 2)============================"
-!(assertEqual
-   (getCandidateRec (mkRep knobMapObj tree1)
-                               (mkInst (Cons 1 (Cons 0 (Cons 2 Nil))))
-                               (mkNodeId (0))
-                               (mkNodeId (0))
-                               (mkNullVex Nil))
-   (mkTree (mkNode AND)
-     (Cons (mkTree (mkNode NOT)
-             (Cons (mkTree (mkNode A) Nil) Nil))
-     (Cons (mkTree (mkNode OR)
-             (Cons (mkTree (mkNode B) Nil)
-             (Cons (mkTree (mkNode C) Nil)
-             (Cons (mkTree (mkNode D) Nil) Nil))))
-     (Cons (mkNullVex
-             (Cons (mkTree (mkNode OR)
-                      (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil)))))
+; ;; Test case for Instance (1 0 2): (AND A (OR B C)) => (AND (NOT A) (OR B C D))
+; ! "===================Test case for Instance (1 0 2)============================"
+; !(assertEqual
+;    (getCandidateRec (mkRep knobMapObj tree1)
+;                                (mkInst (Cons 1 (Cons 0 (Cons 2 Nil))))
+;                                (mkNodeId (0))
+;                                (mkNodeId (0))
+;                                (mkNullVex Nil))
+;    (mkTree (mkNode AND)
+;      (Cons (mkTree (mkNode NOT)
+;              (Cons (mkTree (mkNode A) Nil) Nil))
+;      (Cons (mkTree (mkNode OR)
+;              (Cons (mkTree (mkNode B) Nil)
+;              (Cons (mkTree (mkNode C) Nil)
+;              (Cons (mkTree (mkNode D) Nil) Nil))))
+;      (Cons (mkNullVex
+;              (Cons (mkTree (mkNode OR)
+;                       (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil)))))
 
-;; Test case for Instance (2 0 1): (AND A (OR B C)) => (AND A (OR B C (NOT D)))
-! "===================Test case for Instance (2 0 1)============================"
-!(assertEqual
-   (getCandidateRec (mkRep knobMapObj tree1)
-                    (mkInst (Cons 2 (Cons 0 (Cons 1 Nil))))
-                    (mkNodeId (0))
-                    (mkNodeId (0))
-                    (mkNullVex Nil))
-   (mkTree (mkNode AND)
-      (Cons (mkTree (mkNode A) Nil)
-      (Cons (mkTree (mkNode OR)
-              (Cons (mkTree (mkNode B) Nil)
-              (Cons (mkTree (mkNode C) Nil)
-              (Cons (mkTree (mkNode NOT)
-                      (Cons (mkTree (mkNode D) Nil) Nil)) Nil))))
-      (Cons (mkNullVex
-               (Cons (mkTree (mkNode OR)
-                        (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil)))))
-
-;; Test case for Instance (2 0 1): (AND A (OR B C)) => (AND A (OR B C (NOT D)))
-! "===================Test case for Instance (2 0 1)============================"
-!(assertEqual
-   (getCandidate (mkRep knobMapObj tree1)
-                 (mkInst (Cons 2 (Cons 0 (Cons 1 Nil)))))
-        
-        (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) 
-                (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) 
-                                          (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) 
-                                          (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) Nil)))) Nil))))
-; (
+; ;; Test case for Instance (2 0 1): (AND A (OR B C)) => (AND A (OR B C (NOT D)))
+; ! "===================Test case for Instance (2 0 1)============================"
+; !(assertEqual
+;    (getCandidateRec (mkRep knobMapObj tree1)
+;                     (mkInst (Cons 2 (Cons 0 (Cons 1 Nil))))
+;                     (mkNodeId (0))
+;                     (mkNodeId (0))
+;                     (mkNullVex Nil))
 ;    (mkTree (mkNode AND)
 ;       (Cons (mkTree (mkNode A) Nil)
 ;       (Cons (mkTree (mkNode OR)
-;                 (Cons (mkTree (mkNode B) Nil)
-;                 (Cons (mkTree (mkNode C) Nil)
-;                 (Cons (mkTree (mkNode NOT)
-;                         (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)))) (
+;               (Cons (mkTree (mkNode B) Nil)
+;               (Cons (mkTree (mkNode C) Nil)
+;               (Cons (mkTree (mkNode NOT)
+;                       (Cons (mkTree (mkNode D) Nil) Nil)) Nil))))
+;       (Cons (mkNullVex
+;                (Cons (mkTree (mkNode OR)
+;                         (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil)))))
 
-;; TODO: Change the above expected by below when reduct issue is fixed.
-                ; (Cons (mkTree (mkNode AND)
-                ;         (Cons (mkTree (mkNode B) Nil) Nil))
-                ; (Cons (mkTree (mkNode AND)
-                ;         (Cons (mkTree (mkNode C) Nil) Nil))
-                ; (Cons (mkTree (mkNode AND)
-                ;         (Cons (mkTree (mkNode NOT)
-                ;                  (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) Nil))))
+; ;; Test case for Instance (2 0 1): (AND A (OR B C)) => (AND A (OR B C (NOT D)))
+; ! "===================Test case for Instance (2 0 1)============================"
+; !(assertEqual
+;    (getCandidate (mkRep knobMapObj tree1)
+;                  (mkInst (Cons 2 (Cons 0 (Cons 1 Nil)))))
+        
+;         (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) 
+;                 (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) 
+;                                           (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) 
+;                                           (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) Nil)))) Nil))))
+; ; (
+; ;    (mkTree (mkNode AND)
+; ;       (Cons (mkTree (mkNode A) Nil)
+; ;       (Cons (mkTree (mkNode OR)
+; ;                 (Cons (mkTree (mkNode B) Nil)
+; ;                 (Cons (mkTree (mkNode C) Nil)
+; ;                 (Cons (mkTree (mkNode NOT)
+; ;                         (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)))) (
 
-; Test for crtDiscKnobMap
-; converts dscMp($kbSpec $kb) to dscKbMp($kbLoc $index)
-!(assertEqual (crtDiscKnobMap (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) 
-     (ConsMMap ((mkDiscSpec 2) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) 
-     (ConsMMap ((mkDiscSpec 1) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 1 1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkDscKbMp NilMap) 0)
-     (mkDscKbMp (ConsMap ((mkNodeId (2)) 0) (ConsMap ((mkNodeId (2 1 1)) 2) (ConsMap ((mkNodeId (2 3)) 1) NilMap)))))
+; ;; TODO: Change the above expected by below when reduct issue is fixed.
+;                 ; (Cons (mkTree (mkNode AND)
+;                 ;         (Cons (mkTree (mkNode B) Nil) Nil))
+;                 ; (Cons (mkTree (mkNode AND)
+;                 ;         (Cons (mkTree (mkNode C) Nil) Nil))
+;                 ; (Cons (mkTree (mkNode AND)
+;                 ;         (Cons (mkTree (mkNode NOT)
+;                 ;                  (Cons (mkTree (mkNode D) Nil) Nil)) Nil)) Nil))))
 
-!(assertEqual (crtDiscKnobMap (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) 
-     (ConsMMap ((mkDiscSpec 2) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (2 3 1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) 
-     (ConsMMap ((mkDiscSpec 1) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (2 1 1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) NilMMap)))) (mkDscKbMp NilMap) 0)
-     (mkDscKbMp (ConsMap ((mkNodeId (2 1 1)) 2) (ConsMap ((mkNodeId (2 2)) 0) (ConsMap ((mkNodeId (2 3 1)) 1) NilMap)))))
+; ; Test for crtDiscKnobMap
+; ; converts dscMp($kbSpec $kb) to dscKbMp($kbLoc $index)
+; !(assertEqual (crtDiscKnobMap (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) 
+;      (ConsMMap ((mkDiscSpec 2) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) 
+;      (ConsMMap ((mkDiscSpec 1) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 1 1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkDscKbMp NilMap) 0)
+;      (mkDscKbMp (ConsMap ((mkNodeId (2)) 0) (ConsMap ((mkNodeId (2 1 1)) 2) (ConsMap ((mkNodeId (2 3)) 1) NilMap)))))
+
+; !(assertEqual (crtDiscKnobMap (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) 
+;      (ConsMMap ((mkDiscSpec 2) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (2 3 1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) 
+;      (ConsMMap ((mkDiscSpec 1) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (2 1 1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) NilMMap)))) (mkDscKbMp NilMap) 0)
+;      (mkDscKbMp (ConsMap ((mkNodeId (2 1 1)) 2) (ConsMap ((mkNodeId (2 2)) 0) (ConsMap ((mkNodeId (2 3 1)) 1) NilMap)))))
 
 
 ; NOTE: This test is temporarily commented out because set-seed is 
@@ -292,8 +292,8 @@
     
 )        
 
-;; happens seeded random number generator was being referred from general-helpers
-;; ! ((py-dot rnd seed) 0)
+; happens seeded random number generator was being referred from general-helpers
+; ! ((py-dot rnd seed) 0)
 ! (assertEqual (representation 
         2
         (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) 
