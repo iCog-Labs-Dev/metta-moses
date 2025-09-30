@@ -28,13 +28,16 @@
       False  ; Invalid maxGensNoImprovement - don't terminate
       (let* (
             ($currentBest (getBestPenalizedScore (getInstanceSet $deme)))
-            ($hasImproved (> $currentBest $bestSeenSoFar))
+            ;; Coerce to float to avoid mixed int/float comparison issues
+            ($thresholdF (+ 0.0 $threshold))
+            ($bestSeenSoFarF (+ 0.0 $bestSeenSoFar))
+            ($hasImproved (> $currentBest $bestSeenSoFarF))
           )
           ;; C++ logic: if improved, only check threshold; if no improvement, check both conditions
           (if $hasImproved
-              (>= $currentBest $threshold)  ; Use type-safe >= from general-helpers
+              (>= $currentBest $thresholdF)
               (or (>= $generationsWithoutImprovement $maxGensNoImprovement)  ; Check OLD no-improvement count
-                  (>= $bestSeenSoFar $threshold))))))  ; Use type-safe >= from general-helpers
+                  (>= $bestSeenSoFarF $thresholdF))))))
 
 ;; Get the best penalized score from the instance set
 (: getBestPenalizedScore (-> (InstanceSet Cscore) Number))
