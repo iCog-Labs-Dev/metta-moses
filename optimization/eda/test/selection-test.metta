@@ -35,17 +35,17 @@
 ;; Test best selection with actual instances
 ;; The best penalized score among the four is -1.0 for instance (1 1)
 !(assertEqual 
-  (select-best (getScoredInstances (getInstanceSet test_deme)))
+  (selectBest (getScoredInstances (getInstanceSet test_deme)))
   (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore 0 2 1.0 0.0 -1.0))))
 
 ;; Test tournament selection - note: this test is non-deterministic due to random selection
 ;; We test that it returns the correct number of instances rather than specific values
 !(assertEqual
-  (coll.length (getScoredInstances (tournament-selection 2 test_deme 1)))
+  (coll.length (getScoredInstances (tournamentSelection 2 test_deme 1)))
   1)
 
 ;; Test tournament selection with 2 selections
 !(assertEqual
-  (coll.length (getScoredInstances (tournament-selection 2 test_deme 2)))
+  (coll.length (getScoredInstances (tournamentSelection 2 test_deme 2)))
   2)
 

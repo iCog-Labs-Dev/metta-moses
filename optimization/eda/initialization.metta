@@ -21,67 +21,49 @@
 ;; ================================================================================
 
 ;; Sample uniform instance for initialization
-; (: sample-uniform-instance (-> Representation Instance))
-(= (sample-uniform-instance $rep)
+; (: sampleUniformInstance (-> Representation Instance))
+(= (sampleUniformInstance $rep)
   (let* (
-        ($kv (sample-uniform-knob-values $rep))
+        ($kv (sampleUniformKnobValues $rep))
       )
-      (create-instance $rep $kv)))
+      (createInstance $rep $kv)))
 
-; (: sample-uniform-knob-values (-> Representation (Map KnobId KnobValue)))
-(= (sample-uniform-knob-values $rep)
+; (: sampleUniformKnobValues (-> Representation (Map NodeId KnobValue)))
+(= (sampleUniformKnobValues $rep)
   (let* (
-        ($pairs (get-knob-ids-and-specs $rep))
+        ($pairs (getKnobIdsAndSpecs $rep))
       )
-      (sample-uniform-kv-acc $pairs NilMap)))
+      (sampleUniformKvAcc $pairs NilMap)))
 
-; (: get-knob-ids-and-specs (-> Representation (List (Pair KnobId (DiscSpec $knob)))))
-(= (get-knob-ids-and-specs (mkRep (mkKbMap (mkDscKbMp $discKbMap) (mkDscMp $discMap)) $tree))
+; (: getKnobIdsAndSpecs (-> Representation (List (Pair NodeId (DiscSpec $knob)))))
+(= (getKnobIdsAndSpecs (mkRep (mkKbMap (mkDscKbMp $discKbMap) (mkDscMp $discMap)) $tree))
   (List.zip (Map.keys $discKbMap) (MultiMap.values $discMap)))
 
-; (: sample-uniform-kv-acc (-> (List (Pair KnobId (DiscSpec $knob))) (Map KnobId KnobValue) (Map KnobId KnobValue)))
-(= (sample-uniform-kv-acc Nil $acc) 
+;; Helper: compute a safe random integer in [0, m-1]
+; (: randomIndexBelow (-> Number Number))
+(= (randomIndexBelow $m)
   (let* (
-        (() (println! (sample-uniform-kv-acc: Nil case)))
-      )
-      $acc))
-(= (sample-uniform-kv-acc (Cons ($kid (mkLSK (mkDiscKnob (mkKnob $nodeId) (mkMultip $m) $d1 $d2 $rest))) $restPairs) $acc)
-  (let* (
-        (() (println! (sample-uniform-kv-acc: LSK pattern matched)))
-        (() (println! (sample-uniform-kv-acc: got kid $kid)))
-        (() (println! (sample-uniform-kv-acc: got nodeId $nodeId)))
-        (() (println! (sample-uniform-kv-acc: got m $m)))
-        (() (println! (sample-uniform-kv-acc: starting)))
         ($rf (randomFloat))
-        (() (println! (sample-uniform-kv-acc: got rf $rf)))
         ($val (int (* $rf $m)))
-        (() (println! (sample-uniform-kv-acc: got val $val)))
-        ($safe (if (== $val $m) (- $m 1) $val))
-        (() (println! (sample-uniform-kv-acc: got safe $safe)))
-        ($knobValue (mkKnobValue $safe))
-        (() (println! (sample-uniform-kv-acc: got knobValue $knobValue)))
-        ($acc2 (Map.insert ($kid $knobValue) $acc == nodeId<))
-        (() (println! (sample-uniform-kv-acc: got acc2 $acc2)))
       )
-      (sample-uniform-kv-acc $restPairs $acc2)))
-(= (sample-uniform-kv-acc (Cons ($kid (mkDiscSpec $m)) $rest) $acc)
+      (if (== $val $m) (- $m 1) $val)))
+
+;; Helper: extract multiplicity from spec variants
+; (: getMultiplicity (-> (DiscSpec $knob) Number))
+(= (getMultiplicity (mkDiscSpec $m)) $m)
+; (: getMultiplicity (-> (LSK $a) Number))
+(= (getMultiplicity (mkLSK (mkDiscKnob (mkKnob $nodeId) (mkMultip $m) $d1 $d2 $rest))) $m)
+
+; (: sampleUniformKvAcc (-> (List (Pair NodeId (DiscSpec $knob))) (Map NodeId KnobValue) (Map NodeId KnobValue)))
+(= (sampleUniformKvAcc Nil $acc) $acc)
+(= (sampleUniformKvAcc (Cons ($kid $spec) $rest) $acc)
   (let* (
-        (() (println! (sample-uniform-kv-acc: DiscSpec pattern matched)))
-        (() (println! (sample-uniform-kv-acc: got kid $kid)))
-        (() (println! (sample-uniform-kv-acc: got m $m)))
-        (() (println! (sample-uniform-kv-acc: starting)))
-        ($rf (randomFloat))
-        (() (println! (sample-uniform-kv-acc: got rf $rf)))
-        ($val (int (* $rf $m)))
-        (() (println! (sample-uniform-kv-acc: got val $val)))
-        ($safe (if (== $val $m) (- $m 1) $val))
-        (() (println! (sample-uniform-kv-acc: got safe $safe)))
+        ($m (getMultiplicity $spec))
+        ($safe (randomIndexBelow $m))
         ($knobValue (mkKnobValue $safe))
-        (() (println! (sample-uniform-kv-acc: got knobValue $knobValue)))
         ($acc2 (Map.insert ($kid $knobValue) $acc == nodeId<))
-        (() (println! (sample-uniform-kv-acc: got acc2 $acc2)))
       )
-      (sample-uniform-kv-acc $rest $acc2)))
+      (sampleUniformKvAcc $rest $acc2)))
 
 ;; ================================================================================
 ;; Future Initialization Policies

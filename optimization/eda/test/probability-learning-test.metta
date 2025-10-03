@@ -44,14 +44,14 @@
   (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 Nil))) (mkCscore -3 1 0.5 0.0 -3.5))) Nil))))))
 
 ;; Test knob value counting (deterministic counts)
-!(assertEqual (count-knob-values (getDiscMap (getRep test_deme)) test_instances)
+!(assertEqual (countKnobValues (getDiscMap (getRep test_deme)) test_instances)
   (ConsMap ((mkNodeId (1)) (ConsMap ((mkKnobValue 0) 2) (ConsMap ((mkKnobValue 1) 2) NilMap)))
            (ConsMap ((mkNodeId (2)) (ConsMap ((mkKnobValue 0) 1) (ConsMap ((mkKnobValue 1) 2) (ConsMap ((mkKnobValue 2) 1) NilMap)))) NilMap)))
 
 ;; Test probability computation (Laplace-smoothed, normalized)
-!(assertEqual (Map.getByKey (mkNodeId (1)) (compute-probabilities (count-knob-values (getDiscMap (getRep test_deme)) test_instances)))
+!(assertEqual (Map.getByKey (mkNodeId (1)) (computeProbabilities (countKnobValues (getDiscMap (getRep test_deme)) test_instances)))
   (ConsMap ((mkKnobValue 0) 0.5) (ConsMap ((mkKnobValue 1) 0.5) NilMap)))
-!(assertEqual (Map.getByKey (mkNodeId (2)) (compute-probabilities (count-knob-values (getDiscMap (getRep test_deme)) test_instances)))
+!(assertEqual (Map.getByKey (mkNodeId (2)) (computeProbabilities (countKnobValues (getDiscMap (getRep test_deme)) test_instances)))
   (ConsMap ((mkKnobValue 0) (/ 2.0 7.0)) (ConsMap ((mkKnobValue 1) (/ 3.0 7.0)) (ConsMap ((mkKnobValue 2) (/ 2.0 7.0)) NilMap))))
 
 ; ;; Test KnobValue comparison functions

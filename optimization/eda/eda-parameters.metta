@@ -12,6 +12,12 @@
 ;;
 ;; Data Structures:
 ;; - EDAParameters: mkEDAParameters (selection tournamentSize selectionRatio replacementRatio modelComplexity)
+;;
+;; Parameters:
+;; - selection: Tournament size (integer, default: 2)
+;; - selectionRatio: Fraction of population to select for learning (float, default: 1.0)
+;; - replacementRatio: Fraction of population to replace each generation (float, default: 0.5)
+;; - modelComplexity: Model complexity control (float, default: 1.0, unused in univariate)
 
 ;; ================================================================================
 ;; Type Definitions
@@ -43,4 +49,4 @@
 (= (getModelComplexity (mkEDAParameters $selection $selectionRatio $replacementRatio $modelComplexity)) $modelComplexity)
 
 ;; Default EDA parameters
-(= (default-eda-parameters) (mkEDAParameters 2 1.0 0.5 1.0))
+(= (defaultEdaParameters) (mkEDAParameters 2.0 1.0 0.5 1.0))

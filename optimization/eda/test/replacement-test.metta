@@ -37,19 +37,19 @@
 
 ;; Worst instance identification returns last 2 after sort-by-score (descending best first)
 !(assertEqual 
-  (get-worst-instances (getScoredInstances (getInstanceSet test_deme)) 2)
+  (getWorstInstances (getScoredInstances (getInstanceSet test_deme)) 2)
   (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -1 1 0.5 0.0 -1.5)))
         (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 Nil))) (mkCscore -3 1 0.5 0.0 -3.5))) Nil)))
 
 ;; Removing worst 2 keeps the better 2
 !(assertEqual 
-  (remove-worst-instances (getScoredInstances (getInstanceSet test_deme)) 2)
+  (removeWorstInstances (getScoredInstances (getInstanceSet test_deme)) 2)
   (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore 0 2 1.0 0.0 -1.0)))
         (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 Nil))) (mkCscore -1 1 0.5 0.0 -1.5))) Nil)))
 
 ;; sort-by-score sorts descending by penalized score then ascending complexity
 !(assertEqual 
-  (sort-by-score (getScoredInstances (getInstanceSet test_deme)))
+  (sortByScore (getScoredInstances (getInstanceSet test_deme)))
   (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore 0 2 1.0 0.0 -1.0)))
         (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 Nil))) (mkCscore -1 1 0.5 0.0 -1.5)))
               (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -1 1 0.5 0.0 -1.5)))
@@ -57,7 +57,7 @@
 
 ;; Replacement inserts new instances and removes worst (assert on instance set)
 !(assertEqual 
-  (getInstanceSet (replace-the-worst (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 2 Nil))) (mkCscore 1 2 1.0 0.0 0.0))) Nil)) test_deme))
+  (getInstanceSet (replaceTheWorst (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 2 Nil))) (mkCscore 1 2 1.0 0.0 0.0))) Nil)) test_deme))
   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore 0 2 1.0 0.0 -1.0)))
                    (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 Nil))) (mkCscore -1 1 0.5 0.0 -1.5)))
                          (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -1 1 0.5 0.0 -1.5)))

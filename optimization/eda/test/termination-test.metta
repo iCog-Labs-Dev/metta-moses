@@ -34,11 +34,15 @@
   0))
 
 ;; Test termination condition
-!(assertEqual (terminate-if-gte-or-no-improv -1 10 test_deme) True)
-!(assertEqual (terminate-if-gte-or-no-improv 10 10 test_deme) False)
+
+;; Test full termination logic with improvement tracking
+!(assertEqual (terminateIfGteOrNoImprov -1 10 test_deme -2.0 0) True)  ; current(-1.0) > best(-2.0), and -1.0 >= -1
+!(assertEqual (terminateIfGteOrNoImprov 10 10 test_deme -2.0 0) False)  ; current(-1.0) > best(-2.0), but -1.0 < 10
+!(assertEqual (terminateIfGteOrNoImprov -5 10 test_deme -1.0 3) True)   ; current(-1.0) == best(-1.0), 3 <= 10, but -1.0 >= -5
+!(assertEqual (terminateIfGteOrNoImprov 10 2 test_deme -1.0 3) True)   ; current(-1.0) == best(-1.0), 3 >= 2
 
 ;; Test best penalized score extraction - exact expected best pen score is -1.0
-!(assertEqual (get-best-penalized-score (getInstanceSet test_deme)) -1.0)
+!(assertEqual (getBestPenalizedScore (getInstanceSet test_deme)) -1.0)
 
 ;; Test with empty deme - best penalized score is worstCscore penalized value
-!(assertEqual (get-best-penalized-score (getInstanceSet (mkDeme (getRep test_deme) (mkSInstSet Nil) 0))) (* -1 (pow-math 10 308)))
+!(assertEqual (getBestPenalizedScore (getInstanceSet (mkDeme (getRep test_deme) (mkSInstSet Nil) 0))) (* -1 (pow-math 10 308)))

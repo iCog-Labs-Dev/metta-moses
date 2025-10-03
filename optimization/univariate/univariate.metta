@@ -12,189 +12,188 @@
 ;; - Uses tournament selection and probability learning
 ;;
 ;; Entry Point: univariate(Deme, TruthTableBScore, Instance) -> (Instance, Deme, State)
+;;
+;; EDA Workflow Integration:
+;; 1. Initialize population with existing instances
+;; 2. Select promising individuals using tournament selection
+;; 3. Learn probability model from selected individuals
+;; 4. Sample new individuals from learned model
+;; 5. Replace worst individuals with new ones
+;; 6. Repeat until termination criteria met
 
 ;; ================================================================================
 ;; Main Univariate Optimization Function
 ;; ================================================================================
 
 ;; Entry point compatible with runMoses/expandDeme (same signature as hillClimbing)
+;; This is the main entry point that sets up EDA parameters and delegates to the EDA-based implementation
 ; (: univariate (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)))
 (= (univariate $deme $tTableBscorer $centerInst)
   (let* (
-        (() (println! (univariate: $deme $tTableBscorer $centerInst)))
-        ($edaParams (default-eda-parameters))
-        ($result (univariate-with-eda $deme $tTableBscorer $centerInst $edaParams))
+        ;; Entry log (keep concise)
+        (() (println! (univariate: starting)))
+        ($edaParams (defaultEdaParameters))
+        ($result (univariateWithEda $deme $tTableBscorer $centerInst $edaParams))
       )
       $result))
 
-;; Helper to ensure we operate on a concrete Instance value
-; (: unwrap-instance (-> Instance Instance))
-(= (unwrap-instance $inst) $inst)
+;; ================================================================================
+;; EDA-Based Univariate Optimization
+;; ================================================================================
 
 ;; Univariate optimization using EDA framework
-; (: univariate-with-eda (-> Deme (TruthTableBScore $a) Instance (EDAParameters) (Instance Deme $state)))
-(= (univariate-with-eda $deme $tTableBscorer $centerInst $edaParams)
+;; This function sets up the EDA parameters and initializes the population
+;; before entering the main EDA optimization loop
+; (: univariateWithEda (-> Deme (TruthTableBScore $a) Instance (EDAParameters) (Instance Deme $state)))
+(= (univariateWithEda $deme $tTableBscorer $centerInst $edaParams)
   (let* (
-        (() (println! (Starting univariate-with-eda)))
+        (() (println! (univariate-with-eda: start)))
+        ;; Extract scoring parameters
         ((mkTruthTableBScore $cpxCoeff $size $iTable) $tTableBscorer)
-        (() (println! (cpxCoeff: $cpxCoeff size: $size)))
+        
+        ;; Extract deme components
         ((mkDeme $rep (mkSInstSet $instSet) $id) $deme)
         ($discMap (getDiscMap $rep))
         ($discMapLength (MultiMap.length $discMap))
-        (() (println! (discMapLength: $discMapLength)))
+        
+        ;; Calculate population size based on representation complexity
         ($popSize (max 1 $discMapLength))
-        (() (println! (popSize: $popSize)))
+        
         ;; Pre-score population and seed diversity if needed
         ($scoredInit (transform (mkSInstSet $instSet) $rep $iTable $cpxCoeff))
-        (() (println! (scoredInit: $scoredInit)))
         ((mkSInstSet $scoredList) $scoredInit)
-        (() (println! (scoredList: $scoredList)))
+        
+        ;; Add seed instance if population is too small
         ($maybeSeed (if (<= (List.length $scoredList) 1)
-                         (Cons (mkSInst (mkPair (sample-uniform-instance $rep) (worstCscore))) $scoredList)
+                         (Cons (mkSInst (mkPair (sampleUniformInstance $rep) (worstCscore))) $scoredList)
                          $scoredList))
         ($deme0 (mkDeme $rep (mkSInstSet $maybeSeed) $id))
-        (() (println! (deme0: $deme0)))
-        ;; Calculate parameters
+        
+        ;; Calculate EDA parameters
         ($maxGensTotal (min 3 (max 1 $discMapLength)))
-        (() (println! (maxGensTotal: $maxGensTotal)))
         ($maxGensImprov 10)
-        (() (println! (maxGensImprov: $maxGensImprov)))
+        
+        ;; Extract selection and replacement parameters
         ($selection (getSelection $edaParams))
-        (() (println! (selection: $selection)))
         ($selRatio (getSelectionRatio $edaParams))
-        (() (println! (selRatio: $selRatio)))
         ($repRatio (getReplacementRatio $edaParams))
-        (() (println! (repRatio: $repRatio)))
+        
+        ;; Calculate selection and generation counts
         ($nSelect (* $popSize $selRatio))
-        (() (println! (nSelect: $nSelect)))
         ($nGenerate (* $popSize $repRatio))
-        (() (println! (nGenerate: $nGenerate)))
-        (() (println! (maxGensTotal: $maxGensTotal nSelect: $nSelect nGenerate: $nGenerate)))
+        (() (println! (params: popSize= $popSize maxGens= $maxGensTotal nSelect= $nSelect nGenerate= $nGenerate)))
       )
-      (univariate-eda-loop $deme0 $cpxCoeff $iTable $centerInst $edaParams $nSelect $nGenerate 0 $maxGensTotal $maxGensImprov)))
+      ;; Enter the main EDA optimization loop
+      (univariateEdaLoop $deme0 $cpxCoeff $iTable $centerInst $edaParams $nSelect $nGenerate 0 $maxGensTotal $maxGensImprov)))
+
+;; ================================================================================
+;; Main EDA Optimization Loop
+;; ================================================================================
 
 ;; Main EDA loop for univariate optimization
+;; This implements the core EDA workflow: selection → model learning → sampling → replacement
+;; The loop continues until termination criteria are met (max generations reached)
 ; (: univariate-eda-loop (-> Deme Number (ITable $a) Instance (EDAParameters) Number Number Number Number Number (Instance Deme $state)))
-(= (univariate-eda-loop $deme $cpxCoeff $iTable $centerInst $edaParams $nSelect $nGenerate $gen $maxGens $maxGensImprov)
+(= (univariateEdaLoop $deme $cpxCoeff $iTable $centerInst $edaParams $nSelect $nGenerate $gen $maxGens $maxGensImprov)
   (let* (
-        (() (println! (EDA Loop: gen= $gen maxGens= $maxGens)))
+        (() (println! (eda-loop: gen= $gen maxGens= $maxGens)))
         ;; Recompute simple scalar params inside the loop frame to avoid any unevaluated symbols
         ($selection2 (getSelection $edaParams))
       )
+      ;; Check termination condition
       (if (>= $gen $maxGens)
+          ;; Termination: return best result found
           (let* (
-            (() (println! (Reached max generations: $gen)))
-            ($finalCenter (unwrap-instance $centerInst))
-            ($result (make-result $finalCenter $deme))
+            (() (println! (termination: reached max generations)))
+            ($result (makeResult $centerInst $deme))
           )
           $result)
+          ;; Continue optimization: execute EDA workflow
           (let* (
-                (() (println! (Starting EDA step: selection)))
-                ;; Selection step
-                ($selectedInstances (tournament-selection $selection2 $deme $nSelect))
-                (() (println! (Selection done, learning model)))
+                (() (println! (step: selection)))
                 
-                ;; Model learning step
-                ($probModel (learn-probability-model $deme $selectedInstances))
-                (() (println! (Model learning done, sampling)))
+                ;; Step 1: Selection - select promising individuals using tournament selection
+                ($selectedInstances (tournamentSelection $selection2 $deme $nSelect))
+                (() (println! (step: structure-learning)))
                 
-                ;; Sampling step
-                ($newInstances (sample-from-model $probModel $deme $nGenerate))
-                (() (println! (Sampling done, scoring)))
+                ;; Step 2: Structure Learning - explicit no-op for univariate (clarity and parity)
+                (() (univariate-structure-learning $deme $selectedInstances))
+                (() (println! (step: probability-learning)))
                 
-                ;; Scoring step
+                ;; Step 3: Model Learning - learn probability distributions from selected instances
+                ($probModel (learnProbabilityModel $deme $selectedInstances))
+                (() (println! (step: sampling)))
+                
+                ;; Step 4: Sampling - generate new instances from learned probability model
+                ($newInstances (sampleFromModel $probModel $deme $nGenerate))
+                (() (println! (step: scoring)))
+                
+                ;; Step 5: Scoring - evaluate new instances using the scoring function
                 ($scoredNewInstances (transform $newInstances (getRep $deme) $iTable $cpxCoeff))
-                (() (println! (Scoring done, replacing)))
+                (() (println! (step: replacement)))
                 
-                ;; Replacement step
-                ($updatedDeme (replace-the-worst $scoredNewInstances $deme))
-                (() (println! (Replacement done, updating center)))
+                ;; Step 6: Replacement - replace worst instances with new ones
+                ($updatedDeme (replaceTheWorst $scoredNewInstances $deme))
+                (() (println! (step: update-center)))
                 
-                ;; Update center
+                ;; Step 6: Update center - find best instance for next iteration
                 ((mkSInstSet $allInstances) (getInstanceSet $updatedDeme))
-                ($bestSInst (select-best $allInstances))
+                ($bestSInst (selectBest $allInstances))
                 ($nextCenterRaw (getInst $bestSInst))
-                ($nextCenter (unwrap-instance $nextCenterRaw))
-                (() (println! (Center updated, continuing loop)))
+                ($nextCenter $nextCenterRaw)
+                (() (println! (center: updated)))
               )
-              (univariate-eda-loop $updatedDeme $cpxCoeff $iTable $nextCenter $edaParams $nSelect $nGenerate (+ $gen 1) $maxGens $maxGensImprov)))))
+              ;; Recursive call to continue optimization
+              (univariateEdaLoop $updatedDeme $cpxCoeff $iTable $nextCenter $edaParams $nSelect $nGenerate (+ $gen 1) $maxGens $maxGensImprov)))))
+
+;; Convenience wrapper to match test signature: (univariateEdaLoop Deme TruthTableBScore Instance EDAParameters)
+;; Delegates to the full univariate EDA flow with parameter calculation
+(= (univariateEdaLoop $deme $tTableBscorer $centerInst $edaParams)
+  (univariateWithEda $deme $tTableBscorer $centerInst $edaParams))
 
 ;; ================================================================================
 ;; Information Theoretic Calculations
 ;; ================================================================================
 
 ;; Information theoretic bits calculation (from C++ version)
-; (: information-theoretic-bits (-> Representation Number))
-(= (information-theoretic-bits $rep)
+;; This calculates the total number of bits needed to represent all knob values
+;; in the representation, which is used for population sizing
+; (: informationTheoreticBits (-> Representation Number))
+(= (informationTheoreticBits $rep)
    (let* (
          ($discMap (getDiscMap $rep))
          ($specs (MultiMap.values $discMap))
-         ($mults (List.map disc-spec-multiplicity $specs))
+         ($mults (List.map discSpecMultiplicity $specs))
          ($bitsEach (List.map ilog2ceil $mults))
          ($totalBits (List.foldl + 0 $bitsEach))
        )
        (max 1 $totalBits)))
 
 ;; Get multiplicity from DiscSpec
-; (: disc-spec-multiplicity (-> (DiscSpec $knob) Number))
-(= (disc-spec-multiplicity (mkDiscSpec $m)) $m)
+; (: discSpecMultiplicity (-> (DiscSpec $knob) Number))
+(= (discSpecMultiplicity (mkDiscSpec $m)) $m)
 
-;; Integer ceil(log2(n)) without floating math
+;; Ceil(log2(n)) using shared logMath implementation
 ; (: ilog2ceil (-> Number Number))
 (= (ilog2ceil $n)
-   (ilog2ceil-acc $n 1 0))
-
-; (: ilog2ceil-acc (-> Number Number Number Number))
-(= (ilog2ceil-acc $n $v $k)
-   (if (< $v $n)
-       (ilog2ceil-acc $n (* $v 2) (+ $k 1))
-       $k))
+   (let* (
+         ($x (logMath 2 $n))
+         ($f (floor-math $x))
+       )
+       (if (< $f $x) (+ $f 1) $f)))
 
 ;; ================================================================================
 ;; Result Construction
 ;; ================================================================================
 
-;; Make result tuple for compatibility
-(: make-result (-> Instance Deme Expression))
-(= (make-result $inst $deme) ($inst $deme ()))
+;; Make result tuple for compatibility with runMoses/expandDeme interface
+;; Returns a tuple of (Instance, Deme, State) where State is empty
+(: makeResult (-> Instance Deme Expression))
+(= (makeResult $inst $deme) ($inst $deme ()))
 
 ;; ================================================================================
-;; Legacy Simple Implementation (for comparison)
+;; Helper Functions
 ;; ================================================================================
 
-;; Simple univariate function without EDA (kept for backward compatibility)
-; (: univariate-simple (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)))
-(= (univariate-simple $deme $tTableBscorer $centerInst)
-   (let* (
-         ((mkTruthTableBScore $cpxCoeff $size $iTable) $tTableBscorer)
-         ((mkDeme $rep (mkSInstSet $instSet) $id) $deme)
-         ($discMap (getDiscMap $rep))
-         ($discMapLength (MultiMap.length $discMap))
-         ($maxGens (max 1 $discMapLength))
-       )
-       (univariate-simple-loop $deme $cpxCoeff $iTable $centerInst 0 $maxGens)))
-
-;; Simple loop without EDA
-; (: univariate-simple-loop (-> Deme Number (ITable $a) Instance Number Number (Instance Deme $state)))
-(= (univariate-simple-loop (mkDeme $rep (mkSInstSet $instSet) $id)
-                    $cpxCoeff $iTable $centerInst $gen $maxGens)
-   (if (>= $gen $maxGens)
-       (let* (
-         ($result ($centerInst (mkDeme $rep (mkSInstSet $instSet) $id) ()))
-       )
-       $result)
-       (let* (
-             ;; Simple neighborhood sampling
-             ($totalNeighbors (estimateNeighborhood 1 (getDiscMap $rep)))
-             ($nNew (min $totalNeighbors 3))
-             (($demeWithNewInsts $added) (sampleNewInstances $totalNeighbors $nNew $centerInst (mkDeme $rep (mkSInstSet $instSet) $id) 1))
-             ((mkSInstSet $scored) (transform (getInstanceSet $demeWithNewInsts) (getRep $demeWithNewInsts) $iTable $cpxCoeff))
-             ($demeScored (mkDeme (getRep $demeWithNewInsts) (mkSInstSet $scored) (getDemeId $demeWithNewInsts)))
-             ((mkSInst $bestPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $centerInst (worstCscore))) $scored))
-             ($nextCenter (Pair.first $bestPair))
-           )
-           (univariate-simple-loop $demeScored $cpxCoeff $iTable $nextCenter (+ $gen 1) $maxGens))))
-
-;; Helper function to get deme ID
 ; (: getDemeId (-> Deme DemeId))
 (= (getDemeId (mkDeme $rep $instSet $id)) $id)

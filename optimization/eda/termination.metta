@@ -21,33 +21,34 @@
 ;; ================================================================================
 
 ;; Check if optimization should terminate
-(: terminate-if-gte-or-no-improv (-> Number Number Deme Bool))
-(= (terminate-if-gte-or-no-improv $threshold $maxGensNoImprovement $deme)
-  (let* (
-        (() (println! (Terminate if gte or no improv: threshold= $threshold maxGensNoImprovement= $maxGensNoImprovement deme= $deme)))
-        ((mkDeme $rep $iset $id) $deme)
-        (() (println! (Terminate if gte or no improv: iset= $iset)))
-        ($best (get-best-penalized-score $iset))
-        (() (println! (Terminate if gte or no improv: best= $best)))
-      )
-      (if (< $best $threshold) False True)))
+;; This implements the full C++ logic: terminate if score >= threshold OR no improvement for maxGensNoImprovement generations
+(: terminateIfGteOrNoImprov (-> Number Number Deme Number Number Number Bool))
+(= (terminateIfGteOrNoImprov $threshold $maxGensNoImprovement $deme $bestSeenSoFar $generationsWithoutImprovement)
+  (if (< $maxGensNoImprovement 0)
+      False  ; Invalid maxGensNoImprovement - don't terminate
+      (let* (
+            ($currentBest (getBestPenalizedScore (getInstanceSet $deme)))
+            ;; Coerce to float to avoid mixed int/float comparison issues
+            ($thresholdF (+ 0.0 $threshold))
+            ($bestSeenSoFarF (+ 0.0 $bestSeenSoFar))
+            ($hasImproved (> $currentBest $bestSeenSoFarF))
+          )
+          ;; C++ logic: if improved, only check threshold; if no improvement, check both conditions
+          (if $hasImproved
+              (>= $currentBest $thresholdF)
+              (or (>= $generationsWithoutImprovement $maxGensNoImprovement)  ; Check OLD no-improvement count
+                  (>= $bestSeenSoFarF $thresholdF))))))
 
 ;; Get the best penalized score from the instance set
-(: get-best-penalized-score (-> (InstanceSet Cscore) Number))
-(= (get-best-penalized-score (mkSInstSet $instances))
+(: getBestPenalizedScore (-> (InstanceSet Cscore) Number))
+(= (getBestPenalizedScore (mkSInstSet $instances))
   (if (== (List.length $instances) 0)
       (getPenScore (worstCscore))
-      (let* (
-            ;; Extract penalized scores from scored instances via a named helper
-            ($scores (List.map get-pen-score-from-sinst $instances))
-            ;; Compute the maximum penalized score
-            ($best (List.max $scores))
-          )
-          $best)))
+      (List.max (List.map getPenScoreFromSinst $instances))))
 
 ;; Helper: extract penalized score from a ScoredInstance
-(: get-pen-score-from-sinst (-> (ScoredInstance Cscore) Number))
-(= (get-pen-score-from-sinst (mkSInst (mkPair $inst $cs))) (getPenScore $cs))
+(: getPenScoreFromSinst (-> (ScoredInstance Cscore) Number))
+(= (getPenScoreFromSinst (mkSInst (mkPair $inst $cs))) (getPenScore $cs))
 
 ;; ================================================================================
 ;; Future Termination Policies
@@ -56,19 +57,19 @@
 ;; Placeholder for additional termination criteria
 ;; These could be implemented for more sophisticated termination strategies
 
-;; (: terminate-if-max-generations (-> Number Number Bool))
+;; (: terminateIfMaxGenerations (-> Number Number Bool))
 ;; (= (terminate-if-max-generations $currentGen $maxGens)
 ;;    (>= $currentGen $maxGens))
 
-;; (: terminate-if-convergence (-> Deme Number Bool))
-;; (= (terminate-if-convergence $deme $tolerance)
+;; (: terminateIfConvergence (-> Deme Number Bool))
+;; (= (terminateIfConvergence $deme $tolerance)
 ;;    (let* (
 ;;          ($variance (compute-population-variance $deme))
 ;;        )
 ;;        (< $variance $tolerance)))
 
-;; (: terminate-if-time-limit (-> Number Number Bool))
-;; (= (terminate-if-time-limit $startTime $maxTime)
+;; (: terminateIfTimeLimit (-> Number Number Bool))
+;; (= (terminateIfTimeLimit $startTime $maxTime)
 ;;    (let* (
 ;;          ($currentTime (perf_counter))
 ;;          ($elapsed (- $currentTime $startTime))

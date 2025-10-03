@@ -46,13 +46,13 @@
 
 ;; Deterministic checks (avoid randomness in unit tests)
 
-;; get-knob-probabilities should return the exact map for a knob id
+;; getKnobProbabilities should return the exact map for a knob id
 !(assertEqual
-  (get-knob-probabilities test_prob_model (mkNodeId (1)))
+  (getKnobProbabilities test_prob_model (mkNodeId (1)))
   (ConsMap ((mkKnobValue 0) 0.3) (ConsMap ((mkKnobValue 1) 0.4) (ConsMap ((mkKnobValue 2) 0.3) NilMap))))
 
 !(assertEqual
-  (get-knob-probabilities test_prob_model (mkNodeId (2)))
+  (getKnobProbabilities test_prob_model (mkNodeId (2)))
   (ConsMap ((mkKnobValue 0) 0.2) (ConsMap ((mkKnobValue 1) 0.5) (ConsMap ((mkKnobValue 2) 0.3) NilMap))))
 
 ;; getKnobValue should unwrap the number
@@ -60,14 +60,14 @@
 
 ;; Test random distribution selection helper with deterministic target (cumulative 0.3, 0.7, 1.0)
 !(assertEqual 
-  (select-from-cumulative-list 
+  (selectFromCumulativeList 
      (Cons ((mkKnobValue 0) 0.3) (Cons ((mkKnobValue 1) 0.4) (Cons ((mkKnobValue 2) 0.3) Nil))) 
      0.5 0.0) 
   (mkKnobValue 1))
 
-;; Create-instance should fill indices correctly using the disc knob map
+;; createInstance should fill indices correctly using the disc knob map
 !(assertEqual 
-  (select-from-cumulative-list 
+  (selectFromCumulativeList 
      (Cons ((mkKnobValue 0) 0.3) (Cons ((mkKnobValue 1) 0.4) (Cons ((mkKnobValue 2) 0.3) Nil))) 
      0.5 0.0) 
   (mkKnobValue 1))
@@ -75,7 +75,7 @@
 ; Randomized sampling functions are not asserted here to keep tests deterministic
 ;; Deterministic sampling using a degenerate probability model
 !(assertEqual 
-  (sample-knob-values 
+  (sampleKnobValues 
      (mkKnobProbabilityModel (ConsMap 
         ((mkNodeId (1)) (ConsMap ((mkKnobValue 2) 1.0) NilMap))
         (ConsMap 
@@ -85,7 +85,7 @@
   (ConsMap ((mkNodeId (2)) (mkKnobValue 2)) (ConsMap ((mkNodeId (1)) (mkKnobValue 2)) NilMap)))
 
 !(assertEqual 
-  (sample-instance 
+  (sampleInstance 
      (mkKnobProbabilityModel (ConsMap 
         ((mkNodeId (1)) (ConsMap ((mkKnobValue 2) 1.0) NilMap))
         (ConsMap 
@@ -95,7 +95,7 @@
   (mkInst (Cons 2 (Cons 2 Nil))))
 
 !(assertEqual 
-  (coll.length (generate-instances 
+  (coll.length (generateInstances 
      (mkKnobProbabilityModel (ConsMap 
         ((mkNodeId (1)) (ConsMap ((mkKnobValue 2) 1.0) NilMap))
         (ConsMap 
@@ -106,6 +106,6 @@
 
 ; Randomized model sampling intentionally not asserted deterministically
 !(assertEqual 
-  (create-instance (getRep test_deme) 
+  (createInstance (getRep test_deme) 
      (ConsMap ((mkNodeId (1)) (mkKnobValue 1)) (ConsMap ((mkNodeId (2)) (mkKnobValue 2)) NilMap))) 
   (mkInst (Cons 1 (Cons 2 Nil))))

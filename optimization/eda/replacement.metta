@@ -20,58 +20,52 @@
 ;; ================================================================================
 
 ;; Replace the worst instances in the population with new instances
-; (: replace-the-worst (-> (InstanceSet $score) Deme Deme))
-(= (replace-the-worst $newInstances $deme)
+(: replaceTheWorst (-> (InstanceSet $score) Deme Deme))
+(= (replaceTheWorst $newInstances $deme)
   (let* (
-        (() (println! (Replace-the-worst with $newInstances $deme)))
         ((mkDeme $rep (mkSInstSet $instSet) $id) $deme)
-        (() (println! (GOT $rep $instSet)))
         ((mkSInstSet $newList) $newInstances)
-        (() (println! (newList: $newList)))
-        ($scoredInstances $instSet)
-        ($nReplace (min (List.length $newList) (List.length $scoredInstances)))
-        (() (println! (N : $nReplace)))
-        ($worst (get-worst-instances $scoredInstances $nReplace))
-        (() (println! (worst : $worst)))
-        ($remaining (remove-worst-instances $scoredInstances $nReplace))
-        (() (println! (remaining : $remaining)))
-        ($updated (List.concat $remaining $newList))
-        (() (println! (updated : $updated)))
+        ($numToReplace (min (coll.length $newList) (coll.length $instSet)))
+        ((mkPair $worst $remaining) (getWorstAndRemaining $instSet $numToReplace))
+        ($incoming (List.takeN $numToReplace $newList))
+        ($updated (List.concat $remaining $incoming))
       )
       (mkDeme $rep (mkSInstSet $updated) $id)))
 
-;; Get the worst n instances
-; (: get-worst-instances (-> (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
-(= (get-worst-instances $instances $n)
+;; Optimized function to get both worst and remaining instances in one pass
+(: getWorstAndRemaining (-> (List (ScoredInstance $score)) Number (Pair (List (ScoredInstance $score)) (List (ScoredInstance $score)))))
+(= (getWorstAndRemaining $instances $n)
   (let* (
-        (() (println! (Get worst instances: instances= $instances)))
-        ($sorted (sort-by-score $instances))
-        (() (println! (Get worst instances: sorted= $sorted)))
-        ($len (List.length $sorted))
-        (() (println! (Get worst instances: len= $len)))
-        ($start (max 0 (- $len $n)))
+        ($sorted (sortByScore $instances))
+        ($len (coll.length $sorted))
+        ($keep (max 0 (- $len $n)))
+        ($remaining (List.takeN $keep $sorted))
+        ($worst (List.drop $keep $sorted))
       )
-      (List.drop $start $sorted)))
+      (mkPair $worst $remaining)))
+
+;; Get the worst n instances
+(: getWorstInstances (-> (List (ScoredInstance $score)) Number (List (ScoredInstance $score))))
+(= (getWorstInstances $instances $n)
+  (let* (
+        ((mkPair $worst $remaining) (getWorstAndRemaining $instances $n))
+      )
+      $worst))
 
 ;; Remove the worst n instances
-; (: remove-worst-instances (-> (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
-(= (remove-worst-instances $instances $n)
+(: removeWorstInstances (-> (List (ScoredInstance $score)) Number (List (ScoredInstance $score))))
+(= (removeWorstInstances $instances $n)
   (let* (
-        ($sorted (sort-by-score $instances))
-        ($len (List.length $sorted))
-        ($keep (max 0 (- $len $n)))
+        ((mkPair $worst $remaining) (getWorstAndRemaining $instances $n))
       )
-      (List.takeN $keep $sorted)))
+      $remaining))
 
-;; Sort instances by score (worst first)
-; (: sort-by-score (-> (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
-(= (sort-by-score $instances)
+;; Sort instances by score (descending best first from sortDeme, tail are worst)
+(: sortByScore (-> (List (ScoredInstance $score)) (List (ScoredInstance $score))))
+(= (sortByScore $instances)
   (let* (
-        (() (println! (Sort by score: instances= $instances)))
         ($set (mkSInstSet $instances))
-        (() (println! (Sort by score: set= $set)))
         ($sortedSet (sortDeme $set))
-        (() (println! (Sort by score: sortedSet= $sortedSet)))
       )
       (getScoredInstances $sortedSet)))
 
