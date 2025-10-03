@@ -166,7 +166,6 @@
 
 
 ;; Testcase for optimizeDemes               
-<<<<<<< HEAD
 !(assertEqual 
 (let* 
 (
@@ -218,37 +217,6 @@
 (>= $topCandidatesLength 1)
 ) True)
 
-<<<<<<<< HEAD:deme/tests/expand-demes-testold.metta
-; ! (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 1 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
-========
-; ! (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
-;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     inc      ;; the new arguments for feature selection algo
-;     table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
-
-; ! (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
-;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     inc      ;; the new arguments for feature selection algo
-;     table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
-
-; with OR table and AND init exemplar     
-; ! (runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
-;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     smd      ;; the new arguments for feature selection algo
-;     ortable hillClimbing 5 2 0 1 orttable 3 0.004 1000)
-; with OR table and AND init exemplar     
-; ! (runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
-;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     smd      ;; the new arguments for feature selection algo
-;     ortable hillClimbing 5 2 0 1 orttable 3 0.004 1000)
-
-
-; ! (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
-;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     smd      ;; the new arguments for feature selection algo
-;     bigtablet hillClimbing 5 2 0 1 bigtable 3 0.004 1000)
->>>>>>>> origin/ref/mettalog:deme/tests/expand-demes-test.metta
-=======
 ; !(assertEqual 
 ; (let* 
 ; (
@@ -284,4 +252,3 @@
 ; ) True)
 
 ! (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 1 table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
->>>>>>> origin/ref/mettalog
