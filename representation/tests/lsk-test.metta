@@ -60,17 +60,11 @@
     (mkNodeId (0))
     (mkTree (mkNode Y) Nil))
 
-  (
-    (mkTree (mkNode OR) (Cons (mkTree (mkNode X) Nil) (Cons (mkTree (mkNode Y) Nil) (Cons (mkTree (mkNode Z) Nil) Nil))))
-    (mkLSK
-    (mkDiscKnob
-      (mkKnob
-        (mkNodeId (0 2)))
-      (mkMultip 3)
-      (mkDiscSpec 1)
-      (mkDiscSpec 1)
-      Nil))
-  ))
+  ((mkTree (mkNode OR) (Cons (mkTree (mkNode X) Nil) 
+                        (Cons (mkTree (mkNode Y) Nil) 
+                        (Cons (mkTree (mkNode Z) Nil) Nil)))) 
+    (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
+  )
   
 
 
