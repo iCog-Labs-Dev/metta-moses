@@ -61,6 +61,19 @@
         )
       )
     )
+    ; (let*
+    ;     (
+    ;         ($comboOs (expressionToOS $combo NilOS))
+    ;         (() (println! (Combo $comboOs)))
+    ;         ($mutualInfo (cachedMutualInformation $itable $comboOs))
+    ;         (() (println! (MutualInfo $mutualInfo)))
+    ;         ($newResultSet (if (> $mutualInfo $threshold) (let $oldResultSet (OS.union $resultSet $comboOs) 
+    ;                                                             (filterRelevantCombinations $itable $rest $threshold $oldResultSet)) 
+    ;                                                         (filterRelevantCombinations $itable $rest $threshold $resultSet)))
+    ;         (() (println! (Final result: $newResultSet)))
+    ;     )
+    ;     $newResultSet
+    ; )
 )
 
 

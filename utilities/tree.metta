@@ -38,9 +38,21 @@
 (: buildTree (-> $a (Tree $a)))
 (= (buildTree $expr)
         (if (== (get-metatype $expr) Expression)
-            (let ($head $tail) (decons-atom $expr)
-                (mkTree (mkNode $head) (exprToList (map buildTree $tail))))
-            (mkTree (mkNode $expr) Nil))
+            ; (let ($head $tail) (decons-atom $expr)
+            ;     (mkTree (mkNode $head) (exprToList (map buildTree $tail))))
+            ; (mkTree (mkNode $expr) Nil)
+            (let* (
+              (() (println! (-----------------------)))
+              (() (println! (Inside buildTree with expr: $expr)))
+              (($head $tail) (decons-atom $expr))
+              ($children (exprToList (map buildTree $tail)))
+              (() (println! (Building tree with head: $head And children: $children)))
+              (() (println! (FinalAnswer: (mkTree (mkNode $head) $children))))
+            )
+            (mkTree (mkNode $head) $children)
+            )
+            (mkTree (mkNode $expr) Nil)
+        )
             )
 
 (: cleanTree (-> (Tree $a) (Tree $a)))
@@ -48,10 +60,11 @@
     (let*
         (
           ($preordered (preOrder $tree))
-          ;; ($reduced (REDUCE $preordered))
-        )
-        (buildTree $preordered))) ;; TODO: Remove when REDUCE is implemented.
-        ;; (buildTree $reduced)))
+          (() (println! (Preordered: $preordered)))
+          ($reduced (reduce $preordered))
+          (() (println! (Reduced: $reduced)))
+          )
+        (buildTree $reduced)))
 
 ;; Get an id of a certain node. And (0) if the root node.
 ;; Example:

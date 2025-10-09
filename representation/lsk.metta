@@ -14,7 +14,9 @@
    (let*
    (
     ($negatedSubtree (insertAbove $subtree (mkNode NOT)))
-    ($reducedSubtree $negatedSubtree)  ;;;after the reduct integration, the reduction step will be applied here 
+    ; (() (println! (NegatedSubtree : $negatedSubtree)))
+    ($reducedSubtree (cleanTree $negatedSubtree))  ;;;after the reduct integration, the reduction step will be applied here 
+    ; (() (println! (ReducedSubtree: $reducedSubtree))) 
     ($childrenOfTarget (getChildrenById $tree (mkNodeId $target)))
    )
    (if (List.contains $subtree $childrenOfTarget) 
@@ -60,6 +62,7 @@
 (= (appendTo $updatedTree $lsk $tree $parentId $d)
     (let*
        (
+        ; (() (println! (lsk: $lsk)))
         ($targetId (getNodeId $lsk))
         ($targetTree (getNodeById  $updatedTree $targetId))
         ($subtree (if (isNullVertex $targetTree) 

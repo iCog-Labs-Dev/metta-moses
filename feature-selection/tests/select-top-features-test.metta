@@ -21,4 +21,3 @@
 ! (assertEqual (selectTopFts ttable -2 -1 False ja ((1 (0 2)) (0.4 (3 1)) (0.3 (1 2 3))) 2) ((0 2) (3 1)))
 ! (assertEqual (selectTopFts ttable 2 -1 False mi ((1 (0 2)) (0.4 (3 1)) (0.3 (1 2 3))) 2) ((0 2) (3 1)))
 ! (assertEqual (selectTopFts ttable 2 -1 False ja ((1 (0 2)) (0.8 (0 1)) (0.4 (3 1)) (0.3 (1 2 3))) 2) ((0 2) (3 1)))
-

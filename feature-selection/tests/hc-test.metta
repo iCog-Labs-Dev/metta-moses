@@ -1,4 +1,4 @@
-!(register-module! ../../../../metta-moses)
+!(register-module! ../../../metta-moses)
 
 !(import! &self metta-moses:representation:lsk)
 !(import! &self metta-moses:representation:instance)
