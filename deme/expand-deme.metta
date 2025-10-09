@@ -67,6 +67,6 @@ $optimDeme)))
        ($top (OS.getByIdx 0 $metaPop))
        ($topScore (getExemplarCscore $top))
        ($topCandidates (OS.getTopN $maxCandOutput $metaPop)))
-     (if (apply >= $topScore $maxScore) 
+     (if (cScore>= $topScore $maxScore) 
          $topCandidates 
          (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount $scorerType)))))

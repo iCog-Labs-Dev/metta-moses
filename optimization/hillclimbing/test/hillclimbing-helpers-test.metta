@@ -286,24 +286,6 @@
     (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
         (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
 
-; ! "Test if generated instances are greater than 6 for distance 1 and there are instances that are scored properly"
-!(assertEqual
-   (let*
-     (
-       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
-       ($instanceCount (List.length $instSet))
-       ($scoredElems (List.map isScored $instSet))
-     )
-     ((>= $instanceCount 4) (List.any $scoredElems)))
-     
-     (True True))
-;; NOTE!!!!!!!
-;; merger -- this is a function implemented as part if the main crossTopOne in optimization/hillclimbing/cross-top-one.metta but results in error unless this is imported in the test file
-(: merger (-> Expression Instance Instance Expression))
-(= (merger $targetInstances $baseInst $referenceInst)
-    (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
-        (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
-
 !(assertEqual
    (let*
      (
