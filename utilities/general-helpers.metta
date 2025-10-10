@@ -1127,3 +1127,12 @@
         (mkNodeId $id)
 
     ))
+
+;; metta version of the minimal-metta implemented if-decons-expr    
+(= (if-decons-expr-custom $atom $head $tail $then $else)
+    (if (== $atom ())
+        $else
+        (let $list (decons-atom $atom)
+            (unify $list ($head $tail)
+                $then
+                $else))))
