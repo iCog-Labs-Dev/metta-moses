@@ -22,14 +22,14 @@
               ($parentSec (collapse (removeEmptyAND (superpose $parent))))
               ($currentSec (if (=== $parent $current) $parentSec (collapse (removeEmptyAND (superpose $current)))))
               (($guardSet $child) (getLiteralChildren $currentSec))
-              ($tail (if-decons-expr $child $h $t (cdr-atom $child) "No child"))
+              ($tail (if-decons-expr-custom $child $h $t (cdr-atom $child) "No child"))
           )
           (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
               (let*
                   (
                       ; (() (println! (===Inside AndCut===)))
                       ; (() (println! (Current $current : Parent : $parent)))
-                      ($childFirst (if-decons-expr $child $h $t $h (empty)))
+                      ($childFirst (if-decons-expr-custom $child $h $t $h (empty)))
                       (($grandLiterals $grandChildren) (getLiteralChildren $childFirst))
                       ($allLiterals (collapse (getGuardSet (superpose $grandChildren))))
                       ($common (intersections $allLiterals))

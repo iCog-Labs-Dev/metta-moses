@@ -14,7 +14,7 @@
 ;;                Only AND nodes have guard sets.
 ;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 (= (getGuardSet $exp)
-   (if-decons-expr $exp $h $t
+   (if-decons-expr-custom $exp $h $t
        (if (== $h OR)
            ()                
            (getLiterals $exp)) 
@@ -25,7 +25,7 @@
 ;;    non deterministic list instead of a collapsed atom.
 ;; Example: (AND (NOT A) (NOT B) A) -> [(NOT A), (NOT B), A]
 (= (getGuardSetND $exp)
-   (if-decons-expr $exp $h $t
+   (if-decons-expr-custom $exp $h $t
        (if (== $h OR)
            (empty)             
            (getLiteralsND $exp)) 

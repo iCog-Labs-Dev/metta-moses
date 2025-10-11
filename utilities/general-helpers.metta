@@ -360,7 +360,7 @@
     (function 
         (eval (if-equal $expr ()
             (return (Error description: IndexOutOfRange))
-            (eval (if-decons-expr $expr $h $t
+            (eval (if-decons-expr-custom $expr $h $t
                 (eval (if-equal $index 0
                     (return $h)
                     (return (indexAtom $t (- $index 1)))))
@@ -370,7 +370,7 @@
 (: removeAtom (-> Atom Expression Expression))                                
 (= (removeAtom $atom $expr)
     (function 
-        (eval (if-decons-expr $expr $head $tail
+        (eval (if-decons-expr-custom $expr $head $tail
             (eval (if-equal $head $atom
                 (return $tail)  ; Stop at first match
                 (chain (removeAtom $atom $tail) $rest
@@ -379,7 +379,7 @@
 ;; subtractionAtom -- replicates behaviour of MeTTa's subtraction-atom in mettalog
 (: subtractionAtom (-> Expression Expression Expression))
 (= (subtractionAtom $expr $b)
-    (if-decons-expr $b $head $tail
+    (if-decons-expr-custom $b $head $tail
         (chain (removeAtom $head $expr) $newexpr
             (subtractionAtom $newexpr $tail))
         $expr))
@@ -719,7 +719,7 @@
 (: (-> unionAtom (-> Expression Expression Expression)))
 ; (= (unionAtom $x $y) (union-atom $x $y))
 (= (unionAtom $a $b) 
-    (if-decons-expr $a $head $tail
+    (if-decons-expr-custom $a $head $tail
         (chain (unionAtom $tail $b) $rest
             (cons-atom $head $rest))
         $b))
