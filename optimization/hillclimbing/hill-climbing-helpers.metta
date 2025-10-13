@@ -240,15 +240,27 @@
 
 
 ;; hillclimbing implementation for feature selection
-(: hillClimbingFs (-> (InstanceSet $a) (ITable Bool) Instance (Instance (InstanceSet $a) $state)))
-(= (hillClimbingFs $instSet $iTable $centerInst) (hillClimbingFs (3 3 1) (False False False $centerInst 0 0 0 0 1) $instSet $iTable $centerInst))
+(: hillClimbingFs (-> (InstanceSet $a) (ITable Bool) Instance Symbol (Instance (InstanceSet $a) $state)))
+                                                                                                                                                             ;;miConf PrePenalty  PreMInActivation   PreMaxActivation  PrePositive   ScorerType
+(= (hillClimbingFs $instSet $iTable $centerInst $scorerType) (hillClimbingFs (3 3 1) (False False False $centerInst 0 0 0 0 1) $instSet $iTable $centerInst 50.0    1.0         0.5                 1.0               True            $scorerType))
 
-(: hillClimbingFs (-> $params $state (InstanceSet $a) (ITable Bool) Instance (Instance (InstanceSet $a) $state)))
+(: hillClimbingFs (-> $params $state (InstanceSet $a) (ITable Bool) Instance Number Number Number Number Bool Symbol (Instance (InstanceSet $a) $state)))
 (= (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
                  ($alreadyXover $lastChance $_ $prevCenter $bestMIscore $bestScore $currentNInstances $d $i) ;; Mutable states
                  $instSet
                  (mkITable $rows $labels) ;; Input table 
-                 $centerInst) ;; Center instance or init instance
+                 $centerInst ;; Center instance or init instance
+
+                  $miConfi            ;; confidence intensity
+
+                  ;; precision scorer parameters
+                  $prePenalty          ;; activation Penalty: Penalizes “over-activation” — selecting too many rows from the compressed table.
+                  $preMinActivation   ;; ensures we always select enough rows to have a meaningful precision estimate.
+                  $preMaxActivation   ;; limits how many rows can be selected.
+                  $prePositive        ;; determines which output value is considered the “positive class” in precision_bscore.
+                  $scorerType
+                 ) 
+                 
    (let*
       (
         (() (println! (Iteration $i running)))
@@ -276,7 +288,7 @@
         (() (println! ""))
 
         ;; Score all demes in the instance set.
-        ((mkSInstSet $scoredInstances) (transformFs $updatedInstSet (mkITable $rows $labels)))
+        ((mkSInstSet $scoredInstances) (transformFs $updatedInstSet (mkITable $rows $labels) $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType))
 
         ($updatedDeme (mkSInstSet $scoredInstances))
 
@@ -314,7 +326,16 @@
                                                 ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i)) ;; Updated state
                                                 $updatedDeme
                                                 (mkITable $rows $labels)
-                                                $nextCenterInst)
+                                                $nextCenterInst
+                                                  $miConfi            ;; confidence intensity
+
+                                                  ;; precision scorer parameters
+                                                  $prePenalty          ;; activation Penalty: Penalizes “over-activation” — selecting too many rows from the compressed table.
+                                                  $preMinActivation   ;; ensures we always select enough rows to have a meaningful precision estimate.
+                                                  $preMaxActivation   ;; limits how many rows can be selected.
+                                                  $prePositive        ;; determines which output value is considered the “positive class” in precision_bscore.
+                                                  $scorerType
+                                                )
                                   ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
 
         ($scoreToCompareBelow $newBestCscore)
@@ -335,7 +356,16 @@
                               ($newXover True $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI)) ;; Updated state
                               $newDeme
                               (mkITable $rows $labels)
-                              $newCenter)
+                              $newCenter
+                              $miConfi            ;; confidence intensity
+
+                              ;; precision scorer parameters
+                              $prePenalty          ;; activation Penalty: Penalizes “over-activation” — selecting too many rows from the compressed table.
+                              $preMinActivation   ;; ensures we always select enough rows to have a meaningful precision estimate.
+                              $preMaxActivation   ;; limits how many rows can be selected.
+                              $prePositive        ;; determines which output value is considered the “positive class” in precision_bscore.
+                              $scorerType
+                              )
                 (trace! (Continue to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))) )
 
             (if (< $maxDist $finalDistance)
@@ -344,5 +374,15 @@
                               ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
                               $finalDeme
                               (mkITable $rows $labels)
-                              $finalCenter))))
+                              $finalCenter
+                                          
+                              $miConfi            ;; confidence intensity
+
+                              ;; precision scorer parameters
+                              $prePenalty          ;; activation Penalty: Penalizes “over-activation” — selecting too many rows from the compressed table.
+                              $preMinActivation   ;; ensures we always select enough rows to have a meaningful precision estimate.
+                              $preMaxActivation   ;; limits how many rows can be selected.
+                              $prePositive        ;; determines which output value is considered the “positive class” in precision_bscore.
+                              $scorerType
+                              ))))
                             ))

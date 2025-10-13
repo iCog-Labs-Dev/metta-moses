@@ -86,7 +86,7 @@
                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
                          (Cons A (Cons B (Cons O Nil)))))
 
-!(assertEqual (createDeme 1 (Cons (mkDemeId "1") Nil) (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) table sim False ())
+!(assertEqual (createDeme 1 (Cons (mkDemeId "1") Nil) (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) table sim False () mi)
               (
                 (mkDeme
                    (mkRep

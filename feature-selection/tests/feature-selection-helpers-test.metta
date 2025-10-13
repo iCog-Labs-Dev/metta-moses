@@ -175,3 +175,21 @@
 !(assertEqual (readjustIndices ((0.8 (0 1))) (Cons A (Cons C Nil)) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.8 (0 2))))
 !(assertEqual (readjustIndices ((0.6 (0 2)) (0.4 (1))) (Cons B (Cons C (Cons D Nil))) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.6 (1 3)) (0.4 (2))))
 !(assertEqual (readjustIndices ((0.4 (1)) (0.5 (1 2))) (Cons A (Cons C (Cons D Nil))) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.4 (2)) (0.5 (2 3))))
+
+
+; Test of CalculateConfidence
+! (assertTrue 
+   (let* (
+       ($conf1 (calculateConfidence 1 10 0.1))
+       ($conf2 (calculateConfidence 2 10 0.1))
+     )
+     (< $conf1 $conf2)))  ;; more features → higher confidence
+
+! (assertTrue
+   (let* (
+       ($conf2 (calculateConfidence 2 10 0.1))
+       ($conf3 (calculateConfidence 2 20 0.1))
+     )
+     (< $conf2 $conf3)))  ;; bigger dataset → higher confidence
+
+! (assertEqual (calculateConfidence 1 0 0.1) 0.0)  ;; No features -> confidence 0

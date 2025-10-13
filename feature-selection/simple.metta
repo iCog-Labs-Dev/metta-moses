@@ -31,8 +31,17 @@
              $acc     ;; result -- pair of score and column index for consistent formatting across different feature selection algorithms            (chain (Table.getColumn 0 $dataRows) $if                        ;; input feature taken from the table ,, always the first column
             (chain (Table.getColumn 0 $dataRows) $if
             (chain (Table.pop 0 $dataRows) $rem-table                         ;; remove the first column -- better than carrying around the whole table
-            (chain (mutualInformation $if $oc) $mi                          ;; mutual information calculated for the input feature
-                (if (=> $mi $th)
-                    (chain (insertPair > ($mi ($counter)) $acc) $new-acc
-                        (selectorIterator $th $rowNum $oc $labels $rem-table (+ $counter 1) $new-acc))
-                    (selectorIterator $th $rowNum $oc $labels $rem-table (+ $counter 1) $acc))))))))
+            (chain (mutualInformation $if $oc) $mi      
+                (chain (calculateConfidence (size-atom $if) (List.length $dataRows) 50.0) $confidence
+                    (chain (* $mi $confidence) $actualScore
+                        (if (=> $actualScore $th)
+                            (chain (insertPair > ($actualScore ($counter)) $acc) $new-acc
+                                (selectorIterator $th $rowNum $oc $labels $rem-table (+ $counter 1) $new-acc))
+                            (selectorIterator $th $rowNum $oc $labels $rem-table (+ $counter 1) $acc)
+                        )
+                    )
+                )                    ;; mutual information calculated for the input feature
+            ))))
+    )
+
+)
