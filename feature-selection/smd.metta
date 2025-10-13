@@ -38,7 +38,13 @@
         (chain 
             (collapse 
                 (chain (superpose $indices) $i
-                (chain (mutualInformation (Table.getColumn $i $table) $oc) $mi ($mi ($i))))) $index-mi-pair
+                    (chain (mutualInformation (Table.getColumn $i $table) $oc) $mi 
+                                (chain (calculateConfidence (size-atom $indices) (List.length $table) 50.0) $confi 
+                                        ((* $mi $confi) ($i))  
+                                )
+                    )
+                )
+             ) $index-mi-pair
                         (if (== $index-mi-pair ())
                             (Error $index-mi-pair "No relevant feature found ... Exiting")              ;; No feature selected -- low MI values
                             ;; get each feature and and calculate MI against output feature
@@ -64,4 +70,10 @@
                     (chain (subtraction-atom $indices $used-indices) $candidate-indices                   ;; removed used indices from index list
                         (chain (union-atom $used-indices ((superpose $candidate-indices))) $new-indices   ;; form a union of used indices tuple and one unused index for each such an index
                             (chain (zipColumn $new-indices $table) $zipped-input-feature                  ;; form a zipped pair, triplet .. of input feature values from the table
-                                ((mutualInformation $zipped-input-feature $oc) $new-indices))))))))
+                                (chain (mutualInformation $zipped-input-feature $oc) $mi
+                                    (chain (calculateConfidence (size-atom $new-indices) (List.length $table) 50.0) $confi 
+                                        ((* $mi $confi) $new-indices)    
+                                    )
+                                )
+                            )
+                        ))))))

@@ -10,10 +10,10 @@
 ;;             $prune-exemplar     --   bool shall we prune the exemplar or not?
 ;;             $enforced-features  --   tuple of enorced features to be sample during feature selection, if any, in the form of arg selection-probabality pair
 ;;             returns ↠ tuple of demes
-(: createDeme (-> Number (List DemeId) (Tree $a) (ITable $a) Symbol Bool Expression Expression)) 
-(= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts)
+(: createDeme (-> Number (List DemeId) (Tree $a) (ITable $a) Symbol Bool Expression Symbol Expression)) 
+(= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
       (let* ((() (println! (creating representations ....)))
-             ($reps (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts))
+             ($reps (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts  $scorerType))
              (() (println! (done making representations ...))))  
          (loopCreateDeme $demeIds $reps ())))
 

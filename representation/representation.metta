@@ -36,7 +36,7 @@
 ; (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
 ; ))
 
-(: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Expression))
+(: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol Expression))
 (= (representation 
             $nDeme                      ;; number of demes to spawn (number of distinct feature sets)
             $exemplar                   ;; tree around which multiple representations are to be built
@@ -44,14 +44,16 @@
             $ft-selection-algo          ;; feature selection algorithm to be used -- symbol 
             $prune-exemplar             ;; bool to decide to prune the exemplar or keep the exemplar as is
             $enforced-fts               ;; set of features to be enforced in to selected features
+            $scorerType         ;; can MI or precision_bscore
         )
         
-        (let*   (($exemplar-fts (treeFtsIndices $exemplar $labels))           ;; exemplarFtsIndices function in deme/expand-deme.metta
-                 (() (println! (Exemplar features indices: $exemplar-fts)))
+        (let*   (
+                  (() (println! (Inside Representation)))
+                  ($exemplar-fts (treeFtsIndices $exemplar $labels))           ;; exemplarFtsIndices function in deme/expand-deme.metta
                  ($all-labels (getInputLabels $labels))                       ;; getInputLabels in deme/expand-deme.metta
-                 (() (println! (allLabels: $all-labels)))
-                 ($ft-set-pop (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme))     ;; applies the right parameteres for feature selection based on selected selection algorithm 
-                 (() (println! (featureSetPOP: $ft-set-pop)))
+                                                                                                                            ;;Default Values  ;;miConf PrePenalty  PreMInActivation   PreMaxActivation  PrePositive   ScorerType
+                 ($ft-set-pop (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme 50.0   1.0            0.5               1.0               True         $scorerType))     ;; applies the right parameteres for feature selection based on selected selection algorithm 
+                 (() (println! (Selected Features after feature Selection $ft-set-pop)))
                  ($exemplar-arg-seq                                           ;; apply exemplar feature pruning
                      (if $prune-exemplar
                            (map-atom $ft-set-pop $ft-set 
