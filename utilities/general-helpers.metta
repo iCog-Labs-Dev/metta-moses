@@ -1128,11 +1128,17 @@
 
     ))
 
-;; metta version of the minimal-metta implemented if-decons-expr    
-(= (if-decons-expr-custom $atom $head $tail $then $else)
-    (if (== $atom ())
-        $else
-        (let $list (decons-atom $atom)
-            (unify $list ($head $tail)
-                $then
-                $else))))
+; this is to replace the built-in if-decons-expr which will depricate in future on mettalog
+; it is used to deconstruct an expression into head and tail and then use them in the then expression
+if the expression is empty it will use the else expression
+(: if-decons-expr-custom (-> Expression $h $t Expression Expression Expression))
+(= (if-decons-expr-custom $list $h $t $then $else)
+      (if (== $list ())
+            $else
+            (let* (
+                  ($h (car-atom $list))
+                  ($t (cdr-atom $list))
+                  )
+                  $then
+            )
+            ))
