@@ -1133,11 +1133,15 @@
 ; if the expression is empty it will use the else expression
 (: if-decons-expr-custom (-> Expression $h $t Expression Expression Expression))
 (= (if-decons-expr-custom $list $h $t $then $else)
-      (if (== (collapse (car-atom $list)) ())
+      (if (== $list ())
             $else
             (let* (
-                  ($h (car-atom $list))
-                  ($t (cdr-atom $list))
+                 ($expr (if (== (get-metatype $list) Symbol)
+                  ($list)
+                      $list
+                  ))
+                  ($h (car-atom $expr))
+                  ($t (cdr-atom $expr))
                   )
                   $then
             )
