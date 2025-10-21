@@ -18,7 +18,7 @@
          (loopCreateDeme $demeIds $reps ())))
 
 (= (loopCreateDeme $demeIds $reps $acc)
-      (if-decons-expr $reps $h $t
+      (if-decons-expr-custom $reps $h $t
             (let* (($demeId (List.head $demeIds)) 
                    ($deme (mkDeme $h (mkSInstSet Nil) $demeId))
                    ($new-acc (union-atom $acc ($deme))))

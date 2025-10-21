@@ -18,7 +18,7 @@
 ;;        : output: ((OR C) () True)
 ;;(: oneConstraintSubsume (-> Expression Expression Expression (Expression Expression Bool)))
 (= (oneConstraintSubsume $parent $current $commandSet)
-  (if-decons-expr $current $head $tail 
+  (if-decons-expr-custom $current $head $tail 
     (let*
       (
         ($head (car-atom $current))
