@@ -90,18 +90,12 @@
 (= (continuousDiscrete2WayScore $parentValues $childValues $childCardinality)
    (let* (
      ;; Find optimal split point
-     (()   (println! (Parent Values: $parentValues Child Values: $childValues Child Cardinality: $childCardinality)))
      ($splitPoint (findOptimalContinuousSplit $parentValues $childValues))
-     (()   (println! (Split Point: $splitPoint)))
      ;; Split parent values based on split point
      ($leftParentValues (filterLessThan $parentValues $splitPoint))
-     (()   (println! (Left Parent Values: $leftParentValues)))
      ($rightParentValues (filterGreaterEqual $parentValues $splitPoint))
-     (()   (println! (Right Parent Values: $rightParentValues)))
      ($leftChildValues (getCorrespondingChildValues $parentValues $childValues $splitPoint True))
-     (()   (println! (Left Child Values: $leftChildValues)))
      ($rightChildValues (getCorrespondingChildValues $parentValues $childValues $splitPoint False))
-     (()   (println! (Right Child Values: $rightChildValues)))
      ;; Count occurrences
      ($leftChildCounts (countDiscreteValues $leftChildValues $childCardinality))
      ($rightChildCounts (countDiscreteValues $rightChildValues $childCardinality))
@@ -466,13 +460,9 @@
 (: findOptimalContinuousSplit (-> (List Number) (List Number) Number))
 (= (findOptimalContinuousSplit $parentValues $childValues)
    (let* (
-     (()   (println! (Parent Values: $parentValues Child Values: $childValues)))
      ($sortedValues (sortContinuousValues $parentValues))
-     (()   (println! (Sorted Values: $sortedValues)))
      ($splitPoints (generateSplitPoints $sortedValues))
-     (()   (println! (Split Points: $splitPoints)))
      ($bestSplit (findBestSplitPoint $splitPoints $parentValues $childValues))
-     (()   (println! (Best Split: $bestSplit)))
    )
      $bestSplit))
 
@@ -492,16 +482,12 @@
 (= (findBestSplitPoint Nil $parent $child) 0.0)
 (= (findBestSplitPoint (Cons $split $rest) $parent $child)
    (let* (
-     (()   (println! (Split: $split Parent: $parent Child: $child)))
      ($leftCount (List.length (filterLessThan $parent $split)))
      ($rightCount (List.length (filterGreaterEqual $parent $split)))
      ($isValidSplit (and (> $leftCount 0) (> $rightCount 0)))
      ($currentScore (if $isValidSplit (evaluateSplitScore $split $parent $child) minusInf))
-     (()   (println! (Current Score: $currentScore)))
      ($bestRest (findBestSplitPoint $rest $parent $child))
-     (()   (println! (Best Rest: $bestRest)))
      ($bestRestScore (if (== $bestRest 0.0) minusInf (evaluateSplitScore $bestRest $parent $child)))
-     (()   (println! (Best Rest Score: $bestRestScore)))
    )
      (if (> $currentScore $bestRestScore) $split $bestRest)))
 
@@ -511,17 +497,11 @@
    (if (== $split 0.0)
        minusInf
        (let* (
-         (()   (println! (Split: $split Parent: $parent Child: $child)))
          ($leftChild (getCorrespondingChildValues $parent $child $split True))
-         (()   (println! (Left Child: $leftChild)))
          ($rightChild (getCorrespondingChildValues $parent $child $split False))
-         (()   (println! (Right Child: $rightChild)))
          ($leftCounts (countDiscreteValues $leftChild 2))  ; Assuming binary child
-         (()   (println! (Left Counts: $leftCounts)))
          ($rightCounts (countDiscreteValues $rightChild 2))
-         (()   (println! (Right Counts: $rightCounts)))
          ($score (computeContinuousDiscreteBDeScore $leftCounts $rightCounts 2))
-         (()   (println! (Score: $score)))
        )
          $score)))
 
@@ -546,15 +526,10 @@
 (= (getCorrespondingChildValues Nil Nil $split $isLeft) Nil)
 (= (getCorrespondingChildValues (Cons $pVal $pRest) (Cons $cVal $cRest) $split $isLeft)
    (let* (
-     (()   (println! (Parent Value: $pVal Split: $split Is Left: $isLeft)))
      ($leftVal (< $pVal $split))
-     (()   (println! (Left Val: $leftVal)))
      ($rightVal (>= $pVal $split))
-     (()   (println! (Right Val: $rightVal)))
      ($include (if $isLeft  $leftVal $rightVal))
-     (()   (println! (Include: $include)))
      ($restResult (getCorrespondingChildValues $pRest $cRest $split $isLeft))
-     (()   (println! (Rest Result: $restResult)))
    )
      (if $include
          (Cons $cVal $restResult)
@@ -564,11 +539,8 @@
 (: computeContinuousDiscreteBDeScore (-> (List Number) (List Number) Number Number))
 (= (computeContinuousDiscreteBDeScore $leftCounts $rightCounts $cardinality)
    (let* (
-    (()   (println! (Left Counts: $leftCounts Right Counts: $rightCounts Cardinality: $cardinality)))
      ($leftScore (computeDiscreteScore $leftCounts 1.0 $cardinality))
-     (()   (println! (Left Score: $leftScore)))
      ($rightScore (computeDiscreteScore $rightCounts 1.0 $cardinality))
-     (()   (println! (Right Score: $rightScore)))
      ($totalScore (+ $leftScore $rightScore))
    )
      $totalScore))
