@@ -23,7 +23,17 @@
 !(import! &self metta-moses:utilities:python-treehelpers)
 !(import! &self metta-moses:utilities:lazy-random-selector)
 
-!(import! &self metta-moses:reduct:enf)
+! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
+! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-or)
+! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-and)
+! (import! &self metta-moses:reduct/boolean-reduct:n-ary-propagate-not)
+! (import! &self metta-moses:reduct/boolean-reduct:n-ary-gather-junctors)
+! (import! &self metta-moses:reduct/boolean-reduct:delete-inconsistent-handle)
+! (import! &self metta-moses:reduct/boolean-reduct:zero-constraint-subsumption)
+! (import! &self metta-moses:reduct/boolean-reduct:one-constraint-subsumption)
+! (import! &self metta-moses:reduct/boolean-reduct:promote-common-constraints)
+! (import! &self metta-moses:reduct/boolean-reduct:reduce-to-elegance)
+
 
 !(import! &self metta-moses:deme:score-deme)
 !(import! &self metta-moses:deme:create-deme)
@@ -37,9 +47,11 @@
 
 !(import! &self metta-moses:moses:neighborhood-sampling)
 
+!(import! &self metta-moses:feature-selection:feature-selection-helpers)
 !(import! &self metta-moses:optimization/hillclimbing:cross-top-one)
 !(import! &self metta-moses:optimization/hillclimbing:cross-top-one-helpers)
 !(import! &self metta-moses:optimization/hillclimbing:hill-climbing-helpers)
+!(import! &self metta-moses:optimization/hillclimbing:poa-extraction-helpers)
 !(import! &self metta-moses:optimization/simulated-annealing-algo:simulated-annealing)
 
 !(import! &self metta-moses:scoring:bscore)
@@ -60,14 +72,21 @@
                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
                          (Cons A (Cons B (Cons O Nil))))))
 
+!(bind! itable (mkITable
+                         (Cons (Cons False (Cons False (Cons False Nil))) 
+                         (Cons (Cons True (Cons False (Cons False Nil))) 
+                         (Cons (Cons False (Cons True (Cons False Nil)))
+                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+                         (Cons A (Cons B (Cons O Nil)))))
+                         
 (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
 
 !(assertEqual 
-    !(let*
+    (let*
        (
-            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 5)))
+            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 5) applyComplexityBasedScore (() ())))
             ($instanceCount (List.length $instSet))
             ($scoredElems (List.map isScored $instSet))
        )
@@ -75,6 +94,18 @@
     )
 (True True)
 )
+
+; !(assertEqual 
+;     (let*
+;        (
+;             (($instance (mkSInstSet $instSet) $state) (simulated-annealing (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil))) (20 0.01 0.1 True 5) applyMutualInformationBasedScore (mi (50.0 1.0 0.5 1.0 True))))
+;             ($instanceCount (List.length $instSet))
+;             ($scoredElems (List.map isScored $instSet))
+;        )
+;        ((>= $instanceCount 4) (List.any $scoredElems)) 
+;     )
+; (True True)
+; )
 
 ;; Reproducibility test not working use the upper test case instead
 ; !(assertEqual 

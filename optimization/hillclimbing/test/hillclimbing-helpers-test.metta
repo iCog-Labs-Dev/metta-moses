@@ -36,7 +36,7 @@
 !(import! &self metta-moses:scoring:complexity-based-scorer)
 
 !(import! &self metta-moses:moses:neighborhood-sampling)
-
+!(import! &self metta-moses:optimization/hillClimbing:poa-extraction-helpers)
 !(import! &self metta-moses:optimization/hillclimbing:cross-top-one)
 !(import! &self metta-moses:optimization/hillclimbing:hill-climbing-helpers)
 !(import! &self metta-moses:feature-selection:feature-selection-helpers)
@@ -289,19 +289,41 @@
 !(assertEqual
    (let*
      (
-       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
+       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil))) applyComplexityBasedScore ()))
        ($instanceCount (List.length $instSet))
        ($scoredElems (List.map isScored $instSet))
      )
      ((>= $instanceCount 4) (List.any $scoredElems)))
    (True True))
 
+
 !(assertEqual
    (let*
      (
-       (($instance (mkSInstSet $instSet) $state) (hillClimbingFs (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil))) mi))
+       (($instance (mkSInstSet $instSet) $state) (hillClimbing (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil))) applyMutualInformationBasedScore mi))
        ($instanceCount (List.length $instSet))
        ($scoredElems (List.map isScored $instSet))
      )
      ((>= $instanceCount 4) (List.any $scoredElems)))
    (True True))
+
+
+; !(assertEqual
+;    (let*
+;      (
+;        (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil)))))
+;        ($instanceCount (List.length $instSet))
+;        ($scoredElems (List.map isScored $instSet))
+;      )
+;      ((>= $instanceCount 4) (List.any $scoredElems)))
+;    (True True))
+
+; !(assertEqual
+;    (let*
+;      (
+;        (($instance (mkSInstSet $instSet) $state) (hillClimbingFs (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil))) mi))
+;        ($instanceCount (List.length $instSet))
+;        ($scoredElems (List.map isScored $instSet))
+;      )
+;      ((>= $instanceCount 4) (List.any $scoredElems)))
+;    (True True))

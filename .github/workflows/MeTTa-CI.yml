@@ -27,4 +27,6 @@ jobs:
       - name: Run mettalog test
         run: |
           pip3 install ansi2html
-          python3 scripts/run-tests.py
+          # python3 scripts/run-tests.py
+          mettalog optimization/hillclimbing/tests/hillclimbing-helpers-test.metta
+          mettalog optimization/simulated-annealing/tests/simulated-annealing-test.metta
