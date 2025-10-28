@@ -82,22 +82,22 @@
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
 
-; !(assertEqual 
-;     (let*
-;        (
-;             (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 5) applyComplexityBasedScore (() ())))
-;             ($instanceCount (List.length $instSet))
-;             ($scoredElems (List.map isScored $instSet))
-;        )
-;        ((>= $instanceCount 4) (List.any $scoredElems)) 
-;     )
-; (True True)
-; )
+!(assertEqual 
+    (let*
+       (
+            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (applyComplexityBasedScore ())))
+            ($instanceCount (List.length $instSet))
+            ($scoredElems (List.map isScored $instSet))
+       )
+       ((>= $instanceCount 4) (List.any $scoredElems)) 
+    )
+(True True)
+)
 
 !(assertEqual 
     (let*
        (
-            (($instance (mkSInstSet $instSet) $state) (simulated-annealing (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil))) (20 0.01 0.1 True 5) applyMutualInformationBasedScore (mi (50.0 1.0 0.5 1.0 True))))
+            (($instance (mkSInstSet $instSet) $state) (simulated-annealing (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil))) (applyMutualInformationBasedScore mi)))
             ($instanceCount (List.length $instSet))
             ($scoredElems (List.map isScored $instSet))
        )

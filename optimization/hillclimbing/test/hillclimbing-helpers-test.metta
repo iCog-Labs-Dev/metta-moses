@@ -300,7 +300,7 @@
 !(assertEqual
    (let*
      (
-       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil))) applyComplexityBasedScore ()))
+       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing deme table (mkInst (Cons 0 (Cons 0 Nil))) (applyComplexityBasedScore ())))
        ($instanceCount (List.length $instSet))
        ($scoredElems (List.map isScored $instSet))
      )
@@ -311,7 +311,7 @@
 !(assertEqual
    (let*
      (
-       (($instance (mkSInstSet $instSet) $state) (hillClimbing (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil))) applyMutualInformationBasedScore mi))
+       (($instance (mkSInstSet $instSet) $state) (hillClimbing (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil))) (applyMutualInformationBasedScore mi)))
        ($instanceCount (List.length $instSet))
        ($scoredElems (List.map isScored $instSet))
      )

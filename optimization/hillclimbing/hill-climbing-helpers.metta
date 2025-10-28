@@ -400,8 +400,8 @@
 
 
 (= (hillClimbing $POASet $tTableBscorer $centerInst) 
-    (hillClimbing $POASet $tTableBscorer $centerInst applyComplexityBasedScore ()))
-(= (hillClimbing $POASet $tTableBscorer $centerInst $scorer $FsScorer) 
+    (hillClimbing $POASet $tTableBscorer $centerInst (applyComplexityBasedScore ())))
+(= (hillClimbing $POASet $tTableBscorer $centerInst ($scorer $FsScorer))
   (case $scorer
     ((applyComplexityBasedScore
         (let*

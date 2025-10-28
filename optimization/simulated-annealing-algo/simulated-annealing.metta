@@ -176,9 +176,9 @@
   )
 )
 
-(= (simulated-annealing $POASet $tTableBscorer $initCenter $hyperParams $scorer $FsParams)
-    (simulated-annealing $POASet $tTableBscorer $initCenter $hyperParams applyComplexityBasedScore $FsParams))
-(= (simulated-annealing $POASet $tTableBscorer $initCenter $hyperParams $scorer $FsParams) 
+(= (simulated-annealing $POASet $tTableBscorer $initCenter (() $FsScorer))
+    (simulated-annealing $POASet $tTableBscorer $initCenter (applyComplexityBasedScore $FsParams)))
+(= (simulated-annealing $POASet $tTableBscorer $initCenter ($scorer $FsScorer))
   (case $scorer
     ((applyComplexityBasedScore
         (let*
@@ -187,7 +187,9 @@
           (simulated-annealing $POASet
                         ($disc $cpxCoeff $size $iTable)
                         $initCenter
-                        (1 3 0) $hyperParams $FsParams
+                        (1 3 0) 
+                        (20 0.01 0.1 True 5) ;; $hyperParams
+                        ($FsScorer ()) ;; $FsParams
                         (False False $initCenter (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         estimateNeighborhood crossover 
                         sampleNewInstances transform)))
@@ -204,7 +206,9 @@
           (simulated-annealing $POASet
               ($labels $rows () ())
               $initCenter
-              (3 3 1) $hyperParams $FsParams
+              (3 3 1) 
+              (20 0.01 0.1 True 5) ;; $hyperParams
+              ($FsScorer (50.0 1.0 0.5 1.0 True)) ;; $FsParams
               (False False $initCenter 0 0 0 0 1) 
               estimateNeighborhoodFs crossoverFs 
               sampleNewInstancesFs transformFs

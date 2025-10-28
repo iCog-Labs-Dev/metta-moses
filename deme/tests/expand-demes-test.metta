@@ -153,7 +153,7 @@
 !(assertEqual 
 (let* 
 (
-    ($optimizeDemesReturn (optimizeDemes deme table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing))
+    ($optimizeDemesReturn (optimizeDemes deme table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing (applyComplexityBasedScore ())))
     (() (println! "optimizeDemes Returns"))
     (() (println! $optimizeDemesReturn))
     (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemesReturn)
@@ -167,7 +167,7 @@
 !(assertEqual
 (let*
 (
-    ($updatedDeme (expandDeme metaPop2 0 1 False sim table hillClimbing 5 2 0 1 ttable1 3 0.004 1000 mi))
+    ($updatedDeme (expandDeme metaPop2 0 1 False sim table hillClimbing (applyMutualInformationBasedScore mi) 5 2 0 1 ttable1 3 0.004 1000))
     ($updatedDemeLength (size-atom $updatedDeme))
 )
 (>= $updatedDemeLength 1)
@@ -177,7 +177,7 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False sim table hillClimbing 5 2 0 1 ttable1 3 0.004 1000 mi))
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False sim table hillClimbing (applyMutualInformationBasedScore mi) 5 2 0 1 ttable1 3 0.004 1000))
     ($topCandidatesLength (OS.length $topCandidates))
 )
 (>= $topCandidatesLength 1)
@@ -186,7 +186,7 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False rd table hillClimbing 5 2 0 1 ttable1 3 0.004 1000 mi))
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False rd table hillClimbing (applyMutualInformationBasedScore mi) 5 2 0 1 ttable1 3 0.004 1000))
     ($topCandidatesLength (OS.length $topCandidates))
 )
 (>= $topCandidatesLength 1)
@@ -195,7 +195,7 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False inc table hillClimbing 5 2 0 1 ttable1 3 0.004 1000 mi))
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False inc table hillClimbing (applyMutualInformationBasedScore mi) 5 2 0 1 ttable1 3 0.004 1000))
     ($topCandidatesLength (OS.length $topCandidates))
 )
 (>= $topCandidatesLength 1)
