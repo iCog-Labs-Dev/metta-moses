@@ -92,6 +92,7 @@
 
     ;;**done call featureSetScorer
     ($cbsInstList (featureSetScorer $itable $scorerType $miConf  $prePenalty $preMinActivation $preMaxActivation $prePositive $instList))
+    (() (println! $cbsInstList))
 )
 (mkSInstSet $cbsInstList)))  
 

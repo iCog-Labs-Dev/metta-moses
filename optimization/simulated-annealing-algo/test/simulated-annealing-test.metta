@@ -51,7 +51,6 @@
 !(import! &self metta-moses:optimization/hillclimbing:cross-top-one)
 !(import! &self metta-moses:optimization/hillclimbing:cross-top-one-helpers)
 !(import! &self metta-moses:optimization/hillclimbing:hill-climbing-helpers)
-!(import! &self metta-moses:optimization/hillclimbing:poa-extraction-helpers)
 !(import! &self metta-moses:optimization/simulated-annealing-algo:simulated-annealing)
 
 !(import! &self metta-moses:scoring:bscore)
@@ -83,22 +82,10 @@
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
 
-!(assertEqual 
-    (let*
-       (
-            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 5) applyComplexityBasedScore (() ())))
-            ($instanceCount (List.length $instSet))
-            ($scoredElems (List.map isScored $instSet))
-       )
-       ((>= $instanceCount 4) (List.any $scoredElems)) 
-    )
-(True True)
-)
-
 ; !(assertEqual 
 ;     (let*
 ;        (
-;             (($instance (mkSInstSet $instSet) $state) (simulated-annealing (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil))) (20 0.01 0.1 True 5) applyMutualInformationBasedScore (mi (50.0 1.0 0.5 1.0 True))))
+;             (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 5) applyComplexityBasedScore (() ())))
 ;             ($instanceCount (List.length $instSet))
 ;             ($scoredElems (List.map isScored $instSet))
 ;        )
@@ -106,6 +93,18 @@
 ;     )
 ; (True True)
 ; )
+
+!(assertEqual 
+    (let*
+       (
+            (($instance (mkSInstSet $instSet) $state) (simulated-annealing (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil))) (20 0.01 0.1 True 5) applyMutualInformationBasedScore (mi (50.0 1.0 0.5 1.0 True))))
+            ($instanceCount (List.length $instSet))
+            ($scoredElems (List.map isScored $instSet))
+       )
+       ((>= $instanceCount 4) (List.any $scoredElems)) 
+    )
+(True True)
+)
 
 ;; Reproducibility test not working use the upper test case instead
 ; !(assertEqual 
