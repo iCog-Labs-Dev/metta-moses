@@ -4,10 +4,18 @@
 
 (: getCscore (-> (ITable $a) (Tree $a) Number Cscore))
 (= (getCscore $itable $tree $complexityRatio $scoreSpace)
-    (unify $scoreSpace 
-            ($tree $score) 
-            (trace! "USED from cache XXXXXXXXXXXXXXXXXXXXXXXXXXX " $score)
-            (chain (scoreTree $itable $tree) $bs 
+  (let* 
+    (
+        (() (println! "current tree: " $tree))
+        ( $existing (collapse (match $scoreSpace ($tree $s) $s) ))
+        
+        (() (println! "existing : " $existing)) 
+    ) 
+        
+    
+     (if (== $existing ())
+         
+           (chain (scoreTree $itable $tree) $bs 
                 (if-error $bs ;; return worst possible composite score
                 (worstCscore)
                 (let* (($bsum (sumBScore $bs))
@@ -20,7 +28,12 @@
                     (() (add-atom $scoreSpace ($tree $res)))
                     )
 
-                    $res )))))
+                    $res)))
+                           
+           (trace! "this score is from cacheSpace XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" (car-atom $existing))  
+     )
+  )
+  )
 
 
 ;; getComplexityCoef -- calcualtes the complexity coeffient of a tree   
