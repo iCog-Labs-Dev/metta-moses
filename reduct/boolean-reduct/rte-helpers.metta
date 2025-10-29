@@ -14,7 +14,7 @@
 ;;                Only AND nodes have guard sets.
 ;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 (= (getGuardSet $exp)
-   (if-decons-expr $exp $h $t
+   (if-decons-expr-custom $exp $h $t
        (if (== $h OR)
            ()                
            (getLiterals $exp)) 
@@ -25,7 +25,7 @@
 ;;    non deterministic list instead of a collapsed atom.
 ;; Example: (AND (NOT A) (NOT B) A) -> [(NOT A), (NOT B), A]
 (= (getGuardSetND $exp)
-   (if-decons-expr $exp $h $t
+   (if-decons-expr-custom $exp $h $t
        (if (== $h OR)
            (empty)             
            (getLiteralsND $exp)) 
@@ -38,7 +38,7 @@
         ($guardSet (getLiterals $exp))
         ($newGuardSet (unionAtom $guardSet $elements))
         ($newGuardSet' (collapse (unique (superpose $newGuardSet))))
-        ($updatedSubExpression (unionAtom $newGuardSet' (getChildren $exp)))
+        ($updatedSubExpression (unionAtom $newGuardSet' (getChildrenExp $exp)))
 
         ($newExp (cons-atom $op $updatedSubExpression))
      )
@@ -60,7 +60,7 @@
 ;; A child of a given expression is any subExpression.
 ;; An expression (NOT A) is also considered as a literal 
 ;;    in the case of boolean expression. Hence not included as a child.
-(= (getChildren $exp)
+(= (getChildrenExp $exp)
      (case $exp
        (
          (() $exp)
@@ -74,10 +74,15 @@
    (let*
      (
         ($op (car-atom $exp))
-        ($oldChildren (getChildren $exp))
+        ($oldChildren (getChildrenExp $exp))
         ($newChildren (concatTuple $oldChildren $children))
         ($updatedSubExpression (concatTuple (getLiterals $exp) $newChildren))
         ($newExp (cons-atom $op $updatedSubExpression))
+        
+        ; (() (println! (OldChildren: $oldChildren)))
+        ; (() (println! (ChildrenToAdd: $children)))
+        ; (() (println! (NewChildren: $newChildren)))
+        ; (() (println! (SubExprs: $updatedSubExpression)))
      )
      $newExp
    )
@@ -110,7 +115,7 @@
 
 ;;A function that will return both literals (Also called guard sets for AND nodes)
 ;;  and the children as a tuple ((...literals...), (...children...))
-(= (getLiteralChildren $expr) ((getLiterals $expr) (getChildren $expr)))
+(= (getLiteralChildren $expr) ((getLiterals $expr) (getChildrenExp $expr)))
 
 ;; Function to find common literals between a tuple and a nested tuple 
 (= (findCommonLiterals $tuple $nestedTuple)

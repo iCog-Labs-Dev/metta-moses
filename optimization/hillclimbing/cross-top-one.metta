@@ -40,3 +40,4 @@
                     (() (println! (New instances After merging: $newInstances)))
                     (() (println! "")))
                 (mkSInstSet (List.appendList (exprToList $newInstances) $instSet))))
+; ) )

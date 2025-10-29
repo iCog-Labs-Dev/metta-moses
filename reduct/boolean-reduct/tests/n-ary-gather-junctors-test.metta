@@ -82,3 +82,17 @@
 ;; Test 15
 ! (assertEqual (gatherJunctors (AND (NOT A) (AND B (NOT V) (OR C (OR (NOT D) (NOT K) (AND E (AND F (NOT G))))))))
                  (AND (NOT A) B (NOT V) (OR C (NOT D) (NOT K) (AND E F (NOT G)))) )
+
+;; Test for andAND function
+! (assertEqual (addAND (OR A B C D)) 
+                (AND (OR (AND A) (AND B) (AND C) (AND D))))
+
+! (assertEqual (addAND (NOT A)) 
+                (AND (NOT A)))
+
+! (assertEqual (addAND (OR (NOT A) B (NOT C) (AND C (OR A B)) D))
+                (AND (OR (AND (NOT A)) (AND B) (AND (NOT C)) (AND C (OR (AND A) (AND B))) (AND D))))
+
+! (assertEqual (addAND (AND (OR A B) A)) (AND (OR (AND A) (AND B)) A))
+
+! (assertEqual (addAND (OR (AND (NOT A) (OR B C) A))) (AND (OR (AND (NOT A) (OR (AND B) (AND C)) A))))

@@ -17,6 +17,55 @@
 )
 
 
+(: addAND (-> Expression Bool Expression))
+(= (addAND $expr $isFinal)
+    (if (and $isFinal (or (== (car-atom $expr) OR) (== (car-atom $expr) NOT)))
+        (AND $expr)
+        $expr
+    )
+)
+
+(: addAND (-> Expression Expression))
+(= (addAND $expr)
+  (if (== (get-metatype $expr) Expression)
+      (addAND $expr (car-atom $expr) ())
+      (addAND $expr () ())
+  ))
+
+(: addAND (-> Expression Symbol Symbol Expression))
+(= (addAND $expr $parent $prev)
+    (case (get-metatype $expr)
+        (
+            (Symbol (if (or (or (or (== AND $expr) (== OR $expr)) (== NOT $expr))
+                            (or (== $parent AND) (== $prev AND)))
+                          $expr
+                          (AND $expr)
+                    )
+            ) ;; track the parent instead of the previous one
+            (Expression
+                (let* (
+                    (($h $t) (decons-atom $expr))
+                    ($parentIsAND (== AND $parent))
+
+                  )
+                    (case ($h $parentIsAND)
+                        (
+                            ((NOT True) $expr)
+                            ((NOT False) (AND $expr))
+                            ((OR True) (map-atom $expr $x (addAND $x $h $h)))
+                            ((OR False) (AND (map-atom $expr $x (addAND $x $h $h))))
+                            ((AND $_) (map-atom $expr $x (addAND $x AND $h)))
+                            (($else $__) (if (== $t ()) (addAND $h () ()) (AND)))
+                        )
+                    )
+                )
+            )
+            ($else $expr)
+        )
+    )
+)
+
+
 (= (nary-gather-junctors $expr $prev)
     (
         if (== (get-metatype $expr) Expression)

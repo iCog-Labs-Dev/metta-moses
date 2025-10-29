@@ -37,14 +37,14 @@
     (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
     (Cons A (Cons B (Cons Output Nil)))))
 
-! (assertEqual (calculateMutualInformation andTable (ConsOS 0 NilOS)) 0.311)      ;; Single feature A
-! (assertEqual (calculateMutualInformation andTable (ConsOS 1 NilOS)) 0.311)      ;; Single feature B
-! (assertEqual (calculateMutualInformation xorTable (ConsOS 0 NilOS)) 0.0)       ;; XOR: single features uninformative
-! (assertEqual (calculateMutualInformation xorTable (ConsOS 1 NilOS)) 0.0)       ;; XOR: single features uninformative
+! (assertEqual (calculateMutualInformation andTable (0)) 0.311)      ;; Single feature A
+! (assertEqual (calculateMutualInformation andTable (1)) 0.311)      ;; Single feature B
+! (assertEqual (calculateMutualInformation xorTable (0)) 0.0)       ;; XOR: single features uninformative
+! (assertEqual (calculateMutualInformation xorTable (1)) 0.0)       ;; XOR: single features uninformative
 
-! (assertEqual (calculateMutualInformation xorTable (ConsOS 0 (ConsOS 1 NilOS))) 1.0)  ;; XOR: joint features fully informative
-! (assertEqual (calculateMutualInformation andTable (ConsOS 0 (ConsOS 1 NilOS))) 0.811) ;; AND: joint features informative
-! (assertEqual (calculateMutualInformation andTable (ConsOS 0 (ConsOS 1 NilOS))) 0.811) ;; AND table joint MI
+! (assertEqual (calculateMutualInformation xorTable (0 1)) 1.0)  ;; XOR: joint features fully informative
+! (assertEqual (calculateMutualInformation andTable (0 1)) 0.811) ;; AND: joint features informative
+! (assertEqual (calculateMutualInformation andTable (0 1)) 0.811) ;; AND table joint MI
 
 
 ;; High MI combinations pass threshold

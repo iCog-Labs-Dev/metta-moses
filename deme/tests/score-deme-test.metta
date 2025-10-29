@@ -1,4 +1,16 @@
 ! (register-module! ../../../metta-moses)
+
+! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
+! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-or)
+! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-and)
+! (import! &self metta-moses:reduct/boolean-reduct:n-ary-propagate-not)
+! (import! &self metta-moses:reduct/boolean-reduct:n-ary-gather-junctors)
+! (import! &self metta-moses:reduct/boolean-reduct:delete-inconsistent-handle)
+! (import! &self metta-moses:reduct/boolean-reduct:zero-constraint-subsumption)
+! (import! &self metta-moses:reduct/boolean-reduct:one-constraint-subsumption)
+! (import! &self metta-moses:reduct/boolean-reduct:promote-common-constraints)
+! (import! &self metta-moses:reduct/boolean-reduct:reduce-to-elegance)
+
 ! (import! &self metta-moses:deme:score-deme)
 ! (import! &self metta-moses:scoring:complexity-based-scorer)
 ! (import! &self metta-moses:scoring:cscore)
@@ -21,8 +33,10 @@
 ! (import! &self metta-moses:utilities:python-treehelpers)
 ! (import! &self metta-moses:feature-selection:feature-selection-helpers)
 
+!(import! &self metta-moses:scoring:precision-bscore)
+
 ;; TODO: Add REDUCE Function here when it's edge case if fixed.
-(= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
+; (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 
 !(bind! tree1
         (mkTree (mkNode AND)
@@ -97,7 +111,8 @@
       ttable2
       2.0
       Nil)
-    (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) (mkCscore -1 4 2.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -1 4 2.0 0.0 -3.0))) Nil)))
+      (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) (mkCscore -4 0 0.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -4 0 0.0 0.0 -4.0))) Nil)))
+;; (  (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) (mkCscore -1 4 2.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -1 4 2.0 0.0 -3.0))) Nil)))
 
 ; Testcases for transform
 !(assertEqual
@@ -114,8 +129,9 @@
    (mkRep knobMapObj tree1)
    ttable2
    1)
-   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) (mkCscore 0 4 4.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -1 4 2.0 0.0 -3.0))) Nil)))) ;;The correct score should be (mkCscore -1 4 4.0 0.0 -5.0). Because the same tree instance was used in the previous applyComplexityBasedScore test, its score was cached. When getCscore runs again, it retrieves the cached score instead of recalculating it — which is why you see (mkCscore -1 4 2.0 0.0 -3.0) instead.
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) (mkCscore 0 3 1.5 0.0 -1.5))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -4 0 0.0 0.0 -4.0))) Nil))))
 
+;;( (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) (mkCscore 0 4 4.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -1 4 4.0 0.0 -5.0))) Nil))))
 
 ;; Testcase for the bitsToIndices
 !(assertEqual (bitsToIndices (Cons 1 (Cons 0 (Cons 1 (Cons 0 Nil)))) 0 ()) (0 2))
@@ -125,12 +141,33 @@
   (applyMutualInformationBasedScore 
       (Cons (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (Cons (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) Nil)))
       ttable2
+      100.0  ;; confidence parameter
       Nil)
   (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) 0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) 0.811)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) 0)) Nil))))
 
+;; Test for applyPrecisionBasedScore
+! (assertEqual
+   (applyPrecisionBasedScore 
+      (Cons (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (Cons (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) Nil)))
+      ttable2
+      100.0 1.0 0.5 1.0 True
+      Nil)
+   (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) 0.0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) 0.306780946956833)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) 0.0)) Nil)))
+      )
 ;; Testcase for transformFs
 !(assertEqual
    (transformFs
    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0)) Nil)))
-   ttable2)
+   ttable2
+   100.0 1.0 0.5 1.0 True mi
+   )
    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0.311)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0.811)) Nil))))
+
+! (assertEqual
+   (transformFs
+      (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0)) Nil)))
+      ttable2
+      100.0 1.0 0.5 1.0 True pre
+      )
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0.5)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0.33333333333333337)) Nil)))
+   )

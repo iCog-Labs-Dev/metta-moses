@@ -1,4 +1,4 @@
-!(register-module! ../../../../metta-moses)
+!(register-module! ../../../metta-moses)
 
 !(import! &self metta-moses:representation:lsk)
 !(import! &self metta-moses:representation:instance)
@@ -37,11 +37,13 @@
 
 !(import! &self metta-moses:moses:neighborhood-sampling)
 
+!(import! &self metta-moses:feature-selection:feature-selection-helpers)
+!(import! &self metta-moses:feature-selection:hc)
+!(import! &self metta-moses:scoring:precision-bscore)
+
 !(import! &self metta-moses:optimization/hillclimbing:cross-top-one)
 !(import! &self metta-moses:optimization/hillclimbing:hill-climbing-helpers)
-!(import! &self metta-moses:feature-selection:feature-selection-helpers)
 !(import! &self metta-moses:optimization/hillclimbing:cross-top-one-helpers)
-!(import! &self metta-moses:feature-selection:hc)
 
 ! (bind! ttable2 
     (mkITable 
@@ -50,5 +52,12 @@
         (Cons (Cons False (Cons True (Cons False (Cons True (Cons False Nil)))))
         (Cons (Cons False (Cons False (Cons False (Cons True (Cons False Nil))))) Nil))))
         (Cons A (Cons B (Cons C (Cons D (Cons Output Nil)))))))
+            
+                                                              ;;miConf PrePenalty  PreMInActivation   PreMaxActivation  PrePositive   ScorerType
+! (assertEqual (hcFtSetPop ttable2 (Cons 1 (Cons 0 (Cons 0 (Cons 0 Nil)))) mi)
+    ((1.0 (0 2 3)) (0.311 (2 3)) (0.311 (0)) (0.311 (0 3)) (0.311 (2)))
+ )
 
-! (hcFtSetPop ttable2 (Cons 1 (Cons 0 (Cons 0 (Cons 0 Nil)))))
+! (assertEqual (hcFtSetPop ttable2 (Cons 1 (Cons 0 (Cons 0 (Cons 0 Nil)))) pre)
+    ((1.0 (0 2)) (0.5 (0 3)) (0.5 (0)))
+)

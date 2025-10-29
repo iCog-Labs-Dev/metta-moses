@@ -101,4 +101,3 @@
 
 !(Map.find (ConsMap ((0) 1) (ConsMap ((1) 2) (ConsMap ((2) 3) NilMap))) (2) )
 !(Map.getByIdx (ConsMap ((0) 1) (ConsMap ((1) 2) (ConsMap ((2) 3) NilMap))) 1)
-

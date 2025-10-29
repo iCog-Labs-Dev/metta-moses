@@ -132,7 +132,7 @@
 ;; XXX : make sure to use strict comparators > as the comparator
 (: insertPair (-> (-> ($a $b) ($a $b) Bool) ($a $b) Expression Expression))
 (= (insertPair $op ($mi $new-i) $list)
-    (if-decons-expr $list $h $t
+    (if-decons-expr-custom $list $h $t
         (unify ($mi-old $i) $h
             (if ($op $mi $mi-old)
                 (cons-atom ($mi $new-i) $list)
@@ -160,7 +160,7 @@
 (= (exponentialSelection $mean $numDesired $scoreLabelTuple $xn $acc)
     (if (== $numDesired 0)
         $acc
-        (trace! ($rndFloat $xn) (if-decons-expr $scoreLabelTuple $h $t
+        (trace! ($rndFloat $xn) (if-decons-expr-custom $scoreLabelTuple $h $t
             (chain (rndFloat) $rndFloat
             (if (< $rndFloat $xn)
                 (chain (union-atom $acc ($h)) $new-acc
@@ -173,7 +173,7 @@
 (= (takeN $n $expr) 
     (if (== $n 0)
         ()
-        (if-decons-expr $expr $h $t
+        (if-decons-expr-custom $expr $h $t
             (chain (takeN (- $n 1) $t) $res
                 (cons-atom $h $res))
             ())))
@@ -286,7 +286,7 @@
 !(bind! lg (py-atom math.log))             
 ;; compute entropy
 (= (entropy $countTuple $totalCount $sum)
-    (if-decons-expr $countTuple $h $t
+    (if-decons-expr-custom $countTuple $h $t
         (unify $h ($item $count)
             (chain (/ $count $totalCount) $p-i ;; need a condition to skip calculation of log of 0 values
                 (chain (if (== $p-i 0) $p-i (round (lg $p-i 2) 2)) $log-val  ;; might need to find new ways of calculating rounded values without python binding
@@ -298,7 +298,7 @@
 ;; filterTable -- filters table by removing features in $ft-to-remove
 
 (= (filterTable $ft-to-remove (mkITable $table $labels))
-    (if-decons-expr $ft-to-remove $h $t
+    (if-decons-expr-custom $ft-to-remove $h $t
         (let* (($filtered-data (Table.pop $h $table))
                 ($filtered-label (List.pop $h $labels)))
             
@@ -346,7 +346,7 @@
 ;; Example: (set ((A B) (B A) (C D)) ()) → ((A B) (C D))
 (: set (-> Expression Expression Expression))
 (= (set $expr $acc)
-    (if-decons-expr $expr $h $t
+    (if-decons-expr-custom $expr $h $t
         (let $carry (union-atom $acc ($h))
             (let $rest (collapse 
                 (let $h-s (superpose $t)
@@ -406,3 +406,31 @@
    (<= (abs-math (- $max $min)) $epsilon))                                        
 ;; checking the random numebr generator
  
+
+;; Utility function to constrain a value within bounds [min, max]
+;; Example: (clamp 1.5 0.0 1.0) -> 1.0, (clamp -0.5 0.0 1.0) -> 0.0
+(: clamp (-> Number Number Number Number))
+(= (clamp $val $min $max)
+   (if (< $val $min) $min
+       (if (> $val $max) $max $val)))
+
+
+;; Calculate confidence weighting factor based on feature set size
+;; This implements fs_scorer_base::confidence() to prevent overfitting
+;;
+;; The confidence factor penalizes larger feature sets to encourage
+;; simpler, more generalizable solutions (Occam's razor principle).
+;;
+;; Parameters:
+;;   $featureSetSize (Number): Number of selected features
+;;   $size (Number): Dataset size parameter  (the number of rows)
+;;   $confi (Number): Confidence scaling parameter
+;;
+;; Returns: (Number) Confidence multiplier (0.0 to 1.0)
+;;
+;; Mathematical formula: 
+;;   confidence = size / (size + exp(-featureSetSize * confi))
+(: calculateConfidence (-> Number Number Number Number))
+(= (calculateConfidence $featureSetSize $size $confi)
+     (/ $size (+ $size (pow-math 2.718 (* -1 (* $featureSetSize $confi)))))
+)

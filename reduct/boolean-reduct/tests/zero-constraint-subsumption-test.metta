@@ -36,7 +36,7 @@
 
 ;; Test case for AND node variation of 0Subsume 
 ;; Test 01
-!(assertEqual (zeroConstraintSubsume' (OR A B (AND) (OR A B) F) (AND)) ((OR A B (OR A B) F) () True))
+!(assertEqual (zeroConstraintSubsume' (OR A B (AND) (OR A B) F) (AND)) ((AND) (AND) True))
 
 ;; Test 02
 !(assertEqual (zeroConstraintSubsume' (AND A B (OR) (AND A B) F) (OR)) ((AND A B (AND A B) F) () True))

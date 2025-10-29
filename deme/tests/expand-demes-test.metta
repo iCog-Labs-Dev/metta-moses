@@ -1,4 +1,16 @@
 ! (register-module! ../../../metta-moses)
+
+! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
+! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-or)
+! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-and)
+! (import! &self metta-moses:reduct/boolean-reduct:n-ary-propagate-not)
+! (import! &self metta-moses:reduct/boolean-reduct:n-ary-gather-junctors)
+! (import! &self metta-moses:reduct/boolean-reduct:delete-inconsistent-handle)
+! (import! &self metta-moses:reduct/boolean-reduct:zero-constraint-subsumption)
+! (import! &self metta-moses:reduct/boolean-reduct:one-constraint-subsumption)
+! (import! &self metta-moses:reduct/boolean-reduct:promote-common-constraints)
+! (import! &self metta-moses:reduct/boolean-reduct:reduce-to-elegance)
+
 !(import! &self metta-moses:representation:lsk)
 !(import! &self metta-moses:representation:instance)
 !(import! &self metta-moses:representation:build-knobs)
@@ -25,7 +37,7 @@
 !(import! &self metta-moses:utilities:lazy-random-selector)
 !(import! &self metta-moses:utilities:lru-cache)
 
-!(import! &self metta-moses:reduct:enf)
+; !(import! &self metta-moses:reduct:enf)
 
 !(import! &self metta-moses:deme:score-deme)
 !(import! &self metta-moses:deme:create-deme)
@@ -153,7 +165,7 @@
 !(assertEqual 
 (let* 
 (
-    ($optimizeDemesReturn (optimizeDemes deme table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing))
+    ($optimizeDemesReturn (optimizeDemes deme table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing (applyComplexityBasedScore ())))
     (() (println! "optimizeDemes Returns"))
     (() (println! $optimizeDemesReturn))
     (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemesReturn)
@@ -167,7 +179,7 @@
 !(assertEqual
 (let*
 (
-    ($updatedDeme (expandDeme metaPop2 0 1 False sim table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
+    ($updatedDeme (expandDeme metaPop2 0 1 False sim table hillClimbing (applyComplexityBasedScore mi) 5 2 0 1 ttable1 3 0.004 1000))
     ($updatedDemeLength (size-atom $updatedDeme))
 )
 (>= $updatedDemeLength 1)
@@ -177,7 +189,7 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False sim table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False sim table hillClimbing (applyComplexityBasedScore mi) 5 2 0 1 ttable1 3 0.004 1000))
     ($topCandidatesLength (OS.length $topCandidates))
 )
 (>= $topCandidatesLength 1)
@@ -186,7 +198,7 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False rd table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False rd table hillClimbing (applyComplexityBasedScore mi) 5 2 0 1 ttable1 3 0.004 1000))
     ($topCandidatesLength (OS.length $topCandidates))
 )
 (>= $topCandidatesLength 1)
@@ -195,7 +207,7 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False inc table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False inc table hillClimbing (applyComplexityBasedScore mi) 5 2 0 1 ttable1 3 0.004 1000))
     ($topCandidatesLength (OS.length $topCandidates))
 )
 (>= $topCandidatesLength 1)

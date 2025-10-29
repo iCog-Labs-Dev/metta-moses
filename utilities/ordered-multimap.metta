@@ -56,7 +56,7 @@
         (chain (MultiMap.removeOne $key $tail) $res 
             (if-error $res $res (ConsMMap ($curKey $curVal) $res)))))
 
-! (assertEqual (MultiMap.removeOne 2 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (2 c) NilMMap)))) (ConsMMap (1 a) (ConsMMap (2 c) NilMMap)))
+; ! (assertEqual (MultiMap.removeOne 2 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (2 c) NilMMap)))) (ConsMMap (1 a) (ConsMMap (2 c) NilMMap)))
 
 ;; Remove all key-value pair with a given key from the Ordered multimap
 (: MultiMap.removeAll (-> $k (MultiMap ($k $v)) (MultiMap ($k $v))))

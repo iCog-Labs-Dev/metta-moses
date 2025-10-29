@@ -58,19 +58,24 @@
 ;;   $listOfScoredInst: Accumulator for Scored Instances.
 ;; Returns:
 ;;   List of Scored Instances with mutual information based scores.
-(: applyMutualInformationBasedScore (-> (List Instance) (ITable $a) (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
-(= (applyMutualInformationBasedScore Nil (mkITable $rows $labels) $listOfScoredInst) $listOfScoredInst)
-(= (applyMutualInformationBasedScore (Cons (mkInst $i) $is) (mkITable $rows $labels) $listOfScoredInst)
+(: applyMutualInformationBasedScore (-> (List Instance) (ITable $a) (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
+(= (applyMutualInformationBasedScore Nil (mkITable $rows $labels) $miConfi $listOfScoredInst) $listOfScoredInst)
+(= (applyMutualInformationBasedScore (Cons (mkInst $i) $is) (mkITable $rows $labels) $miConf $listOfScoredInst)
 (let*
 (
     ($targetColumn (Table.getOutputColumn (mkITable $rows $labels)))
     ($indices (bitsToIndices $i 0 ()))
     ($zippedCols (zipColumn $indices $rows))
     ($score (mutualInformation $zippedCols $targetColumn))
-    ($scoredInst (mkSInst (mkPair (mkInst $i) $score)))
+    
+    ; in the c++ it also calculates the confidence too
+    ($confidence (calculateConfidence (size-atom $indices) (List.length $rows) $miConf))
+    ($scoreConfi (* $score $confidence))
+    ($scoredInst (mkSInst (mkPair (mkInst $i) $scoreConfi)))
     ($uListofScoredInst (Cons $scoredInst $listOfScoredInst))
 )
-(applyMutualInformationBasedScore $is (mkITable $rows $labels) $uListofScoredInst)))
+(applyMutualInformationBasedScore $is (mkITable $rows $labels) $miConf $uListofScoredInst)))
+
 
 ;; similar to the above 'transform' but uses the mutualInformation based scoring for features selection
 ;; Scores each instance in an InstanceSet. 
@@ -78,12 +83,79 @@
 ;;   (mkSInstSet $scoredInstList): The unscored InstanceSet(or that of with an initial worst score)
 ;;   $itable: The input table
 ;; Returns: Scored InstanceSet
-(: transformFs (-> (InstanceSet $a) (ITable Bool) (InstanceSet Cscore)))
-(= (transformFs (mkSInstSet $scoredInstList) $itable)
+(: transformFs (-> (InstanceSet $a) (ITable Bool) Number Number Number Number Bool Symbol (InstanceSet Cscore)))
+(= (transformFs (mkSInstSet $scoredInstList) $itable $miConf $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)
 (let*
 (
     (() (println! "inside transformFs"))
     ($instList (List.map removeInstScore $scoredInstList))
-    ($cbsInstList (applyMutualInformationBasedScore $instList $itable Nil))
+
+    ;;**done call featureSetScorer
+    ($cbsInstList (featureSetScorer $itable $scorerType $miConf  $prePenalty $preMinActivation $preMaxActivation $prePositive $instList))
+    (() (println! $cbsInstList))
 )
 (mkSInstSet $cbsInstList)))  
+
+
+
+;; Purpose: Apply precision-based scoring to a list of instances recursively
+;; This mirrors applyMutualInformationBasedScore but uses precision scoring
+;; Parameters:
+;;   $instList (List Instance) → List of instances to score
+;;   $itable (ITable) → Input table with data and labels  
+    ; $confi            ;; confidence intensity
+    ; $prePenalty          ;; activation Penalty: Penalizes “over-activation” — selecting too many rows from the compressed table.
+    ; $preMinActivation   ;; ensures we always select enough rows to have a meaningful precision estimate.
+    ; $preMaxActivation   ;; limits how many rows can be selected.
+    ; $prePositive        ;; determines which output value is considered the “positive class” in precision_bscore.
+    ; $scorerType         ;; can MI or precision_bscore
+;;   $acc (List ScoredInstance) → Accumulator for results
+;; Returns: (List ScoredInstance) → List of instances with precision scores
+(: applyPrecisionBasedScore (-> (List Instance) ITable Number Number Number Number Bool (List (ScoredInstance Number)) (List (ScoredInstance Number))))
+(= (applyPrecisionBasedScore Nil $itable $confi $prePenalty $preMinActivation $preMaxActivation $prePositive $acc) $acc)
+(= (applyPrecisionBasedScore (Cons (mkInst $bits) $rest) $itable $confi $prePenalty $preMinActivation $preMaxActivation $prePositive $acc)
+    (let* (
+           ;; Convert bits to feature indices
+           ($featureIndices (bitsToIndices $bits 0 ()))
+           ;; Score this feature set using precision scorer
+           ($score (preScorer $featureIndices $itable $prePenalty $preMinActivation $preMaxActivation $prePositive $confi))
+           ;; Create scored instance
+           ($scoredInst (mkSInst (mkPair (mkInst $bits) $score)))
+           ($newAcc (Cons $scoredInst $acc))
+        )
+        ;; Recurse on remaining instances
+        (applyPrecisionBasedScore $rest $itable $confi $prePenalty $preMinActivation $preMaxActivation $prePositive $newAcc)
+    )
+)
+
+
+;; Purpose: Score a feature set using the specified scorer type
+;; Parameters:
+    ; iTable        - our table reperesenation
+    ; $miConfi            ;; confidence intensity
+    ; $prePenalty          ;; activation Penalty: Penalizes “over-activation” — selecting too many rows from the compressed table.
+    ; $preMinActivation   ;; ensures we always select enough rows to have a meaningful precision estimate.
+    ; $preMaxActivation   ;; limits how many rows can be selected.
+    ; $prePositive        ;; determines which output value is considered the “positive class” in precision_bscore.
+    ; $scorerType         ;; can MI or precision_bscore
+    ; $instList        - List of Instances
+;; Returns: List of Scored Instances
+(: featureSetScorer (-> ITable Symbol Number Number Number Number Bool (List Instance) (List (ScoredInstance Number))))
+(= (featureSetScorer $itable $scorerType $miConf  $prePenalty $preMinActivation $preMaxActivation $prePositive $instList)
+        (trace! (Scoring with $scorerType for featureSelection)
+            (case $scorerType
+                (
+                    (mi
+                        (applyMutualInformationBasedScore $instList $itable $miConf Nil)
+                    )
+                    (pre 
+                        (applyPrecisionBasedScore $instList $itable $miConf $prePenalty $preMinActivation $preMaxActivation $prePositive Nil)
+                    )
+                    ($else 
+                        (applyMutualInformationBasedScore $instList $itable $miConf Nil)
+                    ) 
+                )
+            )
+        )
+    
+)

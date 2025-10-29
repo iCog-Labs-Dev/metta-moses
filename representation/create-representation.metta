@@ -10,6 +10,6 @@
 ;; 5. Creating ignore_ops sets for non-selected features ↠ not implemented as a separate container for ignored args rather if exemplar features are ignored, they are subtracted from args list in representation building
 
 ;; createRepresentation -- calls on the representation building procedure
-(: createRepresentation (-> Number (Tree $a) (ITable $a) Symbol Bool Expression Representation))
-(= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts)
-    (representation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts))
+(: createRepresentation (-> Number (Tree $a) (ITable $a) Symbol Bool Expression Symbol Representation))
+(= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
+    (representation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType))
