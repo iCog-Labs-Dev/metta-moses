@@ -16,7 +16,11 @@ There is also a considerable amount of information in the OpenCog wiki: http://w
 
 ## Running the code
 - Make sure to install MeTTaLog `SWI-Prolog version 9.3.25` following the instruction on the [metta-wam][https://github.com/trueagi-io/hyperon-experimental](https://github.com/trueagi-io/metta-wam?tab=readme-ov-file#windows-installation) repository.
-- The entry point to our algorithm is found in [this file](https://github.com/iCog-Labs-Dev/metta-moses/blob/main/deme/tests/expand-demes-test.metta). There are test cases in an assert equal, but there are also additional running examples you can use which are commented out for now.
+- The entry point to our algorithm is found in [this file](https://github.com/iCog-Labs-Dev/metta-moses/blob/main/deme/tests/expand-demes-test.metta). There are test cases in an assert equal, but there are also additional running examples you can use which are commented out for now. You can use the following command to run the tests using `mettalog` after successfully installing mettalog on your machine.
+    ```sh
+       mettalog deme/tests/expand-demes-test.metta
+    ```
 ## Contributing
 Before you start contributing to this repository, make sure to read the [CONTRIBUTING.md](https://github.com/iCog-Labs-Dev/metta-moses/tree/main/.github/CONTRIBUTING.md) file from our repository. 
+
 
