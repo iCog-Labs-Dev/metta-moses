@@ -41,7 +41,7 @@
           (let*
             (
               ($literals (getLiterals $exp))
-              ($children (getChildren $exp))
+              ($children (getChildrenExp $exp))
             )
             (concatTuple $literals $children)
           )

@@ -17,18 +17,16 @@
 (= (createDemeIds $nExpansion $nDeme)
     (if (> $nDeme 1)
         (demeIdList (+ $nExpansion 1) (- $nDeme 1) Nil)
-        (let* (
-                ($str (numStr (+ $nExpansion 1)))
-                ($demeId (mkDemeId $str)))
-
-                (Cons $demeId Nil))))
+        (chain (+ $nExpansion 1) $n 
+            (chain (numStr $n) $str
+                (chain (mkDemeId $str) $demeId (Cons $demeId Nil))))))
 
 ;; demeIdList -- recursive function for creating list of demeId's 
 (= (demeIdList $nExpansion $nDeme $list)
     (if (< $nDeme 0)
         $list
-        (let* ((($str1 $str2)((numStr $nExpansion) (numStr $nDeme)))
-                ($demeId (mkDemeId (charsToString ($str1 "." $str2))))
+        (let* ((($str1 $str2)( (format-args "{}" ($nExpansion)) (format-args "{}" ($nDeme))))
+                ($demeId (mkDemeId (format-args "{}.{}" ($str1 $str2))))
                 ($newList (List.prepend $demeId $list)))
-                
+
                 (demeIdList $nExpansion (- $nDeme 1) $newList))))

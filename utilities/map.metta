@@ -62,7 +62,8 @@
 (: Map.remove (-> $k (Map ($k $v)) (Map ($k $v))))
 (= (Map.remove $key NilMap) (Error $key "not found"))
 (= (Map.remove $key (ConsMap ($curKey $curVal) $tail)) 
-    (if (== $key $curKey) $tail (ConsMap ($curKey $curVal) (Map.remove $key $tail))))
+    (if (== $key $curKey) $tail 
+    (chain (Map.remove $key $tail) $res (if-error $res $res (ConsMap ($curKey $curVal) $res)))))
 
 ;; Get the all the values from the map
 (: Map.values (-> (Map ($k $v)) (List $v)))
@@ -90,14 +91,13 @@
 ;; Get the index of a key value pair given a key
 (: Map.find (-> (Map ($k $v)) $k Number))
 (= (Map.find NilMap $k) -1)
-(= (Map.find (ConsMap ($k $v) $xs) $k')
-   (if (== $k $k')
+(= (Map.find (ConsMap ($curKey $curVal) $xs) $k')
+   (if (== $curKey $k')
        0
-       (chain (Map.find $xs $k'' ) $targetIdx
+       (chain (Map.find $xs $k') $targetIdx
                       (if (== $targetIdx -1)
                           $targetIdx
                           (+ 1 $targetIdx)))))
 
 !(Map.find (ConsMap ((0) 1) (ConsMap ((1) 2) (ConsMap ((2) 3) NilMap))) (2) )
 !(Map.getByIdx (ConsMap ((0) 1) (ConsMap ((1) 2) (ConsMap ((2) 3) NilMap))) 1)
-

@@ -38,9 +38,21 @@
 (: buildTree (-> $a (Tree $a)))
 (= (buildTree $expr)
         (if (== (get-metatype $expr) Expression)
-            (let ($head $tail) (decons-atom $expr)
-                (mkTree (mkNode $head) (exprToList (map buildTree $tail))))
-            (mkTree (mkNode $expr) Nil))
+            ; (let ($head $tail) (decons-atom $expr)
+            ;     (mkTree (mkNode $head) (exprToList (map buildTree $tail))))
+            ; (mkTree (mkNode $expr) Nil)
+            (let* (
+              (() (println! (-----------------------)))
+              (() (println! (Inside buildTree with expr: $expr)))
+              (($head $tail) (decons-atom $expr))
+              ($children (exprToList (map buildTree $tail)))
+              (() (println! (Building tree with head: $head And children: $children)))
+              (() (println! (FinalAnswer: (mkTree (mkNode $head) $children))))
+            )
+            (mkTree (mkNode $head) $children)
+            )
+            (mkTree (mkNode $expr) Nil)
+        )
             )
 
 (: cleanTree (-> (Tree $a) (Tree $a)))
@@ -48,10 +60,11 @@
     (let*
         (
           ($preordered (preOrder $tree))
-          ;; ($reduced (REDUCE $preordered))
-        )
-        (buildTree $preordered))) ;; TODO: Remove when REDUCE is implemented.
-        ;; (buildTree $reduced)))
+          (() (println! (Preordered: $preordered)))
+          ($reduced (reduce $preordered))
+          (() (println! (Reduced: $reduced)))
+          )
+        (buildTree $reduced)))
 
 ;; Get an id of a certain node. And (0) if the root node.
 ;; Example:
@@ -75,7 +88,7 @@
               (let ($_ $__ $nodeId $iter) $state $nodeId))
             (if (== $parentIdx (0)) ;; If parentIdx is (0) don't include it in the index.
                 (mkNodeId ((+ 1 $targetIdx)))
-                (mkNodeId (unionAtom $parentIdx ((+ 1 $targetIdx))))))))))
+                (mkNodeId (concatT $parentIdx ((+ 1 $targetIdx))))))))))
 
 ;; Helper function for the getNodeId function.
 ;;   The function's sole purpose is to make the
@@ -84,7 +97,7 @@
 (= (applyGetNodeId $currTree ($targetTree (mkNodeId $parentIdx) $accId $iter))
     (if (== $accId (mkNodeId (-1)))
         (chain (getNodeId $currTree $targetTree (mkNodeId ($iter))) $nodeId
-        (chain (if (== $parentIdx (0)) (mkNodeId $idx) (mkNodeId (unionAtom $parentIdx $idx))) $newId ;; If parentIdx (0) don't include it in the index.
+        (chain (if (== $parentIdx (0)) (mkNodeId $idx) (mkNodeId (concatT $parentIdx $idx))) $newId ;; If parentIdx (0) don't include it in the index.
           (let (mkNodeId $idx) $nodeId
             (if (== $idx (-1))
                 ($targetTree (mkNodeId $parentIdx) $nodeId (+ 1 $iter))
@@ -111,7 +124,7 @@
          (let*
            (
              ($index (+ $iter 1))
-             ($idOfSubtree (union-atom $targetId ($index)))
+             ($idOfSubtree (concatT $targetId ($index)))
            )
            (mkNodeId $idOfSubtree))
          (getSubtreeId $tree (mkNodeId $targetId) $subtree (+ $iter 1)))))
@@ -188,7 +201,7 @@
         ;;    cause bad type error sometimes. For example, (2 3) 's type
         ;;    is (Number Number) and (0) 's type is (Number) hence the
         ;;    interpreter throws a bad type error.
-        ( $idOfChild (if (== (mkNodeId $target) (mkNodeId (0))) ($childIndex) (union-atom $target ($childIndex))))
+        ( $idOfChild (if (== (mkNodeId $target) (mkNodeId (0))) ($childIndex) (concatT $target ($childIndex))))
         ( $newTargetSubtree (updateChildren $targetNode $updatedChildrenTgt))
         ( $updatedTree (replaceNodeById $tree (mkNodeId $target) $newTargetSubtree))
       )
@@ -202,7 +215,15 @@
               ((mkNullVex $childrenTgt) (List.getByIdx $childrenTgt $idx))
               ($else (Error (Node not found or invalid))))))
 
-
+(: insertNodeAtPosition (-> (Tree $a) NodeId (Node $n) (Tree $a)))
+(= (insertNodeAtPosition $tree (mkNodeId $id) $newNode)
+   (if (or (== $id ()) (== (mkNodeId $id) (mkNodeId (0))))
+       (mkTree $newNode (Cons $tree Nil))
+       (let* (
+               ($oldNode (getNodeById $tree (mkNodeId $id)))
+               ($newSubtree (mkTree $newNode (Cons $oldNode Nil)))
+             )
+             (replaceNodeById $tree (mkNodeId $id) $newSubtree))))
 ;; check if tree is empty
 (: isEmpty (-> (Tree $a) Bool))
 (= (isEmpty $tree)
@@ -240,3 +261,36 @@
 (: alphabetSize (-> (ITable $a) Number))
 (= (alphabetSize (mkITable $rows $labels)) 
     (+ 3 (- (List.length $labels) 1)))                   
+
+;; extract labels from a tree structure as list of symbols
+(: extractArgs (-> (Tree $a) (List Symbol)))
+(= (extractArgs (mkTree (mkNode $node) $children))
+    (if (isMember $node (AND OR NOT))
+        (extractArgsFromList $children)         ;; if it's an operator, collect args from children
+        (Cons $node Nil)))                       ;; else it's a literal, return it in a singleton list
+    
+
+;; apply the above function recursively accross the tree's children        
+(: extractArgsFromList (-> (List (Tree $a)) (List Symbol)))
+(= (extractArgsFromList Nil) Nil)
+(= (extractArgsFromList (Cons $head $tail))
+    (List.appendList (extractArgsFromList $tail) (extractArgs $head)))   
+
+;; treeFtsIndices -- extract integer indices of literals used in a tree
+(= (treeFtsIndices $exemplar $labels)
+    (let* (($exemplar-labels (extractArgs $exemplar))
+            ($arg-set (List.tFoldl $exemplar-labels union-atom exp ())))
+            
+            (map-atom $arg-set $arg (List.index $labels $arg))))     
+
+
+(= (pruneExemplar $exemplar $arg-set)
+    (foldl-atom $arg-set $exemplar $acc $arg (removeLiteral $acc $arg)))   
+    
+(: removeLiteral (-> (Tree $a) Symbol (Tree $a)))
+(= (removeLiteral (mkTree (mkNode $node) $children) $symbol)
+    (if (isMember $node (AND OR NOT))
+        (mkTree (mkNode $node) (List.mapOverArg removeLiteral $children $symbol))
+        (if (== $node $symbol)
+            Nil
+            (mkTree (mkNode $node) Nil))))

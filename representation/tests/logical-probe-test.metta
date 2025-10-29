@@ -13,16 +13,6 @@
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 (= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
 
-;; permsToTree tests
-!(assertEqual (permsToTree (A B)) ((mkTree (mkNode B) Nil) (mkTree (mkNode A) Nil)))
-!(assertEqual 
-   (permsToTree ((OR A B) (AND C D))) 
-   ((mkTree (mkNode AND) 
-            (Cons (mkTree (mkNode C) Nil) (Cons (mkTree (mkNode D) Nil) Nil))) 
-    (mkTree (mkNode OR) 
-            (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))))
-
-
 ; logicalProbe tests
 !(assertEqual 
     (=== (logicalProbe
@@ -36,30 +26,7 @@
       True
       ())
       
-      (((mkLSK 
-         (mkDiscKnob 
-           (mkKnob (mkTree (mkNode AND) 
-                           (Cons (mkTree (mkNode A) Nil) 
-                           (Cons (mkTree (mkNode OR) 
-                                 (Cons (mkTree (mkNode B) Nil) 
-                                 (Cons (mkTree (mkNode C) Nil) Nil))) Nil))) 
-                   (mkNodeId (2 1))) 
-         (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil) 
-        (mkTree (mkNode B) Nil)) 
-
-        (mkLSK 
-         (mkDiscKnob 
-          (mkKnob (mkTree (mkNode AND) 
-                  (Cons (mkTree (mkNode A) Nil) 
-                  (Cons (mkTree (mkNode OR) 
-                        (Cons (mkTree (mkNode B) Nil) 
-                        (Cons (mkTree (mkNode C) Nil) 
-                        (Cons (mkNullVex 
-                              (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))) Nil))) 
-                  (mkNodeId (2 3))) 
-         (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) 
-        (mkTree (mkNode A) Nil))) 
-        
+      ( ((mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil)) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))    
         (mkTree (mkNode AND) 
                 (Cons (mkTree (mkNode A) Nil) 
                 (Cons (mkTree (mkNode OR) 
@@ -79,18 +46,13 @@
       ())
 
      (((mkLSK 
-        (mkDiscKnob 
-          (mkKnob (mkTree (mkNode OR) 
-                  (Cons (mkTree (mkNode B) 
-                        (Cons (mkNullVex  
-                              (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) 
-                  (Cons (mkTree (mkNode C) Nil) Nil))) 
-                  (mkNodeId (1 1))) 
-          (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) 
-        (mkTree (mkNode B) Nil)))
+        (mkDiscKnob (mkKnob  (mkNodeId (1 1))) 
+          (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
 
       (mkTree (mkNode OR) 
-              (Cons (mkTree (mkNode B) 
-              (Cons (mkNullVex 
-                    (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) 
-        (Cons (mkTree (mkNode C) Nil) Nil))))) True)
+            (Cons (mkTree (mkNode B) 
+            (Cons (mkNullVex 
+                  (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) 
+            (Cons (mkTree (mkNode C) Nil) Nil))))) True)
+
+

@@ -20,7 +20,7 @@
 ! (assertEqual (OS.insert compareNum 3 (ConsOS 5 (ConsOS 1 NilOS))) (ConsOS 5 (ConsOS 3 (ConsOS 1 NilOS))))
 ! (assertEqual (OS.insert compareNum -1 (ConsOS 5 (ConsOS 1 NilOS))) (ConsOS 5 (ConsOS 1 (ConsOS -1 NilOS))))
 
-;; Exemplar comparison
+;; Exemplar comparisonstring-to-number 
 ! (assertEqual 
     (compareXmplr 
         (mkXmplr (mkTree (mkNode A) Nil) (mkDemeId 5) (mkCscore (mkScoreT 0.9) (mkComplexity 0.42) (mkScoreT 0.85) (mkScoreT 0.63)) (mkBscore NilNum))
@@ -98,37 +98,75 @@
 ! (assertEqual (OS.removeByIdx (ConsOS 10 (ConsOS 20 NilOS)) 0) (ConsOS 20 NilOS))        
 ! (assertEqual (OS.removeByIdx (ConsOS a (ConsOS b (ConsOS c NilOS))) 1) (ConsOS a (ConsOS c NilOS)))
 ! (assertEqual (OS.removeByIdx (ConsOS 5 (ConsOS 6 (ConsOS 7 NilOS))) 2) (ConsOS 5 (ConsOS 6 NilOS)))
-! (assertEqual (OS.removeByIdx (ConsOS 1 (ConsOS 2 NilOS)) 5) (Error NilOS "empty set/index out of range"))  
+! (assertEqual (OS.removeByIdx (ConsOS 1 (ConsOS 2 NilOS)) 5) (Error NilOS "empty set/index out of range"))
 
 ;; Test cases -- getTopN
 !(assertEqual
    (OS.getTopN 2
-      (mkOS
-         (Cons
+         (ConsOS
             (mkExemplar (mkTree (mkNode A) Nil) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (Cons 0 Nil)))
-            (Cons
+            (ConsOS
                (mkExemplar (mkTree (mkNode B) Nil) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (Cons 0 Nil)))
-               (Cons
+               (ConsOS
                   (mkExemplar (mkTree (mkNode C) Nil) (mkDemeId "1") (mkCscore -0.3 4 0.1 0.1 -0.5) (mkBScore (Cons 0 Nil)))
-                  Nil)))))
-   (mkOS
-      (Cons
+                  NilOS))))
+      (ConsOS
          (mkExemplar (mkTree (mkNode A) Nil) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (Cons 0 Nil)))
-         (Cons
+         (ConsOS
             (mkExemplar (mkTree (mkNode B) Nil) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (Cons 0 Nil)))
-            Nil))))
+            NilOS)))
 
 !(assertEqual
    (OS.getTopN 5
-      (mkOS
-         (Cons
+         (ConsOS
             (mkExemplar (mkTree (mkNode A) Nil) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (Cons 0 Nil)))
-            (Cons
+            (ConsOS
                (mkExemplar (mkTree (mkNode B) Nil) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (Cons 0 Nil)))
-               Nil))))
-   (mkOS
-      (Cons
-         (mkExemplar (mkTree (mkNode A) Nil) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (Cons 0 Nil)))
-         (Cons
-            (mkExemplar (mkTree (mkNode B) Nil) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (Cons 0 Nil)))
-            Nil))))
+               NilOS)))
+        (Error NilOS "empty ordered set/ fewer items than required"))
+
+;; added test for Os.contains
+! (assertEqual (OS.contains (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))) 2) True)
+! (assertEqual (OS.contains (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))) 4) False)
+! (assertEqual (OS.contains NilOS 5) False)
+
+! (assertEqual (genericCompare 2 1) L)      
+! (assertEqual (genericCompare 1 2) G)      
+! (assertEqual (genericCompare 5 5) E)      
+! (assertEqual (genericCompare 0 1) G)    
+! (assertEqual (genericCompare 10 5) L)     
+
+! (assertEqual (OS.range 0 3 NilOS) (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))))
+! (assertEqual (OS.range 1 4 NilOS) (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))))
+! (assertEqual (OS.range 5 5 NilOS) NilOS)     ;; Empty range
+! (assertEqual (OS.range 2 6 NilOS) (ConsOS 2 (ConsOS 3 (ConsOS 4 (ConsOS 5 NilOS)))))
+! (assertEqual (OS.range 0 1 NilOS) (ConsOS 0 NilOS))  ;; Single element
+
+! (assertEqual (OS.union (ConsOS 0 (ConsOS 1 NilOS)) (ConsOS 2 NilOS)) 
+               (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))))
+! (assertEqual (OS.union (ConsOS 1 (ConsOS 3 NilOS)) (ConsOS 0 (ConsOS 2 NilOS))) 
+               (ConsOS 0 (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS)))))
+! (assertEqual (OS.union NilOS (ConsOS 5 NilOS)) (ConsOS 5 NilOS))    ;; Empty first set
+! (assertEqual (OS.union (ConsOS 5 NilOS) NilOS) (ConsOS 5 NilOS))    ;; Empty second set
+! (assertEqual (OS.union (ConsOS 1 (ConsOS 2 NilOS)) (ConsOS 2 (ConsOS 3 NilOS))) 
+               (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))))               ;; Overlapping sets
+
+! (assertEqual (OS.difference (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))) (ConsOS 1 NilOS) NilOS) 
+               (ConsOS 0 (ConsOS 2 NilOS)))
+! (assertEqual (OS.difference (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))) (ConsOS 2 (ConsOS 4 NilOS)) NilOS) 
+               (ConsOS 1 (ConsOS 3 NilOS)))
+! (assertEqual (OS.difference NilOS (ConsOS 1 NilOS) NilOS) NilOS)    ;; Empty first set
+! (assertEqual (OS.difference (ConsOS 1 (ConsOS 2 NilOS)) NilOS NilOS) 
+               (ConsOS 1 (ConsOS 2 NilOS)))                          ;; Empty second set
+! (assertEqual (OS.difference (ConsOS 1 (ConsOS 2 NilOS)) (ConsOS 1 (ConsOS 2 NilOS)) NilOS) 
+               NilOS)                                                 ;; Identical sets
+
+! (assertEqual (osToExpression (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))) ()) (0 1 2))
+! (assertEqual (osToExpression NilOS ()) ())                          ;; Empty set
+! (assertEqual (osToExpression (ConsOS 5 NilOS) ()) (5))              ;; Single element
+! (assertEqual (osToExpression (ConsOS 3 (ConsOS 1 (ConsOS 4 NilOS))) ()) (3 1 4))  ;; Order preserved
+
+! (assertEqual (expressionToOS (2 0 1) NilOS) (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))))
+! (assertEqual (expressionToOS () NilOS) NilOS)                       ;; Empty expression
+! (assertEqual (expressionToOS (5) NilOS) (ConsOS 5 NilOS))           ;; Single element
+! (assertEqual (expressionToOS (3 1 4 1 5 9) NilOS) (ConsOS 1 (ConsOS 3 (ConsOS 4 (ConsOS 5 (ConsOS 9 NilOS))))))  ;; Duplicates removed, sorted

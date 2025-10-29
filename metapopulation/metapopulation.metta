@@ -3,9 +3,6 @@
 ; ! (bind! COMP-TEMP 6.0)
 ; ! (bind! CAP-COEF 50)
 
-;; python int casting function
-! (bind! int (py-atom "int"))
-
 ;; Exemplar type
 (: Exemplar (-> $a Type))
 (: mkExemplar (-> (Tree $a) DemeId Cscore BehavioralScore (Exemplar $a)))
@@ -71,8 +68,8 @@
 (= (compareExemplar 
         (mkExemplar $tree1 $demeId1 $cscore1 $bscr1)
         (mkExemplar $tree2 $demeId2 $cscore2 $bscr2))
-   (if (cScore< $cscore1 $cscore2) L
-       (if (cScore== $cscore1 $cscore2) E G)))
+   (if (apply < $cscore1 $cscore2) L
+       (if (apply == $cscore1 $cscore2) E G)))
 
 ;; Extract BScore from Exemplar
 ;; Params:
@@ -101,4 +98,3 @@
 ;; Return: $tree
 (: getExemplarTree (-> (Exemplar $a) (Tree $a)))
 (= (getExemplarTree (mkExemplar $tree $demeId $cscore $bscore)) $tree)
-

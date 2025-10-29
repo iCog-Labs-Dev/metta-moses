@@ -50,13 +50,18 @@
 ;; Returns: Beahvioral score for the given tree.
 (: scoreTree (-> (ITable $a) (Tree $a) BehavioralScore))
 (= (scoreTree (mkITable $table $labels) $tree)
-   (chain (preOrder $tree) $expTree
-   (trace! (Scoring $expTree)
-   (chain (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table) $scoreList
-   (chain (List.length $labels) $length
-   (chain (List.flatten (List.map ((curry List.drop) (- $length 1)) $table)) $outputs
-   (chain (List.zipWith compareAndScore $scoreList $outputs) $bScore
-      (mkBScore $bScore))))))))
+   (if (== $tree (mkTree (mkNode AND) Nil)) 
+       ;; (worstPossibleScore (mkTruthTableBScore $compCoeff (length $table) $table))
+       (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
+      (chain (preOrder $tree) $expTree
+      (trace! (Scoring $expTree)
+      (chain (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table) $scoreList
+      (chain (List.length $labels) $length
+      (chain (List.flatten (List.map ((curry List.drop) (- $length 1)) $table)) $outputs
+      (chain (List.zipWith compareAndScore $scoreList $outputs) $bScore
+         (mkBScore $bScore)))))))
+   )
+)
 
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
@@ -137,3 +142,47 @@
 ;;  will be calculated. For now it's fixed.
 (: minImprove (-> (BehavioralCScore $a) Number))
 (= (minImprove (mkBCScore $truthTableBScore) (minImprove $truthTableBScore)))
+
+
+;;------------------------------------------------------------
+;; getArgLabels
+;;------------------------------------------------------------
+;;  Extracts argument labels (all but the last) from an ITable.
+;;
+;;  The ITable structure is:
+;;    (mkITable $rows $labels)
+;;      where $rows   = list of data rows (each a list of values)
+;;            $labels = list of column labels (symbols)
+;;
+;;  This function returns an expressison of all column labels except the last one,
+;;  which is typically the output label in a truth table.
+;;
+;;  Example:
+;;    (mkITable
+;;      (Cons (Cons True (Cons False (Cons True Nil)))
+;;            (Cons (Cons False (Cons True (Cons False Nil))) Nil))
+;;      (Cons 'A (Cons 'B (Cons 'Y Nil))))
+;;
+;;    Labels:   +---+---+---+
+;;              | A | B | Y |
+;;              +---+---+---+
+;;    Output:   ('A 'B)
+;;
+;;   
+;;      +---+---+---+
+;;      | A | B | Y |
+;;      +---+---+---+
+;;      | T | F | T |
+;;      | F | T | F |
+;;      +---+---+---+
+;;      ^^^^^^^^^^^^
+;;      getArgLabels returns only the input labels: [A, B]
+;;
+;;  Usage:
+;;    (getArgLabels $itable)  ; returns (Cons 'A (Cons 'B Nil))
+;;
+(: getArgLabels (-> (ITable $a) (List Symbol)))
+(= (getArgLabels (mkITable $rows $labels))
+   (let $args
+        (List.takeN (- (List.length $labels) 1) $labels )
+        (List.listToExpr $args)))
