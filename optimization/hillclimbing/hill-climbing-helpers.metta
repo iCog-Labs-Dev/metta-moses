@@ -112,6 +112,17 @@
        (mkSInst $inst2)
        (mkSInst $inst1)))
 
+
+(= (getDisk (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) $instSet $id))
+    $disc
+)
+(= (getTTableParams (mkTruthTableBScore $cpxCoeff $size $iTable))
+    ($cpxCoeff $size $iTable)
+)
+(= (getITableParams (mkITable $rows $labels))
+    ($rows $labels)
+)
+
 ;; Hillclimbing implementation
 ;;
 ;; Algorihtm:
@@ -132,219 +143,146 @@
 ;;      Check if the score has improve, if so update the center instance by the best instance found. Set the distance to 1. and change already xover to false.
 ;;      If not, check if no crossover was made and if so increase the distance by 1.
 ;;      If it is the first time through the loop, we should not exit but we should set the distance to 1 and retry the iteration.
-(: hillClimbing (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)))
-(= (hillClimbing $deme $tTableBscorer $centerInst) (hillClimbing (1 3 0) (False False False $centerInst (worstCscore) (* -1 (pow-math 10 308)) 0 0 1) $deme $tTableBscorer $centerInst))
 
-(: hillClimbing (-> $params $state Deme (TruthTableBScore $a) Instance (Instance Deme $state)))
+(: hillclimbing (-> Deme (TruthTableBScore $a) Instance (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state))))
+(= (hillClimbing $POASet $tTableBscorer $centerInst) 
+    (hillClimbing $POASet $tTableBscorer $centerInst (applyComplexityBasedScore ())))
+    
+(: hillclimbing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
+(= (hillClimbing $POASet $tTableBscorer $centerInst ($scorer $FsScorer))
+  (case $scorer
+    ((applyComplexityBasedScore
+        (let*
+          (($disc (getDisk $POASet))
+            (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer)))
+          (hillClimbing (1 3 0) (False False False $centerInst (worstCscore) (* -1 (pow-math 10 308)) 0 0 1) 
+                        $POASet
+                        ($disc $cpxCoeff $size $iTable)
+                        $centerInst
+                        ()
+                        estimateNeighborhood crossover 
+                        sampleNewInstances transform)))
+      (applyMutualInformationBasedScore
+        (let*
+          (
+            (() (println! $tTableBscorer))
+            (($rows $labels) (getITableParams $tTableBscorer))
+            (() (println! (iTable: $tTableBscorer)))
+            (() (println! (Rows: $rows)))
+            (() (println! (Labels: $labels)))
+            ($FsScorerType (if (== $FsScorer ()) mi $FsScorer))
+          )
+          (hillClimbing (3 3 1) (False False False $centerInst 0 0 0 0 1) 
+              $POASet 
+              ($labels $rows () ())
+              $centerInst
+              (50.0 1.0 0.5 1.0 True $FsScorerType)
+              estimateNeighborhoodFs crossoverFs 
+              sampleNewInstancesFs transformFs
+          ))))))
+
+
+
 (= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
-                 ($alreadyXover $lastChance $_ $prevCenter $bestCscore $bestScore $currentNInstances $d $i) ;; Mutable states
-                 (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) $instSet $id) ;; Deme
-                 (mkTruthTableBScore $cpxCoeff $size $iTable) ;; Input table scorer
-                 $centerInst) ;; Center instance or init instance
-   (let*
-      (
+                 ($alreadyXover $lastChance $_ $prevCenter $bestSscore $bestScore $currentNInstances $d $i)
+                 $POASet
+                 ($neighborhood $rowOCoeff $size $iTable)
+                 $centerInst
+                 $hyperparamsfs
+                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction) ;; Helper functions
+
+    (let*
+    (
         (() (println! (Iteration $i running)))
         (() (println! ""))
 
-        ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) $instSet $id))
-        ($totalNNeighbors (estimateNeighborhood $d $disc))
+        ($totalNNeighbors ($estimateFunction $d $neighborhood))
 
         (() (println! (Estimated neighbors: $totalNNeighbors)))
         (() (println! ""))
 
         ($nNewNeighbors (min $totalNNeighbors 2))
 
-        ;; INFO: Since our neighborhood size is chosen to be small,
-        ;; we don't need to limit the new neighbors with another function like the C++ (At least for now).
-
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
-
-        ;; Cross over if iteration is > 1 and either neighborhood is large or last chance. Also if not already crossed over.
         ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
         (() (println! (Crossover: $xOver)))
-        (((mkDeme $rep $updatedInstSet $id) $newInstances) (if $xOver
-                                                               (crossover $currentNInstances $nNewNeighbors $prevCenter $deme)
-                                                               (sampleNewInstances $totalNNeighbors $nNewNeighbors $prevCenter $deme $d)))
+        (() (println! (size: $size)))
+        (() (println! ($totalNNeighbors : $nNewNeighbors : $prevCenter : $POASet : $d)))
+        ( 
+          ; $newPOA
+          ((mkDeme $rep $updatedInstSet $id) $newInstances)
+                                                            (case ($xOver $size)
+                                                              (
+                                                                ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentNInstances $nNewNeighbors $prevCenter $POASet) 
+                                                                              ((mkDeme () $updatedInstSet ()) $newInstances)))
+                                                                ((True $notEmpty)  ($crossoverFunction $currentNInstances $nNewNeighbors $prevCenter $POASet))
+                                                                ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $POASet $d)
+                                                                              ((mkDeme () $updatedInstSet ()) $newInstances)))
+                                                                ((False $notEmpty) 
+                                                                        (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $POASet $d)
+                                                                        (trace! ("Result: " $result) $result)))
+                                                              )
+                                                          ))
+        ; (() (println! (New POASet: $newPOA)))
+        ; (((mkDeme $rep $upInstSet $id) $newInstances) $newPOA)
+        ; (() (println! (New rep: $rep)))
+        ; (() (println! (New Inst: $newInstances)))
+        (() (println! ""))
         (() (println! (Newinstances: $updatedInstSet)))
         (() (println! ""))
+        ;; deconstruct the hyper params for fs function
+        (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType) (if (== () $hyperparamsfs) (() () () () () ()) $hyperparamsfs))
 
-        ;; Score all demes in the instance set.
-        ((mkSInstSet $scoredInstances) (transform $updatedInstSet $rep $iTable $cpxCoeff))
+        ((mkSInstSet $scoredInstances) (if (or (== $rep ()) (== $id ())) 
+                                          ($transformFunction 
+                                                              $updatedInstSet
+                                                              (mkITable $rowOCoeff $neighborhood)
+                                                              $miConfi $prePenalty
+                                                              $preMinActivation $preMaxActivation
+                                                              $prePositive $scorerType)
+                                          ($transformFunction $updatedInstSet $rep $iTable $rowOCoeff)))
 
-        ($updatedDeme (mkDeme $rep (mkSInstSet $scoredInstances) $id))
-
+        ($updatedDeme (if (or (== $rep ()) (== $id ())) 
+                          (mkSInstSet $scoredInstances) 
+                          (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
+        
         (() (println! (Scored instances: $scoredInstances)))
         (() (println! ""))
 
-        ;; Check if there's an instance in the deme
-        ;;  better than the best candidate so far.
-        ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $centerInst $bestCscore)) $scoredInstances))
-
-        ($newBestScore (getPenScore (Pair.second $newBestInstPair))) ;; This could be the original best candidate or a new one.
+        ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $centerInst $bestSscore)) $scoredInstances))
+        ($newBestScore (if (or (== $rep ()) (== $id ())) 
+                          (Pair.second $newBestInstPair)
+                          (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
         ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
-
+        
         (() (println! (Best instance: $newBestInstPair)))
         (() (println! (New best score: $newBestScore)))
         (() (println! ""))
 
+        (() (println! (hasImproved: $hasImproved)))
         ($nextCenterInst (if $hasImproved (Pair.first $newBestInstPair) $centerInst))
         ($nextDistance (if $hasImproved 1 (if (not $xOver) (+ 1 $d) $d)))
-
+        
         (() (println! (NextDistance: $nextDistance)))
 
-        ;; If this is the first time throught the iteration,
-        ;;  then distance was zero, there was only one instance
-        ;;  at dist=0, and we just scored it. Be sure to go
-        ;;  around and do at leat the distance == 1 nearest-neighbor
-        ;;  exploration. Note that it is possible that to have only 1
-        ;;  neighbor with a distance greater than 0 (when the distance
-        ;;  has reached the deme dimension), which is why we check that
-        ;;  distance == 1 as well.
-        (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
+
+        (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
                               (if (and (== $totalNNeighbors 1) (== $nextDistance 1))
                                   (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
                                                 ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i)) ;; Updated state
                                                 $updatedDeme
-                                                (mkTruthTableBScore $cpxCoeff $size $iTable)
-                                                $nextCenterInst)
-                                  ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
-
-        ($scoreToCompareBelow (getScore $newBestCscore))
-        (() (println! (Found NewBestCscore After (+ 1 $i) iteration is: $newBestCscore $scoreToCompareBelow)))
-        (() (println! ""))
-        )
-
-      (if (<= $bestPossibleScore $scoreToCompareBelow)
-          (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
-          (let ($finalCenter $finalDeme ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
-            ;; TODO: The C++ version checks the hyper parameter hc_params.crossover before getting here.
-            ;; TODO: The C++ version checks for the hc_params.widen_search too. For now, we're assuming it is always true. 
-            ;;       Hence the omission of the distance check from the C++ Hence the omission of the distance check from the C++
-            (if (and (and (not $newHasImproved) (not $newLastChance)) (not $newXover))
-                ;; If we just did the nearest neighbors and found no improvement,
-                ;;  then try again one last time, we may get lucky.
-                (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
-                              ($newXover True $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI)) ;; Updated state
-                              $newDeme
-                              (mkTruthTableBScore $cpxCoeff $size $iTable)
-                              $newCenter)
-                (trace! (Continue to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))) )
-
-            (if (< $maxDist $finalDistance)
-                (trace! (Terminating because of maximum distance reached) ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))) ;; I don't know why I didn't do this earlier but incrementing is needed here.
-                (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
-                              ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
-                              $finalDeme
-                              (mkTruthTableBScore $cpxCoeff $size $iTable)
-                              $finalCenter))))))
-
-
-;; hillclimbing implementation for feature selection
-(: hillClimbingFs (-> (InstanceSet $a) (ITable Bool) Instance Symbol (Instance (InstanceSet $a) $state)))
-                                                                                                                                                             ;;miConf PrePenalty  PreMInActivation   PreMaxActivation  PrePositive   ScorerType
-(= (hillClimbingFs $instSet $iTable $centerInst $scorerType) (hillClimbingFs (3 3 1) (False False False $centerInst 0 0 0 0 1) $instSet $iTable $centerInst 50.0    1.0         0.5                 1.0               True            $scorerType))
-
-(: hillClimbingFs (-> $params $state (InstanceSet $a) (ITable Bool) Instance Number Number Number Number Bool Symbol (Instance (InstanceSet $a) $state)))
-(= (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
-                 ($alreadyXover $lastChance $_ $prevCenter $bestMIscore $bestScore $currentNInstances $d $i) ;; Mutable states
-                 $instSet
-                 (mkITable $rows $labels) ;; Input table 
-                 $centerInst ;; Center instance or init instance
-
-                  $miConfi            ;; confidence intensity
-
-                  ;; precision scorer parameters
-                  $prePenalty          ;; activation Penalty: Penalizes “over-activation” — selecting too many rows from the compressed table.
-                  $preMinActivation   ;; ensures we always select enough rows to have a meaningful precision estimate.
-                  $preMaxActivation   ;; limits how many rows can be selected.
-                  $prePositive        ;; determines which output value is considered the “positive class” in precision_bscore.
-                  $scorerType
-                 ) 
-                 
-   (let*
-      (
-        (() (println! (Iteration $i running)))
-        (() (println! ""))
-
-        ($totalNNeighbors (estimateNeighborhoodFs $d $labels))
-
-        (() (println! (Estimated neighbors: $totalNNeighbors)))
-        (() (println! ""))
-
-        ($nNewNeighbors (min $totalNNeighbors 2))
-
-        ;; INFO: Since our neighborhood size is chosen to be small,
-        ;; we don't need to limit the new neighbors with another function like the C++ (At least for now).
-
-        ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
-
-        ;; Cross over if iteration is > 1 and either neighborhood is large or last chance. Also if not already crossed over.
-        ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
-        (() (println! (Crossover: $xOver)))
-        (($updatedInstSet $newInstances) (if $xOver
-                                                               (crossoverFs $currentNInstances $nNewNeighbors $prevCenter $instSet)
-                                                               (sampleNewInstancesFs $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rows $labels) $instSet $d)))
-        (() (println! (Newinstances: $updatedInstSet)))
-        (() (println! ""))
-
-        ;; Score all demes in the instance set.
-        ((mkSInstSet $scoredInstances) (transformFs $updatedInstSet (mkITable $rows $labels) $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType))
-
-        ($updatedDeme (mkSInstSet $scoredInstances))
-
-        (() (println! (Scored instances: $scoredInstances)))
-        (() (println! ""))
-
-        ;; Check if there's an instance in the deme
-        ;;  better than the best candidate so far.
-
-        ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $centerInst $bestMIscore)) $scoredInstances))
-
-        ($newBestScore (Pair.second $newBestInstPair)) ;; This could be the original best candidate or a new one.
-        ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
-
-        (() (println! (Best instance: $newBestInstPair)))
-        (() (println! (New best score: $newBestScore)))
-        (() (println! ""))
-
-        ($nextCenterInst (if $hasImproved (Pair.first $newBestInstPair) $centerInst))
-        ($nextDistance (if $hasImproved 1 (if (not $xOver) (+ 1 $d) $d)))
-
-        (() (println! (NextDistance: $nextDistance)))
-
-        ;; If this is the first time throught the iteration,
-        ;;  then distance was zero, there was only one instance
-        ;;  at dist=0, and we just scored it. Be sure to go
-        ;;  around and do at leat the distance == 1 nearest-neighbor
-        ;;  exploration. Note that it is possible that to have only 1
-        ;;  neighbor with a distance greater than 0 (when the distance
-        ;;  has reached the deme dimension), which is why we check that
-        ;;  distance == 1 as well.
-        (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
-                              (if (and (== $totalNNeighbors 1) (== $nextDistance 1))
-                                  (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
-                                                ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i)) ;; Updated state
-                                                $updatedDeme
-                                                (mkITable $rows $labels)
+                                                ($neighborhood $rowOCoeff $size $iTable)
                                                 $nextCenterInst
-                                                  $miConfi            ;; confidence intensity
-
-                                                  ;; precision scorer parameters
-                                                  $prePenalty          ;; activation Penalty: Penalizes “over-activation” — selecting too many rows from the compressed table.
-                                                  $preMinActivation   ;; ensures we always select enough rows to have a meaningful precision estimate.
-                                                  $preMaxActivation   ;; limits how many rows can be selected.
-                                                  $prePositive        ;; determines which output value is considered the “positive class” in precision_bscore.
-                                                  $scorerType
-                                                )
+                                                $hyperparamsfs
+                                                $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
                                   ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
-
-        ($scoreToCompareBelow $newBestCscore)
-        (() (println! (Found NewBestCscore After (+ 1 $i) iteration is: $newBestCscore $scoreToCompareBelow)))
+        
+        ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (getScore $newBestSscore)))
+        (() (println! (Found newBestSscore After (+ 1 $i) iteration is: $newBestSscore $scoreToCompareBelow)))
         (() (println! ""))
-        )
-
-      (if (<= $bestPossibleScore $scoreToCompareBelow)
-          (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
+    )
+    (if (<= $bestPossibleScore $scoreToCompareBelow)
+          (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
           (let ($finalCenter $finalDeme ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
             ;; TODO: The C++ version checks the hyper parameter hc_params.crossover before getting here.
             ;; TODO: The C++ version checks for the hc_params.widen_search too. For now, we're assuming it is always true. 
@@ -352,37 +290,26 @@
             (if (and (and (not $newHasImproved) (not $newLastChance)) (not $newXover))
                 ;; If we just did the nearest neighbors and found no improvement,
                 ;;  then try again one last time, we may get lucky.
-                (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
-                              ($newXover True $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI)) ;; Updated state
+                (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
+                              ($newXover True $newHasImproved $newPrevCenter $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI)) ;; Updated state
                               $newDeme
-                              (mkITable $rows $labels)
+                              ($neighborhood $rowOCoeff $size $iTable)
                               $newCenter
-                              $miConfi            ;; confidence intensity
-
-                              ;; precision scorer parameters
-                              $prePenalty          ;; activation Penalty: Penalizes “over-activation” — selecting too many rows from the compressed table.
-                              $preMinActivation   ;; ensures we always select enough rows to have a meaningful precision estimate.
-                              $preMaxActivation   ;; limits how many rows can be selected.
-                              $prePositive        ;; determines which output value is considered the “positive class” in precision_bscore.
-                              $scorerType
-                              )
-                (trace! (Continue to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))) )
-
+                              $hyperparamsfs
+                              $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
+                (trace! (Continue to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))) )
+ 
             (if (< $maxDist $finalDistance)
                 (trace! (Terminating because of maximum distance reached) ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))) ;; I don't know why I didn't do this earlier but incrementing is needed here.
-                (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore)
+                (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
                               ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
                               $finalDeme
-                              (mkITable $rows $labels)
+                              ($neighborhood $rowOCoeff $size $iTable)
                               $finalCenter
-                                          
-                              $miConfi            ;; confidence intensity
+                              $hyperparamsfs
+                              $estimateFunction $crossoverFunction $samplingFunction $transformFunction))
+          )
+    ) 
+    )          
+)
 
-                              ;; precision scorer parameters
-                              $prePenalty          ;; activation Penalty: Penalizes “over-activation” — selecting too many rows from the compressed table.
-                              $preMinActivation   ;; ensures we always select enough rows to have a meaningful precision estimate.
-                              $preMaxActivation   ;; limits how many rows can be selected.
-                              $prePositive        ;; determines which output value is considered the “positive class” in precision_bscore.
-                              $scorerType
-                              ))))
-                            ))

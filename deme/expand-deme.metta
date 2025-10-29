@@ -5,9 +5,9 @@
 ;;   $inst: The initial instance for optimization.
 ;;   $optimize: The optimizer function to apply to each deme.
 ;;  Returns: (List Deme): A new list where each deme has been optimized.
-(: optimizeDemes (-> (List Deme) (TruthTableBScore $a) Instance (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)) (List (Instance Deme $state))))
-(= (optimizeDemes $deme $truthTableBScore $inst $optimize)
-($optimize $deme $truthTableBScore $inst))
+(: optimizeDemes (-> (List Deme) (TruthTableBScore $a) Instance (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)) $Scorer (List (Instance Deme $state))))
+(= (optimizeDemes $deme $truthTableBScore $inst $optimize ($scorer $FsScorer))
+($optimize $deme $truthTableBScore $inst ($scorer $FsScorer)))
 
 ;; Runs one deme-creation and optimization step, then merges the optimized deme into the metapopulation.
 ;; Params:
@@ -26,8 +26,8 @@
 ;;   $genCount: Generation count for resizing.
 ;; Returns:
 ;;   $updatedMetaPop: Updated metapopulation with the new optimized deme merged in.
-(: expandDeme (-> (OS (Exemplar $a)) Number Number Bool Symbol (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)) Number Number Number Number (ITable $a) Number Number Number Symbol (OS (Exemplar $a))))
-(= (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount $scorerType)
+(: expandDeme (-> (OS (Exemplar $a)) Number Number Bool Symbol (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)) $Scorer Number Number Number Number (ITable $a) Number Number Number (OS (Exemplar $a))))
+(= (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $optimScorer $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
 (collapse
   (let*
 (
@@ -41,7 +41,7 @@
     ($lengthOfDscKbMp (Map.length $dscKbMp))
     ($generatedList (List.generate $lengthOfDscKbMp 0))
     ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
-    (($inst $optimDeme $state) (trace! "Optimizing Deme" (optimizeDemes $deme $truthTableBScore (mkInst $generatedList) $optimize))) ;; the hillclimbing is called under this and it calls the neighborhood and stuff to first populate the deme with instances
+    (($inst $optimDeme $state) (trace! "Optimizing Deme" (optimizeDemes $deme $truthTableBScore (mkInst $generatedList) $optimize $optimScorer))) ;; the hillclimbing is called under this and it calls the neighborhood and stuff to first populate the deme with instances
 )
 $optimDeme)))
 
@@ -52,8 +52,8 @@ $optimDeme)))
 ;; It also takes:
 ;;     - $maxCandOutput : The number of candidates to be returned
 ;;     - other parameters required by the expandDeme method
-(: runMoses (-> Number Cscore Number (OS (Exemplar $a)) Number Number Bool Symbol (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)) Number Number Number Number (ITable $a) Number Number Number Symbol (OS (Exemplar $a))))
-(= (runMoses $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount $scorerType)
+(: runMoses (-> Number Cscore Number (OS (Exemplar $a)) Number Number Bool Symbol (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)) $Scorer Number Number Number Number (ITable $a) Number Number Number (OS (Exemplar $a))))
+(= (runMoses $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $optimScorer $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
 (if (== $maxGen 0)
     (if (<= $maxCandOutput (OS.length $metaPop))
         (let $topCandidates (OS.getTopN $maxCandOutput $metaPop) $topCandidates)
@@ -62,11 +62,11 @@ $optimDeme)))
     ; (trace! ($maxCandOutput $metaPop) (let $topCandidates (OS.getTopN $maxCandOutput $metaPop) $topCandidates))
     (let* 
      (
-       ($optimizedDemes (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount $scorerType))
+       ($optimizedDemes (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $optimScorer $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount))
        ($updatedMetaPop (trace! "Merging Deme" (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metaPop $nToKeep $capCoef $genCount)))
        ($top (OS.getByIdx 0 $metaPop))
        ($topScore (getExemplarCscore $top))
        ($topCandidates (OS.getTopN $maxCandOutput $metaPop)))
      (if (cScore>= $topScore $maxScore) 
          $topCandidates 
-         (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount $scorerType)))))
+         (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $optimScorer $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)))))

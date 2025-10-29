@@ -54,10 +54,10 @@
         (Cons A (Cons B (Cons C (Cons D (Cons Output Nil)))))))
             
                                                               ;;miConf PrePenalty  PreMInActivation   PreMaxActivation  PrePositive   ScorerType
-! (assertEqual (hcFtSetPop ttable2 (Cons 1 (Cons 0 (Cons 0 (Cons 0 Nil)))) 50.0    1.0         0.5                 1.0               True            mi)
+! (assertEqual (hcFtSetPop ttable2 (Cons 1 (Cons 0 (Cons 0 (Cons 0 Nil)))) mi)
     ((1.0 (0 2 3)) (0.311 (2 3)) (0.311 (0)) (0.311 (0 3)) (0.311 (2)))
  )
 
-! (assertEqual (hcFtSetPop ttable2 (Cons 1 (Cons 0 (Cons 0 (Cons 0 Nil)))) 50.0    1.0         0.5                 1.0               True            pre)
+! (assertEqual (hcFtSetPop ttable2 (Cons 1 (Cons 0 (Cons 0 (Cons 0 Nil)))) pre)
     ((1.0 (0 2)) (0.5 (0 3)) (0.5 (0)))
 )
