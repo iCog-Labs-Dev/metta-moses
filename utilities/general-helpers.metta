@@ -1,8 +1,8 @@
 ;; Helper functions that are going to be useful for writing any metta code
 
-!(bind! perf_counter (py-atom "time.perf_counter"))
-!(bind! round (py-atom "round"))
-
+;; !(bind! perf_counter (py-atom "time.perf_counter"))
+;; !(bind! round (py-atom "round"))
+;;
 ;; Measures the average execution time of a given expression over multiple runs.
 ;; Parameters:
 ;;   $expr: The expression to be evaluated and profiled.
@@ -62,14 +62,14 @@
 )
 
 
-
-(: ~= (-> Atom Atom Bool))
-(= (~= $a $b) (not (== $a $b)))
-
-;; INFO: Uncomment for the use of MeTTaLog.
-(: >= (-> Number Number Bool))
-(= (>= $a $b) (or (== $a $b) (> $a $b)))
-
+;;
+;; (: ~= (-> Atom Atom Bool))
+;; (= (~= $a $b) (not (== $a $b)))
+;;
+;; ;; INFO: Uncomment for the use of MeTTaLog.
+;; (: >= (-> Number Number Bool))
+;; (= (>= $a $b) (or (== $a $b) (> $a $b)))
+;;
 ;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
 ;; (: concatTuple (-> Expression Expression Expression))
  (= (concatTuple $x $y) (collapse (union (superpose $x) (superpose $y)))) ;; FIX: No longer working on version 0.2.3
@@ -226,14 +226,14 @@
 (: any (-> Atom Bool))
 (= (any $bools) (isMember True $bools))
 
-;; A trick to define `curry` in MeTTa without `lambda`
-(: curry (-> (-> $a $b $c) (-> $a (-> $b $c))))
-(= (((curry $f) $x) $y) ($f $x $y))
-
-;; A trick to define `curry2` in MeTTa without `lambda`
-(: curry2 (-> (-> $a $b $c $d) (-> $a (-> $b $c $d))))
-(= (((curry2 $f) $x) $y $z) ($f $x $y $z))
-
+;; ;; A trick to define `curry` in MeTTa without `lambda`
+;; (: curry (-> (-> $a $b $c) (-> $a (-> $b $c))))
+;; (= (((curry $f) $x) $y) ($f $x $y))
+;;
+;; ;; A trick to define `curry2` in MeTTa without `lambda`
+;; (: curry2 (-> (-> $a $b $c $d) (-> $a (-> $b $c $d))))
+;; (= (((curry2 $f) $x) $y $z) ($f $x $y $z))
+;;
 ; ;; Add numbers in an atom list
 (= (sum $list) (foldr + 0 $list))
 
@@ -275,7 +275,7 @@
 (= (appendAtom $a $atom) (foldr cons-atom ($a) $atom))
 
 ;; Return the maximum of two numbers.
-(= (max $x $y) (if (< $x $y) $y $x))
+;; (= (max $x $y) (if (< $x $y) $y $x))
 
 ;; A function to return a tuple of numbers from natural to a given number.
 ;; $x is the upperbound
@@ -286,12 +286,12 @@
        $acc
        (let $lastInserted (car-atom $acc) (gen $x (cons-atom (+ 1 $lastInserted) $acc)))))
 
-; ;; A function to return head and tail of an atom in a tuple.
-(= (decons $atom)
-   (if (not (or (isSymbol $atom) (isUnit $atom)))
-       ((car-atom $atom) (cdr-atom $atom))
-       (Error Unit Or Symbol cannot be deconstructed)))
-
+;; ; ;; A function to return head and tail of an atom in a tuple.
+;; (= (decons $atom)
+;;    (if (not (or (isSymbol $atom) (isUnit $atom)))
+;;        ((car-atom $atom) (cdr-atom $atom))
+;;        (Error Unit Or Symbol cannot be deconstructed)))
+;;
 ;; Function to create a tuple of tuples given two equal length list of atoms. ;; FIX: No longer working on version 0.2.3
 (= (zip $a $b)
    (if (or (hasOneAtom $a) (hasOneAtom $b))
@@ -511,12 +511,12 @@
               ($r (drop (- $n 1) $t)))
             $r)))))
 
-;; non-deterministic definitio of length
-
-(= (length $expr)
-    (sum (collapse (let $a (superpose $expr) 1)))
-)
-
+;; ;; non-deterministic definitio of length
+;;
+;; (= (length $expr)
+;;     (sum (collapse (let $a (superpose $expr) 1)))
+;; )
+;;
 ;; isLiteral -- determines if the given atom is a literal or not
 
 (= (isLiteral $a)
@@ -547,7 +547,7 @@
 (= (flatten $exp) (collapse (unNest $exp)))
 
 
-(= (min $x $y) (if (<= $x $y) $x $y))
+;; (= (min $x $y) (if (<= $x $y) $x $y))
 
 ; ;; maxOfTuple -- finds maximum of tuple of numbers
 
@@ -566,7 +566,7 @@
 ; (= (sum $list) (foldr + 0 $list))
 ; (= (sum $list)
 ;     (if (== $list ())
-;         0
+;; ;         0
 ;         (let*
 ;             (
 ;                 ($f (car-atom $list))
@@ -648,17 +648,17 @@
 
 ;; an equal to or grearter than comparator that is resopnsible for deconstructing numerical values from the type constructor and compare them 
 ;; ($ctor $x) ($ctor $y) -- (constructor value) pair                
-(: >>= (-> $a $a Bool))
-(= (>>= ($ctor $x) ($ctor $y))(>= $x $y));; List.Sum for any (List $a) $a of (typeConstructor Number) type
-
-(: List.sum (-> (-> $a $a $a) (List $a) $a))
-(= (List.sum $adder Nil) Nil)
-(= (List.sum $adder (Cons $x $xs))
-    (if (== $xs Nil)
-        $x
-        (let $c (List.sum $adder $xs)
-            ($adder $x $c))))
-
+;; (: >>= (-> $a $a Bool))
+;; (= (>>= ($ctor $x) ($ctor $y))(>= $x $y));; List.Sum for any (List $a) $a of (typeConstructor Number) type
+;;
+;; (: List.sum (-> (-> $a $a $a) (List $a) $a))
+;; (= (List.sum $adder Nil) Nil)
+;; (= (List.sum $adder (Cons $x $xs))
+;;     (if (== $xs Nil)
+;;         $x
+;;         (let $c (List.sum $adder $xs)
+;;             ($adder $x $c))))
+;;
 ; ;; overloading the above function to work with list of numbers
 ; (: List.sum (-> (List $a) $a))
 ; (= (List.sum $list) (List.sum + $list))
@@ -668,12 +668,12 @@
 ;;           ($ctor $b): The second argument with the same constructor as the first
 ;;   returns: Sum of the types if they both contain numbers
 ;;            An error if they can't be added together
-(: add (-> $a $a $a))
-(= (add ($ctor $a) ($ctor $b))
-     (if (== (get-type $a) Number)
-            ($ctor (+ $a $b))
-            (Error ($a or $b) "One of the argument is not a number")))
-
+;; (: add (-> $a $a $a))
+;; (= (add ($ctor $a) ($ctor $b))
+;;      (if (== (get-type $a) Number)
+;;             ($ctor (+ $a $b))
+;;             (Error ($a or $b) "One of the argument is not a number")))
+;;
 ;; wrapping the built-in ininf-math with custom function because the return type is not bool, it is number
 ;; using the type-cast function 
 ;; obsolete in mettalong for now
@@ -683,8 +683,8 @@
 ;; A trick to define composition function.
 ;; Takes a function and returns another function
 ;; applying the two functions in sequence.
-(: . (-> (-> $b $c) (-> $a $b) (-> $a $c)))
-(= ((. $g $f) $x) ($g ($f $x)))
+;; (: . (-> (-> $b $c) (-> $a $b) (-> $a $c)))
+;; (= ((. $g $f) $x) ($g ($f $x)))
 
 ;; Convert an expression to a list   e.g (A B C) -> (Cons A (Cons B (Cons C Nil)))
 (= (exprToList $expr)
@@ -745,8 +745,8 @@
     )
 )
 
-(: compose (-> (-> $b $c) (-> $a $b) (-> $a $c)))
-(= ((compose $g $f) $x) ($g ($f $x)))
+;; (: compose (-> (-> $b $c) (-> $a $b) (-> $a $c)))
+;; (= ((compose $g $f) $x) ($g ($f $x)))
 
 ;; approximate equality -- takes the relative magnitude of the numbers into consideration
 ! (bind! EPSILON (pow-math 10 -6))
