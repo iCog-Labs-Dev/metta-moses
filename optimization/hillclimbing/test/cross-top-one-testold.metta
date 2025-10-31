@@ -14,16 +14,19 @@
 
 !(import! &self metta-moses:deme:create-deme)
 
-!(import! &self metta-moses:optimization:hillclimbing:cross-top-one)
+!(import! &self metta-moses:optimization/hillclimbing:cross-top-one) ;; notice the / in the import statements -- looks like this is required for every additional inner level of dir you have to go
+!(import! &self metta-moses:optimization/hillclimbing:cross-top-one-helpers)
+
+!(bind! wScore (* -1 (pow-math 10 308))) ;; bind worst score value 
 
 (= (pyExprToList $expr) (py_exprToList $expr))
 
 ;; NOTE!!!!!!!
 ;; merger -- this is a function implemented as part if the main crossTopOne in optimization/hillclimbing/cross-top-one.metta but results in error unless this is imported in the test file
-(: merger (-> Expression Instance Instance Expression))
-(= (merger $targetInstances $baseInst $referenceInst)
-    (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
-        (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
+;; (: merger (-> Expression Instance Instance Expression))
+;; (= (merger $targetInstances $baseInst $referenceInst)
+;;    (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
+;;        (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
 
 ! (bind! deme1 
         (mkDeme 
@@ -69,16 +72,16 @@
     (merger ((mkSInst (mkPair (mkInst (Cons 3 Nil)) (mkCscore 1 2 3 4 5))))
       (mkInst (Cons 1 Nil))
             (mkInst (Cons 2 Nil)))
-            ((mkSInst (mkPair (mkInst (Cons 2 Nil)) (mkCscore -1.0000000000000006e308 0.0 0.0 0.0 -1.0000000000000006e308))))) 
+            ((mkSInst (mkPair (mkInst (Cons 2 Nil)) (mkCscore wScore 0.0 0.0 0.0 wScore))))) 
 
 ! (assertEqual (merger ((mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 1 2 3 4 5)))
                         (mkSInst (mkPair (mkInst (Cons 2 Nil)) (mkCscore 1 2 3 4 5)))
                         (mkSInst (mkPair (mkInst (Cons 3 Nil)) (mkCscore 1 2 3 4 5))))
                         (mkInst (Cons 1 Nil)) (mkInst (Cons 2 Nil))) 
 
-                        ((mkSInst (mkPair (mkInst (Cons 2 Nil)) (mkCscore -1.0000000000000006e308 0.0 0.0 0.0 -1.0000000000000006e308))) 
-                            (mkSInst (mkPair (mkInst (Cons 2 Nil)) (mkCscore -1.0000000000000006e308 0.0 0.0 0.0 -1.0000000000000006e308))) 
-                                (mkSInst (mkPair (mkInst (Cons 2 Nil)) (mkCscore -1.0000000000000006e308 0.0 0.0 0.0 -1.0000000000000006e308)))))
+                        ((mkSInst (mkPair (mkInst (Cons 2 Nil)) (mkCscore wScore 0.0 0.0 0.0 wScore))) 
+                            (mkSInst (mkPair (mkInst (Cons 2 Nil)) (mkCscore wScore 0.0 0.0 0.0 wScore))) 
+                                (mkSInst (mkPair (mkInst (Cons 2 Nil)) (mkCscore wScore 0.0 0.0 0.0 wScore)))))
 ;; Test cases -- crossTopOne
 ! (let
     (mkDeme 
@@ -129,5 +132,5 @@
                                     (Cons (mkSInst (mkPair (mkInst (Cons 2 Nil)) (mkCscore 1 2 3 4 4))) 
                                         (Cons (mkSInst (mkPair (mkInst (Cons 4 Nil)) (mkCscore 1 2 3 4 2))) 
                                             (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 1 2 3 4 5))) 
-                                                (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore -1.0000000000000006e308 0.0 0.0 0.0 -1.0000000000000006e308))) 
-                                                    (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore -1.0000000000000006e308 0.0 0.0 0.0 -1.0000000000000006e308))) Nil)))))))) (mkDemeId "1")))
+                                                (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore wScore 0.0 0.0 0.0 wScore))) 
+                                                    (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore wScore 0.0 0.0 0.0 wScore))) Nil)))))))) (mkDemeId "1")))
