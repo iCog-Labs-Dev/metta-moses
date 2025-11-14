@@ -124,7 +124,7 @@
 
 ;; A helper function to apply delInconHandle and andCut transformation functions.
 ;; It will also apply reduce to elegance algorithm on each of the children of the POA.
-(: applyAndTransformations (-> (Expression Expression (Expression Expression Bool)) (Expression Expression Bool)))
+; (: applyAndTransformations (-> (Expression Expression (Expression Expression Bool)) (Expression Expression Bool)))
 (= (applyAndTransformations ($commandSet $dominantSet ($parent $current $_)))
    (let*
      (
@@ -202,7 +202,7 @@
 ;; A helper function to apply reduceToElegance using foldl. It behaves like a lambda function.
 ;; This function is specific for the AND node case of the reduce to elegance function.
 ;;($commandSet $dominantSet ($parent $current False) ($firstChild $remainingChildren))
-(: applyReduceToEleganceToAnd (-> (Expression Expression (Expression Expression Bool) (Expression Expression)) (Expression Expression (Expression Expression Bool) (Expression Expression))))
+; (: applyReduceToEleganceToAnd (-> (Expression Expression (Expression Expression Bool) (Expression Expression)) (Expression Expression (Expression Expression Bool) (Expression Expression))))
 (= (applyReduceToEleganceToAnd ($commandSet $dominantSet ($parent $prevCurrent $bool) ($firstChild $remainingChildren)))
    (let*
      (
@@ -240,7 +240,7 @@
 
 ;; A helper function to apply 0Subsume and orCut transformation functions.
 ;; It will also apply reduce to elegance algorithm on each of the children of the POA.
-(: applyOrTransformations (-> (Expression Expression (Expression Expression Bool)) (Expression Expression (Expression Expression Bool))))
+; (: applyOrTransformations (-> (Expression Expression (Expression Expression Bool)) (Expression Expression (Expression Expression Bool))))
 (= (applyOrTransformations ($commandSet $dominantSet ($parent $current $_)))
    (let*
      (
@@ -289,7 +289,7 @@
 ;; A helper function to apply reduceToElegance to the currentChild and return the nextChild in addtion to the state. It behaves like a lambda function.
 ;; The implementation of this function has many paramters to make it suitable to use with the already implemented until function.
 ;; This function is specific for the OR node case of the reduce to elegance function.
-(: applyReduceToEleganceToOr (-> (Expression Expression (Expression Expression Bool) (Expression Expression)) (Expression Expression (Expression Expression Bool))))
+; (: applyReduceToEleganceToOr (-> (Expression Expression (Expression Expression Bool) (Expression Expression)) (Expression Expression (Expression Expression Bool))))
 (= (applyReduceToEleganceToOr ($commandSet $dominantSet ($parent $prevCurrent $bool) ($currentChild $remainingChildren)))
    (if (~= $currentChild ())
        (let*
@@ -354,7 +354,7 @@
 ;;                   parentGuardSet: (E F G)
 ;;                   commandSet: (E F)
 ;;         output ==> (D E F)
-(: localCommandSet (-> Expression Expression Expression Expression Expression))
+; (: localCommandSet (-> Expression Expression Expression Expression Expression))
 (= (localCommandSet $child $parentChildren $parentGuardSet $commandSet)
    (case ($parentChildren $parentGuardSet)
      (
@@ -406,22 +406,25 @@
 
 ;; A helper predicate function to be used in the until function. It checks if there is no next child.
 ;; It could be replace using a lambda function, if it exists.
-(: hasNoNextChild (-> (Expression Bool (Expression Expression)) Bool))
-(: hasNoNextChild (-> (Expression Expression (Expression Expression Bool) (Expression Expression))))
+; (: hasNoNextChild (-> (Expression Bool (Expression Expression)) Bool))
+; (: hasNoNextChild (-> (Expression Expression (Expression Expression Bool) (Expression Expression))))
 (= (hasNoNextChild ($parent $bool ($child $remainingChildren))) (== $child ()))
 (= (hasNoNextChild ($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($nextChild $remainingChildren))) (== $nextChild ()))
 
-(: reduceNotApplied (-> (Expression Expression Bool) Bool))
+; (: reduceNotApplied (-> (Expression Expression Bool) Bool))
 (= (reduceNotApplied ($parent $current $applied)) 
 
-  (let* (
-      ; (() (println! (=== Inside ReduceNotApplied ===)))
-      ; (() (println! (Parameters ==> Parent: $parent Current: $current Applied: $applied)))
-  ) (not $applied)))
+  ; (let* (
+  ;     ; (() (println! (=== Inside ReduceNotApplied ===)))
+  ;     ; (() (println! (Parameters ==> Parent: $parent Current: $current Applied: $applied)))
+  ; ) (not $applied))
+
+  (not $applied)
+  )
 
 ;; (= (reduce $expr) (trace! (Running reduce with $expr) (let ($parent $__ $applied) (reduceToElegance $expr $expr () ()) (trace! (Result: ($parent $__ $applied)) (if $applied (reduce $parent) $parent)))))
 ;; (= (reduce $expr) (let ($parent $__ $applied) (reduceToElegance $expr $expr () ()) (trace! (Result: ($parent $__ $applied)) (if $applied (reduce $parent) $parent))))
-(: applyReduce (-> (Expression Expression Bool) (Expression Expression Bool)))
+; (: applyReduce (-> (Expression Expression Bool) (Expression Expression Bool)))
 (= (applyReduce ($parent $current $applied))
    (let*
          (
@@ -444,5 +447,5 @@
          (reduceToElegance $finalParent $finalAdd () ())
          ))
          
-(= (reduce $expr) (let ($parent $_ $__) (until reduceNotApplied applyReduce ($expr $expr True)) $parent))
+(= (reduce-to $expr) (let ($parent $_ $__) (eval (until reduceNotApplied applyReduce ($expr $expr True))) $parent))
 
