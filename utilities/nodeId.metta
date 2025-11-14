@@ -17,7 +17,7 @@
 ;;   $levelId: - index indicating the level (0 for root, 1 for first child, etc.).
 ;; Returns:
 ;;   (Tree $a) - The subtree at the specified level, or Nil if out of bounds.
-(: getLevelById (-> (Tree $a) Number (Tree $a)))
+; (: getLevelById (-> (Tree $a) Number (Tree $a)))
 (= (getLevelById (mkTree (mkNode $r) $children) $levelId)
    (if (== $levelId 0)
        (mkTree (mkNode $r) $children)
@@ -34,7 +34,7 @@
 ;;   $id: - A mkNodeId-wrapped tuple of indices (e.g., (mkNodeId (2 1))) representing the path.
 ;; Returns:
 ;;   (Tree $a) - The subtree at the specified ID path, or an error if invalid.
-(: getNodeById (-> (Tree $a) NodeId (Tree $a)))
+; (: getNodeById (-> (Tree $a) NodeId (Tree $a)))
 (= (getNodeById $tree (mkNodeId ())) $tree)
 (= (getNodeById Nil $id) Nil)
 (= (getNodeById $tree (mkNodeId $id))

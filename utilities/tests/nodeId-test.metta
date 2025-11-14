@@ -1,10 +1,12 @@
-!(register-module! ../../../metta-moses)
 
-! (import! &self metta-moses:utilities:list-methods)
-! (import! &self metta-moses:utilities:tree)
-! (import! &self metta-moses:utilities:nodeId)
+; !(register-module! ../../../metta-moses)
 
-;;; Testcase getLevelById
+!(import! &self ../list-methods)
+!(import! &self ../general-helpers)
+!(import! &self ../tree)
+!(import! &self ../nodeId)
+
+; Testcase getLevelById
 !(assertEqual 
   (getLevelById 
     (mkTree (mkNode AND) 
