@@ -478,21 +478,25 @@
                     (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
                     (Cons A (Cons B (Cons Output Nil))))))
 
-!(assertEqual (alphabetSize ttable1) 5)
-!(assertEqual (alphabetSize ttable2) 5)
+!(println! ("testing: alphabetSize"))
+!(assertEqual (alphabetSize (get-state ttable1)) 5)
+!(assertEqual (alphabetSize (get-state ttable2)) 5)
 ; ! (assertEqual (alphabetSize 
 ;       (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode P) Nil) (Cons (mkTree (mkNode Q) Nil) Nil))) 
 ;           (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode P) Nil) Nil)) Nil)))) 
 ;       2)      
 
+!(println! ("testing: extractArgs"))
 !(assertEqual (extractArgs (mkTree (mkNode A) Nil)) (Cons A Nil))
 !(assertEqual (extractArgs (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)))	(Cons A Nil))
 !(assertEqual (extractArgs (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil))))) (Cons A (Cons B (Cons C Nil))))	
 
+!(println! ("testing: treeFtsIndices"))
 !(assertEqual (treeFtsIndices (mkTree (mkNode A) Nil) (Cons A (Cons B (Cons C (Cons O Nil))))) (0))
 !(assertEqual (treeFtsIndices (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons A (Cons B (Cons C (Cons O Nil)))))	(0))
 !(assertEqual (treeFtsIndices (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) Nil)))) (Cons A (Cons B (Cons C (Cons O Nil))))) (0 1 2))	
 
+!(println! ("testing: removeLiteral"))
 !(assertEqual (removeLiteral
     (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
                 (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
@@ -507,6 +511,7 @@
 				(Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil))) A)
 		(mkTree (mkNode AND) (Cons (mkTree (mkNode OR) Nil) Nil)))
 
+!(println! ("testing: pruneExemplar"))
 !(assertEqual (pruneExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil)  (Cons (mkTree (mkNode OR)
                     (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)))
             (A))   
