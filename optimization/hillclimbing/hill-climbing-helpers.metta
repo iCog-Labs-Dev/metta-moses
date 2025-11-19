@@ -1,7 +1,7 @@
 ;; Verbatim port of the Infromation theoretic bits function from c++
 ;; Params: $knobMap: A map of knobs with their multiplicities
 ;; Returns: Sum of the multiplicities of the knobs in the map
-(: informationTheoreticBits (-> (MultiMap (DiscSpec $knob)) Number))
+; (: informationTheoreticBits (-> (MultiMap (DiscSpec $knob)) Number))
 (= (informationTheoreticBits $knobMap)
     (chain (MultiMap.values $knobMap) $knobs
       (chain (List.map getKnobMultip $knobs) $multips
@@ -10,7 +10,7 @@
 
 ;; feature selection version of the informationTheoreticBits function
 ;; In the case of feature selection, the information theoretic bits is simply the number of features we have
-(: informationTheoreticBitsFs (-> (List Symbol) Number))
+; (: informationTheoreticBitsFs (-> (List Symbol) Number))
 (= (informationTheoreticBitsFs $labels)
    (- (List.length $labels) 1))
 
@@ -18,14 +18,14 @@
 ;; Params: $distance: The hamming distance from the current knob
 ;;         $knobMap: A map of knobs with their multiplicities
 ;; Returns: 2 * Sum of the multiplicities of the knobs in the map
-(: estimateNeighborhood (-> Number (MultiMap (DiscSpec $knob)) Number))
+; (: estimateNeighborhood (-> Number (MultiMap (DiscSpec $knob)) Number))
 (= (estimateNeighborhood $distance $knobMap)
    (if (== $distance 0)
        1
        (let $nnEstimate (informationTheoreticBits $knobMap) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
 
 ;; similar to the above 'estimateNeighborhood' but this one uses the informationTheoreticBitsFs which is for feature selection
-(: estimateNeighborhoodFs (-> Number (List Symbol) Number))
+; (: estimateNeighborhoodFs (-> Number (List Symbol) Number))
 (= (estimateNeighborhoodFs $distance $labels)
    (if (== $distance 0)
        1
@@ -42,7 +42,7 @@
 ;;   Count of instances at distance $dist from $inst
 
 ; a helper function to the countNeighborhood method
-(: countNeighborhoodFromIdx (-> KnobMap Instance Number Number Number Number))
+; (: countNeighborhoodFromIdx (-> KnobMap Instance Number Number Number Number))
 (= (countNeighborhoodFromIdx (mkKbMap $dscKbMp (mkDscMp $dscMp)) $inst $dist $startIdx $maxCount)
 (if (== $dist 0) 
     1 
@@ -60,17 +60,17 @@
                  $uUpdatedNumInstances))))))
 
 ; countNeighborhood
-(: countNeighborhood (-> KnobMap Instance Number Number Number))
+; (: countNeighborhood (-> KnobMap Instance Number Number Number))
 (= (countNeighborhood $kbMap $inst $dist $maxCount)
 (countNeighborhoodFromIdx $kbMap $inst $dist 0 $maxCount))
 
 ;; factorial
-(: factorial (-> Number Number))
+; (: factorial (-> Number Number))
 (= (factorial $n)
    (if (<= $n 1) 1 (* $n (factorial (- $n 1)))))
 
 ;; binomial coefficient
-(: binomial (-> Number Number Number))
+; (: binomial (-> Number Number Number))
 (= (binomial $n $k)
    (if (or (< $k 0) (> $k $n))
        0
@@ -78,7 +78,7 @@
 
 ;; Feature selection version of countNeighborhoodFromIdx
 ;; uses the BInomial coefficient to count the number of instances at a specific distance from a given instance.
-(: countNeighborhoodFromIdxFs (-> Instance Number Number Number Number))
+; (: countNeighborhoodFromIdxFs (-> Instance Number Number Number Number))
 (= (countNeighborhoodFromIdxFs $instance $dist $startIdx $maxCount)
    (let $n (- (List.length $instance) $startIdx)
      (if (== $dist 0)
@@ -90,23 +90,23 @@
 
 ;; Feature selection version of countNeighborhood
 ;; uses the countNeighborhoodFromIdxFs
-(: countNeighborhoodFs (-> Instance Number Number Number))
+; (: countNeighborhoodFs (-> Instance Number Number Number))
 (= (countNeighborhoodFs $instance $dist $maxCount)
    (countNeighborhoodFromIdxFs $instance $dist 0 $maxCount))
 
 ;; Crossover function.
 ;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
-(: crossover (-> Number Number Instance Deme (Deme Number)))
+; (: crossover (-> Number Number Instance Deme (Deme Number)))
 (= (crossover $demeSize $nNewInstances $centerInst $deme) (trace! (Running cross over for $centerInst) ((crossTopOne $deme $nNewInstances 0 $demeSize $centerInst) $nNewInstances))) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
 ;; crossover for feature selection
-(: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
+; (: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
 (= (crossoverFs $size $nNewInstances $centerInst $scoredInstSet) (trace! (Running cross over for $centerInst) ((crossTopOneFs $scoredInstSet $nNewInstances 0 $size $centerInst) $nNewInstances))) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
-(: returnBest (-> (ScoredInstance Number) (ScoredInstance Number) (ScoredInstance Number)))
+; (: returnBest (-> (ScoredInstance Number) (ScoredInstance Number) (ScoredInstance Number)))
 (= (returnBest (mkSInst $inst1) (mkSInst $inst2)) (returnBest < (mkSInst $inst1) (mkSInst $inst2)) )
 
-(: returnBest (-> (-> $score $score Bool) (ScoredInstance $score) (ScoredInstance $score) (ScoredInstance $score)))
+; (: returnBest (-> (-> $score $score Bool) (ScoredInstance $score) (ScoredInstance $score) (ScoredInstance $score)))
 (= (returnBest $lessFn (mkSInst $inst1) (mkSInst $inst2))
    (if (apply $lessFn (Pair.second $inst1) (Pair.second $inst2))
        (mkSInst $inst2)
@@ -132,10 +132,10 @@
 ;;      Check if the score has improve, if so update the center instance by the best instance found. Set the distance to 1. and change already xover to false.
 ;;      If not, check if no crossover was made and if so increase the distance by 1.
 ;;      If it is the first time through the loop, we should not exit but we should set the distance to 1 and retry the iteration.
-(: hillClimbing (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)))
+; (: hillClimbing (-> Deme (TruthTableBScore $a) Instance (Instance Deme $state)))
 (= (hillClimbing $deme $tTableBscorer $centerInst) (hillClimbing (1 3 0) (False False False $centerInst (worstCscore) (* -1 (pow-math 10 308)) 0 0 1) $deme $tTableBscorer $centerInst))
 
-(: hillClimbing (-> $params $state Deme (TruthTableBScore $a) Instance (Instance Deme $state)))
+; (: hillClimbing (-> $params $state Deme (TruthTableBScore $a) Instance (Instance Deme $state)))
 (= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
                  ($alreadyXover $lastChance $_ $prevCenter $bestCscore $bestScore $currentNInstances $d $i) ;; Mutable states
                  (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) $instSet $id) ;; Deme
@@ -164,7 +164,7 @@
         (() (println! (Crossover: $xOver)))
         (((mkDeme $rep $updatedInstSet $id) $newInstances) (if $xOver
                                                                (crossover $currentNInstances $nNewNeighbors $prevCenter $deme)
-                                                               (sampleNewInstances $totalNNeighbors $nNewNeighbors $prevCenter $deme $d)))
+                                                               (eval (sampleNewInstances $totalNNeighbors $nNewNeighbors $prevCenter $deme $d))))
         (() (println! (Newinstances: $updatedInstSet)))
         (() (println! ""))
 
@@ -240,11 +240,11 @@
 
 
 ;; hillclimbing implementation for feature selection
-(: hillClimbingFs (-> (InstanceSet $a) (ITable Bool) Instance Symbol (Instance (InstanceSet $a) $state)))
+; (: hillClimbingFs (-> (InstanceSet $a) (ITable Bool) Instance Symbol (Instance (InstanceSet $a) $state)))
                                                                                                                                                              ;;miConf PrePenalty  PreMInActivation   PreMaxActivation  PrePositive   ScorerType
 (= (hillClimbingFs $instSet $iTable $centerInst $scorerType) (hillClimbingFs (3 3 1) (False False False $centerInst 0 0 0 0 1) $instSet $iTable $centerInst 50.0    1.0         0.5                 1.0               True            $scorerType))
 
-(: hillClimbingFs (-> $params $state (InstanceSet $a) (ITable Bool) Instance Number Number Number Number Bool Symbol (Instance (InstanceSet $a) $state)))
+; (: hillClimbingFs (-> $params $state (InstanceSet $a) (ITable Bool) Instance Number Number Number Number Bool Symbol (Instance (InstanceSet $a) $state)))
 (= (hillClimbingFs ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
                  ($alreadyXover $lastChance $_ $prevCenter $bestMIscore $bestScore $currentNInstances $d $i) ;; Mutable states
                  $instSet
@@ -298,9 +298,9 @@
         ;; Check if there's an instance in the deme
         ;;  better than the best candidate so far.
 
-        ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $centerInst $bestMIscore)) $scoredInstances))
+        ((mkSInst $newBestInstPair) (eval (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $centerInst $bestMIscore)) $scoredInstances)))
 
-        ($newBestScore (Pair.second $newBestInstPair)) ;; This could be the original best candidate or a new one.
+        ($newBestScore (eval (Pair.second $newBestInstPair))) ;; This could be the original best candidate or a new one.
         ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
 
         (() (println! (Best instance: $newBestInstPair)))
