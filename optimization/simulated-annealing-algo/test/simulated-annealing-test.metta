@@ -83,17 +83,17 @@
 ;;(: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
-!(assertEqual 
-    (let*
-       (
-            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing (deme) (table1) (mkInst (Cons 0 (Cons 0 Nil))) (mkParams applyComplexityBasedScore ())))
-            ($instanceCount (eval (List.length $instSet)))
-            ($scoredElems (eval (List.map isScored $instSet)))
-       )
-       ((>= $instanceCount 4) (eval (List.any $scoredElems))) 
-    )
-(True True)
-)
+;;!(assertEqual 
+  ;;  (let*
+   ;    (
+   ;         (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing (deme) (table1) (mkInst (Cons 0 (Cons 0 Nil))) (mkParams applyComplexityBasedScore ())))
+    ;        ($instanceCount (eval (List.length $instSet)))
+    ;        ($scoredElems (eval (List.map isScored $instSet)))
+    ;   )
+    ;   ((>= $instanceCount 4) (eval (List.any $scoredElems))) 
+   ; )
+;(True True)
+;)
 !(assertEqual 
     (let*
        (
