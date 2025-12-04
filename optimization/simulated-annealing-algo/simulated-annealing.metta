@@ -41,12 +41,12 @@
 
 ;;(: simulated-annealing (-> Deme (TruthTableBScore $a) Instance (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state))))
 (= (simulated-annealing $POASet $tTableBscorer $initCenter)
-    (simulated-annealing $POASet $tTableBscorer $initCenter (applyComplexityBasedScore $FsParams)))
+    (simulated-annealing $POASet $tTableBscorer $initCenter (mkParams applyComplexityBasedScore ())))
 
 ;;(: simulated-annealing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
-(= (simulated-annealing $POASet $tTableBscorer $initCenter ($scorer $FsScorer))
-  (case $scorer
-    ((applyComplexityBasedScore
+(= (simulated-annealing $POASet $tTableBscorer $initCenter (mkParams $scorer $FsScorer))
+  (case (mkParams $scorer)
+    (((mkParams applyComplexityBasedScore)
         (let*
           (($disc (getDisk $POASet))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer)))
@@ -59,15 +59,15 @@
                         (False False $initCenter (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         estimateNeighborhood crossover 
                         sampleNewInstances transform)))
-      (applyMutualInformationBasedScore
+      ((mkParams applyMutualInformationBasedScore)
         (let*
           (
 
-            (() (println! $tTableBscorer))
+            ($_ (println! $tTableBscorer))
             (($rows $labels) (getITableParams $tTableBscorer))
-            (() (println! (iTable: $tTableBscorer)))
-            (() (println! (Rows: $rows)))
-            (() (println! (Labels: $labels)))
+            ($_ (println! (iTable: $tTableBscorer)))
+            ($_ (println! (Rows: $rows)))
+            ($_ (println! (Labels: $labels)))
           )
           (simulated-annealing $POASet
               ($labels $rows () ())
@@ -94,21 +94,20 @@
           (let*
             (
               ;; Estimate Neighborhood
-              (() (println! (Iteration: $i , Temperature: $Temp)))
-              (() (println! ""))
-              ; (() (println! $hyper))
-              ; (() (println! ($rows $labels)))
+              ($_ (println! (Iteration: $i , Temperature: $Temp)))
+              ($_ (println! ""))
+              ; ($_ (println! $hyper))
+              ; ($_ (println! ($rows $labels)))
               ($totalNNeighbors ($estimateFunction $d $neighborhood))
 
-              (() (println! (Estimated neighbors: $totalNNeighbors)))
-              (() (println! ""))
-
+              ($_ (println! (Estimated neighbors: $totalNNeighbors)))
+              ($_ (println! ""))
               ($nNewNeighbors (min $totalNNeighbors 2))
 
               ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
 
               ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance))))
-              (() (println! (Crossover: $xOver)))
+              ($_ (println! (Crossover: $xOver)))
               ;; Generate a new instance using crossover
               
               (((mkDeme $rep $updatedInstSet $id) $newInstances) (case ($xOver $size)
@@ -120,8 +119,8 @@
                                                                                     ((mkDeme () $updatedInstSet ()) $newInstances)))
                                                                       ((False $notEmpty) ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $POASet $d))
                                                                     )))
-              (() (println! (Newinstances: $updatedInstSet)))
-              (() (println! ""))
+              ($_ (println! (Newinstances: $updatedInstSet)))
+              ($_ (println! ""))
               
               ($scorerType (if (== () $FsScorerType) mi $FsScorerType))
               (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive) (if (== () $FsHyperParams) (() () () () ()) $FsHyperParams))
@@ -140,8 +139,8 @@
                           (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
         
 
-              (() (println! (Scored instances: $scoredInstances)))
-              (() (println! ""))
+              ($_ (println! (Scored instances: $scoredInstances)))
+              ($_ (println! ""))
 
               ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $centerInst $bestSscore)) $scoredInstances))
               ($newBestScore (if (or (== $rep ()) (== $id ())) 
@@ -149,10 +148,10 @@
                                 (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
               ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
         
-              (() (println! (Best instance: $newBestInstPair)))
-              (() (println! (New best score: $newBestScore)))
-              (() (println! (Has Improved: $hasImproved)))
-              (() (println! ""))
+              ($_ (println! (Best instance: $newBestInstPair)))
+              ($_ (println! (New best score: $newBestScore)))
+              ($_ (println! (Has Improved: $hasImproved)))
+              ($_ (println! ""))
 
               ; ;; Calculate the energy of the current and new instance, and the acceptanceProb
               ($pScore (if (== $rep ()) $bestSscore (getPenScore $bestSscore)))
@@ -163,19 +162,19 @@
               ; ;; Actual acceptance probabitlity which is the product of the intensity and acceptance probability.
               ($actualAcceptanceProb (* $acceptanceProb 0.85))
 
-              (() (println! (Energy: $energy)))
-              (() (println! (New energy: $newEnergy)))
-              (() (println! (Acceptance probability: $acceptanceProb)))
-              (() (println! (Random float: $randomFloat)))
-              (() (println! (Actual acceptance probability: $actualAcceptanceProb)))
-              (() (println! ""))
+              ($_ (println! (Energy: $energy)))
+              ($_ (println! (New energy: $newEnergy)))
+              ($_ (println! (Acceptance probability: $acceptanceProb)))
+              ($_ (println! (Random float: $randomFloat)))
+              ($_ (println! (Actual acceptance probability: $actualAcceptanceProb)))
+              ($_ (println! ""))
 
               ; ;; Check for acceptance
               ($isAccepted (> $actualAcceptanceProb $randomFloat))
               
-              (() (println! (Is accepted: $isAccepted)))
-              (() (println! (New instances: $newInstances)))
-              (() (println! ""))
+              ($_ (println! (Is accepted: $isAccepted)))
+              ($_ (println! (New instances: $newInstances)))
+              ($_ (println! ""))
               
               ($newPOASet (if $isAccepted $updatedPOASet $POASet))
               ($newCenter (if $isAccepted (Pair.first $newBestInstPair) $prevCenter))
