@@ -94,6 +94,17 @@
     )
 (True True)
 )
+!(assertEqual 
+    (let*
+       (
+            (($instance (mkSInstSet $instSet) $state) (simulated-annealing (mkSInstSet Nil) (itable) (mkInst (Cons 1 (Cons 0 Nil))) (mkParams applyMutualInformationBasedScore mi)))
+            ($instanceCount (eval (List.length $instSet)))
+            ($scoredElems (eval (List.map isScored $instSet)))
+       )
+       ((>= $instanceCount 4) (eval (List.any $scoredElems))) 
+    )
+(True True)
+)
 
 
 
