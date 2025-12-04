@@ -52,58 +52,50 @@
 !(import! &self ../../../../metta-moses/optimization/hillclimbing/hill-climbing-helpers)
 !(import! &self ../../../../metta-moses/optimization/simulated-annealing-algo/simulated-annealing)
 
-!(import! &self ../../../../metta-moses/scoring/bscore)
 
-!(bind! math-exp (py-atom math.exp))
-!(bind! rand-random (py-atom random.random))
-!(bind! rand-seed (py-atom random.seed))
+; import modules
+(= math (py-call (importlib.import_module math)))
+(= random (py-call (importlib.import_module random)))
 
-!(rand-seed 42)
+; wrappers
+(= (math-exp $x) (py-call (math.exp $x)))
+(= (rand-random) (py-call (random.random)))
+(= (rand-seed $x) (py-call (random.seed $x)))
 
-!(bind! deme (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
-!(bind! demes (Cons (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")) Nil))
 
-!(bind! table (createTruthTableBScore 2 (mkITable
+(= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
+(= (demes) (Cons (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")) Nil))
+
+(= (table1) (eval (createTruthTableBScore 2 (mkITable
                          (Cons (Cons False (Cons False (Cons False Nil))) 
                          (Cons (Cons True (Cons False (Cons False Nil))) 
                          (Cons (Cons False (Cons True (Cons False Nil)))
                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil))))))
+                         (Cons A (Cons B (Cons O Nil)))))))
 
-!(bind! itable (mkITable
+(= (itable) (mkITable
                          (Cons (Cons False (Cons False (Cons False Nil))) 
                          (Cons (Cons True (Cons False (Cons False Nil))) 
                          (Cons (Cons False (Cons True (Cons False Nil)))
                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
                          (Cons A (Cons B (Cons O Nil)))))
-                         
+                      
 ;;(: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
-
 !(assertEqual 
     (let*
        (
-            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (applyComplexityBasedScore ())))
-            ($instanceCount (List.length $instSet))
-            ($scoredElems (List.map isScored $instSet))
+            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing (deme) (table1) (mkInst (Cons 0 (Cons 0 Nil))) (mkParams applyComplexityBasedScore ())))
+            ($instanceCount (eval (List.length $instSet)))
+            ($scoredElems (eval (List.map isScored $instSet)))
        )
-       ((>= $instanceCount 4) (List.any $scoredElems)) 
+       ((>= $instanceCount 4) (eval (List.any $scoredElems))) 
     )
 (True True)
 )
 
-!(assertEqual 
-    (let*
-       (
-            (($instance (mkSInstSet $instSet) $state) (simulated-annealing (mkSInstSet Nil) itable (mkInst (Cons 1 (Cons 0 Nil))) (applyMutualInformationBasedScore mi)))
-            ($instanceCount (List.length $instSet))
-            ($scoredElems (List.map isScored $instSet))
-       )
-       ((>= $instanceCount 4) (List.any $scoredElems)) 
-    )
-(True True)
-)
+
 
 ;; Reproducibility test not working use the upper test case instead
 ; !(assertEqual 
