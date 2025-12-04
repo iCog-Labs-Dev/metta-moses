@@ -26,12 +26,12 @@
 ; ;;   10. Repeat from step 1.   
 ; ;;
 
-; (: getEnergy (-> Cscore Number))
+; ;;(: getEnergy (-> Cscore Number))
 (= (getEnergy $score)
   (* -1 $score)
 )
 
-(: acceptanceProb (-> Number Number Number Number))
+;;(: acceptanceProb (-> Number Number Number Number))
 (= (acceptanceProb $energy1 $energy2 $Temp)
   (if (< $energy2 $energy1)
     1.0
@@ -39,11 +39,11 @@
   )
 )
 
-(: simulated-annealing (-> Deme (TruthTableBScore $a) Instance (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state))))
+;;(: simulated-annealing (-> Deme (TruthTableBScore $a) Instance (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state))))
 (= (simulated-annealing $POASet $tTableBscorer $initCenter)
     (simulated-annealing $POASet $tTableBscorer $initCenter (applyComplexityBasedScore $FsParams)))
 
-(: simulated-annealing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
+;;(: simulated-annealing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
 (= (simulated-annealing $POASet $tTableBscorer $initCenter ($scorer $FsScorer))
   (case $scorer
     ((applyComplexityBasedScore
