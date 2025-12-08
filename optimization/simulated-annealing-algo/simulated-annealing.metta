@@ -186,12 +186,6 @@
               ($updatedNumInstances (+ $currentNInstances $newInstances))
               ($newTemp (- $Temp (* $coolRate $Temp)))
               ($newIterCount (- $maxIter 1))
-
-              ($_ (println! (NewbestSscore : $newBestSscore)))
-              ($_ (println! (NewbestScore : $newBestScore)))
-              
-              
-
               ($_ (cut))
 
                           
