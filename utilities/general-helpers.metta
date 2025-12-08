@@ -67,7 +67,8 @@
 (= (~= $a $b) (not (== $a $b)))
 ;Function to cocatinate two tuples (A B) (C D) ==> (A B C D)
 ;; (: concatTuple (-> Expression Expression Expression))
-(= (concatTuple $x $y) (union-atom $x $y))
+
+(= (concatTuple $x $y) (union-atom $x $y)) ;; This should work when run after activating the virtual env
 
 (: ++ (-> Expression Expression Expression))
 (= (++ $x $y)

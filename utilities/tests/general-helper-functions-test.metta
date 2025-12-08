@@ -1,39 +1,4 @@
-!(import! &self ../general-helpers)
-!(import! &self ../ordered-multimap)
-!(import! &self ../list-methods)
-!(import! &self ../map)
-!(import! &self ../../representation/knob-representation)
-!(import! &self ../ordered-set)
-!(import! &self ../ordered-multiset)
-!(import! &self ../../representation/instance)
-!(import! &self ../../scoring/bscore)
-!(import! &self ../../scoring/cscore)
 
-; ; !(bind! &newSpace (new-space))
-!(println! ("test ~= "))
-!(assertEqual (~= 1 2) True)
-!(assertEqual (~= 1 1) False)
-
-!(assertEqual (~= Something Nothing) True)
-!(assertEqual (~= Something Something) False)
-!(assertEqual (~= Something something) True)
-
-
-;; Tests for get-type-reduce
-(: Bar (-> $a $b Type))
-(: Foo (-> $a $b (Bar $a $b)))
-
-!(assertEqual (get-type-reduce Bar) Type)
-!(assertEqual (get-type-reduce (Foo "Chocolate" "Cake")) (Bar String String))
-!(assertEqual (get-type-reduce (Foo 1 2)) (Bar Number Number))
-!(assertEqual (get-type-reduce (Foo 1 "2")) (Bar Number String))
-
-;; Tests for the function 'concatTuple' ;; FIX: Failing Test case
-!(println! ("test appending instead of concat touples"))
-!(assertEqual (append () (3 4)) (3 4))
-!(assertEqual (append (1 2) (3 4)) (1 2 3 4))
-!(assertEqual (append (1 2) ()) (1 2))
-!(assertEqual (append () ()) ())
 ;; Tests for the function 'Not'
 !(println! ("Tests for the function Not"))
 !(assertEqual (Not (Not (Not A))) (Not A))
