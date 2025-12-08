@@ -16,10 +16,8 @@
 !(import! &self ../../../../metta-moses/utilities/pair) 
 !(import! &self ../../../../metta-moses/utilities/nodeId)
 !(import! &self ../../../../metta-moses/utilities/list-methods)
-;;!(import! &self ../../../../metta-moses/utilities/python-helpers);; commented out because not compatibel with mettalog
 !(import! &self ../../../../metta-moses/utilities/general-helpers)
 !(import! &self ../../../../metta-moses/utilities/ordered-multimap)
-;;!(import! &self ../../../../metta-moses/utilities/python-treehelpers)
 !(import! &self ../../../../metta-moses/utilities/lazy-random-selector)
 
 !(import! &self ../../../../metta-moses/reduct/boolean-reduct/rte-helpers)
@@ -56,8 +54,12 @@
 
 
 
+
 (= (rand-random) (py-call (random.random)))
 
+;; Define seed function (takes a number)
+(= (rand-seed $s) (py-call (random.seed $s)))
+!(rand-seed 42)
 
 
 
@@ -81,6 +83,7 @@
 ;;(: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 !(simulated annealing test ----------)
+
 !(assertEqual 
     (let*
        (
@@ -105,15 +108,18 @@
 )
 
 
-
-;; Reproducibility test not working use the upper test case instead
-; !(assertEqual 
-;     (let*
-;         (
-;             (($instance (mkDeme $rep (mkSInstSet $instSet) $id) ($_ $bestCScore $bestScore $_ $_ $_)) 
-;                 (simulated-annealing deme table (mkInst (Cons 0 (Cons 0 Nil))) (20 0.01 0.1 True 7)))
-;         )
-;         (== ($bestCScore $bestScore) ((mkCscore 0 2 1.0 0.0 -1.0) -1.0))
-;     )
-;     True
-; )
+;; Reproducibility test 
+!(assertEqual 
+     (let*
+         (
+             (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) 
+                 (simulated-annealing (deme) (table1) (mkInst (Cons 0 (Cons 0 Nil))) (mkParams applyComplexityBasedScore ())))
+           
+            (($prevCenter $bestSscore $bestScore $currentNInstances $d $i) $state)
+            
+            
+         )
+         ((== $bestSscore (mkCscore 0 2 1.0 0.0 -1.0))(== $bestScore -1.0))
+     )
+     (True True)
+ )
