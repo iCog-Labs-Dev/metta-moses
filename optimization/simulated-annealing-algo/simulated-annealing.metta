@@ -94,8 +94,6 @@
             (
               ;; Estimate Neighborhood
               ($_ (println! (Iteration: $i , Temperature: $Temp)))
-              ($_ (println! (maxIter: $maxIter)))
-          
               ($_ (println! ""))
               ; ($_ (println! $hyper))
               ; ($_ (println! ($rows $labels)))
@@ -188,6 +186,10 @@
               ($updatedNumInstances (+ $currentNInstances $newInstances))
               ($newTemp (- $Temp (* $coolRate $Temp)))
               ($newIterCount (- $maxIter 1))
+
+              ($_ (println! (NewbestSscore : $newBestSscore)))
+              ($_ (println! (NewbestScore : $newBestScore)))
+              
               
 
               ($_ (cut))
