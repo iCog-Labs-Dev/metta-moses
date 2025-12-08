@@ -12,16 +12,16 @@
 ; ;;   deme: The final population of instances
 ; ;;   state: The state of the algorithm
 ; ;; Algorithm description:
-; ;;   1. Checks if the temp <= final temp or max iterations <=0 is reached, if any of these is true break and return the best candidate and best score.
-; ;;   2. If not, scores the current candidate and generates a new candidate by using crossover or sampling.
+; ;;   1. Checks if the temp == final temp or max iterations is reached, it any of these is true break and return the best cadidate and best score.
+; ;;   2. If not, scores the current cadidate and generates a new candidate by using crossover.
 ; ;;   3. Scores the new candidate and calculates the energy of the new candidate and current candidate.
 ; ;;   4. Calculates the acceptance probability using the energy.
 ; ;;   5. Generates a random float between 0 and 1.
-; ;;   6. Calculate the acceptance probability by comparing the energies of the two candidates (low energy==better candidate), or by dividing the 
-; ;;      difference of the two energies by the temperature and taking the exp of that value. The actual acceptance probability is the product of 
+; ;;   6. Calculate the acceptance probability by comparing the energies of the two candidates (low energy==better cadidate), or by deviding the 
+; ;;      difference of the two energies by the temprature and taking the exp of that value. The actual accpetance probability is the product of 
 ; ;;      the intensity and acceptance probability.
 ; ;;   7. If the actual acceptance probability is greater than the random float, accept the new candidate as the current candidate.
-; ;;   8. Decrease the temperature by subtracting (cooling rate * temperature) from the current temperature. This is equivalent to Temp *= (1 - coolRate).
+; ;;   8. Decrease the temperature by multiplying it with the cooling rate.
 ; ;;   9. Decrement the max iterations by 1.
 ; ;;   10. Repeat from step 1.   
 ; ;;
@@ -72,7 +72,7 @@
               ($labels $rows () ())
               $initCenter
               (3 3 1) 
-              (20 0.01 0.1 True 5) ;; $hyperParams - keep original for FS mode since it works
+              (20 0.01 0.1 True 5) ;; $hyperParams 
               ($FsScorer (50.0 1.0 0.5 1.0 True)) ;; $FsParams
               (False False $initCenter 0 0 0 0 1) 
               estimateNeighborhoodFs crossoverFs 
