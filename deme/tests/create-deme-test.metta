@@ -76,7 +76,7 @@
 ;; (= (createDeme 1 (Cons (mkDemeId "1") $tree ) $exemplar ttable1 $algo $prune-exemplar $enforced-fts)
 ;;
 
-(= (table) (mkITable
+(= (table1) (mkITable
                          (Cons (Cons False (Cons False (Cons False Nil))) 
                          (Cons (Cons True (Cons False (Cons False Nil))) 
                          (Cons (Cons False (Cons True (Cons False Nil)))
@@ -84,12 +84,7 @@
                          (Cons A (Cons B (Cons O Nil)))))
 
 !(assertEqual (createDeme 1 (Cons (mkDemeId "1") Nil) (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) Nil)) 
-              (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil))))
+              (table1)
               sim False () mi)
               (
                 (mkDeme
