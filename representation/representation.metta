@@ -49,7 +49,7 @@
         
         (let* (
                   ($_ (println! (Inside Representation)))
-                  ($exemplar-fts (eval (treeFtsIndices $exemplar $labels))) 
+                  ($exemplar-fts  (filter-atom (eval (treeFtsIndices $exemplar $labels)) $x (not (== $x -1))))
                   ($_ (println! (exemplar features $exemplar-fts)))          ;; exemplarFtsIndices function in deme/expand-deme.metta
                  ($all-labels (eval (getInputLabels $labels)))                       ;; getInputLabels in deme/expand-deme.metta
                  ($_ (println! "before featureSelector"))                                                                                                           ;;Default Values  ;;miConf PrePenalty  PreMInActivation   PreMaxActivation  PrePositive   ScorerType
@@ -146,13 +146,9 @@
    (let $knobIdxPair (eval (findDiscKnob $knobMapObj $srcId)) 
       (if (not (== (eval (second $knobIdxPair)) -1))
          (let*
-            (
-               ($_ (println! (I_________________nside getCandidateRec with parentId: $parentId , srcId: $srcId)))
-               ($_ (println! (Evaluating Instance: $inst : (second $knobIdxPair))))
+            (          
                ($d (eval (List.getByIdx $inst (eval (second $knobIdxPair)))))
-               ($_ (println! (KnobIdPari: $knobIdxPair $d)))
                ($updatedCnd (eval (appendTo $tree (eval ( first $knobIdxPair)) $candidate $parentId $d)))
-               ($_ (println! (UpdatedCnd: $updatedCnd)))
             )
             $updatedCnd
          )
@@ -162,18 +158,9 @@
                ($_ (println! ""))
                ($_ (println! (No Knob found just copy...)))
                ($src (eval (getNodeById $tree $srcId)))
-                ($_ (println! (starting to appendChild... $src)))
-               ($_ (println! ("append parameters__________________ " $candidate $parentId $src)))
-               ($cndchidpair (eval (appendChild $candidate $parentId (mkTree (eval (getNodeValue $src)) Nil))))
-               ($_ (println! (getting children of source node...)))
-               ($_ (println! (cnc pair: $cndchidpair)))
+                             ($cndchidpair (eval (appendChild $candidate $parentId (mkTree (eval (getNodeValue $src)) Nil))))              
                ($srcchildren (eval (getChildren $src)))
-               ($_ (println! (src children: $srcchildren)))
-               ($_ (println! (folding over children...)))
-               ($_ (println! ("tree____ " $tree)))
-               ($_ (println! ("the parameters are:" ((mkRep $knobMapObj $tree) (mkInst $inst) (eval (second $cndchidpair)) (eval (first $cndchidpair)) 1) $srcchildren)))
-               ($state (eval (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (eval (second $cndchidpair)) (eval (first $cndchidpair)) 1) $srcchildren)))
-               ($_ (println! (state: $state)))
+                            ($state (eval (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (eval (second $cndchidpair)) (eval (first $cndchidpair)) 1) $srcchildren)))
                (((mkRep $knobmapobj $tree) (mkInst $inst) $newparentid $finalcnd $d) $state)
                ($_ (println! (finalcnd: $finalcnd)))
                ($_ (println! ""))
