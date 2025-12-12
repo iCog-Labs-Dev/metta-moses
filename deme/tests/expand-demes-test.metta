@@ -71,7 +71,7 @@
 ; (= (pyExprToList $expr) (py_exprToList $expr))
 
 (= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
-(= (table) (eval (createTruthTableBScore 2 (mkITable
+(= (table1) (eval (createTruthTableBScore 2 (mkITable
                          (Cons (Cons False (Cons False (Cons False Nil))) 
                          (Cons (Cons True (Cons False (Cons False Nil))) 
                          (Cons (Cons False (Cons True (Cons False Nil)))
@@ -99,10 +99,10 @@
                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
                          (Cons A (Cons B (Cons O Nil))))) 
 
-; (= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (eval (worstCscore)) (mkBScore (Cons 0 (Cons 0 Nil)))) NilOS)) 
+(= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (eval (worstCscore)) (mkBScore (Cons 0 (Cons 0 Nil)))) NilOS)) 
 
-(= (metaPop) (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil))))
-                 (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) 
+(= (metaPop) (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil))))))
+                 (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil)))))) 
                  NilOS)))
        
 (= (bigtable) (mkITable
@@ -152,18 +152,12 @@
 ; (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (eval (worstCscore))))
 
-
 ; Testcase for optimizeDemes               
 !(assertEqual 
 (let* 
 (
     ($optimizeDemesReturn (optimizeDemes (deme) 
-                (eval (createTruthTableBScore 2 (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))))) 
+                (table1) 
                 (mkInst (Cons 0 (Cons 0 Nil))) 
                 hillClimbing
                 ))
@@ -180,20 +174,10 @@
 !(assertEqual
 (let*
 (
-    ($updatedDeme (expandDeme (metaPop) 0 1 False sim 
-                    (eval (createTruthTableBScore 2 (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil))))))
+    ($updatedDeme (expandDeme (metaPop2) 0 1 False sim 
+                    (table1)
                     hillClimbing 
-                    (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil))))
+                    (ttable1)
                     mi))
     ($updatedDemeLength (size-atom $updatedDeme)))
 (>= $updatedDemeLength 1)) True)
@@ -202,22 +186,12 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 False sim 
-(eval (createTruthTableBScore 2 (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))))) 
-hillClimbing 5 2 0 1 
-(mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))) 
-3 0.004 1000))
-    ($topCandidatesLength (OS.length $topCandidates))
+    ($topCandidates (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False sim 
+    (table1) 
+    hillClimbing 5 2 0 1 
+    (ttable1) 
+    3 0.004 1000))
+    ($topCandidatesLength (eval (OS.length $topCandidates)))
 )
 (>= $topCandidatesLength 1)
 ) True)
@@ -226,66 +200,47 @@ hillClimbing 5 2 0 1
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 False rd 
-    (eval (createTruthTableBScore 2 (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil))))))  
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False rd 
+    (table1)  
     hillClimbing 5 2 0 1 
-    (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))) 
+    (ttable1) 
     3 0.004 1000))
     ($topCandidatesLength (OS.length $topCandidates))
 )
 (>= $topCandidatesLength 1)
 ) True)
-; ; ;; Testcase for runMoses
+
+; ;; Testcase for runMoses
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 False inc 
-    (eval (createTruthTableBScore 2 (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))))) 
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False inc 
+    (table1) 
     hillClimbing 5 2 0 1 
-    (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))) 
+    (ttable1)
     3 0.004 1000))
     ($topCandidatesLength (eval (OS.length $topCandidates)))
 )
 (>= $topCandidatesLength 1)
 ) True)
 
-; !(runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
-;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     inc      ;; the new arguments for feature selection algo
-;     (eval (createTruthTableBScore 2 (mkITable
-;                           (Cons (Cons False (Cons False (Cons False Nil))) 
-;                           (Cons (Cons True (Cons False (Cons False Nil))) 
-;                           (Cons (Cons False (Cons True (Cons False Nil)))
-;                           (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-;                           (Cons A (Cons B (Cons O Nil))))))  
-;     hillClimbing 5 2 0 1 
-;     (mkITable
-;                           (Cons (Cons False (Cons False (Cons False Nil))) 
-;                           (Cons (Cons True (Cons False (Cons False Nil))) 
-;                           (Cons (Cons False (Cons True (Cons False Nil)))
-;                           (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-;                           (Cons A (Cons B (Cons O Nil))))  
-;     3 0.004 1000)
+!(runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
+    False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
+    inc      ;; the new arguments for feature selection algo
+    (eval (createTruthTableBScore 2 (mkITable
+                          (Cons (Cons False (Cons False (Cons False Nil))) 
+                          (Cons (Cons True (Cons False (Cons False Nil))) 
+                          (Cons (Cons False (Cons True (Cons False Nil)))
+                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+                          (Cons A (Cons B (Cons O Nil))))))  
+    hillClimbing 5 2 0 1 
+    (mkITable
+                          (Cons (Cons False (Cons False (Cons False Nil))) 
+                          (Cons (Cons True (Cons False (Cons False Nil))) 
+                          (Cons (Cons False (Cons True (Cons False Nil)))
+                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+                          (Cons A (Cons B (Cons O Nil))))  
+    3 0.004 1000)
 
 ; !(runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
 ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
@@ -345,8 +300,7 @@ hillClimbing 5 2 0 1
 ;                           (Cons A (Cons B (Cons O Nil))))  
 ;     3 0.004 1000)
 
-;; this testcase brakes -- too many candidates to handle
-; !(runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
+; !(runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
 ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;     smd      ;; the new arguments for feature selection algo
 ;     (eval (createTruthTableBScore 2 

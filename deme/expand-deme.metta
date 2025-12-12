@@ -7,7 +7,7 @@
 ;;  Returns: (List Deme): A new list where each deme has been optimized.
 ; (: optimizeDemes (-> (List Deme) (TruthTableBScore $a) Instance (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)) $Scorer (List (Instance Deme $state))))
 (= (optimizeDemes $deme $truthTableBScore $inst $optimize)
-($optimize $deme $truthTableBScore $inst))
+(eval ($optimize $deme $truthTableBScore $inst)))
 
 ;; Runs one deme-creation and optimization step, then merges the optimized deme into the metapopulation.
 ;; Params:
@@ -43,7 +43,7 @@
     ($lengthOfDscKbMp (eval (Map.length $dscKbMp)))
     ($generatedList (eval (List.generate $lengthOfDscKbMp 0)))
     ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
-    (($inst $optimDeme $state) (trace! "Optimizing Deme" (optimizeDemes $deme $truthTableBScore (mkInst $generatedList) $optimize))) ;; the hillclimbing is called under this and it calls the neighborhood and stuff to first populate the deme with instances
+    (($inst $optimDeme $state) (trace! "Optimizing Deme" (eval (optimizeDemes $deme $truthTableBScore (mkInst $generatedList) $optimize)))) ;; the hillclimbing is called under this and it calls the neighborhood and stuff to first populate the deme with instances
 )
 $optimDeme)))
 
@@ -63,14 +63,14 @@ $optimDeme)))
   )
     (let* 
      (
-       ($optimizedDemes (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable mi))
+       ($optimizedDemes (trace! "expand deme returnn" (eval (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable mi))))
        ($updatedMetaPop (trace! "Merging Deme" (eval (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metaPop $nToKeep $capCoef $genCount))))
        ($_ (println! (Updated MetaPop: $updatedMetaPop)))
        ($top (eval (OS.getByIdx 0 $metaPop)))
        ($_ (println! (Top Exemplar before expansion: $top)))
        ($topScore (eval (getExemplarCscore $top)))
        ($_ (println! (topscore: $topScore)))
-       ($topCandidates (if (<= $maxCandOutput (eval (OS.length $metaPop))) (eval (OS.getTopN $maxCandOutput $metaPop)) $metaPop)))
+       ($resultCandi (if (<= $maxCandOutput (eval (OS.length $metaPop))) (eval (OS.getTopN $maxCandOutput $metaPop)) $metaPop)))
  (if (eval (cScore>= $topScore $maxScore))
-         $topCandidates 
+         $resultCandi 
          (eval (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount))))))
