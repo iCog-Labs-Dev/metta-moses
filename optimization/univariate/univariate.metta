@@ -25,11 +25,11 @@
 ;   $instLength — length of each instance.
 ;   $nGenerate — number of instances to generate.
 ; Returns: List of mkSInst objects representing the population.
-(: generateInitialSample (-> Number Number List))
+; (: generateInitialSample (-> Number Number List))
 (= (generateInitialSample $instLength $nGenerate)
    (if (== $nGenerate 0)
        Nil
-       (Cons (mkSInst (mkPair (mkInst (generateRandomInstance $instLength)) (worstCscore))) (generateInitialSample $instLength (- $nGenerate 1)))))
+       (Cons (mkSInst (mkPair (mkInst (eval (generateRandomInstance $instLength))) (worstCscore))) (eval (generateInitialSample $instLength (- $nGenerate 1))))))
 
 ; Recursively performs tournament comparison to pick the best instance.
 ; Randomly selects another instance and keeps the better one based on score.
@@ -38,37 +38,37 @@
 ;   $res — current best candidate.
 ;   $tSize — remaining number of comparisons to perform.
 ; Returns: The best mkSInst found after all comparisons.
-(: tournamentCompare (-> (InstanceSet $score) (ScoredInstance $score) Number (ScoredInstance $score)))
+; (: tournamentCompare (-> (InstanceSet $score) (ScoredInstance $score) Number (ScoredInstance $score)))
 (= (tournamentCompare (mkSInstSet $instSet) $res $tSize)
 (if (== $tSize 0) $res
 (let*
   (
-    ($instSetLen (List.length $instSet))
-    ($tmp (List.getByIdx $instSet (random-int 0 $instSetLen)))
-    ($updatedRes (if (cScore>= (getSInstScore $tmp) (getSInstScore $res)) $tmp $res))
+    ($instSetLen (eval (List.length $instSet)))
+    ($tmp (eval (List.getByIdx $instSet (random-int 0 (- $instSetLen 1)))))
+    ($updatedRes (if (eval (cScore>= (getSInstScore $tmp) (eval (getSInstScore $res)))) $tmp $res))
   )
-  (tournamentCompare (mkSInstSet $instSet) $updatedRes (- $tSize 1)))))
+  (eval (tournamentCompare (mkSInstSet $instSet) $updatedRes (- $tSize 1))))))
 
 ; Selects the best individuals from a set using tournament selection.
 ; Randomly samples $tSize individuals and keeps the best one, repeating $nSelect times.
-; Params:
+; Params:getSInstScore
 ;   $instSet — the full set of scored instances.
 ;   $tSize — tournament size (number of competitors per selection).
 ;   $nSelect — number of individuals to select.
 ;   $selectedList — accumulator list for results (initially Nil).
 ; Returns: List of selected mkSInst objects.
-(: tournamentSelection (-> (InstanceSet $score) Number Number List List))
+; (: tournamentSelection (-> (InstanceSet $score) Number Number List List))
 (= (tournamentSelection (mkSInstSet $instSet) $tSize $nSelect $selectedList)
 (if (== $nSelect 0) $selectedList
 (let*
   (
-    (() (println! "Tournament selection, remaining to select: " $nSelect))
-    ($instSetLen (List.length $instSet))
-    (() (println! "Instance set length: " $instSetLen))
-    ($res (List.getByIdx $instSet (random-int 0 $instSetLen)))
-    (() (println! "Initial random candidate: " $res))
+    ($_ (println! (Tournament selection, remaining to select:  $nSelect)))
+    ($instSetLen (eval (List.length $instSet)))
+    ($_ (println! (Instance set length:  $instSetLen)))
+    ($res (eval (List.getByIdx $instSet (random-int 0 $instSetLen))))
+    ($_ (println! (Initial random candidate:  $res)))
     ($updatedRes (tournamentCompare (mkSInstSet $instSet) $res (- $tSize 1)))
-    (() (println! "Selected candidate: " $updatedRes))
+    ($_ (println! (Selected candidate:  $updatedRes)))
 
   )
   (tournamentSelection (mkSInstSet $instSet) $tSize (- $nSelect 1) (Cons $updatedRes $selectedList)))))
@@ -82,7 +82,7 @@
 ;   $nthKnobCtr — index of the knob/field to extract.
 ;   $acc — accumulator for collected field values.
 ; Returns: List of field values for the specified knob position.
-(: getNthInstFields (-> Expression Number Number Number Expression Expression))
+; (: getNthInstFields (-> Expression Number Number Number Expression Expression))
 (= (getNthInstFields $instsExp $noInsts $nthInstCtr $nthKnobCtr $acc)
    (if (== $nthInstCtr $noInsts)
        $acc
@@ -106,12 +106,12 @@
 ;   $n — current knob index (loop counter).
 ;   $acc — accumulator for tuples of field values.
 ; Returns: List of lists, where each sublist contains all values for one knob position.
-(: instsToFieldValues (-> Expression Number Number Number Expression Expression))
+; (: instsToFieldValues (-> Expression Number Number Number Expression Expression))
 (= (instsToFieldValues $instsExp $instLength $noInsts $n $acc)
      (if (== $n $instLength)
          $acc
          (let* (
-             ($nthFields (getNthInstFields $instsExp $noInsts 0 $n ()))
+             ($nthFields (eval (getNthInstFields $instsExp $noInsts 0 $n ())))
              ($rest (instsToFieldValues $instsExp $instLength $noInsts (+ $n 1) $acc))
            )
            (cons-atom $nthFields $rest)
@@ -183,7 +183,7 @@
        $acc
        (let* (
            ($fieldCount (car-atom $probabilityModel))
-           ($selectedFieldVal (roulette_select $fieldCount $tot 0))
+           ($selectedFieldVal (eval (roulette_select $fieldCount $tot 0)))
            ($rest (sample (cdr-atom $probabilityModel) $tot $acc))
          )
          (cons-atom $selectedFieldVal $rest)
@@ -202,7 +202,7 @@
 ; (: sampleInsts (-> Expression Number Number Expression Expression))
 (= (sampleInsts $probabilityModel $nGenerate $tot $acc)
 (if (== $nGenerate 0) $acc
-    (let $sampledInst (sample $probabilityModel $tot ())
+    (let $sampledInst (eval (sample $probabilityModel $tot ()))
          (sampleInsts $probabilityModel (- $nGenerate 1) $tot (cons-atom ($sampledInst (worstCscore)) $acc))
 )))
 
@@ -216,12 +216,12 @@
 ; (: replaceTheWorst (-> (InstanceSet $score) (InstanceSet $score) Expression))
 (= (replaceTheWorst (mkSInstSet $oldInstSet) (mkSInstSet $newInstSet))
 (let* (
-  ($newLength (List.length $newInstSet))
-  ($oldLength (List.length $oldInstSet))
+  ($newLength (eval (List.length $newInstSet)))
+  ($oldLength (eval (List.length $oldInstSet)))
   ($toTakeFromOld (- $oldLength $newLength))
-  ($leftOld (List.takeN $toTakeFromOld $oldInstSet))
+  ($leftOld (eval (List.takeN $toTakeFromOld $oldInstSet)))
 )
- (List.concat $leftOld $newInstSet)
+ (eval (List.concat $leftOld $newInstSet))
 )
 )
 
@@ -246,31 +246,31 @@
 (if (and (< $genCount $maxGensTotal) (apply < $bestCscore $bestPossibleCscore))
 (let*
   (
-    (() (println! "~~~~Generation~~~~" $genCount))
-    ($selectedInsts (tournamentSelection $sortedSInstSet 2 $nSelect Nil))
-    (() (println! "Selected Best Instances: " $selectedInsts))
-    ($instsExp (sInstsToExp $selectedInsts ()))
-    (() (println! "Selected Instances as Expressions: " $instsExp))
+    ($_ (println! (~~~~Generation~~~~ $genCount)))
+    ($selectedInsts (eval (tournamentSelection $sortedSInstSet 2 $nSelect Nil)))
+    ($_ (println! (Selected Best Instances:  $selectedInsts)))
+    ($instsExp (eval (sInstsToExp $selectedInsts ())))
+    ($_ (println! (Selected Instances as Expressions:  $instsExp)))
     ($noInsts (size-atom $instsExp))
-    (() (println! "Number of Selected Instances: " $noInsts))
+    ($_ (println! (Numbr of Selected Instances:  $noInsts)))
     ($instLength (size-atom (car-atom (index-atom $instsExp 0))))
-    (() (println! "Instance Length (Number of Knobs): " $instLength))
-    ($fieldVals (instsToFieldValues $instsExp $instLength $noInsts 0 ()))
-    (() (println! "Field Values for Each Knob: " $fieldVals))
-    ($probabilityModel (learnProbability $fieldVals ()))
-    (() (println! "Probability Model: " $probabilityModel))
+    ($_ (println! (Instance Length (Numbr of Knobs):  $instLength)))
+    ($fieldVals (eval (instsToFieldValues $instsExp $instLength $noInsts 0 ())))
+    ($_ (println! (Field Values for Each Knob:  $fieldVals)))
+    ($probabilityModel (eval (learnProbability $fieldVals ())))
+    ($_ (println! (Probability Model:  $probabilityModel)))
     (($count0 $count1 $count2) (car-atom $probabilityModel))
     ($tot (+ $count0 (+ $count1 $count2)))
     ($generatedInsts (sampleInsts $probabilityModel $nGenerate $tot ()))
-    (() (println! "Generated New Instances: " $generatedInsts))
+    ($_ (println! (Generated New Instances:  $generatedInsts)))
     ($generatedSInstSet (exprToSInstSet $generatedInsts))
-    ($scoredGeneratedInstSet (transform $generatedSInstSet $rep $itable $complexityRatio))
-    (() (println! "Scored Generated New Instances: " $scoredGeneratedInstSet))
-    ($finalInstSet (replaceTheWorst $sortedSInstSet $scoredGeneratedInstSet))
-    (() (println! "Replaced Worst Instances: " $finalInstSet))
+    ($scoredGeneratedInstSet (eval (transform $generatedSInstSet $rep $itable $complexityRatio)))
+    ($_ (println! (Scored Generated New Instances:  $scoredGeneratedInstSet)))
+    ($finalInstSet (eval (replaceTheWorst $sortedSInstSet $scoredGeneratedInstSet)))
+    ($_ (println! (Replaced Worst Instances:  $finalInstSet)))
     ((mkSInstSet $sortedFinalInstSet) (sortDeme (mkSInstSet $finalInstSet)))
-    (() (println! "Sorted Final Instance Set: " $sortedFinalInstSet))
-    ($bestCurrentScore (getSInstScore (List.getByIdx $sortedFinalInstSet 0)))
+    ($_ (println! (Sorted Final Instance Set:  $sortedFinalInstSet)))
+    ($bestCurrentScore (getSInstScore (eval (List.getByIdx $sortedFinalInstSet 0))))
   )
   (univariateMainLoop (mkSInstSet $sortedFinalInstSet) (+ $genCount 1) $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCurrentScore $rep $itable $complexityRatio)
 )
@@ -292,10 +292,10 @@ $sortedSInstSet
 (= (univariateOptimize (mkDeme $rep $instSet $id) $itable $complexityRatio $nSelect $nGenerate $maxGensTotal $bestPossibleCscore $bestCscore)
 (let*
    (
-    ($sInstSet (transform $instSet $rep $itable $complexityRatio))
-    (() (println! "Scored Randomly Generated Population: " $sInstSet))
+    ($sInstSet (eval (transform $instSet $rep $itable $complexityRatio)))
+    ($_ (println! (Scored Randomly Generated Population:  $sInstSet)))
     ($sortedSInstSet (sortDeme $sInstSet))
-    (() (println! "Sorted Scored Randomly Generated Population: " $sortedSInstSet))
+    ($_ (println! (Sorted Scored Randomly Generated Population:  $sortedSInstSet)))
     ($finalInstSet (univariateMainLoop $sortedSInstSet 0 $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCscore $rep $itable $complexityRatio))
    )
    (mkDeme $rep $finalInstSet $id)))
@@ -316,14 +316,13 @@ $sortedSInstSet
 ; (: univariate (-> Deme (ITable $a) Number Number Number Number Cscore Deme))
 (= (univariate (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) (mkSInstSet $instSet) $id) $itable $complexityRatio $popSizeRatio $selectionRatio $replacementRatio $bestPossibleCscore)
 (let* (
-        ($maxGensTotal (informationTheoreticBits $disc))
+        ($maxGensTotal (eval (informationTheoreticBits $disc)))
         ($popSize (ceilMath (* $popSizeRatio (pow-math $maxGensTotal 1.05))))
         ($nSelect (floor-math (* $selectionRatio $popSize)))
         ($nGenerate (floor-math (* $replacementRatio $popSize)))
         ($randPopDeme (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) (mkSInstSet (generateInitialSample (Map.length $idxMp) $popSize)) $id))  
-        (() (println! "Randomly Populated Deme: " $randPopDeme))
+        ($_ (println! (Randomly Populated Deme: $randPopDeme)))
       ) 
       (univariateOptimize $randPopDeme $itable $complexityRatio $nSelect $nGenerate $maxGensTotal $bestPossibleCscore (worstCscore))))
 
-
-
+      
