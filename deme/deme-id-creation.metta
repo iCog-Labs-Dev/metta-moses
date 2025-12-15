@@ -17,7 +17,7 @@
     (if (> $nDeme 1)
         (demeIdList (+ $nExpansion 1) (- $nDeme 1) Nil)
         (chain (+ $nExpansion 1) $n 
-            (chain (numStr $n) $str  ;; removed number to string conversion, because its causing errors in test cases
+            (chain (numStr $n) $str 
                 (chain (mkDemeId $str ) $demeId (Cons $demeId Nil)))))
             )
 
