@@ -56,11 +56,7 @@
 
 
 (= (rand-random) (py-call (random.random)))
-
-;; Define seed function (takes a number)
-(= (rand-seed $s) (py-call (random.seed $s)))
-!(rand-seed 42)
-
+!(py-call (random.seed 42))
 
 
 (= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
@@ -119,7 +115,7 @@
             
             
          )
-         ((== $bestSscore (mkCscore 0 2 1.0 0.0 -1.0))(== $bestScore -1.0))
+         ((== $bestSscore (mkCscore -1 1 0.5 0.0 -1.5))(== $bestScore -1.5))
      )
      (True True)
  )
