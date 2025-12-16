@@ -17,6 +17,7 @@
 ;;    $dist - The hamming distance from the center instance to search for neighbors
 ;;
 ;; Returns: List of instances.
+(= (rand-int $x $y) (py-call (random.randint $x $y)))
 ;; (: generateAllInNeighborhood (-> Multiplicity Instance Number (List Instance)))
 (= (generateAllInNeighborhood (mkMultip $m) (mkInst (Cons $x $xs)) $dist)
    (if (== $dist 0)
@@ -130,7 +131,7 @@
             (($decSpec (mkLSK (mkDiscKnob $knob (mkMultip $multi) $spec $spec1 $specList))) (eval (MultiMap.getByIdx $rand $disc)))
             ($curSpec (eval (List.getByIdx $newInst $rand)))
             ($upper (- $multi 1))
-            ($randomSpec (+ (random-int &rng 0 (- $upper 1)) 1))
+            ($randomSpec (+ (rand-int 0 (- $upper 1)) 1))
           )
           (if (== $randomSpec $curSpec)
                               (eval (List.replaceAt $newInst $rand 0))
