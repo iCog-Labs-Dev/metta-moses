@@ -12,7 +12,7 @@
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers) ;; using / for additional nested dir level 
 !(import! &self ../../deme/create-deme)
 !(import! &self ../../scoring/cscore)
-
+!(py-call (random.seed 0))
 
 ;; Test the distance function
 ;; Hamming distance on expressions
