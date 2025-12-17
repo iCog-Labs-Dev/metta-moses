@@ -72,9 +72,9 @@
 ;; executed recursively multiple times.
 ;; Therefore, until the transform function is fixed, this test case remains commented out.
   
-; !(assertEqual
-;     (let (mkDeme $rep (mkSInstSet $instSet) $id) 
-;          (eval (univariate (deme) (table1) 2.0 1 0.5 0.5 (mkCscore -0.1 2 0.1 0.1 3)))          
-;          (== (eval (List.length $instSet)) 7)) True)
+!(assertEqual
+    (let (mkDeme $rep (mkSInstSet $instSet) $id) 
+         (eval (univariate (deme) (table1) 2.0 1 0.5 0.5 (mkCscore -0.1 2 0.1 0.1 3)))          
+         (== (eval (List.length $instSet)) 7)) True)
 
 

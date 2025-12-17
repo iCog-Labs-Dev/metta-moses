@@ -4,24 +4,29 @@
 
 ;; (:getCscore (-> (ITable $a) (Tree $a) Number Cscore))
 (= (getCscore $itable $tree $complexityRatio $scoreSpace)
-    (eval (unify $scoreSpace 
+    (chain (collapse (match $scoreSpace 
             ($tree $score) 
-            (trace! "USED from cache XXXXXXXXXXXXXXXXXXXXXXXXXXX " $score)
-            (chain (scoreTree $itable $tree) $bs 
-                (if-error $bs ;; return worst possible composite score
+            (let ($result) $score $result);; If matched score will be ((score)) need to remove ()
+            )
+    ) $val (if (== $val ()) 
+                (chain (eval (scoreTree $itable $tree)) $bs 
+                (eval (if-error $bs ;; return worst possible composite score
                 (worstCscore)
                 (let* (($bsum (eval (sumBScore $bs)))
                     ($_ (println! (Score: $bsum)))
                     ($_ (println! ""))
-                    ($cpxy (treeComplexity $tree))
+                    ($cpxy (eval (treeComplexity $tree)))
                     ($_ (println! (Complexity: $cpxy)))
-                    ($cCoef (getComplexityCoef $complexityRatio))
-                    ($res (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False))
+                    ($cCoef (eval (getComplexityCoef $complexityRatio)))
+                    ($res (eval (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False)))
+                    ($_ (println! (updatePenalizedScore: $res)))
                     ($_ (add-atom $scoreSpace ($tree $res)))
                     )
 
-                    $res ))))))
-
+                    $res )))) 
+                $val
+            ) )
+)
 
 ;; getComplexityCoef -- calcualtes the complexity coeffient of a tree   
 ;; takes complexity ratio as input and returns complexity coefficient
