@@ -8,59 +8,47 @@
 ;; Example: input: POA ==> (OR (AND (NOT D))), parent => (AND B (OR (AND (NOT D))))
 ;;          output: ((AND B (NOT D)) () True)
 ; (: orCut (-> Expression Expression (Expression Expression Bool)))
-(= (orCut $parent $current)
-   (let*
-     (
-      ($log (println! (==== Inside OrCut ====)))
-      ; ($log' (println! (Parameters ==> Parent: $parent Current: $current)))
-     )
-     (case $current
-        (
-          ((OR (NOT $x)) ((eval (addLiterals (eval (removeElement ($current) $parent)) ((NOT $x)))) () True))
-          ((OR $x) (if (== (get-metatype $x) Symbol)
-                        ((eval (addLiterals (eval (removeElement ($current) $parent)) ($x))) () True)
-                        ((eval (addChildren (eval (removeElement ($current) $parent)) (eval (getSubExpression $x)))) () True)
-                    )
-          )
-          ($else ($parent $current False))
-        )
-     )
-   )
-)
 
-;; A function to return the literals and children of any given node.
-;; It is used for cases where we need all the subExpressions of AND & OR nodes.
-;;    Expressions like (NOT A) doesn't have any subExpression and are treated as a literal.
-; (: getSubExpression (-> Expression Expression))
-(= (getSubExpression $exp)
-   (case $exp
-     (
-        ;; (NOT $a) is considered as a literal hence has no subExpression.
-        ((NOT $a) ())
-        ($else
-          (let*
-            (
-              ($literals (getLiterals $exp))
-              ($children (getChildrenExp $exp))
+
+(= (orCut $expr $poa)
+    (if (== $expr $poa)
+        (let* (
+            ($head (car-atom $poa))
+            ($children (cdr-atom $poa))
+            ($numChildren (size-atom $children))
             )
-            (concatTuple $literals $children)
-          )
+            (if (and (== $head OR) (== $numChildren 1))
+                (let $result (car-atom $children)
+                    ($result () True))
+                ($expr $poa False)
+            )
         )
-     )
-   )
-)
-
-;; A helper function used to apply orCut function in the until function.
-;; This function keeps the state of the until function updated for a single function application.
-; (: applyOrCut (-> (Expression Bool (Expression Expression)) (Expression Bool (Expression Expression))))
-(= (applyOrCut ($parent $bool ($child $remainingChildren)))
-      (let*
-        (
-          (($updatedParent $updatedChild $appliedOrCut) (orCut $parent $child))
-          ($nextChild (if (~= $remainingChildren ()) (car-atom $remainingChildren) ()))
-          ($restChildren (if (~= $remainingChildren ()) (cdr-atom $remainingChildren) ()))
-        )
-        ($updatedParent (or $appliedOrCut $bool) ($nextChild $restChildren))
-      )
-)
-
+        (if (is-expr $expr)
+            (let* (
+                ($head (car-atom $expr))
+                ($children (cdr-atom $expr))
+                ($results (collapse (let $child (superpose $children)
+                    (orCut $child $poa))))
+                ($anyChanged (collapse (let $r (superpose $results)
+                    (let ($res $p $changed) $r
+                        (if (== $changed True) True (empty))))))
+                ($processedChildren (collapse (let $r (superpose $results)
+                    (let ($res $p $changed) $r
+                        (if (is-expr $res)
+                            (let $childHead (car-atom $res)
+                                (if (== $childHead $head)
+                                    (let $grandChildren (cdr-atom $res)
+                                        (superpose $grandChildren))
+                                    $res
+                                ))
+                            $res
+                        )))))
+                ($finalResult (cons-atom $head $processedChildren))
+                )
+                (if (== $anyChanged ())
+                    ($finalResult $poa False)
+                    ($finalResult () True)
+                )
+            )
+            ($expr $poa False)
+        )))
