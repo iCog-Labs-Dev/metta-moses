@@ -25,12 +25,11 @@
 ;;   $capCoef: Capacity coefficient for resizing.
 ;;   $genCount: Generation count for resizing.
 ;; Returns:
-;;   $updatedMetaPop: Updated metapopulation with the new optimized deme merged in.
+   ;;   $updatedMetaPop: Updated metapopulation with the new optimized deme merged in.
 ; (: expandDeme (-> (OS (Exemplar $a)) Number Number Bool Symbol (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)) $Scorer Number Number Number Number (ITable $a) Number Number Number (OS (Exemplar $a))))
 (= (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable $scorerType)
-(collapse
-  (let*
-(
+(let*
+   (
     ($exemplar (trace! "Selecting Exemplar" (eval (selectExemplar $metaPop))))
     ($_ (println! $exemplar))
     ($tree (trace! "getting exemplar tree" (eval (getExemplarTree $exemplar)))) 
@@ -38,15 +37,22 @@
     ($demeIds (trace! "creating deme IDs" (eval (createDemeIds $nExpansion $nDeme))))
     ($_ (println! $demeIds))
     ; ($argLabels (getArgLabels $itable))
-    ($demes (trace! "Creating Deme" (eval (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar () $scorerType))))      
-    ((mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) (superpose $demes))
+    ($demes (trace! "Creating Deme" (eval (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar () $scorerType))))     
+    )
+    (map-atom $demes $deme (expandDemeHelper $deme $truthTableBScore $optimize))
+   ))
+
+(= (expandDemeHelper (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) $truthTableBScore $optimize)
+(let*
+(
     ($lengthOfDscKbMp (eval (Map.length $dscKbMp)))
     ($generatedList (eval (List.generate $lengthOfDscKbMp 0)))
     ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
-    (($inst $optimDeme $state) (trace! "Optimizing Deme" (eval (optimizeDemes $deme $truthTableBScore (mkInst $generatedList) $optimize)))) ;; the hillclimbing is called under this and it calls the neighborhood and stuff to first populate the deme with instances
+    (($inst $optimDeme $state) (trace! "Optimizing Deme" (eval (optimizeDemes $deme $truthTableBScore (mkInst $generatedList) $optimize))))
 )
-$optimDeme)))
-
+$optimDeme
+)
+)
 ;; The main loop 
 ;; Takes 2 termination criterias:
 ;;     - $maxGen : how many times we want the loop to run
@@ -70,7 +76,9 @@ $optimDeme)))
        ($_ (println! (Top Exemplar before expansion: $top)))
        ($topScore (eval (getExemplarCscore $top)))
        ($_ (println! (topscore: $topScore)))
-       ($resultCandi (if (<= $maxCandOutput (eval (OS.length $metaPop))) (eval (OS.getTopN $maxCandOutput $metaPop)) $metaPop)))
+       ($resultCandi (if (<= $maxCandOutput (eval (OS.length $metaPop))) (eval (OS.getTopN $maxCandOutput $metaPop)) $metaPop))
+       ($_ (cut))
+      )
  (if (eval (cScore>= $topScore $maxScore))
          $resultCandi 
          (eval (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount))))))
