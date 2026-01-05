@@ -223,7 +223,8 @@
             ($_ (println! (Removed Dominated: $removedDominated)))
             ($updatedMetaPop (mergeCandidates $removedDominated $metapop))  ;;merge candidates into metapop
             ($_ (println! (merged Candidate: $updatedMetaPop)))
-            ($resizedMetapop (eval (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount)))  ;;resize the metapop
+            ; ($resizedMetapop (eval (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount)))  ;;resize the metapop
+            ($resizedMetapop (if (<= $nToKeep (eval (OS.length $updatedMetaPop))) (eval (OS.getTopN $nToKeep $updatedMetaPop)) $updatedMetaPop)) ;; select top nToKeep candidates
             ($_ (println! (Resized Metapop: $resizedMetapop)))
             ($_ (println! ("--------------------------------")))
         )

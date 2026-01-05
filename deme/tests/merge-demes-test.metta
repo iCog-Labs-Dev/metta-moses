@@ -521,6 +521,18 @@
 ;; NOTE: All the instances in the deme don't include lsk1 (or they all start with '0') because we are testing it using ttable2. 
 ;;       ttable2 is a truth table which doesn't have a 'D' column.
 ;; ! ("Merge Demes tests")
+
+;; NOTE: on change of nToKeep from 3 to 2 in the following test case.
+;; nToKeep is set to 2 so as to keep the top 2 scoring instances from the merged deme. 
+;; Previously it was set to 3 which use resizeMetapop function for resizing the deme after merging.
+;;       The resizeMetapop function return metapop instances with score between best and worst score.
+;;             worstScore is = bestScore - 0.3
+;;       this does not guarantee that nToKeep instances are returned. 
+;;       this is computed where the size of population is greater than minPoolSize. 
+;;       which doesnot guarantee that top nToKeep instances are returned.
+;;       which is the desired behavior for runMoses function to return top n instances from the merged deme.
+;; So changed nToKeep to 2 and select top nTokeep insances using OS.getTopN instead of resizeMetapop function in mergeDemes function.
+;; Since the demes are sorted based on score the top nToKeep instances are always returned.
 !(assertEqual
    (mergeDemes ((mkDeme (mkRep 
                         (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 3) (ConsMap ((mkNodeId (2)) 2) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (4)) 0) NilMap))))) 
@@ -547,7 +559,7 @@
                                                    (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 0 (Cons 2 Nil))))) (mkCscore -3 1 0.5 0.0 -3.5))) 
                                                    (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 0 (Cons 1 Nil))))) (mkCscore -1 3 1.5 0.0 -2.5))) 
                                                    (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 (Cons 0 (Cons 1 Nil))))) (mkCscore -2 3 1.5 0.0 -3.5))) Nil)))))))) (mkDemeId "1.0"))) 
-                                                   5 2 0 1 (ttable2) (metaPop) 3 0.004 1000)
+                                                   5 2 0 1 (ttable2) (metaPop) 2 0.004 1000)
                            
                (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) 
                                     (Cons (mkTree (mkNode A) Nil) Nil)) 
