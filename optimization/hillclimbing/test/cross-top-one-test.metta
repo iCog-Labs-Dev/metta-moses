@@ -17,7 +17,7 @@
 !(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one) ;; notice the / in the import statements -- looks like this is required for every additional inner level of dir you have to go
 !(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one-helpers)
 
-(= (wScore) (* -1 (pow-math 10 308))) ;; bind worst score value 
+(= (wScore) (* -1 (pow-math 10 100))) ;; bind worst score value 
 
 ; (= (pyExprToList $expr) (py_exprToList $expr))
 
