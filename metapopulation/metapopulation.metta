@@ -26,6 +26,7 @@
                             (if (<= $popSize $capSize) 
                                 $reducedMetapop
                                 (cullAtRandom $reducedMetapop $nToKeep (- $popSize $capSize)))))))))))
+;;TODO: for large minPoolSize if the returned resizedMetapop size is less than minPoolSize we may still need to add random candidates to reach minPoolSize
 
 ;; compute useful range 
 ; (: usefulScoreRange (-> Number Number))

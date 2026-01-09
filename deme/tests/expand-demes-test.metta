@@ -224,7 +224,12 @@
 (>= $topCandidatesLength 1)
 ) True)
 
-!(runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
+;; Testcase 2 for runmoses. 
+;; When maxGen become 10, test number of returned instances is not greater than maxCandOutput, 
+;;              where maxCandOutput is 3 and minPoolSize is 2
+!(assertEqual
+(let $length
+(OS.length (runMoses 10 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
     inc      ;; the new arguments for feature selection algo
     (eval (createTruthTableBScore 2 (mkITable
@@ -233,7 +238,7 @@
                           (Cons (Cons False (Cons True (Cons False Nil)))
                           (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
                           (Cons A (Cons B (Cons O Nil))))))  
-    hillClimbing 5 2 0 1 
+    hillClimbing 5 2 2 1 
     (mkITable
                           (Cons (Cons False (Cons False (Cons False Nil))) 
                           (Cons (Cons True (Cons False (Cons False Nil))) 
@@ -241,25 +246,11 @@
                           (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
                           (Cons A (Cons B (Cons O Nil))))  
     3 0.004 1000)
-
-; !(runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
-;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     inc      ;; the new arguments for feature selection algo
-;     (eval (createTruthTableBScore 2 (mkITable
-;                            (Cons (Cons False (Cons False (Cons False Nil))) 
-;                            (Cons (Cons True (Cons False (Cons False Nil))) 
-;                            (Cons (Cons False (Cons True (Cons False Nil)))
-;                            (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-;                            (Cons A (Cons B (Cons O Nil))))))   
-;     hillClimbing 
-;     5 2 0 1 
-;     (mkITable
-;                            (Cons (Cons False (Cons False (Cons False Nil))) 
-;                            (Cons (Cons True (Cons False (Cons False Nil))) 
-;                            (Cons (Cons False (Cons True (Cons False Nil)))
-;                            (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-;                            (Cons A (Cons B (Cons O Nil))))   
-;     3 0.004 1000)
+    )
+        (> $length 3)
+)
+    False
+)
 
 ; ; with OR table and AND init exemplar     
 ; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 

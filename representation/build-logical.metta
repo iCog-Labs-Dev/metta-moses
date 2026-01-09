@@ -21,7 +21,7 @@
                 ((mkTree (mkNode $node) $childern) $head)
                 ;; ($_ (println!( "curId: " $curId "node :" $node)))
                 ;; ($_ (println!( "head: " $head "tail :" $tail)))
-                (($tNew  $mNew) (if (is-member $node (AND OR NOT));;
+                (($tNew  $mNew) (if (is-member $node (AND OR));; only build logical knobs for AND/OR nodes, creating sampleLogicalPerms
                                 (eval (buildLogical $tree (mkNodeId $curId) $MMap $argLabels))
                                 (let  $itree (eval (insertNodeAtPosition $tree (mkNodeId $curId) (mkNode $swapedOp))) (eval (addLogicalKnobs $itree (mkNodeId $curId) True $MMap $argLabels)))
                             ))

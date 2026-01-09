@@ -521,6 +521,7 @@
 ;; NOTE: All the instances in the deme don't include lsk1 (or they all start with '0') because we are testing it using ttable2. 
 ;;       ttable2 is a truth table which doesn't have a 'D' column.
 ;; ! ("Merge Demes tests")
+
 !(assertEqual
    (mergeDemes ((mkDeme (mkRep 
                         (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 3) (ConsMap ((mkNodeId (2)) 2) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (4)) 0) NilMap))))) 
