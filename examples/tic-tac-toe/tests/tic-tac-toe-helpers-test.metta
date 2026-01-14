@@ -56,3 +56,32 @@
 !(assertEqual 
     (evaluate-board (X O X E E E E E E) X O) 
     0)
+;; 7. testing is-board-full helper
+;; empty board should return false
+!(assertEqual (is-board-full (E E E E E E E E E)) False)
+;; Partially filled board - should return False
+!(assertEqual 
+    (is-board-full (X O X E E E E E E)) 
+    False)
+;; Completely full board - should return True
+!(assertEqual 
+    (is-board-full (X O X O X O X O X)) 
+    True)
+;; 8. Test is-game-over helper
+;; Game in progress - should return False
+!(assertEqual (is-game-over (X O X E E E E E E)) False)
+;; X wins - should return True
+!(assertEqual (is-game-over (X X X O O E E E E)) True)
+;; O wins - should return True
+!(assertEqual (is-game-over (O O O X X E E E E)) True)
+;; Board full (draw) - should return True
+!(assertEqual (is-game-over (X O X O X O O X O)) True)
+;; 9. Test get-game-result helper
+;; X wins - should return X
+!(assertEqual (get-game-result (X X X O O E E E E)) X)
+;; O wins - should return O
+!(assertEqual (get-game-result (O O O X X E E E E)) O)
+;; Draw (board full, no winner) - should return Draw
+!(assertEqual (get-game-result (X O X O X O O X O)) Draw)
+;; Game in progress - should return E
+!(assertEqual (get-game-result (X O X E E E E E E)) E)
