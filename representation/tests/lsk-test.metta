@@ -1,32 +1,27 @@
-!(register-module! ../../../metta-moses)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/tree)
+!(import! &self ../../utilities/nodeId)
+!(import! &self ../../utilities/general-helpers)
 
-! (import! &self metta-moses:utilities:list-methods)
-! (import! &self metta-moses:utilities:tree)
-! (import! &self metta-moses:utilities:nodeId)
-! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:utilities:python-treehelpers)
+!(import! &self ../../reduct/boolean-reduct/rte-helpers)
+!(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
+!(import! &self ../../reduct/boolean-reduct/cut-unnecessary-and)
+!(import! &self ../../reduct/boolean-reduct/n-ary-propagate-not)
+!(import! &self ../../reduct/boolean-reduct/n-ary-gather-junctors)
+!(import! &self ../../reduct/boolean-reduct/delete-inconsistent-handle)
+!(import! &self ../../reduct/boolean-reduct/zero-constraint-subsumption)
+!(import! &self ../../reduct/boolean-reduct/one-constraint-subsumption)
+!(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
+!(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 
-! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
-! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-or)
-! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-and)
-! (import! &self metta-moses:reduct/boolean-reduct:n-ary-propagate-not)
-! (import! &self metta-moses:reduct/boolean-reduct:n-ary-gather-junctors)
-! (import! &self metta-moses:reduct/boolean-reduct:delete-inconsistent-handle)
-! (import! &self metta-moses:reduct/boolean-reduct:zero-constraint-subsumption)
-! (import! &self metta-moses:reduct/boolean-reduct:one-constraint-subsumption)
-! (import! &self metta-moses:reduct/boolean-reduct:promote-common-constraints)
-! (import! &self metta-moses:reduct/boolean-reduct:reduce-to-elegance)
+!(import! &self ../lsk)
+!(import! &self ../knob-representation)
+!(import! &self ../logical-probe) 
+!(import! &self ../build-logical)
+!(import! &self ../build-knobs)
+!(import! &self ../sample-logical-perms) 
+!(import! &self ../add-logical-knobs)
 
-! (import! &self metta-moses:representation:lsk)
-! (import! &self metta-moses:representation:knob-representation)
-! (import! &self metta-moses:representation:logical-probe) 
-! (import! &self metta-moses:representation:build-logical)
-! (import! &self metta-moses:representation:build-knobs)
-! (import! &self metta-moses:representation:sample-logical-perms) 
-! (import! &self metta-moses:representation:add-logical-knobs)
-
-
-(= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 ; Testcases for logicalSubtreeKnob
 ; Testcase 1: When the subtree isn't found in the target's children list
 
@@ -45,7 +40,7 @@
     (mkDiscKnob
       (mkKnob
         (mkNodeId (2 3)))
-      (mkMultip 3)))
+      (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))
     ))
 
 
@@ -65,7 +60,7 @@
                         (Cons (mkTree (mkNode Z) Nil) Nil)))) 
     (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
   )
-  
+
 
 
 ;; Testcase 3: When the negation of the subtree is found in the target's children list
@@ -82,48 +77,36 @@
       (Cons (mkNullVex (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode B) Nil) Nil)) 
       (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil))) Nil))) 
       (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
-  ; (
-  ;   (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) 
-  ;   (Cons (mkNullVex (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
-  ;   (mkLSK
-  ;   (mkDiscKnob
-  ;     (mkKnob
-  ;       (mkNodeId (2 1)))
-  ;     (mkMultip 3)
-  ;     (mkDiscSpec 1)
-  ;     (mkDiscSpec 1)
-  ;     Nil))
-  ;   )
-    )
+       )
 
 ;; getNodeId test cases
 !(assertEqual (getNodeId (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 0))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (mkNodeId (1 0)))
 !(assertEqual (getNodeId (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 5))) (mkMultip 1) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (mkNodeId (3 5)))
 
 ;; getDiscSpec
-! (assertEqual (getDiscSpec (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 1) (mkDiscSpec 1) (mkDiscSpec 2) Nil) )) (1 2))
-! (assertEqual (getDiscSpec (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4 1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 1) Nil))) (0 1))
+!(assertEqual (getDiscSpec (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 1) (mkDiscSpec 1) (mkDiscSpec 2) Nil) )) (1 2))
+!(assertEqual (getDiscSpec (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4 1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 1) Nil))) (0 1))
 
-! (bind! tree1 (mkTree (mkNode AND)
+(= (tree1) (mkTree (mkNode AND)
     (Cons (mkTree (mkNode A) Nil)
       (Cons (mkTree (mkNode B) Nil) Nil))))
 
-! (bind! tree2 (mkTree (mkNode OR)
+(= (tree2) (mkTree (mkNode OR)
             (Cons (mkTree (mkNode A) Nil)
             (Cons (mkNullVex
                     (Cons (mkTree (mkNode OR)
                              (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil))))
-! (bind! tree3 (mkTree (mkNode OR)
+(= (tree3) (mkTree (mkNode OR)
             (Cons (mkTree (mkNode A) Nil)
             (Cons (mkTree (mkNode AND)
                     (Cons (mkNullVex
                             (Cons (mkTree (mkNode OR)
                                     (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)) Nil))))
 ;; appendTo
-;; invalid disc specification
-! (assertEqual
+;; ;; invalid disc specification
+!(assertEqual
   (appendTo
-    tree1
+    (tree1)
     (mkLSK
       (mkDiscKnob
         (mkKnob (mkNodeId (2)))
@@ -139,9 +122,9 @@
   (Error 4 "Invalid disc specification:- cannot exceed 2."))
 
 ;; appending to empty tree
-! (assertEqual
+!(assertEqual
   (appendTo
-    tree1
+    (tree1)
     (mkLSK
       (mkDiscKnob
          (mkKnob
@@ -160,9 +143,9 @@
 
 ; ;; Test case for insertion at a node
 ; ;; KnobSetting 2: (OR A) => (OR A (NOT (OR B)))
-! (assertEqual
+!(assertEqual
   (appendTo
-    tree2
+    (tree2)
     (mkLSK
       (mkDiscKnob
         (mkKnob
@@ -184,12 +167,10 @@
                  (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
     )
 
-
-
 ;; KnobSetting 2: (OR A (AND)) => (OR A (AND (NOT (OR B))))
-! (assertEqual
+!(assertEqual
   (appendTo
-    tree3
+    (tree3)
     (mkLSK
       (mkDiscKnob
         (mkKnob
@@ -214,9 +195,9 @@
 
 
 ; KnobSetting 0: (OR A) => (OR A)
-! (assertEqual
+!(assertEqual
   (appendTo
-    tree2
+    (tree2)
     (mkLSK
       (mkDiscKnob
         (mkKnob

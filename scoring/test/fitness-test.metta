@@ -1,8 +1,6 @@
-! (register-module! ../../../metta-moses)
 
-! (import! &self metta-moses:scoring:fitness)
-! (import! &self metta-moses:utilities:general-helpers)
-
+!(import! &self ../fitness)
+!(import! &self ../../utilities/general-helpers)
 
 ;; Test Cases 1: Simple AND Expression
 !(assertEqual
@@ -84,7 +82,7 @@
      ((True (A True))
       (False (A False)))
      0.1)
-   2)
+   2.0)
 
 ;; Test Case 9:
 !(assertEqual 
@@ -93,7 +91,7 @@
      ((False (A True))
       (False (A False)))
      0.1)
-   1)
+   1.0)
 
 ;; Test Case 10: simple expression but complex data
 !(assertEqual 
@@ -103,7 +101,7 @@
       (False (A False) (B True) (C False) (D False))
       (True (A True) (B False) (C False) (D True)))
      0.1)
-   3)
+   3.0)
 
 ;; Test Case 11: Simple Expression with negation
 !(assertEqual 
@@ -112,7 +110,7 @@
      ((False (A True))
       (True (A False)))
      0.1)
-   2)
+   2.0)
 
 ;; Test Case 12: Symbol
 !(assertEqual 
@@ -120,7 +118,7 @@
      A
      ((True (A True)))
      0.1)
-   1)
+   1.0)
 
 ;; Test Case 13: Symbol undefined
 !(assertEqual 
@@ -128,4 +126,4 @@
      A
      ((True (P True)))
      0.1)
-   0)
+   0.0)

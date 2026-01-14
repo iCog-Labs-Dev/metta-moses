@@ -17,7 +17,7 @@
 )
 
 
-(: addAND (-> Expression Bool Expression))
+; (: addAND (-> Expression Bool Expression))
 (= (addAND $expr $isFinal)
     (if (and $isFinal (or (== (car-atom $expr) OR) (== (car-atom $expr) NOT)))
         (AND $expr)
@@ -25,14 +25,14 @@
     )
 )
 
-(: addAND (-> Expression Expression))
+; (: addAND (-> Expression Expression))
 (= (addAND $expr)
   (if (== (get-metatype $expr) Expression)
       (addAND $expr (car-atom $expr) ())
       (addAND $expr () ())
   ))
 
-(: addAND (-> Expression Symbol Symbol Expression))
+; (: addAND (-> Expression Symbol Symbol Expression))
 (= (addAND $expr $parent $prev)
     (case (get-metatype $expr)
         (
@@ -52,9 +52,9 @@
                         (
                             ((NOT True) $expr)
                             ((NOT False) (AND $expr))
-                            ((OR True) (map-atom $expr $x (addAND $x $h $h)))
-                            ((OR False) (AND (map-atom $expr $x (addAND $x $h $h))))
-                            ((AND $_) (map-atom $expr $x (addAND $x AND $h)))
+                            ((OR True) (collapse (addAND (superpose $expr) $h $h)))
+                            ((OR False) (AND (collapse (addAND (superpose $expr) $h $h))))
+                            ((AND $_) (collapse (addAND (superpose $expr) AND $h)))
                             (($else $__) (if (== $t ()) (addAND $h () ()) (AND)))
                         )
                     )

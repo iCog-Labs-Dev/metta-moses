@@ -1,7 +1,5 @@
- ! (register-module! ../../../../metta-moses)
-
-! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:reduct/boolean-reduct:n-ary-gather-junctors)
+!(import! &self ../../../utilities/general-helpers)
+!(import! &self ../n-ary-gather-junctors)
 
 
 ;; Test 01
@@ -65,34 +63,34 @@
 )
 
 ;; Test 11
-! (assertEqual (gatherJunctors (OR (NOT A) B (NOT B)))
+!(assertEqual (gatherJunctors (OR (NOT A) B (NOT B)))
                  (OR (NOT A) B (NOT B)))
 
 ;; Test 12
-! (assertEqual (gatherJunctors (OR (NOT A) (OR B (NOT C) (OR (NOT C) D))))
+!(assertEqual (gatherJunctors (OR (NOT A) (OR B (NOT C) (OR (NOT C) D))))
                   (OR (NOT A) B (NOT C) (NOT C) D) )
 ;; Test 13
-! (assertEqual (gatherJunctors (AND (OR (OR C D K) (NOT B)) (NOT A)))
+!(assertEqual (gatherJunctors (AND (OR (OR C D K) (NOT B)) (NOT A)))
                  (AND (OR C D K (NOT B)) (NOT A)))
 
 ;; Test 14
-! (assertEqual (gatherJunctors (AND (AND (OR C (NOT D)) (NOT B)) A))
+!(assertEqual (gatherJunctors (AND (AND (OR C (NOT D)) (NOT B)) A))
                  (AND (OR C (NOT D)) (NOT B) A))
 
 ;; Test 15
-! (assertEqual (gatherJunctors (AND (NOT A) (AND B (NOT V) (OR C (OR (NOT D) (NOT K) (AND E (AND F (NOT G))))))))
+!(assertEqual (gatherJunctors (AND (NOT A) (AND B (NOT V) (OR C (OR (NOT D) (NOT K) (AND E (AND F (NOT G))))))))
                  (AND (NOT A) B (NOT V) (OR C (NOT D) (NOT K) (AND E F (NOT G)))) )
 
 ;; Test for andAND function
-! (assertEqual (addAND (OR A B C D)) 
+!(assertEqual (addAND (OR A B C D)) 
                 (AND (OR (AND A) (AND B) (AND C) (AND D))))
 
-! (assertEqual (addAND (NOT A)) 
+!(assertEqual (addAND (NOT A)) 
                 (AND (NOT A)))
 
-! (assertEqual (addAND (OR (NOT A) B (NOT C) (AND C (OR A B)) D))
+!(assertEqual (addAND (OR (NOT A) B (NOT C) (AND C (OR A B)) D))
                 (AND (OR (AND (NOT A)) (AND B) (AND (NOT C)) (AND C (OR (AND A) (AND B))) (AND D))))
 
-! (assertEqual (addAND (AND (OR A B) A)) (AND (OR (AND A) (AND B)) A))
+!(assertEqual (addAND (AND (OR A B) A)) (AND (OR (AND A) (AND B)) A))
 
-! (assertEqual (addAND (OR (AND (NOT A) (OR B C) A))) (AND (OR (AND (NOT A) (OR (AND B) (AND C)) A))))
+!(assertEqual (addAND (OR (AND (NOT A) (OR B C) A))) (AND (OR (AND (NOT A) (OR (AND B) (AND C)) A))))

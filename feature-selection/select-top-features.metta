@@ -10,8 +10,8 @@
         (chain (min-atom ($fts-size $nDeme)) $res-size 
             (if (> $div-pres 0)
                 (let $ranked-set (rankFtSet (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $ft-sets ())
-                    (takeN $res-size $ranked-set))
-                (let $ft-sets-less-score (map-atom $ft-sets $ft-set (second $ft-set)) (takeN $res-size $ft-sets-less-score)))))) ;; strip the scores off the feature sets
+                    (eval (takeN $res-size $ranked-set)))
+                (let $ft-sets-less-score (map-atom $ft-sets $ft-set (eval (second $ft-set))) (eval (takeN $res-size $ft-sets-less-score))))))) ;; strip the scores off the feature sets
 
 ;;  rankFtSet -- applies diversity pressure to rank feature sets 
 ;;          $div-pres           -- diversity pressure parameter higher value means similarity is less tolerated    
@@ -25,29 +25,29 @@
 (= (rankFtSet (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $ft-sets $acc)
     ;; convert each feature set into composite scoreed set -- 
     (let $csc-ft-set 
-        (map-atom $ft-sets $ft-set ((mkCscore (first $ft-set) (let $set (second $ft-set) (size-atom $set)) 0.0 0.0 (first $ft-set)) (second $ft-set)))
+        (map-atom $ft-sets $ft-set ((mkCscore (first-from-pair $ft-set) (let $set (second-from-pair $ft-set) (size-atom $set)) 0.0 0.0 (first-from-pair $ft-set)) (second-from-pair $ft-set)))
             (rankIterator (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $csc-ft-set $acc)))
 
 (= (rankIterator (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $csc-ft-set $acc)
     (if (== $acc ())
         (rankIterator (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer (cdr-atom $csc-ft-set) ((car-atom $csc-ft-set))) ;; add the first feature -- since this is the one with the best raw score
         (if (== $csc-ft-set ())
-            (map-atom $acc $a (second $a))          ;; return only the indices -- drop the score values
-            (let* (($current-ft-set (car-atom $csc-ft-set))                 ;; current feature set under consideration (score set) pair
-                    ($current-cscore (first $current-ft-set))               ;; the score
-                    ($current-ft (second $current-ft-set))                  ;; the feature set, tuple of indices
-                    ($last-ft-set (car-atom $acc))                          ;; last added feature set -- ordered by score so the first one in the accumulator
-                    ($last-cscore (first $last-ft-set))                     ;; score of the last
-                    ($last-ft (second $last-ft-set))                        ;; the feature set
-                    ($sim (if (== $sim-scorer ja)                           ;; assumes either of two similarity scorers jaccard or mi
-                                (jaccardIndex $last-ft $current-ft)         
-                                (mi $current-ft $last-ft $div-interaction (mkITable $table $labels))))           ;; calculation of feature set similarity uisng mutual infomration between sets                             
-                    ($last-dp (simToPen $sim $div-pres))                    ;; the latest diversity penality
-                    ($current-unipen-score (getUniPen $current-cscore)) 
-                    ($agg-dp (max-atom ($last-dp $current-unipen-score))) 
-                    ($updated-uniPen-score (setUniPen $current-cscore $agg-dp)) 
-                    ($updatd-pen-score (updatePenalizedScore $updated-uniPen-score $multi-diversity)) 
-                    ($new-acc (insertPair cScore>= ($updatd-pen-score $current-ft) $acc)))         ;; ordered insertion using the composite score
+            (map-atom $acc $a (eval (second $a)))                                       ;; return only the indices -- drop the score values
+            (let* (($current-ft-set (car-atom $csc-ft-set))                             ;; current feature set under consideration (score set) pair
+                    ($current-cscore (first-from-pair $current-ft-set))                 ;; the score
+                    ($current-ft (second-from-pair $current-ft-set))                    ;; the feature set, tuple of indices
+                    ($last-ft-set (car-atom $acc))                                      ;; last added feature set -- ordered by score so the first one in the accumulator
+                    ($last-cscore (first-from-pair $last-ft-set))                       ;; score of the last
+                    ($last-ft (eval (second $last-ft-set)))                             ;; the feature set
+                    ($sim (if (== $sim-scorer ja)                                       ;; assumes either of two similarity scorers jaccard or mi
+                                (eval (jaccardIndex $last-ft $current-ft))         
+                                (eval (mi $current-ft $last-ft $div-interaction (mkITable $table $labels)))))      ;; calculation of feature set similarity uisng mutual infomration between sets                             
+                    ($last-dp (simToPen $sim $div-pres))                                ;; the latest diversity penality
+                    ($current-unipen-score (eval (getUniPen $current-cscore)))  
+                    ($agg-dp (max-atom ($last-dp $current-unipen-score)))
+                    ($updated-uniPen-score (eval (setUniPen $current-cscore $agg-dp)))
+                    ($updatd-pen-score (eval (updatePenalizedScore $updated-uniPen-score $multi-diversity)))
+                    ($new-acc (eval (insertPair cScore>= ($updatd-pen-score $current-ft) $acc))))                   ;; ordered insertion using the composite score
 
                 (rankIterator (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer (cdr-atom $csc-ft-set) $new-acc)))))
 
@@ -58,9 +58,9 @@
 ;; biased randbool
 ;;          $b -- float [0, 1]
 ;;          random-float doesnt work in mettalog -- using python binding instead
-! (bind! randomFloat (py-atom random.random))
+; ! (bind! randomFloat (py-atom random.random))
 (= (biasedRandBool $b)
-    (let $rnd (randomFloat) (> $b $rnd)))
+    (let $rnd (random-float 0 1) (> $b $rnd)))
 
 ;; sample_enforced_features -- hence the name XXX for future use
 ;; takes tuple of pairs containing feaures and probability values of being included in deme creation 

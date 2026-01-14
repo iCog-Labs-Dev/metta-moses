@@ -235,7 +235,7 @@
 ;;    UpdateRule: ((bop term term) 0)
 ;; TODO: I think this and it's helper function could be written in more optimized way.
 (= (removeRFromRule $lhs $rhs $i $nrRules)
-   (if (any (collapse (isMember $lhs $rhs)))
+   (if (any (collapse (is-member $lhs $rhs)))
        (let*
             (
               (($rule $index) (removeRFromRuleHelper $lhs $rhs $nrRules))
@@ -313,8 +313,8 @@
     (let*
       (
         ($rhss (collapse (match $grammarSpace ($nt $rhs $i) $rhs)))
-        ($rrhss (collapse (filter ((curry isMember) $nt) $rhss)))
-        ;; ($rrhss (collapse (filterB isMember $nt $rhss))) ;; INFO: Use this line instead of the above on MeTTaLog
+        ($rrhss (collapse (filter ((curry is-member) $nt) $rhss)))
+        ;; ($rrhss (collapse (filterB is-member $nt $rhss))) ;; INFO: Use this line instead of the above on MeTTaLog
         ($ndRrhs (if (~= $rrhss ()) (superpose $rrhss) ())))
       (if (~= $rrhss ())
           (match $grammarSpace ($nt $ndRrhs $i) ($nt $ndRrhs $i))
@@ -461,7 +461,7 @@
                             (
                               (($nt $rules) ($nt (match $grammarSpace ($nt $rhs $i) $rhs)))
                               (($nt $options) (if (isSymbol $rules) ($nt $rules) ($nt (superpose $rules))))
-                              ($_' (if (isMember $options $ntSet)
+                              ($_' (if (is-member $options $ntSet)
                                         (let*
                                             (
                                               (() (add-atom $referenceSpace ($options $nt)))
@@ -826,7 +826,7 @@
 ;;     non terminal order respectively in a tuple.
 ;; TODO: Try optimizing using reference space instead.
 (= (getOrderedGenoType $grammarSpace $resultSpace $nt $visited $lhss $acc ($g $p))
-   (case ((isMember $nt $visited) (isUnit $lhss) (isMember $nt (collapse (getNts $grammarSpace))))
+   (case ((is-member $nt $visited) (isUnit $lhss) (is-member $nt (collapse (getNts $grammarSpace))))
       (
         ((True True $_) $acc)
         ((True False $_) (getOrderedGenoType $grammarSpace $resultSpace (car-atom $lhss) $visited (cdr-atom $lhss) $acc ($g $p)))
@@ -911,7 +911,7 @@
                       ($nextNt (if (isSymbol $nextProd) $nextProd (car-atom $nextProd)))
                       (() (update-atom $resultMap (($currentNt $g $p) $is) (($currentNt $g $p) $xs)))
                     )
-                    (if (isMember $nextNt (collapse (getNts $grammarSpace)))
+                    (if (is-member $nextNt (collapse (getNts $grammarSpace)))
                         (genPhenotype $resultMap $grammarSpace $acc (cons-atom $nextProd $nextExpr) ($g $p))
                         (genPhenotype $resultMap $grammarSpace (appendAtom $nextProd $acc) $nextExpr ($g $p))
                     )
@@ -1706,7 +1706,7 @@
                                            )
                                        (isNumber $gene))))
                          )
-                         (isMember False $boolean)) (False))
+                         (is-member False $boolean)) (False))
 
 ;; Test index rules
 !(assertEqualToResult (let $_ (indexRules start &expandedGrammar) (match &expandedGrammar (start $lhs $i) $i)) (0))

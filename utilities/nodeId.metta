@@ -17,15 +17,15 @@
 ;;   $levelId: - index indicating the level (0 for root, 1 for first child, etc.).
 ;; Returns:
 ;;   (Tree $a) - The subtree at the specified level, or Nil if out of bounds.
-(: getLevelById (-> (Tree $a) Number (Tree $a)))
+;;(: getLevelById (-> (Tree $a) Number (Tree $a)))
 (= (getLevelById (mkTree (mkNode $r) $children) $levelId)
    (if (== $levelId 0)
        (mkTree (mkNode $r) $children)
-       (List.getByIdx $children (- $levelId 1))))
+       (eval (List.getByIdx $children (- $levelId 1)))))
 (= (getLevelById (mkNullVex $children) $levelId)
    (if (== $levelId 0)
        (mkNullVex $children)
-       (List.getByIdx $children (- $levelId 1))))
+       (eval (List.getByIdx $children (- $levelId 1)))))
 (= (getLevelById Nil $levelId) Nil)
 
 ;; Traverses a tree to find a node by its ID path.
@@ -34,7 +34,7 @@
 ;;   $id: - A mkNodeId-wrapped tuple of indices (e.g., (mkNodeId (2 1))) representing the path.
 ;; Returns:
 ;;   (Tree $a) - The subtree at the specified ID path, or an error if invalid.
-(: getNodeById (-> (Tree $a) NodeId (Tree $a)))
+;;(: getNodeById (-> (Tree $a) NodeId (Tree $a)))
 (= (getNodeById $tree (mkNodeId ())) $tree)
 (= (getNodeById Nil $id) Nil)
 (= (getNodeById $tree (mkNodeId $id))
@@ -43,7 +43,7 @@
       ;  (() (println! (getNodeById called with id: $id)))
       ;  (() (println! (getNodeById called with Tree: $tree)))
        (($head $tail) (decons-atom $id))
-       ($level (getLevelById $tree $head))
+       ($level (eval (getLevelById $tree $head)))
      )
      (if (== $tail ())
      
@@ -51,9 +51,9 @@
           (let*
               (
                (($nextHead $nextTail) (decons-atom $tail))
-               ($nextLevel (getLevelById $level $nextHead))
+               ($nextLevel (eval (getLevelById $level $nextHead)))
               )
-              (getNodeById $nextLevel (mkNodeId $nextTail))
+              (eval (getNodeById $nextLevel (mkNodeId $nextTail)))
           ))
    )
 )

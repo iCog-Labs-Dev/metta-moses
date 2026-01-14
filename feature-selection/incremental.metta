@@ -23,7 +23,7 @@
 ;; Returns: (Number) → Mutual information score
 ;; Example: (calculateMutualInformation xorTable (ConsOS 0 (ConsOS 1 NilOS))) → 1.0
 
-(: calculateMutualInformation (-> (ITable $a) Expression Number))
+; (: calculateMutualInformation (-> (ITable $a) Expression Number))
 (= (calculateMutualInformation (mkITable $rows $labels) $featureIndices)
     (chain (- (List.length $labels) 1) $targetIndex
         (chain (Table.getColumn $targetIndex $rows) $targetColumn
@@ -42,8 +42,8 @@
 
 ;** Implement caching for the mutual Information
 (= (cachedMutualInformation $itable $featureIndices)
-    (lruCache DEFAULT_CACHE_SIZE ((calculateMutualInformation) ($itable $featureIndices)))
-)
+    (eval (lruCache (DEFAULT_CACHE_SIZE) ((calculateMutualInformation) ($itable $featureIndices)))))
+
 ;; Purpose: Filter relevant combinations based on MI threshold
 ;; Parameters:
 ;;   $itable (ITable) → Input table
@@ -51,20 +51,21 @@
 ;;   $threshold (Number) → MI threshold
 ;;   $resultSet (OS Number) → Accumulator for relevant indices
 ;; Returns: (OS Number) → OrderedSet of relevant feature indices
-(: filterRelevantCombinations (-> (ITable $a) (OS Expression) Number (OS Number) (OS Number)))
+; (: filterRelevantCombinations (-> (ITable $a) (OS Expression) Number (OS Number) (OS Number)))
 (= (filterRelevantCombinations $itable NilOS $threshold $resultSet)
- $resultSet)
-
+   $resultSet)
 (= (filterRelevantCombinations $itable (ConsOS $combo $rest) $threshold $resultSet)
-   (chain (expressionToOS $combo NilOS) $comboOS
-     (chain (cachedMutualInformation $itable $combo) $mutualInfo
+   (chain (eval (cachedMutualInformation $itable $combo)) $mutualInfo
+     ;; Convert the simple list to OrderedSet for union
+     (chain (expressionToOS $combo NilOS) $comboOS
        (if (> $mutualInfo $threshold)
            (chain (OS.union $resultSet $comboOS) $newResultSet
              (filterRelevantCombinations $itable $rest $threshold $newResultSet))
            (filterRelevantCombinations $itable $rest $threshold $resultSet)
-        )
-      )
-    )
+       )
+     )
+   )
+)
     ; (let*
     ;     (
     ;         ($comboOs (expressionToOS $combo NilOS))
@@ -78,9 +79,7 @@
     ;     )
     ;     $newResultSet
     ; )
-)
-
-
+ 
 ;; Purpose: Find best subset with highest MI score
 ;; Parameters:
 ;;   $itable (ITable) → Input table
@@ -88,12 +87,11 @@
 ;;   $currentBest (Expression) → Current best subset
 ;;   $currentScore (Number) → Current best score
 ;; Returns: (List Expression) → (best-subset best-score)
-(: findBestSubset (-> (ITable $a) (OS Expression) Expression Number (List Expression)))
+;(: findBestSubset (-> (ITable $a) (OS Expression) Expression Number (List Expression)))
 (= (findBestSubset $itable NilOS $currentBest $currentScore)
    (Cons $currentBest (Cons $currentScore Nil)))
-
 (= (findBestSubset $itable (ConsOS $subset $rest) $currentBest $currentScore)
-     (chain (cachedMutualInformation $itable $subset) $score
+     (chain (cachedMutualInformation $itable $subset) $score  
        (if (> $score $currentScore)
            (findBestSubset $itable $rest $subset $score)
            (findBestSubset $itable $rest $currentBest $currentScore)
@@ -107,7 +105,7 @@
 ;;   $threshold (Number) → Redundancy threshold
 ;;   $subsetSize (Number) → Current subset size being tested
 ;; Returns: (OS Number) → OrderedSet of redundant indices
-(: findRedundantSubsets (-> (ITable $a) (OS Number) Number Number (OS Number)))
+;(: findRedundantSubsets (-> (ITable $a) (OS Number) Number Number (OS Number)))
 (= (findRedundantSubsets $itable $indices $threshold $subsetSize)
     (if (<= (OS.length $indices) 1)
         NilOS
@@ -152,7 +150,7 @@
 ;;   $currentTermSize (Number) → Current term size
 ;;   $selectedIndices (OS Number) → Previously selected indices
 ;; Returns: (OS Number) → Final selected indices
-(: incrementalIterator (-> (ITable $a) (OS Number) Number Number Number Number (OS Number) (OS Number)))
+;(: incrementalIterator (-> (ITable $a) (OS Number) Number Number Number Number (OS Number) (OS Number)))
 ( = (incrementalIterator $itable $remainingIndices $threshold $maxTerms $redundancyThreshold $currentTermSize $selectedIndices)
         (if (or (> $currentTermSize $maxTerms) (== (OS.length $remainingIndices) 0))
             $selectedIndices
@@ -178,8 +176,6 @@
             )
         )
 )
-
-
 ;; Purpose: Adaptive selection using binary search
 ;; Parameters:
 ;;   (mkITable $rows $labels) → Input table
@@ -190,7 +186,7 @@
 ;;   $maxThreshold (Number) → Upper threshold bound
 ;;   $epsilon (Number) → Convergence tolerance
 ;; Returns: (OS Number) → OrderedSet of selected indices
-(: adaptiveSelection (-> (ITable $a) Number Number Number Number Number Number (OS Number)))
+;(: adaptiveSelection (-> (ITable $a) Number Number Number Number Number Number (OS Number)))
 (= (adaptiveSelection (mkITable $rows $labels) $targetSize $maxTerms $redundancyThreshold $minThreshold $maxThreshold $epsilon)
     (if (<= $targetSize 0)
         NilOS
@@ -223,7 +219,7 @@
 ;;   $maxInteractionTerms (Number) → Maximum interaction term size
 ;;   $redundancyThreshold (Number) → Redundancy removal intensity
 ;; Returns: (Expression) → (score selected-indices-expression)
-(: incrementalSelection (-> (ITable $a) Number Number Number Number Expression))
+;(: incrementalSelection (-> (ITable $a) Number Number Number Number Expression))
 (= (incrementalSelection (mkITable $rows $labels) $threshold $targetSize $maxInteractionTerms $redundancyThreshold)
     (if (and (<= $threshold 0) (<= $targetSize 0))
         ;; return all the features with their score

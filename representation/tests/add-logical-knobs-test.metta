@@ -1,21 +1,29 @@
-!(register-module! ../../../metta-moses)
-!(import! &self metta-moses:utilities:tree)
-!(import! &self metta-moses:utilities:list-methods)
-!(import! &self metta-moses:utilities:general-helpers)
-!(import! &self metta-moses:representation:knob-representation)
-!(import! &self metta-moses:representation:logical-probe)
-!(import! &self metta-moses:representation:knob-representation)
-!(import! &self metta-moses:representation:lsk)
-!(import! &self metta-moses:utilities:nodeId)
-!(import! &self metta-moses:representation:sample-logical-perms) 
-!(import! &self metta-moses:representation:add-logical-knobs)
-!(import! &self metta-moses:utilities:ordered-multimap) 
-!(import! &self metta-moses:utilities:lazy-random-selector)
-!(import! &self metta-moses:scoring:bscore)
+!(import! &self ../../utilities/tree)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/general-helpers)
+!(import! &self ../../representation/knob-representation)
+!(import! &self ../../representation/logical-probe)
+!(import! &self ../../representation/knob-representation)
+!(import! &self ../lsk)
+!(import! &self ../../utilities/nodeId)
+!(import! &self ../sample-logical-perms) 
+!(import! &self ../add-logical-knobs)
+!(import! &self ../../utilities/ordered-multimap) 
+!(import! &self ../../utilities/lazy-random-selector)
+!(import! &self ../../scoring/bscore)
 
-(= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
-(= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
+!(import! &self ../../reduct/boolean-reduct/rte-helpers)
+!(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
+!(import! &self ../../reduct/boolean-reduct/cut-unnecessary-and)
+!(import! &self ../../reduct/boolean-reduct/n-ary-propagate-not)
+!(import! &self ../../reduct/boolean-reduct/n-ary-gather-junctors)
+!(import! &self ../../reduct/boolean-reduct/delete-inconsistent-handle)
+!(import! &self ../../reduct/boolean-reduct/zero-constraint-subsumption)
+!(import! &self ../../reduct/boolean-reduct/one-constraint-subsumption)
+!(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
+!(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 
+!(py-call (random.seed 0))
 ;; Testcase for the addLogicalKnobs 
 !(assertEqual (let* 
 (
@@ -24,8 +32,8 @@
         (Cons (mkTree (mkNode A) Nil)
           (Cons (mkTree (mkNode B) Nil) Nil)))
               (mkNodeId (0)) True NilMMap (A B)))
-    (() (println! $updatedTree))
-    (() (println! $mm))
+    ($_ (println! $updatedTree))
+    ($_ (println! $mm))
     ($mmpsEqual 
      (MultiMap.equals $mm 
      (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (0 2))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (0 1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) NilMMap))))))
@@ -38,7 +46,7 @@
 $mmpsEqual
 ) True)
 
-; Testcase for the addLogicalKnobs 
+;; Testcase for the addLogicalKnobs 
 !(assertEqual (let* 
 (
     (($updatedTree $mm) 
@@ -58,3 +66,8 @@ $mmpsEqual
 )
 (and $mmpsEqual $treesEqual)
 ) True)
+
+; !(addLogicalKnobs (mkTree (mkNode AND)     
+;         (Cons (mkTree (mkNode A) Nil)
+;           (Cons (mkTree (mkNode B) Nil) Nil)))
+;               (mkNodeId (0)) True NilMMap (A B))

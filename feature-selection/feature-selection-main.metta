@@ -7,7 +7,7 @@
 ;;                          $targetSize -- the number of features sets to be returned
 ;;                          $increaseTargetSize -- bool -- to increase number of features in a feature set by the number of features already in the exemplar
 
-(: featureSelector (->  Symbol (ITable $a) Number (Tree $a) Number Number Bool Expression Bool Number Bool Symbol Number Number Number Number Number Bool Symbol Expression))
+; (: featureSelector (->  Symbol (ITable $a) Number (Tree $a) Number Number Bool Expression Bool Number Bool Symbol Number Number Number Number Number Bool Symbol Expression))
 (= (featureSelector 
             $algo               ;; feature selection algo one of the following symbols hc, rnd, sim, inc, smd for hillclimbing, random, simple, incremental and stochasticMaxDependency selection algos
             (mkITable $table $labels)   ;; the table
@@ -33,8 +33,10 @@
             $scorerType         ;; Type of score needed for hillClimbing feature selection it might be mutualInformation or precision_bscore
 )
         (let* (
-                (() (println! (debug Inside Feature Selection Main)))
-                ($exemplar-fts (treeFtsIndices $exemplar $labels))       
+                ($_ (println! (debug Inside Feature Selection Main)))
+                ($exemplar-fts (eval (treeFtsIndices $exemplar $labels)))       
+                ($_ (println! (after treeFtsIndices)))
+
                 ($exemplar-fts-size (size-atom $exemplar-fts)) 
                 ($init-ft-indices (map-atom $init-fts $ft (List.index $labels $ft)))                  ;; initial ft names changed into index values
 
@@ -45,7 +47,7 @@
                                         (featureSelection $algo (mkITable $table $labels) $th $updated-target-size $updated-init-fts $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType))     ;; do the feature selection using the new target-size
                 
                                         (if $ignore-xmplr-fts                                                        ;; on the other hand, if we elect to ignore exemplar features 
-                                            (let* ((mkITable $filtered-rows $filtered-labels) (filterTable $exemplar-fts (mkITable $table $labels))   ;; filter the table and pass only labels that don't include exemplar features
+                                            (let* (((mkITable $filtered-rows $filtered-labels) (filterTable $exemplar-fts (mkITable $table $labels)))   ;; filter the table and pass only labels that don't include exemplar features
                                                    ($selected-ft-set (featureSelection $algo (mkITable $filtered-rows $filtered-labels) $th $target-size $init-ft-indices $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)))
                                                         (readjustIndices $selected-ft-set $filtered-labels $labels)) ;; here the returned index values refere to column indices in the filtetered table so some adjstment is needed to make up for any removed columns
                                             (featureSelection $algo (mkITable $table $labels) $th $target-size $init-ft-indices $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType))))
@@ -53,8 +55,9 @@
                 ($capped-ft-set-pop (if (and (> $diversity-cap 0) (< $diversity-cap $ft-set-pop-size))                  ;; limmit the size of feature set pop to diversity cap value
                                         (takeN $diversity-cap $ft-set-pop)
                                         $ft-set-pop))
-                (() (println! (Selected features set pop $capped-ft-set-pop))))
-                (selectTopFts (mkITable $table $labels) $div-pres -1 $multi-diversity $sim-scorer $capped-ft-set-pop $nDeme)))                                                              
+                ($_ (println! (Selected features set pop $capped-ft-set-pop)))
+                ($_ (println! (quote (selectTopFts (mkITable $table $labels) $div-pres -1 $multi-diversity $sim-scorer $capped-ft-set-pop $nDeme)))))
+                (eval (selectTopFts (mkITable $table $labels) $div-pres -1 $multi-diversity $sim-scorer $capped-ft-set-pop $nDeme))))                                                              
                                                                                                                                 
 (= (featureSelection            ;; for sake of clarity I chose to list the parameteres top-down style
             $algo
@@ -73,18 +76,17 @@
             $scorerType         ;; can MI or precision_bscore
             ) 
 	(case $algo
-		((hc (let $init-instance (List.generate (- (List.length $labels) 1) 0) 
+		((hc (let $init-instance (eval (List.generate (- (eval (List.length $labels)) 1) 0) )
                         (hcFtSetPop (mkITable $table $labels) $init-instance $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)))
-		 (rd (randomFeatureSelection (mkITable $table $labels) $target-size))                                       
-		 (sim (simpleFeatureSelector $th $target-size False (mkITable $table $labels) ()))                           ;; False -- default value for using exp distribution for selection of top N features -- and start with empty feature list as initial features -- th here refers to the minimum score required for feature set to be selected
-		 (inc (incrementalSelection (mkITable $table $labels) $th $target-size 1 0))                                 ;; 1 -- default value of max-interaction-terms -- the maximum size of each feature set tested in the scorer -- the last value is a value redundancy threshold values
+		 (rd (eval (randomFeatureSelection (mkITable $table $labels) $target-size)))                                       
+		 (sim (eval (simpleFeatureSelector $th $target-size False (mkITable $table $labels) ())))                           ;; False -- default value for using exp distribution for selection of top N features -- and start with empty feature list as initial features -- th here refers to the minimum score required for feature set to be selected
+		 (inc (eval (incrementalSelection (mkITable $table $labels) $th $target-size 1 0)))                                 ;; 1 -- default value of max-interaction-terms -- the maximum size of each feature set tested in the scorer -- the last value is a value redundancy threshold values
 		 (smd (if (== $init-fts ())
-                        (stochasticMaxDependency $th $target-size 3 (mkITable $table $labels) mi ())
-                        (let* (($len (List.length $labels))
-                                ($oc (Table.getColumn (- $len 1) $table))      ;; output column to calculate MI for initial ft set
-                                ($init-ft-zip (zipColumn $init-fts $table))     ;; 
-                                ($mi (mutualInformation $init-ft-zip $oc)))
+                        (eval (stochasticMaxDependency $th $target-size 3 (mkITable $table $labels) mi ()))
+                        (let* (($len (eval (List.length $labels)))
+                                ($oc (eval (Table.getColumn (- $len 1) $table)))      ;; output column to calculate MI for initial ft set
+                                ($init-ft-zip (eval (zipColumn $init-fts $table)))     ;; 
+                                ($mi (eval (mutualInformation $init-ft-zip $oc))))
                                 
                                 (stochasticMaxDependency $th $target-size 3 (mkITable $table $labels) mi (($mi $init-fts))))))          ;; this `th` is a vlue used to check marginal score improvements as a features are added to the set. feature-count refers to the number of features in a single feature set
 		))) 
-

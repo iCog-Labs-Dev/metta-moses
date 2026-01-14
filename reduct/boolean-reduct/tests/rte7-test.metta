@@ -1,15 +1,14 @@
-! (register-module! ../../../../metta-moses)
-
-! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
-! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-or)
-! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-and)
-! (import! &self metta-moses:reduct/boolean-reduct:delete-inconsistent-handle)
-! (import! &self metta-moses:reduct/boolean-reduct:zero-constraint-subsumption)
-! (import! &self metta-moses:reduct/boolean-reduct:one-constraint-subsumption)
-! (import! &self metta-moses:reduct/boolean-reduct:promote-common-constraints)
-! (import! &self metta-moses:reduct/boolean-reduct:reduce-to-elegance)
-
+!(import! &self ../../../utilities/general-helpers)
+!(import! &self ../rte-helpers)
+!(import! &self ../cut-unnecessary-or)
+!(import! &self ../cut-unnecessary-and)
+!(import! &self ../delete-inconsistent-handle)
+!(import! &self ../zero-constraint-subsumption)
+!(import! &self ../one-constraint-subsumption)
+!(import! &self ../promote-common-constraints)
+!(import! &self ../reduce-to-elegance)
+!(import! &self ../n-ary-gather-junctors)
+!(import! &self ../n-ary-propagate-not)
 
 ;; Test 04: Test case from Mosh's paper. Page 37
 
@@ -20,4 +19,5 @@
 !(assertEqual (reduceToElegance (AND E (OR (AND A) (AND B) (AND C D))) (OR (AND A) (AND B) (AND C D)) () ()) ((AND E (OR (AND A) (AND B) (AND C D))) (OR (AND A) (AND B) (AND C D)) False))
 !(assertEqual (reduceToElegance (OR (AND A) (AND B) (AND C D)) (AND C D) () ()) ((OR (AND A) (AND B) (AND C D)) (AND C D) False))
 
-
+!(assertEqual (reduce-to (AND (OR (AND G) (AND A B (OR (AND (NOT C)) (AND (NOT D)) (AND E)) (OR (AND C) (AND C F)))))) (AND (OR (AND G) (AND A B (OR (AND (NOT C)) (AND (NOT D)) (AND E)) (OR (AND C) (AND C F)))))) 
+!(assertEqual (reduce-to (AND (OR A B) A)) (AND A))

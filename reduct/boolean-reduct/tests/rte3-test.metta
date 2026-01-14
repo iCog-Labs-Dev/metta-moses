@@ -1,20 +1,18 @@
-! (register-module! ../../../../metta-moses)
-
-! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
-! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-or)
-! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-and)
-! (import! &self metta-moses:reduct/boolean-reduct:delete-inconsistent-handle)
-! (import! &self metta-moses:reduct/boolean-reduct:zero-constraint-subsumption)
-! (import! &self metta-moses:reduct/boolean-reduct:one-constraint-subsumption)
-! (import! &self metta-moses:reduct/boolean-reduct:promote-common-constraints)
-! (import! &self metta-moses:reduct/boolean-reduct:reduce-to-elegance)
+!(import! &self ../../../utilities/general-helpers)
+!(import! &self ../rte-helpers)
+!(import! &self ../cut-unnecessary-or)
+!(import! &self ../cut-unnecessary-and)
+!(import! &self ../delete-inconsistent-handle)
+!(import! &self ../zero-constraint-subsumption)
+!(import! &self ../one-constraint-subsumption)
+!(import! &self ../promote-common-constraints)
+!(import! &self ../reduce-to-elegance)
 
 ;; Test cases from python implementation.
 
 !(assertEqual (reduceToElegance (AND (NOT A)) (NOT A) () ()) ((AND (NOT A)) (NOT A) False))
-;
-;; (AND (OR (NOT A) (NOT B))) ==> (AND (OR (NOT A ) (NOT B)))
+
+; (AND (OR (NOT A) (NOT B))) ==> (AND (OR (NOT A ) (NOT B)))
 !(assertEqual (reduceToElegance (AND (OR (NOT A) (NOT B))) (OR (NOT A) (NOT B)) () ()) ((AND (OR (NOT A) (NOT B))) (OR (NOT A) (NOT B)) False))
 ;; (AND (NOT A) (NOT B)) ==> (AND (NOT A) (NOT B))
 !(assertEqual (reduceToElegance (AND (AND (NOT A) (NOT B))) (AND (NOT A) (NOT B)) () ()) ((AND (AND (NOT A) (NOT B))) (AND (NOT A) (NOT B)) False))
@@ -22,9 +20,9 @@
 !(assertEqual (reduceToElegance (AND (AND A B)) (AND A B) () ()) ((AND (AND A B)) (AND A B) False))
 ;; (AND (OR A B)) ==> (AND (OR A B))
 !(assertEqual (reduceToElegance (AND (OR A B)) (OR A B) () ()) ((AND (OR A B)) (OR A B) False))
-;; (AND (OR (AND (NOT A) (NOT B)) (NOT C) (NOT D))) ==> (AND (OR (AND (NOT A) (NOT B)) (NOT C) (NOT D)))
+; (AND (OR (AND (NOT A) (NOT B)) (NOT C) (NOT D))) ==> (AND (OR (AND (NOT A) (NOT B)) (NOT C) (NOT D)))
 !(assertEqual (reduceToElegance (AND (OR (AND (NOT A) (NOT B)) (NOT C) (NOT D))) (OR (AND (NOT A) (NOT B)) (NOT C) (NOT D)) () ()) ((AND (NOT A) (NOT B)) () True))
-;; (AND (A A)) ==> (AND (A A))
+; (AND (A A)) ==> (AND (A A))
 !(assertEqual (reduceToElegance (AND (AND (A A))) (AND (A A)) () ()) ((AND A) (A) False))
 ;; (AND A A C) ==> (AND A A C)
 !(assertEqual (reduceToElegance (AND (AND A A C)) (AND A A C) () ()) ((AND (AND A A C)) (AND A A C) False))

@@ -1,9 +1,6 @@
-! (register-module! ../../../../metta-moses) 
-
-! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
-! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-and)
-
+!(import! &self ../rte-helpers)
+!(import! &self ../../../utilities/general-helpers)
+!(import! &self ../cut-unnecessary-and)
 
 
 ;; Test 01
@@ -18,7 +15,7 @@
     ((OR (AND (OR (AND C D) (AND C F))) A) (AND (OR (AND C D) (AND C F))) False)
 )
 
-;; Test 03
+; ;; Test 03
 !(assertEqual
     (andCut (OR A (AND (OR (AND B C) (AND E F) (AND G H))) F) (AND (OR (AND B C) (AND E F) (AND G H))))
     ((OR A F (AND B C) (AND E F) (AND G H)) () True)

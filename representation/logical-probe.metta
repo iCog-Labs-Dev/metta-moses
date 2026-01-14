@@ -9,20 +9,20 @@
 ;; Return: a tuple containing a tuple of LSKs and the final updated tree
 
 ;; logicalProbe
-(: logicalProbe (-> (Tree $a) NodeId Expression Bool Expression Expression))
+;; (: logicalProbe (-> (Tree $a) NodeId Expression Bool Expression Expression))
 (= (logicalProbe $exemplar (mkNodeId $targetId) () $addIfInExemplar $knobs) ($knobs $exemplar))
 (= (logicalProbe $exemplar (mkNodeId $targetId) $perms $addIfInExemplar $knobs)
 (let*
 (
     (($headPerms $tailPerms) (decons-atom $perms))
-    (($updatedTree $lsk) (logicalSubtreeKnob $exemplar (mkNodeId $targetId) $headPerms))
-    ($discKnob (getDiscKnob $lsk))
+    (($updatedTree $lsk) (eval (logicalSubtreeKnob $exemplar (mkNodeId $targetId) $headPerms)))
+    ($discKnob (eval (getDiscKnob $lsk)))
 )
-(if (or $addIfInExemplar (not (inExemplar $discKnob)))
+(if (or $addIfInExemplar (not (eval (inExemplar $discKnob)) )) 
     (let* 
     (
-        ($updatedKnobs (concatT $knobs ($lsk)))
+        ($updatedKnobs (eval (concatT $knobs ($lsk))))
     )
-    (logicalProbe $updatedTree (mkNodeId $targetId) $tailPerms $addIfInExemplar $updatedKnobs)
+    (eval (logicalProbe $updatedTree (mkNodeId $targetId) $tailPerms $addIfInExemplar $updatedKnobs))
     )
-    (logicalProbe $exemplar (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs))))
+    (eval (logicalProbe $exemplar (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs)))))

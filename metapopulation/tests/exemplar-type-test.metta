@@ -1,9 +1,9 @@
-! (register-module! ../../../metta-moses)
-; ! (import! &self metta-moses:utilities:ordered-set)
-! (import! &self metta-moses:metapopulation:exemplar-type)
+; ! (register-module! ../../../metta-moses)
+!(import! &self ../../../metta-moses/utilities/ordered-set)
+!(import! &self ../../../metta-moses/metapopulation/exemplar-type)
 
 ;; Exemplar initialization
-! (assertEqual (xmplrInit (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) (mkDemeId 1))
+!(test (xmplrInit (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) (mkDemeId 1))
     (mkXmplr 
         (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))
         (mkDemeId 1) 
@@ -13,7 +13,7 @@
             (mkScoreT 0)
             (mkScoreT (pow-math 10 -37)))
         (mkBscore Nil)))
-! (assertEqual 
+!(test 
     (xmplrInit (mkTree (mkTree (mkNode A) Nil)) (mkDemeId 2))
     (mkXmplr 
         (mkTree (mkTree (mkNode A) Nil))
@@ -25,7 +25,7 @@
             (mkScoreT (pow-math 10 -37)))
         (mkBscore Nil)))
 
-! (assertEqual 
+!(test 
     (xmplrInit (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) (mkDemeId 100))
     (mkXmplr 
         (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))

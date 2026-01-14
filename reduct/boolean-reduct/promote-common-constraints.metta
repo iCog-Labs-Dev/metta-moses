@@ -15,27 +15,27 @@
 ;;        : output: ((AND A (NOT B) (OR (AND C) (AND)) (OR (NOT C) (AND (NOT B) (NOG D)))) () True)
 ;(: promoteCommonConstraints (-> Expression Expression (Expression Expression Bool)))
 (= (promoteCommonConstraints $parent $current)
-    (if (and (~= $current ()) (~= $parent ()))
+    (if (and (not (== $current ())) (not (== $parent ())))
         (let*
             (
               ;; (() (println! (=== Inside PromoteCommonConstraints ===)))
               ;; (() (println! (Parameters ==> Parent: $parent Current: $current)))
 
-              (($literals $children) (getLiteralChildren $current))
-              ($childrenLiteral (if (~= $children ()) (collapse (getLiterals (superpose $children))) ()))
-              ($common (if (~= $childrenLiteral ()) (findCommon $childrenLiteral) ()))
+              (($literals $children) (eval (getLiteralChildren $current)))
+              ($childrenLiteral (if (not (== $children ())) (collapse (eval (getLiterals (superpose $children)))) ()))
+              ($common (if (not (== $childrenLiteral ())) (eval (findCommon $childrenLiteral)) ()))
             )
             (if (== $common ())
                 ($parent $current False)
                 (let*
                     (
                       ;; (() (println! (Removing Common Literals: $common)))
-                      ($updatedChildren (removeCommonLiterals $common $children))
-                      ($updatedLiterals (removeElement $common $literals))
-                      ($newExp (concatTuple $updatedLiterals $updatedChildren ))
+                      ($updatedChildren (eval (removeCommonLiterals $common $children)))
+                      ($updatedLiterals (eval (removeElement $common $literals)))
+                      ($newExp (eval (concatTuple $updatedLiterals $updatedChildren )))
 
                       ($newCurrent (cons-atom OR $newExp))
-                      ($updatedParent (findAndReplace $current $newCurrent $parent))
+                      ($updatedParent (eval (findAndReplace $current $newCurrent $parent)))
                       ($updatedParent' (addLiterals $updatedParent $common))
                     )
                     ($updatedParent' $newCurrent True)

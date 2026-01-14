@@ -29,7 +29,7 @@
 ;;  Penalized Score: very_worst_score (e.g., -1e37) ??
 ;;  Behavioral Score: empty set -- Nil
 
-(: xmplrInit (-> (Tree $a) DemeId Xmplr))
+; (: xmplrInit (-> (Tree $a) DemeId Xmplr))
 (= (xmplrInit $tree  (mkDemeId $id))
     (let ($iScore $iComplexity $iComplexityPen $iUinformityPen $iBehavioralScore) ((pow-math 10 -37) 0 0 (pow-math 10 -37) Nil)
         (mkXmplr 
@@ -51,7 +51,7 @@
 ;;      if the two scores are equal then complexity scores are used as tie breaker -- the smaller complexity score the better
 ;;TODO XXX : original implemntaion of examplar comparison takes the difference between scores and 
 ;;          allows the difference to be a small non-zero number for equality
-(: compareXmplr (-> Xmplr Xmplr Atom))
+; (: compareXmplr (-> Xmplr Xmplr Atom))
 (= (compareXmplr 
         (mkXmplr $tree1 (mkDemeId $id1) (mkCscore (mkScoreT $s1) (mkComplexity $cs1) (mkScoreT $cp1) (mkScoreT $up1)) (mkBscore $bs1))
         (mkXmplr $tree2 (mkDemeId $id2) (mkCscore (mkScoreT $s2) (mkComplexity $cs2) (mkScoreT $cp2) (mkScoreT $up2)) (mkBscore $bs2)))

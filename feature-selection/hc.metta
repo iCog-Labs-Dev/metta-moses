@@ -12,7 +12,7 @@
 (: hcFtSetPop (-> (ITable $a) Instance Number Number Number Number Bool Symbol Expression))      
 (= (hcFtSetPop $iTable $centerInst $scorerType)
   (let* (
-         (() (println! (debug inside hcFtSetPop)))
+         ($_ (println! (debug inside hcFtSetPop)))
          (((mkInst $inst1) (mkSInstSet $list) $state) (hillClimbing (mkSInstSet Nil) $iTable (mkInst $centerInst) (applyMutualInformationBasedScore $scorerType))) ;; runs the hillclimbing feature selector
          ($list-of-scoreset-pairs (getHcFtPop $list ()))                                                    ;; separates the scores from the the previous output and puts them in a score feature-set pair tuple -- as list of
          ($unique-pairs (List.tFoldl $list-of-scoreset-pairs union-atom exp ()))                            ;; finds unquie such pairs duplicats removed -- by way of union-atom

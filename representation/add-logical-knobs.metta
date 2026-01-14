@@ -1,5 +1,4 @@
-;;;;;;;; addLogicalKnobs ;;;;;;;;;
-;; Creates and adds logical subtree knobs in to a multimap
+;;;;;;;; addLogicalKnotree knobs in to a multimap
 ;; Params:
 ;;   $exemplar: Reference tree containing the target node.
 ;;   (mkNodeId $targetId): ID of the target node in the exemplar.
@@ -10,32 +9,27 @@
 
 ;; helper function to the addLogicalKnobs
 ;; takes a tuple of knobs and return a tuple of knob and knobSpec pairs
-(: pairKnobWithSpec (-> Expression Expression))
-(= (pairKnobWithSpec $tuple)
-(collapse (let*
-(
-    ($knob (superpose $tuple))
-    ($knobSpec (getKnobSpec $knob))
-)
-($knobSpec $knob)
-)))
-
+;; (: pairKnobWithSpec (-> Expression Expression))
+(= (pairKnobWithSpec $tuple)   (map-atom $tuple $knob ( (eval (getKnobSpec $knob)) $knob) ))
 
 ;; addLogicalKnobs
-(: addLogicalKnobs (-> (Tree $a) NodeId Bool (MultiMap ($k $v)) Expression Expression))
+;; (: addLogicalKnobs (-> (Tree $a) NodeId Bool (MultiMap ($k $v)) Expression Expression))
 (= (addLogicalKnobs $exemplar $nodeId $addIfInExemplar $map $argLabels) 
-(let (mkTree (mkNode $op) $children) (getNodeById $exemplar $nodeId)
+(let (mkTree (mkNode $op) $children) (eval (getNodeById $exemplar $nodeId))
        (let  $lengthOfArgs (size-atom $argLabels)
-          (let  $perms (sampleLogicalPerms $op $lengthOfArgs $argLabels)
+          (let  $perms (eval (sampleLogicalPerms $op $lengthOfArgs $argLabels))
             (let  $treePerms (map-atom $perms $perm (buildTree $perm))
-              (let ($knobs $updatedTree) (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ())
-                (let  $pairs (pairKnobWithSpec $knobs)
-                  (chain (expToMMap $pairs $map discSpec<=) $mmp
-                    ($updatedTree $mmp))
+              (let ($knobs $updatedTree) (eval (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ()))
+                (let  $pairs (eval (pairKnobWithSpec $knobs))
+                    (let $mmp (eval (expToMMap $pairs $map discSpec<=))
+                       (let $temp (cut)
+                         ($updatedTree $mmp)
+                       )
+                     )
                 )
               )
             )
           )
        )
-)
+    )
 )

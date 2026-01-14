@@ -9,29 +9,29 @@
 ;; Returns:
 ;;  $tree 
 ;;  A LogicalSubtreeKnob (LSK) configured based on the subtree's presence or its appended state.
-(: logicalSubtreeKnob (-> (Tree $a) NodeId (Tree $a) (Tree $a LogicalSubtreeKnob)))
+;; (:logicalSubtreeKnob (-> (Tree $a) NodeId (Tree $a) (Tree $a LogicalSubtreeKnob)))
 (= (logicalSubtreeKnob $tree (mkNodeId $target) $subtree)
    (let*
    (
-    ($negatedSubtree (insertAbove $subtree (mkNode NOT)))
-    ; (() (println! (NegatedSubtree : $negatedSubtree)))
-    ($reducedSubtree (cleanTree $negatedSubtree))  ;;;after the reduct integration, the reduction step will be applied here 
-    ; (() (println! (ReducedSubtree: $reducedSubtree))) 
-    ($childrenOfTarget (getChildrenById $tree (mkNodeId $target)))
+    ($negatedSubtree (eval (insertAbove $subtree (mkNode NOT))))
+    ($_ (println! (NegatedSubtree----------------- : $negatedSubtree)))
+    ($reducedSubtree (eval (cleanTree $negatedSubtree))  )
+    ($_ (println! (ReducedSubtree---------------: $reducedSubtree))) 
+    ($childrenOfTarget (eval (getChildrenById $tree (mkNodeId $target))))
    )
-   (if (List.contains $subtree $childrenOfTarget) 
-       (let $idOfSubtree (getSubtreeId $tree (mkNodeId $target) $subtree 0)
+   (if (== True (eval (List.contains $subtree $childrenOfTarget) ))
+       (let $idOfSubtree (eval (getSubtreeId $tree (mkNodeId $target) $subtree 0))
            ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
        )
-       (if (List.contains $reducedSubtree $childrenOfTarget)
-           (let $idOfReducedSubtree (getSubtreeId $tree (mkNodeId $target) $reducedSubtree 0)
+       (if (== True (eval (List.contains $reducedSubtree $childrenOfTarget)))
+           (let $idOfReducedSubtree (eval (getSubtreeId $tree (mkNodeId $target) $reducedSubtree 0))
                 ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfReducedSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil))))
            (let*
            (
-            (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex Nil)))
-            (($subtreeAppendedTree $subtreeId) (appendChild $nullVexAppendedTree $nullVexId $subtree))
+            (($nullVexAppendedTree $nullVexId) (eval (appendChild $tree (mkNodeId $target) (mkNullVex Nil))))
+            (($subtreeAppendedTree $subtreeId) (eval (appendChild $nullVexAppendedTree $nullVexId $subtree)))
            )
-           ($subtreeAppendedTree (mkLSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 3))))
+           ($subtreeAppendedTree (mkLSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
            )
        )
    )
@@ -40,12 +40,12 @@
 
 
 ;; Retrieves the node ID from a Logical Subtree Knob (LSK).
-(: getNodeId (-> LogicalSubtreeKnob NodeId))
+; ;; (:getNodeId (-> LogicalSubtreeKnob NodeId))
 (= (getNodeId (mkLSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
    $nodeId)
 
 ;; Retrieves the current and default disc specifications from an LSK.
-(: getDiscSpec (-> LogicalSubtreeKnob (DiscSpec DiscSpec)))
+;; (:getDiscSpec (-> LogicalSubtreeKnob (DiscSpec DiscSpec)))
 (= (getDiscSpec (mkLSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
     (let ((mkDiscSpec $def) (mkDiscSpec $cur)) ($default $current) ($def $cur)))
 
@@ -58,21 +58,22 @@
 ;;            reference and it may also contain knobs if $d is 0
 ;;  $parentId: The location where the new node will be added.
 ;;  $d: The current setting of the knob.
-(: appendTo (-> (Tree $a) LogicalSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
+; (: appendTo (-> (Tree $a) LogicalSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
 (= (appendTo $updatedTree $lsk $tree $parentId $d)
     (let*
        (
-        ; (() (println! (lsk: $lsk)))
-        ($targetId (getNodeId $lsk))
-        ($targetTree (getNodeById  $updatedTree $targetId))
-        ($subtree (if (isNullVertex $targetTree) 
+        ; ($_ (println! (lsk: $lsk)))
+        ($targetId (eval (getNodeId $lsk)))
+        ($targetTree (eval (getNodeById  $updatedTree $targetId)))
+        ($subtree (if (== True (eval (isNullVertex $targetTree) ))
                         (let (mkNullVex (Cons $child Nil)) $targetTree $child)
                         $targetTree
                     ))        
+        ($_ (println! ("subtree ": $subtree $targetTree)))
       )
       (if (> $d 2)
           (Error $d "Invalid disc specification:- cannot exceed 2.")
-          (if (isEmpty $tree)
+          (if (== True (isEmpty $tree))
               $subtree
 
               ;; The c++ version takes the child of the null vertex from the 
@@ -84,9 +85,9 @@
               (let $treeToAppend
                    (case $d
                        (
-                         (2 (insertAbove $subtree (mkNode NOT))) ;; If negated
+                         (2 (eval (insertAbove $subtree (mkNode NOT)))) ;; If negated
                          (1  $subtree) ;; If present
                          (0  (mkNullVex (Cons $subtree Nil))))) ;; If absent
 
-                   (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
-                       (first $treeChIdPair))))))) ;; INFO: Just incase if the append fails and stores the result somewhere else, we need to add a test case here to cmpare between targetNode and appendChild node.
+                   (chain (eval (appendChild $tree $parentId $treeToAppend)) $treeChIdPair
+                      (eval (first $treeChIdPair)))))))) ;; INFO: Just incase if the append fails and stores the result somewhere else, we need to add a test case here to cmpare between targetNode and appendChild node.

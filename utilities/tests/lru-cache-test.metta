@@ -1,27 +1,27 @@
-!(register-module! ../../../metta-moses)
-!(import! &self metta-moses:utilities:general-helpers)
-!(import! &self metta-moses:feature-selection:feature-selection-helpers)
-!(import! &self metta-moses:utilities:list-methods)
-!(import! &self metta-moses:utilities:lru-cache)
+; !(register-module! ../../../metta-moses)
+!(import! &self ../../../metta-moses/utilities/general-helpers)
+!(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
+!(import! &self ../../../metta-moses/utilities/list-methods)
+!(import! &self ../../../metta-moses/utilities/lru-cache)
 
-(: factorial (-> Number Number))
+; (: factorial (-> Number Number))
 (= (factorial $x)
    (if (> $x 0)
        (* $x (factorial (- $x 1)))
        1))
 
-(: multiply (-> Number Number Number Number))
+; (: multiply (-> Number Number Number Number))
 (= (multiply $a $b $c) (* (* $a $b) $c))
 
-(: cachedFactorial (-> Number Number))
+; (: cachedFactorial (-> Number Number))
 (= (cachedFactorial $n)
-   (lruCache DEFAULT_CACHE_SIZE ((factorial) ($n))))
+   (lruCache (DEFAULT_CACHE_SIZE) ((factorial) ($n))))
 
-(: cachedMultiply (-> Number Number Number Number))
+; (: cachedMultiply (-> Number Number Number Number))
 (= (cachedMultiply $a $b $c)
    (lruCache 3 ((multiply) ($a $b $c))))
 
-(: cachedMutualInformation (-> Expression Expression Number))
+; (: cachedMutualInformation (-> Expression Expression Number))
 (= (cachedMutualInformation $inputColumn $outputColumn)
     (lruCache 3 ((mutualInformation) ($inputColumn $outputColumn))))
 

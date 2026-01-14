@@ -1,5 +1,5 @@
 
-! (bind! &space (new-space))
+!(bind! &space (new-space))
 
 (= (removeFromSpace $row $space) (remove-atom $space $row))
 
@@ -34,7 +34,9 @@
                 $tupleWithOp
             )
         )
-        ((unify $space ($expr $value) $value undefined)) ;; If not an Expression, replace normally
+        (let $res (collapse (match $space ($expr $value) $value))
+            (if (== $res ()) undefined $res)
+        )
     )
 )
 
@@ -123,14 +125,14 @@
       (
         ($target (car-atom $row))
         ($inputs (cdr-atom $row))
-        ($add (collapse (add-reduct &space (superpose $inputs) )))
+        ($add (collapse (let $z (superpose $inputs) (add-atom &space $z))) )
         ($replacedExpr (replaceWithTruth $expr &space (collapse (match &space $x $x))))
         ($isFaulty  (collapse (findX $replacedExpr undefined)))  ;; Check if there are any undefined variables in the expression
         ($evaluateuatedResult  (if (== $isFaulty ()) (evaluate $replacedExpr) null )) ;; No need to evaluate if there are undefined variables in the experession
-        ($remove (collapse (removeFromSpace (superpose $inputs) &space)))
+        ($remove (collapse (let $z (superpose $inputs) (remove-atom &space $z))) )
       )
       (if (== $evaluateuatedResult $target) 1 0)
-    )
+      )
 )
 
 
@@ -144,7 +146,7 @@
 (= (fitness $expr $data)
     (if (== $data ())
         0
-        (let $result (collapse (rowFitness $expr (superpose $data))) (sum $result)) 
+        (let $result (collapse (rowFitness $expr (superpose $data))) (eval (sum $result)))
     )
 )
 

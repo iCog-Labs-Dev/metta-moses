@@ -1,4 +1,4 @@
-(: propagateNot (-> $expr $expr))
+; (: propagateNot (-> $expr $expr))
 
 (= (propagateNot $expr)
     (case $expr

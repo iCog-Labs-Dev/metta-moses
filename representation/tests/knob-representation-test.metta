@@ -1,27 +1,26 @@
-!(register-module! ../../../metta-moses)
-!(import! &self metta-moses:utilities:tree)
-!(import! &self metta-moses:utilities:list-methods)
-!(import! &self metta-moses:utilities:general-helpers)
-!(import! &self metta-moses:representation:knob-representation)
-!(import! &self metta-moses:utilities:ordered-multimap) 
+!(import! &self ../../utilities/tree)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/general-helpers)
+!(import! &self ../knob-representation)
+!(import! &self ../../utilities/ordered-multimap) 
 
-! (assertEqual (let $return (mkKnob  (mkNodeId (1))) $return)  
-               (mkKnob (mkNodeId (1)))
-               )
-! (assertEqual (let $return (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) $return)
-               (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
-               )
-! (assertEqual (let $return (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2)) $return)
-               (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2))
-               ) 
-! (assertEqual (let $return (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) ) $return)
-               (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2)) )
-               )             
-! (assertEqual (let $return (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)) $return)
-               (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2)))
+!(assertEqual (let $return (mkKnob  (mkNodeId (1))) $return)  
+              (mkKnob (mkNodeId (1)))
+              )
+!(assertEqual (let $return (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) $return)
+              (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+              )
+!(assertEqual (let $return (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2)) $return)
+              (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2))
+              ) 
+!(assertEqual (let $return (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) ) $return)
+              (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )
+              )             
+!(assertEqual (let $return (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)) $return)
+               (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))
                )
 
-; ; these type tests have been commented out because they fail on mettalog
+; ; these type tests have been commented out because they fail on mettalog and in PeTTa 
 ; ! (assertEqual (let $type (get-type (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1)))) $type) Knob)
 ; ! (assertEqual (let $type (get-type (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)) $type) DiscreteKnob)
 ; ! (assertEqual (let $type (get-type (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2))) $type) DiscreteKnob)
@@ -31,12 +30,12 @@
 
 ; inExemplar tests
 !(assertEqual (inExemplar (mkDiscKnob $knob $multiplicity (mkDiscSpec 0) (mkDiscSpec 1) Nil)) True)
-!(assertEqual (inExemplar (mkDiscKnob $knob $multiplicity)) False)
+!(assertEqual (inExemplar (mkDiscKnob $knob $multiplicity (mkDiscSpec 0) (mkDiscSpec 0) Nil)) False)
 
-; getDiscKnob Tests
+; ; getDiscKnob Tests
 !(assertEqual (getDiscKnob (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
   (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))
-!(assertEqual (getDiscKnob (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2))))
+!(assertEqual (getDiscKnob (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
   (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))
 
 
@@ -48,7 +47,7 @@
        )) (mkDiscSpec 2))
 
 ; Testing getmultiplicity function
-!(assertEqual (getKnobMultip (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2))) (mkMultip 2))
+!(assertEqual (getKnobMultip (mkDiscKnob (mkKnob (mkTree (mkNode A) Nil) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)) (mkMultip 2))
 !(assertEqual (getKnobMultip (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (mkMultip 2))
 !(assertEqual (getKnobSpec (mkLSK 
        (mkDiscKnob 

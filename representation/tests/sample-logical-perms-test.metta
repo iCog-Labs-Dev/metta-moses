@@ -1,11 +1,9 @@
 
-!(register-module! ../../../metta-moses)
-
-!(import! &self metta-moses:utilities:lazy-random-selector)
-!(import! &self metta-moses:utilities:general-helpers)
-!(import! &self metta-moses:utilities:list-methods)
-!(import! &self metta-moses:representation:sample-logical-perms)
-!(import! &self metta-moses:scoring:bscore)
+!(import! &self ../../utilities/lazy-random-selector)
+!(import! &self ../../utilities/general-helpers)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../representation/sample-logical-perms)
+!(import! &self ../../scoring/bscore)
 
 ;; Testcase for sample-logical-perms
 !(assertEqual (length (sampleLogicalPerms AND 2 (A B))) 4)
