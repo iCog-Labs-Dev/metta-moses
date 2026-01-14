@@ -77,3 +77,17 @@
             (if (== (index-atom $board $idx) E)
                 $idx
                 (find-first-empty $board $rest)))))
+(= (is-board-full $board)
+   (if (== $board ()) True 
+       (let ($head $tail) (decons-atom $board)
+                  (if (== $head E) False (is-board-full $tail)))))
+
+;; Check if the game has ended (either someone won or board is full)
+(= (is-game-over $board)
+    (or (not (== (get-winner $board) E)) (is-board-full $board))
+)
+;; Get the final result of a completed game
+(= (get-game-result $board)
+    (let $winner (get-winner $board)  
+         (if (== $winner E)
+             (if (is-board-full $board) Draw E) $winner)))
