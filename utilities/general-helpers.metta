@@ -703,7 +703,7 @@
 
 ;; From a tuple (Pair) return the first element
 ; (: first (-> ($a $b) $a))
-; (= (first ($a $b)) $a)
+(= (first ($a $b)) $a)
 
 ;; From a tuple (Pair) return the second element
 ; (: second (-> ($a $b) $b))
