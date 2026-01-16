@@ -6,7 +6,9 @@
 ;; Returns the new board with the best move made
 (= (minimax-player $bs $player)
    (let* (($opponent (get-opponent $player))
+        ($_ (println! (opponent $opponent)))
           ($empty-indices (get-empty-cells $bs () 0))
+          ($_ (println! (emptty indicesss $empty-indices)))
           ($best-idx (find-best-move-loop $bs $empty-indices -1000 -1 $player $opponent)))
      (replace-by-index $bs $player $best-idx)))
 
