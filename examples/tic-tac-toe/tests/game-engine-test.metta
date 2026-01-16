@@ -8,7 +8,6 @@
 ;; play a game between random and random stratagies
 !(assertEqual (play-game random-player random-player) Draw)
 ;; play a game between minimax and random stratagies
-!(py-call (random.seed 42))
 !(assertEqual (play-game minimax-player random-player) X)
 ;; play a game between minimax and minimax stratagies
 !(assertEqual (play-game minimax-player minimax-player) Draw)
