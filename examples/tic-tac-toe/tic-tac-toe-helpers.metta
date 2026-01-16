@@ -77,3 +77,18 @@
             (if (== (index-atom $board $idx) E)
                 $idx
                 (find-first-empty $board $rest)))))
+
+;; Check if the board is full (no empty cells)
+(= (is-board-full $board)
+   (foldl-atom $board True $acc $cell
+      (if (== $cell E) False $acc)))
+
+;; Check if the game has ended (either someone won or board is full)
+(= (is-game-over $board)
+    (or ( != (get-winner $board) E) (is-board-full $board)))
+
+;; Get the final result of a completed game
+(= (get-game-result $board)
+    (let $winner (get-winner $board)  
+         (if (== $winner E)
+             (if (is-board-full $board) Draw E) $winner)))
