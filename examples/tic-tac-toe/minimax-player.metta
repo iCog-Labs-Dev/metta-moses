@@ -6,9 +6,7 @@
 ;; Returns the new board with the best move made
 (= (minimax-player $bs $player)
    (let* (($opponent (get-opponent $player))
-        ($_ (println! (opponent $opponent)))
           ($empty-indices (get-empty-cells $bs () 0))
-          ($_ (println! (emptty indicesss $empty-indices)))
           ($best-idx (find-best-move-loop $bs $empty-indices -1000 -1 $player $opponent)))
      (replace-by-index $bs $player $best-idx)))
 
@@ -19,13 +17,18 @@
        (let* ((($curr-idx $rest-candidates) (decons-atom $candidates))
               ;; 1. Make the move temporarily
               ($new-bs (replace-by-index $bs $player $curr-idx))
-              ;; 2. Call Minimax on this new board (it is now opponent's turn, so isMax=False)
-              ($score (minimax $new-bs False $player $opponent))) 
+              ;; 2. Check if this move wins immediately
+              ($immediate-score (evaluate-board $new-bs $player $opponent)))
          
-         ;; 3. Compare score. If better, update best-move.
-         (if (> $score $best-score)
-             (find-best-move-loop $bs $rest-candidates $score $curr-idx $player $opponent)
-             (find-best-move-loop $bs $rest-candidates $best-score $best-move $player $opponent)))))
+         ;; 3. If this move wins immediately, return it right away!
+         (if (== $immediate-score 10)
+             $curr-idx
+             ;; Otherwise, evaluate via minimax and continue
+             (let* (($score (minimax $new-bs False $player $opponent)))
+               ;; 4. Compare score. If better, update best-move.
+               (if (> $score $best-score)
+                   (find-best-move-loop $bs $rest-candidates $score $curr-idx $player $opponent)
+                   (find-best-move-loop $bs $rest-candidates $best-score $best-move $player $opponent)))))))
 
 ;; ---------------------------------------------------------
 ;; THE CORE MINIMAX FUNCTION
