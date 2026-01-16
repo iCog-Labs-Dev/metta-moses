@@ -85,8 +85,8 @@
 
 ;; Check if the game has ended (either someone won or board is full)
 (= (is-game-over $board)
-    (or (not (== (get-winner $board) E)) (is-board-full $board))
-)
+    (or ( != (get-winner $board) E) (is-board-full $board)))
+
 ;; Get the final result of a completed game
 (= (get-game-result $board)
     (let $winner (get-winner $board)  
