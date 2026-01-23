@@ -1,3 +1,4 @@
+; !(import! &self ../../utilities/general-helpers)
 (= (get-empty-cells $bs $acc $counter)
     (if (== $bs ())
         $acc
@@ -27,11 +28,11 @@
 
 (= (get-winner $board) 
     (let $states (winning-states) 
-        (let $result (collapse (let $state (superpose $states) (unify $state ($board $x) (if (= $x E) (empty) $x) (empty))))
+        (let $result (collapse (let $state (superpose $states) (if (= $state ($board $x)) (if (= $x E) (empty) $x) (empty))))
             (if (= $result ())
                 E
                 (car-atom $result)))))  
-                               
+
 ;; Returns 10 if player wins, -10 if opponent wins, 0 otherwise
 (= (evaluate-board $bs $player $opponent)
    (let $w (get-winner $bs) 
@@ -69,3 +70,6 @@
     (let $winner (get-winner $board)  
          (if (== $winner E)
              (if (is-board-full $board) Draw E) $winner)))
+
+
+; !(get-winner (E E E E E E X X X))             
