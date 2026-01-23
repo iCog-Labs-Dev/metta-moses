@@ -99,11 +99,19 @@
 ;; Crossover function.
 ;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
 ; (: crossover (-> Number Number Instance Deme (Deme Number)))
-(= (crossover $demeSize $nNewInstances $centerInst $deme) (trace! (Running cross over for $centerInst) ((eval (crossTopOne $deme $nNewInstances 0 $demeSize $centerInst)) $nNewInstances))) ;; WARN: The $nNewInstances might not be the actual number of instances created.
+(= (crossover $demeSize $nNewInstances $centerInst $deme) 
+   ;; (trace! (Running cross over for $centerInst)
+           ((eval (crossTopOne $deme $nNewInstances 0 $demeSize $centerInst)) $nNewInstances)
+   ;; )
+   ) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
 ;; crossover for feature selection
 ; (: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
-(= (crossoverFs $size $nNewInstances $centerInst $scoredInstSet) (trace! (Running cross over for $centerInst) ((eval (crossTopOneFs $scoredInstSet $nNewInstances 0 $size $centerInst)) $nNewInstances))) ;; WARN: The $nNewInstances might not be the actual number of instances created.
+(= (crossoverFs $size $nNewInstances $centerInst $scoredInstSet) 
+   ;; (trace! (Running cross over for $centerInst)
+           ((eval (crossTopOneFs $scoredInstSet $nNewInstances 0 $size $centerInst)) $nNewInstances)
+           ;; )
+   ) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
 ;; (: returnBest (-> (ScoredInstance Number) (ScoredInstance Number) (ScoredInstance Number)))
 (= (returnBest (mkSInst $inst1) (mkSInst $inst2)) (returnBest < (mkSInst $inst1) (mkSInst $inst2)) )
@@ -170,14 +178,14 @@
       ((mkParams applyMutualInformationBasedScore)
         (let*
           (
-            ($_ (println! $tTableBscorer))
+            ;; ($_ (println! $tTableBscorer))
             (($rows $labels) (getITableParams $tTableBscorer))
-            ($_ (println! (iTable: $tTableBscorer)))
-            ($_ (println! (Rows: $rows)))
-            ($_ (println! (Labels: $labels)))
+            ;; ($_ (println! (iTable: $tTableBscorer)))
+            ;; ($_ (println! (Rows: $rows)))
+            ;; ($_ (println! (Labels: $labels)))
             ($FsScorerType (if (== $FsScorer ()) mi $FsScorer))
           )
-          (hillClimbing (3 3 1) (False False False $centerInst 0 0 0 0 1) 
+          (hillClimbing (3 5 0) (False False False $centerInst 0 0 0 0 1) 
               $POASet 
               ($labels $rows () ())
               $centerInst
@@ -197,21 +205,21 @@
                  $estimateFunction $crossoverFunction $samplingFunction $transformFunction) ;; Helper functions
    (let*
       (
-        ($_ (println! (Iteration $i running)))
-        ($_ (println! ""))
+        ;; ($_ (println! (Iteration $i running)))
+        ;; ($_ (println! ""))
 
         ($totalNNeighbors ($estimateFunction $d $neighborhood))
 
-        ($_ (println! (Estimated neighbors: $totalNNeighbors)))
-        ($_ (println! ""))
+        ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
+        ;; ($_ (println! ""))
 
         ($nNewNeighbors (min $totalNNeighbors 2))
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
         ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
-        ($_ (println! (Crossover: $xOver)))
-        ($_ (println! (size: $size)))
-        ($_ (println! ($totalNNeighbors : $nNewNeighbors : $prevCenter : $POASet : $d)))
+        ;; ($_ (println! (Crossover: $xOver)))
+        ;; ($_ (println! (size: $size)))
+        ;; ($_ (println! ($totalNNeighbors : $nNewNeighbors : $prevCenter : $POASet : $d)))
         ( 
           ; $newPOA
           ((mkDeme $rep $updatedInstSet $id) $newInstances)
@@ -224,16 +232,19 @@
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
                                                                 ((False $notEmpty) 
                                                                         (let $result (eval ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $POASet $d))
-                                                                        (trace! ("Result: " $result) $result)))
+                                                                        ;; (trace! ("Result: " $result)
+                                                                                $result
+                                                                        ;; )
+                                                                        ))
                                                               )
                                                           ))
         ; ($_ (println! (New POASet: $newPOA)))
         ; (((mkDeme $rep $upInstSet $id) $newInstances) $newPOA)
         ; ($_ (println! (New rep: $rep)))
         ; ($_ (println! (New Inst: $newInstances)))
-        ($_ (println! ""))
-        ($_ (println! (Newinstances: $updatedInstSet)))
-        ($_ (println! ""))
+        ;; ($_ (println! ""))
+        ;; ($_ (println! (Newinstances: $updatedInstSet)))
+        ;; ($_ (println! ""))
         ;; deconstruct the hyper params for fs function
         (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType) (if (== () $hyperparamsfs) (() () () () () ()) $hyperparamsfs))
 
@@ -250,8 +261,8 @@
                           (mkSInstSet $scoredInstances) 
                           (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
         
-        ($_ (println! (Scored instances: $scoredInstances)))
-        ($_ (println! ""))
+        ;; ($_ (println! (Scored instances: $scoredInstances)))
+        ;; ($_ (println! ""))
 
         ((mkSInst $newBestInstPair) (eval (List.foldl ((eval (curry2 returnBest)) <) (mkSInst (mkPair $centerInst $bestSscore)) $scoredInstances)))
         ($newBestScore (if (or (== $rep ()) (== $id ())) 
@@ -259,14 +270,14 @@
                           (eval (getPenScore (Pair.second $newBestInstPair))))) ;; This could be the original best candidate or a new one.
         ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
         
-        ($_ (println! (Best instance: $newBestInstPair)))
-        ($_ (println! (New best score: $newBestScore)))
-        ($_ (println! ""))
+        ;; ($_ (println! (Best instance: $newBestInstPair)))
+        ;; ($_ (println! (New best score: $newBestScore)))
+        ;; ($_ (println! ""))
 
         ($nextCenterInst (if $hasImproved (eval (Pair.first $newBestInstPair)) $centerInst))
         ($nextDistance (if $hasImproved 1 (if (not $xOver) (+ 1 $d) $d)))
         
-        ($_ (println! (NextDistance: $nextDistance)))
+        ;; ($_ (println! (NextDistance: $nextDistance)))
 
         (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
                               (if (and (== $totalNNeighbors 1) (== $nextDistance 1))
@@ -280,13 +291,15 @@
                                   ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (eval (Pair.second $newBestInstPair)) $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
         
         ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (eval (getScore $newBestSscore))))
-        ($_ (println! (Found newBestSscore After (+ 1 $i) iteration is: $newBestSscore $scoreToCompareBelow)))
-        ($_ (println! ""))
+        ;; ($_ (println! (Found newBestSscore After (+ 1 $i) iteration is: $newBestSscore $scoreToCompareBelow)))
+        ;; ($_ (println! ""))
         ($_ (println! (cut)))
     )
 
     (if (<= $bestPossibleScore $scoreToCompareBelow)
-          (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
+          ;; (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow)
+                  ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
+          ;; )
           (let ($finalCenter $finalDeme ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
             ;; TODO: The C++ version checks the hyper parameter hc_params.crossover before getting here.
             ;; TODO: The C++ version checks for the hc_params.widen_search too. For now, we're assuming it is always true. 
@@ -301,10 +314,15 @@
                               $newCenter
                               $hyperparamsfs
                               $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
-                (trace! (Continue to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))) )
+                ;; (trace! (Continue to next iteration because of no more last chance)
+                        ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
+                ;; )
+                )
  
             (if (< $maxDist $finalDistance)
-                (trace! (Terminating because of maximum distance reached) ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))) ;; I don't know why I didn't do this earlier but incrementing is needed here.
+                ;; (trace! (Terminating because of maximum distance reached)
+                        ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
+                ;; ) ;; I don't know why I didn't do this earlier but incrementing is needed here.
                 (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
                               ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
                               $finalDeme

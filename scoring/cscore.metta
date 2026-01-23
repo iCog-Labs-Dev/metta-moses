@@ -13,14 +13,14 @@
                 (eval (if-error $bs ;; return worst possible composite score
                 (worstCscore)
                 (let* (($bsum (eval (sumBScore $bs)))
-                    ($_ (println! (Score: $bsum)))
-                    ($_ (println! ""))
+                    ;; ($_ (println! (Score: $bsum)))
+                    ;; ($_ (println! ""))
                     ($cpxy (eval (treeComplexity $tree)))
-                    ($_ (println! (Complexity: $cpxy)))
+                    ;; ($_ (println! (Complexity: $cpxy)))
                     ($cCoef (eval (getComplexityCoef $complexityRatio)))
                     ($res (eval (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False)))
-                    ($_ (println! (updatePenalizedScore: $res)))
-                    ($_ (add-atom $scoreSpace ($tree $res)))
+                    ;; ($_ (println! (updatePenalizedScore: $res)))
+                    ;; ($_ (add-atom $scoreSpace ($tree $res)))
                     )
 
                     $res )))) 
@@ -51,7 +51,8 @@
 (= (updatePenalizedScore (mkCscore $scor $cpxy $cpxyPenalty $uniformityPenalty $penalizedScore) $multiplyDiversity)
     (let* (($temp (- $scor $cpxyPenalty))
            ($updatedPScore (eval (if $multiplyDiversity (* $temp $uniformityPenalty) (- $temp $uniformityPenalty))))
-           ($_ (println! (PenalizedScore: $updatedPScore))))
+           ;; ($_ (println! (PenalizedScore: $updatedPScore)))
+           )
         
             (mkCscore $scor $cpxy $cpxyPenalty $uniformityPenalty $updatedPScore)))
 ;converts a score to an expression

@@ -14,9 +14,9 @@
    (let*
    (
     ($negatedSubtree (eval (insertAbove $subtree (mkNode NOT))))
-    ($_ (println! (NegatedSubtree----------------- : $negatedSubtree)))
+    ;; ($_ (println! (NegatedSubtree----------------- : $negatedSubtree)))
     ($reducedSubtree (eval (cleanTree $negatedSubtree))  )
-    ($_ (println! (ReducedSubtree---------------: $reducedSubtree))) 
+    ;; ($_ (println! (ReducedSubtree---------------: $reducedSubtree))) 
     ($childrenOfTarget (eval (getChildrenById $tree (mkNodeId $target))))
    )
    (if (== True (eval (List.contains $subtree $childrenOfTarget) ))
@@ -69,7 +69,7 @@
                         (let (mkNullVex (Cons $child Nil)) $targetTree $child)
                         $targetTree
                     ))        
-        ($_ (println! ("subtree ": $subtree $targetTree)))
+        ;; ($_ (println! ("subtree ": $subtree $targetTree)))
       )
       (if (> $d 2)
           (Error $d "Invalid disc specification:- cannot exceed 2.")

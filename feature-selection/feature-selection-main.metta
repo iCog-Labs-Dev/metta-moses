@@ -33,9 +33,9 @@
             $scorerType         ;; Type of score needed for hillClimbing feature selection it might be mutualInformation or precision_bscore
 )
         (let* (
-                ($_ (println! (debug Inside Feature Selection Main)))
+                ;; ($_ (println! (debug Inside Feature Selection Main)))
                 ($exemplar-fts (eval (treeFtsIndices $exemplar $labels)))       
-                ($_ (println! (after treeFtsIndices)))
+                ;; ($_ (println! (after treeFtsIndices)))
 
                 ($exemplar-fts-size (size-atom $exemplar-fts)) 
                 ($init-ft-indices (map-atom $init-fts $ft (List.index $labels $ft)))                  ;; initial ft names changed into index values
@@ -55,8 +55,9 @@
                 ($capped-ft-set-pop (if (and (> $diversity-cap 0) (< $diversity-cap $ft-set-pop-size))                  ;; limmit the size of feature set pop to diversity cap value
                                         (takeN $diversity-cap $ft-set-pop)
                                         $ft-set-pop))
-                ($_ (println! (Selected features set pop $capped-ft-set-pop)))
-                ($_ (println! (quote (selectTopFts (mkITable $table $labels) $div-pres -1 $multi-diversity $sim-scorer $capped-ft-set-pop $nDeme)))))
+                ;; ($_ (println! (Selected features set pop $capped-ft-set-pop)))
+                ;; ($_ (println! (quote (selectTopFts (mkITable $table $labels) $div-pres -1 $multi-diversity $sim-scorer $capped-ft-set-pop $nDeme))))
+                )
                 (eval (selectTopFts (mkITable $table $labels) $div-pres -1 $multi-diversity $sim-scorer $capped-ft-set-pop $nDeme))))                                                              
                                                                                                                                 
 (= (featureSelection            ;; for sake of clarity I chose to list the parameteres top-down style

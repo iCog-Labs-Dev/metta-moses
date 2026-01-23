@@ -54,12 +54,14 @@
        ;; (worstPossibleScore (mkTruthTableBScore $compCoeff (length $table) $table))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
       (chain (eval (preOrder $tree)) $expTree
-      (trace! (Scoring $expTree)
+      ;; (trace! (Scoring $expTree)
       (chain (eval (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table)) $scoreList
       (chain (eval (List.length $labels)) $length
       (chain (eval (List.flatten (List.map ((curry List.drop) (- $length 1)) $table))) $outputs
       (chain (eval (List.zipWith compareAndScore $scoreList $outputs)) $bScore
-         (mkBScore $bScore)))))))
+         (mkBScore $bScore)))))
+      ;; )
+      )
    )
 )
 

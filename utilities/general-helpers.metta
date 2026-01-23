@@ -16,7 +16,7 @@
   (let*
     (
       ($times (profile-helper $expr $n ()))
-      (() (println! (times: $times)))
+      ($_ (println! (times: $times)))
       ($avg (average $times))
       ($avgR (round $avg 3))
     )

@@ -14,9 +14,9 @@
 (= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
       (let* 
             (
-                  ($_ (println! "creating representations ...."))
+                  ;; ($_ (println! "creating representations ...."))
                   ($reps (eval (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts  $scorerType)))
-                  ($_ (println! (done making representations ... $reps)))
+                  ;; ($_ (println! (done making representations ... $reps)))
             )  
             (loopCreateDeme $demeIds $reps ())
       ) 
