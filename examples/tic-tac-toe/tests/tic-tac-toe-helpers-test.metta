@@ -2,8 +2,6 @@
 !(import! &self ../../tic-tac-toe/tic-tac-toe-helpers)
 
 !(assertEqual (get-opponent X) O)
-!(assertEqual (check-line (X X X E O E E E E) 0 1 2) X)
-!(assertEqual (check-line (X O X E E E E E E) 0 1 2) E)
 
 !(assertEqual 
     (replace-by-index (E E E) X 0) 

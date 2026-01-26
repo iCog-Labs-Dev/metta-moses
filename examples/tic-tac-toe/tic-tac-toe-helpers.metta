@@ -1,3 +1,4 @@
+; !(import! &self ../../utilities/general-helpers)
 (= (get-empty-cells $bs $acc $counter)
     (if (== $bs ())
         $acc
@@ -14,46 +15,23 @@
             (let $rest (replace-by-index $t $icon (- $index 1))
                 (cons-atom $h $rest)))))
 
-(= (get-winner $bs)
-   ;; 1. Check Rows
-   (let $r1 (check-line $bs 0 1 2) 
-     (if (not (== $r1 E)) $r1
-     (let $r2 (check-line $bs 3 4 5)
-       (if (not (== $r2 E)) $r2
-       (let $r3 (check-line $bs 6 7 8)
-         (if (not (== $r3 E)) $r3
+;; all the winning states encoded as patterns             
+(= (winning-states) ((($x $x $x $a $b $c $d $e $f) $x) 
+                    (($a $b $c $x $x $x $d $e $f) $x)
+                    (($a $b $c $d $e $f $x $x $x) $x) 
+                    (($x $a $b $x $c $d $x $e $f) $x)
+                    (($a $x $b $c $x $d $e $x $f) $x)
+                    (($a $b $x $c $d $x $e $f $x) $x)
+                    (($x $a $b $c $x $d $e $f $x) $x)
+                    (($a $b $x $c $x $d $x $e $f) $x)
+                )) 
 
-   ;; 2. Check Columns
-   (let $c1 (check-line $bs 0 3 6)
-     (if (not (== $c1 E)) $c1
-     (let $c2 (check-line $bs 1 4 7)
-       (if (not (== $c2 E)) $c2
-       (let $c3 (check-line $bs 2 5 8)
-         (if (not (== $c3 E)) $c3
-
-   ;; 3. Check Diagonals
-   (let $d1 (check-line $bs 0 4 8)
-     (if (not (== $d1 E)) $d1
-     (let $d2 (check-line $bs 2 4 6)
-       (if (not (== $d2 E)) $d2
-       
-   ;; 4. No Winner
-       E)))))))))))))))))
-
-;; Helper: Checks if indices A, B, and C are identical and not Empty
-(= (check-line $bs $a $b $c)
-    (let* (($v1 (index-atom $bs $a))
-           ($v2 (index-atom $bs $b))
-           ($v3 (index-atom $bs $c)))
-        
-        ;; Logic: If v1 != E, AND v1 == v2, AND v2 == v3, then return v1. Else return E.
-        (if (== $v1 E) 
-            E
-            (if (== $v1 $v2)
-                (if (== $v2 $v3)
-                    $v1
-                    E)
-                E))))
+(= (get-winner $board) 
+    (let $states (winning-states) 
+        (let $result (collapse (let $state (superpose $states) (if (= $state ($board $x)) (if (= $x E) (empty) $x) (empty))))
+            (if (= $result ())
+                E
+                (car-atom $result)))))  
 
 ;; Returns 10 if player wins, -10 if opponent wins, 0 otherwise
 (= (evaluate-board $bs $player $opponent)
@@ -92,3 +70,6 @@
     (let $winner (get-winner $board)  
          (if (== $winner E)
              (if (is-board-full $board) Draw E) $winner)))
+
+
+; !(get-winner (E E E E E E X X X))             

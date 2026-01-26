@@ -40,7 +40,9 @@
        (let* (;; Select strategy based on current player
               ($strategy (if (== $current-player X) $strategy-x $strategy-o))
               ;; Execute strategy to get new board state
-              ($new-board ($strategy $board $current-player))
+              ($new-board (if (== (get-metatype $strategy) Grounded)
+                              ($strategy $board $current-player)
+                              (moses-player $strategy $board $player)))
               ;; Switch to next player
               ($next-player (get-opponent $current-player)))
              ;; Continue game loop with updated state
