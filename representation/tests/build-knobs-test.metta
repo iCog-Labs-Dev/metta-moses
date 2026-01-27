@@ -81,7 +81,7 @@ $treeChanged
 !(assertEqual (let* (
     (($updatedTree $MMap) (buildKnobs (complexGameTree) NilMMap (play-center play-corner play-block)))
     ($mmLength (MultiMap.length $MMap))
-    ($hasNestedKnobs (> $mmLength 6))
+    ($hasCorrectKnobs (> $mmLength 6))  ;; Expect exactly 6 knobs for nested structure
 )
-$hasNestedKnobs
+$hasCorrectKnobs
 ) True)

@@ -67,10 +67,6 @@ $mmpsEqual
 (and $mmpsEqual $treesEqual)
 ) True)
 
-; !(addLogicalKnobs (mkTree (mkNode AND)     
-;         (Cons (mkTree (mkNode A) Nil)
-;           (Cons (mkTree (mkNode B) Nil) Nil)))
-;               (mkNodeId (0)) True NilMMap (A B))
 !(assertEqual (let* 
 (
     (($updatedTree $mm) 
