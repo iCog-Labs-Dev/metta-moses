@@ -1,0 +1,16 @@
+{
+  "template": "tests/demo-problems-test.metta",
+  "problem": "mux",
+  "fs": "smd",
+  "seed": 0,
+  "count": 5,
+  "max_gens": 10,
+  "demes": 2,
+  "engine": "/home/yab/PeTTa/run.sh",
+  "args": [
+    "-s"
+  ],
+  "outdir": "demo-problems-test",
+  "keep": true,
+  "log_json": true
+}
