@@ -310,13 +310,6 @@
 ;     (bigtable) 
 ;     3 0.004 1000)
 
-(= (mapG $f NilOS) NilOS)
-(= (mapG $f Nil) Nil)
-(= (mapG $f ($ctor $x $xs)) ($ctor ($f $x) (mapG $f $xs)))
-
-(= (printExemplar (mkExemplar $tree $demeId $cscore $bscore)) (println! (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore)))
-(= (cleanedExemplar (mkExemplar $tree $demeId $cscore $bscore)) (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore))
-
 ;; Parameters:
   ;; $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme
   ;; $prune-exemplar

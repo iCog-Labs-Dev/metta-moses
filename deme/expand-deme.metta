@@ -30,7 +30,7 @@
 (= (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable $scorerType)
 (let*
    (
-    ($_ (println! ""))
+    ;; ($_ (println! ""))
     ;; ($_ (println! (MetaPop: $metaPop)))
     ;; ($_ (println! "Selecting Exemplar"))
     ($exemplar (eval (selectExemplar $metaPop)))
@@ -54,7 +54,7 @@
     ($lengthOfDscKbMp (eval (Map.length $dscKbMp)))
     ($generatedList (eval (List.generate $lengthOfDscKbMp 0)))
     ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
-    ($_ (println! "Optimizing Deme"))
+    ;; ($_ (println! "Optimizing Deme"))
     (($inst $optimDeme $state) (eval (optimizeDemes $deme $truthTableBScore (mkInst $generatedList) $optimize)))
 )
 $optimDeme
@@ -74,8 +74,9 @@ $optimDeme
         (let $topCandidates (eval (OS.getTopN $maxCandOutput $metaPop)) $topCandidates)
         $metaPop
   )
-    (let* 
+    (let*
      (
+       ($_ (println! (Generation $maxGen)))
        ;; ($_ (println! "expand deme returnn"))
        ($optimizedDemes (eval (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable mi)))
        ;; ($_ (println! "Merging Deme"))
@@ -91,3 +92,12 @@ $optimDeme
  (if (eval (cScore>= $topScore $maxScore))
          $resultCandi 
          (eval (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount))))))
+
+
+;; Some helpers specific to final testing
+(= (mapG $f NilOS) NilOS)
+(= (mapG $f Nil) Nil)
+(= (mapG $f ($ctor $x $xs)) ($ctor ($f $x) (mapG $f $xs)))
+
+(= (printExemplar (mkExemplar $tree $demeId $cscore $bscore)) (println! (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore)))
+(= (cleanedExemplar (mkExemplar $tree $demeId $cscore (mkBScore $bscore))) ((preOrder $tree) (eval (List.sum $bscore))))
