@@ -321,36 +321,70 @@ class GPRunner:
 
 
 if __name__ == "__main__":
+    # 1. First pass: Check for config file to load defaults
+    conf_parser = argparse.ArgumentParser(add_help=False)
+    conf_parser.add_argument(
+        "--config", help="Path to JSON configuration file to load arguments from"
+    )
+    known_args, remaining_argv = conf_parser.parse_known_args()
+
+    # Define Base Defaults (Code Level)
+    defaults = {
+        "count": 1,
+        "max_gens": 1000,
+        "demes": 1,
+        "engine": "petta",
+        "args": ["-s"],
+        "outdir": "sandbox",
+        "keep": False,
+        "log_json": False,
+    }
+
+    # If Config File exists, load it and update defaults
+    if known_args.config:
+        if os.path.exists(known_args.config):
+            try:
+                with open(known_args.config, "r") as f:
+                    file_defaults = json.load(f)
+                    defaults.update(file_defaults)
+                print(f"[GPRunner] Configuration loaded from {known_args.config}")
+            except Exception as e:
+                print(f"Error loading configuration file: {e}")
+                exit(1)
+        else:
+            print(f"Error: Configuration file not found: {known_args.config}")
+            exit(1)
+
+    # 2. Main Parser setup
     parser = argparse.ArgumentParser(
-        description="GP Harness - Run External Genetic Programming Engine"
+        description="GP Harness - Run External Genetic Programming Engine",
+        parents=[conf_parser],  # Inherit config arg for help display
     )
 
-    # Required Arguments
-    parser.add_argument(
-        "--template", required=True, help="Path to the master template file"
-    )
-    parser.add_argument("--problem", required=True, help="Problem name (e.g. parity4)")
-    parser.add_argument(
-        "--fs", required=True, help="Feature Selector (e.g. smd, simple)"
-    )
-    parser.add_argument("--seed", type=int, required=True, help="Starting seed")
+    # Set the defaults (combination of Code + Config)
+    # CLI args will override these automatically if provided
+    parser.set_defaults(**defaults)
 
-    # Optional Arguments
+    # Arguments
+    # Note: required=False because they might be provided via config file
+    parser.add_argument("--template", help="Path to the master template file")
+    parser.add_argument("--problem", help="Problem name (e.g. parity4)")
+    parser.add_argument("--fs", help="Feature Selector (e.g. smd, simple)")
+    parser.add_argument("--seed", type=int, help="Starting seed")
+
+    # Optional Arguments (Defaults are handled via set_defaults above)
     parser.add_argument(
         "--count",
         type=int,
-        default=1,
         help="Number of sequential runs (seeds incrementing)",
     )
-    parser.add_argument("--max_gens", type=int, default=1000, help="Max generations")
-    parser.add_argument("--demes", type=int, default=1, help="Number of demes")
-    parser.add_argument("--engine", default="petta", help="Path to executable")
+    parser.add_argument("--max_gens", type=int, help="Max generations")
+    parser.add_argument("--demes", type=int, help="Number of demes")
+    parser.add_argument("--engine", help="Path to executable")
     parser.add_argument(
-        "--args", type=List, default=["-s"], help="Args to the executable engine"
+        "--args", nargs="*", help="Args to the executable engine (space separated)"
     )
-    parser.add_argument(
-        "--outdir", default="sandbox", help="Base directory for sandbox"
-    )
+    parser.add_argument("--outdir", help="Base directory for sandbox")
     parser.add_argument(
         "--keep", action="store_true", help="Keep sandbox files after run"
     )
@@ -359,6 +393,23 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    # 3. Manual Validation for required fields (since we removed required=True)
+    missing_args = []
+    if not args.template:
+        missing_args.append("--template")
+    if not args.problem:
+        missing_args.append("--problem")
+    if not args.fs:
+        missing_args.append("--fs")
+    if args.seed is None:
+        missing_args.append("--seed")
+
+    if missing_args:
+        parser.error(
+            f"Missing required arguments: {', '.join(missing_args)}. "
+            "Provide them via CLI or a --config JSON file."
+        )
 
     # Initialize Runner
     try:
@@ -450,21 +501,19 @@ if __name__ == "__main__":
         os.makedirs(summary_dir, exist_ok=True)
 
         batch_summary = {
-            "problem": args.problem,
-            "feature_selector": args.fs,
-            "max_gens": args.max_gens,
-            "demes": args.demes,
-            "total_runs": args.count,
-            "start_seed": args.seed,
-            "success_rate": success_rate,
-            "mean_best_fitness": mean_best_fitness,
-            "std_dev_fitness": std_dev_score,
-            "avg_gens_to_solution": avg_gen_success,
-            "engine_args": args.args,
+            "run_configuration": vars(args),
+            "aggregate_metrics": {
+                "total_runs": args.count,
+                "start_seed": args.seed,
+                "success_rate": success_rate,
+                "mean_best_fitness": mean_best_fitness,
+                "std_dev_fitness": std_dev_score,
+                "avg_gens_to_solution": avg_gen_success,
+            },
             "timestamp": time.time(),
         }
 
-        summary_filename = f"startseed_{args.seed}_count_{args.count}.json"
+        summary_filename = f"aggregate_startseed_{args.seed}_count_{args.count}.json"
         summary_path = os.path.join(summary_dir, summary_filename)
 
         with open(summary_path, "w") as f:
