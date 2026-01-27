@@ -71,3 +71,71 @@ $mmpsEqual
 ;         (Cons (mkTree (mkNode A) Nil)
 ;           (Cons (mkTree (mkNode B) Nil) Nil)))
 ;               (mkNodeId (0)) True NilMMap (A B))
+!(assertEqual (let* 
+(
+    (($updatedTree $mm) 
+     (addLogicalKnobs (mkTree (mkNode PRIORITIZED-OR)     
+        (Cons (mkTree (mkNode play-center) Nil)
+          (Cons (mkTree (mkNode play-corner) Nil) Nil)))
+              (mkNodeId (0)) True NilMMap (play-center play-corner)))
+    ($mmLength (MultiMap.length $mm))
+    ($treeHasNullVex (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode play-center) Nil) (Cons (mkTree (mkNode play-corner) Nil) Nil))))))
+)
+(and (== $mmLength 4) $treeHasNullVex)
+) True)
+
+;; Test 2: addLogicalKnobs with PRIORITIZED-OR - single move
+!(assertEqual (let* 
+(
+    (($updatedTree $mm) 
+     (addLogicalKnobs (mkTree (mkNode PRIORITIZED-OR)     
+        (Cons (mkTree (mkNode play-center) Nil) Nil))
+              (mkNodeId (0)) True NilMMap (play-center)))
+    ($mmLength (MultiMap.length $mm))
+    ($treeUnchanged (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode play-center) Nil) Nil))))
+)
+(and (== $mmLength 2) $treeUnchanged)
+) True)
+
+;; Test 3: addLogicalKnobs with PRIORITIZED-OR - three moves
+!(assertEqual (let* 
+(
+    (($updatedTree $mm) 
+     (addLogicalKnobs (mkTree (mkNode PRIORITIZED-OR)     
+        (Cons (mkTree (mkNode play-center) Nil)
+          (Cons (mkTree (mkNode play-corner) Nil)
+            (Cons (mkTree (mkNode play-block) Nil) Nil))))
+              (mkNodeId (0)) True NilMMap (play-center play-corner play-block)))
+    ($mmLength (MultiMap.length $mm))
+    ($treeHasNullVex (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode play-center) Nil) (Cons (mkTree (mkNode play-corner) Nil) (Cons (mkTree (mkNode play-block) Nil) Nil)))))))
+)
+(and (== $mmLength 6) $treeHasNullVex)
+) True)
+
+;; Test 4: Verify SSK knobs (multiplicity 2) are created for PRIORITIZED-OR
+!(assertEqual 
+    (let* (
+        (($updatedTree $mm) (addLogicalKnobs 
+                               (mkTree (mkNode PRIORITIZED-OR)
+                                       (Cons (mkTree (mkNode play-center) Nil) Nil))
+                               (mkNodeId (0)) True NilMMap (play-center play-corner)))
+        ($knobList (MultiMap.toList $mm))
+        ($firstKnob (cdr-atom (car-atom $knobList)))
+        ($multi (getKnobMultip $firstKnob))
+    )
+    (== $multi (mkMultip 2))) True)
+
+;; Test 5: Verify different game moves work correctly
+!(assertEqual (let* 
+(
+    (($updatedTree $mm) 
+     (addLogicalKnobs (mkTree (mkNode PRIORITIZED-OR)     
+        (Cons (mkTree (mkNode play-win) Nil)
+          (Cons (mkTree (mkNode play-fork) Nil)
+            (Cons (mkTree (mkNode play-block) Nil) Nil))))
+              (mkNodeId (0)) True NilMMap (play-win play-fork play-block)))
+    ($mmLength (MultiMap.length $mm))
+    ($treeHasNullVex (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode play-win) Nil) (Cons (mkTree (mkNode play-fork) Nil) (Cons (mkTree (mkNode play-block) Nil) Nil)))))))
+)
+(and (== $mmLength 6) $treeHasNullVex)
+) True)
