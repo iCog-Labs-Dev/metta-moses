@@ -160,7 +160,7 @@
             (if (= $scoreLabelTuple ())
                 $acc
                 (let* ((($h $t) (decons-atom $scoreLabelTuple))
-                        ($rndFloat (random-float 0 1)))
+                        ($rndFloat (py-call (random.random)))) ;; This was (random-float 0 1)
 
                         (if (< $rndFloat $xn)
                             (chain (union-atom $acc ($h)) $new-acc

@@ -55,7 +55,7 @@
 (= (cullAtRandom (ConsOS $exemplar $rest) $offset $nToRemove)
     (if (> $nToRemove 0)
         (chain (eval (OS.length (ConsOS $exemplar $rest))) $popSize
-            (chain (- (random-int $offset $popSize) 1) $index 
+            (chain (- (py-call (random.randint $offset $popSize)) 1) $index
                 (chain (eval (OS.removeByIdx (ConsOS $exemplar $rest) $index)) $newPop
                     (cullAtRandom $newPop $offset (- $nToRemove 1)))))
         (ConsOS $exemplar $rest))) 

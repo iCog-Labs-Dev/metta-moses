@@ -1307,9 +1307,9 @@
 ; ~50% chance to return 0, otherwise randomly 1 or 2.
 ;; (: biasedRandomInt (-> Number))
 (= (biasedRandomInt)
-   (if (== (random-int 0 1) 0)  ; 50% chance
+   (if (== (py-call (random.randint 0 1)) 0)  ; 50% chance
        0
-       (random-int 1 2)))      ; 1 or 2
+       (py-call (random.randint 1 2))))      ; 1 or 2
 
 ; Custom implementation of the ceiling function
 ; Param: $num – the input number (may be fractional)

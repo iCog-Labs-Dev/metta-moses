@@ -57,10 +57,8 @@
 
 ;; biased randbool
 ;;          $b -- float [0, 1]
-;;          random-float doesnt work in mettalog -- using python binding instead
-; ! (bind! randomFloat (py-atom random.random))
 (= (biasedRandBool $b)
-    (let $rnd (random-float 0 1) (> $b $rnd)))
+    (let $rnd (py-call (random.random))  (> $b $rnd))) ;; This was (random-float 0 1)
 
 ;; sample_enforced_features -- hence the name XXX for future use
 ;; takes tuple of pairs containing feaures and probability values of being included in deme creation 

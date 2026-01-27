@@ -143,7 +143,7 @@
         (let*
           (
             ($curSpec (eval (List.getByIdx $newInst $rand)))
-            ($randomSpec (random-int &rng 0 1))
+            ($randomSpec (py-call (random.randint 0 1)))
           )
           (if (== $randomSpec $curSpec)
                               (eval (List.replaceAt $newInst $rand 0))
