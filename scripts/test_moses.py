@@ -5,6 +5,7 @@ import shutil
 import time
 import json
 import argparse
+import math
 from typing import Dict, Any, List
 
 
@@ -38,6 +39,8 @@ class GPRunner:
 
     def _prepare_sandbox(self) -> tuple[str, str]:
         """Creates a unique isolated directory for this specific run."""
+        # Note: relying on global 'args' here is brittle if this class is imported elsewhere.
+        # Assuming args is available in the global scope as per user modification.
         run_dir = os.path.join(self.output_base_dir, "logs", args.problem)
         log_dir = os.path.join(self.output_base_dir, "logs", args.problem, "stdout")
         os.makedirs(run_dir, exist_ok=True)
@@ -163,7 +166,11 @@ class GPRunner:
         # 1. Recover Generation Logic
         # Finds all occurrences of "Generation X" and takes the last one as the stopped gen.
         gen_matches = re.findall(r"Generation\s+(\d+)", stdout_text)
-        stopped_gen = int(gen_matches[-1]) if gen_matches else -1
+        started_gen = int(gen_matches[0]) if gen_matches else -1
+        end_gen = int(gen_matches[-1]) if gen_matches else -1
+
+        # Generation in metta is logged from n to 0. This gets us the generation as if it run from 0 to n.
+        stopped_gen = started_gen - (end_gen - 1) if gen_matches else -1
 
         if not result_line:
             return {
@@ -362,6 +369,10 @@ if __name__ == "__main__":
 
     results = []
 
+    # Trackers for advanced metrics
+    valid_scores = []
+    success_gens = []
+
     print(f"--- Starting Batch: {args.count} runs starting from seed {args.seed} ---")
 
     for i in range(args.count):
@@ -384,7 +395,16 @@ if __name__ == "__main__":
         # Terminal Output
         status = res.get("status", "UNKNOWN")
         score = res.get("best_score", "N/A")
-        print(f"Seed {current_seed}: {status} (Score: {score})")
+        gen = res.get("stopped_generation", -1)
+
+        # Collect Stats
+        if isinstance(score, (int, float)) and score != float("inf"):
+            valid_scores.append(score)
+
+        if status == "SUCCESS" and gen > -1:
+            success_gens.append(gen)
+
+        print(f"Seed {current_seed}: {status} (Score: {score}, Gen: {gen})")
 
         # Optional: Save individual JSON logs
         if args.log_json:
@@ -397,7 +417,56 @@ if __name__ == "__main__":
                 json.dump(res, f, indent=4)
             print(f"  -> Log saved: {log_path}")
 
-    # Summary
+    # --- Devo's Senior Analysis ---
     success_count = sum(1 for r in results if r.get("status") == "SUCCESS")
-    print("\n--- Batch Complete ---")
-    print(f"Success Rate: {(success_count / args.count) * 100}%")
+    success_rate = (success_count / args.count) * 100
+
+    # MBF (Mean Best Fitness) - The average final score of ALL runs
+    mean_best_fitness = (
+        sum(valid_scores) / len(valid_scores) if valid_scores else float("inf")
+    )
+
+    # AES (Average Evaluations to Solution) approximation using Generations
+    avg_gen_success = sum(success_gens) / len(success_gens) if success_gens else 0
+
+    # Standard Deviation of Scores (Stability Metric)
+    std_dev_score = 0
+    if len(valid_scores) > 1:
+        variance = sum((x - mean_best_fitness) ** 2 for x in valid_scores) / (
+            len(valid_scores) - 1
+        )
+        std_dev_score = math.sqrt(variance)
+
+    print(f"\n--- Batch Analysis ({args.problem}) ---")
+    print(f"Total Runs:      {args.count}")
+    print(f"Success Rate:    {success_rate:.1f}%")
+    print(f"Mean Best Score: {mean_best_fitness:.4f} (Lower is better)")
+    print(f"Std Dev Score:   {std_dev_score:.4f} (Stability)")
+    print(f"Avg Gens to Win: {avg_gen_success:.1f} (Speed)")
+
+    # Save Batch Summary Log
+    if args.log_json:
+        summary_dir = os.path.join(args.outdir, "logs", args.problem, "summary")
+        os.makedirs(summary_dir, exist_ok=True)
+
+        batch_summary = {
+            "problem": args.problem,
+            "feature_selector": args.fs,
+            "max_gens": args.max_gens,
+            "demes": args.demes,
+            "total_runs": args.count,
+            "start_seed": args.seed,
+            "success_rate": success_rate,
+            "mean_best_fitness": mean_best_fitness,
+            "std_dev_fitness": std_dev_score,
+            "avg_gens_to_solution": avg_gen_success,
+            "engine_args": args.args,
+            "timestamp": time.time(),
+        }
+
+        summary_filename = f"startseed_{args.seed}_count_{args.count}.json"
+        summary_path = os.path.join(summary_dir, summary_filename)
+
+        with open(summary_path, "w") as f:
+            json.dump(batch_summary, f, indent=4)
+        print(f"  -> Batch Summary saved: {summary_path}")
