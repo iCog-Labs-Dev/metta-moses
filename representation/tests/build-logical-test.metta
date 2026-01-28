@@ -32,15 +32,7 @@
                            (Cons (mkTree (mkNode playcenter) Nil) 
                            (Cons (mkTree (mkNode playcorner) Nil) Nil))))
 
-;; Test 1: Verify buildStrategy creates correct number of knobs
-!(assertEqual (let* (
-    (($updatedTree $MMap) (buildStrategy (simpleGameTree) (mkNodeId (0)) NilMMap (playcenter playcorner)))
-    ($mmLength (MultiMap.length $MMap))
-)
-(== $mmLength 4)
-) True)
-
-;; Test 2: Verify buildStrategy creates SSK knobs (not LSK)
+;; Verify buildStrategy creates knobs
 !(assertEqual 
     (let* (
         (($updatedTree $MMap) (buildStrategy 
@@ -52,7 +44,14 @@
     )
     $hasKnobs) True)
 
-;; Test 3: Verify tree structure is modified correctly
+;; Verify buildStrategy creates correct number of knobs
+!(assertEqual (let* (
+    (($updatedTree $MMap) (buildStrategy (simpleGameTree) (mkNodeId (0)) NilMMap (playcenter playcorner)))
+    ($mmLength (MultiMap.length $MMap))
+)
+(== $mmLength 4)
+) True)
+;; Verify tree structure is modified correctly
 !(assertEqual (let* (
     (($updatedTree $MMap) (buildStrategy 
                             (mkTree (mkNode PRIORITIZED-OR)
@@ -66,7 +65,7 @@
 $treeChanged
 ) True)
 
-;; Test 4: Verify knob multiplicity is 2 for SSK (not 3 like LSK)
+;; Verify knob multiplicity is 2 for SSK (not 3 like LSK)
 !(assertEqual 
     (let* (
         (($updatedTree $MMap) (buildStrategy 
@@ -78,7 +77,7 @@ $treeChanged
     )
     $hasCorrectLength) True)
 
-;; Test 5: Complex strategy tree with nested structure
+;; Complex strategy tree with nested structure
 (= (complexGameTree) (mkTree (mkNode PRIORITIZED-OR)
                             (Cons (mkTree (mkNode playcenter) Nil)
                             (Cons (mkTree (mkNode PRIORITIZED-OR)
