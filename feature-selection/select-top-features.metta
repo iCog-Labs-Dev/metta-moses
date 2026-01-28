@@ -6,14 +6,20 @@
 ;;          $ft-sets        -- pop of feature set oreded by raw score
 ;;NOTe -- this implementation requires the feature sets to come with their MI score
 (= (selectTopFts (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $ft-sets $nDeme)
-    (chain (size-atom $ft-sets) $fts-size 
-        (chain (min-atom ($fts-size $nDeme)) $res-size 
-            (if (> $div-pres 0)
-                (let $ranked-set (rankFtSet (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $ft-sets ())
+    (let* 
+       (
+         ($fts-size (size-atom $ft-sets))
+         ($res-size (min-atom ($fts-size $nDeme)))
+         ($seed (py-call (random.randint 0 2147483647))) ;; As per the OpenCog classic this is how we sample a random seed for introducing randomness into lexicographic ordering of feature sets with the same score.
+       )
+       (if (> $div-pres 0)
+                (let $ranked-set (rankFtSet $seed (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $ft-sets ())
                     (eval (takeN $res-size $ranked-set)))
-                (let $ft-sets-less-score (map-atom $ft-sets $ft-set (eval (second $ft-set))) (eval (takeN $res-size $ft-sets-less-score))))))) ;; strip the scores off the feature sets
+                (let $ft-sets-less-score (map-atom $ft-sets $ft-set (eval (second $ft-set))) (eval (takeN $res-size $ft-sets-less-score)))))   ;; strip the scores off the feature sets
+)
 
 ;;  rankFtSet -- applies diversity pressure to rank feature sets 
+;;          $seed               -- Random seed to use for the lexicographic ordering of numbers
 ;;          $div-pres           -- diversity pressure parameter higher value means similarity is less tolerated    
 ;;                              -- on the other hand smaller values means similar feature sets are tolerated -- the smaller the value gets it is the same as comparing feature sets by their raw score, MI value in this case
 ;;          $div-interaction    -- parameter dictating level of interaction on subset level for calculation MI between sets of features
@@ -22,18 +28,19 @@
 ;;          $sim-scorer         -- type of the similarity scorer used -- either jaccard index or mutual information between sets
 ;;          $ft-sets            -- pop of featuresets returned by the feature selection procedure
 ;;          $acc                -- empty accumulator ()
-(= (rankFtSet (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $ft-sets $acc)
+(= (rankFtSet $seed (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $ft-sets $acc)
     ;; convert each feature set into composite scoreed set -- 
     (let $csc-ft-set 
         (map-atom $ft-sets $ft-set ((mkCscore (first-from-pair $ft-set) (let $set (second-from-pair $ft-set) (size-atom $set)) 0.0 0.0 (first-from-pair $ft-set)) (second-from-pair $ft-set)))
-            (rankIterator (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $csc-ft-set $acc)))
+            (rankIterator $seed (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $csc-ft-set $acc)))
 
-(= (rankIterator (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $csc-ft-set $acc)
+(= (rankIterator $seed (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer $csc-ft-set $acc)
     (if (== $acc ())
-        (rankIterator (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer (cdr-atom $csc-ft-set) ((car-atom $csc-ft-set))) ;; add the first feature -- since this is the one with the best raw score
+        (rankIterator $seed (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer (cdr-atom $csc-ft-set) ((car-atom $csc-ft-set))) ;; add the first feature -- since this is the one with the best raw score
         (if (== $csc-ft-set ())
             (map-atom $acc $a (eval (second $a)))                                       ;; return only the indices -- drop the score values
-            (let* (($current-ft-set (car-atom $csc-ft-set))                             ;; current feature set under consideration (score set) pair
+            (let* ( 
+                    ($current-ft-set (car-atom $csc-ft-set))                             ;; current feature set under consideration (score set) pair
                     ($current-cscore (first-from-pair $current-ft-set))                 ;; the score
                     ($current-ft (second-from-pair $current-ft-set))                    ;; the feature set, tuple of indices
                     ($last-ft-set (car-atom $acc))                                      ;; last added feature set -- ordered by score so the first one in the accumulator
@@ -42,14 +49,16 @@
                     ($sim (if (== $sim-scorer ja)                                       ;; assumes either of two similarity scorers jaccard or mi
                                 (eval (jaccardIndex $last-ft $current-ft))         
                                 (eval (mi $current-ft $last-ft $div-interaction (mkITable $table $labels)))))      ;; calculation of feature set similarity uisng mutual infomration between sets                             
+
                     ($last-dp (simToPen $sim $div-pres))                                ;; the latest diversity penality
                     ($current-unipen-score (eval (getUniPen $current-cscore)))  
                     ($agg-dp (max-atom ($last-dp $current-unipen-score)))
                     ($updated-uniPen-score (eval (setUniPen $current-cscore $agg-dp)))
                     ($updatd-pen-score (eval (updatePenalizedScore $updated-uniPen-score $multi-diversity)))
-                    ($new-acc (eval (insertPair cScore>= ($updatd-pen-score $current-ft) $acc))))                   ;; ordered insertion using the composite score
+                    ($_ (println! (CurrentFt: $current-ft Acc: $acc I: $i)))
+                    ($new-acc (eval (insertPair cScore>= (featureSet< $seed) ($updatd-pen-score $current-ft) $acc))))                   ;; ordered insertion using the composite score. The featureSet> function is curried with $seed
 
-                (rankIterator (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer (cdr-atom $csc-ft-set) $new-acc)))))
+                (rankIterator $seed (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer (cdr-atom $csc-ft-set) $new-acc)))))
 
 
 ;; simToPen similarity to penality                    

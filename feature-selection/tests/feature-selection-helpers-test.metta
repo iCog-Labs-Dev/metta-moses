@@ -61,8 +61,16 @@
         (Cons (Cons False (Cons True Nil)) 
         (Cons (Cons True (Cons False Nil)) Nil)))
 
+
+;; Test lexicographic ordering of featureSets
+!(assertEqual (featureSet< 0 (1 0) (4 2)) true)
+!(assertEqual (featureSet< 10000 (1 0) (4 2)) true)
+!(assertEqual (featureSet< 0 (4 2) (1 0)) false)
+!(assertEqual (featureSet< 10000 (4 2) (1 0)) false)
+
 !(assertEqual (insertPair > (2 1) ((4 0) (1 3))) ((4 0) (2 1) (1 3)))                   ;; fist value is score and second one feature index
 !(assertEqual (insertPair > (2 1) ((4 0) (2 4) (1 3))) ((4 0) (2 1) (2 4) (1 3)))       
+!(assertEqual (insertPair > (featureSet< 0) (2 (1 0)) ((4 (1 0)) (2 (4 1)) (1 (3 1)))) ((4 (1 0)) (2 (1 0)) (2 (4 1)) (1 (3 1))))
 
 !(assertEqual (marginalProbs 10 ((A 4) (B 6))) ((A 0.4) (B 0.6)))
 !(assertEqual (marginalProbs 5 ((X 5))) ((X 1)))
