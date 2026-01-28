@@ -22,66 +22,57 @@
 
 ;; Game strategy tree for testing PRIORITIZED-OR knob building
 (= (gameTree1) (mkTree (mkNode PRIORITIZED-OR) 
-                      (Cons (mkTree (mkNode play-center) Nil) 
-                      (Cons (mkTree (mkNode play-corner) Nil) Nil))))
+                      (Cons (mkTree (mkNode playcenter) Nil) 
+                      (Cons (mkTree (mkNode playcorner) Nil) Nil))))
 
 ;; buildLogical test case
 !(assertEqual (let ($updatedTree $MMap) (buildKnobs (tree1) NilMMap (A B))
                      (and (== $updatedTree (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil)))))) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))))))  )
                          (MultiMap.equals $MMap (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 5))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (5))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))))))))))
                 True)
-;; Test 1: buildKnobs with PRIORITIZED-OR creates SSK knobs
-!(assertEqual (let* (
-    (($updatedTree $MMap) (buildKnobs (gameTree1) NilMMap (play-center play-corner)))
-    ($mmLength (MultiMap.length $MMap))
-    ($hasKnobs (> $mmLength 0))
-)
-$hasKnobs
-) True)
-
-;; Test 2: buildKnobs routes PRIORITIZED-OR to buildStrategy
+;; buildKnobs creates correct number of knobs for single-child PRIORITIZED-OR
 !(assertEqual (let* (
     (($updatedTree $MMap) (buildKnobs 
                             (mkTree (mkNode PRIORITIZED-OR)
-                                   (Cons (mkTree (mkNode play-win) Nil) Nil))
-                            NilMMap (play-win play-block)))
+                                   (Cons (mkTree (mkNode playwin) Nil) Nil))
+                            NilMMap (playwin playblock)))
     ($mmLength (MultiMap.length $MMap))
 )
 (== $mmLength 4)
 ) True)
 
-;; Test 4: buildKnobs creates correct number of knobs for game strategies
+;; buildKnobs creates correct number of knobs for game strategies
 !(assertEqual (let* (
-    (($updatedTree $MMap) (buildKnobs (gameTree1) NilMMap (play-center play-corner)))
+    (($updatedTree $MMap) (buildKnobs (gameTree1) NilMMap (playcenter playcorner)))
     ($mmLength (MultiMap.length $MMap))
 )
 (== $mmLength 4)
 ) True)
 
-; ;; Test 5: buildKnobs modifies tree structure for game strategies
+;; buildKnobs modifies tree structure for game strategies
 !(assertEqual (let* (
     (($updatedTree $MMap) (buildKnobs 
                             (mkTree (mkNode PRIORITIZED-OR)
-                                   (Cons (mkTree (mkNode play-win) Nil) Nil))
-                            NilMMap (play-win play-block)))
+                                   (Cons (mkTree (mkNode playwin) Nil) Nil))
+                            NilMMap (playwin playblock)))
     ($treeChanged (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR)
-                                               (Cons (mkTree (mkNode play-win) Nil) Nil)))))
+                                               (Cons (mkTree (mkNode playwin) Nil) Nil)))))
 )
 $treeChanged
 ) True)
 
-;; Test 6: buildKnobs handles nested PRIORITIZED-OR structures
+;; buildKnobs handles nested PRIORITIZED-OR structures
 (= (complexGameTree) (mkTree (mkNode PRIORITIZED-OR)
-                            (Cons (mkTree (mkNode play-center) Nil)
+                            (Cons (mkTree (mkNode playcenter) Nil)
                             (Cons (mkTree (mkNode PRIORITIZED-OR)
-                                         (Cons (mkTree (mkNode play-corner) Nil)
-                                         (Cons (mkTree (mkNode play-block) Nil) Nil)))
+                                         (Cons (mkTree (mkNode playcorner) Nil)
+                                         (Cons (mkTree (mkNode playblock) Nil) Nil)))
                             Nil))))
-
+;; buildKnobs creates multiple knobs for nested PRIORITIZED-OR structures
 !(assertEqual (let* (
-    (($updatedTree $MMap) (buildKnobs (complexGameTree) NilMMap (play-center play-corner play-block)))
+    (($updatedTree $MMap) (buildKnobs (complexGameTree) NilMMap (playcenter playcorner playblock)))
     ($mmLength (MultiMap.length $MMap))
-    ($hasCorrectKnobs (> $mmLength 6))  ;; Expect exactly 6 knobs for nested structure
+    ($hasCorrectKnobs (> $mmLength 6)) ;; Expect more than 6 knobs for nested structure
 )
 $hasCorrectKnobs
 ) True)

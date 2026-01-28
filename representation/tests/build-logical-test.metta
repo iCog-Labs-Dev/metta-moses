@@ -29,12 +29,12 @@
                 True)
 ;; Simple game strategy tree for testing
 (= (simpleGameTree) (mkTree (mkNode PRIORITIZED-OR) 
-                           (Cons (mkTree (mkNode play-center) Nil) 
-                           (Cons (mkTree (mkNode play-corner) Nil) Nil))))
+                           (Cons (mkTree (mkNode playcenter) Nil) 
+                           (Cons (mkTree (mkNode playcorner) Nil) Nil))))
 
 ;; Test 1: Verify buildStrategy creates correct number of knobs
 !(assertEqual (let* (
-    (($updatedTree $MMap) (buildStrategy (simpleGameTree) (mkNodeId (0)) NilMMap (play-center play-corner)))
+    (($updatedTree $MMap) (buildStrategy (simpleGameTree) (mkNodeId (0)) NilMMap (playcenter playcorner)))
     ($mmLength (MultiMap.length $MMap))
 )
 (== $mmLength 4)
@@ -45,8 +45,8 @@
     (let* (
         (($updatedTree $MMap) (buildStrategy 
                                 (mkTree (mkNode PRIORITIZED-OR)
-                                        (Cons (mkTree (mkNode play-win) Nil) Nil))
-                                (mkNodeId (0)) NilMMap (play-win play-block)))
+                                        (Cons (mkTree (mkNode playwin) Nil) Nil))
+                                (mkNodeId (0)) NilMMap (playwin playblock)))
         ($mmLength (MultiMap.length $MMap))
         ($hasKnobs (> $mmLength 0))
     )
@@ -56,12 +56,12 @@
 !(assertEqual (let* (
     (($updatedTree $MMap) (buildStrategy 
                             (mkTree (mkNode PRIORITIZED-OR)
-                                    (Cons (mkTree (mkNode play-center) Nil)
-                                          (Cons (mkTree (mkNode play-block) Nil) Nil)))
-                            (mkNodeId (0)) NilMMap (play-center play-block)))
+                                    (Cons (mkTree (mkNode playcenter) Nil)
+                                          (Cons (mkTree (mkNode playblock) Nil) Nil)))
+                            (mkNodeId (0)) NilMMap (playcenter playblock)))
     ($treeChanged (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR)
-                                                (Cons (mkTree (mkNode play-center) Nil)
-                                                      (Cons (mkTree (mkNode play-block) Nil) Nil))))))
+                                                (Cons (mkTree (mkNode playcenter) Nil)
+                                                      (Cons (mkTree (mkNode playblock) Nil) Nil))))))
 )
 $treeChanged
 ) True)
@@ -71,8 +71,8 @@ $treeChanged
     (let* (
         (($updatedTree $MMap) (buildStrategy 
                                 (mkTree (mkNode PRIORITIZED-OR)
-                                        (Cons (mkTree (mkNode play-corner) Nil) Nil))
-                                (mkNodeId (0)) NilMMap (play-corner play-edge)))
+                                        (Cons (mkTree (mkNode playcorner) Nil) Nil))
+                                (mkNodeId (0)) NilMMap (playcorner play-edge)))
         ($mmLength (MultiMap.length $MMap))
         ($hasCorrectLength (== $mmLength 4))
     )
@@ -80,14 +80,14 @@ $treeChanged
 
 ;; Test 5: Complex strategy tree with nested structure
 (= (complexGameTree) (mkTree (mkNode PRIORITIZED-OR)
-                            (Cons (mkTree (mkNode play-center) Nil)
+                            (Cons (mkTree (mkNode playcenter) Nil)
                             (Cons (mkTree (mkNode PRIORITIZED-OR)
-                                         (Cons (mkTree (mkNode play-corner) Nil)
-                                         (Cons (mkTree (mkNode play-block) Nil) Nil)))
+                                         (Cons (mkTree (mkNode playcorner) Nil)
+                                         (Cons (mkTree (mkNode playblock) Nil) Nil)))
                             Nil))))
 
 !(assertEqual (let* (
-    (($updatedTree $MMap) (buildStrategy (complexGameTree) (mkNodeId (0)) NilMMap (play-center play-corner play-block)))
+    (($updatedTree $MMap) (buildStrategy (complexGameTree) (mkNodeId (0)) NilMMap (playcenter playcorner playblock)))
     ($mmLength (MultiMap.length $MMap))
     ($hasMultipleKnobs (> $mmLength 4))
 )

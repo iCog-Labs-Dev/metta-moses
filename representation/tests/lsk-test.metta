@@ -221,12 +221,12 @@
 !(assertEqual
   (strategySubtreeKnob
     (mkTree (mkNode PRIORITIZED-OR)
-      (Cons (mkTree (mkNode play-center) Nil)
-        (Cons (mkTree (mkNode play-corner) Nil) Nil)))
+      (Cons (mkTree (mkNode playcenter) Nil)
+        (Cons (mkTree (mkNode playcorner) Nil) Nil)))
     (mkNodeId (0))
-    (mkTree (mkNode play-block) Nil))
+    (mkTree (mkNode playblock) Nil))
   (
-    (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode play-center) Nil) (Cons (mkTree (mkNode play-corner) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode play-block) Nil) Nil)) Nil))))
+    (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playcorner) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode playblock) Nil) Nil)) Nil))))
     (mkSSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))
   ))
 
@@ -234,15 +234,15 @@
 !(assertEqual
   (strategySubtreeKnob
     (mkTree (mkNode PRIORITIZED-OR)
-      (Cons (mkTree (mkNode play-center) Nil)
-        (Cons (mkTree (mkNode play-corner) Nil)
-          (Cons (mkTree (mkNode play-block) Nil) Nil))))
+      (Cons (mkTree (mkNode playcenter) Nil)
+        (Cons (mkTree (mkNode playcorner) Nil)
+          (Cons (mkTree (mkNode playblock) Nil) Nil))))
     (mkNodeId (0))
-    (mkTree (mkNode play-corner) Nil))
+    (mkTree (mkNode playcorner) Nil))
   (
-    (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode play-center) Nil) 
-                        (Cons (mkTree (mkNode play-corner) Nil) 
-                        (Cons (mkTree (mkNode play-block) Nil) Nil))))
+    (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) 
+                        (Cons (mkTree (mkNode playcorner) Nil) 
+                        (Cons (mkTree (mkNode playblock) Nil) Nil))))
     (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))
   ))
 
@@ -252,13 +252,13 @@
 
 ;; Game strategy trees for testing
 (= (gameTree1) (mkTree (mkNode PRIORITIZED-OR)
-    (Cons (mkTree (mkNode play-center) Nil)
-      (Cons (mkTree (mkNode play-corner) Nil) Nil))))
+    (Cons (mkTree (mkNode playcenter) Nil)
+      (Cons (mkTree (mkNode playcorner) Nil) Nil))))
 
 (= (gameTree2) (mkTree (mkNode PRIORITIZED-OR)
-            (Cons (mkTree (mkNode play-center) Nil)
+            (Cons (mkTree (mkNode playcenter) Nil)
             (Cons (mkNullVex
-                    (Cons (mkTree (mkNode play-block) Nil) Nil)) Nil))))
+                    (Cons (mkTree (mkNode playblock) Nil) Nil)) Nil))))
 
 ;; Test invalid disc specification for SSK (should not exceed 1)
 !(assertEqual
@@ -291,8 +291,8 @@
     (mkNodeId (0))
     1)
     (mkTree (mkNode PRIORITIZED-OR) 
-        (Cons (mkTree (mkNode play-center) Nil) 
-        (Cons (mkTree (mkNode play-corner) Nil) Nil))))
+        (Cons (mkTree (mkNode playcenter) Nil) 
+        (Cons (mkTree (mkNode playcorner) Nil) Nil))))
 
 ;; Test SSK KnobSetting 1: Present move
 !(assertEqual
@@ -306,12 +306,12 @@
         (mkDiscSpec 0)
         Nil))
     (mkTree (mkNode PRIORITIZED-OR)
-        (Cons (mkTree (mkNode play-center) Nil) Nil))
+        (Cons (mkTree (mkNode playcenter) Nil) Nil))
     (mkNodeId (0))
     1)
     (mkTree (mkNode PRIORITIZED-OR)
-        (Cons (mkTree (mkNode play-center) Nil)
-        (Cons (mkTree (mkNode play-block) Nil) Nil))))
+        (Cons (mkTree (mkNode playcenter) Nil)
+        (Cons (mkTree (mkNode playblock) Nil) Nil))))
 
 ;; Test SSK KnobSetting 0: Absent move (NullVex)
 !(assertEqual
@@ -324,10 +324,10 @@
         (mkDiscSpec 0)
         (mkDiscSpec 0)
         Nil))
-    (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode play-center) Nil) Nil))
+    (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) Nil))
     (mkNodeId (0))
     0)
     (mkTree (mkNode PRIORITIZED-OR)
-             (Cons (mkTree (mkNode play-center) Nil)
+             (Cons (mkTree (mkNode playcenter) Nil)
              (Cons (mkNullVex
-                     (Cons (mkTree (mkNode play-block) Nil) Nil)) Nil))))
+                     (Cons (mkTree (mkNode playblock) Nil) Nil)) Nil))))

@@ -71,50 +71,50 @@ $mmpsEqual
 (
     (($updatedTree $mm) 
      (addLogicalKnobs (mkTree (mkNode PRIORITIZED-OR)     
-        (Cons (mkTree (mkNode play-center) Nil)
-          (Cons (mkTree (mkNode play-corner) Nil) Nil)))
-              (mkNodeId (0)) True NilMMap (play-center play-corner)))
+        (Cons (mkTree (mkNode playcenter) Nil)
+          (Cons (mkTree (mkNode playcorner) Nil) Nil)))
+              (mkNodeId (0)) True NilMMap (playcenter playcorner)))
     ($mmLength (MultiMap.length $mm))
-    ($treeHasNullVex (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode play-center) Nil) (Cons (mkTree (mkNode play-corner) Nil) Nil))))))
+    ($treeHasNullVex (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playcorner) Nil) Nil))))))
 )
 (and (== $mmLength 4) $treeHasNullVex)
 ) True)
 
-;; Test 2: addLogicalKnobs with PRIORITIZED-OR - single move
+;; addLogicalKnobs with PRIORITIZED-OR - single move
 !(assertEqual (let* 
 (
     (($updatedTree $mm) 
      (addLogicalKnobs (mkTree (mkNode PRIORITIZED-OR)     
-        (Cons (mkTree (mkNode play-center) Nil) Nil))
-              (mkNodeId (0)) True NilMMap (play-center)))
+        (Cons (mkTree (mkNode playcenter) Nil) Nil))
+              (mkNodeId (0)) True NilMMap (playcenter)))
     ($mmLength (MultiMap.length $mm))
-    ($treeUnchanged (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode play-center) Nil) Nil))))
+    ($treeUnchanged (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) Nil))))
 )
 (and (== $mmLength 2) $treeUnchanged)
 ) True)
 
-;; Test 3: addLogicalKnobs with PRIORITIZED-OR - three moves
+;; addLogicalKnobs with PRIORITIZED-OR - three moves
 !(assertEqual (let* 
 (
     (($updatedTree $mm) 
      (addLogicalKnobs (mkTree (mkNode PRIORITIZED-OR)     
-        (Cons (mkTree (mkNode play-center) Nil)
-          (Cons (mkTree (mkNode play-corner) Nil)
-            (Cons (mkTree (mkNode play-block) Nil) Nil))))
-              (mkNodeId (0)) True NilMMap (play-center play-corner play-block)))
+        (Cons (mkTree (mkNode playcenter) Nil)
+          (Cons (mkTree (mkNode playcorner) Nil)
+            (Cons (mkTree (mkNode playblock) Nil) Nil))))
+              (mkNodeId (0)) True NilMMap (playcenter playcorner playblock)))
     ($mmLength (MultiMap.length $mm))
-    ($treeHasNullVex (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode play-center) Nil) (Cons (mkTree (mkNode play-corner) Nil) (Cons (mkTree (mkNode play-block) Nil) Nil)))))))
+    ($treeHasNullVex (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playcorner) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil)))))))
 )
 (and (== $mmLength 6) $treeHasNullVex)
 ) True)
 
-;; Test 4: Verify SSK knobs (multiplicity 2) are created for PRIORITIZED-OR
+;; Verify SSK knobs (multiplicity 2) are created for PRIORITIZED-OR
 !(assertEqual 
     (let* (
         (($updatedTree $mm) (addLogicalKnobs 
                                (mkTree (mkNode PRIORITIZED-OR)
-                                       (Cons (mkTree (mkNode play-center) Nil) Nil))
-                               (mkNodeId (0)) True NilMMap (play-center play-corner)))
+                                       (Cons (mkTree (mkNode playcenter) Nil) Nil))
+                               (mkNodeId (0)) True NilMMap (playcenter playcorner)))
         ($firstPair (car-atom (cdr-atom $mm)))
         ($knobWrapper (cdr-atom $firstPair))
         ($firstKnob (car-atom $knobWrapper))
@@ -122,17 +122,17 @@ $mmpsEqual
     )
     (== $multi (mkMultip 2))) True)
 
-;; Test 5: Verify different game moves work correctly
+;; Verify different game moves work correctly
 !(assertEqual (let* 
 (
     (($updatedTree $mm) 
      (addLogicalKnobs (mkTree (mkNode PRIORITIZED-OR)     
-        (Cons (mkTree (mkNode play-win) Nil)
-          (Cons (mkTree (mkNode play-fork) Nil)
-            (Cons (mkTree (mkNode play-block) Nil) Nil))))
-              (mkNodeId (0)) True NilMMap (play-win play-fork play-block)))
+        (Cons (mkTree (mkNode playwin) Nil)
+          (Cons (mkTree (mkNode playfork) Nil)
+            (Cons (mkTree (mkNode playblock) Nil) Nil))))
+              (mkNodeId (0)) True NilMMap (playwin playfork playblock)))
     ($mmLength (MultiMap.length $mm))
-    ($treeHasNullVex (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode play-win) Nil) (Cons (mkTree (mkNode play-fork) Nil) (Cons (mkTree (mkNode play-block) Nil) Nil)))))))
+    ($treeHasNullVex (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playwin) Nil) (Cons (mkTree (mkNode playfork) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil)))))))
 )
 (and (== $mmLength 6) $treeHasNullVex)
 ) True)

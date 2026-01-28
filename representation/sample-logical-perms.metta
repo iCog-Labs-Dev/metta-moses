@@ -58,7 +58,7 @@
 ;;          $op: move operator (PRIORITIZED-OR)
 ;;          $PermPairs: list of pairs of idx permutations
 ;;          $picked: list of picked move idxs
-;;          $moveLabels: list of move labels (play-center, play-corner, etc.)
+;;          $moveLabels: list of move labels (playcenter, playcorner, etc.)
 ;; Returns: move expressions with operator and move combinations
 ;; (: getMoveArgs (-> Atom Expression Expression Expression Expression))
 (= (getMoveArgs $op $PermPairs $picked $moveLabels)
@@ -75,7 +75,7 @@
 ;; Params:
 ;;          $op: the strategy operator (PRIORITIZED-OR)
 ;;          $arity: the number of moves in the strategy sequence
-;;          $moveLabels: list of move labels (play-center, play-block, play-corner, etc.)
+;;          $moveLabels: list of move labels (playcenter, playblock, playcorner, etc.)
 ;; Returns:
 ;;          Union of original moves with alternative move strategy expressions
 ;; (: sampleStrategyPerms (-> Atom Number Expression Expression))
@@ -87,15 +87,14 @@
             ($nPairs $arity) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
         )
         (if (<= $nPairs 1)
-            (let $move (car-atom $moveLabels) ($move $move)) ;; edge case: return duplicate for consistency
+            (car-atom $moveLabels) ;; edge case: return just the move
             (let*
                 (
                     ($upperbound (- (length $idxPairs) 1))
                     ($picked (eval (lazyRandomSelector 0 $upperbound $nPairs)))
                     ($perms (collapse (eval (getMoveArgs $op $idxPairs $picked $moveLabels))))
                 )
-                (eval (concatT $moveLabels $perms))
+                (eval (concatT $perms $moveLabels)) ;; concat with the move labels to include orginal moves as fallback options
             )
         )
-    )
-)
+))
