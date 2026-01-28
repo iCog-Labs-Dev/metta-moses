@@ -43,7 +43,7 @@
     ;; ($_ (println! $demeIds))
     ; ($argLabels (getArgLabels $itable))
     ;; ($_ (println! "Creating Deme"))
-    ($demes (eval (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar () $scorerType)))     
+    ($demes (eval (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar () $scorerType)))
     )
     (map-atom $demes $deme (expandDemeHelper $deme $truthTableBScore $optimize))
    ))
