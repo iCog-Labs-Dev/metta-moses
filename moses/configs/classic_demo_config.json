@@ -6,7 +6,7 @@
   "count": 30,
   "max_gens": 50,
   "demes": 2,
-  "engine": "/home/yab/PeTTa/run.sh",
+  "engine": "/home/yab/PeTTaV1/run.sh",
   "args": [
     "-s"
   ],

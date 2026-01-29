@@ -234,6 +234,7 @@
               10 $cpxPen 1000))
         ($_ (println! (Result: $result)))
         ($newR (eval (osToExpression (mapG cleanedExemplar $result) ())))
+        ($_ (println! (cut))) ;; INFO: This prevents a weird infint loop that only occurs on some test cases with unknown reasons.
       )
       (FinalResult $newR)))
 
