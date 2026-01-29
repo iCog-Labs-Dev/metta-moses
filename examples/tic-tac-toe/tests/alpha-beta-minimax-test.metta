@@ -1,6 +1,6 @@
 !(import! &self ../../../utilities/general-helpers)
 !(import! &self ../tic-tac-toe-helpers)
-!(import! &self ../alpha-beta-minimax)
+!(import! &self ../alpha-beta-minimax-player)
 
 ;; Plays at the center 
 !(assertEqual (ab-minimax-player (E E E E E E E E E) X)  (E E E E X E E E E))

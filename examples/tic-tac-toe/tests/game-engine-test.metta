@@ -2,7 +2,7 @@
 !(import! &self ../../../utilities/general-helpers)
 !(import! &self ../random-player)
 !(import! &self ../minimax-player)
-!(import! &self ../alpha-beta-minimax)
+!(import! &self ../alpha-beta-minimax-player)
 !(import! &self ../game-engine)
 
 !(py-call (random.seed 42))
