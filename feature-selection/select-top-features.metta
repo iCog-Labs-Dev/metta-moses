@@ -55,8 +55,8 @@
                     ($agg-dp (max-atom ($last-dp $current-unipen-score)))
                     ($updated-uniPen-score (eval (setUniPen $current-cscore $agg-dp)))
                     ($updatd-pen-score (eval (updatePenalizedScore $updated-uniPen-score $multi-diversity)))
-                    ($new-acc (eval (insertPair cScore>= <= ($updatd-pen-score $current-ft) $acc)))
-                    ;; ($new-acc (eval (insertPair cScore>= (featureSet< $seed) ($updatd-pen-score $current-ft) $acc)))
+                    ;; ($new-acc (eval (insertPair cScore>= <= ($updatd-pen-score $current-ft) $acc)))
+                    ($new-acc (eval (insertPair cScore>= (featureSet< $seed) ($updatd-pen-score $current-ft) $acc)))
                     )                   ;; ordered insertion using the composite score. The featureSet> function is curried with $seed
 
                 (rankIterator $seed (mkITable $table $labels) $div-pres $div-interaction $multi-diversity $sim-scorer (cdr-atom $csc-ft-set) $new-acc)))))
