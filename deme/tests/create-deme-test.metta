@@ -14,14 +14,13 @@
 !(import! &self ../../utilities/pair)
 !(import! &self ../../utilities/nodeId)
 !(import! &self ../../utilities/list-methods)
-; !(import! &self ../../utilities/python-helpers)
-; !(import! &self ../../utilities/python-treehelpers)
 !(import! &self ../../utilities/general-helpers)
 !(import! &self ../../utilities/ordered-multimap)
 !(import! &self ../../utilities/ordered-multiset)
 !(import! &self ../../utilities/ordered-set)
 !(import! &self ../../utilities/lazy-random-selector)
 !(import! &self ../../utilities/lru-cache)
+
 !(import! &self ../score-deme)
 !(import! &self ../create-deme)
 !(import! &self ../deme-id-creation)
@@ -52,6 +51,7 @@
 !(import! &self ../../feature-selection/incremental)
 !(import! &self ../../feature-selection/hc)
 !(import! &self ../../feature-selection/random-feature-selection)
+
 !(import! &self ../../reduct/boolean-reduct/rte-helpers)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-and)
@@ -63,11 +63,6 @@
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 
-
-(= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
-(= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
-
-(= (INSERT_ABOVE $tree $nodeId $subtree) (py_insertAbove  $tree $nodeId $subtree))
 
 ;; (= (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
     ;; ($updatedDeme (expandDeme metaPop2 0 1 False sim table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))

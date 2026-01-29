@@ -50,18 +50,19 @@
 ;; Returns: Beahvioral score for the given tree.
 ; (: scoreTree (-> (ITable $a) (Tree $a) BehavioralScore))
 (= (scoreTree (mkITable $table $labels) $tree)
-   (if (== $tree (mkTree (mkNode AND) Nil)) 
-       ;; (worstPossibleScore (mkTruthTableBScore $compCoeff (length $table) $table))
+   (if (== $tree (mkTree (mkNode AND) Nil))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
-      (chain (eval (preOrder $tree)) $expTree
-      ;; (trace! (Scoring $expTree)
-      (chain (eval (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table)) $scoreList
-      (chain (eval (List.length $labels)) $length
-      (chain (eval (List.flatten (List.map ((curry List.drop) (- $length 1)) $table))) $outputs
-      (chain (eval (List.zipWith compareAndScore $scoreList $outputs)) $bScore
-         (mkBScore $bScore)))))
-      ;; )
-      )
+       (let*
+          (
+           ($expTree (eval (preOrder $tree)))
+           ($scoreList (eval (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table)))
+           ($length (eval (List.length $labels)))
+
+           ($outputs (eval (List.flatten (List.map (eval (List.drop (- $length 1))) $table))))
+           ($bScore (eval (List.zipWith compareAndScore $scoreList $outputs)))
+          )
+         (mkBScore $bScore)
+       )
    )
 )
 

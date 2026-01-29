@@ -54,7 +54,7 @@
                  ($all-labels (eval (getInputLabels $labels)))                       ;; getInputLabels in deme/expand-deme.metta
                  ;; ($_ (println! "before featureSelector"))                                                                                                           ;;Default Values  ;;miConf PrePenalty  PreMInActivation   PreMaxActivation  PrePositive   ScorerType
                  ($ft-set-pop (eval (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme 50.0   1.0            0.5               1.0               True         $scorerType)))     ;; applies the right parameteres for feature selection based on selected selection algorithm 
-                 ;; ($_ (println! (Selected Features after feature Selection $ft-set-pop)))
+                 ($_ (println! (Selected Features after feature Selection $ft-set-pop)))
                  ($exemplar-arg-seq                                           ;; apply exemplar feature pruning
                      (if $prune-exemplar
                            (map-atom $ft-set-pop $ft-set 
@@ -65,12 +65,12 @@
                                      ($final-args (subtraction-atom $ft-set $exemplar-fts)))  
 
                                  ($pruned-xmplr (eval (fsToNames $labels $final-args)))))
-                           
+
                            (map-atom $ft-set-pop $ft-set 
                                  (let* (($agg (eval (union-atom-set $ft-set $exemplar-fts)))
                                         ($final-args (eval (fsToNames $labels $agg)))
                                         )  
-                                        
+
                                     ($exemplar $final-args)))))
                   ;; ($_ (println! (Exemplar arg sets after pruning: $exemplar-arg-seq))) 
                   ($with-enforced-fts                                         ;; enforce features
@@ -93,8 +93,9 @@
                                     ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
                                     ;; ($_ (println! ""))
                                   ($dscKbMp (eval (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))))        ;; MULITPLE args selected using the feature selection
-                                 
-                                 (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))))
+
+                                 (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree))))
+        )
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
 (= (getCandidate $repObj $inst)
    ; (println! (inside getCandidate))

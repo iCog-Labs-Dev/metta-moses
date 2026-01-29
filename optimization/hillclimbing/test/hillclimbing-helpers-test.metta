@@ -210,5 +210,5 @@
        ($instanceCount (eval (List.length $instSet)))
        ($scoredElems (eval (List.map isScored $instSet)))
      )
-     ((>= $instanceCount 4) (eval (List.any $scoredElems))))
+     ((>= $instanceCount 3) (eval (List.any $scoredElems))))
    (True True))
