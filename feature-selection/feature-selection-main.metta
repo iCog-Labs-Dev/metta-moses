@@ -86,7 +86,9 @@
             ) 
 	(case $algo
 		((hc (let $init-instance (eval (List.generate (- (eval (List.length $labels)) 1) 0) )
-		                      (hcFtSetPop (mkITable $table $labels) $init-instance $scorerType))) ;; INFO: This used to get all of the following params but the function can't handle those so removed for now: $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive
+		                      (hcFtSetPop (mkITable $table $labels) $init-instance $scorerType)))
+		                      ;; (hcFtSetPop (mkITable $table $labels) $init-instance $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType))) ;; INFO: This used to get all of the following params but the function can't handle those so removed for now: $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive
+
 		 (rd (eval (randomFeatureSelection (mkITable $table $labels) $target-size)))                                       
 		 (sim (eval (simpleFeatureSelector $th $target-size False (mkITable $table $labels) ())))                           ;; False -- default value for using exp distribution for selection of top N features -- and start with empty feature list as initial features -- th here refers to the minimum score required for feature set to be selected
 		 (inc (eval (incrementalSelection (mkITable $table $labels) $th $target-size 1 0)))                                 ;; 1 -- default value of max-interaction-terms -- the maximum size of each feature set tested in the scorer -- the last value is a value redundancy threshold values
