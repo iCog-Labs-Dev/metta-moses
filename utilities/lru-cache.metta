@@ -7,9 +7,9 @@
 ; (: &cache hyperon::space::DynSpace)
 
 ;; State variables for cache management
-!(bind! cacheSize (new-state 0))         ;; Current number of cached items
-!(bind! maxCacheSize (new-state 10))     ;; Maximum cache capacity
-!(bind! accessCounter (new-state 0))     ;; sequential counter for ordering
+!(bind! &cacheSize (new-state 0))         ;; Current number of cached items
+!(bind! &maxCacheSize (new-state 10))     ;; Maximum cache capacity
+!(bind! &accessCounter (new-state 0))     ;; sequential counter for ordering
 
 (= (DEFAULT_CACHE_SIZE) 60)
 
@@ -26,9 +26,9 @@
 (= (accCounter)
    (let* 
        (
-           ($currentCounter (get-state accessCounter))
+           ($currentCounter (get-state &accessCounter))
            ($nextCounter (+ $currentCounter 1))
-           ($updatedState (change-state! accessCounter $nextCounter))
+           ($updatedState (change-state! &accessCounter $nextCounter))
        )
        $nextCounter
     )
@@ -78,7 +78,7 @@
                     ;; Remove the least recently used cacheEntry
                     ($__ (remove-atom &cache (cacheEntry $functionName $args $result $entryCounter)))
                     ;; Update cache size
-                    ($updatedState (change-state! cacheSize (- (get-state cacheSize) 1)))
+                    ($updatedState (change-state! &cacheSize (- (get-state &cacheSize) 1)))
                 )
                 ;; After eviction, add the new entry
                 (cachePut $funcs $arguments $results)
@@ -94,8 +94,8 @@
     (let* 
         (
             ($entryCounter (eval (accCounter))) 
-            ($currentSize (get-state cacheSize))
-            ($maxSize (get-state maxCacheSize))
+            ($currentSize (get-state &cacheSize))
+            ($maxSize (get-state &maxCacheSize))
         )
         (if (>= $currentSize $maxSize)
             ;; Cache is full, evict least recently used (which will call cachePut again to add)
@@ -106,7 +106,7 @@
                     ;; Add cache entry (single atom holds result and counter)
                     ($__ (add-atom &cache (cacheEntry $functionName $argument $result $entryCounter)))
 ;                     ;; Update cache size
-                    ($updatedCache (change-state! cacheSize (+ $currentSize 1)))
+                    ($updatedCache (change-state! &cacheSize (+ $currentSize 1)))
                 )  
                 $result
             )
@@ -121,7 +121,7 @@
 ;;      
 (: lruCache (-> Number Expression $a))
 (= (lruCache $maxSize (($fn-name) $args)) 
-    (let $_ (change-state! maxCacheSize $maxSize)                         ;; Set cache size for this operation
+    (let $_ (change-state! &maxCacheSize $maxSize)                         ;; Set cache size for this operation
         (if (eval (cacheExists $fn-name $args))                           ;; Check cache first
             (getCached $fn-name $args)                                    ;; Cache miss - compute and cache result
             (let $computedResult (eval (cons-atom $fn-name $args))        ;; Execute the function call
