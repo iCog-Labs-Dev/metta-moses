@@ -1,4 +1,3 @@
-; !(import! &self ../../utilities/general-helpers)
 (= (get-empty-cells $bs $acc $counter)
     (if (== $bs ())
         $acc
@@ -71,5 +70,14 @@
          (if (== $winner E)
              (if (is-board-full $board) Draw E) $winner)))
 
+;; Priority: Center(4) > Corners(0,2,6,8) > Sides(1,3,5,7)
+(= (sort-moves $indices)
+    (intersect-order (4 0 2 6 8 1 3 5 7) $indices))
 
-; !(get-winner (E E E E E E X X X))             
+(= (intersect-order $priority-list $available)
+    (if (== $priority-list ())
+        ()
+        (let ($h $t) (decons-atom $priority-list)
+            (if (is-member $h $available)
+                (cons-atom $h (intersect-order $t $available))
+                (intersect-order $t $available)))))
