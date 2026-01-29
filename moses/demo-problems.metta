@@ -91,11 +91,11 @@
    (Cons (Cons True (Cons True (Cons False (Cons False (Cons False (Cons False Nil))))))
    (Cons (Cons True (Cons True (Cons False (Cons False (Cons True (Cons True Nil))))))
    (Cons (Cons True (Cons True (Cons False (Cons True (Cons False (Cons True Nil))))))
-   (Cons (Cons True (Cons True (Cons False (Cons True (Cons True (Cons True Nil)))))))
+   (Cons (Cons True (Cons True (Cons False (Cons True (Cons True (Cons True Nil))))))
    (Cons (Cons True (Cons True (Cons True (Cons False (Cons False (Cons True Nil))))))
    (Cons (Cons True (Cons True (Cons True (Cons False (Cons True (Cons True Nil))))))
    (Cons (Cons True (Cons True (Cons True (Cons True (Cons False (Cons True Nil))))))
-   (Cons (Cons True (Cons True (Cons True (Cons True (Cons True (Cons True Nil)))))) Nil)))))))))))))))))))))))))))))))
+   (Cons (Cons True (Cons True (Cons True (Cons True (Cons True (Cons True Nil)))))) Nil))))))))))))))))))))))))))))))))
    (Cons X1 (Cons X2 (Cons X3 (Cons X4 (Cons X5 (Cons Out Nil))))))))
 
 ;; 3-Bit Multiplexer: - Input 1 is Address (Addr)
