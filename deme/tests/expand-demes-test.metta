@@ -161,105 +161,105 @@
 ; (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (eval (worstCscore))))
 
-; ; Testcase for optimizeDemes               
-; !(assertEqual 
-; (let* 
-; (
-;     ($optimizeDemesReturn (optimizeDemes (deme) 
-;                 (table1) 
-;                 (mkInst (Cons 0 (Cons 0 Nil))) 
-;                 hillClimbing
-;                 ))
-;     ($_ (println! "optimizeDemes Returns"))
-;     ($_ (println! $optimizeDemesReturn))
-;     (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemesReturn)
-;     ($instanceCount (eval (List.length $instSet)))
-;     ($scoredElems (eval (List.map isScored $instSet)))
-; )
-; ((>= $instanceCount 4) (eval (List.any $scoredElems))))
-; (True True))
-;
-; ; Testcase for expandDeme
-; !(assertEqual
-; (let*
-; (
-;     ($updatedDeme (expandDeme (metaPop2) 0 1 False sim 
-;                     (table1)
-;                     hillClimbing 
-;                     (ttable1)
-;                     mi))
-;     ($updatedDemeLength (size-atom $updatedDeme)))
-; (>= $updatedDemeLength 1)) True)
-;
+; Testcase for optimizeDemes               
+!(assertEqual 
+(let* 
+(
+    ($optimizeDemesReturn (optimizeDemes (deme) 
+                (table1) 
+                (mkInst (Cons 0 (Cons 0 Nil))) 
+                hillClimbing
+                ))
+    ($_ (println! "optimizeDemes Returns"))
+    ($_ (println! $optimizeDemesReturn))
+    (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemesReturn)
+    ($instanceCount (eval (List.length $instSet)))
+    ($scoredElems (eval (List.map isScored $instSet)))
+)
+((>= $instanceCount 4) (eval (List.any $scoredElems))))
+(True True))
+
+; Testcase for expandDeme
+!(assertEqual
+(let*
+(
+    ($updatedDeme (expandDeme (metaPop2) 0 1 False sim 
+                    (table1)
+                    hillClimbing 
+                    (ttable1)
+                    mi))
+    ($updatedDemeLength (size-atom $updatedDeme)))
+(>= $updatedDemeLength 1)) True)
+
+; Testcase for runMoses
+!(assertEqual
+(let*
+(
+    ($topCandidates (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False sim 
+    (table1) 
+    hillClimbing 5 2 0 1 
+    (ttable1) 
+    3 0.004 1000))
+    ($topCandidatesLength (eval (OS.length $topCandidates)))
+)
+(>= $topCandidatesLength 1)
+) True)
+
 ; ; Testcase for runMoses
-; !(assertEqual
-; (let*
-; (
-;     ($topCandidates (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False sim 
-;     (table1) 
-;     hillClimbing 5 2 0 1 
-;     (ttable1) 
-;     3 0.004 1000))
-;     ($topCandidatesLength (eval (OS.length $topCandidates)))
-; )
-; (>= $topCandidatesLength 1)
-; ) True)
-;
-; ; ; Testcase for runMoses
-; !(assertEqual
-; (let*
-; (
-;     ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False rd 
-;     (table1)  
-;     hillClimbing 5 2 0 1 
-;     (ttable1) 
-;     3 0.004 1000))
-;     ($topCandidatesLength (OS.length $topCandidates))
-; )
-; (>= $topCandidatesLength 1)
-; ) True)
-;
-; ; ;; Testcase for runMoses
-; !(assertEqual
-; (let*
-; (
-;     ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False inc 
-;     (table1) 
-;     hillClimbing 5 2 0 1 
-;     (ttable1)
-;     3 0.004 1000))
-;     ($topCandidatesLength (eval (OS.length $topCandidates)))
-; )
-; (>= $topCandidatesLength 1)
-; ) True)
-;
-; ;; Testcase 2 for runmoses. 
-; ;; When maxGen become 10, test number of returned instances is not greater than maxCandOutput, 
-; ;;              where maxCandOutput is 3 and minPoolSize is 2
-; !(assertEqual
-; (let $length
-; (OS.length (runMoses 10 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
-;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     inc      ;; the new arguments for feature selection algo
-;     (eval (createTruthTableBScore 2 (mkITable
-;                           (Cons (Cons False (Cons False (Cons False Nil))) 
-;                           (Cons (Cons True (Cons False (Cons False Nil))) 
-;                           (Cons (Cons False (Cons True (Cons False Nil)))
-;                           (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-;                           (Cons A (Cons B (Cons O Nil))))))  
-;     hillClimbing 5 2 2 1 
-;     (mkITable
-;                           (Cons (Cons False (Cons False (Cons False Nil))) 
-;                           (Cons (Cons True (Cons False (Cons False Nil))) 
-;                           (Cons (Cons False (Cons True (Cons False Nil)))
-;                           (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-;                           (Cons A (Cons B (Cons O Nil))))  
-;     3 0.004 1000)
-;     )
-;         (> $length 3)
-; )
-;     False
-; )
+!(assertEqual
+(let*
+(
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False rd 
+    (table1)  
+    hillClimbing 5 2 0 1 
+    (ttable1) 
+    3 0.004 1000))
+    ($topCandidatesLength (OS.length $topCandidates))
+)
+(>= $topCandidatesLength 1)
+) True)
+
+; ;; Testcase for runMoses
+!(assertEqual
+(let*
+(
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False inc 
+    (table1) 
+    hillClimbing 5 2 0 1 
+    (ttable1)
+    3 0.004 1000))
+    ($topCandidatesLength (eval (OS.length $topCandidates)))
+)
+(>= $topCandidatesLength 1)
+) True)
+
+;; Testcase 2 for runmoses. 
+;; When maxGen become 10, test number of returned instances is not greater than maxCandOutput, 
+;;              where maxCandOutput is 3 and minPoolSize is 2
+!(assertEqual
+(let $length
+(OS.length (runMoses 10 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
+    False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
+    inc      ;; the new arguments for feature selection algo
+    (eval (createTruthTableBScore 2 (mkITable
+                          (Cons (Cons False (Cons False (Cons False Nil))) 
+                          (Cons (Cons True (Cons False (Cons False Nil))) 
+                          (Cons (Cons False (Cons True (Cons False Nil)))
+                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+                          (Cons A (Cons B (Cons O Nil))))))  
+    hillClimbing 5 2 2 1 
+    (mkITable
+                          (Cons (Cons False (Cons False (Cons False Nil))) 
+                          (Cons (Cons True (Cons False (Cons False Nil))) 
+                          (Cons (Cons False (Cons True (Cons False Nil)))
+                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+                          (Cons A (Cons B (Cons O Nil))))  
+    3 0.004 1000)
+    )
+        (> $length 3)
+)
+    False
+)
 
 ; ; with OR table and AND init exemplar     
 ; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
