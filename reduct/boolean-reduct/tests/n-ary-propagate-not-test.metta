@@ -92,3 +92,5 @@
   )
 
 !(assertEqual (propagateNot (AND)) (AND)) ;; check for empty AND
+
+!(assertEqual (propagateNot (AND (OR (AND (OR)) (AND (OR (AND (NOT X1))))))) (AND (OR (AND (OR)) (AND (OR (AND (NOT X1)))))))
