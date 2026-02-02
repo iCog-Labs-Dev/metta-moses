@@ -25,7 +25,7 @@
 
 ; (: preOrder (-> (Tree $a) $a))
 
-(= (preOrder (mkTree (mkNode $r) Nil)) $r)
+(= (preOrder (mkTree (mkNode $r) Nil)) (if (is-member $r (AND OR)) ($r) $r))
 (= (preOrder (mkNullVex $knobs)) ())
 (= (preOrder (mkTree (mkNode $r) (Cons $x $xs)))
      (let*

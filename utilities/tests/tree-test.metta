@@ -63,10 +63,10 @@
 
 !(assertEqual (preOrder (get-state tree1)) (AND A (OR B C)))
 !(assertEqual (preOrder (get-state tree2)) (AND A (OR B C)))
+!(assertEqual (preOrder (buildTree (AND (OR (AND (OR (AND) (AND))) (AND (OR (NOT X1))))))) (AND (OR (AND (OR (AND) (AND))) (AND (OR (NOT X1))))))
 
 
 
-;; FIX: Commented out until the REDUCE issue is fixed.  failing test cases i think it is due to the failing function called findAndReplace in general-helper function fixed soon.
 !(assertEqual (cleanTree (mkTree (mkNode AND)
                             (Cons (mkTree (mkNode OR)
                                 (Cons (mkTree (mkNode A) Nil)
