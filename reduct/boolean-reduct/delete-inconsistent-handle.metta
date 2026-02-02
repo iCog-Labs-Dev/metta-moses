@@ -23,9 +23,9 @@
           ; ($_ (println! (Parameters ==> Parent: $parent Current: $current DominantSet: $dominantSet)))
           ; ($_ (println! (GuardSet : $guardSet : HandleSet : $handleSet : IsConsistent : $isConsistent)))
         )
-        (if $isConsistent 
-              ($parent $current False) 
-              ((eval (findAndReplace $current (AND) $parent)) (AND) True)) ;; Remove current from parent and return an empty AND.
+        (if $isConsistent
+              ($parent $current False)
+              ((eval (subtraction-atom $parent ($current))) () True)) ;; Remove current from parent and return an empty AND.
     )
 )
 
