@@ -6,7 +6,7 @@ import time
 import json
 import argparse
 import math
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 
 class GPRunner:
@@ -210,7 +210,7 @@ class GPRunner:
         n_deme: int = 1,
         engine_executable: str = "petta",
         engine_args: List[str] = ["-s"],
-        timeout_sec: int = 600,
+        timeout_sec: Optional[float] = 600,
         keep_sandbox: bool = False,
         log_json: bool = False,
     ) -> Dict[str, Any]:
@@ -242,6 +242,7 @@ class GPRunner:
                 f"[GPRunner] Seed {seed}: Running {problem} with {feature_selector} (Demes: {n_deme})..."
             )
 
+            # If timeout_sec is None, subprocess waits indefinitely
             result = subprocess.run(
                 cmd,
                 capture_output=True,
@@ -297,7 +298,7 @@ class GPRunner:
                 "feature_selector": feature_selector,
                 "status": "TIMEOUT",
                 "candidates": [],
-                "wall_time": timeout_sec,
+                "wall_time": timeout_sec if timeout_sec else -1,
             }
 
         except Exception as e:
@@ -338,6 +339,7 @@ if __name__ == "__main__":
         "outdir": "sandbox",
         "keep": False,
         "log_json": False,
+        "timeout": 600,
     }
 
     # If Config File exists, load it and update defaults
@@ -391,6 +393,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--log_json", action="store_true", help="Save result as JSON file in outdir"
     )
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        help="Timeout in seconds. Set to 0 for infinite wait.",
+    )
 
     args = parser.parse_args()
 
@@ -418,6 +425,9 @@ if __name__ == "__main__":
         print(f"Error initializing runner: {e}")
         exit(1)
 
+    # Handle timeout logic: 0 or None means infinite (passed as None to subprocess)
+    effective_timeout = args.timeout if args.timeout and args.timeout > 0 else None
+
     results = []
 
     # Trackers for advanced metrics
@@ -425,6 +435,8 @@ if __name__ == "__main__":
     success_gens = []
 
     print(f"--- Starting Batch: {args.count} runs starting from seed {args.seed} ---")
+    if effective_timeout is None:
+        print("⚠️  WARNING: Timeout disabled. Processes may hang indefinitely.")
 
     for i in range(args.count):
         current_seed = args.seed + i
@@ -439,6 +451,7 @@ if __name__ == "__main__":
             engine_args=args.args,
             keep_sandbox=args.keep,
             log_json=args.log_json,
+            timeout_sec=effective_timeout,
         )
 
         results.append(res)
