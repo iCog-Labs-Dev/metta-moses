@@ -55,7 +55,6 @@
 
 
 
-(= (rand-random) (py-call (random.random)))
 !(py-call (random.seed 42))
 
 
@@ -110,10 +109,7 @@
          (
              (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) 
                  (simulated-annealing (deme) (table1) (mkInst (Cons 0 (Cons 0 Nil))) (mkParams applyComplexityBasedScore ())))
-           
             (($prevCenter $bestSscore $bestScore $currentNInstances $d $i) $state)
-            
-            
          )
          ((== $bestSscore (mkCscore -1 1 0.5 0.0 -1.5))(== $bestScore -1.5))
      )
