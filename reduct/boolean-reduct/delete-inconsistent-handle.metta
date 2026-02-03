@@ -25,7 +25,10 @@
         )
         (if $isConsistent
               ($parent $current False)
-              ((eval (subtraction-atom $parent ($current))) () True)) ;; Remove current from parent and return an empty AND.
+              (if (== $parent $current) ;; If the initial parent itself is in consistent, we don't want to delete it entirely but instead keep a top level AND. This only happens when passing the expression for the first time as $parent and $current will never be equal after that.
+                  ((AND) () True)
+                  ((eval (subtraction-atom $parent ($current))) () True)
+              )) ;; Remove current from parent and return an empty AND.
     )
 )
 

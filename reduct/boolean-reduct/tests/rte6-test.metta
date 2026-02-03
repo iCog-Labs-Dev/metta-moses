@@ -8,8 +8,8 @@
 !(import! &self ../promote-common-constraints)
 !(import! &self ../reduce-to-elegance)
 
-;; (AND (OR (NOT A) (AND A B C) (AND B C (NOT B)))) ==> (AND)
-!(assertEqual (reduceToElegance (AND (OR (AND (NOT A)) (AND A B C) (AND B C (NOT B)))) (OR (AND (NOT A)) (AND A B C) (AND B C (NOT B))) () ()) ((AND) () True))
+;; (AND (OR (NOT A) (AND A B C) (AND B C (NOT B)))) ==> (AND (OR (AND (NOT A)) (AND A B C)))
+!(assertEqual (reduceToElegance (AND (OR (AND (NOT A)) (AND A B C) (AND B C (NOT B)))) (OR (AND (NOT A)) (AND A B C) (AND B C (NOT B))) () ()) ((AND (OR (AND (NOT A)) (AND A B C))) (OR (AND (NOT A)) (AND A B C)) False))
 ;; (AND (OR (NOT A) (AND A B C) (AND B C (NOT B)))) ==> (AND (OR (NOT A) (AND A B C)))
 !(assertEqual (reduceToElegance (AND (OR (NOT A) (AND A B C) (AND B C (NOT B)))) (OR (NOT A) (AND A B C) (AND B C (NOT B))) () ()) ((AND B C (OR (NOT A) (AND A) (AND (NOT B)))) (OR (NOT A) (AND A) (AND (NOT B))) True))
 ;; (AND (OR (NOT A) (AND A B C) (AND C B (NOT B)))) ==> (AND (OR (NOT A ) (AND A B C)))
@@ -18,5 +18,3 @@
 !(assertEqual (reduceToElegance (AND (OR (AND C A D) (AND C A) (AND C A E))) (OR (AND C A D) (AND C A) (AND C A E)) () ()) ((AND C A) () True))
 ;; (AND (OR (AND A B) (AND A C D) (AND A C E) (AND C A))) ==> (AND A (OR B (AND C D) (AND C E) C))
 !(assertEqual (reduceToElegance (AND (OR (AND A B) (AND A C D) (AND A C E) (AND C A))) (OR (AND A B) (AND A C D) (AND A C E) (AND C A)) () ()) ((AND A (OR (AND B) (AND C D) (AND C E) (AND C))) (OR (AND B) (AND C D) (AND C E) (AND C)) True))
-
-

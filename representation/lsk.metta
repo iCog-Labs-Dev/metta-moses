@@ -76,12 +76,8 @@
           (if (== True (isEmpty $tree))
               $subtree
 
-              ;; The c++ version takes the child of the null vertex from the 
-              ;;   location of the tree but we don't have access to the knob 
-              ;;   decorated tree in this function. It is possible to pass 
-              ;;   that tree as well but instead of increasing the function 
-              ;;   parameter size, why not simply use the $subtree we already 
-              ;;   have stored in the lsk? It seems to be doing the exact same thing.
+              ;; TODO: Skip multiplicity 0, we don't want to convert the subtree into a null vertex. That will bring weird behavior like nested NullVertex and the like.
+              ;;       In addition, this tree is a new candidate tree needed only to be evaluated, why do we need to process null vertexes here? We want to avoid adding any.
               (let $treeToAppend
                    (case $d
                        (
