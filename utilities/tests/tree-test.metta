@@ -14,7 +14,7 @@
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/n-ary-gather-junctors)
 ;; Helper function for clean tree
-; (= (REDUCE $expr) (reduce $expr))
+
 !(bind! tree1 (new-state (mkTree (mkNode AND)
                 (Cons (mkTree (mkNode A) Nil)
                 (Cons (mkTree (mkNode OR)
@@ -82,9 +82,9 @@
                             (Cons (mkTree (mkNode NOT) 
                               (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))
                           )
-                            (mkTree (mkNode AND) 
-                              (Cons (mkTree (mkNode NOT) 
-                                (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))         
+                   (mkTree (mkNode AND)
+                      (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil))
+                      (Cons (mkTree (mkNode B) Nil) Nil))))
 !(assertEqual (cleanTree (buildTree (AND (OR A B) (NOT A) (NOT B)))) (buildTree (AND (NOT A) (NOT B))))
 !(assertEqual (cleanTree (buildTree (AND A B (NOT A)))) (buildTree (AND)))
 !(assertEqual (cleanTree (buildTree (OR (AND A B (NOT A) B)))) (buildTree (AND)))
