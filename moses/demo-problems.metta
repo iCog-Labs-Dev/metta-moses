@@ -221,10 +221,11 @@
         ($srp (py-call (random.seed $seed)))
         ($cpxPen 0.004)
         ($truthTableBScore (eval (createTruthTableBScore 2 ($problem))))
-        ($worstPossibleScore (worstPossibleScore $truthTableBScore))
+        (($ctor $worstPossibleBScore) (worstPossibleScore $truthTableBScore))
+        ($worstPossibleScore (eval (List.sum $worstPossibleBScore)))
         ($bestPosssibleCscore (getBestPossibleCscore $cpxPen $problem))
-        ($metaPop (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") $bestPosssibleCscore $worstPossibleScore) NilOS))
-        ($result (runMoses $maxGen (mkCscore -0.1 2 0.1 0.1 3) 3 $metaPop 0 $nDeme
+        ($metaPop (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) $worstPossibleBScore) NilOS))
+        ($result (runMoses $maxGen $bestPosssibleCscore 3 $metaPop 0 $nDeme
               False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
               $fsAlgo      ;; the new arguments for feature selection algo
               $truthTableBScore
