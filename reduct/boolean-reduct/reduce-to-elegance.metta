@@ -195,8 +195,10 @@
               ; ($_ (println! (UpdatedParent: $updatedParent UpdatedCurrent: $updatedCurrent AppliedRTE: $appliedRTE)))
               ; ($_ (println! ($commandSet'')))
               ; ; ($_ (println! ""))
+              ; ($_ (println! ("commandSet: " $commandSet "DomainSet: " $dominantSet)))
+              ;
            )
-           (trace! ("commandSet: " $commandSet "DomainSet: " $dominantSet) ($commandSet $dominantSet ($updatedParent $updatedCurrent $appliedRTE)))
+           ($commandSet $dominantSet ($updatedParent $updatedCurrent $appliedRTE))
          )
      )
    )
@@ -431,8 +433,8 @@
 (= (applyReduce ($parent $current $applied))
    (let*
          (
-            ($_ (println! (==== Inside ApplyReduce ====)))
-            ($_ (println! (Parameters ==> Parent: $parent Current: $current Applied: $applied)))
+            ;; ($_ (println! (==== Inside ApplyReduce ====)))
+            ;; ($_ (println! (Parameters ==> Parent: $parent Current: $current Applied: $applied)))
             
             ($propNotExpr (eval (propagateNot $current)))
             ($gatherJunctorExpr (eval (gatherJunctors $propNotExpr)))
@@ -440,12 +442,12 @@
             ($finalAdd (eval (addAND $initAdd True)))
             ($finalParent (eval (findAndReplace $current $finalAdd $parent)))
 
-           ($_ (println! (==== ApplyReduce Log ====)))
-           ($_ (println! (PropNotExpr: $propNotExpr)))
-           ($_ (println! (GatherJunctorsResult $gatherJunctorExpr)))
-           ($_ (println! (Initial Add: $initAdd)))
-           ($_ (println! (FinalAdd Result: $finalAdd)))
-           ($_ (println! (FinalParent: $finalParent)))
+           ;; ($_ (println! (==== ApplyReduce Log ====)))
+           ;; ($_ (println! (PropNotExpr: $propNotExpr)))
+           ;; ($_ (println! (GatherJunctorsResult $gatherJunctorExpr)))
+           ;; ($_ (println! (Initial Add: $initAdd)))
+           ;; ($_ (println! (FinalAdd Result: $finalAdd)))
+           ;; ($_ (println! (FinalParent: $finalParent)))
         )
          (eval (reduceToElegance $finalParent $finalAdd () ()))
          ))

@@ -48,52 +48,54 @@
         )
         
         (let* (
-                  ($_ (println! (Inside Representation)))
+                  ;; ($_ (println! (Inside Representation)))
                   ($exemplar-fts  (filter-atom (eval (treeFtsIndices $exemplar $labels)) $x (not (== $x -1))))
-                  ($_ (println! (exemplar features $exemplar-fts)))          ;; exemplarFtsIndices function in deme/expand-deme.metta
+                  ;; ($_ (println! (exemplar features $exemplar-fts)))          ;; exemplarFtsIndices function in deme/expand-deme.metta
                  ($all-labels (eval (getInputLabels $labels)))                       ;; getInputLabels in deme/expand-deme.metta
-                 ($_ (println! "before featureSelector"))                                                                                                           ;;Default Values  ;;miConf PrePenalty  PreMInActivation   PreMaxActivation  PrePositive   ScorerType
+                 ;; ($_ (println! "before featureSelector"))                                                                                                           ;;Default Values  ;;miConf PrePenalty  PreMInActivation   PreMaxActivation  PrePositive   ScorerType
                  ($ft-set-pop (eval (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme 50.0   1.0            0.5               1.0               True         $scorerType)))     ;; applies the right parameteres for feature selection based on selected selection algorithm 
                  ($_ (println! (Selected Features after feature Selection $ft-set-pop)))
                  ($exemplar-arg-seq                                           ;; apply exemplar feature pruning
                      (if $prune-exemplar
                            (map-atom $ft-set-pop $ft-set 
                               (let* (($diff-ft (subtraction-atom $exemplar-fts $ft-set))
-                                    ($_ (println! (diffffffff $diff-ft)))
+                                    ;; ($_ (println! (diffffffff $diff-ft)))
                                      ($ft-names (eval (fsToNames $labels $diff-ft)))
                                      ($pruned-xmplr (eval (pruneExemplar $exemplar $ft-names)))
                                      ($final-args (subtraction-atom $ft-set $exemplar-fts)))  
 
                                  ($pruned-xmplr (eval (fsToNames $labels $final-args)))))
-                           
+
                            (map-atom $ft-set-pop $ft-set 
                                  (let* (($agg (eval (union-atom-set $ft-set $exemplar-fts)))
                                         ($final-args (eval (fsToNames $labels $agg)))
                                         )  
-                                        
+
                                     ($exemplar $final-args)))))
-                  ($_ (println! (Exemplar arg sets after pruning: $exemplar-arg-seq))) 
+                  ;; ($_ (println! (Exemplar arg sets after pruning: $exemplar-arg-seq))) 
                   ($with-enforced-fts                                         ;; enforce features
                      (if (== $enforced-fts ())
                            $exemplar-arg-seq
                            (let $sampled-enforced-fts (eval (sampleEnforcedFts $enforced-fts))           ;; from feature-selection/select-top-features.metta
                                     (map-atom $exemplar-arg-seq ($xmplr $args)
                                              (let $acc (eval (concatT $args $sampled-enforced-fts)) ($xmplr $acc))))))  
-                  ($_ (println! (With enforced features: $with-enforced-fts)))
+                  ;; ($_ (println! (With enforced features: $with-enforced-fts)))
                   ($filter-empty-args (filter-atom $with-enforced-fts ($xmplr $args) (eval (not (== $args ())))))
-                  ($_ (println! (After filtering empty args: $filter-empty-args)))
+                  ;; ($_ (println! (After filtering empty args: $filter-empty-args)))
               )      ;; filter out exemplar arg pairs that have empty arg list
 
                      (map-atom $filter-empty-args ($xmplr $argLabels) 
                            (let* (
-                                    ($_ (println! (Building representation for arg labels: $argLabels)))
-                                    (($updatedTree $dscMp) (trace! (" done buildknobs (:) ") (eval (buildKnobs $xmplr NilMMap $argLabels))))            ;; BUILD representations on 
-                                    ($_ (println! (Building representation for arg labels: $argLabels)))
-                                    ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
-                                    ($_ (println! ""))
+                                    ;; ($_ (println! (Building representation for arg labels: $argLabels)))
+                                    ;; ($_ (println! (" done buildknobs (:) ")))            ;; BUILD representations on 
+                                    (($updatedTree $dscMp) (eval (buildKnobs $xmplr NilMMap $argLabels)))            ;; BUILD representations on 
+                                    ;; ($_ (println! (Building representation for arg labels: $argLabels)))
+                                    ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
+                                    ;; ($_ (println! ""))
                                   ($dscKbMp (eval (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))))        ;; MULITPLE args selected using the feature selection
-                                 
-                                 (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))))
+
+                                 (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree))))
+        )
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
 (= (getCandidate $repObj $inst)
    ; (println! (inside getCandidate))
@@ -155,15 +157,15 @@
          (let*
             (
                ; ($_ (println! (Inside getCandidateRec with parentId: $parentId , srcId: $srcId)))
-               ($_ (println! ""))
-               ($_ (println! (No Knob found just copy...)))
+               ;; ($_ (println! ""))
+               ;; ($_ (println! (No Knob found just copy...)))
                ($src (eval (getNodeById $tree $srcId)))
                              ($cndchidpair (eval (appendChild $candidate $parentId (mkTree (eval (getNodeValue $src)) Nil))))              
                ($srcchildren (eval (getChildren $src)))
                             ($state (eval (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (eval (second $cndchidpair)) (eval (first $cndchidpair)) 1) $srcchildren)))
                (((mkRep $knobmapobj $tree) (mkInst $inst) $newparentid $finalcnd $d) $state)
-               ($_ (println! (finalcnd: $finalcnd)))
-               ($_ (println! ""))
+               ;; ($_ (println! (finalcnd: $finalcnd)))
+               ;; ($_ (println! ""))
 
             )
               $finalcnd
@@ -184,13 +186,13 @@
 (= (applyGetCandidateRec $tr ($repObj $inst (mkNodeId $parentId) $candidate $chIdx))
    (let*
       (
-         ($_ (println! ("applyGetCandidateRec called with parentId:" $parentId , chIdx: $chIdx)))
+         ;; ($_ (println! ("applyGetCandidateRec called with parentId:" $parentId , chIdx: $chIdx)))
          ($srcId (if (== $parentId (0)) (mkNodeId ($chIdx)) (mkNodeId (eval (concatT $parentId ($chIdx))))))
-         ($_ (println! (srcId: $srcId)))
+         ;; ($_ (println! (srcId: $srcId)))
          ($updatedCnd (eval (getCandidateRec $repObj $inst (mkNodeId $parentId) $srcId $candidate)))
-         ($_ (println! (updatedCnd: $updatedCnd)))
+         ;; ($_ (println! (updatedCnd: $updatedCnd)))
          ($finalResult ($repObj $inst (mkNodeId $parentId) $updatedCnd (+ 1 $chIdx)))
-         ($_ (println! ("applyGetCandidateRec returning finalResult:" $finalResult)))
+         ;; ($_ (println! ("applyGetCandidateRec returning finalResult:" $finalResult)))
       )
       $finalResult
    )

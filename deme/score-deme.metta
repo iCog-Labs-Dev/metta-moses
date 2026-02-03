@@ -59,7 +59,11 @@
 ;; Returns:
 ;;   List of Scored Instances with mutual information based scores.
 ; (: applyMutualInformationBasedScore (-> (List Instance) (ITable $a) (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
-(= (applyMutualInformationBasedScore Nil (mkITable $rows $labels) $miConfi $listOfScoredInst) (trace! (Returning $listOfScoredInst) $listOfScoredInst))
+(= (applyMutualInformationBasedScore Nil (mkITable $rows $labels) $miConfi $listOfScoredInst) 
+   ;; (trace! (Returning $listOfScoredInst)
+           $listOfScoredInst
+   ;; )
+)
 (= (applyMutualInformationBasedScore (Cons (mkInst $i) $is) (mkITable $rows $labels) $miConf $listOfScoredInst)
 (let*
 (
@@ -87,12 +91,12 @@
 (= (transformFs (mkSInstSet $scoredInstList) $itable $miConf $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)
 (let*
 (
-    ($_ (println! "inside transformFs"))
+    ;; ($_ (println! "inside transformFs"))
     ($instList (eval (List.map removeInstScore $scoredInstList)))
 
     ;;**done call featureSetScorer
     ($cbsInstList (featureSetScorer $itable $scorerType $miConf  $prePenalty $preMinActivation $preMaxActivation $prePositive $instList))
-    ($_ (println! $cbsInstList))
+    ;; ($_ (println! $cbsInstList))
 )
 (mkSInstSet $cbsInstList)))  
 
@@ -142,7 +146,7 @@
 ;; Returns: List of Scored Instances
 ; (: featureSetScorer (-> ITable Symbol Number Number Number Number Bool (List Instance) (List (ScoredInstance Number))))
 (= (featureSetScorer $itable $scorerType $miConf  $prePenalty $preMinActivation $preMaxActivation $prePositive $instList)
-        (trace! (Scoring with $scorerType for featureSelection $instList)
+        ;; (trace! (Scoring with $scorerType for featureSelection $instList)
             (case $scorerType
                 (
                     (mi
@@ -156,6 +160,6 @@
                     ) 
                 )
             )
-        )
+        ;; )
     
 )

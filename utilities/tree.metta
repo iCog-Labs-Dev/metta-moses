@@ -68,10 +68,10 @@
     (let*
         (
           ($preordered (eval (preOrder $tree)))
-          ($_ (println! (Preordered: $preordered)))
+          ;; ($_ (println! (Preordered: $preordered)))
           ($reduced (eval (reduce-to $preordered)))
-          ($_ (println! "After Reduce"))
-          ($_ (println! (Reduced: $reduced)))
+          ;; ($_ (println! "After Reduce"))
+          ;; ($_ (println! (Reduced: $reduced)))
           )
         (eval (buildTree $reduced)))
     )

@@ -16,7 +16,7 @@
   (let*
     (
       ($times (profile-helper $expr $n ()))
-      (() (println! (times: $times)))
+      ($_ (println! (times: $times)))
       ($avg (average $times))
       ($avgR (round $avg 3))
     )
@@ -703,7 +703,7 @@
 
 ;; From a tuple (Pair) return the first element
 ; (: first (-> ($a $b) $a))
-(= (first ($a $b)) $a)
+;; (= (first ($a $b)) $a)
 
 ;; From a tuple (Pair) return the second element
 ; (: second (-> ($a $b) $b))

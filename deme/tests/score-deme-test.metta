@@ -28,14 +28,10 @@
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/general-helpers)
 !(import! &self ../../utilities/ordered-multimap)
-; !(import! &self ../../utilities/python-treehelpers)
 
 !(import! &self ../../feature-selection/feature-selection-helpers)
 
 !(import! &self ../../scoring/precision-bscore)
-
-;; TODO: Add REDUCE Function here when it's edge case if fixed.
-; (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 
 (= (tree1)
         (mkTree (mkNode AND)

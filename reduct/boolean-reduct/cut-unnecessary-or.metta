@@ -11,8 +11,9 @@
 (= (orCut $parent $current)
    (let*
      (
-      ($log (println! (==== Inside OrCut ====)))
-      ; ($log' (println! (Parameters ==> Parent: $parent Current: $current)))
+      ;; ($log (println! (==== Inside OrCut ====)))
+      ;; ($log' (println! (Parameters ==> Parent: $parent Current: $current)))
+      ($log' (println! ""))
      )
      (case $current
         (
