@@ -5,11 +5,8 @@
            ()
            (let*
              (
-               ($_ (println! (Inside propNot)))
                (($op $t) (decons-atom $expr))
-               ($_ (println! (OP: $op T: $t )))
                ($result (map-atom $t (|-> ($childExpr) (propagateNot $childExpr (xor (== $op NOT) $negate)))))
-               ($_ (println! (Result: $result)))
              )
              (case $op
                    (

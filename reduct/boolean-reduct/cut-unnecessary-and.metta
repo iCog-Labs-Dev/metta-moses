@@ -15,52 +15,54 @@
 ;;          output: ((OR C (AND B D) (NOT E)) () True)
 ; (: andCut (-> Expression Expression (Expression Expression Bool)))
 (= (andCut $parent $current)
-        (let*
-          (
-              ; ($_ (println! (===Inside AndCut===)))
-              ; ($_ (println! (Current $current : Parent : $parent)))
-              ($parentSec (collapse (removeEmptyAND (superpose $parent))))
-              ($currentSec (if (=== $parent $current) $parentSec (collapse (removeEmptyAND (superpose $current)))))
-              (($guardSet $child) (getLiteralChildren $currentSec))
-              (($h $t) (if (and (== (get-metatype $child) Expression) (not (== $child ()))) (decons-atom $child) (() ())))
-              ($tail (if-decons-expr-custom $child $h $t $t "No child"))
-              ; ($_ (println! ("Tail: " $tail)))
-          )
-          (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
-              (let*
-                  (
-                      ; ($_ (println! (===Inside AndCut===)))
-                      ; ($_ (println! (Current $current : Parent : $parent)))
-                      ($childFirst (if-decons-expr-custom $child $h $t $h ()))
-                      (($grandLiterals $grandChildren) (getLiteralChildren $childFirst))
-                      ($allLiterals (collapse (getGuardSet (superpose $grandChildren))))
-                      ($common (intersections $allLiterals))
-                      ($updatedParent (removeElement ($currentSec) $parentSec))
-                      ($updatedParent' (if
-                                        (== () (subtraction-atom $parentSec $currentSec))
-                                        $updatedParent
-                                        (addChildren $updatedParent $grandChildren)))
-                      ($updatedParent'' (addLiterals $updatedParent' $grandLiterals))
-
-                      ; ($l (println! (===Inside AndCut Log===)))
-                      ; ($l (println! (All Literals: $allLiterals)))
-                      ; ($l (println! (GrandChildren: $grandChildren : GrandLiterals: $grandLiterals)))
-                      ; ($l (println! (UpdatedParent: $updatedParent : UpdatedParent': $updatedParent' )))
-                      ; ($l (println! (UpdatedParent'': $updatedParent'' )))
-                      ; ($l (println! (ChildFirst: $childFirst)))
-                      ; ($l (println! (Child: $child)))
-                      ; ($l (println! (AllLiterals: $allLiterals)))
-                      ; ($l (println! (Common: $common)))
-
-                  )
-                  (if (== $common ())
-                      ($updatedParent'' () True)
-                      ($parentSec $currentSec False)
-                  )
+        (if (== $parent $current)
+            ($parent $current False)
+            (let*
+              (
+                  ; ($_ (println! (===Inside AndCut===)))
+                  ; ($_ (println! (Current $current : Parent : $parent)))
+                  ($parentSec (collapse (removeEmptyAND (superpose $parent))))
+                  ($currentSec (if (=== $parent $current) $parentSec (collapse (removeEmptyAND (superpose $current)))))
+                  (($guardSet $child) (getLiteralChildren $currentSec))
+                  (($h $t) (if (and (== (get-metatype $child) Expression) (not (== $child ()))) (decons-atom $child) (() ())))
+                  ($tail (if-decons-expr-custom $child $h $t $t "No child"))
+                  ; ($_ (println! ("Tail: " $tail)))
               )
-              ($parentSec $currentSec False)
-          )
-        )
+              (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
+                  (let*
+                      (
+                          ; ($_ (println! (===Inside AndCut===)))
+                          ; ($_ (println! (Current $current : Parent : $parent)))
+                          ($childFirst (if-decons-expr-custom $child $h $t $h ()))
+                          (($grandLiterals $grandChildren) (getLiteralChildren $childFirst))
+                          ($allLiterals (collapse (getGuardSet (superpose $grandChildren))))
+                          ($common (intersections $allLiterals))
+                          ($updatedParent (removeElement ($currentSec) $parentSec))
+                          ($updatedParent' (if
+                                            (== () (subtraction-atom $parentSec $currentSec))
+                                            $updatedParent
+                                            (addChildren $updatedParent $grandChildren)))
+                          ($updatedParent'' (addLiterals $updatedParent' $grandLiterals))
+
+                          ; ($l (println! (===Inside AndCut Log===)))
+                          ; ($l (println! (All Literals: $allLiterals)))
+                          ; ($l (println! (GrandChildren: $grandChildren : GrandLiterals: $grandLiterals)))
+                          ; ($l (println! (UpdatedParent: $updatedParent : UpdatedParent': $updatedParent' )))
+                          ; ($l (println! (UpdatedParent'': $updatedParent'' )))
+                          ; ($l (println! (ChildFirst: $childFirst)))
+                          ; ($l (println! (Child: $child)))
+                          ; ($l (println! (AllLiterals: $allLiterals)))
+                          ; ($l (println! (Common: $common)))
+
+                      )
+                      (if (== $common ())
+                          ($updatedParent'' () True)
+                          ($parentSec $currentSec False)
+                      )
+                  )
+                  ($parentSec $currentSec False)
+              )
+            ))
 )
 
 ;; Function to find intersections between all literals in a nested tuple
