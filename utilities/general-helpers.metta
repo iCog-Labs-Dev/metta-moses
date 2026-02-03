@@ -125,7 +125,7 @@
 ;;    with a new one from a list of atoms.
 ;; INFO: This function needs to change so that it can preserve the
 ;;        operator's position when MeTTa version is upgraded.
-(= (findAndReplace $old $new $list) ;; FIX: No longer working on version 0.2.3
+(= (findAndReplace $old $new $list)
     ; (let*
     ;   (
     ;     ($log (println! ""))
@@ -1293,15 +1293,7 @@
 
 ;; replicates MeTTaLog's union-atom builtin function, i.e., keeps one copy of items present in both lists
 (= (union-atom-set $a $b)
-   (if (= $b ())
-        $a
-        (let $b-new 
-            (collapse 
-                (let $bs (superpose $b) 
-                                    (if (is-member $bs $a)
-                                        (empty)
-                                        $bs))) 
-            (union-atom $a $b-new))))
+   (let $u (union-atom $a $b) (list_to_set $u)))
 
 ; Returns a random integer (0, 1, or 2) biased toward 0.
 ; ~50% chance to return 0, otherwise randomly 1 or 2.
