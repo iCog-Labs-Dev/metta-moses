@@ -15,6 +15,8 @@
 ;; (: pairKnobWithSpec (-> Expression Expression))
 (= (pairKnobWithSpec $tuple)   (map-atom $tuple $knob ( (eval (getKnobSpec $knob)) $knob) ))
 
+;; addLogicalKnobs
+;; (: addLogicalKnobs (-> (Tree $a) NodeId Bool (MultiMap ($k $v)) Expression Expression))
 (= (addLogicalKnobs $exemplar $nodeId $addIfInExemplar $map $argLabels) 
 (let (mkTree (mkNode $op) $children) (eval (getNodeById $exemplar $nodeId))
     (let* (

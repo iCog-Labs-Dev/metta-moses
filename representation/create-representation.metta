@@ -14,9 +14,11 @@
 ;; For boolean: createRepresentation($nDeme, $tree, $itable, $algo, $prune, $enforced, $scorer)
 
 ;; Game strategy representation (2 parameters)
+(: createRepresentation (-> Number (Tree $a) (List Representation)))
 (= (createRepresentation $nDeme $tree)
     (eval (representation $tree $nDeme)))
 
 ;; Boolean logic representation (7 parameters)
+(: createRepresentation (-> Number (Tree $a) (ITable $a) Symbol Bool Expression Symbol (List Representation)))
 (= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
     (eval (representation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)))
