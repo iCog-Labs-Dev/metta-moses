@@ -7,34 +7,32 @@
 ;;   $argLabels: list of argument labels (input variables) from the ITable
 ;; Return: a multimap of ($knobSpec $knob) and the updated tree
 
+;; All available game moves
+(= (getAllGameMoves) (playcenter playblock playwin playcorner playside))
+
 ;; helper function to the addLogicalKnobs
 ;; takes a tuple of knobs and return a tuple of knob and knobSpec pairs
 ;; (: pairKnobWithSpec (-> Expression Expression))
 (= (pairKnobWithSpec $tuple)   (map-atom $tuple $knob ( (eval (getKnobSpec $knob)) $knob) ))
 
-;; addLogicalKnobs
-;; (: addLogicalKnobs (-> (Tree $a) NodeId Bool (MultiMap ($k $v)) Expression Expression))
 (= (addLogicalKnobs $exemplar $nodeId $addIfInExemplar $map $argLabels) 
 (let (mkTree (mkNode $op) $children) (eval (getNodeById $exemplar $nodeId))
-    (let  $lengthOfArgs (length $argLabels)
+    (let* (
+        ;; Use complete game moves for strategy operators, argLabels for boolean operators
+        ($moveLabels (if (== $op PRIORITIZED-OR) (getAllGameMoves) $argLabels))
+        ($lengthOfArgs (length $moveLabels))
         ;; Choose appropriate sampling function based on operator
-        (let  $perms (if (== $op PRIORITIZED-OR)
-                         (eval (sampleStrategyPerms $op $lengthOfArgs $argLabels))
-                         (eval (sampleLogicalPerms $op $lengthOfArgs $argLabels)))
-            (let  $treePerms (map-atom $perms $perm (buildTree $perm))
-                ;; Use strategyProbe for PRIORITIZED-OR, logicalProbe for others
-                (let ($knobs $updatedTree) (if (== $op PRIORITIZED-OR)
-                                               (eval (strategyProbe $exemplar $nodeId $treePerms $addIfInExemplar ()))
-                                               (eval (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ())))
-                    (let  $pairs (eval (pairKnobWithSpec $knobs))
-                        (let $mmp (eval (expToMMap $pairs $map discSpec<=))
-                            (let $temp (cut)
-                                ($updatedTree $mmp)
-                            )
-                        )
-                    )
-                )
-            )
-        )
+        ($perms (if (== $op PRIORITIZED-OR)
+                    (eval (sampleStrategyPerms $op $lengthOfArgs $moveLabels))
+                    (eval (sampleLogicalPerms $op $lengthOfArgs $moveLabels))))
+        ($treePerms (map-atom $perms $perm (buildTree $perm)))
+        ;; Use strategyProbe for PRIORITIZED-OR, logicalProbe for others
+        (($knobs $updatedTree) (if (== $op PRIORITIZED-OR)
+                                   (eval (strategyProbe $exemplar $nodeId $treePerms $addIfInExemplar ()))
+                                   (eval (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ()))))
+        ($pairs (eval (pairKnobWithSpec $knobs)))
+        ($mmp (eval (expToMMap $pairs $map discSpec<=)))
+        ($temp (cut))
     )
-))
+    ($updatedTree $mmp)
+)))

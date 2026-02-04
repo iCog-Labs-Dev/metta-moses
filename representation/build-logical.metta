@@ -79,7 +79,7 @@
             ;; Add game knobs to the current PRIORITIZED-OR node
             (($t1 $mp1) (eval (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap $argLabels)))
             ($_ (println! ("Building strategy knobs for NodeId: " $nodeId " with operator: " $op)))
-            ;; Process Children using unified sibling iterator with PRIORITIZED-OR as swapped op
-            (($updatedTree $updatedMMap) (eval (siblingit $t1 $children (mkNodeId $nodeId) 1 PRIORITIZED-OR $mp1 $argLabels)))
+            ;; Process Children using unified sibling iterator with PRIORITIZED-OR (no swapping)
+            (($updatedTree $updatedMMap) (eval (siblingit $t1 $children (mkNodeId $nodeId) 1 $op $mp1 $argLabels)))
         )
             ($updatedTree $updatedMMap)))))

@@ -22,29 +22,35 @@
    (eval (crtDiscKnobMap (mkDscMp $tail) (mkDscKbMp $updatedDkm) (+ $index 1)))
   ))
 
-;; representation constructor
-;; Params: Tree (Exemplar)
-;;         $argLabels: list of argument labels (input variables) from the ITable
-;; Returns: Representation
-; (: representation (-> (Tree $a) Expression Representation))
-; (= (representation $exemplar $argLabels)
-; (let*
-; (
-;     (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap $argLabels))
-;     ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
-; )   
-; (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
-; ))
+;; Game representation constructor with execution guard
+;; Params: Tree (Exemplar), Number of demes
+;; Returns: List of Representations
+(= (representation $exemplar $nDeme)
+   (let* (
+      ($demeCount (eval (range 0 1 $nDeme)))
+     
+      ($result (collapse (let $x (superpose $demeCount)
+         (let*
+            (
+               (($updatedTree $dscMp) (eval (buildKnobs $exemplar NilMMap ())))
+               ($dscKbMp (eval (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) $x)))
+               ($rep (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree))
+            )   
+               $rep))))
+   )
+   $result))
 
-;; (: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol Expression))
-(= (representation 
+;; Boolean representation constructor with feature selection
+;; Params: Number of demes, Tree (Exemplar), ITable, feature selection params
+;; Returns: List of Representations
+(= (representation
             $nDeme                      ;; number of demes to spawn (number of distinct feature sets)
             $exemplar                   ;; tree around which multiple representations are to be built
             (mkITable $table $labels)   ;; table from which to select features and base the representations with
             $ft-selection-algo          ;; feature selection algorithm to be used -- symbol 
             $prune-exemplar             ;; bool to decide to prune the exemplar or keep the exemplar as is
             $enforced-fts               ;; set of features to be enforced in to selected features
-            $scorerType         ;; can MI or precision_bscore
+            $scorerType                 ;; can MI or precision_bscore
         )
         
         (let* (
@@ -94,104 +100,51 @@
                                   ($dscKbMp (eval (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))))        ;; MULITPLE args selected using the feature selection
                                  
                                  (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))))
-;; (: getCandidate (-> Representation Instance (Tree $a)))
+
+;; Helper function to extract tree from representation
+(= (getRepTree (mkRep $knobMapObj $tree)) $tree)
+
+;; Universal getCandidate that works for both boolean and game strategies
+;; Skips cleanTree for PRIORITIZED-OR (game strategies)
 (= (getCandidate $repObj $inst)
-   ; (println! (inside getCandidate))
    (let*
       (
-        ; ($_ (println! (Inside getCandidate)))
          ($parentid (mkNodeId (0)))
          ($srcid (mkNodeId (0)))
-         ; ($_ (println! ($parentid   $srcid)))
          ($candidate (getCandidateRec $repObj $inst $parentid $srcid (mkNullVex Nil)))
-         ; ($_ (println! (Found candidate: $candidate)))
-         ($cleanedTree (eval (cleanTree $candidate)))
-         ; ($_ (println! (Cleaned Tree: $cleanedTree)))
+         ;; Check if this is a game strategy (PRIORITIZED-OR at root)
+         ($rootNode (eval (getNodeById (eval (getRepTree $repObj)) $srcid)))
+         ($rootValue (eval (getNodeValue $rootNode)))
+         ($isGameStrategy (== $rootValue PRIORITIZED-OR))
       )
-      $cleanedTree
-   )
-   
-   ; (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex Nil)) $candidate
-   ;  (cleanTree $candidate)))
-    
-    )
-     ;;((( (trace! (Done converting instance to tree $candidate) $candidate))))
-
-
-;; Assumes the reverseLookupTable's order never changes during this call.
-;; (: getCandidateRec (-> Representation Instance NodeId NodeId (Tree $a) (Tree $a)))
-; (= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $candidate)
-;    ;; Find the knob associated with src (if any)
-;    (chain (findDiscKnob $knobMapObj $srcId) $knobIdxPair
-;       (if (~= (second $knobIdxPair) -1)
-;           (chain (List.getByIdx $inst (second $knobIdxPair)) $d
-;           (chain (appendTo $tree (first $knobIdxPair) $candidate $parentId $d) $updatedCnd
-
-;           ;; The C++ version needs to call the getCandidateRec 
-;           ;;  on the newly added node of the candidate but we 
-;           ;;  already took care of that addition using the appendTo
-;           ;;  function. Therefore that part is ommited here.
-;           $updatedCnd))
-
-;          ;; No knob found. Just copy.
-;          (chain (getNodeById $tree $srcId) $src ;; Get node value using id
-;          (chain (appendChild $candidate $parentId (mkTree (getNodeValue $src) Nil)) $cndChIdPair ;; AppendChild returns a pair of tree and appended child Id
-;          (chain (getChildren $src) $srcChildren
-;          (chain (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (second $cndChIdPair) (first $cndChIdPair) 1) $srcChildren) $state
-;             (let ((mkRep $knobMapObj $tree) (mkInst $inst) $newParentId $finalCnd $_) $state $finalCnd)))))))
-; )
+      ;; Skip cleanTree for game strategies, apply it for boolean logic
+      (if $isGameStrategy
+          $candidate
+          (eval (cleanTree $candidate)))
+   ))
 
 (= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $candidate)
-   ; (trace! (Inside getCandidateRec with parentId: $parentId, srcId: $srcId) ())
-   (let $knobIdxPair (eval (findDiscKnob $knobMapObj $srcId)) 
+   (let $knobIdxPair (eval (findDiscKnob $knobMapObj $srcId))
       (if (not (== (eval (second $knobIdxPair)) -1))
-         (let*
-            (          
+         ;; Knob Found - apply instance value
+         (let* (
                ($d (eval (List.getByIdx $inst (eval (second $knobIdxPair)))))
-               ($updatedCnd (eval (appendTo $tree (eval ( first $knobIdxPair)) $candidate $parentId $d)))
+               ($updatedCnd (eval (appendTo $tree (eval (first $knobIdxPair)) $candidate $parentId $d)))
             )
-            $updatedCnd
-         )
-         (let*
-            (
-               ; ($_ (println! (Inside getCandidateRec with parentId: $parentId , srcId: $srcId)))
-               ($_ (println! ""))
-               ($_ (println! (No Knob found just copy...)))
+            $updatedCnd)
+         ;; No Knob - copy structure
+         (let* (
                ($src (eval (getNodeById $tree $srcId)))
-                             ($cndchidpair (eval (appendChild $candidate $parentId (mkTree (eval (getNodeValue $src)) Nil))))              
+               ($cndchidpair (eval (appendChild $candidate $parentId (mkTree (eval (getNodeValue $src)) Nil))))
                ($srcchildren (eval (getChildren $src)))
-                            ($state (eval (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (eval (second $cndchidpair)) (eval (first $cndchidpair)) 1) $srcchildren)))
+               ($state (eval (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (eval (second $cndchidpair)) (eval (first $cndchidpair)) 1) $srcchildren)))
                (((mkRep $knobmapobj $tree) (mkInst $inst) $newparentid $finalcnd $d) $state)
-               ($_ (println! (finalcnd: $finalcnd)))
-               ($_ (println! ""))
-
             )
-              $finalcnd
-          )
-   )
-)
-)
-
-;; (: applyGetCandidateRec (-> (Tree $a)
-;;                             (Representation Instance NodeId (Tree $a) Number)
-;;                             (Representation Instance NodeId (Tree $a) Number)))
-; (= (applyGetCandidateRec $_ ($repObj $inst (mkNodeId $parentId) $candidate $chIdx))
-;    (chain (if (== $parentId (0)) (mkNodeId ($chIdx)) (mkNodeId (unionAtom $parentId ($chIdx)))) $srcId ;; Skip 0 from tree id.
-;    (chain (getCandidateRec $repObj $inst (mkNodeId $parentId) $srcId $candidate) $updatedCnd
-;       ($repObj $inst (mkNodeId $parentId) $updatedCnd (+ 1 $chIdx)))))
-
+              $finalcnd))))
 
 (= (applyGetCandidateRec $tr ($repObj $inst (mkNodeId $parentId) $candidate $chIdx))
-   (let*
-      (
-         ($_ (println! ("applyGetCandidateRec called with parentId:" $parentId , chIdx: $chIdx)))
+   (let* (
          ($srcId (if (== $parentId (0)) (mkNodeId ($chIdx)) (mkNodeId (eval (concatT $parentId ($chIdx))))))
-         ($_ (println! (srcId: $srcId)))
          ($updatedCnd (eval (getCandidateRec $repObj $inst (mkNodeId $parentId) $srcId $candidate)))
-         ($_ (println! (updatedCnd: $updatedCnd)))
-         ($finalResult ($repObj $inst (mkNodeId $parentId) $updatedCnd (+ 1 $chIdx)))
-         ($_ (println! ("applyGetCandidateRec returning finalResult:" $finalResult)))
       )
-      $finalResult
-   )
-)
+      ($repObj $inst (mkNodeId $parentId) $updatedCnd (+ 1 $chIdx))))
