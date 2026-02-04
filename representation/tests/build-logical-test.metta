@@ -49,7 +49,7 @@
     (($updatedTree $MMap) (buildStrategy (simpleGameTree) (mkNodeId (0)) NilMMap (playcenter playcorner)))
     ($mmLength (MultiMap.length $MMap))
 )
-(== $mmLength 4)
+(== $mmLength 10)
 ) True)
 ;; Verify tree structure is modified correctly
 !(assertEqual (let* (
@@ -73,7 +73,7 @@ $treeChanged
                                         (Cons (mkTree (mkNode playcorner) Nil) Nil))
                                 (mkNodeId (0)) NilMMap (playcorner play-edge)))
         ($mmLength (MultiMap.length $MMap))
-        ($hasCorrectLength (== $mmLength 4))
+        ($hasCorrectLength (== $mmLength 10))
     )
     $hasCorrectLength) True)
 

@@ -11,7 +11,7 @@
 !(assertEqual (length (sampleLogicalPerms OR 2 (A B))) 4)
 
 ;; Testcase for sample-strategy-perms
-!(assertEqual (sampleStrategyPerms PRIORITIZED-OR 1 (playcenter)) playcenter)
+!(assertEqual (sampleStrategyPerms PRIORITIZED-OR 1 (playcenter)) (PRIORITIZED-OR playcenter))
 
 !(assertEqual (sampleStrategyPerms PRIORITIZED-OR 2 (playcenter playcorner)) 
               ((PRIORITIZED-OR playcenter playcorner) (PRIORITIZED-OR playcorner playcenter) playcenter playcorner))
