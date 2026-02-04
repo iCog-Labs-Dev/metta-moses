@@ -19,12 +19,12 @@
 (let (mkTree (mkNode $op) $children) (eval (getNodeById $exemplar $nodeId))
     (let* (
         ;; Use complete game moves for strategy operators, argLabels for boolean operators
-        ($moveLabels (if (== $op PRIORITIZED-OR) (getAllGameMoves) $argLabels))
-        ($lengthOfArgs (length $moveLabels))
+        ($labels (if (== $op PRIORITIZED-OR) (getAllGameMoves) $argLabels))
+        ($lengthOfArgs (length $labels))
         ;; Choose appropriate sampling function based on operator
         ($perms (if (== $op PRIORITIZED-OR)
-                    (eval (sampleStrategyPerms $op $lengthOfArgs $moveLabels))
-                    (eval (sampleLogicalPerms $op $lengthOfArgs $moveLabels))))
+                    (eval (sampleStrategyPerms $op $lengthOfArgs $labels))
+                    (eval (sampleLogicalPerms $op $lengthOfArgs $labels))))
         ($treePerms (map-atom $perms $perm (buildTree $perm)))
         ;; Use strategyProbe for PRIORITIZED-OR, logicalProbe for others
         (($knobs $updatedTree) (if (== $op PRIORITIZED-OR)
