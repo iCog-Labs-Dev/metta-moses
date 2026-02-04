@@ -52,12 +52,11 @@
                $rep))))
    )
    $result))
-
+;; (: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol Expression))
+(= (representation
 ;; Boolean representation constructor with feature selection
 ;; Params: Number of demes, Tree (Exemplar), ITable, feature selection params
 ;; Returns: List of Representations
-;; (: createRepresentation (-> Number (Tree $a) (ITable $a) Symbol Bool Expression Symbol Representation))
-(= (representation
             $nDeme                      ;; number of demes to spawn (number of distinct feature sets)
             $exemplar                   ;; tree around which multiple representations are to be built
             (mkITable $table $labels)   ;; table from which to select features and base the representations with
@@ -122,11 +121,15 @@
 ;; Skips cleanTree for PRIORITIZED-OR (game strategies)
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
 (= (getCandidate $repObj $inst)
+   ; (println! (inside getCandidate))
    (let*
       (
+        ; ($_ (println! (Inside getCandidate)))
          ($parentid (mkNodeId (0)))
          ($srcid (mkNodeId (0)))
+         ; ($_ (println! ($parentid   $srcid)))
          ($candidate (getCandidateRec $repObj $inst $parentid $srcid (mkNullVex Nil)))
+         ; ($_ (println! (Found candidate: $candidate)))
          ;; Check if this is a game strategy (PRIORITIZED-OR at root)
          ($rootNode (eval (getNodeById (eval (getRepTree $repObj)) $srcid)))
          ($rootValue (eval (getNodeValue $rootNode)))
@@ -137,7 +140,7 @@
           $candidate
           (eval (cleanTree $candidate)))
    ))
-; (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex Nil)) $candidate
+   ; (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex Nil)) $candidate
    ;  (cleanTree $candidate)))
     
     
@@ -167,6 +170,7 @@
 ;             (let ((mkRep $knobMapObj $tree) (mkInst $inst) $newParentId $finalCnd $_) $state $finalCnd)))))))
 ; )
 (= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $candidate)
+    ; (trace! (Inside getCandidateRec with parentId: $parentId, srcId: $srcId) ())
    (let $knobIdxPair (eval (findDiscKnob $knobMapObj $srcId))
       (if (not (== (eval (second $knobIdxPair)) -1))
          ;; Knob Found - apply instance value
