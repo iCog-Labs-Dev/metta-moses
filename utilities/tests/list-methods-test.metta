@@ -150,6 +150,8 @@
 !(assertEqual (List.isMember 4 (Cons 1 (Cons 2 (Cons 3 Nil)))) False)
 
 ;; List.partialSort -- for list of Scored instances
+
+!(assertEqual (List.partialSort <= (Cons 3 (Cons 2 (Cons 1 Nil))) 0 Nil) (Cons 3 (Cons 2 (Cons 1 Nil))))
 !(assertEqual (List.partialSort instance>=
                             (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore 1 2 3 4 15)))
                                 (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 1 2 3 4 5)))

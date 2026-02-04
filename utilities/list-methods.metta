@@ -300,7 +300,7 @@
             ($unsortedList (List.delete $max (Cons $x $xs)))
             ($sortedList (List.append $max $acc)))
                 
-                (if (== (- $n 1) 0)
+                (if (<= (- $n 1) 0)
                     (List.appendList $unsortedList $sortedList)
                     (List.partialSort $comparator $unsortedList (- $n 1) $sortedList))))
 
