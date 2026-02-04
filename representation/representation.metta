@@ -52,8 +52,11 @@
                   ($exemplar-fts  (filter-atom (eval (treeFtsIndices $exemplar $labels)) $x (not (== $x -1))))
                   ;; ($_ (println! (exemplar features $exemplar-fts)))          ;; exemplarFtsIndices function in deme/expand-deme.metta
                  ($all-labels (eval (getInputLabels $labels)))                       ;; getInputLabels in deme/expand-deme.metta
-                 ;; ($_ (println! "before featureSelector"))                                                                                                           ;;Default Values  ;;miConf PrePenalty  PreMInActivation   PreMaxActivation  PrePositive   ScorerType
-                 ($ft-set-pop (eval (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme 50.0   1.0            0.5               1.0               True         $scorerType)))     ;; applies the right parameteres for feature selection based on selected selection algorithm 
+                 ;; ($_ (println! "before featureSelector"))
+                 ($ft-set-pop (if (== $ft-selection-algo None)
+                                  ((eval (genList 0 (- (List.length $labels) 2)))) ;; Applying all labels as features
+                                  (eval (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme 50.0 1.0 0.5 1.0 True $scorerType))) ;; applies the right parameteres for feature selection based on selected selection algorithm 
+                 )
                  ;; ($_ (println! (Selected Features after feature Selection $ft-set-pop)))
                  ($exemplar-arg-seq                                           ;; apply exemplar feature pruning
                      (if $prune-exemplar
