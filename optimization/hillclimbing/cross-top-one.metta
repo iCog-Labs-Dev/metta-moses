@@ -6,13 +6,17 @@
 ;;                      next-highest scoring instances.
 
 ; (: crossTopOne (-> Deme Number Number Number Instance Deme))
+;; TODO: Make use of the $sampleStart 
+;; This is how the openCog classic does it but the reason isn't yet clear but 
+;;   I suspect it is to prevent crossovering over an already crossed over 
+;;   population and focus on newly generated instances only.
 (= (crossTopOne $deme $nToMake $sampleStart $sampleSize $baseInstance)
    ; (trace! (Inside crossTopOne: $nToMake $sampleStart $sampleSize) 
             (let* (
                     ((mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId) $deme)
                     ;; ($_ (println! (Inside crossTopOne)))
                     ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
-                    ;; (() (println! (NToMake: $nToMakeNew)))
+                    ;; ($_ (println! (SampleSize: $sampleSize NToMake: $nToMakeNew)))
                     ((Cons $reference $rest) (List.partialSort instance>= $instSet $nToMakeNew Nil)) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
                     ($targetInstances (List.takeN (- $nToMake 1) $rest))
                     ($targetExpr (List.listToExpr $targetInstances))
