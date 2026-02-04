@@ -88,7 +88,7 @@ $mmpsEqual
         (Cons (mkTree (mkNode playcenter) Nil) Nil))
               (mkNodeId (0)) True NilMMap (playcenter)))
     ($mmLength (MultiMap.length $mm))
-    ($treeHasNullVex (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) Nil)))))
+    ($treeHasNullVex (!= $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) Nil))))
 )
 (and (== $mmLength 10) $treeHasNullVex)
 ) True)
