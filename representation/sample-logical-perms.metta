@@ -87,7 +87,7 @@
             ($nPairs $arity) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
         )
         (if (<= $nPairs 1)
-            (car-atom $moveLabels) ;; edge case: return just the move
+            ($op (car-atom $moveLabels)) ;; edge case: return strategy expression with single move
             (let*
                 (
                     ($upperbound (- (length $idxPairs) 1))
