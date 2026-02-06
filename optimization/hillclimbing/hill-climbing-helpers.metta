@@ -38,14 +38,17 @@
        (let*
            (
              ;; TODO: Most of the clamping logic here depens on the usage of number of evals and max number of evals. So best to do it after those are integrated into the system. For now we will be returning the total neighborhood clamped to the max_evals only.
-             ($numberOfNewInstaces $totalNeighbors)
+             ;; ($_ (println! (Inside newInstances: $distance $maxEvals $currentEvals $totalNeighbors)))
+             ($hc_params_fraction_of_nn 2) ;; Binomial coefficient has a combinatoric explosion to the power distance.
+                                            ;; So throttle back by fraction raised to power dist.
+             ($numberOfNewInstaces (int (* $totalNeighbors (pow-math $hc_params_fraction_of_nn $distance))))
              ($nLeft (- $maxEvals $currentEvals))
-             ($minDemeSize 100) ;; This is also hardcoded in open cog classic so following the same number here.
+             ($minDemeSize 50) ;; This is also hardcoded in open cog classic so following the same number here. Classic is set to 100.
            )
            (if (< $numberOfNewInstaces $minDemeSize)
                (min $nLeft $minDemeSize)
                (if (< $nLeft $numberOfNewInstaces)
-                   $nleft
+                   $nLeft
                    $numberOfNewInstaces)))))
 
 ;; Counts the number of instances at a specific distance from a given instance.
@@ -230,7 +233,8 @@
         ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
         ;; ($_ (println! ""))
 
-        ($nNewNeighbors (nNewInstances $d 100 $currentNInstances $totalNNeighbors)) ;; TODO: MaxEvals is hardcoded here, but should be changed. This is set to 20K by default.
+        ($maxEvals 500)
+        ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors)) ;; TODO: MaxEvals is hardcoded here, but should be changed. This is set to 20K by default in OpenCog Classic.
         ;; ($_ (println! (NNewNeighbors: $nNewNeighbors)))
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
@@ -260,6 +264,7 @@
         ; (((mkDeme $rep $upInstSet $id) $newInstances) $newPOA)
         ; ($_ (println! (New rep: $rep)))
         ;; ($_ (println! (New Inst: $newInstances)))
+        ;; ($_ (println! (UpdatedInstanceLength: (eval (List.length (second $updatedInstSet))))))
         ;; ($_ (println! ""))
         ;; ($_ (println! (Newinstances: $updatedInstSet)))
         ;; ($_ (println! ""))
@@ -280,6 +285,7 @@
                           (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
         
         ;; ($_ (println! (Scored instances: $scoredInstances)))
+        ;; ($_ (println! (Scored instances....)))
         ;; ($_ (println! ""))
 
         ((mkSInst $newBestInstPair) (eval (List.foldl ((eval (curry2 returnBest)) <) (mkSInst (mkPair $centerInst $bestSscore)) $scoredInstances)))
@@ -288,9 +294,9 @@
                           (eval (getPenScore (Pair.second $newBestInstPair))))) ;; This could be the original best candidate or a new one.
         ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
         
-        ;; ($_ (println! (Best instance: $newBestInstPair)))
-        ;; ($_ (println! (New best score: $newBestScore)))
-        ;; ($_ (println! ""))
+        ($_ (println! (Best instance: $newBestInstPair)))
+        ($_ (println! (New best score: $newBestScore)))
+        ($_ (println! ""))
 
         ($nextCenterInst (if $hasImproved (eval (Pair.first $newBestInstPair)) $centerInst))
         ($nextDistance (if $hasImproved 1 (if (not $xOver) (+ 1 $d) $d)))
@@ -341,13 +347,15 @@
                 ;; (trace! (Terminating because of maximum distance reached)
                         ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
                 ;; ) ;; I don't know why I didn't do this earlier but incrementing is needed here.
-                (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
-                              ($finalXover False $hasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
-                              $finalDeme
-                              ($neighborhood $rowOCoeff $size $iTable)
-                              $finalCenter
-                              $hyperparamsfs
-                              $estimateFunction $crossoverFunction $samplingFunction $transformFunction))
+                (if (<= (- $maxEvals $finalCurrentNInstance) 0)
+                    ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
+                    (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
+                                  ($finalXover False $hasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
+                                  $finalDeme
+                                  ($neighborhood $rowOCoeff $size $iTable)
+                                  $finalCenter
+                                  $hyperparamsfs
+                                  $estimateFunction $crossoverFunction $samplingFunction $transformFunction)))
           )
     ) 
     )          
