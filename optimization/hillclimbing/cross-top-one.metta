@@ -18,18 +18,25 @@
                     ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
                     ;; ($_ (println! (SampleSize: $sampleSize NToMake: $nToMakeNew SampleStart: $sampleStart totalSize: (eval (List.length $instSet)))))
                     (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
-                    ((Cons $reference $rest) (List.partialSort instance>= $newInst $nToMakeNew Nil)) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
-                    ($targetInstances (List.takeN (- $nToMake 1) $rest))
-                    ($targetExpr (List.listToExpr $targetInstances))
+                    ($list (List.partialSort instance>= $newInst $nToMakeNew Nil)) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
+                  )
+                  (if (== $list Nil)
+                      (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId)
+                      (let*
+                        (
+                          ((Cons $reference $rest) $list)
+                          ($targetInstances (List.takeN (- $nToMake 1) $rest))
+                          ($targetExpr (List.listToExpr $targetInstances))
 
-                    ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
-                    ($newInstances (eval (merger $targetExpr $baseInstance $referenceInst)))
-                    ($uniqueInstances (unique-atom $newInstances))
-                    ($_ (println! (NewInstances: (length $newInstances) UniqueInstances: (length $uniqueInstances))))
-                    ;; ($__ (println! (New instances After merging: $newInstances)))
-                    ($_ (println! ""))
-                    )
-                (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet (List.appendList (exprToList $newInstances) $instSet)) $demeId)))
+                          ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
+                          ($newInstances (eval (merger $targetExpr $baseInstance $referenceInst)))
+                          ($uniqueInstances (unique-atom $newInstances))
+                          ;; ($_ (println! (NewInstances: (length $newInstances) UniqueInstances: (length $uniqueInstances))))
+                          ;; ($__ (println! (New instances After merging: $newInstances)))
+                          ;; ($_ (println! ""))
+                          ;; ($_ (println! (PrevInst: $prevInst)))
+                        )
+                        (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet (List.appendList (exprToList $newInstances) $newInst)) $demeId)))))
 
 ;; similar to the above 'crossTopOne' but with slight changes on the comparison function that is passed to the Lost.partialSort to compare the mutualInformation based scores
 ; (: crossTopOneFs (-> (InstanceSet $a) Number Number Number Instance (InstanceSet $a)))
