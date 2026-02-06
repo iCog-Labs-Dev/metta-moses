@@ -18,14 +18,22 @@
     (let ($size $capSize) ((eval (OS.length (ConsOS $exmplar $rest))) (eval (int (capSize $capCoef $genCount)))) ;; bind two variables with two function calls 
         (if (<= $size $minPoolSize)
             (ConsOS $exemplar $rest)         
-            (let (mkExemplar $tree $demeId $cScore $bScore) $exemplar ;; exemplar with the best score
-            (chain (eval (getPenScore $cScore)) $topScore
-                (chain (- $topScore (usefulScoreRange $compTemp)) $worstScore
-                    (chain (getBetterCandidates (ConsOS $exemplar $rest) $worstScore) $reducedMetapop
-                        (chain (eval (OS.length $reducedMetapop)) $popSize
-                            (if (<= $popSize $capSize) 
-                                $reducedMetapop
-                                (cullAtRandom $reducedMetapop $nToKeep (- $popSize $capSize)))))))))))
+            (let*
+              (
+               ((mkExemplar $tree $demeId $cScore $bScore) $exemplar) ;; exemplar with the best score
+
+               ($topScore (eval (getPenScore $cScore)))
+               ($worstScore (- $topScore (usefulScoreRange $compTemp)))
+               ;; ($_ (println! (TopScore: $topScore)))
+               ;; ($_ (println! (WorstScore: $worstScore)))
+
+               ($reducedMetapop (getBetterCandidates (ConsOS $exemplar $rest) $worstScore))
+               ($popSize (eval (OS.length $reducedMetapop)))
+              )
+              (if (<= $popSize $capSize) 
+                  $reducedMetapop
+                  (cullAtRandom $reducedMetapop $nToKeep (- $popSize $capSize)))
+           ))))
 ;;TODO: for large minPoolSize if the returned resizedMetapop size is less than minPoolSize we may still need to add random candidates to reach minPoolSize
 
 ;; compute useful range 
@@ -53,12 +61,18 @@
 ;; gives a certain chance for poor candidates to survive
 ; (: cullAtRandom (-> (OS (Exemplar $a)) Number Number (OS (Exemplar $a))))
 (= (cullAtRandom (ConsOS $exemplar $rest) $offset $nToRemove)
-    (if (> $nToRemove 0)
-        (chain (eval (OS.length (ConsOS $exemplar $rest))) $popSize
-            (chain (- (py-call (random.randint $offset $popSize)) 1) $index
-                (chain (eval (OS.removeByIdx (ConsOS $exemplar $rest) $index)) $newPop
-                    (cullAtRandom $newPop $offset (- $nToRemove 1)))))
-        (ConsOS $exemplar $rest))) 
+   (let $popSize (eval (OS.length (ConsOS $exemplar $rest)))
+    (if (and (> $popSize $offset) (> $nToRemove 0))
+        (let*
+          (
+           ;; ($_ (println! (NToRemove: $nToRemove)))
+           ;; ($_ (println! (Offset: $offset Popsize: $popSize)))
+           ($index (- (py-call (random.randint $offset $popSize)) 1))
+           ($newPop (eval (OS.removeByIdx (ConsOS $exemplar $rest) $index)))
+          )
+          (cullAtRandom $newPop $offset (- $nToRemove 1))
+        )
+        (ConsOS $exemplar $rest))))
 
 ;; Compares two exemplars based on their Cscores, returning L if the first is less, E if equal, or G if greater.
 ;; Params:
@@ -69,8 +83,8 @@
 (= (compareExemplar 
         (mkExemplar $tree1 $demeId1 $cscore1 $bscr1)
         (mkExemplar $tree2 $demeId2 $cscore2 $bscr2))
-   (if (eval (apply < $cscore1 $cscore2) )L
-       (if (eval (apply == $cscore1 $cscore2)) E G)))
+   (if (eval (apply < $cscore1 $cscore2)) L
+       (if (== $tree1 $tree2) E G))) ;; If they are the same tree, they will have the same $cscore
 
 ;; Extract BScore from Exemplar
 ;; Params:
