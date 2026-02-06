@@ -203,7 +203,7 @@
             (mux6        12) ;; (OR (AND (NOT A0) (AND (NOT A1) D0)) (AND (NOT A0) A1 D1) (AND A0 (NOT A1) D2) (AND A0 A1 D3))
           )
       )
-      (eval (updatePenalizedScore (mkCscore 0 $bestCpx $cpxPen (* $cpxPen $bestCpx) 0) False)))
+      (eval (updatePenalizedScore (mkCscore 0 $bestCpx (* (getComplexityCoef $cpxPen) $bestCpx) 0.0 (* -1 (pow-math 10 308))) False)))
    )
 
 ;;$maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount
@@ -219,23 +219,25 @@
    (let*
       (
         ($srp (py-call (random.seed $seed)))
-        ($cpxPen 0.004)
-        ($truthTableBScore (eval (createTruthTableBScore 2 ($problem))))
+        ($cpxPen 2)
+        ($truthTableBScore (eval (createTruthTableBScore $cpxPen ($problem))))
         (($ctor $worstPossibleBScore) (worstPossibleScore $truthTableBScore))
         ($worstPossibleScore (eval (List.sum $worstPossibleBScore)))
         ($bestPosssibleCscore (getBestPossibleCscore $cpxPen $problem))
-        ($metaPop (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) $worstPossibleBScore) NilOS))
+        ($_ (println! (BestPossibleScore: $bestPosssibleCscore)))
+        ($metaPop (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) NilOS))
+        ;; ($metaPop (ConsOS (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) Nil) Nil)) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) NilOS))
         ($result (runMoses $maxGen $bestPosssibleCscore 3 $metaPop 0 $nDeme
               False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
               $fsAlgo      ;; the new arguments for feature selection algo
               $truthTableBScore
               hillClimbing
-              100 10 20 2
+              100 100 20 1
               ($problem)
-              10 $cpxPen 1000))
+              50 $cpxPen $maxGen))
         ($_ (println! (Result: $result)))
         ($newR (eval (osToExpression (mapG cleanedExemplar $result) ())))
-        ($_ (println! (cut))) ;; INFO: This prevents a weird infint loop that only occurs on some test cases with unknown reasons.
+        ($_ (cut)) ;; INFO: This prevents a weird infint loop that only occurs on some test cases with unknown reasons.
       )
       (FinalResult $newR)))
 
