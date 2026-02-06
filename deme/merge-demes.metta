@@ -33,10 +33,13 @@
 (= (keepTopUniqueCandidates (mkSInstSet $sortedSInstList) $nEval $maxCandsPerDeme)
  (let*
  (
-    ($lenSInstList (eval (List.length $sortedSInstList)))
+    ($instExpr (eval (List.listToExpr $sortedSInstList)))
+    ($uniqueSortedInstExpr (unique-atom $instExpr))
+    ($uniqueSortedInstList (eval (exprToList $uniqueSortedInstExpr)))
+    ($lenSInstList (eval (List.length $uniqueSortedInstList)))
     ($topCnd (min-atom ($nEval $lenSInstList)))
     ($uTopCnd (if (>= $maxCandsPerDeme 0) (min-atom ($topCnd $maxCandsPerDeme)) $topCnd))
-    ($uniqueTopCandidates (removeDupInsts $sortedSInstList $uTopCnd))
+    ($uniqueTopCandidates (removeDupInsts $uniqueSortedInstList $uTopCnd))
  )
  $uniqueTopCandidates
  ))
@@ -141,10 +144,12 @@
 (= (dominatesRec (mkBScore Nil) (mkBScore Nil) $res) $res)
 (= (dominatesRec (mkBScore (Cons $bx $bxs)) (mkBScore (Cons $by $bys)) $res)
    (if (> $bx $by)
-       (if (== $res False) Indeterminate
+       (if (== $res False) 
+           Indeterminate
            (dominatesRec (mkBScore $bxs) (mkBScore $bys) True))
        (if (> $by $bx)
-           (if (== $res True) Indeterminate
+           (if (== $res True)
+               Indeterminate
                (dominatesRec (mkBScore $bxs) (mkBScore $bys) False))
            (dominatesRec (mkBScore $bxs) (mkBScore $bys) $res))))
 
@@ -169,11 +174,14 @@
    (Cons $exemplar $acc))
 (= (removeDominatedRec $exemplar (Cons $other $rest) $acc)
    (let $domResult (dominates (eval (getExemplarBScore $exemplar)) (eval (getExemplarBScore $other)))
-      (if (== $domResult True)
+      ;; (trace! (if (== $domResult True) Dominated $domResult)
+      (if (== $domResult True) ;; Could also be Indeterminate that's why we use explicit == comparison
           (removeDominatedRec $exemplar $rest $acc)
           (if (== $domResult False)
               (removeDominated (Cons $other $rest))
-              (removeDominatedRec $exemplar $rest (Cons $other $acc))))))
+              (removeDominatedRec $exemplar $rest (Cons $other $acc))))
+      ;; )
+      ))
 
 ;; Merges a list of exemplars into the metapopulation, maintaining order based on exemplar comparison.
 ;; Assumes the exemplars are already filtered so it directly inserts them to the metapopulation
@@ -211,6 +219,9 @@
             (($headDeme $tailDeme) (decons-atom $demes))
             ((mkDeme $rep $sInstList $demeId) $headDeme)
             ($sortedSInstList (eval (sortDeme $sInstList))) ;; sorting the instances inside the deme by decreasing order
+            ;; ($_ (println! (Demesize: (List.length (second $sortedSInstList)))))
+            ;; ($demeExpr (List.listToExpr (second $sortedSInstList)))
+            ;; ($_ (println! (UniqueDemeSize: (length (unique-atom $demeExpr)))))
             ($unqCandidates (keepTopUniqueCandidates $sortedSInstList $nEval $maxCandsPerDeme))  ;;remove duplicates and limits the size by keeping the top scoring
             ($trimmedDeme (trimDownDeme $unqCandidates $minPoolSize $complexityTemperature))  ;; further trims the deme
             ;; ($_ (println! (demeToTrees Starting...)))
@@ -222,9 +233,12 @@
             ;; ($_ (println! (GetNewCadidates Finished: $candidates)))
             ($removedDominated (removeDominated $candidates))  ;;removeDominated
             ;; ($_ (println! (Removed Dominated: $removedDominated)))
+            ;; ($_ (println! (Metapop size after removedDominated (List.length $removedDominated))))
             ($updatedMetaPop (mergeCandidates $removedDominated $metapop))  ;;merge candidates into metapop
             ;; ($_ (println! (merged Candidate: $updatedMetaPop)))
+            ;; ($_ (println! (Metapop size before resize: (OS.length $updatedMetaPop))))
             ($resizedMetapop (eval (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount)))  ;;resize the metapop
+            ;; ($_ (println! (Metapop size after resize: (OS.length $resizedMetapop))))
             ; ($resizedMetapop (if (<= $nToKeep (eval (OS.length $updatedMetaPop))) (eval (OS.getTopN $nToKeep $updatedMetaPop)) $updatedMetaPop)) ;; select top nToKeep candidates
             ;; ($_ (println! (Resized Metapop: $resizedMetapop)))
             ;; ($_ (println! ("--------------------------------")))
