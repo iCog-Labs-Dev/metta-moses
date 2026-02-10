@@ -23,7 +23,7 @@
                 ;; ($_ (println!( "head: " $head "tail :" $tail)))
                 (($tNew  $mNew) (if (is-member $node (AND OR));; only build logical knobs for AND/OR nodes, creating sampleLogicalPerms
                                 (eval (buildLogical $tree (mkNodeId $curId) $MMap $argLabels))
-                                (let  $itree (eval (insertNodeAtPosition $tree (mkNodeId $curId) (mkNode $swapedOp))) (eval (addLogicalKnobs $itree (mkNodeId $curId) True $MMap $argLabels)))
+                                (let  $itree (eval (insertNodeAtPosition $tree (mkNodeId $curId) (mkNode $swapedOp))) (eval (addLogicalKnobs $itree (mkNodeId $curId) False $MMap $argLabels)))
                             ))
                 ;;($_ (println! $tNew))
                 (($tailT $tailM) (eval (siblingit $tNew $tail (mkNodeId $parentId )(+ $childNum 1) $swapedOp $mNew $argLabels)))
@@ -49,7 +49,7 @@
             ((mkTree (mkNode $op) $childrens) $subtree) 
             ($swapped (eval (swapAndOr $op)))
             ;; ($_ (println! ("Operator: " $op " swapped to: " $swapped)))
-            (($t1 $mp1) (eval (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap $argLabels)))
+            (($t1 $mp1) (eval (addLogicalKnobs $tree (mkNodeId $nodeId) False $MMap $argLabels)))
             ;; ($_ (println! ("Building logical knobs for NodeId: " $nodeId " with operator: " $op " swapped to: " $swapped)))
             (($updatedTree $updatedMMap) (eval (siblingit $t1 $childrens (mkNodeId $nodeId) 1 $swapped $mp1 $argLabels)))
             ;;$append (appendChild $updatedTree $nodeId (mkNode $filp)))                                 ;; this part will add much complexity to the tree, not worth the cost

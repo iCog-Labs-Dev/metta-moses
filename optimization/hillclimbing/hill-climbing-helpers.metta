@@ -188,7 +188,7 @@
             ($disc (getDisk $POASet))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer))
           )
-          (hillClimbing (4 3 0) (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1) ;; TODO: Change maxDist to 3
+          (hillClimbing ((min 4 (eval (List.length (second $centerInst)))) 3 0) (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
                         ($disc $cpxCoeff $size $iTable)
                         $centerInst
