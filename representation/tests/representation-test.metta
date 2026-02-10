@@ -1,4 +1,3 @@
-
 !(import! &self ../../reduct/boolean-reduct/rte-helpers)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-and)

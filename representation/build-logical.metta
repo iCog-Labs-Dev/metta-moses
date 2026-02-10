@@ -13,7 +13,7 @@
 (= (siblingit $tree (Cons $head $tail) (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels)
         (let*
              (
-                ($_ (println! "siblingit called"))
+                ;; ($_ (println! "siblingit called"))
                 ($curId (if (== $parentId (0))
                             ($childNum)
                            (concatT $parentId ($childNum))      
@@ -45,12 +45,12 @@
         (let $x (println! ("reaching Null Vector ")) ($tree $MMap)) 
         (let*
         (
-            ($_ (println! ("****************Building logical knobs for NodeId:**************** " $argLabels $nodeId)))
+            ;; ($_ (println! ("****************Building logical knobs for NodeId:**************** " $argLabels $nodeId)))
             ((mkTree (mkNode $op) $childrens) $subtree) 
             ($swapped (eval (swapAndOr $op)))
-            ($_ (println! ("Operator: " $op " swapped to: " $swapped)))
+            ;; ($_ (println! ("Operator: " $op " swapped to: " $swapped)))
             (($t1 $mp1) (eval (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap $argLabels)))
-            ($_ (println! ("Building logical knobs for NodeId: " $nodeId " with operator: " $op " swapped to: " $swapped)))
+            ;; ($_ (println! ("Building logical knobs for NodeId: " $nodeId " with operator: " $op " swapped to: " $swapped)))
             (($updatedTree $updatedMMap) (eval (siblingit $t1 $childrens (mkNodeId $nodeId) 1 $swapped $mp1 $argLabels)))
             ;;$append (appendChild $updatedTree $nodeId (mkNode $filp)))                                 ;; this part will add much complexity to the tree, not worth the cost
         )

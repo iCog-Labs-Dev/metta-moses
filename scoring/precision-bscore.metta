@@ -274,7 +274,7 @@
 ; (: precisionBScore (-> Expression Expression Number Number Number Number Number Number Number))
 (= (precisionBScore $rows $labels $activationPressure $minActivation $maxActivation $totalWeight)
    (let* (
-            ($_ (println! (debug Inside Precision scoring)))
+            ;; ($_ (println! (debug Inside Precision scoring)))
             ($groupedData (cTable $rows $labels))
             
             ($precisionRows (createPrecisionRows $groupedData))

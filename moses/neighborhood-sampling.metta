@@ -196,7 +196,7 @@
 ; (: sampleFromNeighborhoodFs (-> Number Number (ITable Bool) Instance (List Instance)))
 (= (sampleFromNeighborhoodFs $sampleSize $dist $itable $inst)
    (let* (
-      ($_ (println! (Inside sampleFromNeighborhoodFs: $sampleSize $dist $inst)))
+      ;; ($_ (println! (Inside sampleFromNeighborhoodFs: $sampleSize $dist $inst)))
       ($list (eval (genList (- $sampleSize 1))))
       ($x (eval (map-atom $list $i (sampleFromNeighborhoodFs` $i $dist $itable $inst))))
     )
@@ -297,15 +297,15 @@
 (= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep $kbMp $tree) (mkSInstSet $instList) $demeId) $dist)
  (let*
   (
-    ($_ (println! (Inside sampleNewInstances: $totalNeighbors $numNewInstances $centerInst)))
-    ($_ (println! (Distance: $dist CenterInst: $centerInst)))
-    ($_ (println! ""))
+    ;; ($_ (println! (Inside sampleNewInstances: $totalNeighbors $numNewInstances $centerInst)))
+    ;; ($_ (println! (Distance: $dist CenterInst: $centerInst)))
+    ;; ($_ (println! ""))
 
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (eval (countNeighborhood $kbMp $centerInst $dist $numNewInstances))
              $totalNeighbors))
-    ($_ (println! (updatedTotalNeighbors: $updatedTotalNeighbors)))
+    ;; ($_ (println! (updatedTotalNeighbors: $updatedTotalNeighbors)))
     ($updatedNumNewInstances 
          (if (< $numNewInstances $updatedTotalNeighbors)  
              $numNewInstances
@@ -326,9 +326,9 @@
 (= (sampleNewInstancesFs $totalNeighbors $numNewInstances $centerInst $itable (mkSInstSet $instList) $dist)
  (let*
   (
-    ($_ (println! (Inside sampleNewInstancesFs: $totalNeighbors $numNewInstances $centerInst)))
-    ($_ (println! (Distance: $dist CenterInst: $centerInst)))
-    ($_ (println! ""))
+    ;; ($_ (println! (Inside sampleNewInstancesFs: $totalNeighbors $numNewInstances $centerInst)))
+    ;; ($_ (println! (Distance: $dist CenterInst: $centerInst)))
+    ;; ($_ (println! ""))
 
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)

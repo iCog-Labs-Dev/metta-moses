@@ -18,12 +18,17 @@
     (case $metaPop
         ((NilOS (Error $metaPop (NO_EXEMPLAR)))
         ((ConsOS $x NilOS) $x)
-        ($_ (let* (($probs (getPnScore $metaPop))
-                ($hstScr (List.max >= $probs))
-                ;; get list of normalized ScoreT values
-                ($normalizedProbs (normalizeProbs (INV_TEMP) $hstScr $probs))
-                ($sum (List.sum $normalizedProbs)))
-                (rouletteSelect $metaPop $probs $sum) )))))
+        ($_ (let* (
+                    ($probs (getPnScore $metaPop))
+                    ($hstScr (List.max >= $probs))
+                    ;; get list of normalized ScoreT values
+                    ($normalizedProbs (normalizeProbs (INV_TEMP) $hstScr $probs))
+                    ;; ($pr (println! (NotNormalized: $probs)))
+                    ;; ($pr (println! (Normalized Probs: $normalizedProbs)))
+                    ($sum (List.sum $normalizedProbs))
+                    ;; ($pr (println! (HstScr: $hstScr Sum: $sum)))
+                  )
+                  (rouletteSelect $metaPop $normalizedProbs $sum) )))))
 
 ;; get penalized scores of all the exemplars as a list of Numbers
 ;;      (ConsOS $x $xs) -- pattern for the list of exemplars constructed by Cons
@@ -54,9 +59,14 @@
 
 ; (: rouletteSelect (-> (OS (Exemplar $a)) (List Number) Number (Exemplar $a)))
 (= (rouletteSelect $metaPop $probs $sum)
-    (let* (($rndfloat (random-float 0 1))
+    (let* (
+
+           ($rndfloat (random-float 0 1))
            ($ajstdSum (* $sum $rndfloat))
-            ($index (roulette $probs 0 $ajstdSum)))
+           ($index (roulette $probs 0 $ajstdSum))
+           ;; ($_ (println! (Sum: $sum RandFloat: $rndfloat AjstdSum: $ajstdSum)))
+           ;; ($_ (println! (Index: $index)))
+          )
         (OS.getByIdx $index $metaPop)))
 
 ;; roulette function to do the roulette selection and return an index -- spin the wheel
@@ -66,6 +76,9 @@
 ; (: roulette (-> (List Number) Number Number Number))
 (= (roulette Nil $sIdx $ajstdsum) (- $sIdx 1))
 (= (roulette (Cons $p $xs) $sIdx $ajstdsum)
-    (if (<= (- $ajstdsum $p) 0)
+    ;; (trace! (AdjustdSum: (- $ajstdsum $p))
+            (if (<= (- $ajstdsum $p) 0)
             $sIdx
-            (roulette $xs (+ 1 $sIdx) (- $ajstdsum $p))))
+            (roulette $xs (+ 1 $sIdx) (- $ajstdsum $p)))
+            ;; )
+    )

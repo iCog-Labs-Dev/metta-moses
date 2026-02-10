@@ -99,7 +99,16 @@
                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
                          (Cons A (Cons B (Cons O Nil))))) 
 
-(= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (eval (worstCscore)) (mkBScore (Cons 0 (Cons 0 Nil)))) NilOS)) 
+(= (xortable) (mkITable
+                         (Cons (Cons False (Cons False (Cons False Nil))) 
+                         (Cons (Cons True (Cons False (Cons True Nil))) 
+                         (Cons (Cons False (Cons True (Cons True Nil)))
+                         (Cons (Cons True (Cons True (Cons False Nil))) Nil))))
+                         (Cons A (Cons B (Cons O Nil)))))
+
+;; (= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (eval (worstCscore)) (mkBScore (Cons -1 (Cons -1 Nil)))) NilOS))
+;; (= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (eval (worstCscore)) (mkBScore (Cons -1 (Cons -1 (Cons -1 (Cons -1 Nil)))))) NilOS))
+(= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (mkCscore -4 2 1.0 0.0 -4.0) (mkBScore  (Cons -1 (Cons -1 (Cons -1 (Cons -1 Nil)))))) NilOS))
 
 (= (metaPop) (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil))))))
                  (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil)))))) 
@@ -300,3 +309,43 @@
 ;     5 2 0 1 
 ;     (bigtable) 
 ;     3 0.004 1000)
+
+(= (mapG $f NilOS) NilOS)
+(= (mapG $f Nil) Nil)
+(= (mapG $f ($ctor $x $xs)) ($ctor ($f $x) (mapG $f $xs)))
+
+(= (printExemplar (mkExemplar $tree $demeId $cscore $bscore)) (println! (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore)))
+(= (cleanedExemplar (mkExemplar $tree $demeId $cscore $bscore)) (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore))
+
+;; Parameters:
+  ;; $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme
+  ;; $prune-exemplar
+  ;; $fs-algo
+  ;; $truthTableBScore
+  ;; $optimize
+  ;; $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature
+  ;; $itable
+  ;; $nToKeep $capCoef $genCount
+
+;; The following configuration can result to XOR.
+;; A⊕B=(A∨B)∧¬(A∧B)
+;; (AND (OR A B) (OR (NOT A) (NOT B)))
+;; A⊕B=(¬A∧B)∨(A∧¬B)
+;; (AND (OR (AND A (NOT B)) (AND (NOT A) B)))
+;; !(let*
+;;    (
+;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
+;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
+;;                   smd      ;; the new arguments for feature selection algo
+;;                   (eval (createTruthTableBScore 2 (xortable)))
+;;                   hillClimbing
+;;                   100 10 20 2
+;;                   (xortable)
+;;                   10 0.004 1000))
+;;     ($nt (println! ""))
+;;     ($newR (mapG cleanedExemplar $result))
+;;     ($_ (mapG printExemplar $result))
+;;    )
+;;    $newR
+;;  )
+;;
