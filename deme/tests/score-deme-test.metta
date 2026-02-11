@@ -14,6 +14,15 @@
 !(import! &self ../../scoring/cscore)
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/fitness)
+!(import! &self ../../scoring/strategy-score-cache)
+
+!(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
+!(import! &self ../../examples/tic-tac-toe/random-player)
+!(import! &self ../../examples/tic-tac-toe/strategy-scoring)
+!(import! &self ../../examples/tic-tac-toe/minimax-player)
+!(import! &self ../../examples/tic-tac-toe/game-engine)
+!(import! &self ../../examples/tic-tac-toe/moves)
+!(import! &self ../../examples/tic-tac-toe/moses-player)
 
 !(import! &self ../../moses/neighborhood-sampling)
 !(import! &self ../../representation/lsk)
@@ -170,3 +179,53 @@
       )
    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0.5)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0.33333333333333337)) Nil)))
    )
+
+;; Helper: Create strategy representation for testing
+(= (strategyRep)
+   (mkRep 
+     (mkKbMap 
+       (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) NilMap))
+       (mkDscMp (ConsMMap ((mkDiscSpec 3) 
+         (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))
+     (mkTree (mkNode PRIORITIZED-OR) 
+       (Cons (mkTree (mkNode playwin) Nil) 
+             (Cons (mkTree (mkNode playblock) Nil) Nil)))))
+
+;; applyStrategyBasedScore base case - empty list returns accumulator
+!(assertEqual
+   (applyStrategyBasedScore (strategyRep) Nil 1 random-player Nil)
+   Nil)
+
+;; applyStrategyBasedScore with instances - returns scored instances
+!(assertEqual
+   (let*
+     (
+       ($result (applyStrategyBasedScore 
+                  (strategyRep) 
+                  (Cons (mkInst (Cons 0 Nil)) Nil)
+                  1 
+                  random-player 
+                  Nil))
+       ($length (eval (List.length $result)))
+     )
+     (== $length 1))
+   True)
+
+;; transformStrategy base case - empty InstanceSet
+!(assertEqual
+   (transformStrategy (mkSInstSet Nil) (strategyRep) 1 random-player)
+   (mkSInstSet Nil))
+
+!(assertEqual
+   (let*
+     (
+       ($result (transformStrategy 
+                  (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkBScore (Cons 0.0 Nil)))) Nil))
+                  (strategyRep)
+                  1
+                  random-player))
+       ((mkSInstSet $scoredList) $result)
+       ($length (eval (List.length $scoredList)))
+     )
+     (== $length 1))
+   True)

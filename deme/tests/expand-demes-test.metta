@@ -28,6 +28,16 @@
 !(import! &self ../expand-deme)
 !(import! &self ../merge-demes)
 
+!(import! &self ../../scoring/strategy-score-cache)
+!(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
+!(import! &self ../../examples/tic-tac-toe/random-player)
+!(import! &self ../../examples/tic-tac-toe/strategy-scoring)
+!(import! &self ../../examples/tic-tac-toe/minimax-player)
+!(import! &self ../../examples/tic-tac-toe/game-engine)
+!(import! &self ../../examples/tic-tac-toe/moves)
+!(import! &self ../../examples/tic-tac-toe/moses-player)
+
+
 !(import! &self ../../scoring/cscore)
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/fitness)
@@ -300,3 +310,35 @@
 ;     5 2 0 1 
 ;     (bigtable) 
 ;     3 0.004 1000)
+
+;; Tests for Game Strategy Functions
+
+; Create initial strategy metapop
+(= (strategyMetaPop)
+   (ConsOS
+     (mkExemplar
+       (mkTree (mkNode PRIORITIZED-OR)
+         (Cons (mkTree (mkNode playwin) Nil)
+               (Cons (mkTree (mkNode playblock) Nil) Nil)))
+       (mkDemeId "0")
+       (mkBScore (Cons -1.0 Nil))
+       (mkBScore (Cons 0.0 Nil)))
+     NilOS))
+
+!(assertEqual
+   (let*
+     (
+       ($optimizedDemes (expandDemeStrategy (strategyMetaPop) 0 1 1 random-player hillClimbingStrategy))
+       ($demeCount (size-atom $optimizedDemes))
+     )
+     (>= $demeCount 1))
+   True)
+
+!(assertEqual
+   (let*
+     (
+       ($result (runMosesStrategy 1 1.0 3 (strategyMetaPop) 0 1 1 random-player hillClimbingStrategy 5 2 0 3))
+       ($resultSize (eval (OS.length $result)))
+     )
+     (>= $resultSize 1))
+   True)

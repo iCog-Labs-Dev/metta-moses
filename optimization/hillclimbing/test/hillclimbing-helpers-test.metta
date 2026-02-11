@@ -36,6 +36,14 @@
 !(import! &self ../../../feature-selection/feature-selection-helpers)
 !(import! &self ../cross-top-one-helpers)
 
+!(import! &self ../../../examples/tic-tac-toe/tic-tac-toe-helpers)
+!(import! &self ../../../examples/tic-tac-toe/random-player)
+!(import! &self ../../../examples/tic-tac-toe/strategy-scoring)
+!(import! &self ../../../examples/tic-tac-toe/minimax-player)
+!(import! &self ../../../examples/tic-tac-toe/game-engine)
+!(import! &self ../../../examples/tic-tac-toe/moves)
+!(import! &self ../../../examples/tic-tac-toe/moses-player)
+
 (= (knobmap1)
         (ConsMMap (
                     (mkDiscSpec 1)
@@ -212,3 +220,44 @@
      )
      ((>= $instanceCount 4) (eval (List.any $scoredElems))))
    (True True))
+
+
+;; Helper to check if strategy instance is scored (not worst BScore)
+(= (isScoredStrategy (mkSInst (mkPair $instance (mkBScore $scores))))
+   (~= $scores Nil))
+
+;; Test hillClimbingStrategy returns scored instances
+!(assertEqual
+   (let*
+     (
+       ($exemplar (mkTree (mkNode PRIORITIZED-OR) 
+                          (Cons (mkTree (mkNode playwin) Nil) 
+                                (Cons (mkTree (mkNode playblock) Nil) Nil))))
+       ($demeIds (Cons (mkDemeId 0) Nil))
+       ($demes (createDeme 1 $demeIds $exemplar))
+       ($deme (car-atom $demes))
+       ($centerInst (initCenterInst $deme))
+       (($bestInst (mkDeme $rep (mkSInstSet $instSet) $id) $state) 
+        (hillClimbingStrategy $deme 1 random-player $centerInst))
+       ($instanceCount (eval (List.length $instSet)))
+       ($scoredElems (eval (List.map isScoredStrategy $instSet)))
+     )
+     ((>= $instanceCount 2) (eval (List.any $scoredElems))))
+   (True True))
+
+;; Test hillClimbingStrategy improves score over iterations
+!(assertEqual
+   (let*
+     (
+       ($exemplar (mkTree (mkNode PRIORITIZED-OR) 
+                          (Cons (mkTree (mkNode playwin) Nil) 
+                                (Cons (mkTree (mkNode playblock) Nil) Nil))))
+       ($demeIds (Cons (mkDemeId 0) Nil))
+       ($demes (createDeme 1 $demeIds $exemplar))
+       ($deme (car-atom $demes))
+       ($centerInst (initCenterInst $deme))
+       (($bestInst $finalDeme ($xover $lastChance $improved $prevCenter $bestBscore $bestScore $nInst $dist $iter)) 
+        (hillClimbingStrategy $deme 3 random-player $centerInst))
+     )
+     (>= $bestScore -3))
+   True)
