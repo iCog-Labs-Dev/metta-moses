@@ -131,9 +131,13 @@
          ($candidate (getCandidateRec $repObj $inst $parentid $srcid (mkNullVex Nil)))
          ; ($_ (println! (Found candidate: $candidate)))
          ;; Check if this is a game strategy (PRIORITIZED-OR at root)
+         ;; Check if this is a game strategy (PRIORITIZED-OR at root)
          ($rootNode (eval (getNodeById (eval (getRepTree $repObj)) $srcid)))
          ($rootValue (eval (getNodeValue $rootNode)))
-         ($isGameStrategy (== $rootValue PRIORITIZED-OR))
+         ($rootSymbol (if (== (get-metatype $rootValue) Expression) 
+                 (car-atom (cdr-atom $rootValue))  ;; Extract symbol from (mkNode SYMBOL)
+                 $rootValue))
+         ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
       )
       ;; Skip cleanTree for game strategies, apply it for boolean logic
       (if $isGameStrategy

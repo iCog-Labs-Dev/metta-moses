@@ -150,7 +150,6 @@
         ($subtree (if (== True (eval (isNullVertex $targetTree)))
                         (let (mkNullVex (Cons $child Nil)) $targetTree $child)
                         $targetTree))
-        ($_ (println! ("strategy subtree:": $subtree $targetTree)))
       )
       (if (> $d 1)
           (Error $d "Invalid disc specification for strategy:- cannot exceed 1.")

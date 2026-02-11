@@ -189,6 +189,26 @@
                (mkSInst (mkPair $inst2 $score2)))
     (=> $score1 $score2))
 
+;; Sorts game strategy instances by BScore (descending)
+;; Params: $set - InstanceSet with BScores
+;; Returns: Sorted InstanceSet (highest score first)
+;; Uses direct list sorting instead of expression conversion
+;; (: sortDemeStrategy (-> (InstanceSet BScore) (InstanceSet BScore)))
+(= (sortDemeStrategy (mkSInstSet $lst))
+    (let* (
+      ($sortedList (eval (List.sort $lst compareBScoreInst)))
+    )
+      (mkSInstSet $sortedList)))
+
+;; Comparator for BScore instances - returns True if first has higher total score
+;; (: compareBScoreInst (-> (ScoredInstance BScore) (ScoredInstance BScore) Bool))
+(= (compareBScoreInst (mkSInst (mkPair $inst1 $score1)) (mkSInst (mkPair $inst2 $score2)))
+    (let* (
+      ($sum1 (eval (sumBScore $score1)))
+      ($sum2 (eval (sumBScore $score2)))
+    )
+      (> $sum1 $sum2)))
+
 ; Generates a single random instance of the given length.
 ; Each element is produced by biasedRandomInt.
 ; Params:
