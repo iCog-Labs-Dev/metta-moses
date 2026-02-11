@@ -187,6 +187,13 @@
    (let $updatedMetaPop (eval (OS.insert compareExemplar $x $metapop))
       (mergeCandidates $xs $updatedMetaPop)))
 
+;; Merges exemplars for game strategies using BScore-based comparison
+; (: mergeCandidatesStrategy (-> (List (Exemplar $a)) (OS (Exemplar $a)) (OS (Exemplar $a))))
+(= (mergeCandidatesStrategy Nil $metapop) $metapop)
+(= (mergeCandidatesStrategy (Cons $x $xs) $metapop)
+   (let $updatedMetaPop (eval (OS.insert compareExemplarStrategy $x $metapop))
+      (mergeCandidatesStrategy $xs $updatedMetaPop)))
+
 ;; Merges a deme's candidates into a metapopulation, processing through sorting, deduplication, trimming, tree conversion, filtering, dominance removal, merging, and resizing.
 ;; Params:
 ;;   $demes: List of demes to process.
@@ -230,6 +237,69 @@
         )
             (if (== $tailDeme ()) $resizedMetapop
                 (mergeDemes $tailDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $resizedMetapop $nToKeep $capCoef $genCount)
+            )
+        )
+    )
+)
+
+;; Converts a Deme into a list of Exemplars for game strategies by scoring with game playing.
+;; Params:
+;;   $deme: A deme containing a representation, scored instance set, and demeId.
+;;   $nGames: Number of games to play for scoring.
+;;   $opponentPolicy: Opponent strategy to play against.
+;; Return: (List (Exemplar $a)) - List of exemplars with game-based behavioral scores.
+(= (demeToTreesStrategy (mkDeme $rep (mkSInstSet Nil) $demeId) $nGames $opponentPolicy) Nil)
+(= (demeToTreesStrategy (mkDeme $rep (mkSInstSet (Cons $si $sil)) $demeId) $nGames $opponentPolicy)
+(let*
+    (
+        ($cscore (eval (getSInstScore $si)))
+        ($inst (eval (getInst $si)))  
+        ($bscore (eval (getCachedBScore $inst $rep $nGames $opponentPolicy &strategyScoreCache)))
+        ($tree (eval (getCandidate $rep $inst)))
+        ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
+    )
+    (Cons $scoredTree (demeToTreesStrategy (mkDeme $rep (mkSInstSet $sil) $demeId) $nGames $opponentPolicy))
+    )
+)
+
+;; Merges game strategy demes into a metapopulation.
+;; Params:
+;;   $demes: List of demes to process.
+;;   $nEval: Number of evaluations for candidate selection.
+;;   $maxCandsPerDeme: Maximum candidates per deme.
+;;   $minPoolSize: Minimum deme size to retain.
+;;   $nGames: Number of games to play for scoring.
+;;   $opponentPolicy: Opponent strategy to play against.
+;;   $metapop: Ordered set of existing exemplars.
+;;   $nToKeep: Target size for resized metapopulation.
+;; Return: Updated and resized metapopulation.
+(= (mergeDemesStrategy $demes $nEval $maxCandsPerDeme $minPoolSize $nGames $opponentPolicy $metapop $nToKeep)
+    (if (== $demes ()) $metapop
+        (let*
+        (
+            ($_ (println! ("--------------------------------")))
+            ($_ (println! (===== mergeDemesStrategy Starting =====)))
+            (($headDeme $tailDeme) (decons-atom $demes))
+            ((mkDeme $rep $sInstList $demeId) $headDeme)
+            ($sortedSInstList (eval (sortDemeStrategy $sInstList)))
+            ($unqCandidates (keepTopUniqueCandidates $sortedSInstList $nEval $maxCandsPerDeme))
+            ($_ (println! "demeToTreesStrategy Starting..."))
+            ($potCandidates (demeToTreesStrategy (mkDeme $rep (mkSInstSet $unqCandidates) $demeId) $nGames $opponentPolicy))
+            ($_ (println! (GetNewCadidates Started: $potCandidates)))
+            ($_ (println! (Metapop: $metapop)))
+            ($_ (println! ("--")))
+            ($candidates (getNewCandidates $potCandidates $metapop))
+            ($_ (println! (GetNewCadidates Finished: $candidates)))
+            ($removedDominated (removeDominated $candidates))
+            ($_ (println! (Removed Dominated: $removedDominated)))
+            ($updatedMetaPop (mergeCandidatesStrategy $removedDominated $metapop))
+            ($_ (println! (merged Candidate: $updatedMetaPop)))
+            ($resizedMetapop (if (<= $nToKeep (eval (OS.length $updatedMetaPop))) (eval (OS.getTopN $nToKeep $updatedMetaPop)) $updatedMetaPop))
+            ($_ (println! (Resized Metapop: $resizedMetapop)))
+            ($_ (println! ("--------------------------------")))
+        )
+            (if (== $tailDeme ()) $resizedMetapop
+                (mergeDemesStrategy $tailDeme $nEval $maxCandsPerDeme $minPoolSize $nGames $opponentPolicy $resizedMetapop $nToKeep)
             )
         )
     )
