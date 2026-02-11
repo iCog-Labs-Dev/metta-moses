@@ -2,6 +2,7 @@
 venv
 .venv
 __pycache__/
+logs/
 .DS_Store
 
 myTest.metta

@@ -25,7 +25,7 @@
 
 ; (: preOrder (-> (Tree $a) $a))
 
-(= (preOrder (mkTree (mkNode $r) Nil)) $r)
+(= (preOrder (mkTree (mkNode $r) Nil)) (if (is-member $r (AND OR)) ($r) $r))
 (= (preOrder (mkNullVex $knobs)) ())
 (= (preOrder (mkTree (mkNode $r) (Cons $x $xs)))
      (let*
@@ -213,8 +213,8 @@
         ( $tree (mkTree $node $children))
         ( $targetNode (eval (getNodeById $tree (mkNodeId $target))))
         ( $childrenTgt (getChildren $targetNode))
-        ( $updatedChildrenTgt (List.append $child $childrenTgt))
-        ( $childIndex (List.length $updatedChildrenTgt))
+        ( $updatedChildrenTgt (eval (List.append $child $childrenTgt)))
+        ( $childIndex (eval (List.length $updatedChildrenTgt)))
 
         ;; Comparison has to be in mkNodeId constructor because if not,
         ;;    when the expression size is different so will the type and

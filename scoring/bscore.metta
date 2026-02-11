@@ -102,7 +102,7 @@
 ;; Returns: Modified version of the boolean expression.
 ;(: replaceVarWithTruth (-> (Bool Symbol) $a $a))
 (= (replaceVarWithTruth ($b $l) $boolExpr)
-   (if (== (get-metatype $boolExpr) Expression) ;; If symbol or Grounded
+   (if (== (get-metatype $boolExpr) Expression) ;; If not symbol or Grounded
        (let ($h $t) (decons-atom $boolExpr)
             (if (== $t ())
                 (replaceVarWithTruth ($b $l) $h)
@@ -110,7 +110,7 @@
                   (if (== $h $l)
                       (cons-atom $b $t')
                       (cons-atom $h $t')))))
-       (if (== $boolExpr $l) $b $boolExpr)))
+       (if (== $boolExpr $l) $b (if (is-member $boolExpr (AND OR)) ($boolExpr) $boolExpr))))
 
 ;; Replace ever occurence of all labels (boolean variables) 
 ;;  inside an expression with their corresponding truth values.

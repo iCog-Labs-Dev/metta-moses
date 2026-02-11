@@ -31,6 +31,26 @@
        1
        (let $nnEstimate (informationTheoreticBitsFs $labels) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
 
+;; Return an estimate of the number of new instances to search
+(= (nNewInstances $distance $maxEvals $currentEvals $totalNeighbors)
+   (if (== $distance 0)
+       1
+       (let*
+           (
+             ;; TODO: Most of the clamping logic here depens on the usage of number of evals and max number of evals. So best to do it after those are integrated into the system. For now we will be returning the total neighborhood clamped to the max_evals only.
+             ;; ($_ (println! (Inside newInstances: $distance $maxEvals $currentEvals $totalNeighbors)))
+             ($hc_params_fraction_of_nn 2) ;; Binomial coefficient has a combinatoric explosion to the power distance.
+                                            ;; So throttle back by fraction raised to power dist.
+             ($numberOfNewInstaces (int (* $totalNeighbors (pow-math $hc_params_fraction_of_nn $distance))))
+             ($nLeft (- $maxEvals $currentEvals))
+             ($minDemeSize 50) ;; This is also hardcoded in open cog classic so following the same number here. Classic is set to 100.
+           )
+           (if (< $numberOfNewInstaces $minDemeSize)
+               (min $nLeft $minDemeSize)
+               (if (< $nLeft $numberOfNewInstaces)
+                   $nLeft
+                   $numberOfNewInstaces)))))
+
 ;; Counts the number of instances at a specific distance from a given instance.
 ;; Params:
 ;;   $kbMap: Contains DiscKnobMap and DiscMap
@@ -79,7 +99,7 @@
 ;; Feature selection version of countNeighborhoodFromIdx
 ;; uses the BInomial coefficient to count the number of instances at a specific distance from a given instance.
 ; (: countNeighborhoodFromIdxFs (-> Instance Number Number Number Number))
-(= (countNeighborhoodFromIdxFs $instance $dist $startIdx $maxCount)
+(= (countNeighborhoodFromIdxFs (mkInst $instance) $dist $startIdx $maxCount)
 (if (== $dist 0) 1 
 (let*
   (
@@ -99,17 +119,17 @@
 ;; Crossover function.
 ;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
 ; (: crossover (-> Number Number Instance Deme (Deme Number)))
-(= (crossover $demeSize $nNewInstances $centerInst $deme) 
+(= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme) 
    ;; (trace! (Running cross over for $centerInst)
-           ((eval (crossTopOne $deme $nNewInstances 0 $demeSize $centerInst)) $nNewInstances)
+           ((eval (crossTopOne $deme $nNewInstances $sampleStart $sampleSize $centerInst)) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
    ;; )
    ) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
 ;; crossover for feature selection
 ; (: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
-(= (crossoverFs $size $nNewInstances $centerInst $scoredInstSet) 
+(= (crossoverFs $size $nNewInstances $sampleStart $sampleSize $centerInst $scoredInstSet)
    ;; (trace! (Running cross over for $centerInst)
-           ((eval (crossTopOneFs $scoredInstSet $nNewInstances 0 $size $centerInst)) $nNewInstances)
+           ((eval (crossTopOneFs $scoredInstSet $nNewInstances $sampleStart $sampleSize $centerInst)) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
            ;; )
    ) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
@@ -168,7 +188,7 @@
             ($disc (getDisk $POASet))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer))
           )
-          (hillClimbing (1 3 0) (False False False $centerInst (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
+          (hillClimbing ((min 4 (eval (List.length (second $centerInst)))) 3 0) (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
                         ($disc $cpxCoeff $size $iTable)
                         $centerInst
@@ -185,7 +205,7 @@
             ;; ($_ (println! (Labels: $labels)))
             ($FsScorerType (if (== $FsScorer ()) mi $FsScorer))
           )
-          (hillClimbing (3 5 0) (False False False $centerInst 0 0 0 0 1) 
+          (hillClimbing ((min 3 (eval (List.length (second $centerInst)))) 5 0) (False False False $centerInst 0 0 0 0 0 0 1) 
               $POASet 
               ($labels $rows () ())
               $centerInst
@@ -197,7 +217,7 @@
 
 
 (= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
-                 ($alreadyXover $lastChance $__ $prevCenter $bestSscore $bestScore $currentNInstances $d $i)
+                 ($alreadyXover $lastChance $__ $prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i)
                  $POASet
                  ($neighborhood $rowOCoeff $size $iTable)
                  $centerInst
@@ -205,7 +225,7 @@
                  $estimateFunction $crossoverFunction $samplingFunction $transformFunction) ;; Helper functions
    (let*
       (
-        ;; ($_ (println! (Iteration $i running)))
+        ($_ (println! (Iteration $i running)))
         ;; ($_ (println! ""))
 
         ($totalNNeighbors ($estimateFunction $d $neighborhood))
@@ -213,7 +233,9 @@
         ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
         ;; ($_ (println! ""))
 
-        ($nNewNeighbors (min $totalNNeighbors 2))
+        ($maxEvals 500)
+        ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors)) ;; TODO: MaxEvals is hardcoded here, but should be changed. This is set to 20K by default in OpenCog Classic.
+        ;; ($_ (println! (NNewNeighbors: $nNewNeighbors)))
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
         ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
@@ -225,9 +247,9 @@
           ((mkDeme $rep $updatedInstSet $id) $newInstances)
                                                             (case ($xOver $size)
                                                               (
-                                                                ((True ()) (let ($updatedInstSet $newInstances) (eval ($crossoverFunction $currentNInstances $nNewNeighbors $prevCenter $POASet))
+                                                                ((True ()) (let ($updatedInstSet $newInstances) (eval ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet))
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
-                                                                ((True $notEmpty)  (eval ($crossoverFunction $currentNInstances $nNewNeighbors $prevCenter $POASet)))
+                                                                ((True $notEmpty)  (eval ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet)))
                                                                 ((False ()) (let ($updatedInstSet $newInstances) (eval ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $POASet $d))
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
                                                                 ((False $notEmpty) 
@@ -241,7 +263,8 @@
         ; ($_ (println! (New POASet: $newPOA)))
         ; (((mkDeme $rep $upInstSet $id) $newInstances) $newPOA)
         ; ($_ (println! (New rep: $rep)))
-        ; ($_ (println! (New Inst: $newInstances)))
+        ;; ($_ (println! (New Inst: $newInstances)))
+        ;; ($_ (println! (UpdatedInstanceLength: (eval (List.length (second $updatedInstSet))))))
         ;; ($_ (println! ""))
         ;; ($_ (println! (Newinstances: $updatedInstSet)))
         ;; ($_ (println! ""))
@@ -262,6 +285,7 @@
                           (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
         
         ;; ($_ (println! (Scored instances: $scoredInstances)))
+        ;; ($_ (println! (Scored instances....)))
         ;; ($_ (println! ""))
 
         ((mkSInst $newBestInstPair) (eval (List.foldl ((eval (curry2 returnBest)) <) (mkSInst (mkPair $centerInst $bestSscore)) $scoredInstances)))
@@ -270,37 +294,37 @@
                           (eval (getPenScore (Pair.second $newBestInstPair))))) ;; This could be the original best candidate or a new one.
         ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
         
-        ;; ($_ (println! (Best instance: $newBestInstPair)))
-        ;; ($_ (println! (New best score: $newBestScore)))
-        ;; ($_ (println! ""))
+        ($_ (println! (Best instance: $newBestInstPair)))
+        ($_ (println! (New best score: $newBestScore)))
+        ($_ (println! ""))
 
         ($nextCenterInst (if $hasImproved (eval (Pair.first $newBestInstPair)) $centerInst))
         ($nextDistance (if $hasImproved 1 (if (not $xOver) (+ 1 $d) $d)))
         
         ;; ($_ (println! (NextDistance: $nextDistance)))
 
-        (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
+        (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
                               (if (and (== $totalNNeighbors 1) (== $nextDistance 1))
                                   (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
-                                                ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (eval (Pair.second $newBestInstPair)) $newBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i)) ;; Updated state
+                                                ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $prevStart $prevSize (eval (Pair.second $newBestInstPair)) $newBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i)) ;; Updated state
                                                 $updatedDeme
                                                 ($neighborhood $rowOCoeff $size $iTable)
                                                 $nextCenterInst
                                                 $hyperparamsfs
                                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
-                                  ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst (eval (Pair.second $newBestInstPair)) $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
+                                  ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentNInstances $newInstances (eval (Pair.second $newBestInstPair)) $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
         
         ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (eval (getScore $newBestSscore))))
         ;; ($_ (println! (Found newBestSscore After (+ 1 $i) iteration is: $newBestSscore $scoreToCompareBelow)))
         ;; ($_ (println! ""))
-        ($_ (println! (cut)))
+        ($_ (cut))
     )
 
     (if (<= $bestPossibleScore $scoreToCompareBelow)
           ;; (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow)
-                  ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
+                  ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
           ;; )
-          (let ($finalCenter $finalDeme ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
+          (let ($finalCenter $finalDeme ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
             ;; TODO: The C++ version checks the hyper parameter hc_params.crossover before getting here.
             ;; TODO: The C++ version checks for the hc_params.widen_search too. For now, we're assuming it is always true. 
             ;;       Hence the omission of the distance check from the C++ Hence the omission of the distance check from the C++
@@ -308,28 +332,30 @@
                 ;; If we just did the nearest neighbors and found no improvement,
                 ;;  then try again one last time, we may get lucky.
                 (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
-                              ($newXover True $newHasImproved $newPrevCenter $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI)) ;; Updated state
+                              ($newXover True $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI)) ;; Updated state
                               $newDeme
                               ($neighborhood $rowOCoeff $size $iTable)
                               $newCenter
                               $hyperparamsfs
                               $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
                 ;; (trace! (Continue to next iteration because of no more last chance)
-                        ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
+                        ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
                 ;; )
                 )
  
             (if (< $maxDist $finalDistance)
                 ;; (trace! (Terminating because of maximum distance reached)
-                        ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
+                        ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
                 ;; ) ;; I don't know why I didn't do this earlier but incrementing is needed here.
-                (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
-                              ($finalXover False $hasImproved $finalPrevCenter $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
-                              $finalDeme
-                              ($neighborhood $rowOCoeff $size $iTable)
-                              $finalCenter
-                              $hyperparamsfs
-                              $estimateFunction $crossoverFunction $samplingFunction $transformFunction))
+                (if (<= (- $maxEvals $finalCurrentNInstance) 0)
+                    ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
+                    (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
+                                  ($finalXover False $hasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
+                                  $finalDeme
+                                  ($neighborhood $rowOCoeff $size $iTable)
+                                  $finalCenter
+                                  $hyperparamsfs
+                                  $estimateFunction $crossoverFunction $samplingFunction $transformFunction)))
           )
     ) 
     )          

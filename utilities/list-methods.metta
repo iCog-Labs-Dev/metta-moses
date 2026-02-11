@@ -295,12 +295,13 @@
 
 ; (: List.partialSort (-> (-> $a $a Bool) (List $a) Number (List $a) (List $a)))
 
+(= (List.partialSort $comparator Nil $n $acc) $acc)
 (= (List.partialSort $comparator (Cons $x $xs) $n $acc)
     (let* (($max (List.max $comparator (Cons $x $xs)))
             ($unsortedList (List.delete $max (Cons $x $xs)))
             ($sortedList (List.append $max $acc)))
                 
-                (if (== (- $n 1) 0)
+                (if (<= (- $n 1) 0)
                     (List.appendList $unsortedList $sortedList)
                     (List.partialSort $comparator $unsortedList (- $n 1) $sortedList))))
 
@@ -312,6 +313,7 @@
 ;; append a list to a list
 ; (: List.appendList (-> (List $a) (List $a) (List $a)))
 
+(= (List.appendList $a Nil) $a)
 (= (List.appendList $a (Cons $x $xs))
     (if (== $xs Nil)
         (Cons $x $a)
@@ -361,3 +363,9 @@
     (if (== $i 0)
         $xs
         (chain (List.pop (- $i 1) $xs) $res (eval (if-error $res (Cons $x Nil) (Cons $x $res))))))
+
+(= (List.splitAt $i Nil) (Nil Nil))
+(= (List.splitAt $i (Cons $x $xs))
+   (if (== $i 0)
+       (Nil (Cons $x $xs))
+       (let ($l1 $l2) (List.splitAt (- $i 1) $xs) ((Cons $x $l1) $l2))))

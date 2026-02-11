@@ -8,8 +8,8 @@
             ($tree $score) 
             (let ($result) $score $result);; If matched score will be ((score)) need to remove ()
             )
-    ) $val (if (== $val ()) 
-                (chain (eval (scoreTree $itable $tree)) $bs 
+    ) $val (if  (== $val ())
+                (chain (eval (scoreTree $itable $tree)) $bs
                 (eval (if-error $bs ;; return worst possible composite score
                 (worstCscore)
                 (let* (($bsum (eval (sumBScore $bs)))

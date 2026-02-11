@@ -52,9 +52,12 @@
                   ($exemplar-fts  (filter-atom (eval (treeFtsIndices $exemplar $labels)) $x (not (== $x -1))))
                   ;; ($_ (println! (exemplar features $exemplar-fts)))          ;; exemplarFtsIndices function in deme/expand-deme.metta
                  ($all-labels (eval (getInputLabels $labels)))                       ;; getInputLabels in deme/expand-deme.metta
-                 ;; ($_ (println! "before featureSelector"))                                                                                                           ;;Default Values  ;;miConf PrePenalty  PreMInActivation   PreMaxActivation  PrePositive   ScorerType
-                 ($ft-set-pop (eval (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme 50.0   1.0            0.5               1.0               True         $scorerType)))     ;; applies the right parameteres for feature selection based on selected selection algorithm 
-                 ($_ (println! (Selected Features after feature Selection $ft-set-pop)))
+                 ;; ($_ (println! "before featureSelector"))
+                 ($ft-set-pop (if (== $ft-selection-algo None)
+                                  ((eval (genList 0 (- (List.length $labels) 2)))) ;; Applying all labels as features
+                                  (eval (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme 50.0 1.0 0.5 1.0 True $scorerType))) ;; applies the right parameteres for feature selection based on selected selection algorithm 
+                 )
+                 ;; ($_ (println! (Selected Features after feature Selection $ft-set-pop)))
                  ($exemplar-arg-seq                                           ;; apply exemplar feature pruning
                      (if $prune-exemplar
                            (map-atom $ft-set-pop $ft-set 
@@ -101,14 +104,13 @@
    ; (println! (inside getCandidate))
    (let*
       (
-        ; ($_ (println! (Inside getCandidate)))
          ($parentid (mkNodeId (0)))
          ($srcid (mkNodeId (0)))
-         ; ($_ (println! ($parentid   $srcid)))
+         ;; ($_ (println! ($parentid   $srcid)))
          ($candidate (getCandidateRec $repObj $inst $parentid $srcid (mkNullVex Nil)))
          ; ($_ (println! (Found candidate: $candidate)))
          ($cleanedTree (eval (cleanTree $candidate)))
-         ; ($_ (println! (Cleaned Tree: $cleanedTree)))
+         ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
       )
       $cleanedTree
    )
@@ -144,7 +146,6 @@
 ; )
 
 (= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $candidate)
-   ; (trace! (Inside getCandidateRec with parentId: $parentId, srcId: $srcId) ())
    (let $knobIdxPair (eval (findDiscKnob $knobMapObj $srcId)) 
       (if (not (== (eval (second $knobIdxPair)) -1))
          (let*
@@ -160,9 +161,9 @@
                ;; ($_ (println! ""))
                ;; ($_ (println! (No Knob found just copy...)))
                ($src (eval (getNodeById $tree $srcId)))
-                             ($cndchidpair (eval (appendChild $candidate $parentId (mkTree (eval (getNodeValue $src)) Nil))))              
+               ($cndchidpair (eval (appendChild $candidate $parentId (mkTree (eval (getNodeValue $src)) Nil))))              
                ($srcchildren (eval (getChildren $src)))
-                            ($state (eval (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (eval (second $cndchidpair)) (eval (first $cndchidpair)) 1) $srcchildren)))
+               ($state (eval (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (eval (second $cndchidpair)) (eval (first $cndchidpair)) 1) $srcchildren)))
                (((mkRep $knobmapobj $tree) (mkInst $inst) $newparentid $finalcnd $d) $state)
                ;; ($_ (println! (finalcnd: $finalcnd)))
                ;; ($_ (println! ""))
@@ -170,8 +171,8 @@
             )
               $finalcnd
           )
+      )
    )
-)
 )
 
 ;; (: applyGetCandidateRec (-> (Tree $a)

@@ -23,9 +23,12 @@
           ; ($_ (println! (Parameters ==> Parent: $parent Current: $current DominantSet: $dominantSet)))
           ; ($_ (println! (GuardSet : $guardSet : HandleSet : $handleSet : IsConsistent : $isConsistent)))
         )
-        (if $isConsistent 
-              ($parent $current False) 
-              ((eval (findAndReplace $current (AND) $parent)) (AND) True)) ;; Remove current from parent and return an empty AND.
+        (if $isConsistent
+              ($parent $current False)
+              (if (== $parent $current) ;; If the initial parent itself is in consistent, we don't want to delete it entirely but instead keep a top level AND. This only happens when passing the expression for the first time as $parent and $current will never be equal after that.
+                  ((AND) () True)
+                  ((eval (subtraction-atom $parent ($current))) () True)
+              )) ;; Remove current from parent and return an empty AND.
     )
 )
 

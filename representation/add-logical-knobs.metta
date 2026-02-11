@@ -18,7 +18,7 @@
 (let (mkTree (mkNode $op) $children) (eval (getNodeById $exemplar $nodeId))
        (let  $lengthOfArgs (size-atom $argLabels)
           (let  $perms (eval (sampleLogicalPerms $op $lengthOfArgs $argLabels))
-            (let  $treePerms (map-atom $perms $perm (buildTree $perm))
+            (let  $treePerms (trace! (Perms: $perms) (map-atom $perms $perm (buildTree $perm)))
               (let ($knobs $updatedTree) (eval (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ()))
                 (let  $pairs (eval (pairKnobWithSpec $knobs))
                     (let $mmp (eval (expToMMap $pairs $map discSpec<=))

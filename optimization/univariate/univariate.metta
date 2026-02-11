@@ -44,7 +44,7 @@
 (let*
   (
     ($instSetLen (eval (List.length $instSet)))
-    ($tmp (eval (List.getByIdx $instSet (random-int 0 (- $instSetLen 1)))))
+    ($tmp (eval (List.getByIdx $instSet (py-call (random.randint 0 (- $instSetLen 1))))))
     ($updatedRes (if (eval (cScore>= (eval (getSInstScore $tmp)) (eval (getSInstScore $res)))) $tmp $res))
   )
   (eval (tournamentCompare (mkSInstSet $instSet) $updatedRes (- $tSize 1))))))
@@ -65,7 +65,7 @@
     ($_ (println! (Tournament selection, remaining to select:  $nSelect)))
     ($instSetLen (eval (List.length $instSet)))
     ($_ (println! (Instance set length:  $instSetLen)))
-    ($res (eval (List.getByIdx $instSet (random-int 0 (- $instSetLen 1)))))
+    ($res (eval (List.getByIdx $instSet (py-call (random.randint 0 (- $instSetLen 1)) ) )))
     ($_ (println! (Initial random candidate:  $res)))
     ($updatedRes (eval (tournamentCompare (mkSInstSet $instSet) $res (- $tSize 1))))
     ($_ (println! (Selected candidate:  $updatedRes)))

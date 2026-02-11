@@ -30,20 +30,20 @@
 (= (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable $scorerType)
 (let*
    (
-    ($_ (println! ""))
+    ;; ($_ (println! ""))
     ;; ($_ (println! (MetaPop: $metaPop)))
     ;; ($_ (println! "Selecting Exemplar"))
     ($exemplar (eval (selectExemplar $metaPop)))
     ;; ($_ (println! $exemplar))
     ;; ($_ (println! "getting exemplar tree"))
     ($tree (eval (getExemplarTree $exemplar))) 
-    ;; ($_ (println! $tree))
+    ($_ (println! (SelectedTree: (eval (preOrder $tree)))))
     ;; ($_ (println! "creating deme IDs"))
     ($demeIds (eval (createDemeIds $nExpansion $nDeme)))
     ;; ($_ (println! $demeIds))
     ; ($argLabels (getArgLabels $itable))
     ;; ($_ (println! "Creating Deme"))
-    ($demes (eval (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar () $scorerType)))     
+    ($demes (eval (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar () $scorerType)))
     )
     (map-atom $demes $deme (expandDemeHelper $deme $truthTableBScore $optimize))
    ))
@@ -54,7 +54,7 @@
     ($lengthOfDscKbMp (eval (Map.length $dscKbMp)))
     ($generatedList (eval (List.generate $lengthOfDscKbMp 0)))
     ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
-    ($_ (println! "Optimizing Deme"))
+    ;; ($_ (println! "Optimizing Deme"))
     (($inst $optimDeme $state) (eval (optimizeDemes $deme $truthTableBScore (mkInst $generatedList) $optimize)))
 )
 $optimDeme
@@ -68,26 +68,40 @@ $optimDeme
 ;;     - $maxCandOutput : The number of candidates to be returned
 ;;     - other parameters required by the expandDeme method
 ; (: runMoses (-> Number Cscore Number (OS (Exemplar $a)) Number Number Bool Symbol (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)) $Scorer Number Number Number Number (ITable $a) Number Number Number (OS (Exemplar $a))))
+;; TODO: $nEval isn't being used. Increase it so that it works as expected. 
+;; To enable that, we may need to change our termination condition so that the generation is equivalent to the number of expansion as well.
+;; The number of expansions in the open cog classic is equivalent to the number of deme expansions. That looks like the same thing we are doing here but not sure.
 (= (runMoses $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
 (if (== $maxGen 0)
     (if (<= $maxCandOutput (eval (OS.length $metaPop)))
         (let $topCandidates (eval (OS.getTopN $maxCandOutput $metaPop)) $topCandidates)
         $metaPop
   )
-    (let* 
+    (let*
      (
+       ($_ (println! (Generation $maxGen)))
        ;; ($_ (println! "expand deme returnn"))
        ($optimizedDemes (eval (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable mi)))
        ;; ($_ (println! "Merging Deme"))
-       ($updatedMetaPop (eval (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metaPop $nToKeep $capCoef $genCount)))
+       ($updatedMetaPop (eval (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metaPop $nToKeep $capCoef (- $genCount $maxGen))))
        ;; ($_ (println! (Updated MetaPop: $updatedMetaPop)))
-       ($top (eval (OS.getByIdx 0 $metaPop)))
+       ($top (eval (OS.getByIdx 0 $updatedMetaPop)))
        ;; ($_ (println! (Top Exemplar before expansion: $top)))
        ($topScore (eval (getExemplarCscore $top)))
        ;; ($_ (println! (topscore: $topScore)))
-       ($resultCandi (if (<= $maxCandOutput (eval (OS.length $metaPop))) (eval (OS.getTopN $maxCandOutput $metaPop)) $metaPop))
+       ($resultCandi (if (<= $maxCandOutput (eval (OS.length $updatedMetaPop))) (eval (OS.getTopN $maxCandOutput $updatedMetaPop)) $updatedMetaPop))
+       ($_ (println! (Top: $topScore Max: $maxScore (eval (cScore>= $topScore $maxScore)))))
        ($_ (cut))
       )
- (if (eval (cScore>= $topScore $maxScore))
+ (if (eval (== $topScore $maxScore))
          $resultCandi 
          (eval (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount))))))
+
+
+;; Some helpers specific to final testing
+(= (mapG $f NilOS) NilOS)
+(= (mapG $f Nil) Nil)
+(= (mapG $f ($ctor $x $xs)) ($ctor ($f $x) (mapG $f $xs)))
+
+(= (printExemplar (mkExemplar $tree $demeId $cscore $bscore)) (println! (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore)))
+(= (cleanedExemplar (mkExemplar $tree $demeId $cscore (mkBScore $bscore))) ((preOrder $tree) (eval (List.sum $bscore))))

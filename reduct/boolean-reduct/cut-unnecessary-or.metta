@@ -9,12 +9,11 @@
 ;;          output: ((AND B (NOT D)) () True)
 ; (: orCut (-> Expression Expression (Expression Expression Bool)))
 (= (orCut $parent $current)
-   (let*
-     (
-      ;; ($log (println! (==== Inside OrCut ====)))
-      ;; ($log' (println! (Parameters ==> Parent: $parent Current: $current)))
-      ($log' (println! ""))
-     )
+   ;; (let*
+   ;;   (
+   ;;    ;; ($log (println! (==== Inside OrCut ====)))
+   ;;    ;; ($log' (println! (Parameters ==> Parent: $parent Current: $current)))
+   ;;   )
      (case $current
         (
           ((OR (NOT $x)) ((eval (addLiterals (eval (removeElement ($current) $parent)) ((NOT $x)))) () True))
@@ -26,7 +25,7 @@
           ($else ($parent $current False))
         )
      )
-   )
+   ;; )
 )
 
 ;; A function to return the literals and children of any given node.
