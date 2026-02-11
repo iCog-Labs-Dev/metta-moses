@@ -27,6 +27,7 @@
 !(import! &self ../../../scoring/cscore)
 !(import! &self ../../../scoring/bscore)
 !(import! &self ../../../scoring/fitness)
+!(import! &self ../../../scoring/strategy-score-cache)
 !(import! &self ../../../scoring/complexity-based-scorer)
 
 !(import! &self ../../../moses/neighborhood-sampling)
@@ -35,7 +36,6 @@
 !(import! &self ../hill-climbing-helpers)
 !(import! &self ../../../feature-selection/feature-selection-helpers)
 !(import! &self ../cross-top-one-helpers)
-
 !(import! &self ../../../examples/tic-tac-toe/tic-tac-toe-helpers)
 !(import! &self ../../../examples/tic-tac-toe/random-player)
 !(import! &self ../../../examples/tic-tac-toe/strategy-scoring)
