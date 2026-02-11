@@ -19,6 +19,27 @@
 )
 (applyComplexityBasedScore $rep $is $itable $complexityRatio $uListofScoredInst)))
 
+;; Strategy-based scoring helper for game strategies 
+;; Params:
+;;   $rep: The representation object
+;;   $instList: List of instances to score
+;;   $nGames: Number of games to play
+;;   $opponentPolicy: Opponent strategy
+;;   $listOfScoredInst: Accumulator for scored instances
+;; Returns:
+;;   List of scored instances with BehavioralScore
+; (: applyStrategyBasedScore (-> Representation (List Instance) Number $opponentPolicy (List (ScoredInstance BScore)) (List (ScoredInstance BScore))))
+(= (applyStrategyBasedScore $rep Nil $nGames $opponentPolicy $listOfScoredInst) 
+   $listOfScoredInst)
+(= (applyStrategyBasedScore $rep (Cons $i $is) $nGames $opponentPolicy $listOfScoredInst)
+(let*
+(
+    ($behavioralScore (eval (getCachedBScore $i $rep $nGames $opponentPolicy &strategyScoreCache)))
+    ($scoredInst (mkSInst (mkPair $i $behavioralScore)))
+    ($uListofScoredInst (Cons $scoredInst $listOfScoredInst))
+)
+(applyStrategyBasedScore $rep $is $nGames $opponentPolicy $uListofScoredInst)))
+
 ;; Scores each instance in an InstanceSet. 
 ;; Params:
 ;;   instanceSet: The unscored InstanceSet(or that of with an initial worst score)
@@ -34,7 +55,24 @@
     ($instList (eval (List.map removeInstScore $scoredInstList)))
     ($cbsInstList (applyComplexityBasedScore $rep $instList $itable $complexityRatio Nil))
 )
-(mkSInstSet $cbsInstList)))  
+(mkSInstSet $cbsInstList))) 
+
+;; Strategy transform for game strategies
+;; Params:
+;;   instanceSet: The InstanceSet with mkSInst wrappers
+;;   $rep: The representation object
+;;   $nGames: Number of games to play
+;;   $opponentPolicy: Opponent strategy
+;; Returns:
+;;   instanceSet: Scored InstanceSet with BehavioralScore
+; (: transformStrategy (-> (InstanceSet $a) Representation Number $opponentPolicy (InstanceSet BScore)))
+(= (transformStrategy  (mkSInstSet $scoredInstList) $rep $nGames $opponentPolicy)
+(let*
+(
+    ($instList (eval (List.map removeInstScore $scoredInstList)))
+    ($strategyInstList (applyStrategyBasedScore $rep $instList $nGames $opponentPolicy Nil))
+)
+(mkSInstSet $strategyInstList)))  
 
 ;; Converts a list of bits (0s and 1s) to a tuple of indices where the bit is 1.
 ;; Params:
