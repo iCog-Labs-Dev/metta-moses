@@ -1,6 +1,6 @@
 ; ! (register-module! ../../../metta-moses)
-!(import! &self ../ordered-set)
 !(import! &self ../general-helpers)
+!(import! &self ../ordered-set)
 !(import! &self ../../metapopulation/exemplar-type)
 
 ;; Length of an ordered set
@@ -39,7 +39,7 @@
     (compareXmplr 
         (mkXmplr (mkTree (mkNode C) Nil) (mkDemeId 3) (mkCscore (mkScoreT 0.3) (mkComplexity 0.42) (mkScoreT 0.85) (mkScoreT 0.63)) (mkBscore NilNum))
         (mkXmplr (mkTree (mkNode (NOT D)) Nil) (mkDemeId 4) (mkCscore (mkScoreT 0.4) (mkComplexity 0.42) (mkScoreT 0.85) (mkScoreT 0.63)) (mkBscore NilNum))) L)
-                
+
 ; ;; Insert exemplars into an oreded set
 !(assertEqual 
     (OS.insert compareXmplr (mkXmplr (mkTree treeA) (mkDemeId 5) (mkCscore (mkScoreT 0.5) (mkComplexity 0.35) (mkScoreT 0.78) (mkScoreT 0.69)) (mkBscore (Cons 1 (Cons 0 NilNum)))) NilOS)
@@ -62,12 +62,12 @@
         (ConsOS (mkXmplr (mkTree treeA) (mkDemeId 5) (mkCscore (mkScoreT 0.5) (mkComplexity 0.35) (mkScoreT 0.78) (mkScoreT 0.69)) (mkBscore (Cons 1 (Cons 0 NilNum))))
         (ConsOS (mkXmplr (mkTree treeB) (mkDemeId 6) (mkCscore (mkScoreT 0.2) (mkComplexity 0.55) (mkScoreT 0.90) (mkScoreT 0.72)) (mkBscore 1.25))  
             NilOS))))
-(assertEqual 
+!(assertEqual 
     (OS.insert compareXmplr 
         (mkXmplr (mkTree treeB) (mkDemeId 15) 
             (mkCscore (mkScoreT 0.6) (mkComplexity 0.35) (mkScoreT 0.2) (mkScoreT 0.1)) 
             (mkBscore (Cons 1 NilNum)))
-        
+
         (ConsOS (mkXmplr (mkTree treeA) (mkDemeId 5) 
             (mkCscore (mkScoreT 0.8) (mkComplexity 0.3) (mkScoreT 0.2) (mkScoreT 0.1)) 
             (mkBscore (Cons 3 NilNum)))
@@ -75,7 +75,7 @@
         (ConsOS (mkXmplr (mkTree treeC) (mkDemeId 25) 
             (mkCscore (mkScoreT 0.6) (mkComplexity 0.4) (mkScoreT 0.2) (mkScoreT 0.1)) 
             (mkBscore (Cons 2 NilNum))) NilOS)))
-        
+
     (ConsOS (mkXmplr (mkTree treeA) (mkDemeId 5) 
         (mkCscore (mkScoreT 0.8) (mkComplexity 0.3) (mkScoreT 0.2) (mkScoreT 0.1)) 
         (mkBscore (Cons 3 NilNum)))

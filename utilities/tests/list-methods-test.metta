@@ -1,5 +1,5 @@
-!(import! &self ../../../metta-moses/utilities/list-methods)
 !(import! &self ../../../metta-moses/utilities/general-helpers)
+!(import! &self ../../../metta-moses/utilities/list-methods)
 !(import! &self ../../../metta-moses/representation/instance)
 !(import! &self ../../../metta-moses/scoring/cscore)
 

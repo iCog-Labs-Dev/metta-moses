@@ -1,8 +1,8 @@
 !(import! &self ../general-helpers)
 
 !(import! &self ../list-methods)
-!(import! &self ../tree)
 !(import! &self ../nodeId)
+!(import! &self ../tree)
 
 ;;; Testcase getLevelById
 !(assertEqual 

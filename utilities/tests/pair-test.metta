@@ -1,5 +1,5 @@
-!(import! &self ../pair)
 !(import! &self ../general-helpers)
+!(import! &self ../pair)
 
 ;; Pair type tests
 !(assertEqual (let $a (mkPair 1 2) (get-type-reduce $a)) (Pair Number Number))
