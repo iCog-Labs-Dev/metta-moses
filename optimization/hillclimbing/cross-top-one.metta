@@ -41,20 +41,24 @@
 ;; similar to the above 'crossTopOne' but with slight changes on the comparison function that is passed to the Lost.partialSort to compare the mutualInformation based scores
 ; (: crossTopOneFs (-> (InstanceSet $a) Number Number Number Instance (InstanceSet $a)))
 (= (crossTopOneFs (mkSInstSet $instSet) $nToMake $sampleStart $sampleSize $baseInstance)
-   ; (trace! (Inside crossTopOne: $nToMake $sampleStart $sampleSize) 
-            (let* (
-                    ;; ($_ (println! (Inside crossTopOneFs)))
-                    ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
-                    ;; ($_ (println! (NToMake: $nToMakeNew)))
-                    (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
-                    ((Cons $reference $rest) (eval (List.partialSort instanceFs>= $newInst $nToMakeNew Nil))) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
-                    ($targetInstances (eval (List.takeN (- $nToMake 1) $rest)))
-                    ($targetExpr (eval (List.listToExpr $targetInstances)))
+   (let* (
+           ;; ($_ (println! (Inside crossTopOneFs)))
+           ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
+           ;; ($_ (println! (NToMake: $nToMakeNew)))
+           (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
+           ($list (eval (List.partialSort instanceFs>= $newInst $nToMakeNew Nil))) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
+           ;; ($_ (println! (New instances After merging: $newInstances)))
+           ;; ($_ (println! ""))
+         )
+         (if (== $list Nil)
+             (mkSInstSet $instSet)
+             (let*
+               (
+                 ((Cons $reference $rest) $list)
+                 ($targetInstances (eval (List.takeN (- $nToMake 1) $rest)))
+                 ($targetExpr (eval (List.listToExpr $targetInstances)))
 
-                    ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
-                    ($newInstances (eval (mergerFs $targetExpr $baseInstance $referenceInst)))
-                    ;; ($_ (println! (New instances After merging: $newInstances)))
-                    ;; ($_ (println! ""))
-                    )
-                (mkSInstSet (eval (List.appendList (eval (exprToList $newInstances)) $instSet)))))
-; ) )
+                 ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
+                 ($newInstances (eval (mergerFs $targetExpr $baseInstance $referenceInst)))
+               )
+               (mkSInstSet (eval (List.appendList (eval (exprToList $newInstances)) $newInst)))))))

@@ -119,7 +119,7 @@
   (estimateNeighborhoodFs 3 (Cons A (Cons B (Cons O Nil)))) 4)
 
 ; Testcase for countNeighborhoodFs
-!(assertEqual (countNeighborhoodFs (Cons 1 (Cons 0 (Cons 1 Nil))) 2 20) 3)
+!(assertEqual (countNeighborhoodFs (mkInst (Cons 1 (Cons 0 (Cons 1 Nil)))) 2 20) 3)
 
 ; Testcase for factorial
 !(assertEqual (factorial 3) 6)

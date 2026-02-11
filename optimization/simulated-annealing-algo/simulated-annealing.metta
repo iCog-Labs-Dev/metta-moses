@@ -58,7 +58,7 @@
                         (1 3 0) 
                         (20 0.01 0.1 True 5) ;; $hyperParams
                         ($FsScorer ()) ;; $FsParams
-                        (False False $initCenter (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
+                        (False False $initCenter 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         estimateNeighborhood crossover 
                         sampleNewInstances transform)))
       ((mkParams applyMutualInformationBasedScore)
@@ -76,7 +76,7 @@
               (3 3 1) 
               (20 0.01 0.1 True 5) ;; $hyperParams 
               ($FsScorer (50.0 1.0 0.5 1.0 True)) ;; $FsParams
-              (False False $initCenter 0 0 0 0 1) 
+              (False False $initCenter 0 0 0 0 0 0 1) 
               estimateNeighborhoodFs crossoverFs 
               sampleNewInstancesFs transformFs
           ))))))
@@ -87,11 +87,11 @@
                          ($maxDist $minXoverNeighbors $bestPossibleScore) ;; $constParams
                          ($Temp $finalTemp $coolRate $isInit $maxIter) ;; $hyperParams
                          ($FsScorerType $FsHyperParams) ;; Fs ScorerType and Fs hyperparams
-                         ($alreadyXover $lastChance $prevCenter $bestSscore $bestScore $currentNInstances $d $i) ;; $params
+                         ($alreadyXover $lastChance $prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i) ;; $params
                          $estimateFunction $crossoverFunction $samplingFunction $transformFunction
                          )
     (if (or (<= $Temp $finalTemp) (<= $maxIter 0))
-          ($prevCenter $POASet ($prevCenter $bestSscore $bestScore $currentNInstances $d $i))
+          ($prevCenter $POASet ($prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i))
           (let*
             (
               ;; Estimate Neighborhood
@@ -113,9 +113,9 @@
               
               (((mkDeme $rep $updatedInstSet $id) $newInstances) (case ($xOver $size)
                                                                    (
-                                                                ((True ()) (let ($updatedInstSet $newInstances) (eval ($crossoverFunction $currentNInstances $nNewNeighbors $prevCenter $POASet))
+                                                                ((True ()) (let ($updatedInstSet $newInstances) (eval ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet))
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
-                                                                ((True $notEmpty)  (eval ($crossoverFunction $currentNInstances $nNewNeighbors $prevCenter $POASet)))
+                                                                ((True $notEmpty)  (eval ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet)))
                                                                 ((False ()) (let ($updatedInstSet $newInstances) (eval ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $POASet $d))
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
                                                                 ((False $notEmpty) 
@@ -199,7 +199,7 @@
                                 ($maxDist $minXoverNeighbors $bestPossibleScore) ;; $constParams
                                 ($newTemp $finalTemp $coolRate False $newIterCount) ;; $hyperParams
                                 ($FsScorerType $FsHyperParams) ;; Fs ScorerType and Fs hyperparams
-                                ((and $xOver (not $hasImproved)) $lastChance $newCenter $newBestSscore $newBestScoreUpdated $updatedNumInstances $newDistance (+ 1 $i)) ;; $params
+                                ((and $xOver (not $hasImproved)) $lastChance $newCenter $currentNInstances $newInstances $newBestSscore $newBestScoreUpdated $updatedNumInstances $newDistance (+ 1 $i)) ;; $params
                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
           
           )

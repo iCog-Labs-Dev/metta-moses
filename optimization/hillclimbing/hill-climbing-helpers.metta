@@ -99,7 +99,7 @@
 ;; Feature selection version of countNeighborhoodFromIdx
 ;; uses the BInomial coefficient to count the number of instances at a specific distance from a given instance.
 ; (: countNeighborhoodFromIdxFs (-> Instance Number Number Number Number))
-(= (countNeighborhoodFromIdxFs $instance $dist $startIdx $maxCount)
+(= (countNeighborhoodFromIdxFs (mkInst $instance) $dist $startIdx $maxCount)
 (if (== $dist 0) 1 
 (let*
   (
@@ -129,7 +129,7 @@
 ; (: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
 (= (crossoverFs $size $nNewInstances $sampleStart $sampleSize $centerInst $scoredInstSet)
    ;; (trace! (Running cross over for $centerInst)
-           ((eval (crossTopOneFs $scoredInstSet $nNewInstances $sampleStart $sampleSize $centerInst)) $nNewInstances)
+           ((eval (crossTopOneFs $scoredInstSet $nNewInstances $sampleStart $sampleSize $centerInst)) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
            ;; )
    ) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
@@ -205,7 +205,7 @@
             ;; ($_ (println! (Labels: $labels)))
             ($FsScorerType (if (== $FsScorer ()) mi $FsScorer))
           )
-          (hillClimbing (3 5 0) (False False False $centerInst 0 0 0 0 0 0 1) 
+          (hillClimbing ((min 3 (eval (List.length (second $centerInst)))) 5 0) (False False False $centerInst 0 0 0 0 0 0 1) 
               $POASet 
               ($labels $rows () ())
               $centerInst

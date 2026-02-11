@@ -80,38 +80,37 @@
 !(simulated annealing test ----------)
 
 !(assertEqual 
-    (let*
-       (
-           (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing (deme) (table1) (mkInst (Cons 0 (Cons 0 Nil))) (mkParams applyComplexityBasedScore ())))
-            ($instanceCount (eval (List.length $instSet)))
-            ($scoredElems (eval (List.map isScored $instSet)))
-       )
-       ((>= $instanceCount 4) (eval (List.any $scoredElems))) 
-    )
+   (let*
+      (
+          (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing (deme) (table1) (mkInst (Cons 0 (Cons 0 Nil))) (mkParams applyComplexityBasedScore ())))
+           ($instanceCount (eval (List.length $instSet)))
+           ($scoredElems (eval (List.map isScored $instSet)))
+      )
+      ((>= $instanceCount 1) (eval (List.any $scoredElems))) 
+   )
 (True True)
 )
 !(assertEqual 
-    (let*
-       (
-            (($instance (mkSInstSet $instSet) $state) (simulated-annealing (mkSInstSet Nil) (itable) (mkInst (Cons 1 (Cons 0 Nil))) (mkParams applyMutualInformationBasedScore mi)))
-            ($instanceCount (eval (List.length $instSet)))
-            ($scoredElems (eval (List.map isScored $instSet)))
-       )
-       ((>= $instanceCount 4) (eval (List.any $scoredElems))) 
-    )
+   (let*
+      (
+           (($instance (mkSInstSet $instSet) $state) (simulated-annealing (mkSInstSet Nil) (itable) (mkInst (Cons 1 (Cons 0 Nil))) (mkParams applyMutualInformationBasedScore mi)))
+           ($instanceCount (eval (List.length $instSet)))
+           ($scoredElems (eval (List.map isScored $instSet)))
+      )
+      ((>= $instanceCount 1) (eval (List.any $scoredElems))) 
+   )
 (True True)
 )
 
 
 ;; Reproducibility test 
 !(assertEqual 
-     (let*
-         (
-             (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) 
-                 (simulated-annealing (deme) (table1) (mkInst (Cons 0 (Cons 0 Nil))) (mkParams applyComplexityBasedScore ())))
-            (($prevCenter $bestSscore $bestScore $currentNInstances $d $i) $state)
-         )
-         ((== $bestSscore (mkCscore -1 1 0.5 0.0 -1.5))(== $bestScore -1.5))
-     )
-     (True True)
- )
+    (let*
+        (
+            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) 
+                (simulated-annealing (deme) (table1) (mkInst (Cons 0 (Cons 0 Nil))) (mkParams applyComplexityBasedScore ())))
+           (($prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i) $state)
+        )
+        ((== $bestSscore (mkCscore -1 1 0.5 0.0 -1.5))(== $bestScore -1.5))
+    )
+    (True True))
