@@ -99,3 +99,20 @@
 ;; Return: $tree
 ; (: getExemplarTree (-> (Exemplar $a) (Tree $a)))
 (= (getExemplarTree (mkExemplar $tree $demeId $cscore $bscore)) $tree)
+
+
+;; Compares two exemplars for game strategies based on their BScore sums
+;; Params:
+;;   (Exemplar $a): First exemplar 
+;;   (Exemplar $a): Second exemplar 
+;; Return: L (less), E (equal), or G (greater)
+; (: compareExemplarStrategy (-> (Exemplar $a) (Exemplar $a) Atom))
+(= (compareExemplarStrategy 
+        (mkExemplar $tree1 $demeId1 $cscore1 $bscr1)
+        (mkExemplar $tree2 $demeId2 $cscore2 $bscr2))
+   (let* (
+      ($sum1 (eval (sumBScore $bscr1)))
+      ($sum2 (eval (sumBScore $bscr2)))
+   )
+      (if (< $sum1 $sum2) L
+          (if (== $sum1 $sum2) E G))))
