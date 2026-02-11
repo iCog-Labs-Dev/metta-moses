@@ -84,8 +84,6 @@
 ;;      $knobmapper: The knob mapper used to extract the multiplicity of the knob.
 ;;      $centralinstance: The instance from which other instances will be generated.
 ;; (: sampleFromNeighborhood` (-> Number Number KnobMap Instance Instance))
-(= (sampleFromNeighborhood` $n $dist (mkKbMap (mkDscKbMp $itDiscKnob) (mkDscMp $disc)) (mkInst Nil))
-   (mkInst Nil))
 (= (sampleFromNeighborhood` $n $dist (mkKbMap (mkDscKbMp $itDiscKnob) (mkDscMp $disc)) (mkInst $centralInst))
         (let* 
             (
@@ -172,8 +170,6 @@
 ;;  and Terminates when sample size reaches zero, returning the final filtered list.
 
 ;; (= selectunique (-> (List Expression) Number Number KnobMap Instance (List Instance)))
-(= (selectUnique $expr $sampleSize $dist $kbMp (mkInst Nil))
-   (eval (exprToList $expr)))
 (= (selectUnique $expr $sampleSize $dist $kbMp $inst)
    (if (== $sampleSize 0)
       (eval (exprToList $expr))
