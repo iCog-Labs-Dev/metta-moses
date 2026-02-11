@@ -131,7 +131,6 @@
          ($candidate (getCandidateRec $repObj $inst $parentid $srcid (mkNullVex Nil)))
          ; ($_ (println! (Found candidate: $candidate)))
          ;; Check if this is a game strategy (PRIORITIZED-OR at root)
-         ;; Check if this is a game strategy (PRIORITIZED-OR at root)
          ($rootNode (eval (getNodeById (eval (getRepTree $repObj)) $srcid)))
          ($rootValue (eval (getNodeValue $rootNode)))
          ($rootSymbol (if (== (get-metatype $rootValue) Expression) 
