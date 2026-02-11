@@ -48,7 +48,7 @@
             ($idxPairs (collapse (eval (genPairs $list))))
             ($nPairs $arity)) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
             ;; ($nPairs 0)) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
-            (if (== $nPairs 1)
+            (if (<= $nPairs 1)
                 (let $arg (car-atom $argLabels) ($arg (NOT $arg)))  ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage
                 (let* (($upperbound (- (* $arity (- $arity 1)) 1))
                         ($picked (eval (lazyRandomSelector 0 $upperbound $nPairs)))
