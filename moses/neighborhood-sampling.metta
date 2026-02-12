@@ -22,13 +22,13 @@
 (= (generateAllInNeighborhood (mkMultip $m) (mkInst (Cons $x $xs)) $dist)
    (if (== $dist 0)
        (Cons (mkInst (Cons $x $xs)) Nil)
-       (let $multips (eval (genList 1 (- $m 1)))
-          (let $instExp (eval (List.listToExpr (Cons $x $xs)))
+       (let $multips (genList 1 (- $m 1))
+          (let $instExp (List.listToExpr (Cons $x $xs))
           (let $listNeighbors (let $neighbors (varyNKnobs $multips $instExp $dist)
-                                      (map-atom $neighbors $neighbor (mkInst (eval (exprToList $neighbor)))))
+                                      (map-atom $neighbors $neighbor (mkInst (exprToList $neighbor))))
           (let $uqListNeighbors (unique-atom $listNeighbors)
           (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (Cons $x $xs))))
-            (eval (exprToList $uqListNeighbors')))))))))
+            (exprToList $uqListNeighbors'))))))))
 
 ;; This function returns a non deterministic list of instances at the given distance.
 ;; It's output isn't typed and also needs further preprocessing.
@@ -85,15 +85,15 @@
             (
               ;; ($_ (println! ""))
               ;; ($_ (println! (Params: $n $dist (mkKbMap (mkDscKbMp $itDiscKnob) (mkDscMp $disc)) (mkInst $centralInst))))
-              ($knobLen (eval (MultiMap.length $disc)))
-              ($instLen (eval (List.length $centralInst)))
+              ($knobLen (MultiMap.length $disc))
+              ($instLen (List.length $centralInst))
               ;; ($_ (println! (KnobLen: $knobLen InstLen: $instLen)))
               )
               (if (== $knobLen $instLen)
                   (let* (
-                    ($selectedIndices (eval (lazyRandomSelector 0 (- $instLen 1) $dist)))
+                    ($selectedIndices (lazyRandomSelector 0 (- $instLen 1) $dist))
                     ;; ($_ (println! (SelectedIndices: $selectedIndices)))
-                    ($updatedInst (eval (foldl-atom $selectedIndices $centralInst $updated $rand (updateInst $rand $disc $updated))))
+                    ($updatedInst (foldl-atom $selectedIndices $centralInst $updated $rand (updateInst $rand $disc $updated)))
                     ($inst (mkInst $updatedInst))
                     ;; ($_ (println! (UpdatedInst: $updatedInst)))
                   )
@@ -106,14 +106,14 @@
 (= (sampleFromNeighborhoodFs` $n $dist (mkITable (Cons $row $rows) $labels) (mkInst $centralInst))
         (let* 
             (
-              ($featureLen (- (eval (List.length $labels)) 1)) 
-              ($instLen (eval (List.length $centralInst)))
+              ($featureLen (- (List.length $labels) 1)) 
+              ($instLen (List.length $centralInst))
               ($cappedDist (min-atom ($dist $instLen)))
               ) 
               (if (== $featureLen $instLen) 
                   (let* (
-                    ($selectedIndices (eval (lazyRandomSelector 0 (- $instLen 1) $cappedDist)))
-                    ($updatedInst (eval (foldl-atom $selectedIndices $centralInst $updated $rand (updateInstFs $rand $updated))))
+                    ($selectedIndices (lazyRandomSelector 0 (- $instLen 1) $cappedDist))
+                    ($updatedInst (foldl-atom $selectedIndices $centralInst $updated $rand (updateInstFs $rand $updated)))
                   )
                   (mkInst $updatedInst)) 
                   (Error ($featureLen $instLen) "Not Equal"))))
@@ -130,26 +130,26 @@
 (= (updateInst $rand $disc $newInst)
         (let*
           (
-            (($decSpec (mkLSK (mkDiscKnob $knob (mkMultip $multi) $spec $spec1 $specList))) (eval (MultiMap.getByIdx $rand $disc)))
-            ($curSpec (eval (List.getByIdx $newInst $rand)))
+            (($decSpec (mkLSK (mkDiscKnob $knob (mkMultip $multi) $spec $spec1 $specList))) (MultiMap.getByIdx $rand $disc))
+            ($curSpec (List.getByIdx $newInst $rand))
             ($upper (- $multi 1))
             ($randomSpec (+ (rand-int 0 (- $upper 1)) 1))
           )
           (if (== $randomSpec $curSpec)
-                              (eval (List.replaceAt $newInst $rand 0))
-                              (eval (List.replaceAt $newInst $rand $randomSpec)))))
+                              (List.replaceAt $newInst $rand 0)
+                              (List.replaceAt $newInst $rand $randomSpec))))
 
 ;; similar to the above 'updateInst' with slight change on the range of the randomSpec to make it work for the feature selection
 ; (: updateInstFs (-> Number Instance Instance))
 (= (updateInstFs $rand $newInst)
         (let*
           (
-            ($curSpec (eval (List.getByIdx $newInst $rand)))
+            ($curSpec (List.getByIdx $newInst $rand))
             ($randomSpec (py-call (random.randint 0 1)))
           )
           (if (== $randomSpec $curSpec)
-                              (eval (List.replaceAt $newInst $rand 0))
-                              (eval (List.replaceAt $newInst $rand $randomSpec)))))
+                              (List.replaceAt $newInst $rand 0)
+                              (List.replaceAt $newInst $rand $randomSpec))))
 
 ;; Pre/post-processor for `sampleFromNeighborhood` to ensure non-deterministic sampling.
 ;; It checks if $sampleSize neighbors can be generated; if not, returns an error.
@@ -165,11 +165,11 @@
 (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
    (let* (
       ;; ($_ (println! (Inside sampleFromNeighborhoodFs: $sampleSize $dist $inst)))
-      ($list (eval (genList (- $sampleSize 1))))
+      ($list (genList (- $sampleSize 1)))
 
-      ($x (eval (map-atom $list $i (sampleFromNeighborhood` $i $dist $kbMp $inst))))
+      ($x (map-atom $list $i (sampleFromNeighborhood` $i $dist $kbMp $inst)))
     )
-    (eval (exprToList $x))))
+    (exprToList $x)))
 
 ;; (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
 ;;
@@ -187,16 +187,16 @@
 ;; (= selectunique (-> (List Expression) Number Number KnobMap Instance (List Instance)))
 (= (selectUnique $expr $sampleSize $dist $kbMp $inst)
    (if (== $sampleSize 0)
-      (eval (exprToList $expr))
+      (exprToList $expr)
        (if (== $expr ())
            (let $generatedFirst (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)  
                     (selectUnique ($generatedFirst) (- $sampleSize 1) $dist $kbMp $inst)
            )
            (let $generatedInstance (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)
-                (selectUnique (eval (concatT ($generatedInstance) $expr ))(- $sampleSize 1) $dist $kbMp $inst)
-                           ;; (if (eval (is-member $generatedInstance $expr))
+                (selectUnique (concatT ($generatedInstance) $expr ) (- $sampleSize 1) $dist $kbMp $inst)
+                           ;; (if (is-member $generatedInstance $expr)
                            ;;     (selectUnique $expr $sampleSize $dist $kbMp $inst)
-                           ;;     (selectUnique (eval (concatT ($generatedInstance) $expr ))(- $sampleSize 1) $dist $kbMp $inst)
+                           ;;     (selectUnique (concatT ($generatedInstance) $expr ) (- $sampleSize 1) $dist $kbMp $inst)
                            ;;  )
                    
               )
@@ -211,10 +211,10 @@
 (= (sampleFromNeighborhoodFs $sampleSize $dist $itable $inst)
    (let* (
       ;; ($_ (println! (Inside sampleFromNeighborhoodFs: $sampleSize $dist $inst)))
-      ($list (eval (genList (- $sampleSize 1))))
-      ($x (eval (map-atom $list $i (sampleFromNeighborhoodFs` $i $dist $itable $inst))))
+      ($list (genList (- $sampleSize 1)))
+      ($x (map-atom $list $i (sampleFromNeighborhoodFs` $i $dist $itable $inst)))
     )
-    (eval (exprToList $x))))
+    (exprToList $x)))
    
 ;; this function calculates factorial of a number which can be used in " isPossibleSize " function
 ;; (: factorial (-> Number Number))
@@ -237,11 +237,11 @@
     
            (let* (
                ; () (println! (Inside isPossibleSize: $inst $dist $sampleSize)))
-               ($instLen (eval (List.length $centralInst)))
+               ($instLen (List.length $centralInst))
                ;  (() (println! (Instance Length: $instLen)))
-               ($n (eval (factorial $instLen)))
-               ($r (eval (factorial (- $instLen $dist))))
-               ($d (eval (factorial $dist)))
+               ($n (factorial $instLen))
+               ($r (factorial (- $instLen $dist)))
+               ($d (factorial $dist))
                ($m (pow-math 2 $dist)) ; assuming knob multiplicty is 3, so m-1 = 1, hence m = 2 that is why (pow-math 2 $dist)
                ($maxNeighbors (/ $n (* $r $d)))
                ($totalNeighbors (* $maxNeighbors $m))
@@ -317,7 +317,7 @@
 
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
-             (eval (countNeighborhood $kbMp $centerInst $dist $numNewInstances))
+             (countNeighborhood $kbMp $centerInst $dist $numNewInstances)
              $totalNeighbors))
     ;; ($_ (println! (updatedTotalNeighbors: $updatedTotalNeighbors)))
     ($updatedNumNewInstances 
@@ -330,7 +330,7 @@
                        (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))
     ;; ($_ (println! (NewInstances: $newInstances)))
     ($scoredNewInstances (List.map initInstScore $newInstances))
-    ($updatedInstList (eval (List.concat $instList $scoredNewInstances)))
+    ($updatedInstList (List.concat $instList $scoredNewInstances))
  )
  ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId) $updatedNumNewInstances)))
 
@@ -348,7 +348,7 @@
 
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
-             (eval (countNeighborhoodFs $centerInst $dist $numNewInstances))
+             (countNeighborhoodFs $centerInst $dist $numNewInstances)
              $totalNeighbors))
     ($updatedNumNewInstances 
          (if (< $numNewInstances $updatedTotalNeighbors)  
@@ -357,7 +357,7 @@
     ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
                        (sampleFromNeighborhoodFs $numNewInstances $dist $itable $centerInst)
                        (generateAllInNeighborhood (mkMultip 2) $centerInst $dist)))
-    ($scoredNewInstances (eval (List.map initInstScoreFs $newInstances)))
-    ($updatedInstList (eval (List.concat $instList $scoredNewInstances)))
+    ($scoredNewInstances (List.map initInstScoreFs $newInstances))
+    ($updatedInstList (List.concat $instList $scoredNewInstances))
  )
  ((mkSInstSet $updatedInstList) $updatedNumNewInstances)))
