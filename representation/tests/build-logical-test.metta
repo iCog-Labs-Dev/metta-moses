@@ -1,18 +1,19 @@
-!(import! &self ../../utilities/tree)
-!(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/general-helpers)
-!(import! &self ../../utilities/lazy-random-selector)
+!(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/ordered-multimap) 
+!(import! &self ../../utilities/lazy-random-selector)
 !(import! &self ../../utilities/nodeId)
-
-!(import! &self ../knob-representation)
-!(import! &self ../logical-probe)
-!(import! &self ../lsk)
-!(import! &self ../build-logical)
-!(import! &self ../sample-logical-perms) 
-!(import! &self ../add-logical-knobs)
+!(import! &self ../../utilities/tree)
 
 !(import! &self ../../scoring/bscore)
+
+!(import! &self ../knob-representation)
+!(import! &self ../lsk)
+!(import! &self ../logical-probe)
+!(import! &self ../sample-logical-perms) 
+!(import! &self ../add-logical-knobs)
+!(import! &self ../build-logical)
+
 
 ;; !(py-call (random.seed 0))
 

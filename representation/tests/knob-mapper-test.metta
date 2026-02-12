@@ -1,14 +1,15 @@
+!(import! &self ../../utilities/general-helpers)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/ordered-multimap)
+!(import! &self ../../utilities/map)
+!(import! &self ../../utilities/nodeId)
+!(import! &self ../../utilities/tree)
+
 !(import! &self ../lsk)
 !(import! &self ../knob-mapper)
-!(import! &self ../representation)
 !(import! &self ../knob-representation)
+!(import! &self ../representation)
 
-!(import! &self ../../utilities/map)
-!(import! &self ../../utilities/tree)
-!(import! &self ../../utilities/nodeId)
-!(import! &self ../../utilities/list-methods)
-!(import! &self ../../utilities/general-helpers)
-!(import! &self ../../utilities/ordered-multimap)
 
 
 

@@ -8,11 +8,11 @@
 ;;   Output: (2 0 1)   ; Selected indices may vary due to randomness.
 ; (: randomFeatureSelection (-> ITable Number Expression))
 (= (randomFeatureSelection (mkITable $data $labels) $targetSize)
-       (chain (- (eval (List.length $labels)) 1) $numFeatures
+       (chain (- (List.length $labels) 1) $numFeatures
            (if (<= $targetSize 0)
                ((0 ()))
                (if (>= $targetSize $numFeatures)
-                   ((0 (eval (range 0 1 $numFeatures))))
+                   ((0 (range 0 1 $numFeatures)))
                    ((0 (randomSelectHelper $numFeatures $targetSize ())))
                )
            )

@@ -1,8 +1,7 @@
-; !(register-module! ../../../metta-moses)
+!(import! &self ../../../metta-moses/utilities/list-methods)
+!(import! &self ../../../metta-moses/utilities/general-helpers)
 !(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
 !(import! &self ../../../metta-moses/feature-selection/simple)
-!(import! &self ../../../metta-moses/utilities/general-helpers)
-!(import! &self ../../../metta-moses/utilities/list-methods)
 
 (= (ttable) (mkITable  
             (Cons (Cons True (Cons True (Cons False (Cons True (Cons True Nil)))))

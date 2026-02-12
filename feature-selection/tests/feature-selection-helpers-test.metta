@@ -1,6 +1,6 @@
-!(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
 !(import! &self ../../../metta-moses/utilities/general-helpers)
 !(import! &self ../../../metta-moses/utilities/list-methods)
+!(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
 
 ;; Test
 !(assertEqual (List.at 0 (Cons True (Cons False Nil))) True)

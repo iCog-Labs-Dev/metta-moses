@@ -1,11 +1,10 @@
-
-!(import! &self ../../utilities/tree)
-!(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/general-helpers)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/nodeId)
+!(import! &self ../../utilities/tree)
+!(import! &self ../../representation/lsk)
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/logical-probe)
-!(import! &self ../../representation/lsk)
-!(import! &self ../../utilities/nodeId)
 !(import! &self ../../representation/sample-logical-perms) 
 
 

@@ -10,18 +10,18 @@
 ;; helper function to the addLogicalKnobs
 ;; takes a tuple of knobs and return a tuple of knob and knobSpec pairs
 ;; (: pairKnobWithSpec (-> Expression Expression))
-(= (pairKnobWithSpec $tuple)   (map-atom $tuple $knob ( (eval (getKnobSpec $knob)) $knob) ))
+(= (pairKnobWithSpec $tuple)   (map-atom $tuple $knob ( (getKnobSpec $knob) $knob) ))
 
 ;; addLogicalKnobs
 ;; (: addLogicalKnobs (-> (Tree $a) NodeId Bool (MultiMap ($k $v)) Expression Expression))
 (= (addLogicalKnobs $exemplar $nodeId $addIfInExemplar $map $argLabels) 
-(let (mkTree (mkNode $op) $children) (eval (getNodeById $exemplar $nodeId))
+(let (mkTree (mkNode $op) $children) (getNodeById $exemplar $nodeId)
        (let  $lengthOfArgs (size-atom $argLabels)
-          (let  $perms (eval (sampleLogicalPerms $op $lengthOfArgs $argLabels))
+          (let  $perms (sampleLogicalPerms $op $lengthOfArgs $argLabels)
             (let  $treePerms (trace! (Perms: $perms) (map-atom $perms $perm (buildTree $perm)))
-              (let ($knobs $updatedTree) (eval (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ()))
-                (let  $pairs (eval (pairKnobWithSpec $knobs))
-                    (let $mmp (eval (expToMMap $pairs $map discSpec<=))
+              (let ($knobs $updatedTree) (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ())
+                (let  $pairs (pairKnobWithSpec $knobs)
+                    (let $mmp (expToMMap $pairs $map discSpec<=)
                        (let $temp (cut)
                          ($updatedTree $mmp)
                        )

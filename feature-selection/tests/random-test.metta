@@ -1,8 +1,7 @@
-; !(register-module! ../../../metta-moses)
-!(import! &self ../random-feature-selection)
 !(import! &self ../../utilities/general-helpers)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../feature-selection-helpers)
+!(import! &self ../random-feature-selection)
 
 !(py-call (random.seed 42))
 

@@ -60,7 +60,7 @@
 ;; Calculates the knob Specification of an LSK
 ;; (: getKnobSpec (-> LogicalSubtreeKnob DiscSpec))
 (= (getKnobSpec (mkLSK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis) ))
-(mkDiscSpec (- $multip (eval (List.length $dis)))))
+(mkDiscSpec (- $multip (List.length $dis))))
 
 ;; Extracts the location from a discrete or a logical subtree knob.
 ;; Params:

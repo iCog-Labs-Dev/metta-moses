@@ -1,7 +1,6 @@
-!(import! &self ../../utilities/list-methods)
-!(import! &self ../../utilities/tree)
-!(import! &self ../../utilities/nodeId)
 !(import! &self ../../utilities/general-helpers)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/nodeId)
 
 !(import! &self ../../reduct/boolean-reduct/rte-helpers)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
@@ -13,6 +12,8 @@
 !(import! &self ../../reduct/boolean-reduct/one-constraint-subsumption)
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
+
+!(import! &self ../../utilities/tree)
 
 !(import! &self ../lsk)
 !(import! &self ../knob-representation)
