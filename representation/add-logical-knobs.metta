@@ -19,7 +19,7 @@
        (let  $lengthOfArgs (size-atom $argLabels)
           (let  $perms (sampleLogicalPerms $op $lengthOfArgs $argLabels)
             (let  $treePerms (trace! (Perms: $perms) (map-atom $perms $perm (buildTree $perm)))
-              (let ($knobs $updatedTree) (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ())
+              (let ($knobs $updatedTree) (trace! (TreePerms: $treePerms) (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ()))
                 (let  $pairs (pairKnobWithSpec $knobs)
                     (let $mmp (expToMMap $pairs $map discSpec<=)
                        (let $temp (cut)
