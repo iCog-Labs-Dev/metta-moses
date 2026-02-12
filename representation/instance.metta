@@ -42,7 +42,7 @@
 ;;  Instance  -->  Expression
 ;;  Converts an Instance into an Expression form.
 ;; (: instToExpr (-> Instance Expression))
-(= (instToExpr (mkInst $lst)) (eval (List.listToExpr $lst)))
+(= (instToExpr (mkInst $lst)) (List.listToExpr $lst))
 
 ;;------------------------------------------------------------
 ;; exprToInst
@@ -50,7 +50,7 @@
 ;;  Expression  -->  Instance
 ;;  Parses an Expression into an Instance.
 ;; (: exprToInst (-> Expression Instance))
-(= (exprToInst $expr) (mkInst (eval (exprToList $expr))))
+(= (exprToInst $expr) (mkInst (exprToList $expr)))
 
 ;;------------------------------------------------------------
 ;; sInstToExpr
@@ -62,7 +62,7 @@
 (= (sInstToExpr (mkSInst (mkPair $inst $score)))
     (let* (
       ($instExpr (instToExpr $inst))
-      ($scoreExpr (eval (cScoreToExpr $score)))
+      ($scoreExpr (cScoreToExpr $score))
     )
       (cons-atom $instExpr $scoreExpr)))
 
@@ -76,7 +76,7 @@
     (let* (
       (($instExpr $scoreExpr) (decons-atom $expr))
       ($inst (exprToInst $instExpr))
-      ($score (eval (exprToCScore $scoreExpr)))
+      ($score (exprToCScore $scoreExpr))
     )
       (mkSInst (mkPair $inst $score))))
 
@@ -100,7 +100,7 @@
 ;;    ((1 2) (100.0 5.0 10.0 2.0 88.0))
 ;;
 ;; (: sInstSetToExpr (-> (InstanceSet $score) Expression))
-(= (sInstSetToExpr (mkSInstSet $lst)) (eval (sInstSetListToExpr $lst)))
+(= (sInstSetToExpr (mkSInstSet $lst)) (sInstSetListToExpr $lst))
 
 ;;------------------------------------------------------------
 ;; sInstSetListToExpr
@@ -109,7 +109,7 @@
 ;;  Converts a list of scored instances to Expression.
 ; (: sInstSetListToExpr (-> (List (ScoredInstance $score)) Expression))
 (= (sInstSetListToExpr $lst)
-    (eval (List.listToExpr (eval (List.map sInstToExpr $lst)))))
+    (List.listToExpr (List.map sInstToExpr $lst)))
 
 ;;------------------------------------------------------------
 ;; exprToSInstSet
@@ -118,7 +118,7 @@
 ;;  Parses Expression into a scored instance set.
 ;; (: exprToSInstSet (-> Expression (InstanceSet Cscore)))
 (= (exprToSInstSet $expr)
-    (mkSInstSet (eval (List.map exprToSInst (exprToList $expr)))))
+    (mkSInstSet (List.map exprToSInst (exprToList $expr))))
 
 ;; Sorting
 ;; ============================================================
@@ -154,7 +154,7 @@
     (let* (
       (($instA $scoreA) (decons-atom $a))
       (($instB $scoreB) (decons-atom $b))
-      ($result (eval (cScoreExpr< $scoreB $scoreA)))
+      ($result (cScoreExpr< $scoreB $scoreA))
     )
       $result))
 
@@ -182,7 +182,7 @@
 ;; (: instance>= (-> (ScoredInstance $score) (ScoredInstance $score) Bool))
 (= (instance>= (mkSInst (mkPair $inst1 $score1))
                (mkSInst (mkPair $inst2 $score2)))
-    (eval (apply >= $score1 $score2)))
+    (apply >= $score1 $score2))
 
 ;; (: instanceFs>= (-> (ScoredInstance $score) (ScoredInstance $score) Bool))
 (= (instanceFs>= (mkSInst (mkPair $inst1 $score1))

@@ -1,9 +1,8 @@
-
-!(import! &self ../instance)
 !(import! &self ../../utilities/general-helpers)
-!(import! &self ../../utilities/pair)
 !(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/pair)
 !(import! &self ../../scoring/cscore)
+!(import! &self ../instance)
 
 ;; --- Tests for conversion helpers ---
 
