@@ -21,21 +21,21 @@
               ;; (() (println! (=== Inside PromoteCommonConstraints ===)))
               ;; (() (println! (Parameters ==> Parent: $parent Current: $current)))
 
-              (($literals $children) (eval (getLiteralChildren $current)))
-              ($childrenLiteral (if (not (== $children ())) (collapse (eval (getLiterals (superpose $children)))) ()))
-              ($common (if (not (== $childrenLiteral ())) (eval (findCommon $childrenLiteral)) ()))
+              (($literals $children) (getLiteralChildren $current))
+              ($childrenLiteral (if (not (== $children ())) (collapse (getLiterals (superpose $children))) ()))
+              ($common (if (not (== $childrenLiteral ())) (findCommon $childrenLiteral) ()))
             )
             (if (== $common ())
                 ($parent $current False)
                 (let*
                     (
                       ;; (() (println! (Removing Common Literals: $common)))
-                      ($updatedChildren (eval (removeCommonLiterals $common $children)))
-                      ($updatedLiterals (eval (removeElement $common $literals)))
-                      ($newExp (eval (concatTuple $updatedLiterals $updatedChildren )))
+                      ($updatedChildren (removeCommonLiterals $common $children))
+                      ($updatedLiterals (removeElement $common $literals))
+                      ($newExp (concatTuple $updatedLiterals $updatedChildren ))
 
                       ($newCurrent (cons-atom OR $newExp))
-                      ($updatedParent (eval (findAndReplace $current $newCurrent $parent)))
+                      ($updatedParent (findAndReplace $current $newCurrent $parent))
                       ($updatedParent' (addLiterals $updatedParent $common))
                     )
                     ($updatedParent' $newCurrent True)

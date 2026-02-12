@@ -16,11 +16,11 @@
 (= (getGuardSet $exp)
    (if (== (get-metatype $exp) Expression)
     (let ($h $t) (if (not (== $exp ())) (decons-atom $exp) (() ()))
-      (eval (if-decons-expr-custom $exp $h $t
+      (if-decons-expr-custom $exp $h $t
           (if (== $h OR)
               ()               
               (getLiterals $exp))
-          $exp))
+          $exp)
     )
     $exp)
 )
@@ -77,7 +77,7 @@
          (() $exp)
          ((NOT $x) ())
          ($else (if (== (get-metatype $exp) Expression)
-                          (collapse (eval (filterChildren (superpose $exp))))
+                          (collapse (filterChildren (superpose $exp)))
                           ())))))
 
 ;; A function to add a list of children to a given expression.
@@ -88,8 +88,8 @@
      (
         ($op (car-atom $exp))
         ($oldChildren (getChildrenExp $exp))
-        ($newChildren (eval (concatTuple $oldChildren $children)))
-        ($updatedSubExpression (eval (concatTuple (getLiterals $exp) $newChildren)))
+        ($newChildren (concatTuple $oldChildren $children))
+        ($updatedSubExpression (concatTuple (getLiterals $exp) $newChildren))
         ($newExp (cons-atom $op $updatedSubExpression))
         
         ; (() (println! (OldChildren: $oldChildren)))
@@ -112,7 +112,7 @@
        (
          (() $exp)
          ((NOT $x) $exp)
-         ($else (if (== (get-metatype $exp) Expression) (collapse (eval (filterLiterals (superpose $exp)))) $exp)))))
+         ($else (if (== (get-metatype $exp) Expression) (collapse (filterLiterals (superpose $exp))) $exp)))))
 
 ;; A function similar to getLiterals function but returns a
 ;;    non deterministic list instead of a collapsed atom.

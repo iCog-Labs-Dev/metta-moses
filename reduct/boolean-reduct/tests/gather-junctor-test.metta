@@ -1,5 +1,5 @@
-!(import! &self ../../../utilities/general-helpers)
 !(import! &self ../gather-junctors)
+!(import! &self ../../../utilities/general-helpers)
 
 ;; Test 01
 !(assertEqual

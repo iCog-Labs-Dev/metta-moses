@@ -88,7 +88,7 @@
         (
           ; (() (println! (===Inside ApplyAndCut===)))
           ; (() (println! (Parent: $parent : Child: $child : RemainingChildren: $remainingChildren : bool: $bool)))
-          (($updatedParent $updatedChild $appliedOrCut) (eval (andCut $parent $child)))
+          (($updatedParent $updatedChild $appliedOrCut) (andCut $parent $child))
           ($nextChild (if (~= $remainingChildren ()) (car-atom $remainingChildren) ()))
           ($restChildren (if (~= $remainingChildren ()) (cdr-atom $remainingChildren) ()))
         )

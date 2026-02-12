@@ -7,6 +7,7 @@
 !(import! &self ../../utilities/lru-cache)
 !(import! &self ../../utilities/nodeId)
 
+!(import! &self ../../reduct/boolean-reduct/rte-helpers)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-and)
 !(import! &self ../../reduct/boolean-reduct/n-ary-propagate-not)
@@ -15,7 +16,6 @@
 !(import! &self ../../reduct/boolean-reduct/zero-constraint-subsumption)
 !(import! &self ../../reduct/boolean-reduct/one-constraint-subsumption)
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
-!(import! &self ../../reduct/boolean-reduct/rte-helpers)
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 
 !(import! &self ../../utilities/tree) 
