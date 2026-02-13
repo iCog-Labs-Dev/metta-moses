@@ -108,7 +108,7 @@
          ($srcid (mkNodeId (0)))
          ;; ($_ (println! ($parentid   $srcid)))
          ($candidate (getCandidateRec $repObj $inst $parentid $srcid (mkNullVex Nil)))
-         ; ($_ (println! (Found candidate: $candidate)))
+         ;; ($_ (println! (Found candidate: $candidate)))
          ($cleanedTree (cleanTree $candidate))
          ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
       )
