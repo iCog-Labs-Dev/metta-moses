@@ -15,14 +15,14 @@
 (let*
 (
     (($headPerms $tailPerms) (decons-atom $perms))
-    (($updatedTree $lsk) (eval (logicalSubtreeKnob $exemplar (mkNodeId $targetId) $headPerms)))
-    ($discKnob (eval (getDiscKnob $lsk)))
+    (($updatedTree $lsk) (logicalSubtreeKnob $exemplar (mkNodeId $targetId) $headPerms))
+    ($discKnob (getDiscKnob $lsk))
 )
-(if (or $addIfInExemplar (not (eval (inExemplar $discKnob)) )) 
+(if (or $addIfInExemplar (not (inExemplar $discKnob) )) 
     (let* 
     (
-        ($updatedKnobs (eval (concatT $knobs ($lsk))))
+        ($updatedKnobs (concatT $knobs ($lsk)))
     )
-    (eval (logicalProbe $updatedTree (mkNodeId $targetId) $tailPerms $addIfInExemplar $updatedKnobs))
+    (logicalProbe $updatedTree (mkNodeId $targetId) $tailPerms $addIfInExemplar $updatedKnobs)
     )
-    (eval (logicalProbe $exemplar (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs)))))
+    (logicalProbe $exemplar (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs))))

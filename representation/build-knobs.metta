@@ -5,4 +5,4 @@
 ;; Returns: a tuple containing the updatedTree and a multimap of $kbSpec $kb pairs 
  ;; (: buildKnobs (-> (Tree Bool) (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v)))))
 (= (buildKnobs $exemplar $mmp $argLabels)
-(eval (buildLogical $exemplar (mkNodeId (0)) $mmp $argLabels)))
+(buildLogical $exemplar (mkNodeId (0)) $mmp $argLabels))

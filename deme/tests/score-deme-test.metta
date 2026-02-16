@@ -1,3 +1,9 @@
+!(import! &self ../../utilities/general-helpers)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/map)
+!(import! &self ../../utilities/ordered-multimap)
+!(import! &self ../../utilities/nodeId)
+
 !(import! &self ../../reduct/boolean-reduct/rte-helpers)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-and)
@@ -9,29 +15,26 @@
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 
-!(import! &self ../score-deme)
-!(import! &self ../../scoring/complexity-based-scorer)
-!(import! &self ../../scoring/cscore)
-!(import! &self ../../scoring/bscore)
-!(import! &self ../../scoring/fitness)
+!(import! &self ../../utilities/tree)
 
-!(import! &self ../../moses/neighborhood-sampling)
+!(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/lsk)
 !(import! &self ../../representation/knob-mapper)
-!(import! &self ../../representation/instance)
-!(import! &self ../../representation/representation)
-!(import! &self ../../representation/knob-representation)
-
-!(import! &self ../../utilities/map)
-!(import! &self ../../utilities/tree)
-!(import! &self ../../utilities/nodeId)
-!(import! &self ../../utilities/list-methods)
-!(import! &self ../../utilities/general-helpers)
-!(import! &self ../../utilities/ordered-multimap)
-
 !(import! &self ../../feature-selection/feature-selection-helpers)
+!(import! &self ../../representation/representation)
 
+!(import! &self ../../representation/instance)
+
+!(import! &self ../../scoring/fitness)
+!(import! &self ../../scoring/bscore)
+!(import! &self ../../scoring/cscore)
 !(import! &self ../../scoring/precision-bscore)
+!(import! &self ../../scoring/complexity-based-scorer)
+
+!(import! &self ../../moses/neighborhood-sampling.metta)
+
+!(import! &self ../score-deme)
+
 
 (= (tree1)
         (mkTree (mkNode AND)
@@ -89,7 +92,7 @@
                     (Cons A (Cons B (Cons C (Cons output Nil))))))
 ;; NOTE: All the instances in the deme don't include lsk1 (or they all start with '0') because we are testing it using ttable2. 
 ;;       ttable2 is a truth table which doesn't have a 'D' column.
-; Testcases for applyComplexityBasedScore
+;; Testcases for applyComplexityBasedScore
 !(assertEqual 
    (applyComplexityBasedScore 
       (mkRep (knobMapObj) (tree1))
@@ -108,7 +111,7 @@
       Nil)
       (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) (mkCscore -4 0 0.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -4 0 0.0 0.0 -4.0))) Nil)))
 
-; Testcases for transform
+;; Testcases for transform
 !(assertEqual
    (transform
    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e308)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e308)) Nil)))

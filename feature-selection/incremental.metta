@@ -42,7 +42,7 @@
 
 ;** Implement caching for the mutual Information
 (= (cachedMutualInformation $itable $featureIndices)
-    (eval (lruCache (DEFAULT_CACHE_SIZE) ((calculateMutualInformation) ($itable $featureIndices)))))
+    (lruCache (DEFAULT_CACHE_SIZE) ((calculateMutualInformation) ($itable $featureIndices))))
 
 ;; Purpose: Filter relevant combinations based on MI threshold
 ;; Parameters:
@@ -55,7 +55,7 @@
 (= (filterRelevantCombinations $itable NilOS $threshold $resultSet)
    $resultSet)
 (= (filterRelevantCombinations $itable (ConsOS $combo $rest) $threshold $resultSet)
-   (chain (eval (cachedMutualInformation $itable $combo)) $mutualInfo
+   (chain (cachedMutualInformation $itable $combo) $mutualInfo
      ;; Convert the simple list to OrderedSet for union
      (chain (expressionToOS $combo NilOS) $comboOS
        (if (> $mutualInfo $threshold)

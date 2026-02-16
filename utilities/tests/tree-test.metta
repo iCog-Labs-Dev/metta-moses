@@ -1,9 +1,6 @@
-!(import! &self ../list-methods)
-!(import! &self ../tree)
-!(import! &self ../nodeId)
 !(import! &self ../general-helpers)
-; ! (import! &self metta-moses:reduct:enf)
-!(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
+!(import! &self ../list-methods)
+!(import! &self ../nodeId)
 !(import! &self ../../reduct/boolean-reduct/rte-helpers)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-and)
@@ -13,6 +10,8 @@
 !(import! &self ../../reduct/boolean-reduct/one-constraint-subsumption)
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/n-ary-gather-junctors)
+!(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
+!(import! &self ../tree)
 ;; Helper function for clean tree
 
 !(bind! tree1 (new-state (mkTree (mkNode AND)

@@ -56,7 +56,7 @@
     (if (== $index 0)
         $xs
         (chain (OS.removeByIdx $xs (- $index 1)) $res
-        (eval (if-error $res $res (ConsOS $x $res))))))
+        (if-error $res $res (ConsOS $x $res)))))
 
 ;; Check if an Exemplar is a member of an ordered set
 ;; Params:
@@ -82,7 +82,7 @@
     (if (== $n 1)
         (ConsOS $x NilOS)
         (chain (OS.getTopN (- $n 1) $xs) $res 
-            (eval (if-error $res $res (ConsOS $x $res))))))
+            (if-error $res $res (ConsOS $x $res)))))
 
 
 ;; (: genericCompare (-> Atom Atom Atom))

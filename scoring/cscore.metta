@@ -9,21 +9,21 @@
             (let ($result) $score $result);; If matched score will be ((score)) need to remove ()
             )
     ) $val (if  (== $val ())
-                (chain (eval (scoreTree $itable $tree)) $bs
-                (eval (if-error $bs ;; return worst possible composite score
+                (chain (scoreTree $itable $tree) $bs
+                (if-error $bs ;; return worst possible composite score
                 (worstCscore)
-                (let* (($bsum (eval (sumBScore $bs)))
+                (let* (($bsum (sumBScore $bs))
                     ;; ($_ (println! (Score: $bsum)))
                     ;; ($_ (println! ""))
-                    ($cpxy (eval (treeComplexity $tree)))
+                    ($cpxy (treeComplexity $tree))
                     ;; ($_ (println! (Complexity: $cpxy)))
-                    ($cCoef (eval (getComplexityCoef $complexityRatio)))
-                    ($res (eval (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False)))
+                    ($cCoef (getComplexityCoef $complexityRatio))
+                    ($res (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False))
                     ;; ($_ (println! (updatePenalizedScore: $res)))
                     ;; ($_ (add-atom $scoreSpace ($tree $res)))
                     )
 
-                    $res )))) 
+                    $res ))) 
                 $val
             ) )
 )
@@ -50,7 +50,7 @@
 ; (: updatePenalizedScore (-> Cscore Bool Cscore))
 (= (updatePenalizedScore (mkCscore $scor $cpxy $cpxyPenalty $uniformityPenalty $penalizedScore) $multiplyDiversity)
     (let* (($temp (- $scor $cpxyPenalty))
-           ($updatedPScore (eval (if $multiplyDiversity (* $temp $uniformityPenalty) (- $temp $uniformityPenalty))))
+           ($updatedPScore (if $multiplyDiversity (* $temp $uniformityPenalty) (- $temp $uniformityPenalty)))
            ;; ($_ (println! (PenalizedScore: $updatedPScore)))
            )
         

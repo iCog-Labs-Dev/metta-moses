@@ -1,16 +1,8 @@
-!(import! &self ../../utilities/tree)
-!(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/general-helpers)
-!(import! &self ../../representation/knob-representation)
-!(import! &self ../../representation/logical-probe)
-!(import! &self ../../representation/knob-representation)
-!(import! &self ../lsk)
-!(import! &self ../../utilities/nodeId)
-!(import! &self ../sample-logical-perms) 
-!(import! &self ../add-logical-knobs)
+!(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/ordered-multimap) 
 !(import! &self ../../utilities/lazy-random-selector)
-!(import! &self ../../scoring/bscore)
+!(import! &self ../../utilities/nodeId)
 
 !(import! &self ../../reduct/boolean-reduct/rte-helpers)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
@@ -22,6 +14,17 @@
 !(import! &self ../../reduct/boolean-reduct/one-constraint-subsumption)
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
+
+!(import! &self ../../utilities/tree)
+
+!(import! &self ../../representation/knob-representation)
+!(import! &self ../lsk)
+!(import! &self ../../representation/logical-probe)
+!(import! &self ../sample-logical-perms) 
+!(import! &self ../add-logical-knobs)
+!(import! &self ../../representation/knob-representation)
+!(import! &self ../../scoring/bscore)
+
 
 !(py-call (random.seed 0))
 ;; Testcase for the addLogicalKnobs 

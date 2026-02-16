@@ -146,7 +146,7 @@
 (= (fitness $expr $data)
     (if (== $data ())
         0
-        (let $result (collapse (rowFitness $expr (superpose $data))) (eval (sum $result)))
+        (let $result (collapse (rowFitness $expr (superpose $data))) (sum $result))
     )
 )
 

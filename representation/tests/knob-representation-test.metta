@@ -1,8 +1,8 @@
-!(import! &self ../../utilities/tree)
-!(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/general-helpers)
-!(import! &self ../knob-representation)
+!(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/ordered-multimap) 
+!(import! &self ../../utilities/tree)
+!(import! &self ../knob-representation)
 
 !(assertEqual (let $return (mkKnob  (mkNodeId (1))) $return)  
               (mkKnob (mkNodeId (1)))

@@ -1,10 +1,10 @@
-
-!(import! &self ../bscore)
-!(import! &self ../fitness)
-
-!(import! &self ../../utilities/tree)
-!(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/general-helpers)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/tree)
+
+!(import! &self ../fitness)
+!(import! &self ../bscore)
+
 
 ;; Test Types and type constructors    ;;; Fix: type system not working in peTTa 
 ;; !(assertEqual
@@ -65,6 +65,7 @@
                         (Cons A (Cons B (Cons O Nil)))) 
               (buildTree (OR A B)))
    (mkBScore (Cons -1 (Cons 0 Nil))))
+
 !(assertEqual
    (scoreTree (mkITable (Cons (Cons True (Cons False (Cons False Nil)))
                                    (Cons (Cons True (Cons True  (Cons True Nil))) Nil)) 

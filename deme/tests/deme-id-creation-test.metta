@@ -1,6 +1,6 @@
+!(import! &self ../../utilities/general-helpers)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../deme-id-creation)
-!(import! &self ../../utilities/general-helpers)
 
 ; Test cases -- createDemeIds
 !(assertEqual (createDemeIds 0 1) (Cons (mkDemeId (numStr 1)) Nil))  ;; changed to use numStr for type mismatch handling

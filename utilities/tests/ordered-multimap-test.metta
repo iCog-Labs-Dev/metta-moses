@@ -1,5 +1,5 @@
-!(import! &self ../ordered-multimap)
 !(import! &self ../general-helpers)
+!(import! &self ../ordered-multimap)
 
 ;; Testcase MultiMap.insert
 !(println! ("testing: MultiMap.insert"))

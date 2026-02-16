@@ -9,15 +9,15 @@
 
 (= (simpleFeatureSelector $th $numDesired $expDist (mkITable $table $labels) $acc)
     (if (== $numDesired 0)
-        ((0 (eval (List.listToExpr (inputLables $labels)))))                                                  ;; return all features by default
-        (chain (eval (List.length $labels)) $colNum
-            (chain (eval (List.length $table)) $rowNum
-                (chain (eval (Table.getColumn (- $colNum 1) $table)) $oc                                  ;; get the output column
-                    (chain (eval (selectorIterator $th $rowNum $oc $labels $table 0 $acc)) $selected-features  ;; the output format might need to change into sth like ((1) (2) (3) (4))
+        ((0 (List.listToExpr (inputLables $labels))))                                                  ;; return all features by default
+        (chain (List.length $labels) $colNum
+            (chain (List.length $table) $rowNum
+                (chain (Table.getColumn (- $colNum 1) $table) $oc                                  ;; get the output column
+                    (chain (selectorIterator $th $rowNum $oc $labels $table 0 $acc) $selected-features  ;; the output format might need to change into sth like ((1) (2) (3) (4))
                         (chain (if $expDist                                                                        ;; this is the actual selection after the scoring
                                     (chain (- 1 (/ 1 (+ $numDesired 1))) $mean                                      ;; if exponential distn is preferred 
                                         (exponentialSelection $mean $numDesired $selected-features 1 ()))
-                                    (takeN $numDesired $selected-features)) $final ((0 (eval (map-atom $final ($mi-score ($feature)) $feature)))))))))))
+                                    (takeN $numDesired $selected-features)) $final ((0 (map-atom $final ($mi-score ($feature)) $feature))))))))))
 
 
 ;; selectorIterator
@@ -31,10 +31,10 @@
 (= (selectorIterator $th $rowNum $oc (Cons $label $labels) $dataRows $counter $acc)
     (if (= (Cons $label $labels) (Cons $label Nil))                                     ;; this means we are at the output label
         $acc                                                                        ;; result -- pair of score and column index for consistent formatting across different feature selection algorithms
-        (chain (eval (Table.getColumn 0 $dataRows)) $if
-        (chain (eval (Table.pop 0 $dataRows)) $rem-table                            ;; remove the first column -- better than carrying around the whole table
-        (chain (eval (mutualInformation $if $oc)) $mi      
-            (chain (calculateConfidence (size-atom $if) (eval (List.length $dataRows)) 50.0) $confidence
+        (chain (Table.getColumn 0 $dataRows) $if
+        (chain (Table.pop 0 $dataRows) $rem-table                            ;; remove the first column -- better than carrying around the whole table
+        (chain (mutualInformation $if $oc) $mi      
+            (chain (calculateConfidence (size-atom $if) (List.length $dataRows) 50.0) $confidence
                 (chain (* $mi $confidence) $actualScore
                     (if (>= $actualScore $th)
                         (chain (insertPair > ($actualScore ($counter)) $acc) $new-acc

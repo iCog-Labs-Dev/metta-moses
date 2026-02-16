@@ -1,5 +1,5 @@
-!(import! &self ../lazy-random-selector)
 !(import! &self ../general-helpers)
+!(import! &self ../lazy-random-selector)
 
 ;;Test case for lazy-random selector
 !(assertEqual (length (lazyRandomSelector 0 5 3)) 3)

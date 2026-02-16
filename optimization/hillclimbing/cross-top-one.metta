@@ -16,9 +16,10 @@
                     ((mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId) $deme)
                     ;; ($_ (println! (Inside crossTopOne)))
                     ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
-                    ;; ($_ (println! (SampleSize: $sampleSize NToMake: $nToMakeNew SampleStart: $sampleStart totalSize: (eval (List.length $instSet)))))
+                    ;; ($_ (println! (SampleSize: $sampleSize NToMake: $nToMakeNew SampleStart: $sampleStart totalSize: (List.length $instSet))))
                     (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
                     ($list (List.partialSort instance>= $newInst $nToMakeNew Nil)) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
+                    ;; ($_ (println! (ListLength: (List.length $list))))
                   )
                   (if (== $list Nil)
                       (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId)
@@ -29,7 +30,8 @@
                           ($targetExpr (List.listToExpr $targetInstances))
 
                           ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
-                          ($newInstances (eval (merger $targetExpr $baseInstance $referenceInst)))
+                          ($newInstances (merger $targetExpr $baseInstance $referenceInst))
+                          ;; ($_ (println! (Merger: $newInstances)))
                           ($uniqueInstances (unique-atom $newInstances))
                           ;; ($_ (println! (NewInstances: (length $newInstances) UniqueInstances: (length $uniqueInstances))))
                           ;; ($__ (println! (New instances After merging: $newInstances)))
@@ -46,7 +48,7 @@
            ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
            ;; ($_ (println! (NToMake: $nToMakeNew)))
            (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
-           ($list (eval (List.partialSort instanceFs>= $newInst $nToMakeNew Nil))) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
+           ($list (List.partialSort instanceFs>= $newInst $nToMakeNew Nil)) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
            ;; ($_ (println! (New instances After merging: $newInstances)))
            ;; ($_ (println! ""))
          )
@@ -55,10 +57,10 @@
              (let*
                (
                  ((Cons $reference $rest) $list)
-                 ($targetInstances (eval (List.takeN (- $nToMake 1) $rest)))
-                 ($targetExpr (eval (List.listToExpr $targetInstances)))
+                 ($targetInstances (List.takeN (- $nToMake 1) $rest))
+                 ($targetExpr (List.listToExpr $targetInstances))
 
                  ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
-                 ($newInstances (eval (mergerFs $targetExpr $baseInstance $referenceInst)))
+                 ($newInstances (mergerFs $targetExpr $baseInstance $referenceInst))
                )
-               (mkSInstSet (eval (List.appendList (eval (exprToList $newInstances)) $newInst)))))))
+               (mkSInstSet (List.appendList (exprToList $newInstances) $newInst))))))

@@ -27,6 +27,6 @@
         $list
         (let* ((($str1 $str2)($nExpansion $nDeme))
                 ($demeId (mkDemeId ($str1 . $str2)))
-                ($newList (eval (List.prepend $demeId $list))))
+                ($newList (List.prepend $demeId $list)))
 
                 (demeIdList $nExpansion (- $nDeme 1) $newList)))) 

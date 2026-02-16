@@ -1,17 +1,17 @@
-!(import! &self ../neighborhood-sampling)
+!(import! &self ../../utilities/general-helpers)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/nodeId)
+!(import! &self ../../utilities/tree)
+!(import! &self ../../utilities/ordered-multimap)
+!(import! &self ../../utilities/lazy-random-selector)
 !(import! &self ../../representation/instance)
 !(import! &self ../../representation/knob-representation)
 
-!(import! &self ../../utilities/tree)
-!(import! &self ../../utilities/nodeId)
-!(import! &self ../../utilities/list-methods)
-;;! (import! &self metta-moses:utilities:python-helpers)
-!(import! &self ../../utilities/general-helpers)
-!(import! &self ../../utilities/ordered-multimap)
-!(import! &self ../../utilities/lazy-random-selector)
+!(import! &self ../../scoring/cscore)
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers) ;; using / for additional nested dir level 
 !(import! &self ../../deme/create-deme)
-!(import! &self ../../scoring/cscore)
+
+!(import! &self ../neighborhood-sampling)
 !(py-call (random.seed 0))
 
 ;; Test the distance function

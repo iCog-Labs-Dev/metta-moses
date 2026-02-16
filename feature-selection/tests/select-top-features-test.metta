@@ -1,10 +1,9 @@
-; !(register-module! ../../../metta-moses)
-!(import! &self ../../../metta-moses/feature-selection/select-top-features)
-!(import! &self ../../../metta-moses/feature-selection/similarity-scorers)
-!(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
-!(import! &self ../../../metta-moses/scoring/cscore)
 !(import! &self ../../../metta-moses/utilities/general-helpers)
 !(import! &self ../../../metta-moses/utilities/list-methods)
+!(import! &self ../../../metta-moses/scoring/cscore)
+!(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
+!(import! &self ../../../metta-moses/feature-selection/similarity-scorers)
+!(import! &self ../../../metta-moses/feature-selection/select-top-features)
 
 (= (ttable) 
     (mkITable 

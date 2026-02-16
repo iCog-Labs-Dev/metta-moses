@@ -1,7 +1,5 @@
-; !(register-module! ../../../../metta-moses) 
-
-!(import! &self ../rte-helpers)
 !(import! &self ../../../utilities/general-helpers)
+!(import! &self ../rte-helpers)
 
 !(import! &self ../one-constraint-complement-subtraction)
 

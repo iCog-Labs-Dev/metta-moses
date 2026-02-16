@@ -95,62 +95,62 @@
           (let*
             (
               ;; Estimate Neighborhood
-              ;; ($_ (println! (Iteration: $i , Temperature: $Temp)))
+              ($_ (println! (Iteration: $i , Temperature: $Temp)))
               ;; ($_ (println! ""))
               ; ($_ (println! $hyper))
               ; ($_ (println! ($rows $labels)))
               ($totalNNeighbors ($estimateFunction $d $neighborhood))
 
-              ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
-              ;; ($_ (println! ""))
+              ($_ (println! (Estimated neighbors: $totalNNeighbors)))
+              ($_ (println! ""))
               ($nNewNeighbors (min $totalNNeighbors 2))
 
               ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
 
               ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance))))
-              ;; ($_ (println! (Crossover: $xOver)))
+              ($_ (println! (Crossover: $xOver)))
               ;; Generate a new instance using crossover
               
               (((mkDeme $rep $updatedInstSet $id) $newInstances) (case ($xOver $size)
                                                                    (
-                                                                ((True ()) (let ($updatedInstSet $newInstances) (eval ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet))
+                                                                ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet)
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
-                                                                ((True $notEmpty)  (eval ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet)))
-                                                                ((False ()) (let ($updatedInstSet $newInstances) (eval ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $POASet $d))
+                                                                ((True $notEmpty)  ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet))
+                                                                ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $POASet $d)
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
                                                                 ((False $notEmpty) 
-                                                                        (let $result (eval ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $POASet $d))
+                                                                        (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $POASet $d)
                                                                         ;; (trace! ("Result: " $result) )))
                                                                         $result))
                                                               )
                                                                     ))
-              ;; ($_ (println! (Newinstances: $updatedInstSet)))
+              ($_ (println! (Newinstances: $updatedInstSet)))
               ;; ($_ (println! ""))
               
               ($scorerType (if (== () $FsScorerType) mi $FsScorerType))
               (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive) (if (== () $FsHyperParams) (() () () () ()) $FsHyperParams))
               ;; Score the new instance
               ((mkSInstSet $scoredInstances) (if (or (== $rep ()) (== $id ())) 
-                                                (eval ($transformFunction $updatedInstSet 
+                                                ($transformFunction $updatedInstSet 
                                                                   (mkITable $rowOCoeff $neighborhood)
                                                                   $miConfi $prePenalty
                                                                   $preMinActivation $preMaxActivation
                                                                   $prePositive $scorerType
-                                                                  ))
-                                                (eval ($transformFunction $updatedInstSet $rep $iTable $rowOCoeff))))
+                                                                  )
+                                                ($transformFunction $updatedInstSet $rep $iTable $rowOCoeff)))
 
               ($updatedPOASet (if (or (== $rep ()) (== $id ())) 
                           (mkSInstSet $scoredInstances) 
                           (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
         
 
-              ;; ($_ (println! (Scored instances: $scoredInstances)))
+              ($_ (println! (Scored instances: $scoredInstances)))
               ;; ($_ (println! ""))
 
               ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $prevCenter  $bestSscore)) $scoredInstances))
               ($newBestScore (if (or (== $rep ()) (== $id ())) 
                                 (Pair.second $newBestInstPair)
-                                (eval (getPenScore (Pair.second $newBestInstPair))))) ;; This could be the original best candidate or a new one.
+                                (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
               ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
         
               ;; ($_ (println! (Best instance: $newBestInstPair)))

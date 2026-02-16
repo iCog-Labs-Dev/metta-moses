@@ -203,14 +203,14 @@
             (mux6        12) ;; (OR (AND (NOT A0) (AND (NOT A1) D0)) (AND (NOT A0) A1 D1) (AND A0 (NOT A1) D2) (AND A0 A1 D3))
           )
       )
-      (eval (updatePenalizedScore (mkCscore 0 $bestCpx (* (getComplexityCoef $cpxPen) $bestCpx) 0.0 (* -1 (pow-math 10 308))) False)))
+      (updatePenalizedScore (mkCscore 0 $bestCpx (* (getComplexityCoef $cpxPen) $bestCpx) 0.0 (* -1 (pow-math 10 308))) False))
    )
 
 ;;$maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount
 ;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
 ;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;;                   smd      ;; the new arguments for feature selection algo
-;;                   (eval (createTruthTableBScore 2 (xortable)))
+;;                   (createTruthTableBScore 2 (xortable))
 ;;                   hillClimbing
 ;;                   100 10 20 2
 ;;                   (xortable)
@@ -220,9 +220,9 @@
       (
         ($srp (py-call (random.seed $seed)))
         ($cpxPen 2)
-        ($truthTableBScore (eval (createTruthTableBScore $cpxPen ($problem))))
+        ($truthTableBScore (createTruthTableBScore $cpxPen ($problem)))
         (($ctor $worstPossibleBScore) (worstPossibleScore $truthTableBScore))
-        ($worstPossibleScore (eval (List.sum $worstPossibleBScore)))
+        ($worstPossibleScore (List.sum $worstPossibleBScore))
         ($bestPosssibleCscore (getBestPossibleCscore $cpxPen $problem))
         ($_ (println! (BestPossibleScore: $bestPosssibleCscore)))
         ($metaPop (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) NilOS))
@@ -236,7 +236,7 @@
               ($problem)
               50 $cpxPen $maxGen))
         ($_ (println! (Result: $result)))
-        ($newR (eval (osToExpression (mapG cleanedExemplar $result) ())))
+        ($newR (osToExpression (mapG cleanedExemplar $result) ()))
         ($_ (cut)) ;; INFO: This prevents a weird infint loop that only occurs on some test cases with unknown reasons.
       )
       (FinalResult $newR)))
