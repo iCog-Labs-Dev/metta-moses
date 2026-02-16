@@ -7,8 +7,8 @@
 ;;  Returns: (List Deme): A new list where each deme has been optimized.
 ; (: optimizeDemes (-> (List Deme) $context Instance $optimize (Instance Deme $state)))
 ;; Game strategy version - unpacks tuple
-(= (optimizeDemes $deme ($nGames $opponentPolicy) $inst $optimize)
-   (eval ($optimize $deme $nGames $opponentPolicy $inst)))
+(= (optimizeDemes $deme ($nGames $opponentPolicy $complexityRatio) $inst $optimize)
+   (eval ($optimize $deme $nGames $opponentPolicy $complexityRatio $inst)))
 
 ;; Boolean version - passes context as-is
 (= (optimizeDemes $deme $context $inst $optimize)
@@ -111,56 +111,75 @@ $optimDeme
 ;;   $nDeme: Number of demes to create
 ;;   $nGames: Number of games to play for scoring
 ;;   $opponentPolicy: Opponent strategy (e.g., random-player)
+;;   $complexityRatio: Complexity penalty ratio
 ;;   $optimize: Optimizer function (e.g., hillClimbingStrategy)
 ;; Returns:
 ;;   List of optimized demes
-(= (expandDemeStrategy $metaPop $nExpansion $nDeme $nGames $opponentPolicy $optimize)
+(= (expandDemeStrategy $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $optimize)
    (let*
       (
          ($exemplar (trace! "Selecting Exemplar" (eval (selectExemplar $metaPop))))
          ($tree (trace! "getting exemplar tree" (eval (getExemplarTree $exemplar))))
          ($demeIds (trace! "creating deme IDs" (eval (createDemeIds $nExpansion $nDeme))))
          ($demes (trace! "Creating Deme" (eval (createDeme $nDeme $demeIds $tree))))
-         ($gameContext ($nGames $opponentPolicy))
-         ($result (map-atom $demes $deme (expandDemeHelper $deme $gameContext $optimize)))
+         ($gameContext ($nGames $opponentPolicy $complexityRatio))
+         ($result (map-atom $demes $deme (expandDemeHelperStrategy $deme $gameContext $optimize)))
       )
       $result))
+
+;; Helper for expanding game strategy demes
+(= (expandDemeHelperStrategy (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) ($nGames $opponentPolicy $complexityRatio) $optimize)
+   (let*
+      (
+         ($generatedList (eval (createInitialInstance $dscMp)))
+         ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
+         (($inst $optimDeme $state) (trace! "Optimizing Deme" (eval (optimizeDemes $deme ($nGames $opponentPolicy $complexityRatio) (mkInst $generatedList) $optimize))))
+      )
+      $optimDeme))
 
 ;; Main MOSES loop for game strategies
 ;; Params:
 ;;   $maxGen: Maximum number of generations
-;;   $maxScore: Target BScore sum to achieve (e.g., $nGames * 1.0 for all wins)
+;;   $maxCScore: Target CScore to achieve
 ;;   $maxCandOutput: Number of top candidates to return
 ;;   $metaPop: Current metapopulation
 ;;   $nExpansion: Expansion count
 ;;   $nDeme: Number of demes per expansion
 ;;   $nGames: Number of games to play for scoring
 ;;   $opponentPolicy: Opponent strategy
+;;   $complexityRatio: Complexity penalty ratio
 ;;   $optimize: Optimizer function (e.g., hillClimbingStrategy)
 ;;   $nEval: Maximum evaluations (for mergeDemes)
 ;;   $maxCandsPerDeme: Maximum candidates per deme
 ;;   $minPoolSize: Minimum deme size
+;;   $complexityTemperature: Parameter for score range
 ;;   $nToKeep: Target metapop size
+;;   $capCoef: Capacity coefficient
+;;   $genCount: Generation count
 ;; Returns:
 ;;   Final metapopulation with best strategies
-(= (runMosesStrategy $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $nGames $opponentPolicy $optimize $nEval $maxCandsPerDeme $minPoolSize $nToKeep)
+(= (runMosesStrategy $maxGen $maxCScore $maxCandOutput $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount)
    (if (== $maxGen 0)
        (if (<= $maxCandOutput (eval (OS.length $metaPop)))
            (let $topCandidates (eval (OS.getTopN $maxCandOutput $metaPop)) $topCandidates)
            $metaPop)
        (let*
           (
-             ($optimizedDemes (trace! "expand deme return" (eval (expandDemeStrategy $metaPop $nExpansion $nDeme $nGames $opponentPolicy $optimize))))
-             ($updatedMetaPop (trace! "Merging Deme" (eval (mergeDemesStrategy $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $nGames $opponentPolicy $metaPop $nToKeep))))
-             ($_ (println! (Updated MetaPop: $updatedMetaPop)))
-             ($top (eval (OS.getByIdx 0 $metaPop)))
-             ($_ (println! (Top Exemplar before expansion: $top)))
-             ($topBScore (eval (getExemplarBScore $top)))
-             ($topScore (eval (sumBScore $topBScore)))
-             ($_ (println! (topscore: $topScore)))
-             ($resultCandi (if (<= $maxCandOutput (eval (OS.length $metaPop))) (eval (OS.getTopN $maxCandOutput $metaPop)) $metaPop))
+             ($optimizedDemes (trace! "expand deme return" (eval (expandDemeStrategy $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $optimize))))
+             ($_ (println! "[runMosesStrategy] Calling mergeDemesStrategy..."))
+             ($updatedMetaPop (trace! "Merging Deme" (eval (mergeDemesStrategy $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nGames $opponentPolicy $metaPop $nToKeep $capCoef $genCount))))
+             ($_ (println! "[runMosesStrategy] mergeDemesStrategy returned"))
+             ($updatedSize (eval (OS.length $updatedMetaPop)))
+             ($_ (println! ("[runMosesStrategy] Updated metapop size: " $updatedSize)))
+             ($_ (println! "[runMosesStrategy] Getting top exemplar..."))
+             ($top (eval (OS.getByIdx 0 $updatedMetaPop)))
+             ($_ (println! ("[runMosesStrategy] Top exemplar retrieved: " $top)))
+             ($_ (println! "[runMosesStrategy] Getting CScore..."))
+             ($topScore (eval (getExemplarCscore $top)))
+             ($_ (println! ("[runMosesStrategy] Top score: " $topScore)))
+             ($resultCandi (if (<= $maxCandOutput (eval (OS.length $updatedMetaPop))) (eval (OS.getTopN $maxCandOutput $updatedMetaPop)) $updatedMetaPop))
              ($_ (cut))
           )
-          (if (>= $topScore $maxScore)
+          (if (eval (cScore>= $topScore $maxCScore))
               $resultCandi
-              (eval (runMosesStrategy (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $nGames $opponentPolicy $optimize $nEval $maxCandsPerDeme $minPoolSize $nToKeep))))))
+              (eval (runMosesStrategy (- $maxGen 1) $maxCScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount))))))

@@ -35,14 +35,20 @@
 (= (play-game-loop $strategy-x $strategy-o $board $current-player)
    (if (is-game-over $board)
        ;; Game ended - return the result
-       (get-game-result $board)
+       (let* (
+          ($result (get-game-result $board))
+          ($_ (println! (Game Over - Result: $result))))
+          $result)
        ;; Game continues - make next move
        (let* (;; Select strategy based on current player
               ($strategy (if (== $current-player X) $strategy-x $strategy-o))
+              ($_ (println! (Player $current-player using strategy: $strategy)))
+              ($_ (println! (Board before move: $board)))
               ;; Execute strategy to get new board state
               ($new-board (if (== (get-metatype $strategy) Grounded)
                               ($strategy $board $current-player)
-                              (eval (moses-player $strategy $board $player))))
+                              (eval (moses-player $strategy $board $current-player))))
+              ($_ (println! (Board after move: $new-board)))
               ;; Switch to next player
               ($next-player (get-opponent $current-player)))
              ;; Continue game loop with updated state

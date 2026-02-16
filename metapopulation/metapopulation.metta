@@ -13,7 +13,13 @@
 ;;      $compTemp    -- used to calculate the range of scores that are likely to be preserved by the selection process
 ;;      $capCoef     -- use to balance the number of individuals in the metapopulation by balancing population size so that it neither blows out the RAM or lacks enough variety -- may not even be necessary
 ;;      $genCount    -- used with $capCoef in the determination of max pop allowed given the above contstraints
-; (: resizeMetapop (-> (OS (Exemplar $a)) Number Number Number Number Number (OS (Exemplar $a))))
+
+
+;; compute useful range 
+; (: usefulScoreRange (-> Number Number))
+(= (usefulScoreRange $compTemp) (/ (* $compTemp 30.0) 100.0))
+
+;; calculates cap size based on number of generations -- must be recomuted based on actual data in the new implementation; (: resizeMetapop (-> (OS (Exemplar $a)) Number Number Number Number Number (OS (Exemplar $a))))
 (= (resizeMetapop (ConsOS $exemplar $rest) $nToKeep $minPoolSize $compTemp $capCoef $genCount)
     (let ($size $capSize) ((eval (OS.length (ConsOS $exmplar $rest))) (eval (int (capSize $capCoef $genCount)))) ;; bind two variables with two function calls 
         (if (<= $size $minPoolSize)
@@ -28,11 +34,6 @@
                                 (cullAtRandom $reducedMetapop $nToKeep (- $popSize $capSize)))))))))))
 ;;TODO: for large minPoolSize if the returned resizedMetapop size is less than minPoolSize we may still need to add random candidates to reach minPoolSize
 
-;; compute useful range 
-; (: usefulScoreRange (-> Number Number))
-(= (usefulScoreRange $compTemp) (/ (* $compTemp 30.0) 100.0))
-
-;; calculates cap size based on number of generations -- must be recomuted based on actual data in the new implementation
 ;; for the time being implement the C++ code as it
 ; (: capSize (-> Number Number Number))
 (= (capSize $capCoef $genCount)
@@ -102,6 +103,7 @@
 
 
 ;; Compares two exemplars for game strategies based on their BScore sums
+;; When BScores are equal, compares trees to ensure different strategies are kept
 ;; Params:
 ;;   (Exemplar $a): First exemplar 
 ;;   (Exemplar $a): Second exemplar 
@@ -114,5 +116,8 @@
       ($sum1 (eval (sumBScore $bscr1)))
       ($sum2 (eval (sumBScore $bscr2)))
    )
-      (if (< $sum1 $sum2) L
-          (if (== $sum1 $sum2) E G))))
+      ;; Primary comparison: higher score is better (G means first is greater/better)
+      (if (> $sum1 $sum2) G
+          (if (< $sum1 $sum2) L
+              ;; Scores equal - tiebreaker: prefer different trees, avoid empty trees
+              (if (== $tree1 $tree2) E G)))))

@@ -137,3 +137,35 @@
 
 (= (setUniPen (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore) $newUniPen)
     (mkCscore $scor $cpxy $complexityPenalty $newUniPen $penalizedScore))
+;; Strategy-specific getCscore
+;; Scores a game strategy tree and converts to CScore with complexity penalty
+;; Params:
+;;   $tree: Strategy tree to score
+;;   $nGames: Number of games to play
+;;   $opponentPolicy: Opponent strategy (e.g., random-player)
+;;   $complexityRatio: Complexity penalty ratio (default 3.5)
+;;   $scoreSpace: Cache for CScore results
+;; Returns: CScore with penalized score
+;; Strategy-specific getCscore
+;; Scores a game strategy tree and converts to CScore with complexity penalty
+(= (getCscoreStrategy $tree $nGames $opponentPolicy $complexityRatio $scoreSpace)
+    (chain (collapse (match $scoreSpace 
+            ($tree $score) 
+            (let ($result) $score $result)
+            )
+    ) $val (if (== $val ()) 
+                (chain (eval (score-strategy $nGames (preOrder $tree) $opponentPolicy)) $bs
+                (eval (if-error $bs
+                (worstCscore)
+                (let* (
+                    ($bsum (eval (sumBScore $bs)))
+                    ($cpxy (eval (treeComplexity $tree)))
+                    ($cCoef (eval (getComplexityCoef $complexityRatio)))
+                    ($res (eval (updatePenalizedScore 
+                            (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308))) 
+                            False)))
+                    ($_ (add-atom $scoreSpace ($tree $res)))
+                )
+                $res))))
+                $val
+            )))

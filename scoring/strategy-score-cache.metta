@@ -14,18 +14,49 @@
 ;;   $opponentPolicy: Opponent strategy function
 ;;   $scoreSpace: Cache space (typically &strategyScoreCache)
 ;; Returns: BScore
+;; Cache key: ($strategyTree $nGames $opponentPolicy) - same as Cscore pattern
 ;; (: getCachedBScore (-> Instance Representation Number $opponentPolicy Space BScore))
 (= (getCachedBScore $instance $rep $nGames $opponentPolicy $scoreSpace)
-    (chain (collapse (match $scoreSpace 
-            (($instance $nGames $opponentPolicy) $score) 
-            $score))
-    $val (if (== $val ()) 
-                (chain (eval (getCandidate $rep $instance)) $strategyTree
-                (if (== (get-metatype $strategyTree) Error)
-                    (mkBScore (Cons -1.0 Nil))
-                    (chain (eval (preOrder $strategyTree)) $cleanStrategy
+    (chain (eval (getCandidate $rep $instance)) $strategyTree
+    (if (== (get-metatype $strategyTree) Error)
+        (mkBScore (Cons -1.0 Nil))
+        (chain (eval (preOrder $strategyTree)) $cleanStrategy
+        (let* (
+            ($matches (collapse (match $scoreSpace 
+                ($cleanStrategy $score) 
+                $score)))
+        )
+        (chain $matches
+        $val (if (== $val ()) 
                     (chain (eval (score-strategy $nGames $cleanStrategy $opponentPolicy)) $bscore
-                        (chain (add-atom $scoreSpace (($instance $nGames $opponentPolicy) $bscore)) $_
-                        $bscore)))))
-                (car-atom $val)
-            )))
+                        (let* (
+                            ($_ (add-atom $scoreSpace ($cleanStrategy $bscore)))
+                        )
+                        $bscore))
+                    (car-atom $val)
+                )))))))
+;; clearStrategyCache - Removes all cached scores from the strategy score cache
+;; Params:
+;;   $scoreSpace: Cache space to clear (typically &strategyScoreCache)
+;; Returns: Unit
+;; (: clearStrategyCache (-> Space ()))
+(= (clearStrategyCache $scoreSpace)
+    (let* (
+        ($allEntries (collapse (match $scoreSpace ($tree $score) ($tree $score))))
+        ($entryCount (eval (List.length $allEntries)))
+        ($_ (println! (\n[Cache] Clearing strategy cache...)))
+        ($_ (println! ([Cache] Found $entryCount entries to remove)))
+        ($result (clearCacheHelper $scoreSpace $allEntries))
+        ($_ (println! ([Cache] Cache cleared successfully)))
+    )
+    $result))
+
+;; Helper to recursively remove cache entries
+(= (clearCacheHelper $scoreSpace ())
+    ())
+
+(= (clearCacheHelper $scoreSpace (Cons $entry $rest))
+    (let* (
+        ($_ (remove-atom $scoreSpace $entry))
+    )
+    (clearCacheHelper $scoreSpace $rest)))

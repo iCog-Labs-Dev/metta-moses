@@ -31,6 +31,14 @@
        1
        (let $nnEstimate (informationTheoreticBitsFs $labels) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
 
+;; Strategy-specific neighborhood estimation for binary knobs (SSK with multiplicity 2)
+;; For binary knobs, each knob can only flip to 1 other value, so we don't multiply by 2
+; (: estimateNeighborhoodStrategy (-> Number (MultiMap (DiscSpec $knob)) Number))
+(= (estimateNeighborhoodStrategy $distance $knobMap)
+   (if (== $distance 0)
+       1
+       (informationTheoreticBits $knobMap))) ;; No (* 2 ...) for binary knobs
+
 ;; Counts the number of instances at a specific distance from a given instance.
 ;; Params:
 ;;   $kbMap: Contains DiscKnobMap and DiscMap
@@ -330,9 +338,7 @@
 ;; Hill Climbing for Game Strategies
 ;; ============================================================================
 
-;; Helper to get worst behavioral score
-(= (worstBScore $nGames) 
-   (mkBScore (eval (List.repeat $nGames -1.0))))
+
 
 ;; Helper to get initial disc spec from a knob
 (= (getInitDiscSpec (mkLSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))) $init)
@@ -350,38 +356,41 @@
 ;;   $deme: Deme with game strategy representation
 ;;   $nGames: Number of games to play for scoring
 ;;   $opponentPolicy: Opponent strategy (e.g., random-player, minimax-player)
+;;   $complexityRatio: Complexity penalty ratio (default 3.5)
 ;;   $centerInst: Starting instance
 ;; Returns:
 ;;   ($bestInst $finalDeme $state): Best instance, final deme, and final state
-; (: hillClimbingStrategy (-> Deme Number $opponentPolicy Instance (Instance Deme $state)))
-(= (hillClimbingStrategy $deme $nGames $opponentPolicy $centerInst)
+; (: hillClimbingStrategy (-> Deme Number $opponentPolicy Number Instance (Instance Deme $state)))
+(= (hillClimbingStrategy $deme $nGames $opponentPolicy $complexityRatio $centerInst)
   (let*
     (
       ($disc (getDisk $deme))
-      ($bestPossibleScore (* $nGames 1.0)) ;; All wins
+      ;; Best possible score: all wins with minimal complexity penalty
+      ;; Assuming simplest strategy (1 move): score = nGames - (1 * 1/complexityRatio)
+      ($bestPossibleScore (- (* $nGames 1.0) (/ 1.0 $complexityRatio)))
     )
-    (hillClimbingStrategy (3 3 $bestPossibleScore) ;; Constants: maxDist=3 (search further), minXoverNeighbors, bestPossibleScore
-                          (False False False $centerInst (worstBScore $nGames) (* -1 $nGames) 0 1 1) ;; State: $d starts at 1
+    (hillClimbingStrategy (3 3 $bestPossibleScore)
+                          (False False False $centerInst (worstCscore) (* -1 (pow-math 10 308)) 0 1 1)
                           $deme
-                          ($disc $nGames $opponentPolicy)
+                          ($disc $nGames $opponentPolicy $complexityRatio)
                           $centerInst
-                          estimateNeighborhood crossover
+                          estimateNeighborhoodStrategy crossover
                           sampleNewInstancesStrategy transformStrategy)))
 
 ;; Main hill climbing loop for game strategies
 ;; Params:
 ;;   ($maxDist $minXoverNeighbors $bestPossibleScore): Constant parameters
-;;   ($alreadyXover $lastChance $__ $prevCenter $bestBscore $bestScore $currentNInstances $d $i): State
+;;   ($alreadyXover $lastChance $__ $prevCenter $bestCscore $bestScore $currentNInstances $d $i): State
 ;;   $deme: Current deme
-;;   ($disc $nGames $opponentPolicy): Game-specific data
+;;   ($disc $nGames $opponentPolicy $complexityRatio): Game-specific data
 ;;   $centerInst: Current center instance
 ;;   $estimateFunction $crossoverFunction $samplingFunction $transformFunction: Helper functions
 ;; Returns:
 ;;   ($bestInst $finalDeme $state): Best instance, final deme, and final state
 (= (hillClimbingStrategy ($maxDist $minXoverNeighbors $bestPossibleScore)
-                         ($alreadyXover $lastChance $__ $prevCenter $bestBscore $bestScore $currentNInstances $d $i)
+                         ($alreadyXover $lastChance $__ $prevCenter $bestCscore $bestScore $currentNInstances $d $i)
                          $deme
-                         ($disc $nGames $opponentPolicy)
+                         ($disc $nGames $opponentPolicy $complexityRatio)
                          $centerInst
                          $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
    (let*
@@ -406,22 +415,22 @@
         ($_ (println! (New instances: $updatedInstSet)))
         ($_ (println! ""))
 
-        ((mkSInstSet $scoredInstances) (eval ($transformFunction $updatedInstSet $rep $nGames $opponentPolicy)))
+        ((mkSInstSet $scoredInstances) (eval ($transformFunction $updatedInstSet $rep $nGames $opponentPolicy $complexityRatio)))
 
         ($updatedDeme (mkDeme $rep (mkSInstSet $scoredInstances) $id))
         
         ($_ (println! (Scored instances: $scoredInstances)))
         ($_ (println! ""))
 
-        ;; Find best instance by comparing BScore sums
+        ;; Find best instance by comparing CScore (penalized scores)
         ((mkSInst $newBestInstPair) 
          (eval (List.foldl 
-                 (returnBestBScore)
-                 (mkSInst (mkPair $centerInst $bestBscore)) 
+                 ((eval (curry2 returnBest)) <)
+                 (mkSInst (mkPair $centerInst $bestCscore)) 
                  $scoredInstances)))
         
-        ($newBestBscore (Pair.second $newBestInstPair))
-        ($newBestScore (eval (sumBScore $newBestBscore)))
+        ($newBestCscore (Pair.second $newBestInstPair))
+        ($newBestScore (eval (getPenScore $newBestCscore)))
         ($hasImproved (> $newBestScore (+ $bestScore 0.5)))
         
         ($_ (println! (Best instance: $newBestInstPair)))
@@ -433,15 +442,15 @@
         
         ($_ (println! (NextDistance: $nextDistance)))
 
-        (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestBscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
+        (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
                               (if (and (== $totalNNeighbors 1) (== $nextDistance 1))
                                   (hillClimbingStrategy ($maxDist $minXoverNeighbors $bestPossibleScore)
-                                                        ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $newBestBscore $newBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i))
+                                                        ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $newBestCscore $newBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i))
                                                         $updatedDeme
-                                                        ($disc $nGames $opponentPolicy)
+                                                        ($disc $nGames $opponentPolicy $complexityRatio)
                                                         $nextCenterInst
                                                         $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
-                                  ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $newBestBscore $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
+                                  ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $newBestCscore $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
         
         ($_ (println! (Found newBestScore after (+ 1 $i) iteration is: $newBestScore)))
         ($_ (println! ""))
@@ -449,16 +458,16 @@
     )
 
     (if (<= $bestPossibleScore $newBestScore)
-          (trace! (Terminating because of best possible score: $bestPossibleScore found $newBestScore) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestBscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
+          (trace! (Terminating because of best possible score: $bestPossibleScore found $newBestScore) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
           (if (and (and (not $newHasImproved) (not $newLastChance)) (not $newXover))
               (hillClimbingStrategy ($maxDist $minXoverNeighbors $bestPossibleScore)
-                                    ($newXover True $newHasImproved $newPrevCenter $newBestBscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI))
+                                    ($newXover True $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI))
                                     $newDeme
-                                    ($disc $nGames $opponentPolicy)
+                                    ($disc $nGames $opponentPolicy $complexityRatio)
                                     $newCenter
                                     $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
               (if (< $maxDist $nextDistance)
-                  (trace! (Terminating because of maximum distance reached) ($nextCenterInst $updatedDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestBscore $nextNewBestScore $newCurrentNInstance $nextDistance $newI)))
-                  (trace! (Continue to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestBscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
+                  (trace! (Terminating because of maximum distance reached) ($nextCenterInst $updatedDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $nextDistance $newI)))
+                  (trace! (Continue to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
           )
     ))))

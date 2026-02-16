@@ -69,3 +69,6 @@
     (if (<= (- $ajstdsum $p) 0)
             $sIdx
             (roulette $xs (+ 1 $sIdx) (- $ajstdsum $p))))
+
+
+

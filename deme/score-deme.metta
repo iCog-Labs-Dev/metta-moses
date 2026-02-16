@@ -25,20 +25,33 @@
 ;;   $instList: List of instances to score
 ;;   $nGames: Number of games to play
 ;;   $opponentPolicy: Opponent strategy
+;;   $complexityRatio: Complexity penalty ratio
 ;;   $listOfScoredInst: Accumulator for scored instances
 ;; Returns:
-;;   List of scored instances with BehavioralScore
-; (: applyStrategyBasedScore (-> Representation (List Instance) Number $opponentPolicy (List (ScoredInstance BScore)) (List (ScoredInstance BScore))))
-(= (applyStrategyBasedScore $rep Nil $nGames $opponentPolicy $listOfScoredInst) 
-   $listOfScoredInst)
-(= (applyStrategyBasedScore $rep (Cons $i $is) $nGames $opponentPolicy $listOfScoredInst)
+;;   List of scored instances with CScore
+; (: applyStrategyBasedScore (-> Representation (List Instance) Number $opponentPolicy Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
+(= (applyStrategyBasedScore $rep Nil $nGames $opponentPolicy $complexityRatio $listOfScoredInst) 
+   (let* (
+      ($_ (println! "[applyStrategyBasedScore] Base case: Nil, returning accumulator"))
+   )
+   $listOfScoredInst))
+(= (applyStrategyBasedScore $rep (Cons $i $is) $nGames $opponentPolicy $complexityRatio $listOfScoredInst)
 (let*
 (
-    ($behavioralScore (eval (getCachedBScore $i $rep $nGames $opponentPolicy &strategyScoreCache)))
-    ($scoredInst (mkSInst (mkPair $i $behavioralScore)))
+    ($_ (println! "[applyStrategyBasedScore] Processing instance..."))
+    ($_ (println! (  Instance: $i)))
+    ($strategyTree (eval (getCandidate $rep $i)))
+    ($_ (println! "[applyStrategyBasedScore] Got strategy tree"))
+    ($_ (println! (  Tree: $strategyTree)))
+    ($cscore (eval (getCscoreStrategy $strategyTree $nGames $opponentPolicy $complexityRatio &strategyScoreSpace)))
+    ($_ (println! "[applyStrategyBasedScore] Got CScore"))
+    ($_ (println! (  CScore: $cscore)))
+    ($scoredInst (mkSInst (mkPair $i $cscore)))
+    ($_ (println! "[applyStrategyBasedScore] Created scored instance"))
     ($uListofScoredInst (Cons $scoredInst $listOfScoredInst))
+    ($_ (println! "[applyStrategyBasedScore] Recursing to next instance..."))
 )
-(applyStrategyBasedScore $rep $is $nGames $opponentPolicy $uListofScoredInst)))
+(applyStrategyBasedScore $rep $is $nGames $opponentPolicy $complexityRatio $uListofScoredInst)))
 
 ;; Scores each instance in an InstanceSet. 
 ;; Params:
@@ -63,14 +76,15 @@
 ;;   $rep: The representation object
 ;;   $nGames: Number of games to play
 ;;   $opponentPolicy: Opponent strategy
+;;   $complexityRatio: Complexity penalty ratio
 ;; Returns:
-;;   instanceSet: Scored InstanceSet with BehavioralScore
-; (: transformStrategy (-> (InstanceSet $a) Representation Number $opponentPolicy (InstanceSet BScore)))
-(= (transformStrategy  (mkSInstSet $scoredInstList) $rep $nGames $opponentPolicy)
+;;   instanceSet: Scored InstanceSet with CScore
+; (: transformStrategy (-> (InstanceSet $a) Representation Number $opponentPolicy Number (InstanceSet CScore)))
+(= (transformStrategy  (mkSInstSet $scoredInstList) $rep $nGames $opponentPolicy $complexityRatio)
 (let*
 (
     ($instList (eval (List.map removeInstScore $scoredInstList)))
-    ($strategyInstList (applyStrategyBasedScore $rep $instList $nGames $opponentPolicy Nil))
+    ($strategyInstList (applyStrategyBasedScore $rep $instList $nGames $opponentPolicy $complexityRatio Nil))
 )
 (mkSInstSet $strategyInstList)))  
 

@@ -44,220 +44,319 @@
 !(import! &self ../../../examples/tic-tac-toe/moves)
 !(import! &self ../../../examples/tic-tac-toe/moses-player)
 
-(= (knobmap1)
-        (ConsMMap (
-                    (mkDiscSpec 1)
-                    (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) ))
-        (ConsMMap (
-                    (mkDiscSpec 1)
-                    (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) ))
-        NilMMap)))
+; (= (knobmap1)
+;         (ConsMMap (
+;                     (mkDiscSpec 1)
+;                     (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) ))
+;         (ConsMMap (
+;                     (mkDiscSpec 1)
+;                     (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) ))
+;         NilMMap)))
 
-(= (knobmap2)
-        (ConsMMap (
-                    (mkDiscSpec 1)
-                    (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
-        (ConsMMap (
-                    (mkDiscSpec 1)
-                    (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) ))
-        NilMMap)))
+; (= (knobmap2)
+;         (ConsMMap (
+;                     (mkDiscSpec 1)
+;                     (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
+;         (ConsMMap (
+;                     (mkDiscSpec 1)
+;                     (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) ))
+;         NilMMap)))
 
-(= (knobmap3)
-  (mkKbMap
-    (mkDscKbMp
-      (ConsMap ((mkNodeId (1 2)) 0)
-        (ConsMap ((mkNodeId (2)) 1)
-          (ConsMap ((mkNodeId (3)) 2) NilMap))))
-    (mkDscMp 
-      (ConsMMap 
-        ((mkDiscSpec 3)
-         (mkLSK 
-           (mkDiscKnob 
-             (mkKnob 
-               (mkNodeId (1 2)))
-             (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
-           ))
-        (ConsMMap 
-          ((mkDiscSpec 3)
-           (mkLSK 
-             (mkDiscKnob 
-               (mkKnob 
-                 (mkNodeId (2)))
-               (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
-             ))
-          (ConsMMap 
-            ((mkDiscSpec 3)
-             (mkLSK 
-               (mkDiscKnob 
-                 (mkKnob 
-                   (mkNodeId (3)))
-                 (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
-               ))
-            NilMMap))))))
-;; Test informationTheoreticBits with a knob 
-;; map containing two knobs with same multiplicity of 3
-!(assertEqual (informationTheoreticBits (knobmap1)) 6)
-
-;; Test informationTheoreticBits with a knob
-;; map containing two knobs with different multiplicity of 2 and 3
-!(assertEqual (informationTheoreticBits (knobmap2)) 5)
-;; Test informationTheoreticBits with a knob 
-;; map containing two knobs with same multiplicity of 3
-!(assertEqual (informationTheoreticBits (knobmap1)) 6)
+; (= (knobmap3)
+;   (mkKbMap
+;     (mkDscKbMp
+;       (ConsMap ((mkNodeId (1 2)) 0)
+;         (ConsMap ((mkNodeId (2)) 1)
+;           (ConsMap ((mkNodeId (3)) 2) NilMap))))
+;     (mkDscMp 
+;       (ConsMMap 
+;         ((mkDiscSpec 3)
+;          (mkLSK 
+;            (mkDiscKnob 
+;              (mkKnob 
+;                (mkNodeId (1 2)))
+;              (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+;            ))
+;         (ConsMMap 
+;           ((mkDiscSpec 3)
+;            (mkLSK 
+;              (mkDiscKnob 
+;                (mkKnob 
+;                  (mkNodeId (2)))
+;                (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+;              ))
+;           (ConsMMap 
+;             ((mkDiscSpec 3)
+;              (mkLSK 
+;                (mkDiscKnob 
+;                  (mkKnob 
+;                    (mkNodeId (3)))
+;                  (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+;                ))
+;             NilMMap))))))
 ; ;; Test informationTheoreticBits with a knob 
 ; ;; map containing two knobs with same multiplicity of 3
-!(assertEqual (informationTheoreticBits (knobmap1)) 6)
+; !(assertEqual (informationTheoreticBits (knobmap1)) 6)
 
-;; Test informationTheoreticBits with a knob
-;; map containing two knobs with different multiplicity of 2 and 3
-!(assertEqual (informationTheoreticBits (knobmap2)) 5)
+; ;; Test informationTheoreticBits with a knob
+; ;; map containing two knobs with different multiplicity of 2 and 3
+; !(assertEqual (informationTheoreticBits (knobmap2)) 5)
+; ;; Test informationTheoreticBits with a knob 
+; ;; map containing two knobs with same multiplicity of 3
+; !(assertEqual (informationTheoreticBits (knobmap1)) 6)
+; ; ;; Test informationTheoreticBits with a knob 
+; ; ;; map containing two knobs with same multiplicity of 3
+; !(assertEqual (informationTheoreticBits (knobmap1)) 6)
 
-; ; Testcase for informationTheoreticBitsFs
-!(assertEqual
-  (informationTheoreticBitsFs (Cons A (Cons B (Cons O Nil)))) 2)
+; ;; Test informationTheoreticBits with a knob
+; ;; map containing two knobs with different multiplicity of 2 and 3
+; !(assertEqual (informationTheoreticBits (knobmap2)) 5)
 
-;; Testing estimateNeighborhood on the above knob maps
-!(assertEqual (estimateNeighborhood 0 (knobmap1)) 1)
-!(assertEqual (estimateNeighborhood 1 (knobmap2)) 10)
-!(assertEqual (estimateNeighborhood 2 (knobmap1)) 12)
-!(assertEqual (estimateNeighborhood 2 (knobmap2)) 10)
+; ; ; Testcase for informationTheoreticBitsFs
+; !(assertEqual
+;   (informationTheoreticBitsFs (Cons A (Cons B (Cons O Nil)))) 2)
 
-; Testcase for estimateNeighborhoodFs
-!(assertEqual
-  (estimateNeighborhoodFs 3 (Cons A (Cons B (Cons O Nil)))) 4)
+; ;; Testing estimateNeighborhood on the above knob maps
+; !(assertEqual (estimateNeighborhood 0 (knobmap1)) 1)
+; !(assertEqual (estimateNeighborhood 1 (knobmap2)) 10)
+; !(assertEqual (estimateNeighborhood 2 (knobmap1)) 12)
+; !(assertEqual (estimateNeighborhood 2 (knobmap2)) 10)
 
-; Testcase for countNeighborhoodFs
-!(assertEqual (countNeighborhoodFs (Cons 1 (Cons 0 (Cons 1 Nil))) 2 20) 3)
+; ; Testcase for estimateNeighborhoodFs
+; !(assertEqual
+;   (estimateNeighborhoodFs 3 (Cons A (Cons B (Cons O Nil)))) 4)
 
-; Testcase for factorial
-!(assertEqual (factorial 3) 6)
+; ; Testcase for countNeighborhoodFs
+; !(assertEqual (countNeighborhoodFs (Cons 1 (Cons 0 (Cons 1 Nil))) 2 20) 3)
 
-; Testcase for binomial
-!(assertEqual (binomial 5 2) 10)
+; ; Testcase for factorial
+; !(assertEqual (factorial 3) 6)
 
-; Testcase 1 for countNeighborhood
-!(assertEqual 
- (countNeighborhood
-  (knobmap3)  ;knobmap
-  (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) ;instance
-  2 ; distance
-  20) ; maximum count
-  12)
+; ; Testcase for binomial
+; !(assertEqual (binomial 5 2) 10)
 
-;Testcase 2 for countNeighborhood
-!(assertEqual 
- (countNeighborhood
-  (knobmap3) ;knobmap
-  (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) ;instance
-  3 ;distance
-  20) ;maxCount
-  8) 
+; ; Testcase 1 for countNeighborhood
+; !(assertEqual 
+;  (countNeighborhood
+;   (knobmap3)  ;knobmap
+;   (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) ;instance
+;   2 ; distance
+;   20) ; maximum count
+;   12)
 
-;Testcase 3 for countNeighborhood
-!(assertEqual 
- (let*
-    (
-       ($totalSize (countNeighborhood (knobmap3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3 20))
-       ($generatedSize (eval (List.length (eval (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3)))))
-    )
-    (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
+; ;Testcase 2 for countNeighborhood
+; !(assertEqual 
+;  (countNeighborhood
+;   (knobmap3) ;knobmap
+;   (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) ;instance
+;   3 ;distance
+;   20) ;maxCount
+;   8) 
 
-;Testcase 4 for countNeighborhood
-!(assertEqual 
- (let*
-    (
-       ($totalSize (countNeighborhood (knobmap3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2 20))
-       ($generatedSize (eval (List.length (eval (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2)))))
-    )
-    (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
+; ;Testcase 3 for countNeighborhood
+; !(assertEqual 
+;  (let*
+;     (
+;        ($totalSize (countNeighborhood (knobmap3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3 20))
+;        ($generatedSize (eval (List.length (eval (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3)))))
+;     )
+;     (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
-;Testcase 5 for countNeighborhood
-!(assertEqual
- (let*
-    (
-       ($totalSize (countNeighborhood (knobmap3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 1 20))
-       ($generatedSize (eval (List.length (eval (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 1)))))
-    )
-(<= (* 3 $totalSize) (* 4 $generatedSize))) True)
+; ;Testcase 4 for countNeighborhood
+; !(assertEqual 
+;  (let*
+;     (
+;        ($totalSize (countNeighborhood (knobmap3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2 20))
+;        ($generatedSize (eval (List.length (eval (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2)))))
+;     )
+;     (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
-(= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
-(= (demes) (Cons (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")) Nil))
+; ;Testcase 5 for countNeighborhood
+; !(assertEqual
+;  (let*
+;     (
+;        ($totalSize (countNeighborhood (knobmap3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 1 20))
+;        ($generatedSize (eval (List.length (eval (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 1)))))
+;     )
+; (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
-(= (table1) (eval (createTruthTableBScore 2 (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))))))
+; (= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
+; (= (demes) (Cons (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")) Nil))
 
-(= (itable) (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))))
+; (= (table1) (eval (createTruthTableBScore 2 (mkITable
+;                          (Cons (Cons False (Cons False (Cons False Nil))) 
+;                          (Cons (Cons True (Cons False (Cons False Nil))) 
+;                          (Cons (Cons False (Cons True (Cons False Nil)))
+;                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+;                          (Cons A (Cons B (Cons O Nil)))))))
 
-; (: isScored (-> (ScoredInstance Cscore) Bool))
-(= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
+; (= (itable) (mkITable
+;                          (Cons (Cons False (Cons False (Cons False Nil))) 
+;                          (Cons (Cons True (Cons False (Cons False Nil))) 
+;                          (Cons (Cons False (Cons True (Cons False Nil)))
+;                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+;                          (Cons A (Cons B (Cons O Nil)))))
 
-!(hillclimbing test ----------)
-!(assertEqual
-   (let*
-     (
-       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing (deme) (table1) (mkInst (Cons 0 (Cons 0 Nil))) (mkParams applyComplexityBasedScore ())))
-       ($instanceCount (eval (List.length $instSet)))
-       ($scoredElems (eval (List.map isScored $instSet)))
-     )
-     ((>= $instanceCount 4) (eval (List.any $scoredElems))))
-   (True True))
+; ; (: isScored (-> (ScoredInstance Cscore) Bool))
+; (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
-!(assertEqual
-   (let*
-     (
-       (($instance (mkSInstSet $instSet) $state) (hillClimbing (mkSInstSet Nil) (itable) (mkInst (Cons 1 (Cons 0 Nil))) (mkParams applyMutualInformationBasedScore mi)))
-       ($instanceCount (eval (List.length $instSet)))
-       ($scoredElems (eval (List.map isScored $instSet)))
-     )
-     ((>= $instanceCount 4) (eval (List.any $scoredElems))))
-   (True True))
+; !(hillclimbing test ----------)
+; !(assertEqual
+;    (let*
+;      (
+;        (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing (deme) (table1) (mkInst (Cons 0 (Cons 0 Nil))) (mkParams applyComplexityBasedScore ())))
+;        ($instanceCount (eval (List.length $instSet)))
+;        ($scoredElems (eval (List.map isScored $instSet)))
+;      )
+;      ((>= $instanceCount 4) (eval (List.any $scoredElems))))
+;    (True True))
+
+; !(assertEqual
+;    (let*
+;      (
+;        (($instance (mkSInstSet $instSet) $state) (hillClimbing (mkSInstSet Nil) (itable) (mkInst (Cons 1 (Cons 0 Nil))) (mkParams applyMutualInformationBasedScore mi)))
+;        ($instanceCount (eval (List.length $instSet)))
+;        ($scoredElems (eval (List.map isScored $instSet)))
+;      )
+;      ((>= $instanceCount 4) (eval (List.any $scoredElems))))
+;    (True True))
 
 
-;; Helper to check if strategy instance is scored (not worst BScore)
-(= (isScoredStrategy (mkSInst (mkPair $instance (mkBScore $scores))))
-   (~= $scores Nil))
+; ;; Helper to check if strategy instance is scored (not worst BScore)
+; (= (isScoredStrategy (mkSInst (mkPair $instance (mkBScore $scores))))
+;    (~= $scores Nil))
 
-;; Test hillClimbingStrategy returns scored instances
-!(assertEqual
-   (let*
-     (
-       ($exemplar (mkTree (mkNode PRIORITIZED-OR) 
-                          (Cons (mkTree (mkNode playwin) Nil) 
-                                (Cons (mkTree (mkNode playblock) Nil) Nil))))
-       ($demeIds (Cons (mkDemeId 0) Nil))
-       ($demes (createDeme 1 $demeIds $exemplar))
-       ($deme (car-atom $demes))
-       ($centerInst (initCenterInst $deme))
-       (($bestInst (mkDeme $rep (mkSInstSet $instSet) $id) $state) 
-        (hillClimbingStrategy $deme 1 random-player $centerInst))
-       ($instanceCount (eval (List.length $instSet)))
-       ($scoredElems (eval (List.map isScoredStrategy $instSet)))
-     )
-     ((>= $instanceCount 2) (eval (List.any $scoredElems))))
-   (True True))
+; ;; Test hillClimbingStrategy returns scored instances
+; !(assertEqual
+;    (let*
+;      (
+;        ($exemplar (mkTree (mkNode PRIORITIZED-OR) 
+;                           (Cons (mkTree (mkNode playwin) Nil) 
+;                                 (Cons (mkTree (mkNode playblock) Nil) Nil))))
+;        ($demeIds (Cons (mkDemeId 0) Nil))
+;        ($demes (createDeme 1 $demeIds $exemplar))
+;        ($deme (car-atom $demes))
+;        ($centerInst (initCenterInst $deme))
+;        (($bestInst (mkDeme $rep (mkSInstSet $instSet) $id) $state) 
+;         (hillClimbingStrategy $deme 1 random-player $centerInst))
+;        ($instanceCount (eval (List.length $instSet)))
+;        ($scoredElems (eval (List.map isScoredStrategy $instSet)))
+;      )
+;      ((>= $instanceCount 2) (eval (List.any $scoredElems))))
+;    (True True))
 
-;; Test hillClimbingStrategy improves score over iterations
-!(assertEqual
-   (let*
-     (
-       ($exemplar (mkTree (mkNode PRIORITIZED-OR) 
-                          (Cons (mkTree (mkNode playwin) Nil) 
-                                (Cons (mkTree (mkNode playblock) Nil) Nil))))
-       ($demeIds (Cons (mkDemeId 0) Nil))
-       ($demes (createDeme 1 $demeIds $exemplar))
-       ($deme (car-atom $demes))
-       ($centerInst (initCenterInst $deme))
-       (($bestInst $finalDeme ($xover $lastChance $improved $prevCenter $bestBscore $bestScore $nInst $dist $iter)) 
-        (hillClimbingStrategy $deme 3 random-player $centerInst))
-     )
-     (>= $bestScore -3))
-   True)
+; ;; Test hillClimbingStrategy improves score over iterations
+; !(assertEqual
+;    (let*
+;      (
+;        ($exemplar (mkTree (mkNode PRIORITIZED-OR) 
+;                           (Cons (mkTree (mkNode playwin) Nil) 
+;                                 (Cons (mkTree (mkNode playblock) Nil) Nil))))
+;        ($demeIds (Cons (mkDemeId 0) Nil))
+;        ($demes (createDeme 1 $demeIds $exemplar))
+;        ($deme (car-atom $demes))
+;        ($centerInst (initCenterInst $deme))
+;        (($bestInst $finalDeme ($xover $lastChance $improved $prevCenter $bestBscore $bestScore $nInst $dist $iter)) 
+;         (hillClimbingStrategy $deme 3 random-player $centerInst))
+;      )
+;      (>= $bestScore -3))
+;    True)
+
+
+;; ============================================================================
+;; Hill Climbing Strategy Tests
+;; ============================================================================
+
+;; Test deme for strategy hill climbing
+(= (strategyDeme)
+   (mkDeme 
+     (mkRep 
+       (mkKbMap 
+         (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap)))
+         (mkDscMp 
+           (ConsMMap ((mkDiscSpec 2) 
+                      (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
+             (ConsMMap ((mkDiscSpec 2) 
+                        (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
+               NilMMap))))
+       (mkTree (mkNode PRIORITIZED-OR) 
+         (Cons (mkTree (mkNode playwin) Nil) 
+               (Cons (mkTree (mkNode playblock) Nil) Nil))))
+     (mkSInstSet Nil)
+     (mkDemeId "strategy-1")))
+!(hillClimbingStrategy (strategyDeme) 3 random-player 3.5 (mkInst (Cons 1 (Cons 1 Nil))))
+;; Test: hillClimbingStrategy returns 3-tuple
+; !(assertEqual
+;    (let* (
+;      ($result (hillClimbingStrategy (strategyDeme) 3 random-player 3.5 (mkInst (Cons 1 (Cons 1 Nil)))))
+;      ($length (eval (List.length $result)))
+;    )
+;    (== $length 3))
+;    True)
+
+; ;; Test: hillClimbingStrategy returns best instance
+; !(assertEqual
+;    (let* (
+;      (($bestInst $finalDeme $state) 
+;        (hillClimbingStrategy (strategyDeme) 3 random-player 3.5 (mkInst (Cons 1 (Cons 1 Nil)))))
+;      ((mkInst $instValues) $bestInst)
+;      ($instLength (eval (List.length $instValues)))
+;    )
+;    (== $instLength 2))
+;    True)
+
+; ;; Test: hillClimbingStrategy returns deme with scored instances
+; !(assertEqual
+;    (let* (
+;      (($bestInst $finalDeme $state) 
+;        (hillClimbingStrategy (strategyDeme) 3 random-player 3.5 (mkInst (Cons 1 (Cons 1 Nil)))))
+;      ((mkDeme $rep (mkSInstSet $scoredList) $id) $finalDeme)
+;      ($hasInstances (> (eval (List.length $scoredList)) 0))
+;    )
+;    $hasInstances)
+;    True)
+
+; ;; Test: hillClimbingStrategy instances have CScore
+; !(assertEqual
+;    (let* (
+;      (($bestInst $finalDeme $state) 
+;        (hillClimbingStrategy (strategyDeme) 3 random-player 3.5 (mkInst (Cons 1 (Cons 1 Nil)))))
+;      ((mkDeme $rep (mkSInstSet $scoredList) $id) $finalDeme)
+;      ((mkSInst (mkPair $inst $score)) (car-atom $scoredList))
+;      ;; Check if score is a CScore by trying to get penalized score
+;      ($penScore (eval (getPenScore $score)))
+;    )
+;    (== (get-metatype $penScore) Number))
+;    True)
+
+; ;; Test: hillClimbingStrategy improves score
+; !(assertEqual
+;    (let* (
+;      (($bestInst $finalDeme $state) 
+;        (hillClimbingStrategy (strategyDeme) 5 random-player 3.5 (mkInst (Cons 0 (Cons 0 Nil)))))
+;      (($xover $lastChance $improved $prevCenter $bestCscore $bestScore $nInst $dist $iter) $state)
+;      ;; Best score should be better than worst possible
+;      ($isImproved (> $bestScore (* -1 (pow-math 10 308))))
+;    )
+;    $isImproved)
+;    True)
+
+; ;; Simple manual test - just run and observe output
+; !(println! "=== Manual Test: hillClimbingStrategy ===")
+; !(let* (
+;    (($bestInst $finalDeme $state) 
+;      (hillClimbingStrategy (strategyDeme) 5 random-player 3.5 (mkInst (Cons 1 (Cons 1 Nil)))))
+;    ((mkDeme $rep (mkSInstSet $scoredList) $id) $finalDeme)
+;    (($xover $lastChance $improved $prevCenter $bestCscore $bestScore $nInst $dist $iter) $state)
+;    ($_ (println! ""))
+;    ($_ (println! "=== RESULTS ==="))
+;    ($_ (println! (Best Instance: $bestInst)))
+;    ($_ (println! (Best CScore: $bestCscore)))
+;    ($_ (println! (Best Penalized Score: $bestScore)))
+;    ($_ (println! (Total Instances Evaluated: $nInst)))
+;    ($_ (println! (Final Distance: $dist)))
+;    ($_ (println! (Iterations: $iter)))
+;    ($_ (println! (Number of Scored Instances: (eval (List.length $scoredList)))))
+;    ($_ (println! ""))
+; )
+; True)

@@ -365,9 +365,11 @@
          (if (< $numNewInstances $updatedTotalNeighbors)  
              $numNewInstances
              $updatedTotalNeighbors))
+    ;; Extract multiplicity from knobmap - SSK knobs have multiplicity 2
+    ($multi (mkMultip 2))  ;; For now, keep as 2 for SSK knobs
     ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
                        (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
-                       (generateAllInNeighborhood (mkMultip 2) $centerInst $dist)))
+                       (generateAllInNeighborhood $multi $centerInst $dist)))
     ($scoredNewInstances (List.map initInstStrategy $newInstances))
     ($updatedInstList (eval (List.concat $instList $scoredNewInstances)))
  )

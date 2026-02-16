@@ -253,10 +253,11 @@
 (let*
     (
         ($cscore (eval (getSInstScore $si)))
-        ($inst (eval (getInst $si)))  
-        ($bscore (eval (getCachedBScore $inst $rep $nGames $opponentPolicy &strategyScoreCache)))
+        ($inst (eval (getInst $si)))
         ($tree (eval (getCandidate $rep $inst)))
-        ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
+        ($cleanStrategy (eval (preOrder $tree)))
+        ($bscore (eval (score-strategy $nGames $cleanStrategy $opponentPolicy)))
+        ($scoredTree (mkExemplar $cleanStrategy $demeId $cscore $bscore))
     )
     (Cons $scoredTree (demeToTreesStrategy (mkDeme $rep (mkSInstSet $sil) $demeId) $nGames $opponentPolicy))
     )
@@ -268,12 +269,15 @@
 ;;   $nEval: Number of evaluations for candidate selection.
 ;;   $maxCandsPerDeme: Maximum candidates per deme.
 ;;   $minPoolSize: Minimum deme size to retain.
+;;   $complexityTemperature: Parameter for score range in trimming.
 ;;   $nGames: Number of games to play for scoring.
 ;;   $opponentPolicy: Opponent strategy to play against.
 ;;   $metapop: Ordered set of existing exemplars.
 ;;   $nToKeep: Target size for resized metapopulation.
+;;   $capCoef: Capacity coefficient for resizing.
+;;   $genCount: Generation count for resizing.
 ;; Return: Updated and resized metapopulation.
-(= (mergeDemesStrategy $demes $nEval $maxCandsPerDeme $minPoolSize $nGames $opponentPolicy $metapop $nToKeep)
+(= (mergeDemesStrategy $demes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nGames $opponentPolicy $metapop $nToKeep $capCoef $genCount)
     (if (== $demes ()) $metapop
         (let*
         (
@@ -281,10 +285,11 @@
             ($_ (println! (===== mergeDemesStrategy Starting =====)))
             (($headDeme $tailDeme) (decons-atom $demes))
             ((mkDeme $rep $sInstList $demeId) $headDeme)
-            ($sortedSInstList (eval (sortDemeStrategy $sInstList)))
+            ($sortedSInstList (eval (sortDeme $sInstList)))
             ($unqCandidates (keepTopUniqueCandidates $sortedSInstList $nEval $maxCandsPerDeme))
-            ($_ (println! "demeToTreesStrategy Starting..."))
-            ($potCandidates (demeToTreesStrategy (mkDeme $rep (mkSInstSet $unqCandidates) $demeId) $nGames $opponentPolicy))
+            ($trimmedDeme (trimDownDeme $unqCandidates $minPoolSize $complexityTemperature))
+            ($_ (println! (demeToTreesStrategy Starting...)))
+            ($potCandidates (demeToTreesStrategy (mkDeme $rep (mkSInstSet $trimmedDeme) $demeId) $nGames $opponentPolicy))
             ($_ (println! (GetNewCadidates Started: $potCandidates)))
             ($_ (println! (Metapop: $metapop)))
             ($_ (println! ("--")))
@@ -294,12 +299,13 @@
             ($_ (println! (Removed Dominated: $removedDominated)))
             ($updatedMetaPop (mergeCandidatesStrategy $removedDominated $metapop))
             ($_ (println! (merged Candidate: $updatedMetaPop)))
-            ($resizedMetapop (if (<= $nToKeep (eval (OS.length $updatedMetaPop))) (eval (OS.getTopN $nToKeep $updatedMetaPop)) $updatedMetaPop))
+            ($metapopSize (eval (OS.length $updatedMetaPop)))
+            ($resizedMetapop (if (<= $nToKeep $metapopSize) (eval (OS.getTopN $nToKeep $updatedMetaPop)) $updatedMetaPop))
             ($_ (println! (Resized Metapop: $resizedMetapop)))
             ($_ (println! ("--------------------------------")))
         )
             (if (== $tailDeme ()) $resizedMetapop
-                (mergeDemesStrategy $tailDeme $nEval $maxCandsPerDeme $minPoolSize $nGames $opponentPolicy $resizedMetapop $nToKeep)
+                (mergeDemesStrategy $tailDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nGames $opponentPolicy $resizedMetapop $nToKeep $capCoef $genCount)
             )
         )
     )
