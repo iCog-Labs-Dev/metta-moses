@@ -294,9 +294,9 @@
                           (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
         ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
         
-        ($_ (println! (Best instance: $newBestInstPair)))
-        ($_ (println! (New best score: $newBestScore)))
-        ($_ (println! ""))
+        ;; ($_ (println! (Best instance: $newBestInstPair)))
+        ;; ($_ (println! (New best score: $newBestScore)))
+        ;; ($_ (println! ""))
 
         ($nextCenterInst (if $hasImproved (Pair.first $newBestInstPair) $centerInst))
         ($nextDistance (if $hasImproved 1 (if (not $xOver) (+ 1 $d) $d)))
