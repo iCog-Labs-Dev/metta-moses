@@ -18,7 +18,11 @@
                 ($curId (if (== $parentId (0))
                             ($childNum)
                            (concatT $parentId ($childNum))))
-                ((mkTree (mkNode $node) $childern) $head)
+                ;; Check if head is mkNullVex and extract actual tree if so
+                ($actualHead (if (eval (isNullVertex $head))
+                                 (let (mkNullVex (Cons $innerTree Nil)) $head $innerTree)
+                                 $head))
+                ((mkTree (mkNode $node) $childern) $actualHead)
                 ;; ($_ (println!( "curId: " $curId "node :" $node)))
                 ;; ($_ (println!( "head: " $head "tail :" $tail)))
                 (($tNew  $mNew) 

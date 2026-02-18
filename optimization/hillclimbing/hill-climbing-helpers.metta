@@ -357,19 +357,18 @@
 ;;   $nGames: Number of games to play for scoring
 ;;   $opponentPolicy: Opponent strategy (e.g., random-player, minimax-player)
 ;;   $complexityRatio: Complexity penalty ratio (default 3.5)
+;;   $targetCScore: Target CScore to achieve (for early termination)
 ;;   $centerInst: Starting instance
 ;; Returns:
 ;;   ($bestInst $finalDeme $state): Best instance, final deme, and final state
-; (: hillClimbingStrategy (-> Deme Number $opponentPolicy Number Instance (Instance Deme $state)))
-(= (hillClimbingStrategy $deme $nGames $opponentPolicy $complexityRatio $centerInst)
+; (: hillClimbingStrategy (-> Deme Number $opponentPolicy Number Cscore Instance (Instance Deme $state)))
+(= (hillClimbingStrategy $deme $nGames $opponentPolicy $complexityRatio $targetCScore $centerInst)
   (let*
     (
       ($disc (getDisk $deme))
-      ;; Best possible score: all wins with minimal complexity penalty
-      ;; Assuming simplest strategy (1 move): score = nGames - (1 * 1/complexityRatio)
-      ($bestPossibleScore (- (* $nGames 1.0) (/ 1.0 $complexityRatio)))
+      ($targetPenScore (eval (getPenScore $targetCScore)))
     )
-    (hillClimbingStrategy (3 3 $bestPossibleScore)
+    (hillClimbingStrategy (3 3 $targetPenScore)
                           (False False False $centerInst (worstCscore) (* -1 (pow-math 10 308)) 0 1 1)
                           $deme
                           ($disc $nGames $opponentPolicy $complexityRatio)
@@ -379,7 +378,7 @@
 
 ;; Main hill climbing loop for game strategies
 ;; Params:
-;;   ($maxDist $minXoverNeighbors $bestPossibleScore): Constant parameters
+;;   ($maxDist $minXoverNeighbors $targetPenScore): Constant parameters
 ;;   ($alreadyXover $lastChance $__ $prevCenter $bestCscore $bestScore $currentNInstances $d $i): State
 ;;   $deme: Current deme
 ;;   ($disc $nGames $opponentPolicy $complexityRatio): Game-specific data
@@ -387,7 +386,7 @@
 ;;   $estimateFunction $crossoverFunction $samplingFunction $transformFunction: Helper functions
 ;; Returns:
 ;;   ($bestInst $finalDeme $state): Best instance, final deme, and final state
-(= (hillClimbingStrategy ($maxDist $minXoverNeighbors $bestPossibleScore)
+(= (hillClimbingStrategy ($maxDist $minXoverNeighbors $targetPenScore)
                          ($alreadyXover $lastChance $__ $prevCenter $bestCscore $bestScore $currentNInstances $d $i)
                          $deme
                          ($disc $nGames $opponentPolicy $complexityRatio)
@@ -444,7 +443,7 @@
 
         (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
                               (if (and (== $totalNNeighbors 1) (== $nextDistance 1))
-                                  (hillClimbingStrategy ($maxDist $minXoverNeighbors $bestPossibleScore)
+                                  (hillClimbingStrategy ($maxDist $minXoverNeighbors $targetPenScore)
                                                         ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $newBestCscore $newBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i))
                                                         $updatedDeme
                                                         ($disc $nGames $opponentPolicy $complexityRatio)
@@ -457,17 +456,17 @@
         ($_ (println! (cut)))
     )
 
-    (if (<= $bestPossibleScore $newBestScore)
-          (trace! (Terminating because of best possible score: $bestPossibleScore found $newBestScore) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
-          (if (and (and (not $newHasImproved) (not $newLastChance)) (not $newXover))
-              (hillClimbingStrategy ($maxDist $minXoverNeighbors $bestPossibleScore)
-                                    ($newXover True $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI))
-                                    $newDeme
-                                    ($disc $nGames $opponentPolicy $complexityRatio)
-                                    $newCenter
-                                    $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
-              (if (< $maxDist $nextDistance)
-                  (trace! (Terminating because of maximum distance reached) ($nextCenterInst $updatedDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $nextDistance $newI)))
-                  (trace! (Continue to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
-          )
-    ))))
+    ;; Check if target score reached
+    (if (>= $newBestScore $targetPenScore)
+        (trace! (Terminating because target score reached) ($nextCenterInst $updatedDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $nextDistance $newI)))
+        (if (and (and (not $newHasImproved) (not $newLastChance)) (not $newXover))
+            (hillClimbingStrategy ($maxDist $minXoverNeighbors $targetPenScore)
+                                  ($newXover True $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI))
+                                  $newDeme
+                                  ($disc $nGames $opponentPolicy $complexityRatio)
+                                  $newCenter
+                                  $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
+            (if (< $maxDist $nextDistance)
+                (trace! (Terminating because of maximum distance reached) ($nextCenterInst $updatedDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $nextDistance $newI)))
+                (trace! (Continue to next iteration because of no more last chance) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestCscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
+        )))))

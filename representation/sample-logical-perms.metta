@@ -68,8 +68,7 @@
             (($move1 $move2) ((index-atom $moveLabels $a) (index-atom $moveLabels $b)))
         )
         ($op $move1 $move2)
-    )
-)
+    ))
 
 ;; sampleStrategyPerms -> generate strategy permutations for game strategy evolution
 ;; Params:

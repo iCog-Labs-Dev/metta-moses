@@ -102,22 +102,3 @@
 (= (getExemplarTree (mkExemplar $tree $demeId $cscore $bscore)) $tree)
 
 
-;; Compares two exemplars for game strategies based on their BScore sums
-;; When BScores are equal, compares trees to ensure different strategies are kept
-;; Params:
-;;   (Exemplar $a): First exemplar 
-;;   (Exemplar $a): Second exemplar 
-;; Return: L (less), E (equal), or G (greater)
-; (: compareExemplarStrategy (-> (Exemplar $a) (Exemplar $a) Atom))
-(= (compareExemplarStrategy 
-        (mkExemplar $tree1 $demeId1 $cscore1 $bscr1)
-        (mkExemplar $tree2 $demeId2 $cscore2 $bscr2))
-   (let* (
-      ($sum1 (eval (sumBScore $bscr1)))
-      ($sum2 (eval (sumBScore $bscr2)))
-   )
-      ;; Primary comparison: higher score is better (G means first is greater/better)
-      (if (> $sum1 $sum2) G
-          (if (< $sum1 $sum2) L
-              ;; Scores equal - tiebreaker: prefer different trees, avoid empty trees
-              (if (== $tree1 $tree2) E G)))))

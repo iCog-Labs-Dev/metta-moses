@@ -187,13 +187,6 @@
    (let $updatedMetaPop (eval (OS.insert compareExemplar $x $metapop))
       (mergeCandidates $xs $updatedMetaPop)))
 
-;; Merges exemplars for game strategies using BScore-based comparison
-; (: mergeCandidatesStrategy (-> (List (Exemplar $a)) (OS (Exemplar $a)) (OS (Exemplar $a))))
-(= (mergeCandidatesStrategy Nil $metapop) $metapop)
-(= (mergeCandidatesStrategy (Cons $x $xs) $metapop)
-   (let $updatedMetaPop (eval (OS.insert compareExemplarStrategy $x $metapop))
-      (mergeCandidatesStrategy $xs $updatedMetaPop)))
-
 ;; Merges a deme's candidates into a metapopulation, processing through sorting, deduplication, trimming, tree conversion, filtering, dominance removal, merging, and resizing.
 ;; Params:
 ;;   $demes: List of demes to process.
@@ -242,7 +235,7 @@
     )
 )
 
-;; Converts a Deme into a list of Exemplars for game strategies by scoring with game playing.
+;; Converts a Deme into a list of Exemplars for game strategies by extracting BScore from cache.
 ;; Params:
 ;;   $deme: A deme containing a representation, scored instance set, and demeId.
 ;;   $nGames: Number of games to play for scoring.
@@ -253,11 +246,39 @@
 (let*
     (
         ($cscore (eval (getSInstScore $si)))
+        ($_ (println! ("[demeToTreesStrategy] Instance CScore:" $cscore)))
         ($inst (eval (getInst $si)))
+        ($_ (println! ("[demeToTreesStrategy] Instance:" $inst)))
+        ($_ (println! ("[demeToTreesStrategy] About to call getCandidate")))
+        ($_ (println! ("[demeToTreesStrategy] Representation tree:" (eval (getRepTree $rep)))))
         ($tree (eval (getCandidate $rep $inst)))
+        ($_ (println! ("[demeToTreesStrategy] Tree from getCandidate:" $tree)))
+        ($_ (println! ("[demeToTreesStrategy] Checking tree structure...")))
+        ($_ (println! ("[demeToTreesStrategy] Root node:" (eval (getNodeValue (eval (getNodeById $tree (mkNodeId (0)))))))))
+        ($_ (println! ("[demeToTreesStrategy] Children:" (eval (getChildren (eval (getNodeById $tree (mkNodeId (0)))))))))
         ($cleanStrategy (eval (preOrder $tree)))
-        ($bscore (eval (score-strategy $nGames $cleanStrategy $opponentPolicy)))
-        ($scoredTree (mkExemplar $cleanStrategy $demeId $cscore $bscore))
+        ($_ (println! ("[demeToTreesStrategy] Clean strategy:" $cleanStrategy)))
+        ;; Extract BScore from cache - it was stored alongside CScore during hillclimbing
+        ($cached (collapse (match &strategyScoreSpace ($cleanStrategy $cachedCscore $cachedBscore) $cachedBscore)))
+        ($_ (println! ("[demeToTreesStrategy] Cache lookup result:" $cached)))
+        ($bscore (if (== $cached ()) 
+                     ;; Fallback: score if not in cache (shouldn't happen)
+                     (let* (
+                         ($_ (println! ("[demeToTreesStrategy] WARNING: Not in cache, scoring fresh!")))
+                         ($freshBscore (eval (score-strategy $nGames $cleanStrategy $opponentPolicy)))
+                         ($_ (println! ("[demeToTreesStrategy] Fresh BScore:" $freshBscore)))
+                     )
+                     $freshBscore)
+                     (let* (
+                         ($extractedBscore (car-atom $cached))
+                         ($_ (println! ("[demeToTreesStrategy] Extracted BScore from cache:" $extractedBscore)))
+                     )
+                     $extractedBscore)))
+        ($_ (println! ("[demeToTreesStrategy] Final BScore for exemplar:" $bscore)))
+        ;; Store the tree from getCandidate (same format as boolean version stores trees)
+        ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
+        ($_ (println! ("[demeToTreesStrategy] Stored tree from getCandidate in exemplar")))
+        ($_ (println! ("---")))
     )
     (Cons $scoredTree (demeToTreesStrategy (mkDeme $rep (mkSInstSet $sil) $demeId) $nGames $opponentPolicy))
     )
@@ -297,7 +318,7 @@
             ($_ (println! (GetNewCadidates Finished: $candidates)))
             ($removedDominated (removeDominated $candidates))
             ($_ (println! (Removed Dominated: $removedDominated)))
-            ($updatedMetaPop (mergeCandidatesStrategy $removedDominated $metapop))
+            ($updatedMetaPop (mergeCandidates $removedDominated $metapop))
             ($_ (println! (merged Candidate: $updatedMetaPop)))
             ($metapopSize (eval (OS.length $updatedMetaPop)))
             ($resizedMetapop (if (<= $nToKeep $metapopSize) (eval (OS.getTopN $nToKeep $updatedMetaPop)) $updatedMetaPop))
@@ -310,3 +331,5 @@
         )
     )
 )
+
+
