@@ -150,10 +150,7 @@
 (= (getCscoreStrategy $tree $nGames $opponentPolicy $complexityRatio $scoreSpace)
     (let* (
         ($cleanStrategy (eval (preOrder $tree)))
-        ($_ (println! ("[getCscoreStrategy] Scoring tree:" $tree)))
-        ($_ (println! ("[getCscoreStrategy] Clean strategy:" $cleanStrategy)))
         ($cached (collapse (match $scoreSpace ($cleanStrategy $cscore $bscore) ($cscore $bscore))))
-        ($_ (println! ("[getCscoreStrategy] Cache result:" $cached)))
     )
     (if (== $cached ())
         ;; Not in cache - calculate fresh
@@ -161,24 +158,18 @@
         (eval (if-error $bs
         (worstCscore)
         (let* (
-            ($_ (println! ("[getCscoreStrategy] Fresh BScore:" $bs)))
-            ($wins (eval (countWins $bs)))  ;; Count wins
-            ($_ (println! ("[getCscoreStrategy] Win count:" $wins)))
+            ($score (eval (sumBScore $bs)))
             ($cpxy (eval (treeComplexity $tree)))
             ($cCoef (eval (getComplexityCoef $complexityRatio)))
             ($res (eval (updatePenalizedScore 
-                    (mkCscore $wins $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308))) 
+                    (mkCscore $score $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308))) 
                     False)))
-            ($_ (println! ("[getCscoreStrategy] Created CScore:" $res)))
-            ;; Cache using CLEAN strategy as key, not tree with NullVex
             ($_ (add-atom $scoreSpace ($cleanStrategy $res $bs)))
-            ($_ (println! ("[getCscoreStrategy] Cached with key:" $cleanStrategy)))
         )
         $res))))
         ;; In cache - return CScore
         (let* (
             ($tuple (car-atom $cached))
             ($cscore (car-atom $tuple))
-            ($_ (println! ("[getCscoreStrategy] Extracted CScore:" $cscore)))
         )
         $cscore))))

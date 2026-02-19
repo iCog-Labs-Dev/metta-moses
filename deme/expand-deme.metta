@@ -160,24 +160,10 @@ $optimDeme
 ;; Returns:
 ;;   Final metapopulation with best strategies
 (= (runMosesStrategy $maxGen $maxCScore $maxCandOutput $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount)
-   (let* (
-      ($_ (println! ""))
-      ($_ (println! "========================================"))
-      ($_ (println! ("REMAINING GENERATIONS: " $maxGen)))
-      ($_ (println! "========================================"))
-      ($_ (println! ""))
-   )
    (if (== $maxGen 0)
-       (let* (
-          ($_ (println! ""))
-          ($_ (println! "========================================"))
-          ($_ (println! "ALL GENERATIONS COMPLETED"))
-          ($_ (println! "========================================"))
-          ($_ (println! ""))
-       )
        (if (<= $maxCandOutput (eval (OS.length $metaPop)))
            (let $topCandidates (eval (OS.getTopN $maxCandOutput $metaPop)) $topCandidates)
-           $metaPop))
+           $metaPop)
        (let*
           (
              ($optimizedDemes (trace! "expand deme return" (eval (expandDemeStrategy $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $maxCScore $optimize))))
@@ -192,19 +178,9 @@ $optimDeme
              ($_ (println! "[runMosesStrategy] Getting CScore..."))
              ($topScore (eval (getExemplarCscore $top)))
              ($_ (println! ("[runMosesStrategy] Top score: " $topScore)))
-             ($_ (println! ""))
-             ($_ (println! ("GENERATION COMPLETED - " $maxGen " remaining")))
-             ($_ (println! ""))
              ($resultCandi (if (<= $maxCandOutput (eval (OS.length $updatedMetaPop))) (eval (OS.getTopN $maxCandOutput $updatedMetaPop)) $updatedMetaPop))
              ($_ (cut))
           )
           (if (eval (cScore>= $topScore $maxCScore))
-              (let* (
-                 ($_ (println! ""))
-                 ($_ (println! "========================================"))
-                 ($_ (println! "TARGET SCORE REACHED!"))
-                 ($_ (println! "========================================"))
-                 ($_ (println! ""))
-              )
-              $resultCandi)
-              (eval (runMosesStrategy (- $maxGen 1) $maxCScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount)))))))
+              $resultCandi
+              (eval (runMosesStrategy (- $maxGen 1) $maxCScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount))))))

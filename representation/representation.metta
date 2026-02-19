@@ -134,9 +134,12 @@
          ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
       )
       (if $isGameStrategy
-          $candidate
-          (eval (cleanTree $candidate))))
-   )
+          (let* (
+              ($expr (eval (preOrder $candidate)))
+              ($cleanTree (eval (buildTree $expr)))
+          )
+          $cleanTree)
+          (eval (cleanTree $candidate)))))
    ; (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex Nil)) $candidate
    ;  (cleanTree $candidate)))
     
@@ -168,17 +171,12 @@
 ; )
 (= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $candidate)
    (let* (
-      ($_ (println! "[getCandidateRec] srcId:"))
-      ($_ (println! $srcId))
       ($knobIdxPair (eval (findDiscKnob $knobMapObj $srcId)))
       ($knobIdx (eval (second $knobIdxPair)))
-      ($_ (println! "[getCandidateRec] knobIdx:"))
-      ($_ (println! $knobIdx))
    )
       (if (not (== $knobIdx -1))
          ;; Knob Found - apply instance value
          (let* (
-               ($_ (println! "[getCandidateRec] Knob found"))
                ($d (eval (List.getByIdx $inst $knobIdx)))
                ($knob (eval (first $knobIdxPair)))
                ($updatedCnd (eval (appendTo $tree $knob $candidate $parentId $d)))
@@ -186,15 +184,10 @@
             $updatedCnd)
          ;; No Knob - copy structure
          (let* (
-               ($_ (println! "[getCandidateRec] No knob - copying"))
                ($src (eval (getNodeById $tree $srcId)))
-               ($_ (println! "[getCandidateRec] Got src node"))
                ($cndChIdPair (eval (appendChild $candidate $parentId (mkTree (eval (getNodeValue $src)) Nil))))
-               ($_ (println! "[getCandidateRec] Appended child"))
                ($srcChildren (eval (getChildren $src)))
-               ($_ (println! "[getCandidateRec] Got children, calling foldl"))
                ($state (eval (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (second $cndChIdPair) (first $cndChIdPair) 1) $srcChildren)))
-               ($_ (println! "[getCandidateRec] Foldl done"))
                (((mkRep $knobMapObj $tree) (mkInst $inst) $newParentId $finalCnd $_) $state)
             )
             $finalCnd))))
@@ -207,8 +200,12 @@
 ;       ($repObj $inst (mkNodeId $parentId) $updatedCnd (+ 1 $chIdx)))))
 
 (= (applyGetCandidateRec $tr ($repObj $inst (mkNodeId $parentId) $candidate $chIdx))
-   (let* (
+   (let*
+      (
          ($srcId (if (== $parentId (0)) (mkNodeId ($chIdx)) (mkNodeId (eval (concatT $parentId ($chIdx))))))
          ($updatedCnd (eval (getCandidateRec $repObj $inst (mkNodeId $parentId) $srcId $candidate)))
+         ($finalResult ($repObj $inst (mkNodeId $parentId) $updatedCnd (+ 1 $chIdx)))
       )
-      ($repObj $inst (mkNodeId $parentId) $updatedCnd (+ 1 $chIdx))))
+      $finalResult
+   )
+)

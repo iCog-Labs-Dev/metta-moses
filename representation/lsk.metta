@@ -14,9 +14,7 @@
    (let*
    (
     ($negatedSubtree (eval (insertAbove $subtree (mkNode NOT))))
-    ($_ (println! (NegatedSubtree----------------- : $negatedSubtree)))
     ($reducedSubtree (eval (cleanTree $negatedSubtree))  )
-    ($_ (println! (ReducedSubtree---------------: $reducedSubtree))) 
     ($childrenOfTarget (eval (getChildrenById $tree (mkNodeId $target))))
    )
    (if (== True (eval (List.contains $subtree $childrenOfTarget) ))
@@ -103,14 +101,12 @@
 (= (appendToLSK $updatedTree $lsk $tree $parentId $d)
     (let*
        (
-        ; ($_ (println! (lsk: $lsk)))
         ($targetId (eval (getNodeId $lsk)))
         ($targetTree (eval (getNodeById  $updatedTree $targetId)))
         ($subtree (if (== True (eval (isNullVertex $targetTree) ))
                         (let (mkNullVex (Cons $child Nil)) $targetTree $child)
                         $targetTree
                     ))        
-        ($_ (println! ("subtree ": $subtree $targetTree)))
       )
       (if (> $d 2)
           (Error $d "Invalid disc specification:- cannot exceed 2.")
@@ -158,7 +154,7 @@
               (let $treeToAppend
                    (case $d
                        (
-                         (1 $subtree) ;; If present
-                         (0 (mkNullVex (Cons $subtree Nil))))) ;; If absent
+                         (1 $subtree)
+                         (0 (mkNullVex (Cons $subtree Nil)))))
                    (chain (eval (appendChild $tree $parentId $treeToAppend)) $treeChIdPair
                       (eval (first $treeChIdPair))))))))

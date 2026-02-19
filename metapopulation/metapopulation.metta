@@ -60,7 +60,6 @@
                 (chain (eval (OS.removeByIdx (ConsOS $exemplar $rest) $index)) $newPop
                     (cullAtRandom $newPop $offset (- $nToRemove 1)))))
         (ConsOS $exemplar $rest))) 
-
 ;; Compares two exemplars based on their Cscores, returning L if the first is less, E if equal, or G if greater.
 ;; Params:
 ;;   (Exemplar $a): First exemplar 

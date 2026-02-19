@@ -265,7 +265,7 @@
     3                              ;; maxCandOutput - return top 3 strategies
     (emptyStrategyMetaPop)         ;; metaPop - start with empty strategy
     0                              ;; nExpansion - generation counter
-    1                              ;; nDeme - 3 demes (more diversity)
+    2                              ;; nDeme - 3 demes (more diversity)
     10                             ;; nGames - 10 games per evaluation
     random-player                  ;; opponentPolicy - opponent
     3.5                            ;; complexityRatio - standard penalty (coef≈0.286)
@@ -277,94 +277,3 @@
     5                              ;; nToKeep - keep top 5
     0.004                          ;; capCoef - capacity coefficient
     1000)                          ;; genCount - generation count
-
-
-;; Test evolved strategy by playing a single game
-;; Top strategy from evolution: (PRIORITIZED-OR (PRIORITIZED-OR playblock playcenter))
-; (= (topStrategy) 
-;    (mkTree (mkNode PRIORITIZED-OR) 
-;       (Cons (mkTree (mkNode PRIORITIZED-OR)
-;          (Cons (mkTree (mkNode playblock) Nil)
-;                (Cons (mkTree (mkNode playcenter) Nil) Nil)))
-;       Nil)))
-
-; ;; Play one game with the evolved strategy vs random-player
-; !(play-game (PRIORITIZED-OR (PRIORITIZED-OR playblock playcenter)) random-player)
-
-
-;; Initial strategy with 3 key moves - good starting point
-;; Note: Scores are placeholders - expandDemeStrategy immediately rescores before use
-; (= (threeMovesStrategyMetaPop)
-;    (ConsOS
-;      (mkExemplar
-;        (mkTree (mkNode PRIORITIZED-OR)
-;          (Cons (mkTree (mkNode playwin) Nil)
-;          (Cons (mkTree (mkNode playblock) Nil)
-;          (Cons (mkTree (mkNode playside) Nil) Nil))))
-;        (mkDemeId "0")
-;        (mkCscore 0.0 0 0.0 0.0 0.0)  ;; Placeholder - gets rescored immediately
-;        (mkBScore (Cons 0.0 Nil)))     ;; Placeholder - gets rescored immediately
-;      NilOS))
-
-; ;; Test with 3-move initial strategy
-; !(runMosesStrategy 
-;     10                          ;; maxGen - 10 generations
-;     (mkCscore 5.0 10 5.0 0.0 0.0)  ;; maxCScore
-;     2                           ;; maxCandOutput - return top 2
-;     (threeMovesStrategyMetaPop) ;; metaPop - start with 3 moves
-;     0                           ;; nExpansion
-;     2                           ;; nDeme - 2 demes per expansion
-;     50                          ;; nGames - 50 games for stable scores
-;     random-player               ;; opponentPolicy
-;     0.5                         ;; complexityRatio - low penalty
-;     hillClimbingStrategy        ;; optimize
-;     30                          ;; nEval
-;     5                           ;; maxCandsPerDeme
-;     2                           ;; minPoolSize
-;     1.0                         ;; complexityTemperature
-;     5                           ;; nToKeep
-;     0.004                       ;; capCoef
-;     1000)                       ;; genCount
-;!(play-game (PRIORITIZED-OR (PRIORITIZED-OR playblock playcenter)) random-player) 
-;; Test getCandidate to see what tree structure it produces
-
-;; First, create a simple representation with 3 options
-;; This simulates what generation 0 creates
-(= (testRepTree)
-   (mkTree (mkNode PRIORITIZED-OR)
-      (Cons (mkNullVex (mkTree (mkNode playwin) Nil))
-      (Cons (mkNullVex (mkTree (mkNode playblock) Nil))
-      (Cons (mkNullVex (mkTree (mkNode playcenter) Nil)) Nil)))))
-
-;; Create a mock representation with knobs
-;; Assume we have 3 binary knobs at positions 0, 1, 2
-(= (testRep)
-   (mkRep 
-      (mkKbMap 
-         (mkDscKbMp NilMap)  ;; Empty for simplicity
-         (mkDscMp 
-            (ConsMMap ((mkDiscSpec 0) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (11))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
-            (ConsMMap ((mkDiscSpec 0) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (12))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
-            (ConsMMap ((mkDiscSpec 0) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (13))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))))
-      (testRepTree)))
-
-; ;; Test instance 1: All zeros (all options wrapped/inactive)
-; !(println! "=== Test 1: Instance (0 0 0) - all inactive ===")
-; !(let $result (eval (getCandidate (testRep) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil))))))
-;    (println! $result))
-
-; ;; Test instance 2: First option active (1 0 0)
-; !(println! "=== Test 2: Instance (1 0 0) - first active ===")
-; !(let $result (eval (getCandidate (testRep) (mkInst (Cons 1 (Cons 0 (Cons 0 Nil))))))
-;    (println! $result))
-
-; ;; Test instance 3: First and third active (1 0 1)
-; !(println! "=== Test 3: Instance (1 0 1) - first and third active ===")
-; !(let $result (eval (getCandidate (testRep) (mkInst (Cons 1 (Cons 0 (Cons 1 Nil))))))
-;    (println! $result))
-
-; ;; Test instance 4: All active (1 1 1)
-; !(println! "=== Test 4: Instance (1 1 1) - all active ===")
-; !(let $result (eval (getCandidate (testRep) (mkInst (Cons 1 (Cons 1 (Cons 1 Nil))))))
-;    (println! $result))
-!(getCandidate (testRep) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))))
