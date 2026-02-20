@@ -42,4 +42,5 @@
        (playcenter (play-center $board $player))
        (playcorner (play-corner $board $player))
        (playside   (play-side $board $player))
+       ($else       9 )
      )))            

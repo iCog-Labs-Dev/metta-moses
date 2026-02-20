@@ -13,6 +13,21 @@
     )
 )
 
+(= (genTriplet $list)
+    ( let*
+        (
+            ($x (superpose $list))
+            ($y (superpose $list))
+            ($z (superpose $list))
+        )
+        (if (and (and (not (== $x $y)) (not (== $y $z))) (not (== $x $z))) 
+            ($x $y $z)
+            (empty) 
+        )
+    )
+)
+!(genTriplet (0 1 2 3))
+
 ;; getArgs -> generate logical expressions from the list of pairs
 ;; Parameters:
 ;;          $swapedOp -> swaped operator
@@ -64,10 +79,11 @@
 (= (getMoveArgs $op $PermPairs $picked $moveLabels)
     (let*
         (
-            (($a $b) (index-atom $PermPairs (superpose $picked)))
-            (($move1 $move2) ((index-atom $moveLabels $a) (index-atom $moveLabels $b)))
+            ; ($triplet (index-atom $PermPairs (superpose $picked)))
+            (($a $b $c)(index-atom $PermPairs (superpose $picked)))
+            (($move1 $move2 $move3) ((index-atom $moveLabels $a) (index-atom $moveLabels $b) (index-atom $moveLabels $c)))
         )
-        ($op $move1 $move2)
+        ($op $move1 $move2 $move3)
     ))
 
 ;; sampleStrategyPerms -> generate strategy permutations for game strategy evolution
@@ -81,19 +97,20 @@
 (= (sampleStrategyPerms $op $arity $moveLabels)
     (let*
         (
-            ($list (eval (genList (- $arity 1))))
-            ($idxPairs (collapse (eval (genPairs $list))))
-            ($nPairs $arity) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
+            ($list (eval (genList (- (length $moveLabels) 1))))
+            ($idxPairs (collapse (eval (genTriplet $list))))
+            ($nPairs $arity)
         )
         (if (<= $nPairs 1)
-            ($op (car-atom $moveLabels)) ;; edge case: return strategy expression with single move
+            ($op (car-atom $moveLabels))
             (let*
                 (
                     ($upperbound (- (length $idxPairs) 1))
                     ($picked (eval (lazyRandomSelector 0 $upperbound $nPairs)))
                     ($perms (collapse (eval (getMoveArgs $op $idxPairs $picked $moveLabels))))
                 )
-                (eval (concatT $perms $moveLabels)) ;; concat with the move labels to include orginal moves as fallback options
+                  ;(eval (concatT $perms $moveLabels))
+                   $perms
             )
         )
 ))

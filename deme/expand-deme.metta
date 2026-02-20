@@ -166,6 +166,7 @@ $optimDeme
            $metaPop)
        (let*
           (
+             ($_ (println! ("Generation: " $maxGen)))
              ($optimizedDemes (trace! "expand deme return" (eval (expandDemeStrategy $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $maxCScore $optimize))))
              ($_ (println! "[runMosesStrategy] Calling mergeDemesStrategy..."))
              ($updatedMetaPop (trace! "Merging Deme" (eval (mergeDemesStrategy $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nGames $opponentPolicy $metaPop $nToKeep $capCoef $genCount))))

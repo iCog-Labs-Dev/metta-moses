@@ -259,21 +259,28 @@
 ;; Test runMosesStrategy - evolve from empty strategy
 ;; Target: 10 wins out of 10 games (100% win rate)
 ;; Calculation: 10 wins - (5 moves × 0.286) = 10 - 1.43 ≈ 8.57 penalized score
-!(runMosesStrategy 
-    2                             ;; maxGen - 10 generations (more exploration)
-    (mkCscore 10.0 5 1.43 0.0 8.57) ;; Target: 10/10 wins, complexity≤5, penalized≥8.57
-    3                              ;; maxCandOutput - return top 3 strategies
-    (emptyStrategyMetaPop)         ;; metaPop - start with empty strategy
-    0                              ;; nExpansion - generation counter
-    2                              ;; nDeme - 3 demes (more diversity)
-    10                             ;; nGames - 10 games per evaluation
-    random-player                  ;; opponentPolicy - opponent
-    3.5                            ;; complexityRatio - standard penalty (coef≈0.286)
-    hillClimbingStrategy           ;; optimize - optimizer function
-    30                             ;; nEval - not used
-    5                              ;; maxCandsPerDeme - top 5 per deme
-    2                              ;; minPoolSize - min deme size
-    1.0                            ;; complexityTemperature - for trimming
-    5                              ;; nToKeep - keep top 5
-    0.004                          ;; capCoef - capacity coefficient
-    1000)                          ;; genCount - generation count
+; !(runMosesStrategy 
+;     4                            ;; maxGen - 10 generations (more exploration)
+;     (mkCscore 10.0 0 0 0.0 10) ;; Target: 10/10 wins, complexity≤5, penalized≥8.57
+;     3                              ;; maxCandOutput - return top 3 strategies
+;     (emptyStrategyMetaPop)         ;; metaPop - start with empty strategy
+;     0                              ;; nExpansion - generation counter
+;     2                             ;; nDeme - 3 demes (more diversity)
+;     10                             ;; nGames - 10 games per evaluation
+;     minimax-player                  ;; opponentPolicy - opponent
+;     3.5                            ;; complexityRatio - standard penalty (coef≈0.286)
+;     hillClimbingStrategy           ;; optimize - optimizer function
+;     30                             ;; nEval - not used
+;     5                              ;; maxCandsPerDeme - top 5 per deme
+;     2                              ;; minPoolSize - min deme size
+;     1.0                            ;; complexityTemperature - for trimming
+;     5                              ;; nToKeep - keep top 5
+;     0.004                          ;; capCoef - capacity coefficient
+;     1000)                          ;; genCount - generation count
+; !(preOrder (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcorner) Nil) (Cons (mkTree (mkNode playwin) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil)))) Nil)))
+; !(play-game (PRIORITIZED-OR (PRIORITIZED-OR playblock playside) (PRIORITIZED-OR playblock playcenter)) random-player)
+;!(sampleStrategyPerms PRIORITIZED-OR 2 (playcenter playcorner playblock playside playwin))
+; !(preOrder (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playblock) Nil) (Cons (mkTree (mkNode playside) Nil) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playside) Nil) (Cons (mkTree (mkNode playblock) Nil) (Cons (mkTree (mkNode playcorner) Nil) (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playblock) Nil) (Cons (mkTree (mkNode playcorner) Nil) (Cons (mkTree (mkNode playcenter) Nil) Nil)))) Nil))))) Nil))))) Nil)))
+; !(preOrder (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playblock) Nil) (Cons (mkTree (mkNode playwin) Nil) (Cons (mkTree (mkNode playside) Nil) (Cons (mkTree (mkNode playcorner) Nil) Nil))))) Nil)))
+; !(preOrder (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playblock) Nil) (Cons (mkTree (mkNode playside) Nil) (Cons (mkTree (mkNode playcorner) Nil) Nil)))) Nil)))
+!(play-game (PRIORITIZED-OR (PRIORITIZED-OR playblock playside playcorner)) minimax-player)
