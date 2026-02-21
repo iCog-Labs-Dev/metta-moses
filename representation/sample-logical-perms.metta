@@ -14,19 +14,18 @@
 )
 
 (= (genTriplet $list)
-    ( let*
+    (let*
         (
             ($x (superpose $list))
             ($y (superpose $list))
             ($z (superpose $list))
         )
-        (if (and (and (not (== $x $y)) (not (== $y $z))) (not (== $x $z))) 
+        (if (and (and (!= $x $y) (!= $y $z)) (!= $x $z)) 
             ($x $y $z)
             (empty) 
         )
     )
 )
-!(genTriplet (0 1 2 3))
 
 ;; getArgs -> generate logical expressions from the list of pairs
 ;; Parameters:
@@ -109,7 +108,6 @@
                     ($picked (eval (lazyRandomSelector 0 $upperbound $nPairs)))
                     ($perms (collapse (eval (getMoveArgs $op $idxPairs $picked $moveLabels))))
                 )
-                  ;(eval (concatT $perms $moveLabels))
                    $perms
             )
         )
