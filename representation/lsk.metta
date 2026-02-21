@@ -58,7 +58,6 @@
                    ;; Attach the actual subtree to the placeholder
                    (($subtreeAppendedTree $subtreeId) (eval (appendChild $nullVexAppendedTree $nullVexId $subtree)))
                )
-               ;; Create Knob: Multiplicity 2. Default=0 (Absent/NullVertex)
                ($subtreeAppendedTree (mkSSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
            )
        )
