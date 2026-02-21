@@ -30,21 +30,13 @@
 ;; Returns:
 ;;   List of scored instances with CScore
 ; (: applyStrategyBasedScore (-> Representation (List Instance) Number $opponentPolicy Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
-(= (applyStrategyBasedScore $rep Nil $nGames $opponentPolicy $complexityRatio $listOfScoredInst) 
-   (let* (
-      ($_ (println! "[applyStrategyBasedScore] Done scoring all instances"))
-   )
-   $listOfScoredInst))
+(= (applyStrategyBasedScore $rep Nil $nGames $opponentPolicy $complexityRatio $listOfScoredInst) $listOfScoredInst)
 (= (applyStrategyBasedScore $rep (Cons $i $is) $nGames $opponentPolicy $complexityRatio $listOfScoredInst)
 (let*
 (
-    ($_ (println! "[applyStrategyBasedScore] Scoring one instance"))
-    ($_ (println! $i))
-    ($_ (println! "[applyStrategyBasedScore] Calling getCandidate..."))
     ($strategyTree (eval (getCandidate $rep $i)))
     ($_ (println! "[applyStrategyBasedScore] Got tree:"))
     ($_ (println! $strategyTree))
-    ($_ (println! "[applyStrategyBasedScore] Calling getCscoreStrategy..."))
     ($cscore (eval (getCscoreStrategy $strategyTree $nGames $opponentPolicy $complexityRatio &strategyScoreSpace)))
     ($_ (println! "[applyStrategyBasedScore] Got cscore:"))
     ($_ (println! $cscore))

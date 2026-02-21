@@ -35,28 +35,3 @@
                         $bscore))
                     (car-atom $val)
                 )))))))
-;; clearStrategyCache - Removes all cached scores from the strategy score cache
-;; Params:
-;;   $scoreSpace: Cache space to clear (typically &strategyScoreCache)
-;; Returns: Unit
-;; (: clearStrategyCache (-> Space ()))
-(= (clearStrategyCache $scoreSpace)
-    (let* (
-        ($allEntries (collapse (match $scoreSpace ($tree $score) ($tree $score))))
-        ($entryCount (eval (List.length $allEntries)))
-        ($_ (println! (\n[Cache] Clearing strategy cache...)))
-        ($_ (println! ([Cache] Found $entryCount entries to remove)))
-        ($result (clearCacheHelper $scoreSpace $allEntries))
-        ($_ (println! ([Cache] Cache cleared successfully)))
-    )
-    $result))
-
-;; Helper to recursively remove cache entries
-(= (clearCacheHelper $scoreSpace ())
-    ())
-
-(= (clearCacheHelper $scoreSpace (Cons $entry $rest))
-    (let* (
-        ($_ (remove-atom $scoreSpace $entry))
-    )
-    (clearCacheHelper $scoreSpace $rest)))
