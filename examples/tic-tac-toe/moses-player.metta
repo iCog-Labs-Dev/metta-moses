@@ -42,5 +42,5 @@
        (playcenter (play-center $board $player))
        (playcorner (play-corner $board $player))
        (playside   (play-side $board $player))
-       ($else       9 )
+       ($else       9 ) ;; to match illegal move, since board indices are 0-8
      )))            

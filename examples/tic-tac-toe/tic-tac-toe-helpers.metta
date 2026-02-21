@@ -16,15 +16,6 @@
                     (cons-atom $icon $t)
                     (let $rest (replace-by-index $t $icon (- $index 1))
                         (cons-atom $h $rest)))))))
-    ; (if (> $index (eval (size-atom $bs)))
-    ;     $bs
-    ;     (let ($h $t) (decons-atom $bs)
-    ;     (if (== $index 0)
-    ;         (cons-atom $icon $t)
-    ;         (let $rest (replace-by-index $t $icon (- $index 1))
-    ;             (cons-atom $h $rest)))))
-    ; 
-
 ;; all the winning states encoded as patterns             
 (= (winning-states) ((($x $x $x $a $b $c $d $e $f) $x) 
                     (($a $b $c $x $x $x $d $e $f) $x)
