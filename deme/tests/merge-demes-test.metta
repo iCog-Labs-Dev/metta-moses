@@ -55,7 +55,7 @@
 !(import! &self ../../metapopulation/metapopulation)
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
 ; !(import! &self metta-moses:scoring:bscore)
-
+!(py-call (random.seed 42))
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 (= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
 (= (INSERT_ABOVE $tree $nodeId $subtree) (py_insertAbove  $tree $nodeId $subtree))
@@ -573,105 +573,63 @@
                                     (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) 
                                     (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) NilOS))
 )
-;; ============================================================================
-;; Tests for Game Strategy Functions
-;; ============================================================================
-
-;; Helper: Create strategy demes for testing (similar to how mergeDemes test creates demes)
-(= (strategyDeme1)
-   (car-atom (createDeme 1 (Cons (mkDemeId 0) Nil) 
-     (mkTree (mkNode PRIORITIZED-OR) 
-       (Cons (mkTree (mkNode playwin) Nil) 
-             (Cons (mkTree (mkNode playblock) Nil) Nil))))))
-
-(= (strategyDemes)
-   (createDeme 2 (Cons (mkDemeId 0) (Cons (mkDemeId 1) Nil))
-     (mkTree (mkNode PRIORITIZED-OR) 
-       (Cons (mkTree (mkNode playwin) Nil) 
-             (Cons (mkTree (mkNode playblock) Nil) Nil)))))
-
-;; Test demeToTreesStrategy returns list of exemplars
-; !(assertEqual
-;    (> (eval (List.length (demeToTreesStrategy (strategyDeme1) 1 random-player))) 0)
-;    True)
-
-; ;; Test mergeCandidatesStrategy inserts into empty metapop
-; !(assertEqual
-;    (mergeCandidatesStrategy
-;      (Cons
-;        (mkExemplar
-;          (mkTree (mkNode playwin) Nil)
-;          (mkDemeId "S1")
-;          (worstCscore)
-;          (mkBScore (Cons 1.0 Nil)))
-;        Nil)
-;      NilOS)
-;    (ConsOS
-;      (mkExemplar
-;        (mkTree (mkNode playwin) Nil)
-;        (mkDemeId "S1")
-;        (worstCscore)
-;        (mkBScore (Cons 1.0 Nil)))
-;      NilOS))
-
-; ;; Test mergeDemesStrategy with demes
-; !(assertEqual
-;    (> (eval (OS.length 
-;        (mergeDemesStrategy (strategyDemes) 5 2 0 1 random-player NilOS 3)))
-;       0)
-;    True)
-;; ============================================================================
-;; Tests for Game Strategy Functions
-;; ============================================================================
-;; ============================================================================
-;; Tests for Game Strategy Functions
-;; ============================================================================
-
-;; Helper: Create test deme
 (= (testStrategyDeme)
    (mkDeme 
      (mkRep 
        (mkKbMap 
-         (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) NilMap))
-         (mkDscMp (ConsMMap ((mkDiscSpec 3) 
-           (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))
+         (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap)))
+         (mkDscMp 
+           (ConsMMap ((mkDiscSpec 2) 
+             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) 
+           (ConsMMap ((mkDiscSpec 2) 
+             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) 
+           NilMMap))))
        (mkTree (mkNode PRIORITIZED-OR) 
          (Cons (mkTree (mkNode playwin) Nil) 
                (Cons (mkTree (mkNode playblock) Nil) Nil))))
      (mkSInstSet 
-       (Cons (mkSInst (mkPair (mkInst (Cons 0 Nil)) (mkBScore (Cons -1.0 Nil)))) Nil))
+       (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore 5.0 2 0.571 0.0 4.429))) Nil))
      (mkDemeId "1")))
 
-;; Test demeToTreesStrategy returns exemplar with correct demeId
-!(assertEqual
-   (let (Cons (mkExemplar $tree $dId $_ $bscore) $rest) 
-        (demeToTreesStrategy (testStrategyDeme) 1 random-player)
-     $dId)
-   (mkDemeId "1"))
+(= (testStrategyDeme2)
+   (mkDeme 
+     (mkRep 
+       (mkKbMap 
+         (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap)))
+         (mkDscMp 
+           (ConsMMap ((mkDiscSpec 2) 
+             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) 
+           (ConsMMap ((mkDiscSpec 2) 
+             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) 
+           NilMMap))))
+       (mkTree (mkNode PRIORITIZED-OR) 
+         (Cons (mkTree (mkNode playcenter) Nil) 
+               (Cons (mkTree (mkNode playside) Nil) Nil))))
+     (mkSInstSet 
+       (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore 6.0 2 0.571 0.0 5.429))) Nil))
+     (mkDemeId "2")))
 
-;; Test mergeCandidatesStrategy inserts exemplar
-!(assertEqual
-   (mergeCandidatesStrategy
-     (Cons
-       (mkExemplar
-         (mkTree (mkNode playwin) Nil)
-         (mkDemeId "S1")
-         (mkBScore (Cons -1.0 Nil))
-         (mkBScore (Cons 1.0 Nil)))
-       Nil)
-     NilOS)
-   (ConsOS
-     (mkExemplar
-       (mkTree (mkNode playwin) Nil)
-       (mkDemeId "S1")
-       (mkBScore (Cons -1.0 Nil))
-       (mkBScore (Cons 1.0 Nil)))
-     NilOS))
-;; Test mergeDemesStrategy produces metapop with exemplars
-!(assertEqual
-   (case (mergeDemesStrategy 
-           ((testStrategyDeme))
-           5 2 0 1 random-player NilOS 3)
-     ((NilOS False)
-      ((ConsOS $exemplar $rest) True)))
-   True)
+(= (testStrategyDeme2)
+   (mkDeme 
+     (mkRep 
+       (mkKbMap 
+         (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap)))
+         (mkDscMp 
+           (ConsMMap ((mkDiscSpec 2) 
+             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) 
+           (ConsMMap ((mkDiscSpec 2) 
+             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) 
+           NilMMap))))
+       (mkTree (mkNode PRIORITIZED-OR) 
+         (Cons (mkTree (mkNode playcenter) Nil) 
+               (Cons (mkTree (mkNode playside) Nil) Nil))))
+     (mkSInstSet 
+       (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore 6.0 2 0.571 0.0 5.429))) Nil))
+     (mkDemeId "2")))
+
+!(assertEqual (demeToTreesStrategy (testStrategyDeme) 1 random-player) 
+              (Cons (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playwin) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil))) (mkDemeId "1") (mkCscore 5.0 2 0.571 0.0 4.429) (mkBScore (Cons -1.0 Nil))) Nil))
+
+!(assertEqual (mergeDemesStrategy ((testStrategyDeme) (testStrategyDeme2)) 5 2 0 1 
+                  1 random-player NilOS 3 0.004 1000) 
+                  (ConsOS (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playside) Nil) Nil))) (mkDemeId "2") (mkCscore 6.0 2 0.571 0.0 5.429) (mkBScore (Cons 1.0 Nil))) NilOS))

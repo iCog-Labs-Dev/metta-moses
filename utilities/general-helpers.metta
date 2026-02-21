@@ -1,6 +1,6 @@
 ;; Helper functions that are going to be useful for writing any metta code
 !(bind! perf_counter (new-state (py-call "time.perf_counter")))
-;!(py-call (random.seed 0))
+!(py-call (random.seed 0))
 
 (= (round $x)(py-call ("round" $x)))    ;; python method calling is py-call unlike py-atom in mettalog 
 

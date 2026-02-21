@@ -163,8 +163,104 @@
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (eval (worstCscore))))
 
 ; Testcase for optimizeDemes               
-; 
+!(assertEqual 
+(let* 
+(
+    ($optimizeDemesReturn (optimizeDemes (deme) 
+                (table1) 
+                (mkInst (Cons 0 (Cons 0 Nil))) 
+                hillClimbing
+                ))
+    ($_ (println! "optimizeDemes Returns"))
+    ($_ (println! $optimizeDemesReturn))
+    (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemesReturn)
+    ($instanceCount (eval (List.length $instSet)))
+    ($scoredElems (eval (List.map isScored $instSet)))
+)
+((>= $instanceCount 4) (eval (List.any $scoredElems))))
+(True True))
 
+; Testcase for expandDeme
+!(assertEqual
+(let*
+(
+    ($updatedDeme (expandDeme (metaPop2) 0 1 False sim 
+                    (table1)
+                    hillClimbing 
+                    (ttable1)
+                    mi))
+    ($updatedDemeLength (size-atom $updatedDeme)))
+(>= $updatedDemeLength 1)) True)
+
+; Testcase for runMoses
+!(assertEqual
+(let*
+(
+    ($topCandidates (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False sim 
+    (table1) 
+    hillClimbing 5 2 0 1 
+    (ttable1) 
+    3 0.004 1000))
+    ($topCandidatesLength (eval (OS.length $topCandidates)))
+)
+(>= $topCandidatesLength 1)
+) True)
+
+; ; Testcase for runMoses
+!(assertEqual
+(let*
+(
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False rd 
+    (table1)  
+    hillClimbing 5 2 0 1 
+    (ttable1) 
+    3 0.004 1000))
+    ($topCandidatesLength (OS.length $topCandidates))
+)
+(>= $topCandidatesLength 1)
+) True)
+
+; ;; Testcase for runMoses
+!(assertEqual
+(let*
+(
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False inc 
+    (table1) 
+    hillClimbing 5 2 0 1 
+    (ttable1)
+    3 0.004 1000))
+    ($topCandidatesLength (eval (OS.length $topCandidates)))
+)
+(>= $topCandidatesLength 1)
+) True)
+
+;; Testcase 2 for runmoses. 
+;; When maxGen become 10, test number of returned instances is not greater than maxCandOutput, 
+;;              where maxCandOutput is 3 and minPoolSize is 2
+!(assertEqual
+(let $length
+(OS.length (runMoses 10 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
+    False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
+    inc      ;; the new arguments for feature selection algo
+    (eval (createTruthTableBScore 2 (mkITable
+                          (Cons (Cons False (Cons False (Cons False Nil))) 
+                          (Cons (Cons True (Cons False (Cons False Nil))) 
+                          (Cons (Cons False (Cons True (Cons False Nil)))
+                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+                          (Cons A (Cons B (Cons O Nil))))))  
+    hillClimbing 5 2 2 1 
+    (mkITable
+                          (Cons (Cons False (Cons False (Cons False Nil))) 
+                          (Cons (Cons True (Cons False (Cons False Nil))) 
+                          (Cons (Cons False (Cons True (Cons False Nil)))
+                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+                          (Cons A (Cons B (Cons O Nil))))  
+    3 0.004 1000)
+    )
+        (> $length 3)
+)
+    False
+) 
 ; ; with OR table and AND init exemplar     
 ; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
 ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
@@ -214,58 +310,25 @@
 ;     (bigtable) 
 ;     3 0.004 1000)
 
-;; Tests for Game Strategy Functions
-
-; Create initial strategy metapop
-; (= (strategyMetaPop)
-;    (ConsOS
-;      (mkExemplar
-;        (mkTree (mkNode PRIORITIZED-OR)
-;          (Cons (mkTree (mkNode playwin) Nil)
-;                (Cons (mkTree (mkNode playblock) Nil) Nil)))
-;        (mkDemeId "0")
-;        (mkBScore (Cons -1.0 Nil))
-;        (mkBScore (Cons 0.0 Nil)))
-;      NilOS))
-
-; !(assertEqual
-;    (let*
-;      (
-;        ($optimizedDemes (expandDemeStrategy (strategyMetaPop) 0 1 1 random-player hillClimbingStrategy))
-;        ($demeCount (size-atom $optimizedDemes))
-;      )
-;      (>= $demeCount 1))
-;    True)
-
-; !(assertEqual
-;    (let*
-;      (
-;        ($result (runMosesStrategy 1 1.0 3 (strategyMetaPop) 0 1 1 random-player hillClimbingStrategy 5 2 0 3))
-;        ($resultSize (eval (OS.length $result)))
-;      )
-;      (>= $resultSize 1))
-;    True)
-;
 ;; Empty strategy metapop -  empty PRIORITIZED-OR with worst CScore
+;; this empty strategy can be used as a starting point to evolve better strategy 
 (= (emptyStrategyMetaPop)
    (ConsOS
      (mkExemplar
        (mkTree (mkNode PRIORITIZED-OR) Nil)  ;;  empty - no children
        (mkDemeId "0")
        (eval (worstCscore))  ;; Worst CScore
-       (mkBScore (Cons -10000.0 Nil)))  ;; Worst BScore (very negative, not empty)
+       (mkBScore (Cons -10000.0 Nil)))
      NilOS))
 
-;; Test runMosesStrategy - evolve from empty strategy
-;; Target: 10 wins out of 10 games (100% win rate)
-;; Calculation: 10 wins - (5 moves × 0.286) = 10 - 1.43 ≈ 8.57 penalized score
+;; by uncomment this test and also adjust the parameter settings we can check the full evolution process of runMosesStrategy, and see how the strategy evolves from empty strategy to better strategy.
 ; !(runMosesStrategy 
-;     4                            ;; maxGen - 10 generations (more exploration)
-;     (mkCscore 10.0 0 0 0.0 10) ;; Target: 10/10 wins, complexity≤5, penalized≥8.57
+;     3                              ;; maxGen - 3 generations 
+;     (mkCscore 10.0 0 0 0.0 10)     ;; Target: 10/10 wins,
 ;     3                              ;; maxCandOutput - return top 3 strategies
 ;     (emptyStrategyMetaPop)         ;; metaPop - start with empty strategy
 ;     0                              ;; nExpansion - generation counter
-;     2                             ;; nDeme - 3 demes (more diversity)
+;     3                              ;; nDeme - 3 demes (more diversity)
 ;     10                             ;; nGames - 10 games per evaluation
 ;     minimax-player                  ;; opponentPolicy - opponent
 ;     3.5                            ;; complexityRatio - standard penalty (coef≈0.286)
@@ -276,11 +339,107 @@
 ;     1.0                            ;; complexityTemperature - for trimming
 ;     5                              ;; nToKeep - keep top 5
 ;     0.004                          ;; capCoef - capacity coefficient
-;     1000)                          ;; genCount - generation count
-; !(preOrder (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcorner) Nil) (Cons (mkTree (mkNode playwin) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil)))) Nil)))
-; !(play-game (PRIORITIZED-OR (PRIORITIZED-OR playblock playside) (PRIORITIZED-OR playblock playcenter)) random-player)
-;!(sampleStrategyPerms PRIORITIZED-OR 2 (playcenter playcorner playblock playside playwin))
-; !(preOrder (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playblock) Nil) (Cons (mkTree (mkNode playside) Nil) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playside) Nil) (Cons (mkTree (mkNode playblock) Nil) (Cons (mkTree (mkNode playcorner) Nil) (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playblock) Nil) (Cons (mkTree (mkNode playcorner) Nil) (Cons (mkTree (mkNode playcenter) Nil) Nil)))) Nil))))) Nil))))) Nil)))
-; !(preOrder (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playblock) Nil) (Cons (mkTree (mkNode playwin) Nil) (Cons (mkTree (mkNode playside) Nil) (Cons (mkTree (mkNode playcorner) Nil) Nil))))) Nil)))
-; !(preOrder (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playblock) Nil) (Cons (mkTree (mkNode playside) Nil) (Cons (mkTree (mkNode playcorner) Nil) Nil)))) Nil)))
-!(play-game (PRIORITIZED-OR (PRIORITIZED-OR playblock playside playcorner)) minimax-player)
+;     1000)   
+;; metapop for testing
+(= (strategyMetaPop)
+   (ConsOS
+     (mkExemplar
+       (mkTree (mkNode PRIORITIZED-OR)
+         (Cons (mkTree (mkNode playwin) Nil)
+               (Cons (mkTree (mkNode playblock) Nil) Nil)))
+       (mkDemeId "0")
+       (mkCscore 2.0 2 0.57 0.0 1.43)
+       (mkBScore (Cons 2.0 Nil)))
+     NilOS))
+
+!(assertEqual
+   (let* (
+     ($optimizedDemes (expandDemeStrategy 
+                        (strategyMetaPop) 
+                        0 1 5 random-player 3.5 
+                        (mkCscore 5.0 5 1.43 0.0 3.57) 
+                        hillClimbingStrategy))
+     ($demeCount (size-atom $optimizedDemes))
+   )
+   (>= $demeCount 1))
+   True)
+
+!(assertEqual
+   (let* (
+     ($optimizedDemes (expandDemeStrategy 
+                        (strategyMetaPop) 
+                        0 2 5 random-player 3.5 
+                        (mkCscore 5.0 5 1.43 0.0 3.57) 
+                        hillClimbingStrategy))
+     ($demeCount (size-atom $optimizedDemes))
+   )
+   (== $demeCount 2))
+   True)
+
+!(assertEqual
+   (let* (
+     ($optimizedDemes (expandDemeStrategy 
+                        (strategyMetaPop) 
+                        0 1 5 random-player 3.5 
+                        (mkCscore 5.0 5 1.43 0.0 3.57) 
+                        hillClimbingStrategy))
+     ((mkDeme $rep (mkSInstSet $scoredList) $id) (car-atom $optimizedDemes))
+     ($hasInstances (> (eval (List.length $scoredList)) 0))
+   )
+   $hasInstances)
+   True)
+
+!(assertEqual
+   (let* (
+     ($result (runMosesStrategy 
+                1                              ;; maxGen
+                (mkCscore 5.0 5 1.43 0.0 3.57) ;; target
+                3                              ;; maxCandOutput
+                (strategyMetaPop)              ;; metaPop
+                0 1                            ;; nExpansion, nDeme
+                5 random-player 3.5            ;; nGames, opponent, ratio
+                hillClimbingStrategy           ;; optimizer
+                30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
+                5 0.004 1000))                 ;; nToKeep, capCoef, genCount
+     ($resultSize (eval (OS.length $result)))
+   )
+   (>= $resultSize 1))
+   True)
+
+!(assertEqual
+   (let* (
+     ($result (runMosesStrategy 
+                1                              ;; maxGen
+                (mkCscore 5.0 5 1.43 0.0 3.57) ;; target
+                2                              ;; maxCandOutput = 2
+                (strategyMetaPop)              ;; metaPop
+                0 2                            ;; nExpansion, nDeme
+                5 random-player 3.5            ;; nGames, opponent, ratio
+                hillClimbingStrategy           ;; optimizer
+                30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
+                5 0.004 1000))                 ;; nToKeep, capCoef, genCount
+     ($resultSize (eval (OS.length $result)))
+   )
+   (<= $resultSize 2))
+   True)
+
+!(assertEqual
+   (let* (
+     ($result (runMosesStrategy 
+                1                              ;; maxGen
+                (mkCscore 5.0 5 1.43 0.0 3.57) ;; target
+                1                              ;; maxCandOutput
+                (strategyMetaPop)              ;; metaPop
+                0 1                            ;; nExpansion, nDeme
+                5 random-player 3.5            ;; nGames, opponent, ratio
+                hillClimbingStrategy           ;; optimizer
+                30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
+                5 0.004 1000))                 ;; nToKeep, capCoef, genCount
+     ($topExemplar (eval (OS.getByIdx 0 $result)))
+     ($topScore (eval (getExemplarCscore $topExemplar)))
+     ($penScore (eval (getPenScore $topScore)))
+     ;; Score should be better than worst possible
+     ($isValid (> $penScore -1000.0))
+   )
+   $isValid)
+   True)

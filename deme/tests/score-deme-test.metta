@@ -42,7 +42,7 @@
 !(import! &self ../../feature-selection/feature-selection-helpers)
 
 !(import! &self ../../scoring/precision-bscore)
-
+!(py-call (random.seed 42))
 ;; TODO: Add REDUCE Function here when it's edge case if fixed.
 ; (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 
@@ -103,168 +103,105 @@
 ;; NOTE: All the instances in the deme don't include lsk1 (or they all start with '0') because we are testing it using ttable2. 
 ;;       ttable2 is a truth table which doesn't have a 'D' column.
 ; Testcases for applyComplexityBasedScore
-; !(assertEqual 
-;    (applyComplexityBasedScore 
-;       (mkRep (knobMapObj) (tree1))
-;       (Cons (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (Cons (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) Nil)))
-;       (ttable2)
-;       2.0
-;       Nil)
-;    (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) (mkCscore -2 4 2.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (mkCscore 0 3 1.5 0.0 -1.5))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (mkCscore -2 3 1.5 0.0 -3.5))) Nil))))
+!(assertEqual 
+   (applyComplexityBasedScore 
+      (mkRep (knobMapObj) (tree1))
+      (Cons (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (Cons (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) Nil)))
+      (ttable2)
+      2.0
+      Nil)
+   (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) (mkCscore -2 4 2.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (mkCscore 0 3 1.5 0.0 -1.5))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (mkCscore -2 3 1.5 0.0 -3.5))) Nil))))
 
-; !(assertEqual
-;    (applyComplexityBasedScore 
-;       (mkRep (knobMapObj) (tree1))
-;       (Cons (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) Nil))
-;       (ttable2)
-;       2.0
-;       Nil)
-;       (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) (mkCscore -4 0 0.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -4 0 0.0 0.0 -4.0))) Nil)))
+!(assertEqual
+   (applyComplexityBasedScore 
+      (mkRep (knobMapObj) (tree1))
+      (Cons (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) Nil))
+      (ttable2)
+      2.0
+      Nil)
+      (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 1 Nil)))) (mkCscore -4 0 0.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -4 0 0.0 0.0 -4.0))) Nil)))
 
-; ; Testcases for transform
-; !(assertEqual
-;    (transform
-;    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e308)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e308)) Nil)))
-;    (mkRep (knobMapObj) (tree1))
-;    (ttable2)
-;    2.0)
-;    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (mkCscore 0 3 1.5 0.0 -1.5))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (mkCscore -2 3 1.5 0.0 -3.5))) Nil))))
+; Testcases for transform
+!(assertEqual
+   (transform
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) -1.0000000000000001e308)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) -1.0000000000000001e308)) Nil)))
+   (mkRep (knobMapObj) (tree1))
+   (ttable2)
+   2.0)
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (mkCscore 0 3 1.5 0.0 -1.5))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (mkCscore -2 3 1.5 0.0 -3.5))) Nil))))
 
-; ; The these test cases are commented out because they behave non deterministically when running all the 3 representation together 
-; ;; but runs correctly when running them separately !!
-; !(assertEqual
-;    (transform
-;    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) -1.0000000000000001e308)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) -1.0000000000000001e308)) Nil)))
-;    (mkRep (knobMapObj) (tree1))
-;    (ttable2)
-;    1)
-;    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) (mkCscore 0 3 3.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -4 0 0.0 0.0 -4.0))) Nil)))) 
+; The these test cases are commented out because they behave non deterministically when running all the 3 representation together 
+;; but runs correctly when running them separately !!
+!(assertEqual
+   (transform
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) -1.0000000000000001e308)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) -1.0000000000000001e308)) Nil)))
+   (mkRep (knobMapObj) (tree1))
+   (ttable2)
+   1)
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) (mkCscore 0 3 3.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 2 Nil)))) (mkCscore -4 0 0.0 0.0 -4.0))) Nil)))) 
 
-; ; ; ;; Testcase for the bitsToIndices
-; !(assertEqual (bitsToIndices (Cons 1 (Cons 0 (Cons 1 (Cons 0 Nil)))) 0 ()) (0 2))
+;; Testcase for the bitsToIndices
+!(assertEqual (bitsToIndices (Cons 1 (Cons 0 (Cons 1 (Cons 0 Nil)))) 0 ()) (0 2))
 
-; ; ; ; Testcase for applyMutualInformationBasedScore
-; !(assertEqual
-;   (applyMutualInformationBasedScore 
-;       (Cons (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (Cons (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) Nil)))
-;       (ttable2)
-;       100.0  ;; confidence parameter
-;       Nil)
-;   (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) 0.0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) 0.811)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) 0.0)) Nil))))
+; ; Testcase for applyMutualInformationBasedScore
+!(assertEqual
+  (applyMutualInformationBasedScore 
+      (Cons (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (Cons (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) Nil)))
+      (ttable2)
+      100.0  ;; confidence parameter
+      Nil)
+  (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) 0.0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) 0.811)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) 0.0)) Nil))))
 
-; ; ; ; Test for applyPrecisionBasedScore
-; !(assertEqual
-;    (applyPrecisionBasedScore 
-;       (Cons (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (Cons (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) Nil)))
-;       (ttable2)
-;       100.0 1.0 0.5 1.0 True
-;       Nil)
-;    (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) 0.0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) 0.30678094352750773)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) 0.0)) Nil)))
-;       )
+; ; Test for applyPrecisionBasedScore
+!(assertEqual
+   (applyPrecisionBasedScore 
+      (Cons (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) (Cons (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) (Cons (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) Nil)))
+      (ttable2)
+      100.0 1.0 0.5 1.0 True
+      Nil)
+   (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 2 (Cons 2 Nil)))) 0.0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 1 Nil)))) 0.30678094352750773)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 (Cons 2 Nil)))) 0.0)) Nil)))
+      )
 
-; ; ; ;; Testcase for transformFs
-; !(assertEqual
-;    (transformFs
-;    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0)) Nil)))
-;    (ttable2)
-;    100.0 1.0 0.5 1.0 True mi
-;    )
-;    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0.311)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0.811)) Nil))))
+;; Testcase for transformFs
+!(assertEqual
+   (transformFs
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0)) Nil)))
+   (ttable2)
+   100.0 1.0 0.5 1.0 True mi
+   )
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0.311)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0.811)) Nil))))
 
-; !(assertEqual
-;    (transformFs
-;       (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0)) Nil)))
-;       (ttable2)
-;       100.0 1.0 0.5 1.0 True pre
-;       )
-;    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0.5)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0.33333333333333337)) Nil)))
-;    )
+!(assertEqual
+   (transformFs
+      (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0)) Nil)))
+      (ttable2)
+      100.0 1.0 0.5 1.0 True pre
+      )
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 0 Nil)))) 0.5)) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 (Cons 1 Nil)))) 0.33333333333333337)) Nil)))
+   )
 
-; ;; Helper: Create strategy representation for testing
-; (= (strategyRep)
-;    (mkRep 
-;      (mkKbMap 
-;        (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) NilMap))
-;        (mkDscMp (ConsMMap ((mkDiscSpec 3) 
-;          (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))
-;      (mkTree (mkNode PRIORITIZED-OR) 
-;        (Cons (mkTree (mkNode playwin) Nil) 
-;              (Cons (mkTree (mkNode playblock) Nil) Nil)))))
+(= (StrategyRep)
+   (mkRep 
+     (mkKbMap 
+       (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap)))
+       (mkDscMp 
+         (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) 
+         (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) 
+         NilMMap))))
+     (mkTree (mkNode PRIORITIZED-OR) 
+       (Cons (mkTree (mkNode playcenter) Nil) 
+             (Cons (mkTree (mkNode playcorner) Nil) Nil)))))
 
-; ;; applyStrategyBasedScore base case - empty list returns accumulator
-; !(assertEqual
-;    (applyStrategyBasedScore (strategyRep) Nil 1 random-player Nil)
-;    Nil)
+!(assertEqual (applyStrategyBasedScore (StrategyRep) Nil 1 random-player 3.5 Nil) Nil)
 
-; ;; applyStrategyBasedScore with instances - returns scored instances
-; !(assertEqual
-;    (let*
-;      (
-;        ($result (applyStrategyBasedScore 
-;                   (strategyRep) 
-;                   (Cons (mkInst (Cons 0 Nil)) Nil)
-;                   1 
-;                   random-player 
-;                   Nil))
-;        ($length (eval (List.length $result)))
-;      )
-;      (== $length 1))
-;    True)
+!(assertEqual (applyStrategyBasedScore (StrategyRep) 
+                     (Cons (mkInst (Cons 1 (Cons 1 Nil)))  Nil) 1 random-player 3.5 Nil) 
+                     (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore 1.0 2 0.5714285714285714 0.0 0.4285714285714286))) Nil))
 
-; ;; transformStrategy base case - empty InstanceSet
-; !(assertEqual
-;    (transformStrategy (mkSInstSet Nil) (strategyRep) 1 random-player)
-;    (mkSInstSet Nil))
+!(assertEqual
+   (transformStrategy (mkSInstSet Nil) (StrategyRep) 1 random-player 3.5)
+   (mkSInstSet Nil))
 
-; !(assertEqual
-;    (let*
-;      (
-;        ($result (transformStrategy 
-;                   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkBScore (Cons 0.0 Nil)))) Nil))
-;                   (strategyRep)
-;                   1
-;                   random-player))
-;        ((mkSInstSet $scoredList) $result)
-;        ($length (eval (List.length $scoredList)))
-;      )
-;      (== $length 1))
-;    True)
-;; Setup
-;; TEST 2: Two move strategy
-; (= (testRep2) (car-atom (representation (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playcorner) Nil) Nil))) 1)))
-
-; !(applyStrategyBasedScore (testRep2) (Cons (mkInst (Cons 1 (Cons 1 Nil))) (Cons (mkInst (Cons 1 (Cons 0 Nil))) Nil)) 5 random-player 3.5 Nil)
-(= (gameTree) (mkTree (mkNode PRIORITIZED-OR) 
-            (Cons (mkTree (mkNode playcenter) Nil) 
-                  (Cons (mkTree (mkNode playcorner) Nil) Nil))))
-
-
-;; TEST 2: Two move strategy
-(= (testRep2) (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 4) (ConsMap ((mkNodeId (2)) 1) (ConsMap ((mkNodeId (3)) 9) (ConsMap ((mkNodeId (4)) 8) (ConsMap ((mkNodeId (5)) 7) (ConsMap ((mkNodeId (6)) 6) (ConsMap ((mkNodeId (7)) 5) (ConsMap ((mkNodeId (8)) 3) (ConsMap ((mkNodeId (9)) 2) (ConsMap ((mkNodeId (10)) 0) NilMap))))))))))) (mkDscMp (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (10))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (9))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (8))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (7))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (6))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (5))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))))))))))) (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playcorner) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playside) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playside) Nil) (Cons (mkTree (mkNode playcorner) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playcorner) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playside) Nil) (Cons (mkTree (mkNode playwin) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playwin) Nil) (Cons (mkTree (mkNode playside) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode playblock) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode playwin) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode playside) Nil) Nil)) Nil)))))))))))))
-
-;; Instance with all 10 knob values: first 2 present (1), rest absent (0)
-(= (inst10-both) (mkInst (Cons 1 (Cons 1 (Cons 0 (Cons 0 (Cons 0 (Cons 0 (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil))))))))))))
-
-(= (inst10-first) (mkInst (Cons 1 (Cons 0 (Cons 0 (Cons 0 (Cons 0 (Cons 0 (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil))))))))))))
-
-;; Test applyStrategyBasedScore - returns list of scored instances
-; !(applyStrategyBasedScore (testRep2) (Cons (inst10-both) Nil) 5 random-player 3.5 Nil)
-
-;; Test transformStrategy - wraps result in InstanceSet
-;; Input: InstanceSet with initial dummy scores
-;; Output: InstanceSet with CScore from game evaluation
-; !(transformStrategy 
-;    (mkSInstSet (Cons (mkSInst (mkPair (inst10-both) 0)) Nil))
-;    (testRep2)
-;    5
-;    random-player
-;    3.5)
-
-;; Test transformStrategy with two instances
-!(transformStrategy 
-   (mkSInstSet (Cons (mkSInst (mkPair (inst10-both) 0)) 
-                     (Cons (mkSInst (mkPair (inst10-first) 0)) Nil)))
-   (testRep2)
-   5
-   random-player
-   3.5)
+!(assertEqual (transformStrategy 
+   (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) -1.0e308)) Nil))
+   (StrategyRep) 1 random-player 3.5) (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore 1.0 2 0.5714285714285714 0.0 0.4285714285714286))) Nil)))
