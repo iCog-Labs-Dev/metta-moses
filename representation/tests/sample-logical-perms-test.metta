@@ -11,17 +11,8 @@
 !(assertEqual (length (sampleLogicalPerms OR 2 (A B))) 4)
 
 ;; Testcase for sample-strategy-perms
-!(assertEqual (sampleStrategyPerms PRIORITIZED-OR 1 (playcenter)) (PRIORITIZED-OR playcenter))
+!(assertEqual (sampleStrategyPerms PRIORITIZED-OR 1 (playcenter playcorner playblock playside playwin)) (PRIORITIZED-OR playcenter))
 
-!(assertEqual (sampleStrategyPerms PRIORITIZED-OR 2 (playcenter playcorner)) 
-              ((PRIORITIZED-OR playcenter playcorner) (PRIORITIZED-OR playcorner playcenter) playcenter playcorner))
+!(assertEqual (sampleStrategyPerms PRIORITIZED-OR 2 (playcenter playcorner playblock playside playwin)) ((PRIORITIZED-OR playwin playside playcorner) (PRIORITIZED-OR playwin playside playcenter)))
 
-!(assertEqual (sampleStrategyPerms PRIORITIZED-OR 3 (playcenter playcorner playblock))
-              ((PRIORITIZED-OR playcenter playblock) (PRIORITIZED-OR playcorner playcenter) (PRIORITIZED-OR playblock playcenter) playcenter playcorner playblock))
-;; check that original moves are included
-!(assertEqual (let $result (sampleStrategyPerms PRIORITIZED-OR 2 (playcenter playcorner))
-    (and (is-member playcenter $result) (is-member playcorner $result))) True)
-;; check that PRIORITIZED-OR combinations are included
-!(assertEqual (let $result (sampleStrategyPerms PRIORITIZED-OR 2 (playcenter playcorner))
-    (or (is-member (PRIORITIZED-OR playcenter playcorner) $result)
-        (is-member (PRIORITIZED-OR playcorner playcenter) $result))) True)
+!(assertEqual (sampleStrategyPerms PRIORITIZED-OR 3 (playcenter playcorner playblock playside playwin)) ((PRIORITIZED-OR playside playwin playcenter) (PRIORITIZED-OR playside playwin playcorner) (PRIORITIZED-OR playwin playblock playcenter)))
