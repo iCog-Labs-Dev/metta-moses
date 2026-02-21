@@ -46,7 +46,7 @@
          (let*
             (
                (($updatedTree $dscMp) (eval (buildKnobs $exemplar NilMMap ())))
-               ($dscKbMp (eval (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) $x)))
+               ($dscKbMp (eval (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0)))
                ($rep (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree))
             )   
                $rep))))
@@ -118,7 +118,7 @@
 (= (getRepTree (mkRep $knobMapObj $tree)) $tree)
 
 ;; Universal getCandidate that works for both boolean and game strategies
-;; Skips cleanTree for PRIORITIZED-OR (game strategies)
+;; Uses preOrder+buildTree to unwrap mkNullVex for games, cleanTree for boolean
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
 (= (getCandidate $repObj $inst)
    (let*
@@ -198,6 +198,7 @@
 ;    (chain (if (== $parentId (0)) (mkNodeId ($chIdx)) (mkNodeId (unionAtom $parentId ($chIdx)))) $srcId ;; Skip 0 from tree id.
 ;    (chain (getCandidateRec $repObj $inst (mkNodeId $parentId) $srcId $candidate) $updatedCnd
 ;       ($repObj $inst (mkNodeId $parentId) $updatedCnd (+ 1 $chIdx)))))
+
 (= (applyGetCandidateRec $tr ($repObj $inst (mkNodeId $parentId) $candidate $chIdx))
    (let*
       (

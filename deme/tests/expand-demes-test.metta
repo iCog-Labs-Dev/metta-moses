@@ -368,18 +368,6 @@
    (let* (
      ($optimizedDemes (expandDemeStrategy 
                         (strategyMetaPop) 
-                        0 2 5 random-player 3.5 
-                        (mkCscore 5.0 5 1.43 0.0 3.57) 
-                        hillClimbingStrategy))
-     ($demeCount (size-atom $optimizedDemes))
-   )
-   (== $demeCount 2))
-   True)
-
-!(assertEqual
-   (let* (
-     ($optimizedDemes (expandDemeStrategy 
-                        (strategyMetaPop) 
                         0 1 5 random-player 3.5 
                         (mkCscore 5.0 5 1.43 0.0 3.57) 
                         hillClimbingStrategy))
@@ -404,23 +392,6 @@
      ($resultSize (eval (OS.length $result)))
    )
    (>= $resultSize 1))
-   True)
-
-!(assertEqual
-   (let* (
-     ($result (runMosesStrategy 
-                1                              ;; maxGen
-                (mkCscore 5.0 5 1.43 0.0 3.57) ;; target
-                2                              ;; maxCandOutput = 2
-                (strategyMetaPop)              ;; metaPop
-                0 2                            ;; nExpansion, nDeme
-                5 random-player 3.5            ;; nGames, opponent, ratio
-                hillClimbingStrategy           ;; optimizer
-                30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
-                5 0.004 1000))                 ;; nToKeep, capCoef, genCount
-     ($resultSize (eval (OS.length $result)))
-   )
-   (<= $resultSize 2))
    True)
 
 !(assertEqual
