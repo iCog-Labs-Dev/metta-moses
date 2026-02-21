@@ -333,13 +333,6 @@
 )
 
 
-
-;; ============================================================================
-;; Hill Climbing for Game Strategies
-;; ============================================================================
-
-
-
 ;; Helper to get initial disc spec from a knob
 (= (getInitDiscSpec (mkLSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))) $init)
 (= (getInitDiscSpec (mkSSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))) $init)
