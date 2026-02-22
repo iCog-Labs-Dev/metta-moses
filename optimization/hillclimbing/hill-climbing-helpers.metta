@@ -122,19 +122,6 @@
        (mkSInst $inst2)
        (mkSInst $inst1)))
 
-;; Return best scored instance based on BScore sum comparison
-;; Used for game strategy hill climbing
-(= (returnBestBScore (mkSInst $inst1) (mkSInst $inst2))
-   (let* (
-     ($score1 (Pair.second $inst1))
-     ($score2 (Pair.second $inst2))
-     ($sum1 (eval (sumBScore $score1)))
-     ($sum2 (eval (sumBScore $score2)))
-   )
-   (if (< $sum1 $sum2)
-       (mkSInst $inst2)
-       (mkSInst $inst1))))
-
 (= (getDisk (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) $instSet $id))
     $disc
 )
@@ -171,7 +158,7 @@
     (hillClimbing $POASet $tTableBscorer $centerInst (mkParams applyComplexityBasedScore ())))
     
 ;; (: hillClimbing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
-;; $FsScorer should be passed using a mkScorer constructor other wise it will cause an error in PeTTa.
+;; $FsScorer should be passed using a `mkScorer` constructor other wise it will cause an error in PeTTa.
 (= (hillClimbing $POASet $tTableBscorer $centerInst (mkParams $scorer $FsScorer))
   (case (mkParams $scorer)
     (((mkParams applyComplexityBasedScore)

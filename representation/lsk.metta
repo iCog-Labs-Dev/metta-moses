@@ -153,7 +153,7 @@
               (let $treeToAppend
                    (case $d
                        (
-                         (1 $subtree)
-                         (0 (mkNullVex (Cons $subtree Nil)))))
+                         (1 $subtree) ;; If present
+                         (0 (mkNullVex (Cons $subtree Nil))))) ;; If absent
                    (chain (eval (appendChild $tree $parentId $treeToAppend)) $treeChIdPair
                       (eval (first $treeChIdPair))))))))

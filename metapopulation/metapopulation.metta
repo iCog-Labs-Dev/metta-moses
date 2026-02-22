@@ -14,7 +14,6 @@
 ;;      $capCoef     -- use to balance the number of individuals in the metapopulation by balancing population size so that it neither blows out the RAM or lacks enough variety -- may not even be necessary
 ;;      $genCount    -- used with $capCoef in the determination of max pop allowed given the above contstraints
 
-
 ;; compute useful range 
 ; (: usefulScoreRange (-> Number Number))
 (= (usefulScoreRange $compTemp) (/ (* $compTemp 30.0) 100.0))
@@ -99,5 +98,3 @@
 ;; Return: $tree
 ; (: getExemplarTree (-> (Exemplar $a) (Tree $a)))
 (= (getExemplarTree (mkExemplar $tree $demeId $cscore $bscore)) $tree)
-
-

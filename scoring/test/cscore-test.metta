@@ -16,163 +16,109 @@
 !(import! &self ../../examples/tic-tac-toe/moves)
 !(import! &self ../../examples/tic-tac-toe/moses-player)
 ;; Tests for cScoreToExpr
-; !(assertEqual (cScoreToExpr (mkCscore 0.0 0.0 0.0 0.0 0.0)) ((0.0 0.0 0.0 0.0 0.0)))
-; !(assertEqual (cScoreToExpr (mkCscore 1.0 2.0 0.5 0.5 0.0)) ((1.0 2.0 0.5 0.5 0.0)))
-; !(assertEqual (cScoreToExpr (mkCscore -1.0 3.0 0.2 0.4 -0.8)) ((-1.0 3.0 0.2 0.4 -0.8)))
+!(assertEqual (cScoreToExpr (mkCscore 0.0 0.0 0.0 0.0 0.0)) ((0.0 0.0 0.0 0.0 0.0)))
+!(assertEqual (cScoreToExpr (mkCscore 1.0 2.0 0.5 0.5 0.0)) ((1.0 2.0 0.5 0.5 0.0)))
+!(assertEqual (cScoreToExpr (mkCscore -1.0 3.0 0.2 0.4 -0.8)) ((-1.0 3.0 0.2 0.4 -0.8)))
               
-; ; ;; Test cases for updatePenalizedScore
-; !(assertEqual (updatePenalizedScore (mkCscore  0  2  0.3 0.5  (* -1 (pow-math 10 308))) False) (mkCscore  0  2  0.3  0.5 -0.8))
-; !(assertEqual (updatePenalizedScore (mkCscore  -1  3  0.2  0.4 (* -1 (pow-math 10 308))) True) (mkCscore  -1  3  0.2  0.4  -0.48))
-; !(assertEqual (updatePenalizedScore (mkCscore  0  5  0.1  0.9 (* -1 (pow-math 10 308))) False) (mkCscore  0  5  0.1 0.9 -1.0))
-; !(assertEqual (updatePenalizedScore (mkCscore  -3 1 0.7 1.0  (* -1 (pow-math 10 308))) False) (mkCscore  -3 1  0.7 1.0  -4.7))
+; ;; Test cases for updatePenalizedScore
+!(assertEqual (updatePenalizedScore (mkCscore  0  2  0.3 0.5  (* -1 (pow-math 10 308))) False) (mkCscore  0  2  0.3  0.5 -0.8))
+!(assertEqual (updatePenalizedScore (mkCscore  -1  3  0.2  0.4 (* -1 (pow-math 10 308))) True) (mkCscore  -1  3  0.2  0.4  -0.48))
+!(assertEqual (updatePenalizedScore (mkCscore  0  5  0.1  0.9 (* -1 (pow-math 10 308))) False) (mkCscore  0  5  0.1 0.9 -1.0))
+!(assertEqual (updatePenalizedScore (mkCscore  -3 1 0.7 1.0  (* -1 (pow-math 10 308))) False) (mkCscore  -3 1  0.7 1.0  -4.7))
 
 
-; (= (ttable1)
-;     (mkITable
-;         (Cons (Cons True (Cons False (Cons True Nil)))
-;         (Cons (Cons True (Cons True (Cons True Nil))) Nil))
-;         (Cons A (Cons B (Cons O Nil)))))
+(= (ttable1)
+    (mkITable
+        (Cons (Cons True (Cons False (Cons True Nil)))
+        (Cons (Cons True (Cons True (Cons True Nil))) Nil))
+        (Cons A (Cons B (Cons O Nil)))))
 
-; (= (ttable2)
-;     (mkITable
-;         (Cons (Cons True (Cons True (Cons True Nil)))
-;         (Cons (Cons True (Cons False (Cons False Nil)))
-;         (Cons (Cons False (Cons True (Cons False Nil)))
-;         (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
-;         (Cons A (Cons B (Cons Output Nil)))))
+(= (ttable2)
+    (mkITable
+        (Cons (Cons True (Cons True (Cons True Nil)))
+        (Cons (Cons True (Cons False (Cons False Nil)))
+        (Cons (Cons False (Cons True (Cons False Nil)))
+        (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
+        (Cons A (Cons B (Cons Output Nil)))))
 
 
-; !(assertEqual (getCscore (ttable1) (buildTree (AND A B)) 2.0 &cacheSpace) (mkCscore -1 2 1.0 0.0 -2.0))
-; !(assertEqual (getCscore (ttable1) (buildTree (OR A B)) 4 &cacheSpace) (mkCscore 0 2 0.5 0.0 -0.5))
-; ;; the results of the following two tests will be the same as the above two because the trees are the same because it uses the cacheSpace
-; ; ! (assertEqual (getCscore ttable2 (buildTree (AND A B)) 2.0) (mkCscore 0 2 1.0 0 -1.0))
-; ; ! (assertEqual (getCscore ttable2 (buildTree (OR A B)) 1) (mkCscore -2 2 2.0 0 -4.0))
+!(assertEqual (getCscore (ttable1) (buildTree (AND A B)) 2.0 &cacheSpace) (mkCscore -1 2 1.0 0.0 -2.0))
+!(assertEqual (getCscore (ttable1) (buildTree (OR A B)) 4 &cacheSpace) (mkCscore 0 2 0.5 0.0 -0.5))
+;; the results of the following two tests will be the same as the above two because the trees are the same because it uses the cacheSpace
+; ! (assertEqual (getCscore ttable2 (buildTree (AND A B)) 2.0) (mkCscore 0 2 1.0 0 -1.0))
+; ! (assertEqual (getCscore ttable2 (buildTree (OR A B)) 1) (mkCscore -2 2 2.0 0 -4.0))
 
-; ;; Test cases -- getComplexityCoef
-; !(assertEqual (getComplexityCoef 0.0) 0.0)
-; !(assertEqual (getComplexityCoef 2.0) 0.5)
-; !(assertEqual (getComplexityCoef 4) 0.25)
+;; Test cases -- getComplexityCoef
+!(assertEqual (getComplexityCoef 0.0) 0.0)
+!(assertEqual (getComplexityCoef 2.0) 0.5)
+!(assertEqual (getComplexityCoef 4) 0.25)
 
-; ;; Test cases -- composite score less than comparator (via apply)
-; !(assertEqual (apply < (mkCscore -0.1 2 0.1 0.1 -0.3) (mkCscore -0.2 3 0.1 0.1 -0.4)) False)
-; !(assertEqual (apply < (mkCscore -0.5 3 0.1 0.1 -0.7) (mkCscore -0.5 2 0.1 0.1 -0.7)) True)
-; !(assertEqual (apply < (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 3 0.1 0.1 -0.7)) False)
-; !(assertEqual (apply < (mkCscore -0.5 2 0.1 0.1 nan) (mkCscore -0.5 3 0.1 0.1 -0.7)) True)
+;; Test cases -- composite score less than comparator (via apply)
+!(assertEqual (apply < (mkCscore -0.1 2 0.1 0.1 -0.3) (mkCscore -0.2 3 0.1 0.1 -0.4)) False)
+!(assertEqual (apply < (mkCscore -0.5 3 0.1 0.1 -0.7) (mkCscore -0.5 2 0.1 0.1 -0.7)) True)
+!(assertEqual (apply < (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 3 0.1 0.1 -0.7)) False)
+!(assertEqual (apply < (mkCscore -0.5 2 0.1 0.1 nan) (mkCscore -0.5 3 0.1 0.1 -0.7)) True)
 
-; ;; Test cases -- composite score equality comparator (via apply)
-; !(assertEqual (apply == (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 2 0.1 0.1 -0.7)) True)
-; !(assertEqual (apply == (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5000001 2.0000001 0.1 0.1 -0.7000001)) True)
-; !(assertEqual (apply == (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.6 2 0.1 0.1 -0.8)) False)
-; !(assertEqual (apply == (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 3 0.1 0.1 -0.7)) False)
+;; Test cases -- composite score equality comparator (via apply)
+!(assertEqual (apply == (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 2 0.1 0.1 -0.7)) True)
+!(assertEqual (apply == (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5000001 2.0000001 0.1 0.1 -0.7000001)) True)
+!(assertEqual (apply == (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.6 2 0.1 0.1 -0.8)) False)
+!(assertEqual (apply == (mkCscore -0.5 2 0.1 0.1 -0.7) (mkCscore -0.5 3 0.1 0.1 -0.7)) False)
 
-; ;; --- Tests for expression conversion functions ---
+;; --- Tests for expression conversion functions ---
 
-; ;; Test exprToCScore - converting expressions back to Cscore objects
-; !(assertEqual (exprToCScore ((0.0 0.0 0.0 0.0 0.0))) (mkCscore 0.0 0.0 0.0 0.0 0.0))
-; !(assertEqual (exprToCScore ((100.0 5.0 10.0 2.0 88.0))) (mkCscore 100.0 5.0 10.0 2.0 88.0))
+;; Test exprToCScore - converting expressions back to Cscore objects
+!(assertEqual (exprToCScore ((0.0 0.0 0.0 0.0 0.0))) (mkCscore 0.0 0.0 0.0 0.0 0.0))
+!(assertEqual (exprToCScore ((100.0 5.0 10.0 2.0 88.0))) (mkCscore 100.0 5.0 10.0 2.0 88.0))
 
-; ;; Test round-trip conversion for cScoreToExpr and exprToCScore
-; !(assertEqual (let* (
-;   ($expr1 (cScoreToExpr (mkCscore 0.0 0.0 0.0 0.0 0.0)))
-;   ($result1 (exprToCScore $expr1))
-; ) $result1) (mkCscore 0.0 0.0 0.0 0.0 0.0))
+;; Test round-trip conversion for cScoreToExpr and exprToCScore
+!(assertEqual (let* (
+  ($expr1 (cScoreToExpr (mkCscore 0.0 0.0 0.0 0.0 0.0)))
+  ($result1 (exprToCScore $expr1))
+) $result1) (mkCscore 0.0 0.0 0.0 0.0 0.0))
 
-; ;; Test cScoreExpr< - comparing score expressions directly
-; ;; Test cases where first score is less than second (should return True)
-; !(assertEqual (cScoreExpr< ((1.0 2.0 0.5 0.5 0.0)) ((0.0 0.0 0.0 0.0 0.0))) True)
-; !(assertEqual (cScoreExpr< ((-0.5 3 0.1 0.1 -0.7)) ((-0.4 2 0.1 0.1 -0.6))) True)
-; !(assertEqual (cScoreExpr< ((-0.5 3 0.1 0.1 -0.7)) ((-0.5 2 0.1 0.1 -0.7))) True)
-; ;; Same penalized score, but first has lower complexity
+;; Test cScoreExpr< - comparing score expressions directly
+;; Test cases where first score is less than second (should return True)
+!(assertEqual (cScoreExpr< ((1.0 2.0 0.5 0.5 0.0)) ((0.0 0.0 0.0 0.0 0.0))) True)
+!(assertEqual (cScoreExpr< ((-0.5 3 0.1 0.1 -0.7)) ((-0.4 2 0.1 0.1 -0.6))) True)
+!(assertEqual (cScoreExpr< ((-0.5 3 0.1 0.1 -0.7)) ((-0.5 2 0.1 0.1 -0.7))) True)
+;; Same penalized score, but first has lower complexity
 
-; ;; Test cases where first score is greater than second (should return False)
-; !(assertEqual (cScoreExpr< ((0.0 0.0 0.0 0.0 0.0)) ((1.0 2.0 0.5 0.5 0.0))) False)
-; !(assertEqual (cScoreExpr< ((-0.4 2 0.1 0.1 -0.6)) ((-0.5 3 0.1 0.1 -0.7))) False)
-; !(assertEqual (cScoreExpr< ((-0.5 2 0.1 0.1 -0.7)) ((-0.5 3 0.1 0.1 -0.7))) False)  
+;; Test cases where first score is greater than second (should return False)
+!(assertEqual (cScoreExpr< ((0.0 0.0 0.0 0.0 0.0)) ((1.0 2.0 0.5 0.5 0.0))) False)
+!(assertEqual (cScoreExpr< ((-0.4 2 0.1 0.1 -0.6)) ((-0.5 3 0.1 0.1 -0.7))) False)
+!(assertEqual (cScoreExpr< ((-0.5 2 0.1 0.1 -0.7)) ((-0.5 3 0.1 0.1 -0.7))) False)  
 
-; ;;
-; ;; Test edge cases for cScoreExpr<
-; !(assertEqual (cScoreExpr< ((0.0 0.0 0.0 0.0 0.0)) ((0.0 0.0 0.0 0.0 0.0))) False)  ;; Equal scores
-; !(assertEqual (cScoreExpr< ((nan 0.0 0.0 0.0 nan)) ((0.0 0.0 0.0 0.0 0.0))) True)   ;;nan handling
-; !(assertEqual (cScoreExpr< ((0.0 0.0 0.0 0.0 0.0)) ((nan 0.0 0.0 0.0 nan))) False)  ;; nan handling
+;;
+;; Test edge cases for cScoreExpr<
+!(assertEqual (cScoreExpr< ((0.0 0.0 0.0 0.0 0.0)) ((0.0 0.0 0.0 0.0 0.0))) False)  ;; Equal scores
+!(assertEqual (cScoreExpr< ((nan 0.0 0.0 0.0 nan)) ((0.0 0.0 0.0 0.0 0.0))) True)   ;;nan handling
+!(assertEqual (cScoreExpr< ((0.0 0.0 0.0 0.0 0.0)) ((nan 0.0 0.0 0.0 nan))) False)  ;; nan handling
 
-; ;; Test that cScoreExpr< matches apply < behavior for equivalent inputs
-; !(assertEqual (let* (
-;   ($score1 (mkCscore -0.1 2 0.1 0.1 -0.3))
-;   ($score2 (mkCscore -0.2 3 0.1 0.1 -0.4))
-;   ($expr1 (cScoreToExpr $score1))
-;   ($expr2 (cScoreToExpr $score2))
-;   ($exprResult (cScoreExpr< $expr1 $expr2))
-;   ($objResult (apply < $score1 $score2))
-; ) (== $exprResult $objResult)) True)
+;; Test that cScoreExpr< matches apply < behavior for equivalent inputs
+!(assertEqual (let* (
+  ($score1 (mkCscore -0.1 2 0.1 0.1 -0.3))
+  ($score2 (mkCscore -0.2 3 0.1 0.1 -0.4))
+  ($expr1 (cScoreToExpr $score1))
+  ($expr2 (cScoreToExpr $score2))
+  ($exprResult (cScoreExpr< $expr1 $expr2))
+  ($objResult (apply < $score1 $score2))
+) (== $exprResult $objResult)) True)
 
-; !(assertEqual (let* (
-;   ($score3 (mkCscore -0.5 3 0.1 0.1 -0.7))
-;   ($score4 (mkCscore -0.5 2 0.1 0.1 -0.7))
-;   ($expr3 (cScoreToExpr $score3))
-;   ($expr4 (cScoreToExpr $score4))
-;   ($exprResult (cScoreExpr< $expr3 $expr4))
-;   ($objResult (apply < $score3 $score4))
-; ) (== $exprResult $objResult)) True)
-;; Simple strategy - just play center
-(= (simpleStrategy)
-   (mkTree (mkNode playcenter) Nil))
+!(assertEqual (let* (
+  ($score3 (mkCscore -0.5 3 0.1 0.1 -0.7))
+  ($score4 (mkCscore -0.5 2 0.1 0.1 -0.7))
+  ($expr3 (cScoreToExpr $score3))
+  ($expr4 (cScoreToExpr $score4))
+  ($exprResult (cScoreExpr< $expr3 $expr4))
+  ($objResult (apply < $score3 $score4))
+) (== $exprResult $objResult)) True)
 
-;; Medium complexity strategy - prioritized moves
-(= (mediumStrategy)
+(= (Strategy)
    (mkTree (mkNode PRIORITIZED-OR)
       (Cons (mkTree (mkNode playcenter) Nil)
             (Cons (mkTree (mkNode playside) Nil)
                   (Cons (mkTree (mkNode playcorner) Nil) Nil)))))
 
-;; Complex strategy - nested prioritized moves
-(= (complexStrategy)
-   (mkTree (mkNode PRIORITIZED-OR)
-      (Cons (mkTree (mkNode PRIORITIZED-OR)
-               (Cons (mkTree (mkNode playwin) Nil)
-                     (Cons (mkTree (mkNode playside) Nil)
-                           (Cons (mkTree (mkNode playcorner) Nil) Nil))))
-            (Cons (mkTree (mkNode playcorner) Nil)
-                  (Cons (mkTree (mkNode PRIORITIZED-OR)
-                           (Cons (mkTree (mkNode playcenter) Nil)
-                                 (Cons (mkTree (mkNode playside) Nil) Nil))) Nil)))))
-
-;; Test getCscoreStrategy with simple strategy
-; !(assertEqual 
-;    (let $result (getCscoreStrategy (simpleStrategy) 5 random-player 3.5 &strategyScoreSpace)
-;         (getComp $result))
-;    1)  ; Complexity should be 1 (single node)
-
-; ;; Test getCscoreStrategy with medium strategy
-; !(assertEqual 
-;    (let $result (getCscoreStrategy (mediumStrategy) 5 random-player 3.5 &strategyScoreSpace)
-;         (getComp $result))
-;    4)  ; Complexity should be 4 nodes
-
-; ;; Test getCscoreStrategy with complex strategy
-; !(assertEqual 
-;    (let $result (getCscoreStrategy (complexStrategy) 10 random-player 3.5 &strategyScoreSpace)
-;         (getComp $result))
-;    11)  ; Complexity should be 11 nodes
-
-; ;; Test that more complex strategy has lower penalized score (if same performance)
-; !(assertEqual
-;    (let* (
-;       ($simple (getCscoreStrategy (simpleStrategy) 5 random-player 3.5 &strategyScoreSpace))
-;       ($complex (getCscoreStrategy (complexStrategy) 5 random-player 3.5 &strategyScoreSpace))
-;       ($simpleScore (getScore $simple))
-;       ($complexScore (getScore $complex))
-;       ($simplePen (getPenScore $simple))
-;       ($complexPen (getPenScore $complex))
-;    )
-;    ;; If raw scores are equal, simpler strategy should have higher penalized score
-;    (if (== $simpleScore $complexScore)
-;        (> $simplePen $complexPen)
-;        True))
-;    True)
-
-; ;; Test complexity calculation
-; !(assertEqual
-;    (let $result (getCscoreStrategy (mediumStrategy) 10 random-player 2.0 &strategyScoreSpace)
-;         (getCompPen $result))
-;    2.0)  ; Complexity penalty = 4 nodes * (1/2.0) = 2.0
-!(getCscoreStrategy (mediumStrategy) 5 minimax-player 3.5 &strategyScoreSpace)
+!(assertEqual (getCscoreStrategy (Strategy) 5 minimax-player 3.5 &strategyScoreSpace) 
+              (mkCscore 0.0 3 0.8571428571428571 0.0 -0.8571428571428571))

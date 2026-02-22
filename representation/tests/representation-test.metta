@@ -41,8 +41,6 @@
 !(import! &self ../../feature-selection/random-feature-selection)
 !(import! &self ../../feature-selection/incremental)
 
-;!(py-call (random.seed 0))
-
 (= (tree1)
         (mkTree (mkNode AND)
           (Cons (mkTree (mkNode A) Nil)
