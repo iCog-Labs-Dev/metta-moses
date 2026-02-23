@@ -9,7 +9,7 @@
             (let ($result) $score $result);; If matched score will be ((score)) need to remove ()
             )
     ) $val (if  (== $val ())
-                (chain (scoreTree $itable $tree) $bs
+                (chain (scoreTree $itable $tree &bscoreCache) $bs
                 (if-error $bs ;; return worst possible composite score
                 (worstCscore)
                 (let* (($bsum (sumBScore $bs))
