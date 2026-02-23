@@ -9,4 +9,4 @@
 ; (: complexityBasedScorer (-> Representation Instance (ITable $a) Number Cscore))
 (= (complexityBasedScorer $rep $inst $itable $complexityRatio)
    (chain (getCandidate $rep $inst) $tree
-          (getCscore $itable $tree $complexityRatio &cacheSpace)))
+          (getCscore $itable $tree $complexityRatio)))

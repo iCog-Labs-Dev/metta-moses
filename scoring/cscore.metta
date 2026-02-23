@@ -3,13 +3,9 @@
 ;; If p is large (approaching 0.5), it means the model is expected to be less accurate, making mistakes more often (but still better than random guessing).
 
 ;; (:getCscore (-> (ITable $a) (Tree $a) Number Cscore))
-(= (getCscore $itable $tree $complexityRatio $scoreSpace)
-    (chain (collapse (match $scoreSpace 
-            ($tree $score) 
-            (let ($result) $score $result);; If matched score will be ((score)) need to remove ()
-            )
-    ) $val (if  (== $val ())
-                (chain (scoreTree $itable $tree &bscoreCache) $bs
+(= (getCscore $itable $tree $complexityRatio)
+
+         (chain (scoreTree $itable $tree &bscoreCache) $bs
                 (if-error $bs ;; return worst possible composite score
                 (worstCscore)
                 (let* (($bsum (sumBScore $bs))
@@ -20,13 +16,9 @@
                     ($cCoef (getComplexityCoef $complexityRatio))
                     ($res (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False))
                     ;; ($_ (println! (updatePenalizedScore: $res)))
-                    ;; ($_ (add-atom $scoreSpace ($tree $res)))
                     )
-
                     $res ))) 
-                $val
-            ) )
-)
+) 
 
 ;; getComplexityCoef -- calcualtes the complexity coeffient of a tree   
 ;; takes complexity ratio as input and returns complexity coefficient
