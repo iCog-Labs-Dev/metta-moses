@@ -3,9 +3,9 @@
 ;; If p is large (approaching 0.5), it means the model is expected to be less accurate, making mistakes more often (but still better than random guessing).
 
 ;; (:getCscore (-> (ITable $a) (Tree $a) Number Cscore))
-(= (getCscore $itable $tree $complexityRatio)
+(= (getCscore $itable $tree $complexityRatio $scoreSpace)
 
-         (chain (scoreTree $itable $tree &bscoreCache) $bs
+         (chain (scoreTree $itable $tree $scoreSpace) $bs
                 (if-error $bs ;; return worst possible composite score
                 (worstCscore)
                 (let* (($bsum (sumBScore $bs))
