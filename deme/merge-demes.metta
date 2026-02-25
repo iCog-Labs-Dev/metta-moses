@@ -102,7 +102,7 @@
         ;; ($_ (println! (Instance: $inst)))
         ($tree (getCandidate $rep $inst))
         ;; ($_ (println! (scoreTree Starting...)))
-        ($bscore (scoreTree $itable $tree))
+        ($bscore (scoreTree $itable $tree &bscoreCache))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
         ;; ($_ (println! (Returning...)))
     )

@@ -49,22 +49,26 @@
 ;;
 ;; Returns: Beahvioral score for the given tree.
 ; (: scoreTree (-> (ITable $a) (Tree $a) BehavioralScore))
-(= (scoreTree (mkITable $table $labels) $tree)
+(= (scoreTree (mkITable $table $labels) $tree $cacheSpace)
    (if (== $tree (mkTree (mkNode AND) Nil))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
-       (let*
-          (
-           ($expTree (preOrder $tree))
-           ($scoreList (eval (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table)))
-           ($length (List.length $labels))
-           ($outputs (eval (List.flatten (List.map (eval (List.drop (- $length 1))) $table))))
-           ($bScore (List.zipWith compareAndScore $scoreList $outputs))
-          )
-         (mkBScore $bScore)
-       )
-   )
-)
-
+       (chain (collapse (match $cacheSpace 
+               ($tree $bscore) 
+               $bscore))
+           $val 
+           (if (== $val ())
+               (let* (
+                   ($expTree (preOrder $tree))
+                   ($scoreList (eval (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table)))
+                   ($length (List.length $labels))
+                   ($outputs (eval (List.flatten (List.map (eval (List.drop (- $length 1))) $table))))
+                   ($bScore (List.zipWith compareAndScore $scoreList $outputs))
+                   ($result (mkBScore $bScore))
+                   ($_ (add-atom $cacheSpace ($tree $result)))
+               )
+               $result)
+               (car-atom $val)
+           ))))
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.
