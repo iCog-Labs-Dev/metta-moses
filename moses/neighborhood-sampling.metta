@@ -280,13 +280,15 @@
 ;;   $centerInst: Reference instance for distance calculations.
 ;;   $deme: Deme
 ;;   $dist: Distance from $centerInst for sampling/generating instances.
-;;   $multip: Multiplicity for generating all neighbors
 ;; Returns:
 ;;   (Deme Number) - Tuple of updated Deme with new scored instances appended and number of new instances added.
-;; (: sampleNewInstances (-> Number Number Instance Deme Number Multiplicity (Deme Number)))
-(= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep $kbMp $tree) (mkSInstSet $instList) $demeId) $dist (mkMultip $m))
+;; (: sampleNewInstances (-> Number Number Instance Deme Number (Deme Number)))
+(= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $disc)) $tree) (mkSInstSet $instList) $demeId) $dist)
  (let*
   (
+    (($spec $knob) (eval (MultiMap.getByIdx 0 $disc)))
+    ((mkMultip $m) (eval (getKnobMultip $knob)))
+    ($kbMp (mkKbMap $dscKbMp (mkDscMp $disc)))
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (eval (countNeighborhood $kbMp $centerInst $dist $numNewInstances))

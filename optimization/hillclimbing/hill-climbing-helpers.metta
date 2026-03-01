@@ -234,13 +234,8 @@
                                                                 ((False ()) (let ($updatedInstSet $newInstances) (eval ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $POASet $d))
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
                                                                 ((False $notEmpty) 
-                                                                        (let* 
-                                                                          (
-                                                                            (($spec $knob) (eval (MultiMap.getByIdx 0 $neighborhood)))
-                                                                            ((mkMultip $multip) (eval (getKnobMultip $knob)))
-                                                                          )
-                                                                        (let $result (eval ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $POASet $d (mkMultip $multip)))
-                                                                        (trace! ("Result: " $result) $result))))
+                                                                        (let $result (eval ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $POASet $d))
+                                                                        (trace! ("Result: " $result) $result)))
                                                               )
                                                           ))
         ; ($_ (println! (New POASet: $newPOA)))

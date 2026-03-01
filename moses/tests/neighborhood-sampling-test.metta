@@ -169,8 +169,7 @@
    3 
    (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 
    (deme) 
-   2
-   (mkMultip 3))
+   2)
    (List.map (distance' (mkInst (Cons 0 (Cons 0 (Cons 0 Nil))))) (List.map removeInstScore $updatedInstList)))
    (Cons 2 (Cons 2 (Cons 2 Nil))))
 
@@ -183,8 +182,7 @@
    7 
    (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 
    (deme) 
-   2
-   (mkMultip 3))
+   2)
    (List.map (distance' (mkInst (Cons 0 (Cons 0 (Cons 0 Nil))))) (List.map removeInstScore $updatedInstList)))
    (Cons 2 (Cons 2 (Cons 2 (Cons 2 (Cons 2 (Cons 2 (Cons 2 Nil))))))))
 
@@ -197,8 +195,7 @@
    5 
    (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 
    (deme) 
-   2
-   (mkMultip 3))
+   2)
    (List.map (distance' (mkInst (Cons 0 (Cons 0 (Cons 0 Nil))))) (List.map removeInstScore $updatedInstList)))
    (Cons 2 (Cons 2 (Cons 2 (Cons 2 (Cons 2 Nil))))))
 
@@ -211,8 +208,7 @@
    0 
    (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 
    (deme) 
-   2
-   (mkMultip 3))
+   2)
    (List.map (distance' (mkInst (Cons 0 (Cons 0 (Cons 0 Nil))))) (List.map removeInstScore $updatedInstList)))
 Nil)
 
