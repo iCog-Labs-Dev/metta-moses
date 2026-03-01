@@ -5,33 +5,26 @@
 ;; Create global cache space for strategy scores
 !(bind! &strategyScoreCache (new-space))
 
-;; getCachedBScore - Cached version of strategy scoring
-;; Checks cache first, calculates and caches if miss
+;; scoreStrategyTree - Cached version of score-strategy that accepts cache space
+;; This is the strategy equivalent of scoreTree for boolean domain
 ;; Params:
-;;   $instance: Instance to score
-;;   $rep: Representation (for converting instance to strategy)
+;;   $tree: Strategy tree to score
 ;;   $nGames: Number of games to play
 ;;   $opponentPolicy: Opponent strategy function
-;;   $scoreSpace: Cache space (typically &strategyScoreCache)
+;;   $scoreSpace: Cache space for storing results
 ;; Returns: BScore
-;; Cache key: ($strategyTree $nGames $opponentPolicy) - same as Cscore pattern
-;; (: getCachedBScore (-> Instance Representation Number $opponentPolicy Space BScore))
-(= (getCachedBScore $instance $rep $nGames $opponentPolicy $scoreSpace)
-    (chain (eval (getCandidate $rep $instance)) $strategyTree
-    (if (== (get-metatype $strategyTree) Error)
-        (mkBScore (Cons -1.0 Nil))
-        (chain (eval (preOrder $strategyTree)) $cleanStrategy
+;; Cache key: ($cleanStrategy $nGames $opponentPolicy $bscore)
+(= (scoreStrategyTree $tree $nGames $opponentPolicy $scoreSpace)
+    (let* (
+        ($cleanStrategy (eval (preOrder $tree)))
+        ($cached (collapse (match $scoreSpace ($cleanStrategy $nGames $opponentPolicy $bscore) $bscore)))
+    )
+    (if (== $cached ())
+        ;; Cache miss - compute and store
         (let* (
-            ($matches (collapse (match $scoreSpace 
-                ($cleanStrategy $score) 
-                $score)))
+            ($bscore (eval (score-strategy $nGames $cleanStrategy $opponentPolicy)))
+            ($_ (add-atom $scoreSpace ($cleanStrategy $nGames $opponentPolicy $bscore)))
         )
-        (chain $matches
-        $val (if (== $val ()) 
-                    (chain (eval (score-strategy $nGames $cleanStrategy $opponentPolicy)) $bscore
-                        (let* (
-                            ($_ (add-atom $scoreSpace ($cleanStrategy $bscore)))
-                        )
-                        $bscore))
-                    (car-atom $val)
-                )))))))
+        $bscore)
+        ;; Cache hit - return cached value
+        (car-atom $cached))))

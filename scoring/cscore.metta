@@ -3,30 +3,25 @@
 ;; If p is large (approaching 0.5), it means the model is expected to be less accurate, making mistakes more often (but still better than random guessing).
 
 ;; (:getCscore (-> (ITable $a) (Tree $a) Number Cscore))
-(= (getCscore $itable $tree $complexityRatio $scoreSpace)
-    (chain (collapse (match $scoreSpace 
-            ($tree $score) 
-            (let ($result) $score $result);; If matched score will be ((score)) need to remove ()
-            )
-    ) $val (if (== $val ()) 
-                (chain (eval (scoreTree $itable $tree)) $bs 
-                (eval (if-error $bs ;; return worst possible composite score
+(= (getCscore $tree $complexityRatio $bs)
+       (eval (if-error $bs ;; return worst possible composite score
                 (worstCscore)
                 (let* (($bsum (eval (sumBScore $bs)))
                     ($_ (println! (Score: $bsum)))
                     ($_ (println! ""))
                     ($cpxy (eval (treeComplexity $tree)))
-                    ($_ (println! (Complexity: $cpxy)))
+                    ;;($_ (println! (Complexity: $cpxy)))
                     ($cCoef (eval (getComplexityCoef $complexityRatio)))
                     ($res (eval (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False)))
-                    ($_ (println! (updatePenalizedScore: $res)))
-                    ($_ (add-atom $scoreSpace ($tree $res)))
+                    ;;($_ (println! (updatePenalizedScore: $res)))
                     )
-
-                    $res )))) 
-                $val
-            ) )
-)
+                    $res)))) 
+             ;; Boolean version - uses scoreTree
+(= (getCscore $itable $tree $complexityRatio $scoreSpace)
+   (getCscore $tree $complexityRatio (scoreTree $itable $tree)))
+;; Strategy version - uses scoreStrategyTree with caching
+(= (getCscore $tree $nGames $opponentPolicy $complexityRatio $scoreSpace)
+   (getCscore $tree $complexityRatio (scoreStrategyTree $tree $nGames $opponentPolicy $scoreSpace)))
 
 ;; getComplexityCoef -- calcualtes the complexity coeffient of a tree   
 ;; takes complexity ratio as input and returns complexity coefficient
@@ -137,39 +132,3 @@
 
 (= (setUniPen (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore) $newUniPen)
     (mkCscore $scor $cpxy $complexityPenalty $newUniPen $penalizedScore))
-;; Strategy-specific getCscore with BScore caching
-;; Scores a game strategy tree and converts to CScore with complexity penalty
-;; Also caches the BScore for later retrieval
-;; Params:
-;;   $tree: Strategy tree to score
-;;   $nGames: Number of games to play
-;;   $opponentPolicy: Opponent strategy (e.g., random-player)
-;;   $complexityRatio: Complexity penalty ratio (default 3.0)
-;;   $scoreSpace: Cache for (cleanStrategy CScore BScore) tuples
-;; Returns: CScore with penalized score
-(= (getCscoreStrategy $tree $nGames $opponentPolicy $complexityRatio $scoreSpace)
-    (let* (
-        ($cleanStrategy (eval (preOrder $tree)))
-        ($cached (collapse (match $scoreSpace ($cleanStrategy $cscore $bscore) ($cscore $bscore))))
-    )
-    (if (== $cached ())
-        ;; Not in cache - calculate fresh
-        (chain (eval (score-strategy $nGames $cleanStrategy $opponentPolicy)) $bs
-        (eval (if-error $bs
-        (worstCscore)
-        (let* (
-            ($score (eval (sumBScore $bs)))
-            ($cpxy (eval (treeComplexity $tree)))
-            ($cCoef (eval (getComplexityCoef $complexityRatio)))
-            ($res (eval (updatePenalizedScore 
-                    (mkCscore $score $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308))) 
-                    False)))
-            ($_ (add-atom $scoreSpace ($cleanStrategy $res $bs)))
-        )
-        $res))))
-        ;; In cache - return CScore
-        (let* (
-            ($tuple (car-atom $cached))
-            ($cscore (car-atom $tuple))
-        )
-        $cscore))))
