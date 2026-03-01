@@ -160,11 +160,11 @@
 ;;      $inst: Center instance
 ;; Returns: A list of $sampleSize instances or an error if generation is not possible.
 
-;; (: sampleFromNeighborhood (-> Number Number KnobMap Instance (List Instance)))
-(= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
-      (if (not (isPossibleSize $sampleSize $dist $inst))
-          (Error ("Cannot generate " $sampleSize " instances at distance " $dist " from " $inst) (Requested sample size too large))
-          (selectUnique () $sampleSize $dist $kbMp $inst)))
+;; (: sampleFromNeighborhood (-> Number Number KnobMap Instance Multiplicity (List Instance)))
+(= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst $multip)
+        (if (not (isPossibleSize $sampleSize $dist $inst $multip))
+            (Error ("Cannot generate " $sampleSize " instances at distance " $dist " from " $inst) (Requested sample size too large))
+            (selectUnique () $sampleSize $dist $kbMp $inst)))
 
 ;; this function helps the 'sampleFromNeighborhood' function in which Recursively collects unique instances with identical Hamming distance.
 ;;  and Terminates when sample size reaches zero, returning the final filtered list.
@@ -174,20 +174,16 @@
    (if (== $sampleSize 0)
       (eval (exprToList $expr))
        (if (== $expr ())
-           (let $generatedFirst (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)  
-                    (selectUnique ($generatedFirst) (- $sampleSize 1) $dist $kbMp $inst)
-           )
+           (let $generatedFirst (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)
+                (if (== (get-metatype $generatedFirst) Error)
+                    (Cons $generatedFirst Nil)
+                    (selectUnique ($generatedFirst) (- $sampleSize 1) $dist $kbMp $inst)))
            (let $generatedInstance (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)
-                           (if (eval (is-member $generatedInstance $expr))
-                               (selectUnique $expr $sampleSize $dist $kbMp $inst)
-                               (selectUnique (eval (concatT ($generatedInstance) $expr ))(- $sampleSize 1) $dist $kbMp $inst)
-                            )
-                   
-              )
-                
-           )  
-       )
-   ) 
+                (if (== (get-metatype $generatedInstance) Error)
+                    (Cons $generatedInstance Nil)
+                    (if (eval (is-member $generatedInstance $expr))
+                        (selectUnique $expr $sampleSize $dist $kbMp $inst)
+                        (selectUnique (eval (concatT ($generatedInstance) $expr)) (- $sampleSize 1) $dist $kbMp $inst))))))) 
 
 ;; similar to the above 'sampleFromNeighborhood' but with slight modification to make it compatible with the feature selection
 ;; uses the sampleFromNeighborhoodFs` function to sample from the neighborhood
@@ -213,28 +209,23 @@
 ;;      $sampleSize: Number of instances to generate
 ;;      $dist: Distance from the center
 ;;      $inst: Center instance
+;;      $multip: Knob multiplicity
 ;; Returns: true if total neighbors ≥ $sampleSize, else false
 ;; Formula: n! / ((n - d)! * d!) * (m-1)^d  ( where n = instance length, d = hamming distance, m = knob multiplicity)
 
-;; (: isPossibleSize (-> Instance Number Number Bool))
-(= (isPossibleSize $sampleSize $dist (mkInst $centralInst)) 
-    
-           (let* (
-               ; () (println! (Inside isPossibleSize: $inst $dist $sampleSize)))
-               ($instLen (eval (List.length $centralInst)))
-               ;  (() (println! (Instance Length: $instLen)))
-               ($n (eval (factorial $instLen)))
-               ($r (eval (factorial (- $instLen $dist))))
-               ($d (eval (factorial $dist)))
-               ($m (pow-math 2 $dist)) ; assuming knob multiplicty is 3, so m-1 = 1, hence m = 2 that is why (pow-math 2 $dist)
-               ($maxNeighbors (/ $n (* $r $d)))
-               ($totalNeighbors (* $maxNeighbors $m))
-             ) 
-               (>= $totalNeighbors $sampleSize)
-               ; $totalNeighbors
-
-            )
-)
+;; (: isPossibleSize (-> Number Number Instance Multiplicity Bool))
+(= (isPossibleSize $sampleSize $dist (mkInst $centralInst) (mkMultip $m))
+    (let* (
+        ($instLen (eval (List.length $centralInst)))
+        ($n (eval (factorial $instLen)))
+        ($r (eval (factorial (- $instLen $dist))))
+        ($d (eval (factorial $dist)))
+        ($mMinusOne (- $m 1)) 
+        ($mPower (pow-math $mMinusOne $dist))
+        ($maxNeighbors (/ $n (* $r $d)))
+        ($totalNeighbors (* $maxNeighbors $mPower))
+    ) 
+    (>= $totalNeighbors $sampleSize)))
 
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1
@@ -270,11 +261,6 @@
 (= (initInstScore $inst)
 (mkSInst (mkPair $inst (worstCscore))))
 
-;; Creates an unscored instance wrapper for game strategies
-; (: initInstStrategy (-> Instance (ScoredInstance BScore)))
-(= (initInstStrategy $inst)
-   (mkSInst (mkPair $inst (mkBScore Nil))))
-
 ;; similar to the above 'initInstScore' but for feature selection to make the initial score 0 (the minimum Mutual Information score)
 ; (: initInstScoreFs (-> Instance (ScoredInstance $score)))
 (= (initInstScoreFs $inst)
@@ -294,36 +280,28 @@
 ;;   $centerInst: Reference instance for distance calculations.
 ;;   $deme: Deme
 ;;   $dist: Distance from $centerInst for sampling/generating instances.
+;;   $multip: Multiplicity for generating all neighbors
 ;; Returns:
 ;;   (Deme Number) - Tuple of updated Deme with new scored instances appended and number of new instances added.
-;; (: sampleNewInstances (-> Number Number Instance Deme Number (Deme Number)))
-(= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep $kbMp $tree) (mkSInstSet $instList) $demeId) $dist)
+;; (: sampleNewInstances (-> Number Number Instance Deme Number Multiplicity (Deme Number)))
+(= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep $kbMp $tree) (mkSInstSet $instList) $demeId) $dist (mkMultip $m))
  (let*
   (
-    ($_ (println! (Inside sampleNewInstances: $totalNeighbors $numNewInstances $centerInst)))
-    ($_ (println! (Distance: $dist CenterInst: $centerInst)))
-    ($_ (println! ""))
-
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (eval (countNeighborhood $kbMp $centerInst $dist $numNewInstances))
              $totalNeighbors))
-    ($_ (println! (updatedTotalNeighbors: $updatedTotalNeighbors)))
     ($updatedNumNewInstances 
          (if (< $numNewInstances $updatedTotalNeighbors)  
              $numNewInstances
              $updatedTotalNeighbors))
-    ($_ (println! (updatedNumNewInstances: $updatedNumNewInstances)))
-    ($_ (println! (About to generate instances...)))
-    ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
-                       (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
-                       (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))
-    ($_ (println! (Generated instances count: (List.length $newInstances))))
+    ($newInstances (if (isPossibleSize $updatedNumNewInstances $dist $centerInst (mkMultip $m))
+                       (sampleFromNeighborhood $updatedNumNewInstances $dist $kbMp $centerInst (mkMultip $m))
+                       (generateAllInNeighborhood (mkMultip $m) $centerInst $dist)))
     ($scoredNewInstances (List.map initInstScore $newInstances))
     ($updatedInstList (eval (List.concat $instList $scoredNewInstances)))
  )
  ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId) $updatedNumNewInstances)))
-
 ;; similar to the above 'sampleNewInstances' but with slight changes for the feature selection
 ;; Uses the countNeighborhoodFs, sampleFromNeighborhoodFs, initInstScoreFs
 ;; It sets the multiplicy to 2 which is 0 and 1 for the feature selection
@@ -351,25 +329,3 @@
     ($updatedInstList (eval (List.concat $instList $scoredNewInstances)))
  )
  ((mkSInstSet $updatedInstList) $updatedNumNewInstances)))
-
-;; Game strategy version - wraps instances with empty BScore
-;; (: sampleNewInstancesStrategy (-> Number Number Instance Deme Number (Deme Number)))
-(= (sampleNewInstancesStrategy $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep $kbMp $tree) (mkSInstSet $instList) $demeId) $dist)
- (let*
-  (
-    ($updatedTotalNeighbors
-         (if (> (* 2 $numNewInstances) $totalNeighbors)
-             (eval (countNeighborhood $kbMp $centerInst $dist $numNewInstances))
-             $totalNeighbors))
-    ($updatedNumNewInstances 
-         (if (< $numNewInstances $updatedTotalNeighbors)  
-             $numNewInstances
-             $updatedTotalNeighbors))
-    ($multi (mkMultip 2))
-    ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
-                       (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
-                       (generateAllInNeighborhood $multi $centerInst $dist)))
-    ($scoredNewInstances (List.map initInstStrategy $newInstances))
-    ($updatedInstList (eval (List.concat $instList $scoredNewInstances)))
- )
- ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId) $updatedNumNewInstances)))
