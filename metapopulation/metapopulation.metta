@@ -18,7 +18,7 @@
 ; (: usefulScoreRange (-> Number Number))
 (= (usefulScoreRange $compTemp) (/ (* $compTemp 30.0) 100.0))
 
-;; calculates cap size based on number of generations -- must be recomuted based on actual data in the new implementation; (: resizeMetapop (-> (OS (Exemplar $a)) Number Number Number Number Number (OS (Exemplar $a))))
+; (: resizeMetapop (-> (OS (Exemplar $a)) Number Number Number Number Number (OS (Exemplar $a))))
 (= (resizeMetapop (ConsOS $exemplar $rest) $nToKeep $minPoolSize $compTemp $capCoef $genCount)
     (let ($size $capSize) ((eval (OS.length (ConsOS $exmplar $rest))) (eval (int (capSize $capCoef $genCount)))) ;; bind two variables with two function calls 
         (if (<= $size $minPoolSize)
@@ -33,6 +33,7 @@
                                 (cullAtRandom $reducedMetapop $nToKeep (- $popSize $capSize)))))))))))
 ;;TODO: for large minPoolSize if the returned resizedMetapop size is less than minPoolSize we may still need to add random candidates to reach minPoolSize
 
+;; calculates cap size based on number of generations -- must be recomuted based on actual data in the new implementation
 ;; for the time being implement the C++ code as it
 ; (: capSize (-> Number Number Number))
 (= (capSize $capCoef $genCount)
