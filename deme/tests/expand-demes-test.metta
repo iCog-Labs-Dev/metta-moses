@@ -358,7 +358,7 @@
                         (strategyMetaPop) 
                         0 1 5 random-player 3.5 
                         (mkCscore 5.0 5 1.43 0.0 3.57) 
-                        hillClimbingStrategy))
+                        hillClimbing))
      ($demeCount (size-atom $optimizedDemes))
    )
    (>= $demeCount 1))
@@ -370,7 +370,7 @@
                         (strategyMetaPop) 
                         0 1 5 random-player 3.5 
                         (mkCscore 5.0 5 1.43 0.0 3.57) 
-                        hillClimbingStrategy))
+                        hillClimbing))
      ((mkDeme $rep (mkSInstSet $scoredList) $id) (car-atom $optimizedDemes))
      ($hasInstances (> (eval (List.length $scoredList)) 0))
    )
@@ -386,7 +386,7 @@
                 (strategyMetaPop)              ;; metaPop
                 0 1                            ;; nExpansion, nDeme
                 5 random-player 3.5            ;; nGames, opponent, ratio
-                hillClimbingStrategy           ;; optimizer
+                hillClimbing                   ;; optimizer
                 30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
                 5 0.004 1000))                 ;; nToKeep, capCoef, genCount
      ($resultSize (eval (OS.length $result)))
@@ -403,7 +403,7 @@
                 (strategyMetaPop)              ;; metaPop
                 0 1                            ;; nExpansion, nDeme
                 5 random-player 3.5            ;; nGames, opponent, ratio
-                hillClimbingStrategy           ;; optimizer
+                hillClimbing                   ;; optimizer
                 30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
                 5 0.004 1000))                 ;; nToKeep, capCoef, genCount
      ($topExemplar (eval (OS.getByIdx 0 $result)))

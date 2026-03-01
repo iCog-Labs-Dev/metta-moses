@@ -235,7 +235,7 @@
     )
 )
 
-;; Converts a Deme into a list of Exemplars for game strategies by extracting BScore from cache.
+;; Converts a Deme into a list of Exemplars for game strategies by retrieving BScore from cache.
 ;; Params:
 ;;   $deme: A deme containing a representation, scored instance set, and demeId.
 ;;   $nGames: Number of games to play for scoring.
@@ -250,9 +250,12 @@
         ($tree (eval (getCandidate $rep $inst)))
         ($cleanStrategy (eval (preOrder $tree)))
         ($cleanTree (eval (buildTree $cleanStrategy)))
-        ($cached (collapse (match &strategyScoreSpace ($cleanStrategy $cachedCscore $cachedBscore) $cachedBscore)))
+        ;; Retrieve BScore from the SAME cache used during hillClimbing
+        ($cached (collapse (match &strategyScoreCache ($cleanStrategy $cachedBscore) $cachedBscore)))
         ($bscore (if (== $cached ()) 
+                     ;; Cache miss - this shouldn't happen if hillClimbing worked correctly
                      (eval (score-strategy $nGames $cleanStrategy $opponentPolicy))
+                     ;; Cache hit - use the BScore from hillClimbing
                      (car-atom $cached)))
         ($scoredTree (mkExemplar $cleanTree $demeId $cscore $bscore))
     )

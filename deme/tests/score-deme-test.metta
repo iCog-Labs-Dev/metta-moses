@@ -42,7 +42,7 @@
 !(import! &self ../../feature-selection/feature-selection-helpers)
 
 !(import! &self ../../scoring/precision-bscore)
-!(py-call (random.seed 42))
+
 ;; TODO: Add REDUCE Function here when it's edge case if fixed.
 ; (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 

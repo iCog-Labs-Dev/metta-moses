@@ -37,7 +37,7 @@
     ($strategyTree (eval (getCandidate $rep $i)))
     ($_ (println! "[applyStrategyBasedScore] Got tree:"))
     ($_ (println! $strategyTree))
-    ($cscore (eval (getCscoreStrategy $strategyTree $nGames $opponentPolicy $complexityRatio &strategyScoreSpace)))
+    ($cscore (eval (getCscore $strategyTree $nGames $opponentPolicy $complexityRatio &strategyScoreCache)))
     ($_ (println! "[applyStrategyBasedScore] Got cscore:"))
     ($_ (println! $cscore))
     ($scoredInst (mkSInst (mkPair $i $cscore)))

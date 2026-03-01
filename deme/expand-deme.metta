@@ -7,8 +7,9 @@
 ;;  Returns: (List Deme): A new list where each deme has been optimized.
 ; (: optimizeDemes (-> (List Deme) $context Instance $optimize (Instance Deme $state)))
 ;; Game strategy version - unpacks tuple with target score
+;; Strategy version - unpacks game parameters and calls hillClimbing with mkParams
 (= (optimizeDemes $deme ($nGames $opponentPolicy $complexityRatio $targetCScore) $inst $optimize)
-   (eval ($optimize $deme $nGames $opponentPolicy $complexityRatio $targetCScore $inst)))
+   (eval ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $opponentPolicy $complexityRatio)))))
 
 ;; Boolean version - passes context as-is
 (= (optimizeDemes $deme $context $inst $optimize)
