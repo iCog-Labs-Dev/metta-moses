@@ -199,9 +199,9 @@
                      (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore 1.0 2 0.5714285714285714 0.0 0.4285714285714286))) Nil))
 
 !(assertEqual
-   (transformStrategy (mkSInstSet Nil) (StrategyRep) 1 random-player 3.5)
+   (transform (mkSInstSet Nil) (StrategyRep) (1 random-player) 3.5)
    (mkSInstSet Nil))
 
-!(assertEqual (transformStrategy 
+!(assertEqual (transform
    (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) -1.0e308)) Nil))
-   (StrategyRep) 1 random-player 3.5) (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore 1.0 2 0.5714285714285714 0.0 0.4285714285714286))) Nil)))
+   (StrategyRep) (1 random-player) 3.5) (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore 1.0 2 0.5714285714285714 0.0 0.4285714285714286))) Nil)))

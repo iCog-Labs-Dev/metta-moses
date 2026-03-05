@@ -323,16 +323,16 @@
 
 ;; by uncomment this test and also adjust the parameter settings we can check the full evolution process of runMosesStrategy, and see how the strategy evolves from empty strategy to better strategy.
 ; !(runMosesStrategy 
-;     3                              ;; maxGen - 3 generations 
+;     1                              ;; maxGen - 3 generations 
 ;     (mkCscore 10.0 0 0 0.0 10)     ;; Target: 10/10 wins,
 ;     3                              ;; maxCandOutput - return top 3 strategies
 ;     (emptyStrategyMetaPop)         ;; metaPop - start with empty strategy
 ;     0                              ;; nExpansion - generation counter
-;     3                              ;; nDeme - 3 demes (more diversity)
+;     1                              ;; nDeme - 3 demes (more diversity)
 ;     10                             ;; nGames - 10 games per evaluation
 ;     minimax-player                  ;; opponentPolicy - opponent
 ;     3.5                            ;; complexityRatio - standard penalty (coef≈0.286)
-;     hillClimbingStrategy           ;; optimize - optimizer function
+;     hillClimbing                   ;; optimize - optimizer function
 ;     30                             ;; nEval - not used
 ;     5                              ;; maxCandsPerDeme - top 5 per deme
 ;     2                              ;; minPoolSize - min deme size

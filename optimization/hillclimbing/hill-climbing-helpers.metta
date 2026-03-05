@@ -198,7 +198,7 @@
                         $centerInst
                         ()
                         estimateNeighborhood crossover
-                        sampleNewInstances transformStrategy))))))
+                        sampleNewInstances transform))))))
 
 (= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
                  ($alreadyXover $lastChance $__ $prevCenter $bestSscore $bestScore $currentNInstances $d $i)
@@ -258,7 +258,7 @@
                                           (case $iTable
                                             (
                                               ((mkITable $rows $labels) (eval ($transformFunction $updatedInstSet $rep (mkITable $rows $labels) $rowOCoeff)))
-                                              ($strategyComplexityRatio (eval ($transformFunction $updatedInstSet $rep $rowOCoeff $size $strategyComplexityRatio)))
+                                              ($ComplexityRatio (eval ($transformFunction $updatedInstSet $rep ($rowOCoeff $size) $ComplexityRatio)))
                                             ))))
 
         ($updatedDeme (if (or (== $rep ()) (== $id ())) 

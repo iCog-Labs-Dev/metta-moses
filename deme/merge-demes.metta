@@ -82,13 +82,24 @@
        ($filteredSInstList (filterDemeByScore $sInstList (- $demeSize 1) $botSc)))     
        $filteredSInstList))))
 
+;; Converts a Deme into a list of Exemplars by transforming each ScoredInstance into a scored tree.
+;; Params:
+;;   $deme: A deme containing a representation, scored instance set, and demeId.
+;;   $itable: The input table.
+;; Return: (List (Exemplar $a)) - List of exemplars with scored trees.
+; (: demeToTrees (-> Deme (ITable $a) (List (Exemplar $a))))
 (= (demeToTrees (mkDeme $rep (mkSInstSet Nil) $demeId) $scoringContext) Nil)
 (= (demeToTrees (mkDeme $rep (mkSInstSet (Cons $si $sil)) $demeId) $scoringContext)
 (let*
     (
+        ($_ (println! (===Inside DemeToTrees===)))
         ($cscore (eval (getSInstScore $si)))
         ($inst (eval (getInst $si)))
+        ($_ (println! (GetCandidate Starting...)))
+        ($_ (println! (Representation: $rep)))
+        ($_ (println! (Instance: $inst)))
         ($tree (eval (getCandidate $rep $inst)))
+        ($_ (println! (scoreTree Starting...)))
         ($bscore (case $scoringContext
                     (((mkITable $rows $labels) (eval (scoreTree $scoringContext $tree)))
                      (($nGames $opponentPolicy) (eval (scoreStrategyTree $tree $nGames $opponentPolicy &strategyScoreCache))))))
@@ -177,7 +188,7 @@
    (let $updatedMetaPop (eval (OS.insert compareExemplar $x $metapop))
       (mergeCandidates $xs $updatedMetaPop)))
 
-;; Unified mergeDemes - works for both Boolean and Strategy domains
+;; Merges a deme's candidates into a metapopulation, processing through sorting, deduplication, trimming, tree conversion, filtering, dominance removal, merging, and resizing.
 ;; Params:
 ;;   $demes: List of demes to process.
 ;;   $nEval: Number of evaluations for candidate selection.
@@ -190,6 +201,7 @@
 ;;   $capCoef: Capacity coefficient for resizing.
 ;;   $genCount: Generation count for resizing.
 ;; Return: Updated and resized metapopulation.
+; (: mergeDemes (-> Expression Number Number Number Number (ITable $a) (OS (Exemplar $a)) Number Number Number (OS (Exemplar $a))))
 (= (mergeDemes $demes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $scoringContext $metapop $nToKeep $capCoef $genCount)
     (if (== $demes ()) $metapop
         (let*
@@ -198,21 +210,22 @@
             ($_ (println! (===== mergeDemes Starting =====)))
             (($headDeme $tailDeme) (decons-atom $demes))
             ((mkDeme $rep $sInstList $demeId) $headDeme)
-            ($sortedSInstList (eval (sortDeme $sInstList)))
-            ($unqCandidates (keepTopUniqueCandidates $sortedSInstList $nEval $maxCandsPerDeme))
-            ($trimmedDeme (trimDownDeme $unqCandidates $minPoolSize $complexityTemperature))
+            ($sortedSInstList (eval (sortDeme $sInstList))) ;; sorting the instances inside the deme by decreasing order
+            ($unqCandidates (keepTopUniqueCandidates $sortedSInstList $nEval $maxCandsPerDeme)) ;;remove duplicates and limits the size by keeping the top scoring
+            ($trimmedDeme (trimDownDeme $unqCandidates $minPoolSize $complexityTemperature)) ;; further trims the deme
             ($_ (println! (demeToTrees Starting...)))
-            ($potCandidates (demeToTrees (mkDeme $rep (mkSInstSet $trimmedDeme) $demeId) $scoringContext))
+            ($potCandidates (demeToTrees (mkDeme $rep (mkSInstSet $trimmedDeme) $demeId) $scoringContext)) ;;convert instances to trees
             ($_ (println! (GetNewCadidates Started: $potCandidates)))
             ($_ (println! (Metapop: $metapop)))
             ($_ (println! ("--")))
-            ($candidates (getNewCandidates $potCandidates $metapop))
+            ($candidates (getNewCandidates $potCandidates $metapop)) ;;which aren't found in the meta pop
             ($_ (println! (GetNewCadidates Finished: $candidates)))
-            ($removedDominated (removeDominated $candidates))
+            ($removedDominated (removeDominated $candidates)) ;;removeDominated
             ($_ (println! (Removed Dominated: $removedDominated)))
-            ($updatedMetaPop (mergeCandidates $removedDominated $metapop))
+            ($updatedMetaPop (mergeCandidates $removedDominated $metapop)) ;;merge candidates into metapop
             ($_ (println! (merged Candidate: $updatedMetaPop)))
-            ($resizedMetapop (eval (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount)))
+            ($resizedMetapop (eval (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount))) ;;resize the metapop
+            ; ($resizedMetapop (if (<= $nToKeep (eval (OS.length $updatedMetaPop))) (eval (OS.getTopN $nToKeep $updatedMetaPop)) $updatedMetaPop)) ;; select top nToKeep candidates
             ($_ (println! (Resized Metapop: $resizedMetapop)))
             ($_ (println! ("--------------------------------")))
         )

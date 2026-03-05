@@ -21,7 +21,6 @@
 !(import! &self ../../examples/tic-tac-toe/moves)
 !(import! &self ../../examples/tic-tac-toe/moses-player)
 
-
 !(import! &self ../../scoring/fitness)
 !(import! &self ../../scoring/bscore) 
 !(import! &self ../../scoring/cscore)
@@ -55,7 +54,7 @@
 !(import! &self ../../metapopulation/metapopulation)
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
 ; !(import! &self metta-moses:scoring:bscore)
-!(py-call (random.seed 42))
+
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 (= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
 (= (INSERT_ABOVE $tree $nodeId $subtree) (py_insertAbove  $tree $nodeId $subtree))

@@ -1,8 +1,4 @@
 ;; Strategy Score Cache
-;; Caches BScore results for game strategy instances to avoid redundant game playing
-;; Similar to Cscore caching in boolean logic
-
-;; Create global cache space for strategy scores
 !(bind! &strategyScoreCache (new-space))
 
 ;; scoreStrategyTree - Cached version of score-strategy that accepts cache space

@@ -63,8 +63,6 @@
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 
-!(py-call (random.seed 0))
-
 (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 (= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
 

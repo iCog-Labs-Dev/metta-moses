@@ -54,31 +54,16 @@
 ;; Returns:
 ;;   instanceSet: Scored InstanceSet
 ; (: transform (-> (InstanceSet $a) Representation (ITable Bool) Number (InstanceSet Cscore)))
-(= (transform (mkSInstSet $scoredInstList) $rep $itable $complexityRatio)
-(let*
-(
+(= (transform (mkSInstSet $scoredInstList) $rep $scoringContext $complexityRatio)
+  (let* (
     ($instList (eval (List.map removeInstScore $scoredInstList)))
-    ($cbsInstList (applyComplexityBasedScore $rep $instList $itable $complexityRatio Nil))
-)
-(mkSInstSet $cbsInstList))) 
-
-;; Strategy transform for game strategies
-;; Params:
-;;   instanceSet: The InstanceSet with mkSInst wrappers
-;;   $rep: The representation object
-;;   $nGames: Number of games to play
-;;   $opponentPolicy: Opponent strategy
-;;   $complexityRatio: Complexity penalty ratio
-;; Returns:
-;;   instanceSet: Scored InstanceSet with CScore
-; (: transformStrategy (-> (InstanceSet $a) Representation Number $opponentPolicy Number (InstanceSet CScore)))
-(= (transformStrategy  (mkSInstSet $scoredInstList) $rep $nGames $opponentPolicy $complexityRatio)
-(let*
-(
-    ($instList (eval (List.map removeInstScore $scoredInstList)))
-    ($strategyInstList (applyStrategyBasedScore $rep $instList $nGames $opponentPolicy $complexityRatio Nil))
-)
-(mkSInstSet $strategyInstList)))  
+    ($scored (case $scoringContext
+      (((mkITable $rows $labels) 
+        (applyComplexityBasedScore $rep $instList $scoringContext $complexityRatio Nil))
+       (($nGames $opponentPolicy)
+        (applyStrategyBasedScore $rep $instList $nGames $opponentPolicy $complexityRatio Nil)))))
+  )
+  (mkSInstSet $scored)))
 
 ;; Converts a list of bits (0s and 1s) to a tuple of indices where the bit is 1.
 ;; Params:
