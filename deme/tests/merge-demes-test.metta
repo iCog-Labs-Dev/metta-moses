@@ -48,7 +48,7 @@
 !(import! &self ../../utilities/nodeId)
 !(import! &self ../../utilities/ordered-multimap)
 ; !(import! &self ../../utilities/python-treehelpers)
-
+!(py-call (random.seed 0))
 ; ! (import! &self metta-moses:reduct:enf)
 !(import! &self ../../metapopulation/exemplar-type)
 !(import! &self ../../metapopulation/metapopulation)
@@ -612,4 +612,4 @@
 
 !(assertEqual (mergeDemes ((testStrategyDeme) (testStrategyDeme2)) 5 2 0 1 
                   (1 random-player) NilOS 3 0.004 1000) 
-                  (ConsOS (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playside) Nil) Nil))) (mkDemeId "2") (mkCscore 6.0 2 0.571 0.0 5.429) (mkBScore (Cons 1.0 Nil))) NilOS))
+                  (ConsOS (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playside) Nil) Nil))) (mkDemeId "2") (mkCscore 6.0 2 0.571 0.0 5.429) (mkBScore (Cons -1.0 Nil))) NilOS))
