@@ -175,16 +175,11 @@
       (eval (exprToList $expr))
        (if (== $expr ())
            (let $generatedFirst (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)
-                (if (== (get-metatype $generatedFirst) Error)
-                    (Cons $generatedFirst Nil)
-                    (selectUnique ($generatedFirst) (- $sampleSize 1) $dist $kbMp $inst)))
+                (selectUnique ($generatedFirst) (- $sampleSize 1) $dist $kbMp $inst))
            (let $generatedInstance (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)
-                (if (== (get-metatype $generatedInstance) Error)
-                    (Cons $generatedInstance Nil)
-                    (if (eval (is-member $generatedInstance $expr))
-                        (selectUnique $expr $sampleSize $dist $kbMp $inst)
-                        (selectUnique (eval (concatT ($generatedInstance) $expr)) (- $sampleSize 1) $dist $kbMp $inst))))))) 
-
+                (if (eval (is-member $generatedInstance $expr))
+                    (selectUnique $expr $sampleSize $dist $kbMp $inst)
+                    (selectUnique (eval (concatT ($generatedInstance) $expr)) (- $sampleSize 1) $dist $kbMp $inst)))))) 
 ;; similar to the above 'sampleFromNeighborhood' but with slight modification to make it compatible with the feature selection
 ;; uses the sampleFromNeighborhoodFs` function to sample from the neighborhood
 ; (: sampleFromNeighborhoodFs (-> Number Number (ITable Bool) Instance (List Instance)))

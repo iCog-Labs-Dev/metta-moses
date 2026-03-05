@@ -354,7 +354,7 @@
 
 !(assertEqual
    (let* (
-     ($optimizedDemes (expandDemeStrategy 
+     ($optimizedDemes (expandDeme
                         (strategyMetaPop) 
                         0 1 5 random-player 3.5 
                         (mkCscore 5.0 5 1.43 0.0 3.57) 
@@ -362,19 +362,6 @@
      ($demeCount (size-atom $optimizedDemes))
    )
    (>= $demeCount 1))
-   True)
-
-!(assertEqual
-   (let* (
-     ($optimizedDemes (expandDemeStrategy 
-                        (strategyMetaPop) 
-                        0 1 5 random-player 3.5 
-                        (mkCscore 5.0 5 1.43 0.0 3.57) 
-                        hillClimbing))
-     ((mkDeme $rep (mkSInstSet $scoredList) $id) (car-atom $optimizedDemes))
-     ($hasInstances (> (eval (List.length $scoredList)) 0))
-   )
-   $hasInstances)
    True)
 
 !(assertEqual

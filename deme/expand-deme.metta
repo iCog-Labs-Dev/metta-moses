@@ -64,17 +64,34 @@
     (map-atom $demes $deme (expandDemeHelper $deme $truthTableBScore $optimize))
    ))
 
-(= (expandDemeHelper (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) $truthTableBScore $optimize)
+;; Overloaded version for game strategy domain - 8 parameters
+(= (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $targetCScore $optimize)
+   (let*
+      (
+         ($exemplar (trace! "Selecting Exemplar" (eval (selectExemplar $metaPop))))
+         ($tree (trace! "getting exemplar tree" (eval (getExemplarTree $exemplar))))
+         ($demeIds (trace! "creating deme IDs" (eval (createDemeIds $nExpansion $nDeme))))
+         ($demes (trace! "Creating Deme" (eval (createDeme $nDeme $demeIds $tree))))
+         ($gameContext ($nGames $opponentPolicy $complexityRatio $targetCScore))
+      )
+      (map-atom $demes $deme (expandDemeHelper $deme $gameContext $optimize))))
+
+;; Unified helper for both Boolean and Strategy domains
+;; Optimizes each deme in the list using the provided optimizer and context
+;; Params:
+;;   $deme: Deme to optimize
+;;   $context: Scoring context (ITable for Boolean, tuple for Strategy)
+;;   $optimize: Optimizer function
+;; Returns: Optimized deme with scored instances
+(= (expandDemeHelper (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) $context $optimize)
 (let*
 (
-    ($lengthOfDscKbMp (eval (Map.length $dscKbMp)))
     ($generatedList (eval (createInitialInstance $dscMp)))
     ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
-    (($inst $optimDeme $state) (trace! "Optimizing Deme" (eval (optimizeDemes $deme $truthTableBScore (mkInst $generatedList) $optimize))))
+    (($inst $optimDeme $state) (trace! "Optimizing Deme" (eval (optimizeDemes $deme $context (mkInst $generatedList) $optimize))))
 )
 $optimDeme
-)
-)
+))
 ;; The main loop 
 ;; Takes 2 termination criterias:
 ;;     - $maxGen : how many times we want the loop to run
@@ -105,61 +122,8 @@ $optimDeme
          $resultCandi 
          (eval (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount))))))
 
-;; Runs one deme-creation and optimization step for game strategies
-;; Params:
-;;   $metaPop: The current metapopulation
-;;   $nExpansion: Expansion count or deme index
-;;   $nDeme: Number of demes to create
-;;   $nGames: Number of games to play for scoring
-;;   $opponentPolicy: Opponent strategy (e.g., random-player)
-;;   $complexityRatio: Complexity penalty ratio
-;;   $targetCScore: Target CScore for early termination
-;;   $optimize: Optimizer function (e.g., hillClimbingStrategy)
-;; Returns:
-;;   List of optimized demes
-(= (expandDemeStrategy $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $targetCScore $optimize)
-   (let*
-      (
-         ($exemplar (trace! "Selecting Exemplar" (eval (selectExemplar $metaPop))))
-         ($tree (trace! "getting exemplar tree" (eval (getExemplarTree $exemplar))))
-         ($demeIds (trace! "creating deme IDs" (eval (createDemeIds $nExpansion $nDeme))))
-         ($demes (trace! "Creating Deme" (eval (createDeme $nDeme $demeIds $tree))))
-         ($gameContext ($nGames $opponentPolicy $complexityRatio $targetCScore))
-         ($result (map-atom $demes $deme (expandDemeHelperStrategy $deme $gameContext $optimize)))
-      )
-      $result))
-
-;; Helper for expanding game strategy demes
-(= (expandDemeHelperStrategy (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) ($nGames $opponentPolicy $complexityRatio $targetCScore) $optimize)
-   (let*
-      (
-         ($generatedList (eval (createInitialInstance $dscMp)))
-         ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
-         (($inst $optimDeme $state) (trace! "Optimizing Deme" (eval (optimizeDemes $deme ($nGames $opponentPolicy $complexityRatio $targetCScore) (mkInst $generatedList) $optimize))))
-      )
-      $optimDeme))
-
-;; Main MOSES loop for game strategies
-;; Params:
-;;   $maxGen: Maximum number of generations
-;;   $maxCScore: Target CScore to achieve
-;;   $maxCandOutput: Number of top candidates to return
-;;   $metaPop: Current metapopulation
-;;   $nExpansion: Expansion count
-;;   $nDeme: Number of demes per expansion
-;;   $nGames: Number of games to play for scoring
-;;   $opponentPolicy: Opponent strategy
-;;   $complexityRatio: Complexity penalty ratio
-;;   $optimize: Optimizer function (e.g., hillClimbingStrategy)
-;;   $nEval: Maximum evaluations (for mergeDemes)
-;;   $maxCandsPerDeme: Maximum candidates per deme
-;;   $minPoolSize: Minimum deme size
-;;   $complexityTemperature: Parameter for score range
-;;   $nToKeep: Target metapop size
-;;   $capCoef: Capacity coefficient
-;;   $genCount: Generation count
-;; Returns:
-;;   Final metapopulation with best strategies
+;; Main MOSES loop for game strategy evolution
+;; Evolves strategies through multiple generations using game-based scoring
 (= (runMosesStrategy $maxGen $maxCScore $maxCandOutput $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount)
    (if (== $maxGen 0)
        (if (<= $maxCandOutput (eval (OS.length $metaPop)))
@@ -168,8 +132,8 @@ $optimDeme
        (let*
           (
              ($_ (println! ("Generation: " $maxGen)))
-             ($optimizedDemes (trace! "expand deme return" (eval (expandDemeStrategy $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $maxCScore $optimize))))
-             ($updatedMetaPop (trace! "Merging Deme" (eval (mergeDemesStrategy $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nGames $opponentPolicy $metaPop $nToKeep $capCoef $genCount))))
+             ($optimizedDemes (trace! "expand deme return" (eval (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $maxCScore $optimize))))
+             ($updatedMetaPop (trace! "Merging Deme" (eval (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature ($nGames $opponentPolicy) $metaPop $nToKeep $capCoef $genCount))))
              ($updatedSize (eval (OS.length $updatedMetaPop)))
              ($_ (println! ("Updated metapop size: " $updatedSize)))
              ($_ (println! "Getting top exemplar..."))
