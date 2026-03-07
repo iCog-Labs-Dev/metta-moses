@@ -8,12 +8,14 @@
                 (get-empty-cells $t $acc (+ $counter 1))))))
 
 (=  (replace-by-index $bs $icon $index)
-    (let ($h $t) (decons-atom $bs)
-        (if (== $index 0)
-            (cons-atom $icon $t)
-            (let $rest (replace-by-index $t $icon (- $index 1))
-                (cons-atom $h $rest)))))
-
+    (let $len (size-atom $bs)
+        (if (>= $index $len)
+            $bs
+            (let ($h $t) (decons-atom $bs)
+                (if (== $index 0)
+                    (cons-atom $icon $t)
+                    (let $rest (replace-by-index $t $icon (- $index 1))
+                        (cons-atom $h $rest)))))))
 ;; all the winning states encoded as patterns             
 (= (winning-states) ((($x $x $x $a $b $c $d $e $f) $x) 
                     (($a $b $c $x $x $x $d $e $f) $x)

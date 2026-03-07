@@ -14,9 +14,7 @@
    (let*
    (
     ($negatedSubtree (eval (insertAbove $subtree (mkNode NOT))))
-    ($_ (println! (NegatedSubtree----------------- : $negatedSubtree)))
     ($reducedSubtree (eval (cleanTree $negatedSubtree))  )
-    ($_ (println! (ReducedSubtree---------------: $reducedSubtree))) 
     ($childrenOfTarget (eval (getChildrenById $tree (mkNodeId $target))))
    )
    (if (== True (eval (List.contains $subtree $childrenOfTarget) ))
@@ -60,7 +58,6 @@
                    ;; Attach the actual subtree to the placeholder
                    (($subtreeAppendedTree $subtreeId) (eval (appendChild $nullVexAppendedTree $nullVexId $subtree)))
                )
-               ;; Create Knob: Multiplicity 2. Default=0 (Absent/NullVertex)
                ($subtreeAppendedTree (mkSSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
            )
        )
@@ -103,14 +100,12 @@
 (= (appendToLSK $updatedTree $lsk $tree $parentId $d)
     (let*
        (
-        ; ($_ (println! (lsk: $lsk)))
         ($targetId (eval (getNodeId $lsk)))
         ($targetTree (eval (getNodeById  $updatedTree $targetId)))
         ($subtree (if (== True (eval (isNullVertex $targetTree) ))
                         (let (mkNullVex (Cons $child Nil)) $targetTree $child)
                         $targetTree
                     ))        
-        ($_ (println! ("subtree ": $subtree $targetTree)))
       )
       (if (> $d 2)
           (Error $d "Invalid disc specification:- cannot exceed 2.")
@@ -150,7 +145,6 @@
         ($subtree (if (== True (eval (isNullVertex $targetTree)))
                         (let (mkNullVex (Cons $child Nil)) $targetTree $child)
                         $targetTree))
-        ($_ (println! ("strategy subtree:": $subtree $targetTree)))
       )
       (if (> $d 1)
           (Error $d "Invalid disc specification for strategy:- cannot exceed 1.")

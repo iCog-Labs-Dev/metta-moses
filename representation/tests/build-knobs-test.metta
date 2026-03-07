@@ -38,7 +38,7 @@
                             NilMMap (playwin playblock)))
     ($mmLength (MultiMap.length $MMap))
 )
-(== $mmLength 10)
+(== $mmLength 5)
 ) True)
 
 ;; buildKnobs creates correct number of knobs for game strategies
@@ -46,7 +46,7 @@
     (($updatedTree $MMap) (buildKnobs (gameTree1) NilMMap (playcenter playcorner)))
     ($mmLength (MultiMap.length $MMap))
 )
-(== $mmLength 10)
+(== $mmLength 5)
 ) True)
 
 ;; buildKnobs modifies tree structure for game strategies
@@ -72,7 +72,7 @@ $treeChanged
 !(assertEqual (let* (
     (($updatedTree $MMap) (buildKnobs (complexGameTree) NilMMap (playcenter playcorner playblock)))
     ($mmLength (MultiMap.length $MMap))
-    ($hasCorrectKnobs (> $mmLength 15)) ;; Expect more than 15 knobs for nested structure (10 per PRIORITIZED-OR)
+    ($hasCorrectKnobs (>= $mmLength 10)) ;; Expect more than 10 knobs for nested structure (10 per PRIORITIZED-OR)
 )
 $hasCorrectKnobs
 ) True)

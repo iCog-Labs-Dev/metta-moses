@@ -46,7 +46,7 @@
          (let*
             (
                (($updatedTree $dscMp) (eval (buildKnobs $exemplar NilMMap ())))
-               ($dscKbMp (eval (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) $x)))
+               ($dscKbMp (eval (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0)))
                ($rep (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree))
             )   
                $rep))))
@@ -118,28 +118,28 @@
 (= (getRepTree (mkRep $knobMapObj $tree)) $tree)
 
 ;; Universal getCandidate that works for both boolean and game strategies
-;; Skips cleanTree for PRIORITIZED-OR (game strategies)
+;; Uses preOrder+buildTree to unwrap mkNullVex for games, cleanTree for boolean
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
 (= (getCandidate $repObj $inst)
-   ; (println! (inside getCandidate))
    (let*
       (
-        ; ($_ (println! (Inside getCandidate)))
          ($parentid (mkNodeId (0)))
          ($srcid (mkNodeId (0)))
-         ; ($_ (println! ($parentid   $srcid)))
          ($candidate (getCandidateRec $repObj $inst $parentid $srcid (mkNullVex Nil)))
-         ; ($_ (println! (Found candidate: $candidate)))
-         ;; Check if this is a game strategy (PRIORITIZED-OR at root)
          ($rootNode (eval (getNodeById (eval (getRepTree $repObj)) $srcid)))
          ($rootValue (eval (getNodeValue $rootNode)))
-         ($isGameStrategy (== $rootValue PRIORITIZED-OR))
+         ($rootSymbol (if (== (get-metatype $rootValue) Expression) 
+                 (car-atom (cdr-atom $rootValue))
+                 $rootValue))
+         ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
       )
-      ;; Skip cleanTree for game strategies, apply it for boolean logic
       (if $isGameStrategy
-          $candidate
-          (eval (cleanTree $candidate)))
-   ))
+          (let* (
+              ($expr (eval (preOrder $candidate)))
+              ($cleanTree (eval (buildTree $expr)))
+          )
+          $cleanTree)
+          (eval (cleanTree $candidate)))))
    ; (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex Nil)) $candidate
    ;  (cleanTree $candidate)))
     
@@ -170,24 +170,27 @@
 ;             (let ((mkRep $knobMapObj $tree) (mkInst $inst) $newParentId $finalCnd $_) $state $finalCnd)))))))
 ; )
 (= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $candidate)
-    ; (trace! (Inside getCandidateRec with parentId: $parentId, srcId: $srcId) ())
-   (let $knobIdxPair (eval (findDiscKnob $knobMapObj $srcId))
-      (if (not (== (eval (second $knobIdxPair)) -1))
+   (let* (
+      ($knobIdxPair (eval (findDiscKnob $knobMapObj $srcId)))
+      ($knobIdx (eval (second $knobIdxPair)))
+   )
+      (if (not (== $knobIdx -1))
          ;; Knob Found - apply instance value
          (let* (
-               ($d (eval (List.getByIdx $inst (eval (second $knobIdxPair)))))
-               ($updatedCnd (eval (appendTo $tree (eval (first $knobIdxPair)) $candidate $parentId $d)))
+               ($d (eval (List.getByIdx $inst $knobIdx)))
+               ($knob (eval (first $knobIdxPair)))
+               ($updatedCnd (eval (appendTo $tree $knob $candidate $parentId $d)))
             )
             $updatedCnd)
          ;; No Knob - copy structure
          (let* (
                ($src (eval (getNodeById $tree $srcId)))
-               ($cndchidpair (eval (appendChild $candidate $parentId (mkTree (eval (getNodeValue $src)) Nil))))
-               ($srcchildren (eval (getChildren $src)))
-               ($state (eval (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (eval (second $cndchidpair)) (eval (first $cndchidpair)) 1) $srcchildren)))
-               (((mkRep $knobmapobj $tree) (mkInst $inst) $newparentid $finalcnd $d) $state)
+               ($cndChIdPair (eval (appendChild $candidate $parentId (mkTree (eval (getNodeValue $src)) Nil))))
+               ($srcChildren (eval (getChildren $src)))
+               ($state (eval (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (second $cndChIdPair) (first $cndChIdPair) 1) $srcChildren)))
+               (((mkRep $knobMapObj $tree) (mkInst $inst) $newParentId $finalCnd $_) $state)
             )
-              $finalcnd))))
+            $finalCnd))))
 ;; (: applyGetCandidateRec (-> (Tree $a)
 ;;                             (Representation Instance NodeId (Tree $a) Number)
 ;;                             (Representation Instance NodeId (Tree $a) Number)))
@@ -197,8 +200,12 @@
 ;       ($repObj $inst (mkNodeId $parentId) $updatedCnd (+ 1 $chIdx)))))
 
 (= (applyGetCandidateRec $tr ($repObj $inst (mkNodeId $parentId) $candidate $chIdx))
-   (let* (
+   (let*
+      (
          ($srcId (if (== $parentId (0)) (mkNodeId ($chIdx)) (mkNodeId (eval (concatT $parentId ($chIdx))))))
          ($updatedCnd (eval (getCandidateRec $repObj $inst (mkNodeId $parentId) $srcId $candidate)))
+         ($finalResult ($repObj $inst (mkNodeId $parentId) $updatedCnd (+ 1 $chIdx)))
       )
-      ($repObj $inst (mkNodeId $parentId) $updatedCnd (+ 1 $chIdx))))
+      $finalResult
+   )
+)

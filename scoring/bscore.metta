@@ -18,6 +18,16 @@
 ;(: sumBScore (-> BehavioralScore Number))
 (= (sumBScore (mkBScore $bs)) (eval (List.sum $bs)))
 
+;; Count wins in a BehavioralScore for game strategies
+;; For game strategies: 1.0 = win, -1.0 = loss, 0.0 = draw
+;; Returns the total number of wins
+;(: countWins (-> BehavioralScore Number))
+(= (countWins (mkBScore Nil)) 0)
+(= (countWins (mkBScore (Cons $head $tail)))
+   (if (== $head 1.0)
+       (+ 1 (countWins (mkBScore $tail)))
+       (countWins (mkBScore $tail))))
+
 ;; Input table with rows, columns and labels of the columns
 ;; An Input Table is just a list of lists.
 ;(: ITable (-> $a Type))

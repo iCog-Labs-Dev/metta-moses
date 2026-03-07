@@ -13,6 +13,11 @@
 ;;      $compTemp    -- used to calculate the range of scores that are likely to be preserved by the selection process
 ;;      $capCoef     -- use to balance the number of individuals in the metapopulation by balancing population size so that it neither blows out the RAM or lacks enough variety -- may not even be necessary
 ;;      $genCount    -- used with $capCoef in the determination of max pop allowed given the above contstraints
+
+;; compute useful range 
+; (: usefulScoreRange (-> Number Number))
+(= (usefulScoreRange $compTemp) (/ (* $compTemp 30.0) 100.0))
+
 ; (: resizeMetapop (-> (OS (Exemplar $a)) Number Number Number Number Number (OS (Exemplar $a))))
 (= (resizeMetapop (ConsOS $exemplar $rest) $nToKeep $minPoolSize $compTemp $capCoef $genCount)
     (let ($size $capSize) ((eval (OS.length (ConsOS $exmplar $rest))) (eval (int (capSize $capCoef $genCount)))) ;; bind two variables with two function calls 
@@ -27,10 +32,6 @@
                                 $reducedMetapop
                                 (cullAtRandom $reducedMetapop $nToKeep (- $popSize $capSize)))))))))))
 ;;TODO: for large minPoolSize if the returned resizedMetapop size is less than minPoolSize we may still need to add random candidates to reach minPoolSize
-
-;; compute useful range 
-; (: usefulScoreRange (-> Number Number))
-(= (usefulScoreRange $compTemp) (/ (* $compTemp 30.0) 100.0))
 
 ;; calculates cap size based on number of generations -- must be recomuted based on actual data in the new implementation
 ;; for the time being implement the C++ code as it
@@ -59,7 +60,6 @@
                 (chain (eval (OS.removeByIdx (ConsOS $exemplar $rest) $index)) $newPop
                     (cullAtRandom $newPop $offset (- $nToRemove 1)))))
         (ConsOS $exemplar $rest))) 
-
 ;; Compares two exemplars based on their Cscores, returning L if the first is less, E if equal, or G if greater.
 ;; Params:
 ;;   (Exemplar $a): First exemplar 

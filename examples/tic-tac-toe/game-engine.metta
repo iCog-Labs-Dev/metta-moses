@@ -23,7 +23,8 @@
 ;;   $strategy-o: Strategy function for player O
 ;; Returns: Game result (X, O, or Draw)
 (= (play-game $strategy-x $strategy-o)
-   (play-game-loop $strategy-x $strategy-o (E E E E E E E E E) X))
+   (let $_ (println! "========== NEW GAME ==========")
+   (play-game-loop $strategy-x $strategy-o (E E E E E E E E E) X)))
 
 ;; Main game loop: Handles turn-based gameplay until game ends
 ;; Parameters:
@@ -33,17 +34,17 @@
 ;;   $current-player: Current player (X or O)
 ;; Returns: Final game result (X, O, or Draw)
 (= (play-game-loop $strategy-x $strategy-o $board $current-player)
+   (let $_ (println! ("Turn:" $current-player "Board:" $board))
    (if (is-game-over $board)
-       ;; Game ended - return the result
-       (get-game-result $board)
-       ;; Game continues - make next move
-       (let* (;; Select strategy based on current player
-              ($strategy (if (== $current-player X) $strategy-x $strategy-o))
-              ;; Execute strategy to get new board state
+       (let $result (get-game-result $board)
+          (let $_ (println! ("GAME OVER - Result:" $result))
+          $result))
+       (let* (($strategy (if (== $current-player X) $strategy-x $strategy-o))
               ($new-board (if (== (get-metatype $strategy) Grounded)
-                              ($strategy $board $current-player)
-                              (moses-player $strategy $board $player)))
-              ;; Switch to next player
-              ($next-player (get-opponent $current-player)))
-             ;; Continue game loop with updated state
-             (play-game-loop $strategy-x $strategy-o $new-board $next-player))))
+                              (eval ($strategy $board $current-player))
+                              (eval (moses-player $strategy $board $current-player))))
+              ($_ (println! ($current-player "->" $new-board)))
+             )
+             (if (== $board $new-board)
+                 (get-opponent $current-player)
+                 (play-game-loop $strategy-x $strategy-o $new-board (get-opponent $current-player)))))))

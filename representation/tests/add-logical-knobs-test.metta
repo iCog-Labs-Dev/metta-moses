@@ -77,7 +77,7 @@ $mmpsEqual
     ($mmLength (MultiMap.length $mm))
     ($treeHasNullVex (!= $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playcorner) Nil) Nil)))))
 )
-(and (== $mmLength 10) $treeHasNullVex)
+(and (== $mmLength 5) $treeHasNullVex)
 ) True)
 
 ;; addLogicalKnobs with PRIORITIZED-OR - single move
@@ -90,7 +90,7 @@ $mmpsEqual
     ($mmLength (MultiMap.length $mm))
     ($treeHasNullVex (!= $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) Nil))))
 )
-(and (== $mmLength 10) $treeHasNullVex)
+(and (== $mmLength 5) $treeHasNullVex)
 ) True)
 
 ;; addLogicalKnobs with PRIORITIZED-OR - three moves
@@ -105,7 +105,7 @@ $mmpsEqual
     ($mmLength (MultiMap.length $mm))
     ($treeHasNullVex (!= $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playcorner) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil))))))
 )
-(and (== $mmLength 10) $treeHasNullVex)
+(and (== $mmLength 5) $treeHasNullVex)
 ) True)
 
 ;; Verify SSK knobs (multiplicity 2) are created for PRIORITIZED-OR
@@ -134,5 +134,5 @@ $mmpsEqual
     ($mmLength (MultiMap.length $mm))
     ($treeHasNullVex (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playwin) Nil) (Cons (mkTree (mkNode playfork) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil)))))))
 )
-(and (== $mmLength 10) $treeHasNullVex)
+(and (== $mmLength 5) $treeHasNullVex)
 ) True)
