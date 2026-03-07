@@ -14,17 +14,6 @@
 (= (optimizeDemes $deme $context $inst $optimize)
    (eval ($optimize $deme $context $inst)))
 
-;; Creates initial instance from knob map by extracting default specifications
-;; Params: $dscMp - MultiMap of (DiscSpec, Knob)
-;; Returns: List of default spec values
-; (: createInitialInstance (-> (MultiMap (DiscSpec $knob)) (List Number)))
-(= (createInitialInstance $dscMp)
-   (let* (
-     ($knobs (eval (MultiMap.values $dscMp)))
-     ($defaults (eval (List.map getKnobDefault $knobs)))
-   )
-   $defaults))
-
 ;; Extracts default specification from a knob
 ; (: getKnobDefault (-> $knob Number))
 (= (getKnobDefault (mkLSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
@@ -85,7 +74,8 @@
 (= (expandDemeHelper (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) $context $optimize)
 (let*
 (
-    ($generatedList (eval (createInitialInstance $dscMp)))
+    ($lengthOfDscKbMp (eval (Map.length $dscKbMp)))
+    ($generatedList (eval (List.generate $lengthOfDscKbMp 0)))
     ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
     (($inst $optimDeme $state) (trace! "Optimizing Deme" (eval (optimizeDemes $deme $context (mkInst $generatedList) $optimize))))
 )
@@ -99,7 +89,7 @@ $optimDeme
 ;;     - $maxCandOutput : The number of candidates to be returned
 ;;     - other parameters required by the expandDeme method
 ; (: runMoses (-> Number Cscore Number (OS (Exemplar $a)) Number Number Bool Symbol (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)) $Scorer Number Number Number Number (ITable $a) Number Number Number (OS (Exemplar $a))))
-(= (runMoses $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
+(= (runMoses $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $context $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount)
 (if (== $maxGen 0)
     (if (<= $maxCandOutput (eval (OS.length $metaPop)))
         (let $topCandidates (eval (OS.getTopN $maxCandOutput $metaPop)) $topCandidates)
@@ -107,8 +97,12 @@ $optimDeme
   )
     (let* 
      (
-       ($optimizedDemes (trace! "expand deme returnn" (eval (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable mi))))
-       ($updatedMetaPop (trace! "Merging Deme" (eval (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metaPop $nToKeep $capCoef $genCount))))
+       ($optimizedDemes (case $context
+                        ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "expand  deme returnn" (eval (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable mi))))
+                        (($nGames $opponentPolicy $complexityRatio) (trace! "expand deme return" (eval (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $maxScore $optimize)))))))
+       ($updatedMetaPop (case $context 
+                        ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "Merging Deme" (eval (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metaPop $nToKeep $capCoef $genCount))))
+                        (($nGames $opponentPolicy $complexityRatio) (trace! "Merging Deme" (eval (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature ($nGames $opponentPolicy) $metaPop $nToKeep $capCoef $genCount)))))))
        ($_ (println! (Updated MetaPop: $updatedMetaPop)))
        ($top (eval (OS.getByIdx 0 $metaPop)))
        ($_ (println! (Top Exemplar before expansion: $top)))
@@ -119,30 +113,4 @@ $optimDeme
       )
  (if (eval (cScore>= $topScore $maxScore))
          $resultCandi 
-         (eval (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount))))))
-
-;; Main MOSES loop for game strategy evolution
-;; Evolves strategies through multiple generations using game-based scoring
-(= (runMosesStrategy $maxGen $maxCScore $maxCandOutput $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount)
-   (if (== $maxGen 0)
-       (if (<= $maxCandOutput (eval (OS.length $metaPop)))
-           (let $topCandidates (eval (OS.getTopN $maxCandOutput $metaPop)) $topCandidates)
-           $metaPop)
-       (let*
-          (
-             ($_ (println! ("Generation: " $maxGen)))
-             ($optimizedDemes (trace! "expand deme return" (eval (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $maxCScore $optimize))))
-             ($updatedMetaPop (trace! "Merging Deme" (eval (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature ($nGames $opponentPolicy) $metaPop $nToKeep $capCoef $genCount))))
-             ($updatedSize (eval (OS.length $updatedMetaPop)))
-             ($_ (println! ("Updated metapop size: " $updatedSize)))
-             ($_ (println! "Getting top exemplar..."))
-             ($top (eval (OS.getByIdx 0 $updatedMetaPop)))
-             ($_ (println! ("Top exemplar retrieved: " $top)))
-             ($topScore (eval (getExemplarCscore $top)))
-             ($_ (println! ("Top score: " $topScore)))
-             ($resultCandi (if (<= $maxCandOutput (eval (OS.length $updatedMetaPop))) (eval (OS.getTopN $maxCandOutput $updatedMetaPop)) $updatedMetaPop))
-             ($_ (cut))
-          )
-          (if (eval (cScore>= $topScore $maxCScore))
-              $resultCandi
-              (eval (runMosesStrategy (- $maxGen 1) $maxCScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount))))))
+         (eval (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $context $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount))))))

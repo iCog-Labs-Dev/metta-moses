@@ -196,10 +196,10 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False sim 
+    ($topCandidates (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 (False sim 
     (table1) 
+    (ttable1)) 
     hillClimbing 5 2 0 1 
-    (ttable1) 
     3 0.004 1000))
     ($topCandidatesLength (eval (OS.length $topCandidates)))
 )
@@ -210,10 +210,10 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False rd 
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 (False rd 
     (table1)  
+    (ttable1))
     hillClimbing 5 2 0 1 
-    (ttable1) 
     3 0.004 1000))
     ($topCandidatesLength (OS.length $topCandidates))
 )
@@ -224,39 +224,39 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 False inc 
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 (False inc 
     (table1) 
+    (ttable1))
     hillClimbing 5 2 0 1 
-    (ttable1)
     3 0.004 1000))
     ($topCandidatesLength (eval (OS.length $topCandidates)))
 )
 (>= $topCandidatesLength 1)
 ) True)
 
-;; Testcase 2 for runmoses. 
-;; When maxGen become 10, test number of returned instances is not greater than maxCandOutput, 
-;;              where maxCandOutput is 3 and minPoolSize is 2
+; ;; Testcase 2 for runmoses. 
+; ;; When maxGen become 10, test number of returned instances is not greater than maxCandOutput, 
+; ;;              where maxCandOutput is 3 and minPoolSize is 2
 !(assertEqual
 (let $length
-(OS.length (runMoses 10 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
-    False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
+((OS.length (runMoses 10 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
+    (False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
     inc      ;; the new arguments for feature selection algo
     (eval (createTruthTableBScore 2 (mkITable
                           (Cons (Cons False (Cons False (Cons False Nil))) 
                           (Cons (Cons True (Cons False (Cons False Nil))) 
                           (Cons (Cons False (Cons True (Cons False Nil)))
                           (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                          (Cons A (Cons B (Cons O Nil))))))  
-    hillClimbing 5 2 2 1 
+                          (Cons A (Cons B (Cons O Nil))))))
     (mkITable
                           (Cons (Cons False (Cons False (Cons False Nil))) 
                           (Cons (Cons True (Cons False (Cons False Nil))) 
                           (Cons (Cons False (Cons True (Cons False Nil)))
                           (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                          (Cons A (Cons B (Cons O Nil))))  
+                          (Cons A (Cons B (Cons O Nil)))))
+    hillClimbing 5 2 2 1
     3 0.004 1000)
-    )
+    ))
         (> $length 3)
 )
     False
@@ -322,16 +322,14 @@
      NilOS))
 
 ;; by uncomment this test and also adjust the parameter settings we can check the full evolution process of runMosesStrategy, and see how the strategy evolves from empty strategy to better strategy.
-; !(runMosesStrategy 
-;     1                              ;; maxGen - 3 generations 
+; !(runMoses
+;     2                              ;; maxGen - 3 generations 
 ;     (mkCscore 10.0 0 0 0.0 10)     ;; Target: 10/10 wins,
 ;     3                              ;; maxCandOutput - return top 3 strategies
 ;     (emptyStrategyMetaPop)         ;; metaPop - start with empty strategy
 ;     0                              ;; nExpansion - generation counter
-;     1                              ;; nDeme - 3 demes (more diversity)
-;     10                             ;; nGames - 10 games per evaluation
-;     minimax-player                  ;; opponentPolicy - opponent
-;     3.5                            ;; complexityRatio - standard penalty (coef≈0.286)
+;     2                              ;; nDeme - 3 demes (more diversity)
+;     (10 random-player 3.5)       ;; nGames - 10 games per evaluation
 ;     hillClimbing                   ;; optimize - optimizer function
 ;     30                             ;; nEval - not used
 ;     5                              ;; maxCandsPerDeme - top 5 per deme
@@ -366,13 +364,13 @@
 
 !(assertEqual
    (let* (
-     ($result (runMosesStrategy 
+     ($result (runMoses
                 1                              ;; maxGen
                 (mkCscore 5.0 5 1.43 0.0 3.57) ;; target
                 3                              ;; maxCandOutput
                 (strategyMetaPop)              ;; metaPop
                 0 1                            ;; nExpansion, nDeme
-                5 random-player 3.5            ;; nGames, opponent, ratio
+                (5 random-player 3.5)            ;; nGames, opponent, ratio
                 hillClimbing                   ;; optimizer
                 30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
                 5 0.004 1000))                 ;; nToKeep, capCoef, genCount
@@ -383,13 +381,13 @@
 
 !(assertEqual
    (let* (
-     ($result (runMosesStrategy 
+     ($result (runMoses
                 1                              ;; maxGen
                 (mkCscore 5.0 5 1.43 0.0 3.57) ;; target
                 1                              ;; maxCandOutput
                 (strategyMetaPop)              ;; metaPop
                 0 1                            ;; nExpansion, nDeme
-                5 random-player 3.5            ;; nGames, opponent, ratio
+                (5 random-player 3.5)            ;; nGames, opponent, ratio
                 hillClimbing                   ;; optimizer
                 30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
                 5 0.004 1000))                 ;; nToKeep, capCoef, genCount
