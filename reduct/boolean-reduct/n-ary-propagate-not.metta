@@ -13,7 +13,7 @@
                      (AND (if $negate (cons-atom OR $result) (cons-atom AND $result)))
                      (OR (if $negate (cons-atom AND $result) (cons-atom OR $result)))
                      (NOT (car-atom $result))
-                     ($_ ERROR)
+                     ($_ (trace! (Returning Error for operator $op) ERROR))
                    ))))
        (if (== (get-metatype $expr) Symbol)
            (if $negate (NOT $expr) $expr)

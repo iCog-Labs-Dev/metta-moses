@@ -107,6 +107,8 @@
          ($parentid (mkNodeId (0)))
          ($srcid (mkNodeId (0)))
          ;; ($_ (println! ($parentid   $srcid)))
+         ((mkRep $kmo $tr) $repObj)
+         ;; ($_ (println! (Tree: (preOrder $tr))))
          ($candidate (getCandidateRec $repObj $inst $parentid $srcid (mkNullVex Nil)))
          ;; ($_ (println! (Found candidate: $candidate)))
          ($cleanedTree (cleanTree $candidate))
