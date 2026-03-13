@@ -1,3 +1,15 @@
+(= (createInitialInstance $dscMp)
+   (let* (
+     ($knobs (MultiMap.values $dscMp))
+     ($defaults (List.map getKnobDefault $knobs))
+   )
+   $defaults))
+
+;; Extracts default specification from a knob
+; (: getKnobDefault (-> $knob Number))
+(= (getKnobDefault (mkLSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
+(= (getKnobDefault (mkSSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
+
 ;; Recursively optimizes each deme in a list using the provided optimizer function.
 ;; Params:
 ;;   (List Deme): The list of demes to optimize.
@@ -52,7 +64,8 @@
 (let*
 (
     ($lengthOfDscKbMp (Map.length $dscKbMp))
-    ($generatedList (List.generate $lengthOfDscKbMp 0))
+    ;; ($generatedList (List.generate $lengthOfDscKbMp 0))
+    ($generatedList (createInitialInstance $dscMp))
     ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
     ;; ($_ (println! "Optimizing Deme"))
     (($inst $optimDeme $state) (optimizeDemes $deme $truthTableBScore (mkInst $generatedList) $optimize))
