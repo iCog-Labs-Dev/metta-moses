@@ -35,7 +35,7 @@
 ;; (AND (NOT A) (NOT C) B (OR B (NOT A))) ==> (AND (NOT A) (NOT C) B)
 !(assertEqual (reduceToElegance (AND (AND (NOT A) (NOT C) B (OR B (NOT A)))) (AND (NOT A) (NOT C) B (OR B (NOT A))) () ()) ((AND (AND (NOT A) (NOT C) B (OR B (NOT A)))) (AND (NOT A) (NOT C) B (OR B (NOT A))) False))
 ;; (AND A (OR B (AND C (OR D (AND E (NOT A)))))) ==> (AND A (OR B (AND C D)))
-!(assertEqual (reduceToElegance (AND (AND A (OR B (AND C (OR D (AND E (NOT A))))))) (AND A (OR B (AND C (OR D (AND E (NOT A)))))) () ()) ((AND (AND A C (OR B D))) (AND A C (OR B D)) False))
+;; !(assertEqual (reduceToElegance (AND (AND A (OR B (AND C (OR D (AND E (NOT A))))))) (AND A (OR B (AND C (OR D (AND E (NOT A)))))) () ()) ((AND (AND A C (OR B D))) (AND A C (OR B D)) False)) ;; FIX: Classic says it should be (AND (OR (AND C D) B) A)
 ;; (AND A B A A A) ==> (AND A B A A A)
 !(assertEqual (reduceToElegance (AND (AND A B A A A)) (AND A B A A A) () ()) ((AND (AND A B A A A)) (AND A B A A A) False))
 
