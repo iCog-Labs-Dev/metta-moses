@@ -326,45 +326,52 @@
         ;; ($_ (println! ""))
         ($_ (cut))
     )
+    (if (<= (- $maxEvals $newCurrentNInstance) 0)
+        (trace! (Terminating because of maxEval ending) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
+        (if (<= $bestPossibleScore $scoreToCompareBelow)
+                  (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow)
+            ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
+                  )
+            (let ($finalCenter $finalDeme ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
+              ;; TODO: The C++ version checks the hyper parameter hc_params.crossover before getting here.
+              ;; TODO: The C++ version checks for the hc_params.widen_search too. For now, we're assuming it is always true. 
+              ;;       Hence the omission of the distance check from the C++ Hence the omission of the distance check from the C++
+              (if (and (and (not $newHasImproved) (not $newLastChance)) (not $newXover))
+                  ;; If we just did the nearest neighbors and found no improvement,
+                  ;;  then try again one last time, we may get lucky.
+                  (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
+                                ($newXover True $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI)) ;; Updated state
+                                $newDeme
+                                ($neighborhood $rowOCoeff $size $iTable)
+                                $newCenter
+                                $hyperparamsfs
+                                $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
+                  ;; (trace! (Continue to next iteration because of no more last chance)
+                          ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
+                  ;; )
+                  )
+  
+              (if (< $maxDist $finalDistance)
+                  (trace! (Terminating because of maximum distance reached)
+                  ($finalCenter $finalDeme ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
+                  ) ;; I don't know why I didn't do this earlier but incrementing is needed here.
+                  (if (not $finalHasImproved)
+                      (trace! (Terminating because score hasn't improved) ($finalCenter $finalDeme ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI)))
+                      (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
+                                ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
+                                $finalDeme
+                                ($neighborhood $rowOCoeff $size $iTable)
+                                $finalCenter
+                                $hyperparamsfs
+                                $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
+                    )
+                  )
+            )
+            )
+    
+                    )
 
-    (if (<= $bestPossibleScore $scoreToCompareBelow)
-          ;; (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow)
-                  ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
-          ;; )
-          (let ($finalCenter $finalDeme ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
-            ;; TODO: The C++ version checks the hyper parameter hc_params.crossover before getting here.
-            ;; TODO: The C++ version checks for the hc_params.widen_search too. For now, we're assuming it is always true. 
-            ;;       Hence the omission of the distance check from the C++ Hence the omission of the distance check from the C++
-            (if (and (and (not $newHasImproved) (not $newLastChance)) (not $newXover))
-                ;; If we just did the nearest neighbors and found no improvement,
-                ;;  then try again one last time, we may get lucky.
-                (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
-                              ($newXover True $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI)) ;; Updated state
-                              $newDeme
-                              ($neighborhood $rowOCoeff $size $iTable)
-                              $newCenter
-                              $hyperparamsfs
-                              $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
-                ;; (trace! (Continue to next iteration because of no more last chance)
-                        ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
-                ;; )
-                )
- 
-            (if (< $maxDist $finalDistance)
-                ;; (trace! (Terminating because of maximum distance reached)
-                        ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
-                ;; ) ;; I don't know why I didn't do this earlier but incrementing is needed here.
-                (if (<= (- $maxEvals $finalCurrentNInstance) 0)
-                    ($finalCenter $finalDeme ($finalXover False $hasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
-                    (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
-                                  ($finalXover False $hasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
-                                  $finalDeme
-                                  ($neighborhood $rowOCoeff $size $iTable)
-                                  $finalCenter
-                                  $hyperparamsfs
-                                  $estimateFunction $crossoverFunction $samplingFunction $transformFunction)))
-          )
-    ) 
+     
     )          
 )
 
