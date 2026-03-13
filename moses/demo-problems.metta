@@ -225,7 +225,7 @@
         ($worstPossibleScore (List.sum $worstPossibleBScore))
         ($bestPosssibleCscore (getBestPossibleCscore $cpxPen $problem))
         ($_ (println! (BestPossibleScore: $bestPosssibleCscore)))
-        ($metaPop (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) NilOS))
+        ($metaPop (ConsOS (mkExemplar (mkTree (mkNode true) Nil) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) NilOS))
         ;; ($metaPop (ConsOS (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) Nil) Nil)) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) NilOS))
         ($result (runMoses $maxGen $bestPosssibleCscore 3 $metaPop 0 $nDeme
               False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
