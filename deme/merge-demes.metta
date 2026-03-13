@@ -142,7 +142,7 @@
 (= (getNewCandidates (Cons $xmp $xmpl) $metaPop)
      (if (OS.isMember $xmp $metaPop)
         (getNewCandidates $xmpl $metaPop)
-        (Cons $xmp (getNewCandidates $xmpl $metaPop)))
+        (let $updatedMetaPop (OS.insert compareExemplar $xmp $metaPop) (Cons $xmp (getNewCandidates $xmpl $updatedMetaPop))))
 )
 
 ;; Determines if one BehavioralScore dominates another by comparing their score lists.
