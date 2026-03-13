@@ -107,10 +107,10 @@
          ($parentid (mkNodeId (0)))
          ($srcid (mkNodeId (0)))
          ;; ($_ (println! ($parentid   $srcid)))
-         ($candidate (getCandidateRec $repObj $inst $parentid $srcid (mkNullVex Nil)))
-         ;; ($_ (println! (Found candidate: $candidate)))
          ((mkRep $kmo $tr) $repObj)
          ;; ($_ (println! (Tree: (preOrder $tr))))
+         ($candidate (getCandidateRec $repObj $inst $parentid $srcid $parentid (mkNullVex Nil)))
+         ;; ($_ (println! (Found candidate: (preOrder $candidate))))
          ($cleanedTree (cleanTree $candidate))
          ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
       )
@@ -147,29 +147,64 @@
 ;             (let ((mkRep $knobMapObj $tree) (mkInst $inst) $newParentId $finalCnd $_) $state $finalCnd)))))))
 ; )
 
-(= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $candidate)
+(= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $dstId $candidate)
    (let $knobIdxPair (findDiscKnob $knobMapObj $srcId) 
       (if (not (== (second $knobIdxPair) -1))
          (let*
             (          
+               ;; ($_ (println! (KnobBuilding 1)))
                ($d (List.getByIdx $inst (second $knobIdxPair)))
-               ($updatedCnd (appendTo $tree ( first $knobIdxPair) $candidate $parentId $d))
+               ;; ($_ (println! (KnobBuilding 2)))
+               ($result  (appendTo $tree (first $knobIdxPair) $candidate $dstId $d))
+               ;; ($_ (println! (KnobBuilding 3)))
+               ;; ($_ (println! (Result: $result)))
+               (($updatedCnd $newSrcId $newDstId) $result)
+               ;; ($_ (println! (Candidate 3: (preOrder $updatedCnd))))
+               ;; ($_ (println! (KnobBuilding 4: NothingChanged: (== $dstId $newDstId))))
+               ;; ($_ (println! ""))
             )
-            $updatedCnd
+            (if (== $updatedCnd $candidate)
+                $updatedCnd
+                (let*
+                   (
+                      ($src1 (getNodeById $tree $newSrcId))
+                      ;; ($_ (println! (KnobBuilding 5)))
+
+                      ($srcchildren1 (getChildren $src1))
+                      ;; ($_ (println! (KnobBuilding 6: Cnd: (preOrder $updatedCnd) newSrcId: $newSrcId newDstId: $newDstId)))
+                      ($state1 (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) $newSrcId $newDstId $updatedCnd 1) $srcchildren1))
+                      ;; ($_ (println! (KnobBuilding 7)))
+                      (((mkRep $knobmapobj1 $tree1) (mkInst $inst1) $newparentid1 $newdstId1 $finalcnd1 $d1) $state1)
+                      ;; ($_ (println! (KnobBuilding 8: $newparentid1 $newdstId1)))
+                      ;; ($_ (println! ""))
+                   )
+                   $finalcnd1
+                )
+            )
          )
          (let*
             (
-               ; ($_ (println! (Inside getCandidateRec with parentId: $parentId , srcId: $srcId)))
+               ;; ($_ (println! (Inside getCandidateRec with parentId: $parentId , srcId: $srcId)))
                ;; ($_ (println! ""))
                ;; ($_ (println! (No Knob found just copy...)))
+               ;; ($_ (println! (Copying 1)))
+               ;; ($_ (println! (Getting: $srcId from (preOrderDebug $tree))))
                ($src (getNodeById $tree $srcId))
-               ($cndchidpair (appendChild $candidate $parentId (mkTree (getNodeValue $src) Nil)))              
-               ($srcchildren (getChildren $src))
-               ($state (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (second $cndchidpair) (first $cndchidpair) 1) $srcchildren))
-               (((mkRep $knobmapobj $tree) (mkInst $inst) $newparentid $finalcnd $d) $state)
-               ;; ($_ (println! (finalcnd: $finalcnd)))
-               ;; ($_ (println! ""))
+               ;; ($_ (println! (Copying 2)))
+               ($dstValue (getNodeById $candidate $dstId))
+               ;; ($_ (println! (Copying 3:  appending child: (getNodeValue $src) on (preOrder $candidate) at $dstId)))
 
+               ($cndchidpair (appendChild $candidate $dstId (mkTree (getNodeValue $src) Nil)))
+               ;; ($_ (println! (Copying 4)))
+               ($srcchildren (getChildren $src))
+               ;; ($_ (println! (Copying 5: Candidate5 (preOrder (first $cndchidpair)))))
+               ($state (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) $srcId (second $cndchidpair) (first $cndchidpair) 1) $srcchildren))
+               ;; ($_ (println! (Copying 6)))
+               (((mkRep $knobmapobj $tree) (mkInst $inst) $newparentid $newdstId $finalcnd $d) $state)
+               ;; ($_ (println! (Copying 7)))
+               ;; ($_ (println! (FinalCandidate: (preOrder $finalcnd))))
+               ;; ($_ (println! (FinalCandidate: $finalcnd)))
+               ;; ($_ (println! ""))
             )
               $finalcnd
           )
@@ -177,24 +212,16 @@
    )
 )
 
-;; (: applyGetCandidateRec (-> (Tree $a)
-;;                             (Representation Instance NodeId (Tree $a) Number)
-;;                             (Representation Instance NodeId (Tree $a) Number)))
-; (= (applyGetCandidateRec $_ ($repObj $inst (mkNodeId $parentId) $candidate $chIdx))
-;    (chain (if (== $parentId (0)) (mkNodeId ($chIdx)) (mkNodeId (unionAtom $parentId ($chIdx)))) $srcId ;; Skip 0 from tree id.
-;    (chain (getCandidateRec $repObj $inst (mkNodeId $parentId) $srcId $candidate) $updatedCnd
-;       ($repObj $inst (mkNodeId $parentId) $updatedCnd (+ 1 $chIdx)))))
-
-
-(= (applyGetCandidateRec $tr ($repObj $inst (mkNodeId $parentId) $candidate $chIdx))
+(= (applyGetCandidateRec $tr ($repObj $inst (mkNodeId $parentId) (mkNodeId $dstId) $candidate $chIdx))
    (let*
       (
          ;; ($_ (println! ("applyGetCandidateRec called with parentId:" $parentId , chIdx: $chIdx)))
          ($srcId (if (== $parentId (0)) (mkNodeId ($chIdx)) (mkNodeId (concatT $parentId ($chIdx)))))
          ;; ($_ (println! (srcId: $srcId)))
-         ($updatedCnd (getCandidateRec $repObj $inst (mkNodeId $parentId) $srcId $candidate))
-         ;; ($_ (println! (updatedCnd: $updatedCnd)))
-         ($finalResult ($repObj $inst (mkNodeId $parentId) $updatedCnd (+ 1 $chIdx)))
+         ;; ($_ (println! (dstId: $dstId)))
+         ($updatedCnd1 (getCandidateRec $repObj $inst (mkNodeId $parentId) $srcId (mkNodeId $dstId) $candidate))
+         ($finalResult ($repObj $inst (mkNodeId $parentId) (mkNodeId $dstId) $updatedCnd1 (+ 1 $chIdx)))
+         ;; ($_ (println! (FinalResult: (preOrder $updatedCnd1))))
          ;; ($_ (println! ("applyGetCandidateRec returning finalResult:" $finalResult)))
       )
       $finalResult
