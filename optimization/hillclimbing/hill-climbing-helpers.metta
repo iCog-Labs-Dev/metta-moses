@@ -39,7 +39,7 @@
            (
              ;; TODO: Most of the clamping logic here depens on the usage of number of evals and max number of evals. So best to do it after those are integrated into the system. For now we will be returning the total neighborhood clamped to the max_evals only.
              ;; ($_ (println! (Inside newInstances: $distance $maxEvals $currentEvals $totalNeighbors)))
-             ($hc_params_fraction_of_nn 2) ;; Binomial coefficient has a combinatoric explosion to the power distance.
+             ($hc_params_fraction_of_nn 2.0) ;; Binomial coefficient has a combinatoric explosion to the power distance.
                                             ;; So throttle back by fraction raised to power dist.
              ($numberOfNewInstaces (int (* $totalNeighbors (pow-math $hc_params_fraction_of_nn $distance))))
              ($nLeft (- $maxEvals $currentEvals))
@@ -119,9 +119,10 @@
 ;; Crossover function.
 ;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
 ; (: crossover (-> Number Number Instance Deme (Deme Number)))
-(= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme) 
-   ;; (trace! (Running cross over for $centerInst)
-           ((crossTopOne $deme $nNewInstances $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
+(= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme)
+   ;; (trace! (Running crossover to make: (min $nNewInstances 120) instances)
+   ;; INFO: The 120 is crossover_pop_size parameter that should come from hillClimbing
+           ((crossTopOne $deme (min $nNewInstances 120) $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
    ;; )
    ) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
