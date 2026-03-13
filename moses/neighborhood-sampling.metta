@@ -330,6 +330,7 @@
     ;; ($_ (println! (Sampling:  (< $numNewInstances $updatedTotalNeighbors) CenterInst: $centerInst Distance: $dist)))
     ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
                        (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
+                       ;; (swapList (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))) ;; INFO: Used to improve result but not needed any more
                        (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))
     ;; ($_ (println! (NewInstances: $newInstances)))
     ;; ($exprInstances (List.listToExpr $newInstances))

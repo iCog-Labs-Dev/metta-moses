@@ -32,6 +32,6 @@
             (if (== $n 0)
                 $picked
                 (chain (pick $lower $upper $picked) $rand
-                    (lazyRandomSelector $lower $upper (- $n 1) (cons-atom $rand $picked)))))
+                    (lazyRandomSelector $lower $upper (- $n 1) (union-atom $picked ($rand))))))
     )
 )

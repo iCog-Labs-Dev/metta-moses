@@ -180,9 +180,9 @@
 ;;  ScoredInstance<Score>, ScoredInstance<Score>  -->  Bool
 ;;  True if first scored instance has a score >= second.
 ;; (: instance>= (-> (ScoredInstance $score) (ScoredInstance $score) Bool))
-(= (instance>= (mkSInst (mkPair $inst1 $score1))
+(= (instance> (mkSInst (mkPair $inst1 $score1))
                (mkSInst (mkPair $inst2 $score2)))
-    (apply >= $score1 $score2))
+    (apply > $score1 $score2))
 
 ;; (: instanceFs>= (-> (ScoredInstance $score) (ScoredInstance $score) Bool))
 (= (instanceFs>= (mkSInst (mkPair $inst1 $score1))
