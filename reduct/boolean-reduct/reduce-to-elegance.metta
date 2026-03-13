@@ -455,14 +455,32 @@
         )
          (reduceToElegance $finalParent $finalAdd () ())
          ))
+
+(= (removeAndNodesFromGuards $expr)
+   (if (== (get-metatype $expr) Symbol)
+       $expr
+       (if (= $expr (AND $x))
+           (if (or (= $x (NOT $y)) (== (get-metatype $x) Symbol))
+               $x
+               (let $rest (removeAndNodesFromGuards $x) (AND $rest))
+           )
+           (let ($head $rest) (decons-atom $expr)
+           (let $updatedRest (map-atom $rest $exp (removeAndNodesFromGuards $exp)) (cons-atom $head $updatedRest))
+           )
+         )
+     )
+)
          
 (= (reduce-to $expr)
    (let*
      (
+      ;; TODO: Add a simple function to remove one child and nodes.
       (($parent $uwnt $uwnt2) (until reduceNotApplied applyReduce ($expr $expr True)))
       (($newParent $__ $___) (applyReduce ($parent $parent True))) ;; Try one more time incase it is still reduceable
       ($_ (cut))
      )
      (if (== $newParent $parent)
-         $parent
+         (removeAndNodesFromGuards $parent)
          (reduce-to $newParent))))
+
+;; !(removeAndNodesFromGuards (AND D0 (NOT Addr))) ;; Test 1
