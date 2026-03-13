@@ -234,7 +234,7 @@
               $fsAlgo      ;; the new arguments for feature selection algo
               $truthTableBScore
               hillClimbing
-              100000 100 20 $complexityTemperature
+              1000 100 20 $complexityTemperature
               ($problem)
               50 $capCoef $maxGen))
         ($_ (println! (Result: $result)))

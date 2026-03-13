@@ -1,11 +1,11 @@
 {
   "template": "tests/demo-problems-test.metta",
   "problem": "mux3",
-  "fs": "smd",
+  "fs": "None",
   "seed": 0,
-  "count": 20,
-  "max_gens": 50,
-  "demes": 2,
+  "count": 10,
+  "max_gens": 10,
+  "demes": 1,
   "engine": "/home/yab/PeTTaV1/run.sh",
   "args": [
     "-s"
