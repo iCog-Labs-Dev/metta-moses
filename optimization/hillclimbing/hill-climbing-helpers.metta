@@ -234,7 +234,7 @@
         ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
         ;; ($_ (println! ""))
 
-        ($maxEvals 10000)
+        ($maxEvals 1000)
         ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors)) ;; TODO: MaxEvals is hardcoded here, but should be changed. This is set to 20K by default in OpenCog Classic.
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))

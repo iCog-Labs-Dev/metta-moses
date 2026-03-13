@@ -23,3 +23,8 @@
 !(assertEqual (reduce-to (AND (OR A B) A)) (AND A))
 
 !(assertEqual (reduce-to (AND (OR (AND (OR)) (AND (OR (AND (NOT X1))))))) (AND (NOT X1)))
+
+;;TODO: Add the following test cases
+;; 
+;; Input: (AND (OR (AND (OR (AND (NOT X1) (NOT X2) (NOT X3) (OR (AND X2) (AND (NOT X3))) (OR (AND (NOT X1)) (AND (NOT X3))) (OR (AND X1) (AND (NOT X2))) (OR (AND X2) (AND X1) (AND X3) (AND X1 X2) (AND (NOT X2) X3) (AND X1 X3)) X3 (OR (AND (NOT X1)) (AND X2)) (OR (AND X2) (AND X3)) (OR (AND X1) (AND X2)) (OR (AND X1) (AND X2) (AND X3) (AND X2 X3) (AND (NOT X1) X3) (AND (NOT X1)) (AND (NOT X3)))) (AND (OR (AND (NOT X3))) (OR (AND X1) (AND X2) (AND)) (OR)) (AND)) (OR)) (AND)))
+;; Output: (AND (NOT X3) (OR (AND X1) (AND X2)))

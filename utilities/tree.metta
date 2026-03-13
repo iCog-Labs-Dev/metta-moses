@@ -39,6 +39,29 @@
          $exp)
 )
 
+(= (preOrderDebug (mkTree (mkNode $r) Nil)) (if (is-member $r (AND OR)) ($r) $r))
+(= (preOrderDebug (mkNullVex $knobs))
+   (let*
+     (
+      ($lc (List.map preOrderDebug $knobs))
+      ($lcE (List.listToExpr $lc))
+      ($exp (map-atom $lcE $l $l))
+      ($expn (union-atom $exp (-|)))
+     )
+     (cons-atom |- $expn)
+   )
+)
+(= (preOrderDebug (mkTree (mkNode $r) (Cons $x $xs)))
+     (let*
+         (
+           ($lc  (List.map preOrderDebug (Cons $x $xs)))
+           ($lcE (List.listToExpr $lc))
+           ;; (()   (println! (Root: $r Children: $lc Children': $lc' Expression: $lcE)))
+           ($exp (cons-atom $r $lcE))
+         )
+         $exp)
+)
+
 
 ; (: buildTree (-> $a (Tree $a)))
 
