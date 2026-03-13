@@ -311,9 +311,11 @@
 (= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep $kbMp $tree) (mkSInstSet $instList) $demeId) $dist)
  (let*
   (
+    ((mkKbMap (mkDscKbMp $dkm) $othermap) $kbMp)
+    ($_ (println! (DimSize: (Map.length $dkm))))
     ;; ($_ (println! (Inside sampleNewInstances: $totalNeighbors $numNewInstances $centerInst)))
     ;; ($_ (println! (Distance: $dist CenterInst: $centerInst)))
-    ;; ($_ (println! ""))
+    ($_ (println! ""))
 
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
@@ -325,12 +327,30 @@
              $numNewInstances
              $updatedTotalNeighbors))
     ;; ($_ (println! (Inside sampleNewInstances: (< $numNewInstances $updatedTotalNeighbors) Neighbors: $updatedTotalNeighbors numNewInstances: $numNewInstances Distance: $dist)))
+    ;; ($_ (println! (Sampling:  (< $numNewInstances $updatedTotalNeighbors) CenterInst: $centerInst Distance: $dist)))
     ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
                        (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
                        (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))
     ;; ($_ (println! (NewInstances: $newInstances)))
+    ;; ($exprInstances (List.listToExpr $newInstances))
+    ;; ($uExprInstances (unique-atom $exprInstances))
+    ;; ($_ (println! (NewInstances: (List.length $newInstances) (UniqueInstances: (length $uExprInstances)))))
+
+    ;; ($_ (println! (Previous Instances)))
+    ;; ($__ (eval (List.map (|-> ((mkSInst $i)) (printInstance (Pair.first $i))) $instList)))
+    ;; ($_ (println! ""))
+
     ($scoredNewInstances (List.map initInstScore $newInstances))
+
+    ;; ($_ (println! (Scored new Instances)))
+    ;; ($____ (eval (List.map (|-> ((mkSInst $i)) (printInstance (Pair.first $i))) $scoredNewInstances)))
+    ;; ($_ (println! ""))
+
     ($updatedInstList (List.concat $instList $scoredNewInstances))
+
+    ;; ($_ (println! (UpdatedInst)))
+    ;; ($_____ (eval (List.map (|-> ((mkSInst $i)) (printInstance (Pair.first $i))) $updatedInstList)))
+    ;; ($_ (println! ""))
  )
  ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId) $updatedNumNewInstances)))
 

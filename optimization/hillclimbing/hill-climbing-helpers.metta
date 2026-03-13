@@ -225,8 +225,8 @@
                  $estimateFunction $crossoverFunction $samplingFunction $transformFunction) ;; Helper functions
    (let*
       (
-        ;; ($_ (println! (Iteration $i running)))
-        ;; ($_ (println! ""))
+        ($_ (println! ""))
+        ($_ (println! (Iteration $i running)))
 
         ($totalNNeighbors ($estimateFunction $d $neighborhood))
 
@@ -235,13 +235,14 @@
 
         ($maxEvals 500)
         ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors)) ;; TODO: MaxEvals is hardcoded here, but should be changed. This is set to 20K by default in OpenCog Classic.
-        ;; ($_ (println! (NNewNeighbors: $nNewNeighbors)))
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
         ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
-        ;; ($_ (println! (Crossover: $xOver)))
+        ($_ (println! (Crossover: $xOver)))
+        ($_ (println! (CenterInst: (List.listToExpr (second $centerInst)) )))
         ;; ($_ (println! (size: $size)))
         ;; ($_ (println! ($totalNNeighbors : $nNewNeighbors : $prevCenter : $POASet : $d)))
+        ;; ($_ (println! ($totalNNeighbors : $nNewNeighbors : $d)))
         ( 
           ; $newPOA
           ((mkDeme $rep $updatedInstSet $id) $newInstances)
@@ -263,8 +264,9 @@
         ; ($_ (println! (New POASet: $newPOA)))
         ; (((mkDeme $rep $upInstSet $id) $newInstances) $newPOA)
         ; ($_ (println! (New rep: $rep)))
-        ;; ($_ (println! (New Inst: $newInstances)))
-        ;; ($_ (println! (UpdatedInstanceLength: (List.length (second $updatedInstSet)))))
+        ($_ (println! (New Inst: $newInstances at Distance: $d)))
+        ;; ($exprList (let (mkSInstSet $list) $updatedInstSet (List.listToExpr $list)))
+        ;; ($bmr (map-atom $exprList $inst (let (mkSInst $x) $inst (println! (Inst: (List.listToExpr (second (Pair.first $x))) Tree: (preOrder (getCandidate $rep (Pair.first $x))))))))
         ;; ($_ (println! ""))
         ;; ($_ (println! (Newinstances: $updatedInstSet)))
         ;; ($_ (println! ""))
@@ -284,6 +286,9 @@
                           (mkSInstSet $scoredInstances) 
                           (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
         
+        ;; ($sExprList (List.listToExpr $scoredInstances))
+        ;; ($amr (map-atom $sExprList $inst (let (mkSInst $x) $inst (println! (Inst: (List.listToExpr (second (Pair.first $x))) Tree: (preOrder (getCandidate $rep (Pair.first $x))) Score: (getPenScore (Pair.second $x)))))))
+        ;; ($_ (println! ""))
         ;; ($_ (println! (Scored instances: $scoredInstances)))
         ;; ($_ (println! (Scored instances....)))
         ;; ($_ (println! ""))
@@ -294,8 +299,9 @@
                           (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
         ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
         
-        ;; ($_ (println! (Best instance: $newBestInstPair)))
-        ;; ($_ (println! (New best score: $newBestScore)))
+        ;; ($_ (println! (Best instance: (Pair.first $newBestInstPair))))
+        ($_ (println! (Best candidate: (preOrder (getCandidate $rep (Pair.first $newBestInstPair))))))
+        ($_ (println! (New best score: $newBestScore)))
         ;; ($_ (println! ""))
 
         ($nextCenterInst (if $hasImproved (Pair.first $newBestInstPair) $centerInst))

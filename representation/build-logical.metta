@@ -45,6 +45,7 @@
         (let $x (println! ("reaching Null Vector ")) ($tree $MMap)) 
         (let*
         (
+            ;; ($_ (println! (Started building at: (preOrder $subtree))))
             ;; ($_ (println! ("****************Building logical knobs for NodeId:**************** " $argLabels $nodeId)))
             ((mkTree (mkNode $op) $childrens) $subtree) 
             ($swapped (swapAndOr $op))
