@@ -234,7 +234,7 @@
         ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
         ;; ($_ (println! ""))
 
-        ($maxEvals 1000)
+        ($maxEvals 10000)
         ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors)) ;; TODO: MaxEvals is hardcoded here, but should be changed. This is set to 20K by default in OpenCog Classic.
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
@@ -301,7 +301,7 @@
         ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
         
         ;; ($_ (println! (Best instance: (Pair.first $newBestInstPair))))
-        ($_ (println! (Best candidate: (preOrder (getCandidate $rep (Pair.first $newBestInstPair))))))
+        ;; ($_ (println! (Best candidate: (preOrder (getCandidate $rep (Pair.first $newBestInstPair))))))
         ($_ (println! (New best score: $newBestScore)))
         ;; ($_ (println! ""))
 
