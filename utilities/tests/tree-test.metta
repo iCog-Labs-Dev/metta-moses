@@ -72,8 +72,7 @@
                                 (Cons (mkTree (mkNode B) Nil) Nil))) 
                             (Cons (mkTree (mkNode A) Nil) Nil)))
                           )
-                            (mkTree (mkNode AND) 
-                             (Cons (mkTree (mkNode A) Nil) Nil)))
+                            (mkTree (mkNode A) Nil))
 !(assertEqual (cleanTree (mkTree (mkNode AND) 
                             (Cons (mkTree (mkNode OR) 
                               (Cons (mkTree (mkNode A) Nil) 
@@ -87,8 +86,8 @@
 !(assertEqual (cleanTree (buildTree (AND (OR A B) (NOT A) (NOT B)))) (buildTree (AND (NOT A) (NOT B))))
 !(assertEqual (cleanTree (buildTree (AND A B (NOT A)))) (buildTree (AND)))
 !(assertEqual (cleanTree (buildTree (OR (AND A B (NOT A) B)))) (buildTree (AND)))
-!(assertEqual (cleanTree (buildTree (OR A (AND B C)))) (buildTree (AND (OR (AND A) (AND B C)))))
-!(assertEqual (cleanTree (buildTree (OR A B C D))) (buildTree (AND (OR (AND A) (AND B) (AND C) (AND D)))))
+!(assertEqual (cleanTree (buildTree (OR A (AND B C)))) (buildTree (AND (OR A (AND B C)))))
+!(assertEqual (cleanTree (buildTree (OR A B C D))) (buildTree (AND (OR A B C D))))
 
 ;; ;; type system is not working properly in mettalog 
 ;; ; (: A Bool)
