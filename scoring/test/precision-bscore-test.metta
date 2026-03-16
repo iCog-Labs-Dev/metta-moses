@@ -1,9 +1,8 @@
-; !(register-module! ../../../metta-moses)
-!(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
 !(import! &self ../../../metta-moses/utilities/general-helpers)
 !(import! &self ../../../metta-moses/utilities/list-methods)
 !(import! &self ../../../metta-moses/utilities/map)
 !(import! &self ../../../metta-moses/utilities/ordered-multimap)
+!(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
 !(import! &self ../../../metta-moses/scoring/precision-bscore)
 
 (= (andTable) 
@@ -39,7 +38,7 @@
 ; !(assertEqual (countTable () 0 NilMap) NilMap)
 
 
-; Test of cTable
+;; Test of cTable
 !(assertEqual (cTable ((True True True) (True False False) (False True False) (False False False)) (A B Output)) 
             (ConsMap ((True True) (1 0)) (ConsMap ((True False) (0 1)) (ConsMap ((False True) (0 1)) (ConsMap ((False False) (0 1)) NilMap))))
   )

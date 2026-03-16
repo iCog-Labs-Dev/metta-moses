@@ -8,19 +8,25 @@
 ;;    $topCnd: Maximum number of instances to keep.
 ;; Return: (List (ScoredInstance Cscore)): List with adjacent duplicates removed, limited by $topCnd.
 ; (: removeDupInsts (-> (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
-(= (removeDupInsts Nil $topCnd) Nil)
-(= (removeDupInsts (Cons $x Nil) $topCnd)
+(= (removeDupInsts $rep Nil $topCnd) Nil)
+(= (removeDupInsts $rep (Cons $x Nil) $topCnd)
    (if (> $topCnd 0) (Cons $x Nil) Nil))
-(= (removeDupInsts (Cons $x (Cons $y $rest)) $topCnd)
-   (let $lengthOfTail (eval (List.length (Cons $y $rest)))
+(= (removeDupInsts $rep (Cons (mkSInst $x) (Cons (mkSInst $y) $rest)) $topCnd)
+   (let $lengthOfTail (List.length (Cons (mkSInst $y) $rest))
    (if (> $topCnd 0)
-       (if (== $x $y)
-           (removeDupInsts
-             (Cons $y $rest)
-             (min-atom ($topCnd $lengthOfTail)))  ;; Update topCnd
-           (Cons $x (removeDupInsts
-                      (Cons $y $rest)
-                      (- $topCnd 1))))  ;; Keep $x, reduce topCnd
+       (if (isApproxEq (getPenScore (Pair.second $x)) (getPenScore (Pair.second $y))) ;; They maybe identical
+           (let*
+              (
+                ($tr1 (getCandidate $rep (Pair.first $x)))
+                ($tr2 (getCandidate $rep (Pair.first $y)))
+                ;; ($_ (println! (Tree1: (preOrder $tr1) Tree2: (preOrder $tr2))))
+              )
+              (if (== $tr1 $tr2)
+                  (removeDupInsts $rep (Cons (mkSInst $x) $rest) (min-atom ($topCnd $lengthOfTail)))
+                  (Cons (mkSInst $x) (removeDupInsts $rep (Cons (mkSInst $y) $rest) (- $topCnd 1))) ;; Keep $x, reduce topCnd
+              )
+           )
+           (Cons (mkSInst $x) (removeDupInsts $rep (Cons (mkSInst $y) $rest) (- $topCnd 1))))  ;; Keep $x, reduce topCnd
        Nil)))
 
 ;; Extracts up to $maxCandsPerDeme unique ScoredInstances from a sorted InstanceSet, limited by $nEval.
@@ -30,13 +36,29 @@
 ;;   $maxCandsPerDeme: Maximum candidates per deme.
 ;; Return: (List (ScoredInstance Cscore)): List of unique top-scoring instances.
 ; (: keepTopUniqueCandidates (-> (InstanceSet Cscore) Number Number (List (ScoredInstance Cscore))))
-(= (keepTopUniqueCandidates (mkSInstSet $sortedSInstList) $nEval $maxCandsPerDeme)
+(= (keepTopUniqueCandidates $rep (mkSInstSet $sortedSInstList) $nEval $maxCandsPerDeme)
  (let*
  (
-    ($lenSInstList (eval (List.length $sortedSInstList)))
+    ;; ($instExpr (List.listToExpr $sortedSInstList))
+    ;; ($uniqueSortedInstExpr (unique-atom $instExpr))
+    ;; ($uniqueSortedInstList (exprToList $uniqueSortedInstExpr))
+    ;; ($lenSInstList (List.length $uniqueSortedInstList))
+    ($lenSInstList (List.length $sortedSInstList))
+    ($_ (println! (nEval: $nEval LenSInstList: $lenSInstList)))
     ($topCnd (min-atom ($nEval $lenSInstList)))
+    ($_ (println! (TopCnd: $topCnd)))
     ($uTopCnd (if (>= $maxCandsPerDeme 0) (min-atom ($topCnd $maxCandsPerDeme)) $topCnd))
-    ($uniqueTopCandidates (removeDupInsts $sortedSInstList $uTopCnd))
+    ($_ (println! (Keep $uTopCnd Unique instances from (List.length $sortedSInstList))))
+    ;; ($_ (println! ""))
+    ;; ($_ (println! (Before removing duplicates)))
+    ;; ($exprList (List.listToExpr $sortedSInstList))
+    ;; ($bmr (map-atom $exprList $inst (let (mkSInst $x) $inst (println! (Tree: (preOrder (getCandidate $rep (Pair.first $x))) Inst: (List.listToExpr (second (Pair.first $x))))))))
+    ;; ($uniqueTopCandidates (removeDupInsts $uniqueSortedInstList $uTopCnd))
+    ($uniqueTopCandidates (removeDupInsts $rep $sortedSInstList $uTopCnd))
+    ;; ($uExprList (List.listToExpr $uniqueTopCandidates))
+    ;; ($_ (println! ""))
+    ;; ($_ (println! (After removing duplicates)))
+    ;; ($amr (map-atom $uExprList $inst (let (mkSInst $x) $inst (println! (preOrder (getCandidate $rep (Pair.first $x)))))))
  )
  $uniqueTopCandidates
  ))
@@ -49,15 +71,16 @@
 ;; Return: (List (ScoredInstance Cscore)): Filtered list with low-scoring instances removed.
 ; (: filterDemeByScore (-> (List (ScoredInstance Cscore)) Number Number (List (ScoredInstance Cscore))))
 (= (filterDemeByScore Nil $lastIndex $botSc) Nil)
-(= (filterDemeByScore $listOfScoredInsts $lastIndex $botSc)
-(if (== $lastIndex 0) $listOfScoredInsts (let*
+(= (filterDemeByScore (Cons $x $xs) $lastIndex $botSc)
+(if (== $lastIndex 0) (Cons $x $xs) (let*
 (
-   ($lastSInst (eval (List.getByIdx $listOfScoredInsts $lastIndex)))
-   ($lastSInstScore (eval (getSInstScore $lastSInst)))
-   ($lastSInstPenScore (eval (getPenScore $lastSInstScore)))
+   ($listOfScoredInsts (Cons $x $xs))
+   ($lastSInst (List.getByIdx $listOfScoredInsts $lastIndex))
+   ($lastSInstScore (getSInstScore $lastSInst))
+   ($lastSInstPenScore (getPenScore $lastSInstScore))
 )
 (if (< $lastSInstPenScore $botSc) 
-    (let $lastRemovedList (eval (List.removeAtIdx $listOfScoredInsts $lastIndex)) (filterDemeByScore $lastRemovedList (- $lastIndex 1) $botSc))
+    (let $lastRemovedList (List.removeAtIdx $listOfScoredInsts $lastIndex) (filterDemeByScore $lastRemovedList (- $lastIndex 1) $botSc))
     (filterDemeByScore $listOfScoredInsts (- $lastIndex 1) $botSc)
     )
 )))
@@ -70,15 +93,17 @@
 ;;Return: (List (ScoredInstance Cscore)): Trimmed list of instances.
 ; (: trimDownDeme (-> (List (ScoredInstance Cscore)) Number Number (List (ScoredInstance Cscore))))
 (= (trimDownDeme $sInstList $minPoolSize $complexityTemperature)
-(let $demeSize (eval (List.length $sInstList))
+(let $demeSize (List.length $sInstList)
 (if (or (>= $minPoolSize $demeSize) (<= $demeSize 1)) 
     $sInstList
     (let*
       (
-       ($topInst (eval (List.head $sInstList)))
-       ($topScore (eval (getSInstScore $topInst)))
-       ($topPenScore (eval (getPenScore $topScore)))
-       ($botSc (- $topPenScore (eval (usefulScoreRange $complexityTemperature))))
+       ($topInst (List.head $sInstList))
+       ($topScore (getSInstScore $topInst))
+       ($topPenScore (getPenScore $topScore))
+       ;; ($_ (println! (TopPenScore: $topPenScore)))
+       ($botSc (- $topPenScore (usefulScoreRange $complexityTemperature)))
+       ;; ($_ (println! (UsefullscoreRange: $botSc)))
        ($filteredSInstList (filterDemeByScore $sInstList (- $demeSize 1) $botSc)))     
        $filteredSInstList))))
 
@@ -93,15 +118,15 @@
 (let*
     (
         ;; ($_ (println! (===Inside DemeToTrees===)))
-        ($cscore (eval (getSInstScore $si)))
-        ($inst (eval (getInst $si)))
-        ;; ($_ (println! (GetCandidate Starting...)))
+        ($cscore (getSInstScore $si))
+        ($inst (getInst $si))
         ;; ($_ (println! (Representation: $rep)))
         ;; ($_ (println! (Instance: $inst)))
-        ($tree (eval (getCandidate $rep $inst)))
-        ;; ($_ (println! (scoreTree Starting...)))
-        ($bscore (eval (scoreTree $itable $tree)))
+        ($tree (getCandidate $rep $inst))
+        ;; ($_ (println! (Tree: (preOrder $tree))))
+        ($bscore (scoreTree $itable $tree &bscoreCache))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
+        ;; ($_ (println! (Returning...)))
     )
     (Cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) $demeId) $itable))
     )
@@ -115,9 +140,9 @@
 ; (: getNewCandidates (-> (List (Exemplar $a)) (OS (Exemplar $a)) (List (Exemplar $a))))
 (= (getNewCandidates Nil $metaPop) Nil)
 (= (getNewCandidates (Cons $xmp $xmpl) $metaPop)
-     (if (eval (OS.isMember $xmp $metaPop))
-        (eval (getNewCandidates $xmpl $metaPop))
-        (Cons $xmp (eval (getNewCandidates $xmpl $metaPop))))
+     (if (OS.isMember $xmp $metaPop)
+        (getNewCandidates $xmpl $metaPop)
+        (let $updatedMetaPop (OS.insert compareExemplar $xmp $metaPop) (Cons $xmp (getNewCandidates $xmpl $updatedMetaPop))))
 )
 
 ;; Determines if one BehavioralScore dominates another by comparing their score lists.
@@ -141,10 +166,12 @@
 (= (dominatesRec (mkBScore Nil) (mkBScore Nil) $res) $res)
 (= (dominatesRec (mkBScore (Cons $bx $bxs)) (mkBScore (Cons $by $bys)) $res)
    (if (> $bx $by)
-       (if (== $res False) Indeterminate
+       (if (== $res False) 
+           Indeterminate
            (dominatesRec (mkBScore $bxs) (mkBScore $bys) True))
        (if (> $by $bx)
-           (if (== $res True) Indeterminate
+           (if (== $res True)
+               Indeterminate
                (dominatesRec (mkBScore $bxs) (mkBScore $bys) False))
            (dominatesRec (mkBScore $bxs) (mkBScore $bys) $res))))
 
@@ -168,12 +195,15 @@
 (= (removeDominatedRec $exemplar Nil $acc)
    (Cons $exemplar $acc))
 (= (removeDominatedRec $exemplar (Cons $other $rest) $acc)
-   (let $domResult (dominates (eval (getExemplarBScore $exemplar)) (eval (getExemplarBScore $other)))
-      (if (== $domResult True)
+   (let $domResult (dominates (getExemplarBScore $exemplar) (getExemplarBScore $other))
+      ;; (trace! (if (== $domResult True) Dominated $domResult)
+      (if (== $domResult True) ;; Could also be Indeterminate that's why we use explicit == comparison
           (removeDominatedRec $exemplar $rest $acc)
           (if (== $domResult False)
               (removeDominated (Cons $other $rest))
-              (removeDominatedRec $exemplar $rest (Cons $other $acc))))))
+              (removeDominatedRec $exemplar $rest (Cons $other $acc))))
+      ;; )
+      ))
 
 ;; Merges a list of exemplars into the metapopulation, maintaining order based on exemplar comparison.
 ;; Assumes the exemplars are already filtered so it directly inserts them to the metapopulation
@@ -184,7 +214,7 @@
 ; (: mergeCandidates (-> (List (Exemplar $a)) (OS (Exemplar $a)) (OS (Exemplar $a))))
 (= (mergeCandidates Nil $metapop) $metapop)
 (= (mergeCandidates (Cons $x $xs) $metapop)
-   (let $updatedMetaPop (eval (OS.insert compareExemplar $x $metapop))
+   (let $updatedMetaPop (OS.insert compareExemplar $x $metapop)
       (mergeCandidates $xs $updatedMetaPop)))
 
 ;; Merges a deme's candidates into a metapopulation, processing through sorting, deduplication, trimming, tree conversion, filtering, dominance removal, merging, and resizing.
@@ -210,22 +240,30 @@
             ;; ($_ (println! (===== MergeDemes Starting =====)))
             (($headDeme $tailDeme) (decons-atom $demes))
             ((mkDeme $rep $sInstList $demeId) $headDeme)
-            ($sortedSInstList (eval (sortDeme $sInstList))) ;; sorting the instances inside the deme by decreasing order
-            ($unqCandidates (keepTopUniqueCandidates $sortedSInstList $nEval $maxCandsPerDeme))  ;;remove duplicates and limits the size by keeping the top scoring
+            ($sortedSInstList (sortDeme $sInstList)) ;; sorting the instances inside the deme by decreasing order
+            ($_ (println! (Demesize: (List.length (second $sortedSInstList)))))
+            ;; ($demeExpr (List.listToExpr (second $sortedSInstList)))
+            ;; ($_ (println! (UniqueDemeSize: (length (unique-atom $demeExpr)))))
+            ($unqCandidates (keepTopUniqueCandidates $rep $sortedSInstList $nEval $maxCandsPerDeme))  ;;remove duplicates and limits the size by keeping the top scoring
+            ($_ (println! (KeptUniqueTopCandidates NewSize: (List.length $unqCandidates))))
             ($trimmedDeme (trimDownDeme $unqCandidates $minPoolSize $complexityTemperature))  ;; further trims the deme
-            ;; ($_ (println! (demeToTrees Starting...)))
+            ;; ($_ (println! (DemeToTrees Starting...)))
+            ($_ (println! (TrimmedDownDeme: (List.length $trimmedDeme))))
             ($potCandidates (demeToTrees (mkDeme $rep (mkSInstSet $trimmedDeme) $demeId) $itable)) ;;convert instances to trees
-            ;; ($_ (println! (GetNewCadidates Started: $potCandidates)))
+            ($_ (println! (Before getNewCandidates: (List.length $potCandidates))))
             ;; ($_ (println! (Metapop: $metapop)))
             ;; ($_ (println! ("--")))
             ($candidates (getNewCandidates $potCandidates $metapop)) ;;which aren't found in the meta pop
-            ;; ($_ (println! (GetNewCadidates Finished: $candidates)))
+            ;; ($_ (println! (NewCandidates: (List.length $candidates))))
             ($removedDominated (removeDominated $candidates))  ;;removeDominated
             ;; ($_ (println! (Removed Dominated: $removedDominated)))
+            ($_ (println! (Going to merge (List.length $removedDominated) Instances)))
             ($updatedMetaPop (mergeCandidates $removedDominated $metapop))  ;;merge candidates into metapop
             ;; ($_ (println! (merged Candidate: $updatedMetaPop)))
-            ($resizedMetapop (eval (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount)))  ;;resize the metapop
-            ; ($resizedMetapop (if (<= $nToKeep (eval (OS.length $updatedMetaPop))) (eval (OS.getTopN $nToKeep $updatedMetaPop)) $updatedMetaPop)) ;; select top nToKeep candidates
+            ($_ (println! (Metapop size before resize: (OS.length $updatedMetaPop))))
+            ($resizedMetapop (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount))  ;;resize the metapop
+            ($_ (println! (Metapop size after resize: (OS.length $resizedMetapop))))
+            ; ($resizedMetapop (if (<= $nToKeep (OS.length $updatedMetaPop)) (OS.getTopN $nToKeep $updatedMetaPop) $updatedMetaPop)) ;; select top nToKeep candidates
             ;; ($_ (println! (Resized Metapop: $resizedMetapop)))
             ;; ($_ (println! ("--------------------------------")))
             ;; ($_ (println! ("")))

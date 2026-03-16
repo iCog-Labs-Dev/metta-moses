@@ -12,11 +12,11 @@
 (= (BScore.sub (mkBScore $bs1) (mkBScore $bs2))
    (if (not (== (List.length $bs1) (List.length $bs2)))
        (Error ($bs1 $bs2) "Incompatible behavioral scores")
-       (mkBScore (eval (List.sub $bs1 $bs2)))))
+       (mkBScore (List.sub $bs1 $bs2))))
 
 ;; Sums the behavioral score to get a single number.
 ;(: sumBScore (-> BehavioralScore Number))
-(= (sumBScore (mkBScore $bs)) (eval (List.sum $bs)))
+(= (sumBScore (mkBScore $bs)) (List.sum $bs))
 
 ;; Input table with rows, columns and labels of the columns
 ;; An Input Table is just a list of lists.
@@ -34,7 +34,7 @@
 ;; INFO: This could have been done by overloading the mkTruthTableBScore function, but
 ;;  that has shown to be problematic for certain cases. Best to avoid it whenever we can.
 ;(: createTruthTableBScore (-> Number (ITable $a) (TruthTableBScore $a)))
-(= (createTruthTableBScore $complexityCoeff (mkITable $itable $labels)) (mkTruthTableBScore $complexityCoeff (eval (List.length $itable)) (mkITable $itable $labels)))
+(= (createTruthTableBScore $complexityCoeff (mkITable $itable $labels)) (mkTruthTableBScore $complexityCoeff (List.length $itable) (mkITable $itable $labels)))
 
 ;; Return the table from truth table bscore
 ;(: getTable (-> (TruthTableBScore $a) (ITable $a)))
@@ -49,35 +49,38 @@
 ;;
 ;; Returns: Beahvioral score for the given tree.
 ; (: scoreTree (-> (ITable $a) (Tree $a) BehavioralScore))
-(= (scoreTree (mkITable $table $labels) $tree)
+(= (scoreTree (mkITable $table $labels) $tree $cacheSpace)
    (if (== $tree (mkTree (mkNode AND) Nil))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
-       (let*
-          (
-           ($expTree (eval (preOrder $tree)))
-           ($scoreList (eval (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table)))
-           ($length (eval (List.length $labels)))
-
-           ($outputs (eval (List.flatten (List.map (eval (List.drop (- $length 1))) $table))))
-           ($bScore (eval (List.zipWith compareAndScore $scoreList $outputs)))
-          )
-         (mkBScore $bScore)
-       )
-   )
-)
-
+       (chain (collapse (match $cacheSpace 
+               ($tree $bscore) 
+               $bscore))
+           $val 
+           (if (== $val ())
+               (let* (
+                   ($expTree (preOrder $tree))
+                   ($scoreList (eval (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table)))
+                   ($length (List.length $labels))
+                   ($outputs (eval (List.flatten (List.map (eval (List.drop (- $length 1))) $table))))
+                   ($bScore (List.zipWith compareAndScore $scoreList $outputs))
+                   ($result (mkBScore $bScore))
+                   ($_ (add-atom $cacheSpace ($tree $result)))
+               )
+               $result)
+               (car-atom $val)
+           ))))
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.
 ;(: bestPossibleScore (-> (TruthTableBScore $a) BehavioralScore))
-(= (bestPossibleScore (mkTruthTableBScore $compCoeff $size $table)) (mkBScore (eval (List.repeat $size 0))))
+(= (bestPossibleScore (mkTruthTableBScore $compCoeff $size $table)) (mkBScore (List.repeat $size 0)))
 
 
 ;; Return the worst possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.
 ;(: worstPossibleScore (-> (TruthTableBScore $a) BehavioralScore))
-(= (worstPossibleScore (mkTruthTableBScore $compCoeff $size $table)) (mkBScore (eval (List.repeat $size -1))))
+(= (worstPossibleScore (mkTruthTableBScore $compCoeff $size $table)) (mkBScore (List.repeat $size -1)))
 
 ;; When we have a compressed tree, the min improvement 
 ;;  will be calculated. For now it's fixed.
@@ -91,7 +94,7 @@
 
 ;; A wrapper function to return the complexity a tree.
 ;(: (getComplexity (-> (Tree $a) Number)))
-(= (getComplexity $tree) (eval (treeComplexity $tree)))
+(= (getComplexity $tree) (treeComplexity $tree))
 
 ;; Replace every occurence of a lable inside an expression with a truth value.
 ;;
@@ -102,7 +105,7 @@
 ;; Returns: Modified version of the boolean expression.
 ;(: replaceVarWithTruth (-> (Bool Symbol) $a $a))
 (= (replaceVarWithTruth ($b $l) $boolExpr)
-   (if (== (get-metatype $boolExpr) Expression) ;; If symbol or Grounded
+   (if (== (get-metatype $boolExpr) Expression) ;; If not symbol or Grounded
        (let ($h $t) (decons-atom $boolExpr)
             (if (== $t ())
                 (replaceVarWithTruth ($b $l) $h)
@@ -110,7 +113,7 @@
                   (if (== $h $l)
                       (cons-atom $b $t')
                       (cons-atom $h $t')))))
-       (if (== $boolExpr $l) $b $boolExpr)))
+       (if (== $boolExpr $l) $b (if (is-member $boolExpr (AND OR)) ($boolExpr) $boolExpr))))
 
 ;; Replace ever occurence of all labels (boolean variables) 
 ;;  inside an expression with their corresponding truth values.
@@ -122,7 +125,7 @@
 ;; Returns: Modified version of the boolean expression.
 ;(: replaceVarsWithTruth (-> ((List Symbol) Expression) (List Bool) Expression))
 (= (replaceVarsWithTruth ($lList $boolExpr) $bList)
-   (let $blList (List.zip $bList $lList) (eval (List.foldl replaceVarWithTruth $boolExpr $blList))))
+   (let $blList (List.zip $bList $lList) (List.foldl replaceVarWithTruth $boolExpr $blList)))
 
 ;; Behavioral complexity score. Although this type adds no additional atttributes to the truth table bscore,
 ;;  It is used to distinguish between the two types. The behavioral complexity score is treated differently than the latter one.
@@ -134,13 +137,13 @@
 ;;  Although the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralScore, it only needs the size of the table.
 ;(: bestPossibleScore (-> (BehavioralCScore $a) Number))
-(= (bestPossibleScore (mkBCScore $truthTableBScore)) (let (mkBScore $bscore) (bestPossibleScore $truthTableBScore) (eval (List.sum $bscore))))
+(= (bestPossibleScore (mkBCScore $truthTableBScore)) (let (mkBScore $bscore) (bestPossibleScore $truthTableBScore) (List.sum $bscore)))
 
 ;; Return the worst possible Behavioral composite score given the table.
 ;;  Although the whole table is given for consistency and to distinguish
 ;;  from the same function that works on BehavioralScore, it only needs the size of the table.
 ;(: worstPossibleScore (-> (BehavioralCScore $a) Number))
-(= (worstPossibleScore (mkBCScore $truthTableBScore)) (let (mkBScore $bscore) (worstPossibleScore $truthTableBScore) (eval (List.sum $bscore))))
+(= (worstPossibleScore (mkBCScore $truthTableBScore)) (let (mkBScore $bscore) (worstPossibleScore $truthTableBScore) (List.sum $bscore)))
 
 ;; When we have a compressed tree, the min improvement
 ;;  will be calculated. For now it's fixed.
@@ -188,5 +191,5 @@
 ;(:getArgLabels (-> (ITable $a) (List Symbol)))
 (= (getArgLabels (mkITable $rows $labels))
    (let $args
-        (eval (List.takeN (- (List.length $labels) 1) $labels ))
-        (eval (List.listToExpr $args))))
+        (List.takeN (- (List.length $labels) 1) $labels )
+        (List.listToExpr $args)))

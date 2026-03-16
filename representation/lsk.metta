@@ -13,23 +13,23 @@
 (= (logicalSubtreeKnob $tree (mkNodeId $target) $subtree)
    (let*
    (
-    ($negatedSubtree (eval (insertAbove $subtree (mkNode NOT))))
+    ($negatedSubtree (insertAbove $subtree (mkNode NOT)))
     ;; ($_ (println! (NegatedSubtree----------------- : $negatedSubtree)))
-    ($reducedSubtree (eval (cleanTree $negatedSubtree))  )
+    ($reducedSubtree (cleanTree $negatedSubtree)  )
     ;; ($_ (println! (ReducedSubtree---------------: $reducedSubtree))) 
-    ($childrenOfTarget (eval (getChildrenById $tree (mkNodeId $target))))
+    ($childrenOfTarget (getChildrenById $tree (mkNodeId $target)))
    )
-   (if (== True (eval (List.contains $subtree $childrenOfTarget) ))
-       (let $idOfSubtree (eval (getSubtreeId $tree (mkNodeId $target) $subtree 0))
+   (if (== True (List.contains $subtree $childrenOfTarget))
+       (let $idOfSubtree (getSubtreeId $tree (mkNodeId $target) $subtree 0)
            ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
        )
-       (if (== True (eval (List.contains $reducedSubtree $childrenOfTarget)))
-           (let $idOfReducedSubtree (eval (getSubtreeId $tree (mkNodeId $target) $reducedSubtree 0))
+       (if (== True (List.contains $reducedSubtree $childrenOfTarget))
+           (let $idOfReducedSubtree (getSubtreeId $tree (mkNodeId $target) $reducedSubtree 0)
                 ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfReducedSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil))))
            (let*
            (
-            (($nullVexAppendedTree $nullVexId) (eval (appendChild $tree (mkNodeId $target) (mkNullVex Nil))))
-            (($subtreeAppendedTree $subtreeId) (eval (appendChild $nullVexAppendedTree $nullVexId $subtree)))
+            (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex Nil)))
+            (($subtreeAppendedTree $subtreeId) (appendChild $nullVexAppendedTree $nullVexId $subtree))
            )
            ($subtreeAppendedTree (mkLSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
            )
@@ -63,31 +63,35 @@
     (let*
        (
         ; ($_ (println! (lsk: $lsk)))
-        ($targetId (eval (getNodeId $lsk)))
-        ($targetTree (eval (getNodeById  $updatedTree $targetId)))
-        ($subtree (if (== True (eval (isNullVertex $targetTree) ))
-                        (let (mkNullVex (Cons $child Nil)) $targetTree $child)
-                        $targetTree
+        ;; ($_ (println! (ParentId: $parentId)))
+        ;; ($_ (println! (D: $d)))
+        ((mkNodeId $targetId) (getNodeId $lsk))
+        ;; ($newPosition (index-atom $targetId (- (length $targetId) 1)))
+        ((mkNodeId $dstId) (if (= (mkNodeId (0)) $parentId) (mkNodeId ()) $parentId))
+        ($targetTree (getNodeById  $updatedTree (mkNodeId $targetId)))
+        ($newPosition (+ (List.length (getChildren (getNodeById  $tree $parentId))) 1))
+        ;; ($_ (println! (newPosition: $newPosition)))
+        ;; ($_ (println! (if (== $targetId (1 1 1)) $targetTree NotPrinting)))
+        (($subtree $newSrcId) (if (== True (isNullVertex $targetTree))
+                        (let (mkNullVex (Cons $child Nil)) $targetTree ($child (mkNodeId (union-atom $targetId (1)))))
+                        ($targetTree (mkNodeId $targetId))
                     ))        
         ;; ($_ (println! ("subtree ": $subtree $targetTree)))
+        ;; ($_ (println! (CandidateSoFar: (preOrder $tree))))
+        ;; ($_ (println! ("subtree ": (getNodeValue $subtree) parentId(OldDstId): $parentId srcId: $newSrcId targetId: $targetId)))
       )
       (if (> $d 2)
           (Error $d "Invalid disc specification:- cannot exceed 2.")
-          (if (== True (isEmpty $tree))
-              $subtree
+          ;; TODO: Skip multiplicity 0, we don't want to convert the subtree into a null vertex. That will bring weird behavior like nested NullVertex and the like.
+          ;;       In addition, this tree is a new candidate tree needed only to be evaluated, why do we need to process null vertexes here? We want to avoid adding any.
+          (let ($treeToAppend $newDstId)
+                            (case $d
+                                (
+                                  (2  ((mkTree (mkNode NOT) (Cons (mkTree (getNodeValue $subtree) Nil) Nil)) (mkNodeId (union-atom $dstId ($newPosition 1))))) ;; If negated
+                                  (1  ((mkTree (getNodeValue $subtree) Nil) (mkNodeId (union-atom $dstId ($newPosition))))) ;; If present
+                                  (0  ((mkNullVex (Cons $subtree Nil)) $parentId)))) ;; If absent
 
-              ;; The c++ version takes the child of the null vertex from the 
-              ;;   location of the tree but we don't have access to the knob 
-              ;;   decorated tree in this function. It is possible to pass 
-              ;;   that tree as well but instead of increasing the function 
-              ;;   parameter size, why not simply use the $subtree we already 
-              ;;   have stored in the lsk? It seems to be doing the exact same thing.
-              (let $treeToAppend
-                   (case $d
-                       (
-                         (2 (eval (insertAbove $subtree (mkNode NOT)))) ;; If negated
-                         (1  $subtree) ;; If present
-                         (0  (mkNullVex (Cons $subtree Nil))))) ;; If absent
-
-                   (chain (eval (appendChild $tree $parentId $treeToAppend)) $treeChIdPair
-                      (eval (first $treeChIdPair)))))))) ;; INFO: Just incase if the append fails and stores the result somewhere else, we need to add a test case here to cmpare between targetNode and appendChild node.
+                            (if (isNullVertex $treeToAppend)
+                                ($tree $parentId $parentId)
+                                (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
+                                        ((first $treeChIdPair) $newSrcId (if (== $parentId $newDstId) (second $treeChIdPair) $newDstId)))))))) ;; INFO: Just incase if the append fails and stores the result somewhere else, we need to add a test case here to cmpare between targetNode and appendChild node.

@@ -1,6 +1,12 @@
-!(import! &self ../complexity-based-scorer)
-!(import! &self ../fitness)
-!(import! &self ../../representation/instance)
+!(import! &self ../../utilities/general-helpers) 
+!(import! &self ../../utilities/list-methods) 
+!(import! &self ../../utilities/map)
+!(import! &self ../../utilities/ordered-set)
+!(import! &self ../../utilities/ordered-multimap)
+!(import! &self ../../utilities/lazy-random-selector)
+!(import! &self ../../utilities/lru-cache)
+!(import! &self ../../utilities/nodeId)
+
 
 !(import! &self ../../reduct/boolean-reduct/rte-helpers)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
@@ -12,44 +18,35 @@
 !(import! &self ../../reduct/boolean-reduct/one-constraint-subsumption)
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
+!(import! &self ../../utilities/tree) 
 
-!(import! &self ../../representation/lsk)
-!(import! &self ../../representation/knob-mapper)
-!(import! &self ../../representation/representation)
 !(import! &self ../../representation/knob-representation)
+!(import! &self ../../representation/lsk)
 !(import! &self ../../representation/logical-probe) 
-!(import! &self ../../representation/build-logical)
-!(import! &self ../../representation/build-knobs)
+!(import! &self ../../representation/logical-canonize)
 !(import! &self ../../representation/sample-logical-perms) 
 !(import! &self ../../representation/add-logical-knobs)
+!(import! &self ../../representation/build-logical)
+!(import! &self ../../representation/build-knobs)
+!(import! &self ../../representation/knob-mapper)
+!(import! &self ../../representation/representation)
+!(import! &self ../../representation/instance)
 
-!(import! &self ../../utilities/map)
-!(import! &self ../../utilities/lazy-random-selector)
-!(import! &self ../../utilities/tree) 
-!(import! &self ../../utilities/nodeId)
-!(import! &self ../../utilities/list-methods) 
-!(import! &self ../../utilities/general-helpers) 
-!(import! &self ../../utilities/ordered-multimap)
-!(import! &self ../../utilities/ordered-set)
-!(import! &self ../../utilities/lru-cache)
-
+!(import! &self ../fitness)
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
 
+!(import! &self ../complexity-based-scorer)
+
 !(import! &self ../../feature-selection/feature-selection-helpers)
-!(import! &self ../../feature-selection/feature-selection-main)
-!(import! &self ../../feature-selection/select-top-features)
 !(import! &self ../../feature-selection/similarity-scorers)
 !(import! &self ../../feature-selection/simple)
 !(import! &self ../../feature-selection/smd)
 !(import! &self ../../feature-selection/random-feature-selection)
 !(import! &self ../../feature-selection/incremental)
+!(import! &self ../../feature-selection/select-top-features)
+!(import! &self ../../feature-selection/feature-selection-main)
 
-
-;;!(import! &self ../../utilities/python-treehelpers)
-
-;; TODO: Add REDUCE Function here when it's edge case if fixed.
-(= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
 
 (= (tree1)
         (mkTree (mkNode AND)

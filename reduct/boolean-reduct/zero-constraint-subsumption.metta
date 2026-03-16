@@ -22,18 +22,14 @@
           (
             ($head (car-atom $current))
             ($children (getChildrenExp $current))
-            ($childrenHasChildOrGuard (collapse (nodeHasChildOrGuard (superpose $children))))
+            ($updatedChildren (filter-atom $children $child (nodeHasChildOrGuard $child)))
+            ($updatedCurrent (cons-atom $head $updatedChildren))
           )
           (case ($head $children)
             (
               ((AND $_) ($parent $current False))
               ((OR ()) ($parent $current False))
-              ((OR $children)
-                  (if (is-member False $childrenHasChildOrGuard)
-                      ((removeElement ($current) $parent) () True)
-                      ($parent $current False)
-                  )
-              )
+              ((OR $children) ((findAndReplace $current $updatedCurrent $parent) $updatedCurrent (!= $children $updatedChildren)))
             )
           )
         )
@@ -58,18 +54,18 @@
       ((Symbol $current) ($parent $current False))
       ((Expression $current)
         (if (and (== (car-atom $parent) OR) (== $current (AND)))
-            ((eval (findAndReplace $parent (AND) $parent)) (AND) True) ;; Removes the entire OR if it has an empty AND as child
+            ((findAndReplace $parent (AND) $parent) (AND) True) ;; Removes the entire OR if it has an empty AND as child
             (let*
               (
                 ;  (() (println! (===Inside ZeroConstraintSubsume'===)))
                 ;  (() (println! (Current: $current : Parent: $parent)))
-                ($children (eval (getChildrenExp $current)))
-                ($literals (eval (getLiterals $current)))
+                ($children (getChildrenExp $current))
+                ($literals (getLiterals $current))
               )
               ;; POA is AND & OR and has no children and guardSet
               (if (and (not (== $current $parent)) (not (== $parent AND)))
                 (if (and (== $literals ()) (== $children ()))
-                    ((eval (removeElement ($current) $parent)) () True)
+                    ((removeElement ($current) $parent) () True)
                     ($parent $current False)
                 )
                 ($parent $current False)

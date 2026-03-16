@@ -1,9 +1,6 @@
-!(import! &self ../list-methods)
-!(import! &self ../tree)
-!(import! &self ../nodeId)
 !(import! &self ../general-helpers)
-; ! (import! &self metta-moses:reduct:enf)
-!(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
+!(import! &self ../list-methods)
+!(import! &self ../nodeId)
 !(import! &self ../../reduct/boolean-reduct/rte-helpers)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-and)
@@ -13,8 +10,10 @@
 !(import! &self ../../reduct/boolean-reduct/one-constraint-subsumption)
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/n-ary-gather-junctors)
+!(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
+!(import! &self ../tree)
 ;; Helper function for clean tree
-; (= (REDUCE $expr) (reduce $expr))
+
 !(bind! tree1 (new-state (mkTree (mkNode AND)
                 (Cons (mkTree (mkNode A) Nil)
                 (Cons (mkTree (mkNode OR)
@@ -63,18 +62,17 @@
 
 !(assertEqual (preOrder (get-state tree1)) (AND A (OR B C)))
 !(assertEqual (preOrder (get-state tree2)) (AND A (OR B C)))
+!(assertEqual (preOrder (buildTree (AND (OR (AND (OR (AND) (AND))) (AND (OR (NOT X1))))))) (AND (OR (AND (OR (AND) (AND))) (AND (OR (NOT X1))))))
 
 
 
-;; FIX: Commented out until the REDUCE issue is fixed.  failing test cases i think it is due to the failing function called findAndReplace in general-helper function fixed soon.
 !(assertEqual (cleanTree (mkTree (mkNode AND)
                             (Cons (mkTree (mkNode OR)
                                 (Cons (mkTree (mkNode A) Nil)
                                 (Cons (mkTree (mkNode B) Nil) Nil))) 
                             (Cons (mkTree (mkNode A) Nil) Nil)))
                           )
-                            (mkTree (mkNode AND) 
-                             (Cons (mkTree (mkNode A) Nil) Nil)))
+                            (mkTree (mkNode A) Nil))
 !(assertEqual (cleanTree (mkTree (mkNode AND) 
                             (Cons (mkTree (mkNode OR) 
                               (Cons (mkTree (mkNode A) Nil) 
@@ -82,14 +80,14 @@
                             (Cons (mkTree (mkNode NOT) 
                               (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))
                           )
-                            (mkTree (mkNode AND) 
-                              (Cons (mkTree (mkNode NOT) 
-                                (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))         
+                   (mkTree (mkNode AND)
+                      (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil))
+                      (Cons (mkTree (mkNode B) Nil) Nil))))
 !(assertEqual (cleanTree (buildTree (AND (OR A B) (NOT A) (NOT B)))) (buildTree (AND (NOT A) (NOT B))))
 !(assertEqual (cleanTree (buildTree (AND A B (NOT A)))) (buildTree (AND)))
 !(assertEqual (cleanTree (buildTree (OR (AND A B (NOT A) B)))) (buildTree (AND)))
-!(assertEqual (cleanTree (buildTree (OR A (AND B C)))) (buildTree (AND (OR (AND A) (AND B C)))))
-!(assertEqual (cleanTree (buildTree (OR A B C D))) (buildTree (AND (OR (AND A) (AND B) (AND C) (AND D)))))
+!(assertEqual (cleanTree (buildTree (OR A (AND B C)))) (buildTree (AND (OR A (AND B C)))))
+!(assertEqual (cleanTree (buildTree (OR A B C D))) (buildTree (AND (OR A B C D))))
 
 ;; ;; type system is not working properly in mettalog 
 ;; ; (: A Bool)

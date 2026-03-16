@@ -1,11 +1,10 @@
 ;; bind python functinalities in metta -- metta functions not working 
-;; random-float and random-int both require what is denoted as RandomGenerator
 ;; which, for now, is not clear what it is
 
 ;; removed python binding for compatibility with workflow -- XXX 
 ;; bind is not supported for constants (as of 13 NOV) in PeTTa -- thus using function style notation
 (= (NO_EXEMPLAR) "empty metapopulation")
-(= (COMPXY_TEMP) 4)
+(= (COMPXY_TEMP) 6)
 (= (INV_TEMP) (/ 100.0 (COMPXY_TEMP)))
 
 ;; exemplar  selection
@@ -61,7 +60,7 @@
 (= (rouletteSelect $metaPop $probs $sum)
     (let* (
 
-           ($rndfloat (random-float 0 1))
+           ($rndfloat (py-call (random.random))) ;;This was (random-float 0 1)
            ($ajstdSum (* $sum $rndfloat))
            ($index (roulette $probs 0 $ajstdSum))
            ;; ($_ (println! (Sum: $sum RandFloat: $rndfloat AjstdSum: $ajstdSum)))

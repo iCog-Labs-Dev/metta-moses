@@ -1,6 +1,5 @@
-
-!(import! &self ../fitness)
 !(import! &self ../../utilities/general-helpers)
+!(import! &self ../fitness)
 
 ;; Test Cases 1: Simple AND Expression
 !(assertEqual

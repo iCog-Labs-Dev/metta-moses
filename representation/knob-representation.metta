@@ -60,7 +60,7 @@
 ;; Calculates the knob Specification of an LSK
 ;; (: getKnobSpec (-> LogicalSubtreeKnob DiscSpec))
 (= (getKnobSpec (mkLSK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis) ))
-(mkDiscSpec (- $multip (eval (List.length $dis)))))
+(mkDiscSpec (- $multip (List.length $dis))))
 
 ;; Extracts the location from a discrete or a logical subtree knob.
 ;; Params:
@@ -74,8 +74,8 @@
 ;; A comparison function for discSpec 
 ;; (used as a $compFunc to insert knobSpec and knob pairs into a multimap ) 
 ;; (: discSpec<= (-> DiscSpec DiscSpec Bool))
-(= (discSpec<= (mkDiscSpec $newKey) (mkDiscSpec $currKey))
-(<= $newKey $currKey))
+(= (discSpec< (mkDiscSpec $newKey) (mkDiscSpec $currKey))
+(< $newKey $currKey))
 
 ;; Checks of nodeId1 is lessthan nodeId2.
 ;; Params: $id1 & $id2

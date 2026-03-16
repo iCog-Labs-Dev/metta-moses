@@ -4,9 +4,9 @@
 
 ;; (: findDiscKnob (-> KnobMap NodeId ($knob Number))) ;; TODO: Give specific type for key and value
 (= (findDiscKnob (mkKbMap (mkDscKbMp $itDiscKnob) (mkDscMp $disc)) $nodeId)
-   (if (== True (eval (Map.contains $nodeId $itDiscKnob)))
-       (chain (eval (Map.getByKey $nodeId $itDiscKnob)) $discIdx
-       (chain (eval (MultiMap.getByIdx $discIdx $disc)) $discKnobPair
-         ( (eval (second $discKnobPair)) $discIdx)))
+   (if (== True (Map.contains $nodeId $itDiscKnob))
+       (chain (Map.getByKey $nodeId $itDiscKnob) $discIdx
+       (chain (MultiMap.getByIdx $discIdx $disc) $discKnobPair
+         ( (second $discKnobPair) $discIdx)))
 
        (() -1)))

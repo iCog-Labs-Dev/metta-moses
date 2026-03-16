@@ -582,9 +582,9 @@
 !(assertEqual (coll.remove (ConsOMS 1 (ConsOMS 2 NilOMS)) 1) (ConsOMS 2 NilOMS))
 
 ;; Cscore comparisons via apply (inline mkCscore)
-!(println! ("apply >="))
+!(println! ("apply >"))
 !(assertEqual
-  (apply >= (mkCscore -2.0 3.0 1.0 0.5 -3.5)
+  (apply > (mkCscore -2.0 3.0 1.0 0.5 -3.5)
                (mkCscore -3.0 2.0 1.0 0.5 -4.5))
   True)
 !(println! ("apply <"))
@@ -594,9 +594,9 @@
   True)
 
 ;; Tie-breaker on complexity: equal pen score but lower complexity is greater
-!(println! ("apply >="))
+!(println! ("apply >"))
 !(assertEqual
-  (apply >= (mkCscore -2.0 2.0 1.0 0.5 -3.5)
+  (apply > (mkCscore -2.0 2.0 1.0 0.5 -3.5)
                (mkCscore -2.0 3.0 1.0 0.5 -3.5))
   True)
   !(println! ("apply <"))
@@ -609,7 +609,7 @@
 
 !(println! ("apply >="))
 !(assertEqual
-  (apply >= (mkCscore -2.0 3.0 1.0 0.5 -3.5)
+  (apply > (mkCscore -2.0 3.0 1.0 0.5 -3.5)
                (mkCscore -1.0 2.0 1.0 0.5 nan))
   True)
 !(println! ("apply <"))
@@ -627,7 +627,7 @@
 
 ;; ScoredInstance comparisons via apply should project to inner Cscore (inline)
 !(assertEqual
-  (apply >=
+  (apply >
     (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore -2.0 3.0 1.0 0.5 -3.5)))
     (mkSInst (mkPair (mkInst (Cons 3 Nil))               (mkCscore -3.0 2.0 1.0 0.5 -4.5))))
   True)

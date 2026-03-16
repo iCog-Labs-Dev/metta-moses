@@ -27,7 +27,7 @@
 (= (toExp $x) ($x))
 ;;??? is the name List.tFoldl/tFoldr is better than List.t-foldl	
 (= (List.tFoldl Nil $f $t $acc) $acc)		
-(= (List.tFoldl (Cons $x $xs) $f $t $acc) (let $tr (eval ($t $x)) (let $new-acc ($f $acc $tr) (List.tFoldl $xs $f $t $new-acc))))		
+(= (List.tFoldl (Cons $x $xs) $f $t $acc) (let $tr ($t $x) (let $new-acc ($f $acc $tr) (List.tFoldl $xs $f $t $new-acc))))		
 
 (= (List.tFoldr Nil $f $t $acc) $acc)		
 (= (List.tFoldr (Cons $x $xs) $f $t $acc) (let $new-acc (List.tFoldr $xs $f $t $acc) (let $tr ($t $x) ($f $tr $new-acc))))	        
@@ -35,7 +35,7 @@
 ;; Define List.sum
 
 ; (: List.sum (-> (List Number) Number))
-(= (List.sum $xs) (eval (List.foldr + 0 $xs)))
+(= (List.sum $xs) (List.foldr + 0 $xs))
 
 
 ; (: List.append (-> $a (List $a) (List $a)))
@@ -71,8 +71,8 @@
 (= (List.sort (Cons $head $tail) $op)
     (let* (($expr (List.listToExpr  (Cons $head $tail)))
             ($n (size-atom $expr))
-           ($sortedExpr (eval (selectionSort $expr $n $op)))
-           ($sortedList (eval (exprToList $sortedExpr))))
+           ($sortedExpr (selectionSort $expr $n $op))
+           ($sortedList (exprToList $sortedExpr)))
         $sortedList)
 )
 
@@ -203,7 +203,7 @@
 (= (List.sub Nil (Cons $y $ys)) (Error (Cons $y $ys) LenghtOfListNotEqual))
 (= (List.sub (Cons $x $xs) Nil) (Error (Cons $x $xs) LenghtOfListsNotEqual))
 (= (List.sub (Cons $x $xs) (Cons $y $ys))
-    (let $res (List.sub $xs $ys) (eval (if-error $res $res (Cons (- $x $y) $res)))))
+    (let $res (List.sub $xs $ys) (if-error $res $res (Cons (- $x $y) $res))))
 
 
 ; (: List.zip (-> (List $a) (List $b) (List ($a $b))))
@@ -238,7 +238,7 @@
 (= (List.flatten (Cons $x $xs))
     (case $x
        (
-         ((Cons $y Nil) (chain (List.flatten $xs) $res (eval (if-error $res $res (Cons $y $res)))))
+         ((Cons $y Nil) (chain (List.flatten $xs) $res (if-error $res $res (Cons $y $res))))
          ((Cons $y $ys) (Error $x "Can't be flattened")))))
 
 
@@ -295,12 +295,13 @@
 
 ; (: List.partialSort (-> (-> $a $a Bool) (List $a) Number (List $a) (List $a)))
 
+(= (List.partialSort $comparator Nil $n $acc) $acc)
 (= (List.partialSort $comparator (Cons $x $xs) $n $acc)
     (let* (($max (List.max $comparator (Cons $x $xs)))
             ($unsortedList (List.delete $max (Cons $x $xs)))
             ($sortedList (List.append $max $acc)))
                 
-                (if (== (- $n 1) 0)
+                (if (<= (- $n 1) 0)
                     (List.appendList $unsortedList $sortedList)
                     (List.partialSort $comparator $unsortedList (- $n 1) $sortedList))))
 
@@ -312,6 +313,7 @@
 ;; append a list to a list
 ; (: List.appendList (-> (List $a) (List $a) (List $a)))
 
+(= (List.appendList $a Nil) $a)
 (= (List.appendList $a (Cons $x $xs))
     (if (== $xs Nil)
         (Cons $x $a)
@@ -360,4 +362,10 @@
 (= (List.pop $i (Cons $x $xs))
     (if (== $i 0)
         $xs
-        (chain (List.pop (- $i 1) $xs) $res (eval (if-error $res (Cons $x Nil) (Cons $x $res))))))
+        (chain (List.pop (- $i 1) $xs) $res (if-error $res (Cons $x Nil) (Cons $x $res)))))
+
+(= (List.splitAt $i Nil) (Nil Nil))
+(= (List.splitAt $i (Cons $x $xs))
+   (if (== $i 0)
+       (Nil (Cons $x $xs))
+       (let ($l1 $l2) (List.splitAt (- $i 1) $xs) ((Cons $x $l1) $l2))))

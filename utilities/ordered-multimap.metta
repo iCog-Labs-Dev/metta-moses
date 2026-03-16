@@ -54,7 +54,7 @@
     (if (== $key $curKey) 
         $tail 
         (chain (MultiMap.removeOne $key $tail) $res 
-            (eval (if-error $res $res (ConsMMap ($curKey $curVal) $res))))))
+            (if-error $res $res (ConsMMap ($curKey $curVal) $res)))))
 
 ; ! (assertEqual (MultiMap.removeOne 2 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (2 c) NilMMap)))) (ConsMMap (1 a) (ConsMMap (2 c) NilMMap)))
 

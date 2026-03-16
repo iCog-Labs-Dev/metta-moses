@@ -6,7 +6,7 @@
 ;;        $picked: list of picked numbers
 ;; (: pick (-> Number Number Expression Number))
 (= (pick $lower $upper $picked )
-    (let $rand (py-call  (random.randint $lower $upper));;(random-int $lower $upper)  
+    (let $rand (py-call  (random.randint $lower $upper))
         (if (is-member $rand $picked)
             (pick $lower $upper $picked)
             $rand
@@ -32,6 +32,6 @@
             (if (== $n 0)
                 $picked
                 (chain (pick $lower $upper $picked) $rand
-                    (lazyRandomSelector $lower $upper (- $n 1) (cons-atom $rand $picked)))))
+                    (lazyRandomSelector $lower $upper (- $n 1) (union-atom $picked ($rand))))))
     )
 )

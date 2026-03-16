@@ -1,8 +1,8 @@
-!(import! &self ../../utilities/tree)
-!(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/general-helpers)
-!(import! &self ../knob-representation)
+!(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/ordered-multimap) 
+!(import! &self ../../utilities/tree)
+!(import! &self ../knob-representation)
 
 !(assertEqual (let $return (mkKnob  (mkNodeId (1))) $return)  
               (mkKnob (mkNodeId (1)))
@@ -59,9 +59,9 @@
 !(assertEqual (getKnobLoc (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (mkNodeId (1)))
 !(assertEqual (getKnobLoc (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (mkNodeId (1)))
 
-; Test for discSpec<=
-!(assertEqual (discSpec<= (mkDiscSpec 2) (mkDiscSpec 3)) True)
-!(assertEqual (discSpec<= (mkDiscSpec 3) (mkDiscSpec 2)) False)
+; Test for discSpec<
+!(assertEqual (discSpec< (mkDiscSpec 2) (mkDiscSpec 3)) True)
+!(assertEqual (discSpec< (mkDiscSpec 3) (mkDiscSpec 2)) False)
 
 ; Test for nodeId<
 !(assertEqual (nodeId< (mkNodeId (2 1)) (mkNodeId (2 1 1))) True)

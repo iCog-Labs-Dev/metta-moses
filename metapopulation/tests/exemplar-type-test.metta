@@ -1,4 +1,3 @@
-; ! (register-module! ../../../metta-moses)
 !(import! &self ../../../metta-moses/utilities/ordered-set)
 !(import! &self ../../../metta-moses/metapopulation/exemplar-type)
 

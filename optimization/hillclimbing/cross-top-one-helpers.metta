@@ -37,7 +37,7 @@
 ;  (: merger (-> Expression Instance Instance Expression))
  (= (merger $targetInstances $baseInst $referenceInst)
      (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
-        (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) (worstCscore))))))
+        (let $mergedInstance (mergeInstance $targetInst $baseInst $referenceInst) (mkSInst (mkPair $mergedInstance (worstCscore)))))))
 
 ;; similar to the above 'merger' but with slight modification on the initial score to be 0 in case of feature selection
 ; (: mergerFs (-> Expression Instance Instance Expression))

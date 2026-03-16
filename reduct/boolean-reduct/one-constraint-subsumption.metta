@@ -41,14 +41,14 @@
                 (AND
                   (let*
                     (
-                      ($guardSet (eval (getGuardSet $current)))
+                      ($guardSet (getGuardSet $current))
                       ($common (collapse (intersection (superpose $guardSet) (superpose $commandSet))))
                     )
                     (if (== $common ())
                         ;; (trace! (Parent: $parent : Current : $current)
                                 ($parent $current False)
                         ;; )
-                        ((eval (removeElement ($current) $parent)) () True)) ;; remove current from parent.
+                        ((removeElement ($current) $parent) () True)) ;; remove current from parent.
                   )
                 )
                 ($else ($parent $current False))

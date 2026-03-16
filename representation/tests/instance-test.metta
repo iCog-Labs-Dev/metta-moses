@@ -1,9 +1,8 @@
-
-!(import! &self ../instance)
 !(import! &self ../../utilities/general-helpers)
-!(import! &self ../../utilities/pair)
 !(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/pair)
 !(import! &self ../../scoring/cscore)
+!(import! &self ../instance)
 
 ;; --- Tests for conversion helpers ---
 
@@ -62,10 +61,10 @@
                                             (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 3 Nil)) (mkCscore -0.4 1 0.1 0.1 -0.6)))
                                                             (Cons (mkSInst (mkPair (mkInst (Cons 4 Nil)) (mkCscore -0.1 2 0.2 0.3 -0.6))) Nil))))                                              
 
-;; Test instance>= comparator
-!(assertEqual (instance>= (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 3 1.0 0.5 -3.5))) (mkSInst (mkPair (mkInst Nil) (mkCscore -3.0 2 1.0 0.5 -4.5)))) True)
-!(assertEqual (instance>= (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 2 1.0 0.5 -3.5))) (mkSInst (mkPair (mkInst Nil) (mkCscore -1.0 4 1.0 0.5 -2.5)))) False)
-!(assertEqual (instance>= (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 2 1.0 0.5 -3.5)))
+;; Test instance> comparator
+!(assertEqual (instance> (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 3 1.0 0.5 -3.5))) (mkSInst (mkPair (mkInst Nil) (mkCscore -3.0 2 1.0 0.5 -4.5)))) True)
+!(assertEqual (instance> (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 2 1.0 0.5 -3.5))) (mkSInst (mkPair (mkInst Nil) (mkCscore -1.0 4 1.0 0.5 -2.5)))) False)
+!(assertEqual (instance> (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 2 1.0 0.5 -3.5)))
                         (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 3 2.0 0.5 -4.5) ))) True) 
 
 !(assertEqual 

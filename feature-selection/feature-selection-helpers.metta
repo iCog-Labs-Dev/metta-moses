@@ -12,27 +12,27 @@
 ;; this one is assuming the list of values have been returned contains the row information. 
 ; (: List.uniqueValuesCount (-> (List $a) Expression))
 (= (List.uniqueValuesCount $list $acc)
-    (eval (unify $list Nil $acc
+    (unify $list Nil $acc
             (if (= $list (Cons $x $xs))
             (if (patternExists ($x $c) $acc)
-                (chain (eval (updateCount $x $acc)) $count-updated
+                (chain (updateCount $x $acc) $count-updated
                     (List.uniqueValuesCount $xs $count-updated))
                 (chain (union-atom $acc (($x 1))) $new-tuple-added
-                    (List.uniqueValuesCount $xs $new-tuple-added))) (Error $list UnrecognizedFormat)))))
+                    (List.uniqueValuesCount $xs $new-tuple-added))) (Error $list UnrecognizedFormat))))
 
 ; (: Table.getColumn (-> Number (List (List $a)) (List $a)))
 (= (Table.getColumn $i $rows)
-    (eval (unify $rows Nil Nil
+    (unify $rows Nil Nil
        (if (= $rows (Cons $row $rest))
-            (Cons (List.at $i $row) (Table.getColumn $i $rest)) ()))))
+            (Cons (List.at $i $row) (Table.getColumn $i $rest)) ())))
 ; ;; Table.pop        -- gets and removes a column from the current ttable structure
 ; ;;                  -- returns the remaining table and the culumn asked for
 (= (Table.pop $i $rows)
-    (eval (unify $rows Nil Nil
-        (eval (if (= $rows (Cons (Cons $d $ds) $rest))  ;; $d and $ds for data and rest of data
+    (unify $rows Nil Nil
+        (if (= $rows (Cons (Cons $d $ds) $rest))  ;; $d and $ds for data and rest of data
                 (if (== $i 0)
                     (Cons $ds (Table.pop $i $rest))
-                    (Cons (Cons $d (eval (List.pop (- $i 1) $ds))) (Table.pop $i $rest))) ())))))
+                    (Cons (Cons $d (List.pop (- $i 1) $ds)) (Table.pop $i $rest))) ())))
 ; ;; removes the first column from table
 ; (: Table.pop (-> (List (List $a)) (List (List $a))))
 ; (= (Table.pop $rows)
@@ -43,7 +43,7 @@
 ;; returns the last column of the table
 ; (: Table.getOutputColumn (-> ITable (List $a)))
 (= (Table.getOutputColumn (mkITable $table $labels))
-    (chain (eval (List.length $labels)) $colNum 
+    (chain (List.length $labels) $colNum 
     (chain (Table.getColumn (- $colNum 1) $table) $oc   
     $oc  ))
 )
@@ -53,10 +53,10 @@
 ;;;;;;;;;;;;;;
 ; (: Table._transposeHelper (-> (List Number) (List (List $a)) (List (List $a))))
 (= (Table._transposeHelper $indices $table)
-    (eval (unify $indices Nil Nil
+    (unify $indices Nil Nil
         (if (= $indices (Cons $i $rest))
-            (Cons (eval (Table.getColumn $i $table))
-                    (Table._transposeHelper $rest $table)) ()))))
+            (Cons (Table.getColumn $i $table)
+                    (Table._transposeHelper $rest $table)) ())))
 
 ; (: Table.transpose (-> (List (List $a)) (List (List $a))))
 (= (Table.transpose $table)
@@ -83,13 +83,13 @@
 ; (: patternExists (-> Expression Expression Bool))
 (= (patternExists $pat $collection)
     (let $a (collapse (chain (superpose $collection) $s
-        (eval (if (= $s $pat) True False)))) (foldl or $a False)))        
+        (if (= $s $pat) True False))) (foldl or $a False)))        
         
 ;; replace value and count pair in collection with one higher count pair        
 ; (: updateCount (-> Expression Expression Expression))
 (= (updateCount $val $collection)
     (collapse (chain (superpose $collection) $s 
-                (eval (if (= $s ($val $count)) ($val (+ 1 $count)) $s))))) 
+                (if (= $s ($val $count)) ($val (+ 1 $count)) $s)))) 
 
 ;; sorting pairs 
 ;; $op -- comparator $pairTuple -- tuple of pairs
@@ -126,19 +126,37 @@
 ;; $list -- tuple of item value-label pairs 
 ;; XXX : make sure to use strict comparators > as the comparator
 ; (: insertPair (-> (-> ($a $b) ($a $b) Bool) ($a $b) Expression Expression))
-(= (insertPair $op ($mi $new-i) $list)
+(= (insertPair $op ($mi $new-i) $list) (insertPair $op <= ($mi $new-i) $list))
+(= (insertPair $op $lexOp ($mi $new-i) $list)
     (if (== $list ())
         (($mi $new-i))
         (let ($h $t) (decons-atom $list)
-            (eval (if (= ($mi-old $i) $h)
+            (if (= ($mi-old $i) $h)
                     (if ($op $mi $mi-old)
                         (cons-atom ($mi $new-i) $list)
                         (if (== $mi $mi-old)
-                            (if (<= $new-i $i)                          ;; tie breaker -- index value -- lower index values come first -- keeping the normal order
+                            (if ($lexOp $new-i $i)                         ;; tie breaker -- index value -- lower index values come first -- keeping the normal order
                                 (cons-atom ($mi $new-i) $list)
-                                (chain (insertPair $op ($mi $new-i) $t) $res (cons-atom $h $res)))
-                            (chain (insertPair $op ($mi $new-i) $t) $res (cons-atom $h $res))))
-                        ())))))
+                                (chain (insertPair $op $lexOp ($mi $new-i) $t) $res (cons-atom $h $res)))
+                            (chain (insertPair $op $lexOp ($mi $new-i) $t) $res (cons-atom $h $res))
+                            )
+                        )
+                        ()))))
+
+;; Strict feature set comparing function using lexicographic ordering that has randomness in it.
+;; $seed: Random number used as a seed comparator generated by the caller function
+;; $fs1:  Feature Set we want to compare. E.g. (1 0)
+;; $fs2:  Feature Set we want to compare. E.g. (3 1)
+(= (featureSet< $seed $fs1 $fs2)
+   (let*
+     (
+      ($i1 (car-atom $fs1))
+      ($o1 (py-call (operator.xor $i1 $seed)))
+
+      ($i2 (car-atom $fs2))
+      ($o2 (py-call (operator.xor $i2 $seed)))
+     )
+     (< $o1 $o2)))
 
 ;; find maximum of two pairs
 ;; XXX notice the use of => for comparison -- as per current mettlog interpreter implementation
@@ -160,7 +178,7 @@
             (if (= $scoreLabelTuple ())
                 $acc
                 (let* ((($h $t) (decons-atom $scoreLabelTuple))
-                        ($rndFloat (random-float 0 1)))
+                        ($rndFloat (py-call (random.random)))) ;; This was (random-float 0 1)
 
                         (if (< $rndFloat $xn)
                             (chain (union-atom $acc ($h)) $new-acc
@@ -175,7 +193,7 @@
     (if (or (== $n 0) (== $expr ()))
         ()
         (let* ((($h $t) (decons-atom $expr))
-                ($res (takeN (eval (- $n 1)) $t)))
+                ($res (takeN (- $n 1) $t)))
             
                 (cons-atom $h $res)))) 
                 
@@ -187,15 +205,15 @@
 ;;          $of             --  out feature list as (Cons ..)
 ; (: mutualInformation (-> (List $a) (List $a) Number))
 (= (mutualInformation $if $of)
-    (chain (eval (List.zip $if $of)) $io-zip
+    (chain (List.zip $if $of) $io-zip
     (chain (List.uniqueValuesCount $io-zip ()) $io-c
-    (chain (eval (List.length $if)) $rowNum
+    (chain (List.length $if) $rowNum
     (chain (List.uniqueValuesCount $if ()) $ic         ;; input feature unique values count pairs
     (chain (List.uniqueValuesCount $of ()) $oc 
     (chain (marginalProbs $rowNum $io-c) $io-p          ;; input output mutual probs
     (chain (collapse (chain (superpose $io-p) $io-prob-pair    ;; ((inout output)  prob) piar -- single -- superposed
         (if (= $io-prob-pair ($pair $prob))
-                (let* (($temp (/ $prob (* (/ (eval (getCount $ic (first-from-pair $pair))) $rowNum) (/ (eval (getCount $oc (second-from-pair $pair))) $rowNum))))
+                (let* (($temp (/ $prob (* (/ (getCount $ic (first-from-pair $pair)) $rowNum) (/ (getCount $oc (second-from-pair $pair)) $rowNum))))
                         ($log (log-math 2 $temp)))
                         
                         (* $prob $log))
@@ -206,23 +224,23 @@
 (= (zipColumn $indices $datarows)
     (if (== $indices ())
         Nil
-        (eval (unify $datarows Nil Nil
-            (eval (if (= $datarows (Cons $row $rows))
-                (chain (map-atom $indices $i (eval (List.at $i $row))) $dataTuple
+        (unify $datarows Nil Nil
+            (if (= $datarows (Cons $row $rows))
+                (chain (map-atom $indices $i (List.at $i $row)) $dataTuple
                     (Cons $dataTuple (zipColumn $indices $rows)))
-                ()))))))
+                ()))))
 
 ;; return marginal probabilities as tuple (p1 p2)
 ; (: marginalProbs (-> Number Expression Expression))
 (= (marginalProbs $len $countTuple)                         ;; depending on how the above goes most of the code for calculating frequencies could be included in this function
-    (collapse (chain (superpose $countTuple) $pair (eval (if (= $pair ($val $count)) ($val (/ $count $len)) ()))))) 
+    (collapse (chain (superpose $countTuple) $pair (if (= $pair ($val $count)) ($val (/ $count $len)) ())))) 
 
 ;; return the value associated with a value in a tuple of pairs
 ;; as in ((True 0.6) (False 0.4)) -- if one wants to get value associated with True
 ; (: getCount (-> Expression $a Number))
 (= (getCount $tuples $cue)
     (chain (superpose $tuples) $pair
-        (eval (if (= $pair ($cue $prob)) $prob (empty)))))
+        (if (= $pair ($cue $prob)) $prob (empty))))
 
 ;; check for equality of expressions -- to make up for ordering issues     
 ; (: isEqual (-> $a $b Bool))
@@ -297,12 +315,12 @@
     (if (= $countTuple ())
         $sum
         (let ($h $t) (decons-atom $countTuple) 
-                (eval (if (= $h ($item $count))
+                (if (= $h ($item $count))
                         (chain (/ $count $totalCount) $p-i                                          ;; need a condition to skip calculation of log of 0 values
-                            (chain (if (== $p-i 0) $p-i (round (eval (log-math 2 $p-i)) 2)) $log-val    ;; might need to find new ways of calculating rounded values without python binding
+                            (chain (if (== $p-i 0) $p-i (round (log-math 2 $p-i) 2)) $log-val    ;; might need to find new ways of calculating rounded values without python binding
                                 (chain (* $p-i $log-val) $product
                                     (entropy $t $totalCount (- $sum $product))))) 
-                        ())))))
+                        ()))))
 
 ;; filterTable -- filters table by removing features in $ft-to-remove
 
@@ -319,21 +337,21 @@
         (mkITable $table $labels)
         (let* ((($h $t) (decons-atom $ft-to-remove))
                 ($filtered-data (Table.pop $h $table))
-                ($filtered-label (eval (List.pop $h $labels))))
+                ($filtered-label (List.pop $h $labels)))
         
         (filterTable (map-atom $t $x (- $x 1)) (mkITable $filtered-data $filtered-label)))))        
 
 ; (: getInputLabels (-> (List Symbol) Expression))
 (= (getInputLabels $labels)
-    (let $res (inputLables $labels) (eval (List.foldl cons-atom () $res))))
+    (let $res (inputLables $labels) (List.foldl cons-atom () $res)))
 
 ; (: inputLables (-> (List Symbol) (List Symbol)))    
 (= (inputLables $labels)
-    (eval (unify $labels Nil (Error $labels NoLabelsSpecified)
-        (eval (if (= $labels (Cons $a $as))
+    (unify $labels Nil (Error $labels NoLabelsSpecified)
+        (if (= $labels (Cons $a $as))
                 (if (== $as Nil)
                     Nil
-                    (let $r (inputLables $as) (Cons $a $r))) (Error $labels UnrecognizedFormat))))))
+                    (let $r (inputLables $as) (Cons $a $r))) (Error $labels UnrecognizedFormat))))
 
 ; (: fsToNames (-> (List Symbol) Expression Expression))
 (= (fsToNames $labels $ft-indices)
@@ -348,9 +366,9 @@
 ;;                  $original-labels    -- original table labels
 (= (readjustIndices $ft-set-pop $filtered-labels $original-labels)
     (map-atom $ft-set-pop $ft-set
-                            (let* ((($score $indices) ((eval (first $ft-set)) (eval (second $ft-set))))
+                            (let* ((($score $indices) ((first $ft-set) (second $ft-set)))
                                     ($shifted-labels (map-atom $indices $index (List.at $index $filtered-labels)))
-                                    ($adjusted-indices (map-atom $shifted-labels $label (eval (List.index $original-labels $label)))))
+                                    ($adjusted-indices (map-atom $shifted-labels $label (List.index $original-labels $label))))
                                     
                                         ($score $adjusted-indices))))        
 
@@ -399,7 +417,7 @@
                 )
               ($filteredNew (set $new ()))
               ($res  (if (not $exact)
-                        (eval (union-atom-set $filteredNew $ps))
+                        (union-atom-set $filteredNew $ps)
                         $filteredNew
                     )
               )

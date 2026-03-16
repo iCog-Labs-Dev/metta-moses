@@ -125,7 +125,7 @@
 ;;    with a new one from a list of atoms.
 ;; INFO: This function needs to change so that it can preserve the
 ;;        operator's position when MeTTa version is upgraded.
-(= (findAndReplace $old $new $list) ;; FIX: No longer working on version 0.2.3
+(= (findAndReplace $old $new $list)
     ; (let*
     ;   (
     ;     ($log (println! ""))
@@ -744,7 +744,7 @@
     (if (< $u $l)
         ()
         (let $res (genList $l (- $u 1))
-            (cons-atom $u $res) )))
+            (union-atom $res ($u)))))
 
 ;; swap AND , OR 
 ; (: swapAndOr (-> Atom Atom))
@@ -866,11 +866,11 @@
 ;; ============================================================
 
 ;; Generic comparison via key-projection and comparators
-(= (apply >= $x $y)
+(= (apply > $x $y)
    (case ((key-of $x) (key-of $y))
      (
-       (((KPair $a1 $b1) (KPair $a2 $b2)) (or (> $a1 $a2) (and (== $a1 $a2) (>= $b1 $b2))))
-       (((KScalar $kx) (KScalar $ky)) (>= $kx $ky))
+       (((KPair $a1 $b1) (KPair $a2 $b2)) (or (> $a1 $a2) (and (== $a1 $a2) (> $b1 $b2))))
+       (((KScalar $kx) (KScalar $ky)) (> $kx $ky))
      )))
 
 (= (apply < $x $y)
@@ -1293,23 +1293,15 @@
 
 ;; replicates MeTTaLog's union-atom builtin function, i.e., keeps one copy of items present in both lists
 (= (union-atom-set $a $b)
-   (if (= $b ())
-        $a
-        (let $b-new 
-            (collapse 
-                (let $bs (superpose $b) 
-                                    (if (is-member $bs $a)
-                                        (empty)
-                                        $bs))) 
-            (union-atom $a $b-new))))
+   (let $u (union-atom $a $b) (list_to_set $u)))
 
 ; Returns a random integer (0, 1, or 2) biased toward 0.
 ; ~50% chance to return 0, otherwise randomly 1 or 2.
 ;; (: biasedRandomInt (-> Number))
 (= (biasedRandomInt)
-   (if (== (random-int 0 1) 0)  ; 50% chance
+   (if (== (py-call (random.randint 0 1)) 0)  ; 50% chance
        0
-       (random-int 1 2)))      ; 1 or 2
+       (py-call (random.randint 1 2))))      ; 1 or 2
 
 ; Custom implementation of the ceiling function
 ; Param: $num – the input number (may be fractional)

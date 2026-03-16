@@ -9,15 +9,14 @@
 ;; Returns:
 ;;   $listOfScoredInst: the final list containing scoredInstances
 ; (: applyComplexityBasedScore (-> Representation (List Instance) (ITable $a) Number (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
-(= (applyComplexityBasedScore $rep Nil $itable $complexityRatio $listOfScoredInst) $listOfScoredInst)
-(= (applyComplexityBasedScore $rep (Cons $i $is) $itable $complexityRatio $listOfScoredInst)
+(= (applyComplexityBasedScore $rep Nil $itable $complexityRatio) Nil)
+(= (applyComplexityBasedScore $rep (Cons $i $is) $itable $complexityRatio)
 (let*
 (
-    ($score (eval (complexityBasedScorer $rep $i $itable $complexityRatio)))
+    ($score (complexityBasedScorer $rep $i $itable $complexityRatio))
     ($scoredInst (mkSInst (mkPair $i $score)))
-    ($uListofScoredInst (Cons $scoredInst $listOfScoredInst))
 )
-(applyComplexityBasedScore $rep $is $itable $complexityRatio $uListofScoredInst)))
+(Cons $scoredInst (applyComplexityBasedScore $rep $is $itable $complexityRatio))))
 
 ;; Scores each instance in an InstanceSet. 
 ;; Params:
@@ -31,8 +30,8 @@
 (= (transform (mkSInstSet $scoredInstList) $rep $itable $complexityRatio)
 (let*
 (
-    ($instList (eval (List.map removeInstScore $scoredInstList)))
-    ($cbsInstList (applyComplexityBasedScore $rep $instList $itable $complexityRatio Nil))
+    ($instList (List.map removeInstScore $scoredInstList))
+    ($cbsInstList (applyComplexityBasedScore $rep $instList $itable $complexityRatio))
 )
 (mkSInstSet $cbsInstList)))  
 
@@ -67,13 +66,13 @@
 (= (applyMutualInformationBasedScore (Cons (mkInst $i) $is) (mkITable $rows $labels) $miConf $listOfScoredInst)
 (let*
 (
-    ($targetColumn (eval (Table.getOutputColumn (mkITable $rows $labels))))
+    ($targetColumn (Table.getOutputColumn (mkITable $rows $labels)))
     ($indices (bitsToIndices $i 0 ()))
-    ($zippedCols (eval (zipColumn $indices $rows)))
-    ($score (eval (mutualInformation $zippedCols $targetColumn)))
+    ($zippedCols (zipColumn $indices $rows))
+    ($score (mutualInformation $zippedCols $targetColumn))
     
     ; in the c++ it also calculates the confidence too
-    ($confidence (eval (calculateConfidence (size-atom $indices) (List.length $rows) $miConf)))
+    ($confidence (calculateConfidence (size-atom $indices) (List.length $rows) $miConf))
     ($scoreConfi (* $score $confidence))
     ($scoredInst (mkSInst (mkPair (mkInst $i) $scoreConfi)))
     ($uListofScoredInst (Cons $scoredInst $listOfScoredInst))
@@ -92,7 +91,7 @@
 (let*
 (
     ;; ($_ (println! "inside transformFs"))
-    ($instList (eval (List.map removeInstScore $scoredInstList)))
+    ($instList (List.map removeInstScore $scoredInstList))
 
     ;;**done call featureSetScorer
     ($cbsInstList (featureSetScorer $itable $scorerType $miConf  $prePenalty $preMinActivation $preMaxActivation $prePositive $instList))
@@ -122,7 +121,7 @@
            ;; Convert bits to feature indices
            ($featureIndices (bitsToIndices $bits 0 ()))
            ;; Score this feature set using precision scorer
-           ($score (eval (preScorer $featureIndices $itable $prePenalty $preMinActivation $preMaxActivation $prePositive $confi)))
+           ($score (preScorer $featureIndices $itable $prePenalty $preMinActivation $preMaxActivation $prePositive $confi))
            ;; Create scored instance
            ($scoredInst (mkSInst (mkPair (mkInst $bits) $score)))
            ($newAcc (Cons $scoredInst $acc))

@@ -1,57 +1,13 @@
-!(import! &self ../../representation/lsk)
-!(import! &self ../../representation/instance)
-!(import! &self ../../representation/build-knobs)
-!(import! &self ../../representation/knob-mapper)
-!(import! &self ../../representation/logical-probe)
-!(import! &self ../../representation/build-logical)
-!(import! &self ../../representation/representation)
-!(import! &self ../../representation/add-logical-knobs)
-!(import! &self ../../representation/knob-representation)
-!(import! &self ../../representation/sample-logical-perms)
-!(import! &self ../../representation/create-representation)
-!(import! &self ../../utilities/map)
-!(import! &self ../../utilities/tree)
-!(import! &self ../../utilities/pair)
-!(import! &self ../../utilities/nodeId)
-!(import! &self ../../utilities/list-methods)
-; !(import! &self ../../utilities/python-helpers)
-; !(import! &self ../../utilities/python-treehelpers)
 !(import! &self ../../utilities/general-helpers)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/pair)
+!(import! &self ../../utilities/map)
 !(import! &self ../../utilities/ordered-multimap)
-!(import! &self ../../utilities/ordered-multiset)
 !(import! &self ../../utilities/ordered-set)
+!(import! &self ../../utilities/ordered-multiset)
+!(import! &self ../../utilities/nodeId)
 !(import! &self ../../utilities/lazy-random-selector)
 !(import! &self ../../utilities/lru-cache)
-!(import! &self ../score-deme)
-!(import! &self ../create-deme)
-!(import! &self ../deme-id-creation)
-!(import! &self ../expand-deme)
-!(import! &self ../merge-demes)
-
-!(import! &self ../../scoring/cscore)
-!(import! &self ../../scoring/bscore)
-!(import! &self ../../scoring/fitness)
-!(import! &self ../../scoring/complexity-based-scorer)
-!(import! &self ../../scoring/cacheSpace)
-
-!(import! &self ../../moses/neighborhood-sampling)
-!(import! &self ../../optimization/hillclimbing/cross-top-one)
-!(import! &self ../../optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
-
-!(import! &self ../../metapopulation/exemplar-type)
-!(import! &self ../../metapopulation/exemplar-selection)
-!(import! &self ../../metapopulation/metapopulation)
-
-!(import! &self ../../feature-selection/feature-selection-helpers)
-!(import! &self ../../feature-selection/feature-selection-main)
-!(import! &self ../../feature-selection/select-top-features)
-!(import! &self ../../feature-selection/similarity-scorers)
-!(import! &self ../../feature-selection/simple)
-!(import! &self ../../feature-selection/smd)
-!(import! &self ../../feature-selection/incremental)
-!(import! &self ../../feature-selection/hc)
-!(import! &self ../../feature-selection/random-feature-selection)
 
 !(import! &self ../../reduct/boolean-reduct/rte-helpers)
 !(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
@@ -64,11 +20,55 @@
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 
-; (= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
+!(import! &self ../../utilities/tree)
 
-; (= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
-; (= (INSERT_ABOVE $tree $nodeId $subtree) (py_insertAbove  $tree $nodeId $subtree))
-; (= (pyExprToList $expr) (py_exprToList $expr))
+!(import! &self ../../feature-selection/feature-selection-helpers)
+!(import! &self ../../feature-selection/select-top-features)
+!(import! &self ../../feature-selection/similarity-scorers)
+!(import! &self ../../feature-selection/simple)
+!(import! &self ../../feature-selection/smd)
+!(import! &self ../../feature-selection/incremental)
+!(import! &self ../../feature-selection/hc)
+!(import! &self ../../feature-selection/random-feature-selection)
+!(import! &self ../../feature-selection/feature-selection-main)
+
+!(import! &self ../../representation/knob-representation)
+!(import! &self ../../representation/lsk)
+!(import! &self ../../representation/logical-probe)
+!(import! &self ../../representation/logical-canonize)
+!(import! &self ../../representation/sample-logical-perms)
+!(import! &self ../../representation/add-logical-knobs)
+!(import! &self ../../representation/build-logical)
+!(import! &self ../../representation/build-knobs)
+!(import! &self ../../representation/knob-mapper)
+
+!(import! &self ../../representation/representation)
+!(import! &self ../../representation/create-representation)
+
+!(import! &self ../../scoring/cacheSpace)
+!(import! &self ../../scoring/fitness)
+!(import! &self ../../scoring/bscore)
+!(import! &self ../../scoring/cscore)
+!(import! &self ../../scoring/complexity-based-scorer)
+
+!(import! &self ../../optimization/hillclimbing/cross-top-one-helpers)
+!(import! &self ../../optimization/hillclimbing/cross-top-one)
+!(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
+
+!(import! &self ../create-deme)
+
+!(import! &self ../../moses/neighborhood-sampling)
+
+!(import! &self ../../metapopulation/exemplar-type)
+!(import! &self ../../metapopulation/exemplar-selection)
+!(import! &self ../../metapopulation/metapopulation)
+
+!(import! &self ../../representation/instance)
+
+!(import! &self ../deme-id-creation)
+!(import! &self ../score-deme)
+!(import! &self ../merge-demes)
+!(import! &self ../expand-deme)
 
 (= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
 (= (table1) (eval (createTruthTableBScore 2 (mkITable
@@ -161,7 +161,7 @@
 ; (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (eval (worstCscore))))
 
-; Testcase for optimizeDemes               
+;; Testcase for optimizeDemes               
 !(assertEqual 
 (let* 
 (
@@ -309,13 +309,6 @@
 ;     5 2 0 1 
 ;     (bigtable) 
 ;     3 0.004 1000)
-
-(= (mapG $f NilOS) NilOS)
-(= (mapG $f Nil) Nil)
-(= (mapG $f ($ctor $x $xs)) ($ctor ($f $x) (mapG $f $xs)))
-
-(= (printExemplar (mkExemplar $tree $demeId $cscore $bscore)) (println! (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore)))
-(= (cleanedExemplar (mkExemplar $tree $demeId $cscore $bscore)) (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore))
 
 ;; Parameters:
   ;; $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme

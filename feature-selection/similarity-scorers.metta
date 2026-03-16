@@ -8,7 +8,7 @@
     (if (< $div-interaction 0)
             (mutualInformationBtwSets $set1 $set2 (mkITable $table $labels))
             (let* (($sss (+ $div-interaction 1))
-                    (($ps1 $ps2) (map-atom ($set1 $set2) $set (eval (powerSet $set $sss True))))        ;; powersets of the two feature sets
+                    (($ps1 $ps2) (map-atom ($set1 $set2) $set (powerSet $set $sss True)))        ;; powersets of the two feature sets
                     (($ps1-size $ps2-size) ((size-atom $ps1) (size-atom $ps2)))                         ;; size of the power sets
                     ($all-comb-mi (map-atom $ps1 $ps-a (map-atom $ps2 $ps-b (mutualInformationBtwSets $ps-a $ps-b (mkITable $table $labels)))))                  ;; calculation of mutual information between all features sets in the powersets -- all combinations XXX -- i think the labels are not needed in the calculation
                     ($inner-sum (map-atom $all-comb-mi $mi (foldl + $mi 0)))                            ;; folding the resulting tuple of tuples of MI values into one tuple
@@ -19,10 +19,10 @@
 ;; mutualInformationBtwSets  -- calculates the MI between feature sets by using entropy values        
 (= (mutualInformationBtwSets $set1 $set2 (mkITable $table $labels))
     (let* (($union (union-atom $set1 $set2))
-            ($len (eval (List.length $table)))                                                                                   ;; total number of rows
-            (($set1-zip $set2-zip $union-zip) (map-atom ($set1 $set2 $union) $set (eval (zipColumn $set $table)))) 
-            (($zip1-count $zip2-count $union-count) (map-atom ($set1-zip $set2-zip $union-zip) $zip (eval (List.uniqueValuesCount $zip ()))))
-            (($e1 $e2 $eu) (map-atom ($zip1-count $zip2-count $union-count) $count (eval (entropy $count $len 0)))))
+            ($len (List.length $table))                                                                                   ;; total number of rows
+            (($set1-zip $set2-zip $union-zip) (map-atom ($set1 $set2 $union) $set (zipColumn $set $table))) 
+            (($zip1-count $zip2-count $union-count) (map-atom ($set1-zip $set2-zip $union-zip) $zip (List.uniqueValuesCount $zip ())))
+            (($e1 $e2 $eu) (map-atom ($zip1-count $zip2-count $union-count) $count (entropy $count $len 0))))
 
             (- (+ $e1 $e2) $eu)))
 
@@ -30,5 +30,5 @@
 ; (: jaccardIndex (-> Expression Expression Number))
 (= (jaccardIndex $s1 $s2)
 	(let* (($comm (intersection-atom $s1 $s2))
-			($uni (eval (union-atom-set $s1 $s2))))
+			($uni (union-atom-set $s1 $s2)))
 		(/ (size-atom $comm) (size-atom $uni)))) 
