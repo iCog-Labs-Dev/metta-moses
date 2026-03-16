@@ -10,6 +10,7 @@
 !(import! &self ../../../representation/knob-representation)
 !(import! &self ../../../representation/lsk)
 !(import! &self ../../../representation/logical-probe) 
+!(import! &self ../../../representation/logical-canonize)
 !(import! &self ../../../representation/sample-logical-perms)
 !(import! &self ../../../representation/add-logical-knobs)
 !(import! &self ../../../representation/build-logical)
@@ -119,7 +120,7 @@
 !(assertEqual (estimateNeighborhood 2 (knobmap1)) 12)
 !(assertEqual (estimateNeighborhood 2 (knobmap2)) 10)
 
-; Testcase for estimateNeighborhoodFs
+;; Testcase for estimateNeighborhoodFs
 !(assertEqual
   (estimateNeighborhoodFs 3 (Cons A (Cons B (Cons O Nil)))) 4)
 
@@ -206,7 +207,7 @@
        ($scoredElems (List.map isScored $instSet))
      )
      ((>= $instanceCount 4) (List.any $scoredElems)))
-   (True True))
+(True True))
 
 !(assertEqual
    (let*

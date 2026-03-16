@@ -12,5 +12,6 @@
   ],
   "outdir": "demo-problems-test",
   "keep": true,
-  "log_json": true
+  "log_json": true,
+  "timeout": 0
 }

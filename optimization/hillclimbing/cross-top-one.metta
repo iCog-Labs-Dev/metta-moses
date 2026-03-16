@@ -18,7 +18,7 @@
                     ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
                     ;; ($_ (println! (SampleSize: $sampleSize NToMake: $nToMakeNew SampleStart: $sampleStart totalSize: (List.length $instSet))))
                     (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
-                    ($list (List.partialSort instance>= $newInst $nToMakeNew Nil)) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
+                    ($list (List.partialSort instance> $newInst $nToMakeNew Nil)) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
                     ;; ($_ (println! (ListLength: (List.length $list))))
                   )
                   (if (== $list Nil)
@@ -38,7 +38,7 @@
                           ;; ($_ (println! ""))
                           ;; ($_ (println! (PrevInst: $prevInst)))
                         )
-                        (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet (List.appendList (exprToList $newInstances) $newInst)) $demeId)))))
+                        (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet (List.appendList (exprToList $newInstances) $instSet)) $demeId)))))
 
 ;; similar to the above 'crossTopOne' but with slight changes on the comparison function that is passed to the Lost.partialSort to compare the mutualInformation based scores
 ; (: crossTopOneFs (-> (InstanceSet $a) Number Number Number Instance (InstanceSet $a)))

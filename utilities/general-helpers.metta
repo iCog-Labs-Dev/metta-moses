@@ -744,7 +744,7 @@
     (if (< $u $l)
         ()
         (let $res (genList $l (- $u 1))
-            (cons-atom $u $res) )))
+            (union-atom $res ($u)))))
 
 ;; swap AND , OR 
 ; (: swapAndOr (-> Atom Atom))
@@ -866,11 +866,11 @@
 ;; ============================================================
 
 ;; Generic comparison via key-projection and comparators
-(= (apply >= $x $y)
+(= (apply > $x $y)
    (case ((key-of $x) (key-of $y))
      (
-       (((KPair $a1 $b1) (KPair $a2 $b2)) (or (> $a1 $a2) (and (== $a1 $a2) (>= $b1 $b2))))
-       (((KScalar $kx) (KScalar $ky)) (>= $kx $ky))
+       (((KPair $a1 $b1) (KPair $a2 $b2)) (or (> $a1 $a2) (and (== $a1 $a2) (> $b1 $b2))))
+       (((KScalar $kx) (KScalar $ky)) (> $kx $ky))
      )))
 
 (= (apply < $x $y)

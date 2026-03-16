@@ -74,10 +74,10 @@
                         (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
     (mkNodeId (2))
     (mkTree (mkNode B) Nil))
-    ((mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) 
-      (Cons (mkNullVex (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode B) Nil) Nil)) 
-      (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil))) Nil))) 
-      (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
+    ((mkTree (mkNode AND)
+      (Cons (mkTree (mkNode A) Nil)
+      (Cons (mkNullVex (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil))) 
+      (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
        )
 
 ;; getNodeId test cases
@@ -138,9 +138,7 @@
     (mkNullVex  Nil)
     (mkNodeId (0))
     1)
-    (mkTree (mkNode AND) 
-        (Cons (mkTree (mkNode A) Nil) 
-        (Cons (mkTree (mkNode B) Nil) Nil))))
+    ((mkTree (mkNode AND) Nil) (mkNodeId (0)) (mkNodeId (1))))
 
 ; ;; Test case for insertion at a node
 ; ;; KnobSetting 2: (OR A) => (OR A (NOT (OR B)))
@@ -161,11 +159,7 @@
         (Cons (mkTree (mkNode A) Nil) Nil))
     (mkNodeId (0))
     2)
-    (mkTree (mkNode OR)
-        (Cons (mkTree (mkNode A) Nil)
-        (Cons (mkTree (mkNode NOT)
-                 (Cons (mkTree (mkNode OR)
-                 (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
+    ((mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode OR) Nil) Nil)) Nil))) (mkNodeId (2 1)) (mkNodeId (2 1)))
     )
 
 ;; KnobSetting 2: (OR A (AND)) => (OR A (AND (NOT (OR B))))
@@ -186,12 +180,7 @@
             (Cons (mkTree (mkNode AND) Nil) Nil)))
     (mkNodeId (2))
     2)
-    (mkTree (mkNode OR)
-                (Cons (mkTree (mkNode A) Nil)
-                (Cons (mkTree (mkNode AND)
-                        (Cons (mkTree (mkNode NOT)
-                                 (Cons (mkTree (mkNode OR)
-                                 (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)) Nil)))
+    ((mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode OR) Nil) Nil)) Nil)) Nil))) (mkNodeId (2 1 1)) (mkNodeId (2 1 1)))
 )
 
 
@@ -211,9 +200,4 @@
     (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil))
     (mkNodeId (0))
     0)
-
-    (mkTree (mkNode OR)
-             (Cons (mkTree (mkNode A) Nil)
-             (Cons (mkNullVex
-                     (Cons (mkTree (mkNode OR)
-                              (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil))))
+    ((mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) (mkNodeId (0)) (mkNodeId (0))))

@@ -1,3 +1,15 @@
+(= (createInitialInstance $dscMp)
+   (let* (
+     ($knobs (MultiMap.values $dscMp))
+     ($defaults (List.map getKnobDefault $knobs))
+   )
+   $defaults))
+
+;; Extracts default specification from a knob
+; (: getKnobDefault (-> $knob Number))
+(= (getKnobDefault (mkLSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
+(= (getKnobDefault (mkSSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
+
 ;; Recursively optimizes each deme in a list using the provided optimizer function.
 ;; Params:
 ;;   (List Deme): The list of demes to optimize.
@@ -52,8 +64,10 @@
 (let*
 (
     ($lengthOfDscKbMp (Map.length $dscKbMp))
-    ($generatedList (List.generate $lengthOfDscKbMp 0))
+    ;; ($generatedList (List.generate $lengthOfDscKbMp 0))
+    ($generatedList (createInitialInstance $dscMp))
     ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
+    ;; ($_ (println! (Rep: (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree))))
     ;; ($_ (println! "Optimizing Deme"))
     (($inst $optimDeme $state) (optimizeDemes $deme $truthTableBScore (mkInst $generatedList) $optimize))
 )
@@ -82,6 +96,8 @@ $optimDeme
        ($_ (println! (Generation $maxGen)))
        ;; ($_ (println! "expand deme returnn"))
        ($optimizedDemes (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable mi))
+       (((mkDeme $rep $sInst $demeId)) $optimizedDemes)
+       ($_ (println! (OptimizedDeme: (List.length (second $sInst)))))
        ;; ($_ (println! "Merging Deme"))
        ($updatedMetaPop (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metaPop $nToKeep $capCoef (- $genCount $maxGen)))
        ;; ($_ (println! (Updated MetaPop: $updatedMetaPop)))
@@ -92,6 +108,7 @@ $optimDeme
        ($resultCandi (if (<= $maxCandOutput (OS.length $updatedMetaPop)) (OS.getTopN $maxCandOutput $updatedMetaPop) $updatedMetaPop))
        ;; ($_ (println! (Top: $topScore Max: $maxScore (cScore>= $topScore $maxScore))))
        ($_ (cut))
+       ($_ (println! ""))
       )
  (if (== $topScore $maxScore)
          $resultCandi 
@@ -105,3 +122,5 @@ $optimDeme
 
 (= (printExemplar (mkExemplar $tree $demeId $cscore $bscore)) (println! (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore)))
 (= (cleanedExemplar (mkExemplar $tree $demeId $cscore (mkBScore $bscore))) ((preOrder $tree) (List.sum $bscore)))
+
+(= (printInstance (mkInst $inst)) (println! (List.listToExpr $inst)))
