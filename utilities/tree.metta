@@ -273,7 +273,7 @@
 
 (= (isArgument (mkNullVex $x)) False)
 (= (isArgument (mkTree (mkNode $x) $children))
-   (and (not (is-member $x (AND OR NOT))) (== $children Nil)))
+   (and (not (is-member $x (AND OR NOT PRIORITIZED-OR))) (== $children Nil)))
 
 ;; A function to calculate the complexity of a tree.
 ;;  The complexity of a tree is the number of arguments it contains.

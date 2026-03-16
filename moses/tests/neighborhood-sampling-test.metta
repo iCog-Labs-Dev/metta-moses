@@ -132,22 +132,22 @@
 ; Function should returned two instances at the specified distance
 
 !(assertEqual
-     (let $returned (sampleFromNeighborhood 2 2 (knobMapObj) (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))))
+     (let $returned (sampleFromNeighborhood 2 2 (knobMapObj) (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))) (mkMultip 3))
        (List.map ((curry distance') (mkInst (Cons 1 (Cons 2 (Cons 0 Nil))))) $returned))
      (Cons 2 (Cons 2 Nil)))
 !(assertEqual
-     (let $returned (sampleFromNeighborhood 2 3 (knobMapObj) (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))))
+     (let $returned (sampleFromNeighborhood 2 3 (knobMapObj) (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))) (mkMultip 3))
        (List.map ((curry distance') (mkInst (Cons 1 (Cons 2 (Cons 0 Nil))))) $returned))
      (Cons 3 (Cons 3 Nil)))
 !(assertEqual
-     (let $returned (sampleFromNeighborhood 2 1 (knobMapObj) (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))))
+     (let $returned (sampleFromNeighborhood 2 1 (knobMapObj) (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))) (mkMultip 3))
        (List.map ((curry distance') (mkInst (Cons 1 (Cons 2 (Cons 0 Nil))))) $returned))
      (Cons 1 (Cons 1 Nil)))
 
 ;; Invalid (knobMapObj) or instance
 !(assertEqual
      (let $returned
-       (sampleFromNeighborhood 1 2 (knobMapObj) (mkInst Nil)) $returned)
+       (sampleFromNeighborhood 1 2 (knobMapObj) (mkInst Nil) (mkMultip 3)) $returned)
      (Cons (Error (3 0) "Not Equal") Nil))
 
 ;; Testcases for removeInstScore
@@ -213,12 +213,12 @@
 Nil)
 
 ; ; Testcase for sampleFromNeighborhood function when requested sample size is more than possible instances
-!(assertEqual (sampleFromNeighborhood 13 2 (knobMapObj) (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))))
+!(assertEqual (sampleFromNeighborhood 13 2 (knobMapObj) (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))) (mkMultip 3))
         (Error ("Cannot generate " 13 " instances at distance " 2 " from " (mkInst (Cons 1 (Cons 2 (Cons 0 Nil))))) (Requested sample size too large)))
 
 
 
 ;;testcase for isPossibleSize function
 ;; Formula: n! / ((n - d)! * d!) * (m-1)^d  (n = instance length, d = distance, m = knob multiplicity)
-!(assertEqual (isPossibleSize 13 2 (mkInst (Cons 1 (Cons 2 (Cons 0 Nil))))) False)
-!(assertEqual (isPossibleSize 10 2 (mkInst (Cons 1 (Cons 2 (Cons 0 Nil))))) True)
+!(assertEqual (isPossibleSize 13 2 (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))) (mkMultip 3)) False)
+!(assertEqual (isPossibleSize 10 2 (mkInst (Cons 1 (Cons 2 (Cons 0 Nil)))) (mkMultip 3)) True)

@@ -21,6 +21,23 @@
             (loopCreateDeme $demeIds $reps ())
       ) 
 )
+;; Game strategy createDeme - creates demes with empty instance sets for game strategies
+;;             $nDeme --      number of demes to create
+;;             $demeIds --    list of deme ids (Cons ...)
+;;             $exemplar --   the exemplar tree which the demes are going to be based on 
+;;             returns ↠ tuple of demes
+; (: createDeme (-> Number (List DemeId) (Tree $a) Expression))
+(= (createDeme $nDeme $demeIds $exemplar)
+      (let* 
+            (
+                  ($_ (println! "creating game representations ...."))
+                  ($reps (eval (createRepresentation $nDeme $exemplar)))
+                  ($_ (println! ("done making representations ..." $reps)))
+            )  
+            (loopCreateDeme $demeIds $reps ())
+      ) 
+)
+
 
 (= (loopCreateDeme $demeIds $reps $acc)
 (if (== $reps ()) 
