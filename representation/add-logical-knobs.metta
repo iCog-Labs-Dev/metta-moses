@@ -7,9 +7,6 @@
 ;;   $argLabels: list of argument labels (input variables) from the ITable
 ;; Return: a multimap of ($knobSpec $knob) and the updated tree
 
-;; All available game moves
-(= (getAllGameMoves) (playcenter playblock playwin playcorner playside))
-
 ;; helper function to the addLogicalKnobs
 ;; takes a tuple of knobs and return a tuple of knob and knobSpec pairs
 ;; (: pairKnobWithSpec (-> Expression Expression))
@@ -19,22 +16,20 @@
 ;; (: addLogicalKnobs (-> (Tree $a) NodeId Bool (MultiMap ($k $v)) Expression Expression))
 (= (addLogicalKnobs $exemplar $nodeId $addIfInExemplar $map $argLabels) 
 (let (mkTree (mkNode $op) $children) (eval (getNodeById $exemplar $nodeId))
-    (let* (
-        ;; Use complete game moves for strategy operators, argLabels for boolean operators
-        ($labels (if (== $op PRIORITIZED-OR) (getAllGameMoves) $argLabels))
-        ($lengthOfArgs (length $labels))
-        ;; Choose appropriate sampling function based on operator
-        ($perms (if (== $op PRIORITIZED-OR)
-                    (eval (sampleStrategyPerms $op $lengthOfArgs $labels))
-                    (eval (sampleLogicalPerms $op $lengthOfArgs $labels))))
-        ($treePerms (map-atom $perms $perm (buildTree $perm)))
-        ;; Use strategyProbe for PRIORITIZED-OR, logicalProbe for others
-        (($knobs $updatedTree) (if (== $op PRIORITIZED-OR)
-                                   (eval (strategyProbe $exemplar $nodeId $treePerms $addIfInExemplar ()))
-                                   (eval (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ()))))
-        ($pairs (eval (pairKnobWithSpec $knobs)))
-        ($mmp (eval (expToMMap $pairs $map discSpec<=)))
-        ($temp (cut))
+       (let  $lengthOfArgs (size-atom $argLabels)
+          (let  $perms (eval (sampleLogicalPerms $op $lengthOfArgs $argLabels))
+            (let  $treePerms (map-atom $perms $perm (buildTree $perm))
+              (let ($knobs $updatedTree) (eval (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ()))
+                (let  $pairs (eval (pairKnobWithSpec $knobs))
+                    (let $mmp (eval (expToMMap $pairs $map discSpec<=))
+                       (let $temp (cut)
+                         ($updatedTree $mmp)
+                       )
+                     )
+                )
+              )
+            )
+          )
+       )
     )
-    ($updatedTree $mmp)
-)))
+)

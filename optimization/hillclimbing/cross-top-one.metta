@@ -7,6 +7,7 @@
 
 ; (: crossTopOne (-> Deme Number Number Number Instance Deme))
 (= (crossTopOne $deme $nToMake $sampleStart $sampleSize $baseInstance)
+   ; (trace! (Inside crossTopOne: $nToMake $sampleStart $sampleSize) 
             (let* (
                     ((mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId) $deme)
                     ;; ($_ (println! (Inside crossTopOne)))

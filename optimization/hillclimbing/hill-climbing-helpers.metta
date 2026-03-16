@@ -122,6 +122,7 @@
        (mkSInst $inst2)
        (mkSInst $inst1)))
 
+
 (= (getDisk (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) $instSet $id))
     $disc
 )
@@ -191,22 +192,9 @@
               (50.0 1.0 0.5 1.0 True $FsScorerType)
               estimateNeighborhoodFs crossoverFs 
               sampleNewInstancesFs transformFs
-          )))
-      ((mkParams applyStrategyBasedScore)
-        (let*
-          (
-            ($disc (getDisk $POASet))
-            (($nGames $opponentPolicy $complexityRatio) $FsScorer)
-            ($targetPenScore (eval (getPenScore $tTableBscorer)))
-          )
-          (hillClimbing (3 3 $targetPenScore)
-                        (False False False $centerInst (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
-                        $POASet
-                        ($disc $nGames $opponentPolicy $complexityRatio)
-                        $centerInst
-                        ()
-                        estimateNeighborhood crossover
-                        sampleNewInstances transform))))))
+          ))))))
+
+
 
 (= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
                  ($alreadyXover $lastChance $__ $prevCenter $bestSscore $bestScore $currentNInstances $d $i)
@@ -226,6 +214,7 @@
         ;; ($_ (println! ""))
 
         ($nNewNeighbors (min $totalNNeighbors 2))
+
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
         ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
         ;; ($_ (println! (Crossover: $xOver)))
@@ -266,11 +255,7 @@
                                                               $miConfi $prePenalty
                                                               $preMinActivation $preMaxActivation
                                                               $prePositive $scorerType))
-                                          (case $iTable
-                                            (
-                                              ((mkITable $rows $labels) (eval ($transformFunction $updatedInstSet $rep (mkITable $rows $labels) $rowOCoeff)))
-                                              ($ComplexityRatio (eval ($transformFunction $updatedInstSet $rep ($rowOCoeff $size) $ComplexityRatio)))
-                                            ))))
+                                          (eval ($transformFunction $updatedInstSet $rep $iTable $rowOCoeff))))
 
         ($updatedDeme (if (or (== $rep ()) (== $id ())) 
                           (mkSInstSet $scoredInstances) 
@@ -310,6 +295,7 @@
         ;; ($_ (println! ""))
         ($_ (println! (cut)))
     )
+
     (if (<= $bestPossibleScore $scoreToCompareBelow)
           ;; (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow)
                   ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
@@ -349,13 +335,3 @@
     )          
 )
 
-;; Helper to get initial disc spec from a knob
-(= (getInitDiscSpec (mkLSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))) $init)
-(= (getInitDiscSpec (mkSSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))) $init)
-
-;; Helper to initialize center instance from deme
-;; Creates an instance with knobs set to their initial disc specs
-(= (initCenterInst (mkDeme (mkRep (mkKbMap $kbMp (mkDscMp $disc)) $tree) $instSet $id))
-   (let $knobList (eval (MultiMap.values $disc))
-     (let $initSpecs (eval (List.map getInitDiscSpec $knobList))
-       (mkInst $initSpecs))))

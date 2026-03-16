@@ -7,14 +7,6 @@
 !(import! &self ../cscore)
 !(import! &self ../cacheSpace)
 
-!(import! &self ../../scoring/strategy-score-cache)
-!(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
-!(import! &self ../../examples/tic-tac-toe/random-player)
-!(import! &self ../../examples/tic-tac-toe/strategy-scoring)
-!(import! &self ../../examples/tic-tac-toe/minimax-player)
-!(import! &self ../../examples/tic-tac-toe/game-engine)
-!(import! &self ../../examples/tic-tac-toe/moves)
-!(import! &self ../../examples/tic-tac-toe/moses-player)
 ;; Tests for cScoreToExpr
 !(assertEqual (cScoreToExpr (mkCscore 0.0 0.0 0.0 0.0 0.0)) ((0.0 0.0 0.0 0.0 0.0)))
 !(assertEqual (cScoreToExpr (mkCscore 1.0 2.0 0.5 0.5 0.0)) ((1.0 2.0 0.5 0.5 0.0)))
@@ -42,8 +34,8 @@
         (Cons A (Cons B (Cons Output Nil)))))
 
 
-!(assertEqual (getCscore (ttable1) (buildTree (AND A B)) 2.0 &bscoreCache) (mkCscore -1 2 1.0 0.0 -2.0))
-!(assertEqual (getCscore (ttable1) (buildTree (OR A B)) 4 &bscoreCache) (mkCscore 0 2 0.5 0.0 -0.5))
+!(assertEqual (getCscore (ttable1) (buildTree (AND A B)) 2.0 &cacheSpace) (mkCscore -1 2 1.0 0.0 -2.0))
+!(assertEqual (getCscore (ttable1) (buildTree (OR A B)) 4 &cacheSpace) (mkCscore 0 2 0.5 0.0 -0.5))
 ;; the results of the following two tests will be the same as the above two because the trees are the same because it uses the cacheSpace
 ; ! (assertEqual (getCscore ttable2 (buildTree (AND A B)) 2.0) (mkCscore 0 2 1.0 0 -1.0))
 ; ! (assertEqual (getCscore ttable2 (buildTree (OR A B)) 1) (mkCscore -2 2 2.0 0 -4.0))
@@ -113,11 +105,3 @@
   ($exprResult (cScoreExpr< $expr3 $expr4))
   ($objResult (apply < $score3 $score4))
 ) (== $exprResult $objResult)) True)
-
-(= (Strategy)
-   (mkTree (mkNode PRIORITIZED-OR)
-      (Cons (mkTree (mkNode playcenter) Nil)
-            (Cons (mkTree (mkNode playside) Nil)
-                  (Cons (mkTree (mkNode playcorner) Nil) Nil)))))
-!(assertEqual (getCscore (Strategy) 5 minimax-player 3.5 &strategyScoreCache) 
-              (mkCscore 0.0 3 0.8571428571428571 0.0 -0.8571428571428571))

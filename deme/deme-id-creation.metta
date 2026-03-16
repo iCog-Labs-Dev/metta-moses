@@ -7,7 +7,7 @@
 (= (numStr $n) (py-call (str $n)))
 ;; DemeId Type
 ; (: DemeId Type)
-; (: mkDemeId (-> String DemeId)) ;; this deviates from earlier type definition for the type constructor. It was defined like (: mkDemeId (-> Number DemeId))
+; (: mkDemeId (-> String DemeId)) ;; this deviates from earlier type definition for the type constructor. It was defined like (: mkDemeId (-> Number DemeId)
 
 ;; createDemeIDs -- creates demeIDs for deme expansion
 ;;          $nExpansion -- total number of deme expansions (generations) set to 0 -- a constant number or a generation demes
