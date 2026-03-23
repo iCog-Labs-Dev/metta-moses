@@ -6,6 +6,14 @@
 !(import! &self ../bscore)
 !(import! &self ../cscore)
 
+!(import! &self ../../scoring/strategy-score-cache)
+!(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
+!(import! &self ../../examples/tic-tac-toe/random-player)
+!(import! &self ../../examples/tic-tac-toe/strategy-scoring)
+!(import! &self ../../examples/tic-tac-toe/minimax-player)
+!(import! &self ../../examples/tic-tac-toe/game-engine)
+!(import! &self ../../examples/tic-tac-toe/moves)
+!(import! &self ../../examples/tic-tac-toe/moses-player)
 ;; Tests for cScoreToExpr
 !(assertEqual (cScoreToExpr (mkCscore 0.0 0.0 0.0 0.0 0.0)) ((0.0 0.0 0.0 0.0 0.0)))
 !(assertEqual (cScoreToExpr (mkCscore 1.0 2.0 0.5 0.5 0.0)) ((1.0 2.0 0.5 0.5 0.0)))
@@ -104,3 +112,11 @@
   ($exprResult (cScoreExpr< $expr3 $expr4))
   ($objResult (apply < $score3 $score4))
 ) (== $exprResult $objResult)) True)
+
+(= (Strategy)
+   (mkTree (mkNode PRIORITIZED-OR)
+      (Cons (mkTree (mkNode playcenter) Nil)
+            (Cons (mkTree (mkNode playside) Nil)
+                  (Cons (mkTree (mkNode playcorner) Nil) Nil)))))
+!(assertEqual (getCscore (Strategy) 5 minimax-player 3.5 &strategyScoreCache) 
+              (mkCscore 0.0 3 0.8571428571428571 0.0 -0.8571428571428571))

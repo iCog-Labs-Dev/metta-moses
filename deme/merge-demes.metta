@@ -113,8 +113,8 @@
 ;;   $itable: The input table.
 ;; Return: (List (Exemplar $a)) - List of exemplars with scored trees.
 ; (: demeToTrees (-> Deme (ITable $a) (List (Exemplar $a))))
-(= (demeToTrees (mkDeme $rep (mkSInstSet Nil) $demeId) $itable) Nil)
-(= (demeToTrees (mkDeme $rep (mkSInstSet (Cons $si $sil)) $demeId) $itable)
+(= (demeToTrees (mkDeme $rep (mkSInstSet Nil) $demeId) $scoringContext) Nil)
+(= (demeToTrees (mkDeme $rep (mkSInstSet (Cons $si $sil)) $demeId) $scoringContext)
 (let*
     (
         ;; ($_ (println! (===Inside DemeToTrees===)))
@@ -124,14 +124,15 @@
         ;; ($_ (println! (Instance: $inst)))
         ($tree (getCandidate $rep $inst))
         ;; ($_ (println! (Tree: (preOrder $tree))))
-        ($bscore (scoreTree $itable $tree &bscoreCache))
+        ($bscore (case $scoringContext
+                    (((mkITable $rows $labels) (eval (scoreTree $scoringContext $tree)))
+                     (($nGames $opponentPolicy) (eval (scoreStrategyTree $tree $nGames $opponentPolicy &strategyScoreCache))))))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
         ;; ($_ (println! (Returning...)))
     )
-    (Cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) $demeId) $itable))
+    (Cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) $demeId) $scoringContext))
     )
 )
-
 ;; Filters a list of Exemplars, keeping only those not already in the metaPop (ordered set).
 ;; Params:
 ;;   (List (Exemplar $a)): List of exemplars to filter.
@@ -224,14 +225,14 @@
 ;;   $maxCandsPerDeme: Maximum candidates per deme.
 ;;   $minPoolSize: Minimum deme size to retain.
 ;;   $complexityTemperature: Parameter for score range in trimming.
-;;   $itable: The input table.
+;;   $scoringContext: Either (mkITable $rows $labels) for Boolean or ($nGames $opponentPolicy) for Strategy
 ;;   $metapop: Ordered set of existing exemplars.
 ;;   $nToKeep: Target size for resized metapopulation.
 ;;   $capCoef: Capacity coefficient for resizing.
 ;;   $genCount: Generation count for resizing.
 ;; Return: Updated and resized metapopulation.
 ; (: mergeDemes (-> Expression Number Number Number Number (ITable $a) (OS (Exemplar $a)) Number Number Number (OS (Exemplar $a))))
-(= (mergeDemes $demes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metapop $nToKeep $capCoef $genCount)
+(= (mergeDemes $demes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $scoringContext $metapop $nToKeep $capCoef $genCount)
     (if (== $demes ()) $metapop
         (let*
         (
@@ -269,7 +270,7 @@
             ;; ($_ (println! ("")))
         )
             (if (== $tailDeme ()) $resizedMetapop
-                (mergeDemes $tailDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $resizedMetapop $nToKeep $capCoef $genCount)
+                (mergeDemes $tailDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $scoringContext $resizedMetapop $nToKeep $capCoef $genCount)
             )
         )
     )

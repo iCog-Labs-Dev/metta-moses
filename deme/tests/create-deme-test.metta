@@ -71,8 +71,8 @@
 ;; (= (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
     ;; ($updatedDeme (expandDeme metaPop2 0 1 False sim table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
     ;; ($demes (trace! "Creating Deme" (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar ())))                   ;;createRepresentation and createDemeId are under this
-;; (= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts)
-;; (= (createDeme 1 (Cons (mkDemeId "1") $tree ) $exemplar ttable1 $algo $prune-exemplar $enforced-fts)
+;; (= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts))
+;; (= (createDeme 1 (Cons (mkDemeId "1") $tree ) $exemplar ttable1 $algo $prune-exemplar $enforced-fts))
 ;;
 
 (= (table1) (mkITable
