@@ -13,6 +13,20 @@
     )
 )
 
+(= (genTriplet $list)
+    (let*
+        (
+            ($x (superpose $list))
+            ($y (superpose $list))
+            ($z (superpose $list))
+        )
+        (if (and (and (!= $x $y) (!= $y $z)) (!= $x $z)) 
+            ($x $y $z)
+            (empty) 
+        )
+    )
+)
+
 ;; getArgs -> generate logical expressions from the list of pairs
 ;; Parameters:
 ;;          $swapedOp -> swaped operator
@@ -53,6 +67,48 @@
                         ($picked (eval (lazyRandomSelector 0 $upperbound $nPairs)))
                         ($perms (collapse (eval (getArgs $swapedOp $idxPairs $picked $argLabels)))))
                    (eval (concatT $argLabels $perms))))))
+;; getMoveArgs -> generate move expressions from pairs of move indices
+;; Params:
+;;          $op: move operator (PRIORITIZED-OR)
+;;          $PermPairs: list of pairs of idx permutations
+;;          $picked: list of picked move idxs
+;;          $moveLabels: list of move labels (playcenter, playcorner, etc.)
+;; Returns: move expressions with operator and move combinations
+;; (: getMoveArgs (-> Atom Expression Expression Expression Expression))
+(= (getMoveArgs $op $PermPairs $picked $moveLabels)
+    (let*
+        (
+            ; ($triplet (index-atom $PermPairs (superpose $picked)))
+            (($a $b $c)(index-atom $PermPairs (superpose $picked)))
+            (($move1 $move2 $move3) ((index-atom $moveLabels $a) (index-atom $moveLabels $b) (index-atom $moveLabels $c)))
+        )
+        ($op $move1 $move2 $move3)
+    ))
 
-
-
+;; sampleStrategyPerms -> generate strategy permutations for game strategy evolution
+;; Params:
+;;          $op: the strategy operator (PRIORITIZED-OR)
+;;          $arity: the number of moves in the strategy sequence
+;;          $moveLabels: list of move labels (playcenter, playblock, playcorner, etc.)
+;; Returns:
+;;          Union of original moves with alternative move strategy expressions
+;; (: sampleStrategyPerms (-> Atom Number Expression Expression))
+(= (sampleStrategyPerms $op $arity $moveLabels)
+    (let*
+        (
+            ($list (eval (genList (- (length $moveLabels) 1))))
+            ($idxPairs (collapse (eval (genTriplet $list))))
+            ($nPairs $arity)
+        )
+        (if (<= $nPairs 1)
+            ($op (car-atom $moveLabels))
+            (let*
+                (
+                    ($upperbound (- (length $idxPairs) 1))
+                    ($picked (eval (lazyRandomSelector 0 $upperbound $nPairs)))
+                    ($perms (collapse (eval (getMoveArgs $op $idxPairs $picked $moveLabels))))
+                )
+                   $perms
+            )
+        )
+))
