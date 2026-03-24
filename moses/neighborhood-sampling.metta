@@ -132,8 +132,10 @@
           (
             (($decSpec (mkLSK (mkDiscKnob $knob (mkMultip $multi) $spec $spec1 $specList))) (MultiMap.getByIdx $rand $disc))
             ($curSpec (List.getByIdx $newInst $rand))
-            ($upper (let (mkMultip $m) $multi (- $m 1)))
+            ($upper (- $multi 1))
+            ($_ (println! (Inside UpdatedInst)))
             ($randomSpec (+ (rand-int 0 (- $upper 1)) 1))
+            ($_ (println! (Inside UpdatedInst)))
           )
           (if (== $randomSpec $curSpec)
                               (List.replaceAt $newInst $rand 0)
@@ -164,7 +166,7 @@
 ;; (: sampleFromNeighborhood (-> Number Number KnobMap Instance (List Instance)))
 (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
    (let* (
-      ;; ($_ (println! (Inside sampleFromNeighborhoodFs: $sampleSize $dist $inst)))
+      ($_ (println! (Inside sampleFromNeighborhoodFs: $sampleSize $dist $inst)))
       ($list (genList (- $sampleSize 1)))
 
       ($x (map-atom $list $i (sampleFromNeighborhood` $i $dist $kbMp $inst)))
@@ -301,14 +303,13 @@
 (= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $disc)) $tree) (mkSInstSet $instList) $demeId) $dist)
  (let*
   (
-    ((mkKbMap (mkDscKbMp $dkm) $othermap) $kbMp)
-    ($_ (println! (DimSize: (Map.length $dkm))))
+    ;; ($_ (println! (DimSize: (Map.length $dkm))))
     ;; ($_ (println! (Inside sampleNewInstances: $totalNeighbors $numNewInstances $centerInst)))
     ;; ($_ (println! (Distance: $dist CenterInst: $centerInst)))
-    ($_ (println! ""))
+    ;; ($_ (println! ""))
 
-    (($spec $knob) (eval (MultiMap.getByIdx 0 $disc)))
-    ((mkMultip $m) (eval (getKnobMultip $knob)))
+    (($spec $knob) (MultiMap.getByIdx 0 $disc))
+    ((mkMultip $m) (getKnobMultip $knob))
     ($kbMp (mkKbMap $dscKbMp (mkDscMp $disc)))
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
@@ -324,7 +325,7 @@
     ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
                        (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
                        ;; (swapList (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))) ;; INFO: Used to improve result but not needed any more
-                       (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))
+                       (generateAllInNeighborhood (mkMultip $m) $centerInst $dist)))
     ;; ($_ (println! (NewInstances: $newInstances)))
     ;; ($exprInstances (List.listToExpr $newInstances))
     ;; ($uExprInstances (unique-atom $exprInstances))

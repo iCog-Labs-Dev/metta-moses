@@ -27,6 +27,16 @@
 
 
 
+!(import! &self ../../../scoring/strategy-score-cache)
+
+!(import! &self ../../../examples/tic-tac-toe/tic-tac-toe-helpers)
+!(import! &self ../../../examples/tic-tac-toe/random-player)
+!(import! &self ../../../examples/tic-tac-toe/minimax-player)
+!(import! &self ../../../examples/tic-tac-toe/game-engine)
+!(import! &self ../../../examples/tic-tac-toe/moves)
+!(import! &self ../../../examples/tic-tac-toe/moses-player)
+!(import! &self ../../../examples/tic-tac-toe/strategy-scoring)
+
 !(import! &self ../../../scoring/fitness)
 !(import! &self ../../../scoring/bscore)
 !(import! &self ../../../scoring/cscore)
@@ -41,17 +51,8 @@
 
 !(import! &self ../../../moses/neighborhood-sampling)
 
-!(import! &self ../../../scoring/strategy-score-cache)
-
-!(import! &self ../../../examples/tic-tac-toe/tic-tac-toe-helpers)
-!(import! &self ../../../examples/tic-tac-toe/random-player)
-!(import! &self ../../../examples/tic-tac-toe/strategy-scoring)
-!(import! &self ../../../examples/tic-tac-toe/minimax-player)
-!(import! &self ../../../examples/tic-tac-toe/game-engine)
-!(import! &self ../../../examples/tic-tac-toe/moves)
-!(import! &self ../../../examples/tic-tac-toe/moses-player)
-
 !(py-call (random.seed 42))
+
 (= (knobmap1)
         (ConsMMap (
                     (mkDiscSpec 1)
@@ -120,7 +121,7 @@
 ;; map containing two knobs with different multiplicity of 2 and 3
 !(assertEqual (informationTheoreticBits (knobmap2)) 5)
 
-; ; Testcase for informationTheoreticBitsFs
+;; Testcase for informationTheoreticBitsFs
 !(assertEqual
   (informationTheoreticBitsFs (Cons A (Cons B (Cons O Nil)))) 2)
 
@@ -248,4 +249,5 @@
      (mkDemeId "1")))
 
 !(assertEqual (hillClimbing (strategyDeme) (mkCscore 3.0 5 1.43 0.0 3) (mkInst (Cons 1 (Cons 1 Nil))) (mkParams applyStrategyBasedScore (3 random-player 3.5))) 
-                    ((mkInst (Cons 1 (Cons 1 Nil))) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) NilMMap)))) (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playwin) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil)))) (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 Nil))) (mkCscore -3.0 0 0.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 Nil))) (mkCscore -3.0 0 0.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 Nil))) (mkCscore -3.0 0 0.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore -3.0 2 0.5714285714285714 0.0 -3.571428571428571))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 Nil))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 Nil))) (mkCscore -3.0 0 0.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 Nil))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) Nil)))))))))) (mkDemeId "1")) (true false true (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore -3.0 0 0.0 0.0 -3.0) -3.0 13 4 7)))
+                    ((mkInst (Cons 1 (Cons 1 Nil))) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) NilMMap)))) (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playwin) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil)))) (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore -3.0 2 0.5714285714285714 0.0 -3.571428571428571))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 Nil))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) Nil))))) (mkDemeId "1")) (true false false (mkInst (Cons 1 (Cons 1 Nil))) 3 1 (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856) -3.2857142857142856 4 2 3))
+)

@@ -124,9 +124,10 @@
         ;; ($_ (println! (Instance: $inst)))
         ($tree (getCandidate $rep $inst))
         ;; ($_ (println! (Tree: (preOrder $tree))))
+        ($_ (println! (ScoringContext: $scoringContext)))
         ($bscore (case $scoringContext
-                    (((mkITable $rows $labels) (eval (scoreTree $scoringContext $tree)))
-                     (($nGames $opponentPolicy) (eval (scoreStrategyTree $tree $nGames $opponentPolicy &strategyScoreCache))))))
+                    (((mkITable $rows $labels) (scoreTree $scoringContext $tree &bscoreCache))
+                     (($nGames $opponentPolicy) (scoreStrategyTree $tree $nGames $opponentPolicy &strategyScoreCache)))))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
         ;; ($_ (println! (Returning...)))
     )
@@ -250,7 +251,7 @@
             ($trimmedDeme (trimDownDeme $unqCandidates $minPoolSize $complexityTemperature))  ;; further trims the deme
             ;; ($_ (println! (DemeToTrees Starting...)))
             ($_ (println! (TrimmedDownDeme: (List.length $trimmedDeme))))
-            ($potCandidates (demeToTrees (mkDeme $rep (mkSInstSet $trimmedDeme) $demeId) $itable)) ;;convert instances to trees
+            ($potCandidates (demeToTrees (mkDeme $rep (mkSInstSet $trimmedDeme) $demeId) $scoringContext)) ;;convert instances to trees
             ($_ (println! (Before getNewCandidates: (List.length $potCandidates))))
             ;; ($_ (println! (Metapop: $metapop)))
             ;; ($_ (println! ("--")))

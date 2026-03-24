@@ -45,10 +45,10 @@
 ;; Returns: ($tree StrategySubtreeKnob)
 ;; (: strategySubtreeKnob (-> (Tree $a) NodeId (Tree $a) (Tree $a StrategySubtreeKnob)))
 (= (strategySubtreeKnob $tree (mkNodeId $target) $subtree)
-   (let $childrenOfTarget (eval (getChildrenById $tree (mkNodeId $target)))
+   (let $childrenOfTarget (getChildrenById $tree (mkNodeId $target))
        ;; Case 1: Subtree already exists in children
-       (if (== True (eval (List.contains $subtree $childrenOfTarget)))
-           (let $idOfSubtree (eval (getSubtreeId $tree (mkNodeId $target) $subtree 0))
+       (if (== True (List.contains $subtree $childrenOfTarget))
+           (let $idOfSubtree (getSubtreeId $tree (mkNodeId $target) $subtree 0)
                ;; Create Knob: Multiplicity 2 (0=Absent, 1=Present). Default=1 (Present)
                ($tree (mkSSK (mkDiscKnob (mkKnob (updateID $idOfSubtree)) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
            )
@@ -56,9 +56,9 @@
            (let*
                (
                    ;; Insert NullVertex placeholder
-                   (($nullVexAppendedTree $nullVexId) (eval (appendChild $tree (mkNodeId $target) (mkNullVex Nil))))
+                   (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex Nil)))
                    ;; Attach the actual subtree to the placeholder
-                   (($subtreeAppendedTree $subtreeId) (eval (appendChild $nullVexAppendedTree $nullVexId $subtree)))
+                   (($subtreeAppendedTree $subtreeId) (appendChild $nullVexAppendedTree $nullVexId $subtree))
                )
                ($subtreeAppendedTree (mkSSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
            )
@@ -146,20 +146,33 @@
 (= (appendToSSK $updatedTree $ssk $tree $parentId $d)
     (let*
        (
-        ($targetId (eval (getNodeId $ssk)))
-        ($targetTree (eval (getNodeById $updatedTree $targetId)))
-        ($subtree (if (== True (eval (isNullVertex $targetTree)))
-                        (let (mkNullVex (Cons $child Nil)) $targetTree $child)
-                        $targetTree))
+        ;; ($_ (println! (lsk: $lsk)))
+        ;; ($_ (println! (ParentId: $parentId)))
+        ;; ($_ (println! (D: $d)))
+        ((mkNodeId $targetId) (getNodeId $ssk))
+        ((mkNodeId $dstId) (if (= (mkNodeId (0)) $parentId) (mkNodeId ()) $parentId))
+        ;; ($_ (println! (DstId: $dstId)))
+        ($targetTree (getNodeById  $updatedTree (mkNodeId $targetId)))
+        ($newPosition (+ (List.length (getChildren (getNodeById  $tree $parentId))) 1))
+        ;; ($_ (println! (newPosition: $newPosition)))
+        ;; ($_ (println! (if (== $targetId (1 1 1)) $targetTree NotPrinting)))
+        (($subtree $newSrcId) (if (== True (isNullVertex $targetTree))
+                        (let (mkNullVex (Cons $child Nil)) $targetTree ($child (mkNodeId (union-atom $targetId (1)))))
+                        ($targetTree (mkNodeId $targetId))
+                    ))        
+        ;; ($_ (println! ("subtree ": $subtree $targetTree)))
+        ;; ($_ (println! (CandidateSoFar: (preOrder $tree))))
+        ;; ($_ (println! ("subtree ": (getNodeValue $subtree) parentId(OldDstId): $parentId srcId: $newSrcId targetId: $targetId)))
       )
       (if (> $d 1)
           (Error $d "Invalid disc specification for strategy:- cannot exceed 1.")
-          (if (== True (isEmpty $tree))
-              $subtree
-              (let $treeToAppend
-                   (case $d
-                       (
-                         (1 $subtree) ;; If present
-                         (0 (mkNullVex (Cons $subtree Nil))))) ;; If absent
-                   (chain (eval (appendChild $tree $parentId $treeToAppend)) $treeChIdPair
-                      (eval (first $treeChIdPair))))))))
+          (let ($treeToAppend $newDstId)
+                            (case $d
+                                (
+                                  (1  ((mkTree (getNodeValue $subtree) Nil) (mkNodeId (union-atom $dstId ($newPosition))))) ;; If present
+                                  (0  ((mkNullVex (Cons $subtree Nil)) $parentId)))) ;; If absent
+
+                            (if (isNullVertex $treeToAppend)
+                                ($tree $parentId $parentId)
+                                (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
+                                        ((first $treeChIdPair) $newSrcId (if (== $parentId $newDstId) (second $treeChIdPair) $newDstId))))))))

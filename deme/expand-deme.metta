@@ -5,11 +5,6 @@
    )
    $defaults))
 
-;; Extracts default specification from a knob
-; (: getKnobDefault (-> $knob Number))
-(= (getKnobDefault (mkLSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
-(= (getKnobDefault (mkSSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
-
 ;; Recursively optimizes each deme in a list using the provided optimizer function.
 ;; Params:
 ;;   (List Deme): The list of demes to optimize.
@@ -74,10 +69,10 @@
 (= (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $targetCScore $optimize)
    (let*
       (
-         ($exemplar (trace! "Selecting Exemplar" (eval (selectExemplar $metaPop))))
-         ($tree (trace! "getting exemplar tree" (eval (getExemplarTree $exemplar))))
-         ($demeIds (trace! "creating deme IDs" (eval (createDemeIds $nExpansion $nDeme))))
-         ($demes (trace! "Creating Deme" (eval (createDeme $nDeme $demeIds $tree))))
+         ($exemplar (trace! "Selecting Exemplar" (selectExemplar $metaPop)))
+         ($tree (trace! "getting exemplar tree" (getExemplarTree $exemplar)))
+         ($demeIds (trace! "creating deme IDs" (createDemeIds $nExpansion $nDeme)))
+         ($demes (trace! "Creating Deme" (createDeme $nDeme $demeIds $tree)))
          ($gameContext ($nGames $opponentPolicy $complexityRatio $targetCScore))
       )
       (map-atom $demes $deme (expandDemeHelper $deme $gameContext $optimize))))
@@ -98,7 +93,7 @@
     ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
     ;; ($_ (println! (Rep: (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree))))
     ;; ($_ (println! "Optimizing Deme"))
-    (($inst $optimDeme $state) (optimizeDemes $deme $truthTableBScore (mkInst $generatedList) $optimize))
+    (($inst $optimDeme $state) (optimizeDemes $deme $context (mkInst $generatedList) $optimize))
 )
 $optimDeme
 ))

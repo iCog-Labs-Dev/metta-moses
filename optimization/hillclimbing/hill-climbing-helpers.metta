@@ -180,6 +180,7 @@
     
 ;; (: hillClimbing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
 ;; $FsScorer should be passed using a `mkScorer` constructor other wise it will cause an error in PeTTa.
+;; ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $opponentPolicy $complexityRatio)))
 (= (hillClimbing $POASet $tTableBscorer $centerInst (mkParams $scorer $FsScorer))
   (case (mkParams $scorer)
     (((mkParams applyComplexityBasedScore)
@@ -218,10 +219,11 @@
           (
             ($disc (getDisk $POASet))
             (($nGames $opponentPolicy $complexityRatio) $FsScorer)
-            ($targetPenScore (eval (getPenScore $tTableBscorer)))
+            ($targetPenScore (getPenScore $tTableBscorer))
+            ($_ (println! (Disc: $disc Games: $nGames Poilcy: $opponentPolicy Ratio: $complexityRatio) ) )
           )
           (hillClimbing (3 3 $targetPenScore)
-                        (False False False $centerInst (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
+                        (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
                         ($disc $nGames $opponentPolicy $complexityRatio)
                         $centerInst
@@ -253,9 +255,9 @@
         ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
         ($_ (println! (Crossover: $xOver)))
         ($_ (println! (CenterInst: (List.listToExpr (second $centerInst)) )))
-        ;; ($_ (println! (size: $size)))
+        ($_ (println! (size: $size)))
         ;; ($_ (println! ($totalNNeighbors : $nNewNeighbors : $prevCenter : $POASet : $d)))
-        ;; ($_ (println! ($totalNNeighbors : $nNewNeighbors : $d)))
+        ($_ (println! ($totalNNeighbors : $nNewNeighbors : $d)))
         ( 
           ; $newPOA
           ((mkDeme $rep $updatedInstSet $id) $newInstances)
@@ -287,12 +289,12 @@
         (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType) (if (== () $hyperparamsfs) (() () () () () ()) $hyperparamsfs))
 
         ((mkSInstSet $scoredInstances) (if (or (== $rep ()) (== $id ())) 
-                                          ($transformFunction 
-                                                              $updatedInstSet
-                                                              (mkITable $rowOCoeff $neighborhood)
-                                                              $miConfi $prePenalty
-                                                              $preMinActivation $preMaxActivation
-                                                              $prePositive $scorerType))
+                                           ($transformFunction 
+                                                                $updatedInstSet
+                                                                (mkITable $rowOCoeff $neighborhood)
+                                                                $miConfi $prePenalty
+                                                                $preMinActivation $preMaxActivation
+                                                                $prePositive $scorerType)
                                           (case $iTable
                                             (
                                               ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep (mkITable $rows $labels) $rowOCoeff))
@@ -398,6 +400,6 @@
 ;; Helper to initialize center instance from deme
 ;; Creates an instance with knobs set to their initial disc specs
 (= (initCenterInst (mkDeme (mkRep (mkKbMap $kbMp (mkDscMp $disc)) $tree) $instSet $id))
-   (let $knobList (eval (MultiMap.values $disc))
-     (let $initSpecs (eval (List.map getInitDiscSpec $knobList))
+   (let $knobList (MultiMap.values $disc)
+     (let $initSpecs (List.map getInitDiscSpec $knobList)
        (mkInst $initSpecs))))

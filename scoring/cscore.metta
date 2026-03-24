@@ -6,21 +6,22 @@
 (= (getCscore $tree $complexityRatio $bs)
        (if-error $bs ;; return worst possible composite score
                 (worstCscore)
-                (let* (($bsum (sumBScore $bs))
-                    ;; ($_ (println! (Score: $bsum)))
-                    ;; ($_ (println! ""))
-                    ($cpxy (treeComplexity $tree))
-                    ;; ($_ (println! (Complexity: $cpxy)))
-                    ($cCoef (getComplexityCoef $complexityRatio))
-                    ($res (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False))
-                    ;; ($_ (println! (updatePenalizedScore: $res)))
+                (let* (
+                       ($bsum (sumBScore $bs))
+                       ;; ($_ (println! (Score: $bsum)))
+                       ;; ($_ (println! ""))
+                       ($cpxy (treeComplexity $tree))
+                       ;; ($_ (println! (Complexity: $cpxy)))
+                       ($cCoef (getComplexityCoef $complexityRatio))
+                       ($res (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False))
+                        ;; ($_ (println! (updatePenalizedScore: $res)))
                     )
                     $res ))
 )
 
 ;; Boolean version - uses scoreTree
 (= (getCscore $itable $tree $complexityRatio $scoreSpace)
-   (getCscore $tree $complexityRatio (scoreTree $itable $tree)))
+   (getCscore $tree $complexityRatio (scoreTree $itable $tree $scoreSpace)))
 ;; Strategy version - uses scoreStrategyTree with caching
 (= (getCscore $tree $nGames $opponentPolicy $complexityRatio $scoreSpace)
    (getCscore $tree $complexityRatio (scoreStrategyTree $tree $nGames $opponentPolicy $scoreSpace)))

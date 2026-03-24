@@ -2,11 +2,8 @@
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/tree)
 
-!(import! &self ../fitness)
-!(import! &self ../bscore)
-!(import! &self ../cscore)
-
 !(import! &self ../../scoring/strategy-score-cache)
+!(import! &self ../../scoring/cacheSpace)
 !(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
 !(import! &self ../../examples/tic-tac-toe/random-player)
 !(import! &self ../../examples/tic-tac-toe/strategy-scoring)
@@ -14,11 +11,17 @@
 !(import! &self ../../examples/tic-tac-toe/game-engine)
 !(import! &self ../../examples/tic-tac-toe/moves)
 !(import! &self ../../examples/tic-tac-toe/moses-player)
+
+
+!(import! &self ../fitness)
+!(import! &self ../bscore)
+!(import! &self ../cscore)
+
 ;; Tests for cScoreToExpr
 !(assertEqual (cScoreToExpr (mkCscore 0.0 0.0 0.0 0.0 0.0)) ((0.0 0.0 0.0 0.0 0.0)))
 !(assertEqual (cScoreToExpr (mkCscore 1.0 2.0 0.5 0.5 0.0)) ((1.0 2.0 0.5 0.5 0.0)))
 !(assertEqual (cScoreToExpr (mkCscore -1.0 3.0 0.2 0.4 -0.8)) ((-1.0 3.0 0.2 0.4 -0.8)))
-              
+
 ;; Test cases for updatePenalizedScore
 !(assertEqual (updatePenalizedScore (mkCscore  0  2  0.3 0.5  (* -1 (pow-math 10 308))) False) (mkCscore  0  2  0.3  0.5 -0.8))
 !(assertEqual (updatePenalizedScore (mkCscore  -1  3  0.2  0.4 (* -1 (pow-math 10 308))) True) (mkCscore  -1  3  0.2  0.4  -0.48))
@@ -118,5 +121,6 @@
       (Cons (mkTree (mkNode playcenter) Nil)
             (Cons (mkTree (mkNode playside) Nil)
                   (Cons (mkTree (mkNode playcorner) Nil) Nil)))))
-!(assertEqual (getCscore (Strategy) 5 minimax-player 3.5 &strategyScoreCache) 
+
+!(assertEqual (getCscore (Strategy) 5 minimax-player 3.5 &strategyScoreCache)
               (mkCscore 0.0 3 0.8571428571428571 0.0 -0.8571428571428571))

@@ -83,9 +83,9 @@
 ;; buildStrategy => Build strategy knobs for PRIORITIZED-OR nodes
 ;; (: buildStrategy (-> (Tree $a) NodeId (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v))))) 
 (= (buildStrategy $tree (mkNodeId $nodeId) $MMap $argLabels)
-  (let $subtree (eval (getNodeById $tree (mkNodeId $nodeId)))
+  (let $subtree (getNodeById $tree (mkNodeId $nodeId))
     ;; Safety Check
-    (if (== True (eval (isNullVertex $subtree)))
+    (if (== True (isNullVertex $subtree))
         ($tree $MMap) 
         (let*
         (
@@ -94,9 +94,9 @@
             ((mkTree (mkNode $op) $children) $subtree) 
             ($_ (println! ("Operator: " $op " (no swapping for game strategies)")))
             ;; Add game knobs to the current PRIORITIZED-OR node
-            (($t1 $mp1) (eval (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap $argLabels)))
+            (($t1 $mp1) (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap $argLabels))
             ($_ (println! ("Building strategy knobs for NodeId: " $nodeId " with operator: " $op)))
             ;; Process Children using unified sibling iterator with PRIORITIZED-OR (no swapping)
-            (($updatedTree $updatedMMap) (eval (siblingit $t1 $children (mkNodeId $nodeId) 1 $op $mp1 $argLabels)))
+            (($updatedTree $updatedMMap) (siblingit $t1 $children (mkNodeId $nodeId) 1 $op $mp1 $argLabels))
         )
             ($updatedTree $updatedMMap)))))

@@ -30,9 +30,9 @@
 (= (createDeme $nDeme $demeIds $exemplar)
       (let* 
             (
-                  ($_ (println! "creating game representations ...."))
-                  ($reps (eval (createRepresentation $nDeme $exemplar)))
-                  ($_ (println! ("done making representations ..." $reps)))
+                  ;; ($_ (println! "creating game representations ...."))
+                  ($reps (createRepresentation $nDeme $exemplar))
+                  ;; ($_ (println! ("done making representations ..." $reps)))
             )  
             (loopCreateDeme $demeIds $reps ())
       ) 

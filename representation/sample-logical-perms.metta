@@ -98,8 +98,8 @@
 (= (sampleStrategyPerms $op $arity $moveLabels)
     (let*
         (
-            ($list (eval (genList (- (length $moveLabels) 1))))
-            ($idxPairs (collapse (eval (genTriplet $list))))
+            ($list (genList (- (length $moveLabels) 1)))
+            ($idxPairs (collapse (genTriplet $list)))
             ($nPairs $arity)
         )
         (if (<= $nPairs 1)
@@ -107,8 +107,8 @@
             (let*
                 (
                     ($upperbound (- (length $idxPairs) 1))
-                    ($picked (eval (lazyRandomSelector 0 $upperbound $nPairs)))
-                    ($perms (collapse (eval (getMoveArgs $op $idxPairs $picked $moveLabels))))
+                    ($picked (lazyRandomSelector 0 $upperbound $nPairs))
+                    ($perms (collapse (getMoveArgs $op $idxPairs $picked $moveLabels)))
                 )
                    $perms
             )

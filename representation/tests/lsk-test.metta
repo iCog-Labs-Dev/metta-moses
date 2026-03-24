@@ -23,8 +23,8 @@
 !(import! &self ../sample-logical-perms) 
 !(import! &self ../add-logical-knobs)
 
-; Testcases for logicalSubtreeKnob
-; Testcase 1: When the subtree isn't found in the target's children list
+;; Testcases for logicalSubtreeKnob
+;; Testcase 1: When the subtree isn't found in the target's children list
 
 !(assertEqual
   (logicalSubtreeKnob
@@ -104,7 +104,7 @@
                             (Cons (mkTree (mkNode OR)
                                     (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)) Nil))))
 ;; appendTo
-;; ;; invalid disc specification
+;; invalid disc specification
 !(assertEqual
   (appendTo
     (tree1)
@@ -275,9 +275,7 @@
     (mkNullVex Nil)
     (mkNodeId (0))
     1)
-    (mkTree (mkNode PRIORITIZED-OR) 
-        (Cons (mkTree (mkNode playcenter) Nil) 
-        (Cons (mkTree (mkNode playcorner) Nil) Nil))))
+    ((mkTree (mkNode PRIORITIZED-OR) Nil) (mkNodeId (0)) (mkNodeId (1))))
 
 ;; Test SSK KnobSetting 1: Present move
 !(assertEqual
@@ -294,9 +292,7 @@
         (Cons (mkTree (mkNode playcenter) Nil) Nil))
     (mkNodeId (0))
     1)
-    (mkTree (mkNode PRIORITIZED-OR)
-        (Cons (mkTree (mkNode playcenter) Nil)
-        (Cons (mkTree (mkNode playblock) Nil) Nil))))
+    ((mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil))) (mkNodeId (2 1)) (mkNodeId (2))))
 
 ;; Test SSK KnobSetting 0: Absent move (NullVex)
 !(assertEqual
@@ -312,7 +308,4 @@
     (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) Nil))
     (mkNodeId (0))
     0)
-    (mkTree (mkNode PRIORITIZED-OR)
-             (Cons (mkTree (mkNode playcenter) Nil)
-             (Cons (mkNullVex
-                     (Cons (mkTree (mkNode playblock) Nil) Nil)) Nil))))
+    ((mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) Nil)) (mkNodeId (0)) (mkNodeId (0))))

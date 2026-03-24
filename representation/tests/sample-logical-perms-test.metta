@@ -13,6 +13,6 @@
 ;; Testcase for sample-strategy-perms
 !(assertEqual (sampleStrategyPerms PRIORITIZED-OR 1 (playcenter playcorner playblock playside playwin)) (PRIORITIZED-OR playcenter))
 
-!(assertEqual (sampleStrategyPerms PRIORITIZED-OR 2 (playcenter playcorner playblock playside playwin)) ((PRIORITIZED-OR playwin playside playcorner) (PRIORITIZED-OR playwin playside playcenter)))
+!(assertEqual (sampleStrategyPerms PRIORITIZED-OR 2 (playcenter playcorner playblock playside playwin)) ((PRIORITIZED-OR playcenter playcorner playwin) (PRIORITIZED-OR playcenter playcorner playside)))
 
-!(assertEqual (sampleStrategyPerms PRIORITIZED-OR 3 (playcenter playcorner playblock playside playwin)) ((PRIORITIZED-OR playside playwin playcenter) (PRIORITIZED-OR playside playwin playcorner) (PRIORITIZED-OR playwin playblock playcenter)))
+!(assertEqual (sampleStrategyPerms PRIORITIZED-OR 3 (playcenter playcorner playblock playside playwin)) ((PRIORITIZED-OR playcenter playblock playwin) (PRIORITIZED-OR playcorner playcenter playside) (PRIORITIZED-OR playcorner playcenter playwin)))

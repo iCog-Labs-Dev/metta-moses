@@ -33,10 +33,10 @@
 (= (applyStrategyBasedScore $rep (Cons $i $is) $nGames $opponentPolicy $complexityRatio $listOfScoredInst)
 (let*
 (
-    ($strategyTree (eval (getCandidate $rep $i)))
-    ($_ (println! "[applyStrategyBasedScore] Got tree:"))
+    ($strategyTree (getCandidate $rep $i))
+    ;; ($_ (println! "[applyStrategyBasedScore] Got tree:"))
     ($_ (println! $strategyTree))
-    ($cscore (eval (getCscore $strategyTree $nGames $opponentPolicy $complexityRatio &strategyScoreCache)))
+    ($cscore (getCscore $strategyTree $nGames $opponentPolicy $complexityRatio &strategyScoreCache))
     ($_ (println! "[applyStrategyBasedScore] Got cscore:"))
     ($_ (println! $cscore))
     ($scoredInst (mkSInst (mkPair $i $cscore)))
@@ -57,10 +57,10 @@
    (let* (
           ($instList (List.map removeInstScore $scoredInstList))
           ($scored (case $scoringContext
-            (((mkITable $rows $labels)
-              (applyComplexityBasedScore $rep $instList $scoringContext $complexityRatio))
-            (($nGames $opponentPolicy)
-              (applyStrategyBasedScore $rep $instList $nGames $opponentPolicy $complexityRatio Nil))))))
+                        (
+                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $instList $scoringContext $complexityRatio))
+                          (($nGames $opponentPolicy) (applyStrategyBasedScore $rep $instList $nGames $opponentPolicy $complexityRatio Nil)))))
+          )
   (mkSInstSet $scored)))
 
 ;; Converts a list of bits (0s and 1s) to a tuple of indices where the bit is 1.

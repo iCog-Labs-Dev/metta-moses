@@ -40,13 +40,13 @@
 ;;(: representation (-> (Tree $a) Number (List Representation)))
 (= (representation $exemplar $nDeme)
    (let* (
-      ($demeCount (eval (range 0 1 $nDeme)))
+      ($demeCount (range 0 1 $nDeme))
      
       ($result (collapse (let $x (superpose $demeCount)
          (let*
             (
-               (($updatedTree $dscMp) (eval (buildKnobs $exemplar NilMMap ())))
-               ($dscKbMp (eval (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0)))
+               (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap ()))
+               ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
                ($rep (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree))
             )   
                $rep))))
@@ -133,8 +133,8 @@
          ;; ($_ (println! (Tree: (preOrder $tr))))
          ($candidate (getCandidateRec $repObj $inst $parentid $srcid $parentid (mkNullVex Nil)))
          ;; ($_ (println! (Found candidate: (preOrder $candidate))))
-         ($rootNode (eval (getNodeById (eval (getRepTree $repObj)) $srcid)))
-         ($rootValue (eval (getNodeValue $rootNode)))
+         ($rootNode (getNodeById (getRepTree $repObj) $srcid))
+         ($rootValue (getNodeValue $rootNode))
          ($rootSymbol (if (== (get-metatype $rootValue) Expression) 
                  (car-atom (cdr-atom $rootValue))
                  $rootValue))

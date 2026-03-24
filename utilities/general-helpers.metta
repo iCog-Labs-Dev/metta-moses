@@ -1203,7 +1203,7 @@
 (= (if-equal2 $A $B $Then $Else)
    (if (== $A $B) $Then $Else))
 
-(= (assertEqual $a $b)( (test $a $b))) ;;unlike assert function test function shows the expected and got output so this may be better for debuging simply.
+(= (assertEqual $a $b) ( (test $a $b))) ;;unlike assert function test function shows the expected and got output so this may be better for debuging simply.
 
 (= (assertAlphaEqual $A $B)
    (assert (=alpha $A $B)))
