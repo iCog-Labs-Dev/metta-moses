@@ -33,14 +33,23 @@
 
 !(import! &self ../../moses/neighborhood-sampling)
 
+!(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
+!(import! &self ../../examples/tic-tac-toe/random-player)
+!(import! &self ../../examples/tic-tac-toe/strategy-scoring)
+!(import! &self ../../examples/tic-tac-toe/minimax-player)
+!(import! &self ../../examples/tic-tac-toe/game-engine)
+!(import! &self ../../examples/tic-tac-toe/moves)
+!(import! &self ../../examples/tic-tac-toe/moses-player)
 
 !(import! &self ../../scoring/fitness)
 !(import! &self ../../scoring/bscore) 
 !(import! &self ../../scoring/cscore)
 !(import! &self ../../scoring/complexity-based-scorer)
+!(import! &self ../../scoring/strategy-score-cache)
 
 !(import! &self ../../metapopulation/exemplar-type)
 !(import! &self ../../metapopulation/metapopulation)
+!(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
 
 !(import! &self ../../representation/instance)  
 
@@ -523,6 +532,44 @@
                                     (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) 
                                     (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) NilOS))
 )
+(= (testStrategyDeme)
+   (mkDeme 
+     (mkRep 
+       (mkKbMap 
+         (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap)))
+         (mkDscMp 
+           (ConsMMap ((mkDiscSpec 2) 
+             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) 
+           (ConsMMap ((mkDiscSpec 2) 
+             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) 
+           NilMMap))))
+       (mkTree (mkNode PRIORITIZED-OR) 
+         (Cons (mkTree (mkNode playwin) Nil) 
+               (Cons (mkTree (mkNode playblock) Nil) Nil))))
+     (mkSInstSet 
+       (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore 5.0 2 0.571 0.0 4.429))) Nil))
+     (mkDemeId "1")))
 
+(= (testStrategyDeme2)
+   (mkDeme 
+     (mkRep 
+       (mkKbMap 
+         (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap)))
+         (mkDscMp 
+           (ConsMMap ((mkDiscSpec 2) 
+             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) 
+           (ConsMMap ((mkDiscSpec 2) 
+             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) 
+           NilMMap))))
+       (mkTree (mkNode PRIORITIZED-OR) 
+         (Cons (mkTree (mkNode playcenter) Nil) 
+               (Cons (mkTree (mkNode playside) Nil) Nil))))
+     (mkSInstSet 
+       (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore 6.0 2 0.571 0.0 5.429))) Nil))
+     (mkDemeId "2")))
+!(assertEqual (demeToTrees (testStrategyDeme) (1 random-player)) 
+              (Cons (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playwin) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil))) (mkDemeId "1") (mkCscore 5.0 2 0.571 0.0 4.429) (mkBScore (Cons -1.0 Nil))) Nil))
 
-
+!(assertEqual (mergeDemes ((testStrategyDeme) (testStrategyDeme2)) 5 2 0 1 
+                  (1 random-player) NilOS 3 0.004 1000) 
+                  (ConsOS (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playside) Nil) Nil))) (mkDemeId "2") (mkCscore 6.0 2 0.571 0.0 5.429) (mkBScore (Cons -1.0 Nil))) NilOS))

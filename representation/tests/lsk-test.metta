@@ -23,8 +23,8 @@
 !(import! &self ../sample-logical-perms) 
 !(import! &self ../add-logical-knobs)
 
-; Testcases for logicalSubtreeKnob
-; Testcase 1: When the subtree isn't found in the target's children list
+;; Testcases for logicalSubtreeKnob
+;; Testcase 1: When the subtree isn't found in the target's children list
 
 !(assertEqual
   (logicalSubtreeKnob
@@ -104,7 +104,7 @@
                             (Cons (mkTree (mkNode OR)
                                     (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)) Nil))))
 ;; appendTo
-;; ;; invalid disc specification
+;; invalid disc specification
 !(assertEqual
   (appendTo
     (tree1)
@@ -201,3 +201,111 @@
     (mkNodeId (0))
     0)
     ((mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) (mkNodeId (0)) (mkNodeId (0))))
+
+;; Testcase 1: When the game move subtree isn't found in the target's children list
+!(assertEqual
+  (strategySubtreeKnob
+    (mkTree (mkNode PRIORITIZED-OR)
+      (Cons (mkTree (mkNode playcenter) Nil)
+        (Cons (mkTree (mkNode playcorner) Nil) Nil)))
+    (mkNodeId (0))
+    (mkTree (mkNode playblock) Nil))
+  (
+    (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playcorner) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode playblock) Nil) Nil)) Nil))))
+    (mkSSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))
+  ))
+
+;; Testcase 2: When the game move subtree is found in the target's children list
+!(assertEqual
+  (strategySubtreeKnob
+    (mkTree (mkNode PRIORITIZED-OR)
+      (Cons (mkTree (mkNode playcenter) Nil)
+        (Cons (mkTree (mkNode playcorner) Nil)
+          (Cons (mkTree (mkNode playblock) Nil) Nil))))
+    (mkNodeId (0))
+    (mkTree (mkNode playcorner) Nil))
+  (
+    (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) 
+                        (Cons (mkTree (mkNode playcorner) Nil) 
+                        (Cons (mkTree (mkNode playblock) Nil) Nil))))
+    (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))
+  ))
+
+;; getNodeId test cases for SSK
+!(assertEqual (getNodeId (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1 0))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (mkNodeId (1 0)))
+!(assertEqual (getNodeId (mkSSK (mkDiscKnob (mkKnob (mkNodeId (3 5))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (mkNodeId (3 5)))
+
+;; Game strategy trees for testing
+(= (gameTree1) (mkTree (mkNode PRIORITIZED-OR)
+    (Cons (mkTree (mkNode playcenter) Nil)
+      (Cons (mkTree (mkNode playcorner) Nil) Nil))))
+
+(= (gameTree2) (mkTree (mkNode PRIORITIZED-OR)
+            (Cons (mkTree (mkNode playcenter) Nil)
+            (Cons (mkNullVex
+                    (Cons (mkTree (mkNode playblock) Nil) Nil)) Nil))))
+
+;; Test invalid disc specification for SSK (should not exceed 1)
+!(assertEqual
+  (appendToSSK
+    (gameTree1)
+    (mkSSK
+      (mkDiscKnob
+        (mkKnob (mkNodeId (2)))
+        (mkMultip 2)
+        (mkDiscSpec 1)
+        (mkDiscSpec 0)
+        Nil))
+    (mkTree (mkNode PRIORITIZED-OR) Nil)
+    (mkNodeId (0))
+    2)
+  (Error 2 "Invalid disc specification for strategy:- cannot exceed 1."))
+
+;; Test appending to empty tree (SSK)
+!(assertEqual
+  (appendToSSK
+    (gameTree1)
+    (mkSSK
+      (mkDiscKnob
+         (mkKnob (mkNodeId (0)))
+         (mkMultip 2)
+         (mkDiscSpec 1)
+         (mkDiscSpec 0)
+         Nil))
+    (mkNullVex Nil)
+    (mkNodeId (0))
+    1)
+    ((mkTree (mkNode PRIORITIZED-OR) Nil) (mkNodeId (0)) (mkNodeId (1))))
+
+;; Test SSK KnobSetting 1: Present move
+!(assertEqual
+  (appendToSSK
+    (gameTree2)
+    (mkSSK
+      (mkDiscKnob
+        (mkKnob (mkNodeId (2)))
+        (mkMultip 2)
+        (mkDiscSpec 1)
+        (mkDiscSpec 0)
+        Nil))
+    (mkTree (mkNode PRIORITIZED-OR)
+        (Cons (mkTree (mkNode playcenter) Nil) Nil))
+    (mkNodeId (0))
+    1)
+    ((mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil))) (mkNodeId (2 1)) (mkNodeId (2))))
+
+;; Test SSK KnobSetting 0: Absent move (NullVex)
+!(assertEqual
+  (appendToSSK
+    (gameTree2)
+    (mkSSK
+      (mkDiscKnob
+        (mkKnob (mkNodeId (2)))
+        (mkMultip 2)
+        (mkDiscSpec 0)
+        (mkDiscSpec 0)
+        Nil))
+    (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) Nil))
+    (mkNodeId (0))
+    0)
+    ((mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) Nil)) (mkNodeId (0)) (mkNodeId (0))))

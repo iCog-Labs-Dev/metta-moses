@@ -18,6 +18,32 @@
 )
 (Cons $scoredInst (applyComplexityBasedScore $rep $is $itable $complexityRatio))))
 
+;; Strategy-based scoring helper for game strategies 
+;; Params:
+;;   $rep: The representation object
+;;   $instList: List of instances to score
+;;   $nGames: Number of games to play
+;;   $opponentPolicy: Opponent strategy
+;;   $complexityRatio: Complexity penalty ratio
+;;   $listOfScoredInst: Accumulator for scored instances
+;; Returns:
+;;   List of scored instances with CScore
+; (: applyStrategyBasedScore (-> Representation (List Instance) Number $opponentPolicy Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
+(= (applyStrategyBasedScore $rep Nil $nGames $opponentPolicy $complexityRatio $listOfScoredInst) $listOfScoredInst)
+(= (applyStrategyBasedScore $rep (Cons $i $is) $nGames $opponentPolicy $complexityRatio $listOfScoredInst)
+(let*
+(
+    ($strategyTree (getCandidate $rep $i))
+    ;; ($_ (println! "[applyStrategyBasedScore] Got tree:"))
+    ($_ (println! $strategyTree))
+    ($cscore (getCscore $strategyTree $nGames $opponentPolicy $complexityRatio &strategyScoreCache))
+    ($_ (println! "[applyStrategyBasedScore] Got cscore:"))
+    ($_ (println! $cscore))
+    ($scoredInst (mkSInst (mkPair $i $cscore)))
+    ($uListofScoredInst (Cons $scoredInst $listOfScoredInst))
+)
+(applyStrategyBasedScore $rep $is $nGames $opponentPolicy $complexityRatio $uListofScoredInst)))
+
 ;; Scores each instance in an InstanceSet. 
 ;; Params:
 ;;   instanceSet: The unscored InstanceSet(or that of with an initial worst score)
@@ -27,13 +53,15 @@
 ;; Returns:
 ;;   instanceSet: Scored InstanceSet
 ; (: transform (-> (InstanceSet $a) Representation (ITable Bool) Number (InstanceSet Cscore)))
-(= (transform (mkSInstSet $scoredInstList) $rep $itable $complexityRatio)
-(let*
-(
-    ($instList (List.map removeInstScore $scoredInstList))
-    ($cbsInstList (applyComplexityBasedScore $rep $instList $itable $complexityRatio))
-)
-(mkSInstSet $cbsInstList)))  
+(= (transform (mkSInstSet $scoredInstList) $rep $scoringContext $complexityRatio)
+   (let* (
+          ($instList (List.map removeInstScore $scoredInstList))
+          ($scored (case $scoringContext
+                        (
+                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $instList $scoringContext $complexityRatio))
+                          (($nGames $opponentPolicy) (applyStrategyBasedScore $rep $instList $nGames $opponentPolicy $complexityRatio Nil)))))
+          )
+  (mkSInstSet $scored)))
 
 ;; Converts a list of bits (0s and 1s) to a tuple of indices where the bit is 1.
 ;; Params:

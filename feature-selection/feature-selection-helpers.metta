@@ -220,6 +220,18 @@
                 ()))) $probTuple
         (chain (foldl + $probTuple 0) $final-result (round $final-result 3))))))))))
 
+(= (calculateMutualInformation (mkITable $rows $labels) $featureIndices)
+    (chain (- (List.length $labels) 1) $targetIndex
+        (chain (Table.getColumn $targetIndex $rows) $targetColumn
+                    ;; feature MI calculation
+            (chain (zipColumn $featureIndices $rows) $jointColumn
+                (chain (mutualInformation $jointColumn $targetColumn) $miScore
+                                                                                            ;; the default confidence scaling parameter
+                        (chain (calculateConfidence (size-atom $featureIndices) (List.length $rows) 50.0) $confidence
+                                (* $miScore $confidence)))))))
+
+(= (cachedMutualInformation $itable $featureIndices)
+    (lruCache (DEFAULT_CACHE_SIZE) ((calculateMutualInformation) ($itable $featureIndices))))
 ; (: zipColumn (-> Expression (List (List $a)) (List $a)))        
 (= (zipColumn $indices $datarows)
     (if (== $indices ())

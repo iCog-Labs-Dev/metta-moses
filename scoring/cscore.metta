@@ -3,23 +3,28 @@
 ;; If p is large (approaching 0.5), it means the model is expected to be less accurate, making mistakes more often (but still better than random guessing).
 
 ;; (:getCscore (-> (ITable $a) (Tree $a) Number Cscore))
-(= (getCscore $itable $tree $complexityRatio $scoreSpace)
-
-         (chain (scoreTree $itable $tree $scoreSpace) $bs
-                (if-error $bs ;; return worst possible composite score
+(= (getCscore $tree $complexityRatio $bs)
+       (if-error $bs ;; return worst possible composite score
                 (worstCscore)
-                (let* (($bsum (sumBScore $bs))
-                    ;; ($_ (println! (Score: $bsum)))
-                    ;; ($_ (println! ""))
-                    ($cpxy (treeComplexity $tree))
-                    ;; ($_ (println! (Complexity: $cpxy)))
-                    ($cCoef (getComplexityCoef $complexityRatio))
-                    ($res (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False))
-                    ;; ($_ (println! (updatePenalizedScore: $res)))
+                (let* (
+                       ($bsum (sumBScore $bs))
+                       ;; ($_ (println! (Score: $bsum)))
+                       ;; ($_ (println! ""))
+                       ($cpxy (treeComplexity $tree))
+                       ;; ($_ (println! (Complexity: $cpxy)))
+                       ($cCoef (getComplexityCoef $complexityRatio))
+                       ($res (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False))
+                        ;; ($_ (println! (updatePenalizedScore: $res)))
                     )
-                    $res ))) 
-) 
+                    $res ))
+)
 
+;; Boolean version - uses scoreTree
+(= (getCscore $itable $tree $complexityRatio $scoreSpace)
+   (getCscore $tree $complexityRatio (scoreTree $itable $tree $scoreSpace)))
+;; Strategy version - uses scoreStrategyTree with caching
+(= (getCscore $tree $nGames $opponentPolicy $complexityRatio $scoreSpace)
+   (getCscore $tree $complexityRatio (scoreStrategyTree $tree $nGames $opponentPolicy $scoreSpace)))
 ;; getComplexityCoef -- calcualtes the complexity coeffient of a tree   
 ;; takes complexity ratio as input and returns complexity coefficient
 ;; complexity ratio, unless set by the user, has 3.5 for a default value

@@ -24,26 +24,7 @@
 ;; Example: (calculateMutualInformation xorTable (ConsOS 0 (ConsOS 1 NilOS))) → 1.0
 
 ; (: calculateMutualInformation (-> (ITable $a) Expression Number))
-(= (calculateMutualInformation (mkITable $rows $labels) $featureIndices)
-    (chain (- (List.length $labels) 1) $targetIndex
-        (chain (Table.getColumn $targetIndex $rows) $targetColumn
-                    ;; feature MI calculation
-            (chain (zipColumn $featureIndices $rows) $jointColumn
-                (chain (mutualInformation $jointColumn $targetColumn) $miScore
-                                                                                            ;; the default confidence scaling parameter
-                        (chain (calculateConfidence (size-atom $featureIndices) (List.length $rows) 50.0) $confidence
-                                (* $miScore $confidence)
-                        )
-                )
-            )
-        )
-    )
-)
-
 ;** Implement caching for the mutual Information
-(= (cachedMutualInformation $itable $featureIndices)
-    (lruCache (DEFAULT_CACHE_SIZE) ((calculateMutualInformation) ($itable $featureIndices))))
-
 ;; Purpose: Filter relevant combinations based on MI threshold
 ;; Parameters:
 ;;   $itable (ITable) → Input table
@@ -223,13 +204,15 @@
 (= (incrementalSelection (mkITable $rows $labels) $threshold $targetSize $maxInteractionTerms $redundancyThreshold)
     (if (and (<= $threshold 0) (<= $targetSize 0))
         ;; return all the features with their score
-        (chain (- (List.length $labels) 1) $numFeatures 
-            (chain (range 0 1 $numFeatures) $allIndices
-                (chain (cachedMutualInformation (mkITable $rows $labels) $allIndices) $score
-                        (($score $allIndices)) ;; return Indices and score as tupe of pairs of score and feature set tuple
-                )
-            )
-        )
+        (let*
+          (
+           ($numFeatures (- (List.length $labels) 1))
+           ($allIndices (range 0 1 $numFeatures))
+           ($score (cachedMutualInformation (mkITable $rows $labels) $allIndices))
+           ($_ (println! (Score: $score)))
+          )
+          (($score $allIndices))
+       )
         ;; do incremental feature selection 
         (chain (if (> $targetSize 0)
                 ; do binary search 

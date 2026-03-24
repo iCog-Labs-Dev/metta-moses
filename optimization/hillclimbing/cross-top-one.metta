@@ -11,7 +11,6 @@
 ;;   I suspect it is to prevent crossovering over an already crossed over 
 ;;   population and focus on newly generated instances only.
 (= (crossTopOne $deme $nToMake $sampleStart $sampleSize $baseInstance)
-   ; (trace! (Inside crossTopOne: $nToMake $sampleStart $sampleSize) 
             (let* (
                     ((mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId) $deme)
                     ;; ($_ (println! (Inside crossTopOne)))
