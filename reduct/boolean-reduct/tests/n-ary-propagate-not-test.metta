@@ -1,5 +1,5 @@
-! (register-module! ../../../../metta-moses)
-! (import! &self metta-moses:reduct/boolean-reduct:n-ary-propagate-not)
+!(import! &self ../../../utilities/general-helpers)
+!(import! &self ../n-ary-propagate-not)
 
 !(assertEqual 
   (propagateNot (AND (NOT (OR A B)) (NOT (AND C D E)) (OR A B) A B))
@@ -92,3 +92,5 @@
   )
 
 !(assertEqual (propagateNot (AND)) (AND)) ;; check for empty AND
+
+!(assertEqual (propagateNot (AND (OR (AND (OR)) (AND (OR (AND (NOT X1))))))) (AND (OR (AND (OR)) (AND (OR (AND (NOT X1)))))))

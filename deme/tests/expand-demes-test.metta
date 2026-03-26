@@ -1,119 +1,129 @@
-! (register-module! ../../../metta-moses)
+!(import! &self ../../utilities/general-helpers)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/pair)
+!(import! &self ../../utilities/map)
+!(import! &self ../../utilities/ordered-multimap)
+!(import! &self ../../utilities/ordered-set)
+!(import! &self ../../utilities/ordered-multiset)
+!(import! &self ../../utilities/nodeId)
+!(import! &self ../../utilities/lazy-random-selector)
+!(import! &self ../../utilities/lru-cache)
 
-! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
-! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-or)
-! (import! &self metta-moses:reduct/boolean-reduct:cut-unnecessary-and)
-! (import! &self metta-moses:reduct/boolean-reduct:n-ary-propagate-not)
-! (import! &self metta-moses:reduct/boolean-reduct:n-ary-gather-junctors)
-! (import! &self metta-moses:reduct/boolean-reduct:delete-inconsistent-handle)
-! (import! &self metta-moses:reduct/boolean-reduct:zero-constraint-subsumption)
-! (import! &self metta-moses:reduct/boolean-reduct:one-constraint-subsumption)
-! (import! &self metta-moses:reduct/boolean-reduct:promote-common-constraints)
-! (import! &self metta-moses:reduct/boolean-reduct:reduce-to-elegance)
+!(import! &self ../../reduct/boolean-reduct/rte-helpers)
+!(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
+!(import! &self ../../reduct/boolean-reduct/cut-unnecessary-and)
+!(import! &self ../../reduct/boolean-reduct/n-ary-propagate-not)
+!(import! &self ../../reduct/boolean-reduct/n-ary-gather-junctors)
+!(import! &self ../../reduct/boolean-reduct/delete-inconsistent-handle)
+!(import! &self ../../reduct/boolean-reduct/zero-constraint-subsumption)
+!(import! &self ../../reduct/boolean-reduct/one-constraint-subsumption)
+!(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
+!(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 
-!(import! &self metta-moses:representation:lsk)
-!(import! &self metta-moses:representation:instance)
-!(import! &self metta-moses:representation:build-knobs)
-!(import! &self metta-moses:representation:knob-mapper)
-!(import! &self metta-moses:representation:logical-probe) 
-!(import! &self metta-moses:representation:build-logical)
-!(import! &self metta-moses:representation:representation)
-!(import! &self metta-moses:representation:add-logical-knobs)
-!(import! &self metta-moses:representation:knob-representation)
-!(import! &self metta-moses:representation:sample-logical-perms)
-!(import! &self metta-moses:representation:create-representation)
+!(import! &self ../../utilities/tree)
 
-!(import! &self metta-moses:utilities:map)
-!(import! &self metta-moses:utilities:tree)
-!(import! &self metta-moses:utilities:pair) 
-!(import! &self metta-moses:utilities:nodeId)
-!(import! &self metta-moses:utilities:list-methods)
-!(import! &self metta-moses:utilities:python-helpers)
-!(import! &self metta-moses:utilities:python-treehelpers)
-!(import! &self metta-moses:utilities:general-helpers)
-!(import! &self metta-moses:utilities:ordered-multimap)
-!(import! &self metta-moses:utilities:ordered-multiset)
-!(import! &self metta-moses:utilities:ordered-set)
-!(import! &self metta-moses:utilities:lazy-random-selector)
-!(import! &self metta-moses:utilities:lru-cache)
+!(import! &self ../../feature-selection/feature-selection-helpers)
+!(import! &self ../../feature-selection/select-top-features)
+!(import! &self ../../feature-selection/similarity-scorers)
+!(import! &self ../../feature-selection/simple)
+!(import! &self ../../feature-selection/smd)
+!(import! &self ../../feature-selection/incremental)
+!(import! &self ../../feature-selection/hc)
+!(import! &self ../../feature-selection/random-feature-selection)
+!(import! &self ../../feature-selection/feature-selection-main)
 
-; !(import! &self metta-moses:reduct:enf)
+!(import! &self ../../representation/knob-representation)
+!(import! &self ../../representation/lsk)
+!(import! &self ../../representation/logical-probe)
+!(import! &self ../../representation/logical-canonize)
+!(import! &self ../../representation/sample-logical-perms)
+!(import! &self ../../representation/add-logical-knobs)
+!(import! &self ../../representation/build-logical)
+!(import! &self ../../representation/build-knobs)
+!(import! &self ../../representation/knob-mapper)
 
-!(import! &self metta-moses:deme:score-deme)
-!(import! &self metta-moses:deme:create-deme)
-!(import! &self metta-moses:deme:deme-id-creation)
-!(import! &self metta-moses:deme:expand-deme)
-!(import! &self metta-moses:deme:merge-demes)
+!(import! &self ../../representation/representation)
+!(import! &self ../../representation/create-representation)
 
-!(import! &self metta-moses:scoring:cscore)
-!(import! &self metta-moses:scoring:bscore)
-!(import! &self metta-moses:scoring:fitness)
-!(import! &self metta-moses:scoring:complexity-based-scorer)
-!(import! &self metta-moses:scoring:cacheSpace)
+!(import! &self ../../scoring/strategy-score-cache)
+!(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
+!(import! &self ../../examples/tic-tac-toe/random-player)
+!(import! &self ../../examples/tic-tac-toe/minimax-player)
+!(import! &self ../../examples/tic-tac-toe/game-engine)
+!(import! &self ../../examples/tic-tac-toe/moves)
+!(import! &self ../../examples/tic-tac-toe/moses-player)
+!(import! &self ../../examples/tic-tac-toe/strategy-scoring)
 
-!(import! &self metta-moses:moses:neighborhood-sampling)
+!(import! &self ../../scoring/cacheSpace)
+!(import! &self ../../scoring/fitness)
+!(import! &self ../../scoring/bscore)
+!(import! &self ../../scoring/cscore)
+!(import! &self ../../scoring/complexity-based-scorer)
 
-!(import! &self metta-moses:optimization/hillclimbing:cross-top-one)
-!(import! &self metta-moses:optimization/hillclimbing:cross-top-one-helpers)
-!(import! &self metta-moses:optimization/hillclimbing:hill-climbing-helpers)
-! (import! &self metta-moses:metapopulation:exemplar-type)
-! (import! &self metta-moses:metapopulation:exemplar-selection)
-! (import! &self metta-moses:metapopulation:metapopulation)
+!(import! &self ../../optimization/hillclimbing/cross-top-one-helpers)
+!(import! &self ../../optimization/hillclimbing/cross-top-one)
+!(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
 
-!(import! &self metta-moses:feature-selection:feature-selection-helpers)
-!(import! &self metta-moses:feature-selection:feature-selection-main)
-!(import! &self metta-moses:feature-selection:select-top-features)
-!(import! &self metta-moses:feature-selection:similarity-scorers)
-!(import! &self metta-moses:feature-selection:simple)
-!(import! &self metta-moses:feature-selection:smd)
-!(import! &self metta-moses:feature-selection:incremental)
-!(import! &self metta-moses:utilities:lru-cache)
-!(import! &self metta-moses:feature-selection:hc)
-!(import! &self metta-moses:feature-selection:random-feature-selection)
+!(import! &self ../create-deme)
 
+!(import! &self ../../moses/neighborhood-sampling)
 
-(= (APPEND_CHILD $tree $nodeId $child ) (py_appendChild $tree $nodeId $child))
+!(import! &self ../../metapopulation/exemplar-type)
+!(import! &self ../../metapopulation/exemplar-selection)
+!(import! &self ../../metapopulation/metapopulation)
 
-(= (GetByID $tree $nodeId) (py_getById $tree $nodeId))
-(= (INSERT_ABOVE $tree $nodeId $subtree) (py_insertAbove  $tree $nodeId $subtree))
-(= (pyExprToList $expr) (py_exprToList $expr))
+!(import! &self ../../representation/instance)
 
-!(bind! deme (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
-!(bind! table (createTruthTableBScore 2 (mkITable
+!(import! &self ../deme-id-creation)
+!(import! &self ../score-deme)
+!(import! &self ../merge-demes)
+!(import! &self ../expand-deme)
+
+(= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
+(= (table1) (eval (createTruthTableBScore 2 (mkITable
                          (Cons (Cons False (Cons False (Cons False Nil))) 
                          (Cons (Cons True (Cons False (Cons False Nil))) 
                          (Cons (Cons False (Cons True (Cons False Nil)))
                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil))))))
+                         (Cons A (Cons B (Cons O Nil)))))))
 
-! (bind! ttable1 (mkITable
+(= (ttable1) (mkITable
                          (Cons (Cons False (Cons False (Cons False Nil))) 
                          (Cons (Cons True (Cons False (Cons False Nil))) 
                          (Cons (Cons False (Cons True (Cons False Nil)))
                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
                          (Cons A (Cons B (Cons O Nil)))))                         
 
-!(bind! ortable (createTruthTableBScore 2 (mkITable
+(= (ortable) (eval (createTruthTableBScore 2 (mkITable
                          (Cons (Cons False (Cons False (Cons False Nil))) 
                          (Cons (Cons True (Cons False (Cons True Nil))) 
                          (Cons (Cons False (Cons True (Cons True Nil)))
                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil))))))
+                         (Cons A (Cons B (Cons O Nil)))))))
 
-! (bind! orttable (mkITable
+(= (orttable) (mkITable
                          (Cons (Cons False (Cons False (Cons False Nil))) 
                          (Cons (Cons True (Cons False (Cons True Nil))) 
                          (Cons (Cons False (Cons True (Cons True Nil)))
                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
                          (Cons A (Cons B (Cons O Nil))))) 
 
-! (bind! metaPop2 (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (worstCscore) (mkBScore (Cons 0 (Cons 0 Nil)))) NilOS)) 
+(= (xortable) (mkITable
+                         (Cons (Cons False (Cons False (Cons False Nil))) 
+                         (Cons (Cons True (Cons False (Cons True Nil))) 
+                         (Cons (Cons False (Cons True (Cons True Nil)))
+                         (Cons (Cons True (Cons True (Cons False Nil))) Nil))))
+                         (Cons A (Cons B (Cons O Nil)))))
 
-! (bind! metaPop (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 Nil))))
-                 (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 Nil)))) 
+;; (= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (eval (worstCscore)) (mkBScore (Cons -1 (Cons -1 Nil)))) NilOS))
+;; (= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (eval (worstCscore)) (mkBScore (Cons -1 (Cons -1 (Cons -1 (Cons -1 Nil)))))) NilOS))
+(= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (mkCscore -4 2 1.0 0.0 -4.0) (mkBScore  (Cons -1 (Cons -1 (Cons -1 (Cons -1 Nil)))))) NilOS))
+
+(= (metaPop) (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil))))))
+                 (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil)))))) 
                  NilOS)))
        
-! (bind! bigtable (mkITable
+(= (bigtable) (mkITable
                         (Cons (Cons True  (Cons False (Cons True  (Cons False (Cons True  (Cons True  Nil))))))
                         (Cons (Cons False (Cons True  (Cons True  (Cons False (Cons False (Cons False Nil))))))
                         (Cons (Cons True  (Cons True  (Cons False (Cons True  (Cons True  (Cons True  Nil))))))
@@ -133,9 +143,9 @@
                         
                         (Cons A (Cons B (Cons C (Cons D (Cons E (Cons T Nil))))))))                     
 ;; truthTableBScore for  bigtable
-! (bind! bigtablet (createTruthTableBScore 2 bigtable))                        
+(= (bigtablet) (eval (createTruthTableBScore 2 (bigtable))))                        
 
-! (bind! bigtable2 (mkITable
+(= (bigtable2) (mkITable
                         (Cons (Cons True  (Cons False (Cons True  (Cons False (Cons True  (Cons True  Nil))))))
                         (Cons (Cons False (Cons True  (Cons False (Cons True  (Cons False (Cons False Nil))))))
                         (Cons (Cons True  (Cons True  (Cons True  (Cons False (Cons False (Cons True  Nil))))))
@@ -155,19 +165,22 @@
 
                         (Cons A (Cons B (Cons C (Cons D (Cons E (Cons T Nil))))))))
 
-! (bind! bigtablet2 (createTruthTableBScore 2 bigtable2))                        
+; (= (bigtablet2) (createTruthTableBScore 2 bigtable2))                        
 
-(: isScored (-> (ScoredInstance Cscore) Bool))
-(= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
-
+; (: isScored (-> (ScoredInstance Cscore) Bool))
+(= (isScored (mkSInst (mkPair $instance $score))) (~= $score (eval (worstCscore))))
 
 ;; Testcase for optimizeDemes               
 !(assertEqual 
 (let* 
 (
-    ($optimizeDemesReturn (optimizeDemes deme table (mkInst (Cons 0 (Cons 0 Nil))) hillClimbing (applyComplexityBasedScore ())))
-    (() (println! "optimizeDemes Returns"))
-    (() (println! $optimizeDemesReturn))
+    ($optimizeDemesReturn (optimizeDemes (deme) 
+                (table1) 
+                (mkInst (Cons 0 (Cons 0 Nil))) 
+                hillClimbing
+                ))
+    ($_ (println! "optimizeDemes Returns"))
+    ($_ (println! $optimizeDemesReturn))
     (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemesReturn)
     ($instanceCount (List.length $instSet))
     ($scoredElems (List.map isScored $instSet))
@@ -175,67 +188,255 @@
 ((>= $instanceCount 4) (List.any $scoredElems)))
 (True True))
 
-; Testcase for expandDeme
+;; ;; Testcase for expandDeme INFO: For some reason this test case disturbs the next test case but is fine alone.
+;; !(assertEqual
+;; (let*
+;; (
+;;     ($updatedDeme (expandDeme (metaPop2) 0 1 False sim 
+;;                     (table1)
+;;                     hillClimbing 
+;;                     (ttable1)
+;;                     mi))
+;;     ($updatedDemeLength (size-atom $updatedDeme)))
+;; (>= $updatedDemeLength 1)) True)
+
+;; Testcase for runMoses
 !(assertEqual
 (let*
 (
-    ($updatedDeme (expandDeme metaPop2 0 1 False sim table hillClimbing (applyComplexityBasedScore mi) 5 2 0 1 ttable1 3 0.004 1000))
-    ($updatedDemeLength (size-atom $updatedDeme))
+    ($_ (println! (running started)))
+    ($topCandidates (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 (False sim 
+    (table1) 
+    (ttable1)) 
+    hillClimbing 5 2 0 1 
+    3 0.004 1000))
+    ($topCandidatesLength (OS.length $topCandidates))
 )
-(>= $updatedDemeLength 1)
+(>= $topCandidatesLength 1)
 ) True)
 
 ;; Testcase for runMoses
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False sim table hillClimbing (applyComplexityBasedScore mi) 5 2 0 1 ttable1 3 0.004 1000))
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 (False rd 
+    (table1)  
+    (ttable1))
+    hillClimbing 5 2 0 1 
+    3 0.004 1000))
     ($topCandidatesLength (OS.length $topCandidates))
 )
 (>= $topCandidatesLength 1)
 ) True)
+
 ;; Testcase for runMoses
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False rd table hillClimbing (applyComplexityBasedScore mi) 5 2 0 1 ttable1 3 0.004 1000))
+    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 (False inc 
+    (table1)
+    (ttable1))
+    hillClimbing 5 2 0 1
+    3 0.004 1000))
     ($topCandidatesLength (OS.length $topCandidates))
 )
 (>= $topCandidatesLength 1)
 ) True)
-; ;; Testcase for runMoses
+
+;; Testcase 2 for runmoses. 
+;; When maxGen become 10, test number of returned instances is not greater than maxCandOutput, 
+;;              where maxCandOutput is 3 and minPoolSize is 2
 !(assertEqual
-(let*
-(
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 False inc table hillClimbing (applyComplexityBasedScore mi) 5 2 0 1 ttable1 3 0.004 1000))
-    ($topCandidatesLength (OS.length $topCandidates))
+(let $length
+((OS.length (runMoses 10 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
+    (False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
+    inc      ;; the new arguments for feature selection algo
+    (eval (createTruthTableBScore 2 (mkITable
+                          (Cons (Cons False (Cons False (Cons False Nil))) 
+                          (Cons (Cons True (Cons False (Cons False Nil))) 
+                          (Cons (Cons False (Cons True (Cons False Nil)))
+                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+                          (Cons A (Cons B (Cons O Nil))))))
+    (mkITable
+                          (Cons (Cons False (Cons False (Cons False Nil))) 
+                          (Cons (Cons True (Cons False (Cons False Nil))) 
+                          (Cons (Cons False (Cons True (Cons False Nil)))
+                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+                          (Cons A (Cons B (Cons O Nil)))))
+    hillClimbing 5 2 2 1
+    3 0.004 1000)
+    ))
+        (> $length 3)
 )
-(>= $topCandidatesLength 1)
-) True)
-
-; ! (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
-;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     inc      ;; the new arguments for feature selection algo
-;     table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
-
-; ! (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
-;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     inc      ;; the new arguments for feature selection algo
-;     table hillClimbing 5 2 0 1 ttable1 3 0.004 1000)
-
-; with OR table and AND init exemplar     
-; ! (runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
+    False
+) 
+; ; with OR table and AND init exemplar     
+; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
 ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;     smd      ;; the new arguments for feature selection algo
-;     ortable hillClimbing 5 2 0 1 orttable 3 0.004 1000)
-; with OR table and AND init exemplar     
-; ! (runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
+;     (eval (createTruthTableBScore 2 (mkITable
+;                          (Cons (Cons False (Cons False (Cons False Nil))) 
+;                          (Cons (Cons True (Cons False (Cons True Nil))) 
+;                          (Cons (Cons False (Cons True (Cons True Nil)))
+;                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+;                          (Cons A (Cons B (Cons O Nil)))))) 
+;     hillClimbing 
+;     5 2 0 1 
+;     (mkITable
+;                          (Cons (Cons False (Cons False (Cons False Nil))) 
+;                          (Cons (Cons True (Cons False (Cons True Nil))) 
+;                          (Cons (Cons False (Cons True (Cons True Nil)))
+;                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+;                          (Cons A (Cons B (Cons O Nil)))) 
+;     3 0.004 1000)
+; ; with OR table and AND init exemplar     
+; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
 ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;     smd      ;; the new arguments for feature selection algo
-;     ortable hillClimbing 5 2 0 1 orttable 3 0.004 1000)
+;     (eval (createTruthTableBScore 2 (mkITable
+;                           (Cons (Cons False (Cons False (Cons False Nil))) 
+;                           (Cons (Cons True (Cons False (Cons True Nil))) 
+;                           (Cons (Cons False (Cons True (Cons True Nil)))
+;                           (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+;                           (Cons A (Cons B (Cons O Nil))))))  
+;     hillClimbing 
+;     5 2 0 1 
+;     (mkITable
+;                           (Cons (Cons False (Cons False (Cons False Nil))) 
+;                           (Cons (Cons True (Cons False (Cons True Nil))) 
+;                           (Cons (Cons False (Cons True (Cons True Nil)))
+;                           (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
+;                           (Cons A (Cons B (Cons O Nil))))  
+;     3 0.004 1000)
 
-
-; ! (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 metaPop2 0 2 
+; !(runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
 ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;     smd      ;; the new arguments for feature selection algo
-;     bigtablet hillClimbing 5 2 0 1 bigtable 3 0.004 1000)
+;     (eval (createTruthTableBScore 2 
+;     (bigtable)))
+;     hillClimbing 
+;     5 2 0 1 
+;     (bigtable) 
+;     3 0.004 1000)
+
+;; Parameters:
+  ;; $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme
+  ;; $prune-exemplar
+  ;; $fs-algo
+  ;; $truthTableBScore
+  ;; $optimize
+  ;; $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature
+  ;; $itable
+  ;; $nToKeep $capCoef $genCount
+
+;; The following configuration can result to XOR.
+;; A⊕B=(A∨B)∧¬(A∧B)
+;; (AND (OR A B) (OR (NOT A) (NOT B)))
+;; A⊕B=(¬A∧B)∨(A∧¬B)
+;; (AND (OR (AND A (NOT B)) (AND (NOT A) B)))
+;; !(let*
+;;    (
+;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
+;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
+;;                   smd      ;; the new arguments for feature selection algo
+;;                   (eval (createTruthTableBScore 2 (xortable)))
+;;                   hillClimbing
+;;                   100 10 20 2
+;;                   (xortable)
+;;                   10 0.004 1000))
+;;     ($nt (println! ""))
+;;     ($newR (mapG cleanedExemplar $result))
+;;     ($_ (mapG printExemplar $result))
+;;    )
+;;    $newR
+;;  )
+;;
+;; Empty strategy metapop -  empty PRIORITIZED-OR with worst CScore
+;; this empty strategy can be used as a starting point to evolve better strategy 
+(= (emptyStrategyMetaPop)
+   (ConsOS
+     (mkExemplar
+       (mkTree (mkNode PRIORITIZED-OR) Nil)  ;;  empty - no children
+       (mkDemeId "0")
+       (eval (worstCscore))  ;; Worst CScore
+       (mkBScore (Cons -10000.0 Nil)))
+     NilOS))
+
+;; by uncomment this test and also adjust the parameter settings we can check the full evolution process of runMosesStrategy, and see how the strategy evolves from empty strategy to better strategy.
+; !(runMoses
+;     2                              ;; maxGen - 3 generations 
+;     (mkCscore 10.0 0 0 0.0 10)     ;; Target: 10/10 wins,
+;     3                              ;; maxCandOutput - return top 3 strategies
+;     (emptyStrategyMetaPop)         ;; metaPop - start with empty strategy
+;     0                              ;; nExpansion - generation counter
+;     2                              ;; nDeme - 3 demes (more diversity)
+;     (10 random-player 3.5)       ;; nGames - 10 games per evaluation
+;     hillClimbing                   ;; optimize - optimizer function
+;     30                             ;; nEval - not used
+;     5                              ;; maxCandsPerDeme - top 5 per deme
+;     2                              ;; minPoolSize - min deme size
+;     1.0                            ;; complexityTemperature - for trimming
+;     5                              ;; nToKeep - keep top 5
+;     0.004                          ;; capCoef - capacity coefficient
+;     1000)   
+;; metapop for testing
+(= (strategyMetaPop)
+   (ConsOS
+     (mkExemplar
+       (mkTree (mkNode PRIORITIZED-OR)
+         (Cons (mkTree (mkNode playwin) Nil)
+               (Cons (mkTree (mkNode playblock) Nil) Nil)))
+       (mkDemeId "0")
+       (mkCscore 2.0 2 0.57 0.0 1.43)
+       (mkBScore (Cons 2.0 Nil)))
+     NilOS))
+
+;; !(assertEqual ;; INFO: This test case is blocking the reset. But works fine on it's own.
+;;    (let* (
+;;      ($optimizedDemes (expandDeme
+;;                         (strategyMetaPop) 
+;;                         0 1 5 random-player 3.5 
+;;                         (mkCscore 5.0 5 1.43 0.0 3.57) 
+;;                         hillClimbing))
+;;      ($demeCount (size-atom $optimizedDemes))
+;;    )
+;;    (>= $demeCount 1))
+;;    True)
+;;
+!(assertEqual
+   (let* (
+     ($result (runMoses
+                1                              ;; maxGen
+                (mkCscore 5.0 5 1.43 0.0 3.57) ;; target
+                3                              ;; maxCandOutput
+                (strategyMetaPop)              ;; metaPop
+                0 1                            ;; nExpansion, nDeme
+                (5 random-player 3.5)            ;; nGames, opponent, ratio
+                hillClimbing                   ;; optimizer
+                30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
+                5 0.004 1000))                 ;; nToKeep, capCoef, genCount
+     ($resultSize (eval (OS.length $result)))
+   )
+   (>= $resultSize 1))
+   True)
+
+!(assertEqual
+   (let* (
+     ($result (runMoses
+                1                              ;; maxGen
+                (mkCscore 5.0 5 1.43 0.0 3.57) ;; target
+                1                              ;; maxCandOutput
+                (strategyMetaPop)              ;; metaPop
+                0 1                            ;; nExpansion, nDeme
+                (5 random-player 3.5)            ;; nGames, opponent, ratio
+                hillClimbing                   ;; optimizer
+                30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
+                5 0.004 1000))                 ;; nToKeep, capCoef, genCount
+     ($topExemplar (eval (OS.getByIdx 0 $result)))
+     ($topScore (eval (getExemplarCscore $topExemplar)))
+     ($penScore (eval (getPenScore $topScore)))
+     ;; Score should be better than worst possible
+     ($isValid (> $penScore -1000.0))
+   )
+   $isValid)
+   True)

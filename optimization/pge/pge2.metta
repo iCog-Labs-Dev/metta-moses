@@ -414,7 +414,7 @@
 
 
 (= (genPhen $grammarSpace $countSpace $genoType $nts $start $maxIter $idx $isBest)
-    (if (and (isLiteral $start) (not (isMember $start $nts)))
+    (if (and (isLiteral $start) (not (is-member $start $nts)))
         $start
         (if (== (get-metatype $start) Expression)
             (let*

@@ -1,40 +1,20 @@
-;; functions to Constract expression i.e (AND (A B) ) => (AND A B)
-(= (singleton-operator $op $x) (cons-atom $op $x))
-
-;; function to propagate to all of nested tuples by  mapping a propagetNot function to them
-(= (propagateNotChildrens () $tuple) (collapse (propagateNot (superpose $tuple))))
-(= (propagateNotChildrens $tuple) (collapse (propagateNot NOT (superpose $tuple))))
-
-;; Rules to propagete
-(= (propagateNot AND $tuple) (singleton-operator AND (propagateNotChildrens () $tuple)))
-(= (propagateNot OR $tuple) (singleton-operator OR (propagateNotChildrens () $tuple)))
-(= (propagateNot NOT AND $tuple) (singleton-operator OR (propagateNotChildrens $tuple)))
-(= (propagateNot NOT OR $tuple) (singleton-operator AND (propagateNotChildrens $tuple)))
-(= (propagateNot NOT NOT $tuple) (propagateNot $tuple))
-
-;;functions to Extract the operators form operands and make oprands tuple  from the expression
-(= (propagateNot NOT $symbol ()) (NOT $symbol))
-(= (propagateNot NOT $expr)
-   ( if (== (get-metatype $expr) Expression) ;; check if the the variable is expression 
-     (let $tuple (car-atom $expr) 
-       ( if (== (get-metatype $tuple) Expression)
-          (propagateNot NOT (car-atom $tuple) (cdr-atom $tuple))
-          (propagateNot NOT $tuple (cdr-atom $expr))
-       )
-      )
-      (NOT $expr)
-  )
-)
-
-(= (propagateNot $expr ()) (if (== (get-metatype $expr) Expression) (propagateNot $expr) (if (== $expr AND) (empty) $expr))) ;; Returns in ND result when given => (AND)
-(= (propagateNot $expr) 
-  (if (== (get-metatype $expr) Expression)
-       (let* (
-                ($op (car-atom $expr))
-                ($tuple (cdr-atom $expr))
-              )
-              (propagateNot $op $tuple)
-       )
-       $expr
-  )
-)
+(= (propagateNot $expr) (propagateNot $expr False))
+(= (propagateNot $expr $negate)
+   (if (== (get-metatype $expr) Expression)
+       (if (== $expr ()) 
+           ()
+           (let*
+             (
+               (($op $t) (decons-atom $expr))
+               ($result (map-atom $t (|-> ($childExpr) (propagateNot $childExpr (xor (== $op NOT) $negate)))))
+             )
+             (case $op
+                   (
+                     (AND (if $negate (cons-atom OR $result) (cons-atom AND $result)))
+                     (OR (if $negate (cons-atom AND $result) (cons-atom OR $result)))
+                     (NOT (car-atom $result))
+                     ($_ (trace! (Returning Error for operator $op) ERROR))
+                   ))))
+       (if (== (get-metatype $expr) Symbol)
+           (if $negate (NOT $expr) $expr)
+           $expr)))

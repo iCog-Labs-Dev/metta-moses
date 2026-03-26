@@ -17,30 +17,45 @@
 ;; Example: input: POA ==> (AND E D), commandSet ==> (C D), parent ==> (OR (AND E D) C)
 ;;        : output: ((OR C) () True)
 ;;(: oneConstraintSubsume (-> Expression Expression Expression (Expression Expression Bool)))
+
+
+
 (= (oneConstraintSubsume $parent $current $commandSet)
-  (if-decons-expr-custom $current $head $tail 
-    (let*
-      (
-        ($head (car-atom $current))
-        ($tail (cdr-atom $current))
-      )
-      (case $head
-        (
-          (OR ($parent $current False))
-          (NOT ($parent $current False))
-          (AND
-            (let*
-              (
-                ($guardSet (getGuardSet $current))
-                ($common (collapse (intersection (superpose $guardSet) (superpose $commandSet))))
-              )
-              (if (== $common ()) ($parent $current False) ((removeElement ($current) $parent) () True)) ;; remove current from parent.
+    (if (== $current ())
+      ($parent $current False)
+      
+        
+          (let*
+            (
+              ;; ($_ (println! (===Inside OneConstraintSubsume===)))
+              ; ($_ (println! (Parent: $parent Current: $current CommandSet: $commandSet)))
+              ($head (car-atom $current))
+              ($tail (cdr-atom $current))
+              ; ($_ (println! (Head : $head : Tail : $tail)))  
             )
-          )
-          ($else ($parent $current False))
+            (case $head
+          
+              (
+                (OR ($parent $current False))
+                (NOT ($parent $current False))
+                (AND
+                  (let*
+                    (
+                      ($guardSet (getGuardSet $current))
+                      ($common (collapse (intersection (superpose $guardSet) (superpose $commandSet))))
+                    )
+                    (if (== $common ())
+                        ;; (trace! (Parent: $parent : Current : $current)
+                                ($parent $current False)
+                        ;; )
+                        ((removeElement ($current) $parent) () True)) ;; remove current from parent.
+                  )
+                )
+                ($else ($parent $current False))
+              )
+            )
         )
-      )
-   )
-  ($parent $current False)
-  )
-)
+
+      
+))
+

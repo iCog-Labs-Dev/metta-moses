@@ -1,20 +1,19 @@
-!(register-module! ../../../metta-moses)
+!(import! &self ../../utilities/general-helpers)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/ordered-multimap)
+!(import! &self ../../utilities/map)
+!(import! &self ../../utilities/nodeId)
+!(import! &self ../../utilities/tree)
 
-! (import! &self metta-moses:representation:lsk)
-! (import! &self metta-moses:representation:knob-mapper)
-! (import! &self metta-moses:representation:representation)
-! (import! &self metta-moses:representation:knob-representation)
-
-! (import! &self metta-moses:utilities:map)
-! (import! &self metta-moses:utilities:tree)
-! (import! &self metta-moses:utilities:nodeId)
-! (import! &self metta-moses:utilities:list-methods)
-! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:utilities:ordered-multimap)
+!(import! &self ../lsk)
+!(import! &self ../knob-mapper)
+!(import! &self ../knob-representation)
+!(import! &self ../representation)
 
 
 
-!(bind! lsk1
+
+(= (lsk1)
         (mkLSK
             (mkDiscKnob
               (mkKnob (mkNodeId (2 3)))
@@ -24,7 +23,7 @@
               Nil)
             ))
 
-!(bind! lsk2
+(= (lsk2)
         (mkLSK
             (mkDiscKnob
               (mkKnob (mkNodeId (3)))
@@ -34,7 +33,7 @@
               Nil)
             ))
 
-!(bind! lsk3
+(= (lsk3)
         (mkLSK
             (mkDiscKnob
               (mkKnob (mkNodeId (1)))
@@ -44,13 +43,13 @@
               Nil)
             ))
 
-!(bind! knobMapObj (mkKbMap
+(= (knobMapObj) (mkKbMap
                       (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap))))
-                      (mkDscMp (ConsMMap ((mkDiscSpec 1) lsk1) (ConsMMap ((mkDiscSpec 0) lsk2) (ConsMMap ((mkDiscSpec 1) lsk3) NilMMap))))))
+                      (mkDscMp (ConsMMap ((mkDiscSpec 1) (lsk1)) (ConsMMap ((mkDiscSpec 0) (lsk2)) (ConsMMap ((mkDiscSpec 1) (lsk3)) NilMMap))))))
 
 
-!(assertEqual (findDiscKnob knobMapObj (mkNodeId (2 3))) (lsk1 0))
-!(assertEqual (findDiscKnob knobMapObj (mkNodeId (0))) (() -1))
-!(assertEqual (findDiscKnob knobMapObj (mkNodeId (2 2))) (() -1))
-!(assertEqual (findDiscKnob knobMapObj (mkNodeId (3))) (lsk2 1))
-!(assertEqual (findDiscKnob knobMapObj (mkNodeId (1))) (lsk3 2))
+!(assertEqual (findDiscKnob (knobMapObj) (mkNodeId (2 3))) ((lsk1) 0))
+!(assertEqual (findDiscKnob (knobMapObj) (mkNodeId (0))) (() -1))
+!(assertEqual (findDiscKnob (knobMapObj) (mkNodeId (2 2))) (() -1))
+!(assertEqual (findDiscKnob (knobMapObj) (mkNodeId (3))) ((lsk2) 1))
+!(assertEqual (findDiscKnob (knobMapObj) (mkNodeId (1))) ((lsk3) 2))

@@ -15,15 +15,15 @@
 ;;        : output: ((AND A (NOT B) (OR (AND C) (AND)) (OR (NOT C) (AND (NOT B) (NOG D)))) () True)
 ;(: promoteCommonConstraints (-> Expression Expression (Expression Expression Bool)))
 (= (promoteCommonConstraints $parent $current)
-    (if (and (~= $current ()) (~= $parent ()))
+    (if (and (not (== $current ())) (not (== $parent ())))
         (let*
             (
               ;; (() (println! (=== Inside PromoteCommonConstraints ===)))
               ;; (() (println! (Parameters ==> Parent: $parent Current: $current)))
 
               (($literals $children) (getLiteralChildren $current))
-              ($childrenLiteral (if (~= $children ()) (collapse (getLiterals (superpose $children))) ()))
-              ($common (if (~= $childrenLiteral ()) (findCommon $childrenLiteral) ()))
+              ($childrenLiteral (if (not (== $children ())) (collapse (getLiterals (superpose $children))) ()))
+              ($common (if (not (== $childrenLiteral ())) (findCommon $childrenLiteral) ()))
             )
             (if (== $common ())
                 ($parent $current False)

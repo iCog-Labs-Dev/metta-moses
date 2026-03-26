@@ -1,0 +1,1 @@
+!(py-call (random.seed 42))

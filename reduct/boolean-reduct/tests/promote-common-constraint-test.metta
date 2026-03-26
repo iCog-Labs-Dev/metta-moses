@@ -1,8 +1,6 @@
-! (register-module! ../../../../metta-moses) 
-
-! (import! &self metta-moses:utilities:general-helpers)
-! (import! &self metta-moses:reduct/boolean-reduct:rte-helpers)
-! (import! &self metta-moses:reduct/boolean-reduct:promote-common-constraints)
+!(import! &self ../../../utilities/general-helpers)
+!(import! &self ../rte-helpers)
+!(import! &self ../promote-common-constraints)
 
 
 ;; Test 01
@@ -49,60 +47,60 @@
 ;;remove element Test
 
 ;; Test 01
-!(assertEqualToResult 
+!(assertEqual 
   (removeElement (A B) (A C B H))
-  ((C H))
+  (C H)
  )
 
  ;; Test 02
- !(assertEqualToResult 
+ !(assertEqual 
   (removeElement (A) (A C B H))
-  ((C B H))
+  (C B H)
  )
 
  ;; Test 03
-  !(assertEqualToResult 
+  !(assertEqual 
   (removeElement () (A C B H))
-  ((A C B H))
+  (A C B H)
  )
 
  ;; Test 04
-  !(assertEqualToResult 
+  !(assertEqual 
   (removeElement (A B) (C  H))
-  ((C H))
+  (C H)
  )
 
 ;; Test 05
-!(assertEqualToResult 
+!(assertEqual 
   (removeElement (A B) ())
-  (())
+  ()
  )
 
 ;; test removeCommonLiterals
 ;; Test 01
-!(assertEqualToResult
+!(assertEqual
    (removeCommonLiterals (A B) ((A C B H) (A B D) (A C F B)))
-   (((C H) (D) (C F)))
+   ((C H) (D) (C F))
  )
 
 ;; Test 02
-!(assertEqualToResult
+!(assertEqual
   (removeCommonLiterals (A) ((A C B H) (A B D) (A C F B)))
-  (((C B H) (B D) (C F B)))
+  ((C B H) (B D) (C F B))
 )
 ;; Test 03
-!(assertEqualToResult
+!(assertEqual
    (removeCommonLiterals () ((A C B H) (A B D) (A C F B)))
-   (((A C B H) (A B D) (A C F B)))
+   ((A C B H) (A B D) (A C F B))
 )
 ;; Test 04
-!(assertEqualToResult
+!(assertEqual
  (removeCommonLiterals (A B) ((C H) ( B D) (A C F B)))
- (((C H) (D) (C F )))
+ ((C H) (D) (C F ))
 )
 ;; Test 05
-!(assertEqualToResult
+!(assertEqual
   (removeCommonLiterals (A B) ())
-  (())
+  ()
 )
 

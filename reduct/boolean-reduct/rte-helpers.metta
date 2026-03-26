@@ -14,32 +14,43 @@
 ;;                Only AND nodes have guard sets.
 ;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 (= (getGuardSet $exp)
-   (if-decons-expr-custom $exp $h $t
-       (if (== $h OR)
-           ()                
-           (getLiterals $exp)) 
-       $exp))  
+   (if (== (get-metatype $exp) Expression)
+    (let ($h $t) (if (not (== $exp ())) (decons-atom $exp) (() ()))
+      (if-decons-expr-custom $exp $h $t
+          (if (== $h OR)
+              ()               
+              (getLiterals $exp))
+          $exp)
+    )
+    $exp)
+)
 
 
 ;; A function similar to the getGuardSet function but returns a
 ;;    non deterministic list instead of a collapsed atom.
 ;; Example: (AND (NOT A) (NOT B) A) -> [(NOT A), (NOT B), A]
 (= (getGuardSetND $exp)
-   (if-decons-expr-custom $exp $h $t
-       (if (== $h OR)
-           (empty)             
-           (getLiteralsND $exp)) 
-       $exp))  
+   (if (or (not (== $exp ())) (== (get-metatype $exp) Expression))
+      (let*
+        (
+         (($h $t) (decons-atom $exp))
+         ($then (if (== $h OR) (empty) (getLiteralsND $exp)))
+         ($result (if-decons-expr-custom $exp $h $t $then $exp))
+        )
+        $result
+      )
+      $exp
+    )
+)  
 
 (= (addLiterals $exp $elements)
    (let*
      (
         ($op (car-atom $exp))
         ($guardSet (getLiterals $exp))
-        ($newGuardSet (unionAtom $guardSet $elements))
+        ($newGuardSet (union-atom $guardSet $elements))
         ($newGuardSet' (collapse (unique (superpose $newGuardSet))))
-        ($updatedSubExpression (unionAtom $newGuardSet' (getChildrenExp $exp)))
-
+        ($updatedSubExpression (union-atom $newGuardSet' (getChildrenExp $exp)))
         ($newExp (cons-atom $op $updatedSubExpression))
      )
      $newExp
@@ -65,7 +76,9 @@
        (
          (() $exp)
          ((NOT $x) ())
-         ($else (if (== (get-metatype $exp) Expression) (collapse (filterChildren (superpose $exp))) ())))))
+         ($else (if (== (get-metatype $exp) Expression)
+                          (collapse (filterChildren (superpose $exp)))
+                          ())))))
 
 ;; A function to add a list of children to a given expression.
 ;; Example: input: $exp -> (AND A B (OR C D)), $children -> ((OR A B) (OR E F) (OR D))
@@ -125,7 +138,8 @@
             (
                 ($first (car-atom $nestedTuple))
                 ($tail (cdr-atom $nestedTuple))
-                ($common (collapse (intersection (superpose $tuple) (superpose $first)))))
+                ($common (intersection-atom $tuple $first)))
+
         (if (== $tail ())
             $common
             (findCommonLiterals $common $tail)))))

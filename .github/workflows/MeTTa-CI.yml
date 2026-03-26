@@ -1,30 +1,31 @@
-name: MeTTaLog CI
+name: PeTTa CI
 
 on:
   push:
     branches:
       - main
       - dev
+      - feat/*
+      - fix/*
       - ref/*
-      - reduct-refactoring
   pull_request:
     branches:
       - main
       - dev
+      - feat/*
+      - fix/*
       - ref/*
-      - reduct-refactoring
 
 jobs:
   setup-and-test:
     runs-on: ubuntu-latest
     container:
-      image: indominyus/mettalog:latest
-
+      image: bluesky21/petta:v1.0.0
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run mettalog test
+      - name: Run PeTTa test
         run: |
-          pip3 install ansi2html
           python3 scripts/run-tests.py
