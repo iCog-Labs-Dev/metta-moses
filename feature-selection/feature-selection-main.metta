@@ -57,6 +57,7 @@
                                           (readjustIndices $selected-ft-set $filtered-labels $labels)
                                     ) ;; here the returned index values refere to column indices in the filtetered table so some adjstment is needed to make up for any removed columns
                                     (featureSelection $algo (mkITable $table $labels) $th $target-size $init-ft-indices $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType))))
+
                 ($ft-set-pop-size (size-atom $ft-set-pop))                     
                 ($capped-ft-set-pop (if (and (> $diversity-cap 0) (< $diversity-cap $ft-set-pop-size))                  ;; limmit the size of feature set pop to diversity cap value
                                         (takeN $diversity-cap $ft-set-pop)

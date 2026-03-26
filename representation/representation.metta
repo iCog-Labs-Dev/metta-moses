@@ -21,7 +21,6 @@
    ) 
    (crtDiscKnobMap (mkDscMp $tail) (mkDscKbMp $updatedDkm) (+ $index 1))
   ))
-
 ;; representation constructor
 ;; Params: Tree (Exemplar)
 ;;         $argLabels: list of argument labels (input variables) from the ITable
@@ -35,16 +34,36 @@
 ; )   
 ; (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
 ; ))
-
+;; Game representation constructor with execution guard
+;; Params: Tree (Exemplar), Number of demes
+;; Returns: List of Representations
+;;(: representation (-> (Tree $a) Number (List Representation)))
+(= (representation $exemplar $nDeme)
+   (let* (
+      ($demeCount (range 0 1 $nDeme))
+     
+      ($result (collapse (let $x (superpose $demeCount)
+         (let*
+            (
+               (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap ()))
+               ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
+               ($rep (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree))
+            )   
+               $rep))))
+   )
+   $result))
 ;; (: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol Expression))
-(= (representation 
+(= (representation
+;; Boolean representation constructor with feature selection
+;; Params: Number of demes, Tree (Exemplar), ITable, feature selection params
+;; Returns: List of Representations
             $nDeme                      ;; number of demes to spawn (number of distinct feature sets)
             $exemplar                   ;; tree around which multiple representations are to be built
             (mkITable $table $labels)   ;; table from which to select features and base the representations with
             $ft-selection-algo          ;; feature selection algorithm to be used -- symbol 
             $prune-exemplar             ;; bool to decide to prune the exemplar or keep the exemplar as is
             $enforced-fts               ;; set of features to be enforced in to selected features
-            $scorerType         ;; can MI or precision_bscore
+            $scorerType                 ;; can MI or precision_bscore
         )
         
         (let* (
@@ -95,13 +114,16 @@
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
                                     ;; ($_ (println! ""))
-                                  ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0)))        ;; MULITPLE args selected using the feature selection
+                                    ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0)))        ;; MULITPLE args selected using the feature selection
+                                 (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))))
 
-                                 (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree))))
-        )
+;; Helper function to extract tree from representation
+(= (getRepTree (mkRep $knobMapObj $tree)) $tree)
+
+;; Universal getCandidate that works for both boolean and game strategies
+;; Uses preOrder+buildTree to unwrap mkNullVex for games, cleanTree for boolean
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
 (= (getCandidate $repObj $inst)
-   ; (println! (inside getCandidate))
    (let*
       (
          ($parentid (mkNodeId (0)))
@@ -111,16 +133,24 @@
          ;; ($_ (println! (Tree: (preOrder $tr))))
          ($candidate (getCandidateRec $repObj $inst $parentid $srcid $parentid (mkNullVex Nil)))
          ;; ($_ (println! (Found candidate: (preOrder $candidate))))
-         ($cleanedTree (cleanTree $candidate))
+         ($rootNode (getNodeById (getRepTree $repObj) $srcid))
+         ($rootValue (getNodeValue $rootNode))
+         ($rootSymbol (if (== (get-metatype $rootValue) Expression) 
+                 (car-atom (cdr-atom $rootValue))
+                 $rootValue))
+         ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
          ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
       )
-      $cleanedTree
-   )
-   
+      (if $isGameStrategy
+          (let* (
+                  ($expr (preOrder $candidate))
+                  ($cleanTree (buildTree $expr)))
+                $cleanTree)
+          (cleanTree $candidate))))
    ; (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex Nil)) $candidate
    ;  (cleanTree $candidate)))
     
-    )
+    
      ;;((( (trace! (Done converting instance to tree $candidate) $candidate))))
 
 
