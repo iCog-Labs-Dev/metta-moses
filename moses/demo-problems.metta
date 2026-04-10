@@ -230,12 +230,9 @@
         ($metaPop (ConsOS (mkExemplar (mkTree (mkNode true) Nil) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) NilOS))
         ;; ($metaPop (ConsOS (mkExemplar (mkTree (mkNode AND) (Cons (mkTree (mkNode OR) Nil) Nil)) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) NilOS))
         ($result (runMoses $maxGen $bestPosssibleCscore 10 $metaPop 0 $nDeme
-              False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-              $fsAlgo      ;; the new arguments for feature selection algo
-              $truthTableBScore
+              (False $fsAlgo $truthTableBScore ($problem))
               hillClimbing
               10000 100 20 $complexityTemperature
-              ($problem)
               50 $capCoef $maxGen))
         ($_ (println! (Result: $result)))
         ($newR (osToExpression (mapG cleanedExemplar $result) ()))
