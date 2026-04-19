@@ -209,7 +209,7 @@
 ;;                      $codonIndex -- the updated condon index value
 
 (= (genPhen $gSpace $cSpace $gtSpace $nts $start $maxIter $random)
-    (if (and (isLiteral $start) (not (isMember $start $nts)))
+    (if (and (isLiteral $start) (not (is-member $start $nts)))
         $start
         (if (== (get-metatype $start) Expression)
 

@@ -1,0 +1,2 @@
+;; 
+!(bind! &bscoreCache (new-space))

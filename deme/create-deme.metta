@@ -1,20 +1,60 @@
 ;; Represents a population of program instances with the same representation 
 ;; but different knob settings, along with their scores
-(: Deme Type)
-(: mkDeme (-> Representation (InstanceSet $score) DemeId Deme))
+; (: Deme Type)
+; (: mkDeme (-> Representation (InstanceSet $score) DemeId Deme))
+;; createDeme create demes with empty instance set -- appends deme ID's to them as well
+;;             $demeIds --    list of deme ids (Cons ...)
+;;             $exemplar --   the exemplar tree which the demes are going to be based on 
+;;             $table    --   table of input data 
+;;             $algo     --   the chosen feature selection algo
+;;             $prune-exemplar     --   bool shall we prune the exemplar or not?
+;;             $enforced-features  --   tuple of enorced features to be sample during feature selection, if any, in the form of arg selection-probabality pair
+;;             returns ↠ tuple of demes
+; (: createDeme (-> Number (List DemeId) (Tree $a) (ITable $a) Symbol Bool Expression Symbol Expression)) 
+(= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
+      (let* 
+            (
+                  ;; ($_ (println! "creating representations ...."))
+                  ($reps (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts  $scorerType))
+                  ;; ($_ (println! (done making representations ... $reps)))
+            ) 
+            (loopCreateDeme $demeIds $reps ())
+      ) 
+)
+;; Game strategy createDeme - creates demes with empty instance sets for game strategies
+;;             $nDeme --      number of demes to create
+;;             $demeIds --    list of deme ids (Cons ...)
+;;             $exemplar --   the exemplar tree which the demes are going to be based on 
+;;             returns ↠ tuple of demes
+; (: createDeme (-> Number (List DemeId) (Tree $a) Expression))
+(= (createDeme $nDeme $demeIds $exemplar)
+      (let* 
+            (
+                  ;; ($_ (println! "creating game representations ...."))
+                  ($reps (createRepresentation $nDeme $exemplar))
+                  ;; ($_ (println! ("done making representations ..." $reps)))
+            )  
+            (loopCreateDeme $demeIds $reps ())
+      ) 
+)
 
-;; Creates a new deme with an empty instance set
-;; Params:
-;;   $exemplar: The exemplar tree
-;;   $nExpansion: total number of deme expansions (generations) set to 0 -- a constant number or a generation demes
-;;   $nDemes: Number of feature sets to select out of feature selection and demes to spawn
-;; Return: A new empty deme with the specified representation and ID
-(: createDeme (-> (Tree $a) Number Number Deme)) 
-(= (createDeme $exemplar $nExpansion $nDeme)
-   (let*
-   (
-    ($demeIds (createDemeIds $nExpansion $nDeme))
-    ($representation (createRepresentation $exemplar))
-    ($demeId (List.getByIdx $demeIds 0))
-   )
-   (mkDeme $representation (mkSInstSet Nil) $demeId)))
+
+(= (loopCreateDeme $demeIds $reps $acc)
+(if (== $reps ()) 
+    $acc
+    (let* (
+            ($h (car-atom $reps))
+            ($t (cdr-atom $reps)))
+         (let* (
+                 ($demeId (List.head $demeIds)) 
+                 ($deme (mkDeme $h (mkSInstSet Nil) $demeId))
+                 ($new-acc (union-atom $acc ($deme))))     
+               (loopCreateDeme (List.tail $demeIds) $t $new-acc)))))
+;; previous version of loopCreateDeme using if-decons-expr-custom
+;       (if-decons-expr-custom $reps $h $t
+;             (let* (($demeId (List.head $demeIds)) 
+;                    ($deme (mkDeme $h (mkSInstSet Nil) $demeId))
+;                    ($new-acc (union-atom $acc ($deme))))
+                  
+;                   (loopCreateDeme (List.tail $demeIds) $t $new-acc))
+;                $acc))    

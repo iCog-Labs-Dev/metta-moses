@@ -2,7 +2,11 @@ import subprocess
 import pathlib
 import sys
 import re
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import shutil
+
+print("🚀 Starting test script")
 
 # Define ANSI escape codes for colors
 RESET = "\033[0m"
@@ -18,32 +22,39 @@ MAGENTA = "\033[95m"
 def extract_and_print(result, path, idx) -> bool:
     """
     Extracts the output from the test execution result and prints the status.
-
-    Parameters:
-        result (subprocess.CompletedProcess): The result of the subprocess call.
-        path (pathlib.Path): The path to the test file being executed.
-        idx (int): The index of the test in the sequence.
-
-    Returns:
-        bool: True if the test failed (output contains "Error"), False otherwise.
-
-    This function:
-        - Extracts the output from the result's stdout or stderr.
-        - Checks for the presence of the word "Error" to determine failure.
-        - Prints the test result in a color-coded format:
-            - Green for success.
-            - Red for failure.
-        - Displays the test's exit code and a separator line for readability.
     """
+    # Always use stdout for petta output
+    output = result.stdout if result.stdout else result.stderr
+    extracted = output.strip()  # Remove any leading/trailing whitespace
 
-    output = result.stdout if result.returncode == 0 else result.stderr
-    extracted = output.replace("[()]\n", "")
+    with open(path, "r") as test_file:
+        content = test_file.read()
+        total_asserts = sum(
+            1
+            for line in content.splitlines()
+            if "!(assertEqual" in line and not line.lstrip().startswith(";")
+        )
 
-    has_failure = "Error" in extracted
+    raw_passed = extracted.count("✅")
+    passed_asserts = min(
+        raw_passed, total_asserts
+    )  # Cap passed asserts to total asserts to avoid redundancy
 
-    if not has_failure:
-        extracted = "test passed"
+    # Check for actual failures in the Petta Report
+    has_failure = False  # Assume failure by default
 
+    # Treat exit code 0 as success, anything else as failure
+    if result.returncode == 0:
+        if "❌" in extracted or passed_asserts != total_asserts:
+            has_failure = True
+            extracted = f"test failed (output: {extracted})"
+        else:
+            extracted = "test passed"
+    else:
+        has_failure = True
+        extracted = f"test failed (output: {extracted})"
+
+    # Print the test result
     status_color = RED if has_failure else GREEN
     print(YELLOW + f"Test {idx + 1}: {path}" + RESET)
     print(status_color + extracted + RESET)
@@ -54,36 +65,44 @@ def extract_and_print(result, path, idx) -> bool:
 
 
 def run_test_file(test_file):
-    """
-    Runs a single test file using the `metta-run` command.
-
-    Parameters:
-        test_file (pathlib.Path): The path to the test file to be executed.
-
-    Returns:
-        tuple:
-            - result (subprocess.CompletedProcess | subprocess.CalledProcessError):
-              The result of the test execution.
-            - test_file (pathlib.Path): The path to the test file.
-            - has_failure (bool): True if the test failed due to a `CalledProcessError`.
-
-    This function:
-        - Invokes the `metta-run` command with the test file as an argument.
-        - Captures both stdout and stderr for the command execution.
-        - Returns the test execution result, along with the test file path and failure status.
-        - Handles errors using a try-except block and captures them in a structured format.
-    """
-
     try:
+        # Create a clean environment with bash as default shell
+        env = os.environ.copy()
+        env["SHELL"] = "/bin/bash"
+
+        # Full path to the run.sh script
+        run_sh_path = shutil.which("run.sh")
+        if not os.path.isfile(run_sh_path):
+            raise FileNotFoundError(f"{run_sh_path} not found")
+
+        # Command to execute the test file
+        command = [run_sh_path, str(test_file), "-s"]
+
+        # Run the command
         result = subprocess.run(
-            [metta_run_command, str(test_file)],
+            command,
             capture_output=True,
             text=True,
-            check=True,
+            check=False,
+            shell=False,
+            env=env,
         )
+
         return result, test_file, False
-    except subprocess.CalledProcessError as e:
-        return e, test_file, True
+
+    except Exception as e:
+        print(RED + f"\n--- EXCEPTION in {test_file} ---" + RESET)
+        print(RED + f"Exception: {e}" + RESET)
+        print("-" * 40)
+
+        # Create a mock result for the exception case
+        class MockResult:
+            def __init__(self):
+                self.returncode = -1
+                self.stdout = ""
+                self.stderr = str(e)
+
+        return MockResult(), test_file, True
 
 
 # Function to print ASCII art
@@ -95,30 +114,36 @@ def print_ascii_art(text):
 
 
 # Define the command to run with the test files
-metta_run_command = "metta"
-
-root = pathlib.Path("../")
-testMettaFiles = list(root.rglob("*test.metta"))
-total_files = len(testMettaFiles)
+root = pathlib.Path(".")
+testPettaFiles = list(root.rglob("*test.metta"))
+total_files = len(testPettaFiles)
 results = []
 fails = 0
+failed_tests = []
+
+if total_files == 0:
+    print("⚠️  No test files found matching pattern '*test.metta'")
+    sys.exit(0)
 
 # Print ASCII art title
 print_ascii_art("Parallel Test Runner")
 
 # Execute tests in parallel
-with ThreadPoolExecutor() as executor:
+with ThreadPoolExecutor(max_workers=1) as executor:
     future_to_test = {
         executor.submit(run_test_file, test_file): idx
-        for idx, test_file in enumerate(testMettaFiles)
+        for idx, test_file in enumerate(testPettaFiles)
     }
 
     for future in as_completed(future_to_test):
         idx = future_to_test[future]
         try:
             result, path, has_failure = future.result()
-            if isinstance(result, subprocess.CalledProcessError):
-                print(RED + f"Error with {path}: {result.stderr}" + RESET)
+
+            # Since we're no longer using check=True, we won't get CalledProcessError
+            # Just check if the result is valid
+            if result is None:
+                print(RED + f"Error with {path}: No result returned" + RESET)
                 fails += 1
                 continue
 
@@ -126,6 +151,7 @@ with ThreadPoolExecutor() as executor:
             has_failure = extract_and_print(result, path, idx)
             if has_failure:
                 fails += 1
+                failed_tests.append(str(path))
 
         except Exception as exc:
             print(RED + f"Test {idx + 1}: generated an exception: {exc}" + RESET)
@@ -136,7 +162,12 @@ print(CYAN + "\nTest Summary" + RESET)
 print(f"{total_files} files tested.")
 print(RED + f"{fails} failed." + RESET)
 print(GREEN + f"{total_files - fails} succeeded." + RESET)
+if fails > 0:
+    print(RED + "Failed test files:" + RESET)
+    for failed in failed_tests:
+        print(RED + f" - {failed}" + RESET)
 
 if fails > 0:
     print(RED + "Tests failed. Process Exiting with exit code 1" + RESET)
     sys.exit(1)
+

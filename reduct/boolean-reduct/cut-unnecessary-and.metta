@@ -13,35 +13,60 @@
 ;;            whether the transformation function is applied or not.
 ;; Example: input: POA ==> (AND (OR (AND B D) (NOT E))), parent ==> (OR C (AND (OR (AND B D) (NOT E))))
 ;;          output: ((OR C (AND B D) (NOT E)) () True)
-(: andCut (-> Expression Expression (Expression Expression Bool)))
+; (: andCut (-> Expression Expression (Expression Expression Bool)))
 (= (andCut $parent $current)
-    (let*
-        (
-            (($guardSet $child) (getLiteralChildren $current))
-            ($tail (cdr-atom $child))
-        )
-        (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
-            (let*
-                (
-                    (($grandLiterals $grandChildren) (getLiteralChildren (car-atom $child)))
-                    ($allLiterals (collapse (getGuardSet (superpose $grandChildren))))
-                    ($common (intersections $allLiterals))
-                    ($updatedParent (removeElement ($current) $parent))
-                    ($updatedParent' (addChildren $updatedParent $grandChildren))
-                    ($updatedParent'' (addLiterals $updatedParent' $grandLiterals))
-                )
-                (if (== $common ())
-                    ($updatedParent'' () True)
-                    ($parent $current False)
-                )
-            )
+        (if (== $parent $current)
             ($parent $current False)
-        )
-    )
+            (let*
+              (
+                  ; ($_ (println! (===Inside AndCut===)))
+                  ; ($_ (println! (Current $current : Parent : $parent)))
+                  ($parentSec (collapse (removeEmptyAND (superpose $parent))))
+                  ($currentSec (if (=== $parent $current) $parentSec (collapse (removeEmptyAND (superpose $current)))))
+                  (($guardSet $child) (getLiteralChildren $currentSec))
+                  (($h $t) (if (and (== (get-metatype $child) Expression) (not (== $child ()))) (decons-atom $child) (() ())))
+                  ($tail (if-decons-expr-custom $child $h $t $t "No child"))
+                  ; ($_ (println! ("Tail: " $tail)))
+              )
+              (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
+                  (let*
+                      (
+                          ; ($_ (println! (===Inside AndCut===)))
+                          ; ($_ (println! (Current $current : Parent : $parent)))
+                          ($childFirst (if-decons-expr-custom $child $h $t $h ()))
+                          (($grandLiterals $grandChildren) (getLiteralChildren $childFirst))
+                          ($allLiterals (collapse (getGuardSet (superpose $grandChildren))))
+                          ($common (intersections $allLiterals))
+                          ($updatedParent (removeElement ($currentSec) $parentSec))
+                          ($updatedParent' (if
+                                            (== () (subtraction-atom $parentSec $currentSec))
+                                            $updatedParent
+                                            (addChildren $updatedParent $grandChildren)))
+                          ($updatedParent'' (addLiterals $updatedParent' $grandLiterals))
+
+                          ; ($l (println! (===Inside AndCut Log===)))
+                          ; ($l (println! (All Literals: $allLiterals)))
+                          ; ($l (println! (GrandChildren: $grandChildren : GrandLiterals: $grandLiterals)))
+                          ; ($l (println! (UpdatedParent: $updatedParent : UpdatedParent': $updatedParent' )))
+                          ; ($l (println! (UpdatedParent'': $updatedParent'' )))
+                          ; ($l (println! (ChildFirst: $childFirst)))
+                          ; ($l (println! (Child: $child)))
+                          ; ($l (println! (AllLiterals: $allLiterals)))
+                          ; ($l (println! (Common: $common)))
+
+                      )
+                      (if (== $common ())
+                          ($updatedParent'' () True)
+                          ($parentSec $currentSec False)
+                      )
+                  )
+                  ($parentSec $currentSec False)
+              )
+            ))
 )
 
 ;; Function to find intersections between all literals in a nested tuple
-(: intersections (-> Expression Expression))
+; (: intersections (-> Expression Expression))
 (= (intersections $nestedTuple)
    (case $nestedTuple 
      ((() $nestedTuple)
@@ -57,10 +82,12 @@
 
 ;; A helper function used to apply andCut in the until function.
 ;; This function keeps the state of the until function updated for a single function application.
-(: applyAndCut (-> (Expression Bool (Expression Expression)) (Expression Bool (Expression Expression))))
+; (: applyAndCut (-> (Expression Bool (Expression Expression)) (Expression Bool (Expression Expression))))
 (= (applyAndCut ($parent $bool ($child $remainingChildren)))
       (let*
         (
+          ; (() (println! (===Inside ApplyAndCut===)))
+          ; (() (println! (Parent: $parent : Child: $child : RemainingChildren: $remainingChildren : bool: $bool)))
           (($updatedParent $updatedChild $appliedOrCut) (andCut $parent $child))
           ($nextChild (if (~= $remainingChildren ()) (car-atom $remainingChildren) ()))
           ($restChildren (if (~= $remainingChildren ()) (cdr-atom $remainingChildren) ()))
@@ -68,3 +95,24 @@
         ($updatedParent (or $appliedOrCut $bool) ($nextChild $restChildren))
       )
 )
+
+(= (removeEmptyAND $expr) ;; the function is removing the expression containing empty AND node, but it should return the parent.
+    (case (get-metatype $expr)
+        (
+            (Symbol $expr)
+            (Expression
+                (let* (
+                    (($h $t) (decons-atom $expr))
+                    ; (() (println! (H: $h : T: $t)))
+                  )
+                    (case ($h $t)
+                        (
+                            ((AND ()) (empty))
+                            ((AND $else) (concatTuple ($h) (collapse (removeEmptyAND (superpose $t)))))
+                            (($any $else) (collapse (removeEmptyAND (superpose $expr))))
+
+                        )
+                    )
+                )
+            )
+            ($else $expr))))

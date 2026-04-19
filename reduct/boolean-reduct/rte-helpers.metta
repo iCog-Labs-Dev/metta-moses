@@ -14,31 +14,43 @@
 ;;                Only AND nodes have guard sets.
 ;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 (= (getGuardSet $exp)
-    (if (== (car-atom $exp) OR)
-        ()
-        (getLiterals $exp)))
+   (if (== (get-metatype $exp) Expression)
+    (let ($h $t) (if (not (== $exp ())) (decons-atom $exp) (() ()))
+      (if-decons-expr-custom $exp $h $t
+          (if (== $h OR)
+              ()               
+              (getLiterals $exp))
+          $exp)
+    )
+    $exp)
+)
+
 
 ;; A function similar to the getGuardSet function but returns a
 ;;    non deterministic list instead of a collapsed atom.
 ;; Example: (AND (NOT A) (NOT B) A) -> [(NOT A), (NOT B), A]
 (= (getGuardSetND $exp)
-    (if (== (car-atom $exp) OR)
-        (empty)
-        (getLiteralsND $exp)))
+   (if (or (not (== $exp ())) (== (get-metatype $exp) Expression))
+      (let*
+        (
+         (($h $t) (decons-atom $exp))
+         ($then (if (== $h OR) (empty) (getLiteralsND $exp)))
+         ($result (if-decons-expr-custom $exp $h $t $then $exp))
+        )
+        $result
+      )
+      $exp
+    )
+)  
 
-;; A function to add a list of literals to a given expression
-;;    and keep the uniqueness of the literals.
-;; Example: input: $exp -> (AND A B (OR C D) E F), $elements -> (A B G)
-;;          output: (AND A B E F G (OR C D))
 (= (addLiterals $exp $elements)
    (let*
      (
         ($op (car-atom $exp))
         ($guardSet (getLiterals $exp))
-        ($newGuardSet (concatTuple $guardSet $elements))
+        ($newGuardSet (union-atom $guardSet $elements))
         ($newGuardSet' (collapse (unique (superpose $newGuardSet))))
-        ($updatedSubExpression (concatTuple $newGuardSet' (getChildren $exp)))
-
+        ($updatedSubExpression (union-atom $newGuardSet' (getChildrenExp $exp)))
         ($newExp (cons-atom $op $updatedSubExpression))
      )
      $newExp
@@ -59,12 +71,14 @@
 ;; A child of a given expression is any subExpression.
 ;; An expression (NOT A) is also considered as a literal 
 ;;    in the case of boolean expression. Hence not included as a child.
-(= (getChildren $exp)
+(= (getChildrenExp $exp)
      (case $exp
        (
          (() $exp)
          ((NOT $x) ())
-         ($else (if (== (get-metatype $exp) Expression) (collapse (filterChildren (superpose $exp))) ())))))
+         ($else (if (== (get-metatype $exp) Expression)
+                          (collapse (filterChildren (superpose $exp)))
+                          ())))))
 
 ;; A function to add a list of children to a given expression.
 ;; Example: input: $exp -> (AND A B (OR C D)), $children -> ((OR A B) (OR E F) (OR D))
@@ -73,11 +87,15 @@
    (let*
      (
         ($op (car-atom $exp))
-        ($oldChildren (getChildren $exp))
+        ($oldChildren (getChildrenExp $exp))
         ($newChildren (concatTuple $oldChildren $children))
         ($updatedSubExpression (concatTuple (getLiterals $exp) $newChildren))
-
         ($newExp (cons-atom $op $updatedSubExpression))
+        
+        ; (() (println! (OldChildren: $oldChildren)))
+        ; (() (println! (ChildrenToAdd: $children)))
+        ; (() (println! (NewChildren: $newChildren)))
+        ; (() (println! (SubExprs: $updatedSubExpression)))
      )
      $newExp
    )
@@ -110,7 +128,7 @@
 
 ;;A function that will return both literals (Also called guard sets for AND nodes)
 ;;  and the children as a tuple ((...literals...), (...children...))
-(= (getLiteralChildren $expr) ((getLiterals $expr) (getChildren $expr)))
+(= (getLiteralChildren $expr) ((getLiterals $expr) (getChildrenExp $expr)))
 
 ;; Function to find common literals between a tuple and a nested tuple 
 (= (findCommonLiterals $tuple $nestedTuple)
@@ -120,7 +138,8 @@
             (
                 ($first (car-atom $nestedTuple))
                 ($tail (cdr-atom $nestedTuple))
-                ($common (collapse (intersection (superpose $tuple) (superpose $first)))))
+                ($common (intersection-atom $tuple $first)))
+
         (if (== $tail ())
             $common
             (findCommonLiterals $common $tail)))))

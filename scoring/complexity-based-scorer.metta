@@ -6,7 +6,15 @@
 ;;   $complexityRatio: probability parameter
 ;; Returns:
 ;;   cScore: Composite score of the instance                      
-(: complexityBasedScorer (-> Representation Instance (ITable $a) Number Cscore))
+; (: complexityBasedScorer (-> Representation Instance (ITable $a) Number Cscore))
 (= (complexityBasedScorer $rep $inst $itable $complexityRatio)
-(chain (getCandidate $rep $inst) $tree (getCscore $itable $tree $complexityRatio)))
-
+   (let*
+      (
+        ;; ($_ (println! (Instance: $inst)))
+        ;; ($_ (println! (GetCandid Params: $rep $inst)))
+        ($tree (getCandidate $rep $inst))
+        ;; ($_ (println! (Tree: $tree)))
+        ($score (getCscore $itable $tree $complexityRatio &bscoreCache))
+        ;; ($_ (println! (Score: $score)))
+      )
+      $score))

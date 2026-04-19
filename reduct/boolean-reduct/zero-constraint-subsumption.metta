@@ -21,19 +21,15 @@
         (let*
           (
             ($head (car-atom $current))
-            ($children (getChildren $current))
-            ($childrenHasChildOrGuard (collapse (nodeHasChildOrGuard (superpose $children))))
+            ($children (getChildrenExp $current))
+            ($updatedChildren (filter-atom $children $child (nodeHasChildOrGuard $child)))
+            ($updatedCurrent (cons-atom $head $updatedChildren))
           )
           (case ($head $children)
             (
               ((AND $_) ($parent $current False))
               ((OR ()) ($parent $current False))
-              ((OR $children)
-                  (if (isMember False $childrenHasChildOrGuard)
-                      ((removeElement ($current) $parent) () True)
-                      ($parent $current False)
-                  )
-              )
+              ((OR $children) ((findAndReplace $current $updatedCurrent $parent) $updatedCurrent (!= $children $updatedChildren)))
             )
           )
         )
@@ -57,16 +53,24 @@
       ((Expression (NOT $x)) ($parent $current False))
       ((Symbol $current) ($parent $current False))
       ((Expression $current)
-        (let*
-          (
-            ($children (getChildren $current))
-            ($literals (getLiterals $current))
-          )
-          ;; POA is AND and has no children and guardSet
-          (if (and (== $literals ()) (== $children ()))
-              ((removeElement ($current) $parent) () True)
-              ($parent $current False)
-          )
+        (if (and (== (car-atom $parent) OR) (== $current (AND)))
+            ((findAndReplace $parent (AND) $parent) (AND) True) ;; Removes the entire OR if it has an empty AND as child
+            (let*
+              (
+                ;  (() (println! (===Inside ZeroConstraintSubsume'===)))
+                ;  (() (println! (Current: $current : Parent: $parent)))
+                ($children (getChildrenExp $current))
+                ($literals (getLiterals $current))
+              )
+              ;; POA is AND & OR and has no children and guardSet
+              (if (and (not (== $current $parent)) (not (== $parent AND)))
+                (if (and (== $literals ()) (== $children ()))
+                    ((removeElement ($current) $parent) () True)
+                    ($parent $current False)
+                )
+                ($parent $current False)
+              )
+            )
         )
       )
     )
@@ -75,4 +79,4 @@
 
 
 ;; a helper function which checks if an expression has a child (subexpression) or a literal or not
-(= (nodeHasChildOrGuard $node) (or (~= (getLiterals $node) ()) (~= (getChildren $node) ())))
+(= (nodeHasChildOrGuard $node) (or (not (== (getLiterals $node) ())) (not (== (getChildrenExp $node) ()))))

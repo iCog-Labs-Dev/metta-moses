@@ -1,9 +1,5 @@
-
-;; sampled arguments (inputs)
-!(bind! args (A B))
-
 ;; A function to generate all pairs of numbers from a list, where a != b
-(: genPairs (-> Expression Expression))
+;; (: genPairs (-> Expression Expression))
 (= (genPairs $list)
     ( let*
         (
@@ -17,20 +13,34 @@
     )
 )
 
+(= (genTriplet $list)
+    (let*
+        (
+            ($x (superpose $list))
+            ($y (superpose $list))
+            ($z (superpose $list))
+        )
+        (if (and (and (!= $x $y) (!= $y $z)) (!= $x $z)) 
+            ($x $y $z)
+            (empty) 
+        )
+    )
+)
+
 ;; getArgs -> generate logical expressions from the list of pairs
 ;; Parameters:
 ;;          $swapedOp -> swaped operator
 ;;          $PermPairs -> list of pairs of idx permutations
 ;;          $picked -> list of picked idxs
-(: getArgs (-> Atom Expression Expression Expression))
-(= (getArgs $swapedOp $PermPairs $picked)
+;; (: getArgs (-> Atom Expression Expression Expression Expression))
+(= (getArgs $swapedOp $PermPairs $picked $argLabels)
     (let*
         (
             (($a $b) (index-atom $PermPairs (superpose $picked)))
-            (($1 $2) ((index-atom args $a) (index-atom args $b)))
+            (($1 $2) ((index-atom $argLabels $a) (index-atom $argLabels $b)))
         )
         (if (< $b $a)
-            ($swapedOp  $2 $1)
+            ($swapedOp $2 $1)
             ($swapedOp (NOT $1) $2)
         )
     )
@@ -43,18 +53,64 @@
 ;;          Union of $perms (the list of logical expressions generated) with args
 
 ; (= (sampleLogicalPerms $op $arity) (sampleLogicalPerms $op $arity ()))
-(: sampleLogicalPerms (-> Atom Number Expression))
-(= (sampleLogicalPerms $op $arity)
+;; (: sampleLogicalPerms (-> Atom Number Expression Expression))
+(= (sampleLogicalPerms $op $arity $argLabels)
     (let*
         ( 
             ($swapedOp (swapAndOr $op))
             ($list (genList (- $arity 1)))
             ($idxPairs (collapse (genPairs $list)))
-            ($nPairs $arity)                                          ;; since perm_ratio is 0.0 the max number of n_pairs = arity
-            ($upperbound (- (* $arity (- $arity 1)) 1))               ;; we will have n * (n-1) pairs, since index substract 1
-            ($picked (lazyRandomSelector 0 $upperbound $nPairs))
-            ($perms (collapse (getArgs $swapedOp $idxPairs $picked)))
+            ($nPairs $arity)) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
+            ;; ($nPairs 0)) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
+            (if (<= $nPairs 1)
+                (let $arg (car-atom $argLabels) ($arg (NOT $arg)))  ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage
+                (let* (($upperbound (- (* $arity (- $arity 1)) 1))
+                        ($picked (lazyRandomSelector 0 $upperbound $nPairs))
+                        ($perms (collapse (getArgs $swapedOp $idxPairs $picked $argLabels))))
+                   (concatT $argLabels $perms)))))
+
+;; getMoveArgs -> generate move expressions from pairs of move indices
+;; Params:
+;;          $op: move operator (PRIORITIZED-OR)
+;;          $PermPairs: list of pairs of idx permutations
+;;          $picked: list of picked move idxs
+;;          $moveLabels: list of move labels (playcenter, playcorner, etc.)
+;; Returns: move expressions with operator and move combinations
+;; (: getMoveArgs (-> Atom Expression Expression Expression Expression))
+(= (getMoveArgs $op $PermPairs $picked $moveLabels)
+    (let*
+        (
+            ; ($triplet (index-atom $PermPairs (superpose $picked)))
+            (($a $b $c)(index-atom $PermPairs (superpose $picked)))
+            (($move1 $move2 $move3) ((index-atom $moveLabels $a) (index-atom $moveLabels $b) (index-atom $moveLabels $c)))
         )
-        (collapse (union (superpose args) (superpose $perms)))
-    )
-)
+        ($op $move1 $move2 $move3)
+    ))
+
+;; sampleStrategyPerms -> generate strategy permutations for game strategy evolution
+;; Params:
+;;          $op: the strategy operator (PRIORITIZED-OR)
+;;          $arity: the number of moves in the strategy sequence
+;;          $moveLabels: list of move labels (playcenter, playblock, playcorner, etc.)
+;; Returns:
+;;          Union of original moves with alternative move strategy expressions
+;; (: sampleStrategyPerms (-> Atom Number Expression Expression))
+(= (sampleStrategyPerms $op $arity $moveLabels)
+    (let*
+        (
+            ($list (genList (- (length $moveLabels) 1)))
+            ($idxPairs (collapse (genTriplet $list)))
+            ($nPairs $arity)
+        )
+        (if (<= $nPairs 1)
+            ($op (car-atom $moveLabels))
+            (let*
+                (
+                    ($upperbound (- (length $idxPairs) 1))
+                    ($picked (lazyRandomSelector 0 $upperbound $nPairs))
+                    ($perms (collapse (getMoveArgs $op $idxPairs $picked $moveLabels)))
+                )
+                   $perms
+            )
+        )
+))
