@@ -17,9 +17,9 @@
 
 ;; Testcase for MultiMap.findAll
 !(println! ("testing: MultiMap.finaAll"))
-!(assertEqual (MultiMap.findAll 1 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) (Cons a Nil))
-!(assertEqual (MultiMap.findAll 2 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (2 c)(ConsMMap (2 b) (ConsMMap (2 d) NilMMap)))))) (Cons b (Cons c (Cons b (Cons d Nil)))))
-!(assertEqual (MultiMap.findAll 6 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) Nil)
+!(assertEqual (MultiMap.findAll 1 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) (cons a ()))
+!(assertEqual (MultiMap.findAll 2 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (2 c)(ConsMMap (2 b) (ConsMMap (2 d) NilMMap)))))) (cons b (cons c (cons b (cons d ())))))
+!(assertEqual (MultiMap.findAll 6 (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) ())
 
 ;; Testcase for MultiMap.removeOne
 !(println! ("testing: MultiMap.removeOne"))
@@ -48,21 +48,21 @@
 
 ;; Testcase for Map.values
 !(println! ("testing: MultiMap.values"))
-!(assertEqual (MultiMap.values (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) (Cons a (Cons b (Cons c Nil))))
-!(assertEqual (MultiMap.values (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d)(ConsMMap (5 e) (ConsMMap (6 f) (ConsMMap (7 g) (ConsMMap (8 h) (ConsMMap (9 i) NilMMap)))))))))) (Cons a (Cons b (Cons c (Cons d (Cons e (Cons f (Cons g (Cons h (Cons i Nil))))))))))
-!(assertEqual (MultiMap.values NilMMap) Nil)
+!(assertEqual (MultiMap.values (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) (cons a (cons b (cons c ()))))
+!(assertEqual (MultiMap.values (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d)(ConsMMap (5 e) (ConsMMap (6 f) (ConsMMap (7 g) (ConsMMap (8 h) (ConsMMap (9 i) NilMMap)))))))))) (cons a (cons b (cons c (cons d (cons e (cons f (cons g (cons h (cons i ()))))))))))
+!(assertEqual (MultiMap.values NilMMap) ())
 
 ;; Testcase for MultiMap.keys
 !(println! ("testing: MultiMap.keys"))
-!(assertEqual (MultiMap.keys (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) (Cons 1 (Cons 2 (Cons 3 Nil))))
-!(assertEqual (MultiMap.keys (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d)(ConsMMap (5 e) (ConsMMap (6 f) (ConsMMap (7 g) (ConsMMap (8 h) (ConsMMap (9 i) NilMMap)))))))))) (Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 (Cons 6 (Cons 7 (Cons 8 (Cons 9 Nil))))))))))
-!(assertEqual (MultiMap.keys NilMMap) Nil)
+!(assertEqual (MultiMap.keys (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) (cons 1 (cons 2 (cons 3 ()))))
+!(assertEqual (MultiMap.keys (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d)(ConsMMap (5 e) (ConsMMap (6 f) (ConsMMap (7 g) (ConsMMap (8 h) (ConsMMap (9 i) NilMMap)))))))))) (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 (cons 6 (cons 7 (cons 8 (cons 9 ()))))))))))
+!(assertEqual (MultiMap.keys NilMMap) ())
 
 ;; Testcase for MultiMap.items
 !(println! ("testing: MultiMap.items"))
-!(assertEqual (MultiMap.items (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) (Cons (1 a) (Cons (2 b) (Cons (3 c) Nil))))
-!(assertEqual (MultiMap.items (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d)(ConsMMap (5 e) (ConsMMap (6 f) (ConsMMap (7 g) (ConsMMap (8 h) (ConsMMap (9 i) NilMMap)))))))))) (Cons (1 a) (Cons (2 b) (Cons (3 c) (Cons (4 d) (Cons (5 e) (Cons (6 f) (Cons (7 g) (Cons (8 h) (Cons (9 i) Nil))))))))))
-!(assertEqual (MultiMap.items NilMMap) Nil)
+!(assertEqual (MultiMap.items (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) NilMMap)))) (cons (1 a) (cons (2 b) (cons (3 c) ()))))
+!(assertEqual (MultiMap.items (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (3 c) (ConsMMap (4 d)(ConsMMap (5 e) (ConsMMap (6 f) (ConsMMap (7 g) (ConsMMap (8 h) (ConsMMap (9 i) NilMMap)))))))))) (cons (1 a) (cons (2 b) (cons (3 c) (cons (4 d) (cons (5 e) (cons (6 f) (cons (7 g) (cons (8 h) (cons (9 i) ()))))))))))
+!(assertEqual (MultiMap.items NilMMap) ())
 
 
 ;; Testcase for MultiMap.length

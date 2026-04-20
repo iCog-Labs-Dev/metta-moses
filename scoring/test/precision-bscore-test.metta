@@ -7,28 +7,28 @@
 
 (= (andTable) 
    (mkITable
-     (Cons (Cons True (Cons True (Cons True Nil)))      
-     (Cons (Cons True (Cons False (Cons False Nil)))    
-     (Cons (Cons False (Cons True (Cons False Nil)))    
-     (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
-     (Cons A (Cons B (Cons Output Nil)))))
+     (cons (cons True (cons True (cons True ())))      
+     (cons (cons True (cons False (cons False ())))    
+     (cons (cons False (cons True (cons False ())))    
+     (cons (cons False (cons False (cons False ()))) ()))))
+     (cons A (cons B (cons Output ())))))
 
 ; ;; Test data: Precision Table
 ; this is directy taken from the moses c++ test file
 ;; reference: https://github.com/opencog/moses/blob/master/tests/moses/precision.csv
 (= (precisionTable)
    (mkITable
-     (Cons (Cons False (Cons False (Cons False Nil)))  
-     (Cons (Cons True  (Cons False (Cons False Nil)))   
-     (Cons (Cons False (Cons False (Cons False Nil)))  
-     (Cons (Cons True  (Cons False (Cons False Nil)))   
-     (Cons (Cons True  (Cons False (Cons False Nil)))  
-     (Cons (Cons False (Cons False (Cons True  Nil)))  
-     (Cons (Cons False (Cons False (Cons True  Nil)))  
-     (Cons (Cons False (Cons True  (Cons True  Nil)))  
-     (Cons (Cons False (Cons True  (Cons True  Nil)))  
-     (Cons (Cons False (Cons True  (Cons True  Nil))) Nil))))))))))
-     (Cons v1 (Cons v2 (Cons target Nil)))))
+     (cons (cons False (cons False (cons False ())))  
+     (cons (cons True  (cons False (cons False ())))   
+     (cons (cons False (cons False (cons False ())))  
+     (cons (cons True  (cons False (cons False ())))   
+     (cons (cons True  (cons False (cons False ())))  
+     (cons (cons False (cons False (cons True  ())))  
+     (cons (cons False (cons False (cons True  ())))  
+     (cons (cons False (cons True  (cons True  ())))  
+     (cons (cons False (cons True  (cons True  ())))  
+     (cons (cons False (cons True  (cons True  ()))) ()))))))))))
+     (cons v1 (cons v2 (cons target ())))))
 
 
 ; Test of count Table
@@ -77,11 +77,11 @@
 ;; Test ExtractTable
 
 (= (testRows) 
-            (Cons (Cons True (Cons True (Cons False (Cons True (Cons True Nil)))))
-            (Cons (Cons True (Cons False (Cons False (Cons True (Cons True Nil)))))
-            (Cons (Cons False (Cons True (Cons False (Cons True (Cons False Nil)))))
-            (Cons (Cons False (Cons False (Cons False (Cons True (Cons False Nil))))) Nil)))))
-(= (testLabels) (Cons A (Cons B (Cons C (Cons D (Cons Output Nil))))))
+            (cons (cons True (cons True (cons False (cons True (cons True ())))))
+            (cons (cons True (cons False (cons False (cons True (cons True ())))))
+            (cons (cons False (cons True (cons False (cons True (cons False ())))))
+            (cons (cons False (cons False (cons False (cons True (cons False ()))))) ())))))
+(= (testLabels) (cons A (cons B (cons C (cons D (cons Output ()))))))
 
 !(assertEqual (extractTable (0) (testRows) (testLabels))
                  (((True True) (True True) (False False) (False False)) (A Output))) ;; single feature extraction

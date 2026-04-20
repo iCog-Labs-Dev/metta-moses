@@ -4,14 +4,14 @@
 (= (swapValue $t $b $r) (if (== $b $r) $t $r))
           
 ; compareAndSwap -- iteratively compares the base and refrence instances and applies the crossover to the target at the location where there is difference between the two
-;;              (Cons $t $ts) -- the target list
-;;              (Cons $b $bs) -- the base list
-;;              (Cons $r $rs) -- the reference list
+;;              (cons $t $ts) -- the target list
+;;              (cons $b $bs) -- the base list
+;;              (cons $r $rs) -- the reference list
 ;;              $acc          -- an accumulator for the new to be formed instance list
 ; (: compareAndSwap (-> (List $a) (List $a) (List $a) (List $a) (List $a)))
-(= (compareAndSwap (Cons $t $ts) (Cons $b $bs) (Cons $r $rs) $acc)
+(= (compareAndSwap (cons $t $ts) (cons $b $bs) (cons $r $rs) $acc)
     (case $ts
-        ((Nil (let $crossover (swapValue $t $b $r) (List.append $crossover $acc)))
+        ((() (let $crossover (swapValue $t $b $r) (List.append $crossover $acc)))
          ($else (let $updatedTarget (List.append (swapValue $t $b $r) $acc)
                         (compareAndSwap $ts $bs $rs $updatedTarget))))))
 
@@ -24,7 +24,7 @@
 (= (mergeInstance (mkInst $target) (mkInst $base) (mkInst $reference))
     (let ($tSize $bSize $rSize) ((List.length $target) (List.length $base) (List.length $reference))
         (if (and (== $tSize $bSize) (== $tSize $rSize))
-            (mkInst (compareAndSwap $target $base $reference Nil))
+            (mkInst (compareAndSwap $target $base $reference ()))
             (Error ($tSize $bSize $rSize) "Unequal target base and/or reference sizes")))
 )
 

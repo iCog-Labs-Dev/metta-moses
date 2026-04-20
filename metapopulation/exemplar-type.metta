@@ -27,11 +27,11 @@
 ;;  Complexity Penalty: 0.0.
 ;;  Uniformity Penalty: 0.0.
 ;;  Penalized Score: very_worst_score (e.g., -1e37) ??
-;;  Behavioral Score: empty set -- Nil
+;;  Behavioral Score: empty set -- ()
 
 ; (: xmplrInit (-> (Tree $a) DemeId Xmplr))
 (= (xmplrInit $tree  (mkDemeId $id))
-    (let ($iScore $iComplexity $iComplexityPen $iUinformityPen $iBehavioralScore) ((pow-math 10 -37) 0 0 (pow-math 10 -37) Nil)
+    (let ($iScore $iComplexity $iComplexityPen $iUinformityPen $iBehavioralScore) ((pow-math 10 -37) 0 0 (pow-math 10 -37) ())
         (mkXmplr 
             $tree 
             (mkDemeId $id) 

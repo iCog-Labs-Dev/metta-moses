@@ -8,11 +8,11 @@
 ;;    $topCnd: Maximum number of instances to keep.
 ;; Return: (List (ScoredInstance Cscore)): List with adjacent duplicates removed, limited by $topCnd.
 ; (: removeDupInsts (-> (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
-(= (removeDupInsts $rep Nil $topCnd) Nil)
-(= (removeDupInsts $rep (Cons $x Nil) $topCnd)
-   (if (> $topCnd 0) (Cons $x Nil) Nil))
-(= (removeDupInsts $rep (Cons (mkSInst $x) (Cons (mkSInst $y) $rest)) $topCnd)
-   (let $lengthOfTail (List.length (Cons (mkSInst $y) $rest))
+(= (removeDupInsts $rep () $topCnd) ())
+(= (removeDupInsts $rep (cons $x ()) $topCnd)
+   (if (> $topCnd 0) (cons $x ()) ()))
+(= (removeDupInsts $rep (cons (mkSInst $x) (cons (mkSInst $y) $rest)) $topCnd)
+   (let $lengthOfTail (List.length (cons (mkSInst $y) $rest))
    (if (> $topCnd 0)
        (if (isApproxEq (getPenScore (Pair.second $x)) (getPenScore (Pair.second $y))) ;; They maybe identical
            (let*
@@ -22,12 +22,12 @@
                 ;; ($_ (println! (Tree1: (preOrder $tr1) Tree2: (preOrder $tr2))))
               )
               (if (== $tr1 $tr2)
-                  (removeDupInsts $rep (Cons (mkSInst $x) $rest) (min-atom ($topCnd $lengthOfTail)))
-                  (Cons (mkSInst $x) (removeDupInsts $rep (Cons (mkSInst $y) $rest) (- $topCnd 1))) ;; Keep $x, reduce topCnd
+                  (removeDupInsts $rep (cons (mkSInst $x) $rest) (min-atom ($topCnd $lengthOfTail)))
+                  (cons (mkSInst $x) (removeDupInsts $rep (cons (mkSInst $y) $rest) (- $topCnd 1))) ;; Keep $x, reduce topCnd
               )
            )
-           (Cons (mkSInst $x) (removeDupInsts $rep (Cons (mkSInst $y) $rest) (- $topCnd 1))))  ;; Keep $x, reduce topCnd
-       Nil)))
+           (cons (mkSInst $x) (removeDupInsts $rep (cons (mkSInst $y) $rest) (- $topCnd 1))))  ;; Keep $x, reduce topCnd
+       ())))
 
 ;; Extracts up to $maxCandsPerDeme unique ScoredInstances from a sorted InstanceSet, limited by $nEval.
 ;; Params:
@@ -70,11 +70,11 @@
 ;;   $botSc: Minimum penalized score threshold.
 ;; Return: (List (ScoredInstance Cscore)): Filtered list with low-scoring instances removed.
 ; (: filterDemeByScore (-> (List (ScoredInstance Cscore)) Number Number (List (ScoredInstance Cscore))))
-(= (filterDemeByScore Nil $lastIndex $botSc) Nil)
-(= (filterDemeByScore (Cons $x $xs) $lastIndex $botSc)
-(if (== $lastIndex 0) (Cons $x $xs) (let*
+(= (filterDemeByScore () $lastIndex $botSc) ())
+(= (filterDemeByScore (cons $x $xs) $lastIndex $botSc)
+(if (== $lastIndex 0) (cons $x $xs) (let*
 (
-   ($listOfScoredInsts (Cons $x $xs))
+   ($listOfScoredInsts (cons $x $xs))
    ($lastSInst (List.getByIdx $listOfScoredInsts $lastIndex))
    ($lastSInstScore (getSInstScore $lastSInst))
    ($lastSInstPenScore (getPenScore $lastSInstScore))
@@ -113,8 +113,8 @@
 ;;   $itable: The input table.
 ;; Return: (List (Exemplar $a)) - List of exemplars with scored trees.
 ; (: demeToTrees (-> Deme (ITable $a) (List (Exemplar $a))))
-(= (demeToTrees (mkDeme $rep (mkSInstSet Nil) $demeId) $scoringContext) Nil)
-(= (demeToTrees (mkDeme $rep (mkSInstSet (Cons $si $sil)) $demeId) $scoringContext)
+(= (demeToTrees (mkDeme $rep (mkSInstSet ()) $demeId) $scoringContext) ())
+(= (demeToTrees (mkDeme $rep (mkSInstSet (cons $si $sil)) $demeId) $scoringContext)
 (let*
     (
         ;; ($_ (println! (===Inside DemeToTrees===)))
@@ -124,14 +124,14 @@
         ;; ($_ (println! (Instance: $inst)))
         ($tree (getCandidate $rep $inst))
         ;; ($_ (println! (Tree: (preOrder $tree))))
-        ($_ (println! (ScoringContext: $scoringContext)))
+        ;; ($_ (println! (ScoringContext: $scoringContext)))
         ($bscore (case $scoringContext
                     (((mkITable $rows $labels) (scoreTree $scoringContext $tree &bscoreCache))
                      (($nGames $opponentPolicy) (scoreStrategyTree $tree $nGames $opponentPolicy &strategyScoreCache)))))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
         ;; ($_ (println! (Returning...)))
     )
-    (Cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) $demeId) $scoringContext))
+    (cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) $demeId) $scoringContext))
     )
 )
 ;; Filters a list of Exemplars, keeping only those not already in the metaPop (ordered set).
@@ -140,11 +140,11 @@
 ;;   $metaPop: Ordered set of existing exemplars.
 ;; Return: (List (Exemplar $a)): List of new exemplars not in metaPop.
 ; (: getNewCandidates (-> (List (Exemplar $a)) (OS (Exemplar $a)) (List (Exemplar $a))))
-(= (getNewCandidates Nil $metaPop) Nil)
-(= (getNewCandidates (Cons $xmp $xmpl) $metaPop)
+(= (getNewCandidates () $metaPop) ())
+(= (getNewCandidates (cons $xmp $xmpl) $metaPop)
      (if (OS.isMember $xmp $metaPop)
         (getNewCandidates $xmpl $metaPop)
-        (let $updatedMetaPop (OS.insert compareExemplar $xmp $metaPop) (Cons $xmp (getNewCandidates $xmpl $updatedMetaPop))))
+        (let $updatedMetaPop (OS.insert compareExemplar $xmp $metaPop) (cons $xmp (getNewCandidates $xmpl $updatedMetaPop))))
 )
 
 ;; Determines if one BehavioralScore dominates another by comparing their score lists.
@@ -157,16 +157,16 @@
 ;; x dominates y if:
 ;; for all i x_i >= y_i and there exists i such that x_i > y_i
 ; (: dominates (-> BehavioralScore BehavioralScore Atom))
-(= (dominates (mkBScore Nil) (mkBScore Nil)) Indeterminate)
-(= (dominates (mkBScore Nil) (mkBScore (Cons $by $bys))) False)
-(= (dominates (mkBScore (Cons $bx $bxs)) (mkBScore Nil)) True)
-(= (dominates (mkBScore (Cons $bx $bxs)) (mkBScore (Cons $by $bys)))
-   (dominatesRec (mkBScore (Cons $bx $bxs)) (mkBScore (Cons $by $bys)) Indeterminate))
+(= (dominates (mkBScore ()) (mkBScore ())) Indeterminate)
+(= (dominates (mkBScore ()) (mkBScore (cons $by $bys))) False)
+(= (dominates (mkBScore (cons $bx $bxs)) (mkBScore ())) True)
+(= (dominates (mkBScore (cons $bx $bxs)) (mkBScore (cons $by $bys)))
+   (dominatesRec (mkBScore (cons $bx $bxs)) (mkBScore (cons $by $bys)) Indeterminate))
 
 ;; helper function for dominates
 ; (: dominatesRec (-> BehavioralScore BehavioralScore Atom Atom))
-(= (dominatesRec (mkBScore Nil) (mkBScore Nil) $res) $res)
-(= (dominatesRec (mkBScore (Cons $bx $bxs)) (mkBScore (Cons $by $bys)) $res)
+(= (dominatesRec (mkBScore ()) (mkBScore ()) $res) $res)
+(= (dominatesRec (mkBScore (cons $bx $bxs)) (mkBScore (cons $by $bys)) $res)
    (if (> $bx $by)
        (if (== $res False) 
            Indeterminate
@@ -182,10 +182,10 @@
 ;;   (List (Exemplar $a)): List of exemplars to filter.
 ;; Return: (List (Exemplar $a)): List of non-dominated exemplars.
 ; (: removeDominated (-> (List (Exemplar $a)) (List (Exemplar $a))))
-(= (removeDominated Nil) Nil)
-(= (removeDominated (Cons $exemplar Nil)) (Cons $exemplar Nil))
-(= (removeDominated (Cons $exemplar (Cons $next $rest)))
-   (removeDominatedRec $exemplar (Cons $next $rest) Nil))
+(= (removeDominated ()) ())
+(= (removeDominated (cons $exemplar ())) (cons $exemplar ()))
+(= (removeDominated (cons $exemplar (cons $next $rest)))
+   (removeDominatedRec $exemplar (cons $next $rest) ()))
 
 ;; Helper: Compares an exemplar with others, accumulating non-dominated exemplars.
 ;; Params:
@@ -194,16 +194,16 @@
 ;;   $acc: Accumulator for non-dominated exemplars.
 ;; Return: List including $exemplar and non-dominated others.
 ; (: removeDominatedRec (-> (Exemplar $a) (List (Exemplar $a)) (List (Exemplar $a)) (List (Exemplar $a))))
-(= (removeDominatedRec $exemplar Nil $acc)
-   (Cons $exemplar $acc))
-(= (removeDominatedRec $exemplar (Cons $other $rest) $acc)
+(= (removeDominatedRec $exemplar () $acc)
+   (cons $exemplar $acc))
+(= (removeDominatedRec $exemplar (cons $other $rest) $acc)
    (let $domResult (dominates (getExemplarBScore $exemplar) (getExemplarBScore $other))
       ;; (trace! (if (== $domResult True) Dominated $domResult)
       (if (== $domResult True) ;; Could also be Indeterminate that's why we use explicit == comparison
           (removeDominatedRec $exemplar $rest $acc)
           (if (== $domResult False)
-              (removeDominated (Cons $other $rest))
-              (removeDominatedRec $exemplar $rest (Cons $other $acc))))
+              (removeDominated (cons $other $rest))
+              (removeDominatedRec $exemplar $rest (cons $other $acc))))
       ;; )
       ))
 
@@ -214,8 +214,8 @@
 ;;   $metapop: Ordered set to merge into.
 ;; Return: $updatedMetaPop: Updated ordered set with merged exemplars.
 ; (: mergeCandidates (-> (List (Exemplar $a)) (OS (Exemplar $a)) (OS (Exemplar $a))))
-(= (mergeCandidates Nil $metapop) $metapop)
-(= (mergeCandidates (Cons $x $xs) $metapop)
+(= (mergeCandidates () $metapop) $metapop)
+(= (mergeCandidates (cons $x $xs) $metapop)
    (let $updatedMetaPop (OS.insert compareExemplar $x $metapop)
       (mergeCandidates $xs $updatedMetaPop)))
 

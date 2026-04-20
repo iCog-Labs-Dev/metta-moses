@@ -136,7 +136,8 @@
     ;   )
       (if (== () (subtraction-atom $old $list)) 
         $new
-      (collapse (eval (replace $old $new (superpose $list)))))
+        (map-atom $list $a (replace $old $new $a))
+      )
     ; )
 )
 
@@ -656,9 +657,9 @@
 ;;
 ;; the following is defined in list-methods.metta as well
 ; (: List.sum (-> (-> $a $a $a) (List $a) $a))
-; (= (List.sum $adder Nil) Nil)
-; (= (List.sum $adder (Cons $x $xs))
-;     (if (== $xs Nil)
+; (= (List.sum $adder ()) ())
+; (= (List.sum $adder (cons $x $xs))
+;     (if (== $xs ())
 ;         $x
 ;         (let $c (List.sum $adder $xs)
 ;             ($adder $x $c))))
@@ -690,11 +691,11 @@
 ;; (: . (-> (-> $b $c) (-> $a $b) (-> $a $c)))
 ;; (= ((. $g $f) $x) ($g ($f $x)));in petta . is internally used by Prolog for building lists and dicts and what it does is the same for compose function.
 
-;; Convert an expression to a list   e.g (A B C) -> (Cons A (Cons B (Cons C Nil)))
+;; Convert an expression to a list   e.g (A B C) -> (cons A (cons B (cons C ())))
 (= (exprToList $expr)
     (if (== $expr ())
-        Nil
-        (let ($head $tail) (decons-atom $expr)  (Cons $head (exprToList $tail)))
+        ()
+        (let ($head $tail) (decons-atom $expr)  (cons $head (exprToList $tail)))
     )
 )
 
@@ -897,8 +898,8 @@
 ;; Without it, PeTTa only executes functions defined in the current file and skips external ones.
 
 ;; List ADT — constructor-specific to avoid ambiguous matches
-(= (coll.length Nil) 0)
-(= (coll.length (Cons $h $t)) (eval (List.length (Cons $h $t))))
+(= (coll.length ()) 0)
+(= (coll.length (cons $h $t)) (eval (List.length (cons $h $t))))
 
 ;; Map — constructor-specific
 (= (coll.length NilMap) 0)
@@ -928,8 +929,8 @@
 ; (: coll.append (-> $coll $el $coll))
 
 ;; List ADT (append to tail)
-(= (coll.append Nil $el) (Cons $el Nil))
-(= (coll.append (Cons $h $t) $el) (Cons $h (coll.append $t $el)))
+(= (coll.append () $el) (cons $el ()))
+(= (coll.append (cons $h $t) $el) (cons $h (coll.append $t $el)))
 
 ;; Instance — append Number to underlying list
 (= (coll.append (mkInst $list) $el)
@@ -979,9 +980,9 @@
 (: coll.remove (-> $coll $el $coll))
 
 ;; List ADT — remove first occurrence
-(= (coll.remove Nil $el) Nil)
-(= (coll.remove (Cons $h $t) $el)
-   (if (== $h $el) $t (Cons $h (coll.remove $t $el))))
+(= (coll.remove () $el) ())
+(= (coll.remove (cons $h $t) $el)
+   (if (== $h $el) $t (cons $h (coll.remove $t $el))))
 
 ;; Instance — remove first occurrence of Number
 (= (coll.remove (mkInst $list) $el)
@@ -1033,8 +1034,8 @@
 ; (: coll.contains (-> $coll $key Bool))
 
 ;; List — linear search
-(= (coll.contains Nil $el) False)
-(= (coll.contains (Cons $h $t) $el) (if (== $h $el) True (coll.contains $t $el)))
+(= (coll.contains () $el) False)
+(= (coll.contains (cons $h $t) $el) (if (== $h $el) True (coll.contains $t $el)))
 
 ;; Map / MultiMap / OS / OMS — delegate
 ;; Added `eval` to ensure internal functions from other files are properly resolved during parsing.
@@ -1061,8 +1062,8 @@
 ; (: coll.getByIdx (-> $coll Number $el))
 
 ;; List — from List methods
-(= (coll.getByIdx (Cons $h $t) $i) (eval (List.getByIdx (Cons $h $t) $i)))
-(= (coll.getByIdx Nil $i) (Error $i "Index out of range"))
+(= (coll.getByIdx (cons $h $t) $i) (eval (List.getByIdx (cons $h $t) $i)))
+(= (coll.getByIdx () $i) (Error $i "Index out of range"))
 
 ;; Map / MultiMap — pair access
 (= (coll.getByIdx (ConsMap $pair $tail) $i) (Map.getByIdx (ConsMap $pair $tail) $i))
@@ -1088,15 +1089,15 @@
 ;; Without it, PeTTa only executes functions defined in the current file and skips external ones.
 
 ; (: coll.keys (-> $map (List $k)))
-(= (coll.keys NilMap) Nil)
+(= (coll.keys NilMap) ())
 (= (coll.keys (ConsMap $pair $tail)) (eval (Map.keys (ConsMap $pair $tail))))
 
 ; (: coll.values (-> $map (List $v)))
-(= (coll.values NilMap) Nil)
+(= (coll.values NilMap) ())
 (= (coll.values (ConsMap $pair $tail)) (eval (Map.values (ConsMap $pair $tail))))
 
 ; (: coll.items (-> $map (List ($k $v))))
-(= (coll.items NilMap) Nil)
+(= (coll.items NilMap) ())
 (= (coll.items (ConsMap $pair $tail)) (eval (Map.items (ConsMap $pair $tail))))
 
 ; (: coll.find (-> $map $k Number))
@@ -1113,7 +1114,7 @@
 
 ; (: coll.findAll (-> $mmap $k (List $v)))
 (= (coll.findAll (ConsMMap $pair $tail) $k) (eval (MultiMap.findAll $k (ConsMMap $pair $tail))))
-(= (coll.findAll NilMMap $k) Nil)
+(= (coll.findAll NilMMap $k) ())
 
 ;;
 ;; Index-based removal (where supported)
@@ -1121,8 +1122,8 @@
 (: coll.removeByIdx (-> $coll Number $coll))
 
 ;; List — via List.removeAtIdx
-(= (coll.removeByIdx (Cons $h $t) $i) (eval (List.removeAtIdx (Cons $h $t) $i)))
-(= (coll.removeByIdx Nil $i) (Error "empty/idx out of range"))
+(= (coll.removeByIdx (cons $h $t) $i) (eval (List.removeAtIdx (cons $h $t) $i)))
+(= (coll.removeByIdx () $i) (Error "empty/idx out of range"))
 
 ;; OS — direct
 (= (coll.removeByIdx (ConsOS $x $xs) $i) (eval (OS.removeByIdx (ConsOS $x $xs) $i)))

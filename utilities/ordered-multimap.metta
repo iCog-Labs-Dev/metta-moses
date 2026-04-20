@@ -28,10 +28,10 @@
 
 ;; Get all found values with the given key from the Ordered multimap using key
 ; (: MultiMap.findAll (-> $k (MultiMap ($k $v)) (List $v)))
-(= (MultiMap.findAll $key NilMMap) Nil)
+(= (MultiMap.findAll $key NilMMap) ())
 (= (MultiMap.findAll $key (ConsMMap ($curKey $curVal) $tail)) 
     (if (== $key $curKey)
-        (Cons $curVal (MultiMap.findAll $key $tail))
+        (cons $curVal (MultiMap.findAll $key $tail))
         (MultiMap.findAll $key $tail)))
 
 ;; Check if a key is in the Ordered multimap
@@ -67,21 +67,21 @@
 
 ;; Get the all the values from the map
 ; (: MultiMap.values (-> (MultiMap ($k $v)) (List $v)))
-(= (MultiMap.values NilMMap) Nil)
+(= (MultiMap.values NilMMap) ())
 (= (MultiMap.values (ConsMMap ($key $value) $tail))
-    (Cons $value (MultiMap.values $tail)))
+    (cons $value (MultiMap.values $tail)))
 
 ;; Get the all the keys from the MultiMap
 ; (: MultiMap.keys (-> (MultiMap ($k $v)) (List $k)))
-(= (MultiMap.keys NilMMap) Nil)
+(= (MultiMap.keys NilMMap) ())
 (= (MultiMap.keys (ConsMMap ($key $value) $tail))
-    (Cons $key (MultiMap.keys $tail)))
+    (cons $key (MultiMap.keys $tail)))
 
 ;; Get the all the key value pairs from the MultiMap
 ; (: MultiMap.items (-> (MultiMap ($k $v)) (List ($k $v))))
-(= (MultiMap.items NilMMap) Nil)
+(= (MultiMap.items NilMMap) ())
 (= (MultiMap.items (ConsMMap $pair $tail))
-    (Cons $pair (MultiMap.items $tail)))
+    (cons $pair (MultiMap.items $tail)))
 
 
 ;; Get the length of the Ordered multimap

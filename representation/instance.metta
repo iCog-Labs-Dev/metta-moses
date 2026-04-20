@@ -94,7 +94,7 @@
 ;;    - Finally, List.listToExpr collects all these expressions into a single Expression list.
 ;;
 ;;  Example input:
-;;    (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore 100.0 5.0 10.0 2.0 88.0))) Nil)
+;;    (cons (mkSInst (mkPair (mkInst (cons 1 (cons 2 ()))) (mkCscore 100.0 5.0 10.0 2.0 88.0))) ())
 ;;
 ;;  Output Expression:
 ;;    ((1 2) (100.0 5.0 10.0 2.0 88.0))
@@ -197,17 +197,17 @@
 ;; (: generateRandomInstance (-> Number List))
 (= (generateRandomInstance $instLength)
    (if (== $instLength 0)
-       Nil
-       (Cons (biasedRandomInt) (generateRandomInstance (- $instLength 1)))))
+       ()
+       (cons (biasedRandomInt) (generateRandomInstance (- $instLength 1)))))
 
 ; Converts a list of scored instances (mkSInst) into a list of expressions.
 ; Each scored instance is transformed using sInstToExpr and accumulated.
 ; Params:
 ;   $sInsts — list of scored instances.
-;   $acc — accumulator (initially Nil).
+;   $acc — accumulator (initially ()).
 ; Returns: List of instance expressions ((inst score) ...).
 ; (: sInstsToExp (-> (List $a) Expression Expression))
-(= (sInstsToExp Nil $acc) $acc)
-(= (sInstsToExp (Cons $scoredInst $rest) $acc)
+(= (sInstsToExp () $acc) $acc)
+(= (sInstsToExp (cons $scoredInst $rest) $acc)
 (let $instExp (sInstToExpr $scoredInst)
      (sInstsToExp $rest (cons-atom $instExp $acc))))

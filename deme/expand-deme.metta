@@ -142,7 +142,7 @@ $optimDeme
 
 ;; Some helpers specific to final testing
 (= (mapG $f NilOS) NilOS)
-(= (mapG $f Nil) Nil)
+(= (mapG $f ()) ())
 (= (mapG $f ($ctor $x $xs)) ($ctor ($f $x) (mapG $f $xs)))
 
 (= (printExemplar (mkExemplar $tree $demeId $cscore $bscore)) (println! (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore)))

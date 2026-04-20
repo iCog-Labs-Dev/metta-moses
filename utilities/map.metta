@@ -66,21 +66,21 @@
 
 ;; Get the all the values from the map
 ; (: Map.values (-> (Map ($k $v)) (List $v)))
-(= (Map.values NilMap) Nil)
+(= (Map.values NilMap) ())
 (= (Map.values (ConsMap ($key $value) $tail))
-    (Cons $value (Map.values $tail)))
+    (cons $value (Map.values $tail)))
 
 ;; Get the all the keys from the map
 ; (: Map.keys (-> (Map ($k $v)) (List $k)))
-(= (Map.keys NilMap) Nil)
+(= (Map.keys NilMap) ())
 (= (Map.keys (ConsMap ($key $value) $tail))
-    (Cons $key (Map.keys $tail)))
+    (cons $key (Map.keys $tail)))
 
 ;; Get the all the key value pairs from the map
 ; (: Map.items (-> (Map ($k $v)) (List ($k $v))))
-(= (Map.items NilMap) Nil)
+(= (Map.items NilMap) ())
 (= (Map.items (ConsMap $pair $tail))
-    (Cons $pair (Map.items $tail)))
+    (cons $pair (Map.items $tail)))
 
 ;; Get the length of the map
 ; (: Map.length (-> (Map ($k $v)) Number))

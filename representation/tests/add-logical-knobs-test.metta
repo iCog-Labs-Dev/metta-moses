@@ -33,18 +33,18 @@
 (
     (($updatedTree $mm) 
      (addLogicalKnobs (mkTree (mkNode AND)     
-        (Cons (mkTree (mkNode A) Nil)
-          (Cons (mkTree (mkNode B) Nil) Nil)))
+        (cons (mkTree (mkNode A) ())
+          (cons (mkTree (mkNode B) ()) ())))
               (mkNodeId (0)) True NilMMap (A B)))
     ($_ (println! $updatedTree))
     ($_ (println! $mm))
     ($mmpsEqual 
      (MultiMap.equals $mm 
-     (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap))))))
+     (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) NilMMap))))))
 
     ($treesEqual 
      (== $updatedTree
-     (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil))))))
+     (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) ()))))))
     )
 )
 $mmpsEqual
@@ -55,17 +55,17 @@ $mmpsEqual
 (
     (($updatedTree $mm) 
      (addLogicalKnobs (mkTree (mkNode AND)     
-        (Cons (mkTree (mkNode A) Nil)
-          (Cons (mkTree (mkNode OR)
-                  (Cons (mkTree (mkNode B) Nil)
-                  (Cons (mkTree (mkNode C) Nil) Nil)))Nil)))
+        (cons (mkTree (mkNode A) ())
+          (cons (mkTree (mkNode OR)
+                  (cons (mkTree (mkNode B) ())
+                  (cons (mkTree (mkNode C) ()) ())))())))
               (mkNodeId (2)) True NilMMap (A B)))
     ($mmpsEqual 
      (MultiMap.equals $mm 
-(ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 5))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap))))))
+(ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 5))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) NilMMap))))))
     ($treesEqual 
      (== $updatedTree
-     (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode B) Nil) Nil))) Nil)) Nil)))))) Nil))) )
+     (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode C) ()) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) ())))))) ()))) )
     )
 )
 (and $mmpsEqual $treesEqual)
@@ -75,11 +75,11 @@ $mmpsEqual
 (
     (($updatedTree $mm) 
      (addLogicalKnobs (mkTree (mkNode PRIORITIZED-OR)     
-        (Cons (mkTree (mkNode playcenter) Nil)
-          (Cons (mkTree (mkNode playcorner) Nil) Nil)))
+        (cons (mkTree (mkNode playcenter) ())
+          (cons (mkTree (mkNode playcorner) ()) ())))
               (mkNodeId (0)) True NilMMap (playcenter playcorner)))
     ($mmLength (MultiMap.length $mm))
-    ($treeHasNullVex (!= $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playcorner) Nil) Nil)))))
+    ($treeHasNullVex (!= $updatedTree (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playcorner) ()) ())))))
 )
 (and (== $mmLength 5) $treeHasNullVex)
 ) True)
@@ -89,10 +89,10 @@ $mmpsEqual
 (
     (($updatedTree $mm) 
      (addLogicalKnobs (mkTree (mkNode PRIORITIZED-OR)     
-        (Cons (mkTree (mkNode playcenter) Nil) Nil))
+        (cons (mkTree (mkNode playcenter) ()) ()))
               (mkNodeId (0)) True NilMMap (playcenter)))
     ($mmLength (MultiMap.length $mm))
-    ($treeHasNullVex (!= $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) Nil))))
+    ($treeHasNullVex (!= $updatedTree (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) ()))))
 )
 (and (== $mmLength 5) $treeHasNullVex)
 ) True)
@@ -102,12 +102,12 @@ $mmpsEqual
 (
     (($updatedTree $mm) 
      (addLogicalKnobs (mkTree (mkNode PRIORITIZED-OR)     
-        (Cons (mkTree (mkNode playcenter) Nil)
-          (Cons (mkTree (mkNode playcorner) Nil)
-            (Cons (mkTree (mkNode playblock) Nil) Nil))))
+        (cons (mkTree (mkNode playcenter) ())
+          (cons (mkTree (mkNode playcorner) ())
+            (cons (mkTree (mkNode playblock) ()) ()))))
               (mkNodeId (0)) True NilMMap (playcenter playcorner playblock)))
     ($mmLength (MultiMap.length $mm))
-    ($treeHasNullVex (!= $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playcorner) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil))))))
+    ($treeHasNullVex (!= $updatedTree (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkTree (mkNode playblock) ()) ()))))))
 )
 (and (== $mmLength 5) $treeHasNullVex)
 ) True)
@@ -117,7 +117,7 @@ $mmpsEqual
     (let* (
         (($updatedTree $mm) (addLogicalKnobs 
                                (mkTree (mkNode PRIORITIZED-OR)
-                                       (Cons (mkTree (mkNode playcenter) Nil) Nil))
+                                       (cons (mkTree (mkNode playcenter) ()) ()))
                                (mkNodeId (0)) True NilMMap (playcenter playcorner)))
         ($firstPair (car-atom (cdr-atom $mm)))
         ($knobWrapper (cdr-atom $firstPair))
@@ -131,12 +131,12 @@ $mmpsEqual
 (
     (($updatedTree $mm) 
      (addLogicalKnobs (mkTree (mkNode PRIORITIZED-OR)     
-        (Cons (mkTree (mkNode playwin) Nil)
-          (Cons (mkTree (mkNode playfork) Nil)
-            (Cons (mkTree (mkNode playblock) Nil) Nil))))
+        (cons (mkTree (mkNode playwin) ())
+          (cons (mkTree (mkNode playfork) ())
+            (cons (mkTree (mkNode playblock) ()) ()))))
               (mkNodeId (0)) True NilMMap (playwin playfork playblock)))
     ($mmLength (MultiMap.length $mm))
-    ($treeHasNullVex (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playwin) Nil) (Cons (mkTree (mkNode playfork) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil)))))))
+    ($treeHasNullVex (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playfork) ()) (cons (mkTree (mkNode playblock) ()) ())))))))
 )
 (and (== $mmLength 5) $treeHasNullVex)
 ) True)

@@ -8,39 +8,39 @@
 
 ;; Test Types and type constructors    ;;; Fix: type system not working in peTTa 
 ;; !(assertEqual
-;;     (let $a (mkBScore (Cons 1 (Cons 0 (Cons 2 Nil)))) (get-type $a)) 
+;;     (let $a (mkBScore (cons 1 (cons 0 (cons 2 ())))) (get-type $a)) 
 ;;     BehavioralScore
 ;;  )
 ; !(assertEqual
-;    (let $a (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil)))) (get-type $a))
+;    (let $a (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ())))) (get-type $a))
 ;    (ITable Number))
 ; !(assertEqual
-;    (let $a (mkTruthTableBScore 1 0.2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil))))) (get-type $a))
+;    (let $a (mkTruthTableBScore 1 0.2 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ()))))) (get-type $a))
 ;    (TruthTableBScore Number))
 ; !(assertEqual
-;    (let $a (createTruthTableBScore 0.2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil))))) (get-type $a))
+;    (let $a (createTruthTableBScore 0.2 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ()))))) (get-type $a))
 ;    (TruthTableBScore Number))
 
 !(assertEqual
-   (createTruthTableBScore 0.2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil)))))
-   (mkTruthTableBScore 0.2 1 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil))))))
+   (createTruthTableBScore 0.2 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ())))))
+   (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ()))))))
 
 ;; Test Behavioral Score Helper functions
 ;; Test Sutract subtract behavioral scores pair wise
 !(assertEqual
    (BScore.sub 
-      (mkBScore (Cons 1 (Cons 0 (Cons 2 Nil))))
-      (mkBScore (Cons 1 (Cons 0 (Cons 2 Nil))))) 
-   (mkBScore (Cons 0 (Cons 0 (Cons 0 Nil)))))
+      (mkBScore (cons 1 (cons 0 (cons 2 ()))))
+      (mkBScore (cons 1 (cons 0 (cons 2 ()))))) 
+   (mkBScore (cons 0 (cons 0 (cons 0 ())))))
 !(assertEqual
    (BScore.sub 
-      (mkBScore (Cons 1 (Cons 0 (Cons 2 Nil))))
-      (mkBScore (Cons 1 (Cons 0 Nil))))
-   (Error ((Cons 1 (Cons 0 (Cons 2 Nil))) (Cons 1 (Cons 0 Nil))) "Incompatible behavioral scores"))
+      (mkBScore (cons 1 (cons 0 (cons 2 ()))))
+      (mkBScore (cons 1 (cons 0 ()))))
+   (Error ((cons 1 (cons 0 (cons 2 ()))) (cons 1 (cons 0 ()))) "Incompatible behavioral scores"))
 ;; Test Retrieve the table from a truth table bscore
 !(assertEqual 
-   (getTable (mkTruthTableBScore 0.2 1 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil))))))
-   (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil)))))
+   (getTable (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ()))))))
+   (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ())))))
 
 ;; Test Score Tree Helper Function test to replace all occurences of a given variable with a truth value 
 !(assertEqual
@@ -52,54 +52,54 @@
 
 ;; Test Score Tree Helper function to replace all occurences of all variables with their corresponding truth values
 !(assertEqual
-   (replaceVarsWithTruth ((Cons A (Cons B Nil)) (AND A B (OR A B (NOT A)))) (Cons True (Cons False Nil)))
+   (replaceVarsWithTruth ((cons A (cons B ())) (AND A B (OR A B (NOT A)))) (cons True (cons False ())))
    (AND True False (OR True False (NOT True))))
 !(assertEqual
-   (replaceVarsWithTruth ((Cons A (Cons B Nil)) (AND A B (OR A B (NOT A)))) (Cons False (Cons True Nil)))
+   (replaceVarsWithTruth ((cons A (cons B ())) (AND A B (OR A B (NOT A)))) (cons False (cons True ())))
    (AND False True (OR False True (NOT False))))
 
 ;; Test Score Tree function, given a boolean expression and tree should return a behavioral score
 !(assertEqual
-   (scoreTree (mkITable (Cons (Cons True (Cons False (Cons False Nil)))
-                        (Cons (Cons True (Cons True  (Cons True Nil))) Nil)) 
-                        (Cons A (Cons B (Cons O Nil)))) 
+   (scoreTree (mkITable (cons (cons True (cons False (cons False ())))
+                        (cons (cons True (cons True  (cons True ()))) ())) 
+                        (cons A (cons B (cons O ())))) 
               (buildTree (OR A B)) &bscoreCache)
-   (mkBScore (Cons -1 (Cons 0 Nil))))
+   (mkBScore (cons -1 (cons 0 ()))))
 
 !(assertEqual
-   (scoreTree (mkITable (Cons (Cons True (Cons False (Cons False Nil)))
-                                   (Cons (Cons True (Cons True  (Cons True Nil))) Nil)) 
-                                   (Cons A (Cons B (Cons O Nil)))) 
+   (scoreTree (mkITable (cons (cons True (cons False (cons False ())))
+                                   (cons (cons True (cons True  (cons True ()))) ())) 
+                                   (cons A (cons B (cons O ())))) 
               (buildTree (AND A B)) &bscoreCache)
-   (mkBScore (Cons 0 (Cons 0 Nil))))
+   (mkBScore (cons 0 (cons 0 ()))))
 
 ;; Test sumBScore
-!(assertEqual (sumBScore (mkBScore (Cons 1 (Cons 2 (Cons 0 (Cons 1 Nil)))))) 4)
+!(assertEqual (sumBScore (mkBScore (cons 1 (cons 2 (cons 0 (cons 1 ())))))) 4)
 
 ;; Test Truth table bscore helper functions
 !(assertEqual 
    (bestPossibleScore 
-          (mkTruthTableBScore 0.2 1 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil))))))
-   (mkBScore (Cons 0 Nil)))
+          (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ()))))))
+   (mkBScore (cons 0 ())))
 !(assertEqual 
-   (worstPossibleScore (mkTruthTableBScore 0.2 1 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil))))))
-   (mkBScore (Cons -1 Nil)))
+   (worstPossibleScore (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ()))))))
+   (mkBScore (cons -1 ())))
 !(assertEqual 
-   (minImprove (mkTruthTableBScore 0.2 1 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) Nil) (Cons A (Cons B (Cons C Nil))))))
+   (minImprove (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ()))))))
    0.5
  )
 
 ;; Test Behavioral composite score helper functions
 !(assertEqual
-   (bestPossibleScore (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) (Cons (Cons 0 (Cons 0 (Cons 1 Nil))) Nil)) (Cons A (Cons B (Cons C Nil)))))))
+   (bestPossibleScore (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) (cons (cons 0 (cons 0 (cons 1 ()))) ())) (cons A (cons B (cons C ())))))))
    0
  )
 !(assertEqual
-   (worstPossibleScore (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) (Cons (Cons 0 (Cons 0 (Cons 1 Nil))) Nil)) (Cons A (Cons B (Cons C Nil)))))))
+   (worstPossibleScore (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) (cons (cons 0 (cons 0 (cons 1 ()))) ())) (cons A (cons B (cons C ())))))))
    -2
  )
 !(assertEqual
-   (minImprove (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (Cons (Cons 1 (Cons 0 (Cons 2 Nil))) (Cons (Cons 0 (Cons 0 (Cons 1 Nil))) Nil)) (Cons A (Cons B (Cons C Nil)))))))
+   (minImprove (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) (cons (cons 0 (cons 0 (cons 1 ()))) ())) (cons A (cons B (cons C ())))))))
    0.5
  )
 
@@ -109,22 +109,22 @@
 
 ;; Test Wrapper function to get the complexity of a tree
 !(assertEqual
-   (getComplexity (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)))
+   (getComplexity (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) ())) ())))
    1
  )
 
 ;; Test getArgLabels function to extract argument labels from an ITable
 
 !(assertEqual (getArgLabels (mkITable
-  (Cons (Cons True (Cons False (Cons True Nil))) Nil)
-  (Cons A (Cons B (Cons Y Nil)))
+  (cons (cons True (cons False (cons True ()))) ())
+  (cons A (cons B (cons Y ())))
 ))
   (A B)
 )
 
 !(assertEqual (getArgLabels (mkITable
-  (Cons (Cons 1 (Cons 2 (Cons 3 Nil))) Nil)
-  (Cons X (Cons Y (Cons Z Nil)))
+  (cons (cons 1 (cons 2 (cons 3 ()))) ())
+  (cons X (cons Y (cons Z ())))
 ))
   (X Y)
 )

@@ -79,91 +79,91 @@
 !(import! &self ../merge-demes)
 !(import! &self ../expand-deme)
 
-(= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
+(= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) NilMMap)))) (mkTree (mkNode AND) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) ())))) (mkSInstSet ()) (mkDemeId "1")))
 (= (table1) (eval (createTruthTableBScore 2 (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))))))
+                         (cons (cons False (cons False (cons False ()))) 
+                         (cons (cons True (cons False (cons False ()))) 
+                         (cons (cons False (cons True (cons False ())))
+                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons A (cons B (cons O ())))))))
 
 (= (ttable1) (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))))                         
+                         (cons (cons False (cons False (cons False ()))) 
+                         (cons (cons True (cons False (cons False ()))) 
+                         (cons (cons False (cons True (cons False ())))
+                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons A (cons B (cons O ())))))                         
 
 (= (ortable) (eval (createTruthTableBScore 2 (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons True Nil))) 
-                         (Cons (Cons False (Cons True (Cons True Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))))))
+                         (cons (cons False (cons False (cons False ()))) 
+                         (cons (cons True (cons False (cons True ()))) 
+                         (cons (cons False (cons True (cons True ())))
+                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons A (cons B (cons O ())))))))
 
 (= (orttable) (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons True Nil))) 
-                         (Cons (Cons False (Cons True (Cons True Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil))))) 
+                         (cons (cons False (cons False (cons False ()))) 
+                         (cons (cons True (cons False (cons True ()))) 
+                         (cons (cons False (cons True (cons True ())))
+                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons A (cons B (cons O ()))))) 
 
 (= (xortable) (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons True Nil))) 
-                         (Cons (Cons False (Cons True (Cons True Nil)))
-                         (Cons (Cons True (Cons True (Cons False Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))))
+                         (cons (cons False (cons False (cons False ()))) 
+                         (cons (cons True (cons False (cons True ()))) 
+                         (cons (cons False (cons True (cons True ())))
+                         (cons (cons True (cons True (cons False ()))) ()))))
+                         (cons A (cons B (cons O ())))))
 
-;; (= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (eval (worstCscore)) (mkBScore (Cons -1 (Cons -1 Nil)))) NilOS))
-;; (= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (eval (worstCscore)) (mkBScore (Cons -1 (Cons -1 (Cons -1 (Cons -1 Nil)))))) NilOS))
-(= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) Nil) (mkDemeId "1") (mkCscore -4 2 1.0 0.0 -4.0) (mkBScore  (Cons -1 (Cons -1 (Cons -1 (Cons -1 Nil)))))) NilOS))
+;; (= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) ()) (mkDemeId "1") (eval (worstCscore)) (mkBScore (cons -1 (cons -1 ())))) NilOS))
+;; (= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) ()) (mkDemeId "1") (eval (worstCscore)) (mkBScore (cons -1 (cons -1 (cons -1 (cons -1 ())))))) NilOS))
+(= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) ()) (mkDemeId "1") (mkCscore -4 2 1.0 0.0 -4.0) (mkBScore  (cons -1 (cons -1 (cons -1 (cons -1 ())))))) NilOS))
 
-(= (metaPop) (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil))))))
-                 (ConsOS (mkExemplar (mkTree (mkNode OR) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode B) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode C) Nil) Nil)) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (Cons 0 (Cons 0 (Cons 0 (Cons 0 Nil)))))) 
+(= (metaPop) (ConsOS (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ()))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (cons 0 (cons 0 (cons 0 (cons 0 ()))))))
+                 (ConsOS (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ())) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (cons 0 (cons 0 (cons 0 (cons 0 ())))))) 
                  NilOS)))
        
 (= (bigtable) (mkITable
-                        (Cons (Cons True  (Cons False (Cons True  (Cons False (Cons True  (Cons True  Nil))))))
-                        (Cons (Cons False (Cons True  (Cons True  (Cons False (Cons False (Cons False Nil))))))
-                        (Cons (Cons True  (Cons True  (Cons False (Cons True  (Cons True  (Cons True  Nil))))))
-                        (Cons (Cons False (Cons False (Cons True  (Cons True  (Cons False (Cons False Nil))))))
-                        (Cons (Cons True  (Cons False (Cons False (Cons True  (Cons True  (Cons True  Nil))))))
-                        (Cons (Cons False (Cons True  (Cons False (Cons False (Cons False (Cons False Nil))))))
-                        (Cons (Cons True  (Cons True  (Cons True  (Cons False (Cons True  (Cons True  Nil))))))
-                        (Cons (Cons False (Cons False (Cons False (Cons True  (Cons False (Cons False Nil))))))
-                        (Cons (Cons True  (Cons True  (Cons False (Cons False (Cons True  (Cons True  Nil))))))
-                        (Cons (Cons False (Cons True  (Cons True  (Cons True  (Cons False (Cons False Nil))))))
-                        (Cons (Cons True  (Cons False (Cons True  (Cons True  (Cons True  (Cons True  Nil))))))
-                        (Cons (Cons False (Cons False (Cons False (Cons False (Cons False (Cons False Nil))))))
-                        (Cons (Cons True  (Cons True  (Cons True  (Cons True  (Cons True  (Cons True  Nil))))))
-                        (Cons (Cons False (Cons False (Cons True  (Cons False (Cons False (Cons False Nil))))))
-                        (Cons (Cons True  (Cons False (Cons False (Cons False (Cons True  (Cons True  Nil))))))
-                        (Cons (Cons False (Cons True  (Cons False (Cons True  (Cons False (Cons False Nil)))))) Nil))))))))))))))))
+                        (cons (cons True  (cons False (cons True  (cons False (cons True  (cons True  ()))))))
+                        (cons (cons False (cons True  (cons True  (cons False (cons False (cons False ()))))))
+                        (cons (cons True  (cons True  (cons False (cons True  (cons True  (cons True  ()))))))
+                        (cons (cons False (cons False (cons True  (cons True  (cons False (cons False ()))))))
+                        (cons (cons True  (cons False (cons False (cons True  (cons True  (cons True  ()))))))
+                        (cons (cons False (cons True  (cons False (cons False (cons False (cons False ()))))))
+                        (cons (cons True  (cons True  (cons True  (cons False (cons True  (cons True  ()))))))
+                        (cons (cons False (cons False (cons False (cons True  (cons False (cons False ()))))))
+                        (cons (cons True  (cons True  (cons False (cons False (cons True  (cons True  ()))))))
+                        (cons (cons False (cons True  (cons True  (cons True  (cons False (cons False ()))))))
+                        (cons (cons True  (cons False (cons True  (cons True  (cons True  (cons True  ()))))))
+                        (cons (cons False (cons False (cons False (cons False (cons False (cons False ()))))))
+                        (cons (cons True  (cons True  (cons True  (cons True  (cons True  (cons True  ()))))))
+                        (cons (cons False (cons False (cons True  (cons False (cons False (cons False ()))))))
+                        (cons (cons True  (cons False (cons False (cons False (cons True  (cons True  ()))))))
+                        (cons (cons False (cons True  (cons False (cons True  (cons False (cons False ())))))) ()))))))))))))))))
                         
-                        (Cons A (Cons B (Cons C (Cons D (Cons E (Cons T Nil))))))))                     
+                        (cons A (cons B (cons C (cons D (cons E (cons T ()))))))))                     
 ;; truthTableBScore for  bigtable
 (= (bigtablet) (eval (createTruthTableBScore 2 (bigtable))))                        
 
 (= (bigtable2) (mkITable
-                        (Cons (Cons True  (Cons False (Cons True  (Cons False (Cons True  (Cons True  Nil))))))
-                        (Cons (Cons False (Cons True  (Cons False (Cons True  (Cons False (Cons False Nil))))))
-                        (Cons (Cons True  (Cons True  (Cons True  (Cons False (Cons False (Cons True  Nil))))))
-                        (Cons (Cons False (Cons False (Cons True  (Cons True  (Cons True  (Cons True  Nil))))))
-                        (Cons (Cons True  (Cons False (Cons False (Cons True  (Cons True  (Cons False Nil))))))
-                        (Cons (Cons False (Cons True  (Cons True  (Cons True  (Cons False (Cons True  Nil))))))
-                        (Cons (Cons True  (Cons True  (Cons False (Cons False (Cons True  (Cons True  Nil))))))
-                        (Cons (Cons False (Cons False (Cons False (Cons True  (Cons False (Cons False Nil))))))
-                        (Cons (Cons True  (Cons True  (Cons True  (Cons True  (Cons True  (Cons True  Nil))))))
-                        (Cons (Cons False (Cons True  (Cons False (Cons False (Cons True  (Cons False Nil))))))
-                        (Cons (Cons True  (Cons False (Cons True  (Cons True  (Cons False (Cons True  Nil))))))
-                        (Cons (Cons False (Cons False (Cons True  (Cons False (Cons True  (Cons False Nil))))))
-                        (Cons (Cons True  (Cons True  (Cons False (Cons True  (Cons False (Cons True  Nil))))))
-                        (Cons (Cons False (Cons True  (Cons True  (Cons False (Cons True  (Cons True  Nil))))))
-                        (Cons (Cons True  (Cons False (Cons False (Cons False (Cons False (Cons False Nil))))))
-                        (Cons (Cons False (Cons False (Cons False (Cons True  (Cons True  (Cons True  Nil)))))) Nil))))))))))))))))
+                        (cons (cons True  (cons False (cons True  (cons False (cons True  (cons True  ()))))))
+                        (cons (cons False (cons True  (cons False (cons True  (cons False (cons False ()))))))
+                        (cons (cons True  (cons True  (cons True  (cons False (cons False (cons True  ()))))))
+                        (cons (cons False (cons False (cons True  (cons True  (cons True  (cons True  ()))))))
+                        (cons (cons True  (cons False (cons False (cons True  (cons True  (cons False ()))))))
+                        (cons (cons False (cons True  (cons True  (cons True  (cons False (cons True  ()))))))
+                        (cons (cons True  (cons True  (cons False (cons False (cons True  (cons True  ()))))))
+                        (cons (cons False (cons False (cons False (cons True  (cons False (cons False ()))))))
+                        (cons (cons True  (cons True  (cons True  (cons True  (cons True  (cons True  ()))))))
+                        (cons (cons False (cons True  (cons False (cons False (cons True  (cons False ()))))))
+                        (cons (cons True  (cons False (cons True  (cons True  (cons False (cons True  ()))))))
+                        (cons (cons False (cons False (cons True  (cons False (cons True  (cons False ()))))))
+                        (cons (cons True  (cons True  (cons False (cons True  (cons False (cons True  ()))))))
+                        (cons (cons False (cons True  (cons True  (cons False (cons True  (cons True  ()))))))
+                        (cons (cons True  (cons False (cons False (cons False (cons False (cons False ()))))))
+                        (cons (cons False (cons False (cons False (cons True  (cons True  (cons True  ())))))) ()))))))))))))))))
 
-                        (Cons A (Cons B (Cons C (Cons D (Cons E (Cons T Nil))))))))
+                        (cons A (cons B (cons C (cons D (cons E (cons T ()))))))))
 
 ; (= (bigtablet2) (createTruthTableBScore 2 bigtable2))                        
 
@@ -176,7 +176,7 @@
 (
     ($optimizeDemesReturn (optimizeDemes (deme) 
                 (table1) 
-                (mkInst (Cons 0 (Cons 0 Nil))) 
+                (mkInst (cons 0 (cons 0 ()))) 
                 hillClimbing
                 ))
     ($_ (println! "optimizeDemes Returns"))
@@ -252,17 +252,17 @@
     (False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
     inc      ;; the new arguments for feature selection algo
     (eval (createTruthTableBScore 2 (mkITable
-                          (Cons (Cons False (Cons False (Cons False Nil))) 
-                          (Cons (Cons True (Cons False (Cons False Nil))) 
-                          (Cons (Cons False (Cons True (Cons False Nil)))
-                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                          (Cons A (Cons B (Cons O Nil))))))
+                          (cons (cons False (cons False (cons False ()))) 
+                          (cons (cons True (cons False (cons False ()))) 
+                          (cons (cons False (cons True (cons False ())))
+                          (cons (cons True (cons True (cons True ()))) ()))))
+                          (cons A (cons B (cons O ()))))))
     (mkITable
-                          (Cons (Cons False (Cons False (Cons False Nil))) 
-                          (Cons (Cons True (Cons False (Cons False Nil))) 
-                          (Cons (Cons False (Cons True (Cons False Nil)))
-                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                          (Cons A (Cons B (Cons O Nil)))))
+                          (cons (cons False (cons False (cons False ()))) 
+                          (cons (cons True (cons False (cons False ()))) 
+                          (cons (cons False (cons True (cons False ())))
+                          (cons (cons True (cons True (cons True ()))) ()))))
+                          (cons A (cons B (cons O ())))))
     hillClimbing 5 2 2 1
     3 0.004 1000)
     ))
@@ -275,38 +275,38 @@
 ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;     smd      ;; the new arguments for feature selection algo
 ;     (eval (createTruthTableBScore 2 (mkITable
-;                          (Cons (Cons False (Cons False (Cons False Nil))) 
-;                          (Cons (Cons True (Cons False (Cons True Nil))) 
-;                          (Cons (Cons False (Cons True (Cons True Nil)))
-;                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-;                          (Cons A (Cons B (Cons O Nil)))))) 
+;                          (cons (cons False (cons False (cons False ()))) 
+;                          (cons (cons True (cons False (cons True ()))) 
+;                          (cons (cons False (cons True (cons True ())))
+;                          (cons (cons True (cons True (cons True ()))) ()))))
+;                          (cons A (cons B (cons O ())))))) 
 ;     hillClimbing 
 ;     5 2 0 1 
 ;     (mkITable
-;                          (Cons (Cons False (Cons False (Cons False Nil))) 
-;                          (Cons (Cons True (Cons False (Cons True Nil))) 
-;                          (Cons (Cons False (Cons True (Cons True Nil)))
-;                          (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-;                          (Cons A (Cons B (Cons O Nil)))) 
+;                          (cons (cons False (cons False (cons False ()))) 
+;                          (cons (cons True (cons False (cons True ()))) 
+;                          (cons (cons False (cons True (cons True ())))
+;                          (cons (cons True (cons True (cons True ()))) ()))))
+;                          (cons A (cons B (cons O ())))) 
 ;     3 0.004 1000)
 ; ; with OR table and AND init exemplar     
 ; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
 ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;     smd      ;; the new arguments for feature selection algo
 ;     (eval (createTruthTableBScore 2 (mkITable
-;                           (Cons (Cons False (Cons False (Cons False Nil))) 
-;                           (Cons (Cons True (Cons False (Cons True Nil))) 
-;                           (Cons (Cons False (Cons True (Cons True Nil)))
-;                           (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-;                           (Cons A (Cons B (Cons O Nil))))))  
+;                           (cons (cons False (cons False (cons False ()))) 
+;                           (cons (cons True (cons False (cons True ()))) 
+;                           (cons (cons False (cons True (cons True ())))
+;                           (cons (cons True (cons True (cons True ()))) ()))))
+;                           (cons A (cons B (cons O ()))))))  
 ;     hillClimbing 
 ;     5 2 0 1 
 ;     (mkITable
-;                           (Cons (Cons False (Cons False (Cons False Nil))) 
-;                           (Cons (Cons True (Cons False (Cons True Nil))) 
-;                           (Cons (Cons False (Cons True (Cons True Nil)))
-;                           (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-;                           (Cons A (Cons B (Cons O Nil))))  
+;                           (cons (cons False (cons False (cons False ()))) 
+;                           (cons (cons True (cons False (cons True ()))) 
+;                           (cons (cons False (cons True (cons True ())))
+;                           (cons (cons True (cons True (cons True ()))) ()))))
+;                           (cons A (cons B (cons O ()))))  
 ;     3 0.004 1000)
 
 ; !(runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
@@ -356,10 +356,10 @@
 (= (emptyStrategyMetaPop)
    (ConsOS
      (mkExemplar
-       (mkTree (mkNode PRIORITIZED-OR) Nil)  ;;  empty - no children
+       (mkTree (mkNode PRIORITIZED-OR) ())  ;;  empty - no children
        (mkDemeId "0")
        (eval (worstCscore))  ;; Worst CScore
-       (mkBScore (Cons -10000.0 Nil)))
+       (mkBScore (cons -10000.0 ())))
      NilOS))
 
 ;; by uncomment this test and also adjust the parameter settings we can check the full evolution process of runMosesStrategy, and see how the strategy evolves from empty strategy to better strategy.
@@ -384,11 +384,11 @@
    (ConsOS
      (mkExemplar
        (mkTree (mkNode PRIORITIZED-OR)
-         (Cons (mkTree (mkNode playwin) Nil)
-               (Cons (mkTree (mkNode playblock) Nil) Nil)))
+         (cons (mkTree (mkNode playwin) ())
+               (cons (mkTree (mkNode playblock) ()) ())))
        (mkDemeId "0")
        (mkCscore 2.0 2 0.57 0.0 1.43)
-       (mkBScore (Cons 2.0 Nil)))
+       (mkBScore (cons 2.0 ())))
      NilOS))
 
 ;; !(assertEqual ;; INFO: This test case is blocking the reset. But works fine on it's own.

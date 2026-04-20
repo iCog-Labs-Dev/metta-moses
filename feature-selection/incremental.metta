@@ -70,7 +70,7 @@
 ;; Returns: (List Expression) → (best-subset best-score)
 ;(: findBestSubset (-> (ITable $a) (OS Expression) Expression Number (List Expression)))
 (= (findBestSubset $itable NilOS $currentBest $currentScore)
-   (Cons $currentBest (Cons $currentScore Nil)))
+   (cons $currentBest (cons $currentScore ())))
 (= (findBestSubset $itable (ConsOS $subset $rest) $currentBest $currentScore)
      (chain (cachedMutualInformation $itable $subset) $score  
        (if (> $score $currentScore)

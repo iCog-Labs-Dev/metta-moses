@@ -7,33 +7,33 @@
 
 (= (andTable) 
    (mkITable
-     (Cons (Cons True (Cons True (Cons True Nil)))
-     (Cons (Cons True (Cons False (Cons False Nil)))
-     (Cons (Cons False (Cons True (Cons False Nil)))
-     (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
-     (Cons A (Cons B (Cons Output Nil)))))
+     (cons (cons True (cons True (cons True ())))
+     (cons (cons True (cons False (cons False ())))
+     (cons (cons False (cons True (cons False ())))
+     (cons (cons False (cons False (cons False ()))) ()))))
+     (cons A (cons B (cons Output ())))))
 
 (= (complexTable) 
     (mkITable 
-        (Cons (Cons False (Cons False (Cons True (Cons True (Cons True Nil)))))
-        (Cons (Cons True (Cons False (Cons False (Cons True (Cons True Nil)))))
-        (Cons (Cons False (Cons True (Cons False (Cons True (Cons False Nil)))))
-        (Cons (Cons False (Cons False (Cons False (Cons True (Cons False Nil))))) Nil))))
-        (Cons A (Cons B (Cons C (Cons D (Cons Output Nil)))))))
+        (cons (cons False (cons False (cons True (cons True (cons True ())))))
+        (cons (cons True (cons False (cons False (cons True (cons True ())))))
+        (cons (cons False (cons True (cons False (cons True (cons False ())))))
+        (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
+        (cons A (cons B (cons C (cons D (cons Output ())))))))
 
 (= (xorTable) (mkITable
-    (Cons (Cons True  (Cons True  (Cons False Nil)))
-    (Cons (Cons True  (Cons False (Cons True  Nil)))
-    (Cons (Cons False (Cons True  (Cons True  Nil)))
-    (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
-    (Cons A (Cons B (Cons Output Nil)))))
+    (cons (cons True  (cons True  (cons False ())))
+    (cons (cons True  (cons False (cons True  ())))
+    (cons (cons False (cons True  (cons True  ())))
+    (cons (cons False (cons False (cons False ()))) ()))))
+    (cons A (cons B (cons Output ())))))
 
 (= (redundantTable) (mkITable 
-    (Cons (Cons True  (Cons True  (Cons True  Nil)))
-    (Cons (Cons True  (Cons True  (Cons True  Nil)))
-    (Cons (Cons False (Cons False (Cons False Nil)))
-    (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
-    (Cons A (Cons B (Cons Output Nil)))))
+    (cons (cons True  (cons True  (cons True  ())))
+    (cons (cons True  (cons True  (cons True  ())))
+    (cons (cons False (cons False (cons False ())))
+    (cons (cons False (cons False (cons False ()))) ()))))
+    (cons A (cons B (cons Output ())))))
 
 ;; Mutual Information calculations
 !(assertEqual (calculateMutualInformation (andTable) (0)) 0.311)      ;; Single feature A
@@ -73,10 +73,10 @@
 
 ;; Single subset case
 !(assertEqual (findBestSubset (xorTable) (ConsOS (0 1) NilOS) () -1) 
-               (Cons (0 1) (Cons 1.0 Nil)))
+               (cons (0 1) (cons 1.0 ())))
 ;; Multiple subsets - should pick the best
 !(assertEqual (findBestSubset (andTable) (ConsOS (0) (ConsOS (1) NilOS)) () -1) 
-             (Cons (0) (Cons 0.311 Nil)))    ;; Both have same MI, first one returned
+             (cons (0) (cons 0.311 ())))    ;; Both have same MI, first one returned
 
 
 ;; Test with redundancy removal

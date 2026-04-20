@@ -20,7 +20,7 @@
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
-              Nil)
+              ())
             ))
 
 (= (lsk2)
@@ -30,7 +30,7 @@
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
-              Nil)
+              ())
             ))
 
 (= (lsk3)
@@ -40,7 +40,7 @@
               (mkMultip 3)
               (mkDiscSpec 1)
               (mkDiscSpec 1)
-              Nil)
+              ())
             ))
 
 (= (knobMapObj) (mkKbMap

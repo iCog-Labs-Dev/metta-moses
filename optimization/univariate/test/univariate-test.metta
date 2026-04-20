@@ -39,17 +39,17 @@
 
 !(import! &self ../../../optimization/univariate/univariate)
 
-(= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
+(= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) NilMMap)))) (mkTree (mkNode AND) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) ())))) (mkSInstSet ()) (mkDemeId "1")))
 (= (table1) (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))))
+                         (cons (cons False (cons False (cons False ()))) 
+                         (cons (cons True (cons False (cons False ()))) 
+                         (cons (cons False (cons True (cons False ())))
+                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons A (cons B (cons O ())))))
 
 ;; Testcase -- tournamentSelection
-!(assertEqual (let $selected (tournamentSelection (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 Nil))) (mkCscore -3 1 0.5 0.0 -3.5))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -1 1 0.5 0.0 -1.5))) Nil))
-) 2 1 Nil) (== (List.length $selected) 1)) True)
+!(assertEqual (let $selected (tournamentSelection (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 ()))) (mkCscore -3 1 0.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 ()))) (mkCscore -1 1 0.5 0.0 -1.5))) ()))
+) 2 1 ()) (== (List.length $selected) 1)) True)
 
 ;; Testcase -- getNthInstFields
 !(assertEqual (getNthInstFields (((0 1) (-1 1 0.5 0.0 -1.5)) ((2 3) (-3 1 0.5 0.0 -3.5))) 2 0 0 ()) (0 2))
@@ -61,9 +61,9 @@
 !(assertEqual (learnProbability ((0 2) (1 3)) ()) ((1 0 1) (0 1 0)))
 
 ;; Testcase -- replaceTheWorst
-!(assertEqual (replaceTheWorst (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 1 Nil))) (mkCscore -2 2 1.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 Nil))) (mkCscore -3 1 0.5 0.0 -3.5))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 Nil))) (mkCscore -4 0 0.0 0.0 -4.0))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 0 Nil))) (mkCscore -4 0 0.0 0.0 -4.0))) Nil)))))
-(mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 Nil))) (mkCscore -3 1 0.5 0.0 -3.5))) (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 1 Nil))) (mkCscore -2 2 1.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 Nil))) (mkCscore -3 1 0.5 0.0 -3.5))) Nil))))
-) (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 1 Nil))) (mkCscore -2 2 1.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 Nil))) (mkCscore -3 1 0.5 0.0 -3.5))) (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 1 Nil))) (mkCscore -2 2 1.0 0.0 -3.0))) (Cons (mkSInst (mkPair (mkInst (Cons 2 (Cons 0 Nil))) (mkCscore -3 1 0.5 0.0 -3.5))) Nil)))))
+!(assertEqual (replaceTheWorst (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 2 (cons 1 ()))) (mkCscore -2 2 1.0 0.0 -3.0))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 ()))) (mkCscore -3 1 0.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 ()))) (mkCscore -4 0 0.0 0.0 -4.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 ()))) (mkCscore -4 0 0.0 0.0 -4.0))) ())))))
+(mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 ()))) (mkCscore -3 1 0.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 1 ()))) (mkCscore -2 2 1.0 0.0 -3.0))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 ()))) (mkCscore -3 1 0.5 0.0 -3.5))) ()))))
+) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 1 ()))) (mkCscore -2 2 1.0 0.0 -3.0))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 ()))) (mkCscore -3 1 0.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 1 ()))) (mkCscore -2 2 1.0 0.0 -3.0))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 ()))) (mkCscore -3 1 0.5 0.0 -3.5))) ())))))
 
 ;;Testcase -- univariate
 ;; This test case is commented out because when the transform function is called more than once, it duplicates values exponentially.

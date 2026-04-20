@@ -1,0 +1,1485 @@
+================================================ MeTTa profile =================================================
+Samples: 7,672  Total nodes: 1,329,082  Profiled time: 32.962 s
+MeTTa predicates recorded: 651
+Predicate                                        Calls          Self      Self %         Total       Total %
+----------------------------------------------------------------------------------------------------------------
+COMPXY_TEMP/1                                        1       0.000 s       0.0 %       0.000 s         0.0 %
+INV_TEMP/1                                           1       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],A]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],B]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],C]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,A,B]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,A,C]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,A,[NOT,C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,A,[OR,B,C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,A,[OR,B,[AND,C,[NOT,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,A,[OR,B,[AND,[NOT,B],C]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,B,C]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,B,[NOT,C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,B,[OR,A,C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,B,[OR,A,[AND,C,[NOT,A]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,B,[OR,A,[AND,[NOT,A],C]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,C,A]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,C,[NOT,A],[NOT,B]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,C,[OR,A,A,B]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,C,[OR,A,B]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,C,[OR,[AND,A,B],A,B]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,C,[OR,[NOT,B],A,B]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,A],B,C]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,A],C,B]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,A],C]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,A],[NOT,C],B]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,B],C,A]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,B],[NOT,C],A]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,C],[OR,A,B]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,C],[OR,[AND,A,B],A,B]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,B]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,[NOT,B],C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,[NOT,B],[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,[NOT,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,B,C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,B,[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,B,[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,B,[NOT,C],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,B,[NOT,C]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,A,B]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,A,C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,A]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,B,[NOT,C]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,B]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[AND,A,B]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[NOT,A],[NOT,C]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[NOT,A]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[NOT,B],C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B,A],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B,[NOT,C]],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],A,B]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[NOT,A],[NOT,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,A,[NOT,B]]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,A]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,[AND,A,[NOT,B]]]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,[AND,[NOT,A],B]]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,[NOT,A]]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,[NOT,B]]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],A,B]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],A,[NOT,B]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],A]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],B]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[AND,[NOT,A],[NOT,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[AND,[NOT,A],[NOT,C]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[NOT,A]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]]],[OR,A,C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]]],[OR,A,[NOT,B]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]]],[OR,B,C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]]],[OR,[NOT,A],C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]]],[OR,[NOT,A],[NOT,B]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,[AND,B,[NOT,A]]]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,[NOT,B]]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,[NOT,A],B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[NOT,C],[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,A,[NOT,B]],[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,A],[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,B],[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,[AND,[NOT,A],B]],[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,[NOT,A]],[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,C],[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,[OR,B,B,[NOT,C]]],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,[OR,B,C]],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,[OR,B,[AND,[NOT,B],C]]],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,[OR,B,[NOT,B]]],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,B,A],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,B,[NOT,C]],C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,B,[NOT,C]],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,B,[OR,A,C]],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,B,[OR,A,[NOT,A]]],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,B,[OR,A,[NOT,C]]],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],A,C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],A]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],B,[NOT,C]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],B]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],[AND,A,B]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],[NOT,A],[NOT,B]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],[NOT,A],[NOT,C]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],[NOT,B],C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],[NOT,B]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],[NOT,C]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],B],C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],B],[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],[NOT,B]],[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],[NOT,B]],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],[NOT,C]],C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],[NOT,C]],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,B],[NOT,C]],[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[NOT,B],C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[NOT,B],[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[NOT,B]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[NOT,C],[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[NOT,C]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,B],C]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,C],[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[NOT,A]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[NOT,B]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[NOT,C]]])])]/31       0.000 s       0.0 %       0.000 s         0.0 %
+List.max_Spec_[>=]/3                                 1       0.000 s       0.0 %       0.000 s         0.0 %
+List.partialSort/5                                   1       0.000 s       0.0 %       0.000 s         0.0 %
+List.splitAt/3                                       1       0.000 s       0.0 %       0.000 s         0.0 %
+List.takeN/3                                         1       0.000 s       0.0 %       0.000 s         0.0 %
+getBestPossibleCscore/3                              1       0.000 s       0.0 %       0.000 s         0.0 %
+getBetterCandidates/3                                1       0.000 s       0.0 %       0.000 s         0.0 %
+getPnScore/2                                         1       0.000 s       0.0 %       0.000 s         0.0 %
+isBoolean/2                                          1       0.000 s       0.0 %       0.000 s         0.0 %
+mapG_Spec_[cleanedExemplar]/3                        1       0.000 s       0.0 %       0.000 s         0.0 %
+normalizeProbs/4                                     1       0.000 s       0.0 %       0.000 s         0.0 %
+osToExpression/3                                     1       0.000 s       0.0 %       0.000 s         0.0 %
+roulette/4                                           1       0.000 s       0.0 %       0.000 s         0.0 %
+rouletteSelect/4                                     1       0.000 s       0.0 %       0.000 s         0.0 %
+List.foldl_Spec_[cons-atom]/4                        2       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[getKnobDefault]/3                     2       0.000 s       0.0 %       0.000 s         0.0 %
+List.tFoldl_Spec_[concatT,toExp]/5                   2       0.000 s       0.0 %       0.000 s         0.0 %
+List.tail/2                                          2       0.000 s       0.0 %       0.000 s         0.0 %
+Map.length/2                                         2       0.000 s       0.0 %       0.000 s         0.0 %
+MultiMap.insert/4                                    2       0.000 s       0.0 %       0.000 s         0.0 %
+OS.getTopN/3                                         2       0.000 s       0.0 %       0.000 s         0.0 %
+capSize/3                                            2       0.000 s       0.0 %       0.000 s         0.0 %
+createDemeIds/3                                      2       0.000 s       0.0 %       0.000 s         0.0 %
+createInitialInstance/2                              2       0.000 s       0.0 %       0.000 s         0.0 %
+filterDemeByScore/4                                  2       0.000 s       0.0 %       0.000 s         0.0 %
+fsToNames/3                                          2       0.000 s       0.0 %       0.000 s         0.0 %
+getExemplarCscore/2                                  2       0.000 s       0.0 %       0.000 s         0.0 %
+getExemplarTree/2                                    2       0.000 s       0.0 %       0.000 s         0.0 %
+getInputLabels/2                                     2       0.000 s       0.0 %       0.000 s         0.0 %
+getTTableParams/2                                    2       0.000 s       0.0 %       0.000 s         0.0 %
+inputLables/2                                        2       0.000 s       0.0 %       0.000 s         0.0 %
+logicalCanonize/2                                    2       0.000 s       0.0 %       0.000 s         0.0 %
+loopCreateDeme/4                                     2       0.000 s       0.0 %       0.000 s         0.0 %
+majority3/1                                          2       0.000 s       0.0 %       0.000 s         0.0 %
+mergeCandidates/3                                    2       0.000 s       0.0 %       0.000 s         0.0 %
+numStr/2                                             2       0.000 s       0.0 %       0.000 s         0.0 %
+removeDominated/2                                    2       0.000 s       0.0 %       0.000 s         0.0 %
+removeDominatedRec/4                                 2       0.000 s       0.0 %       0.000 s         0.0 %
+resizeMetapop/7                                      2       0.000 s       0.0 %       0.000 s         0.0 %
+selectExemplar/2                                     2       0.000 s       0.0 %       0.000 s         0.0 %
+treeFtsIndices/3                                     2       0.000 s       0.0 %       0.000 s         0.0 %
+trimDownDeme/4                                       2       0.000 s       0.0 %       0.000 s         0.0 %
+union-atom-set/3                                     2       0.000 s       0.0 %       0.000 s         0.0 %
+OS.getByIdx/3                                        3       0.000 s       0.0 %       0.000 s         0.0 %
+usefulScoreRange/2                                   3       0.000 s       0.0 %       0.000 s         0.0 %
+List.foldr_Spec_[add]/4                              4       0.000 s       0.0 %       0.000 s         0.0 %
+List.head/2                                          4       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[getKnobMultip]/3                      4       0.000 s       0.0 %       0.000 s         0.0 %
+getDisk/2                                            4       0.000 s       0.0 %       0.000 s         0.0 %
+informationTheoreticBits/2                           4       0.000 s       0.0 %       0.000 s         0.0 %
+List.concat/3                                        5       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[initInstScore]/3                      5       0.000 s       0.0 %       0.000 s         0.0 %
+extractArgsFromList/2                                5       0.000 s       0.0 %       0.000 s         0.0 %
+insertNodeAtPosition/4                               5       0.000 s       0.0 %       0.000 s         0.0 %
+List.at/3                                            6       0.000 s       0.0 %       0.000 s         0.0 %
+List.index/3                                         6       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[removeInstScore]/3                    6       0.000 s       0.0 %       0.000 s         0.0 %
+MultiMap.values/2                                    6       0.000 s       0.0 %       0.000 s         0.0 %
+estimateNeighborhood/3                               6       0.000 s       0.0 %       0.000 s         0.0 %
+getScore/2                                           6       0.000 s       0.0 %       0.000 s         0.0 %
+int/2                                                6       0.000 s       0.0 %       0.000 s         0.0 %
+isAnArgument/2                                       6       0.000 s       0.0 %       0.000 s         0.0 %
+nNewInstances/5                                      6       0.000 s       0.0 %       0.000 s         0.0 %
+toExp/2                                              6       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],A]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],B]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],C]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,A,B]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,A,C]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,A,[NOT,C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,A,[OR,B,C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,A,[OR,B,[AND,C,[NOT,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,A,[OR,B,[AND,[NOT,B],C]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,B,C]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,B,[NOT,C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,B,[OR,A,C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,B,[OR,A,[AND,C,[NOT,A]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,B,[OR,A,[AND,[NOT,A],C]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,C,A]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,C,[NOT,A],[NOT,B]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,C,[OR,A,A,B]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,C,[OR,A,B]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,C,[OR,[AND,A,B],A,B]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,C,[OR,[NOT,B],A,B]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,A],B,C]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,A],C,B]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,A],C]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,A],[NOT,C],B]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,B],C,A]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,B],[NOT,C],A]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,C],[OR,A,B]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,C],[OR,[AND,A,B],A,B]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,B]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,[NOT,B],C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,[NOT,B],[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,[NOT,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,B,C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,B,[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,B,[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,B,[NOT,C],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,B,[NOT,C]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,A,B]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,A,C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,A]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,B,[NOT,C]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,B]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[AND,A,B]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[NOT,A],[NOT,C]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[NOT,A]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[NOT,B],C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B,A],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B,[NOT,C]],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],A,B]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[NOT,A],[NOT,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,A,[NOT,B]]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,A]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,[AND,A,[NOT,B]]]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,[AND,[NOT,A],B]]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,[NOT,A]]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,[NOT,B]]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],A,B]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],A,[NOT,B]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],A]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],B]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[AND,[NOT,A],[NOT,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[AND,[NOT,A],[NOT,C]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[NOT,A]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]]],[OR,A,C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]]],[OR,A,[NOT,B]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]]],[OR,B,C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]]],[OR,[NOT,A],C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]]],[OR,[NOT,A],[NOT,B]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,[AND,B,[NOT,A]]]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,[NOT,B]]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,[NOT,A],B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[NOT,C],[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,A,[NOT,B]],[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,A],[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,B],[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,[AND,[NOT,A],B]],[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,[NOT,A]],[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,C],[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,[OR,B,B,[NOT,C]]],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,[OR,B,C]],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,[OR,B,[AND,[NOT,B],C]]],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,[OR,B,[NOT,B]]],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,B,A],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,B,[NOT,C]],C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,B,[NOT,C]],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,B,[OR,A,C]],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,B,[OR,A,[NOT,A]]],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,B,[OR,A,[NOT,C]]],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],A,C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],A]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],B,[NOT,C]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],B]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],[AND,A,B]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],[NOT,A],[NOT,B]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],[NOT,A],[NOT,C]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],[NOT,B],C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],[NOT,B]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],[NOT,C]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],B],C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],B],[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],[NOT,B]],[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],[NOT,B]],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],[NOT,C]],C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],[NOT,C]],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,B],[NOT,C]],[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[NOT,B],C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[NOT,B],[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[NOT,B]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[NOT,C],[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[NOT,C]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,B],C]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,C],[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[NOT,A]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[NOT,B]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[NOT,C]]])]/48       0.000 s       0.0 %       0.000 s         0.0 %
+unify/5                                              8       0.000 s       0.0 %       0.000 s         0.0 %
+OS.length/2                                         10       0.000 s       0.0 %       0.000 s         0.0 %
+cleanedExemplar/2                                   10       0.000 s       0.0 %       0.000 s         0.0 %
+List.appendList/3                                   11       0.000 s       0.0 %       0.000 s         0.0 %
+extractArgs/2                                       11       0.000 s       0.0 %       0.000 s         0.0 %
+getSubtreeId/5                                      12       0.000 s       0.0 %       0.000 s         0.0 %
+List.repeat/3                                       13       0.000 s       0.0 %       0.000 s         0.0 %
+createTruthTableBScore/3                            13       0.000 s       0.0 %       0.000 s         0.0 %
+worstPossibleScore/2                                13       0.000 s       0.0 %       0.000 s         0.0 %
+genList/2                                           21       0.000 s       0.0 %       0.000 s         0.0 %
+genPairs/2                                          21       0.000 s       0.0 %       0.000 s         0.0 %
+getArgs/5                                           21       0.000 s       0.0 %       0.000 s         0.0 %
+lazyRandomSelector/4                                21       0.000 s       0.0 %       0.000 s         0.0 %
+lazyRandomSelector/5                                21       0.000 s       0.0 %       0.000 s         0.0 %
+pairKnobWithSpec/2                                  21       0.000 s       0.0 %       0.000 s         0.0 %
+sampleLogicalPerms/4                                21       0.000 s       0.0 %       0.000 s         0.0 %
+genList/3                                           26       0.000 s       0.0 %       0.000 s         0.0 %
+swapAndOr/2                                         29       0.000 s       0.0 %       0.000 s         0.0 %
+List.delete/3                                       47       0.000 s       0.0 %       0.000 s         0.0 %
+List.max/3                                          47       0.000 s       0.0 %       0.000 s         0.0 %
+pick/4                                              63       0.000 s       0.0 %       0.000 s         0.0 %
+List.removeAtIdx/3                                  64       0.000 s       0.0 %       0.000 s         0.0 %
+dominates/3                                         83       0.000 s       0.0 %       0.000 s         0.0 %
+dominatesRec/4                                      83       0.000 s       0.0 %       0.000 s         0.0 %
+OS.insert_Spec_[compareExemplar]/4                 105       0.000 s       0.0 %       0.000 s         0.0 %
+MultiMap.insert_Spec_[discSpec<]/4                 119       0.000 s       0.0 %       0.000 s         0.0 %
+getKnobDefault/2                                   121       0.000 s       0.0 %       0.000 s         0.0 %
+getKnobLoc/2                                       121       0.000 s       0.0 %       0.000 s         0.0 %
+getKnobSpec/2                                      121       0.000 s       0.0 %       0.000 s         0.0 %
+getChildrenById/3                                  126       0.000 s       0.0 %       0.000 s         0.0 %
+getDiscKnob/2                                      126       0.000 s       0.0 %       0.000 s         0.0 %
+inExemplar/2                                       126       0.000 s       0.0 %       0.000 s         0.0 %
+insertAbove/3                                      126       0.000 s       0.0 %       0.000 s         0.0 %
+updateID/2                                         126       0.000 s       0.0 %       0.000 s         0.0 %
+getInst/2                                          136       0.000 s       0.0 %       0.000 s         0.0 %
+MultiMap.length/2                                  148       0.000 s       0.0 %       0.000 s         0.0 %
+getExemplarBScore/2                                166       0.000 s       0.0 %       0.000 s         0.0 %
+add/3                                              169       0.000 s       0.0 %       0.000 s         0.0 %
+List.flatten/2                                     170       0.000 s       0.0 %       0.000 s         0.0 %
+List.contains/3                                    240       0.000 s       0.0 %       0.000 s         0.0 %
+isApproxEq/3                                       267       0.000 s       0.0 %       0.000 s         0.0 %
+changeAt/4                                         290       0.000 s       0.0 %       0.000 s         0.0 %
+initInstScore/2                                    292       0.000 s       0.0 %       0.000 s         0.0 %
+getKnobMultip/2                                    319       0.000 s       0.0 %       0.000 s         0.0 %
+getSInstScore/2                                    336       0.000 s       0.0 %       0.000 s         0.0 %
+cScoreToExpr/2                                     339       0.000 s       0.0 %       0.000 s         0.0 %
+exprToCScore/2                                     339       0.000 s       0.0 %       0.000 s         0.0 %
+Pair.first/2                                       483       0.000 s       0.0 %       0.000 s         0.0 %
+curry2/5                                           487       0.000 s       0.0 %       0.000 s         0.0 %
+removeInstScore/2                                  487       0.000 s       0.0 %       0.000 s         0.0 %
+returnBest/4                                       487       0.000 s       0.0 %       0.000 s         0.0 %
+getComplexityCoef/2                                488       0.000 s       0.0 %       0.000 s         0.0 %
+updatePenalizedScore/3                             488       0.000 s       0.0 %       0.000 s         0.0 %
+getSubExpression/2                                 672       0.000 s       0.0 %       0.000 s         0.0 %
+getPenScore/2                                      764       0.000 s       0.0 %       0.000 s         0.0 %
+worstCscore/1                                      828       0.000 s       0.0 %       0.000 s         0.0 %
+getRepTree/2                                     1,103       0.000 s       0.0 %       0.000 s         0.0 %
+instance>/3                                      1,128       0.000 s       0.0 %       0.000 s         0.0 %
+swapValue/4                                      1,128       0.000 s       0.0 %       0.000 s         0.0 %
+intersections/2                                  1,167       0.000 s       0.0 %       0.000 s         0.0 %
+List.drop/3                                      1,360       0.000 s       0.0 %       0.000 s         0.0 %
+compareAndScore/3                                1,360       0.000 s       0.0 %       0.000 s         0.0 %
+removeCommonLiterals/3                           1,491       0.000 s       0.0 %       0.000 s         0.0 %
+Pair.second/2                                    1,520       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[treeComplexity]/3                 1,548       0.000 s       0.0 %       0.000 s         0.0 %
+if-error/4                                       1,865       0.000 s       0.0 %       0.000 s         0.0 %
+compareExemplar/3                                1,983       0.000 s       0.0 %       0.000 s         0.0 %
+isArgument/2                                     3,136       0.000 s       0.0 %       0.000 s         0.0 %
+treeComplexity/2                                 3,136       0.000 s       0.0 %       0.000 s         0.0 %
+apply/4                                          3,598       0.000 s       0.0 %       0.000 s         0.0 %
+addAND/3                                         3,830       0.000 s       0.0 %       0.000 s         0.0 %
+discSpec</3                                      4,932       0.000 s       0.0 %       0.000 s         0.0 %
+filterTerminalAndNode/2                          5,170       0.000 s       0.0 %       0.000 s         0.0 %
+key-of/2                                         7,196       0.000 s       0.0 %       0.000 s         0.0 %
+List.append/3                                   17,769       0.000 s       0.0 %       0.000 s         0.0 %
+getNodeValue/2                                  18,564       0.000 s       0.0 %       0.000 s         0.0 %
+compose_Spec_[not,isUnit]/4                     18,614       0.000 s       0.0 %       0.000 s         0.0 %
+isUnit/2                                        18,614       0.000 s       0.0 %       0.000 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,A,B,C]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,B,[OR,A,[AND,[NOT,A],[NOT,C]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,B,[OR,A,[NOT,C]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,A],B]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,A],[NOT,B]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,A],[NOT,C]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,B],C]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,C],A,B]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,B,[NOT,C],C]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[NOT,A],[NOT,B]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[NOT,B]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[NOT,C]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],C]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,[NOT,A],B]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],A,C]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],B,C]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[AND,B,C]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[AND,[NOT,A],B]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[NOT,A],B]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[NOT,B],[NOT,C]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[NOT,B]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[NOT,C]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]]],[OR,B,[NOT,C]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,[AND,A,[NOT,B]],B]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,[NOT,A],[NOT,C]],[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,[NOT,B],[NOT,C]],[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,[NOT,B]],[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,[OR,B,[NOT,C]]],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,B,[OR,A,[NOT,A],[NOT,C]]],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],A,B]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],[NOT,A]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],[NOT,B]],C]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],[NOT,C]],[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,B],A],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,C],A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[NOT,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,B],[AND,A,B],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,C],C]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,C],[AND,C,[OR,A,B]]]]]])])]/31       0.000 s       0.0 %       0.005 s         0.0 %
+crossTopOne/6                                        1       0.000 s       0.0 %       0.005 s         0.0 %
+crossover/7                                          1       0.000 s       0.0 %       0.005 s         0.0 %
+merger/4                                             1       0.000 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[sInstToExpr]/3                        2       0.000 s       0.0 %       0.005 s         0.0 %
+sInstSetListToExpr/2                                 2       0.000 s       0.0 %       0.005 s         0.0 %
+sInstSetToExpr/2                                     2       0.000 s       0.0 %       0.005 s         0.0 %
+countNeighborhood/5                                  5       0.000 s       0.0 %       0.005 s         0.0 %
+countNeighborhoodFromIdx/6                           5       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,A,B,C]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,B,[OR,A,[AND,[NOT,A],[NOT,C]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,B,[OR,A,[NOT,C]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,A],B]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,A],[NOT,B]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,A],[NOT,C]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,B],C]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[NOT,C],A,B]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,B,[NOT,C],C]]]])]/48       0.005 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[NOT,A],[NOT,B]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[NOT,B]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,C,[NOT,C]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],C]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B,[NOT,A],B]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],A,C]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],B,C]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[AND,B,C]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[AND,[NOT,A],B]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[NOT,A],B]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[NOT,B],[NOT,C]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[NOT,B]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[NOT,C]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]]],[OR,B,[NOT,C]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,[AND,A,[NOT,B]],B]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,[NOT,A],[NOT,C]],[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,[NOT,B],[NOT,C]],[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,[OR,C,[NOT,B]],[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,[OR,B,[NOT,C]]],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,B,[OR,A,[NOT,A],[NOT,C]]],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],A,B]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,C,[OR,A,B]],[NOT,A]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],[NOT,B]],C]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,A],[NOT,C]],[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,B],A],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,[NOT,C],A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,A],[NOT,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,B],[AND,A,B],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,C],C]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[NOT,C],[AND,C,[OR,A,B]]]]]])]/48       0.000 s       0.0 %       0.005 s         0.0 %
+compareAndSwap/5                                    47       0.005 s       0.0 %       0.005 s         0.0 %
+mergeInstance/4                                     47       0.000 s       0.0 %       0.005 s         0.0 %
+List.map/3                                         170       0.000 s       0.0 %       0.005 s         0.0 %
+List.zipWith_Spec_[compareAndScore]/4              170       0.005 s       0.0 %       0.005 s         0.0 %
+instToExpr/2                                       339       0.000 s       0.0 %       0.005 s         0.0 %
+sInstToExpr/2                                      339       0.000 s       0.0 %       0.005 s         0.0 %
+sumBScore/2                                        487       0.000 s       0.0 %       0.005 s         0.0 %
+List.zip/3                                       1,360       0.005 s       0.0 %       0.005 s         0.0 %
+List.foldr_Spec_[+]/4                            2,047       0.005 s       0.0 %       0.005 s         0.0 %
+List.sum/2                                       2,047       0.000 s       0.0 %       0.005 s         0.0 %
+nodeId</3                                        3,492       0.000 s       0.0 %       0.005 s         0.0 %
+reduceNotApplied/2                               3,830       0.005 s       0.0 %       0.005 s         0.0 %
+List.filter_Spec_[partial(compose,[not,isUnit])]/310,330       0.005 s       0.0 %       0.005 s         0.0 %
+List.listToExpr/2                               10,681       0.005 s       0.0 %       0.005 s         0.0 %
+concat-tuple/3                                  44,363       0.005 s       0.0 %       0.005 s         0.0 %
+sort/4                                          72,811       0.005 s       0.0 %       0.005 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,C,[NOT,B]]]])])]/31       0.000 s       0.0 %       0.006 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[AND,A,[NOT,B]]]]]])])]/31       0.000 s       0.0 %       0.006 s         0.0 %
+List.map_Spec_[exprToSInst]/3                        2       0.000 s       0.0 %       0.006 s         0.0 %
+exprToSInstSet/2                                     2       0.000 s       0.0 %       0.006 s         0.0 %
+getNewCandidates/3                                   2       0.000 s       0.0 %       0.006 s         0.0 %
+List.foldl/4                                         6       0.000 s       0.0 %       0.006 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,C,[NOT,B]]]])]/48       0.000 s       0.0 %       0.006 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,[AND,A,B],[AND,C,[OR,A,B]],[AND,A,[NOT,B]]]]]])]/48       0.000 s       0.0 %       0.006 s         0.0 %
+OS.isMember/3                                      136       0.000 s       0.0 %       0.006 s         0.0 %
+exprToInst/2                                       339       0.000 s       0.0 %       0.006 s         0.0 %
+exprToSInst/2                                      339       0.000 s       0.0 %       0.006 s         0.0 %
+updateChildren/3                                59,490       0.006 s       0.0 %       0.006 s         0.0 %
+List.map_Spec_[partial(compose,[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,[NOT,B]]]]])])]/31       0.000 s       0.0 %       0.010 s         0.0 %
+crtDiscKnobMap/4                                     2       0.000 s       0.0 %       0.010 s         0.0 %
+compose_Spec_[evaluate,partial(curry,[replaceVarsWithTruth,[[Cons,A,[Cons,B,[Cons,C,[Cons,Out,Nil]]]],[AND,[OR,A,[NOT,B]]]]])]/48       0.000 s       0.0 %       0.010 s         0.0 %
+Map.insert_Spec_[==,nodeId<]/5                     121       0.005 s       0.0 %       0.010 s         0.0 %
+getCscore/4                                        487       0.000 s       0.0 %       0.010 s         0.0 %
+map_Spec_[buildTree]/3                           4,177       0.000 s       0.0 %       0.010 s         0.0 %
+buildTree/2                                      8,600       0.000 s       0.0 %       0.010 s         0.0 %
+fold_Spec_[concat-tuple]/4                      32,751       0.005 s       0.0 %       0.010 s         0.0 %
+List.replaceAt/4                                42,896       0.005 s       0.0 %       0.010 s         0.0 %
+getChildren/2                                  144,791       0.010 s       0.0 %       0.010 s         0.0 %
+varyNKnobs/4                                         3       0.000 s       0.0 %       0.011 s         0.0 %
+varyNKnobs/5                                       293       0.000 s       0.0 %       0.011 s         0.0 %
+evaluateOr/2                                     1,496       0.000 s       0.0 %       0.015 s         0.0 %
+evaluateAnd/2                                    2,589       0.000 s       0.0 %       0.015 s         0.0 %
+List.map_Spec_[preOrder]/3                      10,330       0.000 s       0.0 %       0.015 s         0.0 %
+orCut/3                                         20,094       0.005 s       0.0 %       0.015 s         0.0 %
+transformationsNotApplied/2                     66,407       0.005 s       0.0 %       0.015 s         0.0 %
+getNodeId/2                                     67,699       0.015 s       0.0 %       0.015 s         0.0 %
+isNullVertex/2                                 135,406       0.015 s       0.0 %       0.015 s         0.0 %
+addChildren/3                                    1,839       0.000 s       0.0 %       0.016 s         0.0 %
+exprToList/2                                     4,812       0.011 s       0.0 %       0.016 s         0.0 %
+evaluate/2                                       7,433       0.000 s       0.0 %       0.020 s         0.1 %
+findCommonLiterals/3                            15,071       0.015 s       0.0 %       0.020 s         0.1 %
+preOrder/2                                      20,025       0.005 s       0.0 %       0.020 s         0.1 %
+second/2                                       227,247       0.020 s       0.1 %       0.020 s         0.1 %
+generateAllInNeighborhood/4                          5       0.000 s       0.0 %       0.021 s         0.1 %
+removeAndNodesFromGuards/2                       7,233       0.000 s       0.0 %       0.025 s         0.1 %
+hasNoNextChild/2                                84,430       0.015 s       0.0 %       0.025 s         0.1 %
+List.length/2                                   85,029       0.020 s       0.1 %       0.025 s         0.1 %
+concatTuple/3                                  218,978       0.015 s       0.0 %       0.025 s         0.1 %
+sampleNewInstances/6                                 5       0.000 s       0.0 %       0.026 s         0.1 %
+addLiterals/3                                    2,658       0.000 s       0.0 %       0.030 s         0.1 %
+findCommon/2                                    16,224       0.005 s       0.0 %       0.030 s         0.1 %
+cScoreExpr</3                                   29,550       0.010 s       0.0 %       0.030 s         0.1 %
+~=/3                                            41,220       0.005 s       0.0 %       0.035 s         0.1 %
+areNegations/2                                 163,473       0.025 s       0.1 %       0.035 s         0.1 %
+selector_Spec_[sInstComparator]/4                  339       0.000 s       0.0 %       0.040 s         0.1 %
+applyOrCut/2                                     7,052       0.000 s       0.0 %       0.040 s         0.1 %
+comparator_Spec_[sInstComparator]/4             29,550       0.000 s       0.0 %       0.040 s         0.1 %
+sInstComparator/3                               29,550       0.000 s       0.0 %       0.040 s         0.1 %
+setDifference/3                                 39,520       0.010 s       0.0 %       0.040 s         0.1 %
+any/2                                           69,302       0.005 s       0.0 %       0.040 s         0.1 %
+selectionSort_Spec_[sInstComparator]/4               2       0.000 s       0.0 %       0.050 s         0.2 %
+replace/4                                      203,326       0.021 s       0.1 %       0.051 s         0.2 %
+applyDeleteIncons5/6                            13,902       0.005 s       0.0 %       0.055 s         0.2 %
+sortDeme/2                                           2       0.000 s       0.0 %       0.061 s         0.2 %
+removeElement/3                                 24,783       0.030 s       0.1 %       0.079 s         0.2 %
+concatT/3                                       84,229       0.069 s       0.2 %       0.084 s         0.3 %
+replaceNodeById/4                               16,599       0.026 s       0.1 %       0.087 s         0.3 %
+addAND/2                                         3,830       0.000 s       0.0 %       0.099 s         0.3 %
+addAND/4                                         3,830       0.050 s       0.2 %       0.099 s         0.3 %
+lambda_1/4                                      44,358       0.000 s       0.0 %       0.099 s         0.3 %
+localCommandSet/5                               11,040       0.015 s       0.0 %       0.104 s         0.3 %
+gatherJunctors/2                                 3,830       0.000 s       0.0 %       0.119 s         0.4 %
+nary-gather-junctors/3                           3,830       0.035 s       0.1 %       0.119 s         0.4 %
+nodeHasChildOrGuard/2                           18,662       0.005 s       0.0 %       0.120 s         0.4 %
+propagateNot/2                                   3,830       0.000 s       0.0 %       0.124 s         0.4 %
+propagateNot/3                                  48,188       0.000 s       0.0 %       0.124 s         0.4 %
+appendChild/4                                   17,697       0.005 s       0.0 %       0.161 s         0.5 %
+expToMMap/4                                        121       0.000 s       0.0 %       0.169 s         0.5 %
+List.foldl_Spec_[replaceVarWithTruth]/4          1,360       0.000 s       0.0 %       0.191 s         0.6 %
+replaceVarWithTruth/3                           50,016       0.000 s       0.0 %       0.191 s         0.6 %
+logicalProbe/6                                      21       0.000 s       0.0 %       0.196 s         0.6 %
+logicalSubtreeKnob/4                               126       0.000 s       0.0 %       0.196 s         0.6 %
+curry_Spec_[replaceVarsWithTruth]/4              1,360       0.000 s       0.0 %       0.196 s         0.6 %
+replaceVarsWithTruth/3                           1,360       0.000 s       0.0 %       0.196 s         0.6 %
+filterChildren/2                               666,682       0.069 s       0.2 %       0.205 s         0.6 %
+oneConstraintSubsume/4                          19,760       0.030 s       0.1 %       0.206 s         0.6 %
+isConsistentExp/2                               41,623       0.110 s       0.3 %       0.257 s         0.8 %
+applyDeleteIncons6/7                             7,229       0.005 s       0.0 %       0.258 s         0.8 %
+siblingit/8                                          8       0.000 s       0.0 %       0.283 s         0.9 %
+getLevelById/3                                 580,345       0.055 s       0.2 %       0.309 s         0.9 %
+promoteCommonConstraints/3                      22,080       0.055 s       0.2 %       0.350 s         1.1 %
+buildKnobs/4                                         2       0.000 s       0.0 %       0.365 s         1.1 %
+buildLogical/5                                       8       0.000 s       0.0 %       0.365 s         1.1 %
+addLogicalKnobs/6                                   21       0.000 s       0.0 %       0.365 s         1.1 %
+zeroConstraintSubsume'/3                        30,800       0.036 s       0.1 %       0.365 s         1.1 %
+filterLiterals/2                               591,239       0.079 s       0.2 %       0.370 s         1.1 %
+createDeme_Spec_[mi]/9                               2       0.000 s       0.0 %       0.375 s         1.1 %
+createRepresentation_Spec_[mi]/8                     2       0.000 s       0.0 %       0.375 s         1.1 %
+representation_Spec_[mi]/8                           2       0.000 s       0.0 %       0.375 s         1.1 %
+zeroConstraintSubsume/3                         13,042       0.020 s       0.1 %       0.391 s         1.2 %
+if-decons-expr-custom/6                        147,846       0.046 s       0.1 %       0.424 s         1.3 %
+getLiteralChildren/2                            50,891       0.015 s       0.0 %       0.485 s         1.5 %
+deleteInconsistentHandle/4                      41,623       0.015 s       0.0 %       0.486 s         1.5 %
+scoreTree/4                                        623       0.000 s       0.0 %       0.488 s         1.5 %
+getCscore/5                                        487       0.000 s       0.0 %       0.493 s         1.5 %
+MultiMap.getByIdx/3                             67,849       0.221 s       0.7 %       0.546 s         1.7 %
+Map.getByKey/3                                  67,699       0.248 s       0.8 %       0.567 s         1.7 %
+===/3                                           39,274       0.182 s       0.6 %       0.571 s         1.7 %
+Map.contains/3                                  79,768       0.244 s       0.7 %       0.578 s         1.8 %
+removeEmptyAND/2                               177,183       0.233 s       0.7 %       0.596 s         1.8 %
+getGuardSet/2                                  115,189       0.036 s       0.1 %       0.704 s         2.1 %
+findAndReplace/4                                86,651       0.015 s       0.0 %       0.705 s         2.1 %
+getChildrenExp/2                               259,155       0.287 s       0.9 %       0.758 s         2.3 %
+getNodeById/3                                  182,800       0.248 s       0.8 %       0.767 s         2.3 %
+applyDeleteIncons/4                             22,565       0.020 s       0.1 %       0.768 s         2.3 %
+getLiterals/2                                  242,533       0.235 s       0.7 %       0.768 s         2.3 %
+applyAndCut/2                                   13,558       0.021 s       0.1 %       0.900 s         2.7 %
+List.getByIdx/3                                676,629       0.261 s       0.8 %       1.014 s         3.1 %
+appendTo/6                                      67,699       0.000 s       0.0 %       1.016 s         3.1 %
+appendToLSK/6                                   67,699       0.051 s       0.2 %       1.016 s         3.1 %
+until_Spec_[hasNoNextChild,applyOrCut]/4        14,352       0.005 s       0.0 %       1.152 s         3.5 %
+findDiscKnob/3                                  79,768       0.031 s       0.1 %       1.767 s         5.4 %
+andCut/3                                        36,123       0.079 s       0.2 %       1.841 s         5.6 %
+until_Spec_[hasNoNextChild,applyAndCut]/4       24,598       0.010 s       0.0 %       2.863 s         8.7 %
+demeToTrees/3                                        2       0.000 s       0.0 %       4.832 s        14.7 %
+until_Spec_[reduceNotApplied,applyReduce]/4      3,830       0.005 s       0.0 %       6.574 s        19.9 %
+List.foldl_Spec_[applyGetCandidateRec]/4        17,461       0.000 s       0.0 %       9.100 s        27.6 %
+applyGetCandidateRec/3                          78,665       0.000 s       0.0 %       9.100 s        27.6 %
+getCandidateRec/7                               79,768       0.005 s       0.0 %       9.115 s        27.7 %
+complexityBasedScorer/5                            487       0.000 s       0.0 %      12.079 s        36.6 %
+applyComplexityBasedScore/5                          6       0.006 s       0.0 %      12.085 s        36.7 %
+transform/5                                          6       0.000 s       0.0 %      12.085 s        36.7 %
+expandDemeHelper_Spec_[hillClimbing]/4               2       0.000 s       0.0 %      12.178 s        36.9 %
+hillClimbing/4                                       2       0.000 s       0.0 %      12.178 s        36.9 %
+hillClimbing/11                                      2       0.010 s       0.0 %      12.178 s        36.9 %
+optimizeDemes_Spec_[hillClimbing]/5                  2       0.000 s       0.0 %      12.178 s        36.9 %
+hillClimbing/5                                       4       0.000 s       0.0 %      12.178 s        36.9 %
+expandDeme_Spec_[hillClimbing,mi]/10                 2       0.000 s       0.0 %      12.553 s        38.1 %
+applyReduceToEleganceToAnd/2                    15,930       0.015 s       0.0 %      13.278 s        40.3 %
+keepTopUniqueCandidates/5                            2       0.000 s       0.0 %      13.815 s        41.9 %
+removeDupInsts/4                                     2       0.005 s       0.0 %      13.815 s        41.9 %
+until_Spec_[hasNoNextChild,applyReduceToEleganceToAnd]/427,140       0.005 s       0.0 %      14.619 s        44.3 %
+applyOrTransformations/2                        13,042       0.005 s       0.0 %      14.812 s        44.9 %
+until_Spec_[transformationsNotApplied,applyOrTransformations]/424,082       0.000 s       0.0 %      15.719 s        47.7 %
+applyReduceToEleganceToOr/2                     11,040       0.010 s       0.0 %      17.554 s        53.3 %
+until_Spec_[hasNoNextChild,applyReduceToEleganceToOr]/418,340       0.005 s       0.0 %      18.556 s        56.3 %
+mergeDemes/11                                        2       0.000 s       0.0 %      18.713 s        56.8 %
+applyAndTransformations/2                       22,565       0.005 s       0.0 %      19.680 s        59.7 %
+until_Spec_[transformationsNotApplied,applyAndTransformations]/442,325       0.005 s       0.0 %      20.369 s        61.8 %
+reduceToElegance/5                              30,800       0.005 s       0.0 %      20.546 s        62.3 %
+applyReduce/2                                    3,830       0.000 s       0.0 %      20.894 s        63.4 %
+reduce-to/2                                      1,229       0.000 s       0.0 %      21.249 s        64.5 %
+cleanTree/2                                      1,229       0.005 s       0.0 %      21.283 s        64.6 %
+getCandidate/3                                   1,103       0.000 s       0.0 %      30.203 s        91.6 %
+runMoses_Spec_[hillClimbing]/16                      1       0.010 s       0.0 %      31.276 s        94.9 %
+runDemoProblem_Spec_[majority3]/6                    1       0.000 s       0.0 %      31.281 s        94.9 %
+----------------------------------------------------------------------------------------------------------------
+Partitioned MeTTa call tree from hot entry functions
+Displayed totals are caller-attributed so each node equals its self time plus displayed children.
+Repeated caller->callee edges are aggregated by predicate name before partitioning.
+Function                                                                 Calls          Time        Time %
+----------------------------------------------------------------------------------------------------------------
+buildKnobs/4                                                                 2       0.365 s         1.1 %
+  logicalCanonize/2                                                          2       0.000 s         0.0 %
+  buildLogical/5                                                             2       0.365 s         1.1 %
+    appendChild/4                                                            8       0.000 s         0.0 %
+      List.append/3                                                     16,594       0.000 s         0.0 %
+      getChildren/2                                                     16,594       0.000 s         0.0 %
+      updateChildren/3                                                  16,594       0.000 s         0.0 %
+      List.length/2                                                     16,594       0.000 s         0.0 %
+      concatT/3                                                         14,219       0.000 s         0.0 %
+      getNodeById/3                                                     16,594       0.000 s         0.0 %
+        getLevelById/3                                                 580,345       0.000 s         0.0 %
+          List.getByIdx/3                                              565,821       0.000 s         0.0 %
+      replaceNodeById/4                                                 16,594       0.000 s         0.0 %
+        getChildren/2 (expanded above)                                  42,896       0.000 s         0.0 %
+        updateChildren/3 (expanded above)                               42,896       0.000 s         0.0 %
+        List.getByIdx/3 (expanded above)                                42,896       0.000 s         0.0 %
+        List.replaceAt/4                                                42,896       0.000 s         0.0 %
+    getNodeById/3 (expanded above)                                           8       0.000 s         0.0 %
+    isNullVertex/2                                                           8       0.000 s         0.0 %
+    swapAndOr/2                                                              8       0.000 s         0.0 %
+    addLogicalKnobs/6                                                       16       0.096 s         0.3 %
+      getNodeById/3 (expanded above)                                        21       0.000 s         0.0 %
+      pairKnobWithSpec/2                                                    21       0.000 s         0.0 %
+      sampleLogicalPerms/4                                                  21       0.000 s         0.0 %
+      expToMMap/4                                                           21       0.044 s         0.1 %
+        [self]                                                               0       0.044 s         0.1 %
+      logicalProbe/6                                                        21       0.051 s         0.2 %
+        concatT/3 (expanded above)                                         121       0.000 s         0.0 %
+        getDiscKnob/2                                                      126       0.000 s         0.0 %
+        inExemplar/2                                                       126       0.000 s         0.0 %
+        logicalSubtreeKnob/4                                               126       0.051 s         0.2 %
+          getSubtreeId/5                                                    12       0.000 s         0.0 %
+          getChildrenById/3                                                126       0.000 s         0.0 %
+          insertAbove/3                                                    126       0.000 s         0.0 %
+          updateID/2                                                       126       0.000 s         0.0 %
+          appendChild/4 (expanded above)                                   228       0.000 s         0.0 %
+          List.contains/3                                                  240       0.000 s         0.0 %
+          cleanTree/2                                                      126       0.051 s         0.2 %
+            [self]                                                           0       0.000 s         0.0 %
+            buildTree/2                                                  1,229       0.000 s         0.0 %
+              exprToList/2                                               4,177       0.000 s         0.0 %
+                [self]                                                       0       0.000 s         0.0 %
+              map_Spec_[buildTree]/3                                     4,177       0.000 s         0.0 %
+                buildTree/2 (cycle)                                      7,245       0.000 s         0.0 %
+            preOrder/2                                                   1,229       0.000 s         0.0 %
+              [self]                                                         0       0.000 s         0.0 %
+              List.listToExpr/2                                         10,330       0.000 s         0.0 %
+              List.filter_Spec_[partial(compose,[not,isUnit])]/3        10,330       0.000 s         0.0 %
+                [self]                                                       0       0.000 s         0.0 %
+                compose_Spec_[not,isUnit]/4                             18,614       0.000 s         0.0 %
+              List.map_Spec_[preOrder]/3                                10,330       0.000 s         0.0 %
+                preOrder/2 (cycle)                                      18,614       0.000 s         0.0 %
+            reduce-to/2                                                  1,229       0.051 s         0.2 %
+              removeAndNodesFromGuards/2                                 1,229       0.000 s         0.0 %
+                [self]                                                       0       0.000 s         0.0 %
+              until_Spec_[reduceNotApplied,applyReduce]/4                1,915       0.016 s         0.0 %
+                [self]                                                       0       0.000 s         0.0 %
+                applyReduce/2                                            1,915       0.016 s         0.0 %
+                  addAND/3                                               3,830       0.000 s         0.0 %
+                  findAndReplace/4                                       3,830       0.000 s         0.0 %
+                    [self]                                                   0       0.000 s         0.0 %
+                  addAND/2                                               3,830       0.000 s         0.0 %
+                    addAND/4                                             3,830       0.000 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                  gatherJunctors/2                                       3,830       0.000 s         0.0 %
+                    nary-gather-junctors/3                               3,830       0.000 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                      fold_Spec_[concat-tuple]/4                        32,751       0.000 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                        concat-tuple/3                                  44,363       0.000 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                  propagateNot/2                                         3,830       0.000 s         0.0 %
+                    propagateNot/3                                       3,830       0.000 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                  reduceToElegance/5                                     3,830       0.016 s         0.0 %
+                    [self]                                                   0       0.000 s         0.0 %
+                    concatTuple/3                                       19,760       0.000 s         0.0 %
+                    getChildrenExp/2                                    19,760       0.000 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                      filterChildren/2                                 666,682       0.000 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                    any/2                                               30,800       0.000 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                    setDifference/3                                     39,520       0.000 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                    getGuardSet/2                                       19,760       0.000 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                      if-decons-expr-custom/6                          115,189       0.000 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                      getLiterals/2                                    104,292       0.000 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                        filterLiterals/2                               591,239       0.000 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                    findAndReplace/4 (expanded above)                   19,760       0.000 s         0.0 %
+                    promoteCommonConstraints/3                          11,040       0.000 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                      concatTuple/3 (expanded above)                     1,491       0.000 s         0.0 %
+                      removeCommonLiterals/3                             1,491       0.000 s         0.0 %
+                      addLiterals/3                                      1,491       0.000 s         0.0 %
+                        getChildrenExp/2 (expanded above)                2,658       0.000 s         0.0 %
+                        getLiterals/2 (expanded above)                   2,658       0.000 s         0.0 %
+                      removeElement/3                                    1,491       0.000 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                      findAndReplace/4 (expanded above)                  1,491       0.000 s         0.0 %
+                      findCommon/2                                      16,224       0.000 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                        findCommonLiterals/3                            14,910       0.000 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                      getLiterals/2 (expanded above)                    33,522       0.000 s         0.0 %
+                      getLiteralChildren/2                              18,234       0.000 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                        getChildrenExp/2 (expanded above)               50,891       0.000 s         0.0 %
+                        getLiterals/2 (expanded above)                  50,891       0.000 s         0.0 %
+                    oneConstraintSubsume/4                              19,760       0.000 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                      getGuardSet/2 (expanded above)                    19,760       0.000 s         0.0 %
+                    zeroConstraintSubsume'/3                            30,800       0.000 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                      findAndReplace/4 (expanded above)                    125       0.000 s         0.0 %
+                      removeElement/3 (expanded above)                   3,174       0.000 s         0.0 %
+                      getLiterals/2 (expanded above)                    29,997       0.000 s         0.0 %
+                      getChildrenExp/2 (expanded above)                 29,997       0.000 s         0.0 %
+                    until_Spec_[transformationsNotApplied,applyOrTransformations]/411,040       0.006 s         0.0 %
+                      applyOrTransformations/2                          13,042       0.006 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                        any/2 (expanded above)                          13,042       0.000 s         0.0 %
+                        orCut/3                                         13,042       0.000 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                          addChildren/3                                    672       0.000 s         0.0 %
+                            getLiterals/2 (expanded above)               1,839       0.000 s         0.0 %
+                            concatTuple/3 (expanded above)               3,678       0.000 s         0.0 %
+                            getChildrenExp/2 (expanded above)            1,839       0.000 s         0.0 %
+                          getSubExpression/2                               672       0.000 s         0.0 %
+                          removeElement/3 (expanded above)                 672       0.000 s         0.0 %
+                        getChildrenExp/2 (expanded above)               13,042       0.000 s         0.0 %
+                        zeroConstraintSubsume/3                         13,042       0.000 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                          getChildrenExp/2 (expanded above)             12,370       0.000 s         0.0 %
+                          findAndReplace/4 (expanded above)              9,202       0.000 s         0.0 %
+                        until_Spec_[hasNoNextChild,applyReduceToEleganceToAnd]/411,210       0.006 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                          applyReduceToEleganceToAnd/2                  15,930       0.006 s         0.0 %
+                            [self]                                           0       0.000 s         0.0 %
+                            getChildrenExp/2 (expanded above)           15,930       0.000 s         0.0 %
+                            findAndReplace/4 (expanded above)           15,930       0.000 s         0.0 %
+                            reduceToElegance/5 (cycle)                  15,930       0.006 s         0.0 %
+                    until_Spec_[transformationsNotApplied,applyAndTransformations]/419,760       0.009 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                      applyAndTransformations/2                         22,565       0.009 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                        findAndReplace/4 (expanded above)                7,300       0.000 s         0.0 %
+                        getChildrenExp/2 (expanded above)               29,865       0.000 s         0.0 %
+                        getGuardSet/2 (expanded above)                  22,565       0.000 s         0.0 %
+                        applyDeleteIncons/4                             22,565       0.000 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                          applyDeleteIncons5/6                           7,784       0.000 s         0.0 %
+                            [self]                                           0       0.000 s         0.0 %
+                            deleteInconsistentHandle/4                   4,058       0.000 s         0.0 %
+                              [self]                                         0       0.000 s         0.0 %
+                              concatTuple/3 (expanded above)            41,623       0.000 s         0.0 %
+                              getGuardSet/2 (expanded above)            41,623       0.000 s         0.0 %
+                              isConsistentExp/2                         41,623       0.000 s         0.0 %
+                                [self]                                       0       0.000 s         0.0 %
+                                areNegations/2                         163,473       0.000 s         0.0 %
+                                  [self]                                     0       0.000 s         0.0 %
+                            findAndReplace/4 (expanded above)            4,058       0.000 s         0.0 %
+                          findAndReplace/4 (expanded above)              7,797       0.000 s         0.0 %
+                          ===/3                                          7,784       0.000 s         0.0 %
+                            [self]                                           0       0.000 s         0.0 %
+                          getChildrenExp/2 (expanded above)             30,349       0.000 s         0.0 %
+                          applyDeleteIncons6/7                           7,229       0.000 s         0.0 %
+                            [self]                                           0       0.000 s         0.0 %
+                            applyDeleteIncons5/6 (expanded above)        6,118       0.000 s         0.0 %
+                            findAndReplace/4 (expanded above)            6,118       0.000 s         0.0 %
+                            deleteInconsistentHandle/4 (expanded above)  7,229       0.000 s         0.0 %
+                          deleteInconsistentHandle/4 (expanded above)   30,336       0.000 s         0.0 %
+                        andCut/3                                        22,565       0.000 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                          getGuardSet/2 (expanded above)                   441       0.000 s         0.0 %
+                          intersections/2                                1,167       0.000 s         0.0 %
+                          removeElement/3 (expanded above)               1,167       0.000 s         0.0 %
+                          addChildren/3 (expanded above)                 1,167       0.000 s         0.0 %
+                          addLiterals/3 (expanded above)                 1,167       0.000 s         0.0 %
+                          if-decons-expr-custom/6 (expanded above)      32,657       0.000 s         0.0 %
+                          getLiteralChildren/2 (expanded above)         32,657       0.000 s         0.0 %
+                          ===/3 (expanded above)                        31,490       0.000 s         0.0 %
+                          removeEmptyAND/2                             177,183       0.000 s         0.0 %
+                            [self]                                           0       0.000 s         0.0 %
+                            concatTuple/3 (expanded above)             140,714       0.000 s         0.0 %
+                        until_Spec_[hasNoNextChild,applyOrCut]/4         7,300       0.000 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                          applyOrCut/2                                   7,052       0.000 s         0.0 %
+                            orCut/3 (expanded above)                     7,052       0.000 s         0.0 %
+                            ~=/3                                        14,104       0.000 s         0.0 %
+                              [self]                                         0       0.000 s         0.0 %
+                        until_Spec_[hasNoNextChild,applyReduceToEleganceToOr]/47,300       0.008 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                          applyReduceToEleganceToOr/2                   11,040       0.008 s         0.0 %
+                            [self]                                           0       0.000 s         0.0 %
+                            any/2 (expanded above)                      25,460       0.000 s         0.0 %
+                            findAndReplace/4 (expanded above)           11,040       0.000 s         0.0 %
+                            getGuardSet/2 (expanded above)              11,040       0.000 s         0.0 %
+                            localCommandSet/5                           11,040       0.000 s         0.0 %
+                              [self]                                         0       0.000 s         0.0 %
+                              filterTerminalAndNode/2                    5,170       0.000 s         0.0 %
+                              concatTuple/3 (expanded above)            11,040       0.000 s         0.0 %
+                              removeElement/3 (expanded above)          16,611       0.000 s         0.0 %
+                            promoteCommonConstraints/3 (expanded above) 11,040       0.000 s         0.0 %
+                            getChildrenExp/2 (expanded above)           33,120       0.000 s         0.0 %
+                            until_Spec_[hasNoNextChild,applyAndCut]/4   11,040       0.001 s         0.0 %
+                              [self]                                         0       0.000 s         0.0 %
+                              applyAndCut/2                             13,558       0.001 s         0.0 %
+                                [self]                                       0       0.000 s         0.0 %
+                                ~=/3 (expanded above)                   27,116       0.000 s         0.0 %
+                                andCut/3 (expanded above)               13,558       0.001 s         0.0 %
+                            reduceToElegance/5 (cycle)                  11,040       0.007 s         0.0 %
+              applyReduce/2 (expanded above)                             1,915       0.035 s         0.1 %
+    siblingit/8                                                              8       0.269 s         0.8 %
+      insertNodeAtPosition/4                                                 5       0.000 s         0.0 %
+      isAnArgument/2                                                         5       0.000 s         0.0 %
+      concatT/3 (expanded above)                                             9       0.000 s         0.0 %
+      addLogicalKnobs/6 (expanded above)                                     5       0.027 s         0.1 %
+      buildLogical/5 (cycle)                                                 6       0.243 s         0.7 %
+----------------------------------------------------------------------------------------------------------------
+transform/5                                                                  6      12.085 s        36.7 %
+  List.map_Spec_[removeInstScore]/3                                          6       0.000 s         0.0 %
+  applyComplexityBasedScore/5                                                6      12.085 s        36.7 %
+    [self]                                                                   0       0.006 s         0.0 %
+    complexityBasedScorer/5                                                487      12.079 s        36.6 %
+      getCscore/5                                                          487       0.493 s         1.5 %
+        getCscore/4                                                        487       0.010 s         0.0 %
+          getComplexityCoef/2                                              487       0.000 s         0.0 %
+          if-error/4                                                       487       0.000 s         0.0 %
+          treeComplexity/2                                                 487       0.000 s         0.0 %
+          updatePenalizedScore/3                                           487       0.000 s         0.0 %
+          worstCscore/1                                                    487       0.000 s         0.0 %
+          sumBScore/2                                                      487       0.010 s         0.0 %
+            List.sum/2                                                     487       0.010 s         0.0 %
+              List.foldr_Spec_[+]/4                                      2,047       0.010 s         0.0 %
+                [self]                                                       0       0.010 s         0.0 %
+        scoreTree/4                                                        487       0.483 s         1.5 %
+          createTruthTableBScore/3                                          12       0.000 s         0.0 %
+          worstPossibleScore/2                                              12       0.000 s         0.0 %
+          List.length/2                                                    170       0.000 s         0.0 %
+          preOrder/2                                                       170       0.000 s         0.0 %
+            List.listToExpr/2                                           10,330       0.000 s         0.0 %
+            List.filter_Spec_[partial(compose,[not,isUnit])]/3          10,330       0.000 s         0.0 %
+              compose_Spec_[not,isUnit]/4                               18,614       0.000 s         0.0 %
+            List.map_Spec_[preOrder]/3                                  10,330       0.000 s         0.0 %
+              preOrder/2 (cycle)                                        18,614       0.000 s         0.0 %
+          List.zipWith_Spec_[compareAndScore]/4                            170       0.483 s         1.5 %
+            [self]                                                           0       0.483 s         1.5 %
+            compareAndScore/3                                            1,360       0.000 s         0.0 %
+      getCandidate/3                                                       487      11.586 s        35.1 %
+        getNodeById/3                                                    1,103       0.000 s         0.0 %
+          getLevelById/3                                               580,345       0.000 s         0.0 %
+            List.getByIdx/3                                            565,821       0.000 s         0.0 %
+        getNodeValue/2                                                   1,103       0.000 s         0.0 %
+        getRepTree/2                                                     1,103       0.000 s         0.0 %
+        getCandidateRec/7                                                1,103       3.497 s        10.6 %
+          [self]                                                             0       0.000 s         0.0 %
+          getNodeValue/2 (expanded above)                               12,069       0.000 s         0.0 %
+          getChildren/2                                                 17,461       0.000 s         0.0 %
+            [self]                                                           0       0.000 s         0.0 %
+          second/2                                                     159,536       0.002 s         0.0 %
+            [self]                                                           0       0.002 s         0.0 %
+          appendChild/4                                                 12,069       0.008 s         0.0 %
+            [self]                                                           0       0.000 s         0.0 %
+            List.append/3                                               16,594       0.000 s         0.0 %
+            getChildren/2 (expanded above)                              16,594       0.000 s         0.0 %
+            updateChildren/3                                            16,594       0.000 s         0.0 %
+            List.length/2 (expanded above)                              16,594       0.000 s         0.0 %
+            concatT/3                                                   14,219       0.001 s         0.0 %
+              [self]                                                         0       0.001 s         0.0 %
+            getNodeById/3 (expanded above)                              16,594       0.002 s         0.0 %
+            replaceNodeById/4                                           16,594       0.004 s         0.0 %
+              [self]                                                         0       0.002 s         0.0 %
+              getChildren/2 (expanded above)                            42,896       0.000 s         0.0 %
+              updateChildren/3 (expanded above)                         42,896       0.001 s         0.0 %
+              List.getByIdx/3 (expanded above)                          42,896       0.001 s         0.0 %
+              List.replaceAt/4                                          42,896       0.001 s         0.0 %
+                [self]                                                       0       0.001 s         0.0 %
+          getNodeById/3 (expanded above)                                29,530       0.008 s         0.0 %
+          List.getByIdx/3 (expanded above)                              67,699       0.072 s         0.2 %
+          appendTo/6                                                    67,699       0.087 s         0.3 %
+            appendToLSK/6                                               67,699       0.087 s         0.3 %
+              [self]                                                         0       0.006 s         0.0 %
+              getNodeValue/2 (expanded above)                            5,392       0.000 s         0.0 %
+              getChildren/2 (expanded above)                            67,699       0.001 s         0.0 %
+              getNodeId/2                                               67,699       0.002 s         0.0 %
+                [self]                                                       0       0.002 s         0.0 %
+              isNullVertex/2                                           135,398       0.002 s         0.0 %
+                [self]                                                       0       0.002 s         0.0 %
+              List.length/2 (expanded above)                            67,699       0.002 s         0.0 %
+              appendChild/4 (expanded above)                             5,392       0.008 s         0.0 %
+              getNodeById/3 (expanded above)                           135,398       0.068 s         0.2 %
+          findDiscKnob/3                                                79,768       0.152 s         0.5 %
+            [self]                                                           0       0.003 s         0.0 %
+            second/2 (expanded above)                                   67,699       0.000 s         0.0 %
+            MultiMap.getByIdx/3                                         67,699       0.048 s         0.1 %
+              [self]                                                         0       0.048 s         0.1 %
+            Map.getByKey/3                                              67,699       0.050 s         0.2 %
+              [self]                                                         0       0.050 s         0.2 %
+            Map.contains/3                                              79,768       0.051 s         0.2 %
+              [self]                                                         0       0.051 s         0.2 %
+          List.foldl_Spec_[applyGetCandidateRec]/4                      17,461       3.168 s         9.6 %
+            applyGetCandidateRec/3                                      78,665       3.168 s         9.6 %
+              concatT/3 (expanded above)                                69,841       0.007 s         0.0 %
+              getCandidateRec/7 (cycle)                                 78,665       3.160 s         9.6 %
+        cleanTree/2                                                      1,103       8.089 s        24.5 %
+          [self]                                                             0       0.002 s         0.0 %
+          buildTree/2                                                    1,229       0.004 s         0.0 %
+            exprToList/2                                                 4,177       0.001 s         0.0 %
+              [self]                                                         0       0.001 s         0.0 %
+            map_Spec_[buildTree]/3                                       4,177       0.003 s         0.0 %
+              buildTree/2 (cycle)                                        7,245       0.003 s         0.0 %
+          preOrder/2 (expanded above)                                    1,229       0.008 s         0.0 %
+          reduce-to/2                                                    1,229       8.076 s        24.5 %
+            removeAndNodesFromGuards/2                                   1,229       0.009 s         0.0 %
+              [self]                                                         0       0.009 s         0.0 %
+            until_Spec_[reduceNotApplied,applyReduce]/4                  1,915       2.499 s         7.6 %
+              [self]                                                         0       0.002 s         0.0 %
+              applyReduce/2                                              1,915       2.497 s         7.6 %
+                addAND/3                                                 3,830       0.000 s         0.0 %
+                findAndReplace/4                                         3,830       0.001 s         0.0 %
+                  [self]                                                     0       0.001 s         0.0 %
+                addAND/2                                                 3,830       0.012 s         0.0 %
+                  addAND/4                                               3,830       0.012 s         0.0 %
+                    [self]                                                   0       0.012 s         0.0 %
+                gatherJunctors/2                                         3,830       0.014 s         0.0 %
+                  nary-gather-junctors/3                                 3,830       0.014 s         0.0 %
+                    [self]                                                   0       0.011 s         0.0 %
+                    fold_Spec_[concat-tuple]/4                          32,751       0.003 s         0.0 %
+                      [self]                                                 0       0.002 s         0.0 %
+                      concat-tuple/3                                    44,363       0.002 s         0.0 %
+                        [self]                                               0       0.002 s         0.0 %
+                propagateNot/2                                           3,830       0.015 s         0.0 %
+                  propagateNot/3                                         3,830       0.015 s         0.0 %
+                    [self]                                                   0       0.015 s         0.0 %
+                reduceToElegance/5                                       3,830       2.455 s         7.4 %
+                  [self]                                                     0       0.000 s         0.0 %
+                  concatTuple/3                                         19,760       0.000 s         0.0 %
+                  getChildrenExp/2                                      19,760       0.001 s         0.0 %
+                    [self]                                                   0       0.001 s         0.0 %
+                    filterChildren/2                                   666,682       0.000 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                  any/2                                                 30,800       0.001 s         0.0 %
+                    [self]                                                   0       0.001 s         0.0 %
+                  setDifference/3                                       39,520       0.002 s         0.0 %
+                    [self]                                                   0       0.002 s         0.0 %
+                  getGuardSet/2                                         19,760       0.006 s         0.0 %
+                    [self]                                                   0       0.000 s         0.0 %
+                    if-decons-expr-custom/6                            115,189       0.003 s         0.0 %
+                      [self]                                                 0       0.003 s         0.0 %
+                    getLiterals/2                                      104,292       0.003 s         0.0 %
+                      [self]                                                 0       0.001 s         0.0 %
+                      filterLiterals/2                                 591,239       0.002 s         0.0 %
+                        [self]                                               0       0.002 s         0.0 %
+                  findAndReplace/4 (expanded above)                     19,760       0.006 s         0.0 %
+                  promoteCommonConstraints/3                            11,040       0.008 s         0.0 %
+                    [self]                                                   0       0.001 s         0.0 %
+                    concatTuple/3 (expanded above)                       1,491       0.000 s         0.0 %
+                    removeCommonLiterals/3                               1,491       0.000 s         0.0 %
+                    addLiterals/3                                        1,491       0.000 s         0.0 %
+                      getChildrenExp/2 (expanded above)                  2,658       0.000 s         0.0 %
+                      getLiterals/2 (expanded above)                     2,658       0.000 s         0.0 %
+                    removeElement/3                                      1,491       0.000 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                    findAndReplace/4 (expanded above)                    1,491       0.000 s         0.0 %
+                    findCommon/2                                        16,224       0.001 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                      findCommonLiterals/3                              14,910       0.001 s         0.0 %
+                        [self]                                               0       0.001 s         0.0 %
+                    getLiterals/2 (expanded above)                      33,522       0.002 s         0.0 %
+                    getLiteralChildren/2                                18,234       0.003 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                      getChildrenExp/2 (expanded above)                 50,891       0.001 s         0.0 %
+                      getLiterals/2 (expanded above)                    50,891       0.002 s         0.0 %
+                  oneConstraintSubsume/4                                19,760       0.008 s         0.0 %
+                    [self]                                                   0       0.002 s         0.0 %
+                    getGuardSet/2 (expanded above)                      19,760       0.007 s         0.0 %
+                  zeroConstraintSubsume'/3                              30,800       0.015 s         0.0 %
+                    [self]                                                   0       0.002 s         0.0 %
+                    findAndReplace/4 (expanded above)                      125       0.000 s         0.0 %
+                    removeElement/3 (expanded above)                     3,174       0.001 s         0.0 %
+                    getLiterals/2 (expanded above)                      29,997       0.005 s         0.0 %
+                    getChildrenExp/2 (expanded above)                   29,997       0.007 s         0.0 %
+                  until_Spec_[transformationsNotApplied,applyOrTransformations]/411,040       0.929 s         2.8 %
+                    applyOrTransformations/2                            13,042       0.929 s         2.8 %
+                      [self]                                                 0       0.000 s         0.0 %
+                      any/2 (expanded above)                            13,042       0.000 s         0.0 %
+                      orCut/3                                           13,042       0.000 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                        addChildren/3                                      672       0.000 s         0.0 %
+                          getLiterals/2 (expanded above)                 1,839       0.000 s         0.0 %
+                          concatTuple/3 (expanded above)                 3,678       0.000 s         0.0 %
+                          getChildrenExp/2 (expanded above)              1,839       0.000 s         0.0 %
+                        getSubExpression/2                                 672       0.000 s         0.0 %
+                        removeElement/3 (expanded above)                   672       0.000 s         0.0 %
+                      getChildrenExp/2 (expanded above)                 13,042       0.001 s         0.0 %
+                      zeroConstraintSubsume/3                           13,042       0.018 s         0.1 %
+                        [self]                                               0       0.002 s         0.0 %
+                        getChildrenExp/2 (expanded above)               12,370       0.003 s         0.0 %
+                        findAndReplace/4 (expanded above)                9,202       0.013 s         0.0 %
+                      until_Spec_[hasNoNextChild,applyReduceToEleganceToAnd]/411,210       0.910 s         2.8 %
+                        [self]                                               0       0.000 s         0.0 %
+                        applyReduceToEleganceToAnd/2                    15,930       0.910 s         2.8 %
+                          [self]                                             0       0.001 s         0.0 %
+                          getChildrenExp/2 (expanded above)             15,930       0.001 s         0.0 %
+                          findAndReplace/4 (expanded above)             15,930       0.010 s         0.0 %
+                          reduceToElegance/5 (cycle)                    15,930       0.898 s         2.7 %
+                  until_Spec_[transformationsNotApplied,applyAndTransformations]/419,760       1.478 s         4.5 %
+                    [self]                                                   0       0.000 s         0.0 %
+                    applyAndTransformations/2                           22,565       1.478 s         4.5 %
+                      [self]                                                 0       0.000 s         0.0 %
+                      findAndReplace/4 (expanded above)                  7,300       0.002 s         0.0 %
+                      getChildrenExp/2 (expanded above)                 29,865       0.004 s         0.0 %
+                      getGuardSet/2 (expanded above)                    22,565       0.008 s         0.0 %
+                      applyDeleteIncons/4                               22,565       0.036 s         0.1 %
+                        [self]                                               0       0.001 s         0.0 %
+                        applyDeleteIncons5/6                             7,784       0.001 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                          deleteInconsistentHandle/4                     4,058       0.000 s         0.0 %
+                            [self]                                           0       0.000 s         0.0 %
+                            concatTuple/3 (expanded above)              41,623       0.000 s         0.0 %
+                            getGuardSet/2 (expanded above)              41,623       0.000 s         0.0 %
+                            isConsistentExp/2                           41,623       0.000 s         0.0 %
+                              [self]                                         0       0.000 s         0.0 %
+                              areNegations/2                           163,473       0.000 s         0.0 %
+                                [self]                                       0       0.000 s         0.0 %
+                          findAndReplace/4 (expanded above)              4,058       0.001 s         0.0 %
+                        findAndReplace/4 (expanded above)                7,797       0.001 s         0.0 %
+                        ===/3                                            7,784       0.002 s         0.0 %
+                          [self]                                             0       0.002 s         0.0 %
+                        getChildrenExp/2 (expanded above)               30,349       0.003 s         0.0 %
+                        applyDeleteIncons6/7                             7,229       0.012 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                          applyDeleteIncons5/6 (expanded above)          6,118       0.002 s         0.0 %
+                          findAndReplace/4 (expanded above)              6,118       0.003 s         0.0 %
+                          deleteInconsistentHandle/4 (expanded above)    7,229       0.007 s         0.0 %
+                        deleteInconsistentHandle/4 (expanded above)     30,336       0.015 s         0.0 %
+                      andCut/3                                          22,565       0.046 s         0.1 %
+                        [self]                                               0       0.002 s         0.0 %
+                        getGuardSet/2 (expanded above)                     441       0.000 s         0.0 %
+                        intersections/2                                  1,167       0.000 s         0.0 %
+                        removeElement/3 (expanded above)                 1,167       0.000 s         0.0 %
+                        addChildren/3 (expanded above)                   1,167       0.000 s         0.0 %
+                        addLiterals/3 (expanded above)                   1,167       0.001 s         0.0 %
+                        if-decons-expr-custom/6 (expanded above)        32,657       0.004 s         0.0 %
+                        getLiteralChildren/2 (expanded above)           32,657       0.009 s         0.0 %
+                        ===/3 (expanded above)                          31,490       0.014 s         0.0 %
+                        removeEmptyAND/2                               177,183       0.016 s         0.0 %
+                          [self]                                             0       0.015 s         0.0 %
+                          concatTuple/3 (expanded above)               140,714       0.001 s         0.0 %
+                      until_Spec_[hasNoNextChild,applyOrCut]/4           7,300       0.053 s         0.2 %
+                        [self]                                               0       0.006 s         0.0 %
+                        applyOrCut/2                                     7,052       0.047 s         0.1 %
+                          orCut/3 (expanded above)                       7,052       0.016 s         0.0 %
+                          ~=/3                                          14,104       0.032 s         0.1 %
+                            [self]                                           0       0.032 s         0.1 %
+                      until_Spec_[hasNoNextChild,applyReduceToEleganceToOr]/47,300       1.329 s         4.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                        applyReduceToEleganceToOr/2                     11,040       1.328 s         4.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                          any/2 (expanded above)                        25,460       0.000 s         0.0 %
+                          findAndReplace/4 (expanded above)             11,040       0.004 s         0.0 %
+                          getGuardSet/2 (expanded above)                11,040       0.005 s         0.0 %
+                          localCommandSet/5                             11,040       0.005 s         0.0 %
+                            [self]                                           0       0.001 s         0.0 %
+                            filterTerminalAndNode/2                      5,170       0.000 s         0.0 %
+                            concatTuple/3 (expanded above)              11,040       0.000 s         0.0 %
+                            removeElement/3 (expanded above)            16,611       0.004 s         0.0 %
+                          promoteCommonConstraints/3 (expanded above)   11,040       0.008 s         0.0 %
+                          getChildrenExp/2 (expanded above)             33,120       0.009 s         0.0 %
+                          until_Spec_[hasNoNextChild,applyAndCut]/4     11,040       0.144 s         0.4 %
+                            [self]                                           0       0.002 s         0.0 %
+                            applyAndCut/2                               13,558       0.142 s         0.4 %
+                              [self]                                         0       0.003 s         0.0 %
+                              ~=/3 (expanded above)                     27,116       0.002 s         0.0 %
+                              andCut/3 (expanded above)                 13,558       0.136 s         0.4 %
+                          reduceToElegance/5 (cycle)                    11,040       1.153 s         3.5 %
+            applyReduce/2 (expanded above)                               1,915       5.568 s        16.9 %
+----------------------------------------------------------------------------------------------------------------
+expandDemeHelper_Spec_[hillClimbing]/4                                       2      12.178 s        36.9 %
+  Map.length/2                                                               2       0.000 s         0.0 %
+  createInitialInstance/2                                                    2       0.000 s         0.0 %
+  optimizeDemes_Spec_[hillClimbing]/5                                        2      12.178 s        36.9 %
+    [self]                                                                   0      12.178 s        36.9 %
+----------------------------------------------------------------------------------------------------------------
+hillClimbing/4                                                               2      12.178 s        36.9 %
+  hillClimbing/5                                                             2      12.178 s        36.9 %
+    List.length/2                                                            2       0.000 s         0.0 %
+    getPenScore/2                                                            2       0.000 s         0.0 %
+    getTTableParams/2                                                        2       0.000 s         0.0 %
+    second/2                                                                 2       0.000 s         0.0 %
+    worstCscore/1                                                            2       0.000 s         0.0 %
+    getDisk/2                                                                4       0.000 s         0.0 %
+    hillClimbing/11                                                          2      12.178 s        36.9 %
+      [self]                                                                 0      12.178 s        36.9 %
+      Pair.first/2                                                           3       0.000 s         0.0 %
+      List.listToExpr/2                                                      6       0.000 s         0.0 %
+      getPenScore/2 (expanded above)                                         6       0.000 s         0.0 %
+      getScore/2                                                             6       0.000 s         0.0 %
+      nNewInstances/5                                                        6       0.000 s         0.0 %
+      second/2 (expanded above)                                              6       0.000 s         0.0 %
+      Pair.second/2                                                         12       0.000 s         0.0 %
+----------------------------------------------------------------------------------------------------------------
+runDemoProblem_Spec_[majority3]/6                                            1      31.281 s        94.9 %
+  List.sum/2                                                                 1       0.000 s         0.0 %
+    List.foldr_Spec_[+]/4                                                2,047       0.000 s         0.0 %
+  createTruthTableBScore/3                                                   1       0.000 s         0.0 %
+  getBestPossibleCscore/3                                                    1       0.000 s         0.0 %
+  mapG_Spec_[cleanedExemplar]/3                                              1       0.000 s         0.0 %
+  osToExpression/3                                                           1       0.000 s         0.0 %
+  worstPossibleScore/2                                                       1       0.000 s         0.0 %
+  majority3/1                                                                2       0.000 s         0.0 %
+  runMoses_Spec_[hillClimbing]/16                                            1      31.281 s        94.9 %
+    [self]                                                                   0       0.010 s         0.0 %
+    List.length/2                                                            2       0.000 s         0.0 %
+    OS.getByIdx/3                                                            2       0.000 s         0.0 %
+    OS.getTopN/3                                                             2       0.000 s         0.0 %
+    getExemplarCscore/2                                                      2       0.000 s         0.0 %
+    second/2                                                                 2       0.000 s         0.0 %
+    OS.length/2                                                              3       0.000 s         0.0 %
+    expandDeme_Spec_[hillClimbing,mi]/10                                     2      12.555 s        38.1 %
+      createDemeIds/3                                                        2       0.000 s         0.0 %
+      getExemplarTree/2                                                      2       0.000 s         0.0 %
+      preOrder/2                                                             2       0.000 s         0.0 %
+        List.listToExpr/2                                               10,330       0.000 s         0.0 %
+        List.filter_Spec_[partial(compose,[not,isUnit])]/3              10,330       0.000 s         0.0 %
+          compose_Spec_[not,isUnit]/4                                   18,614       0.000 s         0.0 %
+        List.map_Spec_[preOrder]/3                                      10,330       0.000 s         0.0 %
+          preOrder/2 (cycle)                                            18,614       0.000 s         0.0 %
+      selectExemplar/2                                                       2       0.000 s         0.0 %
+      createDeme_Spec_[mi]/9                                                 2      12.555 s        38.1 %
+        loopCreateDeme/4                                                     2       0.000 s         0.0 %
+        createRepresentation_Spec_[mi]/8                                     2      12.555 s        38.1 %
+          representation_Spec_[mi]/8                                         2      12.555 s        38.1 %
+            [self]                                                           0      12.555 s        38.1 %
+    mergeDemes/11                                                            2      18.716 s        56.8 %
+      mergeCandidates/3                                                      2       0.000 s         0.0 %
+      removeDominated/2                                                      2       0.000 s         0.0 %
+      resizeMetapop/7                                                        2       0.000 s         0.0 %
+      second/2 (expanded above)                                              2       0.000 s         0.0 %
+      trimDownDeme/4                                                         2       0.000 s         0.0 %
+      OS.length/2 (expanded above)                                           4       0.000 s         0.0 %
+      List.length/2 (expanded above)                                        10       0.000 s         0.0 %
+      getNewCandidates/3                                                     2       0.006 s         0.0 %
+        OS.insert_Spec_[compareExemplar]/4                                  85       0.000 s         0.0 %
+        OS.isMember/3                                                      136       0.006 s         0.0 %
+          [self]                                                             0       0.006 s         0.0 %
+      sortDeme/2                                                             2       0.061 s         0.2 %
+        sInstSetToExpr/2                                                     2       0.005 s         0.0 %
+          sInstSetListToExpr/2                                               2       0.005 s         0.0 %
+            List.listToExpr/2 (expanded above)                               2       0.000 s         0.0 %
+            List.map_Spec_[sInstToExpr]/3                                    2       0.005 s         0.0 %
+              sInstToExpr/2                                                339       0.005 s         0.0 %
+                cScoreToExpr/2                                             339       0.000 s         0.0 %
+                instToExpr/2                                               339       0.005 s         0.0 %
+                  List.listToExpr/2 (expanded above)                       339       0.005 s         0.0 %
+        exprToSInstSet/2                                                     2       0.006 s         0.0 %
+          exprToList/2                                                       2       0.000 s         0.0 %
+          List.map_Spec_[exprToSInst]/3                                      2       0.006 s         0.0 %
+            exprToSInst/2                                                  339       0.006 s         0.0 %
+              exprToCScore/2                                               339       0.000 s         0.0 %
+              exprToInst/2                                                 339       0.006 s         0.0 %
+                exprToList/2 (expanded above)                              339       0.006 s         0.0 %
+        selectionSort_Spec_[sInstComparator]/4                               2       0.050 s         0.2 %
+          selector_Spec_[sInstComparator]/4                                339       0.050 s         0.2 %
+            comparator_Spec_[sInstComparator]/4                         29,550       0.050 s         0.2 %
+              sInstComparator/3                                         29,550       0.050 s         0.2 %
+                cScoreExpr</3                                           29,550       0.050 s         0.2 %
+                  [self]                                                     0       0.050 s         0.2 %
+      demeToTrees/3                                                          2       4.833 s        14.7 %
+        getInst/2                                                          136       0.000 s         0.0 %
+        getSInstScore/2                                                    136       0.000 s         0.0 %
+        scoreTree/4                                                        136       0.005 s         0.0 %
+          createTruthTableBScore/3 (expanded above)                         12       0.000 s         0.0 %
+          worstPossibleScore/2 (expanded above)                             12       0.000 s         0.0 %
+          List.length/2 (expanded above)                                   170       0.000 s         0.0 %
+          preOrder/2 (expanded above)                                      170       0.000 s         0.0 %
+          List.zipWith_Spec_[compareAndScore]/4                            170       0.005 s         0.0 %
+            [self]                                                           0       0.005 s         0.0 %
+            compareAndScore/3                                            1,360       0.000 s         0.0 %
+        getCandidate/3                                                     136       4.828 s        14.6 %
+          getNodeById/3                                                  1,103       0.000 s         0.0 %
+            getLevelById/3                                             580,345       0.000 s         0.0 %
+              List.getByIdx/3                                          565,821       0.000 s         0.0 %
+          getNodeValue/2                                                 1,103       0.000 s         0.0 %
+          getRepTree/2                                                   1,103       0.000 s         0.0 %
+          getCandidateRec/7                                              1,103       1.457 s         4.4 %
+            [self]                                                           0       0.000 s         0.0 %
+            getNodeValue/2 (expanded above)                             12,069       0.000 s         0.0 %
+            getChildren/2                                               17,461       0.000 s         0.0 %
+              [self]                                                         0       0.000 s         0.0 %
+            second/2 (expanded above)                                  159,536       0.001 s         0.0 %
+            appendChild/4                                               12,069       0.003 s         0.0 %
+              [self]                                                         0       0.000 s         0.0 %
+              List.append/3                                             16,594       0.000 s         0.0 %
+              getChildren/2 (expanded above)                            16,594       0.000 s         0.0 %
+              updateChildren/3                                          16,594       0.000 s         0.0 %
+              List.length/2 (expanded above)                            16,594       0.000 s         0.0 %
+              concatT/3                                                 14,219       0.000 s         0.0 %
+                [self]                                                       0       0.000 s         0.0 %
+              getNodeById/3 (expanded above)                            16,594       0.001 s         0.0 %
+              replaceNodeById/4                                         16,594       0.002 s         0.0 %
+                [self]                                                       0       0.001 s         0.0 %
+                getChildren/2 (expanded above)                          42,896       0.000 s         0.0 %
+                updateChildren/3 (expanded above)                       42,896       0.000 s         0.0 %
+                List.getByIdx/3 (expanded above)                        42,896       0.000 s         0.0 %
+                List.replaceAt/4                                        42,896       0.000 s         0.0 %
+                  [self]                                                     0       0.000 s         0.0 %
+            getNodeById/3 (expanded above)                              29,530       0.003 s         0.0 %
+            List.getByIdx/3 (expanded above)                            67,699       0.030 s         0.1 %
+            appendTo/6                                                  67,699       0.036 s         0.1 %
+              appendToLSK/6                                             67,699       0.036 s         0.1 %
+                [self]                                                       0       0.002 s         0.0 %
+                getNodeValue/2 (expanded above)                          5,392       0.000 s         0.0 %
+                getChildren/2 (expanded above)                          67,699       0.000 s         0.0 %
+                getNodeId/2                                             67,699       0.001 s         0.0 %
+                  [self]                                                     0       0.001 s         0.0 %
+                isNullVertex/2                                         135,398       0.001 s         0.0 %
+                  [self]                                                     0       0.001 s         0.0 %
+                List.length/2 (expanded above)                          67,699       0.001 s         0.0 %
+                appendChild/4 (expanded above)                           5,392       0.003 s         0.0 %
+                getNodeById/3 (expanded above)                         135,398       0.028 s         0.1 %
+            findDiscKnob/3                                              79,768       0.063 s         0.2 %
+              [self]                                                         0       0.001 s         0.0 %
+              second/2 (expanded above)                                 67,699       0.000 s         0.0 %
+              MultiMap.getByIdx/3                                       67,699       0.020 s         0.1 %
+                [self]                                                       0       0.020 s         0.1 %
+              Map.getByKey/3                                            67,699       0.021 s         0.1 %
+                [self]                                                       0       0.021 s         0.1 %
+              Map.contains/3                                            79,768       0.021 s         0.1 %
+                [self]                                                       0       0.021 s         0.1 %
+            List.foldl_Spec_[applyGetCandidateRec]/4                    17,461       1.320 s         4.0 %
+              applyGetCandidateRec/3                                    78,665       1.320 s         4.0 %
+                concatT/3 (expanded above)                              69,841       0.003 s         0.0 %
+                getCandidateRec/7 (cycle)                               78,665       1.317 s         4.0 %
+          cleanTree/2                                                    1,103       3.371 s        10.2 %
+            [self]                                                           0       0.001 s         0.0 %
+            buildTree/2                                                  1,229       0.002 s         0.0 %
+              exprToList/2 (expanded above)                              4,177       0.000 s         0.0 %
+              map_Spec_[buildTree]/3                                     4,177       0.001 s         0.0 %
+                buildTree/2 (cycle)                                      7,245       0.001 s         0.0 %
+            preOrder/2 (expanded above)                                  1,229       0.003 s         0.0 %
+            reduce-to/2                                                  1,229       3.365 s        10.2 %
+              removeAndNodesFromGuards/2                                 1,229       0.004 s         0.0 %
+                [self]                                                       0       0.004 s         0.0 %
+              until_Spec_[reduceNotApplied,applyReduce]/4                1,915       1.041 s         3.2 %
+                [self]                                                       0       0.001 s         0.0 %
+                applyReduce/2                                            1,915       1.040 s         3.2 %
+                  addAND/3                                               3,830       0.000 s         0.0 %
+                  findAndReplace/4                                       3,830       0.000 s         0.0 %
+                    [self]                                                   0       0.000 s         0.0 %
+                  addAND/2                                               3,830       0.005 s         0.0 %
+                    addAND/4                                             3,830       0.005 s         0.0 %
+                      [self]                                                 0       0.005 s         0.0 %
+                  gatherJunctors/2                                       3,830       0.006 s         0.0 %
+                    nary-gather-junctors/3                               3,830       0.006 s         0.0 %
+                      [self]                                                 0       0.005 s         0.0 %
+                      fold_Spec_[concat-tuple]/4                        32,751       0.001 s         0.0 %
+                        [self]                                               0       0.001 s         0.0 %
+                        concat-tuple/3                                  44,363       0.001 s         0.0 %
+                          [self]                                             0       0.001 s         0.0 %
+                  propagateNot/2                                         3,830       0.006 s         0.0 %
+                    propagateNot/3                                       3,830       0.006 s         0.0 %
+                      [self]                                                 0       0.006 s         0.0 %
+                  reduceToElegance/5                                     3,830       1.023 s         3.1 %
+                    [self]                                                   0       0.000 s         0.0 %
+                    concatTuple/3                                       19,760       0.000 s         0.0 %
+                    getChildrenExp/2                                    19,760       0.000 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                      filterChildren/2                                 666,682       0.000 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                    any/2                                               30,800       0.001 s         0.0 %
+                      [self]                                                 0       0.001 s         0.0 %
+                    setDifference/3                                     39,520       0.001 s         0.0 %
+                      [self]                                                 0       0.001 s         0.0 %
+                    getGuardSet/2                                       19,760       0.002 s         0.0 %
+                      [self]                                                 0       0.000 s         0.0 %
+                      if-decons-expr-custom/6                          115,189       0.001 s         0.0 %
+                        [self]                                               0       0.001 s         0.0 %
+                      getLiterals/2                                    104,292       0.001 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                        filterLiterals/2                               591,239       0.001 s         0.0 %
+                          [self]                                             0       0.001 s         0.0 %
+                    findAndReplace/4 (expanded above)                   19,760       0.003 s         0.0 %
+                    promoteCommonConstraints/3                          11,040       0.003 s         0.0 %
+                      [self]                                                 0       0.001 s         0.0 %
+                      concatTuple/3 (expanded above)                     1,491       0.000 s         0.0 %
+                      removeCommonLiterals/3                             1,491       0.000 s         0.0 %
+                      addLiterals/3                                      1,491       0.000 s         0.0 %
+                        getChildrenExp/2 (expanded above)                2,658       0.000 s         0.0 %
+                        getLiterals/2 (expanded above)                   2,658       0.000 s         0.0 %
+                      removeElement/3                                    1,491       0.000 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                      findAndReplace/4 (expanded above)                  1,491       0.000 s         0.0 %
+                      findCommon/2                                      16,224       0.000 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                        findCommonLiterals/3                            14,910       0.000 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                      getLiterals/2 (expanded above)                    33,522       0.001 s         0.0 %
+                      getLiteralChildren/2                              18,234       0.001 s         0.0 %
+                        [self]                                               0       0.000 s         0.0 %
+                        getChildrenExp/2 (expanded above)               50,891       0.001 s         0.0 %
+                        getLiterals/2 (expanded above)                  50,891       0.001 s         0.0 %
+                    oneConstraintSubsume/4                              19,760       0.004 s         0.0 %
+                      [self]                                                 0       0.001 s         0.0 %
+                      getGuardSet/2 (expanded above)                    19,760       0.003 s         0.0 %
+                    zeroConstraintSubsume'/3                            30,800       0.006 s         0.0 %
+                      [self]                                                 0       0.001 s         0.0 %
+                      findAndReplace/4 (expanded above)                    125       0.000 s         0.0 %
+                      removeElement/3 (expanded above)                   3,174       0.001 s         0.0 %
+                      getLiterals/2 (expanded above)                    29,997       0.002 s         0.0 %
+                      getChildrenExp/2 (expanded above)                 29,997       0.003 s         0.0 %
+                    until_Spec_[transformationsNotApplied,applyOrTransformations]/411,040       0.387 s         1.2 %
+                      applyOrTransformations/2                          13,042       0.387 s         1.2 %
+                        [self]                                               0       0.000 s         0.0 %
+                        any/2 (expanded above)                          13,042       0.000 s         0.0 %
+                        orCut/3                                         13,042       0.000 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                          addChildren/3                                    672       0.000 s         0.0 %
+                            getLiterals/2 (expanded above)               1,839       0.000 s         0.0 %
+                            concatTuple/3 (expanded above)               3,678       0.000 s         0.0 %
+                            getChildrenExp/2 (expanded above)            1,839       0.000 s         0.0 %
+                          getSubExpression/2                               672       0.000 s         0.0 %
+                          removeElement/3 (expanded above)                 672       0.000 s         0.0 %
+                        getChildrenExp/2 (expanded above)               13,042       0.000 s         0.0 %
+                        zeroConstraintSubsume/3                         13,042       0.007 s         0.0 %
+                          [self]                                             0       0.001 s         0.0 %
+                          getChildrenExp/2 (expanded above)             12,370       0.001 s         0.0 %
+                          findAndReplace/4 (expanded above)              9,202       0.005 s         0.0 %
+                        until_Spec_[hasNoNextChild,applyReduceToEleganceToAnd]/411,210       0.379 s         1.2 %
+                          [self]                                             0       0.000 s         0.0 %
+                          applyReduceToEleganceToAnd/2                  15,930       0.379 s         1.1 %
+                            [self]                                           0       0.000 s         0.0 %
+                            getChildrenExp/2 (expanded above)           15,930       0.000 s         0.0 %
+                            findAndReplace/4 (expanded above)           15,930       0.004 s         0.0 %
+                            reduceToElegance/5 (cycle)                  15,930       0.374 s         1.1 %
+                    until_Spec_[transformationsNotApplied,applyAndTransformations]/419,760       0.616 s         1.9 %
+                      [self]                                                 0       0.000 s         0.0 %
+                      applyAndTransformations/2                         22,565       0.616 s         1.9 %
+                        [self]                                               0       0.000 s         0.0 %
+                        findAndReplace/4 (expanded above)                7,300       0.001 s         0.0 %
+                        getChildrenExp/2 (expanded above)               29,865       0.002 s         0.0 %
+                        getGuardSet/2 (expanded above)                  22,565       0.004 s         0.0 %
+                        applyDeleteIncons/4                             22,565       0.015 s         0.0 %
+                          [self]                                             0       0.000 s         0.0 %
+                          applyDeleteIncons5/6                           7,784       0.000 s         0.0 %
+                            [self]                                           0       0.000 s         0.0 %
+                            deleteInconsistentHandle/4                   4,058       0.000 s         0.0 %
+                              [self]                                         0       0.000 s         0.0 %
+                              concatTuple/3 (expanded above)            41,623       0.000 s         0.0 %
+                              getGuardSet/2 (expanded above)            41,623       0.000 s         0.0 %
+                              isConsistentExp/2                         41,623       0.000 s         0.0 %
+                                [self]                                       0       0.000 s         0.0 %
+                                areNegations/2                         163,473       0.000 s         0.0 %
+                                  [self]                                     0       0.000 s         0.0 %
+                            findAndReplace/4 (expanded above)            4,058       0.000 s         0.0 %
+                          findAndReplace/4 (expanded above)              7,797       0.000 s         0.0 %
+                          ===/3                                          7,784       0.001 s         0.0 %
+                            [self]                                           0       0.001 s         0.0 %
+                          getChildrenExp/2 (expanded above)             30,349       0.001 s         0.0 %
+                          applyDeleteIncons6/7                           7,229       0.005 s         0.0 %
+                            [self]                                           0       0.000 s         0.0 %
+                            applyDeleteIncons5/6 (expanded above)        6,118       0.001 s         0.0 %
+                            findAndReplace/4 (expanded above)            6,118       0.001 s         0.0 %
+                            deleteInconsistentHandle/4 (expanded above)  7,229       0.003 s         0.0 %
+                          deleteInconsistentHandle/4 (expanded above)   30,336       0.006 s         0.0 %
+                        andCut/3                                        22,565       0.019 s         0.1 %
+                          [self]                                             0       0.001 s         0.0 %
+                          getGuardSet/2 (expanded above)                   441       0.000 s         0.0 %
+                          intersections/2                                1,167       0.000 s         0.0 %
+                          removeElement/3 (expanded above)               1,167       0.000 s         0.0 %
+                          addChildren/3 (expanded above)                 1,167       0.000 s         0.0 %
+                          addLiterals/3 (expanded above)                 1,167       0.000 s         0.0 %
+                          if-decons-expr-custom/6 (expanded above)      32,657       0.002 s         0.0 %
+                          getLiteralChildren/2 (expanded above)         32,657       0.004 s         0.0 %
+                          ===/3 (expanded above)                        31,490       0.006 s         0.0 %
+                          removeEmptyAND/2                             177,183       0.007 s         0.0 %
+                            [self]                                           0       0.006 s         0.0 %
+                            concatTuple/3 (expanded above)             140,714       0.001 s         0.0 %
+                        until_Spec_[hasNoNextChild,applyOrCut]/4         7,300       0.022 s         0.1 %
+                          [self]                                             0       0.002 s         0.0 %
+                          applyOrCut/2                                   7,052       0.020 s         0.1 %
+                            orCut/3 (expanded above)                     7,052       0.007 s         0.0 %
+                            ~=/3                                        14,104       0.013 s         0.0 %
+                              [self]                                         0       0.013 s         0.0 %
+                        until_Spec_[hasNoNextChild,applyReduceToEleganceToOr]/47,300       0.554 s         1.7 %
+                          [self]                                             0       0.000 s         0.0 %
+                          applyReduceToEleganceToOr/2                   11,040       0.553 s         1.7 %
+                            [self]                                           0       0.000 s         0.0 %
+                            any/2 (expanded above)                      25,460       0.000 s         0.0 %
+                            findAndReplace/4 (expanded above)           11,040       0.002 s         0.0 %
+                            getGuardSet/2 (expanded above)              11,040       0.002 s         0.0 %
+                            localCommandSet/5                           11,040       0.002 s         0.0 %
+                              [self]                                         0       0.000 s         0.0 %
+                              filterTerminalAndNode/2                    5,170       0.000 s         0.0 %
+                              concatTuple/3 (expanded above)            11,040       0.000 s         0.0 %
+                              removeElement/3 (expanded above)          16,611       0.002 s         0.0 %
+                            promoteCommonConstraints/3 (expanded above) 11,040       0.003 s         0.0 %
+                            getChildrenExp/2 (expanded above)           33,120       0.004 s         0.0 %
+                            until_Spec_[hasNoNextChild,applyAndCut]/4   11,040       0.060 s         0.2 %
+                              [self]                                         0       0.001 s         0.0 %
+                              applyAndCut/2                             13,558       0.059 s         0.2 %
+                                [self]                                       0       0.001 s         0.0 %
+                                ~=/3 (expanded above)                   27,116       0.001 s         0.0 %
+                                andCut/3 (expanded above)               13,558       0.057 s         0.2 %
+                            reduceToElegance/5 (cycle)                  11,040       0.480 s         1.5 %
+              applyReduce/2 (expanded above)                             1,915       2.320 s         7.0 %
+      keepTopUniqueCandidates/5                                              2      13.817 s        41.9 %
+        List.length/2 (expanded above)                                       4       0.000 s         0.0 %
+        removeDupInsts/4                                                     2      13.817 s        41.9 %
+          [self]                                                             0       0.005 s         0.0 %
+          isApproxEq/3                                                     267       0.000 s         0.0 %
+          List.length/2 (expanded above)                                   269       0.000 s         0.0 %
+          Pair.first/2                                                     480       0.000 s         0.0 %
+          Pair.second/2                                                    534       0.000 s         0.0 %
+          getPenScore/2                                                    534       0.000 s         0.0 %
+          getCandidate/3 (expanded above)                                  480      13.812 s        41.9 %
+----------------------------------------------------------------------------------------------------------------
+================================================================================================================

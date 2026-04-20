@@ -56,19 +56,19 @@
 (= (knobmap1)
         (ConsMMap (
                     (mkDiscSpec 1)
-                    (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) ))
+                    (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) ))
         (ConsMMap (
                     (mkDiscSpec 1)
-                    (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) ))
+                    (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) ))
         NilMMap)))
 
 (= (knobmap2)
         (ConsMMap (
                     (mkDiscSpec 1)
-                    (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
+                    (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())))
         (ConsMMap (
                     (mkDiscSpec 1)
-                    (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) ))
+                    (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) ))
         NilMMap)))
 
 (= (knobmap3)
@@ -84,7 +84,7 @@
            (mkDiscKnob 
              (mkKnob 
                (mkNodeId (1 2)))
-             (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+             (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
            ))
         (ConsMMap 
           ((mkDiscSpec 3)
@@ -92,7 +92,7 @@
              (mkDiscKnob 
                (mkKnob 
                  (mkNodeId (2)))
-               (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+               (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
              ))
           (ConsMMap 
             ((mkDiscSpec 3)
@@ -100,7 +100,7 @@
                (mkDiscKnob 
                  (mkKnob 
                    (mkNodeId (3)))
-                 (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+                 (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
                ))
             NilMMap))))))
 ;; Test informationTheoreticBits with a knob 
@@ -123,7 +123,7 @@
 
 ;; Testcase for informationTheoreticBitsFs
 !(assertEqual
-  (informationTheoreticBitsFs (Cons A (Cons B (Cons O Nil)))) 2)
+  (informationTheoreticBitsFs (cons A (cons B (cons O ())))) 2)
 
 ;; Testing estimateNeighborhood on the above knob maps
 !(assertEqual (estimateNeighborhood 0 (knobmap1)) 1)
@@ -133,10 +133,10 @@
 
 ;; Testcase for estimateNeighborhoodFs
 !(assertEqual
-  (estimateNeighborhoodFs 3 (Cons A (Cons B (Cons O Nil)))) 4)
+  (estimateNeighborhoodFs 3 (cons A (cons B (cons O ())))) 4)
 
 ; Testcase for countNeighborhoodFs
-!(assertEqual (countNeighborhoodFs (mkInst (Cons 1 (Cons 0 (Cons 1 Nil)))) 2 20) 3)
+!(assertEqual (countNeighborhoodFs (mkInst (cons 1 (cons 0 (cons 1 ())))) 2 20) 3)
 
 ; Testcase for factorial
 !(assertEqual (factorial 3) 6)
@@ -148,7 +148,7 @@
 !(assertEqual 
  (countNeighborhood
   (knobmap3)  ;knobmap
-  (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) ;instance
+  (mkInst (cons 1 (cons 0 (cons 2 ())))) ;instance
   2 ; distance
   20) ; maximum count
   12)
@@ -157,7 +157,7 @@
 !(assertEqual 
  (countNeighborhood
   (knobmap3) ;knobmap
-  (mkInst (Cons 1 (Cons 0 (Cons 2 Nil)))) ;instance
+  (mkInst (cons 1 (cons 0 (cons 2 ())))) ;instance
   3 ;distance
   20) ;maxCount
   8) 
@@ -166,8 +166,8 @@
 !(assertEqual 
  (let*
     (
-       ($totalSize (countNeighborhood (knobmap3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3 20))
-       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 3)))
+       ($totalSize (countNeighborhood (knobmap3) (mkInst (cons 0 (cons 0 (cons 0 ())))) 3 20))
+       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 ())))) 3)))
     )
     (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
@@ -175,8 +175,8 @@
 !(assertEqual 
  (let*
     (
-       ($totalSize (countNeighborhood (knobmap3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2 20))
-       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 2)))
+       ($totalSize (countNeighborhood (knobmap3) (mkInst (cons 0 (cons 0 (cons 0 ())))) 2 20))
+       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 ())))) 2)))
     )
     (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
@@ -184,27 +184,27 @@
 !(assertEqual
  (let*
     (
-       ($totalSize (countNeighborhood (knobmap3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 1 20))
-       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (Cons 0 (Cons 0 (Cons 0 Nil)))) 1)))
+       ($totalSize (countNeighborhood (knobmap3) (mkInst (cons 0 (cons 0 (cons 0 ())))) 1 20))
+       ($generatedSize (List.length (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 ())))) 1)))
     )
 (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
-(= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
-(= (demes) (Cons (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")) Nil))
+(= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) NilMMap)))) (mkTree (mkNode AND) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) ())))) (mkSInstSet ()) (mkDemeId "1")))
+(= (demes) (cons (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) NilMMap)))) (mkTree (mkNode AND) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) ())))) (mkSInstSet ()) (mkDemeId "1")) ()))
 
 (= (table1) (createTruthTableBScore 2 (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil))))))
+                         (cons (cons False (cons False (cons False ()))) 
+                         (cons (cons True (cons False (cons False ()))) 
+                         (cons (cons False (cons True (cons False ())))
+                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons A (cons B (cons O ()))))))
 
 (= (itable) (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))))
+                         (cons (cons False (cons False (cons False ()))) 
+                         (cons (cons True (cons False (cons False ()))) 
+                         (cons (cons False (cons True (cons False ())))
+                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons A (cons B (cons O ())))))
 
 ; (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
@@ -213,7 +213,7 @@
 !(assertEqual
    (let*
      (
-       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing (deme) (table1) (mkInst (Cons 0 (Cons 0 Nil))) (mkParams applyComplexityBasedScore ())))
+       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing (deme) (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
        ($instanceCount (List.length $instSet))
        ($scoredElems (List.map isScored $instSet))
      )
@@ -223,7 +223,7 @@
 !(assertEqual
    (let*
      (
-       (($instance (mkSInstSet $instSet) $state) (hillClimbing (mkSInstSet Nil) (itable) (mkInst (Cons 1 (Cons 0 Nil))) (mkParams applyMutualInformationBasedScore mi)))
+       (($instance (mkSInstSet $instSet) $state) (hillClimbing (mkSInstSet ()) (itable) (mkInst (cons 1 (cons 0 ()))) (mkParams applyMutualInformationBasedScore mi)))
        ($instanceCount (List.length $instSet))
        ($scoredElems (List.map isScored $instSet))
      )
@@ -238,16 +238,16 @@
          (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap)))
          (mkDscMp 
            (ConsMMap ((mkDiscSpec 2) 
-                      (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
+                      (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))
              (ConsMMap ((mkDiscSpec 2) 
-                        (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
+                        (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))
                NilMMap))))
        (mkTree (mkNode PRIORITIZED-OR) 
-         (Cons (mkTree (mkNode playwin) Nil) 
-               (Cons (mkTree (mkNode playblock) Nil) Nil))))
-     (mkSInstSet Nil)
+         (cons (mkTree (mkNode playwin) ()) 
+               (cons (mkTree (mkNode playblock) ()) ()))))
+     (mkSInstSet ())
      (mkDemeId "1")))
 
-!(assertEqual (hillClimbing (strategyDeme) (mkCscore 3.0 5 1.43 0.0 3) (mkInst (Cons 1 (Cons 1 Nil))) (mkParams applyStrategyBasedScore (3 random-player 3.5))) 
-                    ((mkInst (Cons 1 (Cons 1 Nil))) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) NilMMap)))) (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playwin) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil)))) (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore -3.0 2 0.5714285714285714 0.0 -3.571428571428571))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 Nil))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) Nil))))) (mkDemeId "1")) (true false false (mkInst (Cons 1 (Cons 1 Nil))) 3 1 (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856) -3.2857142857142856 4 2 3))
+!(assertEqual (hillClimbing (strategyDeme) (mkCscore 3.0 5 1.43 0.0 3) (mkInst (cons 1 (cons 1 ()))) (mkParams applyStrategyBasedScore (3 random-player 3.5))) 
+                    ((mkInst (cons 1 (cons 1 ()))) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) NilMMap)))) (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playblock) ()) ())))) (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 ()))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore -3.0 2 0.5714285714285714 0.0 -3.571428571428571))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 ()))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (cons (mkSInst (mkPair (mkInst (cons 1 (cons 0 ()))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) ()))))) (mkDemeId "1")) (true false false (mkInst (cons 1 (cons 1 ()))) 3 1 (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856) -3.2857142857142856 4 2 3))
 )

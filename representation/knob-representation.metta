@@ -19,7 +19,7 @@
 ;; (: mkDiscKnob (-> Knob Multiplicity DiscreteKnob))  
 ;; (: mkDiscKnob (-> Knob Multiplicity DiscSpec DiscSpec (List DiscSpec) DiscreteKnob))
 ;; (= (mkDiscKnob $knob $multiplicity)
-;;    (mkDiscKnob $knob $multiplicity (mkDiscSpec 0) (mkDiscSpec 0) Nil)
+;;    (mkDiscKnob $knob $multiplicity (mkDiscSpec 0) (mkDiscSpec 0) ())
 ;; )
 
 ;; Logical subtree knob representation

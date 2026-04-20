@@ -30,25 +30,25 @@
                   (rouletteSelect $metaPop $normalizedProbs $sum) )))))
 
 ;; get penalized scores of all the exemplars as a list of Numbers
-;;      (ConsOS $x $xs) -- pattern for the list of exemplars constructed by Cons
+;;      (ConsOS $x $xs) -- pattern for the list of exemplars constructed by cons
 ;;      made use of deconstruction by pattern matching
 
 ; (: getPnScore (-> (OS (Exemplar $a)) (List Number)))
-(= (getPnScore NilOS) Nil)
+(= (getPnScore NilOS) ())
 (= (getPnScore (ConsOS $x $xs))
    (let (mkExemplar $tree1 $demeId1 (mkCscore $scrr $cpxy $cpxyPen $uniPen $penScr) $bscr1) $x
-        (Cons $penScr (getPnScore $xs))))
+        (cons $penScr (getPnScore $xs))))
 
 ;;  a function to normalize the score values into normalized scores of Boltzman distribution
 ;; the function is specific to this distribution type
 ; (: normalizeProbs (-> Number Number (List Number) (List Number)))
-(= (normalizeProbs $invTemp $best Nil) Nil)
-(= (normalizeProbs $invTemp $best (Cons $x $xs))
+(= (normalizeProbs $invTemp $best ()) ())
+(= (normalizeProbs $invTemp $best (cons $x $xs))
     (let*
         (($new (if (isinf-math $x) 0 (exp (* (- $x $best) $invTemp))))
         ($c (normalizeProbs $invTemp $best $xs)))
 
-        (Cons $new $c)))
+        (cons $new $c)))
 
 ;; the main roulette select function
 ;;      $metaPop -- (OS (Exemplar $a)) -- list of exemplars
@@ -73,8 +73,8 @@
 ;;      $sIdx -- start index -- 0
 ;;      $ajstdsum -- sum of probabilities which has been multiplied with a random with random value in (0 .. 1) range
 ; (: roulette (-> (List Number) Number Number Number))
-(= (roulette Nil $sIdx $ajstdsum) (- $sIdx 1))
-(= (roulette (Cons $p $xs) $sIdx $ajstdsum)
+(= (roulette () $sIdx $ajstdsum) (- $sIdx 1))
+(= (roulette (cons $p $xs) $sIdx $ajstdsum)
     ;; (trace! (AdjustdSum: (- $ajstdsum $p))
             (if (<= (- $ajstdsum $p) 0)
             $sIdx

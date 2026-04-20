@@ -390,8 +390,8 @@
 
 ;; Test for exprToList
 !(println! ("testing exprToList "))
-!(assertEqual (exprToList (AND A B)) (Cons AND (Cons A (Cons B Nil))))
-!(assertEqual (exprToList (1 2 3 4)) (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
+!(assertEqual (exprToList (AND A B)) (cons AND (cons A (cons B ()))))
+!(assertEqual (exprToList (1 2 3 4)) (cons 1 (cons 2 (cons 3 (cons 4 ())))))
 
 ;; Test for expression pair (tuple)
 
@@ -509,28 +509,28 @@
 
 !(println! ("coll.length — List, Map, MMap, OS, OMS, wrappers "))
 !(println! ("testing coll.length"))
-!(assertEqual (coll.length (Cons 1 (Cons 2 (Cons 3 Nil)))) 3)
-!(assertEqual (coll.length Nil) 0)
+!(assertEqual (coll.length (cons 1 (cons 2 (cons 3 ())))) 3)
+!(assertEqual (coll.length ()) 0)
 
 ;; --------------------------------
 ;; coll.contains — List, Map, MMap, OS, OMS, wrappers
 ;; --------------------------------
 !(println! ("testing coll.contains"))
-!(assertEqual (coll.contains (Cons 1 (Cons 2 (Cons 3 Nil))) 2) True)
-!(assertEqual (coll.contains (Cons 1 (Cons 2 (Cons 3 Nil))) 4) False)
+!(assertEqual (coll.contains (cons 1 (cons 2 (cons 3 ()))) 2) True)
+!(assertEqual (coll.contains (cons 1 (cons 2 (cons 3 ()))) 4) False)
 
 ;; ;; --------------------------------
 ;; ;; coll.append/coll.insert — List, Map, MMap, OMS, wrappers; OS => error
 ;; ;; --------------------------------
 !(println! ("testing coll.append and coll.remove"))
-!(assertEqual (coll.append (Cons 1 (Cons 2 Nil)) 3) (Cons 1 (Cons 2 (Cons 3 Nil))))
-!(assertEqual (coll.remove (Cons 1 (Cons 2 (Cons 1 Nil))) 1) (Cons 2 (Cons 1 Nil)))
+!(assertEqual (coll.append (cons 1 (cons 2 ())) 3) (cons 1 (cons 2 (cons 3 ()))))
+!(assertEqual (coll.remove (cons 1 (cons 2 (cons 1 ()))) 1) (cons 2 (cons 1 ())))
 
 ;; ;; --------------------------------
 ;; ;; coll.getByIdx — List, Map, MMap, OS, OMS, wrappers
 ;; ;; --------------------------------
 !(println! ("testing coll.getByIdx"))
-!(assertEqual (coll.getByIdx (Cons 10 (Cons 20 (Cons 30 Nil))) 1) 20)
+!(assertEqual (coll.getByIdx (cons 10 (cons 20 (cons 30 ()))) 1) 20)
 
 ;; --------------------------------
 ;; Map — keys/values/items/find/getByKey/length/contains
@@ -540,9 +540,9 @@
 !(assertEqual (coll.length (ConsMap (1 a) (ConsMap (2 b) NilMap))) 2)
 
 !(assertEqual (coll.contains (ConsMap (1 a) (ConsMap (2 b) NilMap)) 2) True)
-!(assertEqual (coll.keys (ConsMap (1 a) (ConsMap (2 b) NilMap))) (Cons 1 (Cons 2 Nil)))
-!(assertEqual (coll.values (ConsMap (1 a) (ConsMap (2 b) NilMap))) (Cons a (Cons b Nil)))
-!(assertEqual (coll.items (ConsMap (1 a) (ConsMap (2 b) NilMap))) (Cons (1 a) (Cons (2 b) Nil)))
+!(assertEqual (coll.keys (ConsMap (1 a) (ConsMap (2 b) NilMap))) (cons 1 (cons 2 ())))
+!(assertEqual (coll.values (ConsMap (1 a) (ConsMap (2 b) NilMap))) (cons a (cons b ())))
+!(assertEqual (coll.items (ConsMap (1 a) (ConsMap (2 b) NilMap))) (cons (1 a) (cons (2 b) ())))
 !(assertEqual (coll.getByKey (ConsMap (1 a) (ConsMap (2 b) NilMap)) 2) b)
 !(assertEqual (coll.find (ConsMap (1 a) (ConsMap (2 b) NilMap)) 2) 1)
 !(assertEqual (coll.append (ConsMap (1 a) NilMap) (2 b)) (ConsMap (1 a) (ConsMap (2 b) NilMap)))
@@ -556,7 +556,7 @@
 !(assertEqual (coll.length (ConsMMap (1 a) (ConsMMap (2 b) NilMMap))) 2)
 !(assertEqual (coll.contains (ConsMMap (1 a) (ConsMMap (2 b) NilMMap)) 2) True)
 !(assertEqual (coll.findOne (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (2 c) NilMMap))) 2) b)
-!(assertEqual (coll.findAll (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (2 c) NilMMap))) 2) (Cons b (Cons c Nil)))
+!(assertEqual (coll.findAll (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (2 c) NilMMap))) 2) (cons b (cons c ())))
 !(assertEqual (coll.append (ConsMMap (1 a) NilMMap) (2 b)) (ConsMMap (1 a) (ConsMMap (2 b) NilMMap)))
 !(assertEqual (coll.remove (ConsMMap (1 a) (ConsMMap (2 b) NilMMap)) 2) (ConsMMap (1 a) NilMMap))
 
@@ -628,8 +628,8 @@
 ;; ScoredInstance comparisons via apply should project to inner Cscore (inline)
 !(assertEqual
   (apply >
-    (mkSInst (mkPair (mkInst (Cons 1 (Cons 2 Nil))) (mkCscore -2.0 3.0 1.0 0.5 -3.5)))
-    (mkSInst (mkPair (mkInst (Cons 3 Nil))               (mkCscore -3.0 2.0 1.0 0.5 -4.5))))
+    (mkSInst (mkPair (mkInst (cons 1 (cons 2 ()))) (mkCscore -2.0 3.0 1.0 0.5 -3.5)))
+    (mkSInst (mkPair (mkInst (cons 3 ()))               (mkCscore -3.0 2.0 1.0 0.5 -4.5))))
   True)
 
 

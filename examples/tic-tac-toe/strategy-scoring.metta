@@ -15,10 +15,10 @@
 ;; Plays $n games and tracks the performance of a strategy over $n trials
 (= (evaluate-strategy $n $player-mark $player-policy $opponent-policy)
     (if (<= $n 0)
-        Nil
+        ()
         (let* (($result (eval (play-game $player-policy $opponent-policy)))
                ($current-score (score-result $result $player-mark)))
-            (Cons $current-score (evaluate-strategy (- $n 1) $player-mark $player-policy $opponent-policy)))))
+            (cons $current-score (evaluate-strategy (- $n 1) $player-mark $player-policy $opponent-policy)))))
 
 ;; Sets the first player as X and returns the BScore
 (= (score-strategy $n $player-policy $opponent-policy)
