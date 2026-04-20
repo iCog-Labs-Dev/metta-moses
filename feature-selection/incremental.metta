@@ -21,7 +21,7 @@
 ;;   $itable (ITable) → Input table
 ;;   $featureIndices (OS Number) → OrderedSet of feature indices
 ;; Returns: (Number) → Mutual information score
-;; Example: (calculateMutualInformation xorTable (ConsOS 0 (ConsOS 1 NilOS))) → 1.0
+;; Example: (calculateMutualInformation xorTable (cons 0 (cons 1 ()))) → 1.0
 
 ; (: calculateMutualInformation (-> (ITable $a) Expression Number))
 ;** Implement caching for the mutual Information
@@ -33,12 +33,12 @@
 ;;   $resultSet (OS Number) → Accumulator for relevant indices
 ;; Returns: (OS Number) → OrderedSet of relevant feature indices
 ; (: filterRelevantCombinations (-> (ITable $a) (OS Expression) Number (OS Number) (OS Number)))
-(= (filterRelevantCombinations $itable NilOS $threshold $resultSet)
+(= (filterRelevantCombinations $itable () $threshold $resultSet)
    $resultSet)
-(= (filterRelevantCombinations $itable (ConsOS $combo $rest) $threshold $resultSet)
+(= (filterRelevantCombinations $itable (cons $combo $rest) $threshold $resultSet)
    (chain (cachedMutualInformation $itable $combo) $mutualInfo
      ;; Convert the simple list to OrderedSet for union
-     (chain (expressionToOS $combo NilOS) $comboOS
+     (chain (expressionToOS $combo ()) $comboOS
        (if (> $mutualInfo $threshold)
            (chain (OS.union $resultSet $comboOS) $newResultSet
              (filterRelevantCombinations $itable $rest $threshold $newResultSet))
@@ -49,7 +49,7 @@
 )
     ; (let*
     ;     (
-    ;         ($comboOs (expressionToOS $combo NilOS))
+    ;         ($comboOs (expressionToOS $combo ()))
     ;         (() (println! (Combo $comboOs)))
     ;         ($mutualInfo (cachedMutualInformation $itable $comboOs))
     ;         (() (println! (MutualInfo $mutualInfo)))
@@ -69,9 +69,9 @@
 ;;   $currentScore (Number) → Current best score
 ;; Returns: (List Expression) → (best-subset best-score)
 ;(: findBestSubset (-> (ITable $a) (OS Expression) Expression Number (List Expression)))
-(= (findBestSubset $itable NilOS $currentBest $currentScore)
+(= (findBestSubset $itable () $currentBest $currentScore)
    (cons $currentBest (cons $currentScore ())))
-(= (findBestSubset $itable (ConsOS $subset $rest) $currentBest $currentScore)
+(= (findBestSubset $itable (cons $subset $rest) $currentBest $currentScore)
      (chain (cachedMutualInformation $itable $subset) $score  
        (if (> $score $currentScore)
            (findBestSubset $itable $rest $subset $score)
@@ -89,12 +89,12 @@
 ;(: findRedundantSubsets (-> (ITable $a) (OS Number) Number Number (OS Number)))
 (= (findRedundantSubsets $itable $indices $threshold $subsetSize)
     (if (<= (OS.length $indices) 1)
-        NilOS
+        ()
         (if (>= $subsetSize (OS.length $indices))
-            NilOS
+            ()
             (chain (osToExpression $indices ()) $indicesExpr
                 (chain (powerSet $indicesExpr $subsetSize True) $combinations
-                    (chain (expressionToOS $combinations NilOS) $subsetCombinations
+                    (chain (expressionToOS $combinations ()) $subsetCombinations
                             (if (== (OS.length $subsetCombinations) 0)
                                 (findRedundantSubsets $itable $indices $threshold (+ $subsetSize 1))
                                 (chain (findBestSubset $itable $subsetCombinations () -1) $bestResult
@@ -102,8 +102,8 @@
                                         (chain (List.getByIdx $bestResult 1) $bestScore
                                             (chain (cachedMutualInformation $itable $indicesExpr) $fullScore
                                                 (if (< (- $fullScore $bestScore) $threshold)
-                                                    (chain (expressionToOS $bestSubsetExpr NilOS) $bestSubset
-                                                        (chain (OS.difference $indices $bestSubset NilOS) $redundant
+                                                    (chain (expressionToOS $bestSubsetExpr ()) $bestSubset
+                                                        (chain (OS.difference $indices $bestSubset ()) $redundant
                                                             $redundant
                                                         )
                                                     )
@@ -137,14 +137,14 @@
             $selectedIndices
             (chain (osToExpression $remainingIndices ()) $remainingExpr
                 (chain (powerSet $remainingExpr $currentTermSize True) $generatedCombo
-                    (chain (expressionToOS $generatedCombo NilOS) $combinations
-                        (chain (filterRelevantCombinations $itable $combinations $threshold NilOS) $relevantIndices
+                    (chain (expressionToOS $generatedCombo ()) $combinations
+                        (chain (filterRelevantCombinations $itable $combinations $threshold ()) $relevantIndices
                             (chain (if (> $redundancyThreshold 0)
                                 (findRedundantSubsets $itable $relevantIndices (* $redundancyThreshold $threshold) 1)
-                                NilOS) $redundantIndices 
-                                (chain (OS.difference $relevantIndices $redundantIndices NilOS) $nonRedundantIndices
+                                ()) $redundantIndices 
+                                (chain (OS.difference $relevantIndices $redundantIndices ()) $nonRedundantIndices
                                     (chain (OS.union $selectedIndices $nonRedundantIndices) $newSelectedIndices
-                                        (chain (OS.difference $remainingIndices $relevantIndices NilOS) $updatedRemainingIndices
+                                        (chain (OS.difference $remainingIndices $relevantIndices ()) $updatedRemainingIndices
                                             ;; recurse to the next term size
                                             (incrementalIterator $itable $updatedRemainingIndices $threshold $maxTerms $redundancyThreshold (+ $currentTermSize 1) $newSelectedIndices)
                                         )
@@ -170,11 +170,11 @@
 ;(: adaptiveSelection (-> (ITable $a) Number Number Number Number Number Number (OS Number)))
 (= (adaptiveSelection (mkITable $rows $labels) $targetSize $maxTerms $redundancyThreshold $minThreshold $maxThreshold $epsilon)
     (if (<= $targetSize 0)
-        NilOS
+        ()
         (chain (/ (+ $minThreshold $maxThreshold) 2) $meanThreshold
             (chain (- (List.length $labels) 1) $numFeatures
-                (chain (OS.range 0 $numFeatures NilOS) $allIndices
-                    (chain (incrementalIterator (mkITable $rows $labels) $allIndices $meanThreshold $maxTerms $redundancyThreshold 1 NilOS) $resultIndices
+                (chain (OS.range 0 $numFeatures ()) $allIndices
+                    (chain (incrementalIterator (mkITable $rows $labels) $allIndices $meanThreshold $maxTerms $redundancyThreshold 1 ()) $resultIndices
                         (chain (OS.length $resultIndices) $resultSize
                             (if (or (isWithin $minThreshold $maxThreshold $epsilon) (== $resultSize $targetSize))
                                 $resultIndices
@@ -219,8 +219,8 @@
                 (adaptiveSelection (mkITable $rows $labels) $targetSize $maxInteractionTerms $redundancyThreshold 0.0 1.0 0.01)
                 ; just do incrementalInteration
                 (chain (- (List.length $labels) 1) $numFeatures
-                    (chain (OS.range 0 $numFeatures NilOS) $allIndices
-                        (incrementalIterator (mkITable $rows $labels) $allIndices $threshold $maxInteractionTerms $redundancyThreshold 1 NilOS)
+                    (chain (OS.range 0 $numFeatures ()) $allIndices
+                        (incrementalIterator (mkITable $rows $labels) $allIndices $threshold $maxInteractionTerms $redundancyThreshold 1 ())
                     )
                 )
                 ) $selectedIndices

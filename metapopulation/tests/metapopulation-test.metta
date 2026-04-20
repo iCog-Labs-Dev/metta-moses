@@ -9,235 +9,235 @@
 !(import! &self ../../../metta-moses/deme/deme-id-creation)
 
 ;; Test cases for getBetterCandidates
-!(assertEqual (getBetterCandidates (ConsOS 
+!(assertEqual (getBetterCandidates (cons 
       (mkExemplar 
         (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) 
         (mkDemeId "1") 
         (mkCscore -0.1 2 0.1 0.1 -0.3) 
         (mkBScore (cons 0.5 ()))) 
-      NilOS) -0.2) NilOS)
+      ()) -0.2) ())
 
 !(assertEqual 
       (getBetterCandidates 
-            (ConsOS 
+            (cons 
               (mkExemplar 
                 (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) 
                 (mkDemeId "1") 
                 (mkCscore -0.1 2 0.1 0.1 -0.3) 
                 (mkBScore (cons 0.5 ()))) 
-              NilOS) 
+              ()) 
         -0.4) 
-              (ConsOS 
+              (cons 
                 (mkExemplar 
                   (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) 
                   (mkDemeId "1") 
                   (mkCscore -0.1 2 0.1 0.1 -0.3) 
                   (mkBScore (cons 0.5 ()))) 
-                NilOS))
+                ()))
 
-(= (pop1) (ConsOS 
+(= (pop1) (cons 
                 (mkExemplar 
                   (mkTree (mkNode XOR) (cons (mkTree (mkNode X) ()) (cons (mkTree (mkNode Y) ()) ()))) 
                   (mkDemeId "1") 
                   (mkCscore -0.1 2 0.1 0.1 -0.3) 
                   (mkBScore (cons 0.5 ()))) 
-                    (ConsOS 
+                    (cons 
                       (mkExemplar 
                         (mkTree (mkNode AND) (cons (mkTree (mkNode M) ()) (cons (mkTree (mkNode N) ()) ()))) 
                         (mkDemeId "3") 
                         (mkCscore -0.2 1 0.1 0.1 -0.4) 
                         (mkBScore (cons 0.3 ()))) 
-                      (ConsOS 
+                      (cons 
                         (mkExemplar 
                           (mkTree (mkNode NOT) (cons (mkTree (mkNode Z) ()) ())) 
                           (mkDemeId "2") 
                           (mkCscore -0.5 3 0.1 0.1 -0.9) 
                           (mkBScore (cons 0.4 ()))) 
-                        NilOS))))
+                        ()))))
 
 !(assertEqual (getBetterCandidates (pop1) -0.5) 
-                  (ConsOS 
+                  (cons 
                     (mkExemplar 
                       (mkTree (mkNode XOR) (cons (mkTree (mkNode X) ()) (cons (mkTree (mkNode Y) ()) ()))) 
                       (mkDemeId "1") 
                       (mkCscore -0.1 2 0.1 0.1 -0.3) 
                       (mkBScore (cons 0.5 ()))) 
-                    (ConsOS 
+                    (cons 
                       (mkExemplar 
                         (mkTree (mkNode AND) (cons (mkTree (mkNode M) ()) (cons (mkTree (mkNode N) ()) ()))) 
                         (mkDemeId "3") 
                         (mkCscore -0.2 1 0.1 0.1 -0.4) 
                         (mkBScore (cons 0.3 ()))) 
-                      NilOS)))
-(= (pop2) (ConsOS (mkExemplar 
+                      ())))
+(= (pop2) (cons (mkExemplar 
                         (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) 
                         (mkDemeId "1") 
                         (mkCscore -0.1 2 0.1 0.1 -0.3) 
                         (mkBScore (cons 0.9 ()))) 
-                        (ConsOS  (mkExemplar 
+                        (cons  (mkExemplar 
                             (mkTree (mkNode NOT) (cons (mkTree (mkNode C) ()) ())) 
                             (mkDemeId "2") 
                             (mkCscore -0.2 3 0.1 0.1 -0.4) 
                             (mkBScore (cons 0.8 ()))) 
-                          (ConsOS (mkExemplar 
+                          (cons (mkExemplar 
                               (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) (cons (mkTree (mkNode E) ()) ()))) 
                               (mkDemeId "3") 
                               (mkCscore -0.3 1 0.1 0.1 -0.5) 
                               (mkBScore (cons 0.7 ()))) 
-                            (ConsOS (mkExemplar 
+                            (cons (mkExemplar 
                                 (mkTree (mkNode XOR) (cons (mkTree (mkNode F) ()) (cons (mkTree (mkNode G) ()) ()))) 
                                 (mkDemeId "4") 
                                 (mkCscore -0.5 4 0.1 0.1 -0.7) 
                                 (mkBScore (cons 0.6 ()))) 
-                              (ConsOS (mkExemplar 
+                              (cons (mkExemplar 
                                   (mkTree (mkNode IMPLIES) (cons (mkTree (mkNode H) ()) (cons (mkTree (mkNode I) ()) ()))) 
                                   (mkDemeId "5") 
                                   (mkCscore -0.6 2 0.1 0.1 -0.8) 
                                   (mkBScore (cons 0.5 ()))) 
-                                (ConsOS (mkExemplar 
+                                (cons (mkExemplar 
                                     (mkTree (mkNode NAND) (cons (mkTree (mkNode J) ()) (cons (mkTree (mkNode K) ()) ()))) 
                                     (mkDemeId "6") 
                                     (mkCscore -0.9 3 0.1 0.1 -1.1) 
                                     (mkBScore (cons 0.4 ()))) 
-                                  NilOS)))))))
+                                  ())))))))
 !(assertEqual 
   (getBetterCandidates (pop2) -0.75) 
-              (ConsOS 
+              (cons 
                 (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) 
                   (mkDemeId "1") 
                   (mkCscore -0.1 2 0.1 0.1 -0.3) 
                   (mkBScore (cons 0.9 ()))) 
-                (ConsOS (mkExemplar 
+                (cons (mkExemplar 
                     (mkTree (mkNode NOT) (cons (mkTree (mkNode C) ()) ())) 
                     (mkDemeId "2") 
                     (mkCscore -0.2 3 0.1 0.1 -0.4) 
                     (mkBScore (cons 0.8 ()))) 
-                  (ConsOS (mkExemplar 
+                  (cons (mkExemplar 
                       (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) (cons (mkTree (mkNode E) ()) ()))) 
                       (mkDemeId "3") 
                       (mkCscore -0.3 1 0.1 0.1 -0.5) 
                       (mkBScore (cons 0.7 ()))) 
-                    (ConsOS (mkExemplar 
+                    (cons (mkExemplar 
                         (mkTree (mkNode XOR) (cons (mkTree (mkNode F) ()) (cons (mkTree (mkNode G) ()) ()))) 
                         (mkDemeId "4") 
                         (mkCscore -0.5 4 0.1 0.1 -0.7) 
                         (mkBScore (cons 0.6 ()))) 
-                      NilOS)))))
+                      ())))))
 
 ;; Test cases for cullAtRandom
-(= (pop3) (ConsOS 
+(= (pop3) (cons 
                   (mkExemplar 
                     (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) 
                     (mkDemeId "1") 
                     (mkCscore -0.1 2 0.1 0.1 -0.3) 
                     (mkBScore (cons 0.5 ()))) 
-                  (ConsOS 
+                  (cons 
                     (mkExemplar 
                       (mkTree (mkNode NOT) (cons (mkTree (mkNode C) ()) ())) 
                       (mkDemeId "2") 
                       (mkCscore -0.2 1 0.1 0.1 -0.4) 
                       (mkBScore (cons 0.4 ()))) 
-                    (ConsOS 
+                    (cons 
                       (mkExemplar 
                         (mkTree (mkNode XOR) (cons (mkTree (mkNode D) ()) (cons (mkTree (mkNode E) ()) ()))) 
                         (mkDemeId "3") 
                         (mkCscore -0.3 3 0.1 0.1 -0.5) 
                         (mkBScore (cons 0.3 ()))) 
-                      NilOS))))
+                      ()))))
 !(assertEqual (let $a (cullAtRandom (pop3) 1 2) (OS.length $a)) 1)
 
-(= (pop4) (ConsOS 
+(= (pop4) (cons 
         (mkExemplar 
           (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) 
           (mkDemeId "1") 
           (mkCscore -0.1 2 0.1 0.1 -0.3) 
           (mkBScore (cons 0.5 ()))) 
-        (ConsOS 
+        (cons 
           (mkExemplar 
             (mkTree (mkNode NOT) (cons (mkTree (mkNode C) ()) ())) 
             (mkDemeId "2") 
             (mkCscore -0.2 1 0.1 0.1 -0.4) 
             (mkBScore (cons 0.4 ()))) 
-          (ConsOS 
+          (cons 
             (mkExemplar 
               (mkTree (mkNode OR) (cons (mkTree (mkNode D) ()) (cons (mkTree (mkNode E) ()) ()))) 
               (mkDemeId "3") 
               (mkCscore -0.3 3 0.1 0.1 -0.5) 
               (mkBScore (cons 0.3 ()))) 
-            (ConsOS 
+            (cons 
               (mkExemplar 
                 (mkTree (mkNode NAND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) 
                 (mkDemeId "4") 
                 (mkCscore -0.4 2 0.1 0.1 -0.6) 
                 (mkBScore (cons 0.2 ()))) 
-              (ConsOS 
+              (cons 
                 (mkExemplar 
                   (mkTree (mkNode XOR) (cons (mkTree (mkNode C) ()) (cons (mkTree (mkNode D) ()) ()))) 
                   (mkDemeId "5") 
                   (mkCscore -0.5 1 0.1 0.1 -0.7) 
                   (mkBScore (cons 0.1 ()))) 
-                NilOS)))))) 
+                ())))))) 
 
 !(assertEqual (let $result (cullAtRandom (pop4) 2 2) (OS.length $result)) 3)  
 
 ;; Test cases for resizeMetapop
 (= (pop5)
-  (ConsOS 
+  (cons 
     (mkExemplar 
       (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) 
       (mkDemeId "1") 
       (mkCscore -0.1 2 0.1 0.1 -0.3) 
       (mkBScore (cons 0.5 ())))
 
-    (ConsOS 
+    (cons 
       (mkExemplar 
         (mkTree (mkNode OR) (cons (mkTree (mkNode D) ()) (cons (mkTree (mkNode E) ()) ()))) 
         (mkDemeId "2") 
         (mkCscore -0.2 3 0.1 0.1 -0.4) 
         (mkBScore (cons 0.9 ())))
 
-      (ConsOS 
+      (cons 
         (mkExemplar 
           (mkTree (mkNode NOT) (cons (mkTree (mkNode C) ()) ())) 
           (mkDemeId "3") 
           (mkCscore -0.3 1 0.1 0.1 -0.5) 
           (mkBScore (cons 0.4 ())))
 
-        (ConsOS 
+        (cons 
           (mkExemplar 
             (mkTree (mkNode AND) (cons (mkTree (mkNode F) ()) (cons (mkTree (mkNode G) ()) ()))) 
             (mkDemeId "4") 
             (mkCscore -0.4 2 0.1 0.1 -0.6) 
             (mkBScore (cons 0.2 ())))
 
-          (ConsOS 
+          (cons 
             (mkExemplar 
               (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) 
               (mkDemeId "5") 
               (mkCscore -0.5 1 0.1 0.1 -0.7) 
               (mkBScore (cons 0.1 ())))
 
-            (ConsOS 
+            (cons 
               (mkExemplar 
                 (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode C) ()) ()))) 
                 (mkDemeId "6") 
                 (mkCscore -0.6 3 0.1 0.1 -0.8) 
                 (mkBScore (cons 0.8 ())))
 
-              (ConsOS 
+              (cons 
                 (mkExemplar 
                   (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) (cons (mkTree (mkNode E) ()) ()))) 
                   (mkDemeId "7") 
                   (mkCscore -0.7 2 0.1 0.1 -0.9) 
                   (mkBScore (cons 0.7 ())))
 
-                (ConsOS 
+                (cons 
                   (mkExemplar 
                     (mkTree (mkNode NOT) (cons (mkTree (mkNode F) ()) ())) 
                     (mkDemeId "8") 
                     (mkCscore -0.8 1 0.1 0.1 -1.0) 
                     (mkBScore (cons 0.6 ())))
-                  NilOS)))))))))
+                  ())))))))))
 
 !(assertEqual (let $a (resizeMetapop (pop5) 3 5 3 0.004 1000) (OS.length $a)) 6)
 !(assertEqual (let $a (resizeMetapop (pop5) 3 5 2 0.003 1000) (OS.length $a)) 4)

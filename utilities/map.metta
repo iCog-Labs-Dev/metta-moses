@@ -1,99 +1,83 @@
-;; Map Data Structure
+;; Map Data Structure backed by a sorted cons-list of key/value pairs.
 (: Map (-> ($k $v) Type))
-(: NilMap (Map ($k $v)))
-(: ConsMap (-> ($k $v) (Map ($k $v)) (Map ($k $v))))
 
 ;; An insertion function that also allows map to act as a counter
-; (: Map.insertCounter (-> $k (Map ($k $v)) (Map ($k $v))))
-(= (Map.insertCounter $key NilMap) (ConsMap ($key 1) NilMap))
-(= (Map.insertCounter $key (ConsMap ($curKey $curVal) $tail))
+(= (Map.insertCounter $key ()) (cons-atom ($key 1) ()))
+(= (Map.insertCounter $key (cons ($curKey $curVal) $tail))
     (if (== $key $curKey)
-        (ConsMap ($curKey (+ $curVal 1)) $tail)
+        (cons-atom ($curKey (+ $curVal 1)) $tail)
         (if (< $key $curKey)
-            (ConsMap ($key 1) (ConsMap ($curKey $curVal) $tail))
-            (ConsMap ($curKey $curVal) (Map.insertCounter $key $tail)))))
+            (cons-atom ($key 1) (cons-atom ($curKey $curVal) $tail))
+            (cons-atom ($curKey $curVal) (Map.insertCounter $key $tail)))))
 
-;; insert an element to a Map using custom comparison functions (equality $ lessthan)
-; (: Map.insert (-> ($k $v) (Map ($k $v)) (-> $k $k Bool) (-> $k $k Bool) (Map ($k $v))))
-(= (Map.insert ($key $value) NilMap $fEq $fLt) (ConsMap ($key $value) NilMap))
-(= (Map.insert ($key $value) (ConsMap ($curKey $curVal) $tail) $fEq $fLt)
-    (if ($fEq $key $curKey)  (ConsMap ($key $value) $tail)
+;; insert an element to a Map using custom comparison functions (equality + less-than)
+(= (Map.insert ($key $value) () $fEq $fLt) (cons-atom ($key $value) ()))
+(= (Map.insert ($key $value) (cons ($curKey $curVal) $tail) $fEq $fLt)
+    (if ($fEq $key $curKey)
+        (cons-atom ($key $value) $tail)
         (if ($fLt $key $curKey)
-            (ConsMap ($key $value) (ConsMap ($curKey $curVal) $tail))
-            (ConsMap ($curKey $curVal) (Map.insert ($key $value) $tail $fEq $fLt)))))
+            (cons-atom ($key $value) (cons-atom ($curKey $curVal) $tail))
+            (cons-atom ($curKey $curVal) (Map.insert ($key $value) $tail $fEq $fLt)))))
 
 ;; insert an element to a Map
-; (: Map.insert (-> ($k $v) (Map ($k $v)) (Map ($k $v))))
-(= (Map.insert ($key $value) NilMap) (ConsMap ($key $value) NilMap))
-(= (Map.insert ($key $value) (ConsMap ($curKey $curVal) $tail))
-    (if (== $key $curKey)  (ConsMap ($key $value) $tail)
+(= (Map.insert ($key $value) ()) (cons-atom ($key $value) ()))
+(= (Map.insert ($key $value) (cons ($curKey $curVal) $tail))
+    (if (== $key $curKey)
+        (cons-atom ($key $value) $tail)
         (if (< $key $curKey)
-            (ConsMap ($key $value) (ConsMap ($curKey $curVal) $tail))
-            (ConsMap ($curKey $curVal) (Map.insert ($key $value) $tail)))))
+            (cons-atom ($key $value) (cons-atom ($curKey $curVal) $tail))
+            (cons-atom ($curKey $curVal) (Map.insert ($key $value) $tail)))))
 
 ;; Get a value from a Map using key
-; (: Map.getByKey (-> $k (Map ($k $v)) $v))
-(= (Map.getByKey $key NilMap) (Error $key "not found"))
-(= (Map.getByKey $key (ConsMap ($curKey $curVal) $tail))
-    (if (== $key $curKey) $curVal (Map.getByKey $key $tail) ))
+(= (Map.getByKey $key ()) (Error $key "not found"))
+(= (Map.getByKey $key (cons ($curKey $curVal) $tail))
+    (if (== $key $curKey) $curVal (Map.getByKey $key $tail)))
 
 ;; Get a pair from a Map using index
-; (: Map.getByIdx (-> (Map ($k $v)) Number ($k $v)))
-(= (Map.getByIdx NilMap $i) (Error NilMap "Index out of bounds"))
-(= (Map.getByIdx (ConsMap $x $xs) $i)
-   (if (== $i 0)
-       $x
-       (Map.getByIdx $xs (- $i 1))))
+(= (Map.getByIdx () $i) (Error () "Index out of bounds"))
+(= (Map.getByIdx $map $i)
+   (if (or (< $i 0) (>= $i (size-atom $map)))
+       (Error () "Index out of bounds")
+       (index-atom $map $i)))
 
 ;; Check if a key is in the Map
-; (: Map.contains (-> $k (Map ($k $v)) Bool))
-(= (Map.contains $key NilMap) False)
-(= (Map.contains $key (ConsMap ($curKey $curVal) $tail))
+(= (Map.contains $key ()) False)
+(= (Map.contains $key (cons ($curKey $curVal) $tail))
     (if (== $key $curKey) True (Map.contains $key $tail)))
 
-;; Check if a value in a Map 
-; (: Map.checkValue (-> $v (Map ($k $v)) Bool))
-(= (Map.checkValue $value NilMap) False)
-(= (Map.checkValue $value (ConsMap ($curKey $curVal) $tail))
-        (if (== $value $curVal) True (Map.checkValue $value $tail)))
+;; Check if a value is in a Map
+(= (Map.checkValue $value ()) False)
+(= (Map.checkValue $value (cons ($curKey $curVal) $tail))
+   (if (== $value $curVal) True (Map.checkValue $value $tail)))
 
 ;; Remove a key-value pair from map
-; (: Map.remove (-> $k (Map ($k $v)) (Map ($k $v))))
-(= (Map.remove $key NilMap) (Error $key "not found"))
-(= (Map.remove $key (ConsMap ($curKey $curVal) $tail)) 
-    (if (== $key $curKey) $tail 
-    (chain (Map.remove $key $tail) $res (if-error $res $res (ConsMap ($curKey $curVal) $res)))))
+(= (Map.remove $key ()) (Error $key "not found"))
+(= (Map.remove $key (cons ($curKey $curVal) $tail))
+    (if (== $key $curKey)
+        $tail
+        (chain (Map.remove $key $tail) $res
+          (if-error $res $res (cons-atom ($curKey $curVal) $res)))))
 
-;; Get the all the values from the map
-; (: Map.values (-> (Map ($k $v)) (List $v)))
-(= (Map.values NilMap) ())
-(= (Map.values (ConsMap ($key $value) $tail))
-    (cons $value (Map.values $tail)))
+;; Get all the values from the map
+(= (Map.values $map)
+   (map-atom $map $pair (let ($key $value) $pair $value)))
 
-;; Get the all the keys from the map
-; (: Map.keys (-> (Map ($k $v)) (List $k)))
-(= (Map.keys NilMap) ())
-(= (Map.keys (ConsMap ($key $value) $tail))
-    (cons $key (Map.keys $tail)))
+;; Get all the keys from the map
+(= (Map.keys $map)
+   (map-atom $map $pair (let ($key $value) $pair $key)))
 
-;; Get the all the key value pairs from the map
-; (: Map.items (-> (Map ($k $v)) (List ($k $v))))
-(= (Map.items NilMap) ())
-(= (Map.items (ConsMap $pair $tail))
-    (cons $pair (Map.items $tail)))
+;; Get all the key value pairs from the map
+(= (Map.items $map) $map)
 
 ;; Get the length of the map
-; (: Map.length (-> (Map ($k $v)) Number))
-(= (Map.length NilMap) 0)
-(= (Map.length (ConsMap ($curKey $curVal) $tail)) (+ 1 (Map.length $tail)))
+(= (Map.length $map) (size-atom $map))
 
 ;; Get the index of a key value pair given a key
-; (: Map.find (-> (Map ($k $v)) $k Number))
-(= (Map.find NilMap $k) -1)
-(= (Map.find (ConsMap ($curKey $curVal) $xs) $k')
+(= (Map.find () $k) -1)
+(= (Map.find (cons ($curKey $curVal) $xs) $k')
    (if (== $curKey $k')
        0
        (chain (Map.find $xs $k') $targetIdx
-                      (if (== $targetIdx -1)
-                          $targetIdx
-                          (+ 1 $targetIdx)))))
+         (if (== $targetIdx -1)
+             $targetIdx
+             (+ 1 $targetIdx)))))

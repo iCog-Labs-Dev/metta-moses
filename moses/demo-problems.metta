@@ -227,8 +227,8 @@
         ($worstPossibleScore (List.sum $worstPossibleBScore))
         ($bestPosssibleCscore (getBestPossibleCscore $cpxPen $problem))
         ($_ (println! (BestPossibleScore: $bestPosssibleCscore)))
-        ($metaPop (ConsOS (mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) NilOS))
-        ;; ($metaPop (ConsOS (mkExemplar (mkTree (mkNode AND) (cons (mkTree (mkNode OR) ()) ())) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) NilOS))
+        ($metaPop (cons (mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) ()))
+        ;; ($metaPop (cons (mkExemplar (mkTree (mkNode AND) (cons (mkTree (mkNode OR) ()) ())) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) ()))
         ($result (runMoses $maxGen $bestPosssibleCscore 10 $metaPop 0 $nDeme
               (False $fsAlgo $truthTableBScore ($problem))
               hillClimbing

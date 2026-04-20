@@ -90,9 +90,9 @@
             ))
 
 (= (knobMapObj) (mkKbMap
-                      (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap))))
+                      (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ()))))
                
-                      (mkDscMp (ConsMMap ((mkDiscSpec 1) (lsk1)) (ConsMMap ((mkDiscSpec 0) (lsk2)) (ConsMMap ((mkDiscSpec 1) (lsk3)) NilMMap))))))
+                      (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))))
 (= (ttable1) (mkITable (cons (cons True (cons False (cons False (cons True (cons True ())))))
                         (cons (cons True (cons True (cons True (cons False (cons True ()))))) ()))
                         (cons A (cons B (cons C (cons D (cons O ())) )))))

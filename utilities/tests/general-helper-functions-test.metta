@@ -412,11 +412,11 @@
 ;; !(println! ("testing expToMMap "))
 ;; !(assertEqual 
 ;; (expToMMap (((mkDiscSpec 1) (mkLsk1)) ((mkDiscSpec 2) (mkLsk2)) ((mkDiscSpec 3) (mkLsk3)))
-;; NilMMap discSpec<=)
-;; (ConsMMap ((mkDiscSpec 1) (mkLsk1)) (ConsMMap ((mkDiscSpec 2) (mkLsk2)) (ConsMMap ((mkDiscSpec 3) (mkLsk3)) NilMMap)))
+;; () discSpec<=)
+;; (cons ((mkDiscSpec 1) (mkLsk1)) (cons ((mkDiscSpec 2) (mkLsk2)) (cons ((mkDiscSpec 3) (mkLsk3)) ())))
 ;; )
 ;;
-;; !(assertEqual (expToMMap () NilMMap discSpec<=) NilMMap)
+;; !(assertEqual (expToMMap () () discSpec<=) ())
 ;;
 ;; ;; Test for swapAndOr
 !(println! ("testing swapAndOr"))
@@ -536,40 +536,40 @@
 ;; Map — keys/values/items/find/getByKey/length/contains
 ;; --------------------------------
 !(println! ("testing  coll.length"))
-!(assertEqual (coll.length NilMap) 0)
-!(assertEqual (coll.length (ConsMap (1 a) (ConsMap (2 b) NilMap))) 2)
+!(assertEqual (coll.length ()) 0)
+!(assertEqual (coll.length (cons (1 a) (cons (2 b) ()))) 2)
 
-!(assertEqual (coll.contains (ConsMap (1 a) (ConsMap (2 b) NilMap)) 2) True)
-!(assertEqual (coll.keys (ConsMap (1 a) (ConsMap (2 b) NilMap))) (cons 1 (cons 2 ())))
-!(assertEqual (coll.values (ConsMap (1 a) (ConsMap (2 b) NilMap))) (cons a (cons b ())))
-!(assertEqual (coll.items (ConsMap (1 a) (ConsMap (2 b) NilMap))) (cons (1 a) (cons (2 b) ())))
-!(assertEqual (coll.getByKey (ConsMap (1 a) (ConsMap (2 b) NilMap)) 2) b)
-!(assertEqual (coll.find (ConsMap (1 a) (ConsMap (2 b) NilMap)) 2) 1)
-!(assertEqual (coll.append (ConsMap (1 a) NilMap) (2 b)) (ConsMap (1 a) (ConsMap (2 b) NilMap)))
-!(assertEqual (coll.remove (ConsMap (1 a) (ConsMap (2 b) NilMap)) 1) (ConsMap (2 b) NilMap))
+!(assertEqual (coll.contains (cons (1 a) (cons (2 b) ())) 2) True)
+!(assertEqual (coll.keys (cons (1 a) (cons (2 b) ()))) (cons 1 (cons 2 ())))
+!(assertEqual (coll.values (cons (1 a) (cons (2 b) ()))) (cons a (cons b ())))
+!(assertEqual (coll.items (cons (1 a) (cons (2 b) ()))) (cons (1 a) (cons (2 b) ())))
+!(assertEqual (coll.getByKey (cons (1 a) (cons (2 b) ())) 2) b)
+!(assertEqual (coll.find (cons (1 a) (cons (2 b) ())) 2) 1)
+!(assertEqual (coll.append (cons (1 a) ()) (2 b)) (cons (1 a) (cons (2 b) ())))
+!(assertEqual (coll.remove (cons (1 a) (cons (2 b) ())) 1) (cons (2 b) ()))
 
 ;; --------------------------------
 ;; MultiMap — findOne/findAll/length/contains
 ;; --------------------------------
 !(println! ("testing coll.length"))
-!(assertEqual (coll.length NilMMap) 0)
-!(assertEqual (coll.length (ConsMMap (1 a) (ConsMMap (2 b) NilMMap))) 2)
-!(assertEqual (coll.contains (ConsMMap (1 a) (ConsMMap (2 b) NilMMap)) 2) True)
-!(assertEqual (coll.findOne (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (2 c) NilMMap))) 2) b)
-!(assertEqual (coll.findAll (ConsMMap (1 a) (ConsMMap (2 b) (ConsMMap (2 c) NilMMap))) 2) (cons b (cons c ())))
-!(assertEqual (coll.append (ConsMMap (1 a) NilMMap) (2 b)) (ConsMMap (1 a) (ConsMMap (2 b) NilMMap)))
-!(assertEqual (coll.remove (ConsMMap (1 a) (ConsMMap (2 b) NilMMap)) 2) (ConsMMap (1 a) NilMMap))
+!(assertEqual (coll.length ()) 0)
+!(assertEqual (coll.length (cons (1 a) (cons (2 b) ()))) 2)
+!(assertEqual (coll.contains (cons (1 a) (cons (2 b) ())) 2) True)
+!(assertEqual (coll.findOne (cons (1 a) (cons (2 b) (cons (2 c) ()))) 2) b)
+!(assertEqual (coll.findAll (cons (1 a) (cons (2 b) (cons (2 c) ()))) 2) (cons b (cons c ())))
+!(assertEqual (coll.append (cons (1 a) ()) (2 b)) (cons (1 a) (cons (2 b) ())))
+!(assertEqual (coll.remove (cons (1 a) (cons (2 b) ())) 2) (cons (1 a) ()))
 
 ;; ;; --------------------------------
 ;; ;; OrderedSet — contains/getByIdx/removeByIdx/takeN
 ;; ;; --------------------------------
 !(println! ("testing coll.length "))
-!(assertEqual (coll.length NilOS) 0)
-!(assertEqual (coll.append NilOS 1) (Error (NilOS 1) "Use OS.insert with comparator"))
-!(assertEqual (coll.contains (ConsOS 1 (ConsOS 2 NilOS)) 2) True)
-!(assertEqual (coll.getByIdx (ConsOS 1 (ConsOS 2 NilOS)) 1) 2)
-!(assertEqual (coll.removeByIdx (ConsOS 1 (ConsOS 2 NilOS)) 0) (ConsOS 2 NilOS))
-!(assertEqual (coll.takeN 1 (ConsOS 5 (ConsOS 4 NilOS))) (OS.getTopN 1 (ConsOS 5 (ConsOS 4 NilOS))))
+!(assertEqual (coll.length ()) 0)
+!(assertEqual (coll.append () 1) (Error (() 1) "Use OS.insert with comparator"))
+!(assertEqual (coll.contains (cons 1 (cons 2 ())) 2) True)
+!(assertEqual (coll.getByIdx (cons 1 (cons 2 ())) 1) 2)
+!(assertEqual (coll.removeByIdx (cons 1 (cons 2 ())) 0) (cons 2 ()))
+!(assertEqual (coll.takeN 1 (cons 5 (cons 4 ()))) (OS.getTopN 1 (cons 5 (cons 4 ()))))
 
 ;; ;; --------------------------------
 ;; OrderedMultiset — length/append/contains/getByIdx/remove

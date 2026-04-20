@@ -32,30 +32,30 @@
 
 
 ; Test of count Table
-; !(assertEqual (countTable (True True True) 2 NilMap) (ConsMap ((True True) (1 0)) NilMap))
-; !(assertEqual (countTable (True False False) 2 NilMap) (ConsMap ((True False) (0 1)) NilMap))
-; !(assertEqual (countTable (True True False) 2 NilMap) (ConsMap ((True True) (0 1)) NilMap))
-; !(assertEqual (countTable () 0 NilMap) NilMap)
+; !(assertEqual (countTable (True True True) 2 ()) (cons ((True True) (1 0)) ()))
+; !(assertEqual (countTable (True False False) 2 ()) (cons ((True False) (0 1)) ()))
+; !(assertEqual (countTable (True True False) 2 ()) (cons ((True True) (0 1)) ()))
+; !(assertEqual (countTable () 0 ()) ())
 
 
 ;; Test of cTable
 !(assertEqual (cTable ((True True True) (True False False) (False True False) (False False False)) (A B Output)) 
-            (ConsMap ((True True) (1 0)) (ConsMap ((True False) (0 1)) (ConsMap ((False True) (0 1)) (ConsMap ((False False) (0 1)) NilMap))))
+            (cons ((True True) (1 0)) (cons ((True False) (0 1)) (cons ((False True) (0 1)) (cons ((False False) (0 1)) ()))))
   )
 
 !(assertEqual (cTable ((False False False) (True False False) (False False False) (True False False) (True False False) (False False True) (False False True) (False True True) (False True True) (False True True)) (v1 v2 target))
-            (ConsMap ((False False) (2 2)) (ConsMap ((True False) (0 3)) (ConsMap ((False True) (3 0)) NilMap)))
+            (cons ((False False) (2 2)) (cons ((True False) (0 3)) (cons ((False True) (3 0)) ())))
   )
 
 
-!(assertEqual (makePrecisionRow ((True True) (1 0)) NilMMap) (ConsMMap (0.5 (0.5 1)) NilMMap))
-!(assertEqual (makePrecisionRow ((False True) (0 2)) NilMMap) (ConsMMap (-0.5 (-1.0 2)) NilMMap))
-!(assertEqual (makePrecisionRow () NilMMap) NilMMap)
+!(assertEqual (makePrecisionRow ((True True) (1 0)) ()) (cons (0.5 (0.5 1)) ()))
+!(assertEqual (makePrecisionRow ((False True) (0 2)) ()) (cons (-0.5 (-1.0 2)) ()))
+!(assertEqual (makePrecisionRow () ()) ())
 
 
-!(assertEqual (createPrecisionRows (ConsMap ((True True) (1 0)) 
-                                 (ConsMap ((True False) (0 1)) 
-                                         (ConsMap ((False True) (0 1)) NilMap))))  
+!(assertEqual (createPrecisionRows (cons ((True True) (1 0)) 
+                                 (cons ((True False) (0 1)) 
+                                         (cons ((False True) (0 1)) ()))))  
                 ;;result 
                 ((0.5 (0.5 1)) (-0.5 (-0.5 1)) (-0.5 (-0.5 1)))             
   )

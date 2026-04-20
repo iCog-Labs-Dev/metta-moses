@@ -24,9 +24,9 @@
                         (cons (mkTree (mkNode C) ()) ())) 
                         ())))))
  ;; buildLogical test case
-!(assertEqual (let ($updatedTree $MMap) (buildLogical (tree1) (mkNodeId (3)) NilMMap (A B))
+!(assertEqual (let ($updatedTree $MMap) (buildLogical (tree1) (mkNodeId (3)) () (A B))
                      (and (== $updatedTree (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) ())))))) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkTree (mkNode AND) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) ()))))) ()))))))) ())))))
-                         (MultiMap.equals $MMap (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 5))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 1 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 1 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 1 4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 1 5))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 6 1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 6 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 6 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 6 4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) NilMMap)))))))))))) )))
+                         (MultiMap.equals $MMap (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 5))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 1 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 1 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 1 4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 1 5))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 6 1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 6 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 6 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 6 4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ())))))))))))) )))
                 True)
 ;; Simple game strategy tree for testing
 (= (simpleGameTree) (mkTree (mkNode PRIORITIZED-OR) 
@@ -39,7 +39,7 @@
         (($updatedTree $MMap) (buildStrategy 
                                 (mkTree (mkNode PRIORITIZED-OR)
                                         (cons (mkTree (mkNode playwin) ()) ()))
-                                (mkNodeId (0)) NilMMap (playwin playblock)))
+                                (mkNodeId (0)) () (playwin playblock)))
         ($mmLength (MultiMap.length $MMap))
         ($hasKnobs (> $mmLength 0))
     )
@@ -47,7 +47,7 @@
 
 ;; Verify buildStrategy creates correct number of knobs
 !(assertEqual (let* (
-    (($updatedTree $MMap) (buildStrategy (simpleGameTree) (mkNodeId (0)) NilMMap (playcenter playcorner)))
+    (($updatedTree $MMap) (buildStrategy (simpleGameTree) (mkNodeId (0)) () (playcenter playcorner)))
     ($mmLength (MultiMap.length $MMap))
 )
 (== $mmLength 5)
@@ -58,7 +58,7 @@
                             (mkTree (mkNode PRIORITIZED-OR)
                                     (cons (mkTree (mkNode playcenter) ())
                                           (cons (mkTree (mkNode playblock) ()) ())))
-                            (mkNodeId (0)) NilMMap (playcenter playblock)))
+                            (mkNodeId (0)) () (playcenter playblock)))
     ($treeChanged (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR)
                                                 (cons (mkTree (mkNode playcenter) ())
                                                       (cons (mkTree (mkNode playblock) ()) ()))))))
@@ -72,7 +72,7 @@ $treeChanged
         (($updatedTree $MMap) (buildStrategy 
                                 (mkTree (mkNode PRIORITIZED-OR)
                                         (cons (mkTree (mkNode playcorner) ()) ()))
-                                (mkNodeId (0)) NilMMap (playcorner play-edge)))
+                                (mkNodeId (0)) () (playcorner play-edge)))
         ($mmLength (MultiMap.length $MMap))
         ($hasCorrectLength (== $mmLength 5))
     )
@@ -87,7 +87,7 @@ $treeChanged
                             ()))))
 
 !(assertEqual (let* (
-    (($updatedTree $MMap) (buildStrategy (complexGameTree) (mkNodeId (0)) NilMMap (playcenter playcorner playblock)))
+    (($updatedTree $MMap) (buildStrategy (complexGameTree) (mkNodeId (0)) () (playcenter playcorner playblock)))
     ($mmLength (MultiMap.length $MMap))
     ($hasMultipleKnobs (> $mmLength 4))
 )

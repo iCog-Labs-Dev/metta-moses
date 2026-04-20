@@ -21,8 +21,8 @@
         (mkRep 
             (mkKbMap 
                 (mkDscKbMp 
-                    (ConsMap NilMap)) 
-                    (mkDscMp NilMMap)) (mkTree (mkNode A) ()))
+                    (cons ())) 
+                    (mkDscMp ())) (mkTree (mkNode A) ()))
                     (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1))) 
                         (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 1 2 3 4 3))) 
                             (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 1 2 3 4 4)))
@@ -76,23 +76,23 @@
         (mkRep 
             (mkKbMap 
                 (mkDscKbMp 
-                    (ConsMap NilMap)) 
-                    (mkDscMp NilMMap)) (mkTree (mkNode A) ()))
+                    (cons ())) 
+                    (mkDscMp ())) (mkTree (mkNode A) ()))
                         (mkSInstSet $list) $demeId) (crossTopOne (deme1) 3 0 4 (mkInst (cons 2 ()))) (assertEqual (List.length $list) 10))
 !(let
     (mkDeme 
         (mkRep 
             (mkKbMap 
                 (mkDscKbMp 
-                    (ConsMap NilMap)) 
-                    (mkDscMp NilMMap)) (mkTree (mkNode A) ()))
+                    (cons ())) 
+                    (mkDscMp ())) (mkTree (mkNode A) ()))
                         (mkSInstSet $list) $demeId) (crossTopOne (deme1) 4 0 5 (mkInst (cons 2 ()))) (assertEqual (List.length $list) 11))
 
 !(assertEqual 
     (crossTopOne 
       (mkDeme 
         (mkRep 
-          (mkKbMap (mkDscKbMp (ConsMap NilMap)) (mkDscMp NilMMap)) 
+          (mkKbMap (mkDscKbMp (cons ())) (mkDscMp ())) 
           (mkTree (mkNode A) ()))
         (mkSInstSet 
           (cons 
@@ -111,8 +111,8 @@
         (mkRep 
             (mkKbMap 
                 (mkDscKbMp 
-                    (ConsMap NilMap)) 
-                    (mkDscMp NilMMap)) 
+                    (cons ())) 
+                    (mkDscMp ())) 
                     (mkTree (mkNode A) ())) 
                         (mkSInstSet 
                             (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1))) 

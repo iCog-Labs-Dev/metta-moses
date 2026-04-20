@@ -79,7 +79,7 @@
 !(import! &self ../merge-demes)
 !(import! &self ../expand-deme)
 
-(= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) NilMMap)))) (mkTree (mkNode AND) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) ())))) (mkSInstSet ()) (mkDemeId "1")))
+(= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ()))) (mkDscMp (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ())))) (mkTree (mkNode AND) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) ())))) (mkSInstSet ()) (mkDemeId "1")))
 (= (table1) (eval (createTruthTableBScore 2 (mkITable
                          (cons (cons False (cons False (cons False ()))) 
                          (cons (cons True (cons False (cons False ()))) 
@@ -115,13 +115,13 @@
                          (cons (cons True (cons True (cons False ()))) ()))))
                          (cons A (cons B (cons O ())))))
 
-;; (= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) ()) (mkDemeId "1") (eval (worstCscore)) (mkBScore (cons -1 (cons -1 ())))) NilOS))
-;; (= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) ()) (mkDemeId "1") (eval (worstCscore)) (mkBScore (cons -1 (cons -1 (cons -1 (cons -1 ())))))) NilOS))
-(= (metaPop2) (ConsOS (mkExemplar (mkTree (mkNode AND) ()) (mkDemeId "1") (mkCscore -4 2 1.0 0.0 -4.0) (mkBScore  (cons -1 (cons -1 (cons -1 (cons -1 ())))))) NilOS))
+;; (= (metaPop2) (cons (mkExemplar (mkTree (mkNode AND) ()) (mkDemeId "1") (eval (worstCscore)) (mkBScore (cons -1 (cons -1 ())))) ()))
+;; (= (metaPop2) (cons (mkExemplar (mkTree (mkNode AND) ()) (mkDemeId "1") (eval (worstCscore)) (mkBScore (cons -1 (cons -1 (cons -1 (cons -1 ())))))) ()))
+(= (metaPop2) (cons (mkExemplar (mkTree (mkNode AND) ()) (mkDemeId "1") (mkCscore -4 2 1.0 0.0 -4.0) (mkBScore  (cons -1 (cons -1 (cons -1 (cons -1 ())))))) ()))
 
-(= (metaPop) (ConsOS (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ()))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (cons 0 (cons 0 (cons 0 (cons 0 ()))))))
-                 (ConsOS (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ())) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (cons 0 (cons 0 (cons 0 (cons 0 ())))))) 
-                 NilOS)))
+(= (metaPop) (cons (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ()))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (cons 0 (cons 0 (cons 0 (cons 0 ()))))))
+                 (cons (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ())) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (cons 0 (cons 0 (cons 0 (cons 0 ())))))) 
+                 ())))
        
 (= (bigtable) (mkITable
                         (cons (cons True  (cons False (cons True  (cons False (cons True  (cons True  ()))))))
@@ -354,13 +354,13 @@
 ;; Empty strategy metapop -  empty PRIORITIZED-OR with worst CScore
 ;; this empty strategy can be used as a starting point to evolve better strategy 
 (= (emptyStrategyMetaPop)
-   (ConsOS
+   (cons
      (mkExemplar
        (mkTree (mkNode PRIORITIZED-OR) ())  ;;  empty - no children
        (mkDemeId "0")
        (eval (worstCscore))  ;; Worst CScore
        (mkBScore (cons -10000.0 ())))
-     NilOS))
+     ()))
 
 ;; by uncomment this test and also adjust the parameter settings we can check the full evolution process of runMosesStrategy, and see how the strategy evolves from empty strategy to better strategy.
 ; !(runMoses
@@ -381,7 +381,7 @@
 ;     1000)   
 ;; metapop for testing
 (= (strategyMetaPop)
-   (ConsOS
+   (cons
      (mkExemplar
        (mkTree (mkNode PRIORITIZED-OR)
          (cons (mkTree (mkNode playwin) ())
@@ -389,7 +389,7 @@
        (mkDemeId "0")
        (mkCscore 2.0 2 0.57 0.0 1.43)
        (mkBScore (cons 2.0 ())))
-     NilOS))
+     ()))
 
 ;; !(assertEqual ;; INFO: This test case is blocking the reset. But works fine on it's own.
 ;;    (let* (

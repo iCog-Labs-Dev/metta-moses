@@ -141,7 +141,7 @@ $optimDeme
 
 
 ;; Some helpers specific to final testing
-(= (mapG $f NilOS) NilOS)
+(= (mapG $f ()) ())
 (= (mapG $f ()) ())
 (= (mapG $f ($ctor $x $xs)) ($ctor ($f $x) (mapG $f $xs)))
 

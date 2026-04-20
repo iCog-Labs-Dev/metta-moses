@@ -5,23 +5,23 @@
 
 ;; Length of an ordered set
 !(println! ("testing: OS.length"))
-!(assertEqual (OS.length NilOS) 0)
-!(assertEqual (OS.length (ConsOS 1 NilOS)) 1)
-!(assertEqual (OS.length (ConsOS 4 (ConsOS 3 (ConsOS 2 (ConsOS 1 NilOS))))) 4)
+!(assertEqual (OS.length ()) 0)
+!(assertEqual (OS.length (cons 1 ())) 1)
+!(assertEqual (OS.length (cons 4 (cons 3 (cons 2 (cons 1 ()))))) 4)
 
 ; ;; Get element by index
 !(println! ("OS.getByIdx"))
-!(assertEqual (OS.getByIdx 0 NilOS) (Error 0 "empty set/index out of range"))
-!(assertEqual (OS.getByIdx 3 (ConsOS 3 (ConsOS 2 (ConsOS 1 NilOS)))) (Error 0 "empty set/index out of range"))
-!(assertEqual (OS.getByIdx 0 (ConsOS 3 (ConsOS 2 (ConsOS 1 NilOS)))) 3)
-!(assertEqual (OS.getByIdx 1 (ConsOS 3 (ConsOS 2 (ConsOS 1 NilOS)))) 2)
-!(assertEqual (OS.getByIdx 2 (ConsOS 3 (ConsOS 2 (ConsOS 1 NilOS)))) 1)
+!(assertEqual (OS.getByIdx 0 ()) (Error 0 "empty set/index out of range"))
+!(assertEqual (OS.getByIdx 3 (cons 3 (cons 2 (cons 1 ())))) (Error 0 "empty set/index out of range"))
+!(assertEqual (OS.getByIdx 0 (cons 3 (cons 2 (cons 1 ())))) 3)
+!(assertEqual (OS.getByIdx 1 (cons 3 (cons 2 (cons 1 ())))) 2)
+!(assertEqual (OS.getByIdx 2 (cons 3 (cons 2 (cons 1 ())))) 1)
 
 ; ;; Insert numerals into an ordered set 
 !(println! ("testing: OS.insert"))
-!(assertEqual (OS.insert compareNum 3 (ConsOS 2 (ConsOS 1 NilOS))) (ConsOS 3 (ConsOS 2 (ConsOS 1 NilOS))))
-!(assertEqual (OS.insert compareNum 3 (ConsOS 5 (ConsOS 1 NilOS))) (ConsOS 5 (ConsOS 3 (ConsOS 1 NilOS))))
-!(assertEqual (OS.insert compareNum -1 (ConsOS 5 (ConsOS 1 NilOS))) (ConsOS 5 (ConsOS 1 (ConsOS -1 NilOS))))
+!(assertEqual (OS.insert compareNum 3 (cons 2 (cons 1 ()))) (cons 3 (cons 2 (cons 1 ()))))
+!(assertEqual (OS.insert compareNum 3 (cons 5 (cons 1 ()))) (cons 5 (cons 3 (cons 1 ()))))
+!(assertEqual (OS.insert compareNum -1 (cons 5 (cons 1 ()))) (cons 5 (cons 1 (cons -1 ()))))
 
 ; ;; Exemplar comparisonstring-to-number 
 !(println! ("testing: compareXmplr "))
@@ -42,101 +42,101 @@
 
 ; ;; Insert exemplars into an oreded set
 !(assertEqual 
-    (OS.insert compareXmplr (mkXmplr (mkTree treeA) (mkDemeId 5) (mkCscore (mkScoreT 0.5) (mkComplexity 0.35) (mkScoreT 0.78) (mkScoreT 0.69)) (mkBscore (cons 1 (cons 0 NilNum)))) NilOS)
-    (ConsOS (mkXmplr (mkTree treeA) (mkDemeId 5) (mkCscore (mkScoreT 0.5) (mkComplexity 0.35) (mkScoreT 0.78) (mkScoreT 0.69)) (mkBscore (cons 1 (cons 0 NilNum)))) NilOS))  
+    (OS.insert compareXmplr (mkXmplr (mkTree treeA) (mkDemeId 5) (mkCscore (mkScoreT 0.5) (mkComplexity 0.35) (mkScoreT 0.78) (mkScoreT 0.69)) (mkBscore (cons 1 (cons 0 NilNum)))) ())
+    (cons (mkXmplr (mkTree treeA) (mkDemeId 5) (mkCscore (mkScoreT 0.5) (mkComplexity 0.35) (mkScoreT 0.78) (mkScoreT 0.69)) (mkBscore (cons 1 (cons 0 NilNum)))) ()))  
 
 !(assertEqual 
     (OS.insert compareXmplr (mkXmplr (mkTree treeX) (mkDemeId 10) 
         (mkCscore (mkScoreT 0.6) (mkComplexity 0.4) (mkScoreT 0.2) (mkScoreT 0.1)) 
-        (mkBscore (cons 3 (cons 2 NilNum)))) NilOS)
+        (mkBscore (cons 3 (cons 2 NilNum)))) ())
 
-    (ConsOS (mkXmplr (mkTree treeX) (mkDemeId 10) 
+    (cons (mkXmplr (mkTree treeX) (mkDemeId 10) 
         (mkCscore (mkScoreT 0.6) (mkComplexity 0.4) (mkScoreT 0.2) (mkScoreT 0.1)) 
-        (mkBscore (cons 3 (cons 2 NilNum)))) NilOS))
+        (mkBscore (cons 3 (cons 2 NilNum)))) ()))
 
 !(assertEqual (OS.insert compareXmplr (mkXmplr (mkTree treeC) (mkDemeId 7) (mkCscore (mkScoreT 0.6) (mkComplexity 0.30) (mkScoreT 0.70) (mkScoreT 0.55)) (mkBscore 1.30))  
-   (ConsOS (mkXmplr (mkTree treeA) (mkDemeId 5) (mkCscore (mkScoreT 0.5) (mkComplexity 0.35) (mkScoreT 0.78) (mkScoreT 0.69)) (mkBscore (cons 1 (cons 0 NilNum))))
-        (ConsOS (mkXmplr (mkTree treeB) (mkDemeId 6) (mkCscore (mkScoreT 0.2) (mkComplexity 0.55) (mkScoreT 0.90) (mkScoreT 0.72)) (mkBscore 1.25))  
-            NilOS))) 
-    (ConsOS (mkXmplr (mkTree treeC) (mkDemeId 7) (mkCscore (mkScoreT 0.6) (mkComplexity 0.30) (mkScoreT 0.70) (mkScoreT 0.55)) (mkBscore 1.30)) 
-        (ConsOS (mkXmplr (mkTree treeA) (mkDemeId 5) (mkCscore (mkScoreT 0.5) (mkComplexity 0.35) (mkScoreT 0.78) (mkScoreT 0.69)) (mkBscore (cons 1 (cons 0 NilNum))))
-        (ConsOS (mkXmplr (mkTree treeB) (mkDemeId 6) (mkCscore (mkScoreT 0.2) (mkComplexity 0.55) (mkScoreT 0.90) (mkScoreT 0.72)) (mkBscore 1.25))  
-            NilOS))))
+   (cons (mkXmplr (mkTree treeA) (mkDemeId 5) (mkCscore (mkScoreT 0.5) (mkComplexity 0.35) (mkScoreT 0.78) (mkScoreT 0.69)) (mkBscore (cons 1 (cons 0 NilNum))))
+        (cons (mkXmplr (mkTree treeB) (mkDemeId 6) (mkCscore (mkScoreT 0.2) (mkComplexity 0.55) (mkScoreT 0.90) (mkScoreT 0.72)) (mkBscore 1.25))  
+            ()))) 
+    (cons (mkXmplr (mkTree treeC) (mkDemeId 7) (mkCscore (mkScoreT 0.6) (mkComplexity 0.30) (mkScoreT 0.70) (mkScoreT 0.55)) (mkBscore 1.30)) 
+        (cons (mkXmplr (mkTree treeA) (mkDemeId 5) (mkCscore (mkScoreT 0.5) (mkComplexity 0.35) (mkScoreT 0.78) (mkScoreT 0.69)) (mkBscore (cons 1 (cons 0 NilNum))))
+        (cons (mkXmplr (mkTree treeB) (mkDemeId 6) (mkCscore (mkScoreT 0.2) (mkComplexity 0.55) (mkScoreT 0.90) (mkScoreT 0.72)) (mkBscore 1.25))  
+            ()))))
 !(assertEqual 
     (OS.insert compareXmplr 
         (mkXmplr (mkTree treeB) (mkDemeId 15) 
             (mkCscore (mkScoreT 0.6) (mkComplexity 0.35) (mkScoreT 0.2) (mkScoreT 0.1)) 
             (mkBscore (cons 1 NilNum)))
 
-        (ConsOS (mkXmplr (mkTree treeA) (mkDemeId 5) 
+        (cons (mkXmplr (mkTree treeA) (mkDemeId 5) 
             (mkCscore (mkScoreT 0.8) (mkComplexity 0.3) (mkScoreT 0.2) (mkScoreT 0.1)) 
             (mkBscore (cons 3 NilNum)))
 
-        (ConsOS (mkXmplr (mkTree treeC) (mkDemeId 25) 
+        (cons (mkXmplr (mkTree treeC) (mkDemeId 25) 
             (mkCscore (mkScoreT 0.6) (mkComplexity 0.4) (mkScoreT 0.2) (mkScoreT 0.1)) 
-            (mkBscore (cons 2 NilNum))) NilOS)))
+            (mkBscore (cons 2 NilNum))) ())))
 
-    (ConsOS (mkXmplr (mkTree treeA) (mkDemeId 5) 
+    (cons (mkXmplr (mkTree treeA) (mkDemeId 5) 
         (mkCscore (mkScoreT 0.8) (mkComplexity 0.3) (mkScoreT 0.2) (mkScoreT 0.1)) 
         (mkBscore (cons 3 NilNum)))
 
-    (ConsOS (mkXmplr (mkTree treeB) (mkDemeId 15) 
+    (cons (mkXmplr (mkTree treeB) (mkDemeId 15) 
         (mkCscore (mkScoreT 0.6) (mkComplexity 0.35) (mkScoreT 0.2) (mkScoreT 0.1)) 
         (mkBscore (cons 1 NilNum)))
 
-    (ConsOS (mkXmplr (mkTree treeC) (mkDemeId 25) 
+    (cons (mkXmplr (mkTree treeC) (mkDemeId 25) 
         (mkCscore (mkScoreT 0.6) (mkComplexity 0.4) (mkScoreT 0.2) (mkScoreT 0.1)) 
-        (mkBscore (cons 2 NilNum))) NilOS))))
+        (mkBscore (cons 2 NilNum))) ()))))
 
 
 ; ;; Take N exemplars from the metapopulation
 !(println! ("testing: OS.takeN "))
-!(assertEqual (OS.takeN 0 (ConsOS 4 (ConsOS 3 (ConsOS 2 (ConsOS 1 (ConsOS 0 NilOS)))))) NilOS)
-!(assertEqual (OS.takeN 1 (ConsOS 4 (ConsOS 3 (ConsOS 2 (ConsOS 1 (ConsOS 0 NilOS)))))) (ConsOS 4 NilOS))
-!(assertEqual (OS.takeN 2 (ConsOS 4 (ConsOS 3 (ConsOS 2 (ConsOS 1 (ConsOS 0 NilOS)))))) (ConsOS 4 (ConsOS 3 NilOS)))
-!(assertEqual (OS.takeN 3 (ConsOS 4 (ConsOS 3 (ConsOS 2 (ConsOS 1 (ConsOS 0 NilOS)))))) (ConsOS 4 (ConsOS 3 (ConsOS 2 NilOS))))
-!(assertEqual (OS.takeN 4 (ConsOS 4 (ConsOS 3 (ConsOS 2 (ConsOS 1 (ConsOS 0 NilOS)))))) (ConsOS 4 (ConsOS 3 (ConsOS 2 (ConsOS 1 NilOS)))))
-!(assertEqual (OS.takeN 5 (ConsOS 4 (ConsOS 3 (ConsOS 2 (ConsOS 1 (ConsOS 0 NilOS)))))) (ConsOS 4 (ConsOS 3 (ConsOS 2 (ConsOS 1 (ConsOS 0 NilOS))))))
-!(assertEqual (OS.takeN 6 (ConsOS 4 (ConsOS 3 (ConsOS 2 (ConsOS 1 (ConsOS 0 NilOS)))))) (ConsOS 4 (ConsOS 3 (ConsOS 2 (ConsOS 1 (ConsOS 0 NilOS))))))
+!(assertEqual (OS.takeN 0 (cons 4 (cons 3 (cons 2 (cons 1 (cons 0 ())))))) ())
+!(assertEqual (OS.takeN 1 (cons 4 (cons 3 (cons 2 (cons 1 (cons 0 ())))))) (cons 4 ()))
+!(assertEqual (OS.takeN 2 (cons 4 (cons 3 (cons 2 (cons 1 (cons 0 ())))))) (cons 4 (cons 3 ())))
+!(assertEqual (OS.takeN 3 (cons 4 (cons 3 (cons 2 (cons 1 (cons 0 ())))))) (cons 4 (cons 3 (cons 2 ()))))
+!(assertEqual (OS.takeN 4 (cons 4 (cons 3 (cons 2 (cons 1 (cons 0 ())))))) (cons 4 (cons 3 (cons 2 (cons 1 ())))))
+!(assertEqual (OS.takeN 5 (cons 4 (cons 3 (cons 2 (cons 1 (cons 0 ())))))) (cons 4 (cons 3 (cons 2 (cons 1 (cons 0 ()))))))
+!(assertEqual (OS.takeN 6 (cons 4 (cons 3 (cons 2 (cons 1 (cons 0 ())))))) (cons 4 (cons 3 (cons 2 (cons 1 (cons 0 ()))))))
 
 ; ;; Test cases -- Remove by index
 !(println! ("testing: OS.removeByIdx "))
-!(assertEqual (OS.removeByIdx (ConsOS 10 (ConsOS 20 NilOS)) 0) (ConsOS 20 NilOS))        
-!(assertEqual (OS.removeByIdx (ConsOS a (ConsOS b (ConsOS c NilOS))) 1) (ConsOS a (ConsOS c NilOS)))
-!(assertEqual (OS.removeByIdx (ConsOS 5 (ConsOS 6 (ConsOS 7 NilOS))) 2) (ConsOS 5 (ConsOS 6 NilOS)))
-!(assertEqual (OS.removeByIdx (ConsOS 1 (ConsOS 2 NilOS)) 5) (Error NilOS "empty set/index out of range"))
+!(assertEqual (OS.removeByIdx (cons 10 (cons 20 ())) 0) (cons 20 ()))        
+!(assertEqual (OS.removeByIdx (cons a (cons b (cons c ()))) 1) (cons a (cons c ())))
+!(assertEqual (OS.removeByIdx (cons 5 (cons 6 (cons 7 ()))) 2) (cons 5 (cons 6 ())))
+!(assertEqual (OS.removeByIdx (cons 1 (cons 2 ())) 5) (Error () "empty set/index out of range"))
 
 ; ;; Test cases -- getTopN
 !(println! ("testing: OS.getTopN"))
 !(assertEqual
    (OS.getTopN 2
-         (ConsOS
+         (cons
             (mkExemplar (mkTree (mkNode A) ()) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (cons 0 ())))
-            (ConsOS
+            (cons
                (mkExemplar (mkTree (mkNode B) ()) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (cons 0 ())))
-               (ConsOS
+               (cons
                   (mkExemplar (mkTree (mkNode C) ()) (mkDemeId "1") (mkCscore -0.3 4 0.1 0.1 -0.5) (mkBScore (cons 0 ())))
-                  NilOS))))
-      (ConsOS
+                  ()))))
+      (cons
          (mkExemplar (mkTree (mkNode A) ()) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (cons 0 ())))
-         (ConsOS
+         (cons
             (mkExemplar (mkTree (mkNode B) ()) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (cons 0 ())))
-            NilOS)))
+            ())))
 
 !(assertEqual
    (OS.getTopN 5
-         (ConsOS
+         (cons
             (mkExemplar (mkTree (mkNode A) ()) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (cons 0 ())))
-            (ConsOS
+            (cons
                (mkExemplar (mkTree (mkNode B) ()) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (cons 0 ())))
-               NilOS)))
-        (Error NilOS "empty ordered set/ fewer items than required"))
+               ())))
+        (Error () "empty ordered set/ fewer items than required"))
 
 ; ;; added test for Os.contains
 !(println! ("testing: OS.contains "))
-!(assertEqual (OS.contains (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))) 2) True)
-!(assertEqual (OS.contains (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))) 4) False)
-!(assertEqual (OS.contains NilOS 5) False)
+!(assertEqual (OS.contains (cons 1 (cons 2 (cons 3 ()))) 2) True)
+!(assertEqual (OS.contains (cons 1 (cons 2 (cons 3 ()))) 4) False)
+!(assertEqual (OS.contains () 5) False)
 
 !(println! ("testing: genericCompare"))
 !(assertEqual (genericCompare 2 1) L)      
@@ -146,40 +146,40 @@
 !(assertEqual (genericCompare 10 5) L)     
 
 !(println! ("testing: OS.range"))
-!(assertEqual (OS.range 0 3 NilOS) (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))))
-!(assertEqual (OS.range 1 4 NilOS) (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))))
-!(assertEqual (OS.range 5 5 NilOS) NilOS)     ;; Empty range
-!(assertEqual (OS.range 2 6 NilOS) (ConsOS 2 (ConsOS 3 (ConsOS 4 (ConsOS 5 NilOS)))))
-!(assertEqual (OS.range 0 1 NilOS) (ConsOS 0 NilOS))  ;; Single element
+!(assertEqual (OS.range 0 3 ()) (cons 0 (cons 1 (cons 2 ()))))
+!(assertEqual (OS.range 1 4 ()) (cons 1 (cons 2 (cons 3 ()))))
+!(assertEqual (OS.range 5 5 ()) ())     ;; Empty range
+!(assertEqual (OS.range 2 6 ()) (cons 2 (cons 3 (cons 4 (cons 5 ())))))
+!(assertEqual (OS.range 0 1 ()) (cons 0 ()))  ;; Single element
 
 !(println! ("testing: OS.union"))
-!(assertEqual (OS.union (ConsOS 0 (ConsOS 1 NilOS)) (ConsOS 2 NilOS)) 
-               (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))))
-!(assertEqual (OS.union (ConsOS 1 (ConsOS 3 NilOS)) (ConsOS 0 (ConsOS 2 NilOS))) 
-               (ConsOS 0 (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS)))))
-!(assertEqual (OS.union NilOS (ConsOS 5 NilOS)) (ConsOS 5 NilOS))    ;; Empty first set
-!(assertEqual (OS.union (ConsOS 5 NilOS) NilOS) (ConsOS 5 NilOS))    ;; Empty second set
-!(assertEqual (OS.union (ConsOS 1 (ConsOS 2 NilOS)) (ConsOS 2 (ConsOS 3 NilOS))) 
-               (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))))               ;; Overlapping sets
+!(assertEqual (OS.union (cons 0 (cons 1 ())) (cons 2 ())) 
+               (cons 0 (cons 1 (cons 2 ()))))
+!(assertEqual (OS.union (cons 1 (cons 3 ())) (cons 0 (cons 2 ()))) 
+               (cons 0 (cons 1 (cons 2 (cons 3 ())))))
+!(assertEqual (OS.union () (cons 5 ())) (cons 5 ()))    ;; Empty first set
+!(assertEqual (OS.union (cons 5 ()) ()) (cons 5 ()))    ;; Empty second set
+!(assertEqual (OS.union (cons 1 (cons 2 ())) (cons 2 (cons 3 ()))) 
+               (cons 1 (cons 2 (cons 3 ()))))               ;; Overlapping sets
 
 !(println! ("testing OS.difference"))
-!(assertEqual (OS.difference (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))) (ConsOS 1 NilOS) NilOS) 
-               (ConsOS 0 (ConsOS 2 NilOS)))
-!(assertEqual (OS.difference (ConsOS 1 (ConsOS 2 (ConsOS 3 NilOS))) (ConsOS 2 (ConsOS 4 NilOS)) NilOS) 
-               (ConsOS 1 (ConsOS 3 NilOS)))
-!(assertEqual (OS.difference NilOS (ConsOS 1 NilOS) NilOS) NilOS)    ;; Empty first set
-!(assertEqual (OS.difference (ConsOS 1 (ConsOS 2 NilOS)) NilOS NilOS) 
-               (ConsOS 1 (ConsOS 2 NilOS)))                          ;; Empty second set
-!(assertEqual (OS.difference (ConsOS 1 (ConsOS 2 NilOS)) (ConsOS 1 (ConsOS 2 NilOS)) NilOS) 
-               NilOS)                                                 ;; Identical sets
+!(assertEqual (OS.difference (cons 0 (cons 1 (cons 2 ()))) (cons 1 ()) ()) 
+               (cons 0 (cons 2 ())))
+!(assertEqual (OS.difference (cons 1 (cons 2 (cons 3 ()))) (cons 2 (cons 4 ())) ()) 
+               (cons 1 (cons 3 ())))
+!(assertEqual (OS.difference () (cons 1 ()) ()) ())    ;; Empty first set
+!(assertEqual (OS.difference (cons 1 (cons 2 ())) () ()) 
+               (cons 1 (cons 2 ())))                          ;; Empty second set
+!(assertEqual (OS.difference (cons 1 (cons 2 ())) (cons 1 (cons 2 ())) ()) 
+               ())                                                 ;; Identical sets
 !(println! ("testing: osToExpression"))
-!(assertEqual (osToExpression (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))) ()) (0 1 2))
-!(assertEqual (osToExpression NilOS ()) ())                          ;; Empty set
-!(assertEqual (osToExpression (ConsOS 5 NilOS) ()) (5))              ;; Single element
-!(assertEqual (osToExpression (ConsOS 3 (ConsOS 1 (ConsOS 4 NilOS))) ()) (3 1 4))  ;; Order preserved
+!(assertEqual (osToExpression (cons 0 (cons 1 (cons 2 ()))) ()) (0 1 2))
+!(assertEqual (osToExpression () ()) ())                          ;; Empty set
+!(assertEqual (osToExpression (cons 5 ()) ()) (5))              ;; Single element
+!(assertEqual (osToExpression (cons 3 (cons 1 (cons 4 ()))) ()) (3 1 4))  ;; Order preserved
 
 !(println! ("testing: expressionToOS"))
-!(assertEqual (expressionToOS (2 0 1) NilOS) (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))))
-!(assertEqual (expressionToOS () NilOS) NilOS)                       ;; Empty expression
-!(assertEqual (expressionToOS (5) NilOS) (ConsOS 5 NilOS))           ;; Single element
-!(assertEqual (expressionToOS (3 1 4 1 5 9) NilOS) (ConsOS 1 (ConsOS 3 (ConsOS 4 (ConsOS 5 (ConsOS 9 NilOS))))))  ;; Duplicates removed, sorted
+!(assertEqual (expressionToOS (2 0 1) ()) (cons 0 (cons 1 (cons 2 ()))))
+!(assertEqual (expressionToOS () ()) ())                       ;; Empty expression
+!(assertEqual (expressionToOS (5) ()) (cons 5 ()))           ;; Single element
+!(assertEqual (expressionToOS (3 1 4 1 5 9) ()) (cons 1 (cons 3 (cons 4 (cons 5 (cons 9 ()))))))  ;; Duplicates removed, sorted

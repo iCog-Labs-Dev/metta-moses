@@ -34,8 +34,10 @@
 
 ; (: List.getByIdx (-> (List $a) Number $a))
 (= (List.getByIdx () $idx) (Error () (Index out of range)))
-(= (List.getByIdx (cons $head $tail) $idx)
-   (if (== $idx 0) $head (List.getByIdx $tail (- $idx 1))))
+(= (List.getByIdx $xs $idx)
+   (if (or (< $idx 0) (>= $idx (size-atom $xs)))
+       (Error () (Index out of range))
+       (index-atom $xs $idx)))
 
 ; (: List.insert (-> $a (List $a) (List $a)))
 (= (List.insert $x ()) (cons-atom $x ()))

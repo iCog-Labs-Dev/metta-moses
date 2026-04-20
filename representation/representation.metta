@@ -12,8 +12,8 @@
 ;; Params: DiscMap
 ;; Returns: DiscKnobMap
 ;; (: crtDiscKnobMap (-> DiscMap DiscKnobMap Number DiscKnobMap))
-(= (crtDiscKnobMap (mkDscMp NilMMap) (mkDscKbMp $dkm) $index) (mkDscKbMp $dkm))
-(= (crtDiscKnobMap (mkDscMp (ConsMMap ($kbSpec $kb) $tail)) (mkDscKbMp $dkm) $index)
+(= (crtDiscKnobMap (mkDscMp ()) (mkDscKbMp $dkm) $index) (mkDscKbMp $dkm))
+(= (crtDiscKnobMap (mkDscMp (cons ($kbSpec $kb) $tail)) (mkDscKbMp $dkm) $index)
    (let*
    (
     ($loc (getKnobLoc $kb))
@@ -29,8 +29,8 @@
 ; (= (representation $exemplar $argLabels)
 ; (let*
 ; (
-;     (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap $argLabels))
-;     ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
+;     (($updatedTree $dscMp) (buildKnobs $exemplar () $argLabels))
+;     ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
 ; )   
 ; (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
 ; ))
@@ -45,8 +45,8 @@
       ($result (collapse (let $x (superpose $demeCount)
          (let*
             (
-               (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap ()))
-               ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
+               (($updatedTree $dscMp) (buildKnobs $exemplar () ()))
+               ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
                ($rep (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree))
             )   
                $rep))))
@@ -110,11 +110,11 @@
                            (let* (
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (" done buildknobs (:) ")))            ;; BUILD representations on 
-                                    (($updatedTree $dscMp) (buildKnobs $xmplr NilMMap $argLabels))            ;; BUILD representations on 
+                                    (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels))            ;; BUILD representations on 
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
                                     ;; ($_ (println! ""))
-                                    ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0)))        ;; MULITPLE args selected using the feature selection
+                                    ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0)))        ;; MULITPLE args selected using the feature selection
                                  (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))))
 
 ;; Helper function to extract tree from representation

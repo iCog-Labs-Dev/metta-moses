@@ -100,8 +100,8 @@
             ))
 
 (= (knobMapObj) (mkKbMap
-                      (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap))))
-                      (mkDscMp (ConsMMap ((mkDiscSpec 1) lsk1) (ConsMMap ((mkDiscSpec 0) lsk2) (ConsMMap ((mkDiscSpec 1) lsk3) NilMMap))))))
+                      (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ()))))
+                      (mkDscMp (cons ((mkDiscSpec 1) lsk1) (cons ((mkDiscSpec 0) lsk2) (cons ((mkDiscSpec 1) lsk3) ()))))))
 
 (= (sInstSet) (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 0 ())))) (mkCscore -0.1 2 0.2 0.3 -0.6)))
            (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 0 ())))) (mkCscore -0.2 1 0.1 0.1 -0.4)))
@@ -117,15 +117,15 @@
                     (cons (cons False (cons False (cons False (cons False (cons False ()))))) ()))))
                     (cons A (cons B (cons C (cons D (cons output ())))))))
 
-(= (metaPop) (ConsOS (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ()))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (cons 0 (cons 0 ()))))
-                 (ConsOS (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ())) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (cons 0 (cons 0 ())))) 
-                 NilOS)))
+(= (metaPop) (cons (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ()))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (cons 0 (cons 0 ()))))
+                 (cons (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ())) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (cons 0 (cons 0 ())))) 
+                 ())))
 (mkDeme  
                           (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1))) 
                                       (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore 0 2 0.5 0 0.8))) ()))) (mkDemeId "1"))
 (= (rep) (mkRep (mkKbMap 
-                  (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap)))) 
-                  (mkDscMp (ConsMMap ((mkDiscSpec 1) (lsk1)) (ConsMMap ((mkDiscSpec 0) (lsk2)) (ConsMMap ((mkDiscSpec 1) (lsk3)) NilMMap))))) 
+                  (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ())))) 
+                  (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))) 
                   (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) 
                      (cons (mkTree (mkNode OR) 
                               (cons (mkTree (mkNode B) ()) 
@@ -301,8 +301,8 @@
 ;;        ttable2 is a truth table which doesn't have a 'D' column.
 !(assertEqual
   (demeToTrees (mkDeme (mkRep (mkKbMap 
-                                  (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap)))) 
-                                  (mkDscMp (ConsMMap ((mkDiscSpec 1) (lsk1)) (ConsMMap ((mkDiscSpec 0) (lsk2)) (ConsMMap ((mkDiscSpec 1) (lsk3)) NilMMap))))) 
+                                  (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ())))) 
+                                  (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))) 
                               (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) 
                                                       (cons (mkTree (mkNode OR) 
                                                           (cons (mkTree (mkNode B) ()) 
@@ -316,7 +316,7 @@
 
 ;; Testcase-2 for demeToTrees
 !(assertEqual 
-      (demeToTrees (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap)))) (mkDscMp (ConsMMap ((mkDiscSpec 1) (lsk1)) (ConsMMap ((mkDiscSpec 0) (lsk2)) (ConsMMap ((mkDiscSpec 1) (lsk3)) NilMMap))))) 
+      (demeToTrees (mkDeme (mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ())))) (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))) 
                   (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode C) ()) 
                           (cons (mkNullVex (cons (mkTree (mkNode D) ()) ())) ())))) ())))) 
                   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 2 ())))) (mkCscore -1 2 1 0 1))) 
@@ -484,7 +484,7 @@
                (mkBScore (cons 0 (cons 0 ()))))
             ()))
       (metaPop))
-      (ConsOS (mkExemplar (mkTree (mkNode A) ()) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (cons 0 (cons 0 ())))) (ConsOS (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ()))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (cons 0 (cons 0 ())))) (ConsOS (mkExemplar (mkTree (mkNode B) ()) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (cons 0 (cons 0 ())))) (ConsOS (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ())) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (cons 0 (cons 0 ())))) NilOS)))))
+      (cons (mkExemplar (mkTree (mkNode A) ()) (mkDemeId "1") (mkCscore -0.1 2 0.1 0.1 -0.3) (mkBScore (cons 0 (cons 0 ())))) (cons (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ()))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (cons 0 (cons 0 ())))) (cons (mkExemplar (mkTree (mkNode B) ()) (mkDemeId "1") (mkCscore -0.2 3 0.1 0.1 -0.4) (mkBScore (cons 0 (cons 0 ())))) (cons (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ())) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (cons 0 (cons 0 ())))) ())))))
 ; 
 ;; Testcase for mergeDemes
 ;; NOTE: All the instances in the deme don't include lsk1 (or they all start with '0') because we are testing it using ttable2. 
@@ -493,19 +493,19 @@
 
 !(assertEqual
    (mergeDemes ((mkDeme (mkRep 
-                        (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 3) (ConsMap ((mkNodeId (2)) 2) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (4)) 0) NilMap))))) 
-                                    (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) 
-                                             (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) 
-                                             (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) 
-                                             (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) NilMMap)))))) 
+                        (mkKbMap (mkDscKbMp (cons ((mkNodeId (1)) 3) (cons ((mkNodeId (2)) 2) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (4)) 0) ()))))) 
+                                    (mkDscMp (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) 
+                                             (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) 
+                                             (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) 
+                                             (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ())))))) 
                         (mkTree (mkNode AND) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) ())))))) 
                                                    (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 (cons 1 ()))))) (mkCscore 0 2 1.0 0.0 -1.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) (mkCscore -4 0 0.0 0.0 -4.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 0 (cons 2 ()))))) (mkCscore -3 1 0.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 0 (cons 1 ()))))) (mkCscore -1 1 0.5 0.0 -1.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) (mkCscore -4 0 0.0 0.0 -4.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 0 (cons 1 ()))))) (mkCscore -1 1 0.5 0.0 -1.5))) ()))))))) (mkDemeId "1.1")) 
                (mkDeme (mkRep 
-                           (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 3) (ConsMap ((mkNodeId (2)) 2) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (4)) 0) NilMap))))) 
-                              (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) 
-                                       (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) 
-                                       (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) 
-                                       (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) NilMMap)))))) 
+                           (mkKbMap (mkDscKbMp (cons ((mkNodeId (1)) 3) (cons ((mkNodeId (2)) 2) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (4)) 0) ()))))) 
+                              (mkDscMp (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) 
+                                       (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) 
+                                       (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) 
+                                       (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ())))))) 
 
                            (mkTree (mkNode AND) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) 
                                                 (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) 
@@ -519,30 +519,30 @@
                                                    (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 (cons 0 (cons 1 ()))))) (mkCscore -2 3 1.5 0.0 -3.5))) ())))))))) (mkDemeId "1.0"))) 
                                                    5 2 0 1 (ttable2) (metaPop) 3 0.004 1000)
 
-               (ConsOS (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) 
+               (cons (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) 
                                     (cons (mkTree (mkNode A) ()) ())) 
                                     (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) 
                                     (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) 
                                     (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) 
                                     (cons (mkTree (mkNode D) ()) ())) ())))) ()))) 
                                     (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (cons 0 (cons 0 ())))) 
-               (ConsOS (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode OR) 
+               (cons (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode OR) 
                                     (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) 
                                     (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) 
                                     (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ())) 
-                                    (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (cons 0 (cons 0 ())))) NilOS))
+                                    (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (cons 0 (cons 0 ())))) ()))
 )
 (= (testStrategyDeme)
    (mkDeme 
      (mkRep 
        (mkKbMap 
-         (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap)))
+         (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ())))
          (mkDscMp 
-           (ConsMMap ((mkDiscSpec 2) 
+           (cons ((mkDiscSpec 2) 
              (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
-           (ConsMMap ((mkDiscSpec 2) 
+           (cons ((mkDiscSpec 2) 
              (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
-           NilMMap))))
+           ()))))
        (mkTree (mkNode PRIORITIZED-OR) 
          (cons (mkTree (mkNode playwin) ()) 
                (cons (mkTree (mkNode playblock) ()) ()))))
@@ -554,13 +554,13 @@
    (mkDeme 
      (mkRep 
        (mkKbMap 
-         (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap)))
+         (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ())))
          (mkDscMp 
-           (ConsMMap ((mkDiscSpec 2) 
+           (cons ((mkDiscSpec 2) 
              (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
-           (ConsMMap ((mkDiscSpec 2) 
+           (cons ((mkDiscSpec 2) 
              (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
-           NilMMap))))
+           ()))))
        (mkTree (mkNode PRIORITIZED-OR) 
          (cons (mkTree (mkNode playcenter) ()) 
                (cons (mkTree (mkNode playside) ()) ()))))
@@ -571,5 +571,5 @@
               (cons (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playblock) ()) ()))) (mkDemeId "1") (mkCscore 5.0 2 0.571 0.0 4.429) (mkBScore (cons -1.0 ()))) ()))
 
 !(assertEqual (mergeDemes ((testStrategyDeme) (testStrategyDeme2)) 5 2 0 1 
-                  (1 random-player) NilOS 3 0.004 1000) 
-                  (ConsOS (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playside) ()) ()))) (mkDemeId "2") (mkCscore 6.0 2 0.571 0.0 5.429) (mkBScore (cons -1.0 ()))) NilOS))
+                  (1 random-player) () 3 0.004 1000) 
+                  (cons (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playside) ()) ()))) (mkDemeId "2") (mkCscore 6.0 2 0.571 0.0 5.429) (mkBScore (cons -1.0 ()))) ()))

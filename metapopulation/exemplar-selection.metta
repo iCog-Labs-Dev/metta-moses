@@ -15,8 +15,8 @@
 ; (: selectExemplar (-> (OS (Exemplar $a)) (Exemplar $a)))
 (= (selectExemplar $metaPop)
     (case $metaPop
-        ((NilOS (Error $metaPop (NO_EXEMPLAR)))
-        ((ConsOS $x NilOS) $x)
+        ((() (Error $metaPop (NO_EXEMPLAR)))
+        ((cons $x ()) $x)
         ($_ (let* (
                     ($probs (getPnScore $metaPop))
                     ($hstScr (List.max >= $probs))
@@ -30,12 +30,12 @@
                   (rouletteSelect $metaPop $normalizedProbs $sum) )))))
 
 ;; get penalized scores of all the exemplars as a list of Numbers
-;;      (ConsOS $x $xs) -- pattern for the list of exemplars constructed by cons
+;;      (cons $x $xs) -- pattern for the list of exemplars constructed by cons
 ;;      made use of deconstruction by pattern matching
 
 ; (: getPnScore (-> (OS (Exemplar $a)) (List Number)))
-(= (getPnScore NilOS) ())
-(= (getPnScore (ConsOS $x $xs))
+(= (getPnScore ()) ())
+(= (getPnScore (cons $x $xs))
    (let (mkExemplar $tree1 $demeId1 (mkCscore $scrr $cpxy $cpxyPen $uniPen $penScr) $bscr1) $x
         (cons $penScr (getPnScore $xs))))
 
