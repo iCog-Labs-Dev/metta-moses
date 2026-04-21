@@ -36,9 +36,7 @@
 ;; Get a pair from a Map using index
 (= (Map.getByIdx () $i) (Error () "Index out of bounds"))
 (= (Map.getByIdx $map $i)
-   (if (or (< $i 0) (>= $i (size-atom $map)))
-       (Error () "Index out of bounds")
-       (index-atom $map $i)))
+   (List.getByIdx $map $i))
 
 ;; Check if a key is in the Map
 (= (Map.contains $key ()) False)

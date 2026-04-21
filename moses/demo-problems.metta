@@ -240,4 +240,3 @@
       )
       (FinalResult $newR)))
 
-

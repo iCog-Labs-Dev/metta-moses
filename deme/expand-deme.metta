@@ -141,9 +141,7 @@ $optimDeme
 
 
 ;; Some helpers specific to final testing
-(= (mapG $f ()) ())
-(= (mapG $f ()) ())
-(= (mapG $f ($ctor $x $xs)) ($ctor ($f $x) (mapG $f $xs)))
+(= (mapG $f $xs) (map-atom $xs $f))
 
 (= (printExemplar (mkExemplar $tree $demeId $cscore $bscore)) (println! (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore)))
 (= (cleanedExemplar (mkExemplar $tree $demeId $cscore (mkBScore $bscore))) ((preOrder $tree) (List.sum $bscore)))

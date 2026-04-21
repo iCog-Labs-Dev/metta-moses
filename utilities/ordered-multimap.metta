@@ -13,10 +13,7 @@
 
 ;; Get the key value pair given an index.
 (= (MultiMap.getByIdx $idx ()) (Error () (Can't find $idx)))
-(= (MultiMap.getByIdx $idx $mmap)
-   (if (or (< $idx 0) (>= $idx (size-atom $mmap)))
-       (Error () (Can't find $idx))
-       (index-atom $mmap $idx)))
+(= (MultiMap.getByIdx $idx $mmap) (List.getByIdx $mmap $idx))
 
 ;; Get the first found value with the given key from the Ordered multimap using key
 (= (MultiMap.findOne $key ()) (Error $key "not found"))
