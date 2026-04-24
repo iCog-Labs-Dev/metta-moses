@@ -70,21 +70,8 @@
 (= (MultiMap.checkElement $element $mmap)
    (is-member $element $mmap))
 
-;; Remove the first exact matching element from a multimap represented as a pair list.
-(= (MultiMap.removeElement $element ()) (Error $element "not found"))
-(= (MultiMap.removeElement $element (cons $head $tail))
-   (if (== $element $head)
-       $tail
-       (chain (MultiMap.removeElement $element $tail) $res
-         (if-error $res $res (cons-atom $head $res)))))
-
 ;; Check if two multimaps are equal regardless of the order of the elements
-(= (MultiMap.equals () $mm2) (== (MultiMap.length $mm2) 0))
-(= (MultiMap.equals $mm1 ()) False)
-(= (MultiMap.equals (cons $x $xs) $mm2)
-   (if (== (MultiMap.length (cons $x $xs)) (MultiMap.length $mm2))
-       (if (MultiMap.checkElement $x $mm2)
-           (chain (MultiMap.removeElement $x $mm2) $rest
-             (if-error $rest False (MultiMap.equals $xs $rest)))
-           False)
-       False))
+(= (MultiMap.equals $mm1 $mm2)
+   (and (== (MultiMap.length $mm1) (MultiMap.length $mm2))
+        (and (== (subtraction-atom $mm1 $mm2) ())
+             (== (subtraction-atom $mm2 $mm1) ()))))

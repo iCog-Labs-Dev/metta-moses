@@ -73,4 +73,4 @@
 
 !(import! &self ../demo-problems)
 
-!(runDemoProblem 0 2 1 None majority3)
+!(runDemoProblem 0 10 1 None mux6)

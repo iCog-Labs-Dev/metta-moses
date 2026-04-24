@@ -948,23 +948,12 @@
        (mkBScore (coll.append $list $el))
        (Error $el "BScore.append expects Number")))
 
-;; Map — insert pair ($k $v) (constructor-specific)
-(= (coll.append () ($k $v)) (eval (Map.insert ($k $v) ())))
-(= (coll.append (cons $pair $tail) ($k $v)) (eval (Map.insert ($k $v) (cons $pair $tail))))
-
-;; MultiMap — insert pair ($k $v) (constructor-specific)
-;; Added `eval` to ensure internal functions from other files are properly resolved during parsing.
-;; Without it, PeTTa only executes functions defined in the current file and skips external ones.
-(= (coll.append () ($k $v)) (eval (MultiMap.insert ($k $v) ())))
-(= (coll.append (cons $pair $tail) ($k $v)) (eval (MultiMap.insert ($k $v) (cons $pair $tail))))
-
 ;; Ordered Multiset — insert element
 (= (coll.append NilOMS $el) (eval (OMS.insert $el NilOMS)))
 (= (coll.append (ConsOMS $x $xs) $el) (eval (OMS.insert $el (ConsOMS $x $xs))))
 
-;; Ordered Set — requires comparator; cannot infer here
-(= (coll.append () $el) (Error (() $el) "Use OS.insert with comparator"))
-(= (coll.append (cons $x $xs) $el) (Error ((cons $x $xs) $el) "Use OS.insert with comparator"))
+;; Ordered Set insertion should stay explicit through `OS.insert` because raw cons-lists
+;; are also used for normal lists and pair-backed containers after the cons migration.
 
 ;; Deme — append ScoredInstance to its InstanceSet
 (= (coll.append (mkDeme $rep (mkSInstSet $list) $demeId) $el)
@@ -1048,7 +1037,7 @@
 (= (coll.contains () $el) False)
 (= (coll.contains (cons $x $xs) $el) (eval (OS.contains (cons $x $xs) $el)))
 (= (coll.contains NilOMS $el) False)
-(= (coll.contains (ConsOMS $x $xs) $el) (eval (OMS.contains $el (ConsOMS $x $xs))))
+(= (coll.contains (ConsOMS $x $xs) $el) (OMS.contains $el (ConsOMS $x $xs)))
 
 ;; Wrappers — delegate to inner lists
 (= (coll.contains (mkInst $list) $el) (coll.contains $list $el))
@@ -1065,16 +1054,8 @@
 (= (coll.getByIdx (cons $h $t) $i) (eval (List.getByIdx (cons $h $t) $i)))
 (= (coll.getByIdx () $i) (Error $i "Index out of range"))
 
-;; Map / MultiMap — pair access
-(= (coll.getByIdx (cons $pair $tail) $i) (Map.getByIdx (cons $pair $tail) $i))
-(= (coll.getByIdx () $i) (Error $i "Index out of range"))
-(= (coll.getByIdx (cons $pair $tail) $i) (MultiMap.getByIdx $i (cons $pair $tail)))
-(= (coll.getByIdx () $i) (Error $i "Index out of range"))
-
-;; OS / OMS — delegate
-(= (coll.getByIdx (cons $x $xs) $i) (eval (OS.getByIdx $i (cons $x $xs))))
-(= (coll.getByIdx () $i) (Error $i "Index out of range"))
-(= (coll.getByIdx (ConsOMS $x $xs) $i) (eval (OMS.getByIdx $i (ConsOMS $x $xs))))
+;; OMS — delegate
+(= (coll.getByIdx (ConsOMS $x $xs) $i) (OMS.getByIdx $i (ConsOMS $x $xs)))
 (= (coll.getByIdx NilOMS $i) (Error $i "Index out of range"))
 
 ;; Wrappers — delegate to inner lists

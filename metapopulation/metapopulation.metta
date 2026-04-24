@@ -20,7 +20,7 @@
 
 ; (: resizeMetapop (-> (OS (Exemplar $a)) Number Number Number Number Number (OS (Exemplar $a))))
 (= (resizeMetapop (cons $exemplar $rest) $nToKeep $minPoolSize $compTemp $capCoef $genCount)
-    (let ($size $capSize) ((OS.length (cons $exmplar $rest)) (int (capSize $capCoef $genCount))) ;; bind two variables with two function calls 
+    (let ($size $capSize) ((OS.length (cons $exemplar $rest)) (int (capSize $capCoef $genCount))) ;; bind two variables with two function calls 
         (if (<= $size $minPoolSize)
             (cons $exemplar $rest)         
             (let*

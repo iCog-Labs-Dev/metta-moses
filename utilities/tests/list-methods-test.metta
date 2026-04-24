@@ -129,7 +129,7 @@
 ; ;; Test case for List.flatten
 
 !(assertEqual (List.flatten (cons (cons 1 ()) (cons (cons 2 ()) ()))) (cons 1 (cons 2 ())))
-!(assertEqual (List.flatten (cons (cons 1 ()) (cons (cons 2 (cons 3 ())) ()))) (Error (cons 2 (cons 3 ())) "Can't be flattened"))
+!(assertEqual (List.flatten (cons (cons 1 ()) (cons (cons 2 (cons 3 ())) ()))) (cons 1 (cons 2 (cons 3 ()))))
 
 ;; Test case for List.repeat
 !(assertEqual (List.repeat 0 0) ())

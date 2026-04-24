@@ -35,7 +35,9 @@
     (if (== $index 0)
         $xs
         (chain (OS.removeByIdx $xs (- $index 1)) $res
-          (if-error $res $res (cons-atom $x $res)))))
+          (if (== $res ())
+              ($x)
+              (if-error $res $res (cons-atom $x $res))))))
 
 ;; Check if an Exemplar is a member of an ordered set
 (= (OS.isMember $exemplar $os) (OS.contains $os $exemplar))
