@@ -17,14 +17,14 @@
                     ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
                     ;; ($_ (println! (SampleSize: $sampleSize NToMake: $nToMakeNew SampleStart: $sampleStart totalSize: (List.length $instSet))))
                     (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
-                    ($list (List.partialSort instance> $newInst $nToMakeNew Nil)) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
+                    ($list (List.partialSort instance> $newInst $nToMakeNew ())) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
                     ;; ($_ (println! (ListLength: (List.length $list))))
                   )
-                  (if (== $list Nil)
+                  (if (== $list ())
                       (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId)
                       (let*
                         (
-                          ((Cons $reference $rest) $list)
+                          ((cons $reference $rest) $list)
                           ($targetInstances (List.takeN (- $nToMake 1) $rest))
                           ($targetExpr (List.listToExpr $targetInstances))
 
@@ -47,15 +47,15 @@
            ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
            ;; ($_ (println! (NToMake: $nToMakeNew)))
            (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
-           ($list (List.partialSort instanceFs>= $newInst $nToMakeNew Nil)) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
+           ($list (List.partialSort instanceFs>= $newInst $nToMakeNew ())) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
            ;; ($_ (println! (New instances After merging: $newInstances)))
            ;; ($_ (println! ""))
          )
-         (if (== $list Nil)
+         (if (== $list ())
              (mkSInstSet $instSet)
              (let*
                (
-                 ((Cons $reference $rest) $list)
+                 ((cons $reference $rest) $list)
                  ($targetInstances (List.takeN (- $nToMake 1) $rest))
                  ($targetExpr (List.listToExpr $targetInstances))
 

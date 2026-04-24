@@ -6,5 +6,5 @@
 (= (exprToList $expr)  (py_exprToList $expr))
 (= (listToExpr $expr) (py_listToExpr $expr))
 
-!(assertEqual (exprToList (A B C)) (Cons A (Cons B (Cons C Nil))))
-!(assertEqual (listToExpr (Cons A (Cons B (Cons C Nil)))) (A B C))
+!(assertEqual (exprToList (A B C)) (cons A (cons B (cons C ()))))
+!(assertEqual (listToExpr (cons A (cons B (cons C ())))) (A B C))

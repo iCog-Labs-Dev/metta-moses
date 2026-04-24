@@ -3,7 +3,7 @@
 ; (: Deme Type)
 ; (: mkDeme (-> Representation (InstanceSet $score) DemeId Deme))
 ;; createDeme create demes with empty instance set -- appends deme ID's to them as well
-;;             $demeIds --    list of deme ids (Cons ...)
+;;             $demeIds --    list of deme ids (cons ...)
 ;;             $exemplar --   the exemplar tree which the demes are going to be based on 
 ;;             $table    --   table of input data 
 ;;             $algo     --   the chosen feature selection algo
@@ -23,7 +23,7 @@
 )
 ;; Game strategy createDeme - creates demes with empty instance sets for game strategies
 ;;             $nDeme --      number of demes to create
-;;             $demeIds --    list of deme ids (Cons ...)
+;;             $demeIds --    list of deme ids (cons ...)
 ;;             $exemplar --   the exemplar tree which the demes are going to be based on 
 ;;             returns ↠ tuple of demes
 ; (: createDeme (-> Number (List DemeId) (Tree $a) Expression))
@@ -47,13 +47,13 @@
             ($t (cdr-atom $reps)))
          (let* (
                  ($demeId (List.head $demeIds)) 
-                 ($deme (mkDeme $h (mkSInstSet Nil) $demeId))
+                 ($deme (mkDeme $h (mkSInstSet ()) $demeId))
                  ($new-acc (union-atom $acc ($deme))))     
                (loopCreateDeme (List.tail $demeIds) $t $new-acc)))))
 ;; previous version of loopCreateDeme using if-decons-expr-custom
 ;       (if-decons-expr-custom $reps $h $t
 ;             (let* (($demeId (List.head $demeIds)) 
-;                    ($deme (mkDeme $h (mkSInstSet Nil) $demeId))
+;                    ($deme (mkDeme $h (mkSInstSet ()) $demeId))
 ;                    ($new-acc (union-atom $acc ($deme))))
                   
 ;                   (loopCreateDeme (List.tail $demeIds) $t $new-acc))

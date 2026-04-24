@@ -25,12 +25,12 @@
 
 ; (: preOrder (-> (Tree $a) $a))
 
-(= (preOrder (mkTree (mkNode $r) Nil)) (if (is-member $r (AND OR)) ($r) $r))
+(= (preOrder (mkTree (mkNode $r) ())) (if (is-member $r (AND OR)) ($r) $r))
 (= (preOrder (mkNullVex $knobs)) ())
-(= (preOrder (mkTree (mkNode $r) (Cons $x $xs)))
+(= (preOrder (mkTree (mkNode $r) (cons $x $xs)))
      (let*
          (
-           ($lc  (List.map preOrder (Cons $x $xs)))
+           ($lc  (List.map preOrder (cons $x $xs)))
            ($lc' (List.filter (compose not isUnit) $lc))
            ($lcE (List.listToExpr $lc'))
            ;; (()   (println! (Root: $r Children: $lc Children': $lc' Expression: $lcE)))
@@ -39,7 +39,7 @@
          $exp)
 )
 
-(= (preOrderDebug (mkTree (mkNode $r) Nil)) (if (is-member $r (AND OR)) ($r) $r))
+(= (preOrderDebug (mkTree (mkNode $r) ())) (if (is-member $r (AND OR)) ($r) $r))
 (= (preOrderDebug (mkNullVex $knobs))
    (let*
      (
@@ -51,10 +51,10 @@
      (cons-atom |- $expn)
    )
 )
-(= (preOrderDebug (mkTree (mkNode $r) (Cons $x $xs)))
+(= (preOrderDebug (mkTree (mkNode $r) (cons $x $xs)))
      (let*
          (
-           ($lc  (List.map preOrderDebug (Cons $x $xs)))
+           ($lc  (List.map preOrderDebug (cons $x $xs)))
            ($lcE (List.listToExpr $lc))
            ;; (()   (println! (Root: $r Children: $lc Children': $lc' Expression: $lcE)))
            ($exp (cons-atom $r $lcE))
@@ -69,7 +69,7 @@
         (if (== (get-metatype $expr) Expression)
             ; (let ($head $tail) (decons-atom $expr)
             ;     (mkTree (mkNode $head) (exprToList (map buildTree $tail))))
-            ; (mkTree (mkNode $expr) Nil)
+            ; (mkTree (mkNode $expr) ())
             (let* (
               ;; ($_ (println! (-----------------------)))
               ;; ($_ (println! (Inside buildTree with expr: $expr)))
@@ -80,7 +80,7 @@
             )
             (mkTree (mkNode $head) $children)
             )
-            (mkTree (mkNode $expr) Nil)
+            (mkTree (mkNode $expr) ())
         )
             )
 
@@ -191,7 +191,7 @@
 ; (: insertAbove (-> (Tree $a) (Node $n) (Tree $a)))
 
 (= (insertAbove $tree $node)
-   (mkTree $node (Cons $tree Nil))
+   (mkTree $node (cons $tree ()))
 )
 
 ;; Replaces a subtree at a specific NodeId with a new subtree.
@@ -228,8 +228,8 @@
 ;; Returns:
 ;;   ((Tree $a) NodeId) - Tuple of updated tree and NodeId of the new child.
 ;;(: appendChild (-> (Tree $a) NodeId (Tree $a) ((Tree $a) NodeId)))
-(= (appendChild (mkNullVex Nil) $targetId $child) ($child (mkNodeId (0))))
-(= (appendChild (mkNullVex (Cons $x $xs)) $targetId $child) (Error (mkNullVex (Cons $x $xs)) "Null vertex can't have more than one child"))
+(= (appendChild (mkNullVex ()) $targetId $child) ($child (mkNodeId (0))))
+(= (appendChild (mkNullVex (cons $x $xs)) $targetId $child) (Error (mkNullVex (cons $x $xs)) "Null vertex can't have more than one child"))
 (= (appendChild (mkTree $node $children) (mkNodeId $target) $child)
    (let*
       (
@@ -265,10 +265,10 @@
 
 (= (insertNodeAtPosition $tree (mkNodeId $id) $newNode)
    (if (or (== $id ()) (== (mkNodeId $id) (mkNodeId (0))))
-       (mkTree $newNode (Cons $tree Nil))
+       (mkTree $newNode (cons $tree ()))
        (let* (
                ($oldNode (getNodeById $tree (mkNodeId $id)))
-               ($newSubtree (mkTree $newNode (Cons $oldNode Nil)))
+               ($newSubtree (mkTree $newNode (cons $oldNode ())))
              )
              (replaceNodeById $tree (mkNodeId $id) $newSubtree))))
 ;; check if tree is empty
@@ -277,7 +277,7 @@
 
 (= (isEmpty $tree)
     (case $tree
-        (((mkNullVex Nil) True)
+        (((mkNullVex ()) True)
         ($else False))))
         
 ;; check if tree is null vertex 
@@ -296,7 +296,7 @@
 
 (= (isArgument (mkNullVex $x)) False)
 (= (isArgument (mkTree (mkNode $x) $children))
-   (and (not (is-member $x (AND OR NOT PRIORITIZED-OR))) (== $children Nil)))
+   (and (not (is-member $x (AND OR NOT PRIORITIZED-OR))) (== $children ())))
 
 ;; A function to calculate the complexity of a tree.
 ;;  The complexity of a tree is the number of arguments it contains.
@@ -326,15 +326,15 @@
 (= (extractArgs (mkTree (mkNode $node) $children))
     (if (is-member $node (AND OR NOT))
         (extractArgsFromList $children)         ;; if it's an operator, collect args from children
-        (Cons $node Nil)))                       ;; else it's a literal, return it in a singleton list
+        (cons $node ())))                       ;; else it's a literal, return it in a singleton list
     
 
 ;; apply the above function recursively accross the tree's children        
 
 ; (: extractArgsFromList (-> (List (Tree $a)) (List Symbol)))
 
-(= (extractArgsFromList Nil) Nil)
-(= (extractArgsFromList (Cons $head $tail))
+(= (extractArgsFromList ()) ())
+(= (extractArgsFromList (cons $head $tail))
     (List.appendList (extractArgsFromList $tail) (extractArgs $head)))   
 
 ;; treeFtsIndices -- extract integer indices of literals used in a tree
@@ -355,5 +355,5 @@
     (if (is-member $node (AND OR NOT))
         (mkTree (mkNode $node) (List.mapOverArg removeLiteral $children $symbol))
         (if (== $node $symbol)
-            Nil
-            (mkTree (mkNode $node) Nil))))
+            ()
+            (mkTree (mkNode $node) ()))))

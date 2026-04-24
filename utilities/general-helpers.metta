@@ -136,26 +136,25 @@
     ;   )
       (if (== () (subtraction-atom $old $list)) 
         $new
-      (collapse (eval (replace $old $new (superpose $list)))))
+        (map-atom $list $a (replace $old $new $a))
+      )
     ; )
 )
 
 ;; A function that behaves like a do while loop.
 ;; It executes the functions in the given list and returns the last result.
 ;; (: until (-> (-> $a Bool) (-> $a $a) $a $a))
-(= (until $predicate $function $x) 
-    (let* ( 
-        ; (() (println! (Inside until with function: $function ...)))
+;; Disable in favor of PeTTa native `until` lowering/runtime implementation.
+(= (until $predicate $function $x)
+    (let* (
         ($isTrue (eval ($predicate $x)))
-        ; (() (println! (Predicate result: $isTrue)))
-        ; ($x' ($function $x))
         ($x' (if (== $isTrue true) ("Predicate True Skipping Function Application") ($function $x)))
-        ; (() (println! (Function result: $x')))
     )
     (if (== $isTrue true)
         $x
         (eval (until $predicate $function $x')))
     ))
+
 ;; A foldleft function like the implementation in Haskell.
 ;; It takes a binary function that expects two atoms and
 ;;    apply it recursively on a nested atom.
@@ -659,9 +658,9 @@
 ;;
 ;; the following is defined in list-methods.metta as well
 ; (: List.sum (-> (-> $a $a $a) (List $a) $a))
-; (= (List.sum $adder Nil) Nil)
-; (= (List.sum $adder (Cons $x $xs))
-;     (if (== $xs Nil)
+; (= (List.sum $adder ()) ())
+; (= (List.sum $adder (cons $x $xs))
+;     (if (== $xs ())
 ;         $x
 ;         (let $c (List.sum $adder $xs)
 ;             ($adder $x $c))))
@@ -693,11 +692,11 @@
 ;; (: . (-> (-> $b $c) (-> $a $b) (-> $a $c)))
 ;; (= ((. $g $f) $x) ($g ($f $x)));in petta . is internally used by Prolog for building lists and dicts and what it does is the same for compose function.
 
-;; Convert an expression to a list   e.g (A B C) -> (Cons A (Cons B (Cons C Nil)))
+;; Convert an expression to a list   e.g (A B C) -> (cons A (cons B (cons C ())))
 (= (exprToList $expr)
     (if (== $expr ())
-        Nil
-        (let ($head $tail) (decons-atom $expr)  (Cons $head (exprToList $tail)))
+        ()
+        (let ($head $tail) (decons-atom $expr)  (cons $head (exprToList $tail)))
     )
 )
 
@@ -710,9 +709,9 @@
 (= (second ($a $b)) $b)
 
 ;; Converts a tuple of pairs into ordered multimap
-;; Ex: ((k1 v1) (k2 v2)) -> (ConsMMap (k1 v1) (ConsMMap (k2 v2) NilMMap))
+;; Ex: ((k1 v1) (k2 v2)) -> (cons (k1 v1) (cons (k2 v2) ()))
 ;; (: expToMMap (-> Expression (MultiMap ($k $v)) (-> $k $k Bool) (MultiMap ($k $v))))
-(= (expToMMap () $map $compFunc) NilMMap)
+(= (expToMMap () $map $compFunc) ())
 (= (expToMMap $tuple $map $compFunc)
 (let*
 (
@@ -900,20 +899,20 @@
 ;; Without it, PeTTa only executes functions defined in the current file and skips external ones.
 
 ;; List ADT — constructor-specific to avoid ambiguous matches
-(= (coll.length Nil) 0)
-(= (coll.length (Cons $h $t)) (eval (List.length (Cons $h $t))))
+(= (coll.length ()) 0)
+(= (coll.length (cons $h $t)) (eval (List.length (cons $h $t))))
 
 ;; Map — constructor-specific
-(= (coll.length NilMap) 0)
-(= (coll.length (ConsMap $pair $tail)) (eval (Map.length (ConsMap $pair $tail))))
+(= (coll.length ()) 0)
+(= (coll.length (cons $pair $tail)) (eval (Map.length (cons $pair $tail))))
 
 ;; MultiMap — constructor-specific
-(= (coll.length NilMMap) 0)
-(= (coll.length (ConsMMap $pair $tail)) (eval (MultiMap.length (ConsMMap $pair $tail))))
+(= (coll.length ()) 0)
+(= (coll.length (cons $pair $tail)) (eval (MultiMap.length (cons $pair $tail))))
 
 ;; Ordered Set — constructor-specific
-(= (coll.length NilOS) 0)
-(= (coll.length (ConsOS $x $xs)) (eval (OS.length (ConsOS $x $xs))))
+(= (coll.length ()) 0)
+(= (coll.length (cons $x $xs)) (eval (OS.length (cons $x $xs))))
 
 ;; Ordered Multiset — constructor-specific
 (= (coll.length NilOMS) 0)
@@ -931,8 +930,8 @@
 ; (: coll.append (-> $coll $el $coll))
 
 ;; List ADT (append to tail)
-(= (coll.append Nil $el) (Cons $el Nil))
-(= (coll.append (Cons $h $t) $el) (Cons $h (coll.append $t $el)))
+(= (coll.append () $el) (cons $el ()))
+(= (coll.append (cons $h $t) $el) (cons $h (coll.append $t $el)))
 
 ;; Instance — append Number to underlying list
 (= (coll.append (mkInst $list) $el)
@@ -950,23 +949,12 @@
        (mkBScore (coll.append $list $el))
        (Error $el "BScore.append expects Number")))
 
-;; Map — insert pair ($k $v) (constructor-specific)
-(= (coll.append NilMap ($k $v)) (eval (Map.insert ($k $v) NilMap)))
-(= (coll.append (ConsMap $pair $tail) ($k $v)) (eval (Map.insert ($k $v) (ConsMap $pair $tail))))
-
-;; MultiMap — insert pair ($k $v) (constructor-specific)
-;; Added `eval` to ensure internal functions from other files are properly resolved during parsing.
-;; Without it, PeTTa only executes functions defined in the current file and skips external ones.
-(= (coll.append NilMMap ($k $v)) (eval (MultiMap.insert ($k $v) NilMMap)))
-(= (coll.append (ConsMMap $pair $tail) ($k $v)) (eval (MultiMap.insert ($k $v) (ConsMMap $pair $tail))))
-
 ;; Ordered Multiset — insert element
 (= (coll.append NilOMS $el) (eval (OMS.insert $el NilOMS)))
 (= (coll.append (ConsOMS $x $xs) $el) (eval (OMS.insert $el (ConsOMS $x $xs))))
 
-;; Ordered Set — requires comparator; cannot infer here
-(= (coll.append NilOS $el) (Error (NilOS $el) "Use OS.insert with comparator"))
-(= (coll.append (ConsOS $x $xs) $el) (Error ((ConsOS $x $xs) $el) "Use OS.insert with comparator"))
+;; Ordered Set insertion should stay explicit through `OS.insert` because raw cons-lists
+;; are also used for normal lists and pair-backed containers after the cons migration.
 
 ;; Deme — append ScoredInstance to its InstanceSet
 (= (coll.append (mkDeme $rep (mkSInstSet $list) $demeId) $el)
@@ -982,9 +970,9 @@
 (: coll.remove (-> $coll $el $coll))
 
 ;; List ADT — remove first occurrence
-(= (coll.remove Nil $el) Nil)
-(= (coll.remove (Cons $h $t) $el)
-   (if (== $h $el) $t (Cons $h (coll.remove $t $el))))
+(= (coll.remove () $el) ())
+(= (coll.remove (cons $h $t) $el)
+   (if (== $h $el) $t (cons $h (coll.remove $t $el))))
 
 ;; Instance — remove first occurrence of Number
 (= (coll.remove (mkInst $list) $el)
@@ -1006,25 +994,25 @@
 ;; Added `eval` to ensure internal functions from other files are properly resolved during parsing.
 ;; Without it, PeTTa only executes functions defined in the current file and skips external ones.
 
-(= (coll.remove NilMap ($k $v)) NilMap)
-(= (coll.remove (ConsMap $pair $tail) ($k $v)) (eval (Map.remove $k (ConsMap $pair $tail))))
-(= (coll.remove NilMap $k) NilMap)
-(= (coll.remove (ConsMap $pair $tail) $k) (eval (Map.remove $k (ConsMap $pair $tail))))
+(= (coll.remove () ($k $v)) ())
+(= (coll.remove (cons $pair $tail) ($k $v)) (eval (Map.remove $k (cons $pair $tail))))
+(= (coll.remove () $k) ())
+(= (coll.remove (cons $pair $tail) $k) (eval (Map.remove $k (cons $pair $tail))))
 
 ;; MultiMap — remove by key; if pair given, remove one; if key given, remove all
-(= (coll.remove NilMMap ($k $v)) NilMMap)
-(= (coll.remove (ConsMMap $pair $tail) ($k $v)) (eval (MultiMap.removeOne $k (ConsMMap $pair $tail))))
-(= (coll.remove NilMMap $k) NilMMap)
-(= (coll.remove (ConsMMap $pair $tail) $k) (eval (MultiMap.removeAll $k (ConsMMap $pair $tail))))
+(= (coll.remove () ($k $v)) ())
+(= (coll.remove (cons $pair $tail) ($k $v)) (eval (MultiMap.removeOne $k (cons $pair $tail))))
+(= (coll.remove () $k) ())
+(= (coll.remove (cons $pair $tail) $k) (eval (MultiMap.removeAll $k (cons $pair $tail))))
 
 ;; Ordered Multiset — remove one occurrence (constructor-specific)
 (= (coll.remove NilOMS $el) NilOMS)
 (= (coll.remove (ConsOMS $x $xs) $el) (eval (OMS.remove $el (ConsOMS $x $xs))))
 
 ;; Ordered Set — remove first matching element
-(= (coll.remove NilOS $el) NilOS)
-(= (coll.remove (ConsOS $x $xs) $el)
-   (if (== $x $el) $xs (ConsOS $x (coll.remove $xs $el))))
+(= (coll.remove () $el) ())
+(= (coll.remove (cons $x $xs) $el)
+   (if (== $x $el) $xs (cons $x (coll.remove $xs $el))))
 
 ;; Deme — remove one ScoredInstance from its InstanceSet
 (= (coll.remove (mkDeme $rep (mkSInstSet $list) $demeId) $el)
@@ -1036,21 +1024,21 @@
 ; (: coll.contains (-> $coll $key Bool))
 
 ;; List — linear search
-(= (coll.contains Nil $el) False)
-(= (coll.contains (Cons $h $t) $el) (if (== $h $el) True (coll.contains $t $el)))
+(= (coll.contains () $el) False)
+(= (coll.contains (cons $h $t) $el) (if (== $h $el) True (coll.contains $t $el)))
 
 ;; Map / MultiMap / OS / OMS — delegate
 ;; Added `eval` to ensure internal functions from other files are properly resolved during parsing.
 ;; Without it, PeTTa only executes functions defined in the current file and skips external ones.
 
-(= (coll.contains NilMap $key) False)
-(= (coll.contains (ConsMap $pair $tail) $key) (eval (Map.contains $key (ConsMap $pair $tail))))
-(= (coll.contains NilMMap $key) False)
-(= (coll.contains (ConsMMap $pair $tail) $key) (eval (MultiMap.contains $key (ConsMMap $pair $tail))))
-(= (coll.contains NilOS $el) False)
-(= (coll.contains (ConsOS $x $xs) $el) (eval (OS.contains (ConsOS $x $xs) $el)))
+(= (coll.contains () $key) False)
+(= (coll.contains (cons $pair $tail) $key) (eval (Map.contains $key (cons $pair $tail))))
+(= (coll.contains () $key) False)
+(= (coll.contains (cons $pair $tail) $key) (eval (MultiMap.contains $key (cons $pair $tail))))
+(= (coll.contains () $el) False)
+(= (coll.contains (cons $x $xs) $el) (eval (OS.contains (cons $x $xs) $el)))
 (= (coll.contains NilOMS $el) False)
-(= (coll.contains (ConsOMS $x $xs) $el) (eval (OMS.contains $el (ConsOMS $x $xs))))
+(= (coll.contains (ConsOMS $x $xs) $el) (OMS.contains $el (ConsOMS $x $xs)))
 
 ;; Wrappers — delegate to inner lists
 (= (coll.contains (mkInst $list) $el) (coll.contains $list $el))
@@ -1064,19 +1052,11 @@
 ; (: coll.getByIdx (-> $coll Number $el))
 
 ;; List — from List methods
-(= (coll.getByIdx (Cons $h $t) $i) (eval (List.getByIdx (Cons $h $t) $i)))
-(= (coll.getByIdx Nil $i) (Error $i "Index out of range"))
+(= (coll.getByIdx (cons $h $t) $i) (eval (List.getByIdx (cons $h $t) $i)))
+(= (coll.getByIdx () $i) (Error $i "Index out of range"))
 
-;; Map / MultiMap — pair access
-(= (coll.getByIdx (ConsMap $pair $tail) $i) (Map.getByIdx (ConsMap $pair $tail) $i))
-(= (coll.getByIdx NilMap $i) (Error $i "Index out of range"))
-(= (coll.getByIdx (ConsMMap $pair $tail) $i) (MultiMap.getByIdx $i (ConsMMap $pair $tail)))
-(= (coll.getByIdx NilMMap $i) (Error $i "Index out of range"))
-
-;; OS / OMS — delegate
-(= (coll.getByIdx (ConsOS $x $xs) $i) (eval (OS.getByIdx $i (ConsOS $x $xs))))
-(= (coll.getByIdx NilOS $i) (Error $i "Index out of range"))
-(= (coll.getByIdx (ConsOMS $x $xs) $i) (eval (OMS.getByIdx $i (ConsOMS $x $xs))))
+;; OMS — delegate
+(= (coll.getByIdx (ConsOMS $x $xs) $i) (OMS.getByIdx $i (ConsOMS $x $xs)))
 (= (coll.getByIdx NilOMS $i) (Error $i "Index out of range"))
 
 ;; Wrappers — delegate to inner lists
@@ -1091,32 +1071,32 @@
 ;; Without it, PeTTa only executes functions defined in the current file and skips external ones.
 
 ; (: coll.keys (-> $map (List $k)))
-(= (coll.keys NilMap) Nil)
-(= (coll.keys (ConsMap $pair $tail)) (eval (Map.keys (ConsMap $pair $tail))))
+(= (coll.keys ()) ())
+(= (coll.keys (cons $pair $tail)) (eval (Map.keys (cons $pair $tail))))
 
 ; (: coll.values (-> $map (List $v)))
-(= (coll.values NilMap) Nil)
-(= (coll.values (ConsMap $pair $tail)) (eval (Map.values (ConsMap $pair $tail))))
+(= (coll.values ()) ())
+(= (coll.values (cons $pair $tail)) (eval (Map.values (cons $pair $tail))))
 
 ; (: coll.items (-> $map (List ($k $v))))
-(= (coll.items NilMap) Nil)
-(= (coll.items (ConsMap $pair $tail)) (eval (Map.items (ConsMap $pair $tail))))
+(= (coll.items ()) ())
+(= (coll.items (cons $pair $tail)) (eval (Map.items (cons $pair $tail))))
 
 ; (: coll.find (-> $map $k Number))
-(= (coll.find NilMap $k) -1)
-(= (coll.find (ConsMap $pair $tail) $k) (eval (Map.find (ConsMap $pair $tail) $k)))
+(= (coll.find () $k) -1)
+(= (coll.find (cons $pair $tail) $k) (eval (Map.find (cons $pair $tail) $k)))
 
 ; (: coll.getByKey (-> $map $k $v))
-(= (coll.getByKey (ConsMap $pair $tail) $k) (eval (Map.getByKey $k (ConsMap $pair $tail))))
-(= (coll.getByKey NilMap $k) (Error $k "not found"))
+(= (coll.getByKey (cons $pair $tail) $k) (eval (Map.getByKey $k (cons $pair $tail))))
+(= (coll.getByKey () $k) (Error $k "not found"))
 
 ; (: coll.findOne (-> $mmap $k $v))
-(= (coll.findOne (ConsMMap $pair $tail) $k) (eval (MultiMap.findOne $k (ConsMMap $pair $tail))))
-(= (coll.findOne NilMMap $k) (Error $k "not found"))
+(= (coll.findOne (cons $pair $tail) $k) (eval (MultiMap.findOne $k (cons $pair $tail))))
+(= (coll.findOne () $k) (Error $k "not found"))
 
 ; (: coll.findAll (-> $mmap $k (List $v)))
-(= (coll.findAll (ConsMMap $pair $tail) $k) (eval (MultiMap.findAll $k (ConsMMap $pair $tail))))
-(= (coll.findAll NilMMap $k) Nil)
+(= (coll.findAll (cons $pair $tail) $k) (eval (MultiMap.findAll $k (cons $pair $tail))))
+(= (coll.findAll () $k) ())
 
 ;;
 ;; Index-based removal (where supported)
@@ -1124,12 +1104,12 @@
 (: coll.removeByIdx (-> $coll Number $coll))
 
 ;; List — via List.removeAtIdx
-(= (coll.removeByIdx (Cons $h $t) $i) (eval (List.removeAtIdx (Cons $h $t) $i)))
-(= (coll.removeByIdx Nil $i) (Error "empty/idx out of range"))
+(= (coll.removeByIdx (cons $h $t) $i) (eval (List.removeAtIdx (cons $h $t) $i)))
+(= (coll.removeByIdx () $i) (Error "empty/idx out of range"))
 
 ;; OS — direct
-(= (coll.removeByIdx (ConsOS $x $xs) $i) (eval (OS.removeByIdx (ConsOS $x $xs) $i)))
-(= (coll.removeByIdx NilOS $i) (Error "empty/idx out of range"))
+(= (coll.removeByIdx (cons $x $xs) $i) (eval (OS.removeByIdx (cons $x $xs) $i)))
+(= (coll.removeByIdx () $i) (Error "empty/idx out of range"))
 
 ;; Deme/InstanceSet/BehavioralScore/Instance — delegate to inner lists
 (= (coll.removeByIdx (mkInst $list) $i) (mkInst (coll.removeByIdx $list $i)))
@@ -1141,12 +1121,12 @@
 ;; OS-specific helpers
 ;;
 (: coll.takeN (-> Number $os $os))
-(= (coll.takeN $n NilOS) NilOS)
-(= (coll.takeN $n (ConsOS $x $xs)) (eval (OS.takeN $n (ConsOS $x $xs))))
+(= (coll.takeN $n ()) ())
+(= (coll.takeN $n (cons $x $xs)) (eval (OS.takeN $n (cons $x $xs))))
 
 (: coll.getTopN (-> Number $os $os))
-(= (coll.getTopN $n NilOS) (Error NilOS "empty ordered set/ fewer items than required"))
-(= (coll.getTopN $n (ConsOS $x $xs)) (eval (OS.getTopN $n (ConsOS $x $xs))))
+(= (coll.getTopN $n ()) (Error () "empty ordered set/ fewer items than required"))
+(= (coll.getTopN $n (cons $x $xs)) (eval (OS.getTopN $n (cons $x $xs))))
 ;; helper function to remove leading zeros from a node id
 ; (: updateID (-> ($a $b) ($a $b)))
 (= (updateID (mkNodeId $id)) 

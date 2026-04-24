@@ -12,8 +12,8 @@
 ;; Params: DiscMap
 ;; Returns: DiscKnobMap
 ;; (: crtDiscKnobMap (-> DiscMap DiscKnobMap Number DiscKnobMap))
-(= (crtDiscKnobMap (mkDscMp NilMMap) (mkDscKbMp $dkm) $index) (mkDscKbMp $dkm))
-(= (crtDiscKnobMap (mkDscMp (ConsMMap ($kbSpec $kb) $tail)) (mkDscKbMp $dkm) $index)
+(= (crtDiscKnobMap (mkDscMp ()) (mkDscKbMp $dkm) $index) (mkDscKbMp $dkm))
+(= (crtDiscKnobMap (mkDscMp (cons ($kbSpec $kb) $tail)) (mkDscKbMp $dkm) $index)
    (let*
    (
     ($loc (getKnobLoc $kb))
@@ -29,8 +29,8 @@
 ; (= (representation $exemplar $argLabels)
 ; (let*
 ; (
-;     (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap $argLabels))
-;     ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
+;     (($updatedTree $dscMp) (buildKnobs $exemplar () $argLabels))
+;     ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
 ; )   
 ; (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
 ; ))
@@ -45,8 +45,8 @@
       ($result (collapse (let $x (superpose $demeCount)
          (let*
             (
-               (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap ()))
-               ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
+               (($updatedTree $dscMp) (buildKnobs $exemplar () ()))
+               ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
                ($rep (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree))
             )   
                $rep))))
@@ -110,11 +110,11 @@
                            (let* (
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (" done buildknobs (:) ")))            ;; BUILD representations on 
-                                    (($updatedTree $dscMp) (buildKnobs $xmplr NilMMap $argLabels))            ;; BUILD representations on 
+                                    (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels))            ;; BUILD representations on 
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
                                     ;; ($_ (println! ""))
-                                    ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0)))        ;; MULITPLE args selected using the feature selection
+                                    ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0)))        ;; MULITPLE args selected using the feature selection
                                  (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))))
 
 ;; Helper function to extract tree from representation
@@ -131,7 +131,7 @@
          ;; ($_ (println! ($parentid   $srcid)))
          ((mkRep $kmo $tr) $repObj)
          ;; ($_ (println! (Tree: (preOrder $tr))))
-         ($candidate (getCandidateRec $repObj $inst $parentid $srcid $parentid (mkNullVex Nil)))
+         ($candidate (getCandidateRec $repObj $inst $parentid $srcid $parentid (mkNullVex ())))
          ;; ($_ (println! (Found candidate: (preOrder $candidate))))
          ($rootNode (getNodeById (getRepTree $repObj) $srcid))
          ($rootValue (getNodeValue $rootNode))
@@ -147,7 +147,7 @@
                   ($cleanTree (buildTree $expr)))
                 $cleanTree)
           (cleanTree $candidate))))
-   ; (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex Nil)) $candidate
+   ; (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex ())) $candidate
    ;  (cleanTree $candidate)))
     
     
@@ -171,7 +171,7 @@
 
 ;          ;; No knob found. Just copy.
 ;          (chain (getNodeById $tree $srcId) $src ;; Get node value using id
-;          (chain (appendChild $candidate $parentId (mkTree (getNodeValue $src) Nil)) $cndChIdPair ;; AppendChild returns a pair of tree and appended child Id
+;          (chain (appendChild $candidate $parentId (mkTree (getNodeValue $src) ())) $cndChIdPair ;; AppendChild returns a pair of tree and appended child Id
 ;          (chain (getChildren $src) $srcChildren
 ;          (chain (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (second $cndChIdPair) (first $cndChIdPair) 1) $srcChildren) $state
 ;             (let ((mkRep $knobMapObj $tree) (mkInst $inst) $newParentId $finalCnd $_) $state $finalCnd)))))))
@@ -224,7 +224,7 @@
                ($dstValue (getNodeById $candidate $dstId))
                ;; ($_ (println! (Copying 3:  appending child: (getNodeValue $src) on (preOrder $candidate) at $dstId)))
 
-               ($cndchidpair (appendChild $candidate $dstId (mkTree (getNodeValue $src) Nil)))
+               ($cndchidpair (appendChild $candidate $dstId (mkTree (getNodeValue $src) ())))
                ;; ($_ (println! (Copying 4)))
                ($srcchildren (getChildren $src))
                ;; ($_ (println! (Copying 5: Candidate5 (preOrder (first $cndchidpair)))))

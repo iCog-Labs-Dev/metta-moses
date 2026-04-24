@@ -63,22 +63,22 @@
 !(py-call (random.seed 42))
 
 
-(= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")))
-(= (demes) (Cons (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (ConsMMap ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) NilMMap)))) (mkTree (mkNode AND) (Cons (mkNullVex (Cons (mkTree (mkNode A) Nil) Nil)) (Cons (mkNullVex (Cons (mkTree (mkNode B) Nil) Nil)) Nil)))) (mkSInstSet Nil) (mkDemeId "1")) Nil))
+(= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ()))) (mkDscMp (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ())))) (mkTree (mkNode AND) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) ())))) (mkSInstSet ()) (mkDemeId "1")))
+(= (demes) (cons (mkDeme (mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ()))) (mkDscMp (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ())))) (mkTree (mkNode AND) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) ())))) (mkSInstSet ()) (mkDemeId "1")) ()))
 
 (= (table1) (createTruthTableBScore 2 (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil))))))
+                         (cons (cons False (cons False (cons False ()))) 
+                         (cons (cons True (cons False (cons False ()))) 
+                         (cons (cons False (cons True (cons False ())))
+                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons A (cons B (cons O ()))))))
 
 (= (itable) (mkITable
-                         (Cons (Cons False (Cons False (Cons False Nil))) 
-                         (Cons (Cons True (Cons False (Cons False Nil))) 
-                         (Cons (Cons False (Cons True (Cons False Nil)))
-                         (Cons (Cons True (Cons True (Cons True Nil))) Nil))))
-                         (Cons A (Cons B (Cons O Nil)))))
+                         (cons (cons False (cons False (cons False ()))) 
+                         (cons (cons True (cons False (cons False ()))) 
+                         (cons (cons False (cons True (cons False ())))
+                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons A (cons B (cons O ())))))
                       
 ;;(: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
@@ -87,7 +87,7 @@
 !(assertEqual 
    (let*
       (
-          (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing (deme) (table1) (mkInst (Cons 0 (Cons 0 Nil))) (mkParams applyComplexityBasedScore ())))
+          (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing (deme) (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
            ($instanceCount (List.length $instSet))
            ($scoredElems (List.map isScored $instSet))
       )
@@ -98,7 +98,7 @@
 !(assertEqual 
    (let*
       (
-           (($instance (mkSInstSet $instSet) $state) (simulated-annealing (mkSInstSet Nil) (itable) (mkInst (Cons 1 (Cons 0 Nil))) (mkParams applyMutualInformationBasedScore mi)))
+           (($instance (mkSInstSet $instSet) $state) (simulated-annealing (mkSInstSet ()) (itable) (mkInst (cons 1 (cons 0 ()))) (mkParams applyMutualInformationBasedScore mi)))
            ($instanceCount (List.length $instSet))
            ($scoredElems (List.map isScored $instSet))
       )
@@ -113,7 +113,7 @@
     (let*
         (
             (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) 
-                (simulated-annealing (deme) (table1) (mkInst (Cons 0 (Cons 0 Nil))) (mkParams applyComplexityBasedScore ())))
+                (simulated-annealing (deme) (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
            (($prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i) $state)
         )
         ((== $bestSscore (mkCscore -1 1 0.5 0.0 -1.5))(== $bestScore -1.5))

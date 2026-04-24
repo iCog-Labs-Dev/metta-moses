@@ -50,14 +50,14 @@
 
 (= (tree1)
         (mkTree (mkNode AND)
-          (Cons (mkTree (mkNode A) Nil)
-          (Cons (mkTree (mkNode OR)
-                  (Cons (mkTree (mkNode B) Nil)
-                  (Cons (mkTree (mkNode C) Nil)
-                  (Cons (mkNullVex
-                          (Cons (mkTree (mkNode D) Nil) Nil)) Nil))))
-          (Cons (mkNullVex
-                  (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) Nil)) Nil)))))
+          (cons (mkTree (mkNode A) ())
+          (cons (mkTree (mkNode OR)
+                  (cons (mkTree (mkNode B) ())
+                  (cons (mkTree (mkNode C) ())
+                  (cons (mkNullVex
+                          (cons (mkTree (mkNode D) ()) ())) ()))))
+          (cons (mkNullVex
+                  (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) ())))))
 
 (= (lsk1)
         (mkLSK
@@ -66,7 +66,7 @@
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
-              Nil)
+              ())
             ))
 
 (= (lsk2)
@@ -76,7 +76,7 @@
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
-              Nil)
+              ())
             ))
 
 (= (lsk3)
@@ -86,28 +86,28 @@
               (mkMultip 3)
               (mkDiscSpec 1)
               (mkDiscSpec 1)
-              Nil)
+              ())
             ))
 
 (= (knobMapObj) (mkKbMap
-                      (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap))))
+                      (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ()))))
                
-                      (mkDscMp (ConsMMap ((mkDiscSpec 1) (lsk1)) (ConsMMap ((mkDiscSpec 0) (lsk2)) (ConsMMap ((mkDiscSpec 1) (lsk3)) NilMMap))))))
-(= (ttable1) (mkITable (Cons (Cons True (Cons False (Cons False (Cons True (Cons True Nil)))))
-                        (Cons (Cons True (Cons True (Cons True (Cons False (Cons True Nil))))) Nil))
-                        (Cons A (Cons B (Cons C (Cons D (Cons O Nil)) )))))
+                      (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))))
+(= (ttable1) (mkITable (cons (cons True (cons False (cons False (cons True (cons True ())))))
+                        (cons (cons True (cons True (cons True (cons False (cons True ()))))) ()))
+                        (cons A (cons B (cons C (cons D (cons O ())) )))))
 (= (ttable2) (mkITable
-                    (Cons (Cons True (Cons True (Cons False (Cons True (Cons True Nil)))))
-                    (Cons (Cons True (Cons False (Cons False (Cons True (Cons True Nil)))))
-                    (Cons (Cons False (Cons True (Cons False (Cons True (Cons False Nil)))))
-                    (Cons (Cons False (Cons False (Cons False (Cons True (Cons False Nil))))) Nil))))
-                    (Cons A (Cons B (Cons C (Cons D (Cons Output Nil)))))))
+                    (cons (cons True (cons True (cons False (cons True (cons True ())))))
+                    (cons (cons True (cons False (cons False (cons True (cons True ())))))
+                    (cons (cons False (cons True (cons False (cons True (cons False ())))))
+                    (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
+                    (cons A (cons B (cons C (cons D (cons Output ())))))))
 
 ;; Testcases for the complexityBasedScorer
 !(assertEqual 
  (complexityBasedScorer 
          (mkRep (knobMapObj) (tree1))
-         (mkInst (Cons 2 (Cons 0 (Cons 1 Nil))))
+         (mkInst (cons 2 (cons 0 (cons 1 ()))))
          (ttable1)
          2.0)
  (mkCscore -1 4 2.0 0.0 -3.0))
@@ -115,7 +115,7 @@
 !(assertEqual
  (complexityBasedScorer 
          (mkRep (knobMapObj) (tree1))
-         (mkInst (Cons 1 (Cons 0 (Cons 1 Nil))))
+         (mkInst (cons 1 (cons 0 (cons 1 ()))))
          (ttable2)
          2.0)
  (mkCscore 0 4 2.0 0.0 -2.0))

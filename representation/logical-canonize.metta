@@ -1,13 +1,13 @@
 (= (logicalCanonize (mkTree (mkNode $it) $children))
    (case $it
          (
-           (AND (mkTree (mkNode OR) (Cons (mkTree (mkNode $it) $children) Nil)))
-           (OR  (mkTree (mkNode AND) (Cons (mkTree (mkNode $it) $children) Nil)))
-           (NOT (mkTree (mkNode AND) (Cons (mkTree (mkNode $it) $children) Nil)))
+           (AND (mkTree (mkNode OR) (cons (mkTree (mkNode $it) $children) ())))
+           (OR  (mkTree (mkNode AND) (cons (mkTree (mkNode $it) $children) ())))
+           (NOT (mkTree (mkNode AND) (cons (mkTree (mkNode $it) $children) ())))
            ($_ (if (isAnArgument $it)
-                   (mkTree (mkNode AND) (Cons (mkTree (mkNode $it) $children) Nil))
+                   (mkTree (mkNode AND) (cons (mkTree (mkNode $it) $children) ()))
                    (if (isBoolean $it)
-                       (mkTree (mkNode OR) (Cons (mkTree (mkNode AND) Nil) Nil))
+                       (mkTree (mkNode OR) (cons (mkTree (mkNode AND) ()) ()))
                        (Error InvalidTreeValueInsideLogicalCanonize)))))))
 
 

@@ -20,7 +20,7 @@
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
-              Nil)
+              ())
             ))
 
 (= (lsk2)
@@ -30,7 +30,7 @@
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
-              Nil)
+              ())
             ))
 
 (= (lsk3)
@@ -40,12 +40,12 @@
               (mkMultip 3)
               (mkDiscSpec 1)
               (mkDiscSpec 1)
-              Nil)
+              ())
             ))
 
 (= (knobMapObj) (mkKbMap
-                      (mkDscKbMp (ConsMap ((mkNodeId (2 3)) 0) (ConsMap ((mkNodeId (3)) 1) (ConsMap ((mkNodeId (1)) 2) NilMap))))
-                      (mkDscMp (ConsMMap ((mkDiscSpec 1) (lsk1)) (ConsMMap ((mkDiscSpec 0) (lsk2)) (ConsMMap ((mkDiscSpec 1) (lsk3)) NilMMap))))))
+                      (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ()))))
+                      (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))))
 
 
 !(assertEqual (findDiscKnob (knobMapObj) (mkNodeId (2 3))) ((lsk1) 0))

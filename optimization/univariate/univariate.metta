@@ -28,8 +28,8 @@
 ; (: generateInitialSample (-> Number Number List))
 (= (generateInitialSample $instLength $nGenerate)
    (if (== $nGenerate 0)
-       Nil
-       (Cons (mkSInst (mkPair (mkInst (generateRandomInstance $instLength)) (worstCscore))) (generateInitialSample $instLength (- $nGenerate 1)))))
+       ()
+       (cons (mkSInst (mkPair (mkInst (generateRandomInstance $instLength)) (worstCscore))) (generateInitialSample $instLength (- $nGenerate 1)))))
 
 ; Recursively performs tournament comparison to pick the best instance.
 ; Randomly selects another instance and keeps the better one based on score.
@@ -55,7 +55,7 @@
 ;   $instSet — the full set of scored instances.
 ;   $tSize — tournament size (number of competitors per selection).
 ;   $nSelect — number of individuals to select.
-;   $selectedList — accumulator list for results (initially Nil).
+;   $selectedList — accumulator list for results (initially ()).
 ; Returns: List of selected mkSInst objects.
 ; (: tournamentSelection (-> (InstanceSet $score) Number Number List List))
 (= (tournamentSelection (mkSInstSet $instSet) $tSize $nSelect $selectedList)
@@ -67,7 +67,7 @@
     ($updatedRes (tournamentCompare (mkSInstSet $instSet) $res (- $tSize 1)))
 
   )
-  (tournamentSelection (mkSInstSet $instSet) $tSize (- $nSelect 1) (Cons $updatedRes $selectedList)))))
+  (tournamentSelection (mkSInstSet $instSet) $tSize (- $nSelect 1) (cons $updatedRes $selectedList)))))
 
 ; Extracts the value of the nth knob (field) from each instance expression.
 ; Builds a list of the values at the same index position across all instances.
@@ -243,7 +243,7 @@
 (let*
   (
     ;; ($_ (println! (~~~~Generation~~~~ $genCount)))
-    ($selectedInsts (tournamentSelection $sortedSInstSet 2 $nSelect Nil))
+    ($selectedInsts (tournamentSelection $sortedSInstSet 2 $nSelect ()))
     ;; ($_ (println! (Selected Best Instances:  $selectedInsts)))
     ($instsExp (sInstsToExp $selectedInsts ()))
     ;; ($_ (println! (Selected Instances as Expressions:  $instsExp)))

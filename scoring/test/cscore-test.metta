@@ -31,17 +31,17 @@
 
 (= (ttable1)
     (mkITable
-        (Cons (Cons True (Cons False (Cons True Nil)))
-        (Cons (Cons True (Cons True (Cons True Nil))) Nil))
-        (Cons A (Cons B (Cons O Nil)))))
+        (cons (cons True (cons False (cons True ())))
+        (cons (cons True (cons True (cons True ()))) ()))
+        (cons A (cons B (cons O ())))))
 
 (= (ttable2)
     (mkITable
-        (Cons (Cons True (Cons True (Cons True Nil)))
-        (Cons (Cons True (Cons False (Cons False Nil)))
-        (Cons (Cons False (Cons True (Cons False Nil)))
-        (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
-        (Cons A (Cons B (Cons Output Nil)))))
+        (cons (cons True (cons True (cons True ())))
+        (cons (cons True (cons False (cons False ())))
+        (cons (cons False (cons True (cons False ())))
+        (cons (cons False (cons False (cons False ()))) ()))))
+        (cons A (cons B (cons Output ())))))
 
 
 !(assertEqual (getCscore (ttable1) (buildTree (AND A B)) 2.0 &bscoreCache) (mkCscore -1 2 1.0 0.0 -2.0))
@@ -118,9 +118,9 @@
 
 (= (Strategy)
    (mkTree (mkNode PRIORITIZED-OR)
-      (Cons (mkTree (mkNode playcenter) Nil)
-            (Cons (mkTree (mkNode playside) Nil)
-                  (Cons (mkTree (mkNode playcorner) Nil) Nil)))))
+      (cons (mkTree (mkNode playcenter) ())
+            (cons (mkTree (mkNode playside) ())
+                  (cons (mkTree (mkNode playcorner) ()) ())))))
 
 !(assertEqual (getCscore (Strategy) 5 minimax-player 3.5 &strategyScoreCache)
               (mkCscore 0.0 3 0.8571428571428571 0.0 -0.8571428571428571))

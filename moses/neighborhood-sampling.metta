@@ -12,23 +12,23 @@
 ;;
 ;; Params:
 ;;    (mkMultip $m) - The multiplicity of the knobs
-;;    (mkInst (Cons $x $xs)) - The center instance. It doesn't handle Nil case because
+;;    (mkInst (cons $x $xs)) - The center instance. It doesn't handle () case because
 ;;                              it doesn't make sense to have an empty instance.
 ;;    $dist - The hamming distance from the center instance to search for neighbors
 ;;
 ;; Returns: List of instances.
 (= (rand-int $x $y) (py-call (random.randint $x $y)))
 ;; (: generateAllInNeighborhood (-> Multiplicity Instance Number (List Instance)))
-(= (generateAllInNeighborhood (mkMultip $m) (mkInst Nil) $dist) Nil)
-(= (generateAllInNeighborhood (mkMultip $m) (mkInst (Cons $x $xs)) $dist)
+(= (generateAllInNeighborhood (mkMultip $m) (mkInst ()) $dist) ())
+(= (generateAllInNeighborhood (mkMultip $m) (mkInst (cons $x $xs)) $dist)
    (if (== $dist 0)
-       (Cons (mkInst (Cons $x $xs)) Nil)
+       (cons (mkInst (cons $x $xs)) ())
        (let $multips (genList 1 (- $m 1))
-          (let $instExp (List.listToExpr (Cons $x $xs))
+          (let $instExp (List.listToExpr (cons $x $xs))
           (let $listNeighbors (let $neighbors (varyNKnobs $multips $instExp $dist)
                                       (map-atom $neighbors $neighbor (mkInst (exprToList $neighbor))))
           (let $uqListNeighbors (unique-atom $listNeighbors)
-          (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (Cons $x $xs))))
+          (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (cons $x $xs))))
             (exprToList $uqListNeighbors'))))))))
 
 ;; This function returns a non deterministic list of instances at the given distance.
@@ -104,7 +104,7 @@
 ;; similar to the above 'sampleFromNeighborhood`' but slight changes for the feature selection
 ;; applies capping to the distance because at somepoint the distance would be greater that the length of the instance and lazyRandomSelector would cause error
 ; (: sampleFromNeighborhoodFs` (-> Number Number (ITable Bool) Instance Instance))
-(= (sampleFromNeighborhoodFs` $n $dist (mkITable (Cons $row $rows) $labels) (mkInst $centralInst))
+(= (sampleFromNeighborhoodFs` $n $dist (mkITable (cons $row $rows) $labels) (mkInst $centralInst))
         (let* 
             (
               ($featureLen (- (List.length $labels) 1)) 
@@ -133,9 +133,7 @@
             (($decSpec (mkLSK (mkDiscKnob $knob (mkMultip $multi) $spec $spec1 $specList))) (MultiMap.getByIdx $rand $disc))
             ($curSpec (List.getByIdx $newInst $rand))
             ($upper (- $multi 1))
-            ($_ (println! (Inside UpdatedInst)))
             ($randomSpec (+ (rand-int 0 (- $upper 1)) 1))
-            ($_ (println! (Inside UpdatedInst)))
           )
           (if (== $randomSpec $curSpec)
                               (List.replaceAt $newInst $rand 0)
@@ -259,8 +257,8 @@
 
 ;; mettalog appears to struggle with function overlaoding -- so created aliases instead of using the same name
 ;; (: distance` (-> Instance Instance Number) )
-(= (distance` (mkInst Nil) (mkInst Nil)) 0)
-(= (distance` (mkInst (Cons $x $xs)) (mkInst (Cons $y $ys)))
+(= (distance` (mkInst ()) (mkInst ())) 0)
+(= (distance` (mkInst (cons $x $xs)) (mkInst (cons $y $ys)))
       (+ (if (== $x $y) 0 1) (distance` (mkInst $xs) (mkInst $ys))))
 
 ;; A trick function to use to prevent the type error

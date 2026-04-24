@@ -49,20 +49,20 @@
 ;; ---- Mutual Information Tests ----
 !(assertEqual 
    (cachedMutualInformation 
-      (Cons A (Cons B (Cons C Nil))) 
-      (Cons X (Cons Y (Cons Z Nil)))) 
+      (cons A (cons B (cons C ()))) 
+      (cons X (cons Y (cons Z ())))) 
    1.585)
 
 ;; Multiple calls to ensure cache hits
 !(assertEqual 
    (cachedMutualInformation 
-      (Cons A (Cons B (Cons C Nil))) 
-      (Cons X (Cons Y (Cons Z Nil)))) 
+      (cons A (cons B (cons C ()))) 
+      (cons X (cons Y (cons Z ())))) 
    1.585) ;; cache hit
 !(assertEqual 
    (cachedMutualInformation 
-      (Cons A (Cons B (Cons C Nil))) 
-      (Cons X (Cons Y (Cons Z Nil)))) 
+      (cons A (cons B (cons C ()))) 
+      (cons X (cons Y (cons Z ())))) 
    1.585) ;; another cache hit
 
 ;; Verify number of cached elements across functions

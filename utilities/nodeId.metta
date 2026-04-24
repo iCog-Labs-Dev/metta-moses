@@ -13,10 +13,10 @@
 
 ;; Finds a subtree at a specific level in the tree.
 ;; Params:
-;;   $tree: - The input tree (mkTree, mkNullVex, or Nil).
+;;   $tree: - The input tree (mkTree, mkNullVex, or ()).
 ;;   $levelId: - index indicating the level (0 for root, 1 for first child, etc.).
 ;; Returns:
-;;   (Tree $a) - The subtree at the specified level, or Nil if out of bounds.
+;;   (Tree $a) - The subtree at the specified level, or () if out of bounds.
 ;;(: getLevelById (-> (Tree $a) Number (Tree $a)))
 (= (getLevelById (mkTree (mkNode $r) $children) $levelId)
    (if (== $levelId 0)
@@ -26,17 +26,17 @@
    (if (== $levelId 0)
        (mkNullVex $children)
        (List.getByIdx $children (- $levelId 1))))
-(= (getLevelById Nil $levelId) Nil)
+(= (getLevelById () $levelId) ())
 
 ;; Traverses a tree to find a node by its ID path.
 ;; Parameters:
-;;   $tree: - The input tree (mkTree, mkNullVex, or Nil).
+;;   $tree: - The input tree (mkTree, mkNullVex, or ()).
 ;;   $id: - A mkNodeId-wrapped tuple of indices (e.g., (mkNodeId (2 1))) representing the path.
 ;; Returns:
 ;;   (Tree $a) - The subtree at the specified ID path, or an error if invalid.
 ;;(: getNodeById (-> (Tree $a) NodeId (Tree $a)))
 (= (getNodeById $tree (mkNodeId ())) $tree)
-(= (getNodeById Nil $id) Nil)
+(= (getNodeById () $id) ())
 (= (getNodeById $tree (mkNodeId $id))
    (let*
      (

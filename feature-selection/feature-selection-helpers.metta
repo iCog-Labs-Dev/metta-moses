@@ -2,8 +2,8 @@
 (= (round $n $p) (py-call (builtins.round $n $p)))
 
 ; (: List.at (-> Number (List $a) $a))
-(= (List.at $i Nil) (Error Nil "Empty List"))
-(= (List.at $i (Cons $x $xs))
+(= (List.at $i ()) (Error () "Empty List"))
+(= (List.at $i (cons $x $xs))
     (if (== $i 0)
         $x
         (List.at (- $i 1) $xs)))
@@ -12,8 +12,8 @@
 ;; this one is assuming the list of values have been returned contains the row information. 
 ; (: List.uniqueValuesCount (-> (List $a) Expression))
 (= (List.uniqueValuesCount $list $acc)
-    (unify $list Nil $acc
-            (if (= $list (Cons $x $xs))
+    (unify $list () $acc
+            (if (= $list (cons $x $xs))
             (if (patternExists ($x $c) $acc)
                 (chain (updateCount $x $acc) $count-updated
                     (List.uniqueValuesCount $xs $count-updated))
@@ -22,23 +22,23 @@
 
 ; (: Table.getColumn (-> Number (List (List $a)) (List $a)))
 (= (Table.getColumn $i $rows)
-    (unify $rows Nil Nil
-       (if (= $rows (Cons $row $rest))
-            (Cons (List.at $i $row) (Table.getColumn $i $rest)) ())))
+    (unify $rows () ()
+       (if (= $rows (cons $row $rest))
+            (cons (List.at $i $row) (Table.getColumn $i $rest)) ())))
 ; ;; Table.pop        -- gets and removes a column from the current ttable structure
 ; ;;                  -- returns the remaining table and the culumn asked for
 (= (Table.pop $i $rows)
-    (unify $rows Nil Nil
-        (if (= $rows (Cons (Cons $d $ds) $rest))  ;; $d and $ds for data and rest of data
+    (unify $rows () ()
+        (if (= $rows (cons (cons $d $ds) $rest))  ;; $d and $ds for data and rest of data
                 (if (== $i 0)
-                    (Cons $ds (Table.pop $i $rest))
-                    (Cons (Cons $d (List.pop (- $i 1) $ds)) (Table.pop $i $rest))) ())))
+                    (cons $ds (Table.pop $i $rest))
+                    (cons (cons $d (List.pop (- $i 1) $ds)) (Table.pop $i $rest))) ())))
 ; ;; removes the first column from table
 ; (: Table.pop (-> (List (List $a)) (List (List $a))))
 ; (= (Table.pop $rows)
-;     (unify $rows Nil Nil
-;         (unify $rows (Cons (Cons $d $ds) $rest)
-;             (Cons $ds (Table.pop $rest)))))
+;     (unify $rows () ()
+;         (unify $rows (cons (cons $d $ds) $rest)
+;             (cons $ds (Table.pop $rest)))))
 
 ;; returns the last column of the table
 ; (: Table.getOutputColumn (-> ITable (List $a)))
@@ -53,9 +53,9 @@
 ;;;;;;;;;;;;;;
 ; (: Table._transposeHelper (-> (List Number) (List (List $a)) (List (List $a))))
 (= (Table._transposeHelper $indices $table)
-    (unify $indices Nil Nil
-        (if (= $indices (Cons $i $rest))
-            (Cons (Table.getColumn $i $table)
+    (unify $indices () ()
+        (if (= $indices (cons $i $rest))
+            (cons (Table.getColumn $i $table)
                     (Table._transposeHelper $rest $table)) ())))
 
 ; (: Table.transpose (-> (List (List $a)) (List (List $a))))
@@ -70,14 +70,14 @@
 ;;(: List.head (-> (List $a) $a))
 ;;(= (List.head $list)
 ;;    (unify $list 
-;;        Nil (Error "Empty list has no head")
-;;        (unify $list (Cons $h $t) $h ())))
+;;        () (Error "Empty list has no head")
+;;        (unify $list (cons $h $t) $h ())))
 
 ; (: List.range (-> Number Number (List Number))) ;; inclusive start, exclusive end
 (= (List.range $start $end)
     (if (>= $start $end)
-        Nil
-        (chain (List.range (+ 1 $start) $end) $res (Cons $start $res))))
+        ()
+        (chain (List.range (+ 1 $start) $end) $res (cons $start $res))))
 
 ;; check for a pattern in tuple of tuples                
 ; (: patternExists (-> Expression Expression Bool))
@@ -201,8 +201,8 @@
 
 
 ;; mutualInformation        -- mutual information based on =∑p(x1,x2..:y)/ (p(x1, x2 ..)*p(y) )
-;;          $if             --  input feature list as (Cons ..)
-;;          $of             --  out feature list as (Cons ..)
+;;          $if             --  input feature list as (cons ..)
+;;          $of             --  out feature list as (cons ..)
 ; (: mutualInformation (-> (List $a) (List $a) Number))
 (= (mutualInformation $if $of)
     (chain (List.zip $if $of) $io-zip
@@ -235,11 +235,11 @@
 ; (: zipColumn (-> Expression (List (List $a)) (List $a)))        
 (= (zipColumn $indices $datarows)
     (if (== $indices ())
-        Nil
-        (unify $datarows Nil Nil
-            (if (= $datarows (Cons $row $rows))
+        ()
+        (unify $datarows () ()
+            (if (= $datarows (cons $row $rows))
                 (chain (map-atom $indices $i (List.at $i $row)) $dataTuple
-                    (Cons $dataTuple (zipColumn $indices $rows)))
+                    (cons $dataTuple (zipColumn $indices $rows)))
                 ()))))
 
 ;; return marginal probabilities as tuple (p1 p2)
@@ -359,11 +359,11 @@
 
 ; (: inputLables (-> (List Symbol) (List Symbol)))    
 (= (inputLables $labels)
-    (unify $labels Nil (Error $labels NoLabelsSpecified)
-        (if (= $labels (Cons $a $as))
-                (if (== $as Nil)
-                    Nil
-                    (let $r (inputLables $as) (Cons $a $r))) (Error $labels UnrecognizedFormat))))
+    (unify $labels () (Error $labels NoLabelsSpecified)
+        (if (= $labels (cons $a $as))
+                (if (== $as ())
+                    ()
+                    (let $r (inputLables $as) (cons $a $r))) (Error $labels UnrecognizedFormat))))
 
 ; (: fsToNames (-> (List Symbol) Expression Expression))
 (= (fsToNames $labels $ft-indices)

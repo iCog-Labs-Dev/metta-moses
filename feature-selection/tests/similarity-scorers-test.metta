@@ -5,12 +5,12 @@
 
 (= (ttable) 
     (mkITable 
-        (Cons (Cons False (Cons False (Cons True (Cons True (Cons True Nil)))))
-        (Cons (Cons True (Cons False (Cons False (Cons True (Cons True Nil)))))
-        (Cons (Cons False (Cons True (Cons False (Cons True (Cons False Nil)))))
-        (Cons (Cons False (Cons False (Cons False (Cons True (Cons False Nil))))) Nil))))
+        (cons (cons False (cons False (cons True (cons True (cons True ())))))
+        (cons (cons True (cons False (cons False (cons True (cons True ())))))
+        (cons (cons False (cons True (cons False (cons True (cons False ())))))
+        (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
         
-        (Cons A (Cons B (Cons C (Cons D (Cons Output Nil)))))))
+        (cons A (cons B (cons C (cons D (cons Output ())))))))
 
 ; Test 
 !(assertEqual (jaccardIndex (A) (B)) 0) 

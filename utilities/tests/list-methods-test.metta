@@ -6,239 +6,239 @@
 
 
 ;; Test cases for List.foldr
-!(assertEqual (List.foldr + 0 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))) 10)
-!(assertEqual (List.foldr * 1 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))) 24)
-!(assertEqual (List.foldr - 0 (Cons 10 (Cons 5 (Cons 2 Nil)))) 7)  
+!(assertEqual (List.foldr + 0 (cons 1 (cons 2 (cons 3 (cons 4 ()))))) 10)
+!(assertEqual (List.foldr * 1 (cons 1 (cons 2 (cons 3 (cons 4 ()))))) 24)
+!(assertEqual (List.foldr - 0 (cons 10 (cons 5 (cons 2 ())))) 7)  
 
 
 ;; Test cases for List.foldr
-!(assertEqual (List.foldl + 0 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))) 10)
-!(assertEqual (List.foldl * 1 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))) 24)
-!(assertEqual (List.foldl - 0 (Cons 10 (Cons 5 (Cons 2 Nil)))) 7)
+!(assertEqual (List.foldl + 0 (cons 1 (cons 2 (cons 3 (cons 4 ()))))) 10)
+!(assertEqual (List.foldl * 1 (cons 1 (cons 2 (cons 3 (cons 4 ()))))) 24)
+!(assertEqual (List.foldl - 0 (cons 10 (cons 5 (cons 2 ())))) 7)
 
 ;; Test cases for List.sum
 
-!(assertEqual (List.sum (Cons 1 (Cons 2 (Cons 3 (Cons 2 (Cons 3 Nil)))))) 11)
-!(assertEqual (List.sum (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))) 10)
-!(assertEqual (List.sum (Cons 3.0 (Cons 4.0 (Cons 5.0 (Cons 5.0 (Cons 5.0 (Cons 5.0 (Cons 4.0 (Cons 5.0 (Cons 4.0 (Cons 4.0 (Cons 4.0 (Cons 5.0 (Cons 5.0 (Cons 4.0 (Cons 5.0 (Cons 5.0 (Cons 5.0 (Cons 4.0 (Cons 5.0 (Cons 5.0 (Cons 5.0 (Cons 5.0 (Cons 5.0 (Cons 4.0 (Cons 5.0 (Cons 4.0 Nil))))))))))))))))))))))))))) 119.0)
+!(assertEqual (List.sum (cons 1 (cons 2 (cons 3 (cons 2 (cons 3 ())))))) 11)
+!(assertEqual (List.sum (cons 1 (cons 2 (cons 3 (cons 4 ()))))) 10)
+!(assertEqual (List.sum (cons 3.0 (cons 4.0 (cons 5.0 (cons 5.0 (cons 5.0 (cons 5.0 (cons 4.0 (cons 5.0 (cons 4.0 (cons 4.0 (cons 4.0 (cons 5.0 (cons 5.0 (cons 4.0 (cons 5.0 (cons 5.0 (cons 5.0 (cons 4.0 (cons 5.0 (cons 5.0 (cons 5.0 (cons 5.0 (cons 5.0 (cons 4.0 (cons 5.0 (cons 4.0 ()))))))))))))))))))))))))))) 119.0)
 
 
 ;; Test cases for List.append
-!(assertEqual (List.append 3 (Cons 1 (Cons 2 Nil))) (Cons 1 (Cons 2 (Cons 3 Nil))))
-!(assertEqual (List.append 4 (Cons 2 (Cons 3 Nil))) (Cons 2 (Cons 3 (Cons 4 Nil))))
-!(assertEqual (List.append 10 (Cons 5 (Cons 6 (Cons 7 Nil)))) (Cons 5 (Cons 6 (Cons 7 (Cons 10 Nil)))))
+!(assertEqual (List.append 3 (cons 1 (cons 2 ()))) (cons 1 (cons 2 (cons 3 ()))))
+!(assertEqual (List.append 4 (cons 2 (cons 3 ()))) (cons 2 (cons 3 (cons 4 ()))))
+!(assertEqual (List.append 10 (cons 5 (cons 6 (cons 7 ())))) (cons 5 (cons 6 (cons 7 (cons 10 ())))))
 
 ;; Test cases for List.getByIdx
-!(assertEqual (List.getByIdx (Cons 1 (Cons 2 (Cons 3 Nil))) 0) 1)
-!(assertEqual (List.getByIdx (Cons 10 (Cons 20 (Cons 30 Nil))) 1) 20)
-!(assertEqual (List.getByIdx (Cons 100 (Cons 200 (Cons 300 Nil))) 0) 100)
-!(assertEqual (List.getByIdx (Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 (Cons 6 (Cons 7 (Cons 8 (Cons 9 (Cons 10 (Cons 11 (Cons 12 (Cons 13 (Cons 14 (Cons 15 (Cons 16 (Cons 17 (Cons 18 (Cons 19 (Cons 20 Nil)))))))))))))))))))) 0) 1)
+!(assertEqual (List.getByIdx (cons 1 (cons 2 (cons 3 ()))) 0) 1)
+!(assertEqual (List.getByIdx (cons 10 (cons 20 (cons 30 ()))) 1) 20)
+!(assertEqual (List.getByIdx (cons 100 (cons 200 (cons 300 ()))) 0) 100)
+!(assertEqual (List.getByIdx (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 (cons 6 (cons 7 (cons 8 (cons 9 (cons 10 (cons 11 (cons 12 (cons 13 (cons 14 (cons 15 (cons 16 (cons 17 (cons 18 (cons 19 (cons 20 ())))))))))))))))))))) 0) 1)
 
 ;; Test cases for List.insert
-!(assertEqual (List.insert 2 (Cons 1 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
-!(assertEqual (List.insert 5 (Cons 2 (Cons 3 (Cons 7 Nil)))) (Cons 2 (Cons 3 (Cons 5 (Cons 7 Nil)))))
-!(assertEqual (List.insert 1 (Cons 2 (Cons 3 (Cons 4 Nil)))) (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
+!(assertEqual (List.insert 2 (cons 1 (cons 3 (cons 4 ())))) (cons 1 (cons 2 (cons 3 (cons 4 ())))))
+!(assertEqual (List.insert 5 (cons 2 (cons 3 (cons 7 ())))) (cons 2 (cons 3 (cons 5 (cons 7 ())))))
+!(assertEqual (List.insert 1 (cons 2 (cons 3 (cons 4 ())))) (cons 1 (cons 2 (cons 3 (cons 4 ())))))
 
 ;; Test cases for List.sort
-!(assertEqual (List.sort (Cons 3 (Cons 2 (Cons 3 Nil)))) (Cons 2 (Cons 3 (Cons 3 Nil))))
-!(assertEqual (List.sort (Cons 5 (Cons 3 (Cons 1 (Cons 4 Nil))))) (Cons 1 (Cons 3 (Cons 4 (Cons 5 Nil)))))
-!(assertEqual (List.sort (Cons 9 (Cons 7 (Cons 8 (Cons 6 Nil))))) (Cons 6 (Cons 7 (Cons 8 (Cons 9 Nil)))))
-!(assertEqual (List.sort (Cons 9 (Cons 7 (Cons 8 (Cons 6 Nil)))) >) (Cons 9 (Cons 8 (Cons 7 (Cons 6 Nil)))))
+!(assertEqual (List.sort (cons 3 (cons 2 (cons 3 ())))) (cons 2 (cons 3 (cons 3 ()))))
+!(assertEqual (List.sort (cons 5 (cons 3 (cons 1 (cons 4 ()))))) (cons 1 (cons 3 (cons 4 (cons 5 ())))))
+!(assertEqual (List.sort (cons 9 (cons 7 (cons 8 (cons 6 ()))))) (cons 6 (cons 7 (cons 8 (cons 9 ())))))
+!(assertEqual (List.sort (cons 9 (cons 7 (cons 8 (cons 6 ())))) >) (cons 9 (cons 8 (cons 7 (cons 6 ())))))
 ;; Test cases for List.length
-!(assertEqual (List.length (Cons 1 (Cons 2 (Cons 3 Nil)))) 3)
-!(assertEqual (List.length (Cons 10 (Cons 20 (Cons 30 (Cons 40 Nil))))) 4)
-!(assertEqual (List.length (Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 (Cons 6 (Cons 7 (Cons 8 (Cons 9 (Cons 10 (Cons 11 (Cons 12 (Cons 13 (Cons 14 (Cons 15 (Cons 16 (Cons 17 (Cons 18 (Cons 19 (Cons 20 Nil))))))))))))))))))))) 20)
+!(assertEqual (List.length (cons 1 (cons 2 (cons 3 ())))) 3)
+!(assertEqual (List.length (cons 10 (cons 20 (cons 30 (cons 40 ()))))) 4)
+!(assertEqual (List.length (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 (cons 6 (cons 7 (cons 8 (cons 9 (cons 10 (cons 11 (cons 12 (cons 13 (cons 14 (cons 15 (cons 16 (cons 17 (cons 18 (cons 19 (cons 20 ()))))))))))))))))))))) 20)
 
 ;; Test cases for List.map
-!(assertEqual (List.map isEven (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons False (Cons True (Cons False Nil))))
-!(assertEqual (List.map isOdd Nil) Nil)
+!(assertEqual (List.map isEven (cons 1 (cons 2 (cons 3 ())))) (cons False (cons True (cons False ()))))
+!(assertEqual (List.map isOdd ()) ())
 
-!(assertEqual (List.mapOverArg $f Nil $arg) Nil)
-!(assertEqual (List.mapOverArg + (Cons 1 Nil) 1) (Cons 2 Nil))
+!(assertEqual (List.mapOverArg $f () $arg) ())
+!(assertEqual (List.mapOverArg + (cons 1 ()) 1) (cons 2 ()))
 
 ;; Test cases for List.filter
-!(assertEqual (List.filter isEven (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 2 Nil))
-!(assertEqual (List.filter isOdd (Cons 2 (Cons 2 (Cons 4 Nil)))) Nil)
-!(assertEqual (List.filter isOdd Nil) Nil)
+!(assertEqual (List.filter isEven (cons 1 (cons 2 (cons 3 ())))) (cons 2 ()))
+!(assertEqual (List.filter isOdd (cons 2 (cons 2 (cons 4 ())))) ())
+!(assertEqual (List.filter isOdd ()) ())
 
 
 ;; Test cases for List.listToExpr
-!(assertEqual (List.listToExpr Nil) ())
-!(assertEqual (List.listToExpr (Cons 1 (Cons 3 (Cons 4 Nil)))) (1 3 4))
+!(assertEqual (List.listToExpr ()) ())
+!(assertEqual (List.listToExpr (cons 1 (cons 3 (cons 4 ())))) (1 3 4))
 
 ;; Test cases for List.max
-!(assertEqual (List.max >= (Cons 2 (Cons 5 (Cons 1 Nil)))) 5)
-!(assertEqual (List.max >= (Cons 42 Nil)) 42)
-!(assertEqual (List.max >>= (Cons (mkSize 1) (Cons (mkSize 3) (Cons (mkSize 2) Nil)))) (mkSize 3))
+!(assertEqual (List.max >= (cons 2 (cons 5 (cons 1 ())))) 5)
+!(assertEqual (List.max >= (cons 42 ())) 42)
+!(assertEqual (List.max >>= (cons (mkSize 1) (cons (mkSize 3) (cons (mkSize 2) ())))) (mkSize 3))
 
 ;; Test cases for List.contains
-!(assertEqual (List.contains 2 (Cons 1 (Cons 2 (Cons 3 Nil)))) True)
-!(assertEqual (List.contains 4 (Cons 1 (Cons 2 (Cons 3 Nil)))) False)
-!(assertEqual (List.contains 1 Nil) False)
+!(assertEqual (List.contains 2 (cons 1 (cons 2 (cons 3 ())))) True)
+!(assertEqual (List.contains 4 (cons 1 (cons 2 (cons 3 ())))) False)
+!(assertEqual (List.contains 1 ()) False)
 
 ;; Test cases for List.replaceAt
-!(assertEqual (List.replaceAt (Cons 1 (Cons 2 (Cons 3 Nil))) 0 9) (Cons 9 (Cons 2 (Cons 3 Nil))))
-!(assertEqual (List.replaceAt (Cons 1 (Cons 2 (Cons 3 Nil))) 1 9) (Cons 1 (Cons 9 (Cons 3 Nil))))
-!(assertEqual (List.replaceAt Nil 0 5) Nil)
+!(assertEqual (List.replaceAt (cons 1 (cons 2 (cons 3 ()))) 0 9) (cons 9 (cons 2 (cons 3 ()))))
+!(assertEqual (List.replaceAt (cons 1 (cons 2 (cons 3 ()))) 1 9) (cons 1 (cons 9 (cons 3 ()))))
+!(assertEqual (List.replaceAt () 0 5) ())
 
 ;; Test case for List.prepend
-!(assertEqual (List.prepend 0 Nil) (Cons 0 Nil))
-!(assertEqual (List.prepend 0 (Cons 1 Nil)) (Cons 0 (Cons 1 Nil)))
-!(assertEqual (List.prepend 0 (Cons 1 (Cons 2 Nil))) (Cons 0 (Cons 1 (Cons 2 Nil))))
+!(assertEqual (List.prepend 0 ()) (cons 0 ()))
+!(assertEqual (List.prepend 0 (cons 1 ())) (cons 0 (cons 1 ())))
+!(assertEqual (List.prepend 0 (cons 1 (cons 2 ()))) (cons 0 (cons 1 (cons 2 ()))))
 
 ;; Test case of List.index
-!(assertEqual (List.index Nil A) -1)
-!(assertEqual (List.index (Cons A (Cons B (Cons C Nil))) A) 0)
-!(assertEqual (List.index (Cons B (Cons C Nil)) A) -1)
-!(assertEqual (List.index (Cons D (Cons B (Cons C (Cons A Nil)))) A) 3)
-!(assertEqual (List.index (Cons D (Cons A (Cons C Nil))) A) 1)
-!(assertEqual (List.index (Cons D (Cons A (Cons A Nil))) A) 1)
+!(assertEqual (List.index () A) -1)
+!(assertEqual (List.index (cons A (cons B (cons C ()))) A) 0)
+!(assertEqual (List.index (cons B (cons C ())) A) -1)
+!(assertEqual (List.index (cons D (cons B (cons C (cons A ())))) A) 3)
+!(assertEqual (List.index (cons D (cons A (cons C ()))) A) 1)
+!(assertEqual (List.index (cons D (cons A (cons A ()))) A) 1)
 
 ;; Test case for List.head
-!(assertEqual (List.head Nil) (Error Nil EmptyList))
-!(assertEqual (List.head (Cons 1 (Cons 2 Nil))) 1)
+!(assertEqual (List.head ()) (Error () EmptyList))
+!(assertEqual (List.head (cons 1 (cons 2 ()))) 1)
 
 ;; Test case for List.tail
-!(assertEqual (List.tail Nil) Nil)
-!(assertEqual (List.tail (Cons 1 (Cons 2 Nil))) (Cons 2 Nil))
+!(assertEqual (List.tail ()) ())
+!(assertEqual (List.tail (cons 1 (cons 2 ()))) (cons 2 ()))
 
 
 ; ;; Test case for List.sub
-!(assertEqual (List.sub (Cons 1 (Cons 3 Nil)) (Cons 0 (Cons 3 Nil))) (Cons 1 (Cons 0 Nil)))
+!(assertEqual (List.sub (cons 1 (cons 3 ())) (cons 0 (cons 3 ()))) (cons 1 (cons 0 ())))
 
-!(assertEqual (List.sub (Cons 1 (Cons 3 Nil)) (Cons 0 (Cons 3 (Cons 2 Nil)))) (Error (Cons 2 Nil) LenghtOfListNotEqual))
+!(assertEqual (List.sub (cons 1 (cons 3 ())) (cons 0 (cons 3 (cons 2 ())))) (Error (cons 2 ()) LenghtOfListNotEqual))
 
 ;; Test case for List.zip
-!(assertEqual (List.zip (Cons 1 (Cons 2 Nil)) (Cons A (Cons B Nil))) (Cons (1 A) (Cons (2 B) Nil)))
-!(assertEqual (List.zip (Cons False (Cons True Nil)) (Cons A (Cons B Nil))) (Cons (False A) (Cons (True B) Nil)))
-!(assertEqual (List.zip (Cons False (Cons True Nil)) (Cons A Nil)) (Cons (False A) Nil))
-!(assertEqual (List.zip (Cons False Nil) (Cons A (Cons A (Cons B Nil)))) (Cons (False A) Nil))
+!(assertEqual (List.zip (cons 1 (cons 2 ())) (cons A (cons B ()))) (cons (1 A) (cons (2 B) ())))
+!(assertEqual (List.zip (cons False (cons True ())) (cons A (cons B ()))) (cons (False A) (cons (True B) ())))
+!(assertEqual (List.zip (cons False (cons True ())) (cons A ())) (cons (False A) ()))
+!(assertEqual (List.zip (cons False ()) (cons A (cons A (cons B ())))) (cons (False A) ()))
 
 ;; Test case for List.zipWith
-!(assertEqual (List.zipWith == (Cons 1 (Cons 2 Nil)) (Cons A (Cons B Nil))) (Cons False (Cons False Nil)))
-!(assertEqual (List.zipWith == (Cons False (Cons True Nil)) (Cons A (Cons B Nil))) (Cons False (Cons False Nil)))
-!(assertEqual (List.zipWith == (Cons False (Cons True Nil)) (Cons A Nil)) (Cons False Nil))
-!(assertEqual (List.zipWith == (Cons False Nil) (Cons A (Cons A (Cons B Nil)))) (Cons False Nil))
+!(assertEqual (List.zipWith == (cons 1 (cons 2 ())) (cons A (cons B ()))) (cons False (cons False ())))
+!(assertEqual (List.zipWith == (cons False (cons True ())) (cons A (cons B ()))) (cons False (cons False ())))
+!(assertEqual (List.zipWith == (cons False (cons True ())) (cons A ())) (cons False ()))
+!(assertEqual (List.zipWith == (cons False ()) (cons A (cons A (cons B ())))) (cons False ()))
 
 ;; Test case for List.drop
-!(assertEqual (List.drop 5 (Cons A (Cons B Nil))) Nil)
-!(assertEqual (List.drop 1 (Cons A (Cons B Nil))) (Cons B Nil))
-!(assertEqual (List.drop 2 (Cons A (Cons B (Cons C Nil)))) (Cons C Nil))
+!(assertEqual (List.drop 5 (cons A (cons B ()))) ())
+!(assertEqual (List.drop 1 (cons A (cons B ()))) (cons B ()))
+!(assertEqual (List.drop 2 (cons A (cons B (cons C ())))) (cons C ()))
 
 
 ; ;; Test case for List.flatten
 
-!(assertEqual (List.flatten (Cons (Cons 1 Nil) (Cons (Cons 2 Nil) Nil))) (Cons 1 (Cons 2 Nil)))
-!(assertEqual (List.flatten (Cons (Cons 1 Nil) (Cons (Cons 2 (Cons 3 Nil)) Nil))) (Error (Cons 2 (Cons 3 Nil)) "Can't be flattened"))
+!(assertEqual (List.flatten (cons (cons 1 ()) (cons (cons 2 ()) ()))) (cons 1 (cons 2 ())))
+!(assertEqual (List.flatten (cons (cons 1 ()) (cons (cons 2 (cons 3 ())) ()))) (cons 1 (cons 2 (cons 3 ()))))
 
 ;; Test case for List.repeat
-!(assertEqual (List.repeat 0 0) Nil)
-!(assertEqual (List.repeat 3 0) (Cons 0 (Cons 0 (Cons 0 Nil))))
+!(assertEqual (List.repeat 0 0) ())
+!(assertEqual (List.repeat 3 0) (cons 0 (cons 0 (cons 0 ()))))
 
 ;; Test cases for List.concat
-!(assertEqual (List.concat (Cons 1 (Cons 2 Nil)) (Cons 3 (Cons 4 Nil))) (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil)))))
-!(assertEqual (List.concat (Cons 5 (Cons 6 (Cons 7 Nil))) (Cons 8 Nil)) (Cons 5 (Cons 6 (Cons 7 (Cons 8 Nil)))))
-!(assertEqual (List.concat Nil (Cons 10 (Cons 11 (Cons 12 Nil)))) (Cons 10 (Cons 11 (Cons 12 Nil))))
+!(assertEqual (List.concat (cons 1 (cons 2 ())) (cons 3 (cons 4 ()))) (cons 1 (cons 2 (cons 3 (cons 4 ())))))
+!(assertEqual (List.concat (cons 5 (cons 6 (cons 7 ()))) (cons 8 ())) (cons 5 (cons 6 (cons 7 (cons 8 ())))))
+!(assertEqual (List.concat () (cons 10 (cons 11 (cons 12 ())))) (cons 10 (cons 11 (cons 12 ()))))
 
 ;; Test cases for List.removeAtIdx
-!(assertEqual (List.removeAtIdx (Cons 1 (Cons 2 (Cons 3 Nil))) 0) (Cons 2 (Cons 3 Nil)))
-!(assertEqual (List.removeAtIdx (Cons 1 (Cons 2 (Cons 3 Nil))) 1) (Cons 1 (Cons 3 Nil)))
-!(assertEqual (List.removeAtIdx (Cons 1 (Cons 2 (Cons 3 Nil))) 3) (Cons 1 (Cons 2 (Cons 3 Nil))))
+!(assertEqual (List.removeAtIdx (cons 1 (cons 2 (cons 3 ()))) 0) (cons 2 (cons 3 ())))
+!(assertEqual (List.removeAtIdx (cons 1 (cons 2 (cons 3 ()))) 1) (cons 1 (cons 3 ())))
+!(assertEqual (List.removeAtIdx (cons 1 (cons 2 (cons 3 ()))) 3) (cons 1 (cons 2 (cons 3 ()))))
 
 ;; Test cases for List.isMember
-!(assertEqual (List.isMember 2 (Cons 1 (Cons 2 (Cons 3 Nil)))) True)
-!(assertEqual (List.isMember 4 (Cons 1 (Cons 2 (Cons 3 Nil)))) False)
+!(assertEqual (List.isMember 2 (cons 1 (cons 2 (cons 3 ())))) True)
+!(assertEqual (List.isMember 4 (cons 1 (cons 2 (cons 3 ())))) False)
 
 ;; List.partialSort -- for list of Scored instances
 
-!(assertEqual (List.partialSort <= (Cons 3 (Cons 2 (Cons 1 Nil))) 0 Nil) (Cons 1 (Cons 3 (Cons 2 Nil))))
+!(assertEqual (List.partialSort <= (cons 3 (cons 2 (cons 1 ()))) 0 ()) (cons 1 (cons 3 (cons 2 ()))))
 !(assertEqual (List.partialSort instance>
-                            (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore 1 2 3 4 15)))
-                                (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 1 2 3 4 5)))
-                                (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 1 2 3 4 0.5))) Nil))) 2 Nil)
+                            (cons (mkSInst (mkPair (mkInst ()) (mkCscore 1 2 3 4 15)))
+                                (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5)))
+                                (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 0.5))) ()))) 2 ())
                                     
-                                (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore 1 2 3 4 15))) 
-                                        (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 1 2 3 4 5)))
-                                        (Cons (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 1 2 3 4 0.5))) Nil))))
+                                (cons (mkSInst (mkPair (mkInst ()) (mkCscore 1 2 3 4 15))) 
+                                        (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5)))
+                                        (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 0.5))) ()))))
 
 !(assertEqual (List.partialSort instance>
-                        (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 1 1.0 0.5 -3.5)))
-                            (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -1.0 2 1.0 0.5 -2.5)))
-                            (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -3.0 3 1.0 0.5 -4.5))) Nil)))2 Nil)
+                        (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5)))
+                            (cons (mkSInst (mkPair (mkInst ()) (mkCscore -1.0 2 1.0 0.5 -2.5)))
+                            (cons (mkSInst (mkPair (mkInst ()) (mkCscore -3.0 3 1.0 0.5 -4.5))) ())))2 ())
     
-      (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -1.0 2 1.0 0.5 -2.5)))
-        (Cons  (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 1 1.0 0.5 -3.5)))
-            (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -3.0 3 1.0 0.5 -4.5))) Nil))))
+      (cons (mkSInst (mkPair (mkInst ()) (mkCscore -1.0 2 1.0 0.5 -2.5)))
+        (cons  (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5)))
+            (cons (mkSInst (mkPair (mkInst ()) (mkCscore -3.0 3 1.0 0.5 -4.5))) ()))))
 
 !(assertEqual (List.partialSort instance>
-      (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 3 1.0 0.5 -3.5)))
-        (Cons  (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 2 1.0 0.5 -3.5)))
-          (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 1 1.0 0.5 -3.5))) Nil))) 2 Nil)
+      (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 3 1.0 0.5 -3.5)))
+        (cons  (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 2 1.0 0.5 -3.5)))
+          (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5))) ()))) 2 ())
     
-          (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 1 1.0 0.5 -3.5)))
-                (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 2 1.0 0.5 -3.5)))
-                    (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 3 1.0 0.5 -3.5))) Nil))))
+          (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5)))
+                (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 2 1.0 0.5 -3.5)))
+                    (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 3 1.0 0.5 -3.5))) ()))))
 
 !(assertEqual (List.partialSort instance>
-                                (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -3.0 2 1.0 0.5 -4.5)))
-                                    (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -1.0 3 1.0 0.5 -2.5)))
-                                        (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 1 1.0 0.5 -3.5))) Nil))) 2 Nil)
-            (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -1.0 3 1.0 0.5 -2.5)))
-                (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -2.0 1 1.0 0.5 -3.5)))
-                    (Cons (mkSInst (mkPair (mkInst Nil) (mkCscore -3.0 2 1.0 0.5 -4.5))) Nil))))   
+                                (cons (mkSInst (mkPair (mkInst ()) (mkCscore -3.0 2 1.0 0.5 -4.5)))
+                                    (cons (mkSInst (mkPair (mkInst ()) (mkCscore -1.0 3 1.0 0.5 -2.5)))
+                                        (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5))) ()))) 2 ())
+            (cons (mkSInst (mkPair (mkInst ()) (mkCscore -1.0 3 1.0 0.5 -2.5)))
+                (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5)))
+                    (cons (mkSInst (mkPair (mkInst ()) (mkCscore -3.0 2 1.0 0.5 -4.5))) ()))))   
 
 ;; For list of numbers             
-!(assertEqual (List.partialSort (Cons 5 (Cons 1 (Cons 8 (Cons 3 Nil)))) 2 Nil) 
-                                (Cons 8 (Cons 5 (Cons 1 (Cons 3 Nil)))) )
-!(assertEqual (List.partialSort (Cons -4 (Cons -3 (Cons -2 (Cons -1 Nil)))) 2 Nil) 
-                                    (Cons -1 (Cons -2 (Cons -4 (Cons -3 Nil)))))
-!(assertEqual (List.partialSort (Cons 5 (Cons 1 (Cons 8 (Cons 3 (Cons 1 (Cons 7 Nil)))))) 3 Nil) 
-                                (Cons 8 (Cons 7 (Cons 5 (Cons 1 (Cons 3 (Cons 1 Nil)))))))
+!(assertEqual (List.partialSort (cons 5 (cons 1 (cons 8 (cons 3 ())))) 2 ()) 
+                                (cons 8 (cons 5 (cons 1 (cons 3 ())))) )
+!(assertEqual (List.partialSort (cons -4 (cons -3 (cons -2 (cons -1 ())))) 2 ()) 
+                                    (cons -1 (cons -2 (cons -4 (cons -3 ())))))
+!(assertEqual (List.partialSort (cons 5 (cons 1 (cons 8 (cons 3 (cons 1 (cons 7 ())))))) 3 ()) 
+                                (cons 8 (cons 7 (cons 5 (cons 1 (cons 3 (cons 1 ())))))))
 
 ;; For List.takeN 
-!(assertEqual (List.takeN 2 (Cons 2 (Cons 1 (Cons 3 Nil)))) (Cons 2 (Cons 1 Nil)))                                 
-!(assertEqual (List.takeN 0 (Cons 2 (Cons 1 (Cons 3 Nil)))) Nil)                                 
+!(assertEqual (List.takeN 2 (cons 2 (cons 1 (cons 3 ())))) (cons 2 (cons 1 ())))                                 
+!(assertEqual (List.takeN 0 (cons 2 (cons 1 (cons 3 ())))) ())                                 
 
 ;; List.takeNFrom test cases
-!(assertEqual (List.takeNFrom 2 3 (Cons 0 (Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 Nil)))))))
-               (Cons 2 (Cons 3 (Cons 4 Nil))))
-!(assertEqual (List.takeNFrom 0 3 (Cons 0 (Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 Nil)))))))
+!(assertEqual (List.takeNFrom 2 3 (cons 0 (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 ())))))))
+               (cons 2 (cons 3 (cons 4 ()))))
+!(assertEqual (List.takeNFrom 0 3 (cons 0 (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 ())))))))
 
-               (Cons 0 (Cons 1 (Cons 2 Nil))))
+               (cons 0 (cons 1 (cons 2 ()))))
 
-!(assertEqual (List.takeNFrom 3 2 (Cons 0 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))))
-               (Cons 3 (Cons 4 Nil)))
-!(assertEqual (List.takeNFrom 4 3 (Cons 0 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))))
-               (Cons 4 Nil))
-!(assertEqual (List.takeNFrom 10 2 (Cons 0 (Cons 1 (Cons 2 (Cons 3 Nil)))))
-               Nil)
-!(assertEqual (List.takeNFrom 2 0 (Cons 0 (Cons 1 (Cons 2 (Cons 3 Nil)))))
-               Nil)
-!(assertEqual (List.takeNFrom 0 2 Nil)
-               Nil)
-!(assertEqual (List.takeNFrom 4 1 (Cons 0 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))))
-               (Cons 4 Nil))
-!(assertEqual (List.takeNFrom 2 10 (Cons 0 (Cons 1 (Cons 2 (Cons 3 Nil)))))
-               (Cons 2 (Cons 3 Nil)))
-!(assertEqual (List.takeNFrom 2 10 (Cons 0 (Cons 1 (Cons 2 (Cons 3 (Cons 4 Nil))))))
-               (Cons 2 (Cons 3 (Cons 4 Nil))))
+!(assertEqual (List.takeNFrom 3 2 (cons 0 (cons 1 (cons 2 (cons 3 (cons 4 ()))))))
+               (cons 3 (cons 4 ())))
+!(assertEqual (List.takeNFrom 4 3 (cons 0 (cons 1 (cons 2 (cons 3 (cons 4 ()))))))
+               (cons 4 ()))
+!(assertEqual (List.takeNFrom 10 2 (cons 0 (cons 1 (cons 2 (cons 3 ())))))
+               ())
+!(assertEqual (List.takeNFrom 2 0 (cons 0 (cons 1 (cons 2 (cons 3 ())))))
+               ())
+!(assertEqual (List.takeNFrom 0 2 ())
+               ())
+!(assertEqual (List.takeNFrom 4 1 (cons 0 (cons 1 (cons 2 (cons 3 (cons 4 ()))))))
+               (cons 4 ()))
+!(assertEqual (List.takeNFrom 2 10 (cons 0 (cons 1 (cons 2 (cons 3 ())))))
+               (cons 2 (cons 3 ())))
+!(assertEqual (List.takeNFrom 2 10 (cons 0 (cons 1 (cons 2 (cons 3 (cons 4 ()))))))
+               (cons 2 (cons 3 (cons 4 ()))))
 
 ;; List.generate test cases
-!(assertEqual (List.generate 3 5) (Cons 5 (Cons 5 (Cons 5 Nil))))  
-!(assertEqual (List.generate 5 3) (Cons 3 (Cons 3 (Cons 3 (Cons 3 (Cons 3 Nil))))))
-!(assertEqual (List.generate 0 3) Nil)
-!(assertEqual (List.generate 3 0) (Cons 0 (Cons 0 (Cons 0 Nil))))
+!(assertEqual (List.generate 3 5) (cons 5 (cons 5 (cons 5 ()))))  
+!(assertEqual (List.generate 5 3) (cons 3 (cons 3 (cons 3 (cons 3 (cons 3 ()))))))
+!(assertEqual (List.generate 0 3) ())
+!(assertEqual (List.generate 3 0) (cons 0 (cons 0 (cons 0 ()))))
 
 ;; Normal removal from head
-!(assertEqual (List.pop 0 (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 2 (Cons 3 Nil)))
-!(assertEqual (List.pop 1 (Cons 1 (Cons 2 (Cons 3 Nil)))) (Cons 1 (Cons 3 Nil)))
-!(assertEqual (List.pop 0 (Cons 42 Nil)) Nil)
-!(assertEqual (List.pop 0 Nil) (Error Nil EmptyList))
+!(assertEqual (List.pop 0 (cons 1 (cons 2 (cons 3 ())))) (cons 2 (cons 3 ())))
+!(assertEqual (List.pop 1 (cons 1 (cons 2 (cons 3 ())))) (cons 1 (cons 3 ())))
+!(assertEqual (List.pop 0 (cons 42 ())) ())
+!(assertEqual (List.pop 0 ()) (Error () EmptyList))
 
-!(assertEqual (List.splitAt 1 (Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 Nil)))))) ((Cons 1 Nil) (Cons 2 (Cons 3 (Cons 4 (Cons 5 Nil))))))
-!(assertEqual (List.splitAt 0 (Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 Nil)))))) (Nil (Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 Nil)))))))
-!(assertEqual (List.splitAt 3 (Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 Nil)))))) ((Cons 1 (Cons 2 (Cons 3 Nil))) (Cons 4 (Cons 5 Nil))))
-!(assertEqual (List.splitAt 5 (Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 Nil)))))) ((Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 Nil))))) Nil))
-!(assertEqual (List.splitAt 6 (Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 Nil)))))) ((Cons 1 (Cons 2 (Cons 3 (Cons 4 (Cons 5 Nil))))) Nil))
+!(assertEqual (List.splitAt 1 (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 ())))))) ((cons 1 ()) (cons 2 (cons 3 (cons 4 (cons 5 ()))))))
+!(assertEqual (List.splitAt 0 (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 ())))))) (() (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 ())))))))
+!(assertEqual (List.splitAt 3 (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 ())))))) ((cons 1 (cons 2 (cons 3 ()))) (cons 4 (cons 5 ()))))
+!(assertEqual (List.splitAt 5 (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 ())))))) ((cons 1 (cons 2 (cons 3 (cons 4 (cons 5 ()))))) ()))
+!(assertEqual (List.splitAt 6 (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 ())))))) ((cons 1 (cons 2 (cons 3 (cons 4 (cons 5 ()))))) ()))
 
-!(assertEqual (List.appendList Nil Nil) Nil)
+!(assertEqual (List.appendList () ()) ())

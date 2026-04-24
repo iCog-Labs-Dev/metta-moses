@@ -22,8 +22,8 @@
 ;; For game strategies: 1.0 = win, -1.0 = loss, 0.0 = draw
 ;; Returns the total number of wins
 ;(: countWins (-> BehavioralScore Number))
-(= (countWins (mkBScore Nil)) 0)
-(= (countWins (mkBScore (Cons $head $tail)))
+(= (countWins (mkBScore ())) 0)
+(= (countWins (mkBScore (cons $head $tail)))
    (if (== $head 1.0)
        (+ 1 (countWins (mkBScore $tail)))
        (countWins (mkBScore $tail))))
@@ -60,7 +60,7 @@
 ;; Returns: Beahvioral score for the given tree.
 ; (: scoreTree (-> (ITable $a) (Tree $a) BehavioralScore))
 (= (scoreTree (mkITable $table $labels) $tree $cacheSpace)
-   (if (== $tree (mkTree (mkNode AND) Nil))
+   (if (== $tree (mkTree (mkNode AND) ()))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
        (chain (collapse (match $cacheSpace 
                ($tree $bscore) 
@@ -176,9 +176,9 @@
 ;;
 ;;  Example:
 ;;    (mkITable
-;;      (Cons (Cons True (Cons False (Cons True Nil)))
-;;            (Cons (Cons False (Cons True (Cons False Nil))) Nil))
-;;      (Cons 'A (Cons 'B (Cons 'Y Nil))))
+;;      (cons (cons True (cons False (cons True ())))
+;;            (cons (cons False (cons True (cons False ()))) ()))
+;;      (cons 'A (cons 'B (cons 'Y ()))))
 ;;
 ;;    Labels:   +---+---+---+
 ;;              | A | B | Y |
@@ -196,7 +196,7 @@
 ;;      getArgLabels returns only the input labels: [A, B]
 ;;
 ;;  Usage:
-;;    (getArgLabels $itable)  ; returns (Cons 'A (Cons 'B Nil))
+;;    (getArgLabels $itable)  ; returns (cons 'A (cons 'B ()))
 ;;
 ;(:getArgLabels (-> (ITable $a) (List Symbol)))
 (= (getArgLabels (mkITable $rows $labels))
