@@ -16,6 +16,8 @@
 
 (= (wScore) (* -1 (pow-math 10 100))) ;; bind worst score value 
 
+(= (demeSize (mkDeme $rep (mkSInstSet $list) $demeId)) (List.length $list))
+
 (= (deme1) 
         (mkDeme 
         (mkRep 
@@ -71,22 +73,8 @@
                             (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) 
                                 (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))))
 ;; Test cases -- crossTopOne
-!(let
-    (mkDeme 
-        (mkRep 
-            (mkKbMap 
-                (mkDscKbMp 
-                    (cons ())) 
-                    (mkDscMp ())) (mkTree (mkNode A) ()))
-                        (mkSInstSet $list) $demeId) (crossTopOne (deme1) 3 0 4 (mkInst (cons 2 ()))) (assertEqual (List.length $list) 10))
-!(let
-    (mkDeme 
-        (mkRep 
-            (mkKbMap 
-                (mkDscKbMp 
-                    (cons ())) 
-                    (mkDscMp ())) (mkTree (mkNode A) ()))
-                        (mkSInstSet $list) $demeId) (crossTopOne (deme1) 4 0 5 (mkInst (cons 2 ()))) (assertEqual (List.length $list) 11))
+!(assertEqual (demeSize (crossTopOne (deme1) 3 0 4 (mkInst (cons 2 ())))) 10)
+!(assertEqual (demeSize (crossTopOne (deme1) 4 0 5 (mkInst (cons 2 ())))) 11)
 
 !(assertEqual 
     (crossTopOne 

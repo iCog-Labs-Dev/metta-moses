@@ -11,23 +11,25 @@
 (= (removeDupInsts $rep () $topCnd) ())
 (= (removeDupInsts $rep (cons $x ()) $topCnd)
    (if (> $topCnd 0) (cons $x ()) ()))
-(= (removeDupInsts $rep (cons (mkSInst $x) (cons (mkSInst $y) $rest)) $topCnd)
-   (let $lengthOfTail (List.length (cons (mkSInst $y) $rest))
-   (if (> $topCnd 0)
-       (if (isApproxEq (getPenScore (Pair.second $x)) (getPenScore (Pair.second $y))) ;; They maybe identical
-           (let*
-              (
-                ($tr1 (getCandidate $rep (Pair.first $x)))
-                ($tr2 (getCandidate $rep (Pair.first $y)))
-                ;; ($_ (println! (Tree1: (preOrder $tr1) Tree2: (preOrder $tr2))))
-              )
-              (if (== $tr1 $tr2)
-                  (removeDupInsts $rep (cons (mkSInst $x) $rest) (min-atom ($topCnd $lengthOfTail)))
-                  (cons (mkSInst $x) (removeDupInsts $rep (cons (mkSInst $y) $rest) (- $topCnd 1))) ;; Keep $x, reduce topCnd
-              )
-           )
-           (cons (mkSInst $x) (removeDupInsts $rep (cons (mkSInst $y) $rest) (- $topCnd 1))))  ;; Keep $x, reduce topCnd
-       ())))
+(= (removeDupInsts $rep (cons (mkSInst $x) $tail) $topCnd)
+   (if (== $tail ())
+       (if (> $topCnd 0) (cons (mkSInst $x) ()) ())
+       (let* (
+              (($next $rest) (decons-atom $tail))
+              ((mkSInst $y) $next)
+              ($lengthOfTail (List.length $tail))
+             )
+         (if (> $topCnd 0)
+             (if (isApproxEq (getPenScore (Pair.second $x)) (getPenScore (Pair.second $y)))
+                 (let* (
+                        ($tr1 (getCandidate $rep (Pair.first $x)))
+                        ($tr2 (getCandidate $rep (Pair.first $y)))
+                       )
+                   (if (== $tr1 $tr2)
+                       (removeDupInsts $rep (cons (mkSInst $x) $rest) (min-atom ($topCnd $lengthOfTail)))
+                       (cons (mkSInst $x) (removeDupInsts $rep (cons (mkSInst $y) $rest) (- $topCnd 1)))))
+                 (cons (mkSInst $x) (removeDupInsts $rep (cons (mkSInst $y) $rest) (- $topCnd 1))))
+             ()))) )
 
 ;; Extracts up to $maxCandsPerDeme unique ScoredInstances from a sorted InstanceSet, limited by $nEval.
 ;; Params:
