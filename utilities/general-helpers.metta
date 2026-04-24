@@ -144,16 +144,17 @@
 ;; A function that behaves like a do while loop.
 ;; It executes the functions in the given list and returns the last result.
 ;; (: until (-> (-> $a Bool) (-> $a $a) $a $a))
-;; Disabled in favor of PeTTa native `until` lowering/runtime implementation.
-;; (= (until $predicate $function $x)
-;;     (let* (
-;;         ($isTrue (eval ($predicate $x)))
-;;         ($x' (if (== $isTrue true) ("Predicate True Skipping Function Application") ($function $x)))
-;;     )
-;;     (if (== $isTrue true)
-;;         $x
-;;         (eval (until $predicate $function $x')))
-;;     ))
+;; Disable in favor of PeTTa native `until` lowering/runtime implementation.
+(= (until $predicate $function $x)
+    (let* (
+        ($isTrue (eval ($predicate $x)))
+        ($x' (if (== $isTrue true) ("Predicate True Skipping Function Application") ($function $x)))
+    )
+    (if (== $isTrue true)
+        $x
+        (eval (until $predicate $function $x')))
+    ))
+
 ;; A foldleft function like the implementation in Haskell.
 ;; It takes a binary function that expects two atoms and
 ;;    apply it recursively on a nested atom.
