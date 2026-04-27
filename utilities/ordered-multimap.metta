@@ -2,18 +2,18 @@
 (: MultiMap (-> ($k $v) Type))
 
 ;; insert an element to the Ordered multimap using custom function
-(= (MultiMap.insert ($key $value) () $fn) (cons-atom ($key $value) ()))
+(= (MultiMap.insert ($key $value) () $fn) (cons ($key $value) ()))
 (= (MultiMap.insert ($key $value) (cons ($curKey $curVal) $tail) $fn)
    (if ($fn $key $curKey)
-       (cons-atom ($key $value) (cons-atom ($curKey $curVal) $tail))
-       (cons-atom ($curKey $curVal) (MultiMap.insert ($key $value) $tail $fn))))
+       (cons ($key $value) (cons ($curKey $curVal) $tail))
+       (cons ($curKey $curVal) (MultiMap.insert ($key $value) $tail $fn))))
 
 ;; default insert function using <=
 (= (MultiMap.insert $newValue $mMap) (MultiMap.insert $newValue $mMap <=))
 
 ;; Get the key value pair given an index.
 (= (MultiMap.getByIdx $idx ()) (Error () (Can't find $idx)))
-(= (MultiMap.getByIdx $idx $mmap) (List.getByIdx $mmap $idx))
+(= (MultiMap.getByIdx $idx (cons $x $xs)) (List.getByIdx (cons $x $xs) $idx))
 
 ;; Get the first found value with the given key from the Ordered multimap using key
 (= (MultiMap.findOne $key ()) (Error $key "not found"))
@@ -24,7 +24,7 @@
 (= (MultiMap.findAll $key ()) ())
 (= (MultiMap.findAll $key (cons ($curKey $curVal) $tail))
     (if (== $key $curKey)
-        (cons-atom $curVal (MultiMap.findAll $key $tail))
+        (cons $curVal (MultiMap.findAll $key $tail))
         (MultiMap.findAll $key $tail)))
 
 ;; Check if a key is in the Ordered multimap
@@ -43,14 +43,14 @@
     (if (== $key $curKey)
         $tail
         (chain (MultiMap.removeOne $key $tail) $res
-          (if-error $res $res (cons-atom ($curKey $curVal) $res)))))
+          (if-error $res $res (cons ($curKey $curVal) $res)))))
 
 ;; Remove all key-value pairs with a given key from the Ordered multimap
 (= (MultiMap.removeAll $key ()) ())
 (= (MultiMap.removeAll $key (cons ($curKey $curVal) $tail))
     (if (== $key $curKey)
         (MultiMap.removeAll $key $tail)
-        (cons-atom ($curKey $curVal) (MultiMap.removeAll $key $tail))))
+        (cons ($curKey $curVal) (MultiMap.removeAll $key $tail))))
 
 ;; Get all the values from the multimap
 (= (MultiMap.values $mmap)
