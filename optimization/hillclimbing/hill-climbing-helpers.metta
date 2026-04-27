@@ -297,7 +297,7 @@
                                                                 $prePositive $scorerType)
                                           (case $iTable
                                             (
-                                              ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep (mkITable $rows $labels) $rowOCoeff))
+                                              ((mkITable $rows $labels) ($transformFunction (mkDeme $rep $updatedInstSet $id) (mkITable $rows $labels) $rowOCoeff))
                                               ($ComplexityRatio ($transformFunction $updatedInstSet $rep ($rowOCoeff $size) $ComplexityRatio))
                                             ))))
 
@@ -312,7 +312,7 @@
         ;; ($_ (println! (Scored instances....)))
         ;; ($_ (println! ""))
 
-        ((mkSInst $newBestInstPair) (eval (List.foldl ((eval (curry2 returnBest)) <) (mkSInst (mkPair $centerInst $bestSscore)) $scoredInstances)))
+        ((mkSInst $newBestInstPair) (List.foldl hillScoreHelper (mkSInst (mkPair $centerInst $bestSscore)) $scoredInstances))
         ($newBestScore (if (or (== $rep ()) (== $id ())) 
                           (Pair.second $newBestInstPair)
                           (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
@@ -392,6 +392,8 @@
      
     )          
 )
+
+(= (hillScoreHelper $inst1 $inst2) (returnBest < $inst1 $inst2))
 
 ;; Helper to get initial disc spec from a knob
 (= (getInitDiscSpec (mkLSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))) $init)
