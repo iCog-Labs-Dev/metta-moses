@@ -21,7 +21,8 @@
         (let*
           (
             ($head (car-atom $current))
-            ($children (getChildrenExp $current))
+            ($literals (getLiterals $current))
+            ($children (concatTuple $literals (getChildrenExp $current)))
             ($updatedChildren (filter-atom $children $child (nodeHasChildOrGuard $child)))
             ($updatedCurrent (cons-atom $head $updatedChildren))
           )

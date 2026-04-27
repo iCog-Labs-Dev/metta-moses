@@ -13,4 +13,4 @@
 ; !(assertEqual (reduce-to (AND)) (AND))
 ; !(assertEqual (reduce-to (OR)) (AND (OR)))
 
-!(reduce-to (NOT (NOT A)))
+!(reduce (NOT (NOT A)))
