@@ -532,32 +532,6 @@
 !(println! ("testing coll.getByIdx"))
 !(assertEqual (coll.getByIdx (cons 10 (cons 20 (cons 30 ()))) 1) 20)
 
-;; --------------------------------
-;; Map — keys/values/items/find/getByKey/length/contains
-;; --------------------------------
-!(println! ("testing  coll.length"))
-; Raw cons-backed Map semantics are ambiguous after the container constructor migration.
-; They are covered by utilities/tests/map-test.metta.
-
-;; --------------------------------
-;; MultiMap — findOne/findAll/length/contains
-;; --------------------------------
-!(println! ("testing coll.length"))
-; Raw cons-backed MultiMap semantics are ambiguous after the container constructor migration.
-; They are covered by utilities/tests/ordered-multimap-test.metta.
-
-;; ;; --------------------------------
-;; ;; OrderedSet — contains/getByIdx/removeByIdx/takeN
-;; ;; --------------------------------
-!(println! ("testing coll.length "))
-; Raw cons-backed OrderedSet semantics are ambiguous after the container constructor migration.
-; They are covered by utilities/tests/ordered-set-test.metta.
-
-;; ;; --------------------------------
-;; OrderedMultiset — length/append/contains/getByIdx/remove
-;; --------------------------------
-
-; Covered by utilities/tests/ordered-multiset-test.metta
 
 ;; Cscore comparisons via apply (inline mkCscore)
 !(println! ("apply >"))

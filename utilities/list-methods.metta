@@ -28,7 +28,7 @@
 (= (List.sum $xs) (List.foldr + 0 $xs))
 
 ; (: List.append (-> $a (List $a) (List $a)))
-(= (List.append $val ()) (cons-atom $val ()))
+(= (List.append $val ()) ($val))
 (= (List.append $val (cons $head $tail))
    (cons-atom $head (List.append $val $tail)))
 
@@ -40,15 +40,15 @@
        (index-atom $xs $idx)))
 
 ; (: List.insert (-> $a (List $a) (List $a)))
-(= (List.insert $x ()) (cons-atom $x ()))
+(= (List.insert $x ()) ($x))
 (= (List.insert $x (cons $head $tail))
    (if (< $x $head)
-       (cons-atom $x (cons-atom $head $tail))
-       (cons-atom $head (List.insert $x $tail))))
+       (cons $x (cons $head $tail))
+       (cons $head (List.insert $x $tail))))
 
 ;; Sort a list in ascending order by default.
 (= (List.sort ()) ())
-(= (List.sort $xs) (List.sort $xs <))
+(= (List.sort (cons $x $xs)) (List.sort (cons $x $xs) <))
 (= (List.sort $xs $op)
    (selectionSort $xs (size-atom $xs) $op))
 
@@ -64,7 +64,7 @@
    (let $new-head ($f $head $arg)
      (if (== $new-head ())
          (List.mapOverArg $f $tail $arg)
-         (cons-atom $new-head (List.mapOverArg $f $tail $arg)))))
+         (cons $new-head (List.mapOverArg $f $tail $arg)))))
 
 ; (: List.filter (-> (-> $a Bool) (List $a) (List $a)))
 (= (List.filter $p $xs) (filter-atom $xs $p))
@@ -86,20 +86,25 @@
 (= (List.max $xs) (List.max >= $xs))
 
 ; (: List.contains (-> $a (List $a) Bool))
-(= (List.contains $a ()) False)
-(= (List.contains $a (cons $head $tail))
-   (if (== $a $head) True (List.contains $a $tail)))
+(= (List.contains $a $list) (is-member $a $list))
 
 ; (: List.replaceAt (-> (List $a) Number $a (List $a)))
 (= (List.replaceAt () $n $elem) ())
 (= (List.replaceAt (cons $head $tail) $n $elem)
    (if (== $n 0)
-       (cons-atom $elem $tail)
-       (cons-atom $head (List.replaceAt $tail (- $n 1) $elem))))
+       (cons $elem $tail)
+       (cons $head (List.replaceAt $tail (- $n 1) $elem))))
 
 ; (: List.prepend (-> $a (List $a) (List $a)))
-(= (List.prepend $a $list) (cons-atom $a $list))
+(= (List.prepend $a $list) (cons $a $list))
 
+;; Find an element in a list
+;; Params: 
+;;  $list: The list to search
+;;  $target: The element to find
+;; Returns: 
+;;  The index of the first found element or
+;;  -1 If the element can't be found
 ; (: List.index (-> (List $a) $a Number))
 (= (List.index () $target) -1)
 (= (List.index (cons $x $xs) $target)
@@ -116,6 +121,7 @@
 (= (List.tail ()) ())
 (= (List.tail (cons $x $xs)) $xs)
 
+;; INFO: The previous overloaded version doesn't work here after changing to expression.
 ; (: List.sub (-> (List Number) (List Number) (List Number)))
 (= (List.sub $xs $ys)
    (if (== $xs ())
@@ -138,22 +144,23 @@
 (= (List.zip () (cons $y $ys)) ())
 (= (List.zip (cons $x $xs) ()) ())
 (= (List.zip (cons $x $xs) (cons $y $ys))
-   (cons-atom ($x $y) (List.zip $xs $ys)))
+   (cons ($x $y) (List.zip $xs $ys)))
 
 ; (: List.zipWith (-> (-> $a $b $c) (List $a) (List $b) (List $c)))
 (= (List.zipWith $f () ()) ())
 (= (List.zipWith $f () (cons $y $ys)) ())
 (= (List.zipWith $f (cons $x $xs) ()) ())
 (= (List.zipWith $f (cons $x $xs) (cons $y $ys))
-   (cons-atom ($f $x $y) (List.zipWith $f $xs $ys)))
+   (cons ($f $x $y) (List.zipWith $f $xs $ys)))
 
 ; (: List.drop (-> Number (List $a) (List $a)))
 (= (List.drop $n ()) ())
 (= (List.drop $n (cons $x $xs))
    (if (== $n 0)
-       (cons-atom $x $xs)
+       (cons $x $xs)
        (List.drop (- $n 1) $xs)))
 
+;; INFO: Behavior has changed from previous List.flatten. Investigation needed if causes an error.
 ; (: List.flatten (-> (List (List $a)) (List $a)))
 (= (List.flatten ()) ())
 (= (List.flatten (cons $x $xs))
@@ -165,7 +172,7 @@
 (= (List.repeat $n $a)
    (if (== $n 0)
        ()
-       (cons-atom $a (List.repeat (- $n 1) $a))))
+       (cons $a (List.repeat (- $n 1) $a))))
 
 ; (: List.concat (-> (List $a) (List $a) (List $a)))
 (= (List.concat $list1 $list2) (append $list1 $list2))
@@ -174,19 +181,19 @@
 (= (List.removeAtIdx () $idx) ())
 (= (List.removeAtIdx (cons $head $tail) $idx)
    (if (< $idx 0)
-       (cons-atom $head $tail)
+       (cons $head $tail)
        (if (== $idx 0)
            $tail
-           (cons-atom $head (List.removeAtIdx $tail (- $idx 1))))))
+           (cons $head (List.removeAtIdx $tail (- $idx 1))))))
 
 ; (: List.isMember (-> $a (List $a) Bool))
 (= (List.isMember $elem $list) (List.contains $elem $list))
 
 ; (: List.partialSort (-> (-> $a $a Bool) (List $a) Number (List $a) (List $a)))
 (= (List.partialSort $comparator () $n $acc) $acc)
-(= (List.partialSort $comparator $xs $n $acc)
-   (let* (($max (List.max $comparator $xs))
-          ($unsortedList (List.delete $max $xs))
+(= (List.partialSort $comparator (cons $x $xs) $n $acc)
+   (let* (($max (List.max $comparator (cons $x $xs)))
+          ($unsortedList (List.delete $max (cons $x $xs)))
           ($sortedList (List.append $max $acc)))
      (if (<= (- $n 1) 0)
          (List.appendList $unsortedList $sortedList)
@@ -203,7 +210,7 @@
 (= (List.delete $a (cons $x $xs))
    (if (== $x $a)
        $xs
-       (cons-atom $x (List.delete $a $xs))))
+       (cons $x (List.delete $a $xs))))
 
 ; (: List.takeN (-> Number (List $a) (List $a)))
 (= (List.takeN $n ()) ())
@@ -222,7 +229,7 @@
 ; (: List.generate (-> Number Number (List Number)))
 (= (List.generate $length $element)
    (if (> $length 0)
-       (cons-atom $element (List.generate (- $length 1) $element))
+       (cons $element (List.generate (- $length 1) $element))
        ()))
 
 ;; Remove an element from a list by index.
@@ -231,7 +238,7 @@
    (if (== $i 0)
        $xs
        (chain (List.pop (- $i 1) $xs) $res
-         (if-error $res (cons-atom $x ()) (cons-atom $x $res)))))
+         (if-error $res (cons $x ()) (cons $x $res)))))
 
 (= (List.splitAt $i $xs)
    ((List.takeN $i $xs) (List.drop $i $xs)))

@@ -2,25 +2,25 @@
 (: Map (-> ($k $v) Type))
 
 ;; An insertion function that also allows map to act as a counter
-(= (Map.insertCounter $key ()) (cons-atom ($key 1) ()))
+(= (Map.insertCounter $key ()) (cons ($key 1) ()))
 (= (Map.insertCounter $key (cons ($curKey $curVal) $tail))
     (if (== $key $curKey)
-        (cons-atom ($curKey (+ $curVal 1)) $tail)
+        (cons ($curKey (+ $curVal 1)) $tail)
         (if (< $key $curKey)
-            (cons-atom ($key 1) (cons-atom ($curKey $curVal) $tail))
-            (cons-atom ($curKey $curVal) (Map.insertCounter $key $tail)))))
+            (cons ($key 1) (cons ($curKey $curVal) $tail))
+            (cons ($curKey $curVal) (Map.insertCounter $key $tail)))))
 
 ;; insert an element to a Map using custom comparison functions (equality + less-than)
-(= (Map.insert ($key $value) () $fEq $fLt) (cons-atom ($key $value) ()))
+(= (Map.insert ($key $value) () $fEq $fLt) (cons ($key $value) ()))
 (= (Map.insert ($key $value) (cons ($curKey $curVal) $tail) $fEq $fLt)
     (if ($fEq $key $curKey)
-        (cons-atom ($key $value) $tail)
+        (cons ($key $value) $tail)
         (if ($fLt $key $curKey)
-            (cons-atom ($key $value) (cons-atom ($curKey $curVal) $tail))
-            (cons-atom ($curKey $curVal) (Map.insert ($key $value) $tail $fEq $fLt)))))
+            (cons ($key $value) (cons ($curKey $curVal) $tail))
+            (cons ($curKey $curVal) (Map.insert ($key $value) $tail $fEq $fLt)))))
 
 ;; insert an element to a Map
-(= (Map.insert ($key $value) ()) (cons-atom ($key $value) ()))
+(= (Map.insert ($key $value) ()) (cons ($key $value) ()))
 (= (Map.insert ($key $value) (cons ($curKey $curVal) $tail))
     (if (== $key $curKey)
         (cons-atom ($key $value) $tail)
@@ -35,8 +35,8 @@
 
 ;; Get a pair from a Map using index
 (= (Map.getByIdx () $i) (Error () "Index out of bounds"))
-(= (Map.getByIdx $map $i)
-   (List.getByIdx $map $i))
+(= (Map.getByIdx (cons $x $xs) $i)
+   (List.getByIdx (cons $x $xs) $i))
 
 ;; Check if a key is in the Map
 (= (Map.contains $key ()) False)
@@ -54,7 +54,7 @@
     (if (== $key $curKey)
         $tail
         (chain (Map.remove $key $tail) $res
-          (if-error $res $res (cons-atom ($curKey $curVal) $res)))))
+          (if-error $res $res (cons ($curKey $curVal) $res)))))
 
 ;; Get all the values from the map
 (= (Map.values $map)

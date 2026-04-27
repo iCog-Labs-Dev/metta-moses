@@ -2,18 +2,19 @@
 (: OS (-> $a Type))
 
 ;; Insert an element into an ordered set using comparator returning G/E/L.
-(= (OS.insert $comparator $x ()) (cons-atom $x ()))
+;; TODO: comparison operators used in the original MOSES implementation works by finding the difference between the scores and 
+;;      two exemplars are deemed equal if this difference value is within a certain range which is a samll number
+(= (OS.insert $comparator $x ()) ($x))
 (= (OS.insert $comparator $new (cons $x $xs))
     (case ($comparator $new $x)
-      ((G (cons-atom $new (cons-atom $x $xs)))
-       (E (cons-atom $x $xs))
-       (L (cons-atom $x (OS.insert $comparator $new $xs))))))
+      ((G (cons $new (cons $x $xs)))
+       (E (cons $x $xs))
+       (L (cons $x (OS.insert $comparator $new $xs))))))
 
 ;; Length of an OS
 (= (OS.length $os) (size-atom $os))
 
 ;; OS.getByIdx -- get by index
-(= (OS.getByIdx $idx ()) (Error $idx "empty set/index out of range"))
 (= (OS.getByIdx $idx $os)
    (if (or (< $idx 0) (>= $idx (size-atom $os)))
        (Error 0 "empty set/index out of range")
@@ -24,7 +25,7 @@
 (= (OS.takeN $n (cons $x $xs))
     (if (<= $n 0)
         ()
-        (cons-atom $x (OS.takeN (- $n 1) $xs))))
+        (cons $x (OS.takeN (- $n 1) $xs))))
 
 ;; OS.contains -- check if an ordered list contains a particular element
 (= (OS.contains $os $el) (is-member $el $os))
@@ -37,17 +38,18 @@
         (chain (OS.removeByIdx $xs (- $index 1)) $res
           (if (== $res ())
               ($x)
-              (if-error $res $res (cons-atom $x $res))))))
+              (if-error $res $res (cons $x $res))))))
 
 ;; Check if an Exemplar is a member of an ordered set
 (= (OS.isMember $exemplar $os) (OS.contains $os $exemplar))
 
 ;; Retrieves the first N elements from an ordered set.
 (= (OS.getTopN $n ()) (Error () "empty ordered set/ fewer items than required"))
-(= (OS.getTopN $n $os)
-   (if (> $n (size-atom $os))
-       (Error () "empty ordered set/ fewer items than required")
-       (OS.takeN $n $os)))
+(= (OS.getTopN $n (cons $x $xs))
+   (if (== $n 1)
+       (cons $x ())
+       (chain (OS.getTopN (- $n 1) $xs) $res
+          (if-error $res $res (cons $x $res)))))
 
 ;; Comparator helpers
 (= (genericCompare $atom1 $atom2)
@@ -94,12 +96,8 @@
          (OS.difference $tail $set2 $newResult))))
 
 ;; Convert OrderedSet to Expression
-(= (osToExpression $os $acc) (append $os $acc))
+;; (= (osToExpression $os $acc) (append $os $acc))
+(= (osToExpression $os $acc) $os)
 
 ;; Convert Expression to OrderedSet
-(= (expressionToOS $expr $currentOS)
-    (if (== $expr ())
-        $currentOS
-        (let ($head $tail) (decons-atom $expr)
-             (chain (OS.insert genericCompare $head $currentOS) $newOS
-                 (expressionToOS $tail $newOS)))))
+(= (expressionToOS $expr $currentOS) $expr)

@@ -711,6 +711,7 @@
 ;; Converts a tuple of pairs into ordered multimap
 ;; Ex: ((k1 v1) (k2 v2)) -> (cons (k1 v1) (cons (k2 v2) ()))
 ;; (: expToMMap (-> Expression (MultiMap ($k $v)) (-> $k $k Bool) (MultiMap ($k $v))))
+;; TODO: Change this to simpler function
 (= (expToMMap () $map $compFunc) ())
 (= (expToMMap $tuple $map $compFunc)
 (let*
@@ -952,9 +953,6 @@
 ;; Ordered Multiset — insert element
 (= (coll.append NilOMS $el) (eval (OMS.insert $el NilOMS)))
 (= (coll.append (ConsOMS $x $xs) $el) (eval (OMS.insert $el (ConsOMS $x $xs))))
-
-;; Ordered Set insertion should stay explicit through `OS.insert` because raw cons-lists
-;; are also used for normal lists and pair-backed containers after the cons migration.
 
 ;; Deme — append ScoredInstance to its InstanceSet
 (= (coll.append (mkDeme $rep (mkSInstSet $list) $demeId) $el)
