@@ -7,22 +7,23 @@
 ;; Fold a tuple from left to right.
 ; (: List.foldl (-> (-> $a $b $b) $b (List $a) $b))
 (= (List.foldl $f $i $xs)
-   (foldl-atom $xs $i (|-> ($acc $x) ($f $x $acc))))
+   (foldl-atom $xs $i $acc $x ($f $x $acc)))
 
 ;; Fold a tuple from right to left.
 ; (: List.foldr (-> (-> $a $b $b) $b (List $a) $b))
 (= (List.foldr $f $i $xs)
-   (foldl-atom (reverse $xs) $i (|-> ($acc $x) ($f $x $acc))))
+   (foldl-atom (reverse $xs) $i $acc $x ($f $x $acc)))
 
 ;; Generalized foldl and foldr.
+;; (foldl-atom (1 2 3 4) 0 $acc $x (+ $acc $x))
 (= (toExp $x) ($x))
 (= (List.tFoldl () $f $t $acc) $acc)
 (= (List.tFoldl $xs $f $t $acc)
-   (foldl-atom $xs $acc (|-> ($acc0 $x) ($f $acc0 ($t $x)))))
+   (foldl-atom $xs $acc $acc0 $x ($f $acc0 ($t $x))))
 
 (= (List.tFoldr () $f $t $acc) $acc)
 (= (List.tFoldr $xs $f $t $acc)
-   (foldl-atom (reverse $xs) $acc (|-> ($acc0 $x) ($f ($t $x) $acc0))))
+   (foldl-atom (reverse $xs) $acc $acc0 $x ($f ($t $x) $acc0)))
 
 ; (: List.sum (-> (List Number) Number))
 (= (List.sum $xs) (List.foldr + 0 $xs))
