@@ -564,9 +564,9 @@
      (mkSInstSet 
        (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 6.0 2 0.571 0.0 5.429))) ()))
      (mkDemeId "2")))
-!(assertEqual (demeToTrees (testStrategyDeme) (1 random-player)) 
+!(assertEqual (demeToTrees (testStrategyDeme) 1) 
               (cons (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playblock) ()) ()))) (mkDemeId "1") (mkCscore 5.0 2 0.571 0.0 4.429) (mkBScore (cons -1.0 ()))) ()))
 
 !(assertEqual (mergeDemes ((testStrategyDeme) (testStrategyDeme2)) 5 2 0 1 
-                  (1 random-player) () 3 0.004 1000) 
+                  1 () 3 0.004 1000) 
                   (cons (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playside) ()) ()))) (mkDemeId "2") (mkCscore 6.0 2 0.571 0.0 5.429) (mkBScore (cons -1.0 ()))) ()))

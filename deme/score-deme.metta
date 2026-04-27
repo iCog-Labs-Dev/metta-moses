@@ -29,20 +29,12 @@
 ;; Returns:
 ;;   List of scored instances with CScore
 ; (: applyStrategyBasedScore (-> Representation (List Instance) Number $opponentPolicy Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
-(= (applyStrategyBasedScore $rep () $nGames $opponentPolicy $complexityRatio $listOfScoredInst) $listOfScoredInst)
-(= (applyStrategyBasedScore $rep (cons $i $is) $nGames $opponentPolicy $complexityRatio $listOfScoredInst)
-(let*
-(
-    ($strategyTree (getCandidate $rep $i))
-    ;; ($_ (println! "[applyStrategyBasedScore] Got tree:"))
-    ($_ (println! $strategyTree))
-    ($cscore (getCscore $strategyTree $nGames $opponentPolicy $complexityRatio &strategyScoreCache))
-    ($_ (println! "[applyStrategyBasedScore] Got cscore:"))
-    ($_ (println! $cscore))
-    ($scoredInst (mkSInst (mkPair $i $cscore)))
-    ($uListofScoredInst (cons $scoredInst $listOfScoredInst))
-)
-(applyStrategyBasedScore $rep $is $nGames $opponentPolicy $complexityRatio $uListofScoredInst)))
+(= (applyStrategyBasedScore $rep () $nGames $complexityRatio $listOfScoredInst) $listOfScoredInst)
+(= (applyStrategyBasedScore $rep (cons $i $is) $nGames $complexityRatio $listOfScoredInst)
+    (let* (($strategyTree (getCandidate $rep $i))
+           ($cscore (getCscore $strategyTree $nGames $complexityRatio &strategyScoreCache))
+           ($scoredInst (mkSInst (mkPair $i $cscore))))
+        (applyStrategyBasedScore $rep $is $nGames $complexityRatio (cons $scoredInst $listOfScoredInst))))
 
 ;; Scores each instance in an InstanceSet. 
 ;; Params:
@@ -59,7 +51,7 @@
           ($scored (case $scoringContext
                         (
                           ((mkITable $rows $labels) (applyComplexityBasedScore $rep $instList $scoringContext $complexityRatio))
-                          (($nGames $opponentPolicy) (applyStrategyBasedScore $rep $instList $nGames $opponentPolicy $complexityRatio ())))))
+                          ($nGames (applyStrategyBasedScore $rep $instList $nGames $complexityRatio ())))))
           )
   (mkSInstSet $scored)))
 
