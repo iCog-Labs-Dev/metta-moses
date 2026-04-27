@@ -12,10 +12,10 @@
 !(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) (A))) (OR (AND A B) (A))) ((AND (OR (AND A B) (A))) (OR (AND A B) (A)) False))
 
 ;; Test 04
-!(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) A)) (OR (AND A B) A)) ((AND (OR A (AND A B))) (OR A (AND A B)) false))
+!(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) A)) (OR (AND A B) A)) ((AND (OR (AND A B) A)) (OR (AND A B) A) false))
 
 ;; Test 05
-!(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) (OR A B (AND A B C)) (NOT A))) (OR (AND A B) (OR A B (AND A B C)) (NOT A))) ((AND (OR (NOT A) (AND A B) (OR A B (AND A B C)))) (OR (NOT A) (AND A B) (OR A B (AND A B C))) false))
+!(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) (OR A B (AND A B C)) (NOT A))) (OR (AND A B) (OR A B (AND A B C)) (NOT A))) ((AND (OR (AND A B) (OR A B (AND A B C)) (NOT A))) (OR (AND A B) (OR A B (AND A B C)) (NOT A)) false))
 
 ;; Test 06
 !(assertEqual (zeroConstraintSubsume (OR (AND A B)) (AND A B)) ((OR (AND A B)) (AND A B) False))
