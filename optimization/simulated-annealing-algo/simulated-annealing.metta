@@ -137,7 +137,7 @@
                                                                   $preMinActivation $preMaxActivation
                                                                   $prePositive $scorerType
                                                                   )
-                                                ($transformFunction $updatedInstSet $rep $iTable $rowOCoeff)))
+                                                ($transformFunction $updatedInstSet $rep $id $iTable $rowOCoeff)))
 
               ($updatedPOASet (if (or (== $rep ()) (== $id ())) 
                           (mkSInstSet $scoredInstances) 

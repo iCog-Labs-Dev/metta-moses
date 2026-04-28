@@ -105,6 +105,7 @@
 !(assertEqual 
    (applyComplexityBasedScore 
       (mkRep (knobMapObj) (tree1))
+      (mkDemeId "1")
       (cons (mkInst (cons 0 (cons 0 (cons 2 ())))) (cons (mkInst (cons 0 (cons 0 (cons 1 ())))) (cons (mkInst (cons 0 (cons 2 (cons 2 ())))) ())))
       (ttable2)
       2.0)
@@ -113,6 +114,7 @@
 !(assertEqual
    (applyComplexityBasedScore 
       (mkRep (knobMapObj) (tree1))
+      (mkDemeId "1")
       (cons (mkInst (cons 0 (cons 1 (cons 2 ())))) (cons (mkInst (cons 0 (cons 2 (cons 1 ())))) ()))
       (ttable2)
       2.0)
@@ -123,6 +125,7 @@
    (transform
    (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) -1.0000000000000001e308)) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) -1.0000000000000001e308)) ())))
    (mkRep (knobMapObj) (tree1))
+   (mkDemeId "1")
    (ttable2)
    2.0)
    (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) ()))))
@@ -133,6 +136,7 @@
    (transform
    (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) -1.0000000000000001e308)) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 1 ())))) -1.0000000000000001e308)) ())))
    (mkRep (knobMapObj) (tree1))
+   (mkDemeId "1")
    (ttable2)
    1)
    (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore -4 0 0.0 0.0 -4.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 1 ())))) (mkCscore 0 3 3.0 0.0 -3.0))) ())))) 
@@ -196,9 +200,9 @@
                      (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 1.0 2 0.5714285714285714 0.0 0.4285714285714286))) ()))
 
 !(assertEqual
-   (transform (mkSInstSet ()) (StrategyRep) (1 random-player) 3.5)
+   (transform (mkSInstSet ()) (StrategyRep) (mkDemeId "1") (1 random-player) 3.5)
    (mkSInstSet ()))
 
 !(assertEqual (transform
    (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) -1.0e308)) ()))
-   (StrategyRep) (1 random-player) 3.5) (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 1.0 2 0.5714285714285714 0.0 0.4285714285714286))) ())))
+   (StrategyRep) (mkDemeId "1") (1 random-player) 3.5) (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 1.0 2 0.5714285714285714 0.0 0.4285714285714286))) ())))

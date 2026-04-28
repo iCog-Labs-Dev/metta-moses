@@ -248,7 +248,7 @@
         ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
         ;; ($_ (println! ""))
 
-        ($maxEvals 10000)
+        ($maxEvals 500)
         ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors)) ;; TODO: MaxEvals is hardcoded here, but should be changed. This is set to 20K by default in OpenCog Classic.
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
@@ -297,7 +297,7 @@
                                                                 $prePositive $scorerType)
                                           (case $iTable
                                             (
-                                              ((mkITable $rows $labels) ($transformFunction (mkDeme $rep $updatedInstSet $id) (mkITable $rows $labels) $rowOCoeff))
+                                              ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep $id (mkITable $rows $labels) $rowOCoeff))
                                               ($ComplexityRatio ($transformFunction $updatedInstSet $rep ($rowOCoeff $size) $ComplexityRatio))
                                             ))))
 

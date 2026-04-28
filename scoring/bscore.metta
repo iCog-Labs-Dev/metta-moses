@@ -70,7 +70,7 @@
                (let* (
                    ($expTree (preOrder $tree))
                    ($scoreList (map-atom $table $ts (scoreTreeHelper $labels $expTree $ts)))
-                   ($_ (println! (ScoreList: $scoreList)))
+                   ;; ($_ (println! (ScoreList: $scoreList)))
                    ($length (List.length $labels))
                    ($outputs (List.flatten (List.map (List.drop (- $length 1)) $table)))
                    ($bScore (List.zipWith compareAndScore $scoreList $outputs))

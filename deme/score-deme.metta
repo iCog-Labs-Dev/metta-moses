@@ -9,14 +9,14 @@
 ;; Returns:
 ;;   $listOfScoredInst: the final list containing scoredInstances
 ; (: applyComplexityBasedScore (-> Representation (List Instance) (ITable $a) Number (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
-(= (applyComplexityBasedScore $rep () $itable $complexityRatio) ())
-(= (applyComplexityBasedScore $rep (cons $i $is) $itable $complexityRatio)
+(= (applyComplexityBasedScore $rep $id () $itable $complexityRatio) ())
+(= (applyComplexityBasedScore $rep $id (cons $i $is) $itable $complexityRatio)
 (let*
 (
-    ($score (complexityBasedScorer $rep $i $itable $complexityRatio))
+    ($score (complexityBasedScorer $rep $id $i $itable $complexityRatio))
     ($scoredInst (mkSInst (mkPair $i $score)))
 )
-(cons $scoredInst (applyComplexityBasedScore $rep $is $itable $complexityRatio))))
+(cons $scoredInst (applyComplexityBasedScore $rep $id $is $itable $complexityRatio))))
 
 ;; Strategy-based scoring helper for game strategies 
 ;; Params:
@@ -53,12 +53,12 @@
 ;; Returns:
 ;;   instanceSet: Scored InstanceSet
 ; (: transform (-> (InstanceSet $a) Representation (ITable Bool) Number (InstanceSet Cscore)))
-(= (transform (mkSInstSet $scoredInstList) $rep $scoringContext $complexityRatio)
+(= (transform (mkSInstSet $scoredInstList) $rep $id $scoringContext $complexityRatio)
    (let* (
           ($instList (List.map removeInstScore $scoredInstList))
           ($scored (case $scoringContext
                         (
-                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $instList $scoringContext $complexityRatio))
+                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio))
                           (($nGames $opponentPolicy) (applyStrategyBasedScore $rep $instList $nGames $opponentPolicy $complexityRatio ())))))
           )
   (mkSInstSet $scored)))
