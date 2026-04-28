@@ -53,12 +53,12 @@
         (chain (second (car-atom $acc)) $sample-tuple 
             (if (== (size-atom $sample-tuple) $numFeatures)
                 $acc                                 ;; return the score and feature indices pair
-                (chain (first (car-atom $acc)) $prev-highest-score
+                (chain (first-from-pair (car-atom $acc)) $prev-highest-score
                 (chain 
                     (inputPairMiCalculator $table $oc $indices $acc) $res                                                       ;; collapsed result of pairing scoring
                     (chain (shuffle $res ()) $shuffled-pairs 
                     (chain (sortPairs pairMax $shuffled-pairs $topsCount ()) $topN
-                    (chain (first (car-atom $topN)) $topScore                               ;; $topScore                  ;; shuffling to give pairs with equal scores better chance of being selected for variety
+                    (chain (first-from-pair (car-atom $topN)) $topScore                               ;; $topScore                  ;; shuffling to give pairs with equal scores better chance of being selected for variety
                     (if (< (- $topScore $prev-highest-score) $th)                           ;; terminate the loop if there is no significant improvement
                         $acc
                         (smdIterator $th $numFeatures $topsCount $len $oc $indices (mkITable $table $labels) $scorer $topN)))))))))))
