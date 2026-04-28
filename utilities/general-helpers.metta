@@ -471,7 +471,7 @@
      (let*  (
              ($head (car-atom $expr))
              ($tail (cdr-atom $expr))
-              ($result (comparator $head $i $op))
+             ($result (comparator $head $i $op))
             )
           (selector $tail $result $op))
 )

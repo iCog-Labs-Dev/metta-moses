@@ -151,11 +151,11 @@
 
 ;; List.partialSort -- for list of Scored instances
 
-!(assertEqual (List.partialSort <= (cons 3 (cons 2 (cons 1 ()))) 0 ()) (cons 1 (cons 3 (cons 2 ()))))
+!(assertEqual (List.partialSort <= (cons 3 (cons 2 (cons 1 ()))) 1) (cons 1 (cons 3 (cons 2 ()))))
 !(assertEqual (List.partialSort instance>
                             (cons (mkSInst (mkPair (mkInst ()) (mkCscore 1 2 3 4 15)))
                                 (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5)))
-                                (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 0.5))) ()))) 2 ())
+                                (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 0.5))) ()))) 2)
                                     
                                 (cons (mkSInst (mkPair (mkInst ()) (mkCscore 1 2 3 4 15))) 
                                         (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5)))
@@ -164,7 +164,7 @@
 !(assertEqual (List.partialSort instance>
                         (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5)))
                             (cons (mkSInst (mkPair (mkInst ()) (mkCscore -1.0 2 1.0 0.5 -2.5)))
-                            (cons (mkSInst (mkPair (mkInst ()) (mkCscore -3.0 3 1.0 0.5 -4.5))) ())))2 ())
+                            (cons (mkSInst (mkPair (mkInst ()) (mkCscore -3.0 3 1.0 0.5 -4.5))) ()))) 2)
     
       (cons (mkSInst (mkPair (mkInst ()) (mkCscore -1.0 2 1.0 0.5 -2.5)))
         (cons  (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5)))
@@ -173,7 +173,7 @@
 !(assertEqual (List.partialSort instance>
       (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 3 1.0 0.5 -3.5)))
         (cons  (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 2 1.0 0.5 -3.5)))
-          (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5))) ()))) 2 ())
+          (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5))) ()))) 2)
     
           (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5)))
                 (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 2 1.0 0.5 -3.5)))
@@ -182,17 +182,17 @@
 !(assertEqual (List.partialSort instance>
                                 (cons (mkSInst (mkPair (mkInst ()) (mkCscore -3.0 2 1.0 0.5 -4.5)))
                                     (cons (mkSInst (mkPair (mkInst ()) (mkCscore -1.0 3 1.0 0.5 -2.5)))
-                                        (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5))) ()))) 2 ())
+                                        (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5))) ()))) 2)
             (cons (mkSInst (mkPair (mkInst ()) (mkCscore -1.0 3 1.0 0.5 -2.5)))
                 (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5)))
                     (cons (mkSInst (mkPair (mkInst ()) (mkCscore -3.0 2 1.0 0.5 -4.5))) ()))))   
 
 ;; For list of numbers             
-!(assertEqual (List.partialSort (cons 5 (cons 1 (cons 8 (cons 3 ())))) 2 ()) 
+!(assertEqual (List.partialSort (cons 5 (cons 1 (cons 8 (cons 3 ())))) 2) 
                                 (cons 8 (cons 5 (cons 1 (cons 3 ())))) )
-!(assertEqual (List.partialSort (cons -4 (cons -3 (cons -2 (cons -1 ())))) 2 ()) 
+!(assertEqual (List.partialSort (cons -4 (cons -3 (cons -2 (cons -1 ())))) 2) 
                                     (cons -1 (cons -2 (cons -4 (cons -3 ())))))
-!(assertEqual (List.partialSort (cons 5 (cons 1 (cons 8 (cons 3 (cons 1 (cons 7 ())))))) 3 ()) 
+!(assertEqual (List.partialSort (cons 5 (cons 1 (cons 8 (cons 3 (cons 1 (cons 7 ())))))) 3) 
                                 (cons 8 (cons 7 (cons 5 (cons 1 (cons 3 (cons 1 ())))))))
 
 ;; For List.takeN 

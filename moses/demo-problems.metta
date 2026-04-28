@@ -227,16 +227,16 @@
         ($worstPossibleScore (List.sum $worstPossibleBScore))
         ($bestPosssibleCscore (getBestPossibleCscore $cpxPen $problem))
         ($_ (println! (BestPossibleScore: $bestPosssibleCscore)))
-        ($metaPop (cons (mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) ()))
+        ($metaPop ((mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore))))
         ;; ($metaPop (cons (mkExemplar (mkTree (mkNode AND) (cons (mkTree (mkNode OR) ()) ())) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) ()))
         ($result (runMoses $maxGen $bestPosssibleCscore 10 $metaPop 0 $nDeme
               (False $fsAlgo $truthTableBScore ($problem))
               hillClimbing
-              10000 100 20 $complexityTemperature
+              500 100 20 $complexityTemperature
               50 $capCoef $maxGen))
         ($_ (println! (Result: $result)))
-        ($newR (osToExpression (mapG cleanedExemplar $result) ()))
-        ($_ (cut)) ;; INFO: This prevents a weird infint loop that only occurs on some test cases with unknown reasons.
+        ($newR (mapG cleanedExemplar $result))
+        ($_ (cut)) ;; INFO: This prevents a weird infinte loop that only occurs on some test cases with unknown reasons.
       )
       (FinalResult $newR)))
 

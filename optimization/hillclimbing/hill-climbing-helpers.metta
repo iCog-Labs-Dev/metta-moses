@@ -254,7 +254,7 @@
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
         ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
         ($_ (println! (Crossover: $xOver)))
-        ($_ (println! (CenterInst: (List.listToExpr (second $centerInst)) )))
+        ($_ (println! (CenterInst: (second $centerInst))))
         ($_ (println! (size: $size)))
         ;; ($_ (println! ($totalNNeighbors : $nNewNeighbors : $prevCenter : $POASet : $d)))
         ($_ (println! ($totalNNeighbors : $nNewNeighbors : $d)))
