@@ -226,7 +226,7 @@
           (hillClimbing (3 3 $targetPenScore)
                         (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
-                        ($disc $nGames strategy $complexityRatio)
+                        ($disc $nGames strategy $complexityRatio) ;; INFO: `strategy` is used only as a non-empty marker so this recursive call follows the normal strategy branch instead of the feature-selection branch that is selected when the third slot is ().
                         $centerInst
                         ()
                         estimateNeighborhood crossover
