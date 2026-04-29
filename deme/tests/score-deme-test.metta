@@ -193,9 +193,9 @@
        (cons (mkTree (mkNode playcenter) ()) 
              (cons (mkTree (mkNode playcorner) ()) ())))))
 
-!(assertEqual (applyStrategyBasedScore (StrategyRep) () 1 random-player 3.5 ()) ())
+!(assertEqual (applyStrategyBasedScore (StrategyRep) (mkDemeId "1") () 1 random-player 3.5 ()) ())
 
-!(assertEqual (applyStrategyBasedScore (StrategyRep) 
+!(assertEqual (applyStrategyBasedScore (StrategyRep) (mkDemeId "1")
                      (cons (mkInst (cons 1 (cons 1 ())))  ()) 1 random-player 3.5 ()) 
                      (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 1.0 2 0.5714285714285714 0.0 0.4285714285714286))) ()))
 

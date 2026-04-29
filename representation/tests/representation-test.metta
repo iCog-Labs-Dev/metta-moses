@@ -185,7 +185,7 @@
 ;; Test case for Instance (2 0 1): (AND A (OR B C)) => (AND A (OR B C (NOT D)))
 !("===================Test case for Instance (2 0 1)============================")
 !(assertEqual
-   (getCandidate (mkRep (knobMapObj) (tree1))
+   (getCandidate (mkRep (knobMapObj) (tree1)) (mkDemeId "1")
                  (mkInst (cons 2 (cons 0 (cons 1 ())))))
 
         (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode C) ()) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode D) ()) ())) ())))) ())))
