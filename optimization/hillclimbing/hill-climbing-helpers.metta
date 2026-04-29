@@ -180,7 +180,7 @@
     
 ;; (: hillClimbing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
 ;; $FsScorer should be passed using a `mkScorer` constructor other wise it will cause an error in PeTTa.
-;; ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $opponentPolicy $complexityRatio)))
+;; ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $complexityRatio)))
 (= (hillClimbing $POASet $tTableBscorer $centerInst (mkParams $scorer $FsScorer))
   (case (mkParams $scorer)
     (((mkParams applyComplexityBasedScore)
@@ -218,14 +218,15 @@
         (let*
           (
             ($disc (getDisk $POASet))
-            (($nGames $opponentPolicy $complexityRatio) $FsScorer)
+            (($nGames $complexityRatio) $FsScorer)
             ($targetPenScore (getPenScore $tTableBscorer))
-            ($_ (println! (Disc: $disc Games: $nGames Poilcy: $opponentPolicy Ratio: $complexityRatio) ) )
+            ;; Keep a non-empty sentinel in the third slot so the recursive
+            ;; strategy path still follows the non-feature-selection branches.
           )
           (hillClimbing (3 3 $targetPenScore)
                         (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
-                        ($disc $nGames $opponentPolicy $complexityRatio)
+                        ($disc $nGames strategy $complexityRatio) ;; INFO: `strategy` is used only as a non-empty marker so this recursive call follows the normal strategy branch instead of the feature-selection branch that is selected when the third slot is ().
                         $centerInst
                         ()
                         estimateNeighborhood crossover
@@ -298,7 +299,7 @@
                                           (case $iTable
                                             (
                                               ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep (mkITable $rows $labels) $rowOCoeff))
-                                              ($ComplexityRatio ($transformFunction $updatedInstSet $rep ($rowOCoeff $size) $ComplexityRatio))
+                                              ($ComplexityRatio ($transformFunction $updatedInstSet $rep $rowOCoeff $ComplexityRatio))
                                             ))))
 
         ($updatedDeme (if (or (== $rep ()) (== $id ())) 
@@ -339,7 +340,7 @@
                                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
                                   ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentNInstances $newInstances (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
         
-        ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (getScore $newBestSscore)))
+        ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (getPenScore $newBestSscore)))
         ;; ($_ (println! (Found newBestSscore After (+ 1 $i) iteration is: $newBestSscore $scoreToCompareBelow)))
         ;; ($_ (println! ""))
         ($_ (cut))

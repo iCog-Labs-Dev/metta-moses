@@ -370,7 +370,7 @@
 ;     (emptyStrategyMetaPop)         ;; metaPop - start with empty strategy
 ;     0                              ;; nExpansion - generation counter
 ;     2                              ;; nDeme - 3 demes (more diversity)
-;     (10 random-player 3.5)       ;; nGames - 10 games per evaluation
+;     (10 3.5)                       ;; nGames - 10 games per evaluation
 ;     hillClimbing                   ;; optimize - optimizer function
 ;     30                             ;; nEval - not used
 ;     5                              ;; maxCandsPerDeme - top 5 per deme
@@ -411,7 +411,7 @@
                 3                              ;; maxCandOutput
                 (strategyMetaPop)              ;; metaPop
                 0 1                            ;; nExpansion, nDeme
-                (5 random-player 3.5)            ;; nGames, opponent, ratio
+                (5 3.5)            ;; nGames, opponent, ratio
                 hillClimbing                   ;; optimizer
                 30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
                 5 0.004 1000))                 ;; nToKeep, capCoef, genCount
@@ -428,7 +428,7 @@
                 1                              ;; maxCandOutput
                 (strategyMetaPop)              ;; metaPop
                 0 1                            ;; nExpansion, nDeme
-                (5 random-player 3.5)            ;; nGames, opponent, ratio
+                (5 3.5)            ;; nGames, opponent, ratio
                 hillClimbing                   ;; optimizer
                 30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
                 5 0.004 1000))                 ;; nToKeep, capCoef, genCount

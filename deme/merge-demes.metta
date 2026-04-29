@@ -129,7 +129,7 @@
         ;; ($_ (println! (ScoringContext: $scoringContext)))
         ($bscore (case $scoringContext
                     (((mkITable $rows $labels) (scoreTree $scoringContext $tree &bscoreCache))
-                     (($nGames $opponentPolicy) (scoreStrategyTree $tree $nGames $opponentPolicy &strategyScoreCache)))))
+                     ($nGames (scoreStrategyTree $tree $nGames &strategyScoreCache)))))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
         ;; ($_ (println! (Returning...)))
     )

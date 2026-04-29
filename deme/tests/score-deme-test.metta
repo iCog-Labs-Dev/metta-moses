@@ -40,7 +40,7 @@
 !(import! &self ../../scoring/precision-bscore)
 !(import! &self ../../scoring/complexity-based-scorer)
 
-!(import! &self ../../moses/neighborhood-sampling.metta)
+!(import! &self ../../moses/neighborhood-sampling)
 
 !(import! &self ../score-deme)
 
@@ -189,16 +189,15 @@
        (cons (mkTree (mkNode playcenter) ()) 
              (cons (mkTree (mkNode playcorner) ()) ())))))
 
-!(assertEqual (applyStrategyBasedScore (StrategyRep) () 1 random-player 3.5 ()) ())
+!(assertEqual (applyStrategyBasedScore (StrategyRep) () 1 3.5 ()) ())
 
 !(assertEqual (applyStrategyBasedScore (StrategyRep) 
-                     (cons (mkInst (cons 1 (cons 1 ())))  ()) 1 random-player 3.5 ()) 
-                     (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 1.0 2 0.5714285714285714 0.0 0.4285714285714286))) ()))
-
+                     (cons (mkInst (cons 1 (cons 1 ()))) ()) 1 3.5 ()) 
+                     (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore -1.0 2 0.5714285714285714 0.0 -1.5714285714285714))) ()))
 !(assertEqual
-   (transform (mkSInstSet ()) (StrategyRep) (1 random-player) 3.5)
+   (transform (mkSInstSet ()) (StrategyRep) 1 3.5)
    (mkSInstSet ()))
 
 !(assertEqual (transform
    (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) -1.0e308)) ()))
-   (StrategyRep) (1 random-player) 3.5) (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 1.0 2 0.5714285714285714 0.0 0.4285714285714286))) ())))
+   (StrategyRep) 1 3.5) (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore -1.0 2 0.5714285714285714 0.0 -1.5714285714285714))) ())))
