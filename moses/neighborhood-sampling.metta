@@ -22,14 +22,14 @@
 (= (generateAllInNeighborhood (mkMultip $m) (mkInst ()) $dist) ())
 (= (generateAllInNeighborhood (mkMultip $m) (mkInst (cons $x $xs)) $dist)
    (if (== $dist 0)
-       (cons (mkInst (cons $x $xs)) ())
+       ((mkInst (cons $x $xs)))
        (let $multips (genList 1 (- $m 1))
-          (let $instExp (List.listToExpr (cons $x $xs))
+          (let $instExp (cons $x $xs)
           (let $listNeighbors (let $neighbors (varyNKnobs $multips $instExp $dist)
-                                      (map-atom $neighbors $neighbor (mkInst (exprToList $neighbor))))
+                                      (map-atom $neighbors $neighbor (mkInst $neighbor)))
           (let $uqListNeighbors (unique-atom $listNeighbors)
           (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (cons $x $xs))))
-            (exprToList $uqListNeighbors'))))))))
+            $uqListNeighbors')))))))
 
 ;; This function returns a non deterministic list of instances at the given distance.
 ;; It's output isn't typed and also needs further preprocessing.
@@ -56,11 +56,13 @@
            ($changeIs (map-atom $multips $m (changeAt $m $startI $instExp)))
            ($changeRest (varyNKnobs $multips $instExp $dist (+ $startI 1)))
            ($changeDs (map-atom $changeIs $changeI (varyNKnobs $multips $changeI (- $dist 1) (+ $startI 1))))
-           ($flatDs (foldl-atom $changeDs () $acc $changeD (union-atom $changeD $acc)))
-           ($acc (union-atom $changeIs $changeRest))
-           ($final (union-atom $acc $flatDs))
+           ($flatDs (foldl-atom $changeDs () $acc $changeD (append $changeD $acc)))
+           ($acc (append $changeIs $changeRest))
+           ($final (append $acc $flatDs))
          )
-         (filter-atom $final (!= ())))))
+         (filter-atom $final isNotUnit))))
+
+(= (isNotUnit $x) (!= () $x))
 
 (= (changeAt $new $i $list)
    (if (== $list ())
@@ -169,7 +171,7 @@
 
       ($x (map-atom $list $i (sampleFromNeighborhood` $i $dist $kbMp $inst)))
     )
-    (exprToList $x)))
+    $x))
 
 ;; (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst $multip)
 ;;         (if (not (isPossibleSize $sampleSize $dist $inst $multip))

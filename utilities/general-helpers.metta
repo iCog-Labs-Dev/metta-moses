@@ -744,7 +744,7 @@
     (if (< $u $l)
         ()
         (let $res (genList $l (- $u 1))
-            (union-atom $res ($u)))))
+            (append $res ($u)))))
 
 ;; swap AND , OR 
 ; (: swapAndOr (-> Atom Atom))
