@@ -62,7 +62,7 @@
                 ($capped-ft-set-pop (if (and (> $diversity-cap 0) (< $diversity-cap $ft-set-pop-size))                  ;; limmit the size of feature set pop to diversity cap value
                                         (takeN $diversity-cap $ft-set-pop)
                                         $ft-set-pop))
-                ;; ($_ (println! (Selected features set pop $capped-ft-set-pop)))
+                ($_ (println! (Selected features set pop $capped-ft-set-pop)))
                 ;; ($_ (println! (quote (selectTopFts (mkITable $table $labels) $div-pres -1 $multi-diversity $sim-scorer $capped-ft-set-pop $nDeme))))
                 )
                 (selectTopFts (mkITable $table $labels) $div-pres -1 $multi-diversity $sim-scorer $capped-ft-set-pop $nDeme)
@@ -92,7 +92,7 @@
 
 		 (rd (randomFeatureSelection (mkITable $table $labels) $target-size))                                       
 		 (sim (simpleFeatureSelector $th $target-size False (mkITable $table $labels) ()))                           ;; False -- default value for using exp distribution for selection of top N features -- and start with empty feature list as initial features -- th here refers to the minimum score required for feature set to be selected
-		 (inc (incrementalSelection (mkITable $table $labels) $th $target-size 1 0))                                 ;; 1 -- default value of max-interaction-terms -- the maximum size of each feature set tested in the scorer -- the last value is a value redundancy threshold values
+		 (inc (incremental-feature-selection (mkITable $table $labels) $th $target-size -1 1 0.01))                                 
 		 (smd (if (== $init-fts ())
 		                      (stochasticMaxDependency $th $target-size 3 (mkITable $table $labels) mi ())
 		                      (let* (($len (List.length $labels))
