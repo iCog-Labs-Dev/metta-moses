@@ -42,7 +42,7 @@
                   (let*
                     (
                       ($guardSet (getGuardSet $current))
-                      ($common (collapse (intersection (superpose $guardSet) (superpose $commandSet))))
+                      ($common (intersection-atom $guardSet $commandSet))
                     )
                     (if (== $common ())
                         ;; (trace! (Parent: $parent : Current : $current)

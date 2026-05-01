@@ -4,19 +4,19 @@
 !(import! &self ../zero-constraint-subsumption)
 !(import! &self ../cut-unnecessary-or)
 
- ;; Test for getGuardSet
+;; Test for getGuardSet
 
- ;; Tests for new getGuardSet
- ;; Test 01 - getGuardSet of a literal
+;; Tests for new getGuardSet
+;; Test 01 - getGuardSet of a literal
 !(assertEqual (getGuardSet A) A)
 !(assertEqual (getGuardSet (A)) (A))
 
- ; Test 02 - getGuardSet of OR and NOT expressions
+;; Test 02 - getGuardSet of OR and NOT expressions
 !(assertEqual (getGuardSet (OR)) ())
 !(assertEqual (getGuardSet (OR A B (NOT A))) ())
 !(assertEqual (getGuardSet (OR (AND A B) (AND A B) (NOT A))) ())
 
- ;; Test 03 - getGuardSet of AND expressions
+;; Test 03 - getGuardSet of AND expressions
 !(assertEqual (getGuardSet (AND)) ())
 !(assertEqual (getGuardSet (AND A)) (A))
 !(assertEqual (getGuardSet (AND (NOT A) (NOT B) A)) ((NOT A) (NOT B) A))
@@ -26,17 +26,17 @@
 !(assertEqual (getGuardSet (AND A (NOT A) (NOT B))) (A (NOT A) (NOT B) ))
 !(assertEqual (getGuardSet (AND (NOT A) A B)) ((NOT A) A B))
 
- ;; Tests for getGuardSetND
- ;; Test 01 - getGuardSet of a literal
+;; Tests for getGuardSetND
+;; Test 01 - getGuardSet of a literal
 !(assertEqual (getGuardSetND A) A)
 !(assertEqual (getGuardSetND (A)) A)
 
- ;; Test 02 - getGuardSetND of OR and NOT expressions
+;; Test 02 - getGuardSetND of OR and NOT expressions
 !(assertEqual (collapse (getGuardSetND (OR))) ())
 !(assertEqual (collapse (getGuardSetND (OR A B (NOT A)))) ())
 !(assertEqual (collapse (getGuardSetND (OR (AND A B) (AND A B) (NOT A)))) ())
 
- ;; Test 03 - getGuardSetND of AND expressions
+;; Test 03 - getGuardSetND of AND expressions
 !(assertEqual (collapse (getGuardSetND (AND))) ())
 !(assertEqual (collapse (getGuardSetND (AND A))) (A))
 !(assertEqual (collapse (getGuardSetND (AND (NOT A) (NOT B) A))) ((NOT A) (NOT B) A))
@@ -67,7 +67,7 @@
 !(assertEqual (filterLiterals A) A)
 !(assertEqual (collapse (filterLiterals (AND A B C))) (collapse (empty)))
 !(assertEqual (filterLiterals (NOT A)) (NOT A))
-!(assertEqual (collaspe (filterLiterals AND)) (collapse (empty)))
+!(assertEqual (collapse (filterLiterals AND)) ())
 !(assertEqual (collapse (filterLiterals OR)) (collapse (empty)))
 
 ;; Test for filterChildren
@@ -148,7 +148,7 @@
 !(assertEqual (any (False False False False False False False)) False)
 !(assertEqual (any (False False True False False False False)) True)
 
-; ;; Test for getSubExpression ;; Not tested because it uses cutUnnecessaryOr
+;; Test for getSubExpression ;; Not tested because it uses cutUnnecessaryOr
 !(assertEqual (getSubExpression (NOT A)) ())
 !(assertEqual (getSubExpression (OR A B (AND C D) (AND E F))) (A B (AND C D) (AND E F)))
 !(assertEqual (getSubExpression (AND A B (OR C D) (OR E F))) (A B (OR C D) (OR E F)))

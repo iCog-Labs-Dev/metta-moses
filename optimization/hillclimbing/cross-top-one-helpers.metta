@@ -36,11 +36,13 @@
 ;; ;; returns an expression of Scored instances with the new instances recieveing the worst composite possible score 
 ;  (: merger (-> Expression Instance Instance Expression))
  (= (merger $targetInstances $baseInst $referenceInst)
-     (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
-        (let $mergedInstance (mergeInstance $targetInst $baseInst $referenceInst) (mkSInst (mkPair $mergedInstance (worstCscore)))))))
+     (map-atom $targetInstances $tI 
+        (let (mkSInst (mkPair $targetInst $score)) $tI 
+             (let $mergedInstance (mergeInstance $targetInst $baseInst $referenceInst)
+                  (mkSInst (mkPair $mergedInstance (worstCscore)))))))
 
 ;; similar to the above 'merger' but with slight modification on the initial score to be 0 in case of feature selection
 ; (: mergerFs (-> Expression Instance Instance Expression))
  (= (mergerFs $targetInstances $baseInst $referenceInst)
-     (collapse (let (mkSInst (mkPair $targetInst $score)) (superpose $targetInstances)
-        (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) 0)))))
+     (map-atom $targetInstances $tI 
+         (let (mkSInst (mkPair $targetInst $score)) $tI (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) 0)))))

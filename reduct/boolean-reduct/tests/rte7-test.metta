@@ -24,7 +24,7 @@
 
 !(assertEqual (reduce-to (AND (OR (AND (OR)) (AND (OR (AND (NOT X1))))))) (NOT X1))
 
- !(assertEqual (reduce-to (AND (OR (AND (OR (AND (NOT X1) (NOT X2) (NOT X3) (OR (AND X2) (AND (NOT X3))) (OR (AND (NOT X1)) (AND (NOT X3))) (OR (AND X1) (AND (NOT X2))) (OR (AND X2) (AND X1) (AND X3) (AND X1 X2) (AND (NOT X2) X3) (AND X1 X3)) X3 (OR (AND (NOT X1)) (AND X2)) (OR (AND X2) (AND X3)) (OR (AND X1) (AND X2)) (OR (AND X1) (AND X2) (AND X3) (AND X2 X3) (AND (NOT X1) X3) (AND (NOT X1)) (AND (NOT X3)))) (AND (OR (AND (NOT X3))) (OR (AND X1) (AND X2) (AND)) (OR)) (AND)) (OR)) (AND)))) (AND (NOT X3) (OR X1 X2)))
+!(assertEqual (reduce-to (AND (OR (AND (OR (AND (NOT X1) (NOT X2) (NOT X3) (OR (AND X2) (AND (NOT X3))) (OR (AND (NOT X1)) (AND (NOT X3))) (OR (AND X1) (AND (NOT X2))) (OR (AND X2) (AND X1) (AND X3) (AND X1 X2) (AND (NOT X2) X3) (AND X1 X3)) X3 (OR (AND (NOT X1)) (AND X2)) (OR (AND X2) (AND X3)) (OR (AND X1) (AND X2)) (OR (AND X1) (AND X2) (AND X3) (AND X2 X3) (AND (NOT X1) X3) (AND (NOT X1)) (AND (NOT X3)))) (AND (OR (AND (NOT X3))) (OR (AND X1) (AND X2) (AND)) (OR)) (AND)) (OR)) (AND)))) (AND (NOT X3) (OR X1 X2)))
 
 !(assertEqual (reduce-to (OR (AND (OR (NOT (AND D0 Addr)))) (AND))) (AND (OR (NOT D0) (NOT Addr))))
 !(assertEqual (reduce-to (OR (AND (OR (AND D0 Addr))) (AND))) (AND D0 Addr))

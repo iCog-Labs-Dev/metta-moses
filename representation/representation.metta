@@ -39,18 +39,16 @@
 ;;(: representation (-> (Tree $a) Number (List Representation)))
 (= (representation $exemplar $nDeme)
    (let* (
-      ($demeCount (range 0 1 $nDeme))
-     
-      ($result (collapse (let $x (superpose $demeCount)
-         (let*
-            (
-               (($updatedTree $dscMp) (buildKnobs $exemplar () ()))
-               ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
-               ($rep (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree))
-            )   
-               $rep))))
-   )
-   $result))
+          ($demeCount (range 0 1 $nDeme))
+        
+          ($result (map-atom $demeCount $x 
+                      (let*
+                        (
+                          (($updatedTree $dscMp) (buildKnobs $exemplar () ()))
+                          ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
+                          ($rep (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))   
+                          $rep))))
+         $result))
 ;; (: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol Expression))
 (= (representation
 ;; Boolean representation constructor with feature selection
