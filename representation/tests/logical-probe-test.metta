@@ -1,9 +1,20 @@
 !(import! &self ../../utilities/general-helpers)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/nodeId)
+!(import! &self ../../reduct/boolean-reduct/rte-helpers)
+!(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
+!(import! &self ../../reduct/boolean-reduct/cut-unnecessary-and)
+!(import! &self ../../reduct/boolean-reduct/n-ary-propagate-not)
+!(import! &self ../../reduct/boolean-reduct/n-ary-gather-junctors)
+!(import! &self ../../reduct/boolean-reduct/delete-inconsistent-handle)
+!(import! &self ../../reduct/boolean-reduct/zero-constraint-subsumption)
+!(import! &self ../../reduct/boolean-reduct/one-constraint-subsumption)
+!(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
+!(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 !(import! &self ../../utilities/tree)
 !(import! &self ../../representation/lsk)
 !(import! &self ../../representation/knob-representation)
+!(import! &self ../../representation/disc-probe)
 !(import! &self ../../representation/logical-probe)
 !(import! &self ../../representation/sample-logical-perms) 
 
@@ -127,5 +138,20 @@
                            ()))
         ($firstKnob (car-atom $knobs))
         ($multi (getKnobMultip $firstKnob))
+	    )
+	    (== $multi (mkMultip 2))) True)
+
+;; Strategy knobs are not disc-probed.
+!(assertEqual 
+    (let* (
+        (($knobs $tree) (strategyProbe
+                           (mkTree (mkNode PRIORITIZED-OR)
+                                   (cons (mkTree (mkNode playcenter) ()) ()))
+                           (mkNodeId (0))
+                           ((mkTree (mkNode playcorner) ()))
+                           True
+                           ()))
+        ($firstKnob (car-atom $knobs))
     )
-    (== $multi (mkMultip 2))) True)
+    (and (== (getDisallowedSpecs $firstKnob) ())
+         (== (getKnobMultip $firstKnob) (mkMultip 2)))) True)

@@ -20,6 +20,7 @@
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../lsk)
 !(import! &self ../../representation/logical-canonize)
+!(import! &self ../../representation/disc-probe)
 !(import! &self ../../representation/logical-probe)
 !(import! &self ../sample-logical-perms) 
 !(import! &self ../add-logical-knobs)
@@ -36,18 +37,18 @@
         (cons (mkTree (mkNode A) ())
           (cons (mkTree (mkNode B) ()) ())))
               (mkNodeId (0)) True () (A B)))
-    ($_ (println! $updatedTree))
-    ($_ (println! $mm))
-    ($mmpsEqual 
-     (MultiMap.equals $mm 
-     (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ()))))))
+    ; ($_ (println! $updatedTree))
+    ; ($_ (println! $mm))
+	    ($mmpsEqual 
+	     (MultiMap.equals $mm 
+	     (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) ()))))
 
-    ($treesEqual 
-     (== $updatedTree
-     (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) ()))))))
-    )
+	    ($treesEqual 
+	     (== $updatedTree
+	     (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))))
+	    )
 )
-$mmpsEqual
+(and $mmpsEqual $treesEqual)
 ) True)
 
 ;; Testcase for the addLogicalKnobs 

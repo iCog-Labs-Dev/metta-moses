@@ -36,6 +36,7 @@
 
 !(import! &self ../knob-representation)
 !(import! &self ../lsk)
+!(import! &self ../disc-probe)
 !(import! &self ../logical-probe) 
 !(import! &self ..//logical-canonize)
 !(import! &self ../sample-logical-perms) 
