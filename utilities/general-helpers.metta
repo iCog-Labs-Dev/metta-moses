@@ -486,18 +486,14 @@
    )
 )
 
-;; (: take (-> Number Atom Atom))
-(= (take $n $a)
-    (case ($n $a)
-          (
-            (($n ()) ())
-            ((0 $a) ())
-            (($n $a)
-              (let*
-                (
-                  (($h $t) (decons $a))
-                  ($r (take (- $n 1) $t)))
-                (cons-atom $h $r))))))
+;; take first N elements of a list
+(: take (-> Number Atom Atom))
+(= (take $n ()) ())
+(= (take $n (cons $h $t))
+   (if (<= $n 0)
+       ()
+       (let $next-n (- $n 1)
+            (cons $h (take $next-n $t)))))
 
 ;; A function to remove the frist n elements of a tuple 
 ;;   and returns the rest.
