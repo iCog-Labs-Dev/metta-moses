@@ -395,7 +395,7 @@
 )
 
 ;; Helper to get initial disc spec from a knob
-(= (getInitDiscSpec (mkLSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))) $init)
+(= (getInitDiscSpec (mkLSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))) 0)
 (= (getInitDiscSpec (mkSSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))) $init)
 
 ;; Helper to initialize center instance from deme
