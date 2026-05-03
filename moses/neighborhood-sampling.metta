@@ -29,7 +29,51 @@
                                       (map-atom $neighbors $neighbor (mkInst (exprToList $neighbor))))
           (let $uqListNeighbors (unique-atom $listNeighbors)
           (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (cons $x $xs))))
-            (exprToList $uqListNeighbors'))))))))
+	            (exprToList $uqListNeighbors'))))))))
+
+;; Disc-aware exhaustive neighborhood generation. Each knob can expose a
+;; different effective multiplicity after disc probing.
+(= (effectiveSpecValues (mkMultip $m))
+   (if (<= $m 1)
+       ()
+       (genList 1 (- $m 1))))
+
+(= (discEffectiveSpecLists (mkDscMp ())) ())
+(= (discEffectiveSpecLists (mkDscMp (cons ($spec $knob) $tail)))
+   (cons (effectiveSpecValues (getKnobMultip $knob))
+         (discEffectiveSpecLists (mkDscMp $tail))))
+
+(= (varyNKnobsBySpecLists $specLists $instExp $dist)
+   (varyNKnobsBySpecLists $specLists $instExp $dist 0))
+(= (varyNKnobsBySpecLists $specLists $instExp $dist $startI)
+   (if (or (== $dist 0) (== $startI (length $instExp)))
+       ()
+       (let*
+         (
+           ($specs (List.getByIdx $specLists $startI))
+           ($changeIs (map-atom $specs $m (changeAt $m $startI $instExp)))
+           ($changeRest (varyNKnobsBySpecLists $specLists $instExp $dist (+ $startI 1)))
+           ($changeDs (map-atom $changeIs $changeI (varyNKnobsBySpecLists $specLists $changeI (- $dist 1) (+ $startI 1))))
+           ($flatDs (foldl-atom $changeDs () $acc $changeD (union-atom $changeD $acc)))
+           ($acc (union-atom $changeIs $changeRest))
+           ($final (union-atom $acc $flatDs))
+         )
+         (filter-atom $final (!= ())))))
+
+(= (generateAllInNeighborhoodForDisc (mkDscMp $disc) (mkInst ()) $dist) ())
+(= (generateAllInNeighborhoodForDisc (mkDscMp $disc) (mkInst (cons $x $xs)) $dist)
+   (if (== $dist 0)
+       (cons (mkInst (cons $x $xs)) ())
+       (let*
+          (
+            ($specLists (discEffectiveSpecLists (mkDscMp $disc)))
+            ($instExp (List.listToExpr (cons $x $xs)))
+            ($listNeighbors (let $neighbors (varyNKnobsBySpecLists $specLists $instExp $dist)
+                                 (map-atom $neighbors $neighbor (mkInst (exprToList $neighbor)))))
+            ($uqListNeighbors (unique-atom $listNeighbors))
+            ($uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (cons $x $xs)))))
+          )
+          (exprToList $uqListNeighbors'))))
 
 ;; This function returns a non deterministic list of instances at the given distance.
 ;; It's output isn't typed and also needs further preprocessing.
@@ -128,16 +172,22 @@
 ;;      $newInst: The original central instance.
 ;; (: updateInst (-> Number (MultiMap (DiscSpec $knob)) Instance Instance))
 (= (updateInst $rand $disc $newInst)
-        (let*
-          (
-            (($decSpec (mkLSK (mkDiscKnob $knob (mkMultip $multi) $spec $spec1 $specList))) (MultiMap.getByIdx $rand $disc))
-            ($curSpec (List.getByIdx $newInst $rand))
-            ($upper (- $multi 1))
-            ($randomSpec (+ (rand-int 0 (- $upper 1)) 1))
-          )
-          (if (== $randomSpec $curSpec)
-                              (List.replaceAt $newInst $rand 0)
-                              (List.replaceAt $newInst $rand $randomSpec))))
+	        (let*
+	          (
+	            (($decSpec $knob) (MultiMap.getByIdx $rand $disc))
+	            ((mkMultip $multi) (getKnobMultip $knob))
+	            ($curSpec (List.getByIdx $newInst $rand))
+	          )
+	          (if (<= $multi 1)
+	              $newInst
+	              (let*
+	                (
+	                  ($upper (- $multi 1))
+	                  ($randomSpec (+ (rand-int 0 (- $upper 1)) 1))
+	                )
+	                (if (== $randomSpec $curSpec)
+	                    (List.replaceAt $newInst $rand 0)
+	                    (List.replaceAt $newInst $rand $randomSpec))))))
 
 ;; similar to the above 'updateInst' with slight change on the range of the randomSpec to make it work for the feature selection
 ; (: updateInstFs (-> Number Instance Instance))
@@ -306,9 +356,7 @@
     ;; ($_ (println! (Distance: $dist CenterInst: $centerInst)))
     ;; ($_ (println! ""))
 
-    (($spec $knob) (MultiMap.getByIdx 0 $disc))
-    ((mkMultip $m) (getKnobMultip $knob))
-    ($kbMp (mkKbMap $dscKbMp (mkDscMp $disc)))
+	  ($kbMp (mkKbMap $dscKbMp (mkDscMp $disc)))
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (countNeighborhood $kbMp $centerInst $dist $numNewInstances)
@@ -321,9 +369,9 @@
     ;; ($_ (println! (Inside sampleNewInstances: (< $numNewInstances $updatedTotalNeighbors) Neighbors: $updatedTotalNeighbors numNewInstances: $numNewInstances Distance: $dist)))
     ;; ($_ (println! (Sampling:  (< $numNewInstances $updatedTotalNeighbors) CenterInst: $centerInst Distance: $dist)))
     ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
-                       (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
-                       ;; (swapList (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))) ;; INFO: Used to improve result but not needed any more
-                       (generateAllInNeighborhood (mkMultip $m) $centerInst $dist)))
+	                       (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
+	                       ;; (swapList (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))) ;; INFO: Used to improve result but not needed any more
+	                       (generateAllInNeighborhoodForDisc (mkDscMp $disc) $centerInst $dist)))
     ;; ($_ (println! (NewInstances: $newInstances)))
     ;; ($exprInstances (List.listToExpr $newInstances))
     ;; ($uExprInstances (unique-atom $exprInstances))
