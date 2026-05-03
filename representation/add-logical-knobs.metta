@@ -18,6 +18,11 @@
 ;; addLogicalKnobs
 ;; (: addLogicalKnobs (-> (Tree $a) NodeId Bool (MultiMap ($k $v)) Expression Expression))
 (= (addLogicalKnobs $exemplar $nodeId $addIfInExemplar $map $argLabels) 
+   (addLogicalKnobsAt $exemplar $nodeId $nodeId $addIfInExemplar $map $argLabels))
+
+;; addLogicalKnobsAt keeps the logical probe root distinct from the target node.
+;; Strategy knobs ignore the root and are not disc-probed.
+(= (addLogicalKnobsAt $exemplar $probeRootId $nodeId $addIfInExemplar $map $argLabels) 
    (let*
      (
 
@@ -32,7 +37,7 @@
       ($treePerms (map-atom $perms $perm (buildTree $perm)))
       (($knobs $updatedTree) (if (== $op PRIORITIZED-OR)
                                  (strategyProbe $exemplar $nodeId $treePerms $addIfInExemplar ())
-                                 (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ())))
+                                 (logicalProbeAt $exemplar $probeRootId $nodeId $treePerms $addIfInExemplar ())))
 
       ;; ($_ (println! (Adding (length $knobs) Knobs)))
 
