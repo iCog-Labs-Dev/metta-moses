@@ -10,27 +10,25 @@
 
 ;; logicalProbe
 ;; (: logicalProbe (-> (Tree $a) NodeId Expression Bool Expression Expression))
-(= (logicalProbe $exemplar (mkNodeId $targetId) () $addIfInExemplar $knobs) ($knobs $exemplar))
-(= (logicalProbe $exemplar (mkNodeId $targetId) $perms $addIfInExemplar $knobs)
+(= (logicalProbe $exemplar $targetId $perms $addIfInExemplar $knobs)
+   (logicalProbeAt $exemplar $targetId $targetId $perms $addIfInExemplar $knobs))
+
+;; logicalProbeAt carries the logical root used for disc-probe complexity checks
+;; separately from the node controlled by the knob.
+(= (logicalProbeAt $exemplar $probeRootId (mkNodeId $targetId) () $addIfInExemplar $knobs) ($knobs $exemplar))
+(= (logicalProbeAt $exemplar $probeRootId (mkNodeId $targetId) $perms $addIfInExemplar $knobs)
 (let*
 (
     (($headPerms $tailPerms) (decons-atom $perms))
     (($updatedTree $lsk) (logicalSubtreeKnob $exemplar (mkNodeId $targetId) $headPerms))
-    ($discKnob (getDiscKnob $lsk))
-    ;; ((mkDiscKnob (mkKnob $posId) $multipKnob $spec1 $spec2 $something) $discKnob)
-    ;; ($_ (println! (Adding: (getNodeById $updatedTree $posId) isInexemplar: (inExemplar $discKnob))))
+    ($probedLsk (discProbe $updatedTree $probeRootId $lsk))
+    ($discKnob (getDiscKnob $probedLsk))
 )
-(if (or $addIfInExemplar (not (inExemplar $discKnob) )) 
-    (let* 
-    (
-        ($updatedKnobs (concatT $knobs ($lsk)))
-    )
-    (logicalProbe $updatedTree (mkNodeId $targetId) $tailPerms $addIfInExemplar $updatedKnobs)
-    )
-    (logicalProbe $exemplar (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs))))
-    ;; (trace! (skipping $discKnob because addInExemplar: $addIfInExemplar inExemplar: (inExemplar $discKnob)) (logicalProbe $exemplar (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs)))))
+(if (and (not (allDisallowed $probedLsk)) (or $addIfInExemplar (not (inExemplar $discKnob)))) 
+    (let $updatedKnobs (concatT $knobs ($probedLsk))
+	    (logicalProbeAt $updatedTree $probeRootId (mkNodeId $targetId) $tailPerms $addIfInExemplar $updatedKnobs))
+	    (logicalProbeAt $exemplar $probeRootId (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs))))
 
-;; Game-specific probe that uses strategySubtreeKnob instead of logicalSubtreeKnob
 ;; strategyProbe -> builds SSKs by processing game move permutations
 ;; Params:
 ;;      $exemplar: Reference tree containing the target node
