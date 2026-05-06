@@ -119,12 +119,27 @@
 ;; Crossover function.
 ;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
 ; (: crossover (-> Number Number Instance Deme (Deme Number)))
-(= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme)
-   ;; (trace! (Running crossover to make: (min $nNewInstances 120) instances)
-   ;; INFO: The 120 is crossover_pop_size parameter that should come from hillClimbing
-           ((crossTopOne $deme (min $nNewInstances 120) $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
-   ;; )
-   ) ;; WARN: The $nNewInstances might not be the actual number of instances created.
+; (= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme)
+;    ;; (trace! (Running crossover to make: (min $nNewInstances 120) instances)
+;    ;; INFO: The 120 is crossover_pop_size parameter that should come from hillClimbing
+;    ;  ((crossTopOne $deme (min $nNewInstances 120) $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
+(let*
+    (
+      ($nToMake (min $nNewInstances 120))
+      ((mkDeme $rep (mkSInstSet $instSet) $id) $deme)
+      
+      ($newInst1 (crossTopOne $instSet (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst))
+      ($newInst2 (crossTopTwo $instSet (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
+      ($newInst3 (crossTopThree $instSet $n3 $sampleStart $sampleSize $centerInst))
+      ($allNewInst (List.appendList $newInst1
+                 (List.appendList $newInst2 $newInst3)))
+
+      ($finalSet (List.appendList $allNewInst $instSet))
+    )
+    (mkDeme $rep (mkSInstSet $finalSet) $id)
+  )
+;     ; )
+;    ) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
 ;; crossover for feature selection
 ; (: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))

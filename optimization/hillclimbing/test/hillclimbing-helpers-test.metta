@@ -24,6 +24,10 @@
 
 !(import! &self ../cross-top-one-helpers)
 !(import! &self ../cross-top-one)
+!(import! &self ../cross-top-two-helpers)
+!(import! &self ../cross-top-two)
+!(import! &self ../cross-top-three-helpers)
+!(import! &self ../cross-top-three)
 
 
 
@@ -249,3 +253,24 @@
 
 !(assertEqual (hillClimbing (strategyDeme) (mkCscore 3.0 5 1.43 0.0 3) (mkInst (cons 1 (cons 1 ()))) (mkParams applyStrategyBasedScore (3 3.5))
 ) ((mkInst (1 1)) (mkDeme (mkRep (mkKbMap (mkDscKbMp (((mkNodeId (1)) 0) ((mkNodeId (2)) 1))) (mkDscMp (((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))))) (mkTree (mkNode PRIORITIZED-OR) ((mkTree (mkNode playwin) ()) (mkTree (mkNode playblock) ())))) (mkSInstSet ((mkSInst (mkPair (mkInst (0 1)) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (mkSInst (mkPair (mkInst (1 1)) (mkCscore -3.0 2 0.5714285714285714 0.0 -3.571428571428571))) (mkSInst (mkPair (mkInst (0 1)) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (mkSInst (mkPair (mkInst (1 0)) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))))) (mkDemeId "1")) (true false false (mkInst (1 1)) 3 1 (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856) -3.2857142857142856 4 2 3)))
+!(assertEqual (hillClimbing (strategyDeme) (mkCscore 3.0 5 1.43 0.0 3) (mkInst (Cons 1 (Cons 1 Nil))) (mkParams applyStrategyBasedScore (3 random-player 3.5))) 
+                    ((mkInst (Cons 1 (Cons 1 Nil))) (mkDeme (mkRep (mkKbMap (mkDscKbMp (ConsMap ((mkNodeId (1)) 0) (ConsMap ((mkNodeId (2)) 1) NilMap))) (mkDscMp (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (ConsMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) NilMMap)))) (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playwin) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil)))) (mkSInstSet (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 1 Nil))) (mkCscore -3.0 2 0.5714285714285714 0.0 -3.571428571428571))) (Cons (mkSInst (mkPair (mkInst (Cons 0 (Cons 1 Nil))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (Cons (mkSInst (mkPair (mkInst (Cons 1 (Cons 0 Nil))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) Nil))))) (mkDemeId "1")) (true false false (mkInst (Cons 1 (Cons 1 Nil))) 3 1 (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856) -3.2857142857142856 4 2 3))
+)
+!(let
+    ($d1 (crossTopOne (deme1) 3 0 4 (mkInst (Cons 0 Nil))))
+    ($d2 (crossTopTwo $d1 3 0 4 (mkInst (Cons 0 Nil))))
+    (assertTrue (not (== $d2 Nil))))
+
+    !(let
+    ($d1 (crossTopOne (deme1) 3 0 4 (mkInst (Cons 0 Nil))))
+    ($d2 (crossTopTwo $d1 3 0 4 (mkInst (Cons 0 Nil))))
+    (assertTrue
+        (> (List.length (mkSInstSet $d2))
+           (List.length (mkSInstSet (deme1))))))
+           !(let
+    ($d2 (crossTopTwo 
+            (crossTopOne (deme1) 3 0 4 (mkInst (Cons 0 Nil)))
+            3 0 4 (mkInst (Cons 0 Nil))))
+    (assertTrue (not (== $d2 (deme1)))))
+
+
