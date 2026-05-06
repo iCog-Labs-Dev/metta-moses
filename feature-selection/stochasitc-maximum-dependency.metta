@@ -78,15 +78,15 @@
                                     (smd-step $Table $all-features $num-features $threshold $top-size $next-i $high-score $new-tops))))))))
 
 
-(= (smd-select-feature-sets $Table $target-size $threshold $top-size)
+(= (smd-feature-selection $Table $target-size $threshold $top-size $init-features)
    (if (<= $target-size 0)
        (let $all-features (range 0 (get-target-col $Table))
             (cons (cons (mi-score $Table $all-features) (cons $all-features ())) ()))
        (let* (($all-features (range 0 (get-target-col $Table)))
               ($shuffled-features (shuffle-list $all-features))
               ($actual-num-features (min $target-size (List.length $all-features)))
-              ($init-score (cached-mi-score $Table ()))
-              ($init-tops (cons (cons $init-score (cons () ())) ())))
+              ($init-score (cached-mi-score $Table $init-features))
+              ($init-tops (cons (cons $init-score (cons $init-features ())) ())))
              (if (<= $actual-num-features 0)
                  $init-tops
-                 (smd-step $Table $shuffled-features $actual-num-features $threshold $top-size 1 $init-score $init-tops)))))
+                 (smd-step $Table $shuffled-features $actual-num-features $threshold $top-size (+ (size-atom $init-features) 1) $init-score $init-tops)))))
