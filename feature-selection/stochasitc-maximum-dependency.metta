@@ -11,7 +11,8 @@
 
 (= (shuffle-with-weights ()) ())
 (= (shuffle-with-weights (cons $h $t))
-   (insert-weight (random-float &rng 0.0 1.0) $h (shuffle-with-weights $t)))
+   ; (insert-weight (random-float &rng 0.0 1.0) $h (shuffle-with-weights $t)))
+   (insert-weight (py-call (random.random)) $h (shuffle-with-weights $t)))
 
 (= (strip-weights ()) ())
 (= (strip-weights (cons $hw-head $t))
@@ -59,10 +60,6 @@
                                   ($new-score (cached-mi-score $Table $new-fs)))
                                      (cons $new-score (cons $new-fs ()))))))))
                                      
-(= (get-nth 0 (cons $H $T)) $H)
-(= (get-nth $N (cons $H $T))
-   (if (> $N 0) (get-nth (- $N 1) $T) (empty)))
-
 (= (smd-step $Table $all-features $num-features $threshold $top-size $current-i $previous-high-score $tops)
    (if (> $current-i $num-features)
        $tops
@@ -70,7 +67,7 @@
               ($new-tops (get-top-n $new-candidates () $top-size)))
              (if (== $new-tops ())
                  $tops
-                 (let* ((($high-score $ftre) (get-nth 0 $new-tops))
+                 (let* ((($high-score $ftre) (List.getByIdx $new-tops 0))
                         ($improvement (- $high-score $previous-high-score)))
                            (if (< $improvement $threshold)
                                $new-tops
