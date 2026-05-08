@@ -93,12 +93,4 @@
 		 (rd (randomFeatureSelection (mkITable $table $labels) $target-size))                                       
 		 (sim (simpleFeatureSelector $th $target-size False (mkITable $table $labels) ()))                           ;; False -- default value for using exp distribution for selection of top N features -- and start with empty feature list as initial features -- th here refers to the minimum score required for feature set to be selected
 		 (inc (incremental-feature-selection (mkITable $table $labels) $th $target-size -1 1 0.01))                                 
-		 (smd (if (== $init-fts ())
-		                      (stochasticMaxDependency $th $target-size 3 (mkITable $table $labels) mi ())
-		                      (let* (($len (List.length $labels))
-		                              ($oc (Table.getColumn (- $len 1) $table))      ;; output column to calculate MI for initial ft set
-		                              ($init-ft-zip (zipColumn $init-fts $table))     ;; 
-		                              ($mi (mutualInformation $init-ft-zip $oc)))
-
-		                              (stochasticMaxDependency $th $target-size 3 (mkITable $table $labels) mi (($mi $init-fts))))))          ;; this `th` is a vlue used to check marginal score improvements as a features are added to the set. feature-count refers to the number of features in a single feature set
-		))) 
+		 (smd (smd-feature-selection (mkITable $table $labels) $target-size $th 3 $init-fts)))))                   ;; 3 -- as a default for count of top feature sets
