@@ -1,4 +1,22 @@
 ;; --- Stochastic Maximum Dependency Feature Selection Algorithm ---
+;; a feature selection method designed to find a set of features that maximizes the joint dependency (typically Mutual Information) with a target variable.
+;; 1. Initialization
+;;                Starting Point: The algorithm begins with an initial set of candidate feature sets (optionally provided by the user).
+;;                Stochasticity: It shuffles the entire list of available features to explore different paths when multiple features offer similar information gains, preventing it from getting stuck in a single local optimum.
+;; 2. The Iterative Expansion 
+;;                The algorithm proceeds in steps, where each step increases the size of the feature sets by one:
+
+;;                Expansion: For every feature set currently in the beam (the "tops"), the algorithm tries adding each available feature (one at a time) to create new candidate sets.
+;;                Scoring: Each new candidate set is scored using a dependency metric (usually Mutual Information).
+;;                Pruning (The Beam): All newly generated candidate sets are ranked by their scores. Only the top N sets (defined by the top-size parameter) are kept for the next iteration. This is the "beam" that carries forward.
+;; 3. Termination Criteria
+;;                The algorithm continues adding features until one of these conditions is met:
+
+;;                Target Size Reached: The feature sets have reached the maximum number of features requested by the user.
+;;                Diminishing Returns: The improvement in the highest score from the previous step is less than a specified threshold. If adding another feature doesn't significantly help, the search stops.
+;;                Exhaustion: There are no more features left to add.
+;; 4. Results
+;;                The algorithm returns a population of ranked feature sets (the final beam). The first element is the highest-scoring set found, but the other sets in the population provide diverse alternatives that also have high dependency with the target.
 
 ;; --- Random Shuffling ---
 ;; random shuffling using random weight -- assign random weights to features and by sorting these random weights efffectively shuffling feature order
