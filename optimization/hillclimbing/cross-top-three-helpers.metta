@@ -5,8 +5,7 @@
 
 ;; Extracts raw instance from scored instance wrapper (mkSInst)
 ;; Used before applying merge operations
-(= (getInst (mkSInst (mkPair $inst $score)))
-  (match &self (mkSInst (mkPair $inst $score) $inst)))
+(= (getInst (mkSInst (mkPair $inst $score) )) $inst)
 
 
 ;; Merges three instances into one using sequential application:
@@ -52,10 +51,10 @@
    (crossOuterLoop-iter $list $list $base Nil $limit)
 )
 
-
-
 ;; Iterates over i candidates and manages j/k generation
 ;; Maintains prefix list for simplex combinationsr
+(= (crossOuterLoop-iter () $prefix $base $acc $limit) $acc)
+
 (= (crossOuterLoop-iter (Cons $i $iRest) $prefix $base $acc $limit)
    (if (>= (List.length $acc) $limit)
        $acc
