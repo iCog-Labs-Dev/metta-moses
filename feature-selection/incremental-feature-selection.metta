@@ -1,4 +1,35 @@
+;; --- Incremental Feature Selection Algorithm ---
+;; A feature selection method that builds a feature set by iteratively identifying features 
+;; with high relevance and low redundancy relative to a target variable.
+;; 
+;; 1. Relevance and Redundancy Filtering
+;;    The algorithm identifies features that meet specific criteria:
+;;    - Relevance: Features (or feature subsets) that have a Mutual Information (MI) score 
+;;      with the target higher than a given threshold.
+;;    - Redundancy: Among relevant features, it filters out those that are redundant. 
+;;      A feature set is considered redundant if adding more features to a subset 
+;;      does not significantly increase the MI score beyond a redundancy threshold.
+;; 
+;; 2. Multi-Order Interactions
+;;    The algorithm can consider interactions of different orders (up to maxInteraction). 
+;;    It proceeds through these orders (1, 2, ...), identifying and adding relevant 
+;;    features at each level of complexity.
+;; 
+;; 3. Selection Strategies
+;;    The algorithm supports two main modes of operation:
+;;    - Threshold-Based Selection (Simple): Selects all features that meet the 
+;;      specified relevance and redundancy thresholds.
+;;    - Target-Size Selection (Adaptive): Automatically adjusts the relevance threshold 
+;;      using a binary search (bisection) to find a set of features that matches a 
+;;      user-specified target size.
+;; 
+;; 4. Scoring and Results
+;;    The final set of selected features is scored using the joint Mutual Information with 
+;;    the target variable. The result is returned as a population containing the scored 
+;;    feature set, maintaining compatibility with the MOSES feature set population format.
+
 ;; Incremental Feature Selection Algorithm
+
 
 (= (get-column $n ()) ())
 (= (get-column $n (cons $row $rows))
