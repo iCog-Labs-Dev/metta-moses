@@ -32,14 +32,18 @@
 ;; NOTE: expected result should validate final merged scored instance 
 ;;expected : (mkSInst (mkPair (mkInst (Cons b (Cons 2 Nil))) (mkCscore (its score))))
      
-!(mergeTriple
-   (getInst
-     (mkSInst (mkPair (mkInst (Cons a (Cons 5 Nil))) (mkCscore 0 0 0 0 1))))
-    (mkInst (Cons a (Cons 0 Nil)))
-   (getInst
-     (mkSInst (mkPair (mkInst (Cons b (Cons  3 Nil))) (mkCscore 0 0 0 0 2))))
-   (getInst
-       (mkSInst (mkPair (mkInst (Cons a (Cons 2 Nil))) (mkCscore 0 0 0 0 3)))))
+!(assertEqual
+(list.length (mergeTriple
+            (getInst
+              (mkSInst (mkPair (mkInst (Cons a (Cons 5 Nil))) (mkCscore 0 0 0 0 1))))
+              (mkInst (Cons a (Cons 0 Nil)))
+            (getInst
+              (mkSInst (mkPair (mkInst (Cons b (Cons  3 Nil))) (mkCscore 0 0 0 0 2))))
+            (getInst
+                (mkSInst (mkPair (mkInst (Cons a (Cons 2 Nil))) (mkCscore 0 0 0 0 3)))))
+     )
+     1
+)
 
 ;; Verifies inner loop respects generation limit constraint
   !(assertEqual
@@ -60,8 +64,9 @@
   3)
 
 
- ;; Runs k-level crossover loop 
-!(crossInnerLoop
+ ;; k-level crossover loop assertion
+!(assertEqual
+   (List.length (crossInnerLoop
       (Cons
         (mkSInst (mkPair (mkInst (Cons 5 Nil)) (mkCscore 0 0 0 0 1)))
         (Cons
@@ -73,9 +78,10 @@
       (mkInst (Cons 8 Nil))   
       (mkInst (Cons 0 Nil))  
          Nil                  
-           3 )
+           3 ))
+           3)
 
-  ;; Checks j-loop aggregation over multiple k-combinations
+;; Checks j-loop aggregation over multiple k-combinations
 ;; Ensures correct propagation of inner loop results
   !(assertEqual
        (List.length
@@ -101,9 +107,10 @@
             4))
             4)
 
- ;; Executes full i-j-k crossover pipeline 
-;; Used for manual verification/debugging   
-!(crossOuterLoop
+;; Ensures full i-j-k crossover pipeline respects  generation limit 
+!(assertEqual
+   (List.length
+      (crossOuterLoop
          (Cons
             (mkSInst (mkPair (mkInst (Cons 1 Nil)) (mkCscore 0 0 0 0 1)))
             (Cons
@@ -114,7 +121,9 @@
                      (mkSInst (mkPair (mkInst (Cons 4 Nil)) (mkCscore 0 0 0 0 4)))
                      Nil))))
          (mkInst (Cons 0 Nil))
-         2)
+         2))
+         2
+)
 ;; Ensures outer loop respects global generation limit
 !(assertEqual
    (List.length
