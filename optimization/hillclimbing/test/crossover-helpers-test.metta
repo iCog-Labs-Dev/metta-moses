@@ -10,11 +10,9 @@
 !(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one)
 !(import! &self ../../../../metta-moses/optimization/hillclimbing/crossover-helpers)
 
-; ~/PeTTa/run.sh crossover-helpers-test.metta
-
-
 
 (= (demeSize (mkDeme $rep (mkSInstSet $list) $demeId)) (List.length $list))
+
 ;; --------------------------------------  
 ;;        crossTopTwo and it's helper Tests       
 ;;------------------------------------------
