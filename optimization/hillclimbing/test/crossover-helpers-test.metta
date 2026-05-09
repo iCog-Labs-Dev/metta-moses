@@ -10,7 +10,11 @@
 !(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one)
 !(import! &self ../../../../metta-moses/optimization/hillclimbing/crossover-helpers)
 
+; ~/PeTTa/run.sh crossover-helpers-test.metta
 
+
+
+(= (demeSize (mkDeme $rep (mkSInstSet $list) $demeId)) (List.length $list))
 ;; --------------------------------------  
 ;;        crossTopTwo and it's helper Tests       
 ;;------------------------------------------
@@ -20,15 +24,16 @@
    (mkDeme
        (mkRep
            (mkKbMap
-              (mkDscKbMp (ConsMap NilMap))
-              (mkDscMp NilMMap))
-           (mkTree (mkNode A) Nil))
-        (mkSInstSet
-            (cons (mkSInst (mkPair (mkInst (cons 3 Nil)) (mkCscore 1 0 0 0 3)))
-            (cons (mkSInst (mkPair (mkInst (cons 2 Nil)) (mkCscore 1 0 0 0 2)))
-            (cons (mkSInst (mkPair (mkInst (cons 1 Nil)) (mkCscore 1 0 0 0 1)))
-            (cons (mkSInst (mkPair (mkInst (cons 4 Nil)) (mkCscore 1 0 0 0 4)))
-            Nil)))))
+              (mkDscKbMp 
+               (cons ()))
+               (mkDscMp ()))
+               (mkTree (mkNode A) ()))
+             (mkSInstSet
+                    (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 1 0 0 0 3)))
+                          (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 1 0 0 0 2)))
+                              (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 0 0 0 1)))
+                                  (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 0 0 0 4)))
+                                  ())))))
     (mkDemeId "2")
     )
 )
@@ -39,19 +44,30 @@
 ;; Test inner crossover loop
 ;; Crosses a reference instance against a list of candidate instances
   !(assertEqual
-  (List.length
-  (crossPairsToRef
+   (crossPairsToRef
       (cons
-        (mkSInst (mkPair (mkInst (cons 3 Nil)) (mkCscore 0 0 0 0 2)))
-        (cons
-          (mkSInst (mkPair (mkInst (cons 2 Nil)) (mkCscore 0 0 0 0 3)))
-          Nil))
+         (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
+         (cons
+            (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
+            ()))
       (getInst
-          (mkSInst (mkPair (mkInst (cons 5 Nil)) (mkCscore 0 0 0 0 3))))
-        (mkInst (cons 9 Nil))
-      Nil
-      2))
+         (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 3))))
+      (mkInst (cons 9 ()))
+      ()
       2)
+
+   (cons
+      (mkSInst
+         (mkPair
+            (mkInst (cons 5 ()))
+            (worstCscore)))
+      (cons
+         (mkSInst
+            (mkPair
+               (mkInst (cons 5 ()))
+               (worstCscore)))
+         ()))
+)
 
 
 ;; Test outer crossover loop
@@ -59,24 +75,23 @@
 !(assertEqual
 (List.length (crossPairs
       (cons
-        (mkSInst (mkPair (mkInst (cons 3 Nil)) (mkCscore 0 0 0 0 2)))
+        (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
         (cons
-          (mkSInst (mkPair (mkInst (cons 2 Nil)) (mkCscore 0 0 0 0 3)))
+          (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
           (cons
-          (mkSInst (mkPair (mkInst (cons 5 Nil)) (mkCscore 0 0 0 0 3)))
-          Nil)))
-         (mkInst (cons 9 Nil))
+          (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 3)))
+          ())))
+         (mkInst (cons 9 ()))
          3
       ))
       3
       )
-   
+
 ;; Full integration test for crossTopTwo
 ;; Runs 2-simplex crossover on deme and verifies final merged deme output
-!(assertEqual
-    (List.length (crossTopTwo (deme2)  5  0 10 (mkInst (cons 4 Nil))))
-    5)
-
+!(assertEqual (demeSize (crossTopTwo (deme2) 3 0 4 (mkInst (cons 3 ())))) 10)
+  
+;
 ;;-----------------------------------
 ;;       crossTopThree and its helper Tests   
 ;;-----------------------------------
@@ -88,23 +103,23 @@
 ;; --- getInst test --
 ;; Ensures getInst correctly extracts raw instance from mkSInst wrapper
 !(assertEqual
-  (getInst (mkSInst (mkPair (mkInst (cons 5 Nil)) (mkCscore 0 0 0 0 1))))
-  (mkInst (cons 5 Nil)))
+  (getInst (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 1))))
+  (mkInst (cons 5 ())))
 
-;; --- mergeTriple test --
+; --- mergeTriple test --
 ;; Tests sequential 3-step merge: k → iRef → jRef
 ;; NOTE: expected result should validate final merged scored instance 
-;;expected : (mkSInst (mkPair (mkInst (cons b (cons 2 Nil))) (mkCscore (its score))))
+;; expected : (mkSInst (mkPair (mkInst (cons b (cons 2 ()))) (mkCscore (its score))))
      
 !(assertEqual
-(List.length (mergeTriple
+   (List.length (mergeTriple
             (getInst
-              (mkSInst (mkPair (mkInst (cons a (cons 5 Nil))) (mkCscore 0 0 0 0 1))))
-              (mkInst (cons a (cons 3 Nil)))
+              (mkSInst (mkPair (mkInst (cons a (cons 5 ()))) (mkCscore 0 0 0 0 1))))
+              (mkInst (cons a (cons 3 ())))
             (getInst
-              (mkSInst (mkPair (mkInst (cons b (cons  3 Nil))) (mkCscore 0 0 0 0 2))))
+              (mkSInst (mkPair (mkInst (cons b (cons  3 ()))) (mkCscore 0 0 0 0 2))))
             (getInst
-                (mkSInst (mkPair (mkInst (cons a (cons 2 Nil))) (mkCscore 0 0 0 0 3)))))
+                (mkSInst (mkPair (mkInst (cons a (cons 2 ()))) (mkCscore 0 0 0 0 3)))))
      )
      1
 )
@@ -114,16 +129,16 @@
   (List.length
     (crossInnerLoop
       (cons
-        (mkSInst (mkPair (mkInst (cons 5 Nil)) (mkCscore 0 0 0 0 1)))
+        (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 1)))
         (cons
-          (mkSInst (mkPair (mkInst (cons 3 Nil)) (mkCscore 0 0 0 0 2)))
+          (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
           (cons
-            (mkSInst (mkPair (mkInst (cons 2 Nil)) (mkCscore 0 0 0 0 3)))
-            Nil)))
-      (mkInst (cons 9 Nil))
-      (mkInst (cons 8 Nil))
-      (mkInst (cons 0 Nil))
-      Nil
+            (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
+            ())))
+      (mkInst (cons 9 ()))
+      (mkInst (cons 8 ()))
+      (mkInst (cons 0 ()))
+      ()
       3))
   3)
 
@@ -132,16 +147,16 @@
 !(assertEqual
    (List.length (crossInnerLoop
       (cons
-        (mkSInst (mkPair (mkInst (cons 5 Nil)) (mkCscore 0 0 0 0 1)))
+        (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 1)))
         (cons
-          (mkSInst (mkPair (mkInst (cons 3 Nil)) (mkCscore 0 0 0 0 2)))
+          (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
           (cons
-            (mkSInst (mkPair (mkInst (cons 2 Nil)) (mkCscore 0 0 0 0 3)))
-            Nil)))
-      (mkInst (cons 9 Nil))   
-      (mkInst (cons 8 Nil))   
-      (mkInst (cons 0 Nil))  
-         Nil                  
+            (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
+            ())))
+      (mkInst (cons 9 ()))   
+      (mkInst (cons 8 ()))   
+      (mkInst (cons 0 ()))  
+         ()                  
            3 ))
            3)
 
@@ -151,23 +166,23 @@
        (List.length
             (crossMiddleLoop
             (cons
-              (mkSInst (mkPair (mkInst (cons 3 Nil)) (mkCscore 0 0 0 0 2)))
+              (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
               (cons
-                (mkSInst (mkPair (mkInst (cons 2 Nil)) (mkCscore 0 0 0 0 3)))
-                Nil))
+                (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
+                ()))
 
-            (mkInst (cons 9 Nil))
+            (mkInst (cons 9 ()))
 
             (cons
-              (mkSInst (mkPair (mkInst (cons 5 Nil)) (mkCscore 0 0 0 0 1)))
+              (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 1)))
               (cons
-                (mkSInst (mkPair (mkInst (cons 3 Nil)) (mkCscore 0 0 0 0 2)))
+                (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
                 (cons
-                  (mkSInst (mkPair (mkInst (cons 2 Nil)) (mkCscore 0 0 0 0 3)))
-                  Nil)))
+                  (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
+                  ())))
                 
-            (mkInst (cons 0 Nil))
-            Nil
+            (mkInst (cons 0 ()))
+            ()
             4))
             4)
 
@@ -176,15 +191,15 @@
    (List.length
       (crossOuterLoop
          (cons
-            (mkSInst (mkPair (mkInst (cons 1 Nil)) (mkCscore 0 0 0 0 1)))
+            (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 1)))
             (cons
-               (mkSInst (mkPair (mkInst (cons 2 Nil)) (mkCscore 0 0 0 0 2)))
+               (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
                (cons
-                  (mkSInst (mkPair (mkInst (cons 3 Nil)) (mkCscore 0 0 0 0 3)))
+                  (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 3)))
                   (cons
-                     (mkSInst (mkPair (mkInst (cons 4 Nil)) (mkCscore 0 0 0 0 4)))
-                     Nil))))
-         (mkInst (cons 0 Nil))
+                     (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 0 0 0 0 4)))
+                     ()))))
+         (mkInst (cons 0 ()))
          2))
          2
 )
@@ -193,13 +208,13 @@
    (List.length
       (crossOuterLoop
          (cons
-            (mkSInst (mkPair (mkInst (cons 1 Nil)) (mkCscore 0 0 0 0 1)))
+            (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 1)))
             (cons
-               (mkSInst (mkPair (mkInst (cons 2 Nil)) (mkCscore 0 0 0 0 2)))
+               (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
                (cons
-                  (mkSInst (mkPair (mkInst (cons 3 Nil)) (mkCscore 0 0 0 0 3)))
-                  Nil)))
-         (mkInst (cons 0 Nil))
+                  (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 3)))
+                  ())))
+         (mkInst (cons 0 ()))
          4))
          4)
 
@@ -210,19 +225,22 @@
 (= (deme3)
           (mkDeme
             (mkRep
-              (mkKbMap (mkDscKbMp (consMap NilMap)) (mkDscMp NilMMap))
-              (mkTree (mkNode A) Nil))
+              (mkKbMap
+                 (mkDscKbMp 
+                   (cons ()))
+                  (mkDscMp ()))
+              (mkTree (mkNode A) ()))
 
             (mkSInstSet
             (cons
-                (mkSInst (mkPair (mkInst (cons a (cons 1 Nil))) (mkCscore 0 0 0 0 1)))
+                (mkSInst (mkPair (mkInst (cons a (cons 1 ()))) (mkCscore 0 0 0 0 1)))
                 (cons
-                  (mkSInst (mkPair (mkInst (cons b (cons 2 Nil))) (mkCscore 0 0 0 0 2)))
+                  (mkSInst (mkPair (mkInst (cons b (cons 2 ()))) (mkCscore 0 0 0 0 2)))
                   (cons
-                    (mkSInst (mkPair (mkInst (cons c (cons 3 Nil))) (mkCscore 0 0 0 0 3)))
+                    (mkSInst (mkPair (mkInst (cons c (cons 3 ()))) (mkCscore 0 0 0 0 3)))
                     (cons
-                      (mkSInst (mkPair (mkInst (cons a (cons 4 Nil))) (mkCscore 0 0 0 0 4)))
-                      Nil)))))
+                      (mkSInst (mkPair (mkInst (cons a (cons 4 ()))) (mkCscore 0 0 0 0 4)))
+                      ())))))
 
             (mkDemeId "3")))
 
@@ -230,7 +248,10 @@
 
 ;; Full system test: 3-simplex crossover on deme3
 ;; Validates end-to-end pipeline behavior
-!(crossTopThree (deme3) 2 0 5 (mkInst (cons b (cons 2 Nil))))
+!(assertEqual (demeSize (crossTopThree (deme3) 2 0 5 (mkInst  (cons 2 ())))) 2)
+
+
+
 
 
 
