@@ -129,6 +129,11 @@
            (nthAllowedActualSetting (+ $candidate 1) (- $remaining 1) $default $disAll))
        (nthAllowedActualSetting (+ $candidate 1) $remaining $default $disAll)))
 
+;; mapEffectiveDiscSpec: maps a compact "effective setting" index to its "actual setting" value.
+;;                      Search algorithms like Hillclimbing need a contiguous search space to explore. 
+;;                      If discrete probing determines that setting 2 is redundant, mapEffectiveDiscSpec 
+;;                      ensures the hillclimber only sees a search space of size Multiplicity - 1, automatically 
+;;                      skipping over the "dead" setting 2 when the algorithm asks for the next available configuration.
 (= (mapEffectiveDiscSpec $knob $effectiveSetting)
    (let*
       (

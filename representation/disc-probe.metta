@@ -2,6 +2,8 @@
 ;; It probes non-default LSK settings in the context of a logical root and
 ;; disallows settings whose cleaned tree has lower complexity.
 
+;; probeControlledSubtree: dig into the tree at the knob's location and 
+;;                         extract the raw, underlying logic subtree we are trying to test.
 (= (probeControlledSubtree $tree $lsk)
    (let*
       (
@@ -16,6 +18,8 @@
 (= (applyLogicalSettingToSubtree $subtree 1) $subtree)
 (= (applyLogicalSettingToSubtree $subtree 2) (insertAbove $subtree (mkNode NOT)))
 
+;; probeTreeForActualSetting: a simulator. It wants to see what the entire candidate 
+;;                            program would look like if a specific setting were permanently locked in.
 (= (probeTreeForActualSetting $tree $lsk $actualSetting)
    (let*
       (
@@ -25,6 +29,10 @@
       )
       (replaceNodeById $tree (mkNodeId $targetId) $probedSubtree)))
 
+;; settingReducesComplexity: takes the experimental tree and tests it for logical flaws. 
+;;                            It measures the complexity of the tree (counting the nodes), runs the entire 
+;;                            tree through the cleanTree Boolean Reducer to mathematically simplify it, and 
+;;                            then measures the complexity again.
 (= (settingReducesComplexity $tree $probeRootId $lsk $actualSetting)
    (let*
       (
@@ -36,6 +44,10 @@
       )
       (> $initialCpxy $reducedCpxy)))
 
+;; probeEffectiveSettings: steps through every single non-default setting 
+;;                        inthe knob possesses (using $setting as an index) and runs them through settingReducesComplexity.
+;;                        inOutput: A List of Disallowed Specifications. 
+;;                        inExample: ((mkDiscSpec 1) (mkDiscSpec 2)) if both the present and negated versions of a subtree are proven to be mathematically redundant.
 (= (probeEffectiveSettings $tree $probeRootId $lsk $setting $acc)
    (let (mkMultip $m) (getRawKnobMultip $lsk)
       (if (>= $setting $m)
@@ -45,8 +57,9 @@
                  (probeEffectiveSettings $tree $probeRootId $lsk (+ $setting 1) (cons-atom (mkDiscSpec $actualSetting) $acc))
                  (probeEffectiveSettings $tree $probeRootId $lsk (+ $setting 1) $acc))))))
 
-;; Root-aware probe. $probeRootId is the logical subtree root whose complexity
-;; should be compared after probing the controlled node.
+;; discProbe: Root-aware probe. $probeRootId is the logical subtree root whose complexity
+;;             should be compared after probing the controlled node.
+;;             discProbe calls on probeEffectiveSettings to find out which settings are bad
 (= (discProbe $tree $probeRootId $lsk)
    (let*
       (
