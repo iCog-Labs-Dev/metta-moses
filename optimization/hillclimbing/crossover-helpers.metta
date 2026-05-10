@@ -67,7 +67,7 @@
             )
             (mkDeme 
                 (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree)
-                (mkSInstSet (List.appendList  $newInstances $instSet))
+                (mkSInstSet (List.appendList  $uniqueInstances $instSet))
                  $demeId)
            )
         ))
@@ -167,7 +167,7 @@
             )
             (mkDeme 
                 (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree)
-                (mkSInstSet (List.appendList  $newInstances $instSet))
+                (mkSInstSet (List.appendList  $uniqueInstances $instSet))
                  $demeId)
        
        ))))
