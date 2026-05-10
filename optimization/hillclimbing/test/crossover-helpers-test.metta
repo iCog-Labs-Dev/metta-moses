@@ -182,7 +182,8 @@
                   (worstCscore)))
     )
 
-;; Verifies inner loop 
+;; Verifies inner loop respects generation limit constraint
+
 !(assertEqual
    (crossInnerLoop
             (cons
@@ -225,7 +226,7 @@
       ;; Checks j-loop aggregation over multiple k-combinations
       ;; Ensures correct propagation of inner loop results
 !(assertEqual
-        (List.length
+            (List.length
                   (crossMiddleLoop
                   (cons
                     (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
@@ -291,8 +292,6 @@
 ; Full system test: 3-simplex crossover on deme3
 ; Validates end-to-end pipeline behavior
 !(assertEqual (demeSize (crossTopThree (deme3) 2 0 5 (mkInst  (cons 2 ())))) 2)
-
-
 
 
 
