@@ -41,62 +41,108 @@
    
 ;; Test inner crossover loop
 ;; Crosses a reference instance against a list of candidate instances
-  !(assertEqual
-   (crossPairsToRef
-      (cons
-         (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
-         (cons
-            (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
-            ()))
-      (getInst
-         (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 3))))
-      (mkInst (cons 9 ()))
-      ()
-      2)
+ !(assertEqual
+  (crossPairsToRef
+     (cons
+        (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
+        (cons
+           (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
+           ()))
+     (getInst
+        (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 3))))
+     (mkInst (cons 9 ()))
+     ()
+     2)
 
-   (cons
-      (mkSInst
-         (mkPair
-            (mkInst (cons 5 ()))
-            (worstCscore)))
-      (cons
-         (mkSInst
-            (mkPair
-               (mkInst (cons 5 ()))
-               (worstCscore)))
-         ()))
+  (cons
+     (mkSInst
+        (mkPair
+           (mkInst (cons 5 ()))
+           (worstCscore)))
+     (cons
+        (mkSInst
+           (mkPair
+              (mkInst (cons 5 ()))
+              (worstCscore)))
+        ()))
 )
 
 
 ;; Test outer crossover loop
 ;; Ensures full pair generation from a candidate list
-!(assertEqual
-(List.length (crossPairs
-      (cons
-        (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
-        (cons
-          (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
-          (cons
-          (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 3)))
-          ())))
-         (mkInst (cons 9 ()))
-         3
-      ))
-      3
-      )
+!(assertEqual  (demeSize (crossTopTwo (deme2) 3 0 4 (mkInst (cons 3 ())))) 10)
 
-;; Full integration test for crossTopTwo
-;; Runs 2-simplex crossover on deme and verifies final merged deme output
-!(assertEqual (demeSize (crossTopTwo (deme2) 3 0 4 (mkInst (cons 3 ())))) 10)
+!(assertEqual
+   (crossTopTwo (deme2) 3 0 4 (mkInst (cons 3 ())))
+
+   (mkDeme
+      (mkRep
+         (mkKbMap
+            (mkDscKbMp (cons ()))
+            (mkDscMp ()))
+         (mkTree (mkNode A) ()))
+
+      (mkSInstSet
+
+         ;; original instances first
+         (cons
+            (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 1 0 0 0 3)))
+
+            (cons
+               (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 1 0 0 0 2)))
+
+               (cons
+                  (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 0 0 0 1)))
+
+                  (cons
+                     (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 0 0 0 4)))
+
+                     ;; generated crossover instances
+                     (cons
+                        (mkSInst
+                           (mkPair
+                              (mkInst (cons 2 ()))
+                              (worstCscore)))
+
+                        (cons
+                           (mkSInst
+                              (mkPair
+                                 (mkInst (cons 1 ()))
+                                 (worstCscore)))
+
+                           (cons
+                              (mkSInst
+                                 (mkPair
+                                    (mkInst (cons 2 ()))
+                                    (worstCscore)))
+
+                              (cons
+                                 (mkSInst
+                                    (mkPair
+                                       (mkInst (cons 4 ()))
+                                       (worstCscore)))
+
+                                 (cons
+                                    (mkSInst
+                                       (mkPair
+                                          (mkInst (cons 4 ()))
+                                          (worstCscore)))
+
+                                    (cons
+                                       (mkSInst
+                                          (mkPair
+                                             (mkInst (cons 4 ()))
+                                             (worstCscore)))
+                                       ()))))))))))))
+
+      (mkDemeId "2"))
   
-;
+
 ;;-----------------------------------
 ;;       crossTopThree and its helper Tests   
 ;;-----------------------------------
 
 ;;--------- Test Cases-------------;;
-
-
 
 ;; --- getInst test --
 ;; Ensures getInst correctly extracts raw instance from mkSInst wrapper
@@ -104,122 +150,121 @@
   (getInst (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 1))))
   (mkInst (cons 5 ())))
 
-; --- mergeTriple test --
+
+
+;; --- mergeTriple test --
 ;; Tests sequential 3-step merge: k → iRef → jRef
-;; NOTE: expected result should validate final merged scored instance 
-;; expected : (mkSInst (mkPair (mkInst (cons b (cons 2 ()))) (mkCscore (its score))))
-     
 !(assertEqual
-   (List.length (mergeTriple
-            (getInst
-              (mkSInst (mkPair (mkInst (cons a (cons 5 ()))) (mkCscore 0 0 0 0 1))))
-              (mkInst (cons a (cons 3 ())))
-            (getInst
-              (mkSInst (mkPair (mkInst (cons b (cons  3 ()))) (mkCscore 0 0 0 0 2))))
-            (getInst
-                (mkSInst (mkPair (mkInst (cons a (cons 2 ()))) (mkCscore 0 0 0 0 3)))))
-     )
-     1
-)
+        (mergeTriple
+                (getInst
+                  (mkSInst
+                      (mkPair
+                        (mkInst (cons a (cons 5 ())))
+                        (mkCscore 0 0 0 0 1))))
+
+                (mkInst (cons a (cons 3 ())))
+
+                (getInst
+                  (mkSInst
+                      (mkPair
+                        (mkInst (cons b (cons 3 ())))
+                        (mkCscore 0 0 0 0 2))))
+
+                (getInst
+                  (mkSInst
+                      (mkPair
+                        (mkInst (cons a (cons 2 ())))
+                        (mkCscore 0 0 0 0 3)))))
+
+            (mkSInst
+                (mkPair
+                  (mkInst (cons b (cons 2 ())))
+                  (worstCscore)))
+    )
 
 ;; Verifies inner loop respects generation limit constraint
-  !(assertEqual
-  (List.length
-    (crossInnerLoop
-      (cons
-        (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 1)))
-        (cons
-          (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
-          (cons
-            (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
-            ())))
-      (mkInst (cons 9 ()))
-      (mkInst (cons 8 ()))
-      (mkInst (cons 0 ()))
-      ()
-      3))
-  3)
 
-
- ;; k-level crossover loop assertion
 !(assertEqual
-   (List.length (crossInnerLoop
-      (cons
-        (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 1)))
-        (cons
-          (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
-          (cons
-            (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
-            ())))
-      (mkInst (cons 9 ()))   
-      (mkInst (cons 8 ()))   
-      (mkInst (cons 0 ()))  
-         ()                  
-           3 ))
-           3)
-
-;; Checks j-loop aggregation over multiple k-combinations
-;; Ensures correct propagation of inner loop results
-  !(assertEqual
-       (List.length
-            (crossMiddleLoop
+   (crossInnerLoop
             (cons
-              (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
-              (cons
-                (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
-                ()))
+              (mkSInst
+                  (mkPair
+                    (mkInst (cons a (cons 5 ())))
+                    (mkCscore 0 0 0 0 1)))
 
-            (mkInst (cons 9 ()))
-
-            (cons
-              (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 1)))
               (cons
-                (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
-                (cons
-                  (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
-                  ())))
-                
-            (mkInst (cons 0 ()))
+                  (mkSInst
+                    (mkPair
+                        (mkInst (cons b (cons 3 ())))
+                        (mkCscore 0 0 0 0 2)))
+
+                  ()))
+
+
+            (mkInst (cons a (cons 9 ())))
+            (mkInst (cons b (cons 8 ())))
+            (mkInst (cons a (cons 0 ())))
+
             ()
-            4))
-            4)
 
-;; Ensures full i-j-k crossover pipeline respects  generation limit 
-!(assertEqual
-   (List.length
-      (crossOuterLoop
-         (cons
-            (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 1)))
+            2)
+
+        (cons
+            (mkSInst
+              (mkPair
+                  (mkInst (cons b (cons 9 ())))
+                  (worstCscore)))
+
             (cons
-               (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
-               (cons
-                  (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 3)))
+              (mkSInst
+                  (mkPair
+                    (mkInst (cons b (cons 9 ())))
+                    (worstCscore)))
+              ())))
+
+
+      ;; Checks j-loop aggregation over multiple k-combinations
+      ;; Ensures correct propagation of inner loop results
+!(assertEqual
+        (List.length
+                  (crossMiddleLoop
                   (cons
-                     (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 0 0 0 0 4)))
-                     ()))))
-         (mkInst (cons 0 ()))
-         2))
-         2
-)
-;; Ensures outer loop respects global generation limit
-!(assertEqual
+                    (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
+                    (cons
+                      (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
+                      ()))
+
+                  (mkInst (cons 9 ()))
+
+                  (cons
+                    (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 1)))
+                    (cons
+                      (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
+                      (cons
+                        (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
+                        ())))
+                      
+                  (mkInst (cons 0 ()))
+                  ()
+                  4))
+                  4)
+
+; Ensures full i-j-k crossover pipeline respects  generation limit 
+ !(assertEqual
    (List.length
       (crossOuterLoop
          (cons
-            (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 1)))
+            (mkSInst (mkPair (mkInst (cons a (cons 1 ()))) (mkCscore 0 0 0 0 1)))
             (cons
-               (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
+               (mkSInst (mkPair (mkInst (cons b (cons 2 ()))) (mkCscore 0 0 0 0 2)))
                (cons
-                  (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 3)))
-                  ())))
-         (mkInst (cons 0 ()))
-         4))
-         4)
-
-
-
-
-
+                  (mkSInst (mkPair (mkInst (cons c (cons 3 ()))) (mkCscore 0 0 0 0 3)))
+                  (cons
+                     (mkSInst (mkPair (mkInst (cons a (cons 4 ()))) (mkCscore 0 0 0 0 4)))
+                     ()))))
+         (mkInst (cons 2 ()))
+         2))
+   2)
 (= (deme3)
           (mkDeme
             (mkRep
@@ -244,9 +289,11 @@
 
 
 
-;; Full system test: 3-simplex crossover on deme3
-;; Validates end-to-end pipeline behavior
+; Full system test: 3-simplex crossover on deme3
+; Validates end-to-end pipeline behavior
 !(assertEqual (demeSize (crossTopThree (deme3) 2 0 5 (mkInst  (cons 2 ())))) 2)
+
+
 
 
 

@@ -84,9 +84,12 @@
 ;; k -> iRef -> jRef using mergeInstance
 ;; Produces a new scored instance with worst score placeholder
 (= (mergeTriple $kInst $base $iRef $jRef)
-   (let $res (mergeInstance (getInst (mergeInstance $kInst $base $iRef)) $base $jRef)
-          (mkSInst (mkPair $res (worstCscore)))
-   ))
+   (let* (
+        ($temp (mergeInstance $kInst $base $iRef))
+        ($res (mergeInstance $temp $base $jRef))
+      )
+   (mkSInst (mkPair $res (worstCscore)))
+))
 
 
 
