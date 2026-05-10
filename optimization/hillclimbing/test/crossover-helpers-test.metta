@@ -182,8 +182,7 @@
                   (worstCscore)))
     )
 
-;; Verifies inner loop respects generation limit constraint
-
+;; Verifies inner loop 
 !(assertEqual
    (crossInnerLoop
             (cons
