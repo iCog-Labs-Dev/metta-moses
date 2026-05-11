@@ -130,10 +130,8 @@
       
       ($newInst1 (crossTopOne $instSet (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst))
       ($newInst2 (crossTopTwo $instSet (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
-      ($newInst3 (crossTopThree $instSet $n3 $sampleStart $sampleSize $centerInst))
-      ($allNewInst (List.appendList $newInst1
-                 (List.appendList $newInst2 $newInst3)))
-
+      ($newInst3 (crossTopThree $instSet (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
+      ($allNewInst (List.appendList $newInst1 (List.appendList $newInst2 $newInst3)))
       ($finalSet (List.appendList $allNewInst $instSet))
     )
     (mkDeme $rep (mkSInstSet $finalSet) $id)

@@ -111,7 +111,7 @@
 ;; Builds pairwise structure for fixed iRef
 (= (crossMiddleLoop () $iRef $kList $base $acc $limit) $acc)
 
-(= (crossMiddleLoop (cons $j $jRest) $iRef $kList $base $acc $limit)
+(= (crossMiddleLoop (cons $first (cons $j $jRest)) $iRef $kList $base $acc $limit)
    (if (>= (List.length $acc) $limit)
        $acc
        (let $newAcc (crossInnerLoop $kList (getInst $j) $iRef $base $acc $limit)
@@ -128,7 +128,7 @@
 ;; Maintains prefix list for simplex combinationsr
 (= (crossOuterLoop-iter () $prefix $base $acc $limit) $acc)
 
-(= (crossOuterLoop-iter (cons $i $iRest) $prefix $base $acc $limit)
+(= (crossOuterLoop-iter (cons $first (cons $second (cons $i $iRest))) $prefix $base $acc $limit)
    (if (>= (List.length $acc) $limit)
        $acc
        (let $newAcc (crossMiddleLoop $iRest (getInst $i)  $prefix $base $acc $limit)
