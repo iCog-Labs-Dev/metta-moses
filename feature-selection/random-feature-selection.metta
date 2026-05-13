@@ -38,7 +38,6 @@
    (if (== $count 0)
        $selected
 
-       ;; Recursive case: generate a new random candidate index
        (chain
            (py-call (random.randint 0 (- $numFeatures 1)))
            $randomIdx
