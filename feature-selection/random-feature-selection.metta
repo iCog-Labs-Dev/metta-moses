@@ -43,7 +43,6 @@
            (py-call (random.randint 0 (- $numFeatures 1)))
            $randomIdx
 ;; The above is referred from opencog/cogutil/random.h -> https://github.com/opencog/cogutil/blob/6b149c457c9cfbf5edccefb166a7a9a1d2d74196/opencog/util/random.h#L72C1-L72C6
-           ;; Check if index already exists in selection
            (if (is-member $randomIdx $selected)
 
                ;; Duplicate case:
