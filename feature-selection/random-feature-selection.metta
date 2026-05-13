@@ -37,13 +37,6 @@
 ;;   $numFeatures → upper bound of index range
 ;;   $count       → how many more features must be selected
 ;;   $selected    → accumulator of already selected indices
-;;
-;; Optimization notes:
-;;   - Removed unnecessary nesting to reduce evaluation depth
-;;   - Kept strict same recursion semantics (CRITICAL for correctness)
-;;   - Preserved retry behavior for duplicate indices
-;;   - Avoided changing C++-equivalent stochastic behavior
-;;   - Only structural simplification for performance/readability
 
 (= (randomSelectHelper $numFeatures $count $selected)
 
