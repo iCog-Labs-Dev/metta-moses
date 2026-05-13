@@ -49,7 +49,9 @@
                    $numFeatures
                    $count
                    $selected)
-
+        ;;  this implementation actually slightly changes the the c++ implementation 
+        ;; In the C++ Implementation if a duplicate feature is selected, the function ignores it but still decrements the $count. 
+        ;; In our Implementation inorder to match the target size we will recursively call it with the same count
                ;; Unique case
                (randomSelectHelper
                    $numFeatures
