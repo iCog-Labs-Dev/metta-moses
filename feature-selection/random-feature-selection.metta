@@ -44,9 +44,7 @@
 ;; The above is referred from opencog/cogutil/random.h -> https://github.com/opencog/cogutil/blob/6b149c457c9cfbf5edccefb166a7a9a1d2d74196/opencog/util/random.h#L72C1-L72C6
            (if (is-member $randomIdx $selected)
 
-               ;; Duplicate case:
-               ;; Optimization rule: preserve original behavior exactly
-               ;; → retry without decrementing count
+               ;; Duplicate case: → retry without decrementing count
                (randomSelectHelper
                    $numFeatures
                    $count
