@@ -50,8 +50,7 @@
                    $count
                    $selected)
 
-               ;; Unique case:
-               ;; Add index and reduce remaining required count
+               ;; Unique case
                (randomSelectHelper
                    $numFeatures
                    (- $count 1)
