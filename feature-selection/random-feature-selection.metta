@@ -2,12 +2,6 @@
 ;; Purpose:
 ;;   Selects a random subset of feature indices from a table.
 ;;   Ensures exactly $targetSize features are selected (when possible).
-;;
-;; Optimization notes:
-;;   - Replaced deep nesting of `chain` with `let`
-;;   - Improved readability and reduced evaluation overhead
-;;   - No change in selection logic or output behavior
-;;   - Maintains identical fallback behavior as original version
 
 (= (randomFeatureSelection (mkITable $data $labels) $targetSize)
    (let $numFeatures (- (List.length $labels) 1)
