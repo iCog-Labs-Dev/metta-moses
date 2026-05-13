@@ -309,3 +309,10 @@
     (mkNodeId (0))
     0)
     ((mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) ())) (mkNodeId (0)) (mkNodeId (0))))
+
+;; Test GDK appendTo
+!(assertEqual
+  (let* (($gdkTree (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) ())))
+         ($myGDK (mkGDK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) ((mkNode OR) (mkNode XOR)))))
+    (appendTo $gdkTree $myGDK $gdkTree (mkNodeId (0)) 1))
+    ((mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode XOR) ()) ()))) (mkNodeId (2)) (mkNodeId (2))))

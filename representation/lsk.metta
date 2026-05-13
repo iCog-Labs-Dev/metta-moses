@@ -67,12 +67,15 @@
 )
 
 
-;; Retrieves the node ID from a Logical Subtree Knob (LSK) or Strategy Subtree Knob (SSK).
+;; Retrieves the node ID from a Logical Subtree Knob (LSK), Strategy Subtree Knob (SSK), or General Discrete Knob (GDK).
 ;; (: getNodeId (-> LogicalSubtreeKnob NodeId))
 ;; (: getNodeId (-> StrategySubtreeKnob NodeId))
+;; (: getNodeId (-> GeneralDiscreteKnob NodeId))
 (= (getNodeId (mkLSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
    $nodeId)
 (= (getNodeId (mkSSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
+   $nodeId)
+(= (getNodeId (mkGDK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList) $domain))
    $nodeId)
 
 ;; Retrieves the current and default disc specifications from an LSK.
@@ -84,10 +87,13 @@
 ;; appendTo dispatcher - calls the appropriate function based on knob type
 ;; (: appendTo (-> (Tree $a) LogicalSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
 ;; (: appendTo (-> (Tree $a) StrategySubtreeKnob (Tree $a) NodeId Number (Tree $a)))
+;; (: appendTo (-> (Tree $a) GeneralDiscreteKnob (Tree $a) NodeId Number (Tree $a)))
 (= (appendTo $updatedTree (mkLSK $discKnob) $tree $parentId $d)
     (appendToLSK $updatedTree (mkLSK $discKnob) $tree $parentId $d))
 (= (appendTo $updatedTree (mkSSK $discKnob) $tree $parentId $d)
     (appendToSSK $updatedTree (mkSSK $discKnob) $tree $parentId $d))
+(= (appendTo $updatedTree (mkGDK $discKnob $domain) $tree $parentId $d)
+    (appendToGDK $updatedTree (mkGDK $discKnob $domain) $tree $parentId $d))
 
     
 ;; Appends a subtree or a null vertex in place of a logical subtree 
@@ -164,15 +170,26 @@
         ;; ($_ (println! (CandidateSoFar: (preOrder $tree))))
         ;; ($_ (println! ("subtree ": (getNodeValue $subtree) parentId(OldDstId): $parentId srcId: $newSrcId targetId: $targetId)))
       )
-      (if (> $d 1)
-          (Error $d "Invalid disc specification for strategy:- cannot exceed 1.")
-          (let ($treeToAppend $newDstId)
-                            (case $d
-                                (
-                                  (1  ((mkTree (getNodeValue $subtree) ()) (mkNodeId (union-atom $dstId ($newPosition))))) ;; If present
-                                  (0  ((mkNullVex (cons $subtree ())) $parentId)))) ;; If absent
+      (if (not (== $d 1))
+          (if (not (== $d 0))
+              (Error $d "Invalid disc specification for strategy:- cannot exceed 1.")
+              ($tree $parentId $parentId)) ;; If absent, return current tree and parentId
+          (let* (($treeToAppend (mkTree (getNodeValue $subtree) ()))
+                 ($newDstId (mkNodeId (union-atom $dstId ($newPosition)))))
+            (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
+                   ((first $treeChIdPair) $newSrcId (if (== $parentId $newDstId) (second $treeChIdPair) $newDstId)))))))
 
-                            (if (isNullVertex $treeToAppend)
-                                ($tree $parentId $parentId)
-                                (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
-                                        ((first $treeChIdPair) $newSrcId (if (== $parentId $newDstId) (second $treeChIdPair) $newDstId))))))))
+;; appendTo for General Discrete Knobs (GDK)
+;; Maps an instance index (d) directly to a value from the domain list.
+;; This supports evolving programs by choosing from arbitrary sets of discrete atoms.
+(= (appendToGDK $updatedTree $gdk $tree $parentId $d)
+    (let*
+       (
+        ((mkGDK $discKnob $domain) $gdk)
+        ((mkNodeId $targetId) (getNodeId $gdk))
+        ($value (List.getByIdx $domain $d))
+        ;; Wrap domain value into a tree node for insertion
+        ($treeToAppend (mkTree $value ()))
+      )
+      (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
+              ((first $treeChIdPair) (mkNodeId $targetId) (second $treeChIdPair)))))

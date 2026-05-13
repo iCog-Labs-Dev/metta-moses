@@ -59,6 +59,15 @@
 !(assertEqual (getKnobLoc (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (mkNodeId (1)))
 !(assertEqual (getKnobLoc (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (mkNodeId (1)))
 
+!(assertEqual (getDiscKnob (mkGDK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) (cons A (cons B ()))))
+  (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))
+
+; Test for getKnobLoc with GDK
+!(assertEqual (getKnobLoc (mkGDK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) (cons A (cons B ())))) (mkNodeId (1)))
+
+; Test for getKnobMultip with GDK
+!(assertEqual (getKnobMultip (mkGDK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) (cons A (cons B ())))) (mkMultip 2))
+
 ; Test for discSpec<
 !(assertEqual (discSpec< (mkDiscSpec 2) (mkDiscSpec 3)) True)
 !(assertEqual (discSpec< (mkDiscSpec 3) (mkDiscSpec 2)) False)
