@@ -170,8 +170,8 @@
         ;; ($_ (println! (CandidateSoFar: (preOrder $tree))))
         ;; ($_ (println! ("subtree ": (getNodeValue $subtree) parentId(OldDstId): $parentId srcId: $newSrcId targetId: $targetId)))
       )
-      (if (not (== $d 1))
-          (if (not (== $d 0))
+      (if (!= $d 1)
+          (if (!= $d 0)
               (Error $d "Invalid disc specification for strategy:- cannot exceed 1.")
               ($tree $parentId $parentId)) ;; If absent, return current tree and parentId
           (let* (($treeToAppend (mkTree (getNodeValue $subtree) ()))
