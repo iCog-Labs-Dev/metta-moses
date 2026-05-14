@@ -1,6 +1,7 @@
-!(import! &self ../../../metta-moses/utilities/list-methods)
-!(import! &self ../../../metta-moses/feature-selection/incremental-feature-selection)
-!(import! &self ../../../metta-moses/moses/demo-problems)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../feature-selection-helpers)
+!(import! &self ../incremental-feature-selection)
+!(import! &self ../../moses/demo-problems)
 
 (= (clear-lru)
    (let $r1 (collapse (match &self (lru-entry $k $v $t) (remove-atom &self (lru-entry $k $v $t))))

@@ -242,7 +242,7 @@
 
 ; ;; FIX: Failing Test case
 
-!(assertEqual (println! ("testing failing case in gen it's working ✅")))
+!(println! ("testing failing case in gen it's working ✅"))
 !(assertEqual (gen 1 (0)) (1 0))
 !(assertEqual (gen 3 (0)) (3 2 1 0))
 

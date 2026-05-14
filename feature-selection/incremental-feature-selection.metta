@@ -131,11 +131,6 @@
                                          (get-redundant-features $fs $table $redThreshold)))
              (flatten-unique $redSubsets))))
 
-(= (range $start $end)
-   (if (>= $start $end) ()
-       (cons $start (range (+ $start 1) $end))))
-
-
 ;; --- LRU Cache for mi-score ---
 ;; State atoms stored in &self:
 ;;   (lru-tick <N>)                    -- monotonic clock
