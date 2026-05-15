@@ -19,10 +19,13 @@
             ($parent $current False)
             (let*
               (
-                  ; ($_ (println! (===Inside AndCut===)))
-                  ; ($_ (println! (Current $current : Parent : $parent)))
-                  ($parentSec (collapse (removeEmptyAND (superpose $parent))))
-                  ($currentSec (if (=== $parent $current) $parentSec (collapse (removeEmptyAND (superpose $current)))))
+                  ;; ($_ (println! (===Inside AndCut===)))
+                  ;; ($_ (println! (Current $current : Parent : $parent)))
+                  ;; ($_ (println! (Parent: $parent)))
+                  ($parentSec (map-atom $parent $p (removeEmptyAND $p)))
+                  ($currentSec (if (=== $parent $current)
+                                   $parentSec
+                                   (map-atom $current $c (removeEmptyAND $c))))
                   (($guardSet $child) (getLiteralChildren $currentSec))
                   (($h $t) (if (and (== (get-metatype $child) Expression) (not (== $child ()))) (decons-atom $child) (() ())))
                   ($tail (if-decons-expr-custom $child $h $t $t "No child"))
@@ -35,7 +38,7 @@
                           ; ($_ (println! (Current $current : Parent : $parent)))
                           ($childFirst (if-decons-expr-custom $child $h $t $h ()))
                           (($grandLiterals $grandChildren) (getLiteralChildren $childFirst))
-                          ($allLiterals (collapse (getGuardSet (superpose $grandChildren))))
+                          ($allLiterals (map-atom $grandChildren $gC (getGuardSet $gC)))
                           ($common (intersections $allLiterals))
                           ($updatedParent (removeElement ($currentSec) $parentSec))
                           ($updatedParent' (if
@@ -60,7 +63,7 @@
                           ($parentSec $currentSec False)
                       )
                   )
-                  ($parentSec $currentSec False)
+                  ($parentSec $currentSec (!= $current $currentSec))
               )
             ))
 )
@@ -86,8 +89,8 @@
 (= (applyAndCut ($parent $bool ($child $remainingChildren)))
       (let*
         (
-          ; (() (println! (===Inside ApplyAndCut===)))
-          ; (() (println! (Parent: $parent : Child: $child : RemainingChildren: $remainingChildren : bool: $bool)))
+          ;; ($_ (println! (===Inside ApplyAndCut===)))
+          ;; ($_ (println! (Parent: $parent : Child: $child : RemainingChildren: $remainingChildren : bool: $bool)))
           (($updatedParent $updatedChild $appliedOrCut) (andCut $parent $child))
           ($nextChild (if (~= $remainingChildren ()) (car-atom $remainingChildren) ()))
           ($restChildren (if (~= $remainingChildren ()) (cdr-atom $remainingChildren) ()))
@@ -101,16 +104,16 @@
         (
             (Symbol $expr)
             (Expression
-                (let* (
-                    (($h $t) (decons-atom $expr))
-                    ; (() (println! (H: $h : T: $t)))
+                (let*
+                  (
+                     (($h $t) (decons-atom $expr))
+                     ;(() (println! (H: $h : T: $t)))
                   )
                     (case ($h $t)
                         (
-                            ((AND ()) (empty))
-                            ((AND $else) (concatTuple ($h) (collapse (removeEmptyAND (superpose $t)))))
-                            (($any $else) (collapse (removeEmptyAND (superpose $expr))))
-
+                            ((AND ()) Nothing)
+                            ((AND $else) (cons $h (filter-atom (map-atom $t $ts (removeEmptyAND $ts)) (!= Nothing))))
+                            (($any $else) (filter-atom (map-atom $expr $ex (removeEmptyAND $ex)) (!= Nothing)))
                         )
                     )
                 )

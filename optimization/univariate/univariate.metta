@@ -238,7 +238,7 @@
 ;   $complexityRatio – complexity ratio
 ; Returns: The final optimized and sorted instance set after completing all generations.
 ; (: univariateMainLoop (-> (InstanceSet $score) Number Number Number Number Cscore Cscore Representation (ITable $a) Number (InstanceSet $score)))
-(= (univariateMainLoop $sortedSInstSet $genCount $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCscore $rep $itable $complexityRatio)
+(= (univariateMainLoop $sortedSInstSet $genCount $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCscore $rep $id $itable $complexityRatio)
 (if (and (< $genCount $maxGensTotal) (apply < $bestCscore $bestPossibleCscore))
 (let*
   (
@@ -260,7 +260,7 @@
     ($generatedInsts (sampleInsts $probabilityModel $nGenerate $tot ()))
     ;; ($_ (println! (Generated New Instances:  $generatedInsts)))
     ($generatedSInstSet (exprToSInstSet $generatedInsts))
-    ($scoredGeneratedInstSet (transform $generatedSInstSet $rep $itable $complexityRatio))
+    ($scoredGeneratedInstSet (transform $generatedSInstSet $rep $id $itable $complexityRatio))
     ;; ($_ (println! (Scored Generated New Instances:  $scoredGeneratedInstSet)))
     ($finalInstSet (replaceTheWorst $sortedSInstSet $scoredGeneratedInstSet))
     ;; ($_ (println! (Replaced Worst Instances:  $finalInstSet)))
@@ -268,7 +268,7 @@
     ;; ($_ (println! (Sorted Final Instance Set:  $sortedFinalInstSet)))
     ($bestCurrentScore (getSInstScore (List.getByIdx $sortedFinalInstSet 0)))
   )
-  (univariateMainLoop (mkSInstSet $sortedFinalInstSet) (+ $genCount 1) $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCurrentScore $rep $itable $complexityRatio)
+  (univariateMainLoop (mkSInstSet $sortedFinalInstSet) (+ $genCount 1) $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCurrentScore $rep $id $itable $complexityRatio)
 )
 $sortedSInstSet
 ))
@@ -288,9 +288,9 @@ $sortedSInstSet
 (= (univariateOptimize (mkDeme $rep $instSet $id) $itable $complexityRatio $nSelect $nGenerate $maxGensTotal $bestPossibleCscore $bestCscore)
 (let*
    (
-    ($sInstSet (transform $instSet $rep $itable $complexityRatio))
+    ($sInstSet (transform $instSet $rep $id $itable $complexityRatio))
     ($sortedSInstSet (sortDeme $sInstSet))
-    ($finalInstSet (univariateMainLoop $sortedSInstSet 0 $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCscore $rep $itable $complexityRatio))
+    ($finalInstSet (univariateMainLoop $sortedSInstSet 0 $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCscore $rep $id $itable $complexityRatio))
    )
    (mkDeme $rep $finalInstSet $id)))
 

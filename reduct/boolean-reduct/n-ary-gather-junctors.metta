@@ -52,9 +52,9 @@
                         (
                             ((NOT True) $expr)
                             ((NOT False) (AND $expr))
-                            ((OR True) (collapse (addAND (superpose $expr) $h $h)))
-                            ((OR False) (AND (collapse (addAND (superpose $expr) $h $h))))
-                            ((AND $_) (collapse (addAND (superpose $expr) AND $h)))
+                            ((OR True) (map-atom $expr $ex (addAND $ex $h $h)))
+                            ((OR False) (AND (map-atom $expr $ex (addAND $ex $h $h))))
+                            ((AND $_) (map-atom $expr $ex (addAND $ex AND $h)))
                             (($else $__) (if (== $t ()) (addAND $h () ()) (AND)))
                         )
                     )
@@ -73,7 +73,7 @@
             let* (
                 ($op (car-atom $expr)) 
                 ($tuple (cdr-atom $expr))
-                ($newTuple (fold concat-tuple () (collapse (nary-gather-junctors (superpose $tuple) $op))))
+                ($newTuple (fold concat-tuple () (map-atom $tuple $tp (nary-gather-junctors $tp $op))))
                 ($tupleWithOp (cons-atom $op $newTuple))
             )
             (

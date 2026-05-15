@@ -8,6 +8,10 @@
                 $exp
                 (empty))))
 
+(= (isLiterals $exp)
+   (if (== (get-metatype $exp) Symbol)
+       (not (or (== $exp AND) (== $exp OR)))
+       (== (car-atom $exp) NOT)))
 
 ;; A function that takes an expression and returns it's guard sets
 ;; Definition: Guard set of a node is the set of literals in the node. 
@@ -30,7 +34,7 @@
 ;;    non deterministic list instead of a collapsed atom.
 ;; Example: (AND (NOT A) (NOT B) A) -> [(NOT A), (NOT B), A]
 (= (getGuardSetND $exp)
-   (if (or (not (== $exp ())) (== (get-metatype $exp) Expression))
+   (if (or (and (!= $exp ()) (!= (get-metatype $exp) Symbol)) (== (get-metatype $exp) Expression))
       (let*
         (
          (($h $t) (decons-atom $exp))
@@ -49,7 +53,7 @@
         ($op (car-atom $exp))
         ($guardSet (getLiterals $exp))
         ($newGuardSet (union-atom $guardSet $elements))
-        ($newGuardSet' (collapse (unique (superpose $newGuardSet))))
+        ($newGuardSet' (unique-atom $newGuardSet))
         ($updatedSubExpression (union-atom $newGuardSet' (getChildrenExp $exp)))
         ($newExp (cons-atom $op $updatedSubExpression))
      )
@@ -67,6 +71,11 @@
                 (empty)
                 $exp)))
 
+(= (isChildren $exp)
+        (if (== (get-metatype $exp) Symbol)
+            False
+            (not (== (car-atom $exp) NOT))))
+
 ;; A function to return children of a given expression.
 ;; A child of a given expression is any subExpression.
 ;; An expression (NOT A) is also considered as a literal 
@@ -77,7 +86,7 @@
          (() $exp)
          ((NOT $x) ())
          ($else (if (== (get-metatype $exp) Expression)
-                          (collapse (filterChildren (superpose $exp)))
+                          (filter-atom $exp isChildren)
                           ())))))
 
 ;; A function to add a list of children to a given expression.
@@ -112,7 +121,7 @@
        (
          (() $exp)
          ((NOT $x) $exp)
-         ($else (if (== (get-metatype $exp) Expression) (collapse (filterLiterals (superpose $exp))) $exp)))))
+         ($else (if (== (get-metatype $exp) Expression) (filter-atom $exp isLiterals) $exp)))))
 
 ;; A function similar to getLiterals function but returns a
 ;;    non deterministic list instead of a collapsed atom.

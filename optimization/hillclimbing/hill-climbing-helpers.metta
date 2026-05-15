@@ -249,13 +249,13 @@
         ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
         ;; ($_ (println! ""))
 
-        ($maxEvals 10000)
+        ($maxEvals 500)
         ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors)) ;; TODO: MaxEvals is hardcoded here, but should be changed. This is set to 20K by default in OpenCog Classic.
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
         ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
         ($_ (println! (Crossover: $xOver)))
-        ($_ (println! (CenterInst: (List.listToExpr (second $centerInst)) )))
+        ($_ (println! (CenterInst: (second $centerInst))))
         ($_ (println! (size: $size)))
         ;; ($_ (println! ($totalNNeighbors : $nNewNeighbors : $prevCenter : $POASet : $d)))
         ($_ (println! ($totalNNeighbors : $nNewNeighbors : $d)))
@@ -298,8 +298,8 @@
                                                                 $prePositive $scorerType)
                                           (case $iTable
                                             (
-                                              ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep (mkITable $rows $labels) $rowOCoeff))
-                                              ($ComplexityRatio ($transformFunction $updatedInstSet $rep $rowOCoeff $ComplexityRatio))
+                                              ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep $id (mkITable $rows $labels) $rowOCoeff))
+                                              ($ComplexityRatio ($transformFunction $updatedInstSet $rep ($rowOCoeff $size) $ComplexityRatio))
                                             ))))
 
         ($updatedDeme (if (or (== $rep ()) (== $id ())) 
@@ -313,7 +313,7 @@
         ;; ($_ (println! (Scored instances....)))
         ;; ($_ (println! ""))
 
-        ((mkSInst $newBestInstPair) (eval (List.foldl ((eval (curry2 returnBest)) <) (mkSInst (mkPair $centerInst $bestSscore)) $scoredInstances)))
+        ((mkSInst $newBestInstPair) (List.foldl hillScoreHelper (mkSInst (mkPair $centerInst $bestSscore)) $scoredInstances))
         ($newBestScore (if (or (== $rep ()) (== $id ())) 
                           (Pair.second $newBestInstPair)
                           (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
@@ -393,6 +393,8 @@
      
     )          
 )
+
+(= (hillScoreHelper $inst1 $inst2) (returnBest < $inst1 $inst2))
 
 ;; Helper to get initial disc spec from a knob
 (= (getInitDiscSpec (mkLSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))) $init)

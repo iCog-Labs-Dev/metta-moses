@@ -20,12 +20,12 @@
         (
             ($poaGuardSet (getGuardSet $poa))
             ($invertedCom (invertLiterals $com))
-            ($commonElements (collapse (intersection (superpose $poaGuardSet) (superpose $invertedCom))))
+            ($commonElements (intersection-atom $poaGuardSet $invertedCom))
         )
-         (collapse (let $el (superpose $parent)
-            (if (=== $el $poa)
-                (collapse (subtraction (superpose $poa) (superpose $commonElements)))
-                $el)))))
+         (map-atom $parent $el
+            (if (trace! (El: $el POA: $poa) (=== $el $poa))
+                (subtraction-atom $poa $commonElements)
+                $el))))
 
 ;; Name:                        invertLiterals
 ;; Description:                 A helper function that negates all literals in a literal only expression.
@@ -34,7 +34,7 @@
 ;;                              invertLiterals (A (NOT B)) -> ((NOT A) B)
 
 (= (invertLiterals $guardSet)
-    (collapse (let $literal (superpose $guardSet)
-            (unify $literal (NOT $x)
-                $x
-                (NOT $literal)))))
+    (map-atom $guardSet $literal 
+      (unify $literal (NOT $x)
+          $x
+          (NOT $literal))))

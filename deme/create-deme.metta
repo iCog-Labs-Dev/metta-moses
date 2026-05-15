@@ -18,7 +18,7 @@
                   ($reps (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts  $scorerType))
                   ;; ($_ (println! (done making representations ... $reps)))
             ) 
-            (loopCreateDeme $demeIds $reps ())
+            (loopCreateDeme $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
       ) 
 )
 ;; Game strategy createDeme - creates demes with empty instance sets for game strategies

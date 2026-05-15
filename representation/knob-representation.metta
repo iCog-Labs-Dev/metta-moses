@@ -94,6 +94,7 @@
 ;; Params: $id1 & $id2
 ;; Returns: True/False
 ;; (: nodeId< (-> NodeId NodeId Bool))
+;; FIX: Non-determinsitic logic if nodeId is both () or either is empty.
 (= (nodeId< (mkNodeId ()) (mkNodeId $id2)) True)
 (= (nodeId< (mkNodeId $id1) (mkNodeId ())) False)
 (= (nodeId< (mkNodeId $id1) (mkNodeId $id2)) 

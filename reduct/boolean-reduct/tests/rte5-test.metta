@@ -15,7 +15,7 @@
 !(assertEqual (reduceToElegance (AND (OR (AND A B) (AND A C (OR (AND D) (AND E) (AND (NOT A)))))) (OR (AND A B) (AND A C (OR (AND D) (AND E) (AND (NOT A))))) () ()) ((AND A (OR (AND B) (AND C (OR (AND D) (AND E) (AND (NOT A)))))) (OR (AND B) (AND C (OR (AND D) (AND E) (AND (NOT A))))) True))
 !(assertEqual (reduceToElegance (AND (AND A (OR (AND B) (AND C (OR (AND D) (AND E) (AND (NOT A))))))) (AND A (OR (AND B) (AND C (OR (AND D) (AND E) (AND (NOT A)))))) () ()) ((AND (AND A (OR (AND B) (AND C (OR (AND D) (AND E)))))) (AND A (OR (AND B) (AND C (OR (AND D) (AND E))))) False))
 
-;; (AND (OR (AND A B) (AND A C (OR D (AND E (NOT A)))))) ==> (AND A (OR (AND B) (AND C D (OR)))) ;; The (OR) will be removed when calling RTE once more
-!(assertEqual (reduceToElegance (AND A (OR (AND B) (AND C (OR (AND D) (AND E (NOT A)))))) (AND A (OR (AND B) (AND C (OR (AND D) (AND E (NOT A)))))) () ()) ((AND A (OR (AND B) (AND C D (OR)))) (AND A (OR (AND B) (AND C D (OR)))) False))
+;; (AND (OR (AND A B) (AND A C (OR D (AND E (NOT A)))))) ==> (AND A (OR (AND B) (AND C D)))
+!(assertEqual (reduceToElegance (AND A (OR (AND B) (AND C (OR (AND D) (AND E (NOT A)))))) (AND A (OR (AND B) (AND C (OR (AND D) (AND E (NOT A)))))) () ()) ((AND A (OR (AND B) (AND C D))) (AND A (OR (AND B) (AND C D))) False))
 ;; (AND (OR (AND A B) (AND A C (OR D (AND E (NOT A)))))) ==> (AND A (OR B (AND C D)))
 !(assertEqual (reduceToElegance (AND (OR (AND A B) (AND A C (OR (AND D) (AND E (NOT A)))))) (OR (AND A B) (AND A C (OR (AND D) (AND E (NOT A))))) () ()) ((AND A (OR (AND B) (AND C (OR (AND D) (AND E (NOT A)))))) (OR (AND B) (AND C (OR (AND D) (AND E (NOT A))))) True))   ;; INFO: This test case fails becuase RTE needs to be called again if the parent chang ed

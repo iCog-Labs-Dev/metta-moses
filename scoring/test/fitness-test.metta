@@ -1,4 +1,5 @@
 !(import! &self ../../utilities/general-helpers)
+!(import! &self ../../utilities/list-methods)
 !(import! &self ../fitness)
 
 ;; Test Cases 1: Simple AND Expression
@@ -41,7 +42,7 @@
       0.0)
   4.0
 )
- 
+
 ;; Test case 5: OR Expression
 !(assertEqual
   (penalizedFitness

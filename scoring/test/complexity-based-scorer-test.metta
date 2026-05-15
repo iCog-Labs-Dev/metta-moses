@@ -107,14 +107,25 @@
 !(assertEqual 
  (complexityBasedScorer 
          (mkRep (knobMapObj) (tree1))
+         (mkDemeId "1")
          (mkInst (cons 2 (cons 0 (cons 1 ()))))
          (ttable1)
          2.0)
  (mkCscore -1 4 2.0 0.0 -3.0))
 
 !(assertEqual
+    (case (match &treeSpace ((mkDemeId "1") (mkInst (2 0 1)) $tree) $tree)
+          (
+            ($tree $tree)
+            (Empty NotCached)
+          )
+    )
+ (mkTree (mkNode AND) ((mkTree (mkNode A) ()) (mkTree (mkNode OR) ((mkTree (mkNode B) ()) (mkTree (mkNode C) ()) (mkTree (mkNode NOT) ((mkTree (mkNode D) ()))))))))
+
+!(assertEqual
  (complexityBasedScorer 
          (mkRep (knobMapObj) (tree1))
+         (mkDemeId "1")
          (mkInst (cons 1 (cons 0 (cons 1 ()))))
          (ttable2)
          2.0)

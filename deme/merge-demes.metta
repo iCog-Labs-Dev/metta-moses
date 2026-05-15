@@ -8,10 +8,10 @@
 ;;    $topCnd: Maximum number of instances to keep.
 ;; Return: (List (ScoredInstance Cscore)): List with adjacent duplicates removed, limited by $topCnd.
 ; (: removeDupInsts (-> (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
-(= (removeDupInsts $rep () $topCnd) ())
-(= (removeDupInsts $rep (cons $x ()) $topCnd)
+(= (removeDupInsts $rep $id () $topCnd) ())
+(= (removeDupInsts $rep $id (cons $x ()) $topCnd)
    (if (> $topCnd 0) (cons $x ()) ()))
-(= (removeDupInsts $rep (cons (mkSInst $x) $tail) $topCnd)
+(= (removeDupInsts $rep $id (cons (mkSInst $x) $tail) $topCnd)
    (if (== $tail ())
        (if (> $topCnd 0) (cons (mkSInst $x) ()) ())
        (let* (
@@ -22,13 +22,13 @@
          (if (> $topCnd 0)
              (if (isApproxEq (getPenScore (Pair.second $x)) (getPenScore (Pair.second $y)))
                  (let* (
-                        ($tr1 (getCandidate $rep (Pair.first $x)))
-                        ($tr2 (getCandidate $rep (Pair.first $y)))
+                        ($tr1 (getCandidate $rep $id (Pair.first $x)))
+                        ($tr2 (getCandidate $rep $id (Pair.first $y)))
                        )
                    (if (== $tr1 $tr2)
-                       (removeDupInsts $rep (cons (mkSInst $x) $rest) (min-atom ($topCnd $lengthOfTail)))
-                       (cons (mkSInst $x) (removeDupInsts $rep (cons (mkSInst $y) $rest) (- $topCnd 1)))))
-                 (cons (mkSInst $x) (removeDupInsts $rep (cons (mkSInst $y) $rest) (- $topCnd 1))))
+                       (removeDupInsts $rep $id (cons (mkSInst $x) $rest) (min-atom ($topCnd $lengthOfTail)))
+                       (cons (mkSInst $x) (removeDupInsts $rep $id (cons (mkSInst $y) $rest) (- $topCnd 1)))))
+                 (cons (mkSInst $x) (removeDupInsts $rep $id (cons (mkSInst $y) $rest) (- $topCnd 1))))
              ()))) )
 
 ;; Extracts up to $maxCandsPerDeme unique ScoredInstances from a sorted InstanceSet, limited by $nEval.
@@ -38,7 +38,7 @@
 ;;   $maxCandsPerDeme: Maximum candidates per deme.
 ;; Return: (List (ScoredInstance Cscore)): List of unique top-scoring instances.
 ; (: keepTopUniqueCandidates (-> (InstanceSet Cscore) Number Number (List (ScoredInstance Cscore))))
-(= (keepTopUniqueCandidates $rep (mkSInstSet $sortedSInstList) $nEval $maxCandsPerDeme)
+(= (keepTopUniqueCandidates $rep $id (mkSInstSet $sortedSInstList) $nEval $maxCandsPerDeme)
  (let*
  (
     ;; ($instExpr (List.listToExpr $sortedSInstList))
@@ -56,7 +56,7 @@
     ;; ($exprList (List.listToExpr $sortedSInstList))
     ;; ($bmr (map-atom $exprList $inst (let (mkSInst $x) $inst (println! (Tree: (preOrder (getCandidate $rep (Pair.first $x))) Inst: (List.listToExpr (second (Pair.first $x))))))))
     ;; ($uniqueTopCandidates (removeDupInsts $uniqueSortedInstList $uTopCnd))
-    ($uniqueTopCandidates (removeDupInsts $rep $sortedSInstList $uTopCnd))
+    ($uniqueTopCandidates (removeDupInsts $rep $id $sortedSInstList $uTopCnd))
     ;; ($uExprList (List.listToExpr $uniqueTopCandidates))
     ;; ($_ (println! ""))
     ;; ($_ (println! (After removing duplicates)))
@@ -124,7 +124,7 @@
         ($inst (getInst $si))
         ;; ($_ (println! (Representation: $rep)))
         ;; ($_ (println! (Instance: $inst)))
-        ($tree (getCandidate $rep $inst))
+        ($tree (getCandidate $rep $demeId $inst))
         ;; ($_ (println! (Tree: (preOrder $tree))))
         ;; ($_ (println! (ScoringContext: $scoringContext)))
         ($bscore (case $scoringContext
@@ -248,7 +248,7 @@
             ($_ (println! (Demesize: (List.length (second $sortedSInstList)))))
             ;; ($demeExpr (List.listToExpr (second $sortedSInstList)))
             ;; ($_ (println! (UniqueDemeSize: (length (unique-atom $demeExpr)))))
-            ($unqCandidates (keepTopUniqueCandidates $rep $sortedSInstList $nEval $maxCandsPerDeme))  ;;remove duplicates and limits the size by keeping the top scoring
+            ($unqCandidates (keepTopUniqueCandidates $rep $demeId $sortedSInstList $nEval $maxCandsPerDeme))  ;;remove duplicates and limits the size by keeping the top scoring
             ($_ (println! (KeptUniqueTopCandidates NewSize: (List.length $unqCandidates))))
             ($trimmedDeme (trimDownDeme $unqCandidates $minPoolSize $complexityTemperature))  ;; further trims the deme
             ;; ($_ (println! (DemeToTrees Starting...)))

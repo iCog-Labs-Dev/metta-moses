@@ -1,5 +1,6 @@
 ;; A function to generate all pairs of numbers from a list, where a != b
 ;; (: genPairs (-> Expression Expression))
+;; TODO: Rewrite using iterative logic
 (= (genPairs $list)
     ( let*
         (
@@ -13,6 +14,7 @@
     )
 )
 
+;; TODO: Rewrite using iterative logic
 (= (genTriplet $list)
     (let*
         (
@@ -33,6 +35,7 @@
 ;;          $PermPairs -> list of pairs of idx permutations
 ;;          $picked -> list of picked idxs
 ;; (: getArgs (-> Atom Expression Expression Expression Expression))
+;; TODO: Rewrite using iterative logic
 (= (getArgs $swapedOp $PermPairs $picked $argLabels)
     (let*
         (
@@ -54,6 +57,7 @@
 
 ; (= (sampleLogicalPerms $op $arity) (sampleLogicalPerms $op $arity ()))
 ;; (: sampleLogicalPerms (-> Atom Number Expression Expression))
+;; TODO: Rewrite using iterative logic
 (= (sampleLogicalPerms $op $arity $argLabels)
     (let*
         ( 
@@ -77,6 +81,7 @@
 ;;          $moveLabels: list of move labels (playcenter, playcorner, etc.)
 ;; Returns: move expressions with operator and move combinations
 ;; (: getMoveArgs (-> Atom Expression Expression Expression Expression))
+;; TODO: Rewrite using iterative logic
 (= (getMoveArgs $op $PermPairs $picked $moveLabels)
     (let*
         (
@@ -95,6 +100,7 @@
 ;; Returns:
 ;;          Union of original moves with alternative move strategy expressions
 ;; (: sampleStrategyPerms (-> Atom Number Expression Expression))
+;; TODO: Rewrite using iterative logic
 (= (sampleStrategyPerms $op $arity $moveLabels)
     (let*
         (

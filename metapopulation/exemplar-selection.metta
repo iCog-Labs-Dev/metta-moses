@@ -19,7 +19,7 @@
         ((cons $x ()) $x)
         ($_ (let* (
                     ($probs (getPnScore $metaPop))
-                    ($hstScr (List.max >= $probs))
+                    ($hstScr (List.max $probs))
                     ;; get list of normalized ScoreT values
                     ($normalizedProbs (normalizeProbs (INV_TEMP) $hstScr $probs))
                     ;; ($pr (println! (NotNormalized: $probs)))
@@ -34,21 +34,13 @@
 ;;      made use of deconstruction by pattern matching
 
 ; (: getPnScore (-> (OS (Exemplar $a)) (List Number)))
-(= (getPnScore ()) ())
-(= (getPnScore (cons $x $xs))
-   (let (mkExemplar $tree1 $demeId1 (mkCscore $scrr $cpxy $cpxyPen $uniPen $penScr) $bscr1) $x
-        (cons $penScr (getPnScore $xs))))
+(= (getPnScore $xs) (map-atom $xs getExemplarPenScore))
 
 ;;  a function to normalize the score values into normalized scores of Boltzman distribution
 ;; the function is specific to this distribution type
 ; (: normalizeProbs (-> Number Number (List Number) (List Number)))
-(= (normalizeProbs $invTemp $best ()) ())
-(= (normalizeProbs $invTemp $best (cons $x $xs))
-    (let*
-        (($new (if (isinf-math $x) 0 (exp (* (- $x $best) $invTemp))))
-        ($c (normalizeProbs $invTemp $best $xs)))
-
-        (cons $new $c)))
+;; (= (normalizeProbs $invTemp $best ()) ())
+(= (normalizeProbs $invTemp $best $xs) (map-atom $xs $x (if (isinf-math $x) 0 (exp (* (- $x $best) $invTemp)))))
 
 ;; the main roulette select function
 ;;      $metaPop -- (OS (Exemplar $a)) -- list of exemplars

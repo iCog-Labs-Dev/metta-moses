@@ -133,6 +133,7 @@
 !(assertEqual
    (removeDupInsts
       (rep)
+      (mkDemeId "1")
       (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1))) 
       (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1)))
       (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore 0 2 0.5 0 0.8)))  ())))
@@ -144,6 +145,7 @@
  !(assertEqual
     (removeDupInsts
        (rep)
+       (mkDemeId "1")
        (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1)))
        (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 1 ())))) (mkCscore -1 2 1 0 1)))
        (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore 0 2 0.5 0 0.8))) ())))
@@ -156,6 +158,7 @@
  !(assertEqual
     (removeDupInsts
        (rep)
+       (mkDemeId "1")
        (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1)))
        (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1)))
        (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore 0 2 0.5 0 0.8)))
@@ -170,6 +173,7 @@
  !(assertEqual
     (keepTopUniqueCandidates
        (rep)
+       (mkDemeId "1")
        (mkSInstSet
           (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1))) 
           (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1)))
@@ -183,6 +187,7 @@
  !(assertEqual
     (keepTopUniqueCandidates
        (rep)
+       (mkDemeId "1")
        (mkSInstSet
           (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1))) 
           (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1)))
@@ -196,6 +201,7 @@
  !(assertEqual
     (keepTopUniqueCandidates
        (rep)
+       (mkDemeId "1")
        (mkSInstSet
           (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1)))
           (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1)))

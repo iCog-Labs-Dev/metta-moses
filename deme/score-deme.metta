@@ -9,14 +9,8 @@
 ;; Returns:
 ;;   $listOfScoredInst: the final list containing scoredInstances
 ; (: applyComplexityBasedScore (-> Representation (List Instance) (ITable $a) Number (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
-(= (applyComplexityBasedScore $rep () $itable $complexityRatio) ())
-(= (applyComplexityBasedScore $rep (cons $i $is) $itable $complexityRatio)
-(let*
-(
-    ($score (complexityBasedScorer $rep $i $itable $complexityRatio))
-    ($scoredInst (mkSInst (mkPair $i $score)))
-)
-(cons $scoredInst (applyComplexityBasedScore $rep $is $itable $complexityRatio))))
+(= (applyComplexityBasedScore $rep $id $instances $itable $complexityRatio)
+    (map-atom $instances $i (mkSInst (mkPair $i (complexityBasedScorer $rep $id $i $itable $complexityRatio)))))
 
 ;; Strategy-based scoring helper for game strategies 
 ;; Params:
@@ -29,12 +23,18 @@
 ;; Returns:
 ;;   List of scored instances with CScore
 ; (: applyStrategyBasedScore (-> Representation (List Instance) Number $opponentPolicy Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
-(= (applyStrategyBasedScore $rep () $nGames $complexityRatio $listOfScoredInst) $listOfScoredInst)
-(= (applyStrategyBasedScore $rep (cons $i $is) $nGames $complexityRatio $listOfScoredInst)
-    (let* (($strategyTree (getCandidate $rep $i))
-           ($cscore (getCscore $strategyTree $nGames $complexityRatio &strategyScoreCache))
-           ($scoredInst (mkSInst (mkPair $i $cscore))))
-        (applyStrategyBasedScore $rep $is $nGames $complexityRatio (cons $scoredInst $listOfScoredInst))))
+(= (applyStrategyBasedScore $rep $id $instances $nGames $complexityRatio $listOfScoredInst)
+   (map-atom $instances $i
+    (let*
+    (
+        ($strategyTree (getCandidate $rep $id $i))
+        ;; ($_ (println! "[applyStrategyBasedScore] Got tree:"))
+        ;; ($_ (println! (GetCscore $strategyTree $nGames $opponentPolicy $complexityRatio &strategyScoreCache)))
+        ($cscore (getCscore $strategyTree $nGames $complexityRatio &strategyScoreCache))
+        ;; ($_ (println! "[applyStrategyBasedScore] Got cscore:"))
+        ;; ($_ (println! $cscore))
+    )
+    (mkSInst (mkPair $i $cscore)))))
 
 ;; Scores each instance in an InstanceSet. 
 ;; Params:
@@ -45,13 +45,13 @@
 ;; Returns:
 ;;   instanceSet: Scored InstanceSet
 ; (: transform (-> (InstanceSet $a) Representation (ITable Bool) Number (InstanceSet Cscore)))
-(= (transform (mkSInstSet $scoredInstList) $rep $scoringContext $complexityRatio)
+(= (transform (mkSInstSet $scoredInstList) $rep $id $scoringContext $complexityRatio)
    (let* (
           ($instList (List.map removeInstScore $scoredInstList))
           ($scored (case $scoringContext
                         (
-                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $instList $scoringContext $complexityRatio))
-                          ($nGames (applyStrategyBasedScore $rep $instList $nGames $complexityRatio ())))))
+                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio))
+                          (($nGames) (applyStrategyBasedScore $rep $id $instList $nGames $complexityRatio ())))))
           )
   (mkSInstSet $scored)))
 

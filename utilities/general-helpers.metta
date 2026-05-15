@@ -211,8 +211,7 @@
    (wrapperB $predicate $x (superpose $list)))
 
 ;; A function to remove all elements found in $common from a $tuple
-(= (removeElement $common $tuple)
-   (collapse  (subtraction (superpose $tuple) (superpose $common))))
+(= (removeElement $common $tuple) (subtraction-atom $tuple $common))
 
 ; ;; A function that returns True if any of the input atoms are True and False otherwise
 ; ;; Example: input ==> (True True False), output ==> True
@@ -471,7 +470,7 @@
      (let*  (
              ($head (car-atom $expr))
              ($tail (cdr-atom $expr))
-              ($result (comparator $head $i $op))
+             ($result (comparator $head $i $op))
             )
           (selector $tail $result $op))
 )
@@ -629,14 +628,14 @@
 ;;                              === returns `True`.
 ;;                              Used when looking for the POA in the parent's list of children.
 (= (=== $x $y)
-   (if (and (== (get-metatype $x) Symbol) (== (get-metatype $y) Symbol))
+   (if (or (== (get-metatype $x) Symbol) (== (get-metatype $y) Symbol))
        (== $x $y)
        (let*
             (
-                ($a (collapse (subtraction (superpose $x) (superpose $y))))
-                ($b (collapse (subtraction (superpose $y) (superpose $x))))
+                ($a (subtraction-atom $x $y))
+                ($b (subtraction-atom $y $x))
             )
-            (== (union-atom $a $b) ())
+            (== (append $a $b) ())
        )))
 
 ;; Number compartor
@@ -740,7 +739,7 @@
     (if (< $u $l)
         ()
         (let $res (genList $l (- $u 1))
-            (union-atom $res ($u)))))
+            (append $res ($u)))))
 
 ;; swap AND , OR 
 ; (: swapAndOr (-> Atom Atom))

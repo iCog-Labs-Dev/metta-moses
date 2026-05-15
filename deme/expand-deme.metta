@@ -130,13 +130,14 @@ $optimDeme
        ;; ($_ (println! (Top Exemplar before expansion: $top)))
        ($topScore (getExemplarCscore $top))
        ;; ($_ (println! (topscore: $topScore)))
-       ($resultCandi (if (<= $maxCandOutput (OS.length $updatedMetaPop)) (OS.getTopN $maxCandOutput $updatedMetaPop) $updatedMetaPop))
        ;; ($_ (println! (Top: $topScore Max: $maxScore (cScore>= $topScore $maxScore))))
        ($_ (cut))
        ($_ (println! ""))
       )
  (if (== $topScore $maxScore)
-         $resultCandi
+         (if (<= $maxCandOutput (OS.length $updatedMetaPop))
+             (OS.getTopN $maxCandOutput $updatedMetaPop)
+             $updatedMetaPop)
          (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $context $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount)))))
 
 
