@@ -34,6 +34,7 @@
    (cons-atom $head (List.append $val $tail)))
 
 ; (: List.getByIdx (-> (List $a) Number $a))
+;; FIX: Non-deterministic execution when both are empty.
 (= (List.getByIdx () $idx) (Error () (Index out of range)))
 (= (List.getByIdx $xs $idx)
    (if (or (< $idx 0) (>= $idx (size-atom $xs)))
