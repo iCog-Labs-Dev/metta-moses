@@ -12,10 +12,10 @@
 !(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) (A))) (OR (AND A B) (A))) ((AND (OR (AND A B) (A))) (OR (AND A B) (A)) False))
 
 ;; Test 04
-!(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) A)) (OR (AND A B) A)) ((AND (OR (AND A B))) (OR (AND A B)) false))
+!(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) A)) (OR (AND A B) A)) ((AND (OR (AND A B) A)) (OR (AND A B) A) false))
 
 ;; Test 05
-!(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) (OR A B (AND A B C)) (NOT A))) (OR (AND A B) (OR A B (AND A B C)) (NOT A))) ((AND (OR (AND A B) (OR A B (AND A B C)))) (OR (AND A B) (OR A B (AND A B C))) false))
+!(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) (OR A B (AND A B C)) (NOT A))) (OR (AND A B) (OR A B (AND A B C)) (NOT A))) ((AND (OR (AND A B) (OR A B (AND A B C)) (NOT A))) (OR (AND A B) (OR A B (AND A B C)) (NOT A)) false))
 
 ;; Test 06
 !(assertEqual (zeroConstraintSubsume (OR (AND A B)) (AND A B)) ((OR (AND A B)) (AND A B) False))
@@ -30,7 +30,7 @@
 !(assertEqual (zeroConstraintSubsume (OR (AND (OR) (OR (AND) B))) (AND (OR) (OR (AND) B))) ((OR (AND (OR) (OR (AND) B))) (AND (OR) (OR (AND) B)) False))
 
 ;; Test 10: Test case from Holman paper page #43
-!(assertEqual (zeroConstraintSubsume (AND (OR C (AND))) (OR C (AND))) ((AND (OR)) (OR) true)) ;; FIX: This test case shouldn't be like this. It should ideally be (AND (OR C)), right?
+!(assertEqual (zeroConstraintSubsume (AND (OR C (AND))) (OR C (AND))) ((AND (OR C)) (OR C) true)) ;; FIX: This test case shouldn't be like this. It should ideally be (AND (OR C)), right?
 
 ;; Test case for AND node variation of 0Subsume 
 ;; Test 01

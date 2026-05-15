@@ -20,8 +20,7 @@
       ((Expression $current)
         (let*
           (
-            ($head (car-atom $current))
-            ($children (getChildrenExp $current))
+            (($head $children) (decons-atom $current))
             ($updatedChildren (filter-atom $children $child (nodeHasChildOrGuard $child)))
             ($updatedCurrent (cons-atom $head $updatedChildren))
           )

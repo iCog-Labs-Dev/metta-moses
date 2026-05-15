@@ -122,5 +122,6 @@
             (cons (mkTree (mkNode playside) ())
                   (cons (mkTree (mkNode playcorner) ()) ())))))
 
-!(assertEqual (getCscore (Strategy) 5 minimax-player 3.5 &strategyScoreCache)
-              (mkCscore 0.0 3 0.8571428571428571 0.0 -0.8571428571428571))
+; Strategy scoring now uses mixed opponents (random + minimax)
+!(assertEqual (getCscore (Strategy) 5 3.5 &strategyScoreCache)
+                (mkCscore 2.0 3 0.8571428571428571 0.0 1.1428571428571428))

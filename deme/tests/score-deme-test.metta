@@ -40,7 +40,7 @@
 !(import! &self ../../scoring/precision-bscore)
 !(import! &self ../../scoring/complexity-based-scorer)
 
-!(import! &self ../../moses/neighborhood-sampling.metta)
+!(import! &self ../../moses/neighborhood-sampling)
 
 !(import! &self ../score-deme)
 
