@@ -2,7 +2,8 @@
 
 ;; Extracts raw instance from scored instance wrapper (mkSInst)
 ;; Used before applying merge operations
-(= (getInst (mkSInst (mkPair $inst $score))) $inst)
+; (= (getInst (mkSInst (mkPair $inst $score))) $inst)
+!(eval (getInst (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 3)))))
 
 ;; Generate newinstances by crossing a fixed reference instance with a list of targets
 (= (crossPairsToRef () $reference $base $acc $limit) $acc)
@@ -105,12 +106,12 @@
        )
 )
 
-
 ;; crossMiddleLoop
 ;; Iterates over j candidates and triggers inner k-loop
 ;; Builds pairwise structure for fixed iRef
 (= (crossMiddleLoop () $iRef $kList $base $acc $limit) $acc)
-
+(= (crossMiddleLoop (cons $first ()) $iRef $kList $base $acc $limit)
+   $acc)
 (= (crossMiddleLoop (cons $first (cons $j $jRest)) $iRef $kList $base $acc $limit)
    (if (>= (List.length $acc) $limit)
        $acc
@@ -127,6 +128,11 @@
 ;; Iterates over i candidates and manages j/k generation
 ;; Maintains prefix list for simplex combinationsr
 (= (crossOuterLoop-iter () $prefix $base $acc $limit) $acc)
+(= (crossOuterLoop-iter (cons $first ()) $prefix $base $acc $limit)
+   $acc)
+(= (crossOuterLoop-iter (cons $first (cons $second ())) $prefix $base $acc $limit)
+   $acc)
+
 
 (= (crossOuterLoop-iter (cons $first (cons $second (cons $i $iRest))) $prefix $base $acc $limit)
    (if (>= (List.length $acc) $limit)
@@ -135,6 +141,9 @@
             (crossOuterLoop-iter $iRest (cons $i $prefix) $base $newAcc $limit))
        )
    )
+
+
+
 ;;;;-----  crossTopThree operator ----------------;;;;
 
 ;; Performs 3-simplex crossover on a sorted subset of a deme.
@@ -145,23 +154,26 @@
 (= (crossTopThree $deme $nToMake $sampleStart $sampleSize $baseInstance)
    (let* (
         ;; Extract representation, instance set, and ID from deme
-       ((mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId) $deme)
+         ((mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId) $deme)
+          (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
         
         ;; Ensure number of generated instances does not exceed  the budget
-        ($max (/ (* $sampleSize (* (- $sampleSize 1) (- $sampleSize 2))) 6))
-        ($limit (if (< $max $nToMake) $max $nToMake))
-        (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
+        ($temp (* (- $sampleSize 1) (- $sampleSize 2)))
+        ($max (/ (* $sampleSize $temp) 6))
+        ($nToMakeNew (if (< $max $nToMake) $max $nToMake))
+        
 
-        ($nToSort (+ (cbrt-math (* 6 $limit)) 3))
+        ($nToSort (+ (cbrt-math (* $nToMakeNew 6)) 3))
 
         ;; Select and partially sort top-scoring instances for crossover
-        ($sorted (List.partialSort instance> $newInst $nToSort ()))
+          ($sortedList (List.partialSort instance> $newInst $nToSort ()))
    )
-   (if (== $sorted ())
+   (if (== $sortedList ())
        $deme
        (let* (
-            ($instList (List.takeN $nToSort $sorted))
-            ($newInstances (crossOuterLoop $instList $baseInstance $limit))
+
+            ($instList (List.takeN $nToSort $sortedList))
+             ($newInstances (crossOuterLoop $instList $baseInstance $nToMakeNew))
             ($uniqueInstances (unique-atom $newInstances))
             
             )

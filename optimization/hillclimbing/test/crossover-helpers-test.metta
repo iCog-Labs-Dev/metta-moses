@@ -9,6 +9,7 @@
 !(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one-helpers)
 !(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one)
 !(import! &self ../../../../metta-moses/optimization/hillclimbing/crossover-helpers)
+!(import! &self ../../../../metta-moses/optimization/hillclimbing/hill-climbing-helpers)
 
 (= (wScore) (* -1 (pow-math 10 100))) ;; bind worst score value 
 (= (demeSize (mkDeme $rep (mkSInstSet $list) $demeId)) (List.length $list))
@@ -39,7 +40,10 @@
 ;;---Test cases----
    
 ;; Test inner crossover loop
-;; Crosses a reference instance against a list of candidate instances
+;; Crosses a reference instance against a list of candidate instances()
+!(getInst
+        (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 3))))
+
  !(assertEqual
   (crossPairsToRef
      (cons
@@ -52,8 +56,7 @@
       (mkInst (cons 9 ()))
      ()
      2)
-
-  (cons
+   (cons
      (mkSInst
         (mkPair
            (mkInst (cons 5 ()))
@@ -67,8 +70,8 @@
 )
 
 
-;; Test outer crossover loop
-;; Ensures full pair generation from a candidate list
+; ;; Test outer crossover loop
+; ;; Ensures full pair generation from a candidate list
 !(assertEqual (demeSize (crossTopTwo (deme2) 3 0 4 (mkInst (cons 3 ())))) 9)
                                        
 !(assertEqual 
@@ -326,13 +329,44 @@
 
             (mkDemeId "3")))
 
-;; Full system test: 3-simplex crossover on deme3
-;; Validates end-to-end pipeline behavior
+; Full system test: 3-simplex crossover on deme3
+; Validates end-to-end pipeline behavior
 !(assertEqual (demeSize (crossTopThree (deme3) 4 0 5 (mkInst  (cons 2 ())))) 8)
 
-
-
-
+!(assertEqual 
+    (crossTopThree
+      (mkDeme 
+        (mkRep 
+          (mkKbMap (mkDscKbMp (cons ())) (mkDscMp ())) 
+          (mkTree (mkNode A) ()))
+        (mkSInstSet 
+          (cons 
+            (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1)))
+            (cons 
+              (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 1 2 3 4 3)))
+              (cons 
+                (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 1 2 3 4 4)))
+                (cons 
+                  (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 2 3 4 2)))
+                  (cons 
+                    (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5)))
+                    ()))))))
+        (mkDemeId "3")) 3 0 4 (mkInst (cons 2 ())))
+    (mkDeme 
+        (mkRep 
+            (mkKbMap 
+                (mkDscKbMp 
+                    (cons ())) 
+                    (mkDscMp ())) 
+                    (mkTree (mkNode A) ())) 
+                        (mkSInstSet 
+                            (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1))) 
+                                (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 1 2 3 4 3))) 
+                                    (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 1 2 3 4 4))) 
+                                        (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 2 3 4 2))) 
+                                            (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5))) 
+                                                (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) 
+                                                       ()))))))) (mkDemeId "3")))
 
 
 

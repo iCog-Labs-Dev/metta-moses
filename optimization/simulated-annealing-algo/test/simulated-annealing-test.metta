@@ -38,6 +38,8 @@
 
 !(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one-helpers)
 !(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one)
+!(import! &self ../../../../metta-moses/optimization/hillclimbing/crossover-helpers)
+
 
 !(import! &self ../../../../metta-moses/scoring/fitness)
 !(import! &self ../../../../metta-moses/scoring/bscore)

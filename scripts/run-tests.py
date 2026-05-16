@@ -71,12 +71,15 @@ def run_test_file(test_file):
         env["SHELL"] = "/bin/bash"
 
         # Full path to the run.sh script
-        run_sh_path = shutil.which("run.sh")
+        # run_sh_path = shutil.which("run.sh")
+        run_sh_path =os.path.expanduser("~/PeTTa/run.sh")
         if not os.path.isfile(run_sh_path):
             raise FileNotFoundError(f"{run_sh_path} not found")
 
         # Command to execute the test file
-        command = ["sh", run_sh_path, str(test_file), "-s"]
+        # command = ["sh", run_sh_path, str(test_file), "-s"]
+        command = ["bash", run_sh_path, str(test_file), "-s"]
+        
 
         # Run the command
         result = subprocess.run(

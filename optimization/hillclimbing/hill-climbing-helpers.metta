@@ -116,28 +116,55 @@
 (= (countNeighborhoodFs $instance $dist $maxCount)
    (countNeighborhoodFromIdxFs $instance $dist 0 $maxCount))
 
+ 
+ ;; deme merger helper function for results of three crossover operators
+(= (merge3Demes $originalDeme $deme1 $deme2 $deme3 $total)
+
+   (let*
+      (
+        ;; Extarct original rep and  Id if Deme
+        ((mkDeme $rep (mkSInstSet $origSet) $Id) $originalDeme)
+
+       ;; extract sets
+        ((mkDeme $rep1 (mkSInstSet $set1) $id1) $deme1)
+        ((mkDeme $rep2 (mkSInstSet $set2) $id2) $deme2)
+        ((mkDeme $rep3 (mkSInstSet $set3) $id3) $deme3)
+
+    ;; merge
+        ($instSet12 (List.appendList $set1 $set2))
+        ($allInstSet (List.appendList $instSet12 $set3))
+        ($uniqueMerged (unique-atom $allInstSet))
+      )
+
+      (
+        ;; return With orginal deme ID and representation
+        (mkDeme $rep (mkSInstSet $uniqueMerged) $Id) $total)
+))
+
 ;; Crossover function.
 ;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
 ; (: crossover (-> Number Number Instance Deme (Deme Number)))
 (= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme)
-;    ;; (trace! (Running crossover to make: (min $nNewInstances 120) instances)
-;    ;; INFO: The 120 is crossover_pop_size parameter that should come from hillClimbing
-;    ;;;..this line is ...Prevous implementation ......  ((crossTopOne $deme (min $nNewInstances 120) $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
+   ;; (trace! (Running crossover to make: (min $nNewInstances 120) instances)
+   ;; INFO: The 120 is crossover_pop_size parameter that should come from hillClimbing
+   ;;;..this line is ...Prevous implementation ......; ((crossTopOne $deme (min $nNewInstances 120) $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
+
 (let*
     (
-      ($nToMake (min $nNewInstances 120))
-      ((mkDeme $rep (mkSInstSet $instSet) $id) $deme)
       
-      ($newInst1 (crossTopOne $instSet (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst))
-      ($newInst2 (crossTopTwo $instSet (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
-      ($newInst3 (crossTopThree $instSet (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
-      ($allNewInst (List.appendList $newInst1 (List.appendList $newInst2 $newInst3)))
-      ($finalSet (List.appendList $allNewInst $instSet))
+      ($nToMake (min $nNewInstances 120))
+    
+      (($deme1 $nNew1) ((crossTopOne $deme (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst) (+ (/ $nToMake 3) (% $nToMake 3))))
+      (($deme2 $nNew2) ((crossTopTwo $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst) (/ $nToMake 3)))
+      (($deme3 $nNew3) ((crossTopThree $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst) (/ $nToMake 3)))
+
+      ($total (+ $nNew1 (+ $nNew2 $nNew3)))
+    
     )
-    (mkDeme $rep (mkSInstSet $finalSet) $id)
-  )
- )
-;    ) ;; WARN: The $nNewInstances might not be the actual number of instances created.
+
+    (merge3Demes $deme $deme1 $deme2 $deme3 $total)
+
+))
 
 ;; crossover for feature selection
 ; (: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
@@ -165,7 +192,7 @@
 (= (getITableParams (mkITable $rows $labels))
     ($rows $labels)
 )
-
+; )
 ;; Hillclimbing implementation
 ;;
 ;; Algorihtm:
