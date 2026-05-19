@@ -47,39 +47,70 @@
 ;;       $argLabels: list of argument labels (input variables) from the ITable
 ;; Return: Updated tree and multimap.
 ;; (: buildLogical (-> (Tree $a) NodeId (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v))))) 
-(= (buildLogical $tree (mkNodeId $nodeId) $MMap $argLabels)
-  (let $subtree (getNodeById $tree (mkNodeId $nodeId))
-    (if (== True (isNullVertex $subtree))
-        (let $x (println! ("reaching Null Vector ")) ($tree $MMap)) 
-        (let*
-        (
-            ;; ($_ (println! (Started building at: (preOrder $subtree))))
-            ;; ($_ (println! ("****************Building logical knobs for NodeId:**************** " $argLabels $nodeId)))
-            ((mkTree (mkNode $op) $childrens) $subtree) 
-            ($swapped (swapAndOr $op))
-            ;; ($_ (println! ("Operator: " $op " swapped to: " $swapped)))
-            (($t1 $mp1) (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap $argLabels))
-            ;; ($_ (println! ("Building logical knobs for NodeId: " $nodeId " with operator: " $op " swapped to: " $swapped)))
-            ;; ($_ (println! (Adding knobs to (List.length $childrens) childs)))
-            ;; INFO: An attempt to replicate opencog's behavior but limits the quality drastically
-            ;; (($sibToIterate $sibToConcat) (if (= $childrens ())
-            ;;                                   (() ())
-            ;;                                   (let (mkTree (mkNode $x) $grandChildren) (List.head $childrens) 
-            ;;                                        (if (and (isAnArgument $x) (= $grandChildren ()))
-            ;;                                            ((cons (List.head $childrens) ()) (List.tail $childrens))
-            ;;                                            ($childrens ())))))
-            ;; ($_ (println! (SibToIterate: $sibToIterate SibToConcat: $sibToConcat)))
+;; (= (buildLogical $tree (mkNodeId $nodeId) $MMap $argLabels)
+;;   (let $subtree (getNodeById $tree (mkNodeId $nodeId))
+;;     (if (== True (isNullVertex $subtree))
+;;         (let $x (println! ("reaching Null Vector ")) ($tree $MMap)) 
+;;         (let*
+;;         (
+;;             ;; ($_ (println! (Started building at: (preOrder $subtree))))
+;;             ;; ($_ (println! ("****************Building logical knobs for NodeId:**************** " $argLabels $nodeId)))
+;;             ((mkTree (mkNode $op) $childrens) $subtree) 
+;;             ($swapped (swapAndOr $op))
+;;             ;; ($_ (println!("Operator: " $op " swapped to: " $swapped)))
+;;             (($t1 $mp1) (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap $argLabels))
+;;             ;; ($_ (println! ("Building logical knobs for NodeId: " $nodeId " with operator: " $op " swapped to: " $swapped)))
+;;             ;; ($_ (println! (Adding knobs to (List.length $childrens) childs)))
+;;             ;; INFO: An attempt to replicate opencog's behavior but limits the quality drastically
+;;             ;; (($sibToIterate $sibToConcat) (if (= $childrens ())
+;;             ;;                                   (() ())
+;;             ;;                                   (let (mkTree (mkNode $x) $grandChildren) (List.head $childrens) 
+;;             ;;                                        (if (and (isAnArgument $x) (= $grandChildren ()))
+;;             ;;                                            ((cons (List.head $childrens) ()) (List.tail $childrens))
+;;             ;;                                            ($childrens ())))))
+;;             ;; ($_ (println! (SibToIterate: $sibToIterate SibToConcat: $sibToConcat)))
+;;
+;;             (($updatedTree $updatedMMap) (siblingit $t1 $childrens (mkNodeId $nodeId) 1 $swapped $mp1 $argLabels))
+;;             ;; (($updatedTree $updatedMMap) (siblingit $t1 $sibToIterate (mkNodeId $nodeId) 1 $swapped $mp1 $argLabels))
+;;             ;; (($childrenUpdatedTree $lastNewId) (eval (List.foldl (|-> ($childToAppend ($treeAcc $newId)) (appendChild $treeAcc (mkNodeId $nodeId) $childToAppend)) ($updatedTree (mkNodeId $nodeId))  $sibToConcat)))
+;;             ;;$append (appendChild $updatedTree $nodeId (mkNode $filp)))                                 ;; this part will add much complexity to the tree, not worth the cost
+;;
+;;             (($appendedTree $newId) (appendChild $updatedTree (mkNodeId $nodeId) (mkTree (mkNode $swapped) ())))
+;;             ;; (($appendedTree $newId) (appendChild $childrenUpdatedTree (mkNodeId $nodeId) (mkTree (mkNode $swapped) ())))
+;;             (($lastUpdatedTree $lastMp1) (addLogicalKnobs $appendedTree $newId True $updatedMMap $argLabels))
+;;         )
+;;             ($lastUpdatedTree $lastMp1)))))
 
-            (($updatedTree $updatedMMap) (siblingit $t1 $childrens (mkNodeId $nodeId) 1 $swapped $mp1 $argLabels))
-            ;; (($updatedTree $updatedMMap) (siblingit $t1 $sibToIterate (mkNodeId $nodeId) 1 $swapped $mp1 $argLabels))
-            ;; (($childrenUpdatedTree $lastNewId) (eval (List.foldl (|-> ($childToAppend ($treeAcc $newId)) (appendChild $treeAcc (mkNodeId $nodeId) $childToAppend)) ($updatedTree (mkNodeId $nodeId))  $sibToConcat)))
-            ;;$append (appendChild $updatedTree $nodeId (mkNode $filp)))                                 ;; this part will add much complexity to the tree, not worth the cost
+(= (buildLogical (mkKnob $tree $i) $parentOp $MMap $argLabels)
+   ;; (let $x (println! ("Reaching knob")) ((mkKnob $tree $i) $MMap)))
+   ((mkKnob $tree $i) $MMap))
+(= (buildLogical (mkTree (mkNode $node) $children) $MMap $argLabels) (buildLogical (mkTree (mkNode $node) $children) $node $MMap $argLabels))
+(= (buildLogical (mkTree (mkNode $node) $children) $parentOp $MMap $argLabels)
+   (if (is-member $node (AND OR))
+       (let*
+           (
+             ;; ($_ (println! (BuildLogical 0)))
+             ($tempSwap (swapAndOr $node))
+             ($swapped (if (== $tempSwap $node) (swapAndOr $parentOp) $tempSwap))
+             ;; ($_ (println! (BulidLogical 1)))
+             (($t1 $mp1) (addLogicalKnobs (mkTree (mkNode $node) $children) True $MMap $argLabels))
+             ((mkTree (mkNode $node) $newChildren) $t1)
+             ;; ($_ (println! (BulidLogical 2)))
+             ;; ($_ (println! (newChildren: $newChildren)))
+             (($updatedChildren $updatedMMap) (foldl-atom $newChildren (() $mp1) $acc $ch 
+                                                          (let*
+                                                              (
+                                                                (($prevTrees $prevMap) $acc)
+                                                                (($tree $map) (buildLogical $ch $node $prevMap $argLabels))
+                                                              )
+                                                              ((cons $tree $prevTrees) $map))))
+             ;; ($_ (println! (BulidLogical 3)))
+             (($lastUpdatedTree $lastMp1) (addLogicalKnobs (mkTree (mkNode $swapped) ()) True $updatedMMap $argLabels))
+             ;; ($_ (println! (BulidLogical 4)))
+           )
+           ((mkTree (mkNode $node) (append (reverse $updatedChildren) ($lastUpdatedTree))) $lastMp1))
+       (addLogicalKnobs (mkTree (mkNode $swapped) ((mkTree (mkNode $node) $children))) (not (isAnArgument $node)) $MMap $argLabels)))
 
-            (($appendedTree $newId) (appendChild $updatedTree (mkNodeId $nodeId) (mkTree (mkNode $swapped) ())))
-            ;; (($appendedTree $newId) (appendChild $childrenUpdatedTree (mkNodeId $nodeId) (mkTree (mkNode $swapped) ())))
-            (($lastUpdatedTree $lastMp1) (addLogicalKnobs $appendedTree $newId True $updatedMMap $argLabels))
-        )
-            ($lastUpdatedTree $lastMp1)))))
 ;; buildStrategy => Build strategy knobs for PRIORITIZED-OR nodes
 ;; (: buildStrategy (-> (Tree $a) NodeId (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v))))) 
 (= (buildStrategy $tree (mkNodeId $nodeId) $MMap $argLabels)

@@ -708,14 +708,15 @@
 ;; (: expToMMap (-> Expression (MultiMap ($k $v)) (-> $k $k Bool) (MultiMap ($k $v))))
 ;; TODO: Change this to simpler function
 (= (expToMMap () $map $compFunc) ())
-(= (expToMMap $tuple $map $compFunc)
-(let*
-(
-    (($head $tail) (decons-atom $tuple))
+(= (expToMMap (cons $t $ts) $map $compFunc)
+   (let*
+   (
+    (($head $tail) ($t $ts))
     ($updatedMap (eval (MultiMap.insert $head $map $compFunc)))
-
-)
-(if (== $tail ()) $updatedMap (eval (expToMMap $tail $updatedMap $compFunc)))))
+   )
+   (if (== $tail ())
+       $updatedMap
+       (eval (expToMMap $tail $updatedMap $compFunc)))))
 
 ;; A trick function to make chain reduce when using union-atom
 ;; This is causing infinite loop in some cases. use the direct union-atom instead.

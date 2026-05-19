@@ -36,7 +36,7 @@
 ;;   $discKnob: DiscreteKnob
 ;; Return: True if the default specifier is non-zero (not in exemplar), False otherwise.
 ;; (: inExemplar (-> DiscreteKnob Bool))
-(= (inExemplar (mkDiscKnob $knob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis)) 
+(= (inExemplar (mkDiscKnob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis)) 
    (not (== $def 0)))
 
 ;; Extracts the DiscreteKnob component from a LogicalSubtreeKnob (mkLSK) or StrategySubtreeKnob (mkSSK).
@@ -68,7 +68,7 @@
 ;; Calculates the knob Specification of an LSK or SSK
 ;; (: getKnobSpec (-> LogicalSubtreeKnob DiscSpec))
 ;; (: getKnobSpec (-> StrategySubtreeKnob DiscSpec))
-(= (getKnobSpec (mkLSK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis) ))
+(= (getKnobSpec (mkLSK (mkDiscKnob (mkMultip $multip) $curr $def $dis) ))
 (mkDiscSpec (- $multip (List.length $dis))))
 (= (getKnobSpec (mkSSK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis) ))
 (mkDiscSpec (- $multip (List.length $dis))))
