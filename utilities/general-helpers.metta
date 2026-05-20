@@ -1283,3 +1283,14 @@
 ; (: ceilMath (-> Number Number))
 (= (ceilMath $num)
 (+ (floor-math $num) (if (> $num (floor-math $num)) 1 0)))
+
+;; Increment a state monad of number
+(= (incrementState $state) (incrementState $state 1))
+(= (incrementState $state $int) (let $_ (change-state! $state (+ $int (get-state $state))) (get-state $state)))
+
+;; Decrement a state monad of number
+(= (decrementState $state) (decrementState $state 1))
+(= (decrementState $state $int) (let $_ (change-state! $state (- $int (get-state $state))) (get-state $state)))
+
+;; Reset a state monad to zero.
+(= (resetState $state) (change-state! $state 0))

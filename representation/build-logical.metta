@@ -81,17 +81,20 @@
 ;;         )
 ;;             ($lastUpdatedTree $lastMp1)))))
 
+;; (K1 K2 K3)
+;; (1  1  1 )
+
 (= (buildLogical (mkKnob $tree $i) $parentOp $MMap $argLabels)
    ;; (let $x (println! ("Reaching knob")) ((mkKnob $tree $i) $MMap)))
    ((mkKnob $tree $i) $MMap))
-(= (buildLogical (mkTree (mkNode $node) $children) $MMap $argLabels) (buildLogical (mkTree (mkNode $node) $children) $node $MMap $argLabels))
+(= (buildLogical (mkTree (mkNode $node) $children) $MMap $argLabels)
+   (buildLogical (mkTree (mkNode $node) $children) $node $MMap $argLabels))
 (= (buildLogical (mkTree (mkNode $node) $children) $parentOp $MMap $argLabels)
    (if (is-member $node (AND OR))
        (let*
            (
              ;; ($_ (println! (BuildLogical 0)))
-             ($tempSwap (swapAndOr $node))
-             ($swapped (if (== $tempSwap $node) (swapAndOr $parentOp) $tempSwap))
+             ($swapped (swapAndOr $parentOp))
              ;; ($_ (println! (BulidLogical 1)))
              (($t1 $mp1) (addLogicalKnobs (mkTree (mkNode $node) $children) True $MMap $argLabels))
              ((mkTree (mkNode $node) $newChildren) $t1)
@@ -109,7 +112,7 @@
              ;; ($_ (println! (BulidLogical 4)))
            )
            ((mkTree (mkNode $node) (append (reverse $updatedChildren) ($lastUpdatedTree))) $lastMp1))
-       (addLogicalKnobs (mkTree (mkNode $swapped) ((mkTree (mkNode $node) $children))) (not (isAnArgument $node)) $MMap $argLabels)))
+       (addLogicalKnobs (mkTree (mkNode (swapAndOr $parentOp)) ((mkTree (mkNode $node) $children))) (not (isAnArgument $node)) $MMap $argLabels)))
 
 ;; buildStrategy => Build strategy knobs for PRIORITIZED-OR nodes
 ;; (: buildStrategy (-> (Tree $a) NodeId (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v))))) 

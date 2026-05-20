@@ -1,3 +1,5 @@
+!(bind! &knobCount (new-state 0))
+
 ;;;;;;;;;; Logical Probe ;;;;;;;;;;;
 ;; logicalProbe builds LSKs by processing the sampleLogicalPerms 
 ;; Params:
@@ -32,7 +34,7 @@
 
 (= (knobId $subtree $id) (mkKnob $subtree $id))
 
-(= (logicalProbe (mkTree $node $children) $perms $addIfInExemplar)
+(= (logicalProbe (mkTree $node $children) $perms $addIfInExemplar) ;; (OR A B) => (mkKnob (OR A B))
    (let*
      (
       ;; ($_ (println! (LogicalProbe 1)))
@@ -46,7 +48,8 @@
       ;; ($_ (println! (LogicalProbe 5)))
       ($newLskPair (map-atom $filteredChildrenLskPair $ch (second $ch)))
       ;; ($_ (println! (LogicalProbe 6)))
-      ($index (genList (- (size-atom $updatedChildren) 1)))
+      ($index (map-atom (genList (- (size-atom $updatedChildren) 1)) $i (+ $i (get-state &knobCount))))
+      ($temp (incrementState &knobCount (size-atom $index)))
       ;; ($_ (println! (LogicalProbe 7)))
       ($updatedKnobChildren (zipWith knobId $updatedChildren $index))
       ;; ($_ (println! (LogicalProbe 8)))

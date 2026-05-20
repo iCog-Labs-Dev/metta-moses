@@ -108,11 +108,13 @@
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (" done buildknobs (:) ")))            ;; BUILD representations on 
                                     (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels))            ;; BUILD representations on 
+                                    ($_ (resetState &knobCount))
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
                                     ;; ($_ (println! ""))
-                                    ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0)))        ;; MULITPLE args selected using the feature selection
-                                 (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))))
+                                    ;; ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0)))        ;; MULITPLE args selected using the feature selection
+                                    ($dscKbMp (mkDscMp $dscMp)))        ;; MULITPLE args selected using the feature selection
+                                 (mkRep (mkKbMap $dscKbMp) $updatedTree)))))
 
 ;; Helper function to extract tree from representation
 (= (getRepTree (mkRep $knobMapObj $tree)) $tree)
