@@ -1,9 +1,10 @@
+;; WARN: This code might be generating knobs out of order. Check if the knob map returned from the representation building preserves the order of knob creation.
 (= (createInitialInstance $dscMp)
    (let* (
-     ($knobs (MultiMap.values $dscMp))
-     ($defaults (List.map getKnobDefault $knobs))
-   )
-   $defaults))
+          ($knobs (Map.values $dscMp))
+          ($defaults (List.map getKnobDefault $knobs))
+         )
+         $defaults))
 
 ;; Recursively optimizes each deme in a list using the provided optimizer function.
 ;; Params:
@@ -23,7 +24,7 @@
 
 ;; Extracts default specification from a knob
 ; (: getKnobDefault (-> $knob Number))
-(= (getKnobDefault (mkLSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
+(= (getKnobDefault (mkLSK (mkDiscKnob $multip $curr (mkDiscSpec $def) $dis))) $def)
 (= (getKnobDefault (mkSSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
 
 ;; Runs one deme-creation and optimization step, then merges the optimized deme into the metapopulation.
@@ -84,13 +85,14 @@
 ;;   $context: Scoring context (ITable for Boolean, tuple for Strategy)
 ;;   $optimize: Optimizer function
 ;; Returns: Optimized deme with scored instances
-(= (expandDemeHelper (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) $context $optimize)
+(= (expandDemeHelper (mkDeme (mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree) $sInstList $demeId) $context $optimize)
 (let*
 (
     ($lengthOfDscKbMp (Map.length $dscKbMp))
     ;; ($generatedList (List.generate $lengthOfDscKbMp 0))
-    ($generatedList (createInitialInstance $dscMp))
-    ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
+    ($generatedList (createInitialInstance $dscKbMp))
+    ($_ (println! (GeneratedList: $generatedList)))
+    ($deme (mkDeme (mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree) $sInstList $demeId))
     ;; ($_ (println! (Rep: (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree))))
     ;; ($_ (println! "Optimizing Deme"))
     (($inst $optimDeme $state) (optimizeDemes $deme $context (mkInst $generatedList) $optimize))

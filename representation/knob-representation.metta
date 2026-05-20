@@ -61,7 +61,7 @@
 ;; (: getKnobMultip (-> LogicalSubtreeKnob Multiplicity))
 ;; (: getKnobMultip (-> StrategySubtreeKnob Multiplicity))
 
-(= (getKnobMultip (mkDiscKnob $knob $multiplicity $curr $def $disAll)) $multiplicity)
+(= (getKnobMultip (mkDiscKnob $multiplicity $curr $def $disAll)) $multiplicity)
 (= (getKnobMultip (mkLSK $discKnob )) (getKnobMultip $discKnob))
 (= (getKnobMultip (mkSSK $discKnob )) (getKnobMultip $discKnob))
 
