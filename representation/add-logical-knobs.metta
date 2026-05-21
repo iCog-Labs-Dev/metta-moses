@@ -17,32 +17,26 @@
 
 ;; addLogicalKnobs
 ;; (: addLogicalKnobs (-> (Tree $a) NodeId Bool (MultiMap ($k $v)) Expression Expression))
-;; (= (addLogicalKnobs $exemplar $nodeId $addIfInExemplar $map $argLabels) 
-;;    (let*
-;;      (
-;;
-;;       ((mkTree (mkNode $op) $children) (getNodeById $exemplar $nodeId))
-;;       ;; ($_ (println! (Adding knobs to: (preOrder (mkTree (mkNode $op) $children)))))
-;;       ;; Use complete game moves for strategy operators, argLabels for boolean operators
-;;       ($labels (if (== $op PRIORITIZED-OR) (getAllGameMoves) $argLabels))
-;;       ($lengthOfArgs (length $labels))
-;;       ($perms (if (== $op PRIORITIZED-OR)
-;;                   (sampleStrategyPerms $op $lengthOfArgs $labels)
-;;                   (sampleLogicalPerms $op $lengthOfArgs $labels)))
-;;       ($treePerms (map-atom $perms $perm (buildTree $perm)))
-;;       (($knobs $updatedTree) (if (== $op PRIORITIZED-OR)
-;;                                  (strategyProbe $exemplar $nodeId $treePerms $addIfInExemplar ())
-;;                                  (logicalProbe $exemplar $nodeId $treePerms $addIfInExemplar ())))
-;;
-;;       ;; ($_ (println! (Adding (length $knobs) Knobs)))
-;;
-;;       ($pairs (pairKnobWithSpec $knobs))
-;;       ($mmp (expToMMap $pairs $map discSpec<))
-;;       ($temp (cut))
-;;      )
-;;      ($updatedTree $mmp)))
+(= (addLogicalKnobs $exemplar $nodeId $addIfInExemplar $map $argLabels) 
+   (let*
+     (
 
-;; (addLogicalKnobs (mkTree (mkNode $swapped) ()) True $updatedMMap $argLabels)
+      ((mkTree (mkNode $op) $children) (getNodeById $exemplar $nodeId))
+      ;; ($_ (println! (Adding knobs to: (preOrder (mkTree (mkNode $op) $children)))))
+      ;; Use complete game moves for strategy operators, argLabels for boolean operators
+      ($labels (if (== $op PRIORITIZED-OR) (getAllGameMoves) $argLabels))
+      ($lengthOfArgs (length $labels))
+      ($perms (sampleStrategyPerms $op $lengthOfArgs $labels))
+      ($treePerms (map-atom $perms $perm (buildTree $perm)))
+      (($knobs $updatedTree) (strategyProbe $exemplar $nodeId $treePerms $addIfInExemplar ()))
+
+      ;; ($_ (println! (Adding (length $knobs) Knobs)))
+
+      ($pairs (pairKnobWithSpec $knobs))
+      ($mmp (expToMMap $pairs $map discSpec<))
+      ($temp (cut))
+     )
+     ($updatedTree $mmp)))
 
 (= (addLogicalKnobs (mkTree (mkNode $op) $children) $addIfInExemplar $map $argLabels)
    (let*

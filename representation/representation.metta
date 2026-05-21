@@ -122,36 +122,37 @@
 ;; Universal getCandidate that works for both boolean and game strategies
 ;; Uses preOrder+buildTree to unwrap mkNullVex for games, cleanTree for boolean
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
-;; (= (getCandidate $repObj $id $inst)
-;;    (case (match &treeSpace ($id $inst $tree) $tree)
-;;              (($tree $tree)
-;;              (Empty 
-;;                 (let*
-;;                     (
-;;                       ($parentid (mkNodeId (0)))
-;;                       ($srcid (mkNodeId (0)))
-;;                       ;; ($_ (println! ($parentid   $srcid)))
-;;                       ((mkRep $kmo $tr) $repObj)
-;;                       ;; ($_ (println! (Tree: (preOrder $tr))))
-;;                       ($candidate (getCandidateRec $repObj $inst $parentid $srcid $parentid (mkNullVex ())))
-;;                       ;; ($_ (println! (Found candidate: (preOrder $candidate))))
-;;                       ($rootNode (getNodeById (getRepTree $repObj) $srcid))
-;;                       ($rootValue (getNodeValue $rootNode))
-;;                       ($rootSymbol (if (== (get-metatype $rootValue) Expression) 
-;;                               (car-atom (cdr-atom $rootValue))
-;;                               $rootValue))
-;;                       ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
-;;                       ($finalTree (if $isGameStrategy
-;;                                       (let* (
-;;                                               ($expr (preOrder $candidate))
-;;                                               ($cleanTree (buildTree $expr)))
-;;                                             $cleanTree)
-;;                                       (cleanTree $candidate)))
-;;
-;;                       ($_ (add-atom &treeSpace ($id $inst $finalTree)))
-;;                       ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
-;;                     )
-;;                     $finalTree)))))
+;; TODO: This should be removed when the game tree has been fixed to match the boolean.
+(= (getCandidate $srcid $repObj $id $inst)
+   (case (match &treeSpace ($id $inst $tree) $tree)
+             (($tree $tree)
+             (Empty 
+                (let*
+                    (
+                      ($parentid (mkNodeId (0)))
+                      ($srcid (mkNodeId (0)))
+                      ;; ($_ (println! ($parentid   $srcid)))
+                      ((mkRep $kmo $tr) $repObj)
+                      ;; ($_ (println! (Tree: (preOrder $tr))))
+                      ($candidate (getCandidateRec $repObj $inst $parentid $srcid $parentid (mkNullVex ())))
+                      ;; ($_ (println! (Found candidate: (preOrder $candidate))))
+                      ($rootNode (getNodeById (getRepTree $repObj) $srcid))
+                      ($rootValue (getNodeValue $rootNode))
+                      ($rootSymbol (if (== (get-metatype $rootValue) Expression) 
+                              (car-atom (cdr-atom $rootValue))
+                              $rootValue))
+                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
+                      ($finalTree (if $isGameStrategy
+                                      (let* (
+                                              ($expr (preOrder $candidate))
+                                              ($cleanTree (buildTree $expr)))
+                                            $cleanTree)
+                                      (cleanTree $candidate)))
+
+                      ($_ (add-atom &treeSpace ($id $inst $finalTree)))
+                      ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
+                    )
+                    $finalTree)))))
    ; (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex ())) $candidate
    ;  (cleanTree $candidate)))
     
@@ -292,18 +293,18 @@
    (let $newChildren (map-atom $children $ch (getCandidateHelper $inst $ch))
         (mkTree $node (filter-atom $newChildren (!= ())))))
 
-;; (= (applyGetCandidateRec $tr ($repObj $inst (mkNodeId $parentId) (mkNodeId $dstId) $candidate $chIdx))
-;;    (let*
-;;       (
-;;          ;; ($_ (println! ("applyGetCandidateRec called with parentId:" $parentId , chIdx: $chIdx)))
-;;          ($srcId (if (== $parentId (0)) (mkNodeId ($chIdx)) (mkNodeId (concatT $parentId ($chIdx)))))
-;;          ;; ($_ (println! (srcId: $srcId)))
-;;          ;; ($_ (println! (dstId: $dstId)))
-;;          ($updatedCnd1 (getCandidateRec $repObj $inst (mkNodeId $parentId) $srcId (mkNodeId $dstId) $candidate))
-;;          ($finalResult ($repObj $inst (mkNodeId $parentId) (mkNodeId $dstId) $updatedCnd1 (+ 1 $chIdx)))
-;;          ;; ($_ (println! (FinalResult: (preOrder $updatedCnd1))))
-;;          ;; ($_ (println! ("applyGetCandidateRec returning finalResult:" $finalResult)))
-;;       )
-;;       $finalResult
-;;    )
-;; )
+(= (applyGetCandidateRec $tr ($repObj $inst (mkNodeId $parentId) (mkNodeId $dstId) $candidate $chIdx))
+   (let*
+      (
+         ;; ($_ (println! ("applyGetCandidateRec called with parentId:" $parentId , chIdx: $chIdx)))
+         ($srcId (if (== $parentId (0)) (mkNodeId ($chIdx)) (mkNodeId (concatT $parentId ($chIdx)))))
+         ;; ($_ (println! (srcId: $srcId)))
+         ;; ($_ (println! (dstId: $dstId)))
+         ($updatedCnd1 (getCandidateRec $repObj $inst (mkNodeId $parentId) $srcId (mkNodeId $dstId) $candidate))
+         ($finalResult ($repObj $inst (mkNodeId $parentId) (mkNodeId $dstId) $updatedCnd1 (+ 1 $chIdx)))
+         ;; ($_ (println! (FinalResult: (preOrder $updatedCnd1))))
+         ;; ($_ (println! ("applyGetCandidateRec returning finalResult:" $finalResult)))
+      )
+      $finalResult
+   )
+)
