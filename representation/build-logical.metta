@@ -81,9 +81,6 @@
 ;;         )
 ;;             ($lastUpdatedTree $lastMp1)))))
 
-;; (K1 K2 K3)
-;; (1  1  1 )
-
 (= (buildLogical (mkKnob $tree $i) $parentOp $MMap $argLabels)
    ;; (let $x (println! ("Reaching knob")) ((mkKnob $tree $i) $MMap)))
    ((mkKnob $tree $i) $MMap))
@@ -108,7 +105,7 @@
                                                               )
                                                               ((cons $tree $prevTrees) $map))))
              ;; ($_ (println! (BulidLogical 3)))
-             (($lastUpdatedTree $lastMp1) (addLogicalKnobs (mkTree (mkNode $swapped) ()) True $updatedMMap $argLabels))
+             (($lastUpdatedTree $lastMp1) (addLogicalKnobs (mkTree (mkNode (swapAndOr $node)) ()) True $updatedMMap $argLabels))
              ;; ($_ (println! (BulidLogical 4)))
            )
            ((mkTree (mkNode $node) (append (reverse $updatedChildren) ($lastUpdatedTree))) $lastMp1))
