@@ -24,7 +24,7 @@
             (cons (mkTree (mkNode OR)
                     (cons (mkTree (mkNode B) ())
                     (cons (mkTree (mkNode C) ())
-                    (cons (mkNullVex ()) ()) ))) ())))))
+                    (cons (mkKnob (mkNullVex ()) 0) ()) ))) ())))))
 !(bind! tree3 (new-state (mkTree (mkNode AND)
             (cons (mkTree (mkNode OR) 
                 (cons (mkTree (mkNode AND)
@@ -44,7 +44,7 @@
 ;; Tree preOrder traversal tests
 
 !(println! ("testing: preOrder"))
-!(assertEqual (preOrder (mkNullVex ())) ())
+!(assertEqual (preOrder (mkKnob (mkNullVex ()) 1)) ())
 !(assertEqual (preOrder (mkTree (mkNode A) ())) A)
 !(assertEqual (preOrder (mkTree (mkNode AND)
                             (cons (mkTree (mkNode A) ()) ()))) (AND A))
