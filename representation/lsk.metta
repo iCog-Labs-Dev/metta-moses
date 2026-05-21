@@ -46,6 +46,7 @@
        ($reducedSubtree (cleanTree $negatedSubtree)  )
        ;; ($_ (println! (ReducedSubtree---------------: $reducedSubtree))) 
      )
+     ;; TODO: Replace this with a robust check for subtree, one that is in accordance to the way the classic checks for subtrees.
      (if (List.contains $subtree $children)
          ($subtree (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
          (if (List.contains $reducedSubtree $children)

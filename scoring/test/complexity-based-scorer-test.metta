@@ -50,19 +50,18 @@
 
 (= (tree1)
         (mkTree (mkNode AND)
-          (cons (mkTree (mkNode A) ())
-          (cons (mkTree (mkNode OR)
-                  (cons (mkTree (mkNode B) ())
-                  (cons (mkTree (mkNode C) ())
-                  (cons (mkNullVex
-                          (cons (mkTree (mkNode D) ()) ())) ()))))
-          (cons (mkNullVex
-                  (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) ())))))
+          ((mkKnob (mkTree (mkNode A) ()) 2) 
+           (mkTree (mkNode OR)
+                             (cons (mkTree (mkNode B) ())
+                             (cons (mkTree (mkNode C) ())
+                             (cons (mkKnob (mkNullVex
+                                     (cons (mkTree (mkNode D) ()) ())) 0) ()))))
+          (mkKnob (mkNullVex
+                  (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) 1))))
 
 (= (lsk1)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (2 3)))
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
@@ -72,7 +71,6 @@
 (= (lsk2)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (3)))
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
@@ -82,17 +80,13 @@
 (= (lsk3)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (1)))
               (mkMultip 3)
               (mkDiscSpec 1)
               (mkDiscSpec 1)
               ())
             ))
 
-(= (knobMapObj) (mkKbMap
-                      (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ()))))
-               
-                      (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))))
+(= (knobMapObj) (mkKbMap (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))))
 (= (ttable1) (mkITable (cons (cons True (cons False (cons False (cons True (cons True ())))))
                         (cons (cons True (cons True (cons True (cons False (cons True ()))))) ()))
                         (cons A (cons B (cons C (cons D (cons O ())) )))))

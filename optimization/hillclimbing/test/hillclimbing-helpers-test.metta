@@ -53,55 +53,21 @@
 
 
 (= (knobmap1)
-        (cons (
-                    (mkDiscSpec 1)
-                    (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) ))
-        (cons (
-                    (mkDiscSpec 1)
-                    (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) ))
-        ())))
+        (
+          ((mkDiscSpec 1) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))
+          ((mkDiscSpec 1) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))
 
 (= (knobmap2)
-        (cons (
-                    (mkDiscSpec 1)
-                    (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())))
-        (cons (
-                    (mkDiscSpec 1)
-                    (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) ))
-        ())))
+        ( ((mkDiscSpec 1) (mkLSK (mkDiscKnob (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())))
+          ((mkDiscSpec 1) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))
 
 (= (knobmap3)
   (mkKbMap
-    (mkDscKbMp
-      (cons ((mkNodeId (1 2)) 0)
-        (cons ((mkNodeId (2)) 1)
-          (cons ((mkNodeId (3)) 2) ()))))
-    (mkDscMp 
-      (cons 
-        ((mkDiscSpec 3)
-         (mkLSK 
-           (mkDiscKnob 
-             (mkKnob 
-               (mkNodeId (1 2)))
-             (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
-           ))
-        (cons 
-          ((mkDiscSpec 3)
-           (mkLSK 
-             (mkDiscKnob 
-               (mkKnob 
-                 (mkNodeId (2)))
-               (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
-             ))
-          (cons 
-            ((mkDiscSpec 3)
-             (mkLSK 
-               (mkDiscKnob 
-                 (mkKnob 
-                   (mkNodeId (3)))
-                 (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
-               ))
-            ()))))))
+    (mkDscMp
+      ( ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))
+        ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))
+        ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))))
+
 ;; Test informationTheoreticBits with a knob 
 ;; map containing two knobs with same multiplicity of 3
 !(assertEqual (informationTheoreticBits (knobmap1)) 6)

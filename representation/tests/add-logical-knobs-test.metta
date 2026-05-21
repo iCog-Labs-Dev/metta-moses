@@ -28,48 +28,53 @@
 
 
 !(py-call (random.seed 0))
-;; Testcase for the addLogicalKnobs 
+;; ;; Testcase for the addLogicalKnobs 
+;; (addLogicalKnobs (mkTree (mkNode $op) $children) $addIfInExemplar $map $argLabels)
 !(assertEqual (let* 
 (
-    (($updatedTree $mm) 
-     (addLogicalKnobs (mkTree (mkNode AND)     
-        (cons (mkTree (mkNode A) ())
-          (cons (mkTree (mkNode B) ()) ())))
-              (mkNodeId (0)) True () (A B)))
-    ($_ (println! $updatedTree))
-    ($_ (println! $mm))
-    ($mmpsEqual 
-     (MultiMap.equals $mm 
-     (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ()))))))
+    (($updatedTree $mm)
+     (addLogicalKnobs (mkTree (mkNode AND)
+        ((mkTree (mkNode A) ()) (mkTree (mkNode B) ())))
+        True () (A B)))
+    ($mmpsEqual
+     (MultiMap.equals $mm
+     (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))))))
 
-    ($treesEqual 
+    ($treesEqual
      (== $updatedTree
-     (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) ()))))))
-    )
-)
-$mmpsEqual
-) True)
-
-;; Testcase for the addLogicalKnobs 
-!(assertEqual (let* 
-(
-    (($updatedTree $mm) 
-     (addLogicalKnobs (mkTree (mkNode AND)     
-        (cons (mkTree (mkNode A) ())
-          (cons (mkTree (mkNode OR)
-                  (cons (mkTree (mkNode B) ())
-                  (cons (mkTree (mkNode C) ()) ())))())))
-              (mkNodeId (2)) True () (A B)))
-    ($mmpsEqual 
-     (MultiMap.equals $mm 
-(cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 5))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ()))))))
-    ($treesEqual 
-     (== $updatedTree
-     (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode C) ()) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) ())))))) ()))) )
+     (mkTree (mkNode AND) ((mkKnob (mkTree (mkNode A) ()) 0) (mkKnob (mkTree (mkNode B) ()) 1) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode A) ()) (mkTree (mkNode B) ()))))) 2) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode NOT) ((mkTree (mkNode A) ()))) (mkTree (mkNode B) ()))))) 3))))
     )
 )
 (and $mmpsEqual $treesEqual)
 ) True)
+
+!(resetState &knobCount)
+
+;; Testcase for the addLogicalKnobs 
+!(assertEqual (let* 
+(
+    (($updatedTree $mm)
+     (addLogicalKnobs 
+       (mkTree (mkNode AND)
+        (cons (mkTree (mkNode A) ())
+          (cons (mkTree (mkNode OR)
+                  (cons (mkTree (mkNode B) ())
+                  (cons (mkTree (mkNode C) ()) ())))())))
+       True () (A B)))
+    ($_ (println! (Tree: $updatedTree)))
+    ($mmpsEqual 
+     (MultiMap.equals $mm
+                      (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))))))
+
+    ($treesEqual 
+     (== $updatedTree
+     (mkTree (mkNode AND) ((mkTree (mkNode OR) ((mkTree (mkNode B) ()) (mkTree (mkNode C) ()))) (mkKnob (mkTree (mkNode A) ()) 0) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) 1) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode A) ()) (mkTree (mkNode B) ()))))) 2) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode NOT) ((mkTree (mkNode A) ()))) (mkTree (mkNode B) ()))))) 3))) )
+    )
+)
+(and $mmpsEqual $treesEqual)
+) True)
+
+!(resetState &knobCount)
 
 !(assertEqual (let* 
 (

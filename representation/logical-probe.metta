@@ -34,7 +34,7 @@
 
 (= (knobId $subtree $id) (mkKnob $subtree $id))
 
-(= (logicalProbe (mkTree $node $children) $perms $addIfInExemplar) ;; (OR A B) => (mkKnob (OR A B))
+(= (logicalProbe (mkTree $node $children) $perms $addIfInExemplar)
    (let*
      (
       ;; ($_ (println! (LogicalProbe 1)))

@@ -54,19 +54,18 @@
 
 (= (tree1)
         (mkTree (mkNode AND)
-          (cons (mkTree (mkNode A) ())
+          (cons (mkKnob (mkTree (mkNode A) ()) 2)
           (cons (mkTree (mkNode OR)
                   (cons (mkTree (mkNode B) ())
                   (cons (mkTree (mkNode C) ())
-                  (cons (mkNullVex
-                          (cons (mkTree (mkNode D) ()) ())) ()))))
-          (cons (mkNullVex
-                  (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) ())))))
+                  (cons (mkKnob (mkNullVex
+                          (cons (mkTree (mkNode D) ()) ())) 1) ()))))
+          (cons (mkKnob (mkNullVex
+                  (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) 0) ())))))
 
 (= (lsk1)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (2 3)))
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
@@ -76,7 +75,6 @@
 (= (lsk2)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (3)))
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
@@ -86,7 +84,6 @@
 (= (lsk3)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (1)))
               (mkMultip 3)
               (mkDiscSpec 1)
               (mkDiscSpec 1)
@@ -94,40 +91,29 @@
             ))
 
 (= (knobMapObj) (mkKbMap
-                      (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ()))))
                       (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))))
 (= (deme) (mkDeme 
 (mkRep (mkKbMap 
-    (mkDscKbMp 
-      (cons ((mkNodeId (1 2)) 0)
-        (cons ((mkNodeId (2)) 1)
-          (cons ((mkNodeId (3)) 2) ()))))
     (mkDscMp 
       (cons 
         ((mkDiscSpec 3)
          (mkLSK 
            (mkDiscKnob 
-             (mkKnob 
-               (mkNodeId (1 2)))
              (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
            ))
         (cons 
           ((mkDiscSpec 3)
            (mkLSK 
              (mkDiscKnob 
-               (mkKnob 
-                 (mkNodeId (2)))
                (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
              ))
           (cons 
             ((mkDiscSpec 3)
              (mkLSK 
                (mkDiscKnob 
-                 (mkKnob 
-                   (mkNodeId (3)))
                  (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
                ))
-            ()))))) (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) ())))))) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) ()))))))) (mkSInstSet ()) (mkDemeId "1")))
+            ()))))) (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) 1) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) 2) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) 3) ())))))) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) 4) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) 5) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) 6) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) 7) ()))))))) (mkSInstSet ()) (mkDemeId "1")))
 
 ; Test case for sampleFromNeighborhood function
 ; Function should returned two instances at the specified distance

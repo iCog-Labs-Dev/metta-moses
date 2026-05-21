@@ -36,6 +36,8 @@
 ;;   $discKnob: DiscreteKnob
 ;; Return: True if the default specifier is non-zero (not in exemplar), False otherwise.
 ;; (: inExemplar (-> DiscreteKnob Bool))
+(= (inExemplar (mkDiscKnob $knob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis)) 
+   (not (== $def 0)))
 (= (inExemplar (mkDiscKnob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis)) 
    (not (== $def 0)))
 
@@ -62,6 +64,7 @@
 ;; (: getKnobMultip (-> StrategySubtreeKnob Multiplicity))
 
 (= (getKnobMultip (mkDiscKnob $multiplicity $curr $def $disAll)) $multiplicity)
+(= (getKnobMultip (mkDiscKnob $knob $multiplicity $curr $def $disAll)) $multiplicity)
 (= (getKnobMultip (mkLSK $discKnob )) (getKnobMultip $discKnob))
 (= (getKnobMultip (mkSSK $discKnob )) (getKnobMultip $discKnob))
 

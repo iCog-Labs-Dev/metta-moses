@@ -9,45 +9,30 @@
 
 
 ;; logicalProbe tests
-!(assertEqual 
-    (=== (logicalProbe
+!(assertEqual (logicalProbe
       (mkTree (mkNode AND)     
         (cons (mkTree (mkNode A) ())
           (cons (mkTree (mkNode OR)
                   (cons (mkTree (mkNode B) ())
                   (cons (mkTree (mkNode C) ()) ())))())))
-      (mkNodeId (2))           
       ((mkTree (mkNode B) ()) (mkTree (mkNode A) ()))    
-      True
-      ())
-      ( ((mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))    
-        (mkTree (mkNode AND) 
-                (cons (mkTree (mkNode A) ()) 
-                (cons (mkTree (mkNode OR) 
-                      (cons (mkTree (mkNode B) ()) 
-                      (cons (mkTree (mkNode C) ()) 
-                      (cons (mkNullVex 
-                             (cons (mkTree (mkNode A) ()) ())) ())))) ()))))) True)
+      True)
+      ( ((mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))    
+        (mkTree (mkNode AND) ((mkTree (mkNode OR) ((mkTree (mkNode B) ()) (mkTree (mkNode C) ()))) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) 0) (mkKnob (mkTree (mkNode A) ()) 1)))))
+
+!(resetState &knobCount)
 
 !(assertEqual 
-    (=== (logicalProbe
-      (mkTree (mkNode OR)
-                  (cons (mkTree (mkNode B) ())
-                  (cons (mkTree (mkNode C) ()) ())))
-      (mkNodeId (1))           
-      ((mkTree (mkNode B) ()))    
-      True
-      ())
-
-     (((mkLSK 
-        (mkDiscKnob (mkKnob  (mkNodeId (1 1))) 
-          (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))
-
-      (mkTree (mkNode OR) 
-            (cons (mkTree (mkNode B) 
-            (cons (mkNullVex 
-                  (cons (mkTree (mkNode B) ()) ())) ())) 
-            (cons (mkTree (mkNode C) ()) ()))))) True)
+    (logicalProbe
+          (mkTree (mkNode OR)
+                      (cons (mkTree (mkNode B) ())
+                      (cons (mkTree (mkNode C) ()) ())))
+          ((mkTree (mkNode B) ()))    
+          True
+    )
+    (
+      ((mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
+      (mkTree (mkNode OR) ((mkTree (mkNode C) ()) (mkKnob (mkTree (mkNode B) ()) 0)))))
 
 ;; Tests for strategyProbe function (game strategy version)
 ;; strategyProbe test 1: Multiple game move permutations
