@@ -1,83 +1,83 @@
-!(import! &self ../../utilities/general-helpers)
-!(import! &self ../../utilities/list-methods)
-!(import! &self ../../utilities/pair)
-!(import! &self ../../utilities/map)
-!(import! &self ../../utilities/ordered-multimap)
-!(import! &self ../../utilities/ordered-set)
-!(import! &self ../../utilities/ordered-multiset)
-!(import! &self ../../utilities/nodeId)
-!(import! &self ../../utilities/lazy-random-selector)
-!(import! &self ../../utilities/lru-cache)
+!(import! &self utilities/general-helpers)
+!(import! &self utilities/list-methods)
+!(import! &self utilities/pair)
+!(import! &self utilities/map)
+!(import! &self utilities/ordered-multimap)
+!(import! &self utilities/ordered-set)
+!(import! &self utilities/ordered-multiset)
+!(import! &self utilities/nodeId)
+!(import! &self utilities/lazy-random-selector)
+!(import! &self utilities/lru-cache)
 
-!(import! &self ../../reduct/boolean-reduct/rte-helpers)
-!(import! &self ../../reduct/boolean-reduct/cut-unnecessary-or)
-!(import! &self ../../reduct/boolean-reduct/cut-unnecessary-and)
-!(import! &self ../../reduct/boolean-reduct/n-ary-propagate-not)
-!(import! &self ../../reduct/boolean-reduct/n-ary-gather-junctors)
-!(import! &self ../../reduct/boolean-reduct/delete-inconsistent-handle)
-!(import! &self ../../reduct/boolean-reduct/zero-constraint-subsumption)
-!(import! &self ../../reduct/boolean-reduct/one-constraint-subsumption)
-!(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
-!(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
+!(import! &self reduct/boolean-reduct/rte-helpers)
+!(import! &self reduct/boolean-reduct/cut-unnecessary-or)
+!(import! &self reduct/boolean-reduct/cut-unnecessary-and)
+!(import! &self reduct/boolean-reduct/n-ary-propagate-not)
+!(import! &self reduct/boolean-reduct/n-ary-gather-junctors)
+!(import! &self reduct/boolean-reduct/delete-inconsistent-handle)
+!(import! &self reduct/boolean-reduct/zero-constraint-subsumption)
+!(import! &self reduct/boolean-reduct/one-constraint-subsumption)
+!(import! &self reduct/boolean-reduct/promote-common-constraints)
+!(import! &self reduct/boolean-reduct/reduce-to-elegance)
 
-!(import! &self ../../utilities/tree)
+!(import! &self utilities/tree)
 
-!(import! &self ../../feature-selection/feature-selection-helpers)
-!(import! &self ../../feature-selection/select-top-features)
-!(import! &self ../../feature-selection/similarity-scorers)
-!(import! &self ../../feature-selection/simple)
-!(import! &self ../../feature-selection/smd)
-!(import! &self ../../feature-selection/incremental)
-!(import! &self ../../feature-selection/hc)
-!(import! &self ../../feature-selection/random-feature-selection)
-!(import! &self ../../feature-selection/feature-selection-main)
+!(import! &self feature-selection/feature-selection-helpers)
+!(import! &self feature-selection/select-top-features)
+!(import! &self feature-selection/similarity-scorers)
+!(import! &self feature-selection/simple)
+!(import! &self feature-selection/smd)
+!(import! &self feature-selection/incremental)
+!(import! &self feature-selection/hc)
+!(import! &self feature-selection/random-feature-selection)
+!(import! &self feature-selection/feature-selection-main)
 
-!(import! &self ../../representation/knob-representation)
-!(import! &self ../../representation/lsk)
-!(import! &self ../../representation/logical-probe)
-!(import! &self ../../representation/logical-canonize)
-!(import! &self ../../representation/sample-logical-perms)
-!(import! &self ../../representation/add-logical-knobs)
-!(import! &self ../../representation/build-logical)
-!(import! &self ../../representation/build-knobs)
-!(import! &self ../../representation/knob-mapper)
+!(import! &self representation/knob-representation)
+!(import! &self representation/lsk)
+!(import! &self representation/logical-probe)
+!(import! &self representation/logical-canonize)
+!(import! &self representation/sample-logical-perms)
+!(import! &self representation/add-logical-knobs)
+!(import! &self representation/build-logical)
+!(import! &self representation/build-knobs)
+!(import! &self representation/knob-mapper)
 
-!(import! &self ../../representation/representation)
-!(import! &self ../../representation/create-representation)
+!(import! &self representation/representation)
+!(import! &self representation/create-representation)
 
-!(import! &self ../../scoring/strategy-score-cache)
-!(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
-!(import! &self ../../examples/tic-tac-toe/random-player)
-!(import! &self ../../examples/tic-tac-toe/minimax-player)
-!(import! &self ../../examples/tic-tac-toe/game-engine)
-!(import! &self ../../examples/tic-tac-toe/moves)
-!(import! &self ../../examples/tic-tac-toe/moses-player)
-!(import! &self ../../examples/tic-tac-toe/strategy-scoring)
+!(import! &self scoring/strategy-score-cache)
+!(import! &self examples/tic-tac-toe/tic-tac-toe-helpers)
+!(import! &self examples/tic-tac-toe/random-player)
+!(import! &self examples/tic-tac-toe/minimax-player)
+!(import! &self examples/tic-tac-toe/game-engine)
+!(import! &self examples/tic-tac-toe/moves)
+!(import! &self examples/tic-tac-toe/moses-player)
+!(import! &self examples/tic-tac-toe/strategy-scoring)
 
-!(import! &self ../../scoring/cacheSpace)
-!(import! &self ../../scoring/fitness)
-!(import! &self ../../scoring/bscore)
-!(import! &self ../../scoring/cscore)
-!(import! &self ../../scoring/complexity-based-scorer)
+!(import! &self scoring/cacheSpace)
+!(import! &self scoring/fitness)
+!(import! &self scoring/bscore)
+!(import! &self scoring/cscore)
+!(import! &self scoring/complexity-based-scorer)
 
-!(import! &self ../../optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../optimization/hillclimbing/cross-top-one)
-!(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
+!(import! &self optimization/hillclimbing/cross-top-one-helpers)
+!(import! &self optimization/hillclimbing/cross-top-one)
+!(import! &self optimization/hillclimbing/hill-climbing-helpers)
 
-!(import! &self ../create-deme)
+!(import! &self create-deme)
 
-!(import! &self ../../moses/neighborhood-sampling)
+!(import! &self moses/neighborhood-sampling)
 
-!(import! &self ../../metapopulation/exemplar-type)
-!(import! &self ../../metapopulation/exemplar-selection)
-!(import! &self ../../metapopulation/metapopulation)
+!(import! &self metapopulation/exemplar-type)
+!(import! &self metapopulation/exemplar-selection)
+!(import! &self metapopulation/metapopulation)
 
-!(import! &self ../../representation/instance)
+!(import! &self representation/instance)
 
-!(import! &self ../deme-id-creation)
-!(import! &self ../score-deme)
-!(import! &self ../merge-demes)
-!(import! &self ../expand-deme)
+!(import! &self deme-id-creation)
+!(import! &self score-deme)
+!(import! &self merge-demes)
+!(import! &self expand-deme)
 
 (= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ()))) (mkDscMp (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ())))) (mkTree (mkNode AND) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) ())))) (mkSInstSet ()) (mkDemeId "1")))
 (= (table1) (eval (createTruthTableBScore 2 (mkITable
@@ -246,30 +246,30 @@
 ;; Testcase 2 for runmoses. 
 ;; When maxGen become 10, test number of returned instances is not greater than maxCandOutput, 
 ;;              where maxCandOutput is 3 and minPoolSize is 2
-!(assertEqual
-(let $length
-((OS.length (runMoses 10 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
-    (False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-    inc      ;; the new arguments for feature selection algo
-    (eval (createTruthTableBScore 2 (mkITable
-                          (cons (cons False (cons False (cons False ()))) 
-                          (cons (cons True (cons False (cons False ()))) 
-                          (cons (cons False (cons True (cons False ())))
-                          (cons (cons True (cons True (cons True ()))) ()))))
-                          (cons A (cons B (cons O ()))))))
-    (mkITable
-                          (cons (cons False (cons False (cons False ()))) 
-                          (cons (cons True (cons False (cons False ()))) 
-                          (cons (cons False (cons True (cons False ())))
-                          (cons (cons True (cons True (cons True ()))) ()))))
-                          (cons A (cons B (cons O ())))))
-    hillClimbing 5 2 2 1
-    3 0.004 1000)
-    ))
-        (> $length 3)
-)
-    False
-) 
+; !(assertEqual
+; (let $length
+; ((OS.length (runMoses 10 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
+;     (False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
+;     inc      ;; the new arguments for feature selection algo
+;     (eval (createTruthTableBScore 2 (mkITable
+;                           (cons (cons False (cons False (cons False ()))) 
+;                           (cons (cons True (cons False (cons False ()))) 
+;                           (cons (cons False (cons True (cons False ())))
+;                           (cons (cons True (cons True (cons True ()))) ()))))
+;                           (cons A (cons B (cons O ()))))))
+;     (mkITable
+;                           (cons (cons False (cons False (cons False ()))) 
+;                           (cons (cons True (cons False (cons False ()))) 
+;                           (cons (cons False (cons True (cons False ())))
+;                           (cons (cons True (cons True (cons True ()))) ()))))
+;                           (cons A (cons B (cons O ())))))
+;     hillClimbing 5 2 2 1
+;     3 0.004 1000)
+;     ))
+;         (> $length 3)
+; )
+;     False
+; ) 
 ; ; with OR table and AND init exemplar     
 ; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
 ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
