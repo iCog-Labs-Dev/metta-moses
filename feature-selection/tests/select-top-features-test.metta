@@ -1,9 +1,9 @@
-!(import! &self ../../utilities/general-helpers)
-!(import! &self ../../utilities/list-methods)
-!(import! &self ../../scoring/cscore)
-!(import! &self ../../feature-selection/feature-selection-helpers)
-!(import! &self ../../feature-selection/similarity-scorers)
-!(import! &self ../../feature-selection/select-top-features)
+!(import! &self utilities/general-helpers)
+!(import! &self utilities/list-methods)
+!(import! &self scoring/cscore)
+!(import! &self feature-selection/feature-selection-helpers)
+!(import! &self feature-selection/similarity-scorers)
+!(import! &self feature-selection/select-top-features)
 
 (= (ttable) 
     (mkITable 

@@ -1,7 +1,7 @@
-!(import! &self ../../utilities/list-methods)
-!(import! &self ../../utilities/general-helpers)
-!(import! &self ../../feature-selection/feature-selection-helpers)
-!(import! &self ../../feature-selection/simple)
+!(import! &self utilities/list-methods)
+!(import! &self utilities/general-helpers)
+!(import! &self feature-selection/feature-selection-helpers)
+!(import! &self feature-selection/simple)
 
 (= (ttable) (mkITable  
             (cons (cons True (cons True (cons False (cons True (cons True ())))))

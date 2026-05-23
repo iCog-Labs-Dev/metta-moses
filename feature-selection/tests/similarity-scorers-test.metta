@@ -1,7 +1,7 @@
-!(import! &self ../../utilities/general-helpers)
-!(import! &self ../../utilities/list-methods)
-!(import! &self ../../feature-selection/feature-selection-helpers)
-!(import! &self ../../feature-selection/similarity-scorers)
+!(import! &self utilities/general-helpers)
+!(import! &self utilities/list-methods)
+!(import! &self feature-selection/feature-selection-helpers)
+!(import! &self feature-selection/similarity-scorers)
 
 (= (ttable) 
     (mkITable 

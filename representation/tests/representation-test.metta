@@ -33,11 +33,11 @@
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
 
-!(import! &self ../../feature-selection/feature-selection-helpers)
+!(import! &self feature-selection/feature-selection-helpers)
 
-!(import! &self ../../feature-selection/simple)
-!(import! &self ../../feature-selection/smd)
-!(import! &self ../../feature-selection/random-feature-selection)
+!(import! &self feature-selection/simple)
+!(import! &self feature-selection/smd)
+!(import! &self feature-selection/random-feature-selection)
 ; !(import! &self ../../feature-selection/incremental)
 !(import! &self ../../feature-selection/incremental-feature-selection)
 
