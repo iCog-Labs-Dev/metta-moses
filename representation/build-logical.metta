@@ -12,6 +12,10 @@
 ;; (: siblingit (-> (Tree $a) (List (Tree $a)) NodeId Number Symbol (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v)))))
 (= (siblingit $tree () (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels) ($tree $MMap))
 (= (siblingit $tree (cons $head $tail) (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels)
+(siblingitAt $tree (cons $head $tail) (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels (mkNodeId $parentId) True))
+
+(= (siblingitAt $tree () (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels $probeRootId $disable-discprobe) ($tree $MMap))
+(= (siblingitAt $tree (cons $head $tail) (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels $probeRootId $disable-discprobe)
         (let*
              (
                 ;; ($_ (println! "siblingit called"))
@@ -24,17 +28,17 @@
                 (($tNew  $mNew) (if (is-member $node (AND OR PRIORITIZED-OR));; only build logical knobs for AND/OR nodes, creating sampleLogicalPerms
                                     (if (== $node PRIORITIZED-OR)
                                         (buildStrategy $tree (mkNodeId $curId) $MMap $argLabels)
-                                        (buildLogical $tree (mkNodeId $curId) $MMap $argLabels))
+                                        (buildLogicalAt $tree $probeRootId (mkNodeId $curId) $MMap $argLabels $disable-discprobe))
                                         (if (== $swapedOp PRIORITIZED-OR)
                                             ;; Game move terminals - no transformation needed
                                             ($tree $MMap)
                                             ;; Boolean logic terminals - insert operator and add knobs
                                            (let  $itree (insertNodeAtPosition $tree (mkNodeId $curId) (mkNode $swapedOp))
                                                   (if (isAnArgument $node)
-                                                      (addLogicalKnobs $itree (mkNodeId $curId) False $MMap $argLabels) ;; INFO: Due to the structure of the pointer in the classic, after adding a knob here, the iteration terminates and goes to the parent node even though there are still other siblings. For now this seemed to be the correct approach so living it as it is, but needs an investigation for later.
-                                                      (addLogicalKnobs $itree (mkNodeId $curId) True $MMap $argLabels))))))
+                                                      (addLogicalKnobsAt $itree $probeRootId (mkNodeId $curId) False $MMap $argLabels $disable-discprobe) ;; INFO: Due to the structure of the pointer in the classic, after adding a knob here, the iteration terminates and goes to the parent node even though there are still other siblings. For now this seemed to be the correct approach so living it as it is, but needs an investigation for later.
+                                                      (addLogicalKnobsAt $itree $probeRootId (mkNodeId $curId) True $MMap $argLabels $disable-discprobe))))))
                 ;;($_ (println! $tNew))
-                (($tailT $tailM) (siblingit $tNew $tail (mkNodeId $parentId) (+ $childNum 1) $swapedOp $mNew $argLabels))
+                (($tailT $tailM) (siblingitAt $tNew $tail (mkNodeId $parentId) (+ $childNum 1) $swapedOp $mNew $argLabels $probeRootId $disable-discprobe))
                 
              )
              ($tailT $tailM)))
@@ -48,6 +52,12 @@
 ;; Return: Updated tree and multimap.
 ;; (: buildLogical (-> (Tree $a) NodeId (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v))))) 
 (= (buildLogical $tree (mkNodeId $nodeId) $MMap $argLabels)
+  (buildLogicalAt $tree (mkNodeId $nodeId) (mkNodeId $nodeId) $MMap $argLabels True))
+
+(= (buildLogical $tree (mkNodeId $nodeId) $MMap $argLabels $disable-discprobe)
+  (buildLogicalAt $tree (mkNodeId $nodeId) (mkNodeId $nodeId) $MMap $argLabels $disable-discprobe))
+
+(= (buildLogicalAt $tree $probeRootId (mkNodeId $nodeId) $MMap $argLabels $disable-discprobe)
   (let $subtree (getNodeById $tree (mkNodeId $nodeId))
     (if (== True (isNullVertex $subtree))
         (let $x (println! ("reaching Null Vector ")) ($tree $MMap)) 
@@ -58,7 +68,7 @@
             ((mkTree (mkNode $op) $childrens) $subtree) 
             ($swapped (swapAndOr $op))
             ;; ($_ (println! ("Operator: " $op " swapped to: " $swapped)))
-            (($t1 $mp1) (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap $argLabels))
+            (($t1 $mp1) (addLogicalKnobsAt $tree $probeRootId (mkNodeId $nodeId) True $MMap $argLabels $disable-discprobe))
             ;; ($_ (println! ("Building logical knobs for NodeId: " $nodeId " with operator: " $op " swapped to: " $swapped)))
             ;; ($_ (println! (Adding knobs to (List.length $childrens) childs)))
             ;; INFO: An attempt to replicate opencog's behavior but limits the quality drastically
@@ -70,14 +80,14 @@
             ;;                                            ($childrens ())))))
             ;; ($_ (println! (SibToIterate: $sibToIterate SibToConcat: $sibToConcat)))
 
-            (($updatedTree $updatedMMap) (siblingit $t1 $childrens (mkNodeId $nodeId) 1 $swapped $mp1 $argLabels))
+            (($updatedTree $updatedMMap) (siblingitAt $t1 $childrens (mkNodeId $nodeId) 1 $swapped $mp1 $argLabels $probeRootId $disable-discprobe))
             ;; (($updatedTree $updatedMMap) (siblingit $t1 $sibToIterate (mkNodeId $nodeId) 1 $swapped $mp1 $argLabels))
             ;; (($childrenUpdatedTree $lastNewId) (eval (List.foldl (|-> ($childToAppend ($treeAcc $newId)) (appendChild $treeAcc (mkNodeId $nodeId) $childToAppend)) ($updatedTree (mkNodeId $nodeId))  $sibToConcat)))
             ;;$append (appendChild $updatedTree $nodeId (mkNode $filp)))                                 ;; this part will add much complexity to the tree, not worth the cost
 
             (($appendedTree $newId) (appendChild $updatedTree (mkNodeId $nodeId) (mkTree (mkNode $swapped) ())))
             ;; (($appendedTree $newId) (appendChild $childrenUpdatedTree (mkNodeId $nodeId) (mkTree (mkNode $swapped) ())))
-            (($lastUpdatedTree $lastMp1) (addLogicalKnobs $appendedTree $newId True $updatedMMap $argLabels))
+            (($lastUpdatedTree $lastMp1) (addLogicalKnobsAt $appendedTree $probeRootId $newId True $updatedMMap $argLabels $disable-discprobe))
         )
             ($lastUpdatedTree $lastMp1)))))
 ;; buildStrategy => Build strategy knobs for PRIORITIZED-OR nodes

@@ -120,7 +120,7 @@
     (mkNodeId (0))
       4
     )
-  (Error 4 "Invalid disc specification:- cannot exceed 2."))
+  (Error 4 "Invalid effective disc specification for logical knob."))
 
 ;; appending to empty tree
 !(assertEqual

@@ -62,6 +62,19 @@
             $enforced-fts               ;; set of features to be enforced in to selected features
             $scorerType                 ;; can MI or precision_bscore
         )
+        (representation $nDeme $exemplar (mkITable $table $labels) $ft-selection-algo $prune-exemplar $enforced-fts $scorerType True))
+
+(= (representation
+;; Boolean representation constructor with optional logical discprobe
+            $nDeme
+            $exemplar
+            (mkITable $table $labels)
+            $ft-selection-algo
+            $prune-exemplar
+            $enforced-fts
+            $scorerType
+            $disable-discprobe
+        )
         
         (let* (
                   ;; ($_ (println! (Inside Representation)))
@@ -107,7 +120,7 @@
                            (let* (
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (" done buildknobs (:) ")))            ;; BUILD representations on 
-                                    (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels))            ;; BUILD representations on 
+                                    (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels $disable-discprobe))            ;; BUILD representations on
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
                                     ;; ($_ (println! ""))
