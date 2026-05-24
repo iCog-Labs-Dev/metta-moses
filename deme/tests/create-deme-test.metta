@@ -50,7 +50,9 @@
 
 !(import! &self ../../optimization/hillclimbing/cross-top-one-helpers)
 !(import! &self ../../optimization/hillclimbing/cross-top-one)
+!(import! &self ../../optimization/hillclimbing/crossover-helpers)
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
+
 
 !(import! &self ../../metapopulation/exemplar-type)
 !(import! &self ../../metapopulation/exemplar-selection)

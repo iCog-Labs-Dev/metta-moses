@@ -63,8 +63,9 @@
 !(import! &self ../../optimization/hillclimbing/cross-top-one-helpers)
 !(import! &self ../../optimization/hillclimbing/cross-top-one)
 
-!(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
 !(import! &self ../../optimization/hillclimbing/crossover-helpers)
+!(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
+
 
 !(import! &self ../create-deme)
 
@@ -190,17 +191,17 @@
 ((>= $instanceCount 4) (List.any $scoredElems)))
 (True True))
 
-;; ;; Testcase for expandDeme INFO: For some reason this test case disturbs the next test case but is fine alone.
-;; !(assertEqual
-;; (let*
-;; (
-;;     ($updatedDeme (expandDeme (metaPop2) 0 1 False sim 
-;;                     (table1)
-;;                     hillClimbing 
-;;                     (ttable1)
-;;                     mi))
-;;     ($updatedDemeLength (size-atom $updatedDeme)))
-;; (>= $updatedDemeLength 1)) True)
+;; Testcase for expandDeme INFO: For some reason this test case disturbs the next test case but is fine alone.
+!(assertEqual
+(let*
+(
+    ($updatedDeme (expandDeme (metaPop2) 0 1 False sim 
+                    (table1)
+                    hillClimbing 
+                    (ttable1)
+                    mi))
+    ($updatedDemeLength (size-atom $updatedDeme)))
+(>= $updatedDemeLength 1)) True)
 
 ;; Testcase for runMoses
 !(assertEqual
@@ -272,7 +273,8 @@
 )
     False
 ) 
-; ; with OR table and AND init exemplar     
+
+;; with OR table and AND init exemplar     
 ; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
 ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;     smd      ;; the new arguments for feature selection algo

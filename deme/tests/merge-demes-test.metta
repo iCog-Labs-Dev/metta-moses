@@ -50,6 +50,7 @@
 !(import! &self ../../metapopulation/exemplar-type)
 !(import! &self ../../metapopulation/metapopulation)
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
+!(import! &self ../../optimization/hillclimbing/crossover-helpers)
 
 !(import! &self ../../representation/instance)  
 

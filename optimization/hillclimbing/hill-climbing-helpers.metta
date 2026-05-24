@@ -117,54 +117,58 @@
    (countNeighborhoodFromIdxFs $instance $dist 0 $maxCount))
 
  
- ;; deme merger helper function for results of three crossover operators
-(= (merge3Demes $originalDeme $deme1 $deme2 $deme3 $total)
+;; Merge crossover outputs and return:
+;;   - merged demes from the three crossover operator
+;;   - number of unique instances added
+(= (merge3Demes $originalDeme $deme1 $deme2 $deme3)
 
    (let*
       (
-        ;; Extarct original rep and  Id if Deme
-        ((mkDeme $rep (mkSInstSet $origSet) $Id) $originalDeme)
+        ;; Preserve original representation and deme ID
+        ((mkDeme $rep (mkSInstSet $origSet) $demeId) $originalDeme)
 
-       ;; extract sets
-        ((mkDeme $rep1 (mkSInstSet $set1) $id1) $deme1)
-        ((mkDeme $rep2 (mkSInstSet $set2) $id2) $deme2)
-        ((mkDeme $rep3 (mkSInstSet $set3) $id3) $deme3)
+       ;; Extract generated instance sets
+        ((mkDeme $_1 (mkSInstSet $set1) $_id1) $deme1)
+        ((mkDeme $_2 (mkSInstSet $set2) $_id2) $deme2)
+        ((mkDeme $_3 (mkSInstSet $set3) $_id3) $deme3)
 
-    ;; merge
-        ($instSet12 (List.appendList $set1 $set2))
-        ($allInstSet (List.appendList $instSet12 $set3))
-        ($uniqueMerged (unique-atom $allInstSet))
+        ;; Combine and deduplicate all generated instances
+        ($merged12 (List.appendList $set1 $set2))
+        ($mergedAll (List.appendList $merged12 $set3))
+        ($uniqueMerged (unique-atom $mergedAll))
+
+         ;; Count newly added unique instances
+        ($origSize (List.length $origSet))
+        ($mergedSize (List.length $uniqueMerged))
+        ($nNewAdded (- $mergedSize $origSize))
+
       )
-
-      (
-        ;; return With orginal deme ID and representation
-        (mkDeme $rep (mkSInstSet $uniqueMerged) $Id) $total)
+       ;; return With orginal deme ID and representation
+      ((mkDeme $rep (mkSInstSet $uniqueMerged) $demeId) $nNewAdded)
 ))
 
-;; Crossover function.
+;; Run all crossover operators and merge results
 ;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
 ; (: crossover (-> Number Number Instance Deme (Deme Number)))
 (= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme)
    ;; (trace! (Running crossover to make: (min $nNewInstances 120) instances)
    ;; INFO: The 120 is crossover_pop_size parameter that should come from hillClimbing
-   ;;;..this line is ...Prevous implementation ......; ((crossTopOne $deme (min $nNewInstances 120) $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
-
 (let*
     (
-      
+      ;; crossover_pop_size limit
       ($nToMake (min $nNewInstances 120))
-    
+
+       ;; Distribute generation budget across operators
       (($deme1 $nNew1) ((crossTopOne $deme (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst) (+ (/ $nToMake 3) (% $nToMake 3))))
       (($deme2 $nNew2) ((crossTopTwo $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst) (/ $nToMake 3)))
       (($deme3 $nNew3) ((crossTopThree $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst) (/ $nToMake 3)))
-
-      ($total (+ $nNew1 (+ $nNew2 $nNew3)))
     
     )
+    ;; Final added count is recomputed after deduplication
+    (merge3Demes $deme $deme1 $deme2 $deme3)
 
-    (merge3Demes $deme $deme1 $deme2 $deme3 $total)
-
-))
+)
+)
 
 ;; crossover for feature selection
 ; (: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))

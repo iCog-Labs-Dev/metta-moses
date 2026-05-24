@@ -1,11 +1,14 @@
 ;;   -------crossTopTwo Helepers----;;
 
-;; Extracts raw instance from scored instance wrapper (mkSInst)
-;; Used before applying merge operations
-; (= (getInst (mkSInst (mkPair $inst $score))) $inst)
-!(eval (getInst (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 3)))))
+;; ----- Shared crossover helpers -----
 
-;; Generate newinstances by crossing a fixed reference instance with a list of targets
+;; Extract raw instance from scored wrapper
+(= (getInst (mkSInst (mkPair $inst $score))) $inst)
+
+;; Deterministic alternative -but this does not favour expand-demes-test
+; !(eval (getInst (mkSInst (mkPair $inst $score))) $inst)
+
+;; Generate newinstances by  Crossing one reference instance with remaining candidates
 (= (crossPairsToRef () $reference $base $acc $limit) $acc)
 
 (= (crossPairsToRef (cons $target $rest) $reference $base $acc $limit)
@@ -16,21 +19,20 @@
 ))
 
 
-;; Iterate over all reference instances to build full pairwise crossover set
+;; Generate pairwise crossover combinations
 (= (crossPairs $list $base $limit)
    (crossPairsIter $list $base () $limit))
 
 
-;; Recursive accumulator loop for pairwise crossover generation
+;; Acumulator loop for pairwise crossover generation
 (= (crossPairsIter () $base $acc $limit) $acc)
 
 (= (crossPairsIter (cons $reference $rest) $base $acc $limit)
    (if (>= (List.length $acc) $limit)
        $acc
-       (let $newAcc (crossPairsToRef $rest (getInst $reference) $base $acc $limit)
-            (crossPairsIter $rest $base $newAcc $limit))
+       (let $updatedAcc (crossPairsToRef $rest (getInst $reference) $base $acc $limit)
+            (crossPairsIter $rest $base $updatedAcc $limit))
 ))
-
 
 ;;-------- crossTopTwo operator -------;;
 
@@ -47,8 +49,8 @@
          (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
 
         ;; Ensure number of generated instances does not exceed possible pair combinations
-        ($maxPairs (/ (* $sampleSize (- $sampleSize 1)) 2))
-        ($nToMakeNew (if (< $maxPairs $nToMake) $maxPairs $nToMake))
+        ($pairCount (/ (* $sampleSize (- $sampleSize 1)) 2))
+        ($nToMakeNew (if (< $pairCount $nToMake) $pairCount $nToMake))
 
         ($nToSort  (+ (sqrt-math (* 2 $nToMakeNew)) 3))
 
@@ -60,10 +62,10 @@
             (let* (
 
                 ;; Select top-K instances to form crossover pool
-                ($instList (List.takeN $nToSort $sortedList))
+                ($topInsts (List.takeN $nToSort $sortedList))
 
                 ;; Generate newInstances by crossing each higher-score instance with all lower-score ones
-                ($newInstances (crossPairs $instList $baseInstance $nToSort))
+                ($newInstances (crossPairs $topInsts $baseInstance $nToMakeNew))
                 ($uniqueInstances (unique-atom $newInstances))
             )
             (mkDeme 
@@ -92,8 +94,6 @@
    (mkSInst (mkPair $res (worstCscore)))
 ))
 
-
-
 ;; crossInnerLoop
 ;; Combines k-candidates with fixed iRef and jRef
 (= (crossInnerLoop () $jRef $iRef $base $acc $limit) $acc)
@@ -101,8 +101,8 @@
 (= (crossInnerLoop (cons $k $kRest) $jRef $iRef $base $acc $limit)
    (if (>= (List.length $acc) $limit)
         $acc
-       (let $newAcc (mergeTriple (getInst $k) $base $iRef $jRef)
-            (crossInnerLoop $kRest $jRef $iRef $base (cons $newAcc $acc) $limit))
+       (let $updatedAcc (mergeTriple (getInst $k) $base $iRef $jRef)
+            (crossInnerLoop $kRest $jRef $iRef $base (cons $updatedAcc $acc) $limit))
        )
 )
 
@@ -115,8 +115,8 @@
 (= (crossMiddleLoop (cons $first (cons $j $jRest)) $iRef $kList $base $acc $limit)
    (if (>= (List.length $acc) $limit)
        $acc
-       (let $newAcc (crossInnerLoop $kList (getInst $j) $iRef $base $acc $limit)
-              (crossMiddleLoop $jRest $iRef $kList $base $newAcc $limit))
+       (let $updatedAcc (crossInnerLoop $kList (getInst $j) $iRef $base $acc $limit)
+              (crossMiddleLoop $jRest $iRef $kList $base $updatedAcc $limit))
 ))
 
 
@@ -137,15 +137,12 @@
 (= (crossOuterLoop-iter (cons $first (cons $second (cons $i $iRest))) $prefix $base $acc $limit)
    (if (>= (List.length $acc) $limit)
        $acc
-       (let $newAcc (crossMiddleLoop $iRest (getInst $i)  $prefix $base $acc $limit)
-            (crossOuterLoop-iter $iRest (cons $i $prefix) $base $newAcc $limit))
+       (let $updatedAcc (crossMiddleLoop $iRest (getInst $i)  $prefix $base $acc $limit)
+            (crossOuterLoop-iter $iRest (cons $i $prefix) $base $updatedAcc $limit))
        )
    )
 
-
-
-;;;;-----  crossTopThree operator ----------------;;;;
-
+;;;;-----  crossTopThree operator ----------------;;;;   
 ;; Performs 3-simplex crossover on a sorted subset of a deme.
 ;; Generates new instances by combining triples (i, j, k)
 ;; where i > j > k, using hierarchical merging.
@@ -158,11 +155,10 @@
           (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
         
         ;; Ensure number of generated instances does not exceed  the budget
-        ($temp (* (- $sampleSize 1) (- $sampleSize 2)))
-        ($max (/ (* $sampleSize $temp) 6))
-        ($nToMakeNew (if (< $max $nToMake) $max $nToMake))
-        
-
+        ($tripleFactor (* (- $sampleSize 1) (- $sampleSize 2)))
+        ($maxTriples (/ (* $sampleSize $tripleFactor ) 6))
+        ($nToMakeNew (if (< $maxTriples $nToMake) $maxTriples $nToMake))
+      
         ($nToSort (+ (cbrt-math (* $nToMakeNew 6)) 3))
 
         ;; Select and partially sort top-scoring instances for crossover

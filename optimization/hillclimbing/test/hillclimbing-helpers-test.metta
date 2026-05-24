@@ -55,6 +55,7 @@
 !(import! &self ../../../moses/neighborhood-sampling)
 
 
+
 (= (knobmap1)
         (cons (
                     (mkDiscSpec 1)
@@ -105,6 +106,7 @@
                  (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
                ))
             ()))))))
+          
 ;; Test informationTheoreticBits with a knob 
 ;; map containing two knobs with same multiplicity of 3
 !(assertEqual (informationTheoreticBits (knobmap1)) 6)
@@ -249,14 +251,7 @@
                (cons (mkTree (mkNode playblock) ()) ()))))
      (mkSInstSet ())
      (mkDemeId "1")))
-  ;;;; befoere merging three crossover oprators in hillclimbing testing   ;;;;   
-
-; !(assertEqual (hillClimbing (strategyDeme) (mkCscore 3.0 5 1.43 0.0 3) (mkInst (cons 1 (cons 1 ()))) (mkParams applyStrategyBasedScore (3 3.5))
-; ) ((mkInst (1 1)) (mkDeme (mkRep (mkKbMap (mkDscKbMp (((mkNodeId (1)) 0) ((mkNodeId (2)) 1))) (mkDscMp (((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))))) (mkTree (mkNode PRIORITIZED-OR) ((mkTree (mkNode playwin) ()) (mkTree (mkNode playblock) ())))) (mkSInstSet ((mkSInst (mkPair (mkInst (0 1)) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (mkSInst (mkPair (mkInst (1 1)) (mkCscore -3.0 2 0.5714285714285714 0.0 -3.571428571428571))) (mkSInst (mkPair (mkInst (0 1)) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (mkSInst (mkPair (mkInst (1 0)) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))))) (mkDemeId "1")) (true false false (mkInst (1 1)) 3 1 (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856) -3.2857142857142856 4 2 3)))
-; !(assertEqual (hillClimbing (strategyDeme) (mkCscore 3.0 5 1.43 0.0 3) (mkInst (cons 1 (cons 1 ()))) (mkParams applyStrategyBasedScore (3 random-player 3.5))) )
-;                     ((mkInst (cons 1 (cons 1 ()))) (mkDeme (mkRep (mkKbMap (mkDscKbMp (consMap ((mkNodeId (1)) 0) (consMap ((mkNodeId (2)) 1) ()Map))) (mkDscMp (consMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (consMMap ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) ()MMap)))) (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playblock) ()) ())))) (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 ()))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore -3.0 2 0.5714285714285714 0.0 -3.571428571428571))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 ()))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (cons (mkSInst (mkPair (mkInst (cons 1 (cons 0 ()))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) ()))))) (mkDemeId "1")) (true false false (mkInst (cons 1 (cons 1 ()))) 3 1 (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856) -3.2857142857142856 4 2 3))
-
-;;;; befoere merging three crossover oprators in  hillclimbing testing  ;;;;  
+ 
 !(assertEqual (hillClimbing (strategyDeme) (mkCscore 3.0 5 1.43 0.0 3) (mkInst (cons 1 (cons 1 ()))) (mkParams applyStrategyBasedScore (3 3.5)))
 ((mkInst (1 1)) (mkDeme (mkRep (mkKbMap (mkDscKbMp (((mkNodeId (1)) 0) ((mkNodeId (2)) 1))) (mkDscMp (((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))))))
    (mkTree (mkNode PRIORITIZED-OR) ((mkTree (mkNode playwin) ()) (mkTree (mkNode playblock) ()))))
@@ -265,7 +260,7 @@
                 (mkSInst (mkPair (mkInst (0 1)) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856)))
                 (mkSInst (mkPair (mkInst (1 0)) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856)))))
   (mkDemeId "1"))
- (true false false (mkInst (1 1)) 3 52.0 (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856) -3.2857142857142856 55.0 2 3)))
+ (true false false (mkInst (1 1)) 3 1 (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856) -3.2857142857142856 4 2 3)))
 
 
 !(assertEqual (hillClimbing (strategyDeme) (mkCscore 3.0 5 1.43 0.0 3) (mkInst (cons 1 (cons 1 ()))) (mkParams applyStrategyBasedScore (3 random-player 3.5)))
@@ -278,4 +273,4 @@
       (cons (mkSInst (mkPair (mkInst (cons 1 (cons 0 ()))) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856)))
        ())))))
   (mkDemeId "1"))
- (true false false (mkInst (cons 1 (cons 1 ()))) 3 52.0 (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856) -3.2857142857142856 55.0 2 3)))
+ (true false false (mkInst (cons 1 (cons 1 ()))) 3 1 (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856) -3.2857142857142856 4 2 3)))

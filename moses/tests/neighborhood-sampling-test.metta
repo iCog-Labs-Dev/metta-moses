@@ -9,6 +9,7 @@
 
 !(import! &self ../../scoring/cscore)
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers) ;; using / for additional nested dir level 
+!(import! &self ../../optimization/hillclimbing/crossover-helpers)
 !(import! &self ../../deme/create-deme)
 
 !(import! &self ../neighborhood-sampling)
