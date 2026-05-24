@@ -30,6 +30,37 @@
     (logicalProbe $exemplar (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs))))
     ;; (trace! (skipping $discKnob because addInExemplar: $addIfInExemplar inExemplar: (inExemplar $discKnob)) (logicalProbe $exemplar (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs)))))
 
+;; actionProbe - creates one ActionSubtreeKnob for all action permutations at the target position.
+;; Mirrors C++ action_probe which constructs a single action_subtree_knob with all perms.
+;; Unlike logicalProbe which creates one LSK per perm, actionProbe creates ONE ASK for ALL perms.
+;; (: actionProbe (-> (Tree $a) NodeId (List Tree) Bool Expression (Expression (Tree $a))))
+(= (actionProbe $exemplar (mkNodeId $targetId) $perms $addIfInExemplar $knobs)
+   (if (== $perms ())
+       ($knobs $exemplar)
+       (let*
+       (
+        (($updatedTree $ask) (actionSubtreeKnob $exemplar (mkNodeId $targetId) $perms))
+        ($discKnob (getDiscKnob $ask))
+       )
+       (if (or $addIfInExemplar (not (inExemplar $discKnob)))
+           (let $updatedKnobs (concatT $knobs ($ask))
+                ($updatedKnobs $updatedTree))
+           ($knobs $exemplar)))))
+
+;; simpleActionProbe - creates one SimpleActionSubtreeKnob for a single action node.
+;; Mirrors C++ simple_action_probe which constructs a single simple_action_subtree_knob.
+;; (: simpleActionProbe (-> (Tree $a) NodeId (Tree $a) Bool Expression (Expression (Tree $a))))
+(= (simpleActionProbe $exemplar (mkNodeId $targetId) $subtree $addIfInExemplar $knobs)
+   (let*
+   (
+    (($updatedTree $sask) (simpleActionSubtreeKnob $exemplar (mkNodeId $targetId) $subtree))
+    ($discKnob (getDiscKnob $sask))
+   )
+   (if (or $addIfInExemplar (not (inExemplar $discKnob)))
+       (let $updatedKnobs (concatT $knobs ($sask))
+            ($updatedKnobs $updatedTree))
+       ($knobs $exemplar))))
+
 ;; Game-specific probe that uses strategySubtreeKnob instead of logicalSubtreeKnob
 ;; strategyProbe -> builds SSKs by processing game move permutations
 ;; Params:

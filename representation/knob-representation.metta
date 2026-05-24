@@ -84,8 +84,37 @@
 (= (getKnobLoc (mkLSK $discKnob )) (getKnobLoc $discKnob))
 (= (getKnobLoc (mkSSK $discKnob )) (getKnobLoc $discKnob))
 
-;; A comparison function for discSpec 
-;; (used as a $compFunc to insert knobSpec and knob pairs into a multimap ) 
+;; ActionSubtreeKnob: mirrors C++ action_subtree_knob (extends discrete_knob<MAX_PERM_ACTIONS>).
+;; This is the only discrete-domain knob that needs its own subtype beyond DiscreteKnob
+;; because it carries an extra attribute — the list of action permutations (_perms in C++).
+;; Setting 0 = absent (null vertex), Setting k >= 1 = perms[k-1].
+;; Multiplicity = 1 + len(perms).
+(: ActionSubtreeKnob Type)
+(: mkASK (-> DiscreteKnob (List Tree) ActionSubtreeKnob))
+
+;; SimpleActionSubtreeKnob: mirrors C++ simple_action_subtree_knob (extends discrete_knob<2>).
+;; No extra fields beyond DiscreteKnob, but needs its own type for domain-specific appendTo dispatch.
+;; Setting 0 = present (action stays), Setting 1 = absent (wrapped in null vertex).
+;; Multiplicity = 2.
+(: SimpleActionSubtreeKnob Type)
+(: mkSASK (-> DiscreteKnob SimpleActionSubtreeKnob))
+
+(= (getDiscKnob (mkASK $discKnob $perms)) $discKnob)
+(= (getDiscKnob (mkSASK $discKnob)) $discKnob)
+
+(= (getKnobMultip (mkASK $discKnob $perms)) (getKnobMultip $discKnob))
+(= (getKnobMultip (mkSASK $discKnob)) (getKnobMultip $discKnob))
+
+(= (getKnobSpec (mkASK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis) $perms))
+   (mkDiscSpec (- $multip (List.length $dis))))
+(= (getKnobSpec (mkSASK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis)))
+   (mkDiscSpec (- $multip (List.length $dis))))
+
+(= (getKnobLoc (mkASK $discKnob $perms)) (getKnobLoc $discKnob))
+(= (getKnobLoc (mkSASK $discKnob)) (getKnobLoc $discKnob))
+
+;; A comparison function for discSpec
+;; (used as a $compFunc to insert knobSpec and knob pairs into a multimap )
 ;; (: discSpec<= (-> DiscSpec DiscSpec Bool))
 (= (discSpec< (mkDiscSpec $newKey) (mkDiscSpec $currKey))
 (< $newKey $currKey))

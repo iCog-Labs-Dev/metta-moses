@@ -80,8 +80,81 @@
             (($lastUpdatedTree $lastMp1) (addLogicalKnobs $appendedTree $newId True $updatedMMap $argLabels))
         )
             ($lastUpdatedTree $lastMp1)))))
+;; buildAction => Build knobs for the action domain (SEQUENTIAL-AND / ACTION-BOOLEAN-IF trees).
+;; Mirrors C++ build_knobs::build_action.
+;; For SEQUENTIAL-AND nodes: adds one ActionSubtreeKnob with all action permutations,
+;;   iterates children to add SimpleActionSubtreeKnobs for existing actions,
+;;   and appends an empty SEQUENTIAL-AND node for future expansion.
+;; For ACTION-BOOLEAN-IF nodes: recurses into the then/else branches.
+;; (: buildAction (-> (Tree $a) NodeId (MultiMap ($k $v)) ((Tree $a) (MultiMap ($k $v)))))
+(= (buildAction $tree (mkNodeId $nodeId) $MMap)
+   (let $subtree (getNodeById $tree (mkNodeId $nodeId))
+       (if (== True (isNullVertex $subtree))
+           ($tree $MMap)
+           (let (mkTree (mkNode $op) $children) $subtree
+               (if (== $op SEQUENTIAL-AND)
+                   (let*
+                   (
+                    ($actions (getAllActions))
+                    ($perceptions (getAllPerceptions))
+                    ;; Add one ASK at the current SEQUENTIAL-AND node covering all action perms
+                    (($t1 $mp1) (addActionKnobs $tree (mkNodeId $nodeId) True $MMap $actions $perceptions))
+                    ;; Process existing children: actions get SASKs, nested nodes recurse
+                    (($updatedTree $updatedMMap) (buildActionSiblings $t1 $children (mkNodeId $nodeId) 1 $mp1 $actions $perceptions))
+                    ;; Append an empty SEQUENTIAL-AND placeholder for future expansions
+                    (($appendedTree $newId) (appendChild $updatedTree (mkNodeId $nodeId) (mkTree (mkNode SEQUENTIAL-AND) ())))
+                    ;; Add ASK to the empty node with addIfInExemplar=False (mirrors C++ p=80 logic)
+                    (($lastTree $lastMp) (addActionKnobs $appendedTree $newId False $updatedMMap $actions $perceptions))
+                   )
+                   ($lastTree $lastMp))
+                   (if (== $op ACTION-BOOLEAN-IF)
+                       ;; Skip the condition child (index 0); recurse into then/else branches
+                       (let*
+                       (
+                        ($branchChildren (if (== $children ()) () (List.tail $children)))
+                        ($actions (getAllActions))
+                        ($perceptions (getAllPerceptions))
+                        (($updatedTree $updatedMMap) (buildActionSiblings $tree $branchChildren (mkNodeId $nodeId) 2 $MMap $actions $perceptions))
+                       )
+                       ($updatedTree $updatedMMap))
+                       ;; Unknown action operator: leave unchanged
+                       ($tree $MMap)))))))
+
+;; buildActionSiblings => Iterates over children of an action node and builds appropriate knobs.
+;; - SEQUENTIAL-AND child  → recurse into buildAction
+;; - ACTION-BOOLEAN-IF child → add SASK for the if-node + recurse into its branches
+;; - builtin action child  → add SimpleActionSubtreeKnob (SASK)
+;; - other                 → skip
+;; (: buildActionSiblings (-> (Tree $a) (List (Tree $a)) NodeId Number (MultiMap ($k $v)) Expression Expression ((Tree $a) (MultiMap ($k $v)))))
+(= (buildActionSiblings $tree () (mkNodeId $parentId) $childNum $MMap $actions $perceptions)
+   ($tree $MMap))
+(= (buildActionSiblings $tree (cons $head $tail) (mkNodeId $parentId) $childNum $MMap $actions $perceptions)
+   (let*
+   (
+    ($curId (if (== $parentId (0)) ($childNum) (concatT $parentId ($childNum))))
+    ((mkTree (mkNode $node) $nodeChildren) $head)
+    (($tNew $mNew)
+        (if (== $node SEQUENTIAL-AND)
+            (buildAction $tree (mkNodeId $curId) $MMap)
+            (if (== $node ACTION-BOOLEAN-IF)
+                (let*
+                (
+                 ;; Add a SASK so the whole if-node can be toggled on/off
+                 (($t2 $m2) (addSimpleActionKnobs $tree (mkNodeId $parentId) $head True $MMap))
+                 ;; Then recurse into the if-node's branches
+                 (($t3 $m3) (buildAction $t2 (mkNodeId $curId) $m2))
+                )
+                ($t3 $m3))
+                (if (is-member $node $actions)
+                    ;; Builtin action: add a SASK to allow toggling it off
+                    (addSimpleActionKnobs $tree (mkNodeId $parentId) $head True $MMap)
+                    ($tree $MMap)))))
+    (($tailT $tailM) (buildActionSiblings $tNew $tail (mkNodeId $parentId) (+ $childNum 1) $mNew $actions $perceptions))
+   )
+   ($tailT $tailM)))
+
 ;; buildStrategy => Build strategy knobs for PRIORITIZED-OR nodes
-;; (: buildStrategy (-> (Tree $a) NodeId (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v))))) 
+;; (: buildStrategy (-> (Tree $a) NodeId (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v)))))
 (= (buildStrategy $tree (mkNodeId $nodeId) $MMap $argLabels)
   (let $subtree (getNodeById $tree (mkNodeId $nodeId))
     ;; Safety Check

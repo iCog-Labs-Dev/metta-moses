@@ -10,6 +10,72 @@
 ;; All available game moves
 (= (getAllGameMoves) (playcenter playblock playwin playcorner playside))
 
+;; getAllActions - list of available builtin actions for the action domain.
+;; Domain-specific: override this binding per experiment/problem.
+;; Mirrors the _actions parameter in C++ build_knobs.
+(= (getAllActions) ())
+
+;; getAllPerceptions - list of available perceptions for the action domain.
+;; Domain-specific: override this binding per experiment/problem.
+;; Mirrors the _perceptions parameter in C++ build_knobs.
+(= (getAllPerceptions) ())
+
+;; sampleActionPerms - samples action permutations for ActionSubtreeKnob building.
+;; Mirrors C++ build_knobs::sample_action_perms.
+;; Generates: (a) each single action as a permutation, plus
+;;            (b) n random ACTION-BOOLEAN-IF(perception action1 action2) combos.
+;; Returns a list of expressions (symbols or tuples) to be built into trees by addActionKnobs.
+;; (: sampleActionPerms (-> Expression Expression Expression))
+(= (sampleActionPerms $actions $perceptions)
+   (let*
+   (
+    ($nActions (List.length $actions))
+    ($hasPerceptions (not (== $perceptions ())))
+    ;; Pair perms: random action_boolean_if(perception a b) combinations
+    ($pairPerms
+        (if (or (<= $nActions 1) (not $hasPerceptions))
+            ()
+            (let*
+            (
+             ($idxList (genList (- $nActions 1)))
+             ($idxPairs (collapse (genPairs $idxList)))
+             ($nPairs $nActions)
+             ($upperbound (- (* $nActions (- $nActions 1)) 1))
+             ($picked (lazyRandomSelector 0 $upperbound $nPairs))
+            )
+            (collapse (let ($a $b) (index-atom $idxPairs (superpose $picked))
+                           (let ($act1 $act2) ((index-atom $actions $a) (index-atom $actions $b))
+                           (let $perc (superpose $perceptions)
+                                (ACTION-BOOLEAN-IF $perc $act1 $act2))))))))
+   )
+   (concatT $actions $pairPerms)))
+
+;; addActionKnobs - creates ONE ActionSubtreeKnob at the given node with all sampled permutations.
+;; Mirrors C++ build_knobs::add_action_knobs.
+;; (: addActionKnobs (-> (Tree $a) NodeId Bool (MultiMap ($k $v)) Expression Expression ((Tree $a) (MultiMap ($k $v)))))
+(= (addActionKnobs $exemplar $nodeId $addIfInExemplar $map $actions $perceptions)
+   (let*
+   (
+    ($perms (sampleActionPerms $actions $perceptions))
+    ($treePerms (map-atom $perms $perm (buildTree $perm)))
+    (($knobs $updatedTree) (actionProbe $exemplar $nodeId $treePerms $addIfInExemplar ()))
+    ($pairs (pairKnobWithSpec $knobs))
+    ($mmp (expToMMap $pairs $map discSpec<))
+   )
+   ($updatedTree $mmp)))
+
+;; addSimpleActionKnobs - creates a SimpleActionSubtreeKnob for a single action node.
+;; Mirrors C++ build_knobs::add_simple_action_knobs.
+;; (: addSimpleActionKnobs (-> (Tree $a) NodeId (Tree $a) Bool (MultiMap ($k $v)) ((Tree $a) (MultiMap ($k $v)))))
+(= (addSimpleActionKnobs $exemplar $nodeId $subtree $addIfInExemplar $map)
+   (let*
+   (
+    (($knobs $updatedTree) (simpleActionProbe $exemplar $nodeId $subtree $addIfInExemplar ()))
+    ($pairs (pairKnobWithSpec $knobs))
+    ($mmp (expToMMap $pairs $map discSpec<))
+   )
+   ($updatedTree $mmp)))
+
 ;; helper function to the addLogicalKnobs
 ;; takes a tuple of knobs and return a tuple of knob and knobSpec pairs
 ;; (: pairKnobWithSpec (-> Expression Expression))
