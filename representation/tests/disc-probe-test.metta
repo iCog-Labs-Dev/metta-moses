@@ -36,6 +36,7 @@
 !(import! &self feature-selection/feature-selection-main)
 !(import! &self representation/representation)
 !(import! &self moses/neighborhood-sampling)
+!(import! &self moses/demo-problems)
 
 (= (getDisallowed $lsk)
    (let (mkDiscKnob $k $m $c $d $dis) (getDiscKnob $lsk) $dis))
@@ -470,4 +471,133 @@
           ($probed2 (discProbe $treeWithNull (mkNodeId (0)) $probed1))
          )
          (== (getDisallowed $probed1) (getDisallowed $probed2)))
+    True)
+
+;; __________________________________________________
+;; QUANTITATIVE STATS: The Impact of Discrete Probing
+;; __________________________________________________
+;; This test measures the reduction in local neighborhood sampling (at distance=2)
+;; when starting with an exemplar tree of (AND A B).
+;; __________________________________________________
+
+!(assertEqual
+    (let*
+      (
+        ;; 1. Set up an exemplar and baseline table
+        ($exemplar (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))))
+        ($table (discProbeTable)) ;; (Assuming standard table implementation)
+        
+        ;; 2. Generate Representation WITH Pruning
+        ($repPopWithPruning (representation 2 $exemplar $table inc False () mi False))
+        ($repPruned (car-atom $repPopWithPruning))
+        ((mkRep (mkKbMap $kb1Pruned (mkDscMp $discPruned)) $tree1Pruned) $repPruned)
+
+        ;; 3. Generate Representation WITHOUT Pruning
+        ($repPopWithoutPruning (representation 2 $exemplar $table inc False () mi True))
+        ($repUnpruned (car-atom $repPopWithoutPruning))
+        ((mkRep (mkKbMap $kb1Unpruned (mkDscMp $discUnpruned)) $tree1Unpruned) $repUnpruned)
+
+        ;; 4. Measure Neighborhood Sampling at distance = 2
+        ($knobCount (MultiMap.length $discPruned))
+        ($centerInst (mkInst (repeat 0 $knobCount)))
+        
+        ($prunedNeighborhood (generateAllInNeighborhoodForDisc (mkDscMp $discPruned) $centerInst 2))
+        ($fullNeighborhood (generateAllInNeighborhoodForDisc (mkDscMp $discUnpruned) $centerInst 2))
+        
+        ($prunedCount (List.length $prunedNeighborhood))
+        ($fullCount (List.length $fullNeighborhood))
+      )
+      ;; Print the quantitative impact for documentation/logging
+      (let $_ (println! (STATS:
+               " | Nbrhood Dist=2 (Unpruned): " $fullCount
+               " | Nbrhood Dist=2 (Pruned): " $prunedCount))
+           
+           ;; Assert that pruning successfully reduced both metrics
+                (< $prunedCount $fullCount)))
+    True)    
+;; _______________________________________________________________________________
+;; This test measures the reduction in local neighborhood sampling (at distance=1)
+;; when starting with an exemplar tree of (AND A B).
+;; _______________________________________________________________________________
+!(assertEqual
+    (let*
+      (
+        ;; 1. Set up an exemplar and baseline table
+        ($exemplar (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))))
+        ($table (discProbeTable)) ;; (Assuming standard table implementation)
+        
+        ;; 2. Generate Representation WITH Pruning
+        ($repPopWithPruning (representation 2 $exemplar $table inc False () mi False))
+        ($repPruned (car-atom $repPopWithPruning))
+        ((mkRep (mkKbMap $kb1Pruned (mkDscMp $discPruned)) $tree1Pruned) $repPruned)
+
+        ;; 3. Generate Representation WITHOUT Pruning
+        ($repPopWithoutPruning (representation 2 $exemplar $table inc False () mi True))
+        ($repUnpruned (car-atom $repPopWithoutPruning))
+        ((mkRep (mkKbMap $kb1Unpruned (mkDscMp $discUnpruned)) $tree1Unpruned) $repUnpruned)
+
+        ;; 4. Measure Neighborhood Sampling at distance = 1
+        ($knobCount (MultiMap.length $discPruned))
+        ($centerInst (mkInst (repeat 0 $knobCount)))
+        
+        ($prunedNeighborhood (generateAllInNeighborhoodForDisc (mkDscMp $discPruned) $centerInst 1))
+        ($fullNeighborhood (generateAllInNeighborhoodForDisc (mkDscMp $discUnpruned) $centerInst 1))
+        
+        ($prunedCount (List.length $prunedNeighborhood))
+        ($fullCount (List.length $fullNeighborhood))
+      )
+      ;; Print the quantitative impact for documentation/logging
+      (let $_ (println! (STATS:
+               " | Nbrhood Dist=1 (Unpruned): " $fullCount
+               " | Nbrhood Dist=1 (Pruned): " $prunedCount))
+           
+           ;; Assert that pruning successfully reduced both metrics
+                (< $prunedCount $fullCount)))
+    True)
+
+;; ________________________________________________________________
+;; ________________________________________________________________
+;; QUANTITATIVE STATS: The Impact of Discrete Probing on mux6
+;; ________________________________________________________________
+;; This test measures the exact reduction in the hypothesis search space 
+;; and the reduction in local neighborhood sampling (at distance=1)
+;; when starting with an exemplar tree of (AND A0 A1) against the mux6 dataset.
+;; ________________________________________________________________
+
+;; Import the dataset
+!(assertEqual
+    (let*
+      (
+        ;; 1. Set up an exemplar and load the mux6 table
+        ($exemplar (mkTree (mkNode AND) (cons (mkTree (mkNode A0) ()) (cons (mkTree (mkNode A1) ()) ()))))
+        ($table (mux6))
+        
+        ;; 2. Generate Representation WITH Pruning
+        ($repPopWithPruning (representation 2 $exemplar $table inc False () mi False))
+        ($repPruned (car-atom $repPopWithPruning))
+        ((mkRep (mkKbMap $kb1Pruned (mkDscMp $discPruned)) $tree1Pruned) $repPruned)
+
+        ;; 3. Generate Representation WITHOUT Pruning
+        ($repPopWithoutPruning (representation 2 $exemplar $table inc False () mi True))
+        ($repUnpruned (car-atom $repPopWithoutPruning))
+        ((mkRep (mkKbMap $kb1Unpruned (mkDscMp $discUnpruned)) $tree1Unpruned) $repUnpruned)
+
+        ;; 4. Measure Neighborhood Sampling at distance = 1
+        ($knobCount (MultiMap.length $discPruned))
+        ($centerInst (mkInst (repeat 0 $knobCount)))
+        
+        ($prunedNeighborhood (generateAllInNeighborhoodForDisc (mkDscMp $discPruned) $centerInst 1))
+        ($fullNeighborhood (generateAllInNeighborhoodForDisc (mkDscMp $discUnpruned) $centerInst 1))
+        
+        ($prunedCount (List.length $prunedNeighborhood))
+        ($fullCount (List.length $fullNeighborhood))
+      )
+      ;; Print the quantitative impact for documentation/logging
+      (let $_ (println! (STATS:
+               " | Nbrhood Dist=1 (Unpruned): " $fullCount
+               " | Nbrhood Dist=1 (Pruned): " $prunedCount))
+           
+           ;; Assert that pruning successfully reduced both metrics
+           
+                (< $prunedCount $fullCount)))
     True)
