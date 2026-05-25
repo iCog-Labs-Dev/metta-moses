@@ -21,7 +21,7 @@
                 ((mkTree (mkNode $node) $childern) $head)
                 ;; ($_ (println!( "curId: " $curId "node :" $node)))
                 ;; ($_ (println!( "head: " $head "tail :" $tail)))
-                (($tNew  $mNew) (if (is-member $node (AND OR PRIORITIZED-OR));; only build logical knobs for AND/OR nodes, creating sampleLogicalPerms
+                (($tNew  $mNew) (if (once (is-member $node (AND OR PRIORITIZED-OR))) ;; only build logical knobs for AND/OR nodes, creating sampleLogicalPerms
                                     (if (== $node PRIORITIZED-OR)
                                         (buildStrategy $tree (mkNodeId $curId) $MMap $argLabels)
                                         (buildLogical $tree (mkNodeId $curId) $MMap $argLabels))
@@ -87,7 +87,7 @@
 (= (buildLogical (mkTree (mkNode $node) $children) $MMap $argLabels)
    (buildLogical (mkTree (mkNode $node) $children) $node $MMap $argLabels))
 (= (buildLogical (mkTree (mkNode $node) $children) $parentOp $MMap $argLabels)
-   (if (is-member $node (AND OR))
+   (if (once (is-member $node (AND OR)))
        (let*
            (
              ;; ($_ (println! (BuildLogical 0)))

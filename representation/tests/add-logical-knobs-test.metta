@@ -23,13 +23,12 @@
 !(import! &self ../../representation/logical-probe)
 !(import! &self ../sample-logical-perms) 
 !(import! &self ../add-logical-knobs)
-!(import! &self ../../representation/knob-representation)
 !(import! &self ../../scoring/bscore)
 
 
 !(py-call (random.seed 0))
-;; ;; Testcase for the addLogicalKnobs 
-;; (addLogicalKnobs (mkTree (mkNode $op) $children) $addIfInExemplar $map $argLabels)
+;; Testcase for the addLogicalKnobs 
+
 !(assertEqual (let* 
 (
     (($updatedTree $mm)

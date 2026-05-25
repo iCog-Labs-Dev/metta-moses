@@ -18,8 +18,8 @@
 ;; (foldl-atom (1 2 3 4) 0 $acc $x (+ $acc $x))
 (= (toExp $x) ($x))
 (= (List.tFoldl () $f $t $acc) $acc)
-(= (List.tFoldl $xs $f $t $acc)
-   (foldl-atom $xs $acc $acc0 $x ($f $acc0 ($t $x))))
+(= (List.tFoldl (cons $y $ys) $f $t $acc)
+   (foldl-atom (cons $y $ys) $acc $acc0 $x ($f $acc0 ($t $x))))
 
 (= (List.tFoldr () $f $t $acc) $acc)
 (= (List.tFoldr $xs $f $t $acc)
@@ -88,7 +88,7 @@
 (= (List.max $xs) (max-atom $xs))
 
 ; (: List.contains (-> $a (List $a) Bool))
-(= (List.contains $a $list) (is-member $a $list))
+(= (List.contains $a $list) (once (is-member $a $list)) )
 
 ; (: List.replaceAt (-> (List $a) Number $a (List $a)))
 (= (List.replaceAt () $n $elem) ())
@@ -220,7 +220,7 @@
    (List.takeN $n (List.drop $start $xs)))
 
 ; (: List.any (-> (List Bool) Bool))
-(= (List.any $xs) (is-member True $xs))
+(= (List.any $xs) (once (is-member True $xs)) )
 
 ; (: List.generate (-> Number Number (List Number)))
 (= (List.generate $length $element)

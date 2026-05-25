@@ -20,7 +20,7 @@
 ;; )
 
 (= (findX $expr $x)
-   (if (is-member $x $expr)
+   (if (once (is-member $x $expr))
        True
        (List.any (map-atom $expr $ex
              (if (or (== (get-metatype $ex) Grounded) (== (get-metatype $ex) Symbol))

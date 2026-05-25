@@ -126,7 +126,7 @@
                   (if (== $h $l)
                       (cons-atom $b $t')
                       (cons-atom $h $t')))))
-       (if (== $boolExpr $l) $b (if (is-member $boolExpr (AND OR)) ($boolExpr) $boolExpr))))
+       (if (== $boolExpr $l) $b (if (once (is-member $boolExpr (AND OR))) ($boolExpr) $boolExpr))))
 
 ;; Replace ever occurence of all labels (boolean variables) 
 ;;  inside an expression with their corresponding truth values.

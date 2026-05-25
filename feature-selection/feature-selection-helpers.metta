@@ -421,7 +421,7 @@
               ($new  (collapse 
                        (let $subset (superpose $ps)
                          (let $el (superpose $set)
-                           (if (not (is-member $el $subset))
+                           (if (not (once (is-member $el $subset)))
                                (cons-atom $el $subset)
                                (empty)))
                         )

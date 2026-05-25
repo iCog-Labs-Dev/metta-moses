@@ -25,7 +25,7 @@
 
 ; (: preOrder (-> (Tree $a) $a))
 
-(= (preOrder (mkTree (mkNode $r) ())) (if (is-member $r (AND OR)) ($r) $r))
+(= (preOrder (mkTree (mkNode $r) ())) (if (once (is-member $r (AND OR))) ($r) $r))
 (= (preOrder (mkKnob (mkNullVex $tree) $i)) ())
 (= (preOrder (mkKnob (mkTree $node $children) $i)) (preOrder (mkTree $node $children)))
 (= (preOrder (mkTree (mkNode $r) (cons $x $xs)))
@@ -40,7 +40,7 @@
          $exp)
 )
 
-(= (preOrderDebug (mkTree (mkNode $r) ())) (if (is-member $r (AND OR)) ($r) $r))
+(= (preOrderDebug (mkTree (mkNode $r) ())) (if (once (is-member $r (AND OR))) ($r) $r))
 (= (preOrderDebug (mkNullVex $knobs))
    (let*
      (
@@ -297,7 +297,7 @@
 
 (= (isArgument (mkNullVex $x)) False)
 (= (isArgument (mkTree (mkNode $x) $children))
-   (and (not (is-member $x (AND OR NOT PRIORITIZED-OR))) (== $children ())))
+   (and (not (once (is-member $x (AND OR NOT PRIORITIZED-OR)))) (== $children ())))
 
 ;; A function to calculate the complexity of a tree.
 ;;  The complexity of a tree is the number of arguments it contains.
@@ -325,7 +325,7 @@
 ; (: extractArgs (-> (Tree $a) (List Symbol)))
 
 (= (extractArgs (mkTree (mkNode $node) $children))
-    (if (is-member $node (AND OR NOT))
+    (if (once (is-member $node (AND OR NOT)))
         (extractArgsFromList $children)         ;; if it's an operator, collect args from children
         (cons $node ())))                       ;; else it's a literal, return it in a singleton list
     
@@ -340,9 +340,10 @@
 
 ;; treeFtsIndices -- extract integer indices of literals used in a tree
 (= (treeFtsIndices $exemplar $labels)
-    (let* (($exemplar-labels (extractArgs $exemplar))
-            ($arg-set (List.tFoldl $exemplar-labels concatT toExp ())))
-            
+    (let* (
+            ($exemplar-labels (extractArgs $exemplar))
+            ($arg-set (List.tFoldl $exemplar-labels concatT toExp ()))
+          )
             (map-atom $arg-set $arg (List.index $labels $arg))))     
 
 
@@ -353,7 +354,7 @@
 ; (: removeLiteral (-> (Tree $a) Symbol (Tree $a)))
 
 (= (removeLiteral (mkTree (mkNode $node) $children) $symbol)
-    (if (is-member $node (AND OR NOT))
+    (if (once (is-member $node (AND OR NOT)))
         (mkTree (mkNode $node) (List.mapOverArg removeLiteral $children $symbol))
         (if (== $node $symbol)
             ()

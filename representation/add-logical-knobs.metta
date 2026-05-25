@@ -34,7 +34,6 @@
 
       ($pairs (pairKnobWithSpec $knobs))
       ($mmp (expToMMap $pairs $map discSpec<))
-      ($temp (cut))
      )
      ($updatedTree $mmp)))
 
@@ -51,11 +50,9 @@
       (($knobs $updatedTree) (logicalProbe (mkTree (mkNode $op) $children) $treePerms $addIfInExemplar))
       ;; ($_ (println! (addLogicalKnobs 5)))
       ($pairs (pairKnobWithSpec $knobs))
-      ($_ (cut))
       ;; ($_ (println! (addLogicalKnobs 6)))
       ($mmp (expToMMap $pairs $map discSpec<))
       ;; ($_ (println! (addLogicalKnobs 7)))
-      ($temp (cut))
      )
      ($updatedTree $mmp)
    )

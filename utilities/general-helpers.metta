@@ -111,7 +111,7 @@
         )
             ; Check if the $head is in set2, if so, skip it
 
-            (if (is-member $head $set2)
+            (if (once (is-member $head $set2))
                 $newtail 
                 ; Otherwise, add the head to the new tail, avoiding unnecessary parentheses
                 (if (== (get-metatype $newtail) Expression) (cons-atom $head $newtail) $head)  ; Avoid wrapping the head if it's already properly structured
@@ -218,7 +218,7 @@
 ; ;;          input ==> (False False False), output ==> False
 ; ;;          input ==> (False True False), output ==> True
 ; (: any (-> Atom Bool))
-(= (any $bools) (is-member True $bools))
+(= (any $bools) (once (is-member True $bools))) ;; is-member needs to be used in a once as it returns boolean value for all matches.
 
 ;; Fix curry is not working in petta 
 ;; ;; A trick to define `curry` in MeTTa without `lambda`
@@ -596,7 +596,7 @@
 
 ;; notNt -- check if a symbol is not a member of the non-terminal set
 
-(= (notMember $symbol $expr) (not (is-member $symbol $expr)))
+(= (notMember $symbol $expr) (not (once (is-member $symbol $expr)) ))
 
 ;; isValidExp -- to check if the boolean expression produced by genPhen is a valid bolean expression
 ;;          $exp -- an expression which is being checked for validity
@@ -619,7 +619,7 @@
 
 ;; a function that checks that all of the expressions are true.
 ; (: all (-> Expression Bool))
-(= (all $expressions) (if (is-member False $expressions) False True))
+(= (all $expressions) (if (once (is-member False $expressions)) False True))
 
 
 ;; Name:                        ===
