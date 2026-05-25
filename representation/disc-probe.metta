@@ -82,7 +82,7 @@
 ;; Return: The final list of allowed discrete specifications that reduce complexity.
 
 (= (probeEffectiveSettings $tree $probeRootId $lsk $setting $acc)
-   (let (mkMultip $m) (getRawKnobMultip $lsk)
+   (let (mkMultip $m) (getKnobMultip $lsk)
       (if (>= $setting $m)
           $acc
           (let $actualSetting (mapEffectiveDiscSpec $lsk $setting)
@@ -102,8 +102,8 @@
 (= (discProbe $tree $probeRootId $lsk)
    (let*
       (
-        ($dis (probeEffectiveSettings $tree $probeRootId $lsk 1 ()))
-        ((mkLSK (mkDiscKnob $k $m $default $current $_)) $lsk)
+        ((mkLSK (mkDiscKnob $k $m $default $current $oldDis)) $lsk)
+        ($dis (probeEffectiveSettings $tree $probeRootId $lsk 1 $oldDis))
       )
       (mkLSK (mkDiscKnob $k $m $default $current $dis))))
 
