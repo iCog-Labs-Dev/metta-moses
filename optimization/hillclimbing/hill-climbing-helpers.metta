@@ -143,9 +143,9 @@
        (mkSInst $inst2)
        (mkSInst $inst1)))
 
-(= (getDisk (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) $instSet $id))
-    $disc
-)
+(= (getDisk (mkDeme (mkRep (mkKbMap $kbMap (mkDscMp $disc)) $tree) $instSet $id)) $disc)
+(= (getDisk (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) $instSet $id)) $disc)
+
 (= (getTTableParams (mkTruthTableBScore $cpxCoeff $size $iTable))
     ($cpxCoeff $size $iTable)
 )
@@ -299,7 +299,7 @@
                                           (case $iTable
                                             (
                                               ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep $id (mkITable $rows $labels) $rowOCoeff))
-                                              ($ComplexityRatio ($transformFunction $updatedInstSet $rep ($rowOCoeff $size) $ComplexityRatio))
+                                              ($ComplexityRatio ($transformFunction $updatedInstSet $rep $id ($rowOCoeff $size) $ComplexityRatio))
                                             ))))
 
         ($updatedDeme (if (or (== $rep ()) (== $id ())) 
@@ -343,7 +343,6 @@
         ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (getPenScore $newBestSscore)))
         ;; ($_ (println! (Found newBestSscore After (+ 1 $i) iteration is: $newBestSscore $scoreToCompareBelow)))
         ;; ($_ (println! ""))
-        ($_ (cut))
     )
     (if (<= (- $maxEvals $newCurrentNInstance) 0)
         (trace! (Terminating because of maxEval ending) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
