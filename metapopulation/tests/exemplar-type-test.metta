@@ -2,36 +2,36 @@
 !(import! &self ../../../metta-moses/metapopulation/exemplar-type)
 
 ;; Exemplar initialization
-!(test (xmplrInit (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) (mkDemeId 1))
+!(test (xmplrInit (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) (mkDemeId 1))
     (mkXmplr 
-        (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))
+        (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ())))
         (mkDemeId 1) 
         (mkCscore 
             (mkScoreT (pow-math 10 -37))
             (mkComplexity 0)
             (mkScoreT 0)
             (mkScoreT (pow-math 10 -37)))
-        (mkBscore Nil)))
+        (mkBscore ())))
 !(test 
-    (xmplrInit (mkTree (mkTree (mkNode A) Nil)) (mkDemeId 2))
+    (xmplrInit (mkTree (mkTree (mkNode A) ())) (mkDemeId 2))
     (mkXmplr 
-        (mkTree (mkTree (mkNode A) Nil))
+        (mkTree (mkTree (mkNode A) ()))
         (mkDemeId 2) 
         (mkCscore 
             (mkScoreT (pow-math 10 -37))
             (mkComplexity 0)
             (mkScoreT 0)
             (mkScoreT (pow-math 10 -37)))
-        (mkBscore Nil)))
+        (mkBscore ())))
 
 !(test 
-    (xmplrInit (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil))) (mkDemeId 100))
+    (xmplrInit (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) (mkDemeId 100))
     (mkXmplr 
-        (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode B) Nil) Nil)))
+        (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ())))
         (mkDemeId 100) 
         (mkCscore 
             (mkScoreT (pow-math 10 -37))
             (mkComplexity 0)
             (mkScoreT 0)
             (mkScoreT (pow-math 10 -37)))
-        (mkBscore Nil)))
+        (mkBscore ())))

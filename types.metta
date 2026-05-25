@@ -1,6 +1,5 @@
 (: List type)
-(: Nil (List $t))
-(: Cons (-> $t (List $t) (List $t)))
+(: cons (-> $t (List $t) (List $t)))
 
 (: Signal Type)
 (: ReductionSignal Signal)

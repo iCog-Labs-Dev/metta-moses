@@ -180,7 +180,7 @@
     
 ;; (: hillClimbing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
 ;; $FsScorer should be passed using a `mkScorer` constructor other wise it will cause an error in PeTTa.
-;; ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $opponentPolicy $complexityRatio)))
+;; ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $complexityRatio)))
 (= (hillClimbing $POASet $tTableBscorer $centerInst (mkParams $scorer $FsScorer))
   (case (mkParams $scorer)
     (((mkParams applyComplexityBasedScore)
@@ -218,14 +218,15 @@
         (let*
           (
             ($disc (getDisk $POASet))
-            (($nGames $opponentPolicy $complexityRatio) $FsScorer)
+            (($nGames $complexityRatio) $FsScorer)
             ($targetPenScore (getPenScore $tTableBscorer))
-            ($_ (println! (Disc: $disc Games: $nGames Poilcy: $opponentPolicy Ratio: $complexityRatio) ) )
+            ;; Keep a non-empty sentinel in the third slot so the recursive
+            ;; strategy path still follows the non-feature-selection branches.
           )
           (hillClimbing (3 3 $targetPenScore)
                         (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
-                        ($disc $nGames $opponentPolicy $complexityRatio)
+                        ($disc $nGames strategy $complexityRatio) ;; INFO: `strategy` is used only as a non-empty marker so this recursive call follows the normal strategy branch instead of the feature-selection branch that is selected when the third slot is ().
                         $centerInst
                         ()
                         estimateNeighborhood crossover
@@ -248,13 +249,13 @@
         ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
         ;; ($_ (println! ""))
 
-        ($maxEvals 10000)
+        ($maxEvals 500)
         ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors)) ;; TODO: MaxEvals is hardcoded here, but should be changed. This is set to 20K by default in OpenCog Classic.
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
         ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
         ($_ (println! (Crossover: $xOver)))
-        ($_ (println! (CenterInst: (List.listToExpr (second $centerInst)) )))
+        ($_ (println! (CenterInst: (second $centerInst))))
         ($_ (println! (size: $size)))
         ;; ($_ (println! ($totalNNeighbors : $nNewNeighbors : $prevCenter : $POASet : $d)))
         ($_ (println! ($totalNNeighbors : $nNewNeighbors : $d)))
@@ -297,7 +298,7 @@
                                                                 $prePositive $scorerType)
                                           (case $iTable
                                             (
-                                              ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep (mkITable $rows $labels) $rowOCoeff))
+                                              ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep $id (mkITable $rows $labels) $rowOCoeff))
                                               ($ComplexityRatio ($transformFunction $updatedInstSet $rep ($rowOCoeff $size) $ComplexityRatio))
                                             ))))
 
@@ -312,7 +313,7 @@
         ;; ($_ (println! (Scored instances....)))
         ;; ($_ (println! ""))
 
-        ((mkSInst $newBestInstPair) (eval (List.foldl ((eval (curry2 returnBest)) <) (mkSInst (mkPair $centerInst $bestSscore)) $scoredInstances)))
+        ((mkSInst $newBestInstPair) (List.foldl hillScoreHelper (mkSInst (mkPair $centerInst $bestSscore)) $scoredInstances))
         ($newBestScore (if (or (== $rep ()) (== $id ())) 
                           (Pair.second $newBestInstPair)
                           (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
@@ -339,7 +340,7 @@
                                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
                                   ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentNInstances $newInstances (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
         
-        ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (getScore $newBestSscore)))
+        ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (getPenScore $newBestSscore)))
         ;; ($_ (println! (Found newBestSscore After (+ 1 $i) iteration is: $newBestSscore $scoreToCompareBelow)))
         ;; ($_ (println! ""))
         ($_ (cut))
@@ -392,6 +393,8 @@
      
     )          
 )
+
+(= (hillScoreHelper $inst1 $inst2) (returnBest < $inst1 $inst2))
 
 ;; Helper to get initial disc spec from a knob
 (= (getInitDiscSpec (mkLSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))) $init)

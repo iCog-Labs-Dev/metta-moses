@@ -29,19 +29,19 @@
 !(assertEqual
   (logicalSubtreeKnob
     (mkTree (mkNode AND)
-      (Cons (mkTree (mkNode A) Nil)
-        (Cons (mkTree (mkNode OR)
-                (Cons (mkTree (mkNode B) Nil)
-                  (Cons (mkTree (mkNode C) Nil) Nil))) Nil)))
+      (cons (mkTree (mkNode A) ())
+        (cons (mkTree (mkNode OR)
+                (cons (mkTree (mkNode B) ())
+                  (cons (mkTree (mkNode C) ()) ()))) ())))
     (mkNodeId (2))
-    (mkTree (mkNode D) Nil))
+    (mkTree (mkNode D) ()))
   (
-    (mkTree (mkNode AND) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode OR) (Cons (mkTree (mkNode B) Nil) (Cons (mkTree (mkNode C) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode D) Nil) Nil)) Nil)))) Nil)))
+    (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode C) ()) (cons (mkNullVex (cons (mkTree (mkNode D) ()) ())) ())))) ())))
     ( mkLSK
     (mkDiscKnob
       (mkKnob
         (mkNodeId (2 3)))
-      (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil))
+      (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
     ))
 
 
@@ -50,16 +50,16 @@
 !(assertEqual
   (logicalSubtreeKnob
     (mkTree (mkNode OR)
-      (Cons (mkTree (mkNode X) Nil)
-        (Cons (mkTree (mkNode Y) Nil)
-          (Cons (mkTree (mkNode Z) Nil) Nil))))
+      (cons (mkTree (mkNode X) ())
+        (cons (mkTree (mkNode Y) ())
+          (cons (mkTree (mkNode Z) ()) ()))))
     (mkNodeId (0))
-    (mkTree (mkNode Y) Nil))
+    (mkTree (mkNode Y) ()))
 
-  ((mkTree (mkNode OR) (Cons (mkTree (mkNode X) Nil) 
-                        (Cons (mkTree (mkNode Y) Nil) 
-                        (Cons (mkTree (mkNode Z) Nil) Nil)))) 
-    (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
+  ((mkTree (mkNode OR) (cons (mkTree (mkNode X) ()) 
+                        (cons (mkTree (mkNode Y) ()) 
+                        (cons (mkTree (mkNode Z) ()) ())))) 
+    (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
   )
 
 
@@ -68,41 +68,41 @@
 !(assertEqual
   (logicalSubtreeKnob
     (mkTree (mkNode AND)
-      (Cons (mkTree (mkNode A) Nil)
-        (Cons (mkNullVex
-                (Cons (mkTree (mkNode NOT)
-                        (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)))
+      (cons (mkTree (mkNode A) ())
+        (cons (mkNullVex
+                (cons (mkTree (mkNode NOT)
+                        (cons (mkTree (mkNode B) ()) ())) ())) ())))
     (mkNodeId (2))
-    (mkTree (mkNode B) Nil))
+    (mkTree (mkNode B) ()))
     ((mkTree (mkNode AND)
-      (Cons (mkTree (mkNode A) Nil)
-      (Cons (mkNullVex (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil))) 
-      (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
+      (cons (mkTree (mkNode A) ())
+      (cons (mkNullVex (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode B) ()) ())) ())) ()))) 
+      (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
        )
 
 ;; getNodeId test cases
-!(assertEqual (getNodeId (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 0))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil) )) (mkNodeId (1 0)))
-!(assertEqual (getNodeId (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 5))) (mkMultip 1) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (mkNodeId (3 5)))
+!(assertEqual (getNodeId (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 0))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) (mkNodeId (1 0)))
+!(assertEqual (getNodeId (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3 5))) (mkMultip 1) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (mkNodeId (3 5)))
 
 ;; getDiscSpec
-!(assertEqual (getDiscSpec (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 1) (mkDiscSpec 1) (mkDiscSpec 2) Nil) )) (1 2))
-!(assertEqual (getDiscSpec (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4 1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 1) Nil))) (0 1))
+!(assertEqual (getDiscSpec (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 1) (mkDiscSpec 1) (mkDiscSpec 2) ()) )) (1 2))
+!(assertEqual (getDiscSpec (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4 1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 1) ()))) (0 1))
 
 (= (tree1) (mkTree (mkNode AND)
-    (Cons (mkTree (mkNode A) Nil)
-      (Cons (mkTree (mkNode B) Nil) Nil))))
+    (cons (mkTree (mkNode A) ())
+      (cons (mkTree (mkNode B) ()) ()))))
 
 (= (tree2) (mkTree (mkNode OR)
-            (Cons (mkTree (mkNode A) Nil)
-            (Cons (mkNullVex
-                    (Cons (mkTree (mkNode OR)
-                             (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil))))
+            (cons (mkTree (mkNode A) ())
+            (cons (mkNullVex
+                    (cons (mkTree (mkNode OR)
+                             (cons (mkTree (mkNode B) ()) ())) ())) ()))))
 (= (tree3) (mkTree (mkNode OR)
-            (Cons (mkTree (mkNode A) Nil)
-            (Cons (mkTree (mkNode AND)
-                    (Cons (mkNullVex
-                            (Cons (mkTree (mkNode OR)
-                                    (Cons (mkTree (mkNode B) Nil) Nil)) Nil)) Nil)) Nil))))
+            (cons (mkTree (mkNode A) ())
+            (cons (mkTree (mkNode AND)
+                    (cons (mkNullVex
+                            (cons (mkTree (mkNode OR)
+                                    (cons (mkTree (mkNode B) ()) ())) ())) ())) ()))))
 ;; appendTo
 ;; invalid disc specification
 !(assertEqual
@@ -114,9 +114,9 @@
         (mkMultip 1)
         (mkDiscSpec 4)
         (mkDiscSpec 0)
-        Nil)
+        ())
       )
-    (mkTree (mkNode OR) Nil)
+    (mkTree (mkNode OR) ())
     (mkNodeId (0))
       4
     )
@@ -133,12 +133,12 @@
          (mkMultip 1)
          (mkDiscSpec 1)
          (mkDiscSpec 0)
-         Nil)
+         ())
       )
-    (mkNullVex  Nil)
+    (mkNullVex  ())
     (mkNodeId (0))
     1)
-    ((mkTree (mkNode AND) Nil) (mkNodeId (0)) (mkNodeId (1))))
+    ((mkTree (mkNode AND) ()) (mkNodeId (0)) (mkNodeId (1))))
 
 ; ;; Test case for insertion at a node
 ; ;; KnobSetting 2: (OR A) => (OR A (NOT (OR B)))
@@ -152,14 +152,14 @@
         (mkMultip 3)
         (mkDiscSpec 2)
         (mkDiscSpec 0)
-        Nil)
+        ())
       )
 
     (mkTree (mkNode OR)
-        (Cons (mkTree (mkNode A) Nil) Nil))
+        (cons (mkTree (mkNode A) ()) ()))
     (mkNodeId (0))
     2)
-    ((mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode OR) Nil) Nil)) Nil))) (mkNodeId (2 1)) (mkNodeId (2 1)))
+    ((mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode OR) ()) ())) ()))) (mkNodeId (2 1)) (mkNodeId (2 1)))
     )
 
 ;; KnobSetting 2: (OR A (AND)) => (OR A (AND (NOT (OR B))))
@@ -173,14 +173,14 @@
         (mkMultip 3)
         (mkDiscSpec 2)
         (mkDiscSpec 1)
-        Nil)
+        ())
         )
     (mkTree (mkNode OR)
-            (Cons (mkTree (mkNode A) Nil)
-            (Cons (mkTree (mkNode AND) Nil) Nil)))
+            (cons (mkTree (mkNode A) ())
+            (cons (mkTree (mkNode AND) ()) ())))
     (mkNodeId (2))
     2)
-    ((mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) (Cons (mkTree (mkNode AND) (Cons (mkTree (mkNode NOT) (Cons (mkTree (mkNode OR) Nil) Nil)) Nil)) Nil))) (mkNodeId (2 1 1)) (mkNodeId (2 1 1)))
+    ((mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode OR) ()) ())) ())) ()))) (mkNodeId (2 1 1)) (mkNodeId (2 1 1)))
 )
 
 
@@ -195,55 +195,55 @@
         (mkMultip 3)
         (mkDiscSpec 2)
         (mkDiscSpec 0)
-        Nil)
+        ())
       )
-    (mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil))
+    (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ()))
     (mkNodeId (0))
     0)
-    ((mkTree (mkNode OR) (Cons (mkTree (mkNode A) Nil) Nil)) (mkNodeId (0)) (mkNodeId (0))))
+    ((mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) (mkNodeId (0)) (mkNodeId (0))))
 
 ;; Testcase 1: When the game move subtree isn't found in the target's children list
 !(assertEqual
   (strategySubtreeKnob
     (mkTree (mkNode PRIORITIZED-OR)
-      (Cons (mkTree (mkNode playcenter) Nil)
-        (Cons (mkTree (mkNode playcorner) Nil) Nil)))
+      (cons (mkTree (mkNode playcenter) ())
+        (cons (mkTree (mkNode playcorner) ()) ())))
     (mkNodeId (0))
-    (mkTree (mkNode playblock) Nil))
+    (mkTree (mkNode playblock) ()))
   (
-    (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playcorner) Nil) (Cons (mkNullVex (Cons (mkTree (mkNode playblock) Nil) Nil)) Nil))))
-    (mkSSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))
+    (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkNullVex (cons (mkTree (mkNode playblock) ()) ())) ()))))
+    (mkSSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))
   ))
 
 ;; Testcase 2: When the game move subtree is found in the target's children list
 !(assertEqual
   (strategySubtreeKnob
     (mkTree (mkNode PRIORITIZED-OR)
-      (Cons (mkTree (mkNode playcenter) Nil)
-        (Cons (mkTree (mkNode playcorner) Nil)
-          (Cons (mkTree (mkNode playblock) Nil) Nil))))
+      (cons (mkTree (mkNode playcenter) ())
+        (cons (mkTree (mkNode playcorner) ())
+          (cons (mkTree (mkNode playblock) ()) ()))))
     (mkNodeId (0))
-    (mkTree (mkNode playcorner) Nil))
+    (mkTree (mkNode playcorner) ()))
   (
-    (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) 
-                        (Cons (mkTree (mkNode playcorner) Nil) 
-                        (Cons (mkTree (mkNode playblock) Nil) Nil))))
-    (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))
+    (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) 
+                        (cons (mkTree (mkNode playcorner) ()) 
+                        (cons (mkTree (mkNode playblock) ()) ()))))
+    (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))
   ))
 
 ;; getNodeId test cases for SSK
-!(assertEqual (getNodeId (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1 0))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil))) (mkNodeId (1 0)))
-!(assertEqual (getNodeId (mkSSK (mkDiscKnob (mkKnob (mkNodeId (3 5))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil))) (mkNodeId (3 5)))
+!(assertEqual (getNodeId (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1 0))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (mkNodeId (1 0)))
+!(assertEqual (getNodeId (mkSSK (mkDiscKnob (mkKnob (mkNodeId (3 5))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (mkNodeId (3 5)))
 
 ;; Game strategy trees for testing
 (= (gameTree1) (mkTree (mkNode PRIORITIZED-OR)
-    (Cons (mkTree (mkNode playcenter) Nil)
-      (Cons (mkTree (mkNode playcorner) Nil) Nil))))
+    (cons (mkTree (mkNode playcenter) ())
+      (cons (mkTree (mkNode playcorner) ()) ()))))
 
 (= (gameTree2) (mkTree (mkNode PRIORITIZED-OR)
-            (Cons (mkTree (mkNode playcenter) Nil)
-            (Cons (mkNullVex
-                    (Cons (mkTree (mkNode playblock) Nil) Nil)) Nil))))
+            (cons (mkTree (mkNode playcenter) ())
+            (cons (mkNullVex
+                    (cons (mkTree (mkNode playblock) ()) ())) ()))))
 
 ;; Test invalid disc specification for SSK (should not exceed 1)
 !(assertEqual
@@ -255,8 +255,8 @@
         (mkMultip 2)
         (mkDiscSpec 1)
         (mkDiscSpec 0)
-        Nil))
-    (mkTree (mkNode PRIORITIZED-OR) Nil)
+        ()))
+    (mkTree (mkNode PRIORITIZED-OR) ())
     (mkNodeId (0))
     2)
   (Error 2 "Invalid disc specification for strategy:- cannot exceed 1."))
@@ -271,11 +271,11 @@
          (mkMultip 2)
          (mkDiscSpec 1)
          (mkDiscSpec 0)
-         Nil))
-    (mkNullVex Nil)
+         ()))
+    (mkNullVex ())
     (mkNodeId (0))
     1)
-    ((mkTree (mkNode PRIORITIZED-OR) Nil) (mkNodeId (0)) (mkNodeId (1))))
+    ((mkTree (mkNode PRIORITIZED-OR) ()) (mkNodeId (0)) (mkNodeId (1))))
 
 ;; Test SSK KnobSetting 1: Present move
 !(assertEqual
@@ -287,12 +287,12 @@
         (mkMultip 2)
         (mkDiscSpec 1)
         (mkDiscSpec 0)
-        Nil))
+        ()))
     (mkTree (mkNode PRIORITIZED-OR)
-        (Cons (mkTree (mkNode playcenter) Nil) Nil))
+        (cons (mkTree (mkNode playcenter) ()) ()))
     (mkNodeId (0))
     1)
-    ((mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) (Cons (mkTree (mkNode playblock) Nil) Nil))) (mkNodeId (2 1)) (mkNodeId (2))))
+    ((mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playblock) ()) ()))) (mkNodeId (2 1)) (mkNodeId (2))))
 
 ;; Test SSK KnobSetting 0: Absent move (NullVex)
 !(assertEqual
@@ -304,8 +304,8 @@
         (mkMultip 2)
         (mkDiscSpec 0)
         (mkDiscSpec 0)
-        Nil))
-    (mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) Nil))
+        ()))
+    (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) ()))
     (mkNodeId (0))
     0)
-    ((mkTree (mkNode PRIORITIZED-OR) (Cons (mkTree (mkNode playcenter) Nil) Nil)) (mkNodeId (0)) (mkNodeId (0))))
+    ((mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) ())) (mkNodeId (0)) (mkNodeId (0))))

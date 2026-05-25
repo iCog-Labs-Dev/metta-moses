@@ -4,31 +4,39 @@
 (= (removeFromSpace $row $space) (remove-atom $space $row))
 
 ;  This function counts the total occurrences of variable $X in an expression non-deterministically.
+;; (= (findX $expr $x)
+;;     (if (== $expr ())
+;;         (empty)
+;;         (let $a (superpose $expr)
+;;             (if (or (== (get-metatype $a) Grounded) (== (get-metatype $a) Symbol))
+;;                 (if (== $a $x)
+;;                     1
+;;                     (empty)
+;;                 )
+;;                 (findX $a $x)
+;;             )
+;;         )
+;;     )
+;; )
+
 (= (findX $expr $x)
-    (if (== $expr ())
-        (empty)
-        (let $a (superpose $expr)
-            (if (or (== (get-metatype $a) Grounded) (== (get-metatype $a) Symbol))
-                (if (== $a $x)
-                    1
-                    (empty)
-                )
-                (findX $a $x)
-            )
-        )
-    )
-)
+   (if (is-member $x $expr)
+       True
+       (List.any (map-atom $expr $ex
+             (if (or (== (get-metatype $ex) Grounded) (== (get-metatype $ex) Symbol))
+                 (== $ex $x)
+                 (findX $ex $x))))))
 
  ;; Replaces variables in an expression with their corresponding truth values from the space.
  ;; If a variable is not found, it is replaced with undefined.
 (= (replaceWithTruth $expr $space $spaceContent)
     (if (== (get-metatype $expr) Expression) 
         (if (== (cdr-atom $expr) ()) ;; Special case: (A) → Should replace as a symbol
-            (collapse (replaceWithTruth (superpose $expr) $space $spaceContent))
+            (map-atom $expr $ex (replaceWithTruth $ex $space $spaceContent))
             (let* (
                 ($op (car-atom $expr))
                 ($tuple (cdr-atom $expr)) 
-                ($substitutedArgs (collapse (replaceWithTruth (superpose $tuple) $space $spaceContent)) )
+                ($substitutedArgs (map-atom $tuple $tp (replaceWithTruth $tp $space $spaceContent)))
                 ($tupleWithOp (cons-atom $op $substitutedArgs))
             )
                 $tupleWithOp
@@ -125,11 +133,11 @@
       (
         ($target (car-atom $row))
         ($inputs (cdr-atom $row))
-        ($add (collapse (let $z (superpose $inputs) (add-atom &space $z))) )
+        ($add (map-atom $inputs $z (add-atom &space $z)))
         ($replacedExpr (replaceWithTruth $expr &space (collapse (match &space $x $x))))
-        ($isFaulty  (collapse (findX $replacedExpr undefined)))  ;; Check if there are any undefined variables in the expression
-        ($evaluateuatedResult  (if (== $isFaulty ()) (evaluate $replacedExpr) null )) ;; No need to evaluate if there are undefined variables in the experession
-        ($remove (collapse (let $z (superpose $inputs) (remove-atom &space $z))) )
+        ($isFaulty  (findX $replacedExpr undefined))  ;; Check if there are any undefined variables in the expression
+        ($evaluateuatedResult  (if (not $isFaulty) (evaluate $replacedExpr) null )) ;; No need to evaluate if there are undefined variables in the experession
+        ($remove (map-atom $inputs $z (remove-atom &space $z)))
       )
       (if (== $evaluateuatedResult $target) 1 0)
       )
@@ -146,7 +154,7 @@
 (= (fitness $expr $data)
     (if (== $data ())
         0
-        (let $result (collapse (rowFitness $expr (superpose $data))) (sum $result))
+        (let $result (map-atom $data $d (rowFitness $expr $d)) (sum $result))
     )
 )
 

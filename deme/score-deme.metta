@@ -2,21 +2,15 @@
 ;; Converts a list of Instances into a list of Scored Instances using the complexityBasedScorer
 ;; Params:
 ;;   $rep: The representation object
-;;   (Cons $i $is): A list containing Instances
+;;   (cons $i $is): A list containing Instances
 ;;   $itable: The input table
 ;;   $complexityRatio: probability parameter
 ;;   $listOfScoredInst: accumulator containing the scoredInstances at each call
 ;; Returns:
 ;;   $listOfScoredInst: the final list containing scoredInstances
 ; (: applyComplexityBasedScore (-> Representation (List Instance) (ITable $a) Number (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
-(= (applyComplexityBasedScore $rep Nil $itable $complexityRatio) Nil)
-(= (applyComplexityBasedScore $rep (Cons $i $is) $itable $complexityRatio)
-(let*
-(
-    ($score (complexityBasedScorer $rep $i $itable $complexityRatio))
-    ($scoredInst (mkSInst (mkPair $i $score)))
-)
-(Cons $scoredInst (applyComplexityBasedScore $rep $is $itable $complexityRatio))))
+(= (applyComplexityBasedScore $rep $id $instances $itable $complexityRatio)
+    (map-atom $instances $i (mkSInst (mkPair $i (complexityBasedScorer $rep $id $i $itable $complexityRatio)))))
 
 ;; Strategy-based scoring helper for game strategies 
 ;; Params:
@@ -29,20 +23,18 @@
 ;; Returns:
 ;;   List of scored instances with CScore
 ; (: applyStrategyBasedScore (-> Representation (List Instance) Number $opponentPolicy Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
-(= (applyStrategyBasedScore $rep Nil $nGames $opponentPolicy $complexityRatio $listOfScoredInst) $listOfScoredInst)
-(= (applyStrategyBasedScore $rep (Cons $i $is) $nGames $opponentPolicy $complexityRatio $listOfScoredInst)
-(let*
-(
-    ($strategyTree (getCandidate $rep $i))
-    ;; ($_ (println! "[applyStrategyBasedScore] Got tree:"))
-    ($_ (println! $strategyTree))
-    ($cscore (getCscore $strategyTree $nGames $opponentPolicy $complexityRatio &strategyScoreCache))
-    ($_ (println! "[applyStrategyBasedScore] Got cscore:"))
-    ($_ (println! $cscore))
-    ($scoredInst (mkSInst (mkPair $i $cscore)))
-    ($uListofScoredInst (Cons $scoredInst $listOfScoredInst))
-)
-(applyStrategyBasedScore $rep $is $nGames $opponentPolicy $complexityRatio $uListofScoredInst)))
+(= (applyStrategyBasedScore $rep $id $instances $nGames $complexityRatio $listOfScoredInst)
+   (map-atom $instances $i
+    (let*
+    (
+        ($strategyTree (getCandidate $rep $id $i))
+        ;; ($_ (println! "[applyStrategyBasedScore] Got tree:"))
+        ;; ($_ (println! (GetCscore $strategyTree $nGames $opponentPolicy $complexityRatio &strategyScoreCache)))
+        ($cscore (getCscore $strategyTree $nGames $complexityRatio &strategyScoreCache))
+        ;; ($_ (println! "[applyStrategyBasedScore] Got cscore:"))
+        ;; ($_ (println! $cscore))
+    )
+    (mkSInst (mkPair $i $cscore)))))
 
 ;; Scores each instance in an InstanceSet. 
 ;; Params:
@@ -53,13 +45,13 @@
 ;; Returns:
 ;;   instanceSet: Scored InstanceSet
 ; (: transform (-> (InstanceSet $a) Representation (ITable Bool) Number (InstanceSet Cscore)))
-(= (transform (mkSInstSet $scoredInstList) $rep $scoringContext $complexityRatio)
+(= (transform (mkSInstSet $scoredInstList) $rep $id $scoringContext $complexityRatio)
    (let* (
           ($instList (List.map removeInstScore $scoredInstList))
           ($scored (case $scoringContext
                         (
-                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $instList $scoringContext $complexityRatio))
-                          (($nGames $opponentPolicy) (applyStrategyBasedScore $rep $instList $nGames $opponentPolicy $complexityRatio Nil)))))
+                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio))
+                          (($nGames) (applyStrategyBasedScore $rep $id $instList $nGames $complexityRatio ())))))
           )
   (mkSInstSet $scored)))
 
@@ -70,8 +62,8 @@
 ;;   $acc: Accumulator for indices where bit is 1.
 ;; Return: Indices as a tuple.
 ; (: bitsToIndices (-> (List Number) Number Tuple Tuple))
-(= (bitsToIndices Nil $index $acc) $acc)
-(= (bitsToIndices (Cons $bit $rest) $index $acc)
+(= (bitsToIndices () $index $acc) $acc)
+(= (bitsToIndices (cons $bit $rest) $index $acc)
    (chain (bitsToIndices $rest (+ $index 1) $acc) $nextAcc     
          (if (== $bit 1)
              (cons-atom $index $nextAcc)
@@ -80,18 +72,18 @@
 ;; similar to the above 'applyComplexityBasedScore' but uses the mutualInformation based scoring for features selection
 ;; Applies mutual information based scoring to a list of Instances.
 ;; Params:
-;;   (Cons (mkInst $i) $is): List of Instances.
+;;   (cons (mkInst $i) $is): List of Instances.
 ;;   (mkITable $rows $labels): Input table with rows and labels.
 ;;   $listOfScoredInst: Accumulator for Scored Instances.
 ;; Returns:
 ;;   List of Scored Instances with mutual information based scores.
 ; (: applyMutualInformationBasedScore (-> (List Instance) (ITable $a) (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
-(= (applyMutualInformationBasedScore Nil (mkITable $rows $labels) $miConfi $listOfScoredInst) 
+(= (applyMutualInformationBasedScore () (mkITable $rows $labels) $miConfi $listOfScoredInst) 
    ;; (trace! (Returning $listOfScoredInst)
            $listOfScoredInst
    ;; )
 )
-(= (applyMutualInformationBasedScore (Cons (mkInst $i) $is) (mkITable $rows $labels) $miConf $listOfScoredInst)
+(= (applyMutualInformationBasedScore (cons (mkInst $i) $is) (mkITable $rows $labels) $miConf $listOfScoredInst)
 (let*
 (
     ($targetColumn (Table.getOutputColumn (mkITable $rows $labels)))
@@ -103,7 +95,7 @@
     ($confidence (calculateConfidence (size-atom $indices) (List.length $rows) $miConf))
     ($scoreConfi (* $score $confidence))
     ($scoredInst (mkSInst (mkPair (mkInst $i) $scoreConfi)))
-    ($uListofScoredInst (Cons $scoredInst $listOfScoredInst))
+    ($uListofScoredInst (cons $scoredInst $listOfScoredInst))
 )
 (applyMutualInformationBasedScore $is (mkITable $rows $labels) $miConf $uListofScoredInst)))
 
@@ -143,8 +135,8 @@
 ;;   $acc (List ScoredInstance) → Accumulator for results
 ;; Returns: (List ScoredInstance) → List of instances with precision scores
 ; (: applyPrecisionBasedScore (-> (List Instance) ITable Number Number Number Number Bool (List (ScoredInstance Number)) (List (ScoredInstance Number))))
-(= (applyPrecisionBasedScore Nil $itable $confi $prePenalty $preMinActivation $preMaxActivation $prePositive $acc) $acc)
-(= (applyPrecisionBasedScore (Cons (mkInst $bits) $rest) $itable $confi $prePenalty $preMinActivation $preMaxActivation $prePositive $acc)
+(= (applyPrecisionBasedScore () $itable $confi $prePenalty $preMinActivation $preMaxActivation $prePositive $acc) $acc)
+(= (applyPrecisionBasedScore (cons (mkInst $bits) $rest) $itable $confi $prePenalty $preMinActivation $preMaxActivation $prePositive $acc)
     (let* (
            ;; Convert bits to feature indices
            ($featureIndices (bitsToIndices $bits 0 ()))
@@ -152,7 +144,7 @@
            ($score (preScorer $featureIndices $itable $prePenalty $preMinActivation $preMaxActivation $prePositive $confi))
            ;; Create scored instance
            ($scoredInst (mkSInst (mkPair (mkInst $bits) $score)))
-           ($newAcc (Cons $scoredInst $acc))
+           ($newAcc (cons $scoredInst $acc))
         )
         ;; Recurse on remaining instances
         (applyPrecisionBasedScore $rest $itable $confi $prePenalty $preMinActivation $preMaxActivation $prePositive $newAcc)
@@ -177,13 +169,13 @@
             (case $scorerType
                 (
                     (mi
-                        (applyMutualInformationBasedScore $instList $itable $miConf Nil)
+                        (applyMutualInformationBasedScore $instList $itable $miConf ())
                     )
                     (pre
-                        (applyPrecisionBasedScore $instList $itable $miConf $prePenalty $preMinActivation $preMaxActivation $prePositive Nil)
+                        (applyPrecisionBasedScore $instList $itable $miConf $prePenalty $preMinActivation $preMaxActivation $prePositive ())
                     )
                     ($else 
-                        (applyMutualInformationBasedScore $instList $itable $miConf Nil)
+                        (applyMutualInformationBasedScore $instList $itable $miConf ())
                     ) 
                 )
             )

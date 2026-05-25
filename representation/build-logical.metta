@@ -10,8 +10,8 @@
 ;;       $argLabels: list of argument labels (input variables) from the ITable
 ;; Return: Updated tree and multimap.
 ;; (: siblingit (-> (Tree $a) (List (Tree $a)) NodeId Number Symbol (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v)))))
-(= (siblingit $tree Nil (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels) ($tree $MMap))
-(= (siblingit $tree (Cons $head $tail) (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels)
+(= (siblingit $tree () (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels) ($tree $MMap))
+(= (siblingit $tree (cons $head $tail) (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels)
         (let*
              (
                 ;; ($_ (println! "siblingit called"))
@@ -62,12 +62,12 @@
             ;; ($_ (println! ("Building logical knobs for NodeId: " $nodeId " with operator: " $op " swapped to: " $swapped)))
             ;; ($_ (println! (Adding knobs to (List.length $childrens) childs)))
             ;; INFO: An attempt to replicate opencog's behavior but limits the quality drastically
-            ;; (($sibToIterate $sibToConcat) (if (= $childrens Nil)
-            ;;                                   (Nil Nil)
+            ;; (($sibToIterate $sibToConcat) (if (= $childrens ())
+            ;;                                   (() ())
             ;;                                   (let (mkTree (mkNode $x) $grandChildren) (List.head $childrens) 
-            ;;                                        (if (and (isAnArgument $x) (= $grandChildren Nil))
-            ;;                                            ((Cons (List.head $childrens) Nil) (List.tail $childrens))
-            ;;                                            ($childrens Nil)))))
+            ;;                                        (if (and (isAnArgument $x) (= $grandChildren ()))
+            ;;                                            ((cons (List.head $childrens) ()) (List.tail $childrens))
+            ;;                                            ($childrens ())))))
             ;; ($_ (println! (SibToIterate: $sibToIterate SibToConcat: $sibToConcat)))
 
             (($updatedTree $updatedMMap) (siblingit $t1 $childrens (mkNodeId $nodeId) 1 $swapped $mp1 $argLabels))
@@ -75,8 +75,8 @@
             ;; (($childrenUpdatedTree $lastNewId) (eval (List.foldl (|-> ($childToAppend ($treeAcc $newId)) (appendChild $treeAcc (mkNodeId $nodeId) $childToAppend)) ($updatedTree (mkNodeId $nodeId))  $sibToConcat)))
             ;;$append (appendChild $updatedTree $nodeId (mkNode $filp)))                                 ;; this part will add much complexity to the tree, not worth the cost
 
-            (($appendedTree $newId) (appendChild $updatedTree (mkNodeId $nodeId) (mkTree (mkNode $swapped) Nil)))
-            ;; (($appendedTree $newId) (appendChild $childrenUpdatedTree (mkNodeId $nodeId) (mkTree (mkNode $swapped) Nil)))
+            (($appendedTree $newId) (appendChild $updatedTree (mkNodeId $nodeId) (mkTree (mkNode $swapped) ())))
+            ;; (($appendedTree $newId) (appendChild $childrenUpdatedTree (mkNodeId $nodeId) (mkTree (mkNode $swapped) ())))
             (($lastUpdatedTree $lastMp1) (addLogicalKnobs $appendedTree $newId True $updatedMMap $argLabels))
         )
             ($lastUpdatedTree $lastMp1)))))

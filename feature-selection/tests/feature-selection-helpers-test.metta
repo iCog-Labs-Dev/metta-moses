@@ -3,10 +3,10 @@
 !(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
 
 ;; Test
-!(assertEqual (List.at 0 (Cons True (Cons False Nil))) True)
-!(assertEqual (List.at 1 (Cons True (Cons False Nil))) False)
-!(assertEqual (List.at 2 (Cons True (Cons False Nil))) (Error Nil "Empty List"))
-!(assertEqual (List.at 0 Nil) (Error Nil "Empty List"))
+!(assertEqual (List.at 0 (cons True (cons False ()))) True)
+!(assertEqual (List.at 1 (cons True (cons False ()))) False)
+!(assertEqual (List.at 2 (cons True (cons False ()))) (Error () "Empty List"))
+!(assertEqual (List.at 0 ()) (Error () "Empty List"))
 
 ;; Test
 !(assertEqual (patternExists (True 1) ()) False)
@@ -30,35 +30,35 @@
 !(assertEqual (takeN 5 (True False)) (True False))
 !(assertEqual (takeN 3 ()) ())
 ; ;; Test
-!(assertEqual (List.uniqueValuesCount Nil ()) ()) ;; ?? is this really what I expect? if the list is empty
-!(assertEqual (List.uniqueValuesCount (Cons True (Cons False (Cons True Nil))) ()) ((True 2) (False 1)))
-!(assertEqual (List.uniqueValuesCount (Cons False (Cons False (Cons True (Cons True (Cons True Nil))))) ()) ((False 2) (True 3)))
-!(assertEqual (List.uniqueValuesCount (Cons True (Cons True (Cons True (Cons False Nil)))) ()) ((True 3) (False 1)))
+!(assertEqual (List.uniqueValuesCount () ()) ()) ;; ?? is this really what I expect? if the list is empty
+!(assertEqual (List.uniqueValuesCount (cons True (cons False (cons True ()))) ()) ((True 2) (False 1)))
+!(assertEqual (List.uniqueValuesCount (cons False (cons False (cons True (cons True (cons True ()))))) ()) ((False 2) (True 3)))
+!(assertEqual (List.uniqueValuesCount (cons True (cons True (cons True (cons False ())))) ()) ((True 3) (False 1)))
 
 ;; Test
 (= (itable) 
-    (Cons (Cons True (Cons False (Cons True Nil))) 
-    (Cons (Cons False (Cons True (Cons False Nil))) Nil)))
+    (cons (cons True (cons False (cons True ()))) 
+    (cons (cons False (cons True (cons False ()))) ())))
 
-!(assertEqual (Table.getColumn 0 Nil) Nil)
-!(assertEqual (Table.getColumn 0 (itable)) (Cons True (Cons False Nil)))
-!(assertEqual (Table.getColumn 1 (itable)) (Cons False (Cons True Nil)))
-!(assertEqual (Table.getColumn 2 (itable)) (Cons True (Cons False Nil)))
+!(assertEqual (Table.getColumn 0 ()) ())
+!(assertEqual (Table.getColumn 0 (itable)) (cons True (cons False ())))
+!(assertEqual (Table.getColumn 1 (itable)) (cons False (cons True ())))
+!(assertEqual (Table.getColumn 2 (itable)) (cons True (cons False ())))
 
 ;; Testcase for Table.getOutputColumn
 !(assertEqual
-    (Table.getOutputColumn (mkITable (Cons (Cons True (Cons False (Cons False Nil))) 
-                                      (Cons (Cons False (Cons True (Cons False Nil))) 
-                                      (Cons (Cons True (Cons True (Cons False Nil))) 
-                                      Nil)))
-                                      (Cons A (Cons B (Cons O Nil)))))                              
-    (Cons False (Cons False (Cons False Nil))))
+    (Table.getOutputColumn (mkITable (cons (cons True (cons False (cons False ()))) 
+                                      (cons (cons False (cons True (cons False ()))) 
+                                      (cons (cons True (cons True (cons False ()))) 
+                                      ())))
+                                      (cons A (cons B (cons O ())))))                              
+    (cons False (cons False (cons False ()))))
 
 ;; Test
-!(assertEqual (Table.pop 0 Nil) Nil)
+!(assertEqual (Table.pop 0 ()) ())
 !(assertEqual (Table.pop 0 (itable)) 
-        (Cons (Cons False (Cons True Nil)) 
-        (Cons (Cons True (Cons False Nil)) Nil)))
+        (cons (cons False (cons True ())) 
+        (cons (cons True (cons False ())) ())))
 
 
 ;; Test lexicographic ordering of featureSets
@@ -77,11 +77,11 @@
 !(assertEqual (marginalProbs 1 ((Z 1))) ((Z 1)))
 !(assertEqual (marginalProbs 100 ()) ())
 
-!(assertEqual (mutualInformation (Cons True (Cons False Nil)) (Cons True (Cons False Nil))) 1.0)
-!(assertEqual (mutualInformation (Cons True (Cons True Nil)) (Cons False (Cons False Nil))) 0.0)
-!(assertEqual (mutualInformation (Cons A (Cons B (Cons A Nil))) (Cons X (Cons Y (Cons X Nil)))) 0.918)
-!(assertEqual (mutualInformation (Cons A (Cons A (Cons A Nil))) (Cons X (Cons Y (Cons Z Nil)))) 0.0)
-!(assertEqual (mutualInformation (Cons A (Cons B (Cons C Nil))) (Cons X (Cons Y (Cons Z Nil)))) 1.585)
+!(assertEqual (mutualInformation (cons True (cons False ())) (cons True (cons False ()))) 1.0)
+!(assertEqual (mutualInformation (cons True (cons True ())) (cons False (cons False ()))) 0.0)
+!(assertEqual (mutualInformation (cons A (cons B (cons A ()))) (cons X (cons Y (cons X ())))) 0.918)
+!(assertEqual (mutualInformation (cons A (cons A (cons A ()))) (cons X (cons Y (cons Z ())))) 0.0)
+!(assertEqual (mutualInformation (cons A (cons B (cons C ()))) (cons X (cons Y (cons Z ())))) 1.585)
 
 !(assertEqual (insertPair > (2 1) ((4 0) (1 3))) ((4 0) (2 1) (1 3)))                   ;; fist value is score and second one feature index
 !(assertEqual (insertPair > (2 1) ((4 0) (2 4) (1 3))) ((4 0) (2 1) (2 4) (1 3)))       
@@ -113,39 +113,39 @@
 !(assertEqual (sortPairs pairMax ((0.7 (M)) (0.4 (N)) (0.9 (O)) (0.1 (P))) 3 ()) ((0.9 (O)) (0.7 (M)) (0.4 (N))))
 
 (= (table2) 
-            (Cons (Cons True (Cons True (Cons False (Cons True (Cons True Nil)))))
-            (Cons (Cons True (Cons False (Cons False (Cons True (Cons True Nil)))))
-            (Cons (Cons False (Cons True (Cons False (Cons True (Cons False Nil)))))
-            (Cons (Cons False (Cons False (Cons False (Cons True (Cons False Nil))))) Nil)))))
+            (cons (cons True (cons True (cons False (cons True (cons True ())))))
+            (cons (cons True (cons False (cons False (cons True (cons True ())))))
+            (cons (cons False (cons True (cons False (cons True (cons False ())))))
+            (cons (cons False (cons False (cons False (cons True (cons False ()))))) ())))))
 
-!(assertEqual (zipColumn (1 3) (table2)) (Cons (True True) (Cons (False True) (Cons (True True) (Cons (False True) Nil)))))
-!(assertEqual (zipColumn (0 1 4) (table2)) (Cons (True True True) (Cons (True False True) (Cons (False True False) (Cons (False False False) Nil)))))
-!(assertEqual (zipColumn (2) (table2)) (Cons (False) (Cons (False) (Cons (False) (Cons (False) Nil))))) 
+!(assertEqual (zipColumn (1 3) (table2)) (cons (True True) (cons (False True) (cons (True True) (cons (False True) ())))))
+!(assertEqual (zipColumn (0 1 4) (table2)) (cons (True True True) (cons (True False True) (cons (False True False) (cons (False False False) ())))))
+!(assertEqual (zipColumn (2) (table2)) (cons (False) (cons (False) (cons (False) (cons (False) ()))))) 
 
 ; !(assertEqual (let $r (logMath 2 8) (- $r 3))  0.0)
 ; !(assertEqual (let $r (logMath 10 1000) (- $r 3))  0.0)
 
 (= (table1) 
     (mkITable
-        (Cons (Cons True (Cons False (Cons True Nil))) 
-        (Cons (Cons False (Cons True (Cons False Nil))) Nil))
-        (Cons A (Cons B (Cons O Nil)))))
+        (cons (cons True (cons False (cons True ()))) 
+        (cons (cons False (cons True (cons False ()))) ()))
+        (cons A (cons B (cons O ())))))
 
 !(assertEqual (filterTable (0) (table1)) 
                     (mkITable 
-                            (Cons (Cons False (Cons True Nil)) 
-                            (Cons (Cons True (Cons False Nil)) Nil)) 
-                            (Cons B (Cons O Nil)))) 
+                            (cons (cons False (cons True ())) 
+                            (cons (cons True (cons False ())) ())) 
+                            (cons B (cons O ())))) 
 !(assertEqual (filterTable (1) (table1)) 
                     (mkITable 
-                            (Cons (Cons True (Cons True Nil)) 
-                            (Cons (Cons False (Cons False Nil)) Nil)) 
-                            (Cons A (Cons O Nil)))) 
+                            (cons (cons True (cons True ())) 
+                            (cons (cons False (cons False ())) ())) 
+                            (cons A (cons O ())))) 
 !(assertEqual (filterTable (0 1) (table1)) 
                     (mkITable 
-                            (Cons (Cons True Nil)
-                            (Cons (Cons False Nil) Nil))
-                            (Cons O Nil)))
+                            (cons (cons True ())
+                            (cons (cons False ()) ()))
+                            (cons O ())))
 
 ;; test for incremental selection Utility functions
 !(assertEqual  (set ((A B) (B A) (C D)) ())  ((A B) (C D)))
@@ -170,16 +170,16 @@
 !(assertEqual (isWithin 1.0 1.005 0.01) True)      ;; Small difference
 !(assertEqual (isWithin 5.0 5.1 0.05) False)       ;; Difference too large
 
-!(assertEqual (getInputLabels (Cons A (Cons B (Cons O Nil)))) (B A))                            
-!(assertEqual (getInputLabels (Cons A Nil)) ())                            
+!(assertEqual (getInputLabels (cons A (cons B (cons O ())))) (B A))                            
+!(assertEqual (getInputLabels (cons A ())) ())                            
 
-!(assertEqual (fsToNames (Cons A (Cons B (Cons C Nil))) (1)) (B))
-!(assertEqual (fsToNames (Cons A (Cons B (Cons C Nil))) ()) ())
+!(assertEqual (fsToNames (cons A (cons B (cons C ()))) (1)) (B))
+!(assertEqual (fsToNames (cons A (cons B (cons C ()))) ()) ())
 
-!(assertEqual (readjustIndices ((0.9 (0 2))) (Cons A (Cons B (Cons C (Cons D Nil)))) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.9 (0 2))))
-!(assertEqual (readjustIndices ((0.8 (0 1))) (Cons A (Cons C Nil)) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.8 (0 2))))
-!(assertEqual (readjustIndices ((0.6 (0 2)) (0.4 (1))) (Cons B (Cons C (Cons D Nil))) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.6 (1 3)) (0.4 (2))))
-!(assertEqual (readjustIndices ((0.4 (1)) (0.5 (1 2))) (Cons A (Cons C (Cons D Nil))) (Cons A (Cons B (Cons C (Cons D Nil))))) ((0.4 (2)) (0.5 (2 3))))
+!(assertEqual (readjustIndices ((0.9 (0 2))) (cons A (cons B (cons C (cons D ())))) (cons A (cons B (cons C (cons D ()))))) ((0.9 (0 2))))
+!(assertEqual (readjustIndices ((0.8 (0 1))) (cons A (cons C ())) (cons A (cons B (cons C (cons D ()))))) ((0.8 (0 2))))
+!(assertEqual (readjustIndices ((0.6 (0 2)) (0.4 (1))) (cons B (cons C (cons D ()))) (cons A (cons B (cons C (cons D ()))))) ((0.6 (1 3)) (0.4 (2))))
+!(assertEqual (readjustIndices ((0.4 (1)) (0.5 (1 2))) (cons A (cons C (cons D ()))) (cons A (cons B (cons C (cons D ()))))) ((0.4 (2)) (0.5 (2 3))))
 
 
 ; Test of CalculateConfidence

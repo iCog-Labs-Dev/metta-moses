@@ -7,33 +7,33 @@
 
 (= (andTable) 
    (mkITable
-     (Cons (Cons True (Cons True (Cons True Nil)))
-     (Cons (Cons True (Cons False (Cons False Nil)))
-     (Cons (Cons False (Cons True (Cons False Nil)))
-     (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
-     (Cons A (Cons B (Cons Output Nil)))))
+     (cons (cons True (cons True (cons True ())))
+     (cons (cons True (cons False (cons False ())))
+     (cons (cons False (cons True (cons False ())))
+     (cons (cons False (cons False (cons False ()))) ()))))
+     (cons A (cons B (cons Output ())))))
 
 (= (complexTable) 
     (mkITable 
-        (Cons (Cons False (Cons False (Cons True (Cons True (Cons True Nil)))))
-        (Cons (Cons True (Cons False (Cons False (Cons True (Cons True Nil)))))
-        (Cons (Cons False (Cons True (Cons False (Cons True (Cons False Nil)))))
-        (Cons (Cons False (Cons False (Cons False (Cons True (Cons False Nil))))) Nil))))
-        (Cons A (Cons B (Cons C (Cons D (Cons Output Nil)))))))
+        (cons (cons False (cons False (cons True (cons True (cons True ())))))
+        (cons (cons True (cons False (cons False (cons True (cons True ())))))
+        (cons (cons False (cons True (cons False (cons True (cons False ())))))
+        (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
+        (cons A (cons B (cons C (cons D (cons Output ())))))))
 
 (= (xorTable) (mkITable
-    (Cons (Cons True  (Cons True  (Cons False Nil)))
-    (Cons (Cons True  (Cons False (Cons True  Nil)))
-    (Cons (Cons False (Cons True  (Cons True  Nil)))
-    (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
-    (Cons A (Cons B (Cons Output Nil)))))
+    (cons (cons True  (cons True  (cons False ())))
+    (cons (cons True  (cons False (cons True  ())))
+    (cons (cons False (cons True  (cons True  ())))
+    (cons (cons False (cons False (cons False ()))) ()))))
+    (cons A (cons B (cons Output ())))))
 
 (= (redundantTable) (mkITable 
-    (Cons (Cons True  (Cons True  (Cons True  Nil)))
-    (Cons (Cons True  (Cons True  (Cons True  Nil)))
-    (Cons (Cons False (Cons False (Cons False Nil)))
-    (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
-    (Cons A (Cons B (Cons Output Nil)))))
+    (cons (cons True  (cons True  (cons True  ())))
+    (cons (cons True  (cons True  (cons True  ())))
+    (cons (cons False (cons False (cons False ())))
+    (cons (cons False (cons False (cons False ()))) ()))))
+    (cons A (cons B (cons Output ())))))
 
 ;; Mutual Information calculations
 !(assertEqual (calculateMutualInformation (andTable) (0)) 0.311)      ;; Single feature A
@@ -46,51 +46,51 @@
 
 
 ;; High MI combinations pass threshold
-!(assertEqual (filterRelevantCombinations (xorTable) (ConsOS (0 1) NilOS) 0.1 NilOS) 
-               (ConsOS 0 (ConsOS 1 NilOS)))
-!(assertEqual (filterRelevantCombinations (andTable) (ConsOS (0 1) NilOS) 0.1 NilOS) 
-               (ConsOS 0 (ConsOS 1 NilOS)))
+!(assertEqual (filterRelevantCombinations (xorTable) (cons (0 1) ()) 0.1 ()) 
+               (cons 0 (cons 1 ())))
+!(assertEqual (filterRelevantCombinations (andTable) (cons (0 1) ()) 0.1 ()) 
+               (cons 0 (cons 1 ())))
 ;; Single features below threshold (should return empty set)
-!(assertEqual (filterRelevantCombinations (xorTable) (ConsOS (0) (ConsOS (1) NilOS)) 0.1 NilOS) 
-               NilOS)  ;; XOR single features have 0 MI < 0.1
+!(assertEqual (filterRelevantCombinations (xorTable) (cons (0) (cons (1) ())) 0.1 ()) 
+               ())  ;; XOR single features have 0 MI < 0.1
 ;; Mixed threshold test - only some combinations pass
-!(assertEqual (filterRelevantCombinations (andTable) (ConsOS (0) (ConsOS (1) NilOS)) 0.4 NilOS) 
-               NilOS)  ;; Both single features have MI 0.311 < 0.4
+!(assertEqual (filterRelevantCombinations (andTable) (cons (0) (cons (1) ())) 0.4 ()) 
+               ())  ;; Both single features have MI 0.311 < 0.4
 
 ;; All combinations pass very low threshold
-!(assertEqual (filterRelevantCombinations (complexTable) (ConsOS (0 1) NilOS) 0.0 NilOS) 
-               (ConsOS 0 (ConsOS 1 NilOS)))
+!(assertEqual (filterRelevantCombinations (complexTable) (cons (0 1) ()) 0.0 ()) 
+               (cons 0 (cons 1 ())))
 ;; No redundancy in XOR table
-!(assertEqual (findRedundantSubsets (xorTable) (ConsOS 0 (ConsOS 1 NilOS)) 0.1 1) NilOS)
+!(assertEqual (findRedundantSubsets (xorTable) (cons 0 (cons 1 ())) 0.1 1) ())
 ;; Detect redundancy in redundantTable (A and B are identical)
-!(assertEqual (findRedundantSubsets (redundantTable) (ConsOS 0 (ConsOS 1 NilOS)) 0.1 1) 
-              (ConsOS 1 NilOS))  ;; Feature B (index 1) is redundant
+!(assertEqual (findRedundantSubsets (redundantTable) (cons 0 (cons 1 ())) 0.1 1) 
+              (cons 1 ()))  ;; Feature B (index 1) is redundant
 ;; No redundancy with very strict threshold
-!(assertEqual (findRedundantSubsets (andTable) (ConsOS 0 (ConsOS 1 NilOS)) 0.000001 1) NilOS)
+!(assertEqual (findRedundantSubsets (andTable) (cons 0 (cons 1 ())) 0.000001 1) ())
 ;; Test with more features
-!(assertEqual (findRedundantSubsets (complexTable) (ConsOS 0 (ConsOS 1 (ConsOS 2 NilOS))) 0.1 1) 
-               (ConsOS 1 NilOS))  
+!(assertEqual (findRedundantSubsets (complexTable) (cons 0 (cons 1 (cons 2 ()))) 0.1 1) 
+               (cons 1 ()))  
 
 ;; Single subset case
-!(assertEqual (findBestSubset (xorTable) (ConsOS (0 1) NilOS) () -1) 
-               (Cons (0 1) (Cons 1.0 Nil)))
+!(assertEqual (findBestSubset (xorTable) (cons (0 1) ()) () -1) 
+               (cons (0 1) (cons 1.0 ())))
 ;; Multiple subsets - should pick the best
-!(assertEqual (findBestSubset (andTable) (ConsOS (0) (ConsOS (1) NilOS)) () -1) 
-             (Cons (0) (Cons 0.311 Nil)))    ;; Both have same MI, first one returned
+!(assertEqual (findBestSubset (andTable) (cons (0) (cons (1) ())) () -1) 
+             (cons (0) (cons 0.311 ())))    ;; Both have same MI, first one returned
 
 
 ;; Test with redundancy removal
-!(assertEqual (incrementalIterator (redundantTable) (ConsOS 0 (ConsOS 1 NilOS)) 0.8 1 0.5 1 NilOS) 
-            (ConsOS 0 NilOS))  ;; Only one feature after redundancy removal
+!(assertEqual (incrementalIterator (redundantTable) (cons 0 (cons 1 ())) 0.8 1 0.5 1 ()) 
+            (cons 0 ()))  ;; Only one feature after redundancy removal
 
 ;; Target size selection
 !(assertEqual (adaptiveSelection (complexTable) 2 3 0.4 0.0 1.0 0.01) 
-              (ConsOS 0 (ConsOS 2 NilOS)))  ;; Should find ~2 features
+              (cons 0 (cons 2 ())))  ;; Should find ~2 features
 ;; Target size larger than available features
 !(assertEqual (adaptiveSelection (xorTable) 5 3 0.4 0.0 1.0 0.01) 
-                (ConsOS 0 (ConsOS 1 NilOS)))  ;; Can't exceed available features
+                (cons 0 (cons 1 ())))  ;; Can't exceed available features
 ;; Target size of 0 - should return empty set
-!(assertEqual (adaptiveSelection (xorTable) 0 3 0.4 0.0 1.0 0.01) NilOS)
+!(assertEqual (adaptiveSelection (xorTable) 0 3 0.4 0.0 1.0 0.01) ())
 
 ;; MAIN INTERFACE TESTS
 ;; XOR table with low threshold - both features needed

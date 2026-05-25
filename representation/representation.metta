@@ -1,4 +1,3 @@
-  
 ;; (: DiscKnobMap Type)
 ;; (: mkDscMp (-> (MultiMap (DiscSpec $knob)) DiscMap))
 ;; (: mkDscKbMp (-> (Map (NodeId Number)) DiscKnobMap))
@@ -12,8 +11,8 @@
 ;; Params: DiscMap
 ;; Returns: DiscKnobMap
 ;; (: crtDiscKnobMap (-> DiscMap DiscKnobMap Number DiscKnobMap))
-(= (crtDiscKnobMap (mkDscMp NilMMap) (mkDscKbMp $dkm) $index) (mkDscKbMp $dkm))
-(= (crtDiscKnobMap (mkDscMp (ConsMMap ($kbSpec $kb) $tail)) (mkDscKbMp $dkm) $index)
+(= (crtDiscKnobMap (mkDscMp ()) (mkDscKbMp $dkm) $index) (mkDscKbMp $dkm))
+(= (crtDiscKnobMap (mkDscMp (cons ($kbSpec $kb) $tail)) (mkDscKbMp $dkm) $index)
    (let*
    (
     ($loc (getKnobLoc $kb))
@@ -29,8 +28,8 @@
 ; (= (representation $exemplar $argLabels)
 ; (let*
 ; (
-;     (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap $argLabels))
-;     ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
+;     (($updatedTree $dscMp) (buildKnobs $exemplar () $argLabels))
+;     ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
 ; )   
 ; (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
 ; ))
@@ -40,18 +39,16 @@
 ;;(: representation (-> (Tree $a) Number (List Representation)))
 (= (representation $exemplar $nDeme)
    (let* (
-      ($demeCount (range 0 1 $nDeme))
-     
-      ($result (collapse (let $x (superpose $demeCount)
-         (let*
-            (
-               (($updatedTree $dscMp) (buildKnobs $exemplar NilMMap ()))
-               ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0))
-               ($rep (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree))
-            )   
-               $rep))))
-   )
-   $result))
+          ($demeCount (range 0 1 $nDeme))
+        
+          ($result (map-atom $demeCount $x 
+                      (let*
+                        (
+                          (($updatedTree $dscMp) (buildKnobs $exemplar () ()))
+                          ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
+                          ($rep (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))   
+                          $rep))))
+         $result))
 ;; (: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol Expression))
 (= (representation
 ;; Boolean representation constructor with feature selection
@@ -110,11 +107,11 @@
                            (let* (
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (" done buildknobs (:) ")))            ;; BUILD representations on 
-                                    (($updatedTree $dscMp) (buildKnobs $xmplr NilMMap $argLabels))            ;; BUILD representations on 
+                                    (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels))            ;; BUILD representations on 
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
                                     ;; ($_ (println! ""))
-                                    ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp NilMap) 0)))        ;; MULITPLE args selected using the feature selection
+                                    ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0)))        ;; MULITPLE args selected using the feature selection
                                  (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))))
 
 ;; Helper function to extract tree from representation
@@ -123,31 +120,37 @@
 ;; Universal getCandidate that works for both boolean and game strategies
 ;; Uses preOrder+buildTree to unwrap mkNullVex for games, cleanTree for boolean
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
-(= (getCandidate $repObj $inst)
-   (let*
-      (
-         ($parentid (mkNodeId (0)))
-         ($srcid (mkNodeId (0)))
-         ;; ($_ (println! ($parentid   $srcid)))
-         ((mkRep $kmo $tr) $repObj)
-         ;; ($_ (println! (Tree: (preOrder $tr))))
-         ($candidate (getCandidateRec $repObj $inst $parentid $srcid $parentid (mkNullVex Nil)))
-         ;; ($_ (println! (Found candidate: (preOrder $candidate))))
-         ($rootNode (getNodeById (getRepTree $repObj) $srcid))
-         ($rootValue (getNodeValue $rootNode))
-         ($rootSymbol (if (== (get-metatype $rootValue) Expression) 
-                 (car-atom (cdr-atom $rootValue))
-                 $rootValue))
-         ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
-         ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
-      )
-      (if $isGameStrategy
-          (let* (
-                  ($expr (preOrder $candidate))
-                  ($cleanTree (buildTree $expr)))
-                $cleanTree)
-          (cleanTree $candidate))))
-   ; (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex Nil)) $candidate
+(= (getCandidate $repObj $id $inst)
+   (case (match &treeSpace ($id $inst $tree) $tree)
+             (($tree $tree)
+             (Empty 
+                (let*
+                    (
+                      ($parentid (mkNodeId (0)))
+                      ($srcid (mkNodeId (0)))
+                      ;; ($_ (println! ($parentid   $srcid)))
+                      ((mkRep $kmo $tr) $repObj)
+                      ;; ($_ (println! (Tree: (preOrder $tr))))
+                      ($candidate (getCandidateRec $repObj $inst $parentid $srcid $parentid (mkNullVex ())))
+                      ;; ($_ (println! (Found candidate: (preOrder $candidate))))
+                      ($rootNode (getNodeById (getRepTree $repObj) $srcid))
+                      ($rootValue (getNodeValue $rootNode))
+                      ($rootSymbol (if (== (get-metatype $rootValue) Expression) 
+                              (car-atom (cdr-atom $rootValue))
+                              $rootValue))
+                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
+                      ($finalTree (if $isGameStrategy
+                                      (let* (
+                                              ($expr (preOrder $candidate))
+                                              ($cleanTree (buildTree $expr)))
+                                            $cleanTree)
+                                      (cleanTree $candidate)))
+
+                      ($_ (add-atom &treeSpace ($id $inst $finalTree)))
+                      ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
+                    )
+                    $finalTree)))))
+   ; (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex ())) $candidate
    ;  (cleanTree $candidate)))
     
     
@@ -171,7 +174,7 @@
 
 ;          ;; No knob found. Just copy.
 ;          (chain (getNodeById $tree $srcId) $src ;; Get node value using id
-;          (chain (appendChild $candidate $parentId (mkTree (getNodeValue $src) Nil)) $cndChIdPair ;; AppendChild returns a pair of tree and appended child Id
+;          (chain (appendChild $candidate $parentId (mkTree (getNodeValue $src) ())) $cndChIdPair ;; AppendChild returns a pair of tree and appended child Id
 ;          (chain (getChildren $src) $srcChildren
 ;          (chain (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (second $cndChIdPair) (first $cndChIdPair) 1) $srcChildren) $state
 ;             (let ((mkRep $knobMapObj $tree) (mkInst $inst) $newParentId $finalCnd $_) $state $finalCnd)))))))
@@ -224,7 +227,7 @@
                ($dstValue (getNodeById $candidate $dstId))
                ;; ($_ (println! (Copying 3:  appending child: (getNodeValue $src) on (preOrder $candidate) at $dstId)))
 
-               ($cndchidpair (appendChild $candidate $dstId (mkTree (getNodeValue $src) Nil)))
+               ($cndchidpair (appendChild $candidate $dstId (mkTree (getNodeValue $src) ())))
                ;; ($_ (println! (Copying 4)))
                ($srcchildren (getChildren $src))
                ;; ($_ (println! (Copying 5: Candidate5 (preOrder (first $cndchidpair)))))

@@ -41,12 +41,12 @@
         True
         (let*
           (
-            ($pairs (collapse ((superpose $handleSet) (superpose $handleSet))))
-            ($result (collapse (areNegations (superpose $pairs)))))
-          (if (is-member True $result)
-              False
-              True
-          )
+            ($pairs (collapse ((superpose $handleSet) (superpose $handleSet)))) ;; TODO: Replace this with recursive logic.
+            ($result (map-atom $pairs $ps (areNegations $ps)))
+            ($isMember (is-member True $result))
+            ($_ (cut))
+            )
+          (not $isMember)
         )
     )
 )

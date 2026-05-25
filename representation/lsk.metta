@@ -21,17 +21,17 @@
    )
    (if (== True (List.contains $subtree $childrenOfTarget))
        (let $idOfSubtree (getSubtreeId $tree (mkNodeId $target) $subtree 0)
-           ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
+           ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
        )
        (if (== True (List.contains $reducedSubtree $childrenOfTarget))
            (let $idOfReducedSubtree (getSubtreeId $tree (mkNodeId $target) $reducedSubtree 0)
-                ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfReducedSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) Nil))))
+                ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfReducedSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))))
            (let*
            (
-            (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex Nil)))
+            (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex ())))
             (($subtreeAppendedTree $subtreeId) (appendChild $nullVexAppendedTree $nullVexId $subtree))
            )
-           ($subtreeAppendedTree (mkLSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
+           ($subtreeAppendedTree (mkLSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))
            )
        )
    )
@@ -50,17 +50,17 @@
        (if (== True (List.contains $subtree $childrenOfTarget))
            (let $idOfSubtree (getSubtreeId $tree (mkNodeId $target) $subtree 0)
                ;; Create Knob: Multiplicity 2 (0=Absent, 1=Present). Default=1 (Present)
-               ($tree (mkSSK (mkDiscKnob (mkKnob (updateID $idOfSubtree)) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) Nil)))
+               ($tree (mkSSK (mkDiscKnob (mkKnob (updateID $idOfSubtree)) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))
            )
            ;; Case 2: New Subtree (Insert placeholder)
            (let*
                (
                    ;; Insert NullVertex placeholder
-                   (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex Nil)))
+                   (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex ())))
                    ;; Attach the actual subtree to the placeholder
                    (($subtreeAppendedTree $subtreeId) (appendChild $nullVexAppendedTree $nullVexId $subtree))
                )
-               ($subtreeAppendedTree (mkSSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) Nil)))
+               ($subtreeAppendedTree (mkSSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())))
            )
        )
    )
@@ -113,7 +113,7 @@
         ;; ($_ (println! (newPosition: $newPosition)))
         ;; ($_ (println! (if (== $targetId (1 1 1)) $targetTree NotPrinting)))
         (($subtree $newSrcId) (if (== True (isNullVertex $targetTree))
-                        (let (mkNullVex (Cons $child Nil)) $targetTree ($child (mkNodeId (union-atom $targetId (1)))))
+                        (let (mkNullVex (cons $child ())) $targetTree ($child (mkNodeId (union-atom $targetId (1)))))
                         ($targetTree (mkNodeId $targetId))
                     ))        
         ;; ($_ (println! ("subtree ": $subtree $targetTree)))
@@ -127,9 +127,9 @@
           (let ($treeToAppend $newDstId)
                             (case $d
                                 (
-                                  (2  ((mkTree (mkNode NOT) (Cons (mkTree (getNodeValue $subtree) Nil) Nil)) (mkNodeId (union-atom $dstId ($newPosition 1))))) ;; If negated
-                                  (1  ((mkTree (getNodeValue $subtree) Nil) (mkNodeId (union-atom $dstId ($newPosition))))) ;; If present
-                                  (0  ((mkNullVex (Cons $subtree Nil)) $parentId)))) ;; If absent
+                                  (2  ((mkTree (mkNode NOT) (cons (mkTree (getNodeValue $subtree) ()) ())) (mkNodeId (union-atom $dstId ($newPosition 1))))) ;; If negated
+                                  (1  ((mkTree (getNodeValue $subtree) ()) (mkNodeId (union-atom $dstId ($newPosition))))) ;; If present
+                                  (0  ((mkNullVex (cons $subtree ())) $parentId)))) ;; If absent
 
                             (if (isNullVertex $treeToAppend)
                                 ($tree $parentId $parentId)
@@ -157,7 +157,7 @@
         ;; ($_ (println! (newPosition: $newPosition)))
         ;; ($_ (println! (if (== $targetId (1 1 1)) $targetTree NotPrinting)))
         (($subtree $newSrcId) (if (== True (isNullVertex $targetTree))
-                        (let (mkNullVex (Cons $child Nil)) $targetTree ($child (mkNodeId (union-atom $targetId (1)))))
+                        (let (mkNullVex (cons $child ())) $targetTree ($child (mkNodeId (union-atom $targetId (1)))))
                         ($targetTree (mkNodeId $targetId))
                     ))        
         ;; ($_ (println! ("subtree ": $subtree $targetTree)))
@@ -169,8 +169,8 @@
           (let ($treeToAppend $newDstId)
                             (case $d
                                 (
-                                  (1  ((mkTree (getNodeValue $subtree) Nil) (mkNodeId (union-atom $dstId ($newPosition))))) ;; If present
-                                  (0  ((mkNullVex (Cons $subtree Nil)) $parentId)))) ;; If absent
+                                  (1  ((mkTree (getNodeValue $subtree) ()) (mkNodeId (union-atom $dstId ($newPosition))))) ;; If present
+                                  (0  ((mkNullVex (cons $subtree ())) $parentId)))) ;; If absent
 
                             (if (isNullVertex $treeToAppend)
                                 ($tree $parentId $parentId)

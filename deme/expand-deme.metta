@@ -15,8 +15,8 @@
 ; (: optimizeDemes (-> (List Deme) $context Instance $optimize (Instance Deme $state)))
 ;; Game strategy version - unpacks tuple with target score
 ;; Strategy version - unpacks game parameters and calls hillClimbing with mkParams
-(= (optimizeDemes $deme ($nGames $opponentPolicy $complexityRatio $targetCScore) $inst $optimize)
-   ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $opponentPolicy $complexityRatio))))
+(= (optimizeDemes $deme ($nGames $complexityRatio $targetCScore) $inst $optimize)
+   ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $complexityRatio))))
 ;; Boolean version - passes context as-is
 (= (optimizeDemes $deme $context $inst $optimize)
    ($optimize $deme $context $inst))
@@ -66,14 +66,14 @@
    ))
 
 ;; Overloaded version for game strategy domain - 8 parameters
-(= (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $targetCScore $optimize)
+(= (expandDeme $metaPop $nExpansion $nDeme $nGames $complexityRatio $targetCScore $optimize)
    (let*
       (
          ($exemplar (trace! "Selecting Exemplar" (selectExemplar $metaPop)))
          ($tree (trace! "getting exemplar tree" (getExemplarTree $exemplar)))
          ($demeIds (trace! "creating deme IDs" (createDemeIds $nExpansion $nDeme)))
          ($demes (trace! "Creating Deme" (createDeme $nDeme $demeIds $tree)))
-         ($gameContext ($nGames $opponentPolicy $complexityRatio $targetCScore))
+         ($gameContext ($nGames $complexityRatio $targetCScore))
       )
       (map-atom $demes $deme (expandDemeHelper $deme $gameContext $optimize))))
 
@@ -130,20 +130,19 @@ $optimDeme
        ;; ($_ (println! (Top Exemplar before expansion: $top)))
        ($topScore (getExemplarCscore $top))
        ;; ($_ (println! (topscore: $topScore)))
-       ($resultCandi (if (<= $maxCandOutput (OS.length $updatedMetaPop)) (OS.getTopN $maxCandOutput $updatedMetaPop) $updatedMetaPop))
        ;; ($_ (println! (Top: $topScore Max: $maxScore (cScore>= $topScore $maxScore))))
        ($_ (cut))
        ($_ (println! ""))
       )
  (if (== $topScore $maxScore)
-         $resultCandi
+         (if (<= $maxCandOutput (OS.length $updatedMetaPop))
+             (OS.getTopN $maxCandOutput $updatedMetaPop)
+             $updatedMetaPop)
          (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $context $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount)))))
 
 
 ;; Some helpers specific to final testing
-(= (mapG $f NilOS) NilOS)
-(= (mapG $f Nil) Nil)
-(= (mapG $f ($ctor $x $xs)) ($ctor ($f $x) (mapG $f $xs)))
+(= (mapG $f $xs) (map-atom $xs $f))
 
 (= (printExemplar (mkExemplar $tree $demeId $cscore $bscore)) (println! (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore)))
 (= (cleanedExemplar (mkExemplar $tree $demeId $cscore (mkBScore $bscore))) ((preOrder $tree) (List.sum $bscore)))

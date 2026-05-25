@@ -6,30 +6,30 @@
 !(py-call (random.seed 42))
 
 (= (table1) (mkITable 
-    (Cons (Cons True (Cons True (Cons False (Cons True (Cons True Nil)))))
-    (Cons (Cons True (Cons False (Cons False (Cons True (Cons True Nil)))))
-    (Cons (Cons False (Cons True (Cons False (Cons True (Cons False Nil)))))
-    (Cons (Cons False (Cons False (Cons False (Cons True (Cons False Nil))))) Nil))))
-    (Cons A (Cons B (Cons C (Cons D (Cons Output Nil)))))))
+    (cons (cons True (cons True (cons False (cons True (cons True ())))))
+    (cons (cons True (cons False (cons False (cons True (cons True ())))))
+    (cons (cons False (cons True (cons False (cons True (cons False ())))))
+    (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
+    (cons A (cons B (cons C (cons D (cons Output ())))))))
 
 (= (table_xor) (mkITable
-    (Cons (Cons True  (Cons True  (Cons False Nil)))
-    (Cons (Cons True  (Cons False (Cons True  Nil)))
-    (Cons (Cons False (Cons True  (Cons True  Nil)))
-    (Cons (Cons False (Cons False (Cons False Nil))) Nil))))
-    (Cons A (Cons B (Cons Output Nil)))))
+    (cons (cons True  (cons True  (cons False ())))
+    (cons (cons True  (cons False (cons True  ())))
+    (cons (cons False (cons True  (cons True  ())))
+    (cons (cons False (cons False (cons False ()))) ()))))
+    (cons A (cons B (cons Output ())))))
 
 (= (table3) (mkITable 
-    (Cons (Cons False (Cons True (Cons True (Cons False (Cons True Nil)))))
-    (Cons (Cons True (Cons True (Cons False (Cons False (Cons False Nil)))))
-    (Cons (Cons True (Cons False (Cons True (Cons True (Cons True Nil)))))
-    (Cons (Cons False (Cons False (Cons True (Cons True (Cons False Nil))))) Nil))))
-    (Cons X1 (Cons X2 (Cons X3 (Cons X4 (Cons Result Nil)))))))
+    (cons (cons False (cons True (cons True (cons False (cons True ())))))
+    (cons (cons True (cons True (cons False (cons False (cons False ())))))
+    (cons (cons True (cons False (cons True (cons True (cons True ())))))
+    (cons (cons False (cons False (cons True (cons True (cons False ()))))) ()))))
+    (cons X1 (cons X2 (cons X3 (cons X4 (cons Result ())))))))
 
 (= (table4) (mkITable 
-    (Cons (Cons True (Cons True (Cons False (Cons True (Cons False (Cons True (Cons True Nil)))))))
-    (Cons (Cons False (Cons True (Cons True (Cons False (Cons True (Cons False (Cons False Nil))))))) Nil))
-    (Cons A (Cons B (Cons C (Cons D (Cons E (Cons F (Cons Output Nil)))))))))
+    (cons (cons True (cons True (cons False (cons True (cons False (cons True (cons True ())))))))
+    (cons (cons False (cons True (cons True (cons False (cons True (cons False (cons False ()))))))) ()))
+    (cons A (cons B (cons C (cons D (cons E (cons F (cons Output ())))))))))
 
 ;; TESTS FOR randomFeatureSelection
  ;; Test zero and negative target sizes - should return empty
