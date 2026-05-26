@@ -180,83 +180,81 @@
 ;             (let ((mkRep $knobMapObj $tree) (mkInst $inst) $newParentId $finalCnd $_) $state $finalCnd)))))))
 ; )
 
-(= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $dstId $candidate)
-   (let $knobIdxPair (findDiscKnob $knobMapObj $srcId) 
-      (if (not (== (second $knobIdxPair) -1))
-         (let*
-            (          
-               ;; ($_ (println! (KnobBuilding 1)))
-               ($d (List.getByIdx $inst (second $knobIdxPair)))
-               ;; ($_ (println! (KnobBuilding 2)))
-               ($result  (appendTo $tree (first $knobIdxPair) $candidate $dstId $d))
-               ;; ($_ (println! (KnobBuilding 3)))
-               ;; ($_ (println! (Result: $result)))
-               (($updatedCnd $newSrcId $newDstId) $result)
-               ;; ($_ (println! (Candidate 3: (preOrder $updatedCnd))))
-               ;; ($_ (println! (KnobBuilding 4: NothingChanged: (== $dstId $newDstId))))
-               ;; ($_ (println! ""))
-            )
-            (if (== $updatedCnd $candidate)
-                $updatedCnd
-                (let*
-                   (
-                      ($src1 (getNodeById $tree $newSrcId))
-                      ;; ($_ (println! (KnobBuilding 5)))
+;; ------------------------------------------------------------------
+;; Bottom-up candidate reconstruction (replaces the previous top-down builder).
+;;
+;; The old builder threaded a growing $candidate and inserted every node with
+;; appendChild (getNodeById + replaceNodeById on the candidate) once per node.
+;; Profiling showed getCandidate was ~98% of a demo run (see
+;; docs/performance-bottlenecks.md). This version assembles each subtree
+;; bottom-up and returns it, so a parent receives its children already built and
+;; never walks/rebuilds a growing candidate.
+;;
+;; buildNodeBU returns a 0- or 1-element tuple: () when the rep node is absent
+;; (knob setting 0), or ($subtree) otherwise. Output is identical to the old
+;; builder (verified by representation-test and byte-identical benchmark output).
+;; ------------------------------------------------------------------
 
-                      ($srcchildren1 (getChildren $src1))
-                      ;; ($_ (println! (KnobBuilding 6: Cnd: (preOrder $updatedCnd) newSrcId: $newSrcId newDstId: $newDstId)))
-                      ($state1 (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) $newSrcId $newDstId $updatedCnd 1) $srcchildren1))
-                      ;; ($_ (println! (KnobBuilding 7)))
-                      (((mkRep $knobmapobj1 $tree1) (mkInst $inst1) $newparentid1 $newdstId1 $finalcnd1 $d1) $state1)
-                      ;; ($_ (println! (KnobBuilding 8: $newparentid1 $newdstId1)))
-                      ;; ($_ (println! ""))
-                   )
-                   $finalcnd1
-                )
-            )
+;; child node id from a base id and 1-based index (matches the old applyGetCandidateRec)
+(= (childIdOf (mkNodeId $base) $idx)
+   (if (== $base (0)) (mkNodeId ($idx)) (mkNodeId (concatT $base ($idx)))))
+
+;; Build the children tuple for $children (a tuple of source child nodes) based at
+;; $baseId. Absent children (knob = 0) are dropped; ids stay rep-relative.
+(= (buildChildrenBU $repObj $inst $baseId $children $idx)
+   (if (== $children ())
+       ()
+       (let* (
+              (($c $rest) (decons-atom $children))
+              ($built (buildNodeBU $repObj $inst (childIdOf $baseId $idx)))
+              ($restBuilt (buildChildrenBU $repObj $inst $baseId $rest (+ $idx 1)))
+             )
+         (if (== $built ())
+             $restBuilt
+             (cons-atom (car-atom $built) $restBuilt)))))
+
+;; Build the subtree for the rep node at $srcId. Returns () (absent) or ($subtree).
+(= (buildNodeBU (mkRep $knobMapObj $tree) (mkInst $inst) $srcId)
+   (let $knobIdxPair (findDiscKnob $knobMapObj $srcId)
+      (if (== (second $knobIdxPair) -1)
+          (buildCopyBU (mkRep $knobMapObj $tree) (mkInst $inst) $srcId)
+          (buildKnobBU (mkRep $knobMapObj $tree) (mkInst $inst)
+                       (first $knobIdxPair) (List.getByIdx $inst (second $knobIdxPair))))))
+
+;; No knob here: copy the source node's value and recurse into its children.
+(= (buildCopyBU (mkRep $knobMapObj $tree) (mkInst $inst) $srcId)
+   (let* (
+          ($src (getNodeById $tree $srcId))
+          ($built (buildChildrenBU (mkRep $knobMapObj $tree) (mkInst $inst) $srcId (getChildren $src) 1))
          )
-         (let*
-            (
-               ;; ($_ (println! (Inside getCandidateRec with parentId: $parentId , srcId: $srcId)))
-               ;; ($_ (println! ""))
-               ;; ($_ (println! (No Knob found just copy...)))
-               ;; ($_ (println! (Copying 1)))
-               ;; ($_ (println! (Getting: $srcId from (preOrderDebug $tree))))
-               ($src (getNodeById $tree $srcId))
-               ;; ($_ (println! (Copying 2)))
-               ($dstValue (getNodeById $candidate $dstId))
-               ;; ($_ (println! (Copying 3:  appending child: (getNodeValue $src) on (preOrder $candidate) at $dstId)))
+      ((mkTree (getNodeValue $src) $built))))
 
-               ($cndchidpair (appendChild $candidate $dstId (mkTree (getNodeValue $src) ())))
-               ;; ($_ (println! (Copying 4)))
-               ($srcchildren (getChildren $src))
-               ;; ($_ (println! (Copying 5: Candidate5 (preOrder (first $cndchidpair)))))
-               ($state (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) $srcId (second $cndchidpair) (first $cndchidpair) 1) $srcchildren))
-               ;; ($_ (println! (Copying 6)))
-               (((mkRep $knobmapobj $tree) (mkInst $inst) $newparentid $newdstId $finalcnd $d) $state)
-               ;; ($_ (println! (Copying 7)))
-               ;; ($_ (println! (FinalCandidate: (preOrder $finalcnd))))
-               ;; ($_ (println! (FinalCandidate: $finalcnd)))
-               ;; ($_ (println! ""))
-            )
-              $finalcnd
-          )
-      )
-   )
-)
+;; Knob here: pick the target subtree (unwrapping a null vertex), build its
+;; children, then present (1), negate (2), or drop (0) per the knob setting $d.
+(= (buildKnobBU (mkRep $knobMapObj $tree) (mkInst $inst) $knob $d)
+   (let* (
+          ((mkNodeId $targetId) (getNodeId $knob))
+          ($targetTree (getNodeById $tree (mkNodeId $targetId)))
+          (($subtree $newBaseId) (if (== True (isNullVertex $targetTree))
+                                     ((car-atom (getChildren $targetTree)) (mkNodeId (union-atom $targetId (1))))
+                                     ($targetTree (mkNodeId $targetId))))
+          ($builtChildren (buildChildrenBU (mkRep $knobMapObj $tree) (mkInst $inst) $newBaseId (getChildren $subtree) 1))
+          ($presentNode (mkTree (getNodeValue $subtree) $builtChildren))
+         )
+      (case $d
+         ((0 ())
+          (1 ($presentNode))
+          (2 ((mkTree (mkNode NOT) ($presentNode))))
+          ($other (Error ($d $knob) "Invalid disc specification"))))))
 
-(= (applyGetCandidateRec $tr ($repObj $inst (mkNodeId $parentId) (mkNodeId $dstId) $candidate $chIdx))
-   (let*
-      (
-         ;; ($_ (println! ("applyGetCandidateRec called with parentId:" $parentId , chIdx: $chIdx)))
-         ($srcId (if (== $parentId (0)) (mkNodeId ($chIdx)) (mkNodeId (concatT $parentId ($chIdx)))))
-         ;; ($_ (println! (srcId: $srcId)))
-         ;; ($_ (println! (dstId: $dstId)))
-         ($updatedCnd1 (getCandidateRec $repObj $inst (mkNodeId $parentId) $srcId (mkNodeId $dstId) $candidate))
-         ($finalResult ($repObj $inst (mkNodeId $parentId) (mkNodeId $dstId) $updatedCnd1 (+ 1 $chIdx)))
-         ;; ($_ (println! (FinalResult: (preOrder $updatedCnd1))))
-         ;; ($_ (println! ("applyGetCandidateRec returning finalResult:" $finalResult)))
-      )
-      $finalResult
-   )
-)
+;; getCandidateRec keeps its 6-arg signature for the top-level call and the direct
+;; tests; $parentId/$dstId/$candidate are vestigial (the bottom-up builder does not
+;; thread a partial candidate) and are ignored.
+(= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $dstId $candidate)
+   (car-atom (buildNodeBU (mkRep $knobMapObj $tree) (mkInst $inst) $srcId)))
+
+;; (applyGetCandidateRec removed — it was the per-child fold helper for the old
+;;  top-down getCandidateRec, which is now superseded by the bottom-up builder
+;;  above (buildNodeBU/buildChildrenBU). The appendTo/appendToLSK/appendToSSK
+;;  functions in lsk.metta are retained since they are still exercised directly
+;;  by representation/tests/lsk-test.metta.)
