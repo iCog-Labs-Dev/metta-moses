@@ -30,7 +30,7 @@
 (= (crossPairsIter (cons $reference $rest) $base $acc $limit)
    (if (>= (List.length $acc) $limit)
        $acc
-       (let $updatedAcc (crossPairsToRef $rest (getInst $reference) $base $acc $limit)
+       (let $updatedAcc(crossPairsToRef $rest (getInst $reference) $base $acc $limit)
             (crossPairsIter $rest $base $updatedAcc $limit))
 ))
 
@@ -52,10 +52,10 @@
         ($pairCount (/ (* $sampleSize (- $sampleSize 1)) 2))
         ($nToMakeNew (if (< $pairCount $nToMake) $pairCount $nToMake))
 
-        ($nToSort  (+ (sqrt-math (* 2 $nToMakeNew)) 3))
+        ($nToSort (+ (sqrt-math (* 2 $nToMakeNew)) 3))
 
         ;; Select and partially sort top-scoring instances for crossover
-        ($sortedList (List.partialSort instance> $newInst $nToSort ()))
+        ($sortedList (List.partialSort instance> $newInst $nToSort))
     )
        (if (== $sortedList ())
             $deme
@@ -70,7 +70,7 @@
             )
             (mkDeme 
                 (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree)
-                (mkSInstSet (List.appendList  $uniqueInstances $instSet))
+                (mkSInstSet (List.appendList $uniqueInstances $instSet))
                  $demeId)
            )
         ))
@@ -162,14 +162,14 @@
         ($nToSort (+ (cbrt-math (* $nToMakeNew 6)) 3))
 
         ;; Select and partially sort top-scoring instances for crossover
-          ($sortedList (List.partialSort instance> $newInst $nToSort ()))
+          ($sortedList (List.partialSort instance> $newInst $nToSort))
    )
    (if (== $sortedList ())
        $deme
        (let* (
 
             ($instList (List.takeN $nToSort $sortedList))
-             ($newInstances (crossOuterLoop $instList $baseInstance $nToMakeNew))
+            ($newInstances (crossOuterLoop $instList $baseInstance $nToMakeNew))
             ($uniqueInstances (unique-atom $newInstances))
             
             )

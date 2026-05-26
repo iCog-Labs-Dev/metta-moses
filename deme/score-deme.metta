@@ -23,7 +23,7 @@
 ;; Returns:
 ;;   List of scored instances with CScore
 ; (: applyStrategyBasedScore (-> Representation (List Instance) Number $opponentPolicy Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
-(= (applyStrategyBasedScore $rep $id $instances $nGames $complexityRatio $listOfScoredInst)
+(= (applyStrategyBasedScore $rep $id $instances $nGames $complexityRatio)
    (map-atom $instances $i
     (let*
     (
@@ -51,7 +51,7 @@
           ($scored (case $scoringContext
                         (
                           ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio))
-                          (($nGames) (applyStrategyBasedScore $rep $id $instList $nGames $complexityRatio ())))))
+                          (($nGames) (applyStrategyBasedScore $rep $id $instList $nGames $complexityRatio)))))
           )
   (mkSInstSet $scored)))
 

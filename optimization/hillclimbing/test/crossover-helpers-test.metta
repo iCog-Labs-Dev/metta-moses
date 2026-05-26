@@ -39,7 +39,7 @@
                                                       (cons (mkSInst (mkPair (mkInst (cons 7 ())) (mkCscore 1 0 0 0 7)))
                                                             (cons (mkSInst (mkPair (mkInst (cons 8 ())) (mkCscore 1 0 0 0 8)))()))))))))) (mkDemeId "2")))
 
-;;;;crossPairsToRef test
+;;;crossPairsToRef test
  !(assertEqual
   (crossPairsToRef
      (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
@@ -50,14 +50,22 @@
      2)
    (cons (mkSInst (mkPair (mkInst (cons 5 ())) (worstCscore)))
      (cons (mkSInst (mkPair (mkInst (cons 5 ())) (worstCscore))) ())))
-
-;; ----------------------------------------
-;; crossTopTwo integration tests
-;; ----------------------------------------
-;; demeSize test
+     
+!(assertEqual
+   (List.length (crossPairsIter
+        (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 1)))
+        (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2))) ()))
+        (mkInst (cons 9 ()))
+        ()
+        10))
+   1)
+; ----------------------------------------
+; crossTopTwo integration tests
+; ----------------------------------------
+; demeSize test
 !(assertEqual (demeSize (crossTopTwo (deme2) 3 0 4 (mkInst (cons 3 ())))) 9)
 
-;; full crossover test                                      
+; full crossover test                                      
 !(assertEqual 
     (crossTopTwo 
       (mkDeme 
@@ -92,11 +100,12 @@
                                             (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5))) 
                                                 (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))))))) (mkDemeId "1")))
  
-;;-------------------------------------------------------
+;; -------------------------------------------------------
 ;;       crossTopThree and helper tests               
-;;--------------------------------------------------------
+;; --------------------------------------------------------
+;; 
 
-;;;;mergeTriple test --Tests sequential 3-step merge: k → iRef → jRef  ;;;;
+;mergeTriple test --Tests sequential 3-step merge: k → iRef → jRef  ;;;;
 !(assertEqual
         (mergeTriple
                 (getInst (mkSInst (mkPair (mkInst (cons a (cons 5 ()))) (mkCscore 0 0 0 0 1)))) 
@@ -107,7 +116,7 @@
                (mkSInst (mkPair (mkInst (cons b (cons 2 ()))) (worstCscore)))
                 )
 
-;;;;   crossInnerLoop limit test    ;;;;
+;;   crossInnerLoop limit test    ;;;;
 !(assertEqual
    (crossInnerLoop
             (cons (mkSInst (mkPair (mkInst (cons a (cons 5 ()))) (mkCscore 0 0 0 0 1)))
@@ -120,7 +129,7 @@
      (cons (mkSInst (mkPair(mkInst (cons b (cons 9 ()))) (worstCscore)))
        (cons (mkSInst (mkPair (mkInst (cons b (cons 9 ()))) (worstCscore))) ())))
 
-;;;;  crossMiddleLoop aggregation test ;;;;
+;;;  crossMiddleLoop aggregation test ;;;;
 !(assertEqual
    (crossMiddleLoop
        (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
