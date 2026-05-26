@@ -137,7 +137,9 @@
           $effectiveSetting
           (if (== $effectiveSetting 0)
               $default
-              (nthAllowedActualSetting 0 $effectiveSetting $default $disAll)))))
+              (if (allDisallowed $knob)
+                  $default
+                  (nthAllowedActualSetting 0 $effectiveSetting $default $disAll))))))
 
 ;; Extracts the location from a discrete, logical subtree, or strategy subtree knob.
 ;; Params:
