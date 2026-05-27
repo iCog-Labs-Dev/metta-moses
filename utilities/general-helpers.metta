@@ -705,7 +705,7 @@
 
 ;; Converts a tuple of pairs into ordered multimap
 ;; Ex: ((k1 v1) (k2 v2)) -> (cons (k1 v1) (cons (k2 v2) ()))
-;; (: expToMMap (-> Expression (MultiMap ($k $v)) (-> $k $k Bool) (MultiMap ($k $v))))
+; (: expToMMap (-> Expression (MultiMap ($k $v)) (-> $k $k Bool) (MultiMap ($k $v))))
 ;; TODO: Change this to simpler function
 (= (expToMMap () $map $compFunc) ())
 (= (expToMMap $tuple $map $compFunc)
