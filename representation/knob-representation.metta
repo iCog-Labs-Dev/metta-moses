@@ -39,14 +39,9 @@
 (= (inExemplar (mkDiscKnob $knob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis)) 
    (not (== $def 0)))
 
-;; Extracts the DiscreteKnob component from a LogicalSubtreeKnob (mkLSK) or StrategySubtreeKnob (mkSSK).
-;; Params:
-;;   $lsk: LogicalSubtreeKnob or StrategySubtreeKnob
-;; Return: The extracted DiscKnob
-;; (: getDiscKnob (-> LogicalSubtreeKnob DiscreteKnob))
-;; (: getDiscKnob (-> StrategySubtreeKnob DiscreteKnob))
-(= (getDiscKnob (mkLSK $DiscKnob )) $DiscKnob)
-(= (getDiscKnob (mkSSK $DiscKnob )) $DiscKnob)
+;; Identity for bare DiscreteKnob — getDiscKnob is a no-op when the knob IS the disc knob.
+;; (: getDiscKnob (-> DiscreteKnob DiscreteKnob))
+(= (getDiscKnob (mkDiscKnob $k $m $c $d $dis)) (mkDiscKnob $k $m $c $d $dis))
 
 ;; Extracts the Tree component from a LogicalSubtreeKnob (mkLSK).
 ;; Params:
@@ -62,15 +57,10 @@
 ;; (: getKnobMultip (-> StrategySubtreeKnob Multiplicity))
 
 (= (getKnobMultip (mkDiscKnob $knob $multiplicity $curr $def $disAll)) $multiplicity)
-(= (getKnobMultip (mkLSK $discKnob )) (getKnobMultip $discKnob))
-(= (getKnobMultip (mkSSK $discKnob )) (getKnobMultip $discKnob))
 
-;; Calculates the knob Specification of an LSK or SSK
-;; (: getKnobSpec (-> LogicalSubtreeKnob DiscSpec))
-;; (: getKnobSpec (-> StrategySubtreeKnob DiscSpec))
-(= (getKnobSpec (mkLSK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis) ))
-(mkDiscSpec (- $multip (List.length $dis))))
-(= (getKnobSpec (mkSSK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis) ))
+;; Calculates the knob Specification of a DiscreteKnob or ActionSubtreeKnob
+;; (: getKnobSpec (-> DiscreteKnob DiscSpec))
+(= (getKnobSpec (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis))
 (mkDiscSpec (- $multip (List.length $dis))))
 
 ;; Extracts the location from a discrete, logical subtree, or strategy subtree knob.
@@ -81,8 +71,6 @@
 ;; (: getKnobLoc (-> LogicalSubtreeKnob (NodeId)))
 ;; (: getKnobLoc (-> StrategySubtreeKnob (NodeId)))
 (= (getKnobLoc (mkDiscKnob (mkKnob $loc) $multip $curr $def $dis)) $loc)
-(= (getKnobLoc (mkLSK $discKnob )) (getKnobLoc $discKnob))
-(= (getKnobLoc (mkSSK $discKnob )) (getKnobLoc $discKnob))
 
 ;; ActionSubtreeKnob: mirrors C++ action_subtree_knob (extends discrete_knob<MAX_PERM_ACTIONS>).
 ;; This is the only discrete-domain knob that needs its own subtype beyond DiscreteKnob
@@ -92,26 +80,14 @@
 (: ActionSubtreeKnob Type)
 (: mkASK (-> DiscreteKnob (List Tree) ActionSubtreeKnob))
 
-;; SimpleActionSubtreeKnob: mirrors C++ simple_action_subtree_knob (extends discrete_knob<2>).
-;; No extra fields beyond DiscreteKnob, but needs its own type for domain-specific appendTo dispatch.
-;; Setting 0 = present (action stays), Setting 1 = absent (wrapped in null vertex).
-;; Multiplicity = 2.
-(: SimpleActionSubtreeKnob Type)
-(: mkSASK (-> DiscreteKnob SimpleActionSubtreeKnob))
-
 (= (getDiscKnob (mkASK $discKnob $perms)) $discKnob)
-(= (getDiscKnob (mkSASK $discKnob)) $discKnob)
 
 (= (getKnobMultip (mkASK $discKnob $perms)) (getKnobMultip $discKnob))
-(= (getKnobMultip (mkSASK $discKnob)) (getKnobMultip $discKnob))
 
 (= (getKnobSpec (mkASK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis) $perms))
    (mkDiscSpec (- $multip (List.length $dis))))
-(= (getKnobSpec (mkSASK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis)))
-   (mkDiscSpec (- $multip (List.length $dis))))
 
 (= (getKnobLoc (mkASK $discKnob $perms)) (getKnobLoc $discKnob))
-(= (getKnobLoc (mkSASK $discKnob)) (getKnobLoc $discKnob))
 
 ;; A comparison function for discSpec
 ;; (used as a $compFunc to insert knobSpec and knob pairs into a multimap )

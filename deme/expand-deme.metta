@@ -21,13 +21,11 @@
 (= (optimizeDemes $deme $context $inst $optimize)
    ($optimize $deme $context $inst))
 
-;; Extracts default specification from any discrete knob type.
+;; Extracts default specification from any discrete knob.
 ;; Adding a new domain knob only requires adding one more pattern here.
 ; (: getKnobDefault (-> $knob Number))
-(= (getKnobDefault (mkLSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
-(= (getKnobDefault (mkSSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
+(= (getKnobDefault (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis)) $def)
 (= (getKnobDefault (mkASK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis) $perms)) $def)
-(= (getKnobDefault (mkSASK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
 
 ;; Runs one deme-creation and optimization step, then merges the optimized deme into the metapopulation.
 ;; Params:

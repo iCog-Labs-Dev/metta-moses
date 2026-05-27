@@ -397,8 +397,8 @@
 (= (hillScoreHelper $inst1 $inst2) (returnBest < $inst1 $inst2))
 
 ;; Helper to get initial disc spec from a knob
-(= (getInitDiscSpec (mkLSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))) $init)
-(= (getInitDiscSpec (mkSSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))) $init)
+(= (getInitDiscSpec (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts)) $init)
+(= (getInitDiscSpec (mkASK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts) $perms)) $init)
 
 ;; Helper to initialize center instance from deme
 ;; Creates an instance with knobs set to their initial disc specs

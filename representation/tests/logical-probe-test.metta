@@ -20,7 +20,7 @@
       ((mkTree (mkNode B) ()) (mkTree (mkNode A) ()))    
       True
       ())
-      ( ((mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))    
+      ( ((mkDiscKnob (mkKnob (mkNodeId (2 1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()) (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))    
         (mkTree (mkNode AND) 
                 (cons (mkTree (mkNode A) ()) 
                 (cons (mkTree (mkNode OR) 
@@ -39,9 +39,8 @@
       True
       ())
 
-     (((mkLSK 
-        (mkDiscKnob (mkKnob  (mkNodeId (1 1))) 
-          (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))
+     (((mkDiscKnob (mkKnob  (mkNodeId (1 1)))
+          (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
 
       (mkTree (mkNode OR) 
             (cons (mkTree (mkNode B) 
@@ -60,7 +59,7 @@
       ((mkTree (mkNode playblock) ()) (mkTree (mkNode playcenter) ()))    
       True
       ())
-      ( ((mkSSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))    
+      ( ((mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))    
         (mkTree (mkNode PRIORITIZED-OR) 
                 (cons (mkTree (mkNode playcenter) ()) 
                 (cons (mkTree (mkNode playcorner) ()) 
@@ -78,9 +77,8 @@
       True
       ())
 
-     (((mkSSK 
-        (mkDiscKnob (mkKnob  (mkNodeId (2))) 
-          (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))
+     (((mkDiscKnob (mkKnob  (mkNodeId (2)))
+          (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))
 
       (mkTree (mkNode PRIORITIZED-OR) 
             (cons (mkTree (mkNode playcenter) ()) 
@@ -108,7 +106,7 @@
       ((mkTree (mkNode playblock) ()))    
       True
       ())
-      ( ((mkSSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())))    
+      ( ((mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))
         (mkTree (mkNode PRIORITIZED-OR) 
                 (cons (mkTree (mkNode playwin) ()) 
                 (cons (mkTree (mkNode playfork) ()) 
