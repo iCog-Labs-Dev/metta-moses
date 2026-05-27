@@ -123,7 +123,9 @@
            $candidate
            (nthAllowedActualSetting (+ $candidate 1) (- $remaining 1) $default $disAll))
        (nthAllowedActualSetting (+ $candidate 1) $remaining $default $disAll)))
-
+       
+;; mapEffectiveDiscSpec acts as a translator between two numbering systems for knob settings: 
+;; the effective index and the actual logical setting.
 ;; Existing tests and hand-built instances use raw settings when nothing has
 ;; been pruned. Once discprobe disallows settings, non-zero effective settings
 ;; compactly enumerate the remaining actual settings.

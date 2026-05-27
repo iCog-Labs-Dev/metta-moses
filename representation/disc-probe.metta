@@ -78,8 +78,8 @@
 ;;      $probeRootId: The node ID of the logical root.
 ;;      $lsk: The Logical Subtree Knob (LSK) being probed.
 ;;      $setting: The current setting index being evaluated (starts at 1).
-;;      $acc: The accumulator list containing the allowed discrete settings.
-;; Return: The final list of allowed discrete specifications that reduce complexity.
+;;      $acc: The accumulator list containing the disallowed discrete settings.
+;; Return: The final list of disallowed discrete specifications that reduce complexity.
 
 (= (probeEffectiveSettings $tree $probeRootId $lsk $setting $acc)
    (let (mkMultip $m) (getKnobMultip $lsk)
@@ -92,12 +92,12 @@
 
 ;; discProbe (with logical root ID)
 ;; Identifies all complexity-reducing settings for an LSK in the context of a logical root,
-;; and updates the LSK with the allowed discrete settings list.
+;; and updates the LSK with the disallowed discrete settings list.
 ;; Params:
 ;;      $tree: The tree representation.
 ;;      $probeRootId: The node ID of the logical root for complexity evaluation.
 ;;      $lsk: The Logical Subtree Knob (LSK) to probe and update.
-;; Return: The updated LSK containing the list of allowed complexity-reducing settings.
+;; Return: The updated LSK containing the list of disallowed complexity-reducing settings.
 
 (= (discProbe $tree $probeRootId $lsk)
    (let*
@@ -112,7 +112,7 @@
 ;; Params:
 ;;      $tree: The tree representation.
 ;;      $lsk: The Logical Subtree Knob (LSK) to probe and update.
-;; Return: The updated LSK containing the list of allowed complexity-reducing settings.
+;; Return: The updated LSK containing the list of disallowed complexity-reducing settings.
 
 (= (discProbe $tree $lsk)
    (discProbe $tree (getNodeId $lsk) $lsk))
