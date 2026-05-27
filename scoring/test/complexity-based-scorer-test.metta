@@ -32,7 +32,7 @@
 !(import! &self representation/representation)
 !(import! &self representation/instance)
 
-!(import! &self fitness)
+!(import! &self scoring/fitness)
 !(import! &self scoring/bscore)
 !(import! &self scoring/cscore)
 
