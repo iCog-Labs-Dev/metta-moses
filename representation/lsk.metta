@@ -103,12 +103,33 @@
                )
                ($subtreeAppendedTree (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))))))
 
+;; generalDiscreteKnob: Creates a GeneralDiscreteKnob (GDK) for any discrete atom domain.
+;; Analogous to actionSubtreeKnob but stores atom symbols (e.g., OR, AND) instead of full trees.
+;; Always inserts a null-vertex placeholder at the target; domain atoms are stored in the GDK.
+;; Setting 0 = absent (null vertex stays), Setting k >= 1 = domain[k-1] as a leaf node.
+;; Multiplicity = 1 + len(domain).
+;; (: generalDiscreteKnob (-> (Tree $a) NodeId (List Atom) ((Tree $a) GeneralDiscreteKnob)))
+(= (generalDiscreteKnob $tree (mkNodeId $target) $domain)
+   (let*
+   (
+    ($nDomain (List.length $domain))
+    ($multiplicity (+ 1 $nDomain))
+    (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex ())))
+   )
+   ($nullVexAppendedTree
+    (mkGDK
+     (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip $multiplicity) (mkDiscSpec 0) (mkDiscSpec 0) ())
+     $domain))))
+
 ;; Retrieves the node ID from any discrete knob.
 ;; (: getNodeId (-> DiscreteKnob NodeId))
 ;; (: getNodeId (-> ActionSubtreeKnob NodeId))
+;; (: getNodeId (-> GeneralDiscreteKnob NodeId))
 (= (getNodeId (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList))
    $nodeId)
 (= (getNodeId (mkASK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList) $perms))
+   $nodeId)
+(= (getNodeId (mkGDK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList) $domain))
    $nodeId)
 
 ;; Retrieves the current and default disc specifications from a discrete knob.
@@ -117,16 +138,19 @@
     (let ((mkDiscSpec $def) (mkDiscSpec $cur)) ($default $current) ($def $cur)))
 
 
-;; appendTo dispatcher - routes by multiplicity for bare DiscreteKnob; mkASK has its own handler.
+;; appendTo dispatcher - routes by multiplicity for bare DiscreteKnob; mkASK and mkGDK have their own handlers.
 ;; mult=3 → logical-style (absent/present/negated); mult=2 → binary-style (absent/present).
 ;; (: appendTo (-> (Tree $a) DiscreteKnob (Tree $a) NodeId Number (Tree $a)))
 ;; (: appendTo (-> (Tree $a) ActionSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
+;; (: appendTo (-> (Tree $a) GeneralDiscreteKnob (Tree $a) NodeId Number (Tree $a)))
 (= (appendTo $updatedTree (mkDiscKnob $k (mkMultip $m) $c $d $dis) $tree $parentId $setting)
     (if (== $m 3)
         (appendToLSK $updatedTree (mkDiscKnob $k (mkMultip $m) $c $d $dis) $tree $parentId $setting)
         (appendToSSK $updatedTree (mkDiscKnob $k (mkMultip $m) $c $d $dis) $tree $parentId $setting)))
 (= (appendTo $updatedTree (mkASK $discKnob $perms) $tree $parentId $d)
     (appendToASK $updatedTree (mkASK $discKnob $perms) $tree $parentId $d))
+(= (appendTo $updatedTree (mkGDK $discKnob $domain) $tree $parentId $d)
+    (appendToGDK $updatedTree (mkGDK $discKnob $domain) $tree $parentId $d))
 
     
 ;; Appends a subtree or a null vertex in place of a logical subtree 
@@ -240,5 +264,25 @@
                ;; Setting k: append the full perm tree wholesale to the candidate
                (let $perm (List.getByIdx (- $d 1) $perms)
                     (chain (appendChild $tree $parentId $perm) $treeChIdPair
+                           ((first $treeChIdPair) $newSrcId (second $treeChIdPair))))))))
+
+;; appendToGDK - applies a GeneralDiscreteKnob setting to build the candidate.
+;; Setting 0 = absent (null vertex; nothing appended to candidate).
+;; Setting k >= 1 = append leaf node for domain[k-1] as child of parentId.
+;; (: appendToGDK (-> (Tree $a) GeneralDiscreteKnob (Tree $a) NodeId Number ((Tree $a) NodeId NodeId)))
+(= (appendToGDK $updatedTree $gdk $tree $parentId $d)
+    (let*
+       (
+        ((mkNodeId $targetId) (getNodeId $gdk))
+        ((mkGDK $discKnob $domain) $gdk)
+        ($nDomain (List.length $domain))
+        ($newSrcId (mkNodeId $targetId))
+       )
+       (if (== $d 0)
+           ($tree $parentId $parentId)
+           (if (> $d $nDomain)
+               (Error $d "Invalid GDK setting: exceeds domain size.")
+               (let $atom (List.getByIdx $domain (- $d 1))
+                    (chain (appendChild $tree $parentId (mkTree (mkNode $atom) ())) $treeChIdPair
                            ((first $treeChIdPair) $newSrcId (second $treeChIdPair))))))))
 

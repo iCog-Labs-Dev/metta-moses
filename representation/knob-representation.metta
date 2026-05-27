@@ -73,8 +73,7 @@
 (= (getKnobLoc (mkDiscKnob (mkKnob $loc) $multip $curr $def $dis)) $loc)
 
 ;; ActionSubtreeKnob: mirrors C++ action_subtree_knob (extends discrete_knob<MAX_PERM_ACTIONS>).
-;; This is the only discrete-domain knob that needs its own subtype beyond DiscreteKnob
-;; because it carries an extra attribute — the list of action permutations (_perms in C++).
+;; A discrete-domain knob subtype carrying an extra attribute — the list of action permutations (_perms in C++).
 ;; Setting 0 = absent (null vertex), Setting k >= 1 = perms[k-1].
 ;; Multiplicity = 1 + len(perms).
 (: ActionSubtreeKnob Type)
@@ -88,6 +87,19 @@
    (mkDiscSpec (- $multip (List.length $dis))))
 
 (= (getKnobLoc (mkASK $discKnob $perms)) (getKnobLoc $discKnob))
+
+;; GeneralDiscreteKnob: subtype for any discrete atom domain.
+;; Carries extra $domain list — the only reason it exists as a subtype (it has more attributes than DiscreteKnob).
+;; Setting 0 = absent (null vertex), Setting k >= 1 = domain[k-1] as a leaf tree node.
+;; Multiplicity = 1 + len(domain).
+(: GeneralDiscreteKnob Type)
+(: mkGDK (-> DiscreteKnob (List Atom) GeneralDiscreteKnob))
+
+(= (getDiscKnob (mkGDK $discKnob $domain)) $discKnob)
+(= (getKnobMultip (mkGDK $discKnob $domain)) (getKnobMultip $discKnob))
+(= (getKnobSpec (mkGDK (mkDiscKnob $knob (mkMultip $multip) $curr $def $dis) $domain))
+   (mkDiscSpec (- $multip (List.length $dis))))
+(= (getKnobLoc (mkGDK $discKnob $domain)) (getKnobLoc $discKnob))
 
 ;; A comparison function for discSpec
 ;; (used as a $compFunc to insert knobSpec and knob pairs into a multimap )
