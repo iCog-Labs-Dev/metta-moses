@@ -15,8 +15,8 @@
 
 !(import! &self ../../utilities/tree)
 
-!(import! &self ../lsk)
 !(import! &self ../knob-representation)
+!(import! &self ../lsk)
 !(import! &self ../logical-probe) 
 !(import! &self ../build-logical)
 !(import! &self ../build-knobs)
@@ -123,6 +123,8 @@
   (Error 4 "Invalid effective disc specification for logical knob."))
 
 ;; appending to empty tree
+;; XXX: the previous test had multiplicty of 1, which caused error because default disc spec of 1 was equal to effective multiplicty, calculated considering disallowed disc specs, 
+;; so the effective multiplicty was changed to 2 to match the assertion result
 !(assertEqual
   (appendTo
     (tree1)
@@ -130,7 +132,7 @@
       (mkDiscKnob
          (mkKnob
             (mkNodeId (0)))
-         (mkMultip 1)
+         (mkMultip 2)
          (mkDiscSpec 1)
          (mkDiscSpec 0)
          ())
