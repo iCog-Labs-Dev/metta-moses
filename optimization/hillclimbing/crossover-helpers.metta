@@ -5,9 +5,6 @@
 ;; Extract raw instance from scored wrapper
 (= (getInst (mkSInst (mkPair $inst $score))) $inst)
 
-;; Deterministic alternative -but this does not favour expand-demes-test
-; !(eval (getInst (mkSInst (mkPair $inst $score))) $inst)
-
 ;; Generate newinstances by  Crossing one reference instance with remaining candidates
 (= (crossPairsToRef () $reference $base $acc $limit) $acc)
 
@@ -110,9 +107,7 @@
 ;; Iterates over j candidates and triggers inner k-loop
 ;; Builds pairwise structure for fixed iRef
 (= (crossMiddleLoop () $iRef $kList $base $acc $limit) $acc)
-(= (crossMiddleLoop (cons $first ()) $iRef $kList $base $acc $limit)
-   $acc)
-(= (crossMiddleLoop (cons $first (cons $j $jRest)) $iRef $kList $base $acc $limit)
+(= (crossMiddleLoop (cons $j $jRest) $iRef $kList $base $acc $limit)
    (if (>= (List.length $acc) $limit)
        $acc
        (let $updatedAcc (crossInnerLoop $kList (getInst $j) $iRef $base $acc $limit)
@@ -128,13 +123,7 @@
 ;; Iterates over i candidates and manages j/k generation
 ;; Maintains prefix list for simplex combinationsr
 (= (crossOuterLoop-iter () $prefix $base $acc $limit) $acc)
-(= (crossOuterLoop-iter (cons $first ()) $prefix $base $acc $limit)
-   $acc)
-(= (crossOuterLoop-iter (cons $first (cons $second ())) $prefix $base $acc $limit)
-   $acc)
-
-
-(= (crossOuterLoop-iter (cons $first (cons $second (cons $i $iRest))) $prefix $base $acc $limit)
+(= (crossOuterLoop-iter (cons $i $iRest) $prefix $base $acc $limit)
    (if (>= (List.length $acc) $limit)
        $acc
        (let $updatedAcc (crossMiddleLoop $iRest (getInst $i)  $prefix $base $acc $limit)

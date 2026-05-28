@@ -39,7 +39,7 @@
                                                       (cons (mkSInst (mkPair (mkInst (cons 7 ())) (mkCscore 1 0 0 0 7)))
                                                             (cons (mkSInst (mkPair (mkInst (cons 8 ())) (mkCscore 1 0 0 0 8)))()))))))))) (mkDemeId "2")))
 
-;;;crossPairsToRef test
+;;crossPairsToRef test
  !(assertEqual
   (crossPairsToRef
      (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
@@ -65,7 +65,7 @@
 ; demeSize test
 !(assertEqual (demeSize (crossTopTwo (deme2) 3 0 4 (mkInst (cons 3 ())))) 9)
 
-; full crossover test                                      
+;; full crossover test                                      
 !(assertEqual 
     (crossTopTwo 
       (mkDeme 
@@ -96,7 +96,7 @@
                             (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1))) 
                                 (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 1 2 3 4 3))) 
                                     (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 1 2 3 4 4))) 
-                                        (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 2 3 4 2))) 
+                                       (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 2 3 4 2))) 
                                             (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5))) 
                                                 (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))))))) (mkDemeId "1")))
  
@@ -105,7 +105,7 @@
 ;; --------------------------------------------------------
 ;; 
 
-;mergeTriple test --Tests sequential 3-step merge: k → iRef → jRef  ;;;;
+;;mergeTriple test --Tests sequential 3-step merge: k → iRef → jRef  ;;;;
 !(assertEqual
         (mergeTriple
                 (getInst (mkSInst (mkPair (mkInst (cons a (cons 5 ()))) (mkCscore 0 0 0 0 1)))) 
@@ -116,7 +116,7 @@
                (mkSInst (mkPair (mkInst (cons b (cons 2 ()))) (worstCscore)))
                 )
 
-;;   crossInnerLoop limit test    ;;;;
+;   crossInnerLoop limit test    ;;;;
 !(assertEqual
    (crossInnerLoop
             (cons (mkSInst (mkPair (mkInst (cons a (cons 5 ()))) (mkCscore 0 0 0 0 1)))
@@ -129,7 +129,7 @@
      (cons (mkSInst (mkPair(mkInst (cons b (cons 9 ()))) (worstCscore)))
        (cons (mkSInst (mkPair (mkInst (cons b (cons 9 ()))) (worstCscore))) ())))
 
-;;;  crossMiddleLoop aggregation test ;;;;
+;;  crossMiddleLoop aggregation test ;;;;
 !(assertEqual
    (crossMiddleLoop
        (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
@@ -141,9 +141,9 @@
       (mkInst (cons 0 ()))
       ()
       3)
-      (cons (mkSInst (mkPair (mkInst (cons 2 ())) (worstCscore)))
-        (cons (mkSInst (mkPair (mkInst (cons 2 ())) (worstCscore)))
-         (cons (mkSInst (mkPair (mkInst (cons 2 ())) (worstCscore))) ()))))
+      (cons (mkSInst (mkPair (mkInst (cons 3 ())) (worstCscore)))
+        (cons (mkSInst (mkPair (mkInst (cons 3 ())) (worstCscore)))
+         (cons (mkSInst (mkPair (mkInst (cons 3 ())) (worstCscore))) ()))))
 
 ;;;; crossOuterLoop limit test   ;;;;
 !(assertEqual
@@ -158,10 +158,10 @@
 
          (mkInst (cons 2 ()))
          4)
-         (cons (mkSInst (mkPair (mkInst (cons 5 ())) (worstCscore)))
-          (cons (mkSInst (mkPair (mkInst (cons 5 ())) (worstCscore)))
-            (cons (mkSInst (mkPair (mkInst (cons 5 ())) (worstCscore)))
-             (cons (mkSInst (mkPair (mkInst (cons 5 ())) (worstCscore)))
+         (cons (mkSInst (mkPair (mkInst (cons 1 ())) (worstCscore)))
+          (cons (mkSInst (mkPair (mkInst (cons 1 ())) (worstCscore)))
+            (cons (mkSInst (mkPair (mkInst (cons 1 ())) (worstCscore)))
+             (cons (mkSInst (mkPair (mkInst (cons 1 ())) (worstCscore)))
             ())))))
    
 (= (deme3)
@@ -230,8 +230,8 @@
                                     (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 1 2 3 4 4))) 
                                         (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 2 3 4 2))) 
                                             (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5))) 
-                                                (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) 
-                                                       ()))))))) (mkDemeId "3")))
+                                                (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+                                                 ()))))))) (mkDemeId "3")))
 
 
 
