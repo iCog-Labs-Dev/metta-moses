@@ -80,3 +80,24 @@ $treeChanged
 )
 $hasCorrectKnobs
 ) True)
+
+;; ── buildKnobs → buildDiscrete dispatch ───────────────────────────
+
+;; Add a non-empty discrete domain alongside the default () definition.
+;; This means getDiscreteDomain returns both () and (RED GREEN BLUE) via
+;; PeTTa superposition, so buildKnobs exercises BOTH paths.
+(= (getDiscreteDomain) (cons RED (cons GREEN (cons BLUE ()))))
+
+;; The discrete path produces exactly 1 GDK for a leaf tree (3-item domain).
+;; Collapse all MMap lengths from both paths and confirm 1 is among them.
+!(assertEqual
+  (is-member 1 (collapse (let ($t $m) (buildKnobs (mkTree (mkNode SELECTION) ()) () ()) (MultiMap.length $m))))
+  True)
+
+;; The discrete path produces a GDK with spec (mkDiscSpec 4) (= 1 + len(domain)).
+;; Collapse all specs from the first MMap entry of each path and confirm it is present.
+!(assertEqual
+  (is-member (mkDiscSpec 4)
+    (collapse (let ($t $m) (buildKnobs (mkTree (mkNode SELECTION) ()) () ())
+                   (let ($spec $knob) (index-atom $m 0) $spec))))
+  True)
