@@ -87,3 +87,19 @@
        (strategyProbe $updatedTree (mkNodeId $targetId) $tailPerms $addIfInExemplar $updatedKnobs)
        )
        (strategyProbe $exemplar (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs))))
+
+;; discreteProbe - creates ONE GeneralDiscreteKnob covering all atoms in $domain.
+;; Unlike logicalProbe (one LSK per perm), this creates a single GDK for the entire domain list.
+;; (: discreteProbe (-> (Tree $a) NodeId (List Atom) Bool Expression (Expression (Tree $a))))
+(= (discreteProbe $exemplar (mkNodeId $targetId) $domain $addIfInExemplar $knobs)
+   (if (== $domain ())
+       ($knobs $exemplar)
+       (let*
+       (
+        (($updatedTree $gdk) (generalDiscreteKnob $exemplar (mkNodeId $targetId) $domain))
+        ($discKnob (getDiscKnob $gdk))
+       )
+       (if (or $addIfInExemplar (not (inExemplar $discKnob)))
+           (let $updatedKnobs (concatT $knobs ($gdk))
+                ($updatedKnobs $updatedTree))
+           ($knobs $exemplar)))))

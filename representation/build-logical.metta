@@ -153,6 +153,30 @@
    )
    ($tailT $tailM)))
 
+;; buildDiscrete => Build one GDK per node in the tree for a general discrete atom domain.
+;; (: buildDiscrete (-> (Tree $a) NodeId (MultiMap ($k $v)) (List Atom) ((Tree $a) (MultiMap ($k $v)))))
+(= (buildDiscrete $tree (mkNodeId $nodeId) $MMap $domain)
+   (let $subtree (getNodeById $tree (mkNodeId $nodeId))
+     (if (or (== True (isNullVertex $subtree)) (== $domain ()))
+         ($tree $MMap)
+         (let*
+         (
+             ((mkTree (mkNode $op) $children) $subtree)
+             (($t1 $mp1) (addDiscreteKnobs $tree (mkNodeId $nodeId) True $MMap $domain))
+             (($updatedTree $updatedMMap) (buildDiscreteSiblings $t1 $children (mkNodeId $nodeId) 1 $mp1 $domain))
+         )
+         ($updatedTree $updatedMMap)))))
+
+(= (buildDiscreteSiblings $tree () (mkNodeId $parentId) $childNum $MMap $domain) ($tree $MMap))
+(= (buildDiscreteSiblings $tree (cons $head $tail) (mkNodeId $parentId) $childNum $MMap $domain)
+   (let*
+   (
+    ($curId (if (== $parentId (0)) ($childNum) (concatT $parentId ($childNum))))
+    (($tNew $mNew) (addDiscreteKnobs $tree (mkNodeId $curId) True $MMap $domain))
+    (($tailT $tailM) (buildDiscreteSiblings $tNew $tail (mkNodeId $parentId) (+ $childNum 1) $mNew $domain))
+   )
+   ($tailT $tailM)))
+
 ;; buildStrategy => Build strategy knobs for PRIORITIZED-OR nodes
 ;; (: buildStrategy (-> (Tree $a) NodeId (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v)))))
 (= (buildStrategy $tree (mkNodeId $nodeId) $MMap $argLabels)

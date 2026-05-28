@@ -76,6 +76,21 @@
    )
    ($updatedTree $mmp)))
 
+;; getDiscreteDomain - list of discrete atoms for the general discrete domain.
+;; Override this binding per experiment/problem to enable buildDiscrete.
+(= (getDiscreteDomain) ())
+
+;; addDiscreteKnobs - creates ONE GeneralDiscreteKnob at the given node covering all domain atoms.
+;; (: addDiscreteKnobs (-> (Tree $a) NodeId Bool (MultiMap ($k $v)) (List Atom) ((Tree $a) (MultiMap ($k $v)))))
+(= (addDiscreteKnobs $exemplar $nodeId $addIfInExemplar $map $domain)
+   (let*
+   (
+    (($knobs $updatedTree) (discreteProbe $exemplar $nodeId $domain $addIfInExemplar ()))
+    ($pairs (pairKnobWithSpec $knobs))
+    ($mmp (expToMMap $pairs $map discSpec<))
+   )
+   ($updatedTree $mmp)))
+
 ;; helper function to the addLogicalKnobs
 ;; takes a tuple of knobs and return a tuple of knob and knobSpec pairs
 ;; (: pairKnobWithSpec (-> Expression Expression))
