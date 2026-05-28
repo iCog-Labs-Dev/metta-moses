@@ -17,19 +17,25 @@
 ;; Verbatim port of the Estimate neighborhood function from c++
 ;; Params: $distance: The hamming distance from the current knob
 ;;         $knobMap: A map of knobs with their multiplicities
-;; Returns: 2 * Sum of the multiplicities of the knobs in the map
+;; Returns: 2 * Sum of the multiplicities of the knobs in the map or  binomial coefficient if the estiamte starts becoming very large.
 ; (: estimateNeighborhood (-> Number (MultiMap (DiscSpec $knob)) Number))
 (= (estimateNeighborhood $distance $knobMap)
    (if (== $distance 0)
        1
-       (let $nnEstimate (informationTheoreticBits $knobMap) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
+       (let $nnEstimate (informationTheoreticBits $knobMap)
+          (if (== $distance 1)
+              (* 2 $nnEstimate)
+              (binomial $nnEstimate $distance))))) 
 
 ;; similar to the above 'estimateNeighborhood' but this one uses the informationTheoreticBitsFs which is for feature selection
 ; (: estimateNeighborhoodFs (-> Number (List Symbol) Number))
 (= (estimateNeighborhoodFs $distance $labels)
    (if (== $distance 0)
        1
-       (let $nnEstimate (informationTheoreticBitsFs $labels) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
+       (let $nnEstimate (informationTheoreticBitsFs $labels)
+        (if (== $distance 1)
+             (* 2 $nnEstimate)
+             (binomial $nnEstimate $distance)))))
 
 ;; Return an estimate of the number of new instances to search
 (= (nNewInstances $distance $maxEvals $currentEvals $totalNeighbors)
@@ -116,15 +122,61 @@
 (= (countNeighborhoodFs $instance $dist $maxCount)
    (countNeighborhoodFromIdxFs $instance $dist 0 $maxCount))
 
-;; Crossover function.
+ 
+; ;; Merge crossover outputs and return:
+; ;;   - merged demes from the three crossover operator
+; ;;   - number of unique instances added
+; (= (merge3Demes $originalDeme $deme1 $deme2 $deme3)
+
+;    (let*
+;       (
+;         ;; Preserve original representation and deme ID
+;         ((mkDeme $rep (mkSInstSet $origSet) $demeId) $originalDeme)
+
+;        ;; Extract generated instance sets
+;         ((mkDeme $_1 (mkSInstSet $set1) $_id1) $deme1)
+;         ((mkDeme $_2 (mkSInstSet $set2) $_id2) $deme2)
+;         ((mkDeme $_3 (mkSInstSet $set3) $_id3) $deme3)
+
+;         ;; Combine and deduplicate all generated instances
+;         ($merged12 (List.appendList $set1 $set2))
+;         ($mergedAll (List.appendList $merged12 $set3))
+;         ($uniqueMerged (unique-atom $mergedAll))
+
+;          ;; Count newly added unique instances
+;         ($origSize (List.length $origSet))
+;         ($mergedSize (List.length $uniqueMerged))
+;         ($nNewAdded (- $mergedSize $origSize))
+
+;       )
+;        ;; return With orginal deme ID and representation
+;       ((mkDeme $rep (mkSInstSet $uniqueMerged) $demeId) $nNewAdded)
+; ))
+
+;; Run all crossover operators and merge results
 ;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
 ; (: crossover (-> Number Number Instance Deme (Deme Number)))
 (= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme)
    ;; (trace! (Running crossover to make: (min $nNewInstances 120) instances)
    ;; INFO: The 120 is crossover_pop_size parameter that should come from hillClimbing
-           ((crossTopOne $deme (min $nNewInstances 120) $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
-   ;; )
-   ) ;; WARN: The $nNewInstances might not be the actual number of instances created.
+    ((crossTopOne $deme (min $nNewInstances 120) $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
+
+; (let*
+;     (
+;       ;; crossover_pop_size limit
+;       ($nToMake (min $nNewInstances 120))
+
+;        ;; Distribute generation budget across operators
+;       (($deme1 $nNew1) ((crossTopOne $deme (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst) (+ (/ $nToMake 3) (% $nToMake 3))))
+;       (($deme2 $nNew2) ((crossTopTwo $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst) (/ $nToMake 3)))
+;       (($deme3 $nNew3) ((crossTopThree $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst) (/ $nToMake 3)))
+    
+;     )
+;     ;; Final added count is recomputed after deduplication
+;     (merge3Demes $deme $deme1 $deme2 $deme3)
+
+; )
+)
 
 ;; crossover for feature selection
 ; (: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
@@ -152,7 +204,7 @@
 (= (getITableParams (mkITable $rows $labels))
     ($rows $labels)
 )
-
+; )
 ;; Hillclimbing implementation
 ;;
 ;; Algorihtm:
@@ -232,7 +284,7 @@
                         estimateNeighborhood crossover
                         sampleNewInstances transform))))))
 
-(= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
+(= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; constant parameters
                  ($alreadyXover $lastChance $__ $prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i)
                  $POASet
                  ($neighborhood $rowOCoeff $size $iTable)
@@ -299,7 +351,7 @@
                                           (case $iTable
                                             (
                                               ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep $id (mkITable $rows $labels) $rowOCoeff))
-                                              ($ComplexityRatio ($transformFunction $updatedInstSet $rep ($rowOCoeff $size) $ComplexityRatio))
+                                              ($ComplexityRatio ($transformFunction $updatedInstSet $rep $id ($rowOCoeff) $ComplexityRatio))
                                             ))))
 
         ($updatedDeme (if (or (== $rep ()) (== $id ())) 

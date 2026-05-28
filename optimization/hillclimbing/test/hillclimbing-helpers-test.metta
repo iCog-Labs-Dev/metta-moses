@@ -127,13 +127,15 @@
 ;; Testing estimateNeighborhood on the above knob maps
 !(assertEqual (estimateNeighborhood 0 (knobmap1)) 1)
 !(assertEqual (estimateNeighborhood 1 (knobmap2)) 10)
-!(assertEqual (estimateNeighborhood 2 (knobmap1)) 12)
+!(assertEqual (estimateNeighborhood 2 (knobmap1)) 15)
 !(assertEqual (estimateNeighborhood 2 (knobmap2)) 10)
+!(assertEqual (estimateNeighborhood 3 (knobmap1)) 20)
+
+!(assertEqual (estimateNeighborhood 7 (knobmap1)) 0)
 
 ;; Testcase for estimateNeighborhoodFs
 !(assertEqual
-  (estimateNeighborhoodFs 3 (cons A (cons B (cons O ())))) 4)
-
+  (estimateNeighborhoodFs 2 (cons A (cons B (cons O ())))) 1)
 ; Testcase for countNeighborhoodFs
 !(assertEqual (countNeighborhoodFs (mkInst (cons 1 (cons 0 (cons 1 ())))) 2 20) 3)
 
@@ -248,4 +250,5 @@
      (mkDemeId "1")))
 
 !(assertEqual (hillClimbing (strategyDeme) (mkCscore 3.0 5 1.43 0.0 3) (mkInst (cons 1 (cons 1 ()))) (mkParams applyStrategyBasedScore (3 3.5))
-) ((mkInst (1 1)) (mkDeme (mkRep (mkKbMap (mkDscKbMp (((mkNodeId (1)) 0) ((mkNodeId (2)) 1))) (mkDscMp (((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))))) (mkTree (mkNode PRIORITIZED-OR) ((mkTree (mkNode playwin) ()) (mkTree (mkNode playblock) ())))) (mkSInstSet ((mkSInst (mkPair (mkInst (0 1)) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (mkSInst (mkPair (mkInst (1 1)) (mkCscore -3.0 2 0.5714285714285714 0.0 -3.571428571428571))) (mkSInst (mkPair (mkInst (0 1)) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (mkSInst (mkPair (mkInst (1 0)) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))))) (mkDemeId "1")) (true false false (mkInst (1 1)) 3 1 (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856) -3.2857142857142856 4 2 3)))
+) ((mkInst (1 1)) (mkDeme (mkRep (mkKbMap (mkDscKbMp (((mkNodeId (1)) 0) ((mkNodeId (2)) 1))) (mkDscMp (((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))))) (mkTree (mkNode PRIORITIZED-OR) ((mkTree (mkNode playwin) ()) (mkTree (mkNode playblock) ())))) (mkSInstSet ((mkSInst (mkPair (mkInst (1 1)) (mkCscore -3.0 2 0.5714285714285714 0.0 -3.571428571428571)))  (mkSInst (mkPair (mkInst (0 1)) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856))) (mkSInst (mkPair (mkInst (1 0)) (mkCscore -3.0 1 0.2857142857142857 0.0 -3.2857142857142856)))(mkSInst (mkPair (mkInst (0 0)) (mkCscore -3.0 0 0.0 0.0 -3.0))))) (mkDemeId "1")) (true false false (mkInst (1 1)) 3 1 (mkCscore -3.0 0 0.0 0.0 -3.0) -3.0 4 2 3)))
+
