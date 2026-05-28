@@ -116,11 +116,11 @@
                    False))
         ($rep1 (car-atom $repPop))
         ((mkRep (mkKbMap $kb1 (mkDscMp $disc1)) $tree1) $rep1)
-        ($disallowedKnobs (filter-atom (MultiMap.values $disc1) $knob (not (== (getDisallowedSpecs $knob) ()))))
+        ($disallowedKnobs (filter-atom (MultiMap.values $disc1) $knob (!= (getDisallowedSpecs $knob) ())))
       )
       (and (and (== (cdr-atom $repPop) ())
                 (< (MultiMap.length $disc1) 29))
-           (not (== $disallowedKnobs ()))))
+           (!= $disallowedKnobs ())))
     True)
 
 (= (getMultipVal (mkMultip $val)) $val)
@@ -398,7 +398,7 @@
                             ((mkTree (mkNode B) ()))
                             True () False))
          )
-         (not (== $knobs ())))
+         (!= $knobs ()))
     True)
 
 ;; ───────────────────────────────────────────────────────────────────
@@ -433,7 +433,7 @@
           ($neighborhood
               (generateAllInNeighborhoodForDisc (mkDscMp $disc1) $centerInst 1))
          )
-         (not (== $neighborhood ())))
+         (!= $neighborhood ()))
     True)
 
 ;; ───────────────────────────────────────────────────────────────────
