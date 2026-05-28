@@ -96,9 +96,9 @@
 !(assertEqual
     (let* (
           ($exemplar (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) ())))
-          (($knobs $updatedTree) (logicalProbe $exemplar (mkNodeId (0)) ((mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ()))) True (seed) False))
+          (($knobs $updatedTree) (logicalProbe $exemplar (mkNodeId (0)) ((mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ()))) True () False))
          )
-         (== $knobs (seed)))
+         (== $knobs ()))
     True)
 
 ;; Representation can opt into discprobe with the final boolean parameter.
@@ -381,9 +381,9 @@
           (($knobs $updatedTree)
               (logicalProbe $exemplar (mkNodeId (0))
                             ((mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())))
-                            True (seed) False))
+                            True () False))
          )
-         (== $knobs (seed)))
+         (== $knobs ()))
     True)
 
 ;; ───────────────────────────────────────────────────────────────────
@@ -396,9 +396,9 @@
           (($knobs $updatedTree)
               (logicalProbe $exemplar (mkNodeId (0))
                             ((mkTree (mkNode B) ()))
-                            True (seed) False))
+                            True () False))
          )
-         (not (== $knobs (seed))))
+         (not (== $knobs ())))
     True)
 
 ;; ───────────────────────────────────────────────────────────────────
