@@ -26,19 +26,19 @@
 !(import! &self ../../examples/tic-tac-toe/moves)
 !(import! &self ../../examples/tic-tac-toe/moses-player)
 
-!(import! &self ../../representation/knob-representation)
-!(import! &self ../../representation/lsk)
-!(import! &self ../../representation/knob-mapper)
-!(import! &self ../../feature-selection/feature-selection-helpers)
-!(import! &self ../../representation/representation)
+!(import! &self representation/knob-representation)
+!(import! &self representation/lsk)
+!(import! &self representation/knob-mapper)
+!(import! &self feature-selection/feature-selection-helpers)
+!(import! &self representation/representation)
 
-!(import! &self ../../representation/instance)
+!(import! &self representation/instance)
 
-!(import! &self ../../scoring/fitness)
-!(import! &self ../../scoring/bscore)
-!(import! &self ../../scoring/cscore)
-!(import! &self ../../scoring/precision-bscore)
-!(import! &self ../../scoring/complexity-based-scorer)
+!(import! &self scoring/fitness)
+!(import! &self scoring/bscore)
+!(import! &self scoring/cscore)
+!(import! &self scoring/precision-bscore)
+!(import! &self scoring/complexity-based-scorer)
 
 !(import! &self ../../moses/neighborhood-sampling)
 

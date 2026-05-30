@@ -1,9 +1,9 @@
-!(import! &self ../../../metta-moses/utilities/general-helpers)
-!(import! &self ../../../metta-moses/utilities/list-methods)
-!(import! &self ../../../metta-moses/utilities/ordered-set)
-!(import! &self ../../../metta-moses/utilities/lru-cache)
-!(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
-!(import! &self ../../../metta-moses/feature-selection/incremental)
+!(import! &self ../../utilities/general-helpers)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/ordered-set)
+!(import! &self ../../utilities/lru-cache)
+!(import! &self ../../feature-selection/feature-selection-helpers)
+!(import! &self ../../feature-selection/incremental)
 
 (= (andTable) 
    (mkITable
