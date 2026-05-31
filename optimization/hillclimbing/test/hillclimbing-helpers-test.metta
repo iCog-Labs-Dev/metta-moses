@@ -229,6 +229,17 @@
      ((>= $instanceCount 3) (List.any $scoredElems)))
    (True True))
 
+;; Checks the returned center instance is either the absolute best instance found in the deme, or if not, that the gap between the best instance's score and the original center's score is within the improvement threshold (0.5)
+;; It uses (mkInst (cons 2 (cons 2 ()))) as the first center instance which has a penalty score of -5  
+!(assertEqual 
+  (let* 
+  (
+    (($instance (mkDeme $rep (mkSInstSet $sInstSet) $demeId) $state) (hillClimbing (deme) (table1) (mkInst (cons 2 (cons 2 ()))) (mkParams applyComplexityBasedScore ())))
+    ((mkSInst (mkPair $bestInst $bestScore)) (List.foldl hillScoreHelper (mkSInst (mkPair (mkInst (2 2)) (mkCscore -4 2 1.0 0.0 -5.0))) $sInstSet))
+  )
+  (or (== $instance $bestInst) (<= (- (getPenScore $bestScore) -5) 0.5))
+) True)
+
 ;; deme for strategy hill climbing
 (= (strategyDeme)
    (mkDeme 
