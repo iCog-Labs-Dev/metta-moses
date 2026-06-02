@@ -8,6 +8,11 @@
 ;;         $argLabels: list of argument labels (input variables) from the ITable
 ;; Returns: a tuple containing the updatedTree and a multimap of $kbSpec $kb pairs
 ;; (: buildKnobs (-> (Tree Bool) (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v)))))
+;; 4-arg overload: representation.metta passes a $disable-discprobe flag we don't use
+;; (we use getDiscreteDomain for domain selection instead)
+(= (buildKnobs $exemplar $mmp $argLabels $disable-discprobe)
+    (buildKnobs $exemplar $mmp $argLabels))
+
 (= (buildKnobs $exemplar $mmp $argLabels)
     (let (mkTree (mkNode $rootOp) $children) $exemplar
         (if (== $rootOp PRIORITIZED-OR)

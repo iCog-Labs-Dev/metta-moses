@@ -219,11 +219,11 @@
         ($disc
           (mkDscMp
             (cons ((mkDiscSpec 3)
-                   (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0)
-                                      (cons (mkDiscSpec 1) (cons (mkDiscSpec 2) ())))))
+                   (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0)
+                               (cons (mkDiscSpec 1) (cons (mkDiscSpec 2) ()))))
             (cons ((mkDiscSpec 3)
-                   (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0)
-                                      (cons (mkDiscSpec 2) ()))))
+                   (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0)
+                               (cons (mkDiscSpec 2) ())))
             ()))))
         ($neighbors (generateAllInNeighborhoodForDisc $disc (mkInst (cons 0 (cons 0 ()))) 1))
       )
