@@ -224,3 +224,21 @@
 !(assertEqual (isPossibleSize 13 2 (mkInst (cons 1 (cons 2 (cons 0 ()))))) False)
 !(assertEqual (isPossibleSize 10 2 (mkInst (cons 1 (cons 2 (cons 0 ()))))) True)
 
+;; Disc-probed knobs use effective multiplicity, so fully pruned knobs do not
+;; contribute neighbors and partially pruned knobs only expose allowed specs.
+!(assertEqual
+   (let*
+      (
+        ($disc
+          (mkDscMp
+            (cons ((mkDiscSpec 3)
+                   (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0)
+                                      (cons (mkDiscSpec 1) (cons (mkDiscSpec 2) ())))))
+            (cons ((mkDiscSpec 3)
+                   (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0)
+                                      (cons (mkDiscSpec 2) ()))))
+            ()))))
+        ($neighbors (generateAllInNeighborhoodForDisc $disc (mkInst (cons 0 (cons 0 ()))) 1))
+      )
+      $neighbors)
+   (cons (mkInst (cons 0 (cons 1 ()))) ()))

@@ -62,7 +62,7 @@
                 ($capped-ft-set-pop (if (and (> $diversity-cap 0) (< $diversity-cap $ft-set-pop-size))                  ;; limmit the size of feature set pop to diversity cap value
                                         (takeN $diversity-cap $ft-set-pop)
                                         $ft-set-pop))
-                ($_ (println! (Selected features set pop $capped-ft-set-pop)))
+                ; ($_ (println! (Selected features set pop $capped-ft-set-pop)))
                 ;; ($_ (println! (quote (selectTopFts (mkITable $table $labels) $div-pres -1 $multi-diversity $sim-scorer $capped-ft-set-pop $nDeme))))
                 )
                 (selectTopFts (mkITable $table $labels) $div-pres -1 $multi-diversity $sim-scorer $capped-ft-set-pop $nDeme)
