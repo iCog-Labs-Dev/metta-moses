@@ -191,11 +191,24 @@
 ; (: List.isMember (-> $a (List $a) Bool))
 (= (List.isMember $elem $list) (List.contains $elem $list))
 
+
+(= (List.partialSort $comparator () $n $acc) $acc)
+(= (List.partialSort $comparator (cons $x $xs) $n $acc)
+   (let* (($max (List.max $comparator (cons $x $xs)))
+          ($unsortedList (List.delete $max (cons $x $xs)))
+          ($sortedList (List.append $max $acc)))
+     (if (<= (- $n 1) 0)
+         (List.appendList $unsortedList $sortedList)
+         (List.partialSort $comparator $unsortedList (- $n 1) $sortedList))))
+
+(= (List.partialSort $list $n $acc) (List.partialSort >= $list $n $acc))
+
+
 ; (: List.partialSort (-> (-> $a $a Bool) (List $a) Number (List $a) (List $a)))
 ; (: List.partialSort (-> (List Number) Number (List Number) (List Number)))
-(= (List.partialSort $comparator () $n) ())
-(= (List.partialSort $list $n) (List.partialSort >= $list $n))
-(= (List.partialSort $comparator (cons $x $xs) $n) (selectionSort (cons $x $xs) $n $comparator))
+;; (= (List.partialSort $comparator () $n) ())
+;; (= (List.partialSort $list $n) (List.partialSort >= $list $n))
+;; (= (List.partialSort $comparator (cons $x $xs) $n) (selectionSort (cons $x $xs) $n $comparator))
 
 
 ; (: List.appendList (-> (List $a) (List $a) (List $a)))
