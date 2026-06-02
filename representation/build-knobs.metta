@@ -6,14 +6,14 @@
 ;; Params: Tree (Exemplar)
 ;;         $mmp: multimap to store knobs
 ;;         $argLabels: list of argument labels (input variables) from the ITable
+;;         $disable-discprobe: when False, buildLogical runs disc probing to prune redundant settings
 ;; Returns: a tuple containing the updatedTree and a multimap of $kbSpec $kb pairs
 ;; (: buildKnobs (-> (Tree Bool) (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v)))))
-;; 4-arg overload: representation.metta passes a $disable-discprobe flag we don't use
-;; (we use getDiscreteDomain for domain selection instead)
-(= (buildKnobs $exemplar $mmp $argLabels $disable-discprobe)
-    (buildKnobs $exemplar $mmp $argLabels))
-
+;; 3-arg form keeps disc probing disabled by default; representation.metta uses the 4-arg form.
 (= (buildKnobs $exemplar $mmp $argLabels)
+    (buildKnobs $exemplar $mmp $argLabels True))
+
+(= (buildKnobs $exemplar $mmp $argLabels $disable-discprobe)
     (let (mkTree (mkNode $rootOp) $children) $exemplar
         (if (== $rootOp PRIORITIZED-OR)
             (buildStrategy $exemplar (mkNodeId (0)) $mmp $argLabels)
@@ -23,4 +23,4 @@
                      (if (not (== $domain ()))
                          (buildDiscrete $exemplar (mkNodeId (0)) $mmp $domain)
                          (let $canonized (logicalCanonize $exemplar)
-                              (buildLogical $canonized (mkNodeId (0)) $mmp $argLabels))))))))
+                              (buildLogical $canonized (mkNodeId (0)) $mmp $argLabels $disable-discprobe))))))))

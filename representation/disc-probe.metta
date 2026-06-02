@@ -102,10 +102,10 @@
 (= (discProbe $tree $probeRootId $lsk)
    (let*
       (
-        ((mkLSK (mkDiscKnob $k $m $default $current $oldDis)) $lsk)
+        ((mkDiscKnob $k $m $default $current $oldDis) (getDiscKnob $lsk))
         ($dis (probeEffectiveSettings $tree $probeRootId $lsk 1 $oldDis))
       )
-      (mkLSK (mkDiscKnob $k $m $default $current $dis))))
+      (mkDiscKnob $k $m $default $current $dis)))
 
 ;; discProbe (default logical root)
 ;; Probes the LSK using its own target node ID as the logical root for complexity evaluation.
