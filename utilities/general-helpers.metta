@@ -711,7 +711,6 @@
 (= (expToMMap (cons $head $tail) $map $compFunc)
    (let*
    (
-    ($_ (println! (multiMap.insert $head $map $compFunc) ) )
     ($updatedMap (eval (MultiMap.insert $head $map $compFunc)))
    )
    (if (== $tail ())

@@ -73,4 +73,5 @@
 
 !(import! &self ../demo-problems)
 
-!(runDemoProblem 0 10 1 None mux6)
+;; When run with nEval of 1000 at this configuration, top result should have a score of 0.
+!(assertEqual (let $result (runDemoProblem 2 10 1 None parity3) (second (index-atom (second $result) 0))) 0)

@@ -81,9 +81,11 @@
 ;;         )
 ;;             ($lastUpdatedTree $lastMp1)))))
 
-(= (buildLogical (mkKnob $tree $i) $parentOp $MMap $argLabels)
+(= (buildLogical (mkKnob (mkNullVex $children) $i) $parentOp $MMap $argLabels)
    ;; (let $x (println! ("Reaching knob")) ((mkKnob $tree $i) $MMap)))
-   ((mkKnob $tree $i) $MMap))
+   ((mkKnob (mkNullVex $children) $i) $MMap))
+(= (buildLogical (mkKnob (mkTree $node $children) $i) $parentOp $MMap $argLabels)
+   (let ($uTree $uMMap) (buildLogical (mkTree $node $children) $parentOp $MMap $argLabels) ((mkKnob $uTree $i) $uMMap)))
 (= (buildLogical (mkTree (mkNode $node) $children) $MMap $argLabels)
    (buildLogical (mkTree (mkNode $node) $children) $node $MMap $argLabels))
 (= (buildLogical (mkTree (mkNode $node) $children) $parentOp $MMap $argLabels)
