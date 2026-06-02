@@ -133,6 +133,7 @@ $optimDeme
        ($topScore (getExemplarCscore $top))
        ;; ($_ (println! (topscore: $topScore)))
        ;; ($_ (println! (Top: $topScore Max: $maxScore (cScore>= $topScore $maxScore))))
+       ($nothing (clearSpace &treeSpace))
        ($_ (cut)) ;; INFO: This cut speeds things up. Don't remove it.
        ($_ (println! ""))
       )
