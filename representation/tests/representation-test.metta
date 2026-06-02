@@ -20,8 +20,8 @@
 
 !(import! &self ../../utilities/tree) 
 
-!(import! &self ../../representation/lsk)
 !(import! &self ../../representation/knob-representation)
+!(import! &self ../../representation/lsk)
 !(import! &self ../../representation/logical-probe) 
 !(import! &self ../../representation/logical-canonize)
 !(import! &self ../../representation/sample-logical-perms) 
@@ -33,11 +33,11 @@
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
 
-!(import! &self ../../feature-selection/feature-selection-helpers)
+!(import! &self feature-selection/feature-selection-helpers)
 
-!(import! &self ../../feature-selection/simple)
-!(import! &self ../../feature-selection/smd)
-!(import! &self ../../feature-selection/random-feature-selection)
+!(import! &self feature-selection/simple)
+!(import! &self feature-selection/smd)
+!(import! &self feature-selection/random-feature-selection)
 ; !(import! &self ../../feature-selection/incremental)
 !(import! &self ../../feature-selection/incremental-feature-selection)
 
@@ -288,7 +288,7 @@
               ((mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (3)) 0) (cons ((mkNodeId (4)) 1) (cons ((mkNodeId (5)) 2) (cons ((mkNodeId (6)) 3) (cons ((mkNodeId (7)) 4) ())))))) (mkDscMp (cons ((mkDiscSpec 2) (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())) (cons ((mkDiscSpec 2) (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())) (cons ((mkDiscSpec 2) (mkDiscKnob (mkKnob (mkNodeId (5))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())) (cons ((mkDiscSpec 2) (mkDiscKnob (mkKnob (mkNodeId (6))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())) (cons ((mkDiscSpec 2) (mkDiscKnob (mkKnob (mkNodeId (7))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())) ()))))))) (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playblock) ()) (cons (mkTree (mkNode playside) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playblock) ()) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playcorner) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkTree (mkNode playside) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkTree (mkNode playblock) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playcorner) ()) ())))) ())) ()))))))))) (mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (3)) 0) (cons ((mkNodeId (4)) 1) (cons ((mkNodeId (5)) 2) (cons ((mkNodeId (6)) 3) (cons ((mkNodeId (7)) 4) ())))))) (mkDscMp (cons ((mkDiscSpec 2) (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())) (cons ((mkDiscSpec 2) (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())) (cons ((mkDiscSpec 2) (mkDiscKnob (mkKnob (mkNodeId (5))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())) (cons ((mkDiscSpec 2) (mkDiscKnob (mkKnob (mkNodeId (6))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())) (cons ((mkDiscSpec 2) (mkDiscKnob (mkKnob (mkNodeId (7))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())) ()))))))) (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playside) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkTree (mkNode playblock) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playside) ()) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playcorner) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playside) ()) (cons (mkTree (mkNode playblock) ()) (cons (mkTree (mkNode playcorner) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playblock) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkTree (mkNode playwin) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkTree (mkNode playcenter) ()) ())))) ())) ())))))))))))
 
 
-!(test (representation 
+!(assertEqual (representation 
         2
         (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) ())) 
         (ttable) 

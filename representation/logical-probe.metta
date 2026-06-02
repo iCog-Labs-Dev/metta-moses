@@ -10,24 +10,33 @@
 
 ;; logicalProbe
 ;; (: logicalProbe (-> (Tree $a) NodeId Expression Bool Expression Expression))
-(= (logicalProbe $exemplar (mkNodeId $targetId) () $addIfInExemplar $knobs) ($knobs $exemplar))
-(= (logicalProbe $exemplar (mkNodeId $targetId) $perms $addIfInExemplar $knobs)
+(= (logicalProbe $exemplar $targetId $perms $addIfInExemplar $knobs)
+   (logicalProbe $exemplar $targetId $perms $addIfInExemplar $knobs True))
+
+(= (logicalProbe $exemplar $targetId $perms $addIfInExemplar $knobs $disable-discprobe)
+   (logicalProbeAt $exemplar $targetId $targetId $perms $addIfInExemplar $knobs $disable-discprobe))
+
+;; logicalProbeAt carries the logical root used for discprobe complexity checks
+;; separately from the node controlled by the knob.
+(= (logicalProbeAt $exemplar $probeRootId (mkNodeId $targetId) () $addIfInExemplar $knobs $disable-discprobe) ($knobs $exemplar))
+(= (logicalProbeAt $exemplar $probeRootId (mkNodeId $targetId) $perms $addIfInExemplar $knobs $disable-discprobe)
 (let*
 (
     (($headPerms $tailPerms) (decons-atom $perms))
     (($updatedTree $lsk) (logicalSubtreeKnob $exemplar (mkNodeId $targetId) $headPerms))
-    ($discKnob (getDiscKnob $lsk))
+    ($probedLsk (if $disable-discprobe $lsk (discProbe $updatedTree $probeRootId $lsk)))
+    ($discKnob (getDiscKnob $probedLsk))
     ;; ((mkDiscKnob (mkKnob $posId) $multipKnob $spec1 $spec2 $something) $discKnob)
     ;; ($_ (println! (Adding: (getNodeById $updatedTree $posId) isInexemplar: (inExemplar $discKnob))))
 )
-(if (or $addIfInExemplar (not (inExemplar $discKnob) )) 
+(if (and (not (allDisallowed $probedLsk)) (or $addIfInExemplar (not (inExemplar $discKnob))))
     (let* 
     (
-        ($updatedKnobs (concatT $knobs ($lsk)))
+        ($updatedKnobs (concatT $knobs ($probedLsk)))
     )
-    (logicalProbe $updatedTree (mkNodeId $targetId) $tailPerms $addIfInExemplar $updatedKnobs)
+    (logicalProbeAt $updatedTree $probeRootId (mkNodeId $targetId) $tailPerms $addIfInExemplar $updatedKnobs $disable-discprobe)
     )
-    (logicalProbe $exemplar (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs))))
+    (logicalProbeAt $exemplar $probeRootId (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs $disable-discprobe))))
     ;; (trace! (skipping $discKnob because addInExemplar: $addIfInExemplar inExemplar: (inExemplar $discKnob)) (logicalProbe $exemplar (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs)))))
 
 ;; actionProbe - creates one ActionSubtreeKnob for all action permutations at the target position.
