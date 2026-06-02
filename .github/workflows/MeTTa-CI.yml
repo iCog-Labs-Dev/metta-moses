@@ -20,7 +20,7 @@ jobs:
   setup-and-test:
     runs-on: ubuntu-latest
     container:
-      image: bluesky21/petta:v1.0.0
+      image: indominyus/petta:latest
     
     steps:
       - name: Checkout code
