@@ -1,7 +1,7 @@
 (= (createInitialInstance $dscMp)
    (let* (
      ($knobs (MultiMap.values $dscMp))
-     ($defaults (List.map getKnobDefault $knobs))
+     ($defaults (List.map getKnobDefaultNum $knobs))
    )
    $defaults))
 
@@ -21,11 +21,11 @@
 (= (optimizeDemes $deme $context $inst $optimize)
    ($optimize $deme $context $inst))
 
-;; Extracts default specification from any discrete knob.
-; (: getKnobDefault (-> $knob Number))
-(= (getKnobDefault (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis)) $def)
-(= (getKnobDefault (mkASK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis) $perms)) $def)
-(= (getKnobDefault (mkGDK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis) $domain)) $def)
+;; Returns the default setting as a raw number (spec index) for instance initialisation.
+; (: getKnobDefaultNum (-> $knob Number))
+(= (getKnobDefaultNum (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis)) $def)
+(= (getKnobDefaultNum (mkASK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis) $perms)) $def)
+(= (getKnobDefaultNum (mkGDK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis) $domain)) $def)
 
 ;; Runs one deme-creation and optimization step, then merges the optimized deme into the metapopulation.
 ;; Params:

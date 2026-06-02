@@ -325,20 +325,22 @@
         ;; ($_ (println! ""))
 
         ($nextCenterInst (if $hasImproved (Pair.first $newBestInstPair) $centerInst))
+        ($nextBestScore (if $hasImproved $newBestScore $bestScore))
+        ($nextBestSscore (if $hasImproved (Pair.second $newBestInstPair) $bestSscore))
         ($nextDistance (if $hasImproved 1 (if (not $xOver) (+ 1 $d) $d)))
-        
+
         ;; ($_ (println! (NextDistance: $nextDistance)))
 
         (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
                               (if (and (== $totalNNeighbors 1) (== $nextDistance 1))
                                   (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
-                                                ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $prevStart $prevSize (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i)) ;; Updated state
+                                                ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $prevStart $prevSize $nextBestSscore $nextBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i)) ;; Updated state
                                                 $updatedDeme
                                                 ($neighborhood $rowOCoeff $size $iTable)
                                                 $nextCenterInst
                                                 $hyperparamsfs
                                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
-                                  ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentNInstances $newInstances (Pair.second $newBestInstPair) $newBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
+                                  ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentNInstances $newInstances $nextBestSscore $nextBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
         
         ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (getPenScore $newBestSscore)))
         ;; ($_ (println! (Found newBestSscore After (+ 1 $i) iteration is: $newBestSscore $scoreToCompareBelow)))
@@ -396,9 +398,15 @@
 
 (= (hillScoreHelper $inst1 $inst2) (returnBest < $inst1 $inst2))
 
-;; Helper to get initial disc spec from a knob
-(= (getInitDiscSpec (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts)) $init)
-(= (getInitDiscSpec (mkASK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts) $perms)) $init)
+;; Helper to get initial disc spec from a knob.
+;; When discprobe has disallowed settings ($opts non-empty), start at 0 (absent)
+;; rather than the stored init, which may have been pruned.
+(= (getInitDiscSpec (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))
+   (if (== $opts ()) $init 0))
+(= (getInitDiscSpec (mkASK $discKnob $perms))
+   (getInitDiscSpec $discKnob))
+(= (getInitDiscSpec (mkGDK $discKnob $domain))
+   (getInitDiscSpec $discKnob))
 
 ;; Helper to initialize center instance from deme
 ;; Creates an instance with knobs set to their initial disc specs

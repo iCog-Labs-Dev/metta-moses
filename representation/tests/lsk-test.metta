@@ -15,8 +15,8 @@
 
 !(import! &self ../../utilities/tree)
 
-!(import! &self ../lsk)
 !(import! &self ../knob-representation)
+!(import! &self ../lsk)
 !(import! &self ../logical-probe) 
 !(import! &self ../build-logical)
 !(import! &self ../build-knobs)
@@ -117,16 +117,18 @@
     (mkNodeId (0))
       4
     )
-  (Error 4 "Invalid disc specification:- cannot exceed 2."))
+  (Error 4 "Invalid effective disc specification for logical knob."))
 
 ;; appending to empty tree
+;; multiplicity must be >= 2: with multip 1 the effective multiplicity equals 1
+;; which makes setting 1 invalid under the new effective-spec guard.
 !(assertEqual
   (appendTo
     (tree1)
     (mkDiscKnob
        (mkKnob
           (mkNodeId (0)))
-       (mkMultip 3)
+       (mkMultip 2)
        (mkDiscSpec 1)
        (mkDiscSpec 0)
        ())

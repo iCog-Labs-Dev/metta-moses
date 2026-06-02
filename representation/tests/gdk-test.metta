@@ -34,11 +34,11 @@
 
 !(assertEqual
    (getKnobDefault (mkGDK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) (cons OR (cons AND ()))))
-   0)
+   (mkDiscSpec 0))
 
 !(assertEqual
    (getKnobDefault (mkGDK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()) (cons OR ())))
-   1)
+   (mkDiscSpec 1))
 
 ;; ── generalDiscreteKnob constructor ─────────────────────────────────────────
 ;;
