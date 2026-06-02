@@ -708,10 +708,10 @@
 ;; (: expToMMap (-> Expression (MultiMap ($k $v)) (-> $k $k Bool) (MultiMap ($k $v))))
 ;; TODO: Change this to simpler function
 (= (expToMMap () $map $compFunc) ())
-(= (expToMMap (cons $t $ts) $map $compFunc)
+(= (expToMMap (cons $head $tail) $map $compFunc)
    (let*
    (
-    (($head $tail) ($t $ts))
+    ($_ (println! (multiMap.insert $head $map $compFunc) ) )
     ($updatedMap (eval (MultiMap.insert $head $map $compFunc)))
    )
    (if (== $tail ())

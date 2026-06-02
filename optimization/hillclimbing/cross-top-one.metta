@@ -48,7 +48,7 @@
            ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
            ;; ($_ (println! (NToMake: $nToMakeNew)))
            (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
-           ($list (List.partialSort instanceFs>= $newInst $nToMakeNew)) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
+           ($list (List.partialSort instanceFs>= $newInst $nToMakeNew ())) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
            ;; ($_ (println! (New instances After merging: $newInstances)))
            ;; ($_ (println! ""))
          )

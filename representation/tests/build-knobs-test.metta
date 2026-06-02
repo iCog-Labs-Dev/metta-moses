@@ -12,7 +12,6 @@
 !(import! &self ../../representation/logical-probe)
 !(import! &self ../../representation/logical-canonize)
 !(import! &self ../../representation/sample-logical-perms)
-!(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/add-logical-knobs)
 !(import! &self ../../representation/build-logical)
 !(import! &self ../../representation/build-knobs)
