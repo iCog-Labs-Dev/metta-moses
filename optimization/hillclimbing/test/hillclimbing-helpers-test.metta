@@ -127,12 +127,15 @@
 ;; Testing estimateNeighborhood on the above knob maps
 !(assertEqual (estimateNeighborhood 0 (knobmap1)) 1)
 !(assertEqual (estimateNeighborhood 1 (knobmap2)) 10)
-!(assertEqual (estimateNeighborhood 2 (knobmap1)) 12)
+!(assertEqual (estimateNeighborhood 2 (knobmap1)) 15)
 !(assertEqual (estimateNeighborhood 2 (knobmap2)) 10)
+!(assertEqual (estimateNeighborhood 3 (knobmap1)) 20)
+
+!(assertEqual (estimateNeighborhood 7 (knobmap1)) 0)
 
 ;; Testcase for estimateNeighborhoodFs
 !(assertEqual
-  (estimateNeighborhoodFs 3 (cons A (cons B (cons O ())))) 4)
+ (estimateNeighborhoodFs 2 (cons A (cons B (cons O ())))) 1)
 
 ; Testcase for countNeighborhoodFs
 !(assertEqual (countNeighborhoodFs (mkInst (cons 1 (cons 0 (cons 1 ())))) 2 20) 3)

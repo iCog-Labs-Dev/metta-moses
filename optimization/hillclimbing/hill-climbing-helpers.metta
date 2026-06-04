@@ -17,19 +17,25 @@
 ;; Verbatim port of the Estimate neighborhood function from c++
 ;; Params: $distance: The hamming distance from the current knob
 ;;         $knobMap: A map of knobs with their multiplicities
-;; Returns: 2 * Sum of the multiplicities of the knobs in the map
+;; Returns: 2 * Sum of the multiplicities of the knobs in the map and binomial coefficient if the estiamte starts becoming very large.
 ; (: estimateNeighborhood (-> Number (MultiMap (DiscSpec $knob)) Number))
 (= (estimateNeighborhood $distance $knobMap)
    (if (== $distance 0)
        1
-       (let $nnEstimate (informationTheoreticBits $knobMap) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
+       (let $nnEstimate (informationTheoreticBits $knobMap)
+          (if (== $distance 1)
+              (* 2 $nnEstimate)
+              (binomial $nnEstimate $distance))))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
 
 ;; similar to the above 'estimateNeighborhood' but this one uses the informationTheoreticBitsFs which is for feature selection
 ; (: estimateNeighborhoodFs (-> Number (List Symbol) Number))
 (= (estimateNeighborhoodFs $distance $labels)
    (if (== $distance 0)
        1
-       (let $nnEstimate (informationTheoreticBitsFs $labels) (* 2 $nnEstimate)))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
+       (let $nnEstimate (informationTheoreticBitsFs $labels)
+        (if (== $distance 1)
+             (* 2 $nnEstimate)
+             (binomial $nnEstimate $distance))))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
 
 ;; Return an estimate of the number of new instances to search
 (= (nNewInstances $distance $maxEvals $currentEvals $totalNeighbors)
