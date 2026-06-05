@@ -50,14 +50,14 @@
 
 (= (tree1)
         (mkTree (mkNode AND)
-          ((mkKnob (mkTree (mkNode A) ()) 2) 
+          ((mkKnob (mkTree (mkNode A) ()) (lsk3) 2)
            (mkTree (mkNode OR)
                              (cons (mkTree (mkNode B) ())
                              (cons (mkTree (mkNode C) ())
                              (cons (mkKnob (mkNullVex
-                                     (cons (mkTree (mkNode D) ()) ())) 0) ()))))
+                                     (cons (mkTree (mkNode D) ()) ())) (lsk1) 0) ()))))
           (mkKnob (mkNullVex
-                  (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) 1))))
+                  (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) (lsk2) 1))))
 
 (= (lsk1)
         (mkLSK

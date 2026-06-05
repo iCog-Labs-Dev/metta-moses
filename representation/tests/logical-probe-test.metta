@@ -17,8 +17,8 @@
                   (cons (mkTree (mkNode C) ()) ())))())))
       ((mkTree (mkNode B) ()) (mkTree (mkNode A) ()))    
       True)
-      ( ((mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))    
-        (mkTree (mkNode AND) ((mkTree (mkNode OR) ((mkTree (mkNode B) ()) (mkTree (mkNode C) ()))) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) 0) (mkKnob (mkTree (mkNode A) ()) 1)))))
+      ( ((mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
+        (mkTree (mkNode AND) ((mkTree (mkNode OR) ((mkTree (mkNode B) ()) (mkTree (mkNode C) ()))) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (mkKnob (mkTree (mkNode A) ()) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())) 1)))))
 
 !(resetState &knobCount)
 
@@ -32,7 +32,7 @@
     )
     (
       ((mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
-      (mkTree (mkNode OR) ((mkTree (mkNode C) ()) (mkKnob (mkTree (mkNode B) ()) 0)))))
+      (mkTree (mkNode OR) ((mkTree (mkNode C) ()) (mkKnob (mkTree (mkNode B) ()) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())) 0)))))
 
 ;; Tests for strategyProbe function (game strategy version)
 ;; strategyProbe test 1: Multiple game move permutations
