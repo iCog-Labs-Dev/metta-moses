@@ -64,12 +64,12 @@
 ; a helper function to the countNeighborhood method
 ;; (: countNeighborhoodFromIdx (-> KnobMap Instance Number Number Number Number))
 (= (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst $dist $startIdx $maxCount)
-(if (== $dist 0) 
-    1 
-    (if (>= $startIdx (MultiMap.length $dscMp)) 
+(if (== $dist 0)
+    1
+    (if (>= $startIdx (MultiMap.length $dscMp))
         0
         (let $updatedNumInstances (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst $dist (+ $startIdx 1) $maxCount)
-          (if  (> $updatedNumInstances $maxCount) 
+          (if  (> $updatedNumInstances $maxCount)
                $updatedNumInstances
                (let*
                  (
@@ -249,7 +249,7 @@
         ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
         ;; ($_ (println! ""))
 
-        ($maxEvals 1000)
+        ($maxEvals 500)
         ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors)) ;; TODO: MaxEvals is hardcoded here, but should be changed. This is set to 20K by default in OpenCog Classic.
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))

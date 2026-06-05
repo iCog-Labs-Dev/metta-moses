@@ -232,7 +232,7 @@
         ($result (runMoses $maxGen $bestPosssibleCscore 10 $metaPop 0 $nDeme
               (False $fsAlgo $truthTableBScore ($problem))
               hillClimbing
-              1000 100 20 $complexityTemperature
+              500 100 20 $complexityTemperature
               50 $capCoef $maxGen))
         ($_ (println! (Result: $result)))
         ($newR (mapG cleanedExemplar $result))

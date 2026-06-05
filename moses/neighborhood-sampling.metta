@@ -326,7 +326,6 @@
                        (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
                        ;; (swapList (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))) ;; INFO: Used to improve result but not needed any more
                        (generateAllInNeighborhood (mkMultip $m) $centerInst $dist)))
-    ;; ($_ (println! (NewInstances: $newInstances)))
     ;; ($exprInstances (List.listToExpr $newInstances))
     ;; ($uExprInstances (unique-atom $exprInstances))
     ;; ($_ (println! (NewInstances: (List.length $newInstances) (UniqueInstances: (length $uExprInstances)))))
