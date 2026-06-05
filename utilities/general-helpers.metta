@@ -310,6 +310,19 @@
               ($tail (zipWith $f $xs-tl $ys-tl)))
          (cons-atom $head $tail))))
 
+;; Three-list variant of zipWith. Applies $f to corresponding head triples and
+;; returns the resulting tuple. Assumes all three inputs have equal arity.
+;; (: zipWith3 (-> (-> $a $b $c $d) $e $f $g $h))
+(= (zipWith3 $f $xs $ys $zs)
+   (if (== $xs ())
+       ()
+       (let* ((($xs-hd $xs-tl) (decons $xs))
+              (($ys-hd $ys-tl) (decons $ys))
+              (($zs-hd $zs-tl) (decons $zs))
+              ($head ($f $xs-hd $ys-hd $zs-hd))
+              ($tail (zipWith3 $f $xs-tl $ys-tl $zs-tl)))
+         (cons-atom $head $tail))))
+
 ;; Finds length of a tuple ;; FIX: No longer working on version 0.2.3
 (= (len $expr)
     (if (== $expr ()) ;; FIX: return Error if symbol

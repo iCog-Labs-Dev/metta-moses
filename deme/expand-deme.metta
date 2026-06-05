@@ -3,8 +3,9 @@
    (let* (
           ($knobs (Map.values $dscMp))
           ($defaults (List.map getKnobDefault $knobs))
+          ($finalDefaults (List.map second $defaults))
          )
-         $defaults))
+         $finalDefaults))
 
 ;; Recursively optimizes each deme in a list using the provided optimizer function.
 ;; Params:
@@ -24,8 +25,8 @@
 
 ;; Extracts default specification from a knob
 ; (: getKnobDefault (-> $knob Number))
-(= (getKnobDefault (mkLSK (mkDiscKnob $multip $curr (mkDiscSpec $def) $dis))) $def)
-(= (getKnobDefault (mkSSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
+;; (= (getKnobDefault (mkLSK (mkDiscKnob $multip $curr (mkDiscSpec $def) $dis))) $def)
+;; (= (getKnobDefault (mkSSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
 
 ;; Runs one deme-creation and optimization step, then merges the optimized deme into the metapopulation.
 ;; Params:

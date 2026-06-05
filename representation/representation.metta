@@ -62,6 +62,19 @@
             $enforced-fts               ;; set of features to be enforced in to selected features
             $scorerType                 ;; can MI or precision_bscore
         )
+        (representation $nDeme $exemplar (mkITable $table $labels) $ft-selection-algo $prune-exemplar $enforced-fts $scorerType True))
+
+(= (representation
+;; Boolean representation constructor with optional logical disc probing
+            $nDeme
+            $exemplar
+            (mkITable $table $labels)
+            $ft-selection-algo
+            $prune-exemplar
+            $enforced-fts
+            $scorerType
+            $disable-discprobe
+        )
         
         (let* (
                   ;; ($_ (println! (Inside Representation)))
@@ -107,7 +120,7 @@
                            (let* (
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (" done buildknobs (:) ")))            ;; BUILD representations on 
-                                    (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels))            ;; BUILD representations on 
+                                    (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels $disable-discprobe))            ;; BUILD representations on
                                     ($_ (resetState &knobCount))
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
@@ -129,6 +142,7 @@
              (Empty 
                 (let*
                     (
+                      ;; ($_ (println! (Here)))
                       ($parentid (mkNodeId (0)))
                       ($srcid (mkNodeId (0)))
                       ;; ($_ (println! ($parentid   $srcid)))
@@ -165,7 +179,7 @@
              (($tree $tree)
              (Empty
                 (let*
-                    (
+                    ( 
                       ((mkRep $kmo $tr) $repObj)
                       ;; ($_ (println! (Tree: (preOrder $tr))))
                       ;; ($_ (println! (GetCandidateHelper: $inst $tr)))
@@ -280,8 +294,17 @@
 
 ;; getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst)
 
-(= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) $i)) (getCandidateHelper $inst (mkKnob $child $i))) ;; Null vertex doesn't really matter if we have a knob indicator. This will simplify the logic significantly.
-(= (getCandidateHelper (mkInst $inst) (mkKnob (mkTree $node $children) $i))
+;; Null-vertex unwrapping clause threads the embedded LSK to the inner knob.
+(= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) $lsk $i))
+   (getCandidateHelper $inst (mkKnob $child $lsk $i)))
+
+;; Specialized fast clause: empty disallowed list means effective settings map
+;; one-to-one to actual settings, so we skip mapEffectiveDiscSpec entirely.
+;; This is byte-for-byte the pre-merge ref/RepresentationBuilding body.
+;; NOTE: This clause assumes MeTTa dispatches the literal-empty `()` disAll
+;; pattern in preference to the generic `$lsk` clause below — the same
+;; literal-driven dispatch we relied on for $disable-discprobe True/False.
+(= (getCandidateHelper (mkInst $inst) (mkKnob (mkTree $node $children) (mkLSK (mkDiscKnob $m $c $d ())) $i))
    (if (== (index-atom $inst $i) 0)
        ()
        (let $newChildren (filter-atom (map-atom $children $ch (getCandidateHelper (mkInst $inst) $ch)) (!= ()))
@@ -289,6 +312,20 @@
             (
               (1 (mkTree $node $newChildren))
               (2 (mkTree (mkNode NOT) ((mkTree $node $newChildren)))))))))
+
+;; Generic slow clause: any non-empty disallowed list requires translating the
+;; raw effective setting back to its actual logical setting via the embedded
+;; LSK before dispatching.
+(= (getCandidateHelper (mkInst $inst) (mkKnob (mkTree $node $children) (mkLSK (mkDiscKnob $m $c $d (cons $dh $ds))) $i))
+   (let $actualSetting (mapEffectiveDiscSpec (mkLSK (mkDiscKnob $m $c $d (cons $dh $ds))) (index-atom $inst $i))
+      (if (== $actualSetting 0)
+          ()
+          (let $newChildren (filter-atom (map-atom $children $ch (getCandidateHelper (mkInst $inst) $ch)) (!= ()))
+             (case $actualSetting
+               (
+                 (1 (mkTree $node $newChildren))
+                 (2 (mkTree (mkNode NOT) ((mkTree $node $newChildren))))))))))
+
 (= (getCandidateHelper $inst (mkTree $node $children))
    (let $newChildren (map-atom $children $ch (getCandidateHelper $inst $ch))
         (mkTree $node (filter-atom $newChildren (!= ())))))
