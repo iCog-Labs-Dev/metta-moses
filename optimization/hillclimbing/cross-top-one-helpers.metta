@@ -46,3 +46,89 @@
  (= (mergerFs $targetInstances $baseInst $referenceInst)
      (map-atom $targetInstances $tI 
          (let (mkSInst (mkPair $targetInst $score)) $tI (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) 0)))))
+
+
+;;   -------crossTopTwo Helepers----;;
+
+;; crossPairsToRef -- Cross a reference instance against the remaining
+;;                    candidate instances and accumulate the offspring..
+(= (crossPairsToRef () $reference $base $acc $limit)
+   $acc)
+
+(= (crossPairsToRef (cons $target $rest) $reference $base $acc $limit)
+   (if (>= (List.length $acc) $limit)
+       $acc
+       (let*
+         (
+           ((mkSInst (mkPair $targetInst $targetScore)) $target)
+           ($merged (mkSInst (mkPair (mergeInstance $targetInst $base $reference) (worstCscore)))))
+         (crossPairsToRef $rest $reference $base (cons $merged $acc) $limit))))
+
+
+;; crossPairs -- Generate pairwise crossover combinations among
+;;               the selected top-scoring instances.
+;; used by crossTopTwo.
+
+(= (crossPairs () $base $acc $limit)
+   $acc)
+
+;; Select current reference instance and generate
+;; all offspring against the remaining candidates.
+(= (crossPairs (cons $reference $rest) $base $acc $limit)
+   (if (>= (List.length $acc) $limit)
+       $acc
+       (let*
+         (
+           ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
+
+           ($updatedAcc (crossPairsToRef $rest $referenceInst $base $acc $limit)))
+         (crossPairs $rest $base $updatedAcc $limit))))
+
+
+
+;;-------- crossTopThree Helpers-------;;
+
+;; crossTriplesToRef -- Cross a target instance against two reference
+;;                      instances in sequence and accumulate offspring.
+(= (crossTriplesToRef () $jRef $iRef $base $acc $limit) $acc)
+
+(= (crossTriplesToRef (cons $target $rest) $jRef $iRef $base $acc $limit)
+   (if (>= (List.length $acc) $limit)
+       $acc
+       (let*
+         (
+           ((mkSInst (mkPair $targetInst $score)) $target)
+           ($merged (mkSInst (mkPair (mergeInstance (mergeInstance $targetInst $base $iRef) $base $jRef) (worstCscore)))))
+           (crossTriplesToRef $rest $jRef $iRef $base (cons $merged $acc) $limit))))
+
+
+;; crossTripleMiddle -- For a fixed reference instance, generate
+;;                      crossover offspring using lower-ranked references
+
+(= (crossTripleMiddle () $iRef $base $acc $limit) $acc)
+
+
+(= (crossTripleMiddle (cons $j $jRest) $iRef $base $acc $limit)
+   (if (>= (List.length $acc) $limit)
+       $acc
+       (let*
+         (((mkSInst (mkPair $jInst $jScore)) $j)
+           ($updatedAcc (crossTriplesToRef $jRest $jInst $iRef $base $acc $limit)))
+
+       (crossTripleMiddle $jRest $iRef $base $updatedAcc $limit))))
+       
+
+;; crossTriples -- Generate triple-wise crossover combinations among
+;;                 the selected top-scoring instances.
+;; used by crossTopThree.
+
+(= (crossTriples () $base $acc $limit) $acc)
+
+(= (crossTriples (cons $i $iRest) $base $acc $limit)
+   (if (>= (List.length $acc) $limit)
+       $acc
+       (let*
+         (
+           ((mkSInst (mkPair $iInst $iScore)) $i)
+           ($updatedAcc (crossTripleMiddle $iRest $iInst $base $acc $limit)))
+           (crossTriples $iRest $base $updatedAcc $limit))))
