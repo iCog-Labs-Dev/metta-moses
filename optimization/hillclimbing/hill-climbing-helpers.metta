@@ -152,7 +152,6 @@
 (= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme)
    ;; (trace! (Running crossover to make: (min $nNewInstances 120) instances)
    ;; INFO: The 120 is crossover_pop_size parameter that should come from hillClimbing
-    ;;  ((crossTopOne $deme (min $nNewInstances 120) $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
    ; )
   (let*
     (
@@ -346,7 +345,7 @@
                                           (case $iTable
                                             (
                                               ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep $id (mkITable $rows $labels) $rowOCoeff))
-                                              ($ComplexityRatio ($transformFunction $updatedInstSet $rep ($rowOCoeff $size) $ComplexityRatio))
+                                              ($ComplexityRatio ($transformFunction $updatedInstSet $rep $id ($rowOCoeff) $ComplexityRatio))
                                             ))))
 
         ($updatedDeme (if (or (== $rep ()) (== $id ())) 
