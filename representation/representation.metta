@@ -304,27 +304,20 @@
 ;; NOTE: This clause assumes MeTTa dispatches the literal-empty `()` disAll
 ;; pattern in preference to the generic `$lsk` clause below — the same
 ;; literal-driven dispatch we relied on for $disable-discprobe True/False.
-(= (getCandidateHelper (mkInst $inst) (mkKnob (mkTree $node $children) (mkLSK (mkDiscKnob $m $c $d ())) $i))
-   (if (== (index-atom $inst $i) 0)
-       ()
-       (let $newChildren (filter-atom (map-atom $children $ch (getCandidateHelper (mkInst $inst) $ch)) (!= ()))
-          (case (index-atom $inst $i)
-            (
-              (1 (mkTree $node $newChildren))
-              (2 (mkTree (mkNode NOT) ((mkTree $node $newChildren)))))))))
-
-;; Generic slow clause: any non-empty disallowed list requires translating the
-;; raw effective setting back to its actual logical setting via the embedded
-;; LSK before dispatching.
-(= (getCandidateHelper (mkInst $inst) (mkKnob (mkTree $node $children) (mkLSK (mkDiscKnob $m $c $d (cons $dh $ds))) $i))
-   (let $actualSetting (mapEffectiveDiscSpec (mkLSK (mkDiscKnob $m $c $d (cons $dh $ds))) (index-atom $inst $i))
-      (if (== $actualSetting 0)
-          ()
-          (let $newChildren (filter-atom (map-atom $children $ch (getCandidateHelper (mkInst $inst) $ch)) (!= ()))
-             (case $actualSetting
-               (
-                 (1 (mkTree $node $newChildren))
-                 (2 (mkTree (mkNode NOT) ((mkTree $node $newChildren))))))))))
+(= (getCandidateHelper (mkInst $inst) (mkKnob (mkTree $node $children) (mkLSK (mkDiscKnob $m $c $d $disAllowed)) $i))
+   (let*
+     (
+       ($setting (if (!= $disAllowed ())
+                     (mapEffectiveDiscSpec (mkLSK (mkDiscKnob $m $c $d $disAllowed)) (index-atom $inst $i))
+                     (index-atom $inst $i)))
+     )
+     (if (== $setting 0)
+         ()
+         (let $newChildren (filter-atom (map-atom $children $ch (getCandidateHelper (mkInst $inst) $ch)) (!= ()))
+              (case $setting
+                 (
+                   (1 (mkTree $node $newChildren))
+                   (2 (mkTree (mkNode NOT) ((mkTree $node $newChildren))))))))))
 
 (= (getCandidateHelper $inst (mkTree $node $children))
    (let $newChildren (map-atom $children $ch (getCandidateHelper $inst $ch))
