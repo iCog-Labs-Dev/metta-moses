@@ -1,7 +1,7 @@
-!(import! &self ../../utilities/general-helpers)
-!(import! &self ../../utilities/list-methods)
-!(import! &self ../feature-selection-helpers)
-!(import! &self ../random-feature-selection)
+!(import! &self utilities/general-helpers)
+!(import! &self utilities/list-methods)
+!(import! &self feature-selection/feature-selection-helpers)
+!(import! &self feature-selection/random-feature-selection)
 
 !(py-call (random.seed 42))
 

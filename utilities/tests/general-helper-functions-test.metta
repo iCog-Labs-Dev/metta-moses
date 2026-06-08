@@ -1,5 +1,5 @@
-!(import! &self ../general-helpers)
 !(import! &self ../ordered-multimap)
+!(import! &self ../general-helpers)
 !(import! &self ../list-methods)
 !(import! &self ../map)
 !(import! &self ../../representation/knob-representation)
@@ -242,7 +242,7 @@
 
 ; ;; FIX: Failing Test case
 
-!(assertEqual (println! ("testing failing case in gen it's working ✅")))
+!(println! ("testing failing case in gen it's working ✅"))
 !(assertEqual (gen 1 (0)) (1 0))
 !(assertEqual (gen 3 (0)) (3 2 1 0))
 
@@ -409,14 +409,14 @@
 !(assertEqual (add (mkMultip 1) (mkMultip 2)) (mkMultip 3))
 ; !(assertEqual (add (mkMultip A) (mkMultip 1)) (Error (A or 1) "One of the argument is not a number"))
 ;; Test for expToMMap
-;; !(println! ("testing expToMMap "))
-;; !(assertEqual 
-;; (expToMMap (((mkDiscSpec 1) (mkLsk1)) ((mkDiscSpec 2) (mkLsk2)) ((mkDiscSpec 3) (mkLsk3)))
-;; () discSpec<=)
-;; (cons ((mkDiscSpec 1) (mkLsk1)) (cons ((mkDiscSpec 2) (mkLsk2)) (cons ((mkDiscSpec 3) (mkLsk3)) ())))
-;; )
-;;
-;; !(assertEqual (expToMMap () () discSpec<=) ())
+!(println! ("testing expToMMap "))
+!(assertEqual 
+(expToMMap (((mkDiscSpec 1) (mkLsk1)) ((mkDiscSpec 2) (mkLsk2)) ((mkDiscSpec 3) (mkLsk3)))
+() discSpec<=)
+(cons ((mkDiscSpec 1) (mkLsk1)) (cons ((mkDiscSpec 2) (mkLsk2)) (cons ((mkDiscSpec 3) (mkLsk3)) ())))
+)
+
+!(assertEqual (expToMMap () () discSpec<=) ())
 ;;
 ;; ;; Test for swapAndOr
 !(println! ("testing swapAndOr"))

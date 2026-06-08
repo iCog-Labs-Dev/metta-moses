@@ -26,19 +26,19 @@
 !(import! &self ../../examples/tic-tac-toe/moves)
 !(import! &self ../../examples/tic-tac-toe/moses-player)
 
-!(import! &self ../../representation/knob-representation)
-!(import! &self ../../representation/lsk)
-!(import! &self ../../representation/knob-mapper)
-!(import! &self ../../feature-selection/feature-selection-helpers)
-!(import! &self ../../representation/representation)
+!(import! &self representation/knob-representation)
+!(import! &self representation/lsk)
+!(import! &self representation/knob-mapper)
+!(import! &self feature-selection/feature-selection-helpers)
+!(import! &self representation/representation)
 
-!(import! &self ../../representation/instance)
+!(import! &self representation/instance)
 
-!(import! &self ../../scoring/fitness)
-!(import! &self ../../scoring/bscore)
-!(import! &self ../../scoring/cscore)
-!(import! &self ../../scoring/precision-bscore)
-!(import! &self ../../scoring/complexity-based-scorer)
+!(import! &self scoring/fitness)
+!(import! &self scoring/bscore)
+!(import! &self scoring/cscore)
+!(import! &self scoring/precision-bscore)
+!(import! &self scoring/complexity-based-scorer)
 
 !(import! &self ../../moses/neighborhood-sampling)
 
@@ -187,14 +187,14 @@
        (cons (mkTree (mkNode playcenter) ()) 
              (cons (mkTree (mkNode playcorner) ()) ())))))
 
-!(assertEqual (applyStrategyBasedScore (StrategyRep) (mkDemeId "1") () 1 random-player 3.5 ()) ())
+!(assertEqual (applyStrategyBasedScore (StrategyRep) (mkDemeId "1") () 1 3.5 ()) ())
 
 !(assertEqual (applyStrategyBasedScore (StrategyRep) (mkDemeId "1")
                      (cons (mkInst (cons 1 (cons 1 ())))  ()) 1 random-player 3.5 ()) 
                      ((mkSInst (mkPair (mkInst (1 1)) (mkCscore -1.0 2 0.5714285714285714 0.0 -1.5714285714285714)))))
 
 !(assertEqual
-   (transform (mkSInstSet ()) (StrategyRep) (mkDemeId "1") (1 random-player) 3.5)
+   (transform (mkSInstSet ()) (StrategyRep) (mkDemeId "1") (1) 3.5)
    (mkSInstSet ()))
 
 !(assertEqual (transform

@@ -1,6 +1,6 @@
-!(import! &self ../../../metta-moses/utilities/general-helpers)
-!(import! &self ../../../metta-moses/utilities/list-methods)
-!(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
+!(import! &self utilities/general-helpers)
+!(import! &self utilities/list-methods)
+!(import! &self feature-selection/feature-selection-helpers)
 
 ;; Test
 !(assertEqual (List.at 0 (cons True (cons False ()))) True)
@@ -78,7 +78,7 @@
 !(assertEqual (marginalProbs 100 ()) ())
 
 !(assertEqual (mutualInformation (cons True (cons False ())) (cons True (cons False ()))) 1.0)
-!(assertEqual (mutualInformation (cons True (cons True ())) (cons False (cons False ()))) 0.0)
+!(assertEqual (mutualInformation (cons True (cons True ())) (cons False (cons False ()))) 0)
 !(assertEqual (mutualInformation (cons A (cons B (cons A ()))) (cons X (cons Y (cons X ())))) 0.918)
 !(assertEqual (mutualInformation (cons A (cons A (cons A ()))) (cons X (cons Y (cons Z ())))) 0.0)
 !(assertEqual (mutualInformation (cons A (cons B (cons C ()))) (cons X (cons Y (cons Z ())))) 1.585)

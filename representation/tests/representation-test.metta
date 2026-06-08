@@ -20,9 +20,9 @@
 
 !(import! &self ../../utilities/tree) 
 
-!(import! &self ../../representation/lsk)
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/disc-probe)
+!(import! &self ../../representation/lsk)
 !(import! &self ../../representation/logical-probe) 
 !(import! &self ../../representation/logical-canonize)
 !(import! &self ../../representation/sample-logical-perms) 
@@ -34,11 +34,11 @@
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
 
-!(import! &self ../../feature-selection/feature-selection-helpers)
+!(import! &self feature-selection/feature-selection-helpers)
 
-!(import! &self ../../feature-selection/simple)
-!(import! &self ../../feature-selection/smd)
-!(import! &self ../../feature-selection/random-feature-selection)
+!(import! &self feature-selection/simple)
+!(import! &self feature-selection/smd)
+!(import! &self feature-selection/random-feature-selection)
 ; !(import! &self ../../feature-selection/incremental)
 !(import! &self ../../feature-selection/incremental-feature-selection)
 

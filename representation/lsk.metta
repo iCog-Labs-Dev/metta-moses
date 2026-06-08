@@ -132,16 +132,18 @@
                         (let (mkNullVex (cons $child ())) $targetTree ($child (mkNodeId (union-atom $targetId (1)))))
                         ($targetTree (mkNodeId $targetId))
                     ))        
+        ((mkMultip $effectiveMultip) (getKnobMultip $lsk))
         ;; ($_ (println! ("subtree ": $subtree $targetTree)))
         ;; ($_ (println! (CandidateSoFar: (preOrder $tree))))
         ;; ($_ (println! ("subtree ": (getNodeValue $subtree) parentId(OldDstId): $parentId srcId: $newSrcId targetId: $targetId)))
       )
-      (if (> $d 2)
-          (Error $d "Invalid disc specification:- cannot exceed 2.")
+      (if (>= $d $effectiveMultip)
+          (Error $d "Invalid effective disc specification for logical knob.")
           ;; TODO: Skip multiplicity 0, we don't want to convert the subtree into a null vertex. That will bring weird behavior like nested NullVertex and the like.
           ;;       In addition, this tree is a new candidate tree needed only to be evaluated, why do we need to process null vertexes here? We want to avoid adding any.
+          (let $actualD (mapEffectiveDiscSpec $lsk $d)
           (let ($treeToAppend $newDstId)
-                            (case $d
+                            (case $actualD
                                 (
                                   (2  ((mkTree (mkNode NOT) (cons (mkTree (getNodeValue $subtree) ()) ())) (mkNodeId (union-atom $dstId ($newPosition 1))))) ;; If negated
                                   (1  ((mkTree (getNodeValue $subtree) ()) (mkNodeId (union-atom $dstId ($newPosition))))) ;; If present
@@ -150,7 +152,7 @@
                             (if (isNullVertex $treeToAppend)
                                 ($tree $parentId $parentId)
                                 (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
-                                        ((first $treeChIdPair) $newSrcId (if (== $parentId $newDstId) (second $treeChIdPair) $newDstId)))))))) ;; INFO: Just incase if the append fails and stores the result somewhere else, we need to add a test case here to cmpare between targetNode and appendChild node.
+                                        ((first $treeChIdPair) $newSrcId (if (== $parentId $newDstId) (second $treeChIdPair) $newDstId))))))))) ;; INFO: Just incase if the append fails and stores the result somewhere else, we need to add a test case here to cmpare between targetNode and appendChild node.
 
 ;; appendTo for Strategy Subtree Knobs (SSK) - No negation for game moves
 ;; Params:
