@@ -68,12 +68,6 @@
       )
       ($controlledSubtree $probedLsk)))
 
-(= (targetWithChildren $target $newChildren)
-   (case $target
-      (
-        ((mkTree (mkNode $node) $children) (mkTree (mkNode $node) $newChildren))
-        ((mkNullVex $children) (mkNullVex $newChildren)))))
-
 (= (logicalProbe (mkTree $node $children) $perms $addIfInExemplar)
    (logicalProbe (mkTree $node $children) $perms $addIfInExemplar True))
 
@@ -87,36 +81,14 @@
 (= (logicalProbe $tree $probeRootId $targetId $perms $addIfInExemplar $disable-discprobe)
    (logicalProbe $tree $tree $probeRootId $targetId $perms $addIfInExemplar $disable-discprobe))
 
-;; Fast path: disc-probe disabled. Pattern-matches the LOCAL subtree directly
-;; and ignores $globalTree / NodeIds entirely, restoring zero-overhead
-;; behavior on this branch.
-(= (logicalProbe (mkTree $node $children) $globalTree $probeRootId $targetId $perms $addIfInExemplar True)
+(= (logicalProbe (mkTree $node $children) $globalTree $probeRootId $targetId $perms $addIfInExemplar $discProbeDisabled)
    (let*
      (
       ($exemplar (mkTree $node $children))
       ($updatedChldLskPair (map-atom $perms $perm (logicalSubtreeKnob $exemplar $perm)))
-      ($filteredChildrenLskPair (filter-atom $updatedChldLskPair $pair (or $addIfInExemplar (not (inExemplar (getDiscKnob (second $pair)))))))
-      ($updatedChildren (map-atom $filteredChildrenLskPair $ch (first $ch)))
-      ($newLskPair (map-atom $filteredChildrenLskPair $ch (second $ch)))
-      ($index (map-atom (genList (- (size-atom $updatedChildren) 1)) $i (+ $i (get-state &knobCount))))
-      ($temp (incrementState &knobCount (size-atom $index)))
-      ;; Embed the LSK alongside the index inside each tree-wrapper knob so
-      ;; downstream reconstruction (getCandidateHelper) can dispatch in O(1)
-      ;; on the empty-vs-pruned disallowed list without a parallel lookup.
-      ($updatedKnobChildren (zipWith3 knobId $updatedChildren $newLskPair $index))
-     )
-     ($newLskPair (mkTree $node (append (subtraction-atom $children $updatedChildren) $updatedKnobChildren)))))
-
-;; Slow path: disc-probe enabled. Local subtree work happens on $localTree
-;; (current behavior). Disc-probe synthesizes its probe tree from $globalTree
-;; at the absolute $targetId so complexity is judged in the global context.
-(= (logicalProbe $localTree $globalTree $probeRootId $targetId $perms $addIfInExemplar False)
-   (let*
-     (
-      ($target (getNodeById $localTree (mkNodeId (0))))
-      ($children (getChildren $target))
-      ($updatedChldLskPair (map-atom $perms $perm (logicalSubtreeKnob $target $perm)))
-      ($probedChldLskPair (map-atom $updatedChldLskPair $pair (probeLogicalPair $globalTree $probeRootId $targetId $children False $pair)))
+      ($probedChldLskPair (if $discProbeDisabled
+                              $updatedChldLskPair 
+                              (map-atom $updatedChldLskPair $pair (probeLogicalPair $globalTree $probeRootId $targetId $children False $pair))))
       ($filteredChildrenLskPair (filter-atom $probedChldLskPair $pair (and (not (allDisallowed (second $pair))) (or $addIfInExemplar (not (inExemplar (getDiscKnob (second $pair))))))))
       ($updatedChildren (map-atom $filteredChildrenLskPair $ch (first $ch)))
       ($newLskPair (map-atom $filteredChildrenLskPair $ch (second $ch)))
@@ -124,10 +96,8 @@
       ($temp (incrementState &knobCount (size-atom $index)))
       ;; Same embed-LSK design as the fast clause above.
       ($updatedKnobChildren (zipWith3 knobId $updatedChildren $newLskPair $index))
-      ($newTarget (targetWithChildren $target (append (subtraction-atom $children $updatedChildren) $updatedKnobChildren)))
-      ($updatedTree (replaceNodeById $localTree (mkNodeId (0)) $newTarget))
      )
-     ($newLskPair $updatedTree)))
+     ($newLskPair (mkTree $node (append (subtraction-atom $children $updatedChildren) $updatedKnobChildren)))))
 
 ;; Game-specific probe that uses strategySubtreeKnob instead of logicalSubtreeKnob
 ;; strategyProbe -> builds SSKs by processing game move permutations
