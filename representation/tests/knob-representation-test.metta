@@ -52,7 +52,8 @@
 !(assertEqual (getKnobLoc (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (mkNodeId (1)))
 
 ;; Test for discSpec<
-!(assertEqual (discSpec< (mkDiscSpec 2) (mkDiscSpec 3)) True)
+!(assertEqual (discSpec< (mkDiscSpec 2) (mkDiscSpec 3)) False)
+;; !(assertEqual (discSpec< (mkDiscSpec 2) (mkDiscSpec 3)) True) ;; INFO: This has been changed because for the behavior of the discProbing to work with the new representation, we don't need the multimap inserting sorting by multiplicity. That was just a C++ memory optimization trick.
 !(assertEqual (discSpec< (mkDiscSpec 3) (mkDiscSpec 2)) False)
 
 ;; Test for nodeId<

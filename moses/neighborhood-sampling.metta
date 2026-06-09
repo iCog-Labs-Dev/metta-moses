@@ -176,7 +176,8 @@
 (= (updateInst $rand $disc $newInst)
         (let*
           (
-            (($decSpec (mkLSK (mkDiscKnob (mkMultip $multi) $spec $spec1 $specList))) (MultiMap.getByIdx $rand $disc))
+            (($decSpec $knob) (MultiMap.getByIdx $rand $disc))
+            ((mkMultip $multi) (getKnobMultip $knob))
             ($curSpec (List.getByIdx $newInst $rand))
           )
           (if (<= $multi 1)
