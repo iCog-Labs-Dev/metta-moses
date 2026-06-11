@@ -92,7 +92,39 @@ rvw_full(_, X, X).
 rvw_head(Env, X, V) :- atom(X), get_assoc(X, Env, V), !.
 rvw_head(_, X, X).
 
+%% --- isConsistentExp/2 (reduct/boolean-reduct/delete-inconsistent-handle.metta:40) ---
+%% A/B vs an optimised MeTTa walker was within noise on mux6, BUT the MeTTa
+%% version errors on improper-list inputs that arise when `concatTuple` unions
+%% a list with a bare Symbol (PeTTaV1's get-metatype fails on improper lists
+%% because `is_list/1` only succeeds on proper lists). Keeping the Prolog stub
+%% sidesteps the edge case; semantics are robust by construction.
+%%
+%% Short-circuit walker: returns false on the first (X, NOT X) pair found.
+%% A handle X and Y are negations iff X = [NOT, Y]  or  Y = [NOT, X].
+
+:- dynamic('isConsistentExp'/2).
+:- retractall('isConsistentExp'(_, _)).
+
+%% Empty handle set is trivially consistent.
+'isConsistentExp'([], true) :- !.
+%% Proper list: scan for a negation pair.
+'isConsistentExp'(HandleSet, Result) :-
+    is_list(HandleSet), !,
+    ( has_neg_pair(HandleSet) -> Result = false ; Result = true ).
+%% Anything else (bare Symbol, improper list, etc.) — no negation pair.
+'isConsistentExp'(_, true).
+
+has_neg_pair([H|T]) :- has_neg_with(H, T), !.
+has_neg_pair([_|T]) :- has_neg_pair(T).
+
+has_neg_with(X, [Y|_]) :- is_neg_pair(X, Y), !.
+has_neg_with(X, [_|T]) :- has_neg_with(X, T).
+
+is_neg_pair(X, ['NOT', Y]) :- Y == X, !.
+is_neg_pair(['NOT', Y], X) :- Y == X, !.
+
 %% Register the stubs as MeTTa funs (idempotent).
 :- register_fun('getLiterals').
 :- register_fun('getChildrenExp').
 :- register_fun('replaceVarsWithTruth').
+:- register_fun('isConsistentExp').
