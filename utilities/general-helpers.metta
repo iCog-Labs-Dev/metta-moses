@@ -717,15 +717,12 @@
 ;; Ex: ((k1 v1) (k2 v2)) -> (cons (k1 v1) (cons (k2 v2) ()))
 ; (: expToMMap (-> Expression (MultiMap ($k $v)) (-> $k $k Bool) (MultiMap ($k $v))))
 ;; TODO: Change this to simpler function
+;; The only comparator passed in production is discSpec< (knob-representation.metta:165),
+;; which is hardcoded to False — so MultiMap.insert always lands at the tail.
+;; That makes this function operationally an append; union-atom is the Prolog
+;; primitive doing exactly that. Was O(n²) due to repeated per-step insert.
 (= (expToMMap () $map $compFunc) ())
-(= (expToMMap (cons $head $tail) $map $compFunc)
-   (let*
-   (
-    ($updatedMap (eval (MultiMap.insert $head $map $compFunc)))
-   )
-   (if (== $tail ())
-       $updatedMap
-       (eval (expToMMap $tail $updatedMap $compFunc)))))
+(= (expToMMap $pairs $map $compFunc) (union-atom $map $pairs))
 
 ;; A trick function to make chain reduce when using union-atom
 ;; This is causing infinite loop in some cases. use the direct union-atom instead.
