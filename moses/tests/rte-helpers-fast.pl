@@ -57,6 +57,42 @@ collect_kids([H|T], Kids) :-
           ; Kids = [H|RKids]
     ).
 
+%% --- replaceVarsWithTruth/3 (scoring/bscore.metta:140) ---
+%% mux6 A/B win for stub: +13.5 % wall — the single largest contribution.
+%% The MeTTa version foldl's replaceVarWithTruth over the variable list,
+%% walking the entire tree once per variable (16.6M elementary calls on mux6).
+%% This stub walks the tree once with an assoc-list lookup at each leaf.
+%%
+%% Semantics preserved from the MeTTa original (verified by bscore-test.metta):
+%%   - For a single-element expression [X], unwrap and recurse on X.
+%%   - Multi-element expression: head equality-checked (no AND/OR wrap), tail
+%%     elements recurse fully.
+%%   - Atom: substitute if in the assoc; if it's a bare AND/OR symbol, wrap
+%%     in a 1-element list (the MeTTa source's quirky branch).
+
+:- dynamic('replaceVarsWithTruth'/3).
+:- retractall('replaceVarsWithTruth'(_, _, _)).
+
+'replaceVarsWithTruth'([LList, BoolExpr], BList, Out) :-
+    pairs_keys_values(Pairs, LList, BList),
+    list_to_assoc(Pairs, Env),
+    rvw_full(Env, BoolExpr, Out).
+
+rvw_full(Env, [Single], Out) :- !,
+    rvw_full(Env, Single, Out).
+rvw_full(Env, [H|T], [H2|T2]) :-
+    is_list(T), T \== [], !,
+    rvw_head(Env, H, H2),
+    maplist(rvw_full(Env), T, T2).
+rvw_full(_, [], []) :- !.
+rvw_full(Env, X, V) :- atom(X), get_assoc(X, Env, V), !.
+rvw_full(_, X, [X]) :- atom(X), (X == 'AND' ; X == 'OR'), !.
+rvw_full(_, X, X).
+
+rvw_head(Env, X, V) :- atom(X), get_assoc(X, Env, V), !.
+rvw_head(_, X, X).
+
 %% Register the stubs as MeTTa funs (idempotent).
 :- register_fun('getLiterals').
 :- register_fun('getChildrenExp').
+:- register_fun('replaceVarsWithTruth').
