@@ -7,7 +7,7 @@
 ;; (: pick (-> Number Number Expression Number))
 (= (pick $lower $upper $picked )
     (let $rand (py-call  (random.randint $lower $upper))
-        (if (is-member $rand $picked)
+        (if (once (is-member $rand $picked))
             (pick $lower $upper $picked)
             $rand
         )

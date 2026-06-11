@@ -69,19 +69,19 @@
 
 ; a helper function to the countNeighborhood method
 ;; (: countNeighborhoodFromIdx (-> KnobMap Instance Number Number Number Number))
-(= (countNeighborhoodFromIdx (mkKbMap $dscKbMp (mkDscMp $dscMp)) $inst $dist $startIdx $maxCount)
-(if (== $dist 0) 
-    1 
-    (if (>= $startIdx (MultiMap.length $dscMp)) 
+(= (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst $dist $startIdx $maxCount)
+(if (== $dist 0)
+    1
+    (if (>= $startIdx (MultiMap.length $dscMp))
         0
-        (let $updatedNumInstances (countNeighborhoodFromIdx (mkKbMap $dscKbMp (mkDscMp $dscMp)) $inst $dist (+ $startIdx 1) $maxCount)
-          (if  (> $updatedNumInstances $maxCount) 
+        (let $updatedNumInstances (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst $dist (+ $startIdx 1) $maxCount)
+          (if  (> $updatedNumInstances $maxCount)
                $updatedNumInstances
                (let*
                  (
                     (($kbSpec $knob) (MultiMap.getByIdx $startIdx $dscMp))
                     ((mkMultip $multip) (getKnobMultip $knob))
-                    ($uUpdatedNumInstances (+ $updatedNumInstances (* (- $multip 1) (countNeighborhoodFromIdx (mkKbMap $dscKbMp (mkDscMp $dscMp)) $inst (- $dist 1) (+ $startIdx 1) $maxCount))))
+                    ($uUpdatedNumInstances (+ $updatedNumInstances (* (- $multip 1) (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst (- $dist 1) (+ $startIdx 1) $maxCount))))
                  )
                  $uUpdatedNumInstances))))))
 
@@ -149,9 +149,9 @@
        (mkSInst $inst2)
        (mkSInst $inst1)))
 
-(= (getDisk (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) $instSet $id))
-    $disc
-)
+(= (getDisk (mkDeme (mkRep (mkKbMap $kbMap (mkDscMp $disc)) $tree) $instSet $id)) $disc)
+(= (getDisk (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) $instSet $id)) $disc)
+
 (= (getTTableParams (mkTruthTableBScore $cpxCoeff $size $iTable))
     ($cpxCoeff $size $iTable)
 )
@@ -286,7 +286,7 @@
         ; ($_ (println! (New POASet: $newPOA)))
         ; (((mkDeme $rep $upInstSet $id) $newInstances) $newPOA)
         ; ($_ (println! (New rep: $rep)))
-        ($_ (println! (New Inst: $newInstances at Distance: $d)))
+        ;; ($_ (println! (New Inst: $newInstances at Distance: $d)))
         ;; ($exprList (let (mkSInstSet $list) $updatedInstSet (List.listToExpr $list)))
         ;; ($bmr (map-atom $exprList $inst (let (mkSInst $x) $inst (println! (Inst: (List.listToExpr (second (Pair.first $x))) Tree: (preOrder (getCandidate $rep (Pair.first $x))))))))
         ;; ($_ (println! ""))
@@ -305,7 +305,7 @@
                                           (case $iTable
                                             (
                                               ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep $id (mkITable $rows $labels) $rowOCoeff))
-                                              ($ComplexityRatio ($transformFunction $updatedInstSet $rep ($rowOCoeff $size) $ComplexityRatio))
+                                              ($ComplexityRatio ($transformFunction $updatedInstSet $rep $id ($rowOCoeff $size) $ComplexityRatio))
                                             ))))
 
         ($updatedDeme (if (or (== $rep ()) (== $id ())) 
@@ -313,7 +313,7 @@
                           (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
         
         ;; ($sExprList (List.listToExpr $scoredInstances))
-        ;; ($amr (map-atom $sExprList $inst (let (mkSInst $x) $inst (println! (Inst: (List.listToExpr (second (Pair.first $x))) Tree: (preOrder (getCandidate $rep (Pair.first $x))) Score: (getPenScore (Pair.second $x)))))))
+        ;; ($amr (map-atom $sExprList $inst (let (mkSInst $x) $inst (println! (Inst: (List.listToExpr (second (Pair.first $x))) Tree: (preOrder (getCandidate $rep $id (Pair.first $x))) Score: (getPenScore (Pair.second $x)))))))
         ;; ($_ (println! ""))
         ;; ($_ (println! (Scored instances: $scoredInstances)))
         ;; ($_ (println! (Scored instances....)))
@@ -351,7 +351,6 @@
         ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (getPenScore $newBestSscore)))
         ;; ($_ (println! (Found newBestSscore After (+ 1 $i) iteration is: $newBestSscore $scoreToCompareBelow)))
         ;; ($_ (println! ""))
-        ($_ (cut))
     )
     (if (<= (- $maxEvals $newCurrentNInstance) 0)
         (trace! (Terminating because of maxEval ending) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))

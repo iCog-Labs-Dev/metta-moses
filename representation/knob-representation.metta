@@ -38,6 +38,8 @@
 ;; (: inExemplar (-> DiscreteKnob Bool))
 (= (inExemplar (mkDiscKnob $knob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis)) 
    (not (== $def 0)))
+(= (inExemplar (mkDiscKnob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis)) 
+   (not (== $def 0)))
 
 ;; Extracts the DiscreteKnob component from a LogicalSubtreeKnob (mkLSK) or StrategySubtreeKnob (mkSSK).
 ;; Params:
@@ -55,9 +57,14 @@
 
 ;; Extracts the raw multiplicity stored on a discrete or logical/strategy knob.
 ;; The effective multiplicity below subtracts disallowed non-default settings.
+;; Params:
+;;  $knob: Either discrete, logical subtree, or strategy subtree knob
+;; Returns: The unpruned multiplicity of the knob.
 ;; (: getRawKnobMultip (-> DiscreteKnob Multiplicity))
 ;; (: getRawKnobMultip (-> LogicalSubtreeKnob Multiplicity))
 ;; (: getRawKnobMultip (-> StrategySubtreeKnob Multiplicity))
+
+(= (getRawKnobMultip (mkDiscKnob $multiplicity $curr $def $disAll)) $multiplicity)
 (= (getRawKnobMultip (mkDiscKnob $knob $multiplicity $curr $def $disAll)) $multiplicity)
 (= (getRawKnobMultip (mkLSK $discKnob )) (getRawKnobMultip $discKnob))
 (= (getRawKnobMultip (mkSSK $discKnob )) (getRawKnobMultip $discKnob))
@@ -66,6 +73,7 @@
 ;; (: getKnobDefault (-> DiscreteKnob DiscSpec))
 ;; (: getKnobDefault (-> LogicalSubtreeKnob DiscSpec))
 ;; (: getKnobDefault (-> StrategySubtreeKnob DiscSpec))
+(= (getKnobDefault (mkDiscKnob $multiplicity $current $default $disAll)) $default)
 (= (getKnobDefault (mkDiscKnob $knob $multiplicity $current $default $disAll)) $default)
 (= (getKnobDefault (mkLSK $discKnob )) (getKnobDefault $discKnob))
 (= (getKnobDefault (mkSSK $discKnob )) (getKnobDefault $discKnob))
@@ -73,6 +81,7 @@
 ;; (: getDisallowedSpecs (-> DiscreteKnob (List DiscSpec)))
 ;; (: getDisallowedSpecs (-> LogicalSubtreeKnob (List DiscSpec)))
 ;; (: getDisallowedSpecs (-> StrategySubtreeKnob (List DiscSpec)))
+(= (getDisallowedSpecs (mkDiscKnob $multiplicity $current $default $disAll)) $disAll)
 (= (getDisallowedSpecs (mkDiscKnob $knob $multiplicity $current $default $disAll)) $disAll)
 (= (getDisallowedSpecs (mkLSK $discKnob )) (getDisallowedSpecs $discKnob))
 (= (getDisallowedSpecs (mkSSK $discKnob )) (getDisallowedSpecs $discKnob))
@@ -89,7 +98,8 @@
 ;; (: getKnobMultip (-> DiscreteKnob Multiplicity))
 ;; (: getKnobMultip (-> LogicalSubtreeKnob Multiplicity))
 ;; (: getKnobMultip (-> StrategySubtreeKnob Multiplicity))
-
+(= (getKnobMultip (mkDiscKnob (mkMultip $multiplicity) $current $default $disAll))
+   (mkMultip (- $multiplicity (countNonDefaultDisallowed $default $disAll))))
 (= (getKnobMultip (mkDiscKnob $knob (mkMultip $multiplicity) $current $default $disAll))
    (mkMultip (- $multiplicity (countNonDefaultDisallowed $default $disAll))))
 (= (getKnobMultip (mkLSK $discKnob )) (getKnobMultip $discKnob))
@@ -104,10 +114,7 @@
    (let (mkMultip $multip) (getKnobMultip (mkSSK $discKnob)) (mkDiscSpec $multip)))
 
 (= (allDisallowed $knob)
-   (let*
-      (
-        ((mkMultip $effectiveMultip) (getKnobMultip $knob))
-      )
+   (let (mkMultip $effectiveMultip) (getKnobMultip $knob)
       (<= $effectiveMultip 1)))
 
 (= (settingDisallowed $setting $disAll)
@@ -155,8 +162,9 @@
 ;; A comparison function for discSpec 
 ;; (used as a $compFunc to insert knobSpec and knob pairs into a multimap ) 
 ;; (: discSpec<= (-> DiscSpec DiscSpec Bool))
-(= (discSpec< (mkDiscSpec $newKey) (mkDiscSpec $currKey))
-(< $newKey $currKey))
+(= (discSpec< (mkDiscSpec $newKey) (mkDiscSpec $currKey)) False)
+;; (= (discSpec< (mkDiscSpec $newKey) (mkDiscSpec $currKey))
+;; (< $newKey $currKey))
 
 ;; Checks of nodeId1 is lessthan nodeId2.
 ;; Params: $id1 & $id2

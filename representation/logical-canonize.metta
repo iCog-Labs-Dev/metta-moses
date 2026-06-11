@@ -11,6 +11,6 @@
                        (Error InvalidTreeValueInsideLogicalCanonize)))))))
 
 
-(= (isAnArgument $it) (and (not (is-member $it (AND OR NOT))) (== (get-metatype $it) Symbol)))
+(= (isAnArgument $it) (and (not (once (is-member $it (AND OR NOT)))) (== (get-metatype $it) Symbol)))
 
-(= (isBoolean $it) (is-member $it (True False)))
+(= (isBoolean $it) (once (is-member $it (True False))))

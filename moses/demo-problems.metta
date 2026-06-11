@@ -236,7 +236,7 @@
               50 $capCoef $maxGen))
         ($_ (println! (Result: $result)))
         ($newR (mapG cleanedExemplar $result))
-        ($_ (cut)) ;; INFO: This prevents a weird infinte loop that only occurs on some test cases with unknown reasons.
+        ($_ (cut)) ;; INFO: This gives few extra seconds performance gain. Do not remove.
       )
       (FinalResult $newR)))
 

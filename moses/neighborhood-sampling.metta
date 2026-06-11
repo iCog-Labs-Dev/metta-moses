@@ -127,7 +127,7 @@
 ;;      $knobmapper: The knob mapper used to extract the multiplicity of the knob.
 ;;      $centralinstance: The instance from which other instances will be generated.
 ;; (: sampleFromNeighborhood` (-> Number Number KnobMap Instance Instance))
-(= (sampleFromNeighborhood` $n $dist (mkKbMap (mkDscKbMp $itDiscKnob) (mkDscMp $disc)) (mkInst $centralInst))
+(= (sampleFromNeighborhood` $n $dist (mkKbMap (mkDscMp $disc)) (mkInst $centralInst))
         (let* 
             (
               ;; ($_ (println! ""))
@@ -350,7 +350,7 @@
 ;; Returns:
 ;;   (Deme Number) - Tuple of updated Deme with new scored instances appended and number of new instances added.
 ;; (: sampleNewInstances (-> Number Number Instance Deme Number (Deme Number)))
-(= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $disc)) $tree) (mkSInstSet $instList) $demeId) $dist)
+(= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) (mkSInstSet $instList) $demeId) $dist)
  (let*
   (
     ;; ($_ (println! (DimSize: (Map.length $dkm))))
@@ -358,7 +358,9 @@
     ;; ($_ (println! (Distance: $dist CenterInst: $centerInst)))
     ;; ($_ (println! ""))
 
-    ($kbMp (mkKbMap $dscKbMp (mkDscMp $disc)))
+    (($spec $knob) (MultiMap.getByIdx 0 $disc))
+    ((mkMultip $m) (getKnobMultip $knob))
+    ($kbMp (mkKbMap (mkDscMp $disc)))
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (countNeighborhood $kbMp $centerInst $dist $numNewInstances)

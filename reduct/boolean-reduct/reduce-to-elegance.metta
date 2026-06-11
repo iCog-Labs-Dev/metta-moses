@@ -74,7 +74,7 @@
                              (until transformationsNotApplied applyAndTransformations ($commandSet $dominantSet ($updatedParent $updatedCurrent True)))))
 
                       ;; ($_ (println! (FinalResult ==> UpdatedParent': $updatedParent' UpdatedCurrent: $updatedCurrent' AppliedRTE: (any ($appliedRedundantOr1CC $appliedOneSubsume $bool)))))
-                      ($_ (cut))
+                      ;; ($_ (cut))
                       ;; ($_ (println! (calling 0-Subsume Variation on Parent: $updatedParent' Current: $updatedCurrent')))
                       ($childFromParent (if (== $updatedCurrent' ()) (cdr-atom $updatedParent') $updatedCurrent'))
                       ($zeroCurrent (let $h (if (!= $childFromParent ()) (car-atom $childFromParent) ()) (if (== (get-metatype $h) Expression) $h $childFromParent)))
@@ -477,7 +477,7 @@
       ;; TODO: Add a simple function to remove one child and nodes.
       (($parent $uwnt $uwnt2) (until reduceNotApplied applyReduce ($expr $expr True)))
       (($newParent $__ $___) (applyReduce ($parent $parent True))) ;; Try one more time incase it is still reduceable
-      ($_ (cut))
+      ;; ($_ (cut))
      )
      (if (== $newParent $parent)
          (removeAndNodesFromGuards $parent)

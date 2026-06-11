@@ -11,4 +11,6 @@
     (let (mkTree (mkNode $rootOp) $children) $exemplar
         (if (== $rootOp PRIORITIZED-OR)
             (buildStrategy $exemplar (mkNodeId (0)) $mmp $argLabels)
-            (let $canonized (logicalCanonize $exemplar) (buildLogical $canonized (mkNodeId (0)) $mmp $argLabels $disable-discprobe)))))
+            (let $canonized (logicalCanonize $exemplar)
+                 (let (mkTree (mkNode $canonRootOp) $canonChildren) $canonized
+                      (buildLogical $canonized $canonRootOp $mmp $argLabels $disable-discprobe $canonized (mkNodeId (0))))))))

@@ -28,7 +28,7 @@
         (cons $x (OS.takeN (- $n 1) $xs))))
 
 ;; OS.contains -- check if an ordered list contains a particular element
-(= (OS.contains $os $el) (is-member $el $os))
+(= (OS.contains $os $el) (once (is-member $el $os)))
 
 ;; OS.removeByIdx
 (= (OS.removeByIdx () $index) (Error () "empty set/index out of range"))

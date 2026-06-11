@@ -10,33 +10,49 @@
 ;;  $tree 
 ;;  A LogicalSubtreeKnob (LSK) configured based on the subtree's presence or its appended state.
 ;; (:logicalSubtreeKnob (-> (Tree $a) NodeId (Tree $a) (Tree $a LogicalSubtreeKnob)))
-(= (logicalSubtreeKnob $tree (mkNodeId $target) $subtree)
+;; (= (logicalSubtreeKnob $tree (mkNodeId $target) $subtree)
+;;    (let*
+;;    (
+;;     ($negatedSubtree (insertAbove $subtree (mkNode NOT)))
+;;     ;; ($_ (println! (NegatedSubtree----------------- : $negatedSubtree)))
+;;     ($reducedSubtree (cleanTree $negatedSubtree)  )
+;;     ;; ($_ (println! (ReducedSubtree---------------: $reducedSubtree))) 
+;;     ($childrenOfTarget (getChildrenById $tree (mkNodeId $target)))
+;;    )
+;;    (if (== True (List.contains $subtree $childrenOfTarget))
+;;        (let $idOfSubtree (getSubtreeId $tree (mkNodeId $target) $subtree 0)
+;;            ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
+;;        )
+;;        (if (== True (List.contains $reducedSubtree $childrenOfTarget))
+;;            (let $idOfReducedSubtree (getSubtreeId $tree (mkNodeId $target) $reducedSubtree 0)
+;;                 ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfReducedSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))))
+;;            (let*
+;;            (
+;;             (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex ())))
+;;             (($subtreeAppendedTree $subtreeId) (appendChild $nullVexAppendedTree $nullVexId $subtree))
+;;            )
+;;            ($subtreeAppendedTree (mkLSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))
+;;            )
+;;        )
+;;    )
+;;    )
+;; )
+
+(= (logicalSubtreeKnob (mkTree $node $children ) $subtree)
    (let*
-   (
-    ($negatedSubtree (insertAbove $subtree (mkNode NOT)))
-    ;; ($_ (println! (NegatedSubtree----------------- : $negatedSubtree)))
-    ($reducedSubtree (cleanTree $negatedSubtree)  )
-    ;; ($_ (println! (ReducedSubtree---------------: $reducedSubtree))) 
-    ($childrenOfTarget (getChildrenById $tree (mkNodeId $target)))
-   )
-   (if (== True (List.contains $subtree $childrenOfTarget))
-       (let $idOfSubtree (getSubtreeId $tree (mkNodeId $target) $subtree 0)
-           ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
-       )
-       (if (== True (List.contains $reducedSubtree $childrenOfTarget))
-           (let $idOfReducedSubtree (getSubtreeId $tree (mkNodeId $target) $reducedSubtree 0)
-                ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfReducedSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))))
-           (let*
-           (
-            (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex ())))
-            (($subtreeAppendedTree $subtreeId) (appendChild $nullVexAppendedTree $nullVexId $subtree))
-           )
-           ($subtreeAppendedTree (mkLSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))
-           )
-       )
-   )
-   )
-)
+     (
+       ($negatedSubtree (insertAbove $subtree (mkNode NOT)))
+       ;; ($_ (println! (NegatedSubtree----------------- : $negatedSubtree)))
+       ($reducedSubtree (cleanTree $negatedSubtree)  )
+       ;; ($_ (println! (ReducedSubtree---------------: $reducedSubtree))) 
+     )
+     ;; TODO: Replace this with a robust check for subtree, one that is in accordance to the way the classic checks for subtrees.
+     (if (List.contains $subtree $children)
+         ($subtree (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
+         (if (List.contains $reducedSubtree $children)
+             ($reducedSubtree (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
+             ((mkNullVex ($subtree)) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))))
+
 ;; strategySubtreeKnob -> Creates Strategy Subtree Knob (SSK) for game moves
 ;; Params:
 ;;  $tree: The tree structure where the strategy subtree knob will be applied

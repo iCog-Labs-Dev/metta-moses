@@ -47,19 +47,18 @@
 
 (= (tree1)
         (mkTree (mkNode AND)
-          (cons (mkTree (mkNode A) ())
+          (cons (mkKnob (mkTree (mkNode A) ()) (lsk3) 2)
           (cons (mkTree (mkNode OR)
                   (cons (mkTree (mkNode B) ())
                   (cons (mkTree (mkNode C) ())
-                  (cons (mkNullVex
-                          (cons (mkTree (mkNode D) ()) ())) ()))))
-          (cons (mkNullVex
-                  (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) ())))))
+                  (cons (mkKnob (mkNullVex
+                          (cons (mkTree (mkNode D) ()) ())) (lsk1) 0) ()))))
+          (cons (mkKnob (mkNullVex
+                  (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) (lsk2) 1) ())))))
 
 (= (lsk1)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (2 3)))
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
@@ -69,7 +68,6 @@
 (= (lsk2)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (3)))
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
@@ -79,17 +77,13 @@
 (= (lsk3)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (1)))
               (mkMultip 3)
               (mkDiscSpec 1)
               (mkDiscSpec 1)
               ())
             ))
 
-(= (knobMapObj) (mkKbMap
-                      (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ()))))
-               
-                      (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))))
+(= (knobMapObj) (mkKbMap (mkDscMp (((mkDiscSpec 1) (lsk1)) ((mkDiscSpec 0) (lsk2)) ((mkDiscSpec 1) (lsk3))))))
 (= (ttable1) (mkITable (cons (cons True (cons False (cons True ())))
                         (cons (cons True (cons True  (cons True ()))) ())) 
                         (cons A (cons B (cons O ())))))

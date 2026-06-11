@@ -65,7 +65,7 @@
         (representation $nDeme $exemplar (mkITable $table $labels) $ft-selection-algo $prune-exemplar $enforced-fts $scorerType True))
 
 (= (representation
-;; Boolean representation constructor with optional logical discprobe
+;; Boolean representation constructor with optional logical disc probing
             $nDeme
             $exemplar
             (mkITable $table $labels)
@@ -121,11 +121,13 @@
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (" done buildknobs (:) ")))            ;; BUILD representations on 
                                     (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels $disable-discprobe))            ;; BUILD representations on
+                                    ($_ (resetState &knobCount))
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
                                     ;; ($_ (println! ""))
-                                    ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0)))        ;; MULITPLE args selected using the feature selection
-                                 (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))))
+                                    ;; ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0)))        ;; MULITPLE args selected using the feature selection
+                                    ($dscKbMp (mkDscMp $dscMp)))        ;; MULITPLE args selected using the feature selection
+                                 (mkRep (mkKbMap $dscKbMp) $updatedTree)))))
 
 ;; Helper function to extract tree from representation
 (= (getRepTree (mkRep $knobMapObj $tree)) $tree)
@@ -133,12 +135,14 @@
 ;; Universal getCandidate that works for both boolean and game strategies
 ;; Uses preOrder+buildTree to unwrap mkNullVex for games, cleanTree for boolean
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
-(= (getCandidate $repObj $id $inst)
+;; TODO: This should be removed when the game tree has been fixed to match the boolean.
+(= (getCandidate $srcid $repObj $id $inst)
    (case (match &treeSpace ($id $inst $tree) $tree)
              (($tree $tree)
              (Empty 
                 (let*
                     (
+                      ;; ($_ (println! (Here)))
                       ($parentid (mkNodeId (0)))
                       ($srcid (mkNodeId (0)))
                       ;; ($_ (println! ($parentid   $srcid)))
@@ -168,6 +172,36 @@
     
     
      ;;((( (trace! (Done converting instance to tree $candidate) $candidate))))
+
+
+(= (getCandidate $repObj $id $inst)
+   (case (match &treeSpace ($id $inst $tree) $tree)
+             (($tree $tree)
+             (Empty
+                (let*
+                    ( 
+                      ((mkRep $kmo $tr) $repObj)
+                      ;; ($_ (println! (Tree: (preOrder $tr))))
+                      ;; ($_ (println! (GetCandidateHelper: $inst $tr)))
+                      ($candidate (getCandidateHelper $inst $tr))
+                      ;; ($_ (println! (Found candidate: (preOrder $candidate))))
+                      ($rootNode (getRepTree $repObj))
+                      ($rootValue (getNodeValue $rootNode))
+                      ($rootSymbol (if (== (get-metatype $rootValue) Expression) 
+                              (car-atom (cdr-atom $rootValue))
+                              $rootValue))
+                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
+                      ($finalTree (if $isGameStrategy
+                                      (let* (
+                                              ($expr (preOrder $candidate))
+                                              ($cleanTree (buildTree $expr)))
+                                            $cleanTree)
+                                      (cleanTree $candidate)))
+
+                      ($_ (add-atom &treeSpace ($id $inst $finalTree)))
+                      ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
+                    )
+                    $finalTree)))))
 
 
 ;; Assumes the reverseLookupTable's order never changes during this call.
@@ -257,6 +291,37 @@
       )
    )
 )
+
+;; getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst)
+
+;; Null-vertex unwrapping clause threads the embedded LSK to the inner knob.
+(= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) $lsk $i))
+   (getCandidateHelper $inst (mkKnob $child $lsk $i)))
+
+;; Specialized fast clause: empty disallowed list means effective settings map
+;; one-to-one to actual settings, so we skip mapEffectiveDiscSpec entirely.
+;; This is byte-for-byte the pre-merge ref/RepresentationBuilding body.
+;; NOTE: This clause assumes MeTTa dispatches the literal-empty `()` disAll
+;; pattern in preference to the generic `$lsk` clause below — the same
+;; literal-driven dispatch we relied on for $disable-discprobe True/False.
+(= (getCandidateHelper (mkInst $inst) (mkKnob (mkTree $node $children) (mkLSK (mkDiscKnob $m $c $d $disAllowed)) $i))
+   (let*
+     (
+       ($setting (if (!= $disAllowed ())
+                     (mapEffectiveDiscSpec (mkLSK (mkDiscKnob $m $c $d $disAllowed)) (index-atom $inst $i))
+                     (index-atom $inst $i)))
+     )
+     (if (== $setting 0)
+         ()
+         (let $newChildren (filter-atom (map-atom $children $ch (getCandidateHelper (mkInst $inst) $ch)) (!= ()))
+              (case $setting
+                 (
+                   (1 (mkTree $node $newChildren))
+                   (2 (mkTree (mkNode NOT) ((mkTree $node $newChildren))))))))))
+
+(= (getCandidateHelper $inst (mkTree $node $children))
+   (let $newChildren (map-atom $children $ch (getCandidateHelper $inst $ch))
+        (mkTree $node (filter-atom $newChildren (!= ())))))
 
 (= (applyGetCandidateRec $tr ($repObj $inst (mkNodeId $parentId) (mkNodeId $dstId) $candidate $chIdx))
    (let*
