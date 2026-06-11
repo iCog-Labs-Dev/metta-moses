@@ -125,21 +125,18 @@
 ;;    with a new one from a list of atoms.
 ;; INFO: This function needs to change so that it can preserve the
 ;;        operator's position when MeTTa version is upgraded.
+;; Direct recursion avoids the per-element `replace` dispatch that map-atom
+;; introduces. A/B confirmed (mux6): within noise of a native Prolog stub.
 (= (findAndReplace $old $new $list)
-    ; (let*
-    ;   (
-    ;     ($log (println! ""))
-    ;     ($log' (println! (==> === Inside findAndReplace === <==)))
-    ;     ($log'' (println! (Parameters ==> Old: $old New: $new List: $list)))
-    ;     ($log''' (println! (Result ==> (collapse (replace $old $new (superpose $list))))))
-    ;     ($log'''' (println! ""))
-    ;   )
-      (if (== () (subtraction-atom $old $list)) 
-        $new
-        (map-atom $list $a (replace $old $new $a))
-      )
-    ; )
-)
+   (if (== () (subtraction-atom $old $list))
+       $new
+       (farReplaceWalk $list $old $new)))
+
+(= (farReplaceWalk () $old $new) ())
+(= (farReplaceWalk (cons $h $t) $old $new)
+   (if (== $h $old)
+       (cons-atom $new (farReplaceWalk $t $old $new))
+       (cons-atom $h (farReplaceWalk $t $old $new))))
 
 ;; A function that behaves like a do while loop.
 ;; It executes the functions in the given list and returns the last result.
