@@ -27,13 +27,14 @@
 !(import! &self ../../feature-selection/similarity-scorers)
 !(import! &self ../../feature-selection/simple)
 !(import! &self ../../feature-selection/smd)
-!(import! &self ../../feature-selection/incremental)
+!(import! &self ../../feature-selection/incremental-feature-selection)
 !(import! &self ../../feature-selection/hc)
 !(import! &self ../../feature-selection/random-feature-selection)
 !(import! &self ../../feature-selection/feature-selection-main)
 
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/lsk)
+!(import! &self ../../representation/disc-probe)
 !(import! &self ../../representation/logical-probe)
 !(import! &self ../../representation/logical-canonize)
 !(import! &self ../../representation/sample-logical-perms)
@@ -79,7 +80,7 @@
 !(import! &self ../merge-demes)
 !(import! &self ../expand-deme)
 
-(= (deme) (mkDeme (mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ()))) (mkDscMp (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ())))) (mkTree (mkNode AND) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) ())))) (mkSInstSet ()) (mkDemeId "1")))
+(= (deme) (mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) (mkSInstSet ()) (mkDemeId "1")))
 (= (table1) (eval (createTruthTableBScore 2 (mkITable
                          (cons (cons False (cons False (cons False ()))) 
                          (cons (cons True (cons False (cons False ()))) 
@@ -220,7 +221,7 @@
 (let*
 (
     ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 (False rd 
-    (table1)  
+    (table1)
     (ttable1))
     hillClimbing 5 2 0 1 
     3 0.004 1000))
@@ -270,139 +271,56 @@
 )
     False
 ) 
-; ; with OR table and AND init exemplar     
-; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
-;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     smd      ;; the new arguments for feature selection algo
-;     (eval (createTruthTableBScore 2 (mkITable
-;                          (cons (cons False (cons False (cons False ()))) 
-;                          (cons (cons True (cons False (cons True ()))) 
-;                          (cons (cons False (cons True (cons True ())))
-;                          (cons (cons True (cons True (cons True ()))) ()))))
-;                          (cons A (cons B (cons O ())))))) 
-;     hillClimbing 
-;     5 2 0 1 
-;     (mkITable
-;                          (cons (cons False (cons False (cons False ()))) 
-;                          (cons (cons True (cons False (cons True ()))) 
-;                          (cons (cons False (cons True (cons True ())))
-;                          (cons (cons True (cons True (cons True ()))) ()))))
-;                          (cons A (cons B (cons O ())))) 
-;     3 0.004 1000)
-; ; with OR table and AND init exemplar     
-; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
-;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     smd      ;; the new arguments for feature selection algo
-;     (eval (createTruthTableBScore 2 (mkITable
-;                           (cons (cons False (cons False (cons False ()))) 
-;                           (cons (cons True (cons False (cons True ()))) 
-;                           (cons (cons False (cons True (cons True ())))
-;                           (cons (cons True (cons True (cons True ()))) ()))))
-;                           (cons A (cons B (cons O ()))))))  
-;     hillClimbing 
-;     5 2 0 1 
-;     (mkITable
-;                           (cons (cons False (cons False (cons False ()))) 
-;                           (cons (cons True (cons False (cons True ()))) 
-;                           (cons (cons False (cons True (cons True ())))
-;                           (cons (cons True (cons True (cons True ()))) ()))))
-;                           (cons A (cons B (cons O ()))))  
-;     3 0.004 1000)
-
-; !(runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
-;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;     smd      ;; the new arguments for feature selection algo
-;     (eval (createTruthTableBScore 2 
-;     (bigtable)))
-;     hillClimbing 
-;     5 2 0 1 
-;     (bigtable) 
-;     3 0.004 1000)
-
-;; Parameters:
-  ;; $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme
-  ;; $prune-exemplar
-  ;; $fs-algo
-  ;; $truthTableBScore
-  ;; $optimize
-  ;; $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature
-  ;; $itable
-  ;; $nToKeep $capCoef $genCount
-
-;; The following configuration can result to XOR.
-;; A⊕B=(A∨B)∧¬(A∧B)
-;; (AND (OR A B) (OR (NOT A) (NOT B)))
-;; A⊕B=(¬A∧B)∨(A∧¬B)
-;; (AND (OR (AND A (NOT B)) (AND (NOT A) B)))
-;; !(let*
-;;    (
-;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
-;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;;                   smd      ;; the new arguments for feature selection algo
-;;                   (eval (createTruthTableBScore 2 (xortable)))
-;;                   hillClimbing
-;;                   100 10 20 2
-;;                   (xortable)
-;;                   10 0.004 1000))
-;;     ($nt (println! ""))
-;;     ($newR (mapG cleanedExemplar $result))
-;;     ($_ (mapG printExemplar $result))
-;;    )
-;;    $newR
-;;  )
+;; ; ; with OR table and AND init exemplar     
+;; ; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
+;; ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
+;; ;     smd      ;; the new arguments for feature selection algo
+;; ;     (eval (createTruthTableBScore 2 (mkITable
+;; ;                          (cons (cons False (cons False (cons False ()))) 
+;; ;                          (cons (cons True (cons False (cons True ()))) 
+;; ;                          (cons (cons False (cons True (cons True ())))
+;; ;                          (cons (cons True (cons True (cons True ()))) ()))))
+;; ;                          (cons A (cons B (cons O ())))))) 
+;; ;     hillClimbing 
+;; ;     5 2 0 1 
+;; ;     (mkITable
+;; ;                          (cons (cons False (cons False (cons False ()))) 
+;; ;                          (cons (cons True (cons False (cons True ()))) 
+;; ;                          (cons (cons False (cons True (cons True ())))
+;; ;                          (cons (cons True (cons True (cons True ()))) ()))))
+;; ;                          (cons A (cons B (cons O ())))) 
+;; ;     3 0.004 1000)
+;; ; ; with OR table and AND init exemplar     
+;; ; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
+;; ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
+;; ;     smd      ;; the new arguments for feature selection algo
+;; ;     (eval (createTruthTableBScore 2 (mkITable
+;; ;                           (cons (cons False (cons False (cons False ()))) 
+;; ;                           (cons (cons True (cons False (cons True ()))) 
+;; ;                           (cons (cons False (cons True (cons True ())))
+;; ;                           (cons (cons True (cons True (cons True ()))) ()))))
+;; ;                           (cons A (cons B (cons O ()))))))  
+;; ;     hillClimbing 
+;; ;     5 2 0 1 
+;; ;     (mkITable
+;; ;                           (cons (cons False (cons False (cons False ()))) 
+;; ;                           (cons (cons True (cons False (cons True ()))) 
+;; ;                           (cons (cons False (cons True (cons True ())))
+;; ;                           (cons (cons True (cons True (cons True ()))) ()))))
+;; ;                           (cons A (cons B (cons O ()))))  
+;; ;     3 0.004 1000)
 ;;
-;; Empty strategy metapop -  empty PRIORITIZED-OR with worst CScore
-;; this empty strategy can be used as a starting point to evolve better strategy 
-(= (emptyStrategyMetaPop)
-   (cons
-     (mkExemplar
-       (mkTree (mkNode PRIORITIZED-OR) ())  ;;  empty - no children
-       (mkDemeId "0")
-       (eval (worstCscore))  ;; Worst CScore
-       (mkBScore (cons -10000.0 ())))
-     ()))
-
-;; by uncomment this test and also adjust the parameter settings we can check the full evolution process of runMosesStrategy, and see how the strategy evolves from empty strategy to better strategy.
-; !(runMoses
-;     2                              ;; maxGen - 3 generations 
-;     (mkCscore 10.0 0 0 0.0 10)     ;; Target: 10/10 wins,
-;     3                              ;; maxCandOutput - return top 3 strategies
-;     (emptyStrategyMetaPop)         ;; metaPop - start with empty strategy
-;     0                              ;; nExpansion - generation counter
-;     2                              ;; nDeme - 3 demes (more diversity)
-;     (10 3.5)                       ;; nGames - 10 games per evaluation
-;     hillClimbing                   ;; optimize - optimizer function
-;     30                             ;; nEval - not used
-;     5                              ;; maxCandsPerDeme - top 5 per deme
-;     2                              ;; minPoolSize - min deme size
-;     1.0                            ;; complexityTemperature - for trimming
-;     5                              ;; nToKeep - keep top 5
-;     0.004                          ;; capCoef - capacity coefficient
-;     1000)   
-;; metapop for testing
-(= (strategyMetaPop)
-   (cons
-     (mkExemplar
-       (mkTree (mkNode PRIORITIZED-OR)
-         (cons (mkTree (mkNode playwin) ())
-               (cons (mkTree (mkNode playblock) ()) ())))
-       (mkDemeId "0")
-       (mkCscore 2.0 2 0.57 0.0 1.43)
-       (mkBScore (cons 2.0 ())))
-     ()))
-
-;; !(assertEqual ;; INFO: This test case is blocking the reset. But works fine on it's own.
-;;    (let* (
-;;      ($optimizedDemes (expandDeme
-;;                         (strategyMetaPop) 
-;;                         0 1 5 random-player 3.5 
-;;                         (mkCscore 5.0 5 1.43 0.0 3.57) 
-;;                         hillClimbing))
-;;      ($demeCount (size-atom $optimizedDemes))
-;;    )
-;;    (>= $demeCount 1))
-;;    True)
+;; ; !(runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
+;; ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
+;; ;     smd      ;; the new arguments for feature selection algo
+;; ;     (eval (createTruthTableBScore 2 
+;; ;     (bigtable)))
+;; ;     hillClimbing 
+;; ;     5 2 0 1 
+;; ;     (bigtable) 
+;; ;     3 0.004 1000)
 ;;
+
 !(assertEqual
    (let* (
      ($result (runMoses
@@ -440,4 +358,3 @@
    )
    $isValid)
    True)
-  

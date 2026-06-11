@@ -54,19 +54,18 @@
 
 (= (tree1)
         (mkTree (mkNode AND)
-          (cons (mkTree (mkNode A) ())
+          (cons (mkKnob (mkTree (mkNode A) ()) (lsk3) 2)
           (cons (mkTree (mkNode OR)
                   (cons (mkTree (mkNode B) ())
                   (cons (mkTree (mkNode C) ())
-                  (cons (mkNullVex
-                          (cons (mkTree (mkNode D) ()) ())) ()))))
-          (cons (mkNullVex
-                  (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) ())))))
+                  (cons (mkKnob (mkNullVex
+                          (cons (mkTree (mkNode D) ()) ())) (lsk2) 1) ()))))
+          (cons (mkKnob (mkNullVex
+                  (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) (lsk1) 0) ())))))
 
 (= (lsk1)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (2 3)))
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
@@ -76,7 +75,6 @@
 (= (lsk2)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (3)))
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
@@ -86,7 +84,6 @@
 (= (lsk3)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (1)))
               (mkMultip 3)
               (mkDiscSpec 1)
               (mkDiscSpec 1)
@@ -94,40 +91,29 @@
             ))
 
 (= (knobMapObj) (mkKbMap
-                      (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ()))))
                       (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))))
 (= (deme) (mkDeme 
 (mkRep (mkKbMap 
-    (mkDscKbMp 
-      (cons ((mkNodeId (1 2)) 0)
-        (cons ((mkNodeId (2)) 1)
-          (cons ((mkNodeId (3)) 2) ()))))
     (mkDscMp 
       (cons 
         ((mkDiscSpec 3)
          (mkLSK 
            (mkDiscKnob 
-             (mkKnob 
-               (mkNodeId (1 2)))
              (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
            ))
         (cons 
           ((mkDiscSpec 3)
            (mkLSK 
              (mkDiscKnob 
-               (mkKnob 
-                 (mkNodeId (2)))
                (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
              ))
           (cons 
             ((mkDiscSpec 3)
              (mkLSK 
                (mkDiscKnob 
-                 (mkKnob 
-                   (mkNodeId (3)))
                  (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
                ))
-            ()))))) (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) ())))))) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) ()))))))) (mkSInstSet ()) (mkDemeId "1")))
+            ()))))) (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 2) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 3) ())))))) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 4) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 5) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 6) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 7) ()))))))) (mkSInstSet ()) (mkDemeId "1")))
 
 ; Test case for sampleFromNeighborhood function
 ; Function should returned two instances at the specified distance
@@ -223,3 +209,21 @@
 !(assertEqual (isPossibleSize 13 2 (mkInst (cons 1 (cons 2 (cons 0 ()))))) False)
 !(assertEqual (isPossibleSize 10 2 (mkInst (cons 1 (cons 2 (cons 0 ()))))) True)
 
+;; Disc-probed knobs use effective multiplicity, so fully pruned knobs do not
+;; contribute neighbors and partially pruned knobs only expose allowed specs.
+!(assertEqual
+   (let*
+      (
+        ($disc
+          (mkDscMp
+            (cons ((mkDiscSpec 3)
+                   (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0)
+                                      (cons (mkDiscSpec 1) (cons (mkDiscSpec 2) ())))))
+            (cons ((mkDiscSpec 3)
+                   (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0)
+                                      (cons (mkDiscSpec 2) ()))))
+            ()))))
+        ($neighbors (generateAllInNeighborhoodForDisc $disc (mkInst (cons 0 (cons 0 ()))) 1))
+      )
+      $neighbors)
+   (cons (mkInst (cons 0 (cons 1 ()))) ()))

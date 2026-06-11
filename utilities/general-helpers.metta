@@ -111,7 +111,7 @@
         )
             ; Check if the $head is in set2, if so, skip it
 
-            (if (is-member $head $set2)
+            (if (once (is-member $head $set2))
                 $newtail 
                 ; Otherwise, add the head to the new tail, avoiding unnecessary parentheses
                 (if (== (get-metatype $newtail) Expression) (cons-atom $head $newtail) $head)  ; Avoid wrapping the head if it's already properly structured
@@ -218,7 +218,7 @@
 ; ;;          input ==> (False False False), output ==> False
 ; ;;          input ==> (False True False), output ==> True
 ; (: any (-> Atom Bool))
-(= (any $bools) (is-member True $bools))
+(= (any $bools) (once (is-member True $bools))) ;; is-member needs to be used in a once as it returns boolean value for all matches.
 
 ;; Fix curry is not working in petta 
 ;; ;; A trick to define `curry` in MeTTa without `lambda`
@@ -308,6 +308,19 @@
               (($ys-hd $ys-tl) (decons $ys))
               ($head ($f $xs-hd $ys-hd))
               ($tail (zipWith $f $xs-tl $ys-tl)))
+         (cons-atom $head $tail))))
+
+;; Three-list variant of zipWith. Applies $f to corresponding head triples and
+;; returns the resulting tuple. Assumes all three inputs have equal arity.
+;; (: zipWith3 (-> (-> $a $b $c $d) $e $f $g $h))
+(= (zipWith3 $f $xs $ys $zs)
+   (if (== $xs ())
+       ()
+       (let* ((($xs-hd $xs-tl) (decons $xs))
+              (($ys-hd $ys-tl) (decons $ys))
+              (($zs-hd $zs-tl) (decons $zs))
+              ($head ($f $xs-hd $ys-hd $zs-hd))
+              ($tail (zipWith3 $f $xs-tl $ys-tl $zs-tl)))
          (cons-atom $head $tail))))
 
 ;; Finds length of a tuple ;; FIX: No longer working on version 0.2.3
@@ -596,7 +609,7 @@
 
 ;; notNt -- check if a symbol is not a member of the non-terminal set
 
-(= (notMember $symbol $expr) (not (is-member $symbol $expr)))
+(= (notMember $symbol $expr) (not (once (is-member $symbol $expr)) ))
 
 ;; isValidExp -- to check if the boolean expression produced by genPhen is a valid bolean expression
 ;;          $exp -- an expression which is being checked for validity
@@ -619,7 +632,7 @@
 
 ;; a function that checks that all of the expressions are true.
 ; (: all (-> Expression Bool))
-(= (all $expressions) (if (is-member False $expressions) False True))
+(= (all $expressions) (if (once (is-member False $expressions)) False True))
 
 
 ;; Name:                        ===
@@ -705,17 +718,17 @@
 
 ;; Converts a tuple of pairs into ordered multimap
 ;; Ex: ((k1 v1) (k2 v2)) -> (cons (k1 v1) (cons (k2 v2) ()))
-;; (: expToMMap (-> Expression (MultiMap ($k $v)) (-> $k $k Bool) (MultiMap ($k $v))))
+; (: expToMMap (-> Expression (MultiMap ($k $v)) (-> $k $k Bool) (MultiMap ($k $v))))
 ;; TODO: Change this to simpler function
 (= (expToMMap () $map $compFunc) ())
-(= (expToMMap $tuple $map $compFunc)
-(let*
-(
-    (($head $tail) (decons-atom $tuple))
+(= (expToMMap (cons $head $tail) $map $compFunc)
+   (let*
+   (
     ($updatedMap (eval (MultiMap.insert $head $map $compFunc)))
-
-)
-(if (== $tail ()) $updatedMap (eval (expToMMap $tail $updatedMap $compFunc)))))
+   )
+   (if (== $tail ())
+       $updatedMap
+       (eval (expToMMap $tail $updatedMap $compFunc)))))
 
 ;; A trick function to make chain reduce when using union-atom
 ;; This is causing infinite loop in some cases. use the direct union-atom instead.
@@ -1282,3 +1295,14 @@
 ; (: ceilMath (-> Number Number))
 (= (ceilMath $num)
 (+ (floor-math $num) (if (> $num (floor-math $num)) 1 0)))
+
+;; Increment a state monad of number
+(= (incrementState $state) (incrementState $state 1))
+(= (incrementState $state $int) (let $_ (change-state! $state (+ $int (get-state $state))) (get-state $state)))
+
+;; Decrement a state monad of number
+(= (decrementState $state) (decrementState $state 1))
+(= (decrementState $state $int) (let $_ (change-state! $state (- $int (get-state $state))) (get-state $state)))
+
+;; Reset a state monad to zero.
+(= (resetState $state) (change-state! $state 0))

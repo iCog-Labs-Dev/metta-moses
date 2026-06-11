@@ -76,4 +76,4 @@
 
 (= (sampleEnforcedFts $enforced-fts)
     (collapse (let $enforced-ft (superpose $enforced-fts)
-            (let $p (second $enforced-ft) (if (biasedRandBool $p) (first $enforced-ft) (Empty))))))
+            (let $p (second $enforced-ft) (if (biasedRandBool $p) (first-from-pair $enforced-ft) (Empty))))))

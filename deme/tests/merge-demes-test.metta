@@ -60,19 +60,18 @@
 
 (= (tree1)
         (mkTree (mkNode AND)
-          (cons (mkTree (mkNode A) ())
+          (cons (mkKnob (mkTree (mkNode A) ()) (lsk3) 2)
           (cons (mkTree (mkNode OR)
                   (cons (mkTree (mkNode B) ())
                   (cons (mkTree (mkNode C) ())
-                  (cons (mkNullVex
-                          (cons (mkTree (mkNode D) ()) ())) ()))))
-          (cons (mkNullVex
-                  (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) ())))))
+                  (cons (mkKnob (mkNullVex
+                          (cons (mkTree (mkNode D) ()) ())) (lsk1) 0) ()))))
+          (cons (mkKnob (mkNullVex
+                  (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) (lsk2) 1) ())))))
 
 (= (lsk1)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (2 3)))
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
@@ -82,7 +81,6 @@
 (= (lsk2)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (3)))
               (mkMultip 3)
               (mkDiscSpec 0)
               (mkDiscSpec 0)
@@ -92,16 +90,13 @@
 (= (lsk3)
         (mkLSK
             (mkDiscKnob
-              (mkKnob (mkNodeId (1)))
               (mkMultip 3)
               (mkDiscSpec 1)
               (mkDiscSpec 1)
               ())
             ))
 
-(= (knobMapObj) (mkKbMap
-                      (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ()))))
-                      (mkDscMp (cons ((mkDiscSpec 1) lsk1) (cons ((mkDiscSpec 0) lsk2) (cons ((mkDiscSpec 1) lsk3) ()))))))
+(= (knobMapObj) (mkKbMap (mkDscMp (((mkDiscSpec 1) (lsk1)) ((mkDiscSpec 0) (lsk2)) ((mkDiscSpec 1) (lsk3))))))
 
 (= (sInstSet) (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 0 ())))) (mkCscore -0.1 2 0.2 0.3 -0.6)))
            (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 0 ())))) (mkCscore -0.2 1 0.1 0.1 -0.4)))
@@ -118,17 +113,19 @@
                     (cons A (cons B (cons C (cons D (cons output ())))))))
 
 (= (metaPop) (cons (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ()))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (cons 0 (cons 0 ()))))
-                 (cons (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ())) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (cons 0 (cons 0 ())))) 
+                 (cons (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ())) (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (cons 0 (cons 0 ()))))
                  ())))
 (= (rep) (mkRep (mkKbMap 
-                  (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ())))) 
-                  (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))) 
-                  (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) 
-                     (cons (mkTree (mkNode OR) 
-                              (cons (mkTree (mkNode B) ()) 
-                              (cons (mkTree (mkNode C) ()) 
-                              (cons (mkNullVex (cons (mkTree (mkNode D) ()) ())) ()))))
-                     (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) ()))))))
+                  (mkDscMp (((mkDiscSpec 1) (lsk1)) ((mkDiscSpec 0) (lsk2)) ((mkDiscSpec 1) (lsk3)))))
+                  (mkTree (mkNode AND)
+                      (cons (mkKnob (mkTree (mkNode A) ()) (lsk3) 2)
+                      (cons (mkTree (mkNode OR)
+                              (cons (mkTree (mkNode B) ())
+                              (cons (mkTree (mkNode C) ())
+                              (cons (mkKnob (mkNullVex
+                                      (cons (mkTree (mkNode D) ()) ())) (lsk1) 0) ()))))
+                      (cons (mkKnob (mkNullVex
+                              (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) (lsk2) 1) ()))))))
 ;; Testcase-1 for the removeDupInsts
 !(assertEqual
    (removeDupInsts

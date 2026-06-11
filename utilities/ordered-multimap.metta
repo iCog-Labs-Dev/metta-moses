@@ -2,7 +2,7 @@
 (: MultiMap (-> ($k $v) Type))
 
 ;; insert an element to the Ordered multimap using custom function
-(= (MultiMap.insert ($key $value) () $fn) (cons ($key $value) ()))
+(= (MultiMap.insert ($key $value) () $fn) (($key $value)))
 (= (MultiMap.insert ($key $value) (cons ($curKey $curVal) $tail) $fn)
    (if ($fn $key $curKey)
        (cons ($key $value) (cons ($curKey $curVal) $tail))
@@ -68,7 +68,7 @@
 
 ;; Check if an element is found in the Ordered multimap
 (= (MultiMap.checkElement $element $mmap)
-   (is-member $element $mmap))
+   (once (is-member $element $mmap)))
 
 ;; Check if two multimaps are equal regardless of the order of the elements
 (= (MultiMap.equals $mm1 $mm2)

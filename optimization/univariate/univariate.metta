@@ -308,13 +308,13 @@ $sortedSInstSet
 ;; Returns:
 ;;   A deme evolved through univariate optimization with the best-found instances.
 ; (: univariate (-> Deme (ITable $a) Number Number Number Number Cscore Deme))
-(= (univariate (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) (mkSInstSet $instSet) $id) $itable $complexityRatio $popSizeRatio $selectionRatio $replacementRatio $bestPossibleCscore)
+(= (univariate (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) (mkSInstSet $instSet) $id) $itable $complexityRatio $popSizeRatio $selectionRatio $replacementRatio $bestPossibleCscore)
 (let* (
         ($maxGensTotal (informationTheoreticBits $disc))
         ($popSize (ceilMath (* $popSizeRatio (pow-math $maxGensTotal 1.05))))
         ($nSelect (floor-math (* $selectionRatio $popSize)))
         ($nGenerate (floor-math (* $replacementRatio $popSize)))
-        ($randPopDeme (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) (mkSInstSet (generateInitialSample (Map.length $idxMp) $popSize)) $id))  
+        ($randPopDeme (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) (mkSInstSet (generateInitialSample (Map.length $disc) $popSize)) $id))
       ) 
       (univariateOptimize $randPopDeme $itable $complexityRatio $nSelect $nGenerate $maxGensTotal $bestPossibleCscore (worstCscore))))
 

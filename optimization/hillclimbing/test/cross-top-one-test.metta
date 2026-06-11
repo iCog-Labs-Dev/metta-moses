@@ -21,11 +21,8 @@
 (= (deme1) 
         (mkDeme 
         (mkRep 
-            (mkKbMap 
-                (mkDscKbMp 
-                    (cons ())) 
-                    (mkDscMp ())) (mkTree (mkNode A) ()))
-                    (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1))) 
+            (mkKbMap (mkDscMp ())) (mkTree (mkNode A) ()))
+                     (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1))) 
                         (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 1 2 3 4 3))) 
                             (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 1 2 3 4 4)))
                                 (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 2 3 4 2))) 
@@ -80,7 +77,7 @@
     (crossTopOne 
       (mkDeme 
         (mkRep 
-          (mkKbMap (mkDscKbMp (cons ())) (mkDscMp ())) 
+          (mkKbMap (mkDscMp ())) 
           (mkTree (mkNode A) ()))
         (mkSInstSet 
           (cons 
@@ -98,8 +95,6 @@
     (mkDeme 
         (mkRep 
             (mkKbMap 
-                (mkDscKbMp 
-                    (cons ())) 
                     (mkDscMp ())) 
                     (mkTree (mkNode A) ())) 
                         (mkSInstSet 

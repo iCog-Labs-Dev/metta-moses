@@ -27,9 +27,9 @@
    (map-atom $instances $i
     (let*
     (
-        ($strategyTree (getCandidate $rep $id $i))
+        ($strategyTree (getCandidate (mkNodeId (0)) $rep $id $i)) ;; TODO: Temporary fix for the scoring tree until it is edited.
         ;; ($_ (println! "[applyStrategyBasedScore] Got tree:"))
-        ;; ($_ (println! (GetCscore $strategyTree $nGames $opponentPolicy $complexityRatio &strategyScoreCache)))
+        ;; ($_ (println! $strategyTree))
         ($cscore (getCscore $strategyTree $nGames $complexityRatio &strategyScoreCache))
         ;; ($_ (println! "[applyStrategyBasedScore] Got cscore:"))
         ;; ($_ (println! $cscore))

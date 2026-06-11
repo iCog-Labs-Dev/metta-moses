@@ -18,8 +18,8 @@
 ;; (foldl-atom (1 2 3 4) 0 $acc $x (+ $acc $x))
 (= (toExp $x) ($x))
 (= (List.tFoldl () $f $t $acc) $acc)
-(= (List.tFoldl $xs $f $t $acc)
-   (foldl-atom $xs $acc $acc0 $x ($f $acc0 ($t $x))))
+(= (List.tFoldl (cons $y $ys) $f $t $acc)
+   (foldl-atom (cons $y $ys) $acc $acc0 $x ($f $acc0 ($t $x))))
 
 (= (List.tFoldr () $f $t $acc) $acc)
 (= (List.tFoldr $xs $f $t $acc)
@@ -58,7 +58,7 @@
 (= (List.length $xs) (size-atom $xs))
 
 ; (: List.map (-> (-> $a $b) (List $a) (List $b)))
-(= (List.map $f $xs) (map-atom $xs $f))
+(= (List.map $f $xs) (map-atom $xs $x ($f $x)))
 
 ; (: List.mapOverArg (-> (-> $a $b $a) $b $arg (List $a)))
 (= (List.mapOverArg $f () $arg) ())
@@ -69,7 +69,7 @@
          (cons $new-head (List.mapOverArg $f $tail $arg)))))
 
 ; (: List.filter (-> (-> $a Bool) (List $a) (List $a)))
-(= (List.filter $p $xs) (filter-atom $xs $p))
+(= (List.filter $p $xs) (filter-atom $xs $x ($p $x)))
 
 ; (: List.listToExpr (-> (List $a) Expression))
 (= (List.listToExpr $xs) $xs)
@@ -88,7 +88,7 @@
 (= (List.max $xs) (max-atom $xs))
 
 ; (: List.contains (-> $a (List $a) Bool))
-(= (List.contains $a $list) (is-member $a $list))
+(= (List.contains $a $list) (once (is-member $a $list)) )
 
 ; (: List.replaceAt (-> (List $a) Number $a (List $a)))
 (= (List.replaceAt () $n $elem) ())
@@ -191,11 +191,24 @@
 ; (: List.isMember (-> $a (List $a) Bool))
 (= (List.isMember $elem $list) (List.contains $elem $list))
 
+
+(= (List.partialSort $comparator () $n $acc) $acc)
+(= (List.partialSort $comparator (cons $x $xs) $n $acc)
+   (let* (($max (List.max $comparator (cons $x $xs)))
+          ($unsortedList (List.delete $max (cons $x $xs)))
+          ($sortedList (List.append $max $acc)))
+     (if (<= (- $n 1) 0)
+         (List.appendList $unsortedList $sortedList)
+         (List.partialSort $comparator $unsortedList (- $n 1) $sortedList))))
+
+(= (List.partialSort $list $n $acc) (List.partialSort >= $list $n $acc))
+
+
 ; (: List.partialSort (-> (-> $a $a Bool) (List $a) Number (List $a) (List $a)))
 ; (: List.partialSort (-> (List Number) Number (List Number) (List Number)))
-(= (List.partialSort $comparator () $n) ())
-(= (List.partialSort $list $n) (List.partialSort >= $list $n))
-(= (List.partialSort $comparator (cons $x $xs) $n) (selectionSort (cons $x $xs) $n $comparator))
+;; (= (List.partialSort $comparator () $n) ())
+;; (= (List.partialSort $list $n) (List.partialSort >= $list $n))
+;; (= (List.partialSort $comparator (cons $x $xs) $n) (selectionSort (cons $x $xs) $n $comparator))
 
 
 ; (: List.appendList (-> (List $a) (List $a) (List $a)))
@@ -220,7 +233,7 @@
    (List.takeN $n (List.drop $start $xs)))
 
 ; (: List.any (-> (List Bool) Bool))
-(= (List.any $xs) (is-member True $xs))
+(= (List.any $xs) (once (is-member True $xs)) )
 
 ; (: List.generate (-> Number Number (List Number)))
 (= (List.generate $length $element)

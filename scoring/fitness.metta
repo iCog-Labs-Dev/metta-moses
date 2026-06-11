@@ -20,7 +20,7 @@
 ;; )
 
 (= (findX $expr $x)
-   (if (is-member $x $expr)
+   (if (once (is-member $x $expr))
        True
        (List.any (map-atom $expr $ex
              (if (or (== (get-metatype $ex) Grounded) (== (get-metatype $ex) Symbol))
@@ -134,7 +134,7 @@
         ($target (car-atom $row))
         ($inputs (cdr-atom $row))
         ($add (map-atom $inputs $z (add-atom &space $z)))
-        ($replacedExpr (replaceWithTruth $expr &space (collapse (match &space $x $x))))
+        ($replacedExpr (let $acc (replaceWithTruth $expr &space (collapse (match &space $x $x))) (if (== (get-metatype $acc) Symbol) ($acc) $acc))) ;; This is a guard added to prevent a symbol being returned here which will cause the rest of the logic to fail. It is an edge case that happens if none of the variables are defined or the first variable explored is an undefined variable.
         ($isFaulty  (findX $replacedExpr undefined))  ;; Check if there are any undefined variables in the expression
         ($evaluateuatedResult  (if (not $isFaulty) (evaluate $replacedExpr) null )) ;; No need to evaluate if there are undefined variables in the experession
         ($remove (map-atom $inputs $z (remove-atom &space $z)))

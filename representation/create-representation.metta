@@ -21,4 +21,4 @@
 
 ;; Boolean logic representation (7 parameters)
 (= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
-    (let ((mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree)) (representation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType) ((mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree))))
+    (let ((mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree)) (representation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType True) ((mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree))))
