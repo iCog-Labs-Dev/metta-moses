@@ -123,8 +123,93 @@ has_neg_with(X, [_|T]) :- has_neg_with(X, T).
 is_neg_pair(X, ['NOT', Y]) :- Y == X, !.
 is_neg_pair(['NOT', Y], X) :- Y == X, !.
 
+%% --- setDifference/3 (utilities/general-helpers.metta:105) ---
+%% MeTTa version walks Set1 and per element calls (once (is-member $h $set2))
+%% which expands via collapse/superpose — each membership check is itself a
+%% reduce/2 dispatched walk. Native subtract preserves element order (so call
+%% sites depending on Set1's order keep working) but pays only C-level
+%% memberchk per element.
+:- dynamic('setDifference'/3).
+:- retractall('setDifference'(_, _, _)).
+
+'setDifference'([], _, []) :- !.
+'setDifference'([H|T], Set2, R) :-
+    is_list(Set2), !,
+    ( memberchk(H, Set2)
+      -> 'setDifference'(T, Set2, R)
+       ; R = [H|Rest], 'setDifference'(T, Set2, Rest)
+    ).
+'setDifference'(Set1, _, Set1).  %% non-list set2 — degenerate, return Set1 as-is
+
+%% --- getGuardSet/2 (reduct/boolean-reduct/rte-helpers.metta:20) ---
+%% MeTTa version drives an if-decons-expr-custom primitive that accounts for
+%% 5.7 % of mux6 wall on its own (649K calls). The stub does the head test
+%% directly and delegates the literal collection to the existing getLiterals
+%% stub. Semantics:
+%%   - [] -> []
+%%   - [OR | _] -> []
+%%   - proper list otherwise -> getLiterals(Exp)
+%%   - non-list (Symbol) -> Exp unchanged
+:- dynamic('getGuardSet'/2).
+:- retractall('getGuardSet'(_, _)).
+
+'getGuardSet'([], []) :- !.
+'getGuardSet'(['OR'|_], []) :- !.
+'getGuardSet'(Exp, Lits) :-
+    is_list(Exp), !,
+    'getLiterals'(Exp, Lits).
+'getGuardSet'(Exp, Exp).
+
+%% --- sortDeme/2 (representation/instance.metta:134) ---
+%% MeTTa version converts InstSet -> Expression list, then calls
+%% selectionSort with sInstComparator. selectionSort is O(N^2) with the
+%% comparator dispatched through reduce/2 per pair. On mux6 the chain
+%% (selectionSort_Spec_[sInstComparator] -> sInstComparator -> cScoreExpr<)
+%% accounts for ~5.7 % wall.
+%%
+%% Sort order (matches sInstComparator + cScoreExpr<):
+%%   primary: penalizedScore DESCENDING (highest score first)
+%%   tiebreak: cpxy ASCENDING (simpler trees win ties)
+%% NaN penalizedScore: sorted to the end (mirrors MeTTa: NaN < non-NaN
+%% by cScoreExpr<, so descending puts it last).
+:- dynamic('sortDeme'/2).
+:- retractall('sortDeme'(_, _)).
+
+'sortDeme'(['mkSInstSet', InstList], ['mkSInstSet', Sorted]) :-
+    is_list(InstList), !,
+    maplist(make_sort_pair_, InstList, Pairs),
+    keysort(Pairs, KSorted),
+    pairs_values(KSorted, Sorted).
+'sortDeme'(Set, Set).  %% shape mismatch fallback — returns unchanged
+
+make_sort_pair_(Inst, Key-Inst) :-
+    Inst = ['mkSInst', ['mkPair', _, ['mkCscore', _, Cpxy, _, _, PenSc]]], !,
+    sort_key_of_(PenSc, Cpxy, Key).
+make_sort_pair_(Inst, k(1.0Inf, 0)-Inst).  %% shape mismatch — sort last
+
+sort_key_of_(PenSc, Cpxy, k(NegPS, Cpxy)) :-
+    number(PenSc), PenSc =:= PenSc, !,   %% not NaN
+    NegPS is -PenSc.
+sort_key_of_(_, Cpxy, k(1.0Inf, Cpxy)). %% NaN -> sort last
+
+%% --- any/2 (utilities/general-helpers.metta:218) ---
+%% MeTTa version: `(once (is-member True $bools))` — `is-member` walks the
+%% list with MeTTa-level reduce/2 dispatch per element. Native `memberchk(true)`
+%% is a single indexed C-level call. 401K calls on mux6.
+%% Note: PeTTaV1 parses literal True/False to lowercase atoms, so we test
+%% against `true` (the actual runtime atom).
+:- dynamic('any'/2).
+:- retractall('any'(_, _)).
+
+'any'(Bools, true) :- is_list(Bools), memberchk(true, Bools), !.
+'any'(_, false).
+
 %% Register the stubs as MeTTa funs (idempotent).
 :- register_fun('getLiterals').
 :- register_fun('getChildrenExp').
 :- register_fun('replaceVarsWithTruth').
 :- register_fun('isConsistentExp').
+:- register_fun('setDifference').
+:- register_fun('getGuardSet').
+:- register_fun('sortDeme').
+:- register_fun('any').
