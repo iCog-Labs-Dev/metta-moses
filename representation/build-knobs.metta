@@ -14,3 +14,19 @@
             (let $canonized (logicalCanonize $exemplar)
                  (let (mkTree (mkNode $canonRootOp) $canonChildren) $canonized
                       (buildLogical $canonized $canonRootOp $mmp $argLabels $disable-discprobe $canonized (mkNodeId (0))))))))
+
+(= (buildKnobs (mkTree (mkNode $rootOp) $children) $mmp $argLabels $actions $perceptions)
+    (if (== $rootOp PRIORITIZED-OR)
+        (buildStrategy (mkTree (mkNode PRIORITIZED-OR) $children) (mkNodeId (0)) $mmp $argLabels)
+        (if (or (isActionOperator $rootOp) (is-member $rootOp $actions))
+            (let*
+              (
+                ($canonized (actionCanonize (mkTree (mkNode $rootOp) $children)))
+                (($updatedTree $updatedMMap) (buildAction $canonized (mkNodeId (0)) $mmp $actions $perceptions))
+                ($cleanedTree (actionCleanup $updatedTree))
+                ($finalTree (if (isNullVertex $cleanedTree) (mkTree (mkNode and_seq) ()) $cleanedTree))
+              )
+              ($finalTree $updatedMMap))
+            (let $canonized (logicalCanonize (mkTree (mkNode $rootOp) $children))
+                 (let (mkTree (mkNode $canonRootOp) $canonChildren) $canonized
+                      (buildLogical $canonized $canonRootOp $mmp $argLabels True $canonized (mkNodeId (0))))))))

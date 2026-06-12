@@ -126,11 +126,49 @@
                                     ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
                                     ;; ($_ (println! ""))
                                     ;; ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0)))        ;; MULITPLE args selected using the feature selection
-                                    ($dscKbMp (mkDscMp $dscMp)))        ;; MULITPLE args selected using the feature selection
-                                 (mkRep (mkKbMap $dscKbMp) $updatedTree)))))
+	                                    ($dscKbMp (mkDscMp $dscMp)))        ;; MULITPLE args selected using the feature selection
+	                                 (mkRep (mkKbMap $dscKbMp) $updatedTree)))))
+
+(= (representation
+            $nDeme
+            $exemplar
+            (mkITable $table $labels)
+            $ft-selection-algo
+            $prune-exemplar
+            $enforced-fts
+            $scorerType
+            $actions
+            $perceptions
+         )
+         (representation $nDeme $exemplar (mkITable $table $labels) $ft-selection-algo $prune-exemplar $enforced-fts $scorerType True $actions $perceptions))
+
+(= (representation
+            $nDeme
+            $exemplar
+            (mkITable $table $labels)
+            $ft-selection-algo
+            $prune-exemplar
+            $enforced-fts
+            $scorerType
+            $disable-discprobe
+            $actions
+            $perceptions
+         )
+         (let* (
+                  (($updatedTree $dscMp) (buildKnobs $exemplar () () $actions $perceptions))
+                  ($_ (resetState &knobCount))
+                  ($dscKbMp (mkDscMp $dscMp))
+               )
+               ((mkRep (mkKbMap $dscKbMp) $updatedTree))))
 
 ;; Helper function to extract tree from representation
 (= (getRepTree (mkRep $knobMapObj $tree)) $tree)
+
+(= (isActionRootSymbol $rootSymbol)
+   (is-member $rootSymbol (and_seq or_seq seq_exec action_not action_bool_if
+                           bool_action_if contin_action_if action_action_if
+                           action_success action_failure action_while
+                           bool_while return_success repeat_n)))
 
 ;; Universal getCandidate that works for both boolean and game strategies
 ;; Uses preOrder+buildTree to unwrap mkNullVex for games, cleanTree for boolean
@@ -152,14 +190,15 @@
                       ;; ($_ (println! (Found candidate: (preOrder $candidate))))
                       ($rootNode (getNodeById (getRepTree $repObj) $srcid))
                       ($rootValue (getNodeValue $rootNode))
-                      ($rootSymbol (if (== (get-metatype $rootValue) Expression) 
-                              (car-atom (cdr-atom $rootValue))
-                              $rootValue))
-                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
-                      ($finalTree (if $isGameStrategy
-                                      (let* (
-                                              ($expr (preOrder $candidate))
-                                              ($cleanTree (buildTree $expr)))
+	                      ($rootSymbol (if (== (get-metatype $rootValue) Expression)
+	                              (car-atom (cdr-atom $rootValue))
+	                              $rootValue))
+	                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
+	                      ($isActionDomain (isActionRootSymbol $rootSymbol))
+	                      ($finalTree (if (or $isGameStrategy $isActionDomain)
+	                                      (let* (
+	                                              ($expr (preOrder $candidate))
+	                                              ($cleanTree (buildTree $expr)))
                                             $cleanTree)
                                       (cleanTree $candidate)))
 
@@ -187,14 +226,15 @@
                       ;; ($_ (println! (Found candidate: (preOrder $candidate))))
                       ($rootNode (getRepTree $repObj))
                       ($rootValue (getNodeValue $rootNode))
-                      ($rootSymbol (if (== (get-metatype $rootValue) Expression) 
-                              (car-atom (cdr-atom $rootValue))
-                              $rootValue))
-                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
-                      ($finalTree (if $isGameStrategy
-                                      (let* (
-                                              ($expr (preOrder $candidate))
-                                              ($cleanTree (buildTree $expr)))
+	                      ($rootSymbol (if (== (get-metatype $rootValue) Expression)
+	                              (car-atom (cdr-atom $rootValue))
+	                              $rootValue))
+	                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
+	                      ($isActionDomain (isActionRootSymbol $rootSymbol))
+	                      ($finalTree (if (or $isGameStrategy $isActionDomain)
+	                                      (let* (
+	                                              ($expr (preOrder $candidate))
+	                                              ($cleanTree (buildTree $expr)))
                                             $cleanTree)
                                       (cleanTree $candidate)))
 
@@ -293,6 +333,17 @@
 )
 
 ;; getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst)
+
+(= (getCandidateHelper (mkInst $inst) (mkKnob $controlledSubtree (mkASK $discKnob $perms) $i))
+   (let*
+      (
+         ($setting (if (!= (getDisallowedSpecs (mkASK $discKnob $perms)) ())
+                     (mapEffectiveDiscSpec (mkASK $discKnob $perms) (index-atom $inst $i))
+                     (index-atom $inst $i)))
+      )
+      (if (== $setting 0)
+         ()
+         (getCandidateHelper (mkInst $inst) (List.getByIdx $perms (- $setting 1))))))
 
 ;; Null-vertex unwrapping clause threads the embedded LSK to the inner knob.
 (= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) $lsk $i))

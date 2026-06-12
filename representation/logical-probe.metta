@@ -96,8 +96,34 @@
       ($temp (incrementState &knobCount (size-atom $index)))
       ;; Same embed-LSK design as the fast clause above.
       ($updatedKnobChildren (zipWith3 knobId $updatedChildren $newLskPair $index))
+	     )
+	     ($newLskPair (mkTree $node (append (subtraction-atom $children $updatedChildren) $updatedKnobChildren)))))
+
+;; Action probe builds one ASK containing all supplied action permutations.
+;; It intentionally skips disc probing, matching the original action path.
+(= (actionProbe $exemplar (mkNodeId $targetId) $perms $addIfInExemplar $knobs)
+   (if (== $perms ())
+       ($knobs $exemplar)
+       (let*
+         (
+           (($updatedTree $ask) (actionSubtreeKnob $exemplar (mkNodeId $targetId) $perms))
+           ($discKnob (getDiscKnob $ask))
+         )
+         (if (or $addIfInExemplar (not (inExemplar $discKnob)))
+             (let $updatedKnobs (concatT $knobs ($ask))
+               ($updatedKnobs $updatedTree))
+             ($knobs $exemplar)))))
+
+(= (simpleActionProbe $exemplar (mkNodeId $targetId) $action $addIfInExemplar $knobs)
+   (let*
+     (
+       (($updatedTree $ask) (simpleActionSubtreeKnob $exemplar (mkNodeId $targetId)))
+       ($discKnob (getDiscKnob $ask))
      )
-     ($newLskPair (mkTree $node (append (subtraction-atom $children $updatedChildren) $updatedKnobChildren)))))
+     (if (or $addIfInExemplar (not (inExemplar $discKnob)))
+         (let $updatedKnobs (concatT $knobs ($ask))
+           ($updatedKnobs $updatedTree))
+         ($knobs $exemplar))))
 
 ;; Game-specific probe that uses strategySubtreeKnob instead of logicalSubtreeKnob
 ;; strategyProbe -> builds SSKs by processing game move permutations
