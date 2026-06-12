@@ -721,7 +721,6 @@
 ;; which is hardcoded to False — so MultiMap.insert always lands at the tail.
 ;; That makes this function operationally an append; union-atom is the Prolog
 ;; primitive doing exactly that. Was O(n²) due to repeated per-step insert.
-(= (expToMMap () $map $compFunc) ())
 (= (expToMMap $pairs $map $compFunc) (union-atom $map $pairs))
 
 ;; A trick function to make chain reduce when using union-atom
