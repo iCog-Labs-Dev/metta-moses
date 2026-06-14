@@ -46,6 +46,63 @@
 ) True)
 
 ;; =============================================================================
+;; buildKnobs - PRIORITIZED-OR strategy path
+;; =============================================================================
+
+;; Simple strategy tree verifies buildKnobs dispatches PRIORITIZED-OR roots.
+(= (gameTree1) (mkTree (mkNode PRIORITIZED-OR)
+                  (cons (mkTree (mkNode playcenter) ())
+                  (cons (mkTree (mkNode playcorner) ()) ()))))
+
+;; Single-child strategy trees should still get strategy knobs.
+!(assertEqual (let* (
+    (($updatedTree $MMap) (buildKnobs
+                            (mkTree (mkNode PRIORITIZED-OR)
+                                   (cons (mkTree (mkNode playwin) ()) ()))
+                            () (playwin playblock)))
+    ($mmLength (MultiMap.length $MMap))
+)
+(== $mmLength 5)
+) True)
+
+;; Multi-child strategy trees should register the expected root knobs.
+!(assertEqual (let* (
+    (($updatedTree $MMap) (buildKnobs (gameTree1) () (playcenter playcorner)))
+    ($mmLength (MultiMap.length $MMap))
+)
+(== $mmLength 5)
+) True)
+
+;; Strategy knob building should modify the original PRIORITIZED-OR tree.
+!(assertEqual (let* (
+    (($updatedTree $MMap) (buildKnobs
+                            (mkTree (mkNode PRIORITIZED-OR)
+                                   (cons (mkTree (mkNode playwin) ()) ()))
+                            () (playwin playblock)))
+    ($treeChanged (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR)
+                                               (cons (mkTree (mkNode playwin) ()) ())))))
+)
+$treeChanged
+) True)
+
+;; Nested PRIORITIZED-OR trees protect recursive strategy handling.
+(= (complexGameTree) (mkTree (mkNode PRIORITIZED-OR)
+                            (cons (mkTree (mkNode playcenter) ())
+                            (cons (mkTree (mkNode PRIORITIZED-OR)
+                                         (cons (mkTree (mkNode playcorner) ())
+                                         (cons (mkTree (mkNode playblock) ()) ())))
+                            ()))))
+
+;; Nested strategy trees should create knobs for more than the root alone.
+!(assertEqual (let* (
+    (($updatedTree $MMap) (buildKnobs (complexGameTree) () (playcenter playcorner playblock)))
+    ($mmLength (MultiMap.length $MMap))
+    ($hasNestedKnobs (>= $mmLength 10))
+)
+$hasNestedKnobs
+) True)
+
+;; =============================================================================
 ;; buildKnobs (5-arity) - action path
 ;; =============================================================================
 
