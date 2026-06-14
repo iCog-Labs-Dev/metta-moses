@@ -114,7 +114,7 @@
                ($updatedKnobs $updatedTree))
              ($knobs $exemplar)))))
 
-(= (simpleActionProbe $exemplar (mkNodeId $targetId) $action $addIfInExemplar $knobs)
+(= (simpleActionProbe $exemplar (mkNodeId $targetId) $addIfInExemplar $knobs)
    (let*
      (
        (($updatedTree $ask) (simpleActionSubtreeKnob $exemplar (mkNodeId $targetId)))

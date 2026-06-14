@@ -249,23 +249,18 @@
 	                                (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
 	                                        ((first $treeChIdPair) $newSrcId (if (== $parentId $newDstId) (second $treeChIdPair) $newDstId))))))))
 
-(= (actionTargetSubtree (mkNullVex ()) (mkNodeId $targetId))
-   ((mkNullVex ()) (mkNodeId $targetId)))
-(= (actionTargetSubtree (mkNullVex (cons $child ())) (mkNodeId $targetId))
-   ($child (mkNodeId (union-atom $targetId (1)))))
-(= (actionTargetSubtree $targetTree (mkNodeId $targetId))
-   ($targetTree (mkNodeId $targetId)))
-
-;; appendTo for Action Subtree Knobs (ASK).
-;; Setting 0 removes the controlled action subtree; settings 1..N choose perms.
+;;;; ---------------------------------------------------------------------------
+;; appendToASK appends a permutation subtree for an Action Subtree Knob.
+;;
+;; default 0: action-subtree ASK, append selected perm and stop recursion.
+;; default 1: simple-action ASK, append existing subtree and recurse.
+;; Returns ($updatedTree $newSrcId $newDstId).
+;; ---------------------------------------------------------------------------
 (= (appendToASK $updatedTree $ask $tree $parentId $d)
     (let*
        (
         ((mkNodeId $targetId) (getNodeId $ask))
         ((mkNodeId $dstId) (if (= (mkNodeId (0)) $parentId) (mkNodeId ()) $parentId))
-        ($targetTree (getNodeById $updatedTree (mkNodeId $targetId)))
-        ($newPosition (+ (List.length (getChildren (getNodeById $tree $parentId))) 1))
-        (($subtree $newSrcId) (actionTargetSubtree $targetTree (mkNodeId $targetId)))
         ((mkMultip $effectiveMultip) (getKnobMultip $ask))
         ((mkDiscSpec $defaultSetting) (getKnobDefault $ask))
         ((mkASK $discKnob $perms) $ask)
@@ -273,14 +268,10 @@
       (if (>= $d $effectiveMultip)
           (Error $d "Invalid effective disc specification for action knob.")
           (let $actualD (mapEffectiveDiscSpec $ask $d)
-            (let ($treeToAppend $newDstId)
-                 (if (== $actualD 0)
-                     ((mkNullVex (cons $subtree ())) $parentId)
-                     (let $expressionToAppend (List.getByIdx $perms (- $actualD 1))
-                          ($expressionToAppend (mkNodeId (union-atom $dstId ($newPosition))))))
-                 (if (isNullVertex $treeToAppend)
-                     ($tree $parentId $parentId)
-                     (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
-                            ((first $treeChIdPair)
-                             (if (== $defaultSetting 1) $newSrcId (second $treeChIdPair))
-                             (if (== $parentId $newDstId) (second $treeChIdPair) $newDstId)))))))))
+            (if (== $actualD 0)
+                ($tree $parentId $parentId)
+                (let $expressionToAppend (List.getByIdx $perms (- $actualD 1))
+                  (let $treeChIdPair (appendChild $tree $parentId $expressionToAppend)
+                    (if (== $defaultSetting 0)
+                        ((first $treeChIdPair) $parentId $parentId)
+                        ((first $treeChIdPair) (mkNodeId $targetId) (second $treeChIdPair))))))))))
