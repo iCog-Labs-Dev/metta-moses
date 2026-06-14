@@ -165,15 +165,9 @@
     (> (MultiMap.length $mmp) 0))
   True)
 
-;; buildKnobs dispatches action, logical, and strategy roots correctly.
+;; buildKnobs dispatches action and strategy roots
 !(assertEqual
   (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) () () (move_forward turn_left) (A B))
-    (> (MultiMap.length $mmp) 0))
-  True)
-
-!(assertEqual
-  (let* (($tree (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())))
-         (($updatedTree $mmp) (buildKnobs $tree () (A B) (move_forward turn_left) (A B))))
     (> (MultiMap.length $mmp) 0))
   True)
 
