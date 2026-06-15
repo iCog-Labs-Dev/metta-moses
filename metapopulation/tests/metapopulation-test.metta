@@ -1,12 +1,12 @@
-!(import! &self ../../../metta-moses/utilities/general-helpers)
-!(import! &self ../../../metta-moses/utilities/list-methods)
-!(import! &self ../../../metta-moses/utilities/ordered-set)
-!(import! &self ../../../metta-moses/utilities/tree)
-!(import! &self ../../../metta-moses/scoring/cscore)
-!(import! &self ../../../metta-moses/scoring/fitness)
-!(import! &self ../../../metta-moses/scoring/bscore)
-!(import! &self ../../../metta-moses/metapopulation/metapopulation)
-!(import! &self ../../../metta-moses/deme/deme-id-creation)
+!(import! &self utilities/general-helpers)
+!(import! &self utilities/list-methods)
+!(import! &self utilities/ordered-set)
+!(import! &self utilities/tree)
+!(import! &self scoring/cscore)
+!(import! &self scoring/fitness)
+!(import! &self scoring/bscore)
+!(import! &self metapopulation/metapopulation)
+!(import! &self deme/deme-id-creation)
 
 ;; Test cases for getBetterCandidates
 !(assertEqual (getBetterCandidates (cons 

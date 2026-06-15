@@ -1,8 +1,9 @@
-!(import! &self ../../../metta-moses/utilities/ordered-set)
-!(import! &self ../../../metta-moses/metapopulation/exemplar-type)
+!(import! &self utilities/general-helpers)
+!(import! &self utilities/ordered-set)
+!(import! &self metapopulation/exemplar-type)
 
 ;; Exemplar initialization
-!(test (xmplrInit (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) (mkDemeId 1))
+!(assertEqual (xmplrInit (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) (mkDemeId 1))
     (mkXmplr 
         (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ())))
         (mkDemeId 1) 
@@ -12,7 +13,7 @@
             (mkScoreT 0)
             (mkScoreT (pow-math 10 -37)))
         (mkBscore ())))
-!(test 
+!(assertEqual 
     (xmplrInit (mkTree (mkTree (mkNode A) ())) (mkDemeId 2))
     (mkXmplr 
         (mkTree (mkTree (mkNode A) ()))
@@ -24,7 +25,7 @@
             (mkScoreT (pow-math 10 -37)))
         (mkBscore ())))
 
-!(test 
+!(assertEqual 
     (xmplrInit (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) (mkDemeId 100))
     (mkXmplr 
         (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ())))

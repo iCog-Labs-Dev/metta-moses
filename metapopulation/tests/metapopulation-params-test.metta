@@ -1,5 +1,5 @@
-!(import! &self ../../../metta-moses/utilities/general-helpers)
-!(import! &self ../../../metta-moses/metapopulation/metapopulation-params)
+!(import! &self utilities/general-helpers)
+!(import! &self metapopulation/metapopulation-params)
 
 ;; Get initial values
 !(assertEqual (getMpParam &params capCoef) 50)
