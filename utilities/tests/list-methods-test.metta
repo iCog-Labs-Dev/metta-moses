@@ -1,7 +1,7 @@
-!(import! &self ../../../metta-moses/utilities/general-helpers)
-!(import! &self ../../../metta-moses/utilities/list-methods)
-!(import! &self ../../../metta-moses/representation/instance)
-!(import! &self ../../../metta-moses/scoring/cscore)
+!(import! &self utilities/general-helpers)
+!(import! &self utilities/list-methods)
+!(import! &self representation/instance)
+!(import! &self scoring/cscore)
 
 
 
@@ -156,7 +156,7 @@
                             (cons (mkSInst (mkPair (mkInst ()) (mkCscore 1 2 3 4 15)))
                                 (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5)))
                                 (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 0.5))) ()))) 2)
-                                    
+
                                 (cons (mkSInst (mkPair (mkInst ()) (mkCscore 1 2 3 4 15))) 
                                         (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5)))
                                         (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 0.5))) ()))))
@@ -165,7 +165,7 @@
                         (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5)))
                             (cons (mkSInst (mkPair (mkInst ()) (mkCscore -1.0 2 1.0 0.5 -2.5)))
                             (cons (mkSInst (mkPair (mkInst ()) (mkCscore -3.0 3 1.0 0.5 -4.5))) ()))) 2)
-    
+
       (cons (mkSInst (mkPair (mkInst ()) (mkCscore -1.0 2 1.0 0.5 -2.5)))
         (cons  (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5)))
             (cons (mkSInst (mkPair (mkInst ()) (mkCscore -3.0 3 1.0 0.5 -4.5))) ()))))
@@ -174,7 +174,7 @@
       (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 3 1.0 0.5 -3.5)))
         (cons  (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 2 1.0 0.5 -3.5)))
           (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5))) ()))) 2)
-    
+
           (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 1 1.0 0.5 -3.5)))
                 (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 2 1.0 0.5 -3.5)))
                     (cons (mkSInst (mkPair (mkInst ()) (mkCscore -2.0 3 1.0 0.5 -3.5))) ()))))

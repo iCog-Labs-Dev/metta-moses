@@ -1,9 +1,9 @@
-!(import! &self ../../../metta-moses/utilities/general-helpers)
-!(import! &self ../../../metta-moses/utilities/list-methods)
-!(import! &self ../../../metta-moses/utilities/map)
-!(import! &self ../../../metta-moses/utilities/ordered-multimap)
-!(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
-!(import! &self ../../../metta-moses/scoring/precision-bscore)
+!(import! &self utilities/general-helpers)
+!(import! &self utilities/list-methods)
+!(import! &self utilities/map)
+!(import! &self utilities/ordered-multimap)
+!(import! &self feature-selection/feature-selection-helpers)
+!(import! &self scoring/precision-bscore)
 
 (= (andTable) 
    (mkITable
