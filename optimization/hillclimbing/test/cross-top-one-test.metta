@@ -1,18 +1,18 @@
-!(import! &self ../../../../metta-moses/utilities/general-helpers)
-!(import! &self ../../../../metta-moses/utilities/list-methods)
-!(import! &self ../../../../metta-moses/utilities/tree)
+!(import! &self utilities/general-helpers)
+!(import! &self utilities/list-methods)
+!(import! &self utilities/tree)
 
-!(import! &self ../../../../metta-moses/representation/instance)
-!(import! &self ../../../../metta-moses/representation/representation)
-!(import! &self ../../../../metta-moses/representation/create-representation)
+!(import! &self representation/instance)
+!(import! &self representation/representation)
+!(import! &self representation/create-representation)
 
 
-!(import! &self ../../../../metta-moses/scoring/cscore)
+!(import! &self scoring/cscore)
 
-!(import! &self ../../../../metta-moses/deme/create-deme)
+!(import! &self deme/create-deme)
 
-!(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one) ;; notice the / in the import statements -- looks like this is required for every additional inner level of dir you have to go
+!(import! &self optimization/hillclimbing/cross-top-one-helpers)
+!(import! &self optimization/hillclimbing/cross-top-one) ;; notice the / in the import statements -- looks like this is required for every additional inner level of dir you have to go
 
 (= (wScore) (* -1 (pow-math 10 100))) ;; bind worst score value 
 

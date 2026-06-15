@@ -1,61 +1,61 @@
-!(import! &self ../../../../metta-moses/utilities/general-helpers)
-!(import! &self ../../../../metta-moses/utilities/list-methods)
-!(import! &self ../../../../metta-moses/utilities/map)
-!(import! &self ../../../../metta-moses/utilities/ordered-multimap)
-!(import! &self ../../../../metta-moses/utilities/nodeId)
-!(import! &self ../../../../metta-moses/utilities/lazy-random-selector)
-!(import! &self ../../../../metta-moses/utilities/pair) 
+!(import! &self utilities/general-helpers)
+!(import! &self utilities/list-methods)
+!(import! &self utilities/map)
+!(import! &self utilities/ordered-multimap)
+!(import! &self utilities/nodeId)
+!(import! &self utilities/lazy-random-selector)
+!(import! &self utilities/pair) 
 
-!(import! &self ../../../../metta-moses/reduct/boolean-reduct/rte-helpers)
-!(import! &self ../../../../metta-moses/reduct/boolean-reduct/cut-unnecessary-or)
-!(import! &self ../../../../metta-moses/reduct/boolean-reduct/cut-unnecessary-and)
-!(import! &self ../../../../metta-moses/reduct/boolean-reduct/n-ary-propagate-not)
-!(import! &self ../../../../metta-moses/reduct/boolean-reduct/n-ary-gather-junctors)
-!(import! &self ../../../../metta-moses/reduct/boolean-reduct/delete-inconsistent-handle)
-!(import! &self ../../../../metta-moses/reduct/boolean-reduct/zero-constraint-subsumption)
-!(import! &self ../../../../metta-moses/reduct/boolean-reduct/one-constraint-subsumption)
-!(import! &self ../../../../metta-moses/reduct/boolean-reduct/promote-common-constraints)
-!(import! &self ../../../../metta-moses/reduct/boolean-reduct/reduce-to-elegance)
-
-
-!(import! &self ../../../../metta-moses/utilities/tree)
-
-!(import! &self ../../../../metta-moses/representation/knob-representation)
-!(import! &self ../../../../metta-moses/representation/lsk)
-!(import! &self ../../../../metta-moses/representation/logical-probe) 
-!(import! &self ../../../../metta-moses/representation/sample-logical-perms)
-!(import! &self ../../../../metta-moses/representation/add-logical-knobs)
-!(import! &self ../../../../metta-moses/representation/build-logical)
-!(import! &self ../../../../metta-moses/representation/build-knobs)
-!(import! &self ../../../../metta-moses/representation/knob-mapper)
-!(import! &self ../../../../metta-moses/feature-selection/feature-selection-helpers)
-!(import! &self ../../../../metta-moses/representation/representation)
-!(import! &self ../../../../metta-moses/representation/create-representation)
+!(import! &self reduct/boolean-reduct/rte-helpers)
+!(import! &self reduct/boolean-reduct/cut-unnecessary-or)
+!(import! &self reduct/boolean-reduct/cut-unnecessary-and)
+!(import! &self reduct/boolean-reduct/n-ary-propagate-not)
+!(import! &self reduct/boolean-reduct/n-ary-gather-junctors)
+!(import! &self reduct/boolean-reduct/delete-inconsistent-handle)
+!(import! &self reduct/boolean-reduct/zero-constraint-subsumption)
+!(import! &self reduct/boolean-reduct/one-constraint-subsumption)
+!(import! &self reduct/boolean-reduct/promote-common-constraints)
+!(import! &self reduct/boolean-reduct/reduce-to-elegance)
 
 
-!(import! &self ../../../../metta-moses/representation/instance)
+!(import! &self utilities/tree)
+
+!(import! &self representation/knob-representation)
+!(import! &self representation/lsk)
+!(import! &self representation/logical-probe) 
+!(import! &self representation/sample-logical-perms)
+!(import! &self representation/add-logical-knobs)
+!(import! &self representation/build-logical)
+!(import! &self representation/build-knobs)
+!(import! &self representation/knob-mapper)
+!(import! &self feature-selection/feature-selection-helpers)
+!(import! &self representation/representation)
+!(import! &self representation/create-representation)
 
 
-!(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one)
-!(import! &self ../../../../metta-moses/optimization/hillclimbing/crossover-helpers)
+!(import! &self representation/instance)
 
 
-!(import! &self ../../../../metta-moses/scoring/fitness)
-!(import! &self ../../../../metta-moses/scoring/bscore)
-!(import! &self ../../../../metta-moses/scoring/cscore)
-!(import! &self ../../../../metta-moses/scoring/complexity-based-scorer)
-
-!(import! &self ../../../../metta-moses/optimization/hillclimbing/hill-climbing-helpers)
-!(import! &self ../../../../metta-moses/moses/neighborhood-sampling)
-
-!(import! &self ../../../../metta-moses/deme/deme-id-creation)
-!(import! &self ../../../../metta-moses/deme/create-deme)
-!(import! &self ../../../../metta-moses/deme/score-deme)
-!(import! &self ../../../../metta-moses/deme/expand-deme)
+!(import! &self optimization/hillclimbing/cross-top-one-helpers)
+!(import! &self optimization/hillclimbing/cross-top-one)
+!(import! &self optimization/hillclimbing/crossover-helpers)
 
 
-!(import! &self ../../../../metta-moses/optimization/simulated-annealing-algo/simulated-annealing)
+!(import! &self scoring/fitness)
+!(import! &self scoring/bscore)
+!(import! &self scoring/cscore)
+!(import! &self scoring/complexity-based-scorer)
+
+!(import! &self optimization/hillclimbing/hill-climbing-helpers)
+!(import! &self moses/neighborhood-sampling)
+
+!(import! &self deme/deme-id-creation)
+!(import! &self deme/create-deme)
+!(import! &self deme/score-deme)
+!(import! &self deme/expand-deme)
+
+
+!(import! &self optimization/simulated-annealing-algo/simulated-annealing)
 
 
 
