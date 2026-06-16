@@ -206,7 +206,12 @@
       (updatePenalizedScore (mkCscore 0 $bestCpx (* (getComplexityCoef $cpxPen) $bestCpx) 0.0 (* -1 (pow-math 10 308))) False))
    )
 
-;;$maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount
+;; runMoses (after the hyperparameter-registry migration) takes:
+;;   $maxGen $maxScore $metaPop $nExpansion $nDeme $context $optimize
+;; All other knobs (maxCandOutput, nEval, maxCandPerDeme, minPoolSize,
+;; complexityTemperature, nToKeep, capCoef, genCount) are read from
+;; &params via (param ...). Seed them via (set-param ...) or via
+;; --name=value flags handled by parameters/cli.metta.
 ;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
 ;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;;                   smd      ;; the new arguments for feature selection algo
@@ -219,9 +224,11 @@
    (let*
       (
         ($srp (py-call (random.seed $seed)))
-        ($cpxPen 3.5)
-        ($capCoef 50)
-        ($complexityTemperature 6)
+        ;; genCount feeds the cap-size formula inside resizeMetapop; it is
+        ;; conceptually the initial $maxGen and stays constant across the
+        ;; recursion, so we seed it once here.
+        ($_  (set-param genCount $maxGen))
+        ($cpxPen (param complexityRatio))
         ($truthTableBScore (createTruthTableBScore $cpxPen ($problem)))
         (($ctor $worstPossibleBScore) (worstPossibleScore $truthTableBScore))
         ($worstPossibleScore (List.sum $worstPossibleBScore))
@@ -229,11 +236,9 @@
         ($_ (println! (BestPossibleScore: $bestPosssibleCscore)))
         ($metaPop ((mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore))))
         ;; ($metaPop (cons (mkExemplar (mkTree (mkNode AND) (cons (mkTree (mkNode OR) ()) ())) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) ()))
-        ($result (runMoses $maxGen $bestPosssibleCscore 10 $metaPop 0 $nDeme
+        ($result (runMoses $maxGen $bestPosssibleCscore $metaPop 0 $nDeme
               (False $fsAlgo $truthTableBScore ($problem))
-              hillClimbing
-              500 100 20 $complexityTemperature
-              50 $capCoef $maxGen))
+              hillClimbing))
         ($_ (println! (Result: $result)))
         ($newR (mapG cleanedExemplar $result))
         ($_ (cut)) ;; INFO: This gives few extra seconds performance gain. Do not remove.

@@ -1,4 +1,6 @@
 !(import! &self ../../../metta-moses/utilities/general-helpers)
+!(import! &self ../../../metta-moses/parameters/registry)
+!(import! &self ../../../metta-moses/parameters/defaults)
 !(import! &self ../../../metta-moses/utilities/list-methods)
 !(import! &self ../../../metta-moses/utilities/ordered-set)
 !(import! &self ../../../metta-moses/utilities/tree)
@@ -239,8 +241,21 @@
                     (mkBScore (cons 0.6 ())))
                   ())))))))))
 
-!(assertEqual (let $a (resizeMetapop (pop5) 3 5 3 0.004 1000) (OS.length $a)) 6)
-!(assertEqual (let $a (resizeMetapop (pop5) 3 5 2 0.003 1000) (OS.length $a)) 4)
+;; The original signature was
+;;   (resizeMetapop $metapop $nToKeep $minPoolSize $compTemp $capCoef $genCount)
+;; Hyperparameters are now sourced from &params via (param ...). Seed the
+;; equivalent test inputs through set-param before each call so the
+;; assertion semantics stay identical to the pre-migration test.
+!(set-param nToKeep 3)
+!(set-param minPoolSize 5)
+!(set-param complexityTemperature 3)
+!(set-param capCoef 0.004)
+!(set-param genCount 1000)
+!(assertEqual (let $a (resizeMetapop (pop5)) (OS.length $a)) 6)
+
+!(set-param complexityTemperature 2)
+!(set-param capCoef 0.003)
+!(assertEqual (let $a (resizeMetapop (pop5)) (OS.length $a)) 4)
 
 ;; Testcases for compareExemplar
 !(assertEqual
