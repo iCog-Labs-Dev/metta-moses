@@ -220,28 +220,108 @@
 ;;                   100 10 20 2
 ;;                   (xortable)
 ;;                   10 0.004 1000))
-(= (runDemoProblem $seed $maxGen $nDeme $fsAlgo $problem)
+;; ============================================================
+;;  Top-level MOSES entry point.
+;;
+;;  After the hyperparameter-registry migration, everything that
+;;  used to be a positional argument is sourced from &params. The
+;;  user-facing entry point is therefore zero-argument:
+;;
+;;      !(moses)
+;;
+;;  Override any knob from the command line:
+;;
+;;      sh run.sh runner.metta -s \
+;;          --problem=parity3 --maxGen=20 --nDeme=2 \
+;;          --fsAlgo=smd --optAlgo=hc --capCoef=80
+;;
+;;  Inspect every recognized knob:
+;;
+;;      sh run.sh runner.metta -s --help
+;; ============================================================
+(= (moses)
+   (if (== (param problem) ())
+       (no-problem-help-and-exit)
+       (moses-run)))
+
+;; Shown when (moses) is invoked without --problem= on the command line
+;; and without an in-script (set-param problem ...). Falls through to the
+;; standard --help dump so the user sees every knob and value.
+(= (no-problem-help-and-exit)
    (let*
       (
+        ($_   (println! ""))
+        ($__  (println! "No problem specified."))
+        ($___ (println! "Pass --problem=<name> on the command line, e.g.:"))
+        ($____ (println! "    sh run.sh runner.metta -s --problem=parity3"))
+        ($_____ (println! "or programmatically:  !(set-param problem parity3)"))
+        ($______ (print-help-and-exit))
+      )
+      halt-not-reached))
+
+(= (moses-run)
+   (let*
+      (
+        ;; Pull every input from the registry up-front so the body
+        ;; reads like the historical runDemoProblem.
+        ($seed     (param seed))
+        ($maxGen   (param maxGen))
+        ($nDeme    (param nDeme))
+        ($fsAlgo   (param fsAlgo))
+        ($optAlgo  (param optAlgo))
+        ($problem  (param problem))
+        ($optimizer (optimizer-for $optAlgo))
+
         ($srp (py-call (random.seed $seed)))
-        ;; genCount feeds the cap-size formula inside resizeMetapop; it is
-        ;; conceptually the initial $maxGen and stays constant across the
-        ;; recursion, so we seed it once here.
+        ;; genCount feeds the cap-size formula inside resizeMetapop; it
+        ;; is conceptually the initial $maxGen and stays constant across
+        ;; the recursion, so we seed it once here.
         ($_  (set-param genCount $maxGen))
         ($cpxPen (param complexityRatio))
         ($truthTableBScore (createTruthTableBScore $cpxPen ($problem)))
         (($ctor $worstPossibleBScore) (worstPossibleScore $truthTableBScore))
         ($worstPossibleScore (List.sum $worstPossibleBScore))
         ($bestPosssibleCscore (getBestPossibleCscore $cpxPen $problem))
-        ($_ (println! (BestPossibleScore: $bestPosssibleCscore)))
+        ($__ (println! (BestPossibleScore: $bestPosssibleCscore)))
         ($metaPop ((mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore))))
-        ;; ($metaPop (cons (mkExemplar (mkTree (mkNode AND) (cons (mkTree (mkNode OR) ()) ())) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) ()))
         ($result (runMoses $maxGen $bestPosssibleCscore $metaPop 0 $nDeme
               (False $fsAlgo $truthTableBScore ($problem))
-              hillClimbing))
-        ($_ (println! (Result: $result)))
+              $optimizer))
+        ($___ (println! (Result: $result)))
         ($newR (mapG cleanedExemplar $result))
-        ($_ (cut)) ;; INFO: This gives few extra seconds performance gain. Do not remove.
+        ($____ (cut)) ;; INFO: This gives few extra seconds performance gain. Do not remove.
       )
       (FinalResult $newR)))
+
+;; Maps the optAlgo symbol to the concrete optimizer function used by
+;; runMoses. Only hill climbing is integration-tested today; the SA and
+;; univariate implementations under optimization/ exist but have never
+;; been wired into the deme-expansion path. Add a clause here when a new
+;; algorithm becomes ready.
+(= (optimizer-for hc) hillClimbing)
+(= (optimizer-for $other)
+   (let*
+      (
+        ($_   (println! ""))
+        ($__  (println! (Error: unsupported optAlgo $other)))
+        ($___ (println! "Recognized optAlgo values: hc"))
+        ($____ (println! "(simulated annealing and univariate exist in the tree but are not integration-tested.)"))
+        ($_____ (callPredicate (Predicate (halt 1))))
+      )
+      halt-not-reached))
+
+;; Backward-compat shim. Existing test_moses.py templates substitute
+;; placeholders into a (runDemoProblem $seed $maxGen $nDeme $fsAlgo $problem)
+;; call; we keep that signature working by writing the arguments into
+;; &params and then dispatching to (moses).
+(= (runDemoProblem $seed $maxGen $nDeme $fsAlgo $problem)
+   (let*
+      (
+        ($_1 (set-param seed    $seed))
+        ($_2 (set-param maxGen  $maxGen))
+        ($_3 (set-param nDeme   $nDeme))
+        ($_4 (set-param fsAlgo  $fsAlgo))
+        ($_5 (set-param problem $problem))
+      )
+      (moses)))
 

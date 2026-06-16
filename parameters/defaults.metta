@@ -26,6 +26,28 @@
 
 !(bind! &params (new-space))
 
+;; ---- Run identity / inputs ----
+;; These describe *what* to run; everything below describes *how*.
+;;
+;; `problem` deliberately has NO default: invoking (moses) without an
+;; explicit problem (via --problem=<name> on the CLI or via
+;; (set-param problem <name>) in the script) prints --help and exits.
+;; This makes "run with no args" show help instead of silently running
+;; whatever sample problem was last chosen.
+!(add-atom &params (seed     0))
+!(add-atom &params (maxGen   20))
+!(add-atom &params (nDeme    1))
+
+;; ---- Algorithm selection ----
+;; optAlgo: which deme-local optimizer to dispatch to inside runMoses.
+;;   Recognized values: hc (hill climbing).
+;;   sa / univariate exist in the tree but are not integration-tested;
+;;   passing them will halt with a clear error.
+;; fsAlgo: which feature-selection algorithm runMoses pipes into expandDeme.
+;;   Recognized values include: None, smd, sim, inc, rd, mi, hc.
+!(add-atom &params (optAlgo hc))
+!(add-atom &params (fsAlgo  None))
+
 ;; ---- Metapopulation management ----
 !(add-atom &params (capCoef 50))
 !(add-atom &params (complexityTemperature 6))
