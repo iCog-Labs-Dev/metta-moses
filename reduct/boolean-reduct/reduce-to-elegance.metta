@@ -477,7 +477,7 @@
       ;; TODO: Add a simple function to remove one child and nodes.
       (($parent $uwnt $uwnt2) (until reduceNotApplied applyReduce ($expr $expr True)))
       (($newParent $__ $___) (applyReduce ($parent $parent True))) ;; Try one more time incase it is still reduceable
-      ;; ($_ (cut))
+      ;; ($_ (cut)) ;; Tried, no measurable win
      )
      (if (== $newParent $parent)
          (removeAndNodesFromGuards $parent)
