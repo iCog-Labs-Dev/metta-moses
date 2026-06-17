@@ -14,21 +14,14 @@
 ;; ============================================================
 
 ;; -------- Top-level entry --------
+;; argv/2 in PeTTa is bound on its second argument but left non-deterministic
+;; on the index: with the index unbound, the underlying nth0 backtracks
+;; through every valid position. Wrapping the call in collapse therefore
+;; gathers every argv entry in a single findall — no need to walk indices
+;; by hand and detect the failing boundary.
 (= (apply-cli-overrides)
-   (cli-loop 0))
-
-;; Walk argv until we run out of indices.
-;; (argv N) fails for out-of-bounds indices; we wrap it in collapse
-;; so that the failing call gives () (empty list) rather than aborting.
-(= (cli-loop $n)
-   (let $maybe (collapse (argv $n))
-        (if (== $maybe ())
-            done
-            (let* (
-                   ($_  (try-apply-flag (car-atom $maybe)))
-                   ($__ (cli-loop (+ $n 1)))
-                  )
-                  done))))
+   (let $args (collapse (argv $_))
+        (map-atom $args $arg (try-apply-flag $arg))))
 
 ;; -------- Flag dispatch --------
 
@@ -45,9 +38,7 @@
                      (case (parse-flag $chars)
                        (
                          ((flag $name $val) (set-param $name $val))
-                         ($_                ignored)
-                       ))))
-      )))
+                         ($_                ignored))))))))
 
 ;; -------- Help output --------
 ;; Iterates every entry in &params and prints it as `(-- name = value)`.
@@ -55,18 +46,17 @@
 ;; --help short-circuits the rest of the script (no MOSES run is started).
 (= (print-help-and-exit)
    (let* (
-          ($_   (println! ""))
-          ($__  (println! "MOSES MeTTa hyperparameters (override with --name=value):"))
-          ($___ (println! ""))
+          ($_ (println! ""))
+          ($_ (println! "MOSES MeTTa hyperparameters (override with --name=value):"))
+          ($_ (println! ""))
           ;; collapse so the match's println! side effects fire for every
           ;; atom; the resulting list of `true`s is discarded.
-          ($____ (collapse (match &params ($name $val)
+          ($__ (collapse (match &params ($name $val)
                              (println! (-- $name = $val)))))
-          ($_____ (println! ""))
+          ($_ (println! ""))
           ;; halt(0) is a Prolog builtin; build the goal via Predicate and
           ;; invoke it through callPredicate to terminate the process.
-          ($______ (callPredicate (Predicate (halt 0))))
-         )
+          ($___ (callPredicate (Predicate (halt 0)))))
          done))
 
 ;; -------- Char-list parser --------
@@ -84,15 +74,14 @@
    (case $chars
       (
         ((cons - (cons - $rest)) (parse-name $rest None))
-        ($_                      not-a-flag)
-      )))
+        ($_                      ()))))
 
 ;; Walk chars after '--' accumulating the name atom until '='.
 ;; $nameAcc is None initially, then (Some <accumulated atom>).
-(= (parse-name () $nameAcc) not-a-flag)
+(= (parse-name () $nameAcc) ())
 (= (parse-name (cons $h $rest) None)
    (if (== $h =)
-       not-a-flag                              ;; empty name '--='
+       ()                              ;; empty name '--='
        (parse-name $rest (Some $h))))
 (= (parse-name (cons $h $rest) (Some $acc))
    (if (== $h =)
@@ -102,7 +91,7 @@
 ;; Walk chars after '=' accumulating the value atom, then parse it.
 ;; parse/1 coerces strings like "100", "3.5", "True" into the
 ;; corresponding Number / Bool atoms; bare atoms come back unchanged.
-(= (parse-value () None $name) not-a-flag)        ;; '--name='
+(= (parse-value () None $name) ())        ;; '--name='
 (= (parse-value () (Some $acc) $name)
    (flag $name (parse $acc)))
 (= (parse-value (cons $h $rest) None $name)

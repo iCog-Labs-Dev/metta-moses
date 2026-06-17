@@ -18,12 +18,12 @@
 
 ;; ---- parse-flag rejects malformed input ----
 !(println! ("testing: parse-flag rejects non-flag inputs"))
-!(assertEqual (parse-flag (atom_chars capCoef=100)) not-a-flag) ;; no leading --
-!(assertEqual (parse-flag (atom_chars -x=1))        not-a-flag) ;; single dash
-!(assertEqual (parse-flag (atom_chars --name))      not-a-flag) ;; no '='
-!(assertEqual (parse-flag (atom_chars --name=))     not-a-flag) ;; empty value
-!(assertEqual (parse-flag (atom_chars --=value))    not-a-flag) ;; empty name
-!(assertEqual (parse-flag (atom_chars plain-arg))   not-a-flag)
+!(assertEqual (parse-flag (atom_chars capCoef=100)) ()) ;; no leading --
+!(assertEqual (parse-flag (atom_chars -x=1))        ()) ;; single dash
+!(assertEqual (parse-flag (atom_chars --name))      ()) ;; no '='
+!(assertEqual (parse-flag (atom_chars --name=))     ()) ;; empty value
+!(assertEqual (parse-flag (atom_chars --=value))    ()) ;; empty name
+!(assertEqual (parse-flag (atom_chars plain-arg))   ())
 
 ;; ---- try-apply-flag drives set-param when a flag is well-formed ----
 !(println! ("testing: try-apply-flag applies the override"))
