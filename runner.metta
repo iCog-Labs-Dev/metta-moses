@@ -1,2 +1,0 @@
-!(import! &self moses)
-!(moses)

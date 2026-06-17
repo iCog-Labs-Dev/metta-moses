@@ -231,13 +231,13 @@
 ;;
 ;;  Override any knob from the command line:
 ;;
-;;      sh run.sh runner.metta -s \
+;;      sh run.sh moses.metta -s \
 ;;          --problem=parity3 --maxGen=20 --nDeme=2 \
 ;;          --fsAlgo=smd --optAlgo=hc --capCoef=80
 ;;
 ;;  Inspect every recognized knob:
 ;;
-;;      sh run.sh runner.metta -s --help
+;;      sh run.sh moses.metta -s --help
 ;; ============================================================
 (= (moses)
    (if (== (param problem) ())
@@ -250,14 +250,14 @@
 (= (no-problem-help-and-exit)
    (let*
       (
-        ($_   (println! ""))
-        ($__  (println! "No problem specified."))
-        ($___ (println! "Pass --problem=<name> on the command line, e.g.:"))
-        ($____ (println! "    sh run.sh runner.metta -s --problem=parity3"))
-        ($_____ (println! "or programmatically:  !(set-param problem parity3)"))
-        ($______ (print-help-and-exit))
+        ($_ (println! ""))
+        ($_ (println! "No problem specified."))
+        ($_ (println! "Pass --problem=<name> on the command line, e.g.:"))
+        ($_ (println! "    sh run.sh moses.metta -s --problem=parity3"))
+        ($_ (println! "or programmatically:  !(set-param problem parity3)"))
+        ($_ (print-help-and-exit))
       )
-      halt-not-reached))
+      ()))
 
 (= (moses-run)
    (let*
@@ -282,14 +282,14 @@
         (($ctor $worstPossibleBScore) (worstPossibleScore $truthTableBScore))
         ($worstPossibleScore (List.sum $worstPossibleBScore))
         ($bestPosssibleCscore (getBestPossibleCscore $cpxPen $problem))
-        ($__ (println! (BestPossibleScore: $bestPosssibleCscore)))
+        ($_ (println! (BestPossibleScore: $bestPosssibleCscore)))
         ($metaPop ((mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore))))
         ($result (runMoses $maxGen $bestPosssibleCscore $metaPop 0 $nDeme
               (False $fsAlgo $truthTableBScore ($problem))
               $optimizer))
-        ($___ (println! (Result: $result)))
+        ;; ($_ (println! (Result: $result)))
         ($newR (mapG cleanedExemplar $result))
-        ($____ (cut)) ;; INFO: This gives few extra seconds performance gain. Do not remove.
+        ($_ (cut)) ;; INFO: This gives few extra seconds performance gain. Do not remove.
       )
       (FinalResult $newR)))
 
@@ -298,17 +298,20 @@
 ;; univariate implementations under optimization/ exist but have never
 ;; been wired into the deme-expansion path. Add a clause here when a new
 ;; algorithm becomes ready.
-(= (optimizer-for hc) hillClimbing)
-(= (optimizer-for $other)
-   (let*
-      (
-        ($_   (println! ""))
-        ($__  (println! (Error: unsupported optAlgo $other)))
-        ($___ (println! "Recognized optAlgo values: hc"))
-        ($____ (println! "(simulated annealing and univariate exist in the tree but are not integration-tested.)"))
-        ($_____ (callPredicate (Predicate (halt 1))))
-      )
-      halt-not-reached))
+(= (optimizer-for hc)
+     (case $optimizer
+          (
+            (hc hillClimbing)
+            ;; (sa simulated-annealing)
+            ($other (let*
+                      (
+                        ($_ (println! ""))
+                        ($_ (println! (Error: unsupported optAlgo $other)))
+                        ($_ (println! "Recognized optAlgo values: hc"))
+                        ($_ (println! "(simulated annealing and univariate exist in the tree but are not integration-tested.)"))
+                        ($_ (callPredicate (Predicate (halt 1))))
+                      )
+                      ())))))
 
 ;; Backward-compat shim. Existing test_moses.py templates substitute
 ;; placeholders into a (runDemoProblem $seed $maxGen $nDeme $fsAlgo $problem)

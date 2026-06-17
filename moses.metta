@@ -3,26 +3,15 @@
 ;;
 ;;  This single file wires together every module the MOSES pipeline
 ;;  needs and installs all default hyperparameters into &params.
-;;  Importing it activates `--name=value` command-line parsing, so
-;;  a working runner is just:
-;;
-;;      ;; runner.metta
-;;      !(import! &self moses)
-;;      !(moses)
-;;
 ;;  Invocation:
 ;;
-;;      sh /home/yab/PeTTaV1/run.sh runner.metta -s
-;;      sh /home/yab/PeTTaV1/run.sh runner.metta -s \
+;;      sh /home/yab/PeTTaV1/run.sh moses.metta -s --problem=parity3
+;;      sh /home/yab/PeTTaV1/run.sh moses.metta -s \
 ;;          --problem=mux3 --maxGen=10 --nDeme=2 \
 ;;          --fsAlgo=smd --optAlgo=hc --capCoef=80
-;;      sh /home/yab/PeTTaV1/run.sh runner.metta -s --help
-;;
-;;  Override programmatically:
-;;
-;;      !(import! &self moses)
-;;      !(set-param maxGen 50)
-;;      !(moses)
+;;      sh /home/yab/PeTTaV1/run.sh moses.metta -s --help
+;;      sh /home/yab/PeTTaV1/run.sh moses.metta -s
+;;          # no --problem given: prints --help and exits
 ;;
 ;;  The import order below was taken from
 ;;  moses/tests/demo-problems-benchmark-test.metta (the canonical
@@ -123,3 +112,9 @@
 ;; This is a no-op when no flags are passed; with flags, it overwrites the
 ;; matching defaults in &params before (moses) is called.
 !(apply-cli-overrides)
+
+;; ---- Run ----
+;; If no --problem was set on the CLI (and no in-script set-param),
+;; (moses) routes to no-problem-help-and-exit, which prints --help
+;; and halts. Otherwise the full pipeline runs.
+!(moses)
