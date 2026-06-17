@@ -46,9 +46,9 @@
             ($h (car-atom $reps))
             ($t (cdr-atom $reps)))
          (let* (
-                 ($demeId (List.head $demeIds)) 
+                 ($demeId (List.head $demeIds))
                  ($deme (mkDeme $h (mkSInstSet ()) $demeId))
-                 ($new-acc (union-atom $acc ($deme))))     
+                 ($new-acc (union-atom $acc ($deme))))
                (loopCreateDeme (List.tail $demeIds) $t $new-acc)))))
 ;; previous version of loopCreateDeme using if-decons-expr-custom
 ;       (if-decons-expr-custom $reps $h $t
