@@ -10,5 +10,5 @@
 
 !(apply-cli-overrides)
 
-!(println! (capCoef-after-cli: (param capCoef)))
-!(println! (complexityRatio-after-cli: (param complexityRatio)))
+!(assertEqual (param capCoef) 50)
+!(assertEqual (param complexityRatio) 3.5)
