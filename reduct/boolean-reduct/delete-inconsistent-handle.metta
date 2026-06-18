@@ -36,17 +36,17 @@
 ;; A function to check if a given set of literals is consistent or not.
 ;; Example: input: (A B C), output: True
 ;;          input: (A B C (NOT A)), output: True
+;; (isConsistentExp (AND (NOT A) (NOT B) A))
 (= (isConsistentExp $handleSet)
     (if (== $handleSet ())
         True
         (let*
           (
-            ($pairs (collapse ((superpose $handleSet) (superpose $handleSet))))
-            ($result (collapse (areNegations (superpose $pairs)))))
-          (if (is-member True $result)
-              False
-              True
+            ($pairs (collapse ((superpose $handleSet) (superpose $handleSet)))) ;; TODO: Replace this with recursive logic.
+            ($result (map-atom $pairs $ps (areNegations $ps)))
+            ($isMember (once (is-member True $result))) ;; is-member resolves to more than one output when checking membership, we need to pass it to once to limit it to only single output. This prevents unnecessary branch creation for our logic.
           )
+          (not $isMember)
         )
     )
 )

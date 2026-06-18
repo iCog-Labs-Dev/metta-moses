@@ -8,44 +8,44 @@
 !(assertEqual 
   (getLevelById 
     (mkTree (mkNode AND) 
-      (Cons (mkTree (mkNode A) Nil) 
-        (Cons (mkTree (mkNode OR) 
-                (Cons (mkTree (mkNode B) Nil) 
-                  (Cons (mkTree (mkNode C) Nil) 
-                    Nil))) 
-          (Cons (mkNullVex 
-                  (Cons (mkTree (mkNode S) Nil) Nil)) Nil)))) 3) 
-  (mkNullVex (Cons (mkTree (mkNode S) Nil) Nil)))
+      (cons (mkTree (mkNode A) ()) 
+        (cons (mkTree (mkNode OR) 
+                (cons (mkTree (mkNode B) ()) 
+                  (cons (mkTree (mkNode C) ()) 
+                    ()))) 
+          (cons (mkNullVex 
+                  (cons (mkTree (mkNode S) ()) ())) ())))) 3) 
+  (mkNullVex (cons (mkTree (mkNode S) ()) ())))
 
 !(assertEqual 
   (getLevelById 
     (mkTree (mkNode OR) 
-      (Cons (mkTree (mkNode A) Nil) 
-      (Cons (mkNullVex 
-            (Cons (mkTree (mkNode S) Nil) Nil)) Nil))) 2) 
-  (mkNullVex (Cons (mkTree (mkNode S) Nil) Nil)))
+      (cons (mkTree (mkNode A) ()) 
+      (cons (mkNullVex 
+            (cons (mkTree (mkNode S) ()) ())) ()))) 2) 
+  (mkNullVex (cons (mkTree (mkNode S) ()) ())))
 
 ;;; Testcase getNodeById 
 !(assertEqual 
   (getNodeById 
     (mkTree (mkNode AND) 
-      (Cons (mkTree (mkNode A) Nil) 
-      (Cons (mkTree (mkNode OR) 
-              (Cons (mkTree (mkNode B) Nil) 
-              (Cons (mkTree (mkNode C) Nil) 
-              (Cons (mkNullVex (Cons (mkTree (mkNode S) Nil) Nil)) Nil)))) 
-      (Cons (mkTree (mkNode D) Nil) Nil)))) 
+      (cons (mkTree (mkNode A) ()) 
+      (cons (mkTree (mkNode OR) 
+              (cons (mkTree (mkNode B) ()) 
+              (cons (mkTree (mkNode C) ()) 
+              (cons (mkNullVex (cons (mkTree (mkNode S) ()) ())) ())))) 
+      (cons (mkTree (mkNode D) ()) ())))) 
     (mkNodeId (2 3))) 
-  (mkNullVex (Cons (mkTree (mkNode S) Nil) Nil)))
+  (mkNullVex (cons (mkTree (mkNode S) ()) ())))
 
 !(assertEqual 
   (getNodeById 
     (mkTree (mkNode AND) 
-      (Cons (mkTree (mkNode A) Nil) 
-      (Cons (mkTree (mkNode OR) 
-              (Cons (mkTree (mkNode B) Nil) 
-              (Cons (mkTree (mkNode C) Nil) 
-              (Cons (mkNullVex (Cons (mkTree (mkNode S) Nil) Nil)) Nil)))) 
-      (Cons (mkTree (mkNode D) Nil) Nil)))) 
+      (cons (mkTree (mkNode A) ()) 
+      (cons (mkTree (mkNode OR) 
+              (cons (mkTree (mkNode B) ()) 
+              (cons (mkTree (mkNode C) ()) 
+              (cons (mkNullVex (cons (mkTree (mkNode S) ()) ())) ())))) 
+      (cons (mkTree (mkNode D) ()) ())))) 
     (mkNodeId (2 3 1))) 
-  (mkTree (mkNode S) Nil))
+  (mkTree (mkNode S) ()))

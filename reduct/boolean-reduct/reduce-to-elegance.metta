@@ -74,7 +74,7 @@
                              (until transformationsNotApplied applyAndTransformations ($commandSet $dominantSet ($updatedParent $updatedCurrent True)))))
 
                       ;; ($_ (println! (FinalResult ==> UpdatedParent': $updatedParent' UpdatedCurrent: $updatedCurrent' AppliedRTE: (any ($appliedRedundantOr1CC $appliedOneSubsume $bool)))))
-                      ($_ (cut))
+                      ;; ($_ (cut))
                       ;; ($_ (println! (calling 0-Subsume Variation on Parent: $updatedParent' Current: $updatedCurrent')))
                       ($childFromParent (if (== $updatedCurrent' ()) (cdr-atom $updatedParent') $updatedCurrent'))
                       ($zeroCurrent (let $h (if (!= $childFromParent ()) (car-atom $childFromParent) ()) (if (== (get-metatype $h) Expression) $h $childFromParent)))
@@ -172,7 +172,7 @@
                 (if (not (== $children ()))
                     (let*
                           (
-                            ; ($_ (println! (===== Inside ApplyAndTransformations Before Until function ======)))
+                            ;; ($_ (println! (===== Inside ApplyAndTransformations Before Until function ======)))
                             (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $lastRemainingChild)) (until hasNoNextChild applyReduceToEleganceToOr ($commandSet $handleSet ($parent $current False) ($firstChild $remainingChildren))))
 
                             ; ($_ (println! ("Applyed reduceToElegance ==> FinalUpdatedParent:" $finalUpdatedParent "FinalUpdatedCurrent: " $finalUpdatedCurrent "AppliedRTE: " $bool)))
@@ -301,9 +301,9 @@
    (if (not (== $currentChild ()))
        (let*
           (
-             ; ($_ (println! (===Inside ApplyReduceToEleganceToOr===)))
-             ; ($_ (println! (Parameters ==> CommandSet: $commandSet DominantSet: $dominantSet Parent: $parent PrevCurrent: $prevCurrent Bool: $bool CurrentChild: $currentChild RemainingChildren: $remainingChildren)))
-              ; ($_ (println! ""))
+             ;; ($_ (println! (===Inside ApplyReduceToEleganceToOr===)))
+             ;; ($_ (println! (Parameters ==> CommandSet: $commandSet DominantSet: $dominantSet Parent: $parent PrevCurrent: $prevCurrent Bool: $bool CurrentChild: $currentChild RemainingChildren: $remainingChildren)))
+             ;; ($_ (println! ""))
 
               ($localCommandSet (localCommandSet $currentChild (getChildrenExp $prevCurrent) (getGuardSet $prevCurrent) $commandSet)) ;; Compute local command set
               ($nextChild (if (not (== $remainingChildren ())) (car-atom $remainingChildren) ()))
@@ -312,7 +312,7 @@
               (($updatedCurrent $updatedChild $appliedRTE) (reduceToElegance $prevCurrent $currentChild $dominantSet $localCommandSet))
               (($promoteCurrent $promoteChild $appliedPromote) (promoteCommonConstraints $updatedCurrent $updatedChild))
 
-              ; ($_ (println! (Applied Promote ==> Current: $promoteCurrent Child: $promoteChild Applied: $appliedPromote)))
+              ;; ($_ (println! (Applied Promote ==> Current: $promoteCurrent Child: $promoteChild Applied: $appliedPromote)))
 
               ($grandChildren (getChildrenExp $promoteCurrent))
               ($firstGChild (if (not (== $grandChildren ())) (car-atom $grandChildren) ()))
@@ -375,8 +375,8 @@
 
               ($siblings (if (not (== $parentChildren ()))  (removeElement ($child) $parentChildren) ()))
               ($filteredGuardSet (if (not (== $parentGuardSet ())) (removeElement ($child) $parentGuardSet) ()))
-              ($filteredSiblings (if (not (== $siblings ())) (collapse (filterTerminalAndNode (superpose $siblings))) ()))
-              ($siblingsGuardSet (if (not (== $filteredSiblings ())) (collapse (getGuardSetND (superpose $filteredSiblings))) ()))
+              ($filteredSiblings (if (not (== $siblings ())) (filter-atom $siblings filterTerminalAndNode) ()))
+              ($siblingsGuardSet (if (not (== $filteredSiblings ())) (map-atom $filteredSiblings $fSib (getGuardSetND $fSib)) ()))
               ($totalGuardSet (concatTuple $filteredGuardSet $siblingsGuardSet))
               ; ($localCommandSet (collapse (unique (union (superpose $totalGuardSet) (superpose $commandSet)))))
               ($localCommandSet (unique-atom (union-atom $totalGuardSet $commandSet)))
@@ -405,9 +405,9 @@
 (= (filterTerminalAndNode $node)
    (case $node
      (
-        ((AND (NOT $x)) $node)
-        ((AND $x) (if (== (get-metatype $x) Symbol) $node (empty)))
-        ($else (empty))
+        ((AND (NOT $x)) True)
+        ((AND $x) (if (== (get-metatype $x) Symbol) True False))
+        ($else False)
      )
    )
 )
@@ -477,7 +477,7 @@
       ;; TODO: Add a simple function to remove one child and nodes.
       (($parent $uwnt $uwnt2) (until reduceNotApplied applyReduce ($expr $expr True)))
       (($newParent $__ $___) (applyReduce ($parent $parent True))) ;; Try one more time incase it is still reduceable
-      ($_ (cut))
+      ;; ($_ (cut)) ;; Tried, no measurable win
      )
      (if (== $newParent $parent)
          (removeAndNodesFromGuards $parent)

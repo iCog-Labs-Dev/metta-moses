@@ -1,9 +1,11 @@
+;; WARN: This code might be generating knobs out of order. Check if the knob map returned from the representation building preserves the order of knob creation.
 (= (createInitialInstance $dscMp)
    (let* (
-     ($knobs (MultiMap.values $dscMp))
-     ($defaults (List.map getKnobDefault $knobs))
-   )
-   $defaults))
+          ($knobs (Map.values $dscMp))
+          ($defaults (List.map getKnobDefault $knobs))
+          ($finalDefaults (List.map second $defaults))
+         )
+         $finalDefaults))
 
 ;; Recursively optimizes each deme in a list using the provided optimizer function.
 ;; Params:
@@ -15,16 +17,16 @@
 ; (: optimizeDemes (-> (List Deme) $context Instance $optimize (Instance Deme $state)))
 ;; Game strategy version - unpacks tuple with target score
 ;; Strategy version - unpacks game parameters and calls hillClimbing with mkParams
-(= (optimizeDemes $deme ($nGames $opponentPolicy $complexityRatio $targetCScore) $inst $optimize)
-   ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $opponentPolicy $complexityRatio))))
+(= (optimizeDemes $deme ($nGames $complexityRatio $targetCScore) $inst $optimize)
+   ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $complexityRatio))))
 ;; Boolean version - passes context as-is
 (= (optimizeDemes $deme $context $inst $optimize)
    ($optimize $deme $context $inst))
 
 ;; Extracts default specification from a knob
 ; (: getKnobDefault (-> $knob Number))
-(= (getKnobDefault (mkLSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
-(= (getKnobDefault (mkSSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
+;; (= (getKnobDefault (mkLSK (mkDiscKnob $multip $curr (mkDiscSpec $def) $dis))) $def)
+;; (= (getKnobDefault (mkSSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
 
 ;; Runs one deme-creation and optimization step, then merges the optimized deme into the metapopulation.
 ;; Params:
@@ -66,14 +68,14 @@
    ))
 
 ;; Overloaded version for game strategy domain - 8 parameters
-(= (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $targetCScore $optimize)
+(= (expandDeme $metaPop $nExpansion $nDeme $nGames $complexityRatio $targetCScore $optimize)
    (let*
       (
          ($exemplar (trace! "Selecting Exemplar" (selectExemplar $metaPop)))
          ($tree (trace! "getting exemplar tree" (getExemplarTree $exemplar)))
          ($demeIds (trace! "creating deme IDs" (createDemeIds $nExpansion $nDeme)))
          ($demes (trace! "Creating Deme" (createDeme $nDeme $demeIds $tree)))
-         ($gameContext ($nGames $opponentPolicy $complexityRatio $targetCScore))
+         ($gameContext ($nGames $complexityRatio $targetCScore))
       )
       (map-atom $demes $deme (expandDemeHelper $deme $gameContext $optimize))))
 
@@ -84,13 +86,14 @@
 ;;   $context: Scoring context (ITable for Boolean, tuple for Strategy)
 ;;   $optimize: Optimizer function
 ;; Returns: Optimized deme with scored instances
-(= (expandDemeHelper (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId) $context $optimize)
+(= (expandDemeHelper (mkDeme (mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree) $sInstList $demeId) $context $optimize)
 (let*
 (
     ($lengthOfDscKbMp (Map.length $dscKbMp))
     ;; ($generatedList (List.generate $lengthOfDscKbMp 0))
-    ($generatedList (createInitialInstance $dscMp))
-    ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
+    ($generatedList (createInitialInstance $dscKbMp))
+    ($_ (println! (GeneratedList: $generatedList)))
+    ($deme (mkDeme (mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree) $sInstList $demeId))
     ;; ($_ (println! (Rep: (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree))))
     ;; ($_ (println! "Optimizing Deme"))
     (($inst $optimDeme $state) (optimizeDemes $deme $context (mkInst $generatedList) $optimize))
@@ -130,20 +133,20 @@ $optimDeme
        ;; ($_ (println! (Top Exemplar before expansion: $top)))
        ($topScore (getExemplarCscore $top))
        ;; ($_ (println! (topscore: $topScore)))
-       ($resultCandi (if (<= $maxCandOutput (OS.length $updatedMetaPop)) (OS.getTopN $maxCandOutput $updatedMetaPop) $updatedMetaPop))
        ;; ($_ (println! (Top: $topScore Max: $maxScore (cScore>= $topScore $maxScore))))
-       ($_ (cut))
+       ($nothing (clearSpace &treeSpace))
+       ($_ (cut)) ;; INFO: This cut speeds things up. Don't remove it.
        ($_ (println! ""))
       )
  (if (== $topScore $maxScore)
-         $resultCandi
+         (if (<= $maxCandOutput (OS.length $updatedMetaPop))
+             (OS.getTopN $maxCandOutput $updatedMetaPop)
+             $updatedMetaPop)
          (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $context $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount)))))
 
 
 ;; Some helpers specific to final testing
-(= (mapG $f NilOS) NilOS)
-(= (mapG $f Nil) Nil)
-(= (mapG $f ($ctor $x $xs)) ($ctor ($f $x) (mapG $f $xs)))
+(= (mapG $f $xs) (map-atom $xs $f))
 
 (= (printExemplar (mkExemplar $tree $demeId $cscore $bscore)) (println! (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore)))
 (= (cleanedExemplar (mkExemplar $tree $demeId $cscore (mkBScore $bscore))) ((preOrder $tree) (List.sum $bscore)))

@@ -80,6 +80,6 @@
     (if (== $priority-list ())
         ()
         (let ($h $t) (decons-atom $priority-list)
-            (if (is-member $h $available)
+            (if (once (is-member $h $available))
                 (cons-atom $h (intersect-order $t $available))
                 (intersect-order $t $available)))))

@@ -28,8 +28,8 @@
 ; (: generateInitialSample (-> Number Number List))
 (= (generateInitialSample $instLength $nGenerate)
    (if (== $nGenerate 0)
-       Nil
-       (Cons (mkSInst (mkPair (mkInst (generateRandomInstance $instLength)) (worstCscore))) (generateInitialSample $instLength (- $nGenerate 1)))))
+       ()
+       (cons (mkSInst (mkPair (mkInst (generateRandomInstance $instLength)) (worstCscore))) (generateInitialSample $instLength (- $nGenerate 1)))))
 
 ; Recursively performs tournament comparison to pick the best instance.
 ; Randomly selects another instance and keeps the better one based on score.
@@ -55,7 +55,7 @@
 ;   $instSet — the full set of scored instances.
 ;   $tSize — tournament size (number of competitors per selection).
 ;   $nSelect — number of individuals to select.
-;   $selectedList — accumulator list for results (initially Nil).
+;   $selectedList — accumulator list for results (initially ()).
 ; Returns: List of selected mkSInst objects.
 ; (: tournamentSelection (-> (InstanceSet $score) Number Number List List))
 (= (tournamentSelection (mkSInstSet $instSet) $tSize $nSelect $selectedList)
@@ -67,7 +67,7 @@
     ($updatedRes (tournamentCompare (mkSInstSet $instSet) $res (- $tSize 1)))
 
   )
-  (tournamentSelection (mkSInstSet $instSet) $tSize (- $nSelect 1) (Cons $updatedRes $selectedList)))))
+  (tournamentSelection (mkSInstSet $instSet) $tSize (- $nSelect 1) (cons $updatedRes $selectedList)))))
 
 ; Extracts the value of the nth knob (field) from each instance expression.
 ; Builds a list of the values at the same index position across all instances.
@@ -238,12 +238,12 @@
 ;   $complexityRatio – complexity ratio
 ; Returns: The final optimized and sorted instance set after completing all generations.
 ; (: univariateMainLoop (-> (InstanceSet $score) Number Number Number Number Cscore Cscore Representation (ITable $a) Number (InstanceSet $score)))
-(= (univariateMainLoop $sortedSInstSet $genCount $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCscore $rep $itable $complexityRatio)
+(= (univariateMainLoop $sortedSInstSet $genCount $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCscore $rep $id $itable $complexityRatio)
 (if (and (< $genCount $maxGensTotal) (apply < $bestCscore $bestPossibleCscore))
 (let*
   (
     ;; ($_ (println! (~~~~Generation~~~~ $genCount)))
-    ($selectedInsts (tournamentSelection $sortedSInstSet 2 $nSelect Nil))
+    ($selectedInsts (tournamentSelection $sortedSInstSet 2 $nSelect ()))
     ;; ($_ (println! (Selected Best Instances:  $selectedInsts)))
     ($instsExp (sInstsToExp $selectedInsts ()))
     ;; ($_ (println! (Selected Instances as Expressions:  $instsExp)))
@@ -260,7 +260,7 @@
     ($generatedInsts (sampleInsts $probabilityModel $nGenerate $tot ()))
     ;; ($_ (println! (Generated New Instances:  $generatedInsts)))
     ($generatedSInstSet (exprToSInstSet $generatedInsts))
-    ($scoredGeneratedInstSet (transform $generatedSInstSet $rep $itable $complexityRatio))
+    ($scoredGeneratedInstSet (transform $generatedSInstSet $rep $id $itable $complexityRatio))
     ;; ($_ (println! (Scored Generated New Instances:  $scoredGeneratedInstSet)))
     ($finalInstSet (replaceTheWorst $sortedSInstSet $scoredGeneratedInstSet))
     ;; ($_ (println! (Replaced Worst Instances:  $finalInstSet)))
@@ -268,7 +268,7 @@
     ;; ($_ (println! (Sorted Final Instance Set:  $sortedFinalInstSet)))
     ($bestCurrentScore (getSInstScore (List.getByIdx $sortedFinalInstSet 0)))
   )
-  (univariateMainLoop (mkSInstSet $sortedFinalInstSet) (+ $genCount 1) $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCurrentScore $rep $itable $complexityRatio)
+  (univariateMainLoop (mkSInstSet $sortedFinalInstSet) (+ $genCount 1) $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCurrentScore $rep $id $itable $complexityRatio)
 )
 $sortedSInstSet
 ))
@@ -288,9 +288,9 @@ $sortedSInstSet
 (= (univariateOptimize (mkDeme $rep $instSet $id) $itable $complexityRatio $nSelect $nGenerate $maxGensTotal $bestPossibleCscore $bestCscore)
 (let*
    (
-    ($sInstSet (transform $instSet $rep $itable $complexityRatio))
+    ($sInstSet (transform $instSet $rep $id $itable $complexityRatio))
     ($sortedSInstSet (sortDeme $sInstSet))
-    ($finalInstSet (univariateMainLoop $sortedSInstSet 0 $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCscore $rep $itable $complexityRatio))
+    ($finalInstSet (univariateMainLoop $sortedSInstSet 0 $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCscore $rep $id $itable $complexityRatio))
    )
    (mkDeme $rep $finalInstSet $id)))
 
@@ -308,13 +308,13 @@ $sortedSInstSet
 ;; Returns:
 ;;   A deme evolved through univariate optimization with the best-found instances.
 ; (: univariate (-> Deme (ITable $a) Number Number Number Number Cscore Deme))
-(= (univariate (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) (mkSInstSet $instSet) $id) $itable $complexityRatio $popSizeRatio $selectionRatio $replacementRatio $bestPossibleCscore)
+(= (univariate (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) (mkSInstSet $instSet) $id) $itable $complexityRatio $popSizeRatio $selectionRatio $replacementRatio $bestPossibleCscore)
 (let* (
         ($maxGensTotal (informationTheoreticBits $disc))
         ($popSize (ceilMath (* $popSizeRatio (pow-math $maxGensTotal 1.05))))
         ($nSelect (floor-math (* $selectionRatio $popSize)))
         ($nGenerate (floor-math (* $replacementRatio $popSize)))
-        ($randPopDeme (mkDeme (mkRep (mkKbMap (mkDscKbMp $idxMp) (mkDscMp $disc)) $tree) (mkSInstSet (generateInitialSample (Map.length $idxMp) $popSize)) $id))  
+        ($randPopDeme (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) (mkSInstSet (generateInitialSample (Map.length $disc) $popSize)) $id))
       ) 
       (univariateOptimize $randPopDeme $itable $complexityRatio $nSelect $nGenerate $maxGensTotal $bestPossibleCscore (worstCscore))))
 

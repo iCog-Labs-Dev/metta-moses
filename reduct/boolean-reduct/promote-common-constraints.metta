@@ -22,7 +22,7 @@
               ;; (() (println! (Parameters ==> Parent: $parent Current: $current)))
 
               (($literals $children) (getLiteralChildren $current))
-              ($childrenLiteral (if (not (== $children ())) (collapse (getLiterals (superpose $children))) ()))
+              ($childrenLiteral (if (not (== $children ())) (map-atom $children $ch (getLiterals $ch)) ()))
               ($common (if (not (== $childrenLiteral ())) (findCommon $childrenLiteral) ()))
             )
             (if (== $common ())
@@ -51,7 +51,7 @@
 (= (atomIntersection $lit $common)
     (if (== $lit ())
         $common
-        (collapse (intersection (superpose $lit) (superpose $common)))
+        (intersection-atom $lit $common)
     )
 )
 
@@ -61,7 +61,7 @@
 (= (removeCommonLiterals $common $tuple)
    ( if (== $tuple ())
         ()
-        (collapse (removeElement $common (superpose $tuple)))
+        (map-atom $tuple $tp (removeElement $common $tp))
    )
 )
 

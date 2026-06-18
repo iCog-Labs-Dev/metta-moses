@@ -25,11 +25,11 @@
 ;;      $rowNum                     -- total data rows count
 ;;      $oc                         -- output column
 ;;      $dataRows                   -- data rows
-;;      (Cons $label $labels)       -- list of lables (Cons A (Cons B ..))
+;;      (cons $label $labels)       -- list of lables (cons A (cons B ..))
 ;;      $counter                    -- feature index counter
 
-(= (selectorIterator $th $rowNum $oc (Cons $label $labels) $dataRows $counter $acc)
-    (if (= (Cons $label $labels) (Cons $label Nil))                                     ;; this means we are at the output label
+(= (selectorIterator $th $rowNum $oc (cons $label $labels) $dataRows $counter $acc)
+    (if (= (cons $label $labels) (cons $label ()))                                     ;; this means we are at the output label
         $acc                                                                        ;; result -- pair of score and column index for consistent formatting across different feature selection algorithms
         (chain (Table.getColumn 0 $dataRows) $if
         (chain (Table.pop 0 $dataRows) $rem-table                            ;; remove the first column -- better than carrying around the whole table

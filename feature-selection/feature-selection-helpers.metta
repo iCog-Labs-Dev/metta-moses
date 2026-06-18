@@ -1,9 +1,9 @@
 (= (-inf) (py-call (float -inf)))
-(= (round $n $p) (py-call (builtins.round $n $p)))
+(= (roundN $n $p) (py-call (builtins.round $n $p)))
 
 ; (: List.at (-> Number (List $a) $a))
-(= (List.at $i Nil) (Error Nil "Empty List"))
-(= (List.at $i (Cons $x $xs))
+(= (List.at $i ()) (Error () "Empty List"))
+(= (List.at $i (cons $x $xs))
     (if (== $i 0)
         $x
         (List.at (- $i 1) $xs)))
@@ -11,34 +11,32 @@
 ;; return tuple of unique values and their count
 ;; this one is assuming the list of values have been returned contains the row information. 
 ; (: List.uniqueValuesCount (-> (List $a) Expression))
-(= (List.uniqueValuesCount $list $acc)
-    (unify $list Nil $acc
-            (if (= $list (Cons $x $xs))
-            (if (patternExists ($x $c) $acc)
-                (chain (updateCount $x $acc) $count-updated
-                    (List.uniqueValuesCount $xs $count-updated))
-                (chain (union-atom $acc (($x 1))) $new-tuple-added
-                    (List.uniqueValuesCount $xs $new-tuple-added))) (Error $list UnrecognizedFormat))))
+(= (List.uniqueValuesCount () $acc) $acc)
+(= (List.uniqueValuesCount (cons $x $xs) $acc)
+    (if (patternExists ($x $c) $acc)
+        (chain (updateCount $x $acc) $count-updated
+            (List.uniqueValuesCount $xs $count-updated))
+        (chain (union-atom $acc (($x 1))) $new-tuple-added
+            (List.uniqueValuesCount $xs $new-tuple-added))))
 
 ; (: Table.getColumn (-> Number (List (List $a)) (List $a)))
-(= (Table.getColumn $i $rows)
-    (unify $rows Nil Nil
-       (if (= $rows (Cons $row $rest))
-            (Cons (List.at $i $row) (Table.getColumn $i $rest)) ())))
+(= (Table.getColumn $i ()) ())
+(= (Table.getColumn $i (cons $row $rest))
+    (cons (List.at $i $row) (Table.getColumn $i $rest)))
 ; ;; Table.pop        -- gets and removes a column from the current ttable structure
 ; ;;                  -- returns the remaining table and the culumn asked for
-(= (Table.pop $i $rows)
-    (unify $rows Nil Nil
-        (if (= $rows (Cons (Cons $d $ds) $rest))  ;; $d and $ds for data and rest of data
-                (if (== $i 0)
-                    (Cons $ds (Table.pop $i $rest))
-                    (Cons (Cons $d (List.pop (- $i 1) $ds)) (Table.pop $i $rest))) ())))
-; ;; removes the first column from table
-; (: Table.pop (-> (List (List $a)) (List (List $a))))
+(= (Table.pop $i ()) ())
+(= (Table.pop $i (cons $row $rest))
+    (let (cons $d $ds) $row
+        (if (== $i 0)
+            (cons $ds (Table.pop $i $rest))
+            (cons (cons $d (List.pop (- $i 1) $ds)) (Table.pop $i $rest)))))
+; removes the first column from table
+; ; (: Table.pop (-> (List (List $a)) (List (List $a))))
 ; (= (Table.pop $rows)
-;     (unify $rows Nil Nil
-;         (unify $rows (Cons (Cons $d $ds) $rest)
-;             (Cons $ds (Table.pop $rest)))))
+;     (unify $rows () ()
+;         (unify $rows (cons (cons $d $ds) $rest)
+;             (cons $ds (Table.pop $rest)) ())))
 
 ;; returns the last column of the table
 ; (: Table.getOutputColumn (-> ITable (List $a)))
@@ -52,11 +50,10 @@
 ;; Transpose;;
 ;;;;;;;;;;;;;;
 ; (: Table._transposeHelper (-> (List Number) (List (List $a)) (List (List $a))))
-(= (Table._transposeHelper $indices $table)
-    (unify $indices Nil Nil
-        (if (= $indices (Cons $i $rest))
-            (Cons (Table.getColumn $i $table)
-                    (Table._transposeHelper $rest $table)) ())))
+(= (Table._transposeHelper () $table) ())
+(= (Table._transposeHelper (cons $i $rest) $table)
+    (cons (Table.getColumn $i $table)
+          (Table._transposeHelper $rest $table)))
 
 ; (: Table.transpose (-> (List (List $a)) (List (List $a))))
 (= (Table.transpose $table)
@@ -70,20 +67,20 @@
 ;;(: List.head (-> (List $a) $a))
 ;;(= (List.head $list)
 ;;    (unify $list 
-;;        Nil (Error "Empty list has no head")
-;;        (unify $list (Cons $h $t) $h ())))
+;;        () (Error "Empty list has no head")
+;;        (unify $list (cons $h $t) $h ())))
 
 ; (: List.range (-> Number Number (List Number))) ;; inclusive start, exclusive end
 (= (List.range $start $end)
     (if (>= $start $end)
-        Nil
-        (chain (List.range (+ 1 $start) $end) $res (Cons $start $res))))
+        ()
+        (chain (List.range (+ 1 $start) $end) $res (cons $start $res))))
 
 ;; check for a pattern in tuple of tuples                
 ; (: patternExists (-> Expression Expression Bool))
 (= (patternExists $pat $collection)
-    (let $a (collapse (chain (superpose $collection) $s
-        (if (= $s $pat) True False))) (foldl or $a False)))        
+    (is-member True (collapse (chain (superpose $collection) $s
+        (if (= $s $pat) True False)))))
         
 ;; replace value and count pair in collection with one higher count pair        
 ; (: updateCount (-> Expression Expression Expression))
@@ -113,7 +110,7 @@
     (if (or (<= $count 0) (== $pairTuple ()))
         ; (union-atom $acc $pairTuple)                                                          ;; started as a partial sort
         $acc                                                                                    ;; but later turned out that we do not need the unsorted part -just sort the top N and return that
-        (chain (foldl $op $pairTuple ((-inf) (1 0))) $max-pair    ;; find max pair from the tuple of pairs    
+        (chain (foldl-l $op ((-inf) (1 0)) $pairTuple) $max-pair    ;; find max pair from the tuple of pairs    
         (chain (union-atom $acc ($max-pair)) $new-acc                                          ;; use of union assumes the pairs are non repeating -- same score is possible but always different label (due to ordering of tuple elem)
         (chain (collapse 
                 (chain (superpose $pairTuple) $el 
@@ -130,18 +127,16 @@
 (= (insertPair $op $lexOp ($mi $new-i) $list)
     (if (== $list ())
         (($mi $new-i))
-        (let ($h $t) (decons-atom $list)
-            (if (= ($mi-old $i) $h)
-                    (if ($op $mi $mi-old)
+        (let (($mi-old $i) $t) (decons-atom $list)
+            (if ($op $mi $mi-old)
+                (cons-atom ($mi $new-i) $list)
+                (if (== $mi $mi-old)
+                    (if ($lexOp $new-i $i)                         ;; tie breaker -- index value -- lower index values come first -- keeping the normal order
                         (cons-atom ($mi $new-i) $list)
-                        (if (== $mi $mi-old)
-                            (if ($lexOp $new-i $i)                         ;; tie breaker -- index value -- lower index values come first -- keeping the normal order
-                                (cons-atom ($mi $new-i) $list)
-                                (chain (insertPair $op $lexOp ($mi $new-i) $t) $res (cons-atom $h $res)))
-                            (chain (insertPair $op $lexOp ($mi $new-i) $t) $res (cons-atom $h $res))
-                            )
-                        )
-                        ()))))
+                        (let $res (insertPair $op $lexOp ($mi $new-i) $t)
+                            (cons-atom ($mi-old $i) $res)))
+                    (let $res (insertPair $op $lexOp ($mi $new-i) $t)
+                        (cons-atom ($mi-old $i) $res)))))))
 
 ;; Strict feature set comparing function using lexicographic ordering that has randomness in it.
 ;; $seed: Random number used as a seed comparator generated by the caller function
@@ -201,8 +196,8 @@
 
 
 ;; mutualInformation        -- mutual information based on =∑p(x1,x2..:y)/ (p(x1, x2 ..)*p(y) )
-;;          $if             --  input feature list as (Cons ..)
-;;          $of             --  out feature list as (Cons ..)
+;;          $if             --  input feature list as (cons ..)
+;;          $of             --  out feature list as (cons ..)
 ; (: mutualInformation (-> (List $a) (List $a) Number))
 (= (mutualInformation $if $of)
     (chain (List.zip $if $of) $io-zip
@@ -214,11 +209,12 @@
     (chain (collapse (chain (superpose $io-p) $io-prob-pair    ;; ((inout output)  prob) piar -- single -- superposed
         (if (= $io-prob-pair ($pair $prob))
                 (let* (($temp (/ $prob (* (/ (getCount $ic (first-from-pair $pair)) $rowNum) (/ (getCount $oc (second-from-pair $pair)) $rowNum))))
-                        ($log (log-math 2 $temp)))
+                        ($log (logMath 2 $temp)))
                         
                         (* $prob $log))
                 ()))) $probTuple
-        (chain (foldl + $probTuple 0) $final-result (round $final-result 3))))))))))
+        (chain (foldl-atom $probTuple 0 $acc $x (+ $acc $x)) $final-result (roundN $final-result 3))))))))))
+
 
 (= (calculateMutualInformation (mkITable $rows $labels) $featureIndices)
     (chain (- (List.length $labels) 1) $targetIndex
@@ -235,11 +231,11 @@
 ; (: zipColumn (-> Expression (List (List $a)) (List $a)))        
 (= (zipColumn $indices $datarows)
     (if (== $indices ())
-        Nil
-        (unify $datarows Nil Nil
-            (if (= $datarows (Cons $row $rows))
+        ()
+        (unify $datarows () ()
+            (if (= $datarows (cons $row $rows))
                 (chain (map-atom $indices $i (List.at $i $row)) $dataTuple
-                    (Cons $dataTuple (zipColumn $indices $rows)))
+                    (cons $dataTuple (zipColumn $indices $rows)))
                 ()))))
 
 ;; return marginal probabilities as tuple (p1 p2)
@@ -262,13 +258,16 @@
 
 ;; generate from $l to $u (excluding) in $step steps         
 ; (: range (-> Number Number Number Expression))
-(= (range $l $step $u)
-    (if (== $step 0)
-        (Error $step "Step value of 0 not allowed!!")
-        (if (>= $l $u)
-            ()
-            (chain (range (+ $l $step) $step $u) $res
-                (cons-atom $l $res)))))
+
+(= (range $start $end) (range $start 1 $end))
+
+(= (range $start $step $end)
+   (if (== $step 0)
+       (Error 0 "Step value of 0 not allowed!!")
+       (if (or (and (> $step 0) (>= $start $end))
+               (and (< $step 0) (<= $start $end)))
+           ()
+           (cons $start (range (+ $start $step) $step $end)))))
 
 ;; check for equality of pairs -- to make up for ordering issues   
 ; (: isPairEqual (-> (Number $a) (Number $b) Bool))
@@ -299,7 +298,7 @@
             0                                                                  ;; log_b(1) = 0 for any base
             (if (== $inputValue $baseValue)                                     ;; log_b(b) = 1 for any base
                 1                                                               
-                (round (/ (lnMercator $inputValue 0) (lnMercator $baseValue 0)) 3)))))    ;; log_b(x) = ln(x) / ln(b)
+                (/ (lnMercator $inputValue 0) (lnMercator $baseValue 0))))))    ;; log_b(x) = ln(x) / ln(b)
 ; (: lnMercator (-> Number Number Number))
 (= (lnMercator $inputNumber $reductionCount)
     (if (>= $inputNumber 2)
@@ -329,7 +328,7 @@
         (let ($h $t) (decons-atom $countTuple) 
                 (if (= $h ($item $count))
                         (chain (/ $count $totalCount) $p-i                                          ;; need a condition to skip calculation of log of 0 values
-                            (chain (if (== $p-i 0) $p-i (round (log-math 2 $p-i) 2)) $log-val    ;; might need to find new ways of calculating rounded values without python binding
+                            (chain (if (== $p-i 0) $p-i (roundN (logMath 2 $p-i) 2)) $log-val    ;; uses logMath (pure MeTTa) and roundN (2-arity Python round)
                                 (chain (* $p-i $log-val) $product
                                     (entropy $t $totalCount (- $sum $product))))) 
                         ()))))
@@ -359,11 +358,11 @@
 
 ; (: inputLables (-> (List Symbol) (List Symbol)))    
 (= (inputLables $labels)
-    (unify $labels Nil (Error $labels NoLabelsSpecified)
-        (if (= $labels (Cons $a $as))
-                (if (== $as Nil)
-                    Nil
-                    (let $r (inputLables $as) (Cons $a $r))) (Error $labels UnrecognizedFormat))))
+    (unify $labels () (Error $labels NoLabelsSpecified)
+        (if (= $labels (cons $a $as))
+                (if (== $as ())
+                    ()
+                    (let $r (inputLables $as) (cons $a $r))) (Error $labels UnrecognizedFormat))))
 
 ; (: fsToNames (-> (List Symbol) Expression Expression))
 (= (fsToNames $labels $ft-indices)
@@ -421,7 +420,7 @@
               ($new  (collapse 
                        (let $subset (superpose $ps)
                          (let $el (superpose $set)
-                           (if (not (is-member $el $subset))
+                           (if (not (once (is-member $el $subset)))
                                (cons-atom $el $subset)
                                (empty)))
                         )

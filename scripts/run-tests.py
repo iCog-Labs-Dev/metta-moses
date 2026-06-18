@@ -76,7 +76,7 @@ def run_test_file(test_file):
             raise FileNotFoundError(f"{run_sh_path} not found")
 
         # Command to execute the test file
-        command = [run_sh_path, str(test_file), "-s"]
+        command = ["sh", run_sh_path, str(test_file), "-s"]
 
         # Run the command
         result = subprocess.run(
@@ -170,4 +170,3 @@ if fails > 0:
 if fails > 0:
     print(RED + "Tests failed. Process Exiting with exit code 1" + RESET)
     sys.exit(1)
-

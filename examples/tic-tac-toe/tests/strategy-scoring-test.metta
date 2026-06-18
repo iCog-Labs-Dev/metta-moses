@@ -10,19 +10,19 @@
 !(assertEqual (score-result Draw X) 0.0)
 
 !(assertEqual (evaluate-strategy 5 X random-player minimax-player)
-              (Cons -1.0 (Cons -1.0 (Cons -1.0 (Cons -1.0 (Cons -1.0 Nil))))))
+              (cons -1.0 (cons -1.0 (cons -1.0 (cons -1.0 (cons -1.0 ()))))))
 
 !(assertEqual (evaluate-strategy 3 X random-player random-player)
-              (Cons -1.0 (Cons -1.0 (Cons -1.0 Nil))))
+              (cons -1.0 (cons -1.0 (cons -1.0 ()))))
 
 !(assertEqual (evaluate-strategy 3 X minimax-player random-player)
-              (Cons 1.0 (Cons 1.0 (Cons 1.0 Nil))))
+              (cons 1.0 (cons 1.0 (cons 1.0 ()))))
 
 !(assertEqual (score-strategy 3 minimax-player random-player) 
-              (mkBScore (Cons 1.0 (Cons 1.0 (Cons 1.0 Nil)))))
+              (mkBScore (cons 1.0 (cons 1.0 (cons 1.0 ())))))
 
 !(assertEqual (score-strategy 3 random-player minimax-player) 
-              (mkBScore (Cons -1.0 (Cons -1.0 (Cons -1.0 Nil)))))
+              (mkBScore (cons -1.0 (cons -1.0 (cons -1.0 ())))))
 
 !(assertEqual (score-strategy 3 minimax-player minimax-player) 
-              (mkBScore (Cons 0.0 (Cons 0.0 (Cons 0.0 Nil)))))
+              (mkBScore (cons 0.0 (cons 0.0 (cons 0.0 ())))))

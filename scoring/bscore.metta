@@ -22,8 +22,8 @@
 ;; For game strategies: 1.0 = win, -1.0 = loss, 0.0 = draw
 ;; Returns the total number of wins
 ;(: countWins (-> BehavioralScore Number))
-(= (countWins (mkBScore Nil)) 0)
-(= (countWins (mkBScore (Cons $head $tail)))
+(= (countWins (mkBScore ())) 0)
+(= (countWins (mkBScore (cons $head $tail)))
    (if (== $head 1.0)
        (+ 1 (countWins (mkBScore $tail)))
        (countWins (mkBScore $tail))))
@@ -60,7 +60,7 @@
 ;; Returns: Beahvioral score for the given tree.
 ; (: scoreTree (-> (ITable $a) (Tree $a) BehavioralScore))
 (= (scoreTree (mkITable $table $labels) $tree $cacheSpace)
-   (if (== $tree (mkTree (mkNode AND) Nil))
+   (if (== $tree (mkTree (mkNode AND) ()))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
        (chain (collapse (match $cacheSpace 
                ($tree $bscore) 
@@ -69,9 +69,10 @@
            (if (== $val ())
                (let* (
                    ($expTree (preOrder $tree))
-                   ($scoreList (eval (List.map (compose evaluate ((curry replaceVarsWithTruth) ($labels $expTree))) $table)))
+                   ($scoreList (map-atom $table $ts (scoreTreeHelper $labels $expTree $ts)))
+                   ;; ($_ (println! (ScoreList: $scoreList)))
                    ($length (List.length $labels))
-                   ($outputs (eval (List.flatten (List.map (eval (List.drop (- $length 1))) $table))))
+                   ($outputs (List.flatten (List.map (List.drop (- $length 1)) $table)))
                    ($bScore (List.zipWith compareAndScore $scoreList $outputs))
                    ($result (mkBScore $bScore))
                    ($_ (add-atom $cacheSpace ($tree $result)))
@@ -79,6 +80,8 @@
                $result)
                (car-atom $val)
            ))))
+
+(= (scoreTreeHelper $labels $expTree $table) (let $a (replaceVarsWithTruth ($labels $expTree) $table) (evaluate $a)))
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.
@@ -123,7 +126,7 @@
                   (if (== $h $l)
                       (cons-atom $b $t')
                       (cons-atom $h $t')))))
-       (if (== $boolExpr $l) $b (if (is-member $boolExpr (AND OR)) ($boolExpr) $boolExpr))))
+       (if (== $boolExpr $l) $b (if (once (is-member $boolExpr (AND OR))) ($boolExpr) $boolExpr))))
 
 ;; Replace ever occurence of all labels (boolean variables) 
 ;;  inside an expression with their corresponding truth values.
@@ -176,9 +179,9 @@
 ;;
 ;;  Example:
 ;;    (mkITable
-;;      (Cons (Cons True (Cons False (Cons True Nil)))
-;;            (Cons (Cons False (Cons True (Cons False Nil))) Nil))
-;;      (Cons 'A (Cons 'B (Cons 'Y Nil))))
+;;      (cons (cons True (cons False (cons True ())))
+;;            (cons (cons False (cons True (cons False ()))) ()))
+;;      (cons 'A (cons 'B (cons 'Y ()))))
 ;;
 ;;    Labels:   +---+---+---+
 ;;              | A | B | Y |
@@ -196,7 +199,7 @@
 ;;      getArgLabels returns only the input labels: [A, B]
 ;;
 ;;  Usage:
-;;    (getArgLabels $itable)  ; returns (Cons 'A (Cons 'B Nil))
+;;    (getArgLabels $itable)  ; returns (cons 'A (cons 'B ()))
 ;;
 ;(:getArgLabels (-> (ITable $a) (List Symbol)))
 (= (getArgLabels (mkITable $rows $labels))

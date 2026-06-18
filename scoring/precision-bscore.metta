@@ -18,11 +18,11 @@
 ;; 
 ;; Output:
 ;;   Map from input pattern -> (pos_count neg_count)
-;;   Example: (ConsMap ((False False) (2 2)) (ConsMap ((True False) (0 3)) (ConsMap ((False True) (3 0)) NilMap)))
+;;   Example: (cons ((False False) (2 2)) (cons ((True False) (0 3)) (cons ((False True) (3 0)) ())))
 ; (: countTable (-> Expression Number (Map $k $v) (Map Expression (Number Number))))
 (= (countTable $row $targetIndex $acc)
    (if (== $row ())
-      NilMap
+      ()
       (let* (
             ($inputPart (takeN $targetIndex $row)) ;; Extract input features (all columns except target)
             ($targetVal (index-atom $row $targetIndex)) ;; Get target value (True/False)
@@ -53,13 +53,13 @@
 ;;   Map from input_pattern -> (positive_count negative_count)
 ;;
 ;; Example:
-;;    (ConsMap ((False False) (2 2)) (ConsMap ((True False) (0 3)) (ConsMap ((False True) (3 0)) NilMap)))
+;;    (cons ((False False) (2 2)) (cons ((True False) (0 3)) (cons ((False True) (3 0)) ())))
 ; (: cTable (-> Expression Expression (Map Expression (Number Number))))
 (= (cTable $rows $labels)
    (let* (
           ($targetIndex (- (size-atom $labels) 1))
          
-          ($grouped (foldl-atom $rows NilMap $acc $row
+          ($grouped (foldl-atom $rows () $acc $row
                               (countTable $row $targetIndex $acc)))
          )
      $grouped)
@@ -86,7 +86,7 @@
 ;;
 ;; Output:
 ;;   MultiMap sorted by precision (descending) containing (precision (sumo total))
-;;   Example : (ConsMMap (0.5 (1.5 3)) (ConsMMap (0.0 (0.0 4)) (ConsMMap (-0.5 (-1.5 3)) NilMMap)))
+;;   Example : (cons (0.5 (1.5 3)) (cons (0.0 (0.0 4)) (cons (-0.5 (-1.5 3)) ())))
 ;;
 ;; Mathematical derivation:
 ;; - total = pos + neg (total activations for this pattern)
@@ -98,14 +98,14 @@
 ;;   total = 3 + 1 = 4
 ;;   sumo = 0.5 * (3 - 1) = 1.0
 ;;   precision = 1.0 / 4 = 0.25
-;;   Result: (ConsMMap (0.25 (1.0 4)) NilMMap)
+;;   Result: (cons (0.25 (1.0 4)) ())
 ;; The MultiMap automatically sorts by precision key (using > for descending order)
 ;; This ordering is crucial for the best possible score implementation which processes highest
 ;; precision patterns first.
 ; (: makePrecisionRow (-> Expression Expression (Map Expression (Number Number))))
 (= (makePrecisionRow $item $acc)
    (if (== $item ())
-      NilMMap
+      ()
       (let* (
             (($labels ($pos $neg)) $item)  ;; Extract positive and negative counts
             
@@ -127,7 +127,7 @@
 ;             )
 ;          (MultiMap.insert ($precision ($sumo $total)) $acc >) ;; for descending sort
 ;          ) 
-;          NilMMap
+;          ()
 ;       )
 ; )
 
@@ -147,7 +147,7 @@
    (let* (
             ($items (Map.items $groupedData))
             ($itemsExpr (List.listToExpr $items))
-            ($precisionRows (foldl-atom $itemsExpr NilMMap $acc $item (makePrecisionRow $item $acc)))
+            ($precisionRows (foldl-atom $itemsExpr () $acc $item (makePrecisionRow $item $acc)))
             ($precisionItems (MultiMap.items $precisionRows))
          )
         (List.listToExpr $precisionItems)

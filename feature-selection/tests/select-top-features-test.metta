@@ -1,17 +1,17 @@
-!(import! &self ../../../metta-moses/utilities/general-helpers)
-!(import! &self ../../../metta-moses/utilities/list-methods)
-!(import! &self ../../../metta-moses/scoring/cscore)
-!(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
-!(import! &self ../../../metta-moses/feature-selection/similarity-scorers)
-!(import! &self ../../../metta-moses/feature-selection/select-top-features)
+!(import! &self utilities/general-helpers)
+!(import! &self utilities/list-methods)
+!(import! &self scoring/cscore)
+!(import! &self feature-selection/feature-selection-helpers)
+!(import! &self feature-selection/similarity-scorers)
+!(import! &self feature-selection/select-top-features)
 
 (= (ttable) 
     (mkITable 
-        (Cons (Cons False (Cons False (Cons True (Cons True (Cons True Nil)))))
-        (Cons (Cons True (Cons False (Cons False (Cons True (Cons True Nil)))))
-        (Cons (Cons False (Cons True (Cons False (Cons True (Cons False Nil)))))
-        (Cons (Cons False (Cons False (Cons False (Cons True (Cons False Nil))))) Nil))))
-        (Cons A (Cons B (Cons C (Cons D (Cons Output Nil)))))))
+        (cons (cons False (cons False (cons True (cons True (cons True ())))))
+        (cons (cons True (cons False (cons False (cons True (cons True ())))))
+        (cons (cons False (cons True (cons False (cons True (cons False ())))))
+        (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
+        (cons A (cons B (cons C (cons D (cons Output ())))))))
 
 ;; Tests
 !(assertEqual (rankFtSet 0 (ttable) 2 -1 False ja ((1 (0 2)) (0.4 (3 1)) (0.3 (1 2 3))) ()) ((0 2) (3 1) (1 2 3)))     

@@ -1,16 +1,16 @@
-!(import! &self ../../../metta-moses/utilities/general-helpers)
-!(import! &self ../../../metta-moses/utilities/list-methods)
-!(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
-!(import! &self ../../../metta-moses/feature-selection/similarity-scorers)
+!(import! &self utilities/general-helpers)
+!(import! &self utilities/list-methods)
+!(import! &self feature-selection/feature-selection-helpers)
+!(import! &self feature-selection/similarity-scorers)
 
 (= (ttable) 
     (mkITable 
-        (Cons (Cons False (Cons False (Cons True (Cons True (Cons True Nil)))))
-        (Cons (Cons True (Cons False (Cons False (Cons True (Cons True Nil)))))
-        (Cons (Cons False (Cons True (Cons False (Cons True (Cons False Nil)))))
-        (Cons (Cons False (Cons False (Cons False (Cons True (Cons False Nil))))) Nil))))
+        (cons (cons False (cons False (cons True (cons True (cons True ())))))
+        (cons (cons True (cons False (cons False (cons True (cons True ())))))
+        (cons (cons False (cons True (cons False (cons True (cons False ())))))
+        (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
         
-        (Cons A (Cons B (Cons C (Cons D (Cons Output Nil)))))))
+        (cons A (cons B (cons C (cons D (cons Output ())))))))
 
 ; Test 
 !(assertEqual (jaccardIndex (A) (B)) 0) 

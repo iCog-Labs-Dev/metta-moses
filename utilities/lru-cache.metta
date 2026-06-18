@@ -93,7 +93,7 @@
 (= (cachePut $functionName $argument $result)
     (let* 
         (
-            ($entryCounter (eval (accCounter))) 
+            ($entryCounter (reduce (accCounter))) 
             ($currentSize (get-state &cacheSize))
             ($maxSize (get-state &maxCacheSize))
         )
@@ -122,7 +122,7 @@
 (: lruCache (-> Number Expression $a))
 (= (lruCache $maxSize (($fn-name) $args)) 
     (let $_ (change-state! &maxCacheSize $maxSize)                         ;; Set cache size for this operation
-        (if (eval (cacheExists $fn-name $args))                           ;; Check cache first
+        (if (reduce (cacheExists $fn-name $args))                           ;; Check cache first
             (getCached $fn-name $args)                                    ;; Cache miss - compute and cache result
-            (let $computedResult (eval (cons-atom $fn-name $args))        ;; Execute the function call
-                (cachePut $fn-name $args (eval $computedResult))))))      ;; Cache the result
+            (let $computedResult (reduce (cons-atom $fn-name $args))        ;; Execute the function call
+                (cachePut $fn-name $args (reduce $computedResult))))))      ;; Cache the result

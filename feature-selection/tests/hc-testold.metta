@@ -47,17 +47,17 @@
 
 ! (bind! ttable2 
     (mkITable 
-        (Cons (Cons False (Cons False (Cons True (Cons True (Cons True Nil)))))
-        (Cons (Cons True (Cons False (Cons False (Cons True (Cons True Nil)))))
-        (Cons (Cons False (Cons True (Cons False (Cons True (Cons False Nil)))))
-        (Cons (Cons False (Cons False (Cons False (Cons True (Cons False Nil))))) Nil))))
-        (Cons A (Cons B (Cons C (Cons D (Cons Output Nil)))))))
+        (cons (cons False (cons False (cons True (cons True (cons True ())))))
+        (cons (cons True (cons False (cons False (cons True (cons True ())))))
+        (cons (cons False (cons True (cons False (cons True (cons False ())))))
+        (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
+        (cons A (cons B (cons C (cons D (cons Output ())))))))
             
                                                               ;;miConf PrePenalty  PreMInActivation   PreMaxActivation  PrePositive   ScorerType
-! (assertEqual (hcFtSetPop ttable2 (Cons 1 (Cons 0 (Cons 0 (Cons 0 Nil)))) mi)
+! (assertEqual (hcFtSetPop ttable2 (cons 1 (cons 0 (cons 0 (cons 0 ())))) mi)
     ((1.0 (0 2 3)) (0.311 (2 3)) (0.311 (0)) (0.311 (0 3)) (0.311 (2)))
  )
 
-! (assertEqual (hcFtSetPop ttable2 (Cons 1 (Cons 0 (Cons 0 (Cons 0 Nil)))) pre)
+! (assertEqual (hcFtSetPop ttable2 (cons 1 (cons 0 (cons 0 (cons 0 ())))) pre)
     ((1.0 (0 2)) (0.5 (0 3)) (0.5 (0)))
 )
