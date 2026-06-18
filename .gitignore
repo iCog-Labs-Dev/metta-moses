@@ -13,3 +13,6 @@ tree-helper-registration-test.metta
 run_python_tests.py
 
 *.html
+
+# Personal scratch / research notes — never committed.
+notes/
