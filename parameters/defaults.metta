@@ -48,6 +48,12 @@
 !(add-atom &params (optAlgo hc))
 !(add-atom &params (fsAlgo  None))
 
+;; ---- Representation building ----
+;; discProbe: prune complexity-reducing knob settings during logical-probe
+;; pass. Default False mirrors the shipped behaviour after the test-suite
+;; adjustment in d4d8529; flip to True to opt in via --discProbe=True.
+!(add-atom &params (discProbe False))
+
 ;; ---- Metapopulation management ----
 !(add-atom &params (capCoef 50))
 !(add-atom &params (complexityTemperature 6))
