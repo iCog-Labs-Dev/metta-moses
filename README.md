@@ -15,11 +15,86 @@ A short example, from beginning to end, can be found in this Jupyter notebook (c
 There is also a considerable amount of information in the OpenCog wiki: http://wiki.opencog.org/w/Meta-Optimizing_Semantic_Evolutionary_Search
 
 ## Running the code
-- Make sure to install PeTTa following the instruction on the [PeTTa](https://github.com/trueagi-io/PeTTa) repository.
-- The entry point to our algorithm is found in [this file](https://github.com/iCog-Labs-Dev/metta-moses/blob/main/deme/tests/expand-demes-test.metta). There are test cases in an assert equal, but there are also additional running examples you can use which are commented out for now. You can use the following command to run the tests using `PeTTa` after successfully installing mettalog on your machine.
-    ```sh
-      ./PeTTa/run.sh deme/tests/expand-demes-test.metta
-    ```
+
+Install PeTTa first by following the instructions in the
+[PeTTa](https://github.com/trueagi-io/PeTTa) repository, then clone this
+repo and `cd` into it.
+
+### The fast path
+
+The repo root has a single entry file, `moses.metta`. It wires up every
+module the pipeline needs, applies any `--name=value` flags you pass on
+the command line, and runs MOSES. You just point PeTTa at it:
+
+```sh
+./PeTTa/run.sh moses.metta -s --problem=parity3
+```
+
+That's a complete run — solve the 3-bit parity problem with default
+settings (20 generations, 1 deme, hill-climbing optimizer, no feature
+selection).
+
+### Discovering every knob
+
+`--help` prints every registered hyperparameter together with its
+current value:
+
+```sh
+./PeTTa/run.sh moses.metta -s --help
+```
+
+### Overriding any setting from the command line
+
+Every value shown by `--help` can be overridden with `--name=value`.
+A few common ones:
+
+```sh
+./PeTTa/run.sh moses.metta -s \
+    --problem=mux3 \           # which problem to solve (parity3, parity4, majority3, majority5, mux3, mux6, disjunction3, …)
+    --maxGen=30 \              # max generations
+    --nDeme=2 \                # number of demes per expansion
+    --fsAlgo=smd \             # feature-selection algorithm (None | smd | sim | inc | rd | mi | hc)
+    --optAlgo=hc \             # optimizer (currently only hc; sa / univariate are stubs)
+    --capCoef=80 \             # metapopulation cap coefficient
+    --complexityRatio=2.5 \    # complexity/fitness trade-off
+    --hcMaxEvals=20000         # per-iteration hill-climbing eval budget
+```
+
+Flags can appear in any order; unrecognized ones are ignored.
+
+If you run `./PeTTa/run.sh moses.metta -s` with **no** `--problem` (or
+without an in-script `(set-param problem …)`), MOSES prints the help and
+exits rather than silently running a default problem.
+
+### Overriding programmatically
+
+If you want to script several runs, import the entry file and call
+`(moses)` yourself after setting whatever you need:
+
+```metta
+;; myrun.metta
+!(import! &self moses)
+!(set-param problem mux3)
+!(set-param maxGen 30)
+!(set-param fsAlgo smd)
+!(moses)
+```
+
+```sh
+./PeTTa/run.sh myrun.metta -s
+```
+
+`(set-param)` and the CLI overrides write into the same `&params`
+atomspace, so the two styles compose freely.
+
+### Running the test suite
+
+```sh
+python3 scripts/run-tests.py
+```
+
+Discovers every `*test.metta` file under the tree and runs them in
+parallel via PeTTa.
 ## Contributing
 Before you start contributing to this repository, make sure to read the [CONTRIBUTING.md](https://github.com/iCog-Labs-Dev/metta-moses/tree/main/.github/CONTRIBUTING.md) file from our repository. 
 
