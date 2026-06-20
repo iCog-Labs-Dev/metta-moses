@@ -18,7 +18,7 @@
                   ($reps (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts  $scorerType))
                   ;; ($_ (println! (done making representations ... $reps)))
             ) 
-            (loopCreateDeme $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
+            (loopCreateDemeSpace $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
       ) 
 )
 ;; Game strategy createDeme - creates demes with empty instance sets for game strategies
@@ -38,18 +38,36 @@
       ) 
 )
 
+;; using the mkDeme object
+; (= (loopCreateDeme $demeIds $reps $acc)
+; (if (== $reps ()) 
+;     $acc
+;     (let* (
+;             ($h (car-atom $reps))
+;             ($t (cdr-atom $reps)))
+;          (let* (
+;                  ($demeId (List.head $demeIds)) 
+;                  ($deme (mkDeme $h (mkSInstSet ()) $demeId))
+;                  ($new-acc (union-atom $acc ($deme))))     
+;                (loopCreateDeme (List.tail $demeIds) $t $new-acc)))))
 
-(= (loopCreateDeme $demeIds $reps $acc)
+;;using Deme spaces
+(= (loopCreateDemeSpace $demeIds $reps $acc)
 (if (== $reps ()) 
-    $acc
+    $acc 
     (let* (
             ($h (car-atom $reps))
-            ($t (cdr-atom $reps)))
-         (let* (
-                 ($demeId (List.head $demeIds)) 
-                 ($deme (mkDeme $h (mkSInstSet ()) $demeId))
-                 ($new-acc (union-atom $acc ($deme))))     
-               (loopCreateDeme (List.tail $demeIds) $t $new-acc)))))
+            ($t (cdr-atom $reps))
+            ($demeId (List.head $demeIds)) 
+            ((mkDemeId $id) $demeId)
+            ($demeSpace (py-call (demeSpaceName.demeSpaceName $id)))  
+            ($_ (add-atom $demeSpace $h)) 
+            ($_ (add-atom $demeSpace (mkSInstSet ())))
+            ($_ (add-atom $demeSpace (mkDemeId $id)))
+            ($new-acc (union-atom $acc ($demeSpace)))
+)       
+            (loopCreateDemeSpace (List.tail $demeIds) $t $new-acc))))
+            
 ;; previous version of loopCreateDeme using if-decons-expr-custom
 ;       (if-decons-expr-custom $reps $h $t
 ;             (let* (($demeId (List.head $demeIds)) 
