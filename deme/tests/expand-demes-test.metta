@@ -1,3 +1,4 @@
+!(import! &self ../demeSpaceName.py)
 !(import! &self ../../utilities/general-helpers)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/pair)
@@ -441,3 +442,19 @@
 ;; ;;    )
 ;; ;;    $isValid)
 ;; ;;    True)
+
+;; testcase for the expand demes, using deme spaces
+; !(expandDeme (metaPop2) 0 1 False sim 
+;                     (table1)
+;                     hillClimbing 
+;                     (ttable1)
+;                     mi)
+; !(get-atoms &deme1)
+
+;; testcase for the runMoses, using deme spaces
+; !(runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 (False sim 
+;     (table1) 
+;     (ttable1)) 
+;     hillClimbing 5 2 0 1 
+;     3 0.004 1000)
+    
