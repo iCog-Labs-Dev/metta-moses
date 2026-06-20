@@ -12,8 +12,9 @@
 ;;   population and focus on newly generated instances only.
 (= (crossTopOne $deme $nToMake $sampleStart $sampleSize $baseInstance)
             (let* (
-                    ((mkDeme (mkRep (mkKbMap (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId) $deme)
+                    ; ((mkDeme (mkRep (mkKbMap (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId) $deme)
                     ;; ($_ (println! (Inside crossTopOne)))
+                    ($instSet (match $deme (mkSInstSet $instS) $instS))
                     ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
                     ;; ($_ (println! (SampleSize: $sampleSize NToMake: $nToMakeNew SampleStart: $sampleStart totalSize: (List.length $instSet))))
                     (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
@@ -23,7 +24,8 @@
                     ;; ($_ (println! (ListLength: (List.length $list))))
                   )
                   (if (== $list ())
-                      (mkDeme (mkRep (mkKbMap (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId)
+                      ;(mkDeme (mkRep (mkKbMap (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId)
+                      (mkSInstSet $instSet)
                       (let*
                         (
                           ((cons $reference $rest) $list)
@@ -37,8 +39,11 @@
                           ;; ($__ (println! (New instances After merging: $newInstances)))
                           ;; ($_ (println! ""))
                           ;; ($_ (println! (PrevInst: $prevInst)))
+                          ($updatedInstSet (mkSInstSet (List.appendList (exprToList $newInstances) $instSet)))
+                          ($_ (remove-atom $deme (mkSInstSet $instList)))
+                          ($_ (add-atom $deme (mkSInstSet $updatedInstSet)))
                         )
-                        (mkDeme (mkRep (mkKbMap (mkDscMp $dscMp)) $tree) (mkSInstSet (List.appendList (exprToList $newInstances) $instSet)) $demeId)))))
+                        $updatedInstSet))))
 
 ;; similar to the above 'crossTopOne' but with slight changes on the comparison function that is passed to the Lost.partialSort to compare the mutualInformation based scores
 ; (: crossTopOneFs (-> (InstanceSet $a) Number Number Number Instance (InstanceSet $a)))
