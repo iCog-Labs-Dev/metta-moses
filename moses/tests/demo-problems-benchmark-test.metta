@@ -1,3 +1,4 @@
+!(import! &self ../../deme/demeSpaceName.py)
 !(import! &self ../../utilities/general-helpers)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/pair)
@@ -77,4 +78,7 @@
 ;; When run with nEval of 1000 at this configuration, top result should have a score of 0.
 !(assertEqual (let $result (runDemoProblem 2 10 1 None parity3) (second (index-atom (second $result) 0))) 0)
 ;; TODO: This test case fails because of incorrect creation order when disc probing is enabled. That needs a fix.
-;; !(runDemoProblem 0 10 1 None mux6)
+
+;; tests
+; !(runDemoProblem 2 10 1 None disjunction3)
+; !(runDemoProblem 0 10 1 None mux3)
