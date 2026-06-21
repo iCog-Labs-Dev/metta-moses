@@ -5,9 +5,6 @@
                    action_success action_failure
                    action_while bool_while return_success repeat_n)))
 
-;; MeTTa is untyped, so the supplied action domain is the source of truth.
-(= (isBuiltinAction $op $actions) (is-member $op $actions))
-
 ;;;; buildKnobs constructor that is directly called by the representaion constructor
 ;; Params: Tree (Exemplar)
 ;;         $mmp: multimap to store knobs
