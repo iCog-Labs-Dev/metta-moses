@@ -57,7 +57,8 @@
      (
        ($perms (sampleActionPerms $actions $perceptions))
        ($treePerms (map-atom $perms $perm (buildTree $perm)))
-       (($knobs $updatedTree) (actionProbe $tree (mkNodeId $tgtId) $treePerms $addIfInExemplar ()))
+       ($idx (MultiMap.length $MMap))
+       (($knobs $updatedTree) (actionProbe $tree (mkNodeId $tgtId) $treePerms $addIfInExemplar () $idx))
        ($pairs (pairKnobWithSpec $knobs))
        ($mmp (expToMMap $pairs $MMap discSpec<))
      )
@@ -67,7 +68,8 @@
 (= (addSimpleActionKnobsAt $tree $probeRootId (mkNodeId $tgtId) $addIfInExemplar $MMap $actions $perceptions)
    (let*
      (
-       (($knobs $updatedTree) (simpleActionProbe $tree (mkNodeId $tgtId) $addIfInExemplar ()))
+       ($idx (MultiMap.length $MMap))
+       (($knobs $updatedTree) (simpleActionProbe $tree (mkNodeId $tgtId) $addIfInExemplar () $idx))
        ($pairs (pairKnobWithSpec $knobs))
        ($mmp (expToMMap $pairs $MMap discSpec<))
      )
@@ -154,16 +156,33 @@
 
 (= (buildAction $tree (mkNodeId $nodeId) $MMap $actions $perceptions)
   (let $subtree (getNodeById $tree (mkNodeId $nodeId))
-    (if (or (== $subtree ()) (isNullVertex $subtree))
-        ($tree $MMap)
-        (let (mkTree (mkNode $op) $_) $subtree
-          (if (== $op and_seq)
-              (let $children (getChildren $subtree)
-                (buildActionAndSeq $tree (mkNodeId $nodeId) $children $MMap $actions $perceptions))
-              (if (== $op action_bool_if)
-                  (let $children (getChildren $subtree)
-                    (buildActionBoolIf $tree (mkNodeId $nodeId) $children $MMap $actions $perceptions))
-                  ($tree $MMap)))))))
+    (case $subtree
+      (
+        ((mkKnob $controlledSubtree (mkASK $discKnob $perms) $i)
+           (let*
+             (
+               ($ask (mkASK $discKnob $perms))
+               ((mkDiscSpec $defaultSetting) (getKnobDefault $ask))
+             )
+             (if (== $defaultSetting 0)
+                 ($tree $MMap)
+                 (let*
+                   (
+                     (($rebuiltSubtree $updatedMMap) (buildAction $controlledSubtree (mkNodeId (0)) $MMap $actions $perceptions))
+                     ($updatedTree (replaceNodeById $tree (mkNodeId $nodeId) (mkKnob $rebuiltSubtree $ask $i)))
+                   )
+                   ($updatedTree $updatedMMap)))))
+        ($other
+          (if (or (== $subtree ()) (isNullVertex $subtree))
+              ($tree $MMap)
+              (let (mkTree (mkNode $op) $_) $subtree
+                (if (== $op and_seq)
+                    (let $children (getChildren $subtree)
+                      (buildActionAndSeq $tree (mkNodeId $nodeId) $children $MMap $actions $perceptions))
+                    (if (== $op action_bool_if)
+                        (let $children (getChildren $subtree)
+                          (buildActionBoolIf $tree (mkNodeId $nodeId) $children $MMap $actions $perceptions))
+                        ($tree $MMap))))))))))
 
 (= (isCleanupActionOperator $op)
    (is-member $op (and_seq or_seq seq_exec)))
