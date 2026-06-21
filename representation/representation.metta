@@ -343,9 +343,16 @@
              (getCandidateHelper (mkInst $inst) (List.getByIdx $perms (- $setting 1)))
              (getCandidateHelper (mkInst $inst) $controlledSubtree)))))
 
-;; Null-vertex unwrapping clause threads the embedded LSK to the inner knob.
-(= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) $lsk $i))
-   (getCandidateHelper $inst (mkKnob $child $lsk $i)))
+;; Null-vertex unwrapping for LSK and SSK knobs only.
+;; mkASK knobs are handled exclusively by the ASK rule above,
+;; which reads perms directly from the controlled NullVex.
+;; Keeping this generic caused double evaluation whenever the
+;; ASK rule (Rule A) and this unwrapping rule both fired on
+;; the same (mkKnob (mkNullVex ...) (mkASK ...) $i) expression.
+(= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) (mkLSK $discKnob) $i))
+   (getCandidateHelper $inst (mkKnob $child (mkLSK $discKnob) $i)))
+(= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) (mkSSK $discKnob) $i))
+   (getCandidateHelper $inst (mkKnob $child (mkSSK $discKnob) $i)))
 
 ;; Specialized fast clause: empty disallowed list means effective settings map
 ;; one-to-one to actual settings, so we skip mapEffectiveDiscSpec entirely.
