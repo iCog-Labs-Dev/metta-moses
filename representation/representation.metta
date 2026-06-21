@@ -164,13 +164,6 @@
 ;; Helper function to extract tree from representation
 (= (getRepTree (mkRep $knobMapObj $tree)) $tree)
 
-;; Structural action operators are never domain actions.
-(= (isActionOperator $rootSymbol)
-   (is-member $rootSymbol (and_seq or_seq seq_exec action_not action_bool_if
-                           bool_action_if contin_action_if action_action_if
-                           action_success action_failure action_while
-                           bool_while return_success repeat_n)))
-
 ;; Universal getCandidate that works for both boolean and game strategies
 ;; Uses preOrder+buildTree to unwrap mkNullVex for games, cleanTree for boolean
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
