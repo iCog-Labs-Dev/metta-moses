@@ -1,10 +1,3 @@
-;; Structural action operators are never domain actions.
-(= (isActionOperator $op)
-   (is-member $op (and_seq or_seq seq_exec action_not action_bool_if
-                   bool_action_if contin_action_if action_action_if
-                   action_success action_failure
-                   action_while bool_while return_success repeat_n)))
-
 ;;;; buildKnobs constructor that is directly called by the representaion constructor
 ;; Params: Tree (Exemplar)
 ;;         $mmp: multimap to store knobs
