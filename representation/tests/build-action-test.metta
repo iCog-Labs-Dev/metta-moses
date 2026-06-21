@@ -6,6 +6,7 @@
 !(import! &self ../../utilities/tree)
 
 !(import! &self ../../scoring/bscore)
+!(import! &self ../../scoring/cacheSpace)
 
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/lsk)
@@ -30,10 +31,10 @@
 !(assertEqual (isActionOperator seq_exec) True)
 !(assertEqual (isActionOperator move_forward) False)
 
-!(assertEqual (isBuiltinAction move_forward (move_forward turn_left)) True)
-!(assertEqual (isBuiltinAction ahead_blocked (move_forward turn_left)) False)
-!(assertEqual (isBuiltinAction and_seq (move_forward turn_left)) False)
-!(assertEqual (isBuiltinAction action_bool_if (move_forward turn_left)) False)
+!(assertEqual (isDomainAction move_forward (move_forward turn_left)) True)
+!(assertEqual (isDomainAction ahead_blocked (move_forward turn_left)) False)
+!(assertEqual (isDomainAction and_seq (move_forward turn_left)) False)
+!(assertEqual (isDomainAction action_bool_if (move_forward turn_left)) False)
 
 ;; Action permutation sampling keeps the base action domain.
 !(assertEqual
@@ -121,16 +122,67 @@
 
 ;; Direct probes produce action knobs with the expected ASK defaults.
 !(assertEqual
-  (let ($tree $mmp) (addActionKnobsAt (mkTree (mkNode and_seq) ()) (mkNodeId (0)) (mkNodeId (0)) True () (move_forward turn_left) (A B))
-    (> (MultiMap.length $mmp) 0))
+  (let*
+    (
+      (($tree $mmp) (addActionKnobsAt (mkTree (mkNode and_seq) ()) (mkNodeId (0)) (mkNodeId (0)) True () (move_forward turn_left) ()))
+      ($ask (car-atom (MultiMap.values $mmp)))
+      ((mkASK $discKnob $perms) $ask)
+      ($embedded (getNodeById $tree (mkNodeId (1))))
+    )
+    (and (> (MultiMap.length $mmp) 0)
+         (and (== $discKnob (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
+              (== $embedded (mkKnob (mkNullVex $perms) $ask 0)))))
   True)
 
 !(assertEqual
   (let* (($origTree (mkTree (mkNode and_seq) (cons (moveTree) ())))
          (($updatedTree $mmp) (addSimpleActionKnobsAt $origTree (mkNodeId (0)) (mkNodeId (1)) True () (move_forward turn_left) (A B)))
          ($ask (car-atom (MultiMap.values $mmp))))
-    ($updatedTree (getKnobDefault $ask)))
-  ((mkTree (mkNode and_seq) (cons (moveTree) ())) (mkDiscSpec 1)))
+    (let*
+      (
+        ((mkASK $discKnob $perms) $ask)
+        ($embedded (getNodeById $updatedTree (mkNodeId (1))))
+      )
+      (and (== $embedded (mkKnob (moveTree) $ask 0))
+           (and (== $discKnob (mkDiscKnob (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))
+                (and (== $perms (cons (moveTree) ()))
+                     (== (getKnobDefault $ask) (mkDiscSpec 1)))))))
+  True)
+
+;; Embedded action representation drives candidate reconstruction directly.
+!(assertEqual
+  (let*
+    (
+      (($updatedTree $mmp) (addActionKnobsAt (mkTree (mkNode and_seq) ()) (mkNodeId (0)) (mkNodeId (0)) True () (move_forward turn_left) ()))
+      ($rep (mkRep (mkKbMap (mkDscMp $mmp)) $updatedTree))
+      ($absent (getCandidate $rep ActionCandidateAbsent (mkInst (0))))
+      ($move (getCandidate $rep ActionCandidateMove (mkInst (1))))
+      ($turn (getCandidate $rep ActionCandidateTurn (mkInst (2))))
+    )
+    ($absent $move $turn))
+  ((mkTree (mkNode and_seq) ())
+   (mkTree (mkNode and_seq) ((moveTree)))
+   (mkTree (mkNode and_seq) ((turnTree)))))
+
+;; Simple-action ASK present mode recurses into the embedded controlled subtree.
+!(assertEqual
+  (let*
+    (
+      (($actionControlled $actionAsk) (actionSubtreeKnob ((turnTree))))
+      (($simpleControlled $simpleAsk)
+        (simpleActionSubtreeKnob
+          (mkTree (mkNode and_seq)
+            ((mkKnob $actionControlled $actionAsk 1)))))
+      ($tree (mkTree (mkNode action_bool_if)
+               ((mkTree (mkNode A) ())
+                (mkKnob $simpleControlled $simpleAsk 0)
+                (moveTree))))
+    )
+    (getCandidateHelper (mkInst (1 1)) $tree))
+  (mkTree (mkNode action_bool_if)
+    ((mkTree (mkNode A) ())
+     (mkTree (mkNode and_seq) ((turnTree)))
+     (moveTree))))
 
 ;; action_bool_if keeps its perception child and wraps action branches.
 !(assertEqual
@@ -139,17 +191,24 @@
                      (cons (moveTree)
                      (cons (turnTree) ())))))
          (($updatedTree $mmp) (buildAction $origTree (mkNodeId (0)) () (move_forward turn_left) (A B)))
-         ($perception (getNodeById $updatedTree (mkNodeId (1))))
-         ($branchA (getNodeById $updatedTree (mkNodeId (2))))
-         ($branchB (getNodeById $updatedTree (mkNodeId (3)))))
+         ($perception (getNodeById $updatedTree (mkNodeId (1)))))
     (and (== $perception (mkTree (mkNode A) ()))
-         (and (== $branchA (mkTree (mkNode and_seq)
-                              (cons (moveTree)
-                              (cons (mkNullVex ()) ()))))
-         (and (== $branchB (mkTree (mkNode and_seq)
-                              (cons (turnTree)
-                              (cons (mkNullVex ()) ()))))
-              (== (MultiMap.length $mmp) 2)))))
+         (let*
+           (
+             ($askA (List.getByIdx (MultiMap.values $mmp) 0))
+             ($askB (List.getByIdx (MultiMap.values $mmp) 1))
+             ((mkASK $discA $permsA) $askA)
+             ((mkASK $discB $permsB) $askB)
+             ($branchAHead (getNodeById $updatedTree (mkNodeId (2 1))))
+             ($branchBHead (getNodeById $updatedTree (mkNodeId (3 1))))
+             ($branchAKnob (getNodeById $updatedTree (mkNodeId (2 2))))
+             ($branchBKnob (getNodeById $updatedTree (mkNodeId (3 2))))
+           )
+           (and (== $branchAHead (moveTree))
+                (and (== $branchBHead (turnTree))
+                     (and (== $branchAKnob (mkKnob (mkNullVex $permsA) $askA 0))
+                          (and (== $branchBKnob (mkKnob (mkNullVex $permsB) $askB 1))
+                               (== (MultiMap.length $mmp) 2))))))))
   True)
 
 ;; and_seq follows the C++ probabilistic path and produces knobs with this seed.
