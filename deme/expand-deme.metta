@@ -103,14 +103,19 @@ $optimDeme
 ;; The main loop
 ;; Takes 2 termination criterias:
 ;;     - $maxGen : how many times we want the loop to run
-;;     - $maxScore : the maximum score we want the top Examplar to have
+;;     - $maxScore : the maximum *raw* score we want the top Examplar to reach.
+;;                   This is a scalar (Number), matching classic MOSES'
+;;                   `score_t target_score = c_scorer.best_possible_score()`.
+;;                   For clean boolean tables it's 0. The complexity penalty
+;;                   is applied per-candidate during scoring, separate from
+;;                   this termination check.
 ;;
 ;; All other knobs (maxCandOutput, nEval, maxCandPerDeme, minPoolSize,
 ;; complexityTemperature, nToKeep, capCoef, genCount) are read from the
 ;; &params atomspace via (param ...). Callers may override them either
 ;; with (set-param ...) before invoking runMoses or via --name=value
 ;; command-line flags handled by parameters/cli.metta.
-; (: runMoses (-> Number Cscore (OS (Exemplar $a)) Number Number $Context $Optimize (OS (Exemplar $a))))
+; (: runMoses (-> Number Number (OS (Exemplar $a)) Number Number $Context $Optimize (OS (Exemplar $a))))
 ;; TODO: $nEval isn't being used. Increase it so that it works as expected.
 ;; To enable that, we may need to change our termination condition so that the generation is equivalent to the number of expansion as well.
 ;; The number of expansions in the open cog classic is equivalent to the number of deme expansions. That looks like the same thing we are doing here but not sure.
@@ -141,7 +146,10 @@ $optimDeme
        ($_ (cut)) ;; INFO: This cut speeds things up. Don't remove it.
        ($_ (println! ""))
       )
- (if (== $topScore $maxScore)
+ ;; Match classic semantics: compare the raw behavioural score against the
+ ;; scalar `$maxScore`. The Cscore's complexity / penalty fields are
+ ;; consulted elsewhere when ranking candidates but not at termination.
+ (if (>= (getScore $topScore) $maxScore)
          (if (<= (param maxCandOutput) (OS.length $updatedMetaPop))
              (OS.getTopN (param maxCandOutput) $updatedMetaPop)
              $updatedMetaPop)

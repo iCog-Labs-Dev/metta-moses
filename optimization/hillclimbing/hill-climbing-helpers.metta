@@ -225,7 +225,9 @@
           (
             ($disc (getDisk $POASet))
             (($nGames $complexityRatio) $FsScorer)
-            ($targetPenScore (getPenScore $tTableBscorer))
+            ;; $tTableBscorer is the scalar `$maxScore` for the strategy path
+            ;; (was a Cscore struct before the termination switched to scalar).
+            ($targetPenScore $tTableBscorer)
             ;; Keep a non-empty sentinel in the third slot so the recursive
             ;; strategy path still follows the non-feature-selection branches.
           )
@@ -348,7 +350,12 @@
                                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
                                   ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentNInstances $newInstances $nextBestSscore $nextBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
         
-        ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (getPenScore $newBestSscore)))
+        ;; Termination check compares against the scalar `$bestPossibleScore`,
+        ;; which carries the *raw* best score (matching classic MOSES). So we
+        ;; must extract the raw-score field from the candidate's Cscore here,
+        ;; not the penalty-adjusted one -- comparing penScore against a raw
+        ;; target would mix the complexity penalty into the threshold.
+        ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (getScore $newBestSscore)))
         ;; ($_ (println! (Found newBestSscore After (+ 1 $i) iteration is: $newBestSscore $scoreToCompareBelow)))
         ;; ($_ (println! ""))
         ($_ (cut)) ;; Commit choice points before tail-recursing — mirrors runMoses pattern. This gives few extra seconds of speed

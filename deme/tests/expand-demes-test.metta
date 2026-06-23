@@ -223,7 +223,7 @@
 (let*
 (
     ($_ (println! (running started)))
-    ($topCandidates (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) (metaPop2) 0 2 (False sim
+    ($topCandidates (runMoses 2 1 (metaPop2) 0 2 (False sim
     (table1)
     (ttable1))
     hillClimbing))
@@ -236,7 +236,7 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) (metaPop2) 0 2 (False rd
+    ($topCandidates (runMoses 1 1 (metaPop2) 0 2 (False rd
     (table1)
     (ttable1))
     hillClimbing))
@@ -249,7 +249,7 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) (metaPop2) 0 2 (False inc
+    ($topCandidates (runMoses 1 1 (metaPop2) 0 2 (False inc
     (table1)
     (ttable1))
     hillClimbing))
@@ -264,7 +264,7 @@
 !(set-param minPoolSize 2)
 !(assertEqual
 (let $length
-((OS.length (runMoses 10 (mkCscore -0.1 2 0.1 0.1 3) (metaPop2) 0 2
+((OS.length (runMoses 10 1 (metaPop2) 0 2
     (False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
     inc      ;; the new arguments for feature selection algo
     (eval (createTruthTableBScore 2 (mkITable
@@ -286,7 +286,7 @@
     False
 )
 ;; ; ; with OR table and AND init exemplar     
-;; ; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
+;; ; !(runMoses 7 1 3 (metaPop) 0 2 
 ;; ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;; ;     smd      ;; the new arguments for feature selection algo
 ;; ;     (eval (createTruthTableBScore 2 (mkITable
@@ -305,7 +305,7 @@
 ;; ;                          (cons A (cons B (cons O ())))) 
 ;; ;     3 0.004 1000)
 ;; ; ; with OR table and AND init exemplar     
-;; ; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
+;; ; !(runMoses 7 1 3 (metaPop) 0 2 
 ;; ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;; ;     smd      ;; the new arguments for feature selection algo
 ;; ;     (eval (createTruthTableBScore 2 (mkITable
@@ -324,7 +324,7 @@
 ;; ;                           (cons A (cons B (cons O ()))))  
 ;; ;     3 0.004 1000)
 ;;
-;; ; !(runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
+;; ; !(runMoses 1 1 3 (metaPop2) 0 2 
 ;; ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;; ;     smd      ;; the new arguments for feature selection algo
 ;; ;     (eval (createTruthTableBScore 2 
@@ -351,7 +351,7 @@
 ;; ;; (AND (OR (AND A (NOT B)) (AND (NOT A) B)))
 ;; ;; !(let*
 ;; ;;    (
-;; ;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
+;; ;;     ($result (runMoses 20 1 10 (metaPop2) 0 2
 ;; ;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;; ;;                   smd      ;; the new arguments for feature selection algo
 ;; ;;                   (eval (createTruthTableBScore 2 (xortable)))
