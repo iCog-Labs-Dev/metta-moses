@@ -64,3 +64,28 @@
                  ($newInstances (mergerFs $targetExpr $baseInstance $referenceInst))
                )
                (mkSInstSet (List.appendList (exprToList $newInstances) $newInst))))))
+
+  (= (crossTopTwo $deme $nToMake $sampleStart $sampleSize $baseInstance)
+
+   (let*
+
+     (
+      ((mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId) $deme)
+      (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
+
+      ($pairCount (/ (* $sampleSize (- $sampleSize 1)) 2))
+      ($nToMakeNew (if (< $pairCount $nToMake) $pairCount $nToMake))
+
+       ($nToSortRaw (+ (sqrt-math (* 2 $nToMakeNew)) 3))
+       ($nToSort (if (< $sampleSize $nToSortRaw) $sampleSize $nToSortRaw))
+
+       ($sortedList (List.partialSort instance> $newInst $nToSort ()))
+
+       ($topInsts (List.takeN $nToSort $sortedList))
+
+       ($newInstances (crossPairs () $topInsts $baseInstance () $nToMakeNew))
+       )
+
+     (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree)
+            (mkSInstSet (List.appendList $newInstances $instSet)) $demeId)))
+
