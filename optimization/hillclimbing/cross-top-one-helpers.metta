@@ -100,3 +100,35 @@
           (crossPairs $newProcessed $rest $base $updatedAcc $limit))))
 
 
+(= (crossTripleTargets () $jRef $iRef $base $acc $limit)
+   $acc)
+
+(= (crossTripleTargets (cons $target $rest) $jRef $iRef $base $acc $limit)
+
+   (if (>= (List.length $acc) $limit)
+       $acc
+       (let*
+         (
+           ((mkSInst (mkPair $targetInst $score)) $target)
+           ($merged (mkSInst (mkPair (mergeInstance (mergeInstance $targetInst $base $iRef) $base $jRef) (worstCscore))))
+
+           ($newAcc (cons $merged $acc))
+         )
+       (crossTripleTargets $rest $jRef $iRef $base $newAcc $limit))))
+;;;;;;;;;;
+  
+(= (crossTripleRefs () $processed $iRef $base $acc $limit) $acc)
+
+(= (crossTripleRefs (cons $j $jRest) $processed $iRef $base $acc $limit)
+
+    (if (>= (List.length $acc) $limit)
+        $acc
+
+       (let*
+         (
+           ((mkSInst (mkPair $jInst $jScore)) $j)
+
+           ($updatedAcc (crossTripleTargets $processed $jInst $iRef $base $acc $limit))
+         )
+         (crossTripleRefs $jRest (cons $j $processed) $iRef $base $updatedAcc $limit))))
+

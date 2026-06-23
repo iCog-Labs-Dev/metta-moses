@@ -193,3 +193,25 @@
                                                 (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
                                                 (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore) )))
                                                 (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ())))))))))(mkDemeId "1")))
+!(assertEqual
+   (crossTripleTargets
+      (cons (mkSInst (mkPair (mkInst (cons a (cons 5 ()))) (mkCscore 0 0 0 0 1))) ())
+      (mkInst (cons a (cons 3 ())))
+      (mkInst (cons b (cons 3 ())))
+      (mkInst (cons a (cons 2 ())))
+      ()
+      1)
+ (cons (mkSInst (mkPair (mkInst (cons b (cons 3 ()))) (worstCscore)))()))
+
+ !(assertEqual
+   (List.length
+      (crossTripleRefs
+       (cons (mkSInst (mkPair (mkInst (cons a (cons 5 ()))) (mkCscore 0 0 0 0 1)))
+        (cons (mkSInst (mkPair (mkInst (cons b (cons 3 ()))) (mkCscore 0 0 0 0 2))) ()))
+         (cons (mkSInst (mkPair (mkInst (cons b (cons 5 ())))  (mkCscore 0 0 0 0 3))) ())
+
+         (mkInst (cons a (cons 9 ())))
+         (mkInst (cons a (cons 0 ())))
+         ()
+         2))
+    2)
