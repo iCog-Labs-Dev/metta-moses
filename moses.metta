@@ -50,6 +50,14 @@
 !(import! &self reduct/boolean-reduct/promote-common-constraints)
 !(import! &self reduct/boolean-reduct/reduce-to-elegance)
 
+;; ---- Boolean reduction performance helpers ----
+;; Keep the main entry aligned with the benchmark harness:
+;; - native Prolog getLiteralChildren avoids a hot filter-atom path
+;; - SLG tabling memoizes the pure removeEmptyAND tree rewrite
+!(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
+!(import! &self (library lib_tabling))
+!(tabled (removeEmptyAND $e))
+
 !(import! &self utilities/tree)
 
 ;; ---- Scoring ----
