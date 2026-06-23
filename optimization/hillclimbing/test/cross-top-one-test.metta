@@ -105,3 +105,45 @@
                                             (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5))) 
                                                 (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) 
                                                     (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ())))))))) (mkDemeId "1")))
+;;        crossTopTwo and helper tests      
+;;---------------------------------------
+
+;; Test deme: small population with simple integer instances and fixed scores
+(= (deme2)
+   (mkDeme
+       (mkRep
+           (mkKbMap
+              (mkDscKbMp 
+               (cons ()))
+               (mkDscMp ()))
+               (mkTree (mkNode A) ()))
+             (mkSInstSet
+                    (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 1 0 0 0 3)))
+                          (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 1 0 0 0 2)))
+                              (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 0 0 0 1)))
+                                  (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 0 0 0 4)))
+                                         (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 0 0 0 5)))
+                                               (cons (mkSInst (mkPair (mkInst (cons 6 ())) (mkCscore 1 0 0 0 6)))
+                                                      (cons (mkSInst (mkPair (mkInst (cons 7 ())) (mkCscore 1 0 0 0 7)))
+                                                            (cons (mkSInst (mkPair (mkInst (cons 8 ())) (mkCscore 1 0 0 0 8)))()))))))))) (mkDemeId "2")))
+
+;;crossPairsToRef test
+ !(assertEqual
+  (crossPairsToRef
+     (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
+        (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3))) ()))
+     (getInst (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 3))))
+     (mkInst (cons 9 ()))
+     ()
+     2)
+   (cons (mkSInst (mkPair (mkInst (cons 5 ())) (worstCscore)))
+     (cons (mkSInst (mkPair (mkInst (cons 5 ())) (worstCscore))) ())))
+     
+!(assertEqual
+   (List.length (crossPairs
+        (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 1)))
+        (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2))) ()))
+        (mkInst (cons 9 ()))
+        ()
+        10))
+   1)

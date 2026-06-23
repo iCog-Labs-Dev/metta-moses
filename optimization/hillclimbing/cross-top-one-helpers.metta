@@ -47,3 +47,39 @@
  (= (mergerFs $targetInstances $baseInst $referenceInst)
      (map-atom $targetInstances $tI 
          (let (mkSInst (mkPair $targetInst $score)) $tI (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) 0)))))
+
+;;   -------crossTopTwo Helepers----;;
+
+;; crossPairsToRef -- Cross a reference instance against the remaining
+;;                    candidate instances and accumulate the offspring..
+(= (crossPairsToRef () $reference $base $acc $limit)
+   $acc)
+
+(= (crossPairsToRef (cons $target $rest) $reference $base $acc $limit)
+   (if (>= (List.length $acc) $limit)
+       $acc
+       (let*
+         (
+           ((mkSInst (mkPair $targetInst $targetScore)) $target)
+           ($merged (mkSInst (mkPair (mergeInstance $targetInst $base $reference) (worstCscore)))))
+         (crossPairsToRef $rest $reference $base (cons $merged $acc) $limit))))
+
+
+;; crossPairs -- Generate pairwise crossover combinations among
+;;               the selected top-scoring instances.
+;; used by crossTopTwo.
+
+(= (crossPairs () $base $acc $limit)
+   $acc)
+
+;; Select current reference instance and generate
+;; all offspring against the remaining candidates.
+(= (crossPairs (cons $reference $rest) $base $acc $limit)
+   (if (>= (List.length $acc) $limit)
+       $acc
+       (let*
+         (
+           ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
+
+           ($updatedAcc (crossPairsToRef $rest $referenceInst $base $acc $limit)))
+         (crossPairs $rest $base $updatedAcc $limit))))
