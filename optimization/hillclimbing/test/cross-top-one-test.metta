@@ -105,8 +105,8 @@
                                             (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5))) 
                                                 (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) 
                                                     (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ())))))))) (mkDemeId "1")))
-;;        crossTopTwo and helper tests      
-;;---------------------------------------
+;        crossTopTwo and helper tests      
+;---------------------------------------
 
 ;; Test deme: small population with simple integer instances and fixed scores
 (= (deme2)
@@ -129,7 +129,7 @@
 
 ;;crossPairsToRef test
  !(assertEqual
-  (crossPairsToRef
+  (crossPairsForRef
      (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
         (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3))) ()))
      (getInst (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 3))))
@@ -140,10 +140,14 @@
      (cons (mkSInst (mkPair (mkInst (cons 5 ())) (worstCscore))) ())))
      
 !(assertEqual
-   (List.length (crossPairs
-        (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 1)))
-        (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2))) ()))
+   (List.length
+      (crossPairs
+         ()
+         (cons
+            (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 3)))
+               (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
+                 (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 1))) ())))
         (mkInst (cons 9 ()))
         ()
-        10))
-   1)
+         2))
+    2)

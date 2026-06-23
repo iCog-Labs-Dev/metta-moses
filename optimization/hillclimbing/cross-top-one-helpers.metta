@@ -50,36 +50,53 @@
 
 ;;   -------crossTopTwo Helepers----;;
 
-;; crossPairsToRef -- Cross a reference instance against the remaining
-;;                    candidate instances and accumulate the offspring..
-(= (crossPairsToRef () $reference $base $acc $limit)
+;;crossPairsForRef
+;; Generate offspring for one reference against all better instances.
+
+(= (crossPairsForRef () $referenceInst $base $acc $limit)
    $acc)
 
-(= (crossPairsToRef (cons $target $rest) $reference $base $acc $limit)
+(= (crossPairsForRef (cons $target $rest) $referenceInst $base $acc $limit)
    (if (>= (List.length $acc) $limit)
        $acc
        (let*
          (
            ((mkSInst (mkPair $targetInst $targetScore)) $target)
-           ($merged (mkSInst (mkPair (mergeInstance $targetInst $base $reference) (worstCscore)))))
-         (crossPairsToRef $rest $reference $base (cons $merged $acc) $limit))))
 
+           ($offspring
+             (mkSInst
+               (mkPair
+                 (mergeInstance $targetInst $base $referenceInst)
+                 (worstCscore))))
+
+           ($newAcc (List.append $offspring $acc))
+         )
+         (crossPairsForRef $rest $referenceInst $base $newAcc $limit))))
 
 ;; crossPairs -- Generate pairwise crossover combinations among
 ;;               the selected top-scoring instances.
-;; used by crossTopTwo.
+;; processed = better-scoring instances already seen
+;; remaining = current reference and worse instances
+; used by crossTopTwo.
 
-(= (crossPairs () $base $acc $limit)
+(= (crossPairs $processed () $base $acc $limit)
    $acc)
 
-;; Select current reference instance and generate
-;; all offspring against the remaining candidates.
-(= (crossPairs (cons $reference $rest) $base $acc $limit)
+(= (crossPairs $processed (cons $reference $rest) $base $acc $limit)
+
    (if (>= (List.length $acc) $limit)
        $acc
+
        (let*
          (
-           ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
+           ((mkSInst (mkPair $referenceInst $referenceScore))
+             $reference)
 
-           ($updatedAcc (crossPairsToRef $rest $referenceInst $base $acc $limit)))
-         (crossPairs $rest $base $updatedAcc $limit))))
+           ;; cross reference with all better instances
+           ($updatedAcc
+             (crossPairsForRef $processed $referenceInst $base $acc $limit))
+              ($newProcessed (List.append $reference $processed))
+         )
+          (crossPairs $newProcessed $rest $base $updatedAcc $limit))))
+
+
