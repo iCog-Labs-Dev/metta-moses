@@ -215,3 +215,15 @@
          ()
          2))
     2)
+
+!(assertEqual
+   (List.length
+      (crossTriples
+         ()
+         (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 1)))
+               (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
+                     (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 3))) ())))
+         (mkInst (cons 0 ()))
+         ()
+         1))
+   1)
