@@ -65,6 +65,12 @@
                )
                (mkSInstSet (List.appendList (exprToList $newInstances) $newInst))))))
 
+;; crossTopTwo
+;; Performs 2-simplex crossover (pairwise combinations).
+;; Selects top-ranked instances, partially sorts them, and generates offspring by
+;; crossing each reference instance with all better-ranked instances.
+;; Ensures O(n²) combinations are bounded by num-to-make and sample size.
+;; Result is appended back into the original deme.
   (= (crossTopTwo $deme $nToMake $sampleStart $sampleSize $baseInstance)
 
    (let*
@@ -88,3 +94,41 @@
 
      (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree)
             (mkSInstSet (List.appendList (exprToList $newInstances) $instSet)) $demeId)))
+  
+
+;; cbrt-math -- Approximate cube root.
+;;              Used to estimate how many top-ranked instances should be
+;;              selected so enough triple combinations can be generated.n
+(= (cbrt-math $n)
+   (pow-math $n (/ 1 3)))
+
+;; crossTopThree
+;; Performs 3-simplex crossover (triple combinations).
+;; Selects top-ranked instances and generates offspring using nested merges:
+;; target instance is copied, then merged with two higher-ranked references.
+;; Approximates O(n³) combinations but bounded using cube-root sampling.
+;; Produces diverse offspring while limiting combinatorial explosion.
+;; Result is appended back into the original deme.
+(= (crossTopThree $deme $nToMake $sampleStart $sampleSize $baseInstance)
+  (let*
+     (
+     ((mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId) $deme)
+
+        (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
+
+        ;; sample_size choose 3
+        ($tripleFactor (* (- $sampleSize 1) (- $sampleSize 2)))
+        ($maxTriples (/ (* $sampleSize $tripleFactor) 6))
+        ($nToMakeNew (if (< $maxTriples $nToMake) $maxTriples $nToMake))
+
+       ($nToSortRaw (+ (cbrt-math (* 6 $nToMakeNew)) 3))
+       ($nToSort (if (< $sampleSize $nToSortRaw) $sampleSize $nToSortRaw))
+       ($sortedList (List.partialSort instance> $newInst $nToSort ()))
+
+        ($topInsts (List.takeN $nToSort $sortedList))
+        ($newInstances (crossTriples () $topInsts $baseInstance () $nToMakeNew))
+        )
+    (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree)
+    (mkSInstSet (List.appendList (exprToList $newInstances) $instSet)) $demeId)))
+
+ 
