@@ -190,21 +190,23 @@
    (cons A0 (cons A1 (cons D0 (cons D1 (cons D2 (cons D3 (cons Out ())))))))))
 
 
-(= (getBestPossibleCscore $cpxPen $problem)
-   (let $bestCpx
-      (case $problem
-          (
-            (parity3     12) ;; (OR (AND A (NOT B) (NOT C)) (AND (NOT A) B (NOT C)) (AND (NOT A) (NOT B) C) (AND A B C))
-            (parity4     32) ;; (OR (AND A (NOT B) (NOT C) (NOT D)) (AND (NOT A) B (NOT C) (NOT D)) (AND (NOT A) (NOT B) C (NOT D)) (AND (NOT A) (NOT B) (NOT C) D) (AND (NOT A) B C D) (AND A (NOT B) C D) (AND A B (NOT C) D) (AND A B C (NOT D)))
-            (disjunction3 3) ;; (OR X1 X2 X3)
-            (majority3    6) ;; (OR (AND A B) (AND A C) (AND B C))
-            (majority5   30) ;; (OR (AND X1 X2 X3) (AND X1 X2 X4) (AND X1 X2 X5) (AND X1 X3 X4) (AND X1 X3 X5) (AND X1 X4 X5) (AND X2 X3 X4) (AND X2 X3 X5) (AND X2 X4 X5) (AND X3 X4 X5))
-            (mux3         4) ;; (OR (AND (NOT Addr) D0) (AND Addr D1))
-            (mux6        12) ;; (OR (AND (NOT A0) (AND (NOT A1) D0)) (AND (NOT A0) A1 D1) (AND A0 (NOT A1) D2) (AND A0 A1 D3))
-          )
-      )
-      (updatePenalizedScore (mkCscore 0 $bestCpx (* (getComplexityCoef $cpxPen) $bestCpx) 0.0 (* -1 (pow-math 10 308))) False))
-   )
+;; Matches classic MOSES: best_possible_score() for `logical_bscore`/clean
+;; boolean truth tables is just 0 (sum of zeros, one zero per row -- no
+;; misclassifications). The complexity-penalty business is per-candidate,
+;; not part of the termination target. CSV input takes the same code
+;; path; if the table is noisy (duplicate input rows with conflicting
+;; targets), 0 will be unreachable and the algorithm will instead
+;; terminate via `maxGen`.
+(= (getBestPossibleScore) 0)
+
+;; Return the ITable to evolve against. If --inputFile is set, load it from
+;; a CSV via the Python helper; otherwise dispatch to the demo problem
+;; function whose name is in (param problem).
+(= (resolve-itable)
+   (if (== (param inputFile) "")
+       (let $p (param problem) ($p))
+       (let $sexpr (py-call (csv_helper.load_boolean_table (param inputFile) (param targetFeature)))
+            (parse $sexpr))))
 
 ;; runMoses (after the hyperparameter-registry migration) takes:
 ;;   $maxGen $maxScore $metaPop $nExpansion $nDeme $context $optimize
@@ -239,8 +241,11 @@
 ;;
 ;;      sh run.sh moses.metta -s --help
 ;; ============================================================
+;; Run unless the user supplied neither a demo `problem` symbol nor a CSV
+;; `inputFile`. Either is enough to know what to evolve against.
 (= (moses)
-   (if (== (param problem) ())
+   (if (and (== (param problem)   ())
+            (== (param inputFile) ""))
        (no-problem-help-and-exit)
        (moses-run)))
 
@@ -278,14 +283,17 @@
         ;; the recursion, so we seed it once here.
         ($_  (set-param genCount $maxGen))
         ($cpxPen (param complexityRatio))
-        ($truthTableBScore (createTruthTableBScore $cpxPen ($problem)))
+        ;; Resolve the input table once: a CSV the user passed via
+        ;; --inputFile, otherwise the demo problem named by `problem`.
+        ($itable (resolve-itable))
+        ($truthTableBScore (createTruthTableBScore $cpxPen $itable))
         (($ctor $worstPossibleBScore) (worstPossibleScore $truthTableBScore))
         ($worstPossibleScore (List.sum $worstPossibleBScore))
-        ($bestPosssibleCscore (getBestPossibleCscore $cpxPen $problem))
-        ($_ (println! (BestPossibleScore: $bestPosssibleCscore)))
+        ($bestPosssibleScore (getBestPossibleScore))
+        ($_ (println! (BestPossibleScore: $bestPosssibleScore)))
         ($metaPop ((mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore))))
-        ($result (runMoses $maxGen $bestPosssibleCscore $metaPop 0 $nDeme
-              (False $fsAlgo $truthTableBScore ($problem))
+        ($result (runMoses $maxGen $bestPosssibleScore $metaPop 0 $nDeme
+              (False $fsAlgo $truthTableBScore $itable)
               $optimizer))
         ;; ($_ (println! (Result: $result)))
         ($newR (mapG cleanedExemplar $result))

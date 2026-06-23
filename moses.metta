@@ -108,6 +108,16 @@
 ;; ---- Top-level entry point: defines (moses), (optimizer-for ...) ----
 !(import! &self moses/demo-problems)
 
+;; ---- Bootstrap the Python CSV helper used by the --inputFile path ----
+;; csv_helper.load_boolean_table(path, target) returns an (mkITable ...)
+;; S-expression as a string; the MeTTa side parses it back into a term.
+;;
+;; PeTTa's (py-call M.F …) form is limited to a single dot, so we can't
+;; reach `sys.path.append` directly. Use Janus's py_add_lib_dir/2 via the
+;; Predicate/callPredicate bridge to put scripts/ on sys.path, then a plain
+;; (py-call (csv_helper.X …)) resolves at call time.
+!(callPredicate (Predicate (py_add_lib_dir "scripts" first)))
+
 ;; ---- Apply any --name=value flags the user passed on the command line ----
 ;; This is a no-op when no flags are passed; with flags, it overwrites the
 ;; matching defaults in &params before (moses) is called.

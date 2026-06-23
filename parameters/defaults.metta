@@ -35,8 +35,20 @@
 ;; This makes "run with no args" show help instead of silently running
 ;; whatever sample problem was last chosen.
 !(add-atom &params (seed     0))
-!(add-atom &params (maxGen   20))
+!(add-atom &params (maxGen   50))
 !(add-atom &params (nDeme    1))
+
+;; ---- Input table (boolean CSV path) ----
+;; inputFile: filesystem path to a CSV with boolean-valued columns. When
+;;   non-empty, (moses) loads the table from this file instead of
+;;   dispatching to the demo problem function named by `problem`.
+;;   Accepted cell formats: True/False, 1/0, yes/no, t/f (case-insensitive).
+;; targetFeature: name of the output column. Empty -> last column.
+;; Best-possible raw score is 0 for clean (non-noisy) data; noisy tables
+;; (duplicate input rows with conflicting outputs) will terminate via
+;; maxGen rather than by hitting the perfect-classifier target.
+!(add-atom &params (inputFile     ""))
+!(add-atom &params (targetFeature ""))
 
 ;; ---- Algorithm selection ----
 ;; optAlgo: which deme-local optimizer to dispatch to inside runMoses.
@@ -64,7 +76,7 @@
 
 ;; ---- Deme expansion ----
 !(add-atom &params (maxCandOutput 10))
-!(add-atom &params (nEval 500))
+!(add-atom &params (nEval 10000))
 ;; genCount feeds capSize() inside resizeMetapop. Callers normally seed it
 ;; with the initial $maxGen of the run; this default is a safety floor so
 ;; that a forgotten seed doesn't make (param genCount) collapse to ().
