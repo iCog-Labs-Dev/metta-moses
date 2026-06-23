@@ -20,8 +20,11 @@
 ;; gathers every argv entry in a single findall — no need to walk indices
 ;; by hand and detect the failing boundary.
 (= (apply-cli-overrides)
-   (let $args (collapse (argv $_))
-        (map-atom $args $arg (try-apply-flag $arg))))
+   (let* (
+          ($args (collapse (argv $_)))
+          ($_ (map-atom $args $arg (try-apply-flag $arg)))
+         )
+        ()))
 
 ;; -------- Flag dispatch --------
 
