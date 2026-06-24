@@ -70,6 +70,7 @@
                             (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) 
                                 (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))))
 ;; Test cases -- crossTopOne
+;;use List.length as it returns insatance not deme
 !(assertEqual (List.length (crossTopOne (deme1) 3 0 4 (mkInst (cons 2 ())))) 2)
 !(assertEqual (List.length (crossTopOne (deme1) 4 0 5 (mkInst (cons 2 ())))) 3)
 
@@ -144,7 +145,8 @@
 ;; ----------------------------------------
 ;; crossTopTwo integration tests
 ;; ----------------------------------------
-;; Instance Size test
+;; Instance Size test 
+;; use List.length
 !(assertEqual (List.length (crossTopTwo (deme2) 3 0 4 (mkInst (cons 3 ())))) 3)
 
 ;; full crossover test                                      
@@ -172,7 +174,7 @@
     (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
       (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
         (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))))
-        
+
 ;;crossTripleTargets Test 
 !(assertEqual
    (crossTripleTargets
@@ -242,44 +244,32 @@
 ;; crossTopThree integration tests
 ;; ----------------------------------------
 
-;; demeSize test
-!(assertEqual (demeSize (crossTopThree (deme3) 4 0 5 (mkInst  (cons 2 ())))) 11)
+;; Instance Size test 
+;; use List.length
+!(assertEqual (List.length (crossTopThree (deme3) 4 0 5 (mkInst  (cons 2 ())))) 4)
 
 ;; full crossover test
-!(assertEqual 
+!(assertEqual
     (crossTopThree
-      (mkDeme 
-        (mkRep 
-          (mkKbMap (mkDscKbMp (cons ())) (mkDscMp ())) 
+      (mkDeme
+        (mkRep
+          (mkKbMap (mkDscKbMp (cons ())) (mkDscMp ()))
           (mkTree (mkNode A) ()))
-        (mkSInstSet 
-          (cons 
+        (mkSInstSet
+          (cons
             (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1)))
-            (cons 
+            (cons
               (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 1 2 3 4 3)))
-              (cons 
+              (cons
                 (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 1 2 3 4 4)))
-                (cons 
+                (cons
                   (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 2 3 4 2)))
-                  (cons 
+                  (cons
                     (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5)))
                     ()))))))
         (mkDemeId "3")) 3 0 4 (mkInst (cons 2 ())))
-    (mkDeme 
-        (mkRep 
-            (mkKbMap 
-                (mkDscKbMp 
-                    (cons ())) 
-                    (mkDscMp ())) 
-                    (mkTree (mkNode A) ())) 
-                        (mkSInstSet 
-                            (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1))) 
-                                (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 1 2 3 4 3))) 
-                                    (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 1 2 3 4 4))) 
-                                        (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 2 3 4 2))) 
-                                            (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5))) 
-                                                (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
-                                                   (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
-                                                       (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))()))))))))) (mkDemeId "3")))
 
+      (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+        (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+          (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))))
 
