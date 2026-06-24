@@ -60,13 +60,16 @@
 ;; Selects top-ranked instances, partially sorts them, and generates offspring by
 ;; crossing each reference instance with all better-ranked instances.
 ;; Ensures O(n²) combinations are bounded by num-to-make and sample size.
-;; Result is appended back into the original deme.
+;; Returns only the generated offspring instances as a list.
+;; Does not modify or append to the original deme.
+;; Intended for use by a higher-level crossover routine that combines
+;; offspring from multiple crossover operators and merges them back into
+;; the population
 (= (crossTopTwo $deme $nToMake $sampleStart $sampleSize $baseInstance)
 
    (let*
-
      (
-      ((mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId) $deme)
+      ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
       (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
 
       ($pairCount (/ (* $sampleSize (- $sampleSize 1)) 2))
@@ -82,10 +85,9 @@
        ($newInstances (crossPairs () $topInsts $baseInstance () $nToMakeNew))
        )
 
-     (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree)
-            (mkSInstSet (List.appendList (exprToList $newInstances) $instSet)) $demeId)))
-  
-
+      (exprToList $newInstances)
+      ))
+      
 ;; cbrt-math -- Approximate cube root.
 ;;              Used to estimate how many top-ranked instances should be
 ;;              selected so enough triple combinations can be generated.n

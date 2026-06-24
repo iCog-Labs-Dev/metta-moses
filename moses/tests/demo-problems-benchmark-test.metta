@@ -88,6 +88,7 @@
 !(tabled (removeEmptyAND $e))
 
 ;; When run with nEval of 1000 at this configuration, top result should have a score of 0.
-!(assertEqual (let $result (runDemoProblem 2 10 1 None parity3) (second (index-atom (second $result) 0))) 0)
+!(assertEqual (let $result (runDemoProblem 0 10 1 None parity3) (second (index-atom (second $result) 0))) 0)
 ;; TODO: This test case fails because of incorrect creation order when disc probing is enabled. That needs a fix.
-;!(runDemoProblem 0 10 1 None mux6)
+;!(runDemoProblem 0 10 1 None parity3)
+
