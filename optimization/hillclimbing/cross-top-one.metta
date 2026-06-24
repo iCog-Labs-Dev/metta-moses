@@ -6,39 +6,29 @@
 ;;                      next-highest scoring instances.
 
 ; (: crossTopOne (-> Deme Number Number Number Instance Deme))
-;; TODO: Make use of the $sampleStart 
-;; This is how the openCog classic does it but the reason isn't yet clear but 
-;;   I suspect it is to prevent crossovering over an already crossed over 
-;;   population and focus on newly generated instances only.
-(= (crossTopOne $deme $nToMake $sampleStart $sampleSize $baseInstance)
-            (let* (
-                    ((mkDeme (mkRep (mkKbMap (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId) $deme)
-                    ;; ($_ (println! (Inside crossTopOne)))
-                    ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
-                    ;; ($_ (println! (SampleSize: $sampleSize NToMake: $nToMakeNew SampleStart: $sampleStart totalSize: (List.length $instSet))))
-                    (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
-                    ;; ($list (List.partialSort instance> $newInst $nToMakeNew)) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
-                    ($list (List.partialSort instance> $newInst $nToMakeNew ())) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
+ (= (crossTopOne $deme $nToMake $sampleStart $sampleSize $baseInstance)
+   (let*
+      (
+       ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
 
-                    ;; ($_ (println! (ListLength: (List.length $list))))
-                  )
-                  (if (== $list ())
-                      (mkDeme (mkRep (mkKbMap (mkDscMp $dscMp)) $tree) (mkSInstSet $instSet) $demeId)
-                      (let*
-                        (
-                          ((cons $reference $rest) $list)
-                          ($targetExpr (List.takeN (- $nToMake 1) $rest))
+       ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
+       (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
+       ($list (List.partialSort instance> $newInst $nToMakeNew ()))
+      )
 
-                          ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
-                          ($newInstances (merger $targetExpr $baseInstance $referenceInst))
-                          ;; ($_ (println! (Merger: $newInstances)))
-                          ;; ($uniqueInstances (unique-atom $newInstances))
-                          ;; ($_ (println! (NewInstances: (length $newInstances) UniqueInstances: (length $uniqueInstances))))
-                          ;; ($__ (println! (New instances After merging: $newInstances)))
-                          ;; ($_ (println! ""))
-                          ;; ($_ (println! (PrevInst: $prevInst)))
-                        )
-                        (mkDeme (mkRep (mkKbMap (mkDscMp $dscMp)) $tree) (mkSInstSet (List.appendList (exprToList $newInstances) $instSet)) $demeId)))))
+      (if (== $list ())
+          ()
+          (let*
+             (
+              ((cons $reference $rest) $list)
+
+              ($targetExpr (List.takeN (- $nToMakeNew 1) $rest))
+              ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
+
+              ($newInstances (merger $targetExpr $baseInstance $referenceInst))
+              )
+             (exprToList $newInstances)
+          ))))
 
 ;; similar to the above 'crossTopOne' but with slight changes on the comparison function that is passed to the Lost.partialSort to compare the mutualInformation based scores
 ; (: crossTopOneFs (-> (InstanceSet $a) Number Number Number Instance (InstanceSet $a)))
@@ -71,7 +61,7 @@
 ;; crossing each reference instance with all better-ranked instances.
 ;; Ensures O(n²) combinations are bounded by num-to-make and sample size.
 ;; Result is appended back into the original deme.
-  (= (crossTopTwo $deme $nToMake $sampleStart $sampleSize $baseInstance)
+(= (crossTopTwo $deme $nToMake $sampleStart $sampleSize $baseInstance)
 
    (let*
 
@@ -129,6 +119,4 @@
         ($newInstances (crossTriples () $topInsts $baseInstance () $nToMakeNew))
         )
     (mkDeme (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $tree)
-    (mkSInstSet (List.appendList (exprToList $newInstances) $instSet)) $demeId)))
-
- 
+            (mkSInstSet (List.appendList (exprToList $newInstances) $instSet)) $demeId)))
