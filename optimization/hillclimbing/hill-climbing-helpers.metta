@@ -121,16 +121,50 @@
 ; (: countNeighborhoodFs (-> Instance Number Number Number))
 (= (countNeighborhoodFs $instance $dist $maxCount)
    (countNeighborhoodFromIdxFs $instance $dist 0 $maxCount))
+  
+;; merge3Demes
+;; Combines offspring produced by the three crossover operators,
+;; removes duplicates, appends unique offspring to the original deme,
+;; and returns the updated deme together with the number of new instances added.
+(= (merge3Demes $origDeme $newInstances1 $newInstances2 $newInstances3)
 
-;; Crossover function.
-;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
-; (: crossover (-> Number Number Instance Deme (Deme Number)))
+   (let*
+      (
+       ((mkDeme $rep (mkSInstSet $origSet) $demeId) $origDeme)
+
+       ($temp (List.appendList $newInstances1 $newInstances2))
+       ($allNewInstances (List.appendList $temp $newInstances3))
+
+       ($uniqueNewInstances (unique-atom $allNewInstances))
+       ($finalSet (List.appendList $uniqueNewInstances $origSet))
+
+       ($nNewAdded (List.length $uniqueNewInstances))
+      )
+     ((mkDeme $rep (mkSInstSet $finalSet) $demeId) $nNewAdded)
+))
+
+;; crossover
+;; Main crossover driver.
+;; Distributes the crossover budget across 1-, 2-, and 3-simplex operators,
+;; collects their offspring, merges the results, removes duplicates,
+;; and returns the updated deme and count of newly added instances.
+;; (: crossover (-> Number Number Instance Deme (Deme Number)))
 (= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme)
    ;; (trace! (Running crossover to make: (min $nNewInstances 120) instances)
-   ;; INFO: The 120 is crossover_pop_size parameter that should come from hillClimbing
-           ((crossTopOne $deme (min $nNewInstances 120) $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
-   ;; )
-   ) ;; WARN: The $nNewInstances might not be the actual number of instances created.
+   ;; INFO: The 120 is crossover_pop_size parameter that should come from hillClimbing   
+    (let*
+      (
+       ($nToMake (min $nNewInstances 120))
+   
+       ($newInstances1 (crossTopOne $deme (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst))
+       ($newInstances2 (crossTopTwo $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
+       ($newInstances3 (crossTopThree $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
+      )
+      (merge3Demes $deme $newInstances1 $newInstances2 $newInstances3)
+)
+ )
+ ;; )
+    ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
 ;; crossover for feature selection
 ; (: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
