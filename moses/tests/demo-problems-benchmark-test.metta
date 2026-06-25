@@ -78,7 +78,7 @@
 ;; MeTTa-level rewrites lost to filter-atom's tight inner loop. A Prolog
 ;; predicate compiled to native code wins on both fronts: one walk instead of
 ;; two, and zero per-element reduce/2 dispatch.
-;  !(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
+!(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
 
 ;; --- Performance: SLG tabling on pure tree-rewrite predicates ---
 ;; removeEmptyAND/2 is a pure tree rewrite called 4.35M times on parity3 (and
