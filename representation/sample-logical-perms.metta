@@ -23,6 +23,8 @@
 (= (genPairs $list)
     (pairOuterLoop $list 0 (size-atom $list)))
 
+
+
 ;; TODO: Rewrite using iterative logic
 (= (genTriplet $list)
     (let*
@@ -38,25 +40,31 @@
     )
 )
 
-;; getArgs -> generate logical expressions from the list of pairs
+;; getArgsIter -> Iterative evaluator for logical argument generation.
+;;              Walks through selected pair indices (picked list) deterministically.
+;;              Builds expressions using anchor–partner index pairs from PermPairs.
+;;Replaces nondeterministic superpose-based evaluation.
+(= (getArgsIter $swapedOp $PermPairs $picked $argLabels $i $size)
+    (if (>= $i $size)
+        ()
+        (let*
+            (
+                ($pairIdx (index-atom $picked $i))
+                (($a $b) (index-atom $PermPairs $pairIdx))
+                (($1 $2) ((index-atom $argLabels $a) (index-atom $argLabels $b)))
+
+                ($expr (if (< $b $a) ($swapedOp $2 $1) ($swapedOp (NOT $1) $2))))
+            (cons-atom $expr (getArgsIter $swapedOp $PermPairs $picked $argLabels (+ $i 1) $size)))))
+
+;; getArgs ->  Produces deterministic tuple of logical expressions.
 ;; Parameters:
 ;;          $swapedOp -> swaped operator
 ;;          $PermPairs -> list of pairs of idx permutations
 ;;          $picked -> list of picked idxs
 ;; (: getArgs (-> Atom Expression Expression Expression Expression))
-;; TODO: Rewrite using iterative logic
 (= (getArgs $swapedOp $PermPairs $picked $argLabels)
-    (let*
-        (
-            (($a $b) (index-atom $PermPairs (superpose $picked)))
-            (($1 $2) ((index-atom $argLabels $a) (index-atom $argLabels $b)))
-        )
-        (if (< $b $a)
-            ($swapedOp $2 $1)
-            ($swapedOp (NOT $1) $2)
-        )
-    )
-)
+    (getArgsIter $swapedOp $PermPairs $picked $argLabels 0 (size-atom $picked)))
+
 ;; sampleLogicalPerms -> generate logical permutations for boolean expressions
 ;; Parameters:
 ;;          $op -> the operator passed from the iterator 
