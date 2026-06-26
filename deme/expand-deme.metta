@@ -145,9 +145,9 @@ $optimDeme
                         (($nGames $opponentPolicy $complexityRatio) (trace! "expand deme return" (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $maxScore $optimize))))))
       ;  (((mkDeme $rep $sInst $demeId)) $optimizedDemes)
       ;  ($_ (println! (OptimizedDeme: $optimizedDemes)))
-       ($updatedMetaPop (case $context 
-                        ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "Merging Deme" (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metaPop $nToKeep $capCoef $genCount)))
-                        (($nGames $opponentPolicy $complexityRatio) (trace! "Merging Deme" (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature ($nGames $opponentPolicy) $metaPop $nToKeep $capCoef $genCount))))))
+       ($updatedMetaPop (case $context
+                        ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "Merging Deme" (mergeDemes $optimizedDemes $itable $metaPop)))
+                        (($nGames $opponentPolicy $complexityRatio) (trace! "Merging Deme" (mergeDemes $optimizedDemes ($nGames $opponentPolicy) $metaPop))))))       
        ;; ($_ (println! (Updated MetaPop: $updatedMetaPop)))
        ($top (OS.getByIdx 0 $metaPop))
        ;; ($_ (println! (Top Exemplar before expansion: $top)))
