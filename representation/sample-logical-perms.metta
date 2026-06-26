@@ -24,6 +24,15 @@
 (= (genPairs $list)
     (pairOuterLoop $list 0 (size-atom $list)))
 
+;; tripletInnerLoop -> selects third element (k) and  complete valid triplets.  
+;; Type: (-> Expression Number Number Number Number Expression)
+(= (tripletInnerLoop $list $i $j $k $size)
+    (if (>= $k $size)
+        ()
+        (if (or (== $k $i) (== $k $j))
+            (tripletInnerLoop $list $i $j (+ $k 1) $size)
+            (cons-atom ((index-atom $list $i) (index-atom $list $j) (index-atom $list $k))
+                        (tripletInnerLoop $list $i $j (+ $k 1) $size)))))
 
 
 ;; TODO: Rewrite using iterative logic
