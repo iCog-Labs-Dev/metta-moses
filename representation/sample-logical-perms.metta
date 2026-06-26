@@ -1,3 +1,14 @@
+;; pairInnerLoop -> selects second candidate for each anchor and 
+;;                 builds (anchor partner) pairs.
+;; Type: (-> Expression Number Number Number Expression)
+(= (pairInnerLoop $list $i $j $size)
+    (if (>= $j $size)
+        ()
+        (if (== $i $j)
+            (pairInnerLoop $list $i (+ $j 1) $size)
+            (cons-atom ((index-atom $list $i) (index-atom $list $j))
+                      (pairInnerLoop $list $i (+ $j 1) $size)))))
+
 ;; A function to generate all pairs of numbers from a list, where a != b
 ;; (: genPairs (-> Expression Expression))
 ;; TODO: Rewrite using iterative logic
