@@ -11,8 +11,6 @@
 !(bind! &maxCacheSize (new-state 10))     ;; Maximum cache capacity
 !(bind! &accessCounter (new-state 0))     ;; sequential counter for ordering
 
-(= (DEFAULT_CACHE_SIZE) 60)
-
 ;; Function: cacheExists
 ;; Purpose: Check if a function call with given arguments exists in cache
 ; (: cacheExists (-> Symbol $a Bool))

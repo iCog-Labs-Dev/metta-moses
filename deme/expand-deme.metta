@@ -100,21 +100,23 @@
 )
 $optimDeme
 ))
-;; The main loop 
+;; The main loop
 ;; Takes 2 termination criterias:
 ;;     - $maxGen : how many times we want the loop to run
-;;     - $maxScore : the maximum score we want the top Examplar to have
-;; It also takes:
-;;     - $maxCandOutput : The number of candidates to be returned
-;;     - other parameters required by the expandDeme method
-; (: runMoses (-> Number Cscore Number (OS (Exemplar $a)) Number Number Bool Symbol (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)) $Scorer Number Number Number Number (ITable $a) Number Number Number (OS (Exemplar $a))))
-;; TODO: $nEval isn't being used. Increase it so that it works as expected. 
+;;     - $maxScore : the maximum *raw* score we want the top Examplar to reach.
+;;                   This is a scalar (Number), matching classic MOSES'
+;;                   `score_t target_score = c_scorer.best_possible_score()`.
+;;                   For clean boolean tables it's 0. The complexity penalty
+;;                   is applied per-candidate during scoring, separate from
+;;                   this termination check.
+; (: runMoses (-> Number Number (OS (Exemplar $a)) Number Number $Context $Optimize (OS (Exemplar $a))))
+;; TODO: $nEval isn't being used. Increase it so that it works as expected.
 ;; To enable that, we may need to change our termination condition so that the generation is equivalent to the number of expansion as well.
 ;; The number of expansions in the open cog classic is equivalent to the number of deme expansions. That looks like the same thing we are doing here but not sure.
-(= (runMoses $maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $context $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount)
+(= (runMoses $maxGen $maxScore $metaPop $nExpansion $nDeme $context $optimize)
 (if (== $maxGen 0)
-    (if (<= $maxCandOutput (OS.length $metaPop))
-        (let $topCandidates (OS.getTopN $maxCandOutput $metaPop) $topCandidates)
+    (if (<= (param maxCandOutput) (OS.length $metaPop))
+        (let $topCandidates (OS.getTopN (param maxCandOutput) $metaPop) $topCandidates)
         $metaPop
   )
     (let*
@@ -125,9 +127,9 @@ $optimDeme
                         (($nGames $opponentPolicy $complexityRatio) (trace! "expand deme return" (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $maxScore $optimize))))))
        (((mkDeme $rep $sInst $demeId)) $optimizedDemes)
        ($_ (println! (OptimizedDeme: (List.length (second $sInst)))))
-       ($updatedMetaPop (case $context 
-                        ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "Merging Deme" (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metaPop $nToKeep $capCoef $genCount)))
-                        (($nGames $opponentPolicy $complexityRatio) (trace! "Merging Deme" (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature ($nGames $opponentPolicy) $metaPop $nToKeep $capCoef $genCount))))))
+       ($updatedMetaPop (case $context
+                        ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "Merging Deme" (mergeDemes $optimizedDemes $itable $metaPop)))
+                        (($nGames $opponentPolicy $complexityRatio) (trace! "Merging Deme" (mergeDemes $optimizedDemes ($nGames $opponentPolicy) $metaPop))))))
        ;; ($_ (println! (Updated MetaPop: $updatedMetaPop)))
        ($top (OS.getByIdx 0 $metaPop))
        ;; ($_ (println! (Top Exemplar before expansion: $top)))
@@ -138,11 +140,14 @@ $optimDeme
        ($_ (cut)) ;; INFO: This cut speeds things up. Don't remove it.
        ($_ (println! ""))
       )
- (if (== $topScore $maxScore)
-         (if (<= $maxCandOutput (OS.length $updatedMetaPop))
-             (OS.getTopN $maxCandOutput $updatedMetaPop)
+ ;; Match classic semantics: compare the raw behavioural score against the
+ ;; scalar `$maxScore`. The Cscore's complexity / penalty fields are
+ ;; consulted elsewhere when ranking candidates but not at termination.
+ (if (>= (getScore $topScore) $maxScore)
+         (if (<= (param maxCandOutput) (OS.length $updatedMetaPop))
+             (OS.getTopN (param maxCandOutput) $updatedMetaPop)
              $updatedMetaPop)
-         (runMoses (- $maxGen 1) $maxScore $maxCandOutput $updatedMetaPop $nExpansion $nDeme $context $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $nToKeep $capCoef $genCount)))))
+         (runMoses (- $maxGen 1) $maxScore $updatedMetaPop $nExpansion $nDeme $context $optimize)))))
 
 
 ;; Some helpers specific to final testing

@@ -1,4 +1,6 @@
 !(import! &self ../../../utilities/general-helpers)
+!(import! &self ../../../parameters/registry)
+!(import! &self ../../../parameters/defaults)
 !(import! &self ../../../utilities/list-methods)
 !(import! &self ../../../utilities/nodeId)
 !(import! &self ../../../utilities/map)

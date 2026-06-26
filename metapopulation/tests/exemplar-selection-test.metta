@@ -1,4 +1,6 @@
 !(import! &self ../../../metta-moses/utilities/general-helpers)
+!(import! &self ../../../metta-moses/parameters/registry)
+!(import! &self ../../../metta-moses/parameters/defaults)
 !(import! &self ../../../metta-moses/utilities/list-methods)
 !(import! &self ../../../metta-moses/utilities/ordered-set)
 !(import! &self ../../../metta-moses/scoring/cscore.metta)

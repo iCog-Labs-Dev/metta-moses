@@ -1,6 +1,7 @@
 !(import! &self ../../utilities/general-helpers)
 !(import! &self ../../parameters/registry)
 !(import! &self ../../parameters/defaults)
+!(import! &self ../../parameters/cli)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/pair)
 !(import! &self ../../utilities/map)
@@ -21,6 +22,10 @@
 !(import! &self ../../reduct/boolean-reduct/one-constraint-subsumption)
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
+
+!(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
+!(import! &self (library lib_tabling))
+!(tabled (removeEmptyAND $e))
 
 !(import! &self ../../utilities/tree)
 
@@ -49,7 +54,6 @@
 !(import! &self ../../representation/build-logical)
 !(import! &self ../../representation/build-knobs)
 !(import! &self ../../representation/knob-mapper)
-
 !(import! &self ../../representation/representation)
 !(import! &self ../../representation/create-representation)
 
@@ -60,7 +64,6 @@
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
 
 !(import! &self ../../deme/create-deme)
-
 !(import! &self ../neighborhood-sampling)
 
 !(import! &self ../../metapopulation/exemplar-type)
@@ -76,21 +79,29 @@
 
 !(import! &self ../demo-problems)
 
-;; --- Performance: native Prolog stub for getLiteralChildren ---
-;; MeTTa-level rewrites lost to filter-atom's tight inner loop. A Prolog
-;; predicate compiled to native code wins on both fronts: one walk instead of
-;; two, and zero per-element reduce/2 dispatch.
-!(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
+!(callPredicate (Predicate (py_add_lib_dir "scripts" first)))
 
-;; --- Performance: SLG tabling on pure tree-rewrite predicates ---
-;; removeEmptyAND/2 is a pure tree rewrite called 4.35M times on parity3 (and
-;; with deep intra-call subtree recurrence): tabling collapsed it to ~977K
-;; calls with the time dropping 16.2 s → 1.9 s in profile measurement.
-!(import! &self (library lib_tabling))
-!(tabled (removeEmptyAND $e))
+(= (inputCsvTable)
+   (mkITable
+      ((False False False)
+       (False True  True)
+       (True  False True)
+       (True  True  False))
+      (a b o)))
 
-;; When run with nEval of 1000 at this configuration, top result should have a score of 0.
-!(assertEqual (let $result (runDemoProblem 0 10 1 None parity3) (second (index-atom (second $result) 0))) 0)
-;; TODO: This test case fails because of incorrect creation order when disc probing is enabled. That needs a fix.
-;!(runDemoProblem 0 10 1 None parity3)
+!(println! ("testing: inputFile loads input.csv as an ITable"))
+!(set-param inputFile input.csv)
+!(set-param targetFeature "")
+!(assertEqual (resolve-itable) (inputCsvTable))
 
+!(println! ("testing: moses solves input.csv through inputFile"))
+!(set-param seed 0)
+!(set-param maxGen 1)
+!(set-param nEval 50)
+!(set-param nDeme 1)
+!(set-param fsAlgo None)
+!(set-param optAlgo hc)
+!(assertEqual
+   (let $result (moses)
+        (second (index-atom (second $result) 0)))
+   0)
