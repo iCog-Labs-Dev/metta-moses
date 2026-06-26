@@ -26,7 +26,7 @@
 
               ($newInstances (merger $targetExpr $baseInstance $referenceInst))
               )
-             (exprToList $newInstances)
+             $newInstances
           ))))
 
 ;; similar to the above 'crossTopOne' but with slight changes on the comparison function that is passed to the Lost.partialSort to compare the mutualInformation based scores
@@ -83,8 +83,7 @@
 
        ($newInstances (crossPairs () $topInsts $baseInstance () $nToMakeNew))
        )
-
-      (exprToList $newInstances)
+      $newInstances
       ))
 
 ;; cbrt-math -- Approximate cube root.
@@ -125,5 +124,5 @@
         ($newInstances (crossTriples () $topInsts $baseInstance () $nToMakeNew))
         )
 
-       (exprToList $newInstances)
+       $newInstances
     ))
