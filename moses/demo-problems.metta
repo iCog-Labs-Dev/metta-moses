@@ -190,23 +190,24 @@
    (cons A0 (cons A1 (cons D0 (cons D1 (cons D2 (cons D3 (cons Out ())))))))))
 
 
-(= (getBestPossibleCscore $cpxPen $problem)
-   (let $bestCpx
-      (case $problem
-          (
-            (parity3     12) ;; (OR (AND A (NOT B) (NOT C)) (AND (NOT A) B (NOT C)) (AND (NOT A) (NOT B) C) (AND A B C))
-            (parity4     32) ;; (OR (AND A (NOT B) (NOT C) (NOT D)) (AND (NOT A) B (NOT C) (NOT D)) (AND (NOT A) (NOT B) C (NOT D)) (AND (NOT A) (NOT B) (NOT C) D) (AND (NOT A) B C D) (AND A (NOT B) C D) (AND A B (NOT C) D) (AND A B C (NOT D)))
-            (disjunction3 3) ;; (OR X1 X2 X3)
-            (majority3    6) ;; (OR (AND A B) (AND A C) (AND B C))
-            (majority5   30) ;; (OR (AND X1 X2 X3) (AND X1 X2 X4) (AND X1 X2 X5) (AND X1 X3 X4) (AND X1 X3 X5) (AND X1 X4 X5) (AND X2 X3 X4) (AND X2 X3 X5) (AND X2 X4 X5) (AND X3 X4 X5))
-            (mux3         4) ;; (OR (AND (NOT Addr) D0) (AND Addr D1))
-            (mux6        12) ;; (OR (AND (NOT A0) (AND (NOT A1) D0)) (AND (NOT A0) A1 D1) (AND A0 (NOT A1) D2) (AND A0 A1 D3))
-          )
-      )
-      (updatePenalizedScore (mkCscore 0 $bestCpx (* (getComplexityCoef $cpxPen) $bestCpx) 0.0 (* -1 (pow-math 10 308))) False))
-   )
+;; Matches classic MOSES: best_possible_score() for `logical_bscore`/clean
+;; boolean truth tables is just 0 (sum of zeros, one zero per row -- no
+;; misclassifications). The complexity-penalty business is per-candidate,
+;; not part of the termination target. CSV input takes the same code
+;; path; if the table is noisy (duplicate input rows with conflicting
+;; targets), 0 will be unreachable and the algorithm will instead
+;; terminate via `maxGen`.
+(= (getBestPossibleScore) 0)
 
-;;$maxGen $maxScore $maxCandOutput $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount
+;; Return the ITable to evolve against. If --inputFile is set, load it from
+;; a CSV via the Python helper; otherwise dispatch to the demo problem
+;; function whose name is in (param problem).
+(= (resolve-itable)
+   (if (== (param inputFile) "")
+       (let $p (param problem) ($p))
+       (let $sexpr (py-call (csv_helper.load_boolean_table (param inputFile) (param targetFeature)))
+            (parse $sexpr))))
+
 ;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
 ;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;;                   smd      ;; the new arguments for feature selection algo
@@ -215,28 +216,115 @@
 ;;                   100 10 20 2
 ;;                   (xortable)
 ;;                   10 0.004 1000))
-(= (runDemoProblem $seed $maxGen $nDeme $fsAlgo $problem)
+;; ============================================================
+;;  Top-level MOSES entry point.
+;;
+;;  Zero-argument entry point:
+;;
+;;      !(moses)
+;;
+;;  Override any knob from the command line:
+;;
+;;      sh run.sh moses.metta -s \
+;;          --problem=parity3 --maxGen=20 --nDeme=2 \
+;;          --fsAlgo=smd --optAlgo=hc --capCoef=80
+;;
+;;  Inspect every recognized knob:
+;;
+;;      sh run.sh moses.metta -s --help
+;; ============================================================
+;; Run unless the user supplied neither a demo `problem` symbol nor a CSV
+;; `inputFile`. Either is enough to know what to evolve against.
+(= (moses)
+   (if (and (== (param problem)   ())
+            (== (param inputFile) ""))
+       (no-problem-help-and-exit)
+       (moses-run)))
+
+;; Shown when (moses) is invoked without --problem= on the command line
+;; and without an in-script (set-param problem ...). Falls through to the
+;; standard --help dump so the user sees every knob and value.
+(= (no-problem-help-and-exit)
    (let*
       (
+        ($_ (println! ""))
+        ($_ (println! "No problem specified."))
+        ($_ (println! "Pass --problem=<name> on the command line, e.g.:"))
+        ($_ (println! "    sh run.sh moses.metta -s --problem=parity3"))
+        ($_ (println! "or programmatically:  !(set-param problem parity3)"))
+        ($_ (print-help-and-exit))
+      )
+      ()))
+
+(= (moses-run)
+   (let*
+      (
+        ;; Pull every input from the registry up-front so the body
+        ;; reads like the historical runDemoProblem.
+        ($seed     (param seed))
+        ($maxGen   (param maxGen))
+        ($nDeme    (param nDeme))
+        ($fsAlgo   (param fsAlgo))
+        ($optAlgo  (param optAlgo))
+        ($problem  (param problem))
+        ($optimizer (optimizer-for $optAlgo))
+
         ($srp (py-call (random.seed $seed)))
-        ($cpxPen 3.5)
-        ($capCoef 50)
-        ($complexityTemperature 6)
-        ($truthTableBScore (createTruthTableBScore $cpxPen ($problem)))
+        ;; genCount feeds the cap-size formula inside resizeMetapop; it
+        ;; is conceptually the initial $maxGen and stays constant across
+        ;; the recursion, so we seed it once here.
+        ($_  (set-param genCount $maxGen))
+        ($cpxPen (param complexityRatio))
+        ;; Resolve the input table once: a CSV the user passed via
+        ;; --inputFile, otherwise the demo problem named by `problem`.
+        ($itable (resolve-itable))
+        ($truthTableBScore (createTruthTableBScore $cpxPen $itable))
         (($ctor $worstPossibleBScore) (worstPossibleScore $truthTableBScore))
         ($worstPossibleScore (List.sum $worstPossibleBScore))
-        ($bestPosssibleCscore (getBestPossibleCscore $cpxPen $problem))
-        ($_ (println! (BestPossibleScore: $bestPosssibleCscore)))
+        ($bestPosssibleScore (getBestPossibleScore))
+        ($_ (println! (BestPossibleScore: $bestPosssibleScore)))
         ($metaPop ((mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore))))
-        ;; ($metaPop (cons (mkExemplar (mkTree (mkNode AND) (cons (mkTree (mkNode OR) ()) ())) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore)) ()))
-        ($result (runMoses $maxGen $bestPosssibleCscore 10 $metaPop 0 $nDeme
-              (False $fsAlgo $truthTableBScore ($problem))
-              hillClimbing
-              500 100 20 $complexityTemperature
-              50 $capCoef $maxGen))
-        ($_ (println! (Result: $result)))
+        ($result (runMoses $maxGen $bestPosssibleScore $metaPop 0 $nDeme
+              (False $fsAlgo $truthTableBScore $itable)
+              $optimizer))
+        ;; ($_ (println! (Result: $result)))
         ($newR (mapG cleanedExemplar $result))
         ($_ (cut)) ;; INFO: This gives few extra seconds performance gain. Do not remove.
       )
       (FinalResult $newR)))
+
+;; Maps the optAlgo symbol to the concrete optimizer function used by
+;; runMoses. Only hill climbing is integration-tested today; the SA and
+;; univariate implementations under optimization/ exist but have never
+;; been wired into the deme-expansion path. Add a clause here when a new
+;; algorithm becomes ready.
+(= (optimizer-for hc)
+     (case $optimizer
+          (
+            (hc hillClimbing)
+            ;; (sa simulated-annealing)
+            ($other (let*
+                      (
+                        ($_ (println! ""))
+                        ($_ (println! (Error: unsupported optAlgo $other)))
+                        ($_ (println! "Recognized optAlgo values: hc"))
+                        ($_ (println! "(simulated annealing and univariate exist in the tree but are not integration-tested.)"))
+                        ($_ (callPredicate (Predicate (halt 1))))
+                      )
+                      ())))))
+
+;; Backward-compat shim. Existing test_moses.py templates substitute
+;; placeholders into a (runDemoProblem $seed $maxGen $nDeme $fsAlgo $problem)
+;; call; we keep that signature working by writing the arguments into
+;; &params and then dispatching to (moses).
+(= (runDemoProblem $seed $maxGen $nDeme $fsAlgo $problem)
+   (let*
+      (
+        ($_1 (set-param seed    $seed))
+        ($_2 (set-param maxGen  $maxGen))
+        ($_3 (set-param nDeme   $nDeme))
+        ($_4 (set-param fsAlgo  $fsAlgo))
+        ($_5 (set-param problem $problem))
+      )
+      (moses)))
 
