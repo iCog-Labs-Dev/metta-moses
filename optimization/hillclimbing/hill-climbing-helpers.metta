@@ -152,6 +152,10 @@
 (= (getDisk (mkDeme (mkRep (mkKbMap $kbMap (mkDscMp $disc)) $tree) $instSet $id)) $disc)
 (= (getDisk (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) $instSet $id)) $disc)
 
+(= (getDiskfromRep (mkRep (mkKbMap $kbMap (mkDscMp $disc)) $tree)) $disc)
+(= (getDiskfromRep (mkRep (mkKbMap (mkDscMp $disc)) $tree)) $disc)
+
+
 (= (getTTableParams (mkTruthTableBScore $cpxCoeff $size $iTable))
     ($cpxCoeff $size $iTable)
 )
@@ -192,8 +196,13 @@
     (((mkParams applyComplexityBasedScore)
         (let*
           (
-            ($disc (getDisk $POASet))
+            ;;($disc (getDisk $POASet))
+            ($representation (match $POASet (mkRep $kbmp $tree) (mkRep $kbmp $tree)))
+            ;; ($_ (println! (Representation: $representation)))
+            ($disc (getDiskfromRep $representation))
+            ;; ($_ (println! (Disc: $disc)))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer))
+            ;; ($_ (println! (CpxCoeff: $cpxCoeff Size: $size ITabe: $iTable)))
           )
           (hillClimbing ((min 4 (List.length (second $centerInst))) 400 0) (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
@@ -250,8 +259,11 @@
         ($_ (println! ""))
         ($_ (println! (Iteration $i running)))
 
-        ($totalNNeighbors ($estimateFunction $d $neighborhood))
-
+        ($totalNNeighbors  ($estimateFunction $d $neighborhood))
+        ($rep (let $return (match $POASet (mkRep $knmp $tree) (mkRep $knmp $tree)) (if (== $return (mkRep () ())) () $return)))
+        ;; ($_ (println! (Representation: $rep)))
+        ($id (let $returnn (match $POASet (mkDemeId $dmid) (mkDemeId $dmid)) (if (== $returnn (mkDemeId ())) () $returnn)))
+        ;; ($_ (println! (DemeId: $id)))
         ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
         ;; ($_ (println! ""))
 
@@ -267,14 +279,14 @@
         ($_ (println! ($totalNNeighbors : $nNewNeighbors : $d)))
         ( 
           ; $newPOA
-          ((mkDeme $rep $updatedInstSet $id) $newInstances)
+          ($updatedInstSet $newInstances)
                                                             (case ($xOver $size)
                                                               (
                                                                 ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet)
-                                                                              ((mkDeme () $updatedInstSet ()) $newInstances)))
+                                                                              ($updatedInstSet $newInstances)))
                                                                 ((True $notEmpty)  ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $centerInst $POASet))
                                                                 ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst (mkITable $rowOCoeff $neighborhood) $POASet $d)
-                                                                              ((mkDeme () $updatedInstSet ()) $newInstances)))
+                                                                              ($updatedInstSet $newInstances)))
                                                                 ((False $notEmpty)
                                                                         (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst $POASet $d)
                                                                         ;; (trace! ("Result: " $result)
@@ -294,7 +306,6 @@
         ;; ($_ (println! ""))
         ;; deconstruct the hyper params for fs function
         (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType) (if (== () $hyperparamsfs) (() () () () () ()) $hyperparamsfs))
-
         ((mkSInstSet $scoredInstances) (if (or (== $rep ()) (== $id ())) 
                                            ($transformFunction 
                                                                 $updatedInstSet
@@ -308,9 +319,11 @@
                                               ($ComplexityRatio ($transformFunction $updatedInstSet $rep $id ($rowOCoeff $size) $ComplexityRatio))
                                             ))))
 
-        ($updatedDeme (if (or (== $rep ()) (== $id ())) 
-                          (mkSInstSet $scoredInstances) 
-                          (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
+        ; ($updatedDeme (if (or (== $rep ()) (== $id ())) 
+        ;                   (mkSInstSet $scoredInstances) 
+        ;                   (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
+        ($_ (remove-atom $POASet (mkSInstSet $oldinstset)))
+        ($_ (add-atom $POASet (mkSInstSet $scoredInstances)))
         
         ;; ($sExprList (List.listToExpr $scoredInstances))
         ;; ($amr (map-atom $sExprList $inst (let (mkSInst $x) $inst (println! (Inst: (List.listToExpr (second (Pair.first $x))) Tree: (preOrder (getCandidate $rep $id (Pair.first $x))) Score: (getPenScore (Pair.second $x)))))))
@@ -341,12 +354,12 @@
                               (if (and (== $totalNNeighbors 1) (== $nextDistance 1))
                                   (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
                                                 ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $prevStart $prevSize $nextBestSscore $nextBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i)) ;; Updated state
-                                                $updatedDeme
+                                                $POASet
                                                 ($neighborhood $rowOCoeff $size $iTable)
                                                 $nextCenterInst
                                                 $hyperparamsfs
                                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
-                                  ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentNInstances $newInstances $nextBestSscore $nextBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
+                                  ($nextCenterInst $POASet ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentNInstances $newInstances $nextBestSscore $nextBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
         
         ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (getPenScore $newBestSscore)))
         ;; ($_ (println! (Found newBestSscore After (+ 1 $i) iteration is: $newBestSscore $scoreToCompareBelow)))

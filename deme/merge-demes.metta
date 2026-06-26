@@ -115,8 +115,8 @@
 ;;   $itable: The input table.
 ;; Return: (List (Exemplar $a)) - List of exemplars with scored trees.
 ; (: demeToTrees (-> Deme (ITable $a) (List (Exemplar $a))))
-(= (demeToTrees (mkDeme $rep (mkSInstSet ()) $demeId) $scoringContext) ())
-(= (demeToTrees (mkDeme $rep (mkSInstSet (cons $si $sil)) $demeId) $scoringContext)
+(= (demeToTrees $rep (mkSInstSet ()) $demeId $scoringContext) ())
+(= (demeToTrees $rep (mkSInstSet (cons $si $sil)) $demeId $scoringContext)
 (let*
     (
         ;; ($_ (println! (===Inside DemeToTrees===)))
@@ -133,7 +133,7 @@
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
         ;; ($_ (println! (Returning...)))
     )
-    (cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) $demeId) $scoringContext))
+    (cons $scoredTree (demeToTrees $rep (mkSInstSet $sil) $demeId $scoringContext))
     )
 )
 ;; Filters a list of Exemplars, keeping only those not already in the metaPop (ordered set).
@@ -243,7 +243,10 @@
             ;; ($_ (println! ("--------------------------------")))
             ;; ($_ (println! (===== MergeDemes Starting =====)))
             (($headDeme $tailDeme) (decons-atom $demes))
-            ((mkDeme $rep $sInstList $demeId) $headDeme)
+            ; ((mkDeme $rep $sInstList $demeId) $headDeme)
+            ($rep (match $headDeme (mkRep $kbmp $tree) (mkRep $kbmp $tree)))
+            ($sInstList (match $headDeme (mkSInstSet $instList) (mkSInstSet $instList)))
+            ($demeId (match $headDeme (mkDemeId $id) (mkDemeId $id)))
             ($sortedSInstList (sortDeme $sInstList)) ;; sorting the instances inside the deme by decreasing order
             ($_ (println! (Demesize: (List.length (second $sortedSInstList)))))
             ;; ($demeExpr (List.listToExpr (second $sortedSInstList)))
@@ -253,7 +256,9 @@
             ($trimmedDeme (trimDownDeme $unqCandidates $minPoolSize $complexityTemperature))  ;; further trims the deme
             ;; ($_ (println! (DemeToTrees Starting...)))
             ($_ (println! (TrimmedDownDeme: (List.length $trimmedDeme))))
-            ($potCandidates (demeToTrees (mkDeme $rep (mkSInstSet $trimmedDeme) $demeId) $scoringContext)) ;;convert instances to trees
+            ($_ (remove-atom $headDeme (mkSInstSet $instList)))
+            ($_ (add-atom $headDeme (mkSInstSet $trimmedDeme)))
+            ($potCandidates (demeToTrees $rep (mkSInstSet $trimmedDeme) $demeId $scoringContext)) ;;convert instances to trees
             ($_ (println! (Before getNewCandidates: (List.length $potCandidates))))
             ;; ($_ (println! (Metapop: $metapop)))
             ;; ($_ (println! ("--")))

@@ -64,7 +64,7 @@
     ;; ($_ (println! "Creating Deme"))
     ($demes (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar () $scorerType))
     )
-    (map-atom $demes $deme (expandDemeHelper $deme $truthTableBScore $optimize))
+    (map-atom $demes $deme (expandDemeSpaceHelper $deme $truthTableBScore $optimize))
    ))
 
 ;; Overloaded version for game strategy domain - 8 parameters
@@ -100,6 +100,24 @@
 )
 $optimDeme
 ))
+
+(= (expandDemeSpaceHelper $demeSpace $context $optimize)
+(let*
+(
+   ;  ($lengthOfDscKbMp (Map.length $dscKbMp))
+    ((mkKbMap (mkDscMp $dscKbMp)) (match $demeSpace (mkRep $kbMp $updatedTree) $kbMp))
+    ($lengthOfDscKbMp (Map.length $dscKbMp))
+    ($_ (println! ("length of dscKbMp:" $lengthOfDscKbMp)))
+    ;; ($generatedList (List.generate $lengthOfDscKbMp 0))
+    ($generatedList (createInitialInstance $dscKbMp))
+    ($_ (println! ("generated list:" $generatedList)))
+   ;  ($deme (mkDeme (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree) $sInstList $demeId))
+    ;; ($_ (println! (Rep: (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree))))
+    ;; ($_ (println! "Optimizing Deme"))
+    (($inst $optimDeme $state) (optimizeDemes $demeSpace $context (mkInst $generatedList) $optimize))
+)
+$optimDeme
+))
 ;; The main loop 
 ;; Takes 2 termination criterias:
 ;;     - $maxGen : how many times we want the loop to run
@@ -123,8 +141,8 @@ $optimDeme
        ($optimizedDemes (case $context
                         ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "expand  deme returnn" (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable mi)))
                         (($nGames $opponentPolicy $complexityRatio) (trace! "expand deme return" (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $maxScore $optimize))))))
-       (((mkDeme $rep $sInst $demeId)) $optimizedDemes)
-       ($_ (println! (OptimizedDeme: (List.length (second $sInst)))))
+      ;  (((mkDeme $rep $sInst $demeId)) $optimizedDemes)
+      ;  ($_ (println! (OptimizedDeme: $optimizedDemes)))
        ($updatedMetaPop (case $context 
                         ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "Merging Deme" (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $metaPop $nToKeep $capCoef $genCount)))
                         (($nGames $opponentPolicy $complexityRatio) (trace! "Merging Deme" (mergeDemes $optimizedDemes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature ($nGames $opponentPolicy) $metaPop $nToKeep $capCoef $genCount))))))

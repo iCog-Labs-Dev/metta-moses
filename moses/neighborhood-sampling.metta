@@ -350,14 +350,16 @@
 ;; Returns:
 ;;   (Deme Number) - Tuple of updated Deme with new scored instances appended and number of new instances added.
 ;; (: sampleNewInstances (-> Number Number Instance Deme Number (Deme Number)))
-(= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) (mkSInstSet $instList) $demeId) $dist)
+(= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst $demeSpace $dist)
  (let*
   (
     ;; ($_ (println! (DimSize: (Map.length $dkm))))
     ;; ($_ (println! (Inside sampleNewInstances: $totalNeighbors $numNewInstances $centerInst)))
     ;; ($_ (println! (Distance: $dist CenterInst: $centerInst)))
     ;; ($_ (println! ""))
-
+    ((mkKbMap (mkDscMp $disc)) (match $demeSpace (mkRep $kbMp $tree) $kbMp))
+    ; ($_ (println! (Disc: $disc)))
+    ; ($_ (println! (getbyindex: (MultiMap.getByIdx 0 $disc))))
     (($spec $knob) (MultiMap.getByIdx 0 $disc))
     ((mkMultip $m) (getKnobMultip $knob))
     ($kbMp (mkKbMap (mkDscMp $disc)))
@@ -390,26 +392,29 @@
     ;; ($_ (println! (Scored new Instances)))
     ;; ($____ (eval (List.map (|-> ((mkSInst $i)) (printInstance (Pair.first $i))) $scoredNewInstances)))
     ;; ($_ (println! ""))
-
+    ($instList (match $demeSpace (mkSInstSet $list) $list))
+    ; ($_ (println! (instList: $instList)))
     ($updatedInstList (List.concat $instList $scoredNewInstances))
-
+    ; ($_ (println! (updatedInstList: $updatedInstList)))
+    ($_ (remove-atom $demeSpace (mkSInstSet $instList)))
+    ($_ (add-atom $demeSpace (mkSInstSet $updatedInstList)))
     ;; ($_ (println! (UpdatedInst)))
     ;; ($_____ (eval (List.map (|-> ((mkSInst $i)) (printInstance (Pair.first $i))) $updatedInstList)))
-    ;; ($_ (println! ""))
+    ($_ (println! ""))
  )
- ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId) $updatedNumNewInstances)))
+ ((mkSInstSet $updatedInstList) $updatedNumNewInstances)))
 ;; similar to the above 'sampleNewInstances' but with slight changes for the feature selection
 ;; Uses the countNeighborhoodFs, sampleFromNeighborhoodFs, initInstScoreFs
 ;; It sets the multiplicy to 2 which is 0 and 1 for the feature selection
 
 ; (: sampleNewInstancesFs (-> Number Number Instance (ITable Bool) (InstanceSet $a) Number ((InstanceSet $a) Number)))
-(= (sampleNewInstancesFs $totalNeighbors $numNewInstances $centerInst $itable (mkSInstSet $instList) $dist)
+(= (sampleNewInstancesFs $totalNeighbors $numNewInstances $centerInst $itable $demeSpace $dist)
  (let*
   (
     ;; ($_ (println! (Inside sampleNewInstancesFs: $totalNeighbors $numNewInstances $centerInst)))
     ;; ($_ (println! (Distance: $dist CenterInst: $centerInst)))
     ;; ($_ (println! ""))
-
+    ($instList (match $demeSpace (mkSInstSet $list) $list))
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (countNeighborhoodFs $centerInst $dist $numNewInstances)
@@ -423,5 +428,7 @@
                        (generateAllInNeighborhood (mkMultip 2) $centerInst $dist)))
     ($scoredNewInstances (List.map initInstScoreFs $newInstances))
     ($updatedInstList (List.concat $instList $scoredNewInstances))
+    ($_ (remove-atom $demeSpace (mkSInstSet $oldinstList)))
+    ($_ (add-atom $demeSpace (mkSInstSet $updatedInstList)))
  )
  ((mkSInstSet $updatedInstList) $updatedNumNewInstances)))
