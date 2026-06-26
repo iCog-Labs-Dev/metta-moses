@@ -19,6 +19,7 @@
                 (pairOuterLoop $list (+ $i 1) $size))))
 
 ;; A function to generate all pairs of numbers from a list, where a != b
+;; Uses deterministic iterative helpers to construct the pair list.
 ;; (: genPairs (-> Expression Expression))
 (= (genPairs $list)
     (pairOuterLoop $list 0 (size-atom $list)))
@@ -74,20 +75,19 @@
 
 ; (= (sampleLogicalPerms $op $arity) (sampleLogicalPerms $op $arity ()))
 ;; (: sampleLogicalPerms (-> Atom Number Expression Expression))
-;; TODO: Rewrite using iterative logic
 (= (sampleLogicalPerms $op $arity $argLabels)
     (let*
         ( 
             ($swapedOp (swapAndOr $op))
             ($list (genList (- $arity 1)))
-            ($idxPairs (collapse (genPairs $list)))
+            ($idxPairs (genPairs $list))
             ($nPairs $arity)) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
-            ;; ($nPairs 0)) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
+            ;; ($nPairs 0) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
             (if (<= $nPairs 1)
                 (let $arg (car-atom $argLabels) ($arg (NOT $arg)))  ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage
                 (let* (($upperbound (- (* $arity (- $arity 1)) 1))
                         ($picked (lazyRandomSelector 0 $upperbound $nPairs))
-                        ($perms (collapse (getArgs $swapedOp $idxPairs $picked $argLabels))))
+                        ($perms (getArgs $swapedOp $idxPairs $picked $argLabels)))
                    (concatT $argLabels $perms)))))
 
 ;; getMoveArgs -> generate move expressions from pairs of move indices
