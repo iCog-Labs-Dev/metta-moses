@@ -44,6 +44,17 @@
             (tripletMidLoop $list $i (+ $j 1) $size)
             (append (tripletInnerLoop $list $i $j 0 $size)
                     (tripletMidLoop $list $i (+ $j 1) $size)))))
+
+;; tripletOutLoop -> fixes first element of the triplet and 
+;;                    Drives the outermost iteration over all list elements.
+;; Type: (-> Expression  Number Number Expression)
+(= (tripletOutLoop $list $i $size)
+    (if (>= $i $size)
+        ()
+        (append
+            (tripletMidLoop $list $i 0 $size)
+            (tripletOutLoop $list (+ $i 1) $size))))
+            
 ;; TODO: Rewrite using iterative logic
 (= (genTriplet $list)
     (let*
