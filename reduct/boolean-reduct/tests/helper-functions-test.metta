@@ -4,6 +4,9 @@
 !(import! &self ../zero-constraint-subsumption)
 !(import! &self ../cut-unnecessary-or)
 
+;; To keep the tests consistent with the usage these unit tests should be updated here
+!(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
+
 ;; Test for getGuardSet
 
 ;; Tests for new getGuardSet

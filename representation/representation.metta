@@ -126,8 +126,40 @@
                                     ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
                                     ;; ($_ (println! ""))
                                     ;; ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0)))        ;; MULITPLE args selected using the feature selection
-                                    ($dscKbMp (mkDscMp $dscMp)))        ;; MULITPLE args selected using the feature selection
-                                 (mkRep (mkKbMap $dscKbMp) $updatedTree)))))
+	                                    ($dscKbMp (mkDscMp $dscMp)))        ;; MULITPLE args selected using the feature selection
+	                                 (mkRep (mkKbMap $dscKbMp) $updatedTree)))))
+
+(= (representation
+            $nDeme
+            $exemplar
+            (mkITable $table $labels)
+            $ft-selection-algo
+            $prune-exemplar
+            $enforced-fts
+            $scorerType
+            $actions
+            $perceptions
+         )
+         (representation $nDeme $exemplar (mkITable $table $labels) $ft-selection-algo $prune-exemplar $enforced-fts $scorerType True $actions $perceptions))
+
+(= (representation
+            $nDeme
+            $exemplar
+            (mkITable $table $labels)
+            $ft-selection-algo
+            $prune-exemplar
+            $enforced-fts
+            $scorerType
+            $disable-discprobe
+            $actions
+            $perceptions
+         )
+         (let* (
+                  (($updatedTree $dscMp) (buildKnobs $exemplar () () $actions $perceptions))
+                  ($_ (resetState &knobCount))
+                  ($dscKbMp (mkDscMp $dscMp))
+               )
+               ((mkRep (mkKbMap $dscKbMp) $updatedTree))))
 
 ;; Helper function to extract tree from representation
 (= (getRepTree (mkRep $knobMapObj $tree)) $tree)
@@ -152,14 +184,15 @@
                       ;; ($_ (println! (Found candidate: (preOrder $candidate))))
                       ($rootNode (getNodeById (getRepTree $repObj) $srcid))
                       ($rootValue (getNodeValue $rootNode))
-                      ($rootSymbol (if (== (get-metatype $rootValue) Expression) 
-                              (car-atom (cdr-atom $rootValue))
-                              $rootValue))
-                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
-                      ($finalTree (if $isGameStrategy
-                                      (let* (
-                                              ($expr (preOrder $candidate))
-                                              ($cleanTree (buildTree $expr)))
+	                      ($rootSymbol (if (== (get-metatype $rootValue) Expression)
+		                              (car-atom (cdr-atom $rootValue))
+		                              $rootValue))
+		                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
+		                      ($isActionDomain (isActionOperator $rootSymbol))
+		                      ($finalTree (if (or $isGameStrategy $isActionDomain)
+		                                      (let* (
+		                                              ($expr (preOrder $candidate))
+	                                              ($cleanTree (buildTree $expr)))
                                             $cleanTree)
                                       (cleanTree $candidate)))
 
@@ -187,14 +220,15 @@
                       ;; ($_ (println! (Found candidate: (preOrder $candidate))))
                       ($rootNode (getRepTree $repObj))
                       ($rootValue (getNodeValue $rootNode))
-                      ($rootSymbol (if (== (get-metatype $rootValue) Expression) 
-                              (car-atom (cdr-atom $rootValue))
-                              $rootValue))
-                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
-                      ($finalTree (if $isGameStrategy
-                                      (let* (
-                                              ($expr (preOrder $candidate))
-                                              ($cleanTree (buildTree $expr)))
+	                      ($rootSymbol (if (== (get-metatype $rootValue) Expression)
+		                              (car-atom (cdr-atom $rootValue))
+		                              $rootValue))
+		                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
+		                      ($isActionDomain (isActionOperator $rootSymbol))
+		                      ($finalTree (if (or $isGameStrategy $isActionDomain)
+		                                      (let* (
+		                                              ($expr (preOrder $candidate))
+	                                              ($cleanTree (buildTree $expr)))
                                             $cleanTree)
                                       (cleanTree $candidate)))
 
@@ -294,9 +328,31 @@
 
 ;; getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst)
 
-;; Null-vertex unwrapping clause threads the embedded LSK to the inner knob.
-(= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) $lsk $i))
-   (getCandidateHelper $inst (mkKnob $child $lsk $i)))
+(= (getCandidateHelper (mkInst $inst) (mkKnob $controlledSubtree (mkASK $discKnob $perms) $i))
+   (let*
+      (
+         ($ask (mkASK $discKnob $perms))
+         ((mkDiscSpec $defaultSetting) (getKnobDefault $ask))
+         ($setting (if (!= (getDisallowedSpecs $ask) ())
+                     (mapEffectiveDiscSpec $ask (index-atom $inst $i))
+                     (index-atom $inst $i)))
+      )
+      (if (== $setting 0)
+         ()
+         (if (== $defaultSetting 0)
+             (getCandidateHelper (mkInst $inst) (List.getByIdx $perms (- $setting 1)))
+             (getCandidateHelper (mkInst $inst) $controlledSubtree)))))
+
+;; Null-vertex unwrapping for LSK and SSK knobs only.
+;; mkASK knobs are handled exclusively by the ASK rule above,
+;; which reads perms directly from the controlled NullVex.
+;; Keeping this generic caused double evaluation whenever the
+;; ASK rule (Rule A) and this unwrapping rule both fired on
+;; the same (mkKnob (mkNullVex ...) (mkASK ...) $i) expression.
+(= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) (mkLSK $discKnob) $i))
+   (getCandidateHelper $inst (mkKnob $child (mkLSK $discKnob) $i)))
+(= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) (mkSSK $discKnob) $i))
+   (getCandidateHelper $inst (mkKnob $child (mkSSK $discKnob) $i)))
 
 ;; Specialized fast clause: empty disallowed list means effective settings map
 ;; one-to-one to actual settings, so we skip mapEffectiveDiscSpec entirely.

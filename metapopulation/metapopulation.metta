@@ -18,26 +18,26 @@
 ; (: usefulScoreRange (-> Number Number))
 (= (usefulScoreRange $compTemp) (/ (* $compTemp 30.0) 100.0))
 
-; (: resizeMetapop (-> (OS (Exemplar $a)) Number Number Number Number Number (OS (Exemplar $a))))
-(= (resizeMetapop (cons $exemplar $rest) $nToKeep $minPoolSize $compTemp $capCoef $genCount)
-    (let ($size $capSize) ((OS.length (cons $exemplar $rest)) (int (capSize $capCoef $genCount))) ;; bind two variables with two function calls 
-        (if (<= $size $minPoolSize)
-            (cons $exemplar $rest)         
+; (: resizeMetapop (-> (OS (Exemplar $a)) (OS (Exemplar $a))))
+(= (resizeMetapop (cons $exemplar $rest))
+    (let ($size $capSize) ((OS.length (cons $exemplar $rest)) (int (capSize (param capCoef) (param genCount)))) ;; bind two variables with two function calls
+        (if (<= $size (param minPoolSize))
+            (cons $exemplar $rest)
             (let*
               (
                ((mkExemplar $tree $demeId $cScore $bScore) $exemplar) ;; exemplar with the best score
 
                ($topScore (getPenScore $cScore))
-               ($worstScore (- $topScore (usefulScoreRange $compTemp)))
+               ($worstScore (- $topScore (usefulScoreRange (param complexityTemperature))))
                ;; ($_ (println! (TopScore: $topScore)))
                ;; ($_ (println! (WorstScore: $worstScore)))
 
                ($reducedMetapop (getBetterCandidates (cons $exemplar $rest) $worstScore))
                ($popSize (OS.length $reducedMetapop))
               )
-              (if (<= $popSize $capSize) 
+              (if (<= $popSize $capSize)
                   $reducedMetapop
-                  (cullAtRandom $reducedMetapop $nToKeep (- $popSize $capSize)))
+                  (cullAtRandom $reducedMetapop (param nToKeep) (- $popSize $capSize)))
            ))))
 ;;TODO: for large minPoolSize if the returned resizedMetapop size is less than minPoolSize we may still need to add random candidates to reach minPoolSize
 
