@@ -34,7 +34,16 @@
             (cons-atom ((index-atom $list $i) (index-atom $list $j) (index-atom $list $k))
                         (tripletInnerLoop $list $i $j (+ $k 1) $size)))))
 
-
+;; tripletMidLoop -> selects second element (j) for each anchor and 
+;;                    prepares context for candidate selection.
+;; Type: (-> Expression  Number Number Number Expression)
+(= (tripletMidLoop $list $i $j $size)
+    (if (>= $j $size)
+        ()
+        (if (== $i $j)
+            (tripletMidLoop $list $i (+ $j 1) $size)
+            (append (tripletInnerLoop $list $i $j 0 $size)
+                    (tripletMidLoop $list $i (+ $j 1) $size)))))
 ;; TODO: Rewrite using iterative logic
 (= (genTriplet $list)
     (let*
