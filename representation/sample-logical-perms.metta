@@ -54,21 +54,13 @@
         (append
             (tripletMidLoop $list $i 0 $size)
             (tripletOutLoop $list (+ $i 1) $size))))
-            
-;; TODO: Rewrite using iterative logic
+
+
+;; genTriplet -> Generate all valid ordered triplets from a list.
+;;               Uses the iterative anchor–pivot–candidate traversal to avoid nondeterministic evaluation.
+;; (: genTriplet (-> Expression Expression))
 (= (genTriplet $list)
-    (let*
-        (
-            ($x (superpose $list))
-            ($y (superpose $list))
-            ($z (superpose $list))
-        )
-        (if (and (and (!= $x $y) (!= $y $z)) (!= $x $z)) 
-            ($x $y $z)
-            (empty) 
-        )
-    )
-)
+    (tripletOutLoop $list 0 (size-atom $list)))
 
 ;; getArgsIter -> Iterative evaluator for logical argument generation.
 ;;              Walks through selected pair indices (picked list) deterministically.
