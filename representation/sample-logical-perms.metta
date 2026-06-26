@@ -130,6 +130,7 @@
             )
             (cons-atom ($op $move1 $move2 $move3) 
                        (getMoveArgsIter $op $PermPairs $picked $moveLabels (+ $i 1) $size)))))
+                       
 ;; getMoveArgs -> generate move expressions from pairs of move indices
 ;; Params:
 ;;          $op: move operator (PRIORITIZED-OR)
@@ -138,16 +139,8 @@
 ;;          $moveLabels: list of move labels (playcenter, playcorner, etc.)
 ;; Returns: move expressions with operator and move combinations
 ;; (: getMoveArgs (-> Atom Expression Expression Expression Expression))
-
 (= (getMoveArgs $op $PermPairs $picked $moveLabels)
-    (let*
-        (
-            ; ($triplet (index-atom $PermPairs (superpose $picked)))
-            (($a $b $c)(index-atom $PermPairs (superpose $picked)))
-            (($move1 $move2 $move3) ((index-atom $moveLabels $a) (index-atom $moveLabels $b) (index-atom $moveLabels $c)))
-        )
-        ($op $move1 $move2 $move3)
-    ))
+    (getMoveArgsIter $op $PermPairs $picked $moveLabels 0 (size-atom $picked)))
 
 ;; sampleStrategyPerms -> generate strategy permutations for game strategy evolution
 ;; Params:
