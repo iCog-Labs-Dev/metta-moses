@@ -69,7 +69,6 @@
 ;; ---- Metapopulation management ----
 !(add-atom &params (capCoef 50))
 !(add-atom &params (complexityTemperature 6))
-!(add-atom &params (discardDominated False))
 !(add-atom &params (maxCandPerDeme 100))
 !(add-atom &params (minPoolSize 20))
 !(add-atom &params (nToKeep 50))

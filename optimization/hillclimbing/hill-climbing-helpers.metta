@@ -45,11 +45,10 @@
            (
              ;; TODO: Most of the clamping logic here depens on the usage of number of evals and max number of evals. So best to do it after those are integrated into the system. For now we will be returning the total neighborhood clamped to the max_evals only.
              ;; ($_ (println! (Inside newInstances: $distance $maxEvals $currentEvals $totalNeighbors)))
-             ($hc_params_fraction_of_nn 2.0) ;; Binomial coefficient has a combinatoric explosion to the power distance.
-                                            ;; So throttle back by fraction raised to power dist.
+             ($hc_params_fraction_of_nn (param hcFractionOfNN))
              ($numberOfNewInstaces (int (* $totalNeighbors (pow-math $hc_params_fraction_of_nn $distance))))
              ($nLeft (- $maxEvals $currentEvals))
-             ($minDemeSize 50) ;; This is also hardcoded in open cog classic so following the same number here. Classic is set to 100.
+             ($minDemeSize (param hcMinDemeSize))
            )
            (if (< $numberOfNewInstaces $minDemeSize)
                (min $nLeft $minDemeSize)
@@ -126,9 +125,7 @@
 ;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
 ; (: crossover (-> Number Number Instance Deme (Deme Number)))
 (= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme)
-   ;; (trace! (Running crossover to make: (min $nNewInstances 120) instances)
-   ;; INFO: The 120 is crossover_pop_size parameter that should come from hillClimbing
-           ((crossTopOne $deme (min $nNewInstances 120) $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
+           ((crossTopOne $deme (min $nNewInstances (param hcCrossoverPopSize)) $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
    ;; )
    ) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
@@ -195,7 +192,7 @@
             ($disc (getDisk $POASet))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer))
           )
-          (hillClimbing ((min 4 (List.length (second $centerInst))) 400 0) (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
+          (hillClimbing ((min (param hcMaxDistBoolean) (List.length (second $centerInst))) (param hcMinXoverNeighborsBoolean) 0) (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
                         ($disc $cpxCoeff $size $iTable)
                         $centerInst
@@ -212,7 +209,7 @@
             ;; ($_ (println! (Labels: $labels)))
             ($FsScorerType (if (== $FsScorer ()) mi $FsScorer))
           )
-          (hillClimbing ((min 3 (List.length (second $centerInst))) 5 0) (False False False $centerInst 0 0 0 0 0 0 1) 
+          (hillClimbing ((min (param hcMaxDistFs) (List.length (second $centerInst))) (param hcMinXoverNeighborsFs) 0) (False False False $centerInst 0 0 0 0 0 0 1)
               $POASet 
               ($labels $rows () ())
               $centerInst
@@ -231,7 +228,7 @@
             ;; Keep a non-empty sentinel in the third slot so the recursive
             ;; strategy path still follows the non-feature-selection branches.
           )
-          (hillClimbing (3 3 $targetPenScore)
+          (hillClimbing ((param hcMaxDistStrategy) (param hcMinXoverNeighborsStrategy) $targetPenScore)
                         (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
                         ($disc $nGames strategy $complexityRatio) ;; INFO: `strategy` is used only as a non-empty marker so this recursive call follows the normal strategy branch instead of the feature-selection branch that is selected when the third slot is ().
@@ -325,7 +322,7 @@
         ($newBestScore (if (or (== $rep ()) (== $id ())) 
                           (Pair.second $newBestInstPair)
                           (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
-        ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
+        ($hasImproved (> $newBestScore (+ $bestScore (param hcScoreImprovedThreshold))))
         
         ;; ($_ (println! (Best instance: (Pair.first $newBestInstPair))))
         ;; ($_ (println! (Best candidate: (preOrder (getCandidate $rep (Pair.first $newBestInstPair))))))

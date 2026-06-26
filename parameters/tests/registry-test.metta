@@ -6,7 +6,6 @@
 !(println! ("testing: param lookup against defaults"))
 !(assertEqual (param capCoef)               50)
 !(assertEqual (param complexityTemperature) 6)
-!(assertEqual (param discardDominated)      False)
 !(assertEqual (param maxCandPerDeme)        100)
 !(assertEqual (param minPoolSize)           20)
 !(assertEqual (param nToKeep)               50)
@@ -31,9 +30,6 @@
 
 !(set-param complexityRatio 1.25)
 !(assertEqual (param complexityRatio) 1.25)
-
-!(set-param discardDominated True)
-!(assertEqual (param discardDominated) True)
 
 ;; ---- set-param installs a brand-new key ----
 !(println! ("testing: set-param can introduce a new key"))
