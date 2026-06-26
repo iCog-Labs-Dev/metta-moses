@@ -130,7 +130,7 @@
             )
             (cons-atom ($op $move1 $move2 $move3) 
                        (getMoveArgsIter $op $PermPairs $picked $moveLabels (+ $i 1) $size)))))
-                       
+
 ;; getMoveArgs -> generate move expressions from pairs of move indices
 ;; Params:
 ;;          $op: move operator (PRIORITIZED-OR)
@@ -150,12 +150,11 @@
 ;; Returns:
 ;;          Union of original moves with alternative move strategy expressions
 ;; (: sampleStrategyPerms (-> Atom Number Expression Expression))
-;; TODO: Rewrite using iterative logic
 (= (sampleStrategyPerms $op $arity $moveLabels)
     (let*
         (
             ($list (genList (- (length $moveLabels) 1)))
-            ($idxPairs (collapse (genTriplet $list)))
+            ($idxPairs (genTriplet $list))
             ($nPairs $arity)
         )
         (if (<= $nPairs 1)
@@ -164,7 +163,7 @@
                 (
                     ($upperbound (- (length $idxPairs) 1))
                     ($picked (lazyRandomSelector 0 $upperbound $nPairs))
-                    ($perms (collapse (getMoveArgs $op $idxPairs $picked $moveLabels)))
+                    ($perms (getMoveArgs $op $idxPairs $picked $moveLabels))
                 )
                    $perms
             )
