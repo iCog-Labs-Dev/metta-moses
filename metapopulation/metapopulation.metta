@@ -18,8 +18,6 @@
 ; (: usefulScoreRange (-> Number Number))
 (= (usefulScoreRange $compTemp) (/ (* $compTemp 30.0) 100.0))
 
-;; Hyperparameters consumed (read from &params via (param ...)):
-;;   nToKeep, minPoolSize, complexityTemperature, capCoef, genCount
 ; (: resizeMetapop (-> (OS (Exemplar $a)) (OS (Exemplar $a))))
 (= (resizeMetapop (cons $exemplar $rest))
     (let ($size $capSize) ((OS.length (cons $exemplar $rest)) (int (capSize (param capCoef) (param genCount)))) ;; bind two variables with two function calls

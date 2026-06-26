@@ -37,7 +37,6 @@
 ;;   $nEval: Maximum evaluations.
 ;;   $maxCandsPerDeme: Maximum candidates per deme.
 ;; Return: (List (ScoredInstance Cscore)): List of unique top-scoring instances.
-;; Hyperparameters consumed (read from &params): nEval, maxCandPerDeme
 ; (: keepTopUniqueCandidates (-> (InstanceSet Cscore) (List (ScoredInstance Cscore))))
 (= (keepTopUniqueCandidates $rep $id (mkSInstSet $sortedSInstList))
  (let*
@@ -96,7 +95,6 @@
 ;;   $minPoolSize: Minimum number of instances to retain.
 ;;   $complexityTemperature: Parameter for computing score range.
 ;;Return: (List (ScoredInstance Cscore)): Trimmed list of instances.
-;; Hyperparameters consumed (read from &params): minPoolSize, complexityTemperature
 ; (: trimDownDeme (-> (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
 (= (trimDownDeme $sInstList)
 (let $demeSize (List.length $sInstList)

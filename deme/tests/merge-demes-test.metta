@@ -167,10 +167,7 @@
 
        (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1)))
        (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore 0 2 0.5 0 0.8))) ())))
- ; 
- ;; keepTopUniqueCandidates now reads $nEval and $maxCandsPerDeme from &params;
- ;; preserve the original per-test values by seeding them with set-param.
-
+ ;
  ;; Testcase-1 for keepTopUnique  (was: nEval=5, maxCandPerDeme=2)
  !(set-param nEval 5)
  !(set-param maxCandPerDeme 2)
@@ -267,9 +264,7 @@
     (cons
        (mkSInst (mkPair (mkInst (cons 1 (cons 2 ()))) (mkCscore 0 1 0 0 -0.1)))
        ()))
- ; 
- ;; trimDownDeme now reads $minPoolSize and $complexityTemperature from &params.
-
+ ;
  ;; Testcase-1 for trimDownDeme  (was: minPoolSize=2, complexityTemperature=0.1)
  !(set-param minPoolSize 2)
  !(set-param complexityTemperature 0.1)
@@ -502,8 +497,6 @@
 ;;       ttable2 is a truth table which doesn't have a 'D' column.
 ;; ! ("Merge Demes tests")
 
-;; mergeDemes now sources nEval, maxCandPerDeme, minPoolSize,
-;; complexityTemperature, nToKeep, capCoef, genCount from &params.
 ;; The original test passed: 5 2 0 1 (ttable2) (metaPop) 3 0.004 1000.
 !(set-param nEval 5)
 !(set-param maxCandPerDeme 2)

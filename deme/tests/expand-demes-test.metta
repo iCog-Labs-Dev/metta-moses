@@ -205,10 +205,9 @@
 ;;     ($updatedDemeLength (size-atom $updatedDeme)))
 ;; (>= $updatedDemeLength 1)) True)
 
-;; runMoses now reads its hyperparameters from &params. The original
-;; tests passed `5 2 0 1 3 0.004 1000` (and `maxCandOutput=3`) so we
-;; install the equivalent overrides here. Test 4 nudges minPoolSize
-;; from 0 to 2 just before its call.
+;; The original tests passed `5 2 0 1 3 0.004 1000` (and
+;; `maxCandOutput=3`). Test 4 nudges minPoolSize from 0 to 2 just before
+;; its call.
 !(set-param maxCandOutput 3)
 !(set-param nEval 5)
 !(set-param maxCandPerDeme 2)
@@ -223,7 +222,7 @@
 (let*
 (
     ($_ (println! (running started)))
-    ($topCandidates (runMoses 2 1 (metaPop2) 0 2 (False sim
+    ($topCandidates (runMoses 2 0 (metaPop2) 0 2 (False sim
     (table1)
     (ttable1))
     hillClimbing))
@@ -236,7 +235,7 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 1 (metaPop2) 0 2 (False rd
+    ($topCandidates (runMoses 1 0 (metaPop2) 0 2 (False rd
     (table1)
     (ttable1))
     hillClimbing))
@@ -249,7 +248,7 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 1 (metaPop2) 0 2 (False inc
+    ($topCandidates (runMoses 1 0 (metaPop2) 0 2 (False inc
     (table1)
     (ttable1))
     hillClimbing))
@@ -264,7 +263,7 @@
 !(set-param minPoolSize 2)
 !(assertEqual
 (let $length
-((OS.length (runMoses 10 1 (metaPop2) 0 2
+((OS.length (runMoses 10 0 (metaPop2) 0 2
     (False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
     inc      ;; the new arguments for feature selection algo
     (eval (createTruthTableBScore 2 (mkITable

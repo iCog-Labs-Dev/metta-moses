@@ -109,12 +109,6 @@ $optimDeme
 ;;                   For clean boolean tables it's 0. The complexity penalty
 ;;                   is applied per-candidate during scoring, separate from
 ;;                   this termination check.
-;;
-;; All other knobs (maxCandOutput, nEval, maxCandPerDeme, minPoolSize,
-;; complexityTemperature, nToKeep, capCoef, genCount) are read from the
-;; &params atomspace via (param ...). Callers may override them either
-;; with (set-param ...) before invoking runMoses or via --name=value
-;; command-line flags handled by parameters/cli.metta.
 ; (: runMoses (-> Number Number (OS (Exemplar $a)) Number Number $Context $Optimize (OS (Exemplar $a))))
 ;; TODO: $nEval isn't being used. Increase it so that it works as expected.
 ;; To enable that, we may need to change our termination condition so that the generation is equivalent to the number of expansion as well.

@@ -208,12 +208,6 @@
        (let $sexpr (py-call (csv_helper.load_boolean_table (param inputFile) (param targetFeature)))
             (parse $sexpr))))
 
-;; runMoses (after the hyperparameter-registry migration) takes:
-;;   $maxGen $maxScore $metaPop $nExpansion $nDeme $context $optimize
-;; All other knobs (maxCandOutput, nEval, maxCandPerDeme, minPoolSize,
-;; complexityTemperature, nToKeep, capCoef, genCount) are read from
-;; &params via (param ...). Seed them via (set-param ...) or via
-;; --name=value flags handled by parameters/cli.metta.
 ;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
 ;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;;                   smd      ;; the new arguments for feature selection algo
@@ -225,9 +219,7 @@
 ;; ============================================================
 ;;  Top-level MOSES entry point.
 ;;
-;;  After the hyperparameter-registry migration, everything that
-;;  used to be a positional argument is sourced from &params. The
-;;  user-facing entry point is therefore zero-argument:
+;;  Zero-argument entry point:
 ;;
 ;;      !(moses)
 ;;

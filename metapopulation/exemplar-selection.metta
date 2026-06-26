@@ -4,9 +4,6 @@
 ;; removed python binding for compatibility with workflow -- XXX 
 ;; bind is not supported for constants (as of 13 NOV) in PeTTa -- thus using function style notation
 (= (NO_EXEMPLAR) "empty metapopulation")
-;; INV_TEMP is the Boltzmann inverse-temperature used by the roulette
-;; normalizer below. It is derived from the `compxyTemp` hyperparameter
-;; in &params so that overriding --compxyTemp on the CLI propagates here.
 (= (INV_TEMP) (/ 100.0 (param compxyTemp)))
 
 ;; exemplar  selection
