@@ -8,6 +8,15 @@
             (pairInnerLoop $list $i (+ $j 1) $size)
             (cons-atom ((index-atom $list $i) (index-atom $list $j))
                       (pairInnerLoop $list $i (+ $j 1) $size)))))
+                      
+;; pairOuterLoop -> fixes the first element of the pair (i) and 
+;;                   Iterates over all possible anchors in the list.
+;; Type: (-> Expression Number Number Expression)
+(= (pairOuterLoop $list $i $size)
+    (if (>= $i $size)
+        ()
+        (append (pairInnerLoop $list $i 0 $size)
+                (pairOuterLoop $list (+ $i 1) $size))))
 
 ;; A function to generate all pairs of numbers from a list, where a != b
 ;; (: genPairs (-> Expression Expression))
