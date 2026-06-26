@@ -111,6 +111,25 @@
                         ($perms (getArgs $swapedOp $idxPairs $picked $argLabels)))
                    (concatT $argLabels $perms)))))
 
+
+;; Iterative evaluator for move expression generation.
+;; Traverses selected triplet indices deterministically.
+;; Builds move expressions using anchor–pivot–candidate structure.
+;; Replaces superpose-based nondeterministic selection.
+(= (getMoveArgsIter $op $PermPairs $picked $moveLabels $i $size)
+    (if (>= $i $size)
+        ()
+        (let*
+            (
+                ($permIdx (index-atom $picked $i))
+                (($a $b $c) (index-atom $PermPairs $permIdx))
+                (($move1 $move2 $move3)
+                    ((index-atom $moveLabels $a)
+                     (index-atom $moveLabels $b) 
+                     (index-atom $moveLabels $c)))
+            )
+            (cons-atom ($op $move1 $move2 $move3) 
+                       (getMoveArgsIter $op $PermPairs $picked $moveLabels (+ $i 1) $size)))))
 ;; getMoveArgs -> generate move expressions from pairs of move indices
 ;; Params:
 ;;          $op: move operator (PRIORITIZED-OR)
@@ -119,7 +138,7 @@
 ;;          $moveLabels: list of move labels (playcenter, playcorner, etc.)
 ;; Returns: move expressions with operator and move combinations
 ;; (: getMoveArgs (-> Atom Expression Expression Expression Expression))
-;; TODO: Rewrite using iterative logic
+
 (= (getMoveArgs $op $PermPairs $picked $moveLabels)
     (let*
         (
