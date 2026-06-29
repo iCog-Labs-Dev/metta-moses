@@ -1,28 +1,20 @@
-;; pairInnerLoop -> selects second candidate for each anchor and 
-;;                 builds (anchor partner) pairs.
-;; Type: (-> Expression Number Number Number Expression)
-(= (pairInnerLoop $list $i $j $size)
-    (if (>= $j $size)
-        ()
-        (if (== $i $j)
-            (pairInnerLoop $list $i (+ $j 1) $size)
-            (cons-atom ((index-atom $list $i) (index-atom $list $j))
-                      (pairInnerLoop $list $i (+ $j 1) $size)))))
 
-;; pairOuterLoop -> fixes the first element of the pair (i) and 
-;;                   Iterates over all possible anchors in the list.
-;; Type: (-> Expression Number Number Expression)
-(= (pairOuterLoop $list $i $size)
-    (if (>= $i $size)
-        ()
-        (append (pairInnerLoop $list $i 0 $size)
-                (pairOuterLoop $list (+ $i 1) $size))))
+;; flattenPairs -> Merge a nested list of generated pairs into the accumulator.
+;; Used with foldl-atom to flatten the mapped Cartesian product.
+;; (: flattenPairs (-> Expression Expression Expression))
+(= (flattenPairs $acc $pairs)
+    (union-atom $pairs $acc))
 
 ;; A function to generate all pairs of numbers from a list, where a != b
-;; Uses deterministic iterative helpers to construct the pair list.
+;;  Uses map-atom to build the Cartesian product, foldl-atom to flatten,
+;;  and filter-atom to remove self-pairs.
 ;; (: genPairs (-> Expression Expression))
 (= (genPairs $list)
-    (pairOuterLoop $list 0 (size-atom $list)))
+    (let*
+        (($nested (map-atom $list $x (map-atom $list $y ($x $y))))
+         ($pairs (foldl-atom $nested () $acc $sub (union-atom $sub $acc)))
+        )
+        (filter-atom $pairs ($a $b) (!= $a $b))))
 
 ;; tripletInnerLoop -> selects third element (k) and  complete valid triplets.  
 ;; Type: (-> Expression Number Number Number Number Expression)
