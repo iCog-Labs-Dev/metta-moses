@@ -1,9 +1,9 @@
-
-;; flattenPairs -> Merge a nested list of generated pairs into the accumulator.
-;; Used with foldl-atom to flatten the mapped Cartesian product.
-;; (: flattenPairs (-> Expression Expression Expression))
-(= (flattenPairs $acc $pairs)
-    (union-atom $pairs $acc))
+;; flattenAtom -> Merge one nested list into an accumulator.
+;; Used with foldl-atom to flatten nested map-atom results
+;; while preserving traversal order.
+;; (: flattenAtom (-> Expression Expression Expression))
+(= (flattenAtom $acc $sub)
+    (union-atom $sub $acc))
 
 ;; A function to generate all pairs of numbers from a list, where a != b
 ;;  Uses map-atom to build the Cartesian product, foldl-atom to flatten,
@@ -12,47 +12,27 @@
 (= (genPairs $list)
     (let*
         (($nested (map-atom $list $x (map-atom $list $y ($x $y))))
-         ($pairs (foldl-atom $nested () $acc $sub (union-atom $sub $acc)))
+         ($pairs (foldl-atom $nested () $acc $sub (flattenAtom $acc $sub)))
         )
-        (filter-atom $pairs ($a $b) (!= $a $b))))
-
-;; tripletInnerLoop -> selects third element (k) and  complete valid triplets.  
-;; Type: (-> Expression Number Number Number Number Expression)
-(= (tripletInnerLoop $list $i $j $k $size)
-    (if (>= $k $size)
-        ()
-        (if (or (== $k $i) (== $k $j))
-            (tripletInnerLoop $list $i $j (+ $k 1) $size)
-            (cons-atom ((index-atom $list $i) (index-atom $list $j) (index-atom $list $k))
-                        (tripletInnerLoop $list $i $j (+ $k 1) $size)))))
-
-;; tripletMidLoop -> selects second element (j) for each anchor and 
-;;                    prepares context for candidate selection.
-;; Type: (-> Expression  Number Number Number Expression)
-(= (tripletMidLoop $list $i $j $size)
-    (if (>= $j $size)
-        ()
-        (if (== $i $j)
-            (tripletMidLoop $list $i (+ $j 1) $size)
-            (append (tripletInnerLoop $list $i $j 0 $size)
-                    (tripletMidLoop $list $i (+ $j 1) $size)))))
-
-;; tripletOutLoop -> fixes first element of the triplet and 
-;;                    Drives the outermost iteration over all list elements.
-;; Type: (-> Expression  Number Number Expression)
-(= (tripletOutLoop $list $i $size)
-    (if (>= $i $size)
-        ()
-        (append
-            (tripletMidLoop $list $i 0 $size)
-            (tripletOutLoop $list (+ $i 1) $size))))
-
+        (filter-atom $pairs ($a $b) (!= $a $b))))           
 
 ;; genTriplet -> Generate all valid ordered triplets from a list.
-;;               Uses the iterative anchor–pivot–candidate traversal to avoid nondeterministic evaluation.
+;; Uses nested map-atom calls to construct the Cartesian product,
+;; reverse to preserve the recursive traversal order, foldl-atom
+;; to flatten nested results, and filter-atom to remove duplicates.
 ;; (: genTriplet (-> Expression Expression))
 (= (genTriplet $list)
-    (tripletOutLoop $list 0 (size-atom $list)))
+    (let*
+        (
+            ($nested 
+                 (map-atom $list $x 
+                               (reverse (map-atom $list $y (map-atom  $list $z ($x $y $z))))))
+
+            ($level1 (foldl-atom $nested () $acc $sub (flattenAtom $acc $sub)))
+            ($triplets (foldl-atom $level1 () $acc $sub (flattenAtom $acc $sub)))
+        )
+
+        (filter-atom $triplets ($a $b $c) (and (!= $a $b) (and (!= $a $c) (!= $b $c))))))
 
 ;; getArgs ->  Produces deterministic tuple of logical expressions.
 ;;             Maps each selected pair index to its corresponding logical expression
