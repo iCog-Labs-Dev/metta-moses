@@ -37,14 +37,16 @@
 ;;   $nEval: Maximum evaluations.
 ;;   $maxCandsPerDeme: Maximum candidates per deme.
 ;; Return: (List (ScoredInstance Cscore)): List of unique top-scoring instances.
-; (: keepTopUniqueCandidates (-> (InstanceSet Cscore) Number Number (List (ScoredInstance Cscore))))
-(= (keepTopUniqueCandidates $rep $id (mkSInstSet $sortedSInstList) $nEval $maxCandsPerDeme)
+; (: keepTopUniqueCandidates (-> (InstanceSet Cscore) (List (ScoredInstance Cscore))))
+(= (keepTopUniqueCandidates $rep $id (mkSInstSet $sortedSInstList))
  (let*
  (
     ;; ($instExpr (List.listToExpr $sortedSInstList))
     ;; ($uniqueSortedInstExpr (unique-atom $instExpr))
     ;; ($uniqueSortedInstList (exprToList $uniqueSortedInstExpr))
     ;; ($lenSInstList (List.length $uniqueSortedInstList))
+    ($nEval            (param nEval))
+    ($maxCandsPerDeme  (param maxCandPerDeme))
     ($lenSInstList (List.length $sortedSInstList))
     ($_ (println! (nEval: $nEval LenSInstList: $lenSInstList)))
     ($topCnd (min-atom ($nEval $lenSInstList)))
@@ -93,10 +95,10 @@
 ;;   $minPoolSize: Minimum number of instances to retain.
 ;;   $complexityTemperature: Parameter for computing score range.
 ;;Return: (List (ScoredInstance Cscore)): Trimmed list of instances.
-; (: trimDownDeme (-> (List (ScoredInstance Cscore)) Number Number (List (ScoredInstance Cscore))))
-(= (trimDownDeme $sInstList $minPoolSize $complexityTemperature)
+; (: trimDownDeme (-> (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
+(= (trimDownDeme $sInstList)
 (let $demeSize (List.length $sInstList)
-(if (or (>= $minPoolSize $demeSize) (<= $demeSize 1)) 
+(if (or (>= (param minPoolSize) $demeSize) (<= $demeSize 1))
     $sInstList
     (let*
       (
@@ -104,9 +106,9 @@
        ($topScore (getSInstScore $topInst))
        ($topPenScore (getPenScore $topScore))
        ;; ($_ (println! (TopPenScore: $topPenScore)))
-       ($botSc (- $topPenScore (usefulScoreRange $complexityTemperature)))
+       ($botSc (- $topPenScore (usefulScoreRange (param complexityTemperature))))
        ;; ($_ (println! (UsefullscoreRange: $botSc)))
-       ($filteredSInstList (filterDemeByScore $sInstList (- $demeSize 1) $botSc)))     
+       ($filteredSInstList (filterDemeByScore $sInstList (- $demeSize 1) $botSc)))
        $filteredSInstList))))
 
 ;; Converts a Deme into a list of Exemplars by transforming each ScoredInstance into a scored tree.
@@ -234,8 +236,10 @@
 ;;   $capCoef: Capacity coefficient for resizing.
 ;;   $genCount: Generation count for resizing.
 ;; Return: Updated and resized metapopulation.
-; (: mergeDemes (-> Expression Number Number Number Number (ITable $a) (OS (Exemplar $a)) Number Number Number (OS (Exemplar $a))))
-(= (mergeDemes $demes $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $scoringContext $metapop $nToKeep $capCoef $genCount)
+;; Hyperparameters now flow via &params; the only positional args are
+;; the data being merged (demes, scoring context, metapop).
+; (: mergeDemes (-> Expression (ITable $a) (OS (Exemplar $a)) (OS (Exemplar $a))))
+(= (mergeDemes $demes $scoringContext $metapop)
     (if (== $demes ()) $metapop
         (let*
         (
@@ -248,9 +252,9 @@
             ($_ (println! (Demesize: (List.length (second $sortedSInstList)))))
             ;; ($demeExpr (List.listToExpr (second $sortedSInstList)))
             ;; ($_ (println! (UniqueDemeSize: (length (unique-atom $demeExpr)))))
-            ($unqCandidates (keepTopUniqueCandidates $rep $demeId $sortedSInstList $nEval $maxCandsPerDeme))  ;;remove duplicates and limits the size by keeping the top scoring
+            ($unqCandidates (keepTopUniqueCandidates $rep $demeId $sortedSInstList))  ;;remove duplicates and limits the size by keeping the top scoring
             ($_ (println! (KeptUniqueTopCandidates NewSize: (List.length $unqCandidates))))
-            ($trimmedDeme (trimDownDeme $unqCandidates $minPoolSize $complexityTemperature))  ;; further trims the deme
+            ($trimmedDeme (trimDownDeme $unqCandidates))  ;; further trims the deme
             ;; ($_ (println! (DemeToTrees Starting...)))
             ($_ (println! (TrimmedDownDeme: (List.length $trimmedDeme))))
             ($potCandidates (demeToTrees (mkDeme $rep (mkSInstSet $trimmedDeme) $demeId) $scoringContext)) ;;convert instances to trees
@@ -265,15 +269,15 @@
             ($updatedMetaPop (mergeCandidates $removedDominated $metapop))  ;;merge candidates into metapop
             ;; ($_ (println! (merged Candidate: $updatedMetaPop)))
             ($_ (println! (Metapop size before resize: (OS.length $updatedMetaPop))))
-            ($resizedMetapop (resizeMetapop $updatedMetaPop $nToKeep $minPoolSize $complexityTemperature $capCoef $genCount))  ;;resize the metapop
+            ($resizedMetapop (resizeMetapop $updatedMetaPop))  ;;resize the metapop
             ($_ (println! (Metapop size after resize: (OS.length $resizedMetapop))))
-            ; ($resizedMetapop (if (<= $nToKeep (OS.length $updatedMetaPop)) (OS.getTopN $nToKeep $updatedMetaPop) $updatedMetaPop)) ;; select top nToKeep candidates
+            ; ($resizedMetapop (if (<= (param nToKeep) (OS.length $updatedMetaPop)) (OS.getTopN (param nToKeep) $updatedMetaPop) $updatedMetaPop)) ;; select top nToKeep candidates
             ;; ($_ (println! (Resized Metapop: $resizedMetapop)))
             ;; ($_ (println! ("--------------------------------")))
             ;; ($_ (println! ("")))
         )
             (if (== $tailDeme ()) $resizedMetapop
-                (mergeDemes $tailDeme $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $scoringContext $resizedMetapop $nToKeep $capCoef $genCount)
+                (mergeDemes $tailDeme $scoringContext $resizedMetapop)
             )
         )
     )

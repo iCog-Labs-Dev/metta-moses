@@ -227,7 +227,7 @@
                                 (* $miScore $confidence)))))))
 
 (= (cachedMutualInformation $itable $featureIndices)
-    (lruCache (DEFAULT_CACHE_SIZE) ((calculateMutualInformation) ($itable $featureIndices))))
+    (lruCache (param defaultCacheSize) ((calculateMutualInformation) ($itable $featureIndices))))
 ; (: zipColumn (-> Expression (List (List $a)) (List $a)))        
 (= (zipColumn $indices $datarows)
     (if (== $indices ())

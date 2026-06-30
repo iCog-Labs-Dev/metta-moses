@@ -45,11 +45,10 @@
            (
              ;; TODO: Most of the clamping logic here depens on the usage of number of evals and max number of evals. So best to do it after those are integrated into the system. For now we will be returning the total neighborhood clamped to the max_evals only.
              ;; ($_ (println! (Inside newInstances: $distance $maxEvals $currentEvals $totalNeighbors)))
-             ($hc_params_fraction_of_nn 2.0) ;; Binomial coefficient has a combinatoric explosion to the power distance.
-                                            ;; So throttle back by fraction raised to power dist.
+             ($hc_params_fraction_of_nn (param hcFractionOfNN))
              ($numberOfNewInstaces (int (* $totalNeighbors (pow-math $hc_params_fraction_of_nn $distance))))
              ($nLeft (- $maxEvals $currentEvals))
-             ($minDemeSize 50) ;; This is also hardcoded in open cog classic so following the same number here. Classic is set to 100.
+             ($minDemeSize (param hcMinDemeSize))
            )
            (if (< $numberOfNewInstaces $minDemeSize)
                (min $nLeft $minDemeSize)
@@ -121,17 +120,51 @@
 ; (: countNeighborhoodFs (-> Instance Number Number Number))
 (= (countNeighborhoodFs $instance $dist $maxCount)
    (countNeighborhoodFromIdxFs $instance $dist 0 $maxCount))
+  
+;; merge3Demes
+;; Combines offspring instances produced by the three crossover operators,
+;; removes duplicates, appends unique offspring to the original deme,
+;; and returns the updated deme together with the number of new instances added.
+(= (merge3Demes $origDeme $newInstances1 $newInstances2 $newInstances3)
 
-;; Crossover function.
-;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
-; (: crossover (-> Number Number Instance Deme (Deme Number)))
+   (let*
+      (
+       ((mkDeme $rep (mkSInstSet $origSet) $demeId) $origDeme)
+
+       ($temp (List.appendList $newInstances1 $newInstances2))
+       ($allNewInstances (List.appendList $temp $newInstances3))
+
+       ($uniqueNewInstances (unique-atom $allNewInstances))
+       ($finalSet (List.appendList $uniqueNewInstances $origSet))
+
+       ($nNewAdded (List.length $uniqueNewInstances))
+      )
+     ((mkDeme $rep (mkSInstSet $finalSet) $demeId) $nNewAdded)
+))
+
+;; crossover
+;; Main crossover driver.
+;; Distributes the crossover budget across 1-, 2-, and 3-simplex operators,
+;; collects their offspring, merges the results, removes duplicates,
+;; and returns the updated deme and count of newly added instances.
+;; (: crossover (-> Number Number Instance Deme (Deme Number)))
 (= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme)
-   ;; (trace! (Running crossover to make: (min $nNewInstances 120) instances)
-   ;; INFO: The 120 is crossover_pop_size parameter that should come from hillClimbing
-           ((crossTopOne $deme (min $nNewInstances 120) $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
-   ;; )
-   ) ;; WARN: The $nNewInstances might not be the actual number of instances created.
 
+   ;; (trace! (Running crossover to make: (min $nNewInstances 120) instances)
+   ;; INFO: The 120 is crossover_pop_size parameter that should come from hillClimbing   
+    (let*
+      (
+       ($nToMake (min $nNewInstances 120))
+   
+       ($newInstances1 (crossTopOne $deme (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst))
+       ($newInstances2 (crossTopTwo $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
+       ($newInstances3 (crossTopThree $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
+      )
+      (merge3Demes $deme $newInstances1 $newInstances2 $newInstances3)
+)
+ )
+ ;; )
+    ;; WARN: The $nNewInstances might not be the actual number of instances created.
 ;; crossover for feature selection
 ; (: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
 (= (crossoverFs $size $nNewInstances $sampleStart $sampleSize $centerInst $scoredInstSet)
@@ -195,7 +228,7 @@
             ($disc (getDisk $POASet))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer))
           )
-          (hillClimbing ((min 4 (List.length (second $centerInst))) 400 0) (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
+          (hillClimbing ((min (param hcMaxDistBoolean) (List.length (second $centerInst))) (param hcMinXoverNeighborsBoolean) 0) (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
                         ($disc $cpxCoeff $size $iTable)
                         $centerInst
@@ -212,7 +245,7 @@
             ;; ($_ (println! (Labels: $labels)))
             ($FsScorerType (if (== $FsScorer ()) mi $FsScorer))
           )
-          (hillClimbing ((min 3 (List.length (second $centerInst))) 5 0) (False False False $centerInst 0 0 0 0 0 0 1) 
+          (hillClimbing ((min (param hcMaxDistFs) (List.length (second $centerInst))) (param hcMinXoverNeighborsFs) 0) (False False False $centerInst 0 0 0 0 0 0 1)
               $POASet 
               ($labels $rows () ())
               $centerInst
@@ -225,11 +258,13 @@
           (
             ($disc (getDisk $POASet))
             (($nGames $complexityRatio) $FsScorer)
-            ($targetPenScore (getPenScore $tTableBscorer))
+            ;; $tTableBscorer is the scalar `$maxScore` for the strategy path
+            ;; (was a Cscore struct before the termination switched to scalar).
+            ($targetPenScore $tTableBscorer)
             ;; Keep a non-empty sentinel in the third slot so the recursive
             ;; strategy path still follows the non-feature-selection branches.
           )
-          (hillClimbing (3 3 $targetPenScore)
+          (hillClimbing ((param hcMaxDistStrategy) (param hcMinXoverNeighborsStrategy) $targetPenScore)
                         (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
                         ($disc $nGames strategy $complexityRatio) ;; INFO: `strategy` is used only as a non-empty marker so this recursive call follows the normal strategy branch instead of the feature-selection branch that is selected when the third slot is ().
@@ -255,8 +290,8 @@
         ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
         ;; ($_ (println! ""))
 
-        ($maxEvals 500)
-        ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors)) ;; TODO: MaxEvals is hardcoded here, but should be changed. This is set to 20K by default in OpenCog Classic.
+        ($maxEvals (param hcMaxEvals))
+        ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors))
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
         ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
@@ -323,7 +358,7 @@
         ($newBestScore (if (or (== $rep ()) (== $id ())) 
                           (Pair.second $newBestInstPair)
                           (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
-        ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
+        ($hasImproved (> $newBestScore (+ $bestScore (param hcScoreImprovedThreshold))))
         
         ;; ($_ (println! (Best instance: (Pair.first $newBestInstPair))))
         ;; ($_ (println! (Best candidate: (preOrder (getCandidate $rep (Pair.first $newBestInstPair))))))
@@ -348,7 +383,12 @@
                                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
                                   ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentNInstances $newInstances $nextBestSscore $nextBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
         
-        ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (getPenScore $newBestSscore)))
+        ;; Termination check compares against the scalar `$bestPossibleScore`,
+        ;; which carries the *raw* best score (matching classic MOSES). So we
+        ;; must extract the raw-score field from the candidate's Cscore here,
+        ;; not the penalty-adjusted one -- comparing penScore against a raw
+        ;; target would mix the complexity penalty into the threshold.
+        ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (getScore $newBestSscore)))
         ;; ($_ (println! (Found newBestSscore After (+ 1 $i) iteration is: $newBestSscore $scoreToCompareBelow)))
         ;; ($_ (println! ""))
         ($_ (cut)) ;; Commit choice points before tail-recursing — mirrors runMoses pattern. This gives few extra seconds of speed
