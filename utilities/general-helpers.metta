@@ -79,14 +79,16 @@
         ((False False)  (foldr cons-atom $y $x)))))
 
 ; a helper function to the isConsistentExp function.
-; a function which simplifies nested logical negations by reducing them to their simplest form. 
-(= (Not $a)
+; a function which simplifies nested logical negations by reducing them to their simplest form.
+; Renamed from `Not` to `normalizeNot` so scoring/boolean-ops.metta's eval-side
+; `Not` (boolean negation) doesn't collide with it.
+(= (normalizeNot $a)
     (if (== (get-metatype $a) Symbol)
         (NOT $a)
         (if (== (get-metatype $a) Expression)
             (case $a
                 (
-                    ( (NOT $b) (if (== (get-metatype $b) Symbol) $b (Not $b)))
+                    ( (NOT $b) (if (== (get-metatype $b) Symbol) $b (normalizeNot $b)))
                 ))
     False )))
 

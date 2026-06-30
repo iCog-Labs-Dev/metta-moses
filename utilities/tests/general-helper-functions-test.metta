@@ -34,10 +34,11 @@
 !(assertEqual (append (1 2) (3 4)) (1 2 3 4))
 !(assertEqual (append (1 2) ()) (1 2))
 !(assertEqual (append () ()) ())
-;; Tests for the function 'Not'
-!(println! ("Tests for the function Not"))
-!(assertEqual (Not (Not (Not A))) (Not A))
-!(assertEqual (Not (Not A)) A)
+;; Tests for the function 'normalizeNot' (renamed from `Not` to avoid
+;; collision with scoring/boolean-ops.metta's eval-side boolean Not).
+!(println! ("Tests for the function normalizeNot"))
+!(assertEqual (normalizeNot (normalizeNot (normalizeNot A))) (normalizeNot A))
+!(assertEqual (normalizeNot (normalizeNot A)) A)
 
 ;; Tests for the function 'is-member'
 !(println! ("test is-member function to  replace isMember custom function"))

@@ -1,3 +1,5 @@
+!(import! &self scoring/boolean-ops)
+
 ;; Type definitions and functions related to beahvioral socre, behavioral complexity score and turth table behavioral score.
 ;; Behavioral score is a list of numbers, where each number represents the score of a particular output. 
 ;; For boolean expressions, the score is either 0 or -1. Therefore, this behavioral score is a list of 0s and -1s.
@@ -68,8 +70,12 @@
            $val 
            (if (== $val ())
                (let* (
-                   ($expTree (preOrder $tree))
-                   ($scoreList (map-atom $table $ts (scoreTreeHelper $labels $expTree $ts)))
+                   ($expTree   (preOrder $tree))
+                   ;; Serialize tree + labels to their $-prefixed string form
+                   ;; ONCE per candidate; per-row scoring just parses+unifies+evals.
+                   ($candStr   (tree-vstr   $expTree))
+                   ($labelsStr (labels-vstr $labels))
+                   ($scoreList (map-atom $table $ts (scoreTreeHelper $labelsStr $ts $candStr)))
                    ;; ($_ (println! (ScoreList: $scoreList)))
                    ($length (List.length $labels))
                    ($outputs (List.flatten (List.map (List.drop (- $length 1)) $table)))
@@ -81,7 +87,7 @@
                (car-atom $val)
            ))))
 
-(= (scoreTreeHelper $labels $expTree $table) (let $a (replaceVarsWithTruth ($labels $expTree) $table) (evaluate $a)))
+(= (scoreTreeHelper $labelsStr $row $candStr) (boolEval $labelsStr $row $candStr))
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.
