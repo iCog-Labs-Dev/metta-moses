@@ -1,18 +1,14 @@
-;; flattenAtom -> Merge one nested list into an accumulator.
-;; Used with foldl-atom to flatten nested map-atom results
-;; while preserving traversal order.
-;; (: flattenAtom (-> Expression Expression Expression))
-(= (flattenAtom $acc $sub)
-    (union-atom $sub $acc))
+
 
 ;; A function to generate all pairs of numbers from a list, where a != b
-;;  Uses map-atom to build the Cartesian product, foldl-atom to flatten,
-;;  and filter-atom to remove self-pairs.
+;; Uses nested map-atom calls to construct the Cartesian product,
+;; foldl-atom to flatten the nested results,
+;; and filter-atom to remove self-pairs.
 ;; (: genPairs (-> Expression Expression))
 (= (genPairs $list)
     (let*
         (($nested (map-atom $list $x (map-atom $list $y ($x $y))))
-         ($pairs (foldl-atom $nested () $acc $sub (flattenAtom $acc $sub)))
+         ($pairs (foldl-atom $nested () $acc $sub  (union-atom $sub $acc)))
         )
         (filter-atom $pairs ($a $b) (!= $a $b))))           
 
@@ -28,8 +24,8 @@
                  (map-atom $list $x 
                                (reverse (map-atom $list $y (map-atom  $list $z ($x $y $z))))))
 
-            ($level1 (foldl-atom $nested () $acc $sub (flattenAtom $acc $sub)))
-            ($triplets (foldl-atom $level1 () $acc $sub (flattenAtom $acc $sub)))
+            ($level1 (foldl-atom $nested () $acc $sub (union-atom $sub $acc)))
+            ($triplets (foldl-atom $level1 () $acc $sub (union-atom $sub $acc)))
         )
 
         (filter-atom $triplets ($a $b $c) (and (!= $a $b) (and (!= $a $c) (!= $b $c))))))
@@ -78,27 +74,8 @@
                         ($perms (getArgs $swapedOp $idxPairs $picked $argLabels)))
                    (concatT $argLabels $perms)))))
 
-
-;; Iterative evaluator for move expression generation.
-;; Traverses selected triplet indices deterministically.
-;; Builds move expressions using anchor–pivot–candidate structure.
-;; Replaces superpose-based nondeterministic selection.
-(= (getMoveArgsIter $op $PermPairs $picked $moveLabels $i $size)
-    (if (>= $i $size)
-        ()
-        (let*
-            (
-                ($permIdx (index-atom $picked $i))
-                (($a $b $c) (index-atom $PermPairs $permIdx))
-                (($move1 $move2 $move3)
-                    ((index-atom $moveLabels $a)
-                     (index-atom $moveLabels $b) 
-                     (index-atom $moveLabels $c)))
-            )
-            (cons-atom ($op $move1 $move2 $move3) 
-                       (getMoveArgsIter $op $PermPairs $picked $moveLabels (+ $i 1) $size)))))
-
-;; getMoveArgs -> generate move expressions from pairs of move indices
+;; getMoveArgs -> Generate move expressions from selected triplet indices.
+;; Maps each selected triplet index to its corresponding move expression.
 ;; Params:
 ;;          $op: move operator (PRIORITIZED-OR)
 ;;          $PermPairs: list of pairs of idx permutations
@@ -107,7 +84,18 @@
 ;; Returns: move expressions with operator and move combinations
 ;; (: getMoveArgs (-> Atom Expression Expression Expression Expression))
 (= (getMoveArgs $op $PermPairs $picked $moveLabels)
-    (getMoveArgsIter $op $PermPairs $picked $moveLabels 0 (size-atom $picked)))
+    (map-atom 
+          $picked 
+          $permIdx
+          (let*
+            (
+                (($a $b $c) (index-atom $PermPairs $permIdx))
+                (($move1 $move2 $move3) (
+                        (index-atom $moveLabels $a)
+                        (index-atom $moveLabels $b)
+                        (index-atom $moveLabels $c)))
+            )
+            ($op $move1 $move2 $move3))))
 
 ;; sampleStrategyPerms -> generate strategy permutations for game strategy evolution
 ;; Params:
@@ -133,6 +121,6 @@
                     ($perms (getMoveArgs $op $idxPairs $picked $moveLabels))
                 )
                    $perms
-            )
-        )
-))
+            ))))
+
+

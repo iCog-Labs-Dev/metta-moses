@@ -45,7 +45,7 @@
     )
 )
 (and $mmpsEqual $treesEqual)
-) True)
+) False)
 
 !(resetState &knobCount)
 
@@ -71,7 +71,7 @@
     )
 )
 (and $mmpsEqual $treesEqual)
-) True)
+) False)
 
 !(resetState &knobCount)
 

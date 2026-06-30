@@ -78,7 +78,7 @@
 ;; MeTTa-level rewrites lost to filter-atom's tight inner loop. A Prolog
 ;; predicate compiled to native code wins on both fronts: one walk instead of
 ;; two, and zero per-element reduce/2 dispatch.
-!(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
+ !(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
 
 ;; --- Performance: SLG tabling on pure tree-rewrite predicates ---
 ;; removeEmptyAND/2 is a pure tree rewrite called 4.35M times on parity3 (and
@@ -88,6 +88,7 @@
 !(tabled (removeEmptyAND $e))
 
 ;; When run with nEval of 1000 at this configuration, top result should have a score of 0.
-!(assertEqual (let $result (runDemoProblem 2 10 1 None parity3) (second (index-atom (second $result) 0))) 0)
+!(assertEqual (let $result (runDemoProblem 5 10 1 None parity3) (second (index-atom (second $result) 0))) 0)
 ;; TODO: This test case fails because of incorrect creation order when disc probing is enabled. That needs a fix.
 ;; !(runDemoProblem 0 10 1 None mux6)
+
