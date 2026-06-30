@@ -1,133 +1,124 @@
-;; pairInnerLoop -> selects second candidate for each anchor and 
-;;                 builds (anchor partner) pairs.
-;; Type: (-> Expression Number Number Number Expression)
-(= (pairInnerLoop $list $i $j $size)
-    (if (>= $j $size)
-        ()
-        (if (== $i $j)
-            (pairInnerLoop $list $i (+ $j 1) $size)
-            (cons-atom ((index-atom $list $i) (index-atom $list $j))
-                      (pairInnerLoop $list $i (+ $j 1) $size)))))
+;; Permutation sampling for logical / strategy knob building. Only ~arity random
+;; pairs/triplets are ever needed, so rather than enumerating the whole list we
+;; map each random index straight to its pair/triplet (pairAt / tripletAt),
+;; mirroring classic build_knobs::sample_logical_perms.
 
-;; pairOuterLoop -> fixes the first element of the pair (i) and 
-;;                   Iterates over all possible anchors in the list.
-;; Type: (-> Expression Number Number Expression)
-(= (pairOuterLoop $list $i $size)
-    (if (>= $i $size)
-        ()
-        (append (pairInnerLoop $list $i 0 $size)
-                (pairOuterLoop $list (+ $i 1) $size))))
+(= (intDiv $a $b) (floor-math (/ $a $b)))
 
-;; A function to generate all pairs of numbers from a list, where a != b
-;; Uses deterministic iterative helpers to construct the pair list.
+;; $i-th ordered pair ($a $b), $a != $b, over {0 .. $n-1} in lexicographic order
+(= (pairAt $n $i)
+    (let* (($d (- $n 1))
+           ($a (intDiv $i $d))
+           ($j (% $i $d))
+           ($b (if (< $j $a) $j (+ $j 1))))
+        ($a $b)))
+
+;; $i-th ordered triplet of distinct ($x $y $z) over {0 .. $n-1}; each $x owns a
+;; block of (n-1)(n-2) triplets whose ($y $z) come from pairAt over the rest
+(= (tripletAt $n $i)
+    (let* (($m (- $n 1))
+           ($per (* $m (- $m 1)))
+           ($x (intDiv $i $per))
+           ($k (% $i $per))
+           (($p $q) (pairAt $m $k))
+           ($y (if (< $p $x) $p (+ $p 1)))
+           ($z (if (< $q $x) $q (+ $q 1))))
+        ($x $y $z)))
+
+;; genPairs / genTriplet: deterministic full enumerations, kept as utilities
 ;; (: genPairs (-> Expression Expression))
-(= (genPairs $list)
-    (pairOuterLoop $list 0 (size-atom $list)))
+(= (genPairs $list) (genPairsLoop $list $list))
 
-;; tripletInnerLoop -> selects third element (k) and  complete valid triplets.  
-;; Type: (-> Expression Number Number Number Number Expression)
-(= (tripletInnerLoop $list $i $j $k $size)
-    (if (>= $k $size)
+(= (genPairsLoop $xs $full)
+    (if (== $xs ())
         ()
-        (if (or (== $k $i) (== $k $j))
-            (tripletInnerLoop $list $i $j (+ $k 1) $size)
-            (cons-atom ((index-atom $list $i) (index-atom $list $j) (index-atom $list $k))
-                        (tripletInnerLoop $list $i $j (+ $k 1) $size)))))
+        (let* (($x (car-atom $xs))
+               ($rest (cdr-atom $xs)))
+            (pairWith $x $full (genPairsLoop $rest $full)))))
 
-;; tripletMidLoop -> selects second element (j) for each anchor and 
-;;                    prepares context for candidate selection.
-;; Type: (-> Expression  Number Number Number Expression)
-(= (tripletMidLoop $list $i $j $size)
-    (if (>= $j $size)
-        ()
-        (if (== $i $j)
-            (tripletMidLoop $list $i (+ $j 1) $size)
-            (append (tripletInnerLoop $list $i $j 0 $size)
-                    (tripletMidLoop $list $i (+ $j 1) $size)))))
+(= (pairWith $x $ys $tail)
+    (if (== $ys ())
+        $tail
+        (let* (($y (car-atom $ys))
+               ($rest (cdr-atom $ys)))
+            (if (== $x $y)
+                (pairWith $x $rest $tail)
+                (cons-atom ($x $y) (pairWith $x $rest $tail))))))
 
-;; tripletOutLoop -> fixes first element of the triplet and 
-;;                    Drives the outermost iteration over all list elements.
-;; Type: (-> Expression  Number Number Expression)
-(= (tripletOutLoop $list $i $size)
-    (if (>= $i $size)
-        ()
-        (append
-            (tripletMidLoop $list $i 0 $size)
-            (tripletOutLoop $list (+ $i 1) $size))))
-
-
-;; genTriplet -> Generate all valid ordered triplets from a list.
-;;               Uses the iterative anchor–pivot–candidate traversal to avoid nondeterministic evaluation.
 ;; (: genTriplet (-> Expression Expression))
-(= (genTriplet $list)
-    (tripletOutLoop $list 0 (size-atom $list)))
+(= (genTriplet $list) (genTripletLoop $list (genPairs $list)))
 
-;; getArgs ->  Produces deterministic tuple of logical expressions.
-;;             Maps each selected pair index to its corresponding logical expression
+(= (genTripletLoop $xs $pairs)
+    (if (== $xs ())
+        ()
+        (let* (($x (car-atom $xs))
+               ($rest (cdr-atom $xs)))
+            (tripletWith $x $pairs (genTripletLoop $rest $pairs)))))
+
+(= (tripletWith $x $pairs $tail)
+    (if (== $pairs ())
+        $tail
+        (let* (($p (car-atom $pairs))
+               ($rest (cdr-atom $pairs))
+               (($y $z) $p))
+            (if (and (!= $x $y) (!= $x $z))
+                (cons-atom ($x $y $z) (tripletWith $x $rest $tail))
+                (tripletWith $x $rest $tail)))))
+
+;; getArgs -> generate logical expressions for the picked permutation indices
 ;; Parameters:
 ;;          $swapedOp -> swaped operator
-;;          $PermPairs -> list of pairs of idx permutations
+;;          $n -> number of argument labels (index space {0 .. $n-1})
 ;;          $picked -> list of picked idxs
-;; (: getArgs (-> Atom Expression Expression Expression Expression))
-(= (getArgs $swapedOp $PermPairs $picked $argLabels)
-    (map-atom
-        $picked
-        $pairIdx
-        (let*
-            (
-                (($a $b) (index-atom $PermPairs $pairIdx))
-                (($1 $2) ((index-atom $argLabels $a) (index-atom $argLabels $b)))
-            )
-            (if (< $b $a)
-                ($swapedOp $2 $1)
-                ($swapedOp (NOT $1) $2)))))
+;; (: getArgs (-> Atom Number Expression Expression Expression))
+(= (getArgs $swapedOp $n $picked $argLabels)
+    (if (== $picked ())
+        ()
+        (let* (($i (car-atom $picked))
+               ($rest (cdr-atom $picked))
+               (($a $b) (pairAt $n $i))
+               ($1 (index-atom $argLabels $a))
+               ($2 (index-atom $argLabels $b))
+               ($expr (if (< $b $a)
+                          ($swapedOp $2 $1)
+                          ($swapedOp (NOT $1) $2))))
+            (cons-atom $expr (getArgs $swapedOp $n $rest $argLabels)))))
 
 ;; sampleLogicalPerms -> generate logical permutations for boolean expressions
 ;; Parameters:
-;;          $op -> the operator passed from the iterator 
+;;          $op -> the operator passed from the iterator
 ;;          $arity -> the number of arguments in the logical expression
 ;; Returns:
 ;;          Union of $perms (the list of logical expressions generated) with args
-
-; (= (sampleLogicalPerms $op $arity) (sampleLogicalPerms $op $arity ()))
 ;; (: sampleLogicalPerms (-> Atom Number Expression Expression))
 (= (sampleLogicalPerms $op $arity $argLabels)
-    (let*
-        ( 
-            ($swapedOp (swapAndOr $op))
-            ($list (genList (- $arity 1)))
-            ($idxPairs (genPairs $list))
-            ($nPairs $arity)) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
-            ;; ($nPairs 0) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
-            (if (<= $nPairs 1)
-                (let $arg (car-atom $argLabels) ($arg (NOT $arg)))  ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage
-                (let* (($upperbound (- (* $arity (- $arity 1)) 1))
-                        ($picked (lazyRandomSelector 0 $upperbound $nPairs))
-                        ($perms (getArgs $swapedOp $idxPairs $picked $argLabels)))
-                   (concatT $argLabels $perms)))))
+    (let* (($swapedOp (swapAndOr $op))
+           ($nPairs $arity)) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
+        (if (<= $nPairs 1)
+            (let $arg (car-atom $argLabels) ($arg (NOT $arg)))  ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage
+            (let* (($upperbound (- (* $arity (- $arity 1)) 1))
+                   ($picked (lazyRandomSelector 0 $upperbound $nPairs))
+                   ($perms (getArgs $swapedOp $arity $picked $argLabels)))
+               (concatT $argLabels $perms)))))
 
-;; getMoveArgs -> Generate move expressions from selected triplet indices.
-;; Maps each selected triplet index to its corresponding move expression.
+;; getMoveArgs -> generate move expressions for the picked triplet indices
 ;; Params:
 ;;          $op: move operator (PRIORITIZED-OR)
-;;          $PermPairs: list of pairs of idx permutations
-;;          $picked: list of picked move idxs
+;;          $n: number of move labels (index space {0 .. $n-1})
+;;          $picked: list of picked triplet idxs
 ;;          $moveLabels: list of move labels (playcenter, playcorner, etc.)
-;; Returns: move expressions with operator and move combinations
-;; (: getMoveArgs (-> Atom Expression Expression Expression Expression))
-(= (getMoveArgs $op $PermPairs $picked $moveLabels)
-    (map-atom 
-          $picked 
-          $permIdx
-          (let*
-            (
-                (($a $b $c) (index-atom $PermPairs $permIdx))
-                (($move1 $move2 $move3) (
-                        (index-atom $moveLabels $a)
-                        (index-atom $moveLabels $b)
-                        (index-atom $moveLabels $c)))
-            )
-            ($op $move1 $move2 $move3))))
+;; (: getMoveArgs (-> Atom Number Expression Expression Expression))
+(= (getMoveArgs $op $n $picked $moveLabels)
+    (if (== $picked ())
+        ()
+        (let* (($i (car-atom $picked))
+               ($rest (cdr-atom $picked))
+               (($a $b $c) (tripletAt $n $i))
+               ($move1 (index-atom $moveLabels $a))
+               ($move2 (index-atom $moveLabels $b))
+               ($move3 (index-atom $moveLabels $c)))
+            (cons-atom ($op $move1 $move2 $move3)
+                       (getMoveArgs $op $n $rest $moveLabels)))))
 
 ;; sampleStrategyPerms -> generate strategy permutations for game strategy evolution
 ;; Params:
@@ -138,21 +129,11 @@
 ;;          Union of original moves with alternative move strategy expressions
 ;; (: sampleStrategyPerms (-> Atom Number Expression Expression))
 (= (sampleStrategyPerms $op $arity $moveLabels)
-    (let*
-        (
-            ($list (genList (- (length $moveLabels) 1)))
-            ($idxPairs (genTriplet $list))
-            ($nPairs $arity)
-        )
+    (let* (($n (length $moveLabels))
+           ($nPairs $arity))
         (if (<= $nPairs 1)
             ($op (car-atom $moveLabels))
-            (let*
-                (
-                    ($upperbound (- (length $idxPairs) 1))
-                    ($picked (lazyRandomSelector 0 $upperbound $nPairs))
-                    ($perms (getMoveArgs $op $idxPairs $picked $moveLabels))
-                )
-                   $perms
-            ))))
-
-
+            (let* (($upperbound (- (* $n (* (- $n 1) (- $n 2))) 1))
+                   ($picked (lazyRandomSelector 0 $upperbound $nPairs))
+                   ($perms (getMoveArgs $op $n $picked $moveLabels)))
+               $perms))))
