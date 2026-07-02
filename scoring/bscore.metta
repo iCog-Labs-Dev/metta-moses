@@ -58,28 +58,24 @@
 ;;         $tree - The tree to be scored
 ;;
 ;; Returns: Beahvioral score for the given tree.
-; (: scoreTree (-> (ITable $a) (Tree $a) BehavioralScore))
+; (: scoreTree (-> (ITable $a) (Tree $a) $cacheSpace BehavioralScore))
+;; The score is derived entirely from the columnar subtree cache: evalSubtree
+;; evaluates the tree once into a per-row boolean vector, memoizing every
+;; subtree — including the root expression — in &subtreeCache. The root entry
+;; therefore serves as the whole-tree memo, so no separate whole-tree cache
+;; read/write is needed. $cacheSpace is kept for signature compatibility with
+;; existing callers but is no longer used.
 (= (scoreTree (mkITable $table $labels) $tree $cacheSpace)
    (if (== $tree (mkTree (mkNode AND) ()))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
-       (chain (collapse (match $cacheSpace 
-               ($tree $bscore) 
-               $bscore))
-           $val 
-           (if (== $val ())
-               (let* (
-                   ($expTree (preOrder $tree))
-                   ($scoreList (map-atom $table $ts (scoreTreeHelper $labels $expTree $ts)))
-                   ;; ($_ (println! (ScoreList: $scoreList)))
-                   ($length (List.length $labels))
-                   ($outputs (List.flatten (List.map (List.drop (- $length 1)) $table)))
-                   ($bScore (List.zipWith compareAndScore $scoreList $outputs))
-                   ($result (mkBScore $bScore))
-                   ($_ (add-atom $cacheSpace ($tree $result)))
-               )
-               $result)
-               (car-atom $val)
-           ))))
+       (let* (
+           ($expTree (preOrder $tree))
+           ($scoreList (evalSubtree $expTree (mkITable $table $labels) (List.length $table)))
+           ($length (List.length $labels))
+           ($outputs (List.flatten (List.map (List.drop (- $length 1)) $table)))
+           ($bScore (List.zipWith compareAndScore $scoreList $outputs))
+       )
+       (mkBScore $bScore))))
 
 (= (scoreTreeHelper $labels $expTree $table) (let $a (replaceVarsWithTruth ($labels $expTree) $table) (evaluate $a)))
 ;; Return the best possible BehavioralScore given the size of the table.

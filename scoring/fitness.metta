@@ -111,6 +111,79 @@
 )
 
 
+;; ---------------------------------------------------------------------------
+;; Columnar (vectorized) subtree evaluation with memoization.
+;;
+;; Instead of substituting variables per row and re-evaluating the whole tree,
+;; each subtree is evaluated ONCE into a boolean vector over all table rows and
+;; memoized in &subtreeCache, keyed by its canonical (preOrder) expression.
+;; Common subtrees (e.g. (AND A B)) recur across candidates, so the hit rate is
+;; far higher than the whole-tree cache and shared work is done only once.
+;; ---------------------------------------------------------------------------
+
+;; Extract a variable's column (one boolean per row) from the input table.
+;(: varColumn (-> (ITable $a) Symbol (List Bool)))
+(= (varColumn (mkITable $rows $labels) $label)
+   (let $idx (List.index $labels $label)
+        (if (== $idx -1)
+            ;; Leaf references a label not in the table. Real candidate trees are
+            ;; built from the table's features so this is a malformed input; fail
+            ;; loudly rather than silently scoring every row -1 (List.getByIdx -1).
+            (Error $label "varColumn: label not found in table")
+            ;; $idx is already validated (>= 0, and rows are as wide as $labels),
+            ;; so index straight into the row with the grounded index-atom builtin
+            ;; instead of List.getByIdx, which re-scans the row (size-atom) for a
+            ;; redundant bounds check on every cell.
+            (map-atom $rows $r (index-atom $r $idx)))))
+
+;; Reduce a list of equal-length boolean columns elementwise with a binary op,
+;; starting from $acc. Generalizes n-ary AND/OR: pass `and` or `or`.
+(= (reduceColumns $op $acc $cols)
+   (if (== $cols ())
+       $acc
+       (reduceColumns $op (List.zipWith $op $acc (car-atom $cols)) (cdr-atom $cols))))
+
+;; Combine child columns for an operator node. AND/OR reduce from the first child
+;; (empty $vs falls back to the identity column, covering preOrder's unit-filtered
+;; empty AND/OR); NOT negates its child inline (too simple to warrant a helper).
+;; A single case-dispatch (not separate clauses) avoids non-deterministic overlap.
+;; Any other head (e.g. an unreduced (reduce-to ...) wrapper left on a degenerate
+;; tree) mirrors the old evaluator, which returned ERROR -> scores worst (-1).
+;(: combineSubtrees (-> Symbol (List (List Bool)) Number (List Bool)))
+(= (combineSubtrees $op $vs $n)
+   (case $op
+     ((AND (if (== $vs ()) (List.repeat $n True)  (reduceColumns and (car-atom $vs) (cdr-atom $vs))))
+      (OR  (if (== $vs ()) (List.repeat $n False) (reduceColumns or  (car-atom $vs) (cdr-atom $vs))))
+      (NOT (List.map not (car-atom $vs)))
+      ($_  (List.repeat $n ERROR)))))
+
+;; Evaluate a canonical (preOrder) (sub)expression into a boolean vector over
+;; all rows, memoizing operator nodes in &subtreeCache. $n is the number of rows.
+;(: evalSubtree (-> Expression (ITable $a) Number (List Bool)))
+(= (evalSubtree $expr $itable $n)
+   (if (== (get-metatype $expr) Expression)
+       (if (== (cdr-atom $expr) ())
+           ;; single element: (AND)/(OR) identity, or (X) unwrap
+           (let $h (car-atom $expr)
+             (case $h
+               ((AND (List.repeat $n True))
+                (OR  (List.repeat $n False))
+                ($_  (evalSubtree $h $itable $n)))))
+           ;; operator node: lookup, else recurse children, combine, cache
+           (chain (collapse (match &subtreeCache (subtree $expr $v) $v)) $hit
+             (if (== $hit ())
+                 (let* ((($op $args)   (decons-atom $expr))
+                        ($cvs  (map-atom $args $a (evalSubtree $a $itable $n)))
+                        ($vec  (combineSubtrees $op $cvs $n))
+                        ($_    (add-atom &subtreeCache (subtree $expr $vec))))
+                   $vec)
+                 (car-atom $hit))))
+       ;; atom leaf: grounded literal (True/False) vs variable column
+       (if (== (get-metatype $expr) Grounded)
+           (List.repeat $n $expr)
+           (varColumn $itable $expr))))
+
+
  ;; Evaluates the accuracy of the expression for a single input row (target, inputs) pair.
  ;; This function determines whether the given boolean expression produces the expected result.
  ;;
