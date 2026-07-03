@@ -70,12 +70,13 @@
            $val 
            (if (== $val ())
                (let* (
-                   ($expTree   (preOrder $tree))
-                   ;; Serialize tree + labels to their $-prefixed string form
-                   ;; ONCE per candidate; per-row scoring just parses+unifies+evals.
-                   ($candStr   (tree-vstr   $expTree))
-                   ($labelsStr (labels-vstr $labels))
-                   ($scoreList (map-atom $table $ts (scoreTreeHelper $labelsStr $ts $candStr)))
+                   ;; Build the eval template directly ONCE per candidate --
+                   ;; no strings, no parse. `candTemplate` walks the Tree once
+                   ;; (preOrderExp), then folds over labels substituting each
+                   ;; label symbol with a fresh Prolog var (foldTemplate). See
+                   ;; scoring/boolean-ops.metta for the shape invariants.
+                   ($template (candTemplate $labels $tree))
+                   ($scoreList (map-atom $table $ts (scoreTreeHelper $template $ts)))
                    ;; ($_ (println! (ScoreList: $scoreList)))
                    ($length (List.length $labels))
                    ($outputs (List.flatten (List.map (List.drop (- $length 1)) $table)))
@@ -87,7 +88,7 @@
                (car-atom $val)
            ))))
 
-(= (scoreTreeHelper $labelsStr $row $candStr) (boolEval $labelsStr $row $candStr))
+(= (scoreTreeHelper $template $row) (evalParsed $template $row))
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.

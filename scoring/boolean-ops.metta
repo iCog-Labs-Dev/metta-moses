@@ -1,74 +1,161 @@
-;; Native boolean evaluation -- parse-based unification.
+;; Native boolean evaluation -- fold-substitute template, sealed per-row.
 ;;
-;; The candidate is converted to its `$`-prefixed string form ONCE per
-;; candidate (by scoreTree, before iterating rows). Per row, boolEval just:
-;;   1. concatenates "(($labels-str) ($cand-str))"
-;;   2. (parse ...) the string -- the parser's name->Prolog-var dict is
-;;      shared within one call, so every $A occurrence becomes the same
-;;      Prolog variable in both the labels list and the candidate
-;;   3. destructure: ($labelsP $expP) (parse ...)
-;;   4. (let $labelsP $rowExp) -- ONE Prolog unification binds every var
-;;      in the labels list against the row in one shot
-;;   5. (eval $expP) -- fires And/Or/Not with bound bools
+;; ---- Big picture ----
+;; scoreTree builds a `($labelsTerm $expTerm)` template ONCE per candidate
+;; via `candTemplate`. No strings, no parse, no name->var dict.
+;;
+;; `candTemplate` runs in two stages:
+;;   1. `preOrderExp` walks the Tree once, emitting an Expression that
+;;      mirrors the tree's structure with label SYMBOLS at leaf positions
+;;      (still placeholders — no vars yet).
+;;   2. `foldTemplate` folds over the labels list. Each iteration mints
+;;      a fresh MeTTa var `$v` (lexical scoping ⇒ fresh Prolog var per
+;;      recursive call) and calls `substExp` to replace ALL occurrences
+;;      of that label symbol in the expression with `$v`. Same-labelled
+;;      leaves get the same var because they're all substituted in one
+;;      sweep. The `$v` is also consed onto the growing labels-term, so
+;;      labels-term and expression share the SAME var at each label's
+;;      position — no dict, no name lookup.
+;;
+;; Per row, `evalParsed` uses `sealed` on the labels-term to freshen the
+;; label vars inside a body that (a) unifies fresh labels-term against
+;; the row and (b) evals the fresh expression. The original template
+;; stays pristine so the next row starts from unbound vars.
+;;
+;; ---- sealed ----
+;; sealed compiles to `copy_term/4(Vars, Body, _, FreshBody)` — renames
+;; only the listed vars and shares subterms that don't contain them.
+;; The invariant boolean-op scaffolding (And/Or/Not, ()) has no label
+;; vars, so those subterms are shared with the original instead of
+;; copied every row.
 ;;
 ;; ---- Operator-name collision sidestep ----
-;; The reduct module builds `(AND <single-expr>)` as a data wrapper
-;; (n-ary-gather-junctors.metta, reduce-to-elegance.metta). Defining
-;; `(= (AND $args) ...)` would silently dispatch on those wrappers.
-;; The fix: define EVAL forms as `And/Or/Not` (CapFirst); `head-vstr`
-;; rewrites AND->And etc. while emitting the parseable string, so the
-;; rename costs nothing outside boolean-ops.metta itself.
+;; The reduct module builds `(AND <single-expr>)` as a data wrapper.
+;; Defining `(= (AND $args) ...)` would silently dispatch on those. The
+;; fix: define EVAL forms as `And/Or/Not` (CapFirst); `opSym` rewrites
+;; AND->And etc. while building the term.
+;;
+;; ---- Data terms via cons-atom ----
+;; Every constructed term is built with `cons-atom` (a builtin that
+;; returns data) rather than as a literal `(And ...)` expression, so the
+;; reducer doesn't fire the `(= (And $args) ...)` clause at build time.
+;; The template only reaches eval position via the explicit `(eval $expP)`
+;; in `evalParsed`.
 
 ;; ---- Wrapped-list operators: single arity-1 clause = n-ary ----
-;; And/Or take their children as a single wrapped Expression; Not takes
-;; its single bool directly (unary). tree-vstr emits And/Or children
-;; wrapped, but Not's single child unwrapped.
 (= (And $args) (all $args))
 (= (Or  $args) (any $args))
 (= (Not $x)    (not $x))
 
-;; ---- head-vstr: translate operator names at string-build time ----
-;; case-dispatch keeps this deterministic.
-(= (head-vstr $h)
-   (case $h
-     ((AND "And")
-      (OR  "Or")
-      ($_  $h))))
+;; ---- opSym: AND->And, OR->Or, else identity. ----
+(= (opSym $r)
+   (case $r
+     ((AND And)
+      (OR  Or)
+      ($_  $r))))
 
-;; ---- str-concat: emit string fragments, fold-concat once. ----
-;; Replaces nested atom_concat chains everywhere; pass any list of
-;; (computed-or-literal) string fragments and get the joined result.
-(= (str-concat $fragments) (foldl-atom $fragments "" atom_concat))
+;; ---- preOrderExp: Tree -> Expression form, leaves still as symbols. ----
+;; Mirrors `preOrder` in utilities/tree.metta but returns an Expression
+;; shape that matches what `parse` used to produce for a labels+cand
+;; string: (Op ( c1 c2 …)) for AND/OR, (Not <child>) for NOT, `sym` at
+;; label leaves, (Op ()) at nullary AND/OR leaves. Knob passthroughs
+;; mirror preOrder.
+(= (preOrderExp (mkTree (mkNode $r) ()))
+   (if (once (is-member $r (AND OR)))
+       (let $sym (opSym $r)
+            (let $node ($sym ()) $node))
+       $r))
+(= (preOrderExp (mkKnob (mkNullVex $tree) $lsk $i)) ())
+(= (preOrderExp (mkKnob (mkTree $node $children) $lsk $i))
+   (preOrderExp (mkTree $node $children)))
+(= (preOrderExp (mkTree (mkNode $r) (cons $x $xs)))
+   (let $childrenExp (childrenExp (cons $x $xs))
+        (if (== $r NOT)
+            (let $child (car-atom $childrenExp)
+                 (let $node (cons Not ($child)) $node))
+            (let $sym (opSym $r)
+                 (let $node ($sym $childrenExp) $node)))))
 
-;; ---- tree-vstr: candidate Expression -> "(And ( $A $B))" ----
-;; Children are wrapped in an inner Expression so the And/Or/Not arity-1
-;; clauses bind $args to the whole children list. Operators are renamed
-;; via head-vstr; leaf symbols get a `$` prefix so parse mints them as
-;; variables. The recursion rides inside map-atom -- no explicit self-call
-;; against decons-atom. Called ONCE per candidate.
-;; tree-vstr emits And/Or with their children wrapped in an extra
-;; Expression so the arity-1 (And $args) / (Or $args) clauses bind
-;; the whole list. Not stays unary (no extra wrap).
-(= (tree-vstr $t)
-   (if (== (get-metatype $t) Expression)
-       (let ($h $rest) (decons-atom $t)
+;; childrenExp: Expression of Trees -> Expression of child forms.
+;; map-atom applies preOrderExp; filter-atom drops empty knob passthroughs.
+;; Both bodies capture nothing from outer scope, so yall's per-iteration
+;; copy_term is harmless here (unlike in substExp).
+(= (childrenExp $children)
+   (filter-atom (map-atom $children $c (preOrderExp $c)) $x (not (== $x ()))))
+
+;; ---- substExp: replace every leaf occurrence of $target in $exp with $repl. ----
+;; Manual recursion (NOT map-atom / foldl-atom): those compile to a
+;; SWI yall lambda `[X,Y]>>Body` which is copy_term'd per iteration,
+;; breaking identity for any free vars captured from the outer scope
+;; (like $repl). Standard recursion passes $repl as an argument, whose
+;; identity is preserved by Prolog's call/1.
+;;
+;; A List.foldl variant threading (target, repl, revResult) through the
+;; accumulator was tried and works correctly, but benched ~3% slower --
+;; the tuple-acc unpack and final reverse cost more than they save.
+(= (substExp $target $repl $exp)
+   (if (== (get-metatype $exp) Expression)
+       (if (== $exp ())
+           ()
+           (let*
+             (
+              (($h $rest) (decons-atom $exp))
+              ($newH (substExp $target $repl $h))
+              ($newRest (substExp $target $repl $rest))
+             )
+             (cons $newH $newRest)))
+       (if (== $exp $target) $repl $exp)))
+
+;; ---- foldTemplate: iterate labels, mint fresh var per iteration, ----
+;; ---- substitute label -> var everywhere in $exp. ----
+;; Returns ($labelsTerm $finalExp). Recurse-then-cons preserves original
+;; labels order in $labelsTerm (matching positional row unification).
+;; $v is fresh per recursive call (lexical scoping).
+;;
+;; A List.foldl variant with a named `foldTemplateStep` and a tuple
+;; accumulator ($labelsAcc $expAcc) was tried and works correctly, but
+;; benched ~3% slower — the tuple unpack per iteration and terminal
+;; reverse cost more than the fold saves.
+(= (foldTemplate $labels $exp)
+   (if (== $labels ())
+       (() $exp)
+       (let*
+         (
+          (($h $rest) (decons-atom $labels))
+          ($newExp (substExp $h $v $exp))
+          (($restLabels $finalExp) (foldTemplate $rest $newExp))
+          ($head (cons $v $restLabels))
+         )
+         ($head $finalExp))))
+
+;; ---- candTemplate: entry called ONCE per candidate by scoreTree. ----
+(= (candTemplate $labels $tree)
+   (let $exp (preOrderExp $tree)
+        (foldTemplate $labels $exp)))
+;; ---- Per-row core: template in, bool out. ----
+;; sealed freshens only the labels vars in the body; unification binds
+;; those fresh copies to the row; eval fires And/Or/Not on the fresh
+;; expression. Original template's vars remain unbound for the next row.
+
+(= (evalParsed $template $row)
+   (let ($labelsP $expP) $template
+        (sealed $labelsP
+                (let $labelsP $row
+                     (eval $expP)))))
+
+
+;; ---- expToExp: Expression -> Expression form for test-side callers. ----
+;; Tests pass raw expressions like `(AND A B)` instead of Trees, so we
+;; need the same shape transform (AND->And rename, wrap children Expression)
+;; but starting from an Expression.
+(= (expToExp $e)
+   (if (== (get-metatype $e) Expression)
+       (let ($h $rest) (decons-atom $e)
             (if (== $h NOT)
-                (str-concat ("(Not" (children-vstr $rest) ")"))
-                (str-concat ("(" (head-vstr $h) " (" (children-vstr $rest) "))"))))
-       (str-concat ("$" $t))))
+                (let $child (expToExp (car-atom $rest))
+                     (let $node (cons-atom Not (cons-atom $child ())) $node))
+                (let $childrenTerm (map-atom $rest $c (expToExp $c))
+                     (let $sym (opSym $h)
+                          (let $node (cons-atom $sym (cons-atom $childrenTerm ())) $node)))))
+       $e))
 
-;; children-vstr: " $c1 $c2 ..." via map-atom + str-concat.
-(= (children-vstr $exp)
-   (str-concat (map-atom $exp $c (str-concat (" " (tree-vstr $c))))))
-
-;; ---- labels-vstr: cons-tagged labels -> "($A $B $C)". ----
-;; Called ONCE per scoreTree.
-(= (labels-vstr $labels)
-   (str-concat ("(" (str-concat (map-atom $labels $l (str-concat (" $" $l)))) ")")))
-
-;; ---- Per-row entry: thin -- no walks, just str-concat + parse + unify + eval ----
-(= (boolEval $labelsStr $row $candStr)
-   (let $combined (str-concat ("(" $labelsStr " " $candStr ")"))
-        (let ($labelsP $expP) (parse $combined)
-             (let $labelsP $row
-                  (eval $expP)))))

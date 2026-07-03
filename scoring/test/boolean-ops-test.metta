@@ -3,11 +3,12 @@
 !(import! &self ../fitness)
 !(import! &self ../bscore)
 
-;; Test helper: scoreTree now hands boolEval pre-built strings. Callers in
-;; this test still want to think in (labels, row, tree) triples, so wrap
-;; the string serialization here to keep the assertions readable.
+;; Test helper: build the eval template from (labels, cand-expression) and
+;; evaluate one row through evalParsed. `expToExp` transforms the raw test
+;; expression into the AND->And renamed / children-wrapped form; then
+;; `foldTemplate` substitutes labels->fresh-vars. No strings, no dict.
 (= (callBE $labels $row $cand)
-   (boolEval (labels-vstr $labels) $row (tree-vstr $cand)))
+   (evalParsed (foldTemplate $labels (expToExp $cand)) $row))
 
 ;; ---- And / Or (wrapped-list, single arity-1 clause = n-ary) ----
 ;; (CapFirst names: the reduct keeps AND/OR/NOT; tree-vstr rewrites
