@@ -51,29 +51,33 @@
    (cons (actionPairFromIndex $perceptions $actions $actionCount $pairIdx)
          (actionPairsFromIndexes $rest $perceptions $actions $actionCount)))
 
-;; Add one action-subtree ASK at the target node.
-(= (addActionKnobsAt $tree $probeRootId (mkNodeId $tgtId) $addIfInExemplar $MMap $actions $perceptions)
+;; Add action-subtree ASK knobs to a subtree.
+;; Input: subtree
+;; Output: (updatedSubtree updatedMMap)
+(= (addActionKnobs $subtree $addIfInExemplar $MMap $actions $perceptions)
    (let*
      (
        ($perms (sampleActionPerms $actions $perceptions))
        ($treePerms (map-atom $perms $perm (buildTree $perm)))
        ($idx (MultiMap.length $MMap))
-       (($knobs $updatedTree) (actionProbe $tree (mkNodeId $tgtId) $treePerms $addIfInExemplar () $idx))
+       (($knobs $updatedSubtree) (actionProbe $subtree (mkNodeId (0)) $treePerms $addIfInExemplar () $idx))
        ($pairs (pairKnobWithSpec $knobs))
        ($mmp (expToMMap $pairs $MMap discSpec<))
      )
-     ($updatedTree $mmp)))
+     ($updatedSubtree $mmp)))
 
-;; Add one simple-action ASK over an existing subtree.
-(= (addSimpleActionKnobsAt $tree $probeRootId (mkNodeId $tgtId) $addIfInExemplar $MMap $actions $perceptions)
+;; Add simple-action ASK knobs to a subtree.
+;; Input: subtree
+;; Output: (updatedSubtree updatedMMap)
+(= (addSimpleActionKnobs $subtree $addIfInExemplar $MMap)
    (let*
      (
        ($idx (MultiMap.length $MMap))
-       (($knobs $updatedTree) (simpleActionProbe $tree (mkNodeId $tgtId) $addIfInExemplar () $idx))
+       (($knobs $updatedSubtree) (simpleActionProbe $subtree (mkNodeId (0)) $addIfInExemplar () $idx))
        ($pairs (pairKnobWithSpec $knobs))
        ($mmp (expToMMap $pairs $MMap discSpec<))
      )
-     ($updatedTree $mmp)))
+     ($updatedSubtree $mmp)))
 
 ;; Process one child of and_seq. This preserves the C++ p=80 policy.
 (= (processActionChildAt $tree (mkNodeId $parentId) (mkNodeId $childId) $child $MMap $actions $perceptions $p)
@@ -100,7 +104,6 @@
        (($t1 $m1) (processActionChildAt $tree (mkNodeId $parentId) (mkNodeId $childId) $child $MMap $actions $perceptions $p))
      )
      (processActionChildren $t1 (mkNodeId $parentId) $rest (+ $childIdx 1) $m1 $actions $perceptions $p)))
-
 ;; Process action_bool_if branches. Child 1 is perception and is skipped.
 (= (processActionBoolIfChildAt $tree (mkNodeId $parentId) (mkNodeId $childId) $child $MMap $actions $perceptions)
    (let (mkTree (mkNode $childOp) $_) $child
