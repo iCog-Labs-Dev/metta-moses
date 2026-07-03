@@ -72,17 +72,13 @@
 ;;          $picked -> list of picked idxs
 ;; (: getArgs (-> Atom Number Expression Expression Expression))
 (= (getArgs $swapedOp $n $picked $argLabels)
-    (if (== $picked ())
-        ()
-        (let* (($i (car-atom $picked))
-               ($rest (cdr-atom $picked))
-               (($a $b) (pairAt $n $i))
+    (map-atom $picked $i
+        (let* ((($a $b) (pairAt $n $i))
                ($1 (index-atom $argLabels $a))
-               ($2 (index-atom $argLabels $b))
-               ($expr (if (< $b $a)
-                          ($swapedOp $2 $1)
-                          ($swapedOp (NOT $1) $2))))
-            (cons-atom $expr (getArgs $swapedOp $n $rest $argLabels)))))
+               ($2 (index-atom $argLabels $b)))
+            (if (< $b $a)
+                ($swapedOp $2 $1)
+                ($swapedOp (NOT $1) $2)))))
 
 ;; sampleLogicalPerms -> generate logical permutations for boolean expressions
 ;; Parameters:
@@ -109,16 +105,12 @@
 ;;          $moveLabels: list of move labels (playcenter, playcorner, etc.)
 ;; (: getMoveArgs (-> Atom Number Expression Expression Expression))
 (= (getMoveArgs $op $n $picked $moveLabels)
-    (if (== $picked ())
-        ()
-        (let* (($i (car-atom $picked))
-               ($rest (cdr-atom $picked))
-               (($a $b $c) (tripletAt $n $i))
+    (map-atom $picked $i
+        (let* ((($a $b $c) (tripletAt $n $i))
                ($move1 (index-atom $moveLabels $a))
                ($move2 (index-atom $moveLabels $b))
                ($move3 (index-atom $moveLabels $c)))
-            (cons-atom ($op $move1 $move2 $move3)
-                       (getMoveArgs $op $n $rest $moveLabels)))))
+            ($op $move1 $move2 $move3))))
 
 ;; sampleStrategyPerms -> generate strategy permutations for game strategy evolution
 ;; Params:
