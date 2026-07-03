@@ -104,15 +104,17 @@
        (($t1 $m1) (processActionChildAt $tree (mkNodeId $parentId) (mkNodeId $childId) $child $MMap $actions $perceptions $p))
      )
      (processActionChildren $t1 (mkNodeId $parentId) $rest (+ $childIdx 1) $m1 $actions $perceptions $p)))
-;; Process action_bool_if branches. Child 1 is perception and is skipped.
-(= (processActionBoolIfChildAt $tree (mkNodeId $parentId) (mkNodeId $childId) $child $MMap $actions $perceptions)
+     
+;; Process one action branch of an action_bool_if subtree.
+;; The perception child is handled separately.
+(= (processActionBoolIfChild $child $MMap $actions $perceptions)
    (let (mkTree (mkNode $childOp) $_) $child
       (if (isDomainAction $childOp $actions)
-          (let $wrappedTree (insertNodeAtPosition $tree (mkNodeId $childId) (mkNode and_seq))
-            (addActionKnobsAt $wrappedTree $parentId (mkNodeId $childId) False $MMap $actions $perceptions))
+         (addActionKnobs (mkTree (mkNode and_seq) (cons $child ())) False $MMap $actions $perceptions)
+
           (if (== $childOp and_seq)
-              (buildAction $tree (mkNodeId $childId) $MMap $actions $perceptions)
-              ($tree $MMap)))))
+              (buildAction $child $MMap $actions $perceptions)
+              ($child $MMap)))))
 
 (= (processActionBoolIfChildren $tree (mkNodeId $parentId) () $childIdx $MMap $actions $perceptions)
    ($tree $MMap))
@@ -126,6 +128,7 @@
            (($t1 $m1) (processActionBoolIfChildAt $tree (mkNodeId $parentId) (mkNodeId $childId) $child $MMap $actions $perceptions))
          )
          (processActionBoolIfChildren $t1 (mkNodeId $parentId) $rest (+ $childIdx 1) $m1 $actions $perceptions))))
+
 
 ;; Handle sequential_and nodes with the fixed internal C++ probability p=80.
 (= (buildActionAndSeq $tree (mkNodeId $nodeId) $children $MMap $actions $perceptions)
