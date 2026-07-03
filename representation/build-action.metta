@@ -104,7 +104,7 @@
        (($t1 $m1) (processActionChildAt $tree (mkNodeId $parentId) (mkNodeId $childId) $child $MMap $actions $perceptions $p))
      )
      (processActionChildren $t1 (mkNodeId $parentId) $rest (+ $childIdx 1) $m1 $actions $perceptions $p)))
-     
+
 ;; Process one action branch of an action_bool_if subtree.
 ;; The perception child is handled separately.
 (= (processActionBoolIfChild $child $MMap $actions $perceptions)
@@ -116,19 +116,28 @@
               (buildAction $child $MMap $actions $perceptions)
               ($child $MMap)))))
 
-(= (processActionBoolIfChildren $tree (mkNodeId $parentId) () $childIdx $MMap $actions $perceptions)
-   ($tree $MMap))
+;; Process the children of an action_bool_if subtree.
+;; The first child is the perception and is preserved unchanged.
+;; Remaining action branches are rebuilt recursively.
+(= (processActionBoolIfChildren () $MMap $actions $perceptions) 
+   (() $MMap))
 
-(= (processActionBoolIfChildren $tree (mkNodeId $parentId) (cons $child $rest) $childIdx $MMap $actions $perceptions)
-   (if (== $childIdx 1)
-       (processActionBoolIfChildren $tree (mkNodeId $parentId) $rest (+ $childIdx 1) $MMap $actions $perceptions)
-       (let*
-         (
-           ($childId (if (== $parentId (0)) ($childIdx) (concatT $parentId ($childIdx))))
-           (($t1 $m1) (processActionBoolIfChildAt $tree (mkNodeId $parentId) (mkNodeId $childId) $child $MMap $actions $perceptions))
-         )
-         (processActionBoolIfChildren $t1 (mkNodeId $parentId) $rest (+ $childIdx 1) $m1 $actions $perceptions))))
+;; first child is the perception, keep it unchanged
+(= (processActionBoolIfChildren (cons $perception $rest) $MMap $actions $perceptions)
+   (let*
+     (
+       (($rebuiltRest $m1) (processActionBoolIfBranches $rest $MMap $actions $perceptions)))
+       ((cons $perception $rebuiltRest) $m1)))
 
+(= (processActionBoolIfBranches () $MMap $actions $perceptions) (() $MMap))
+
+(= (processActionBoolIfBranches (cons $child $rest) $MMap $actions $perceptions)
+   (let*
+     (
+       (($rebuiltChild $m1) (processActionBoolIfChild $child $MMap $actions $perceptions))
+       (($rebuiltRest $m2) (processActionBoolIfBranches $rest $m1 $actions $perceptions))
+     )
+     ((cons $rebuiltChild $rebuiltRest) $m2)))
 
 ;; Handle sequential_and nodes with the fixed internal C++ probability p=80.
 (= (buildActionAndSeq $tree (mkNodeId $nodeId) $children $MMap $actions $perceptions)
