@@ -6,18 +6,18 @@
 ;; redundancy in action programs.
 
 ;; Helper: take first N elements of a tuple
-(= (take-n $n $tuple)
-   (if (or (<= $n 0) (== $tuple ()))
-       ()
-       (let ($h $t) (decons-atom $tuple)
-         (cons-atom $h (take-n (- $n 1) $t)))))
+; (= (take-n $n $tuple)
+;    (if (or (<= $n 0) (== $tuple ()))
+;        ()
+;        (let ($h $t) (decons-atom $tuple)
+;          (cons-atom $h (take-n (- $n 1) $t)))))
 
 ;; Helper: drop first N elements of a tuple
-(= (drop-n $n $tuple)
-   (if (or (<= $n 0) (== $tuple ()))
-       $tuple
-       (let ($h $t) (decons-atom $tuple)
-         (drop-n (- $n 1) $t))))
+; (= (drop-n $n $tuple)
+;    (if (or (<= $n 0) (== $tuple ()))
+;        $tuple
+;        (let ($h $t) (decons-atom $tuple)
+;          (drop-n (- $n 1) $t))))
 
 ;; Helper: check if list1 ends with list2
 (= (endsWith $list1 $list2)
@@ -25,25 +25,25 @@
           ($len2 (size-atom $list2)))
      (if (< $len1 $len2)
          False
-         (== (drop-n (- $len1 $len2) $list1) $list2))))
+         (== (drop (- $len1 $len2) $list1) $list2))))
 
 ;; Helper: remove list2 from end of list1
 (= (removeEnd $list1 $list2)
    (let* (($len1 (size-atom $list1))
           ($len2 (size-atom $list2)))
-     (take-n (- $len1 $len2) $list1)))
+     (take (- $len1 $len2) $list1)))
 
 ;; Helper: check if list ends with a single element
 (= (endsWithSingle $list $elem)
    (let $len (size-atom $list)
      (if (== $len 0)
          False
-         (== (car-atom (drop-n (- $len 1) $list)) $elem))))
+         (== (index-atom $list (- $len 1)) $elem))))
 
 ;; Helper: remove single element from end of list
 (= (removeEndSingle $list)
    (let $len (size-atom $list)
-     (take-n (- $len 1) $list)))
+     (take (- $len 1) $list)))
 
 
 ;; reduceActionWhileAlwaysFails (C++ reduce_action_while_always_fails):
@@ -100,8 +100,8 @@
    (if (>= $d $sz)
        $sz
        (if (and (== (% $sz $d) 0)
-                (== (take-n (- $sz $d) $bodyArgs)
-                    (drop-n $d $bodyArgs)))
+                (== (take (- $sz $d) $bodyArgs)
+                    (drop $d $bodyArgs)))
            $d
            (findRepeatingPeriodFrom $bodyArgs (+ $d 1) $sz))))
 
@@ -130,7 +130,7 @@
                            (if (< $period $sz)
                                (if (== $period 1)
                                    (action_while (car-atom $bodyArgs))
-                                   (action_while (cons-atom and_seq (take-n $period $bodyArgs))))
+                                   (action_while (cons-atom and_seq (take $period $bodyArgs))))
                                $expr))
                          $expr))
                    $expr))
