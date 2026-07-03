@@ -57,9 +57,8 @@
 ;; getActionResultAnd: and_seq succeeds only when every child is statically
 ;; True; the first False or Unknown is enough to determine the static result.
 (= (getActionResultAnd ()) True)
-(= (getActionResultAnd $args)
-   (let* ((($h $t) (decons $args))
-          ($r (getActionResult $h)))
+(= (getActionResultAnd (cons $h $t))
+   (let $r (getActionResult $h)
      (if (== $r True)
          (getActionResultAnd $t)
          $r)))
@@ -74,9 +73,8 @@
 ;; from "no True, but at least one Unknown".
 (= (getActionResultOrHelper () $exists_indeterminate)
    (if $exists_indeterminate Unknown False))
-(= (getActionResultOrHelper $args $exists_indeterminate)
-   (let* ((($h $t) (decons $args))
-          ($r (getActionResult $h)))
+(= (getActionResultOrHelper (cons $h $t) $exists_indeterminate)
+   (let $r (getActionResult $h)
      (if (== $r True)
          True
          (getActionResultOrHelper $t (or $exists_indeterminate (== $r Unknown))))))
