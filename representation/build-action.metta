@@ -147,31 +147,36 @@
      ((cons $rebuiltChild $rebuiltRest) $m2)))
 
 ;; Handle sequential_and nodes with the fixed internal C++ probability p=80.
-(= (buildActionAndSeq $tree (mkNodeId $nodeId) $children $MMap $actions $perceptions)
+;; Build representation for an and_seq subtree.
+(= (buildActionAndSeq (mkTree (mkNode and_seq) $children) $MMap $actions $perceptions)
    (let $p 80
-    (if (or (== $children ()) (< (randint 99) $p))
-        (let*
-          (
-            (($t1 $m1) (addActionKnobsAt $tree (mkNodeId $nodeId) (mkNodeId $nodeId) True $MMap $actions $perceptions))
-            (($t2 $m2) (processActionChildren $t1 (mkNodeId $nodeId) $children 1 $m1 $actions $perceptions $p))
-          )
-          (if (>= (randint 99) $p)
-              (let*
-                (
-                  ($builtTree (buildTree (and_seq)))
-                  (($t3 $newId) (appendChild $t2 (mkNodeId $nodeId) $builtTree))
-                )
-                (addActionKnobsAt $t3 (mkNodeId $nodeId) $newId False $m2 $actions $perceptions))
-              ($t2 $m2)))
-        (let ($t1 $m1) (processActionChildren $tree (mkNodeId $nodeId) $children 1 $MMap $actions $perceptions $p)
-          (if (>= (randint 99) $p)
-              (let*
-                (
-                  ($builtTree (buildTree (and_seq)))
-                  (($t2 $newId) (appendChild $t1 (mkNodeId $nodeId) $builtTree))
-                )
-                (addActionKnobsAt $t2 (mkNodeId $nodeId) $newId False $m1 $actions $perceptions))
-              ($t1 $m1))))))
+      (if (or (== $children ()) (< (randint 99) $p))
+          (let*
+             (
+                (($withKnobs $m1) (addActionKnobs (mkTree (mkNode and_seq) $children) True $MMap $actions $perceptions))
+                (($rebuiltChildren $m2) (processActionChildren (getChildren $withKnobs) $m1 $actions $perceptions $p))
+             )
+             (if (>= (randint 99) $p)
+                 (let*
+                    (
+                       ($extraChild (mkTree (mkNode and_seq) ()))
+                       (($extraWrapped $m3) (addActionKnobs $extraChild False $m2 $actions $perceptions))
+                    )
+                    ((mkTree (mkNode and_seq) (append $rebuiltChildren ($extraWrapped))) $m3))
+                 ((mkTree (mkNode and_seq) $rebuiltChildren) $m2)))
+
+          (let*
+             (
+                (($rebuiltChildren $m1) (processActionChildren $children $MMap $actions $perceptions $p))
+             )
+             (if (>= (randint 99) $p)
+                 (let*
+                    (
+                       ($extraChild (mkTree (mkNode and_seq) ()))
+                       (($extraWrapped $m2) (addActionKnobs $extraChild False $m1 $actions $perceptions))
+                    )
+                    ((mkTree (mkNode and_seq) (append $rebuiltChildren ($extraWrapped))) $m2))
+                 ((mkTree (mkNode and_seq) $rebuiltChildren) $m1))))))
 
 (= (buildActionBoolIf (mkTree (mkNode action_bool_if) $children) $MMap $actions $perceptions)
    (let*
