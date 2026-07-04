@@ -173,8 +173,12 @@
                 (addActionKnobsAt $t2 (mkNodeId $nodeId) $newId False $m1 $actions $perceptions))
               ($t1 $m1))))))
 
-(= (buildActionBoolIf $tree (mkNodeId $nodeId) $children $MMap $actions $perceptions)
-   (processActionBoolIfChildren $tree (mkNodeId $nodeId) $children 1 $MMap $actions $perceptions))
+(= (buildActionBoolIf (mkTree (mkNode action_bool_if) $children) $MMap $actions $perceptions)
+   (let*
+      (
+         (($rebuiltChildren $m1) (processActionBoolIfChildren $children $MMap $actions $perceptions))
+      )
+      ((mkTree (mkNode action_bool_if) $rebuiltChildren) $m1)))
 
 (= (buildAction $tree (mkNodeId $nodeId) $MMap $actions $perceptions)
   (let $subtree (getNodeById $tree (mkNodeId $nodeId))
