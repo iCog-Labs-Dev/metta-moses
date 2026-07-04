@@ -120,33 +120,36 @@
     ($candidate $srcId $dstId))
   ((mkTree (mkNode and_seq) ()) (mkNodeId (0)) (mkNodeId (0))))
 
-;; Direct probes produce action knobs with the expected ASK defaults.
+;; Verify subtree-based action knob helpers produce the expected ASK structure.
 !(assertEqual
   (let*
     (
-      (($tree $mmp) (addActionKnobsAt (mkTree (mkNode and_seq) ()) (mkNodeId (0)) (mkNodeId (0)) True () (move_forward turn_left) ()))
+      (($subtree $mmp) (addActionKnobs (mkTree (mkNode and_seq) ()) True () (move_forward turn_left) ()))
       ($ask (car-atom (MultiMap.values $mmp)))
       ((mkASK $discKnob $perms) $ask)
-      ($embedded (getNodeById $tree (mkNodeId (1))))
+      ($embedded (getNodeById $subtree (mkNodeId (1))))
     )
-    (and (> (MultiMap.length $mmp) 0)
-         (and (== $discKnob (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
-              (== $embedded (mkKnob (mkNullVex $perms) $ask 0)))))
-  True)
+    (and
+      (> (MultiMap.length $mmp) 0)
+      (and
+        (== $discKnob (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
+        (== $embedded (mkKnob (mkNullVex $perms) $ask 0)))))
+    True)
 
 !(assertEqual
-  (let* (($origTree (mkTree (mkNode and_seq) (cons (moveTree) ())))
-         (($updatedTree $mmp) (addSimpleActionKnobsAt $origTree (mkNodeId (0)) (mkNodeId (1)) True () (move_forward turn_left) (A B)))
-         ($ask (car-atom (MultiMap.values $mmp))))
+  (let*
+    (
+      (($updatedSubtree $mmp) (addSimpleActionKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) True ()))
+      ($ask (car-atom (MultiMap.values $mmp)))
+    )
     (let*
       (
         ((mkASK $discKnob $perms) $ask)
-        ($embedded (getNodeById $updatedTree (mkNodeId (1))))
       )
-      (and (== $embedded (mkKnob (moveTree) $ask 0))
-           (and (== $discKnob (mkDiscKnob (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))
-                (and (== $perms (cons (moveTree) ()))
-                     (== (getKnobDefault $ask) (mkDiscSpec 1)))))))
+      (and (== $updatedSubtree (mkKnob (mkTree (mkNode and_seq) (cons (moveTree) ())) $ask 0))
+           (and
+              (== $discKnob (mkDiscKnob (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))
+              (== (MultiMap.length $mmp) 1)))))
   True)
 
 ;; Embedded action representation drives candidate reconstruction directly.
