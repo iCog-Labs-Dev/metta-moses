@@ -80,30 +80,37 @@
      ($updatedSubtree $mmp)))
 
 ;; Process one child of and_seq. This preserves the C++ p=80 policy.
-(= (processActionChildAt $tree (mkNodeId $parentId) (mkNodeId $childId) $child $MMap $actions $perceptions $p)
+(= (processActionChild $child $MMap $actions $perceptions $p)
    (let (mkTree (mkNode $childOp) $_) $child
       (if (isDomainAction $childOp $actions)
           (if (> (randint 99) $p)
-              (addSimpleActionKnobsAt $tree $parentId (mkNodeId $childId) True $MMap $actions $perceptions)
-              (let $wrappedTree (insertNodeAtPosition $tree (mkNodeId $childId) (mkNode and_seq))
-                 (addActionKnobsAt $wrappedTree $parentId (mkNodeId $childId) False $MMap $actions $perceptions)))
+              (addSimpleActionKnobs $child True $MMap)
+              (addActionKnobs (mkTree (mkNode and_seq) (cons $child ())) False $MMap $actions $perceptions))
+              
           (if (== $childOp action_bool_if)
               (if (>= (randint 99) $p)
-                  (let ($t1 $m1) (addSimpleActionKnobsAt $tree $parentId (mkNodeId $childId) True $MMap $actions $perceptions)
-                      (buildAction $t1 (mkNodeId $childId) $m1 $actions $perceptions))
-                  (buildAction $tree (mkNodeId $childId) $MMap $actions $perceptions))
-              ($tree $MMap)))))
+                  (let*
+                    (
+                      (($child1 $m1)
+                          (addSimpleActionKnobs $child True $MMap))
+                    )
+                    (buildAction $child1 $m1 $actions $perceptions))
+                  (buildAction $child $MMap $actions $perceptions))
+              ($child $MMap)))))
+  
+;; Process the children of an and_seq subtree.
+;; Each child is rebuilt recursively while preserving the C++ p=80
+;; action-knob insertion policy. Returns:
+;;   (rebuiltChildren updatedMMap)
+(= (processActionChildren () $MMap $actions $perceptions $p) (() $MMap))
 
-(= (processActionChildren $tree (mkNodeId $parentId) () $childIdx $MMap $actions $perceptions $p)
-   ($tree $MMap))
-
-(= (processActionChildren $tree (mkNodeId $parentId) (cons $child $rest) $childIdx $MMap $actions $perceptions $p)
+(= (processActionChildren (cons $child $rest) $MMap $actions $perceptions $p)
    (let*
      (
-       ($childId (if (== $parentId (0)) ($childIdx) (concatT $parentId ($childIdx))))
-       (($t1 $m1) (processActionChildAt $tree (mkNodeId $parentId) (mkNodeId $childId) $child $MMap $actions $perceptions $p))
+       (($newChild $m1) (processActionChild $child $MMap $actions $perceptions $p))
+       (($newRest $m2) (processActionChildren $rest $m1 $actions $perceptions $p))
      )
-     (processActionChildren $t1 (mkNodeId $parentId) $rest (+ $childIdx 1) $m1 $actions $perceptions $p)))
+     ((cons $newChild $newRest) $m2)))
 
 ;; Process one action branch of an action_bool_if subtree.
 ;; The perception child is handled separately.
