@@ -365,9 +365,9 @@
                     (let $r (inputLables $as) (cons $a $r))) (Error $labels UnrecognizedFormat))))
 
 ; (: fsToNames (-> (List Symbol) Expression Expression))
-(= (fsToNames $labels $ft-indices)
-	(collapse (chain (superpose $ft-indices) $ft 
-		(List.at $ft $labels))))                
+;; `map` (from utilities/general-helpers), not map-atom: preserves label-var
+;; identity end-to-end. See the map docstring for details.
+(= (fsToNames $labels $indices) (map List.at $labels $indices))
 
 ;; readjustIndices  -- when a table is filtered based on requirements in filter selection when, for example, exemplar features are required to be ignored,
 ;;                  -- the returned index values no longer refer to the original table which is kept for reference in subsequent steps

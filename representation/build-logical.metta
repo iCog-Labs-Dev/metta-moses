@@ -128,12 +128,10 @@
    (buildLogical (mkTree (mkNode $node) $children) $parentOp $MMap $argLabels $disable-discprobe (mkTree (mkNode $node) $children) (mkNodeId (0))))
 
 (= (buildLogical (mkTree (mkNode $node) $children) $parentOp $MMap $argLabels $disable-discprobe $globalTree $currentNodeId)
-   (if (once (is-member $node (AND OR)))
+   (if (List.contains $node (quote (AND OR)))
        (let*
            (
-             ;; ($_ (println! (BuildLogical 0)))
              ($swapped (swapAndOr $parentOp))
-             ;; ($_ (println! (BulidLogical 1)))
              (($t1 $mp1) (addLogicalKnobsFast (mkTree (mkNode $node) $children) True $MMap $argLabels $disable-discprobe $globalTree $currentNodeId))
              ((mkTree (mkNode $node) $newChildren) $t1)
              ;; ($_ (println! (BulidLogical 2)))

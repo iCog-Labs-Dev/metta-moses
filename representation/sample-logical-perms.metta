@@ -65,20 +65,16 @@
                 (cons-atom ($x $y $z) (tripletWith $x $rest $tail))
                 (tripletWith $x $rest $tail)))))
 
-;; getArgs -> generate logical expressions for the picked permutation indices
-;; Parameters:
-;;          $swapedOp -> swaped operator
-;;          $n -> number of argument labels (index space {0 .. $n-1})
-;;          $picked -> list of picked idxs
-;; (: getArgs (-> Atom Number Expression Expression Expression))
-(= (getArgs $swapedOp $n $picked $argLabels)
-    (map-atom $picked $i
-        (let* ((($a $b) (pairAt $n $i))
-               ($1 (index-atom $argLabels $a))
-               ($2 (index-atom $argLabels $b)))
-            (if (< $b $a)
-                ($swapedOp $2 $1)
-                ($swapedOp (NOT $1) $2)))))
+;; Per-index term builder for the picked-permutation loop. Consumed by
+;; (map …) at the getArgs callsite — see the map docstring in
+;; utilities/general-helpers for why we don't use map-atom here.
+(= (getArgsItem $i $swapedOp $n $argLabels)
+   (let* ((($a $b) (pairAt $n $i))
+          ($1 (index-atom $argLabels $a))
+          ($2 (index-atom $argLabels $b)))
+     (if (< $b $a)
+         (quote ($swapedOp $2 $1))
+         (quote ($swapedOp (NOT $1) $2)))))
 
 ;; sampleLogicalPerms -> generate logical permutations for boolean expressions
 ;; Parameters:
@@ -94,7 +90,7 @@
             (let $arg (car-atom $argLabels) ($arg (NOT $arg)))  ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage
             (let* (($upperbound (- (* $arity (- $arity 1)) 1))
                    ($picked (lazyRandomSelector 0 $upperbound $nPairs))
-                   ($perms (getArgs $swapedOp $arity $picked $argLabels)))
+                   ($perms (map getArgsItem $swapedOp $arity $argLabels $picked)))
                (concatT $argLabels $perms)))))
 
 ;; getMoveArgs -> generate move expressions for the picked triplet indices
@@ -104,13 +100,15 @@
 ;;          $picked: list of picked triplet idxs
 ;;          $moveLabels: list of move labels (playcenter, playcorner, etc.)
 ;; (: getMoveArgs (-> Atom Number Expression Expression Expression))
+(= (getMoveArgsItem $i $op $n $moveLabels)
+   (let* ((($a $b $c) (tripletAt $n $i))
+          ($move1 (index-atom $moveLabels $a))
+          ($move2 (index-atom $moveLabels $b))
+          ($move3 (index-atom $moveLabels $c)))
+     ($op $move1 $move2 $move3)))
+
 (= (getMoveArgs $op $n $picked $moveLabels)
-    (map-atom $picked $i
-        (let* ((($a $b $c) (tripletAt $n $i))
-               ($move1 (index-atom $moveLabels $a))
-               ($move2 (index-atom $moveLabels $b))
-               ($move3 (index-atom $moveLabels $c)))
-            ($op $move1 $move2 $move3))))
+   (map getMoveArgsItem $op $n $moveLabels $picked))
 
 ;; sampleStrategyPerms -> generate strategy permutations for game strategy evolution
 ;; Params:

@@ -25,7 +25,20 @@
 
 ; (: preOrder (-> (Tree $a) $a))
 
-(= (preOrder (mkTree (mkNode $r) ())) (if (once (is-member $r (AND OR))) ($r) $r))
+;; Var-safe: is-member uses member/2 which UNIFIES $r with AND (list head),
+;; binding label vars in every candidate walked here. List.contains uses ==
+;; (structural), so unbound vars simply fall to the leaf branch.
+;;
+;; Boolean operators (AND/OR/NOT) emit the wrapped-list eval shape that
+;; scoring/boolean-ops.metta's clauses match on:
+;;   (AND ($c1 $c2 ...))   (OR ($c1 $c2 ...))   (NOT $child)
+;; Every other operator (PRIORITIZED-OR, action ops, ...) keeps the n-ary
+;; shape (cons-atom $r $lcE) that buildTree and downstream consumers expect.
+;; `quote` on the boolean emissions keeps the wrapped result as data — the
+;; AND/OR/NOT clauses fire only under an explicit `(eval ...)` inside
+;; evalParsed, not during tree construction.
+(= (preOrder (mkTree (mkNode $r) ()))
+   (if (List.contains $r (quote (AND OR))) (quote ($r ())) $r))
 (= (preOrder (mkKnob (mkNullVex $tree) $lsk $i)) ())
 (= (preOrder (mkKnob (mkTree $node $children) $lsk $i)) (preOrder (mkTree $node $children)))
 (= (preOrder (mkTree (mkNode $r) (cons $x $xs)))
@@ -34,13 +47,15 @@
            ($lc  (List.map preOrder (cons $x $xs)))
            ($lc' (List.filter (compose not isUnit) $lc))
            ($lcE (List.listToExpr $lc'))
-           ;; (()   (println! (Root: $r Children: $lc Children': $lc' Expression: $lcE)))
-           ($exp (cons-atom $r $lcE))
          )
-         $exp)
+         (if (== $r NOT)
+             (let $child (car-atom $lcE) (quote (NOT $child)))
+             (if (List.contains $r (quote (AND OR)))
+                 (quote ($r $lcE))
+                 (cons-atom $r $lcE))))
 )
 
-(= (preOrderDebug (mkTree (mkNode $r) ())) (if (once (is-member $r (AND OR))) ($r) $r))
+(= (preOrderDebug (mkTree (mkNode $r) ())) (if (List.contains $r (quote (AND OR))) (quote ($r)) $r))
 (= (preOrderDebug (mkNullVex $knobs))
    (let*
      (
@@ -296,8 +311,9 @@
 ; (: isArgument (-> (Tree $a) Bool))
 
 (= (isArgument (mkNullVex $x)) False)
+;; Var-safe: unbound-var $x is still an argument, not an operator.
 (= (isArgument (mkTree (mkNode $x) $children))
-   (and (not (once (is-member $x (AND OR NOT PRIORITIZED-OR)))) (== $children ())))
+   (and (not (List.contains $x (quote (AND OR NOT PRIORITIZED-OR)))) (== $children ())))
 
 ;; A function to calculate the complexity of a tree.
 ;;  The complexity of a tree is the number of arguments it contains.
@@ -325,7 +341,7 @@
 ; (: extractArgs (-> (Tree $a) (List Symbol)))
 
 (= (extractArgs (mkTree (mkNode $node) $children))
-    (if (once (is-member $node (AND OR NOT)))
+    (if (List.contains $node (quote (AND OR NOT)))
         (extractArgsFromList $children)         ;; if it's an operator, collect args from children
         (cons $node ())))                       ;; else it's a literal, return it in a singleton list
     
@@ -354,7 +370,7 @@
 ; (: removeLiteral (-> (Tree $a) Symbol (Tree $a)))
 
 (= (removeLiteral (mkTree (mkNode $node) $children) $symbol)
-    (if (once (is-member $node (AND OR NOT)))
+    (if (List.contains $node (quote (AND OR NOT)))
         (mkTree (mkNode $node) (List.mapOverArg removeLiteral $children $symbol))
         (if (== $node $symbol)
             ()

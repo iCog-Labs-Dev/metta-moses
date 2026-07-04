@@ -331,7 +331,7 @@
 ;; Test unNest
 
 !(println! ("testig: unNest "))
-!(assertEqual (collapse (unNest (AND A (AND B C)))) (AND A AND B C))
+!(assertEqual (collapse (unNest (quote (AND A (AND B C))))) (quote (AND A AND B C)))
 !(assertEqual (collapse (unNest (1 2 (3 4 (5))))) (1 2 3 4 5))
 
 ;; Test cleanSpace
@@ -359,8 +359,8 @@
 
 ;; Test flatten-list
 !(println! ("testing flatten-list "))
-!(assertEqual (flatten-list (AND A (AND A B))) (AND A AND A B))
-!(assertEqual (flatten-list (AND A (AND (OR A (NOT C)) (OR B D)))) (AND A AND OR A (NOT C) OR B D))
+!(assertEqual (flatten-list (quote (AND A (AND A B)))) (quote (AND A AND A B)))
+!(assertEqual (flatten-list (quote (AND A (AND (OR A (NOT C)) (OR B D))))) (quote (AND A AND OR A (NOT C) OR B D)))
 
 ;; Test notNt 
 !(bind! NTS (new-state (start expr bop uop term)))

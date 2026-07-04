@@ -43,7 +43,7 @@
      (
        ($negatedSubtree (insertAbove $subtree (mkNode NOT)))
        ;; ($_ (println! (NegatedSubtree----------------- : $negatedSubtree)))
-       ($reducedSubtree (cleanTree $negatedSubtree)  )
+       ($reducedSubtree $negatedSubtree)   ;; reduct disabled: was (cleanTree $negatedSubtree)
        ;; ($_ (println! (ReducedSubtree---------------: $reducedSubtree))) 
      )
      ;; TODO: Replace this with a robust check for subtree, one that is in accordance to the way the classic checks for subtrees.

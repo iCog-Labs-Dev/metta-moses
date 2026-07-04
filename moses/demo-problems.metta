@@ -208,6 +208,25 @@
        (let $sexpr (py-call (csv_helper.load_boolean_table (param inputFile) (param targetFeature)))
             (parse $sexpr))))
 
+;; Mint N distinct fresh MeTTa vars via lexical-scope recursion.
+;; Each recursive call has its own $v (standard PeTTaV1 clause-head-copy
+;; semantics), so the result is a list of N pairwise-distinct unbound vars.
+;; Single-clause if-dispatch (NOT two clauses with `0` literal + `$n` var):
+;; the latter matches BOTH clauses at n=0 and Prolog can backtrack into
+;; the recursive branch on -1, -2, … — infinite recursion, hard OOM.
+(= (freshVars $n)
+   (if (== $n 0)
+       ()
+       (cons-atom $v (freshVars (- $n 1)))))
+
+;; Swap an ITable's symbolic labels for a fresh-var list of the same length.
+;; Called once at the boundary so downstream (rep building, scoring, feature
+;; selection) all see the SAME var objects — single source of truth. Enables
+;; skipping the substitution pass in scoring since tree leaves emitted by
+;; representation building already reference these vars.
+(= (varize-itable (mkITable $rows $labels))
+   (mkITable $rows (freshVars (List.length $labels))))
+
 ;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
 ;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;;                   smd      ;; the new arguments for feature selection algo
@@ -277,7 +296,10 @@
         ($cpxPen (param complexityRatio))
         ;; Resolve the input table once: a CSV the user passed via
         ;; --inputFile, otherwise the demo problem named by `problem`.
-        ($itable (resolve-itable))
+        ;; Immediately varize -- swap the symbolic labels for fresh Prolog
+        ;; vars so representation building emits trees whose leaves ARE
+        ;; those vars, and scoring skips the substitution pass.
+        ($itable (varize-itable (resolve-itable)))
         ($truthTableBScore (createTruthTableBScore $cpxPen $itable))
         (($ctor $worstPossibleBScore) (worstPossibleScore $truthTableBScore))
         ($worstPossibleScore (List.sum $worstPossibleBScore))

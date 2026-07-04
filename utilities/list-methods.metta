@@ -68,6 +68,7 @@
          (List.mapOverArg $f $tail $arg)
          (cons $new-head (List.mapOverArg $f $tail $arg)))))
 
+
 ; (: List.filter (-> (-> $a Bool) (List $a) (List $a)))
 (= (List.filter $p $xs) (filter-atom $xs $x ($p $x)))
 
@@ -88,7 +89,7 @@
 (= (List.max $xs) (max-atom $xs))
 
 ; (: List.contains (-> $a (List $a) Bool))
-(= (List.contains $a $list) (once (is-member $a $list)) )
+(= (List.contains $a $list) (any (map-atom $list $x (== $x $a))))
 
 ; (: List.replaceAt (-> (List $a) Number $a (List $a)))
 (= (List.replaceAt () $n $elem) ())

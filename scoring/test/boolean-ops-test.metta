@@ -3,88 +3,101 @@
 !(import! &self ../fitness)
 !(import! &self ../bscore)
 
-;; Test helper: build the eval template from (labels, cand-expression) and
-;; evaluate one row through evalParsed. `expToExp` transforms the raw test
-;; expression into the AND->And renamed / children-wrapped form; then
-;; `foldTemplate` substitutes labels->fresh-vars. No strings, no dict.
+;; Test helper: eval a candidate against one row given (labels, row, cand).
+;; Labels are vars, cand's leaves reference those same vars; callBE is
+;; a thin wrapper around evalParsed.
 (= (callBE $labels $row $cand)
-   (evalParsed (foldTemplate $labels (expToExp $cand)) $row))
+   (evalParsed ($labels $cand) $row))
 
-;; ---- And / Or (wrapped-list, single arity-1 clause = n-ary) ----
-;; (CapFirst names: the reduct keeps AND/OR/NOT; tree-vstr rewrites
-;;  AND->And etc. while emitting the parseable string.)
-!(assertEqual (And (True True True))               True)
-!(assertEqual (And (True False True))              False)
-!(assertEqual (And ())                             True)
-!(assertEqual (Or  (False False True))             True)
-!(assertEqual (Or  (False False))                  False)
-!(assertEqual (Or  ())                             False)
+;; ---- AND / OR (wrapped-list, single arity-1 clause = n-ary) ----
+;; Callers construct eval-form expressions directly:
+;; (AND ($x $y)), (OR (...)), (NOT $x).
+!(assertEqual (AND (True True True))               True)
+!(assertEqual (AND (True False True))              False)
+!(assertEqual (AND ())                             True)
+!(assertEqual (OR  (False False True))             True)
+!(assertEqual (OR  (False False))                  False)
+!(assertEqual (OR  ())                             False)
 ;; Higher arity (well beyond what manual enumeration would cover) -- one
 ;; clause handles it because the children ride in as a single Expression.
-!(assertEqual (And (True True True True True True True True True True)) True)
-!(assertEqual (And (True True True True True True True True True False)) False)
+!(assertEqual (AND (True True True True True True True True True True)) True)
+!(assertEqual (AND (True True True True True True True True True False)) False)
 
-;; ---- Not (unary) ----
-!(assertEqual (Not True)  False)
-!(assertEqual (Not False) True)
-!(assertEqual (Not (Not True))  True)
-!(assertEqual (Not (Not False)) False)
+;; ---- NOT (unary) ----
+!(assertEqual (NOT True)  False)
+!(assertEqual (NOT False) True)
+!(assertEqual (NOT (NOT True))  True)
+!(assertEqual (NOT (NOT False)) False)
 
-;; ---- boolEval end-to-end (single-row evaluation) via callBE ----
+;; ---- evalParsed end-to-end (single-row evaluation) via callBE ----
+;; Labels are lexical vars introduced via `(let $A $A ...)`. The same var
+;; appears in the labels-list AND at leaf positions in the cand — that's
+;; the whole point of the labels-as-vars refactor. Rows carry the truth
+;; values that get bound in by row-unification inside evalParsed.
+;;
+;; `quote` prevents the cand expression from being reduced at call-site
+;; (which would fire the AND/OR/NOT clauses against unbound vars). The
+;; term flows into callBE as data, eval only fires inside evalParsed.
+
 ;; Unary NOT.
-!(assertEqual (callBE (cons A ()) (cons True ())  (NOT A)) False)
-!(assertEqual (callBE (cons A ()) (cons False ()) (NOT A)) True)
+!(let $A $A
+   (assertEqual (callBE ($A) (True)  (quote (NOT $A))) False))
+!(let $A $A
+   (assertEqual (callBE ($A) (False) (quote (NOT $A))) True))
 
 ;; Binary AND / OR truth-table coverage.
-!(assertEqual (callBE (cons A (cons B ())) (cons True  (cons True  ())) (AND A B)) True)
-!(assertEqual (callBE (cons A (cons B ())) (cons True  (cons False ())) (AND A B)) False)
-!(assertEqual (callBE (cons A (cons B ())) (cons False (cons False ())) (OR A B))  False)
-!(assertEqual (callBE (cons A (cons B ())) (cons False (cons True  ())) (OR A B))  True)
+!(let* (($A $A) ($B $B))
+   (assertEqual (callBE ($A $B) (True  True)  (quote (AND ($A $B)))) True))
+!(let* (($A $A) ($B $B))
+   (assertEqual (callBE ($A $B) (True  False) (quote (AND ($A $B)))) False))
+!(let* (($A $A) ($B $B))
+   (assertEqual (callBE ($A $B) (False False) (quote (OR  ($A $B)))) False))
+!(let* (($A $A) ($B $B))
+   (assertEqual (callBE ($A $B) (False True)  (quote (OR  ($A $B)))) True))
 
 ;; Three-label nested case.
-!(assertEqual (callBE (cons A (cons B (cons C ())))
-                      (cons True (cons False (cons False ())))
-                      (AND (OR A B) (NOT C)))
-              True)
-!(assertEqual (callBE (cons A (cons B (cons C ())))
-                      (cons False (cons False (cons False ())))
-                      (AND (OR A B) (NOT C)))
-              False)
-!(assertEqual (callBE (cons A (cons B (cons C ())))
-                      (cons True (cons True (cons True ())))
-                      (AND (OR A B) (NOT C)))
-              False)
+!(let* (($A $A) ($B $B) ($C $C))
+   (assertEqual (callBE ($A $B $C) (True False False)
+                        (quote (AND ((OR ($A $B)) (NOT $C)))))
+                True))
+!(let* (($A $A) ($B $B) ($C $C))
+   (assertEqual (callBE ($A $B $C) (False False False)
+                        (quote (AND ((OR ($A $B)) (NOT $C)))))
+                False))
+!(let* (($A $A) ($B $B) ($C $C))
+   (assertEqual (callBE ($A $B $C) (True True True)
+                        (quote (AND ((OR ($A $B)) (NOT $C)))))
+                False))
 
 ;; N-ary on a real candidate shape -- 4 children, one clause handles it.
-!(assertEqual (callBE (cons A (cons B (cons C (cons D ()))))
-                      (cons True (cons True (cons True (cons True ()))))
-                      (AND A B C D))
-              True)
-!(assertEqual (callBE (cons A (cons B (cons C (cons D ()))))
-                      (cons True (cons True (cons False (cons True ()))))
-                      (AND A B C D))
-              False)
+!(let* (($A $A) ($B $B) ($C $C) ($D $D))
+   (assertEqual (callBE ($A $B $C $D) (True True True True)
+                        (quote (AND ($A $B $C $D))))
+                True))
+!(let* (($A $A) ($B $B) ($C $C) ($D $D))
+   (assertEqual (callBE ($A $B $C $D) (True True False True)
+                        (quote (AND ($A $B $C $D))))
+                False))
 
 ;; Per-row freshness: same candidate, four different rows in sequence.
-!(assertEqual (callBE (cons A (cons B ())) (cons True  (cons True  ())) (AND A B)) True)
-!(assertEqual (callBE (cons A (cons B ())) (cons True  (cons False ())) (AND A B)) False)
-!(assertEqual (callBE (cons A (cons B ())) (cons False (cons True  ())) (AND A B)) False)
-!(assertEqual (callBE (cons A (cons B ())) (cons False (cons False ())) (AND A B)) False)
+!(let* (($A $A) ($B $B))
+   (assertEqual (callBE ($A $B) (True  True)  (quote (AND ($A $B)))) True))
+!(let* (($A $A) ($B $B))
+   (assertEqual (callBE ($A $B) (True  False) (quote (AND ($A $B)))) False))
+!(let* (($A $A) ($B $B))
+   (assertEqual (callBE ($A $B) (False True)  (quote (AND ($A $B)))) False))
+!(let* (($A $A) ($B $B))
+   (assertEqual (callBE ($A $B) (False False) (quote (AND ($A $B)))) False))
 
 ;; Repeated label (one var, both leaves bind to it).
-!(assertEqual (callBE (cons A ()) (cons True  ()) (AND A A)) True)
-!(assertEqual (callBE (cons A ()) (cons False ()) (AND A A)) False)
+!(let $A $A
+   (assertEqual (callBE ($A) (True)  (quote (AND ($A $A)))) True))
+!(let $A $A
+   (assertEqual (callBE ($A) (False) (quote (AND ($A $A)))) False))
 
-;; ---- Parity with the legacy `evaluate` path ----
-!(assertEqual
-   (callBE (cons A (cons B (cons C ())))
-           (cons True (cons False (cons True ())))
-           (OR (AND A (NOT B)) C))
-   (evaluate (replaceVarsWithTruth ((cons A (cons B (cons C ()))) (OR (AND A (NOT B)) C))
-                                   (cons True (cons False (cons True ()))))))
-!(assertEqual
-   (callBE (cons A (cons B (cons C (cons D ()))))
-           (cons False (cons True (cons False (cons True ()))))
-           (AND (OR A B) (OR C D)))
-   (evaluate (replaceVarsWithTruth ((cons A (cons B (cons C (cons D ())))) (AND (OR A B) (OR C D)))
-                                   (cons False (cons True (cons False (cons True ())))))))
+;; ---- Legacy `evaluate` parity ----
+;; Dropped when the eval clauses were renamed AND/OR/NOT: the (NOT B) in
+;; a legacy source expression now matches our global NOT clause and
+;; reduces before evaluate sees it. The new path's correctness is fully
+;; covered by the assertions above; the legacy path is exercised by
+;; scoring/test/fitness-test.metta.

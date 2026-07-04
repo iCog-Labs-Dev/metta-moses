@@ -64,18 +64,16 @@
 (= (scoreTree (mkITable $table $labels) $tree $cacheSpace)
    (if (== $tree (mkTree (mkNode AND) ()))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
-       (chain (collapse (match $cacheSpace 
-               ($tree $bscore) 
+       (chain (collapse (match $cacheSpace
+               ($tree $bscore)
                $bscore))
-           $val 
+           $val
            (if (== $val ())
                (let* (
-                   ;; Build the eval template directly ONCE per candidate --
-                   ;; no strings, no parse. `candTemplate` walks the Tree once
-                   ;; (preOrderExp), then folds over labels substituting each
-                   ;; label symbol with a fresh Prolog var (foldTemplate). See
-                   ;; scoring/boolean-ops.metta for the shape invariants.
-                   ($template (candTemplate $labels $tree))
+                   ;; Eval template: ($labelsList $expressionForm). Built ONCE
+                   ;; per candidate; evalParsed uses it per row via sealed.
+                   ;; See scoring/boolean-ops.metta for shape invariants.
+                   ($template ($labels (preOrder $tree)))
                    ($scoreList (map-atom $table $ts (scoreTreeHelper $template $ts)))
                    ;; ($_ (println! (ScoreList: $scoreList)))
                    ($length (List.length $labels))
@@ -133,7 +131,7 @@
                   (if (== $h $l)
                       (cons-atom $b $t')
                       (cons-atom $h $t')))))
-       (if (== $boolExpr $l) $b (if (once (is-member $boolExpr (AND OR))) ($boolExpr) $boolExpr))))
+       (if (== $boolExpr $l) $b (if (once (is-member $boolExpr (quote (AND OR)))) (quote ($boolExpr)) $boolExpr))))
 
 ;; Replace ever occurence of all labels (boolean variables) 
 ;;  inside an expression with their corresponding truth values.

@@ -175,7 +175,22 @@
               ($ft (foldr $f $i $t)))
          ($f $h $ft))))
 
-;; Apply a given function to every element of a tuple
+;; Apply a given function to every element of a tuple.
+;;
+;; ---- Var-safe alternative to map-atom ----
+;; map-atom compiles to yall's [X,Y]>>Body, whose copy_term_nat runs every
+;; iteration and freshens the body's captured free vars. When those captures
+;; share label-var identity with the mapped list, that decouples them and
+;; downstream code that relied on the shared identity breaks (see
+;; feat/native-boolean-eval / expand-deme:67 for the concrete failure mode).
+;; These `map` clauses dispatch via MeTTa's clause pattern matching; captures
+;; ride through as explicit args via Prolog's call/1, preserving identity.
+;;
+;; Extra-arg overloads (arity is what MeTTa dispatches on):
+;;   (map $f $xs)             ~ (map-atom $xs $x ($f $x))
+;;   (map $f $a $xs)          ~ (map-atom $xs $x ($f $x $a))
+;;   (map $f $a $b $xs)       ~ (map-atom $xs $x ($f $x $a $b))
+;;   (map $f $a $b $c $xs)    ~ (map-atom $xs $x ($f $x $a $b $c))
 ;; (: map (-> (-> $a $b) $c $d))
 (= (map $f $xs)
    (if (== $xs ())
@@ -184,6 +199,33 @@
               ($t (cdr-atom $xs))
               ($fh ($f $h))
               ($ft (map $f $t)))
+         (cons-atom $fh $ft))))
+
+(= (map $f $a $xs)
+   (if (== $xs ())
+       ()
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs))
+              ($fh ($f $h $a))
+              ($ft (map $f $a $t)))
+         (cons-atom $fh $ft))))
+
+(= (map $f $a $b $xs)
+   (if (== $xs ())
+       ()
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs))
+              ($fh ($f $h $a $b))
+              ($ft (map $f $a $b $t)))
+         (cons-atom $fh $ft))))
+
+(= (map $f $a $b $c $xs)
+   (if (== $xs ())
+       ()
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs))
+              ($fh ($f $h $a $b $c))
+              ($ft (map $f $a $b $c $t)))
          (cons-atom $fh $ft))))
 
 ;; Function: wrapper
