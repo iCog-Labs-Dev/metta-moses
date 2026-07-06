@@ -47,3 +47,109 @@
  (= (mergerFs $targetInstances $baseInst $referenceInst)
      (map-atom $targetInstances $tI 
          (let (mkSInst (mkPair $targetInst $score)) $tI (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) 0)))))
+
+
+;;   -------crossTopTwo Helepers----;;
+
+;; crossPairsForRef
+;; Cross one reference instance with all higher-ranked instances to generate offspring.
+(= (crossPairsForRef () $referenceInst $base $acc $limit)
+   $acc)
+
+(= (crossPairsForRef (cons $target $rest) $referenceInst $base $acc $limit)
+   (if (>= (List.length $acc) $limit)
+       $acc
+       (let*
+         (
+           ((mkSInst (mkPair $targetInst $targetScore)) $target)
+
+           ($offspring
+             (mkSInst
+               (mkPair
+                 (mergeInstance $targetInst $base $referenceInst)
+                 (worstCscore))))
+
+           ($newAcc (List.append $offspring $acc))
+         )
+         (crossPairsForRef $rest $referenceInst $base $newAcc $limit))))
+
+;; crossPairs
+;; Generate all pairwise crossover offspring using simplex ordering.
+;; Uses processed (better) and remaining instances.
+(= (crossPairs $processed () $base $acc $limit)
+   $acc)
+
+(= (crossPairs $processed (cons $reference $rest) $base $acc $limit)
+
+   (if (>= (List.length $acc) $limit)
+       $acc
+
+       (let*
+         (
+           ((mkSInst (mkPair $referenceInst $referenceScore))
+             $reference)
+
+           ;; cross reference with all better instances
+           ($updatedAcc
+             (crossPairsForRef $processed $referenceInst $base $acc $limit))
+              ($newProcessed (List.append $reference $processed))
+         )
+          (crossPairs $newProcessed $rest $base $updatedAcc $limit))))
+
+;; crossTripleTargets
+;; Create offspring by merging a target with two reference instances.
+;; Implements 3-way crossover step.
+(= (crossTripleTargets () $jRef $iRef $base $acc $limit)
+   $acc)
+
+(= (crossTripleTargets (cons $target $rest) $jRef $iRef $base $acc $limit)
+
+   (if (>= (List.length $acc) $limit)
+       $acc
+       (let*
+         (
+           ((mkSInst (mkPair $targetInst $score)) $target)
+           ($merged (mkSInst (mkPair (mergeInstance (mergeInstance $targetInst $base $iRef) $base $jRef) (worstCscore))))
+
+           ($newAcc (cons $merged $acc))
+         )
+       (crossTripleTargets $rest $jRef $iRef $base $newAcc $limit))))
+
+;; crossTripleRefs
+;; Iterate over j references and generate triple crossover combinations.
+;; Builds on processed + remaining structure.
+(= (crossTripleRefs () $processed $iRef $base $acc $limit) $acc)
+
+(= (crossTripleRefs (cons $j $jRest) $processed $iRef $base $acc $limit)
+
+    (if (>= (List.length $acc) $limit)
+        $acc
+
+       (let*
+         (
+           ((mkSInst (mkPair $jInst $jScore)) $j)
+
+           ($updatedAcc (crossTripleTargets $processed $jInst $iRef $base $acc $limit))
+         )
+         (crossTripleRefs $jRest (cons $j $processed) $iRef $base $updatedAcc $limit))))
+
+;; crossTriples
+;; Top-level 3-simplex crossover generator.
+;; Traverses i → j → k structure to create offspring.
+(= (crossTriples $processed () $base $acc $limit)
+   $acc)
+(= (crossTriples $processed (cons $i $iRest) $base $acc $limit)
+
+   (if (>= (List.length $acc) $limit)
+     $acc
+     
+     (let*
+         ( 
+          ((mkSInst (mkPair $iInst $iScore)) $i)
+
+           ($updatedAcc (crossTripleRefs $processed $processed $iInst $base $acc $limit))
+           ($newProcessed (List.append $i $processed))
+         )
+         (crossTriples $newProcessed $iRest $base $updatedAcc $limit))))
+    
+
