@@ -64,6 +64,29 @@
         )
         (representation $nDeme $exemplar (mkITable $table $labels) $ft-selection-algo $prune-exemplar $enforced-fts $scorerType True))
 
+;; restrictToIncorrect -- classic restrict_incorrect: feed feature selection only
+;; the rows the exemplar mispredicts. Falls back to the full table when it is
+;; already correct everywhere, or when the wrong rows share one output (zero MI).
+(= (restrictToIncorrect $exemplar (mkITable $table $labels))
+   (let* (($expTree (preOrder $exemplar))
+          ($len (List.length $labels))
+          ($wrongRows (filter-atom $table $row
+                        (not (== (scoreTreeHelper $labels $expTree $row)
+                                 (index-atom $row (- $len 1)))))))
+     (if (or (== $wrongRows ()) (ric-constant-output $wrongRows $len))
+         (mkITable $table $labels)
+         (mkITable $wrongRows $labels))))
+
+;; True when every row's output column (last column) holds the same value
+(= (ric-constant-output $rows $len)
+   (ric-all-same (map-atom $rows $r (index-atom $r (- $len 1)))))
+(= (ric-all-same $xs)
+   (if (== $xs ()) True (ric-all-eq (car-atom $xs) (cdr-atom $xs))))
+(= (ric-all-eq $h $xs)
+   (if (== $xs ())
+       True
+       (if (== (car-atom $xs) $h) (ric-all-eq $h (cdr-atom $xs)) False)))
+
 (= (representation
 ;; Boolean representation constructor with optional logical disc probing
             $nDeme
@@ -84,7 +107,7 @@
                  ;; ($_ (println! "before featureSelector"))
                  ($ft-set-pop (if (== $ft-selection-algo None)
                                   ((genList 0 (- (List.length $labels) 2))) ;; Applying all labels as features
-                                  (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme 50.0 1.0 0.5 1.0 True $scorerType)) ;; applies the right parameteres for feature selection based on selected selection algorithm 
+                                  (featureSelector $ft-selection-algo (restrictToIncorrect $exemplar (mkITable $table $labels)) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme 50.0 1.0 0.5 1.0 True $scorerType)) ;; FS on the exemplar's mispredicted rows (classic restrict_incorrect, with full-table fallback)
                  )
                  ;; ($_ (println! (Selected Features after feature Selection $ft-set-pop)))
                  ($exemplar-arg-seq                                           ;; apply exemplar feature pruning
