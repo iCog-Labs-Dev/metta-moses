@@ -129,17 +129,18 @@
 
    (let*
       (
-       ((mkDeme $rep (mkSInstSet $origSet) $demeId) $origDeme)
-
+      ;  ((mkDeme $rep (mkSInstSet $origSet) $demeId) $origDeme)
+       ($origSet (match $origDeme (mkSInstSet $instS) $instS))
        ($temp (List.appendList $newInstances1 $newInstances2))
        ($allNewInstances (List.appendList $temp $newInstances3))
 
        ($uniqueNewInstances (unique-atom $allNewInstances))
        ($finalSet (List.appendList $uniqueNewInstances $origSet))
-
        ($nNewAdded (List.length $uniqueNewInstances))
+       ($_ (remove-atom $origDeme (mkSInstSet $instS)))
+       ($_ (add-atom $origDeme (mkSInstSet $finalSet)))
       )
-     ((mkDeme $rep (mkSInstSet $finalSet) $demeId) $nNewAdded)
+     ((mkSInstSet $finalSet) $nNewAdded)
 ))
 
 ;; crossover
@@ -155,7 +156,6 @@
     (let*
       (
        ($nToMake (min $nNewInstances 120))
-   
        ($newInstances1 (crossTopOne $deme (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst))
        ($newInstances2 (crossTopTwo $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
        ($newInstances3 (crossTopThree $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
