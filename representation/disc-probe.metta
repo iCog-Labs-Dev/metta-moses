@@ -58,3 +58,11 @@
         ($dis (probeEffectiveSettings $tree $probeRootId $targetId $lsk 1 $oldDis))
       )
       (mkLSK (mkDiscKnob $m $default $current $dis))))
+
+;; Classic-MOSES dynamic trigger: auto-enable disc probing once more than a
+;; fifth of the exemplar's variables are logical. Same True/False
+;; convention as $disable-discprobe (True = stay off).
+(= (dynamicDiscProbeDisabled $logicalVarCount $totalVarCount)
+   (if (== $totalVarCount 0)
+       True
+       (<= (/ $logicalVarCount $totalVarCount) 0.2)))
