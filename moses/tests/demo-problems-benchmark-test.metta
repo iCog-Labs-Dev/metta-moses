@@ -91,7 +91,8 @@
 
 ;; When run with nEval of 1000 at this configuration, top result should have a score of 0.
 !(assertEqual (let $result (runDemoProblem 0 10 1 None parity3) (second (index-atom (second $result) 0))) 0)
-;; TODO: This test case fails because of incorrect creation order when disc probing is enabled. That needs a fix.
-;; !(runDemoProblem 0 10 1 None mux6)
 
-
+;; mux6 regression for #475 (previously believed broken under disc probing,
+;; see representation/tests/disc-probe-test.metta). -20 is a sanity floor,
+;; not a quality target -- mux6 needs more than 10 generations to hit 0.
+!(assertEqual (let $result (runDemoProblem 0 10 1 None mux6) (>= (second (index-atom (second $result) 0)) -20)) True)
