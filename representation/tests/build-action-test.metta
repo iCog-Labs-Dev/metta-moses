@@ -221,17 +221,19 @@
     (and (> (MultiMap.length $mmp) 0)
          (not (== $updatedTree $origTree))))
   True)
-  
-; !(assertEqual
-;   (let ($updatedTree $mmp) (buildAction (mkTree (mkNode and_seq) ()) () (move_forward turn_left) (A B))
-;     (> (MultiMap.length $mmp) 0))
-;   True)
 
-; ;; buildKnobs dispatches action and strategy roots
-; !(assertEqual
-;   (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) () () (move_forward turn_left) (A B))
-;     (> (MultiMap.length $mmp) 0))
-;   True)
+ !(py-call (random.seed 12)) 
+
+!(assertEqual
+  (let ($updatedTree $mmp) (buildAction (mkTree (mkNode and_seq) ()) () (move_forward turn_left) (A B))
+    (> (MultiMap.length $mmp) 0))
+  True)
+
+;; buildKnobs dispatches action and strategy roots
+!(assertEqual
+  (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) () () (move_forward turn_left) (A B))
+    (> (MultiMap.length $mmp) 0))
+  True)
 
 !(assertEqual
   (let* (($tree (mkTree (mkNode PRIORITIZED-OR)
@@ -270,3 +272,4 @@
 !(assertEqual
   (actionCleanup (mkTree (mkNode and_seq) (cons (moveTree) ())))
   (mkTree (mkNode and_seq) (cons (moveTree) ())))
+ 

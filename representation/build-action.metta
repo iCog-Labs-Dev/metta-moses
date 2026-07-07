@@ -131,7 +131,8 @@
 (= (processActionBoolIfChildren () $MMap $actions $perceptions) 
    (() $MMap))
 
-;; Preserve the perception child and rebuild the remaining action branches.
+;; The first child is the perception predicate.
+;; Only the action branches are recursively rebuilt.
 (= (processActionBoolIfChildren (cons $perception $rest) $MMap $actions $perceptions)
    (let*
      (
@@ -151,11 +152,14 @@
      )
      ((cons $rebuiltChild $rebuiltRest) $m2)))
 
-;; Rebuild only the children of an and_seq after a knob has been inserted.
-;; Input:(mkKnob (mkTree (mkNode and_seq) children) ask idx)
-;; Output:   (updatedKnob updatedMMap)
+
+;; Non-knob trees require no rebuilding.
 (= (rebuildKnobChildren $tree $MMap $actions $perceptions $p) ($tree $MMap))
 
+;;; Rebuild the original children of a newly inserted action knob.
+;; The knob itself is preserved while its controlled subtree is recursively rebuilt.
+;; Input:(mkKnob (mkTree (mkNode and_seq) children) ask idx)
+;; Output:   (updatedKnob updatedMMap)
 (= (rebuildKnobChildren (mkKnob (mkTree (mkNode and_seq) $children) $ask $idx) $MMap $actions $perceptions $p)
    (let*
       (
@@ -169,7 +173,8 @@
 (= (buildActionAndSeq (mkTree (mkNode and_seq) $children) $MMap $actions $perceptions)
    (let $p 80
       (if (or (== $children ()) (< (randint 99) $p))
-      ;; Insert knob on this and_seq, but recurse on the ORIGINAL children.
+      ;; Insert the knob first, then recursively rebuild the original children.
+      ;; This preserves the C++ insertion order while allowing nested knobs.
           (let*
              (
                 (($withKnobs $m1) (addActionKnobs (mkTree (mkNode and_seq) $children) True $MMap $actions $perceptions))
@@ -231,7 +236,9 @@
              (($rebuiltSubtree $updatedMMap) (buildAction $controlledSubtree $MMap $actions $perceptions))
            )
            ((mkKnob $rebuiltSubtree $ask $i) $updatedMMap)))))
-
+           
+;; Dispatch to the appropriate subtree builder.
+;; Non-action operators are returned unchanged.
 (= (buildAction (mkTree (mkNode $op) $children) $MMap $actions $perceptions)
    (if (== $op and_seq)
        (buildActionAndSeq (mkTree (mkNode and_seq) $children) $MMap $actions $perceptions)
