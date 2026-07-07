@@ -166,7 +166,7 @@
                     (let*
                           (
                             ;; ($_ (println! (===== Inside ApplyAndTransformations Before Until function ======)))
-                            (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $lastRemainingChild)) (loopRteToOr ($commandSet $handleSet ($parent $current False) ($firstChild $remainingChildren))))
+                            (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $lastRemainingChild)) (loopReduceToEleganceToOr ($commandSet $handleSet ($parent $current False) ($firstChild $remainingChildren))))
 
                             ; ($_ (println! ("Applyed reduceToElegance ==> FinalUpdatedParent:" $finalUpdatedParent "FinalUpdatedCurrent: " $finalUpdatedCurrent "AppliedRTE: " $bool)))
 
@@ -274,7 +274,7 @@
 
             ;  ($_ (println! (===== Inside ApplyOrTransformations Before Until function ======)))
 
-             (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $rest)) (loopRteToAnd ($commandSet $dominantSet ($parent $current False) ($firstChild $remainingChildren))))
+             (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $rest)) (loopReduceToEleganceToAnd ($commandSet $dominantSet ($parent $current False) ($firstChild $remainingChildren))))
                 
             ;  ($_ (println! ("Inside ApplyOrTransformations After Until function")))
             ;  ($_ (println! ("FinalResult ==> FinalUpdatedParent:" $finalUpdatedParent "FinalUpdatedCurrent:" $finalUpdatedCurrent "Applied:" $bool)))
@@ -493,31 +493,20 @@
    )
 )
          
-;; Clause-dispatched application for loopUntil (see rte-helpers.metta):
-;; every loop predicate/body is invoked as a direct named call.
-(= (applyStep transformationsNotApplied $x) (transformationsNotApplied $x))
-(= (applyStep hasNoNextChild $x) (hasNoNextChild $x))
-(= (applyStep reduceNotApplied $x) (reduceNotApplied $x))
-(= (applyStep applyAndTransformations $x) (applyAndTransformations $x))
-(= (applyStep applyOrTransformations $x) (applyOrTransformations $x))
-(= (applyStep applyReduceToEleganceToOr $x) (applyReduceToEleganceToOr $x))
-(= (applyStep applyReduceToEleganceToAnd $x) (applyReduceToEleganceToAnd $x))
-(= (applyStep applyOrCut $x) (applyOrCut $x))
-(= (applyStep applyAndCut $x) (applyAndCut $x))
-(= (applyStep applyReduce $x) (applyReduce $x))
-
-;; Specialized eval-free fixed-point loops — one per (predicate, body) pair
-;; used in this module. Same recursion shape as loopUntil (rte-helpers.metta)
-;; minus the two applyStep clause dispatches per iteration: predicate and body
-;; are direct named calls. loopUntil/applyStep stay for generic callers.
+;; Fixed-point loops, one per (predicate, body) pair; each loop is named
+;; after the body function it iterates. Predicate and body must be DIRECT
+;; named calls: general-helpers' `until` wraps them in `eval`, which
+;; deep-normalizes the loop state — re-evaluating (NOT $var) data via the
+;; `not` builtin binds the label var — and a var-headed ($f $x) meta-call
+;; re-translates its result the same way under PeTTaV1.
 (= (loopAndTransformations $x)
    (if (transformationsNotApplied $x) $x (loopAndTransformations (applyAndTransformations $x))))
 (= (loopOrTransformations $x)
    (if (transformationsNotApplied $x) $x (loopOrTransformations (applyOrTransformations $x))))
-(= (loopRteToOr $x)
-   (if (hasNoNextChild $x) $x (loopRteToOr (applyReduceToEleganceToOr $x))))
-(= (loopRteToAnd $x)
-   (if (hasNoNextChild $x) $x (loopRteToAnd (applyReduceToEleganceToAnd $x))))
+(= (loopReduceToEleganceToOr $x)
+   (if (hasNoNextChild $x) $x (loopReduceToEleganceToOr (applyReduceToEleganceToOr $x))))
+(= (loopReduceToEleganceToAnd $x)
+   (if (hasNoNextChild $x) $x (loopReduceToEleganceToAnd (applyReduceToEleganceToAnd $x))))
 (= (loopOrCut $x)
    (if (hasNoNextChild $x) $x (loopOrCut (applyOrCut $x))))
 (= (loopAndCut $x)

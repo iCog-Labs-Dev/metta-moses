@@ -117,43 +117,51 @@ rea_kids_([X|Xs], Out) :-
     rea_kids_(Xs, R),
     ( X1 == 'Nothing' -> Out = R ; Out = [X1|R] ).
 
-%% --- memberOf/subAll/uniqueStruct/intersect/concatAll ---
-%% (reduct/boolean-reduct/rte-helpers.metta) — the ==-semantics set walks.
-%% All membership via memberq_ (==/2 only, never binds label vars). Non-list
-%% inputs FAIL (no clause), mirroring the MeTTa versions' silent decons-atom
-%% failure on leaves. append/3 only unifies the list SPINE — elements pass
-%% through by reference, so var identity is preserved.
+%% The five ==-semantics set walks below (memberOf .. concatAll) mirror
+%% reduct/boolean-reduct/rte-helpers.metta. Membership is memberq_ (==/2 only,
+%% never binds label vars). Each has a leading non-list guard: a bare label
+%% var as the collection would otherwise head-unify with [] and be BOUND;
+%% failing instead mirrors the MeTTa versions' silent decons-atom failure on
+%% leaves. append/3 only unifies the list SPINE — elements pass through by
+%% reference, so var identity is preserved.
+
+%% --- memberOf/3 (reduct/boolean-reduct/rte-helpers.metta) ---
 :- dynamic('memberOf'/3).
 :- retractall('memberOf'(_, _, _)).
 'memberOf'(El, Tuple, R) :- is_list(Tuple), !,
     ( memberq_(El, Tuple) -> R = true ; R = false ).
 
+%% --- subAll/3 (reduct/boolean-reduct/rte-helpers.metta) ---
 :- dynamic('subAll'/3).
 :- retractall('subAll'(_, _, _)).
+'subAll'(T, _, _) :- \+ is_list(T), !, fail.
 'subAll'([], _, []) :- !.
 'subAll'([H|T], Del, R) :- is_list(Del), !,
     'subAll'(T, Del, R0),
     ( memberq_(H, Del) -> R = R0 ; R = [H|R0] ).
 
+%% --- uniqueStruct/2 (reduct/boolean-reduct/rte-helpers.metta) ---
 :- dynamic('uniqueStruct'/2).
 :- retractall('uniqueStruct'(_, _)).
+'uniqueStruct'(T, _) :- \+ is_list(T), !, fail.
 'uniqueStruct'([], []) :- !.
 'uniqueStruct'([H|T], [H|R]) :- !,
-    del_eq_(T, H, T1),
+    'subAll'(T, [H], T1),
     'uniqueStruct'(T1, R).
 
-del_eq_([], _, []).
-del_eq_([X|Xs], H, R) :- ( X == H -> del_eq_(Xs, H, R) ; R = [X|R1], del_eq_(Xs, H, R1) ).
-
+%% --- intersect/3 (reduct/boolean-reduct/rte-helpers.metta) ---
 :- dynamic('intersect'/3).
 :- retractall('intersect'(_, _, _)).
+'intersect'(X, _, _) :- \+ is_list(X), !, fail.
 'intersect'([], _, []) :- !.
 'intersect'([H|T], Y, R) :- is_list(Y), !,
     'intersect'(T, Y, R0),
     ( memberq_(H, Y) -> R = [H|R0] ; R = R0 ).
 
+%% --- concatAll/2 (reduct/boolean-reduct/rte-helpers.metta) ---
 :- dynamic('concatAll'/2).
 :- retractall('concatAll'(_, _)).
+'concatAll'(T, _) :- \+ is_list(T), !, fail.
 'concatAll'([], []) :- !.
 'concatAll'([H|T], R) :- is_list(H), !,
     'concatAll'(T, R0),

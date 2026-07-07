@@ -57,25 +57,6 @@
        (let ($h $t) (decons-atom $tuples)
          (concatTuple $h (concatAll $t)))))
 
-;; Eval-free replacement for general-helpers' `until`: `until` wraps its
-;; predicate call and recursion in `eval`, which deep-normalizes the whole
-;; loop state — re-evaluating (NOT $var) data via the `not` builtin binds
-;; the label var to true and corrupts the tree (finding #2).
-;;
-;; Application goes through clause-dispatched `applyStep`, NOT a var-headed
-;; ($function $x) meta-call: under PeTTaV1 the generic dispatch of a
-;; var-headed call re-translates its result, firing scoring's AND/OR/NOT
-;; eval clauses on tree data and binding label vars to true/false.
-;; This dummy clause only registers applyStep as a function so the call
-;; below compiles as a call; the real clauses live at the bottom of
-;; reduce-to-elegance.metta where all the loop bodies are already defined.
-(= (applyStep __loopUntilRegistration $x) $x)
-
-(= (loopUntil $predicate $function $x)
-   (if (applyStep $predicate $x)
-       $x
-       (loopUntil $predicate $function (applyStep $function $x))))
-
 ;; Partial function used to filter and keep only literals of an expression.
 ;; An expression (NOT A) is also considered as a literal in the case of boolean expression.
 ;; 'AND' and 'OR' are not considered as a literal.

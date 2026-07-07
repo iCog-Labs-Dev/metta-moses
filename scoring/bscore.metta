@@ -104,15 +104,12 @@
            $val
            (if (== $val ())
                (let* (
-                   ;; Eval template: ($labelsList $expressionForm). Built ONCE
-                   ;; per candidate (preOrder reused from the cache key above);
-                   ;; evalParsed uses it per row via sealed. See
-                   ;; scoring/boolean-ops.metta for shape invariants.
+                   ;; Eval template: ($labelsList $expressionForm), built once
+                   ;; per candidate; evalParsed copies it per row via sealed.
+                   ;; See scoring/boolean-ops.metta for shape invariants.
                    ($template ($labels $preordered))
-                   ;; Single pass: evaluate each row and compare against its
-                   ;; output column in place — same evalParsed evaluation and
-                   ;; pairing as the old scoreList/outputs/zipWith trio, minus
-                   ;; the two intermediate list rebuilds per candidate.
+                   ;; Each row is scored and compared against its output
+                   ;; column (the row's last element) in a single pass.
                    ($lastIdx (- (List.length $labels) 1))
                    ($bScore (map-atom $table $ts
                        (compareAndScore (scoreTreeHelper $template $ts)

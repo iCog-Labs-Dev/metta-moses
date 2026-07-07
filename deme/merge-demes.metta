@@ -2,19 +2,25 @@
 ;;                 Merge Demes                       ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Context-aware candidate materialization: boolean scoring contexts
-;; (mkITable ...) reuse the var-safe ground memo getCandidateCached
-;; (scoring/complexity-based-scorer.metta) that complexityBasedScorer already
-;; populated for every instance in the deme — a hit skips the full
-;; getCandidateHelper + cleanTree re-run. Any other context (game strategy
-;; ($nGames ...), (noCtx) from the legacy arities) keeps plain getCandidate.
-(= (getCandidateCtx $rep $id $ctx $inst)
+;; True only for a boolean scoring context (mkITable ...). Nested ifs on
+;; purpose: `and` is not short-circuit, so car-atom must stay guarded behind
+;; the Expression and non-() checks.
+(= (isITableCtx $ctx)
    (if (== (get-metatype $ctx) Expression)
        (if (== $ctx ())
-           (getCandidate $rep $id $inst)
-           (if (== (car-atom $ctx) mkITable)
-               (getCandidateCached $rep $id $inst $ctx)
-               (getCandidate $rep $id $inst)))
+           False
+           (== (car-atom $ctx) mkITable))
+       False))
+
+;; Context-aware candidate materialization: boolean scoring contexts reuse
+;; the var-safe ground memo getCandidateCached (scoring/
+;; complexity-based-scorer.metta) that complexityBasedScorer already
+;; populated for every instance in the deme — a hit skips the full
+;; getCandidateHelper + cleanTree re-run. Any other context (game strategy
+;; ($nGames ...), () when no context is given) is uncached.
+(= (getCandidateCtx $rep $id $ctx $inst)
+   (if (isITableCtx $ctx)
+       (getCandidateCached $rep $id $inst $ctx)
        (getCandidate $rep $id $inst)))
 
 ;; Removes adjacent duplicate ScoredInstances from a sorted list, keeping up to $topCnd unique instances.
@@ -23,9 +29,9 @@
 ;;    $scoringContext: (mkITable ...) for Boolean (enables the candidate memo), else uncached.
 ;;    $topCnd: Maximum number of instances to keep.
 ;; Return: (List (ScoredInstance Cscore)): List with adjacent duplicates removed, limited by $topCnd.
-;; Legacy arity (no scoring context) — kept for existing callers/tests.
+;; Callers that pass no scoring context default to the uncached path.
 (= (removeDupInsts $rep $id $sInstList $topCnd)
-   (removeDupInsts $rep $id (noCtx) $sInstList $topCnd))
+   (removeDupInsts $rep $id () $sInstList $topCnd))
 ; (: removeDupInsts (-> (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
 (= (removeDupInsts $rep $id $ctx () $topCnd) ())
 (= (removeDupInsts $rep $id $ctx (cons $x ()) $topCnd)
@@ -57,9 +63,9 @@
 ;;   $maxCandsPerDeme: Maximum candidates per deme.
 ;; Return: (List (ScoredInstance Cscore)): List of unique top-scoring instances.
 ; (: keepTopUniqueCandidates (-> (InstanceSet Cscore) (List (ScoredInstance Cscore))))
-;; Legacy arity (no scoring context) — kept for existing callers/tests.
+;; Callers that pass no scoring context default to the uncached path.
 (= (keepTopUniqueCandidates $rep $id (mkSInstSet $sortedSInstList))
-   (keepTopUniqueCandidates $rep $id (noCtx) (mkSInstSet $sortedSInstList)))
+   (keepTopUniqueCandidates $rep $id () (mkSInstSet $sortedSInstList)))
 (= (keepTopUniqueCandidates $rep $id $ctx (mkSInstSet $sortedSInstList))
  (let*
  (
