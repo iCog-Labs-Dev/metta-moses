@@ -70,7 +70,7 @@
                       (($unwt3 $unwt2 ($updatedParent' $updatedCurrent' $bool))
                          (if $appliedOneSubsume ;; If 1-Subsume is applied Current will be deleted so no need to iterate.
                              ($dominantSet $commandSet ($oneSubsumeParent $oneSubsumeCurrent True))
-                             (loopUntil transformationsNotApplied applyAndTransformations ($commandSet $dominantSet ($updatedParent $updatedCurrent True)))))
+                             (loopAndTransformations ($commandSet $dominantSet ($updatedParent $updatedCurrent True)))))
 
                       ;; ($_ (println! (FinalResult ==> UpdatedParent': $updatedParent' UpdatedCurrent: $updatedCurrent' AppliedRTE: (any ($appliedRedundantOr1CC $appliedOneSubsume $bool)))))
                       ;; ($_ (cut))
@@ -101,7 +101,7 @@
                       ;;    0-Subsume
                       ;;    orCut
                       ;;    apply RTE on children.
-                     (($x $xs ($updatedParent $updatedCurrent $bool)) (loopUntil transformationsNotApplied applyOrTransformations ($commandSet $dominantSet ($promoteParent $promoteCurrent True))))
+                     (($x $xs ($updatedParent $updatedCurrent $bool)) (loopOrTransformations ($commandSet $dominantSet ($promoteParent $promoteCurrent True))))
                      (($finalUpdatedParent $finalUpdatedCurrent $finalBool) (zeroConstraintSubsume' $updatedParent $updatedCurrent))
 
                     ; ($_ (println! (===RTE OR CASE Log===)))
@@ -166,7 +166,7 @@
                     (let*
                           (
                             ;; ($_ (println! (===== Inside ApplyAndTransformations Before Until function ======)))
-                            (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $lastRemainingChild)) (loopUntil hasNoNextChild applyReduceToEleganceToOr ($commandSet $handleSet ($parent $current False) ($firstChild $remainingChildren))))
+                            (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $lastRemainingChild)) (loopRteToOr ($commandSet $handleSet ($parent $current False) ($firstChild $remainingChildren))))
 
                             ; ($_ (println! ("Applyed reduceToElegance ==> FinalUpdatedParent:" $finalUpdatedParent "FinalUpdatedCurrent: " $finalUpdatedCurrent "AppliedRTE: " $bool)))
 
@@ -177,7 +177,7 @@
                             ; ($_ (println! (Applying OrCut to GrandChildren: $grandChildren)))
 
                             ;; Apply OrCut to children of the updatedCurrent here.
-                            (($finalUpdatedCurrent' $appliedOrCut ($lastGChild $restGChildren)) (loopUntil hasNoNextChild applyOrCut ($finalUpdatedCurrent False ($firstGrandChild $remainingGChildren))))
+                            (($finalUpdatedCurrent' $appliedOrCut ($lastGChild $restGChildren)) (loopOrCut ($finalUpdatedCurrent False ($firstGrandChild $remainingGChildren))))
                             ($finalUpdatedParent' (findAndReplace $finalUpdatedCurrent $finalUpdatedCurrent' $finalUpdatedParent))
 
                             ; ($_ (println! (AppliedOrCut: $appliedOrCut FinalUpdatedCurrent': $finalUpdatedCurrent' FinalUpdatedParent': $finalUpdatedParent')))
@@ -274,7 +274,7 @@
 
             ;  ($_ (println! (===== Inside ApplyOrTransformations Before Until function ======)))
 
-             (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $rest)) (loopUntil hasNoNextChild applyReduceToEleganceToAnd ($commandSet $dominantSet ($parent $current False) ($firstChild $remainingChildren))))
+             (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $rest)) (loopRteToAnd ($commandSet $dominantSet ($parent $current False) ($firstChild $remainingChildren))))
                 
             ;  ($_ (println! ("Inside ApplyOrTransformations After Until function")))
             ;  ($_ (println! ("FinalResult ==> FinalUpdatedParent:" $finalUpdatedParent "FinalUpdatedCurrent:" $finalUpdatedCurrent "Applied:" $bool)))
@@ -311,7 +311,7 @@
               ($firstGChild (if (not (== $grandChildren ())) (car-atom $grandChildren) ()))
               ($remainingGChildren (if (not (== $firstGChild ())) (cdr-atom $grandChildren) ()))
 
-              (($finalUpdatedCurrent $appliedAndCut ($lastChild $rest)) (loopUntil hasNoNextChild applyAndCut ($promoteCurrent False ($firstGChild $remainingGChildren))))
+              (($finalUpdatedCurrent $appliedAndCut ($lastChild $rest)) (loopAndCut ($promoteCurrent False ($firstGChild $remainingGChildren))))
               ($finalUpdatedParent (findAndReplace $prevCurrent $finalUpdatedCurrent $parent))
 
               ; ($_ (println! (Applied AndCut==> FinalupdatedCurrent: $finalUpdatedCurrent FinalUpdatedParent: $finalUpdatedParent AppliedAndCut: $appliedAndCut)))
@@ -506,11 +506,30 @@
 (= (applyStep applyAndCut $x) (applyAndCut $x))
 (= (applyStep applyReduce $x) (applyReduce $x))
 
+;; Specialized eval-free fixed-point loops — one per (predicate, body) pair
+;; used in this module. Same recursion shape as loopUntil (rte-helpers.metta)
+;; minus the two applyStep clause dispatches per iteration: predicate and body
+;; are direct named calls. loopUntil/applyStep stay for generic callers.
+(= (loopAndTransformations $x)
+   (if (transformationsNotApplied $x) $x (loopAndTransformations (applyAndTransformations $x))))
+(= (loopOrTransformations $x)
+   (if (transformationsNotApplied $x) $x (loopOrTransformations (applyOrTransformations $x))))
+(= (loopRteToOr $x)
+   (if (hasNoNextChild $x) $x (loopRteToOr (applyReduceToEleganceToOr $x))))
+(= (loopRteToAnd $x)
+   (if (hasNoNextChild $x) $x (loopRteToAnd (applyReduceToEleganceToAnd $x))))
+(= (loopOrCut $x)
+   (if (hasNoNextChild $x) $x (loopOrCut (applyOrCut $x))))
+(= (loopAndCut $x)
+   (if (hasNoNextChild $x) $x (loopAndCut (applyAndCut $x))))
+(= (loopApplyReduce $x)
+   (if (reduceNotApplied $x) $x (loopApplyReduce (applyReduce $x))))
+
 (= (reduce-to $expr)
    (let*
      (
       ;; TODO: Add a simple function to remove one child and nodes.
-      (($parent $uwnt $uwnt2) (loopUntil reduceNotApplied applyReduce ($expr $expr True)))
+      (($parent $uwnt $uwnt2) (loopApplyReduce ($expr $expr True)))
       (($newParent $__ $___) (applyReduce ($parent $parent True))) ;; Try one more time incase it is still reduceable
       ;; ($_ (cut)) ;; Tried, no measurable win
      )

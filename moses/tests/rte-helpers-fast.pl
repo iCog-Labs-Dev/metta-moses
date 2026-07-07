@@ -117,6 +117,48 @@ rea_kids_([X|Xs], Out) :-
     rea_kids_(Xs, R),
     ( X1 == 'Nothing' -> Out = R ; Out = [X1|R] ).
 
+%% --- memberOf/subAll/uniqueStruct/intersect/concatAll ---
+%% (reduct/boolean-reduct/rte-helpers.metta) — the ==-semantics set walks.
+%% All membership via memberq_ (==/2 only, never binds label vars). Non-list
+%% inputs FAIL (no clause), mirroring the MeTTa versions' silent decons-atom
+%% failure on leaves. append/3 only unifies the list SPINE — elements pass
+%% through by reference, so var identity is preserved.
+:- dynamic('memberOf'/3).
+:- retractall('memberOf'(_, _, _)).
+'memberOf'(El, Tuple, R) :- is_list(Tuple), !,
+    ( memberq_(El, Tuple) -> R = true ; R = false ).
+
+:- dynamic('subAll'/3).
+:- retractall('subAll'(_, _, _)).
+'subAll'([], _, []) :- !.
+'subAll'([H|T], Del, R) :- is_list(Del), !,
+    'subAll'(T, Del, R0),
+    ( memberq_(H, Del) -> R = R0 ; R = [H|R0] ).
+
+:- dynamic('uniqueStruct'/2).
+:- retractall('uniqueStruct'(_, _)).
+'uniqueStruct'([], []) :- !.
+'uniqueStruct'([H|T], [H|R]) :- !,
+    del_eq_(T, H, T1),
+    'uniqueStruct'(T1, R).
+
+del_eq_([], _, []).
+del_eq_([X|Xs], H, R) :- ( X == H -> del_eq_(Xs, H, R) ; R = [X|R1], del_eq_(Xs, H, R1) ).
+
+:- dynamic('intersect'/3).
+:- retractall('intersect'(_, _, _)).
+'intersect'([], _, []) :- !.
+'intersect'([H|T], Y, R) :- is_list(Y), !,
+    'intersect'(T, Y, R0),
+    ( memberq_(H, Y) -> R = [H|R0] ; R = R0 ).
+
+:- dynamic('concatAll'/2).
+:- retractall('concatAll'(_, _)).
+'concatAll'([], []) :- !.
+'concatAll'([H|T], R) :- is_list(H), !,
+    'concatAll'(T, R0),
+    append(H, R0, R).
+
 %% --- isConsistentExp/2 (reduct/boolean-reduct/delete-inconsistent-handle.metta) ---
 %% Short-circuit scan for a complementary pair; NOT is unary wrapped
 %% ['NOT', C]. Complement test uses ==/2 throughout: for label vars that is
@@ -197,6 +239,11 @@ memberq_true([_|T]) :- memberq_true(T).
 %% Register the stubs as MeTTa funs (idempotent).
 :- register_fun('getLiterals').
 :- register_fun('removeEmptyAND').
+:- register_fun('memberOf').
+:- register_fun('subAll').
+:- register_fun('uniqueStruct').
+:- register_fun('intersect').
+:- register_fun('concatAll').
 :- register_fun('getChildrenExp').
 :- register_fun('getGuardSet').
 :- register_fun('isConsistentExp').
