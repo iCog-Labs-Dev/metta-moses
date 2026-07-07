@@ -165,7 +165,7 @@ $optimDeme
          (if (<= (param maxCandOutput) (OS.length $updatedMetaPop))
              (OS.getTopN (param maxCandOutput) $updatedMetaPop)
              $updatedMetaPop)
-         (runMoses (- $maxGen 1) $maxScore $updatedMetaPop $nExpansion $nDeme $context $optimize)))))
+         (runMoses (- $maxGen 1) $maxScore $updatedMetaPop (+ $nExpansion 1) $nDeme $context $optimize)))))
 
 
 ;; Some helpers specific to final testing
