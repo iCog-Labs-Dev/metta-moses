@@ -21,15 +21,14 @@
 ;; TODO: You need to call the RTE until it's no longer applied in the entry point. 
 ; (: reduceToElegance (-> Expression Expression Expression Expression (Expression Expression Bool)))
 (= (reduceToElegance $parent $current $dominantSet $commandSet)
-   (case ((get-metatype $current) $current)
-        (
-          ((Symbol $symbol) ($parent $symbol False))
-          ((Expression ()) ($parent $current False))
-          ((Expression (NOT A)) ($parent $current False))
-          ((Expression $current)
-            (case (car-atom $current)
-              (
-                (AND
+   ;; guarded if-chain dispatch — shape checks with == never bind label vars;
+   ;; NOT-headed / var-headed / malformed POAs all fall through unchanged
+   (if (not (== (get-metatype $current) Expression))
+       ($parent $current False) ;; leaf POA: Symbol / Variable / Grounded
+       (if (== $current ())
+           ($parent $current False)
+           (let $rteHead (car-atom $current)
+             (if (== $rteHead AND)
                   (let*
                     (
                       ;; ($_ (println! ""))
@@ -71,7 +70,7 @@
                       (($unwt3 $unwt2 ($updatedParent' $updatedCurrent' $bool))
                          (if $appliedOneSubsume ;; If 1-Subsume is applied Current will be deleted so no need to iterate.
                              ($dominantSet $commandSet ($oneSubsumeParent $oneSubsumeCurrent True))
-                             (until transformationsNotApplied applyAndTransformations ($commandSet $dominantSet ($updatedParent $updatedCurrent True)))))
+                             (loopUntil transformationsNotApplied applyAndTransformations ($commandSet $dominantSet ($updatedParent $updatedCurrent True)))))
 
                       ;; ($_ (println! (FinalResult ==> UpdatedParent': $updatedParent' UpdatedCurrent: $updatedCurrent' AppliedRTE: (any ($appliedRedundantOr1CC $appliedOneSubsume $bool)))))
                       ;; ($_ (cut))
@@ -86,8 +85,7 @@
                     )
                     ($finalParent $finalCurrent' (any ($appliedRedundantOr1CC $appliedOneSubsume $bool $finalBool)))
                   )
-                )
-                (OR
+                (if (== $rteHead OR)
                   (let*
                     (
                       ;; ($_ (println! ""))
@@ -103,7 +101,7 @@
                       ;;    0-Subsume
                       ;;    orCut
                       ;;    apply RTE on children.
-                     (($x $xs ($updatedParent $updatedCurrent $bool)) (until transformationsNotApplied applyOrTransformations ($commandSet $dominantSet ($promoteParent $promoteCurrent True))))
+                     (($x $xs ($updatedParent $updatedCurrent $bool)) (loopUntil transformationsNotApplied applyOrTransformations ($commandSet $dominantSet ($promoteParent $promoteCurrent True))))
                      (($finalUpdatedParent $finalUpdatedCurrent $finalBool) (zeroConstraintSubsume' $updatedParent $updatedCurrent))
 
                     ; ($_ (println! (===RTE OR CASE Log===)))
@@ -115,12 +113,7 @@
                     )
                     ($finalUpdatedParent $finalUpdatedCurrent (any ($bool $finalBool $appliedPromote)))
                   )
-                )
-              )
-            )
-        )
-      )
-   )
+                  ($parent $current False))))))
 )
 
 ;; A helper function to check if a transformation is applied or not given the state of the OR node transformations.
@@ -145,7 +138,7 @@
         ($firstChild (if (not (== $children ())) (car-atom $children) ()))
         ($remainingChildren (if (not (== $firstChild ())) (cdr-atom $children) ()))
 
-        ($handleSet (unique-atom (union-atom $guardSet $dominantSet))) ;; Compute new dominantSet
+        ($handleSet (uniqueStruct (union-atom $guardSet $dominantSet))) ;; Compute new dominantSet
         
         ;; ($_ (println! ("Parent before Delete:" $parent Current: $current)))
         (($delInconHandleParent $delInconHandleCurrent $appliedDelInconHandle)  (applyDeleteIncons $parent $current $handleSet)) ;; This handles multi layer nested expressions.
@@ -173,7 +166,7 @@
                     (let*
                           (
                             ;; ($_ (println! (===== Inside ApplyAndTransformations Before Until function ======)))
-                            (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $lastRemainingChild)) (until hasNoNextChild applyReduceToEleganceToOr ($commandSet $handleSet ($parent $current False) ($firstChild $remainingChildren))))
+                            (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $lastRemainingChild)) (loopUntil hasNoNextChild applyReduceToEleganceToOr ($commandSet $handleSet ($parent $current False) ($firstChild $remainingChildren))))
 
                             ; ($_ (println! ("Applyed reduceToElegance ==> FinalUpdatedParent:" $finalUpdatedParent "FinalUpdatedCurrent: " $finalUpdatedCurrent "AppliedRTE: " $bool)))
 
@@ -184,7 +177,7 @@
                             ; ($_ (println! (Applying OrCut to GrandChildren: $grandChildren)))
 
                             ;; Apply OrCut to children of the updatedCurrent here.
-                            (($finalUpdatedCurrent' $appliedOrCut ($lastGChild $restGChildren)) (until hasNoNextChild applyOrCut ($finalUpdatedCurrent False ($firstGrandChild $remainingGChildren))))
+                            (($finalUpdatedCurrent' $appliedOrCut ($lastGChild $restGChildren)) (loopUntil hasNoNextChild applyOrCut ($finalUpdatedCurrent False ($firstGrandChild $remainingGChildren))))
                             ($finalUpdatedParent' (findAndReplace $finalUpdatedCurrent $finalUpdatedCurrent' $finalUpdatedParent))
 
                             ; ($_ (println! (AppliedOrCut: $appliedOrCut FinalUpdatedCurrent': $finalUpdatedCurrent' FinalUpdatedParent': $finalUpdatedParent')))
@@ -281,7 +274,7 @@
 
             ;  ($_ (println! (===== Inside ApplyOrTransformations Before Until function ======)))
 
-             (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $rest)) (until hasNoNextChild applyReduceToEleganceToAnd ($commandSet $dominantSet ($parent $current False) ($firstChild $remainingChildren))))
+             (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $rest)) (loopUntil hasNoNextChild applyReduceToEleganceToAnd ($commandSet $dominantSet ($parent $current False) ($firstChild $remainingChildren))))
                 
             ;  ($_ (println! ("Inside ApplyOrTransformations After Until function")))
             ;  ($_ (println! ("FinalResult ==> FinalUpdatedParent:" $finalUpdatedParent "FinalUpdatedCurrent:" $finalUpdatedCurrent "Applied:" $bool)))
@@ -318,7 +311,7 @@
               ($firstGChild (if (not (== $grandChildren ())) (car-atom $grandChildren) ()))
               ($remainingGChildren (if (not (== $firstGChild ())) (cdr-atom $grandChildren) ()))
 
-              (($finalUpdatedCurrent $appliedAndCut ($lastChild $rest)) (until hasNoNextChild applyAndCut ($promoteCurrent False ($firstGChild $remainingGChildren))))
+              (($finalUpdatedCurrent $appliedAndCut ($lastChild $rest)) (loopUntil hasNoNextChild applyAndCut ($promoteCurrent False ($firstGChild $remainingGChildren))))
               ($finalUpdatedParent (findAndReplace $prevCurrent $finalUpdatedCurrent $parent))
 
               ; ($_ (println! (Applied AndCut==> FinalupdatedCurrent: $finalUpdatedCurrent FinalUpdatedParent: $finalUpdatedParent AppliedAndCut: $appliedAndCut)))
@@ -363,10 +356,8 @@
 ;;         output ==> (D E F)
 ; (: localCommandSet (-> Expression Expression Expression Expression Expression))
 (= (localCommandSet $child $parentChildren $parentGuardSet $commandSet)
-   (case ($parentChildren $parentGuardSet)
-     (
-        ((() ()) $commandSet)
-        ($else
+   (if (and (== $parentChildren ()) (== $parentGuardSet ()))
+       $commandSet
           (let*
             (
               ; ($_ (println! (===Inside LocalCommandSet===)))
@@ -376,10 +367,15 @@
               ($siblings (if (not (== $parentChildren ()))  (removeElement ($child) $parentChildren) ()))
               ($filteredGuardSet (if (not (== $parentGuardSet ())) (removeElement ($child) $parentGuardSet) ()))
               ($filteredSiblings (if (not (== $siblings ())) (filter-atom $siblings filterTerminalAndNode) ()))
-              ($siblingsGuardSet (if (not (== $filteredSiblings ())) (map-atom $filteredSiblings $fSib (getGuardSetND $fSib)) ()))
+              ;; deterministic getGuardSet, NOT getGuardSetND: the ND version goes
+              ;; through superpose, which re-evaluates its elements — with
+              ;; scoring/boolean-ops loaded a (NOT $var) guard fires the NOT eval
+              ;; clause and binds the label var to true/false (both, on backtrack).
+              ;; getGuardSet returns a guard LIST per sibling, hence concatAll.
+              ($siblingsGuardSet (if (not (== $filteredSiblings ())) (concatAll (map-atom $filteredSiblings $fSib (getGuardSet $fSib))) ()))
               ($totalGuardSet (concatTuple $filteredGuardSet $siblingsGuardSet))
               ; ($localCommandSet (collapse (unique (union (superpose $totalGuardSet) (superpose $commandSet)))))
-              ($localCommandSet (unique-atom (union-atom $totalGuardSet $commandSet)))
+              ($localCommandSet (uniqueStruct (union-atom $totalGuardSet $commandSet)))
               
 
               ;; ($_ (println! (=== LocalCommandSet Log ===)))
@@ -393,8 +389,6 @@
             )
             $localCommandSet
           )
-        )
-     )
    )
 )
 
@@ -403,14 +397,15 @@
 ;; WARN: This function doesn't work when the following type definition is added on MeTTa version 1.12
 ;; (: filterTerminalAndNode (-> Expression Expression))
 (= (filterTerminalAndNode $node)
-   (case $node
-     (
-        ((AND (NOT $x)) True)
-        ((AND $x) (if (== (get-metatype $x) Symbol) True False))
-        ($else False)
-     )
-   )
-)
+   (if (not (== (get-metatype $node) Expression))
+       False
+       (if (== $node ())
+           False
+           (if (and (== (car-atom $node) AND) (== (size-atom $node) 2))
+               (let $x (car-atom (cdr-atom $node))
+                 ;; label vars and grounded atoms are terminal guards too
+                 (if (isLeaf $x) True (isNotHeaded $x)))
+               False))))
 
 
 ;; A helper predicate function to be used in the until function. It checks if there is no next child.
@@ -433,15 +428,32 @@
 
 ;; (= (reduce $expr) (trace! (Running reduce with $expr) (let ($parent $__ $applied) (reduceToElegance $expr $expr () ()) (trace! (Result: ($parent $__ $applied)) (if $applied (reduce $parent) $parent)))))
 ;; (= (reduce $expr) (let ($parent $__ $applied) (reduceToElegance $expr $expr () ()) (trace! (Result: ($parent $__ $applied)) (if $applied (reduce $parent) $parent))))
+;; Structural dedup of identical siblings under one junctor: (AND $x $x ...)
+;; keeps one $x, same for OR — idempotence of AND/OR. uniqueStruct compares
+;; with == (var identity), so distinct label vars are never merged. Runs as
+;; its own applyReduce stage: gatherJunctors' flattening contract
+;; (duplicate-preserving, locked by its tests) stays untouched.
+(= (dedupJunctors $expr)
+   (if (not (== (get-metatype $expr) Expression))
+       $expr
+       (if (== $expr ())
+           $expr
+           (let ($h $t) (decons-atom $expr)
+             (if (or (== $h AND) (== $h OR))
+                 (cons-atom $h (uniqueStruct (map-atom $t $c (dedupJunctors $c))))
+                 (if (== $h NOT)
+                     (cons-atom NOT (map-atom $t $c (dedupJunctors $c)))
+                     $expr))))))
+
 ; (: applyReduce (-> (Expression Expression Bool) (Expression Expression Bool)))
 (= (applyReduce ($parent $current $applied))
    (let*
          (
             ;; ($_ (println! (==== Inside ApplyReduce ====)))
             ;; ($_ (println! (Parameters ==> Parent: $parent Current: $current Applied: $applied)))
-            
+
             ($propNotExpr (propagateNot $current))
-            ($gatherJunctorExpr (gatherJunctors $propNotExpr))
+            ($gatherJunctorExpr (dedupJunctors (gatherJunctors $propNotExpr)))
             ($initAdd (addAND $gatherJunctorExpr))
             ($finalAdd (addAND $initAdd True))
             ($finalParent (findAndReplace $current $finalAdd $parent))
@@ -456,26 +468,49 @@
          (reduceToElegance $finalParent $finalAdd () ())
          ))
 
+;; The original used bare `=` (unification) to match (AND $x) / (NOT $y),
+;; which bound unbound label vars; switch + isLeaf keep them intact.
 (= (removeAndNodesFromGuards $expr)
-   (if (== (get-metatype $expr) Symbol)
+   (if (isLeaf $expr)
        $expr
-       (if (= $expr (AND $x))
-           (if (or (= $x (NOT $y)) (== (get-metatype $x) Symbol))
-               $x
-               (let $rest (removeAndNodesFromGuards $x) (AND $rest))
+       (if (== $expr ())
+           ()
+           (if (and (== (car-atom $expr) AND) (== (size-atom $expr) 2))
+               (let $x (car-atom (cdr-atom $expr))
+                 (if (isLeaf $x)
+                     $x
+                     (if (isNotHeaded $x)
+                         $x
+                         (let $rest (removeAndNodesFromGuards $x) (AND $rest))
+                     )
+                 )
+               )
+               (let ($head $rest) (decons-atom $expr)
+               (let $updatedRest (map-atom $rest $exp (removeAndNodesFromGuards $exp)) (cons-atom $head $updatedRest))
+               )
            )
-           (let ($head $rest) (decons-atom $expr)
-           (let $updatedRest (map-atom $rest $exp (removeAndNodesFromGuards $exp)) (cons-atom $head $updatedRest))
-           )
-         )
-     )
+       )
+   )
 )
          
+;; Clause-dispatched application for loopUntil (see rte-helpers.metta):
+;; every loop predicate/body is invoked as a direct named call.
+(= (applyStep transformationsNotApplied $x) (transformationsNotApplied $x))
+(= (applyStep hasNoNextChild $x) (hasNoNextChild $x))
+(= (applyStep reduceNotApplied $x) (reduceNotApplied $x))
+(= (applyStep applyAndTransformations $x) (applyAndTransformations $x))
+(= (applyStep applyOrTransformations $x) (applyOrTransformations $x))
+(= (applyStep applyReduceToEleganceToOr $x) (applyReduceToEleganceToOr $x))
+(= (applyStep applyReduceToEleganceToAnd $x) (applyReduceToEleganceToAnd $x))
+(= (applyStep applyOrCut $x) (applyOrCut $x))
+(= (applyStep applyAndCut $x) (applyAndCut $x))
+(= (applyStep applyReduce $x) (applyReduce $x))
+
 (= (reduce-to $expr)
    (let*
      (
       ;; TODO: Add a simple function to remove one child and nodes.
-      (($parent $uwnt $uwnt2) (until reduceNotApplied applyReduce ($expr $expr True)))
+      (($parent $uwnt $uwnt2) (loopUntil reduceNotApplied applyReduce ($expr $expr True)))
       (($newParent $__ $___) (applyReduce ($parent $parent True))) ;; Try one more time incase it is still reduceable
       ;; ($_ (cut)) ;; Tried, no measurable win
      )

@@ -1,15 +1,93 @@
+;; True for terminal nodes of a boolean tree: bare labels (Symbol),
+;;    label variables (Variable) and grounded atoms like true/false (Grounded).
+;; Guards every leaf predicate so car-atom/decons-atom are never
+;;    called on an unbound variable (a silently failing/var-binding goal).
+(= (isLeaf $x)
+   (let $mt (get-metatype $x)
+     (or (== $mt Symbol) (or (== $mt Variable) (== $mt Grounded)))))
+
+;; True for a (NOT ...) expression. Safe on leaves and () — car-atom is only
+;; reached for genuine non-empty expressions (nested ifs short-circuit; a
+;; single `and` would evaluate car-atom on a leaf and fail silently).
+(= (isNotHeaded $x)
+   (if (isLeaf $x)
+       False
+       (if (== $x ())
+           False
+           (== (car-atom $x) NOT))))
+
+;; Structural (==-based) membership. Unlike is-member, never unifies,
+;;    so unbound label variables only match themselves.
+(= (memberOf $el $tuple)
+   (if (== $tuple ())
+       False
+       (let ($h $t) (decons-atom $tuple)
+         (if (== $el $h) True (memberOf $el $t)))))
+
+;; Structural subtraction: elements of $tuple that are not (==) members of $del.
+;; Replacement for subtraction-atom/removeElement, which remove by unification.
+(= (subAll $tuple $del)
+   (if (== $tuple ())
+       ()
+       (let ($h $t) (decons-atom $tuple)
+         (let $rest (subAll $t $del)
+           (if (memberOf $h $del) $rest (cons-atom $h $rest))))))
+
+;; Structural dedup: keeps the leftmost occurrence, removes later (==) duplicates.
+;; Replacement for unique-atom.
+(= (uniqueStruct $tuple)
+   (if (== $tuple ())
+       ()
+       (let ($h $t) (decons-atom $tuple)
+         (cons-atom $h (uniqueStruct (subAll $t ($h)))))))
+
+;; Structural intersection: elements of $x that are (==) members of $y.
+;; Replacement for intersection-atom, which matches by unification.
+(= (intersect $x $y)
+   (if (== $x ())
+       ()
+       (let ($h $t) (decons-atom $x)
+         (let $rest (intersect $t $y)
+           (if (memberOf $h $y) (cons-atom $h $rest) $rest)))))
+
+;; Flatten one level: concatenate a tuple of tuples into a single tuple.
+(= (concatAll $tuples)
+   (if (== $tuples ())
+       ()
+       (let ($h $t) (decons-atom $tuples)
+         (concatTuple $h (concatAll $t)))))
+
+;; Eval-free replacement for general-helpers' `until`: `until` wraps its
+;; predicate call and recursion in `eval`, which deep-normalizes the whole
+;; loop state — re-evaluating (NOT $var) data via the `not` builtin binds
+;; the label var to true and corrupts the tree (finding #2).
+;;
+;; Application goes through clause-dispatched `applyStep`, NOT a var-headed
+;; ($function $x) meta-call: under PeTTaV1 the generic dispatch of a
+;; var-headed call re-translates its result, firing scoring's AND/OR/NOT
+;; eval clauses on tree data and binding label vars to true/false.
+;; This dummy clause only registers applyStep as a function so the call
+;; below compiles as a call; the real clauses live at the bottom of
+;; reduce-to-elegance.metta where all the loop bodies are already defined.
+(= (applyStep __loopUntilRegistration $x) $x)
+
+(= (loopUntil $predicate $function $x)
+   (if (applyStep $predicate $x)
+       $x
+       (loopUntil $predicate $function (applyStep $function $x))))
+
 ;; Partial function used to filter and keep only literals of an expression.
 ;; An expression (NOT A) is also considered as a literal in the case of boolean expression.
 ;; 'AND' and 'OR' are not considered as a literal.
 (= (filterLiterals $exp)
-        (if (== (get-metatype $exp) Symbol)
+        (if (isLeaf $exp)
             (if (or (== $exp AND) (== $exp OR)) (empty) $exp)
             (if (== (car-atom $exp) NOT)
                 $exp
                 (empty))))
 
 (= (isLiterals $exp)
-   (if (== (get-metatype $exp) Symbol)
+   (if (isLeaf $exp)
        (not (or (== $exp AND) (== $exp OR)))
        (== (car-atom $exp) NOT)))
 
@@ -19,13 +97,12 @@
 ;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 (= (getGuardSet $exp)
    (if (== (get-metatype $exp) Expression)
-    (let ($h $t) (if (not (== $exp ())) (decons-atom $exp) (() ()))
-      (if-decons-expr-custom $exp $h $t
+    (if (== $exp ())
+        $exp
+        (let ($h $t) (decons-atom $exp)
           (if (== $h OR)
-              ()               
-              (getLiterals $exp))
-          $exp)
-    )
+              ()
+              (getLiterals $exp))))
     $exp)
 )
 
@@ -34,18 +111,15 @@
 ;;    non deterministic list instead of a collapsed atom.
 ;; Example: (AND (NOT A) (NOT B) A) -> [(NOT A), (NOT B), A]
 (= (getGuardSetND $exp)
-   (if (or (and (!= $exp ()) (!= (get-metatype $exp) Symbol)) (== (get-metatype $exp) Expression))
-      (let*
-        (
-         (($h $t) (decons-atom $exp))
-         ($then (if (== $h OR) (empty) (getLiteralsND $exp)))
-         ($result (if-decons-expr-custom $exp $h $t $then $exp))
-        )
-        $result
+   (if (== (get-metatype $exp) Expression)
+      (if (== $exp ())
+          (empty)
+          (let ($h $t) (decons-atom $exp)
+            (if (== $h OR) (empty) (getLiteralsND $exp)))
       )
-      $exp
+      $exp ;; leaves (Symbol, Variable, Grounded) are their own guard set; never decons a var
     )
-)  
+)
 
 (= (addLiterals $exp $elements)
    (let*
@@ -53,7 +127,7 @@
         ($op (car-atom $exp))
         ($guardSet (getLiterals $exp))
         ($newGuardSet (union-atom $guardSet $elements))
-        ($newGuardSet' (unique-atom $newGuardSet))
+        ($newGuardSet' (uniqueStruct $newGuardSet))
         ($updatedSubExpression (union-atom $newGuardSet' (getChildrenExp $exp)))
         ($newExp (cons-atom $op $updatedSubExpression))
      )
@@ -65,14 +139,14 @@
 ;; A child of an expression is a subexpression that isn't a Symbol.
 ;; An expression (NOT A) is considered as a symbol in the case of boolean expression.
 (= (filterChildren $exp)
-        (if (== (get-metatype $exp) Symbol)
+        (if (isLeaf $exp)
             (empty)
             (if (== (car-atom $exp) NOT)
                 (empty)
                 $exp)))
 
 (= (isChildren $exp)
-        (if (== (get-metatype $exp) Symbol)
+        (if (isLeaf $exp)
             False
             (not (== (car-atom $exp) NOT))))
 
@@ -81,13 +155,13 @@
 ;; An expression (NOT A) is also considered as a literal 
 ;;    in the case of boolean expression. Hence not included as a child.
 (= (getChildrenExp $exp)
-     (case $exp
-       (
-         (() $exp)
-         ((NOT $x) ())
-         ($else (if (== (get-metatype $exp) Expression)
-                          (filter-atom $exp isChildren)
-                          ())))))
+     (if (isLeaf $exp)
+         ()
+         (if (== $exp ())
+             $exp
+             (if (isNotHeaded $exp)
+                 ()
+                 (filter-atom $exp isChildren)))))
 
 ;; A function to add a list of children to a given expression.
 ;; Example: input: $exp -> (AND A B (OR C D)), $children -> ((OR A B) (OR E F) (OR D))
@@ -117,11 +191,13 @@
 ;;          (OR (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 ;;          (NOT A) -> (NOT A)
 (= (getLiterals $exp)
-     (case $exp
-       (
-         (() $exp)
-         ((NOT $x) $exp)
-         ($else (if (== (get-metatype $exp) Expression) (filter-atom $exp isLiterals) $exp)))))
+     (if (isLeaf $exp)
+         $exp
+         (if (== $exp ())
+             $exp
+             (if (isNotHeaded $exp)
+                 $exp
+                 (filter-atom $exp isLiterals)))))
 
 ;; A function similar to getLiterals function but returns a
 ;;    non deterministic list instead of a collapsed atom.
@@ -129,11 +205,13 @@
 ;;          (OR (NOT A) (NOT B) A) -> [(NOT A),(NOT B),A]
 ;;          (NOT A) -> [(NOT A)]
 (= (getLiteralsND $exp)
-     (case $exp
-       (
-         (() $exp)
-         ((NOT $x) $exp)
-         ($else (if (== (get-metatype $exp) Expression) (filterLiterals (superpose $exp)) $exp)))))
+     (if (isLeaf $exp)
+         $exp
+         (if (== $exp ())
+             $exp
+             (if (isNotHeaded $exp)
+                 $exp
+                 (filterLiterals (superpose $exp))))))
 
 ;;A function that will return both literals (Also called guard sets for AND nodes)
 ;;  and the children as a tuple ((...literals...), (...children...))
@@ -147,7 +225,7 @@
             (
                 ($first (car-atom $nestedTuple))
                 ($tail (cdr-atom $nestedTuple))
-                ($common (intersection-atom $tuple $first)))
+                ($common (intersect $tuple $first)))
 
         (if (== $tail ())
             $common

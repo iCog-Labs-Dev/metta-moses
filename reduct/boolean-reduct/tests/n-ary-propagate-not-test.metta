@@ -1,96 +1,97 @@
 !(import! &self ../../../utilities/general-helpers)
 !(import! &self ../n-ary-propagate-not)
+!(import! &self ../../../scoring/boolean-ops) ;; mirrors moses.metta: AND/OR/NOT become callable AFTER the reduct compiles
 
 !(assertEqual 
-  (propagateNot (AND (NOT (OR A B)) (NOT (AND C D E)) (OR A B) A B))
-  (AND (AND (NOT A) (NOT B)) (OR (NOT C) (NOT D) (NOT E)) (OR A B) A B)
+  (propagateNot (quote (AND (NOT (OR $A $B)) (NOT (AND $C $D $E)) (OR $A $B) $A $B)))
+  (quote (AND (AND (NOT $A) (NOT $B)) (OR (NOT $C) (NOT $D) (NOT $E)) (OR $A $B) $A $B))
 )
 !(assertEqual
-    (propagateNot (AND (OR (AND G F E) D C) B A))
-    (AND (OR (AND G F E) D C) B A)
+    (propagateNot (quote (AND (OR (AND $G $F $E) $D $C) $B $A)))
+    (quote (AND (OR (AND $G $F $E) $D $C) $B $A))
 )
 !(assertEqual
-    (propagateNot (NOT (AND (NOT (OR (AND G F E) D C)) B A)))
-    (OR (OR (AND G F E) D C) (NOT B) (NOT A))
+    (propagateNot (quote (NOT (AND (NOT (OR (AND $G $F $E) $D $C)) $B $A))))
+    (quote (OR (OR (AND $G $F $E) $D $C) (NOT $B) (NOT $A)))
   )
 !(assertEqual
-    (propagateNot (NOT (NOT (OR (AND G F E) D C))))
-    (OR (AND G F E) D C)
+    (propagateNot (quote (NOT (NOT (OR (AND $G $F $E) $D $C)))))
+    (quote (OR (AND $G $F $E) $D $C))
   )
 !(assertEqual
-    (propagateNot (NOT (AND (OR (AND  E F) D C)  A)))
-    (OR (AND (OR (NOT E) (NOT F)) (NOT D) (NOT C)) (NOT A))
+    (propagateNot (quote (NOT (AND (OR (AND  $E $F) $D $C)  $A))))
+    (quote (OR (AND (OR (NOT $E) (NOT $F)) (NOT $D) (NOT $C)) (NOT $A)))
   )
 
 !(assertEqual
-      (propagateNot (OR (AND A B) (OR A C)))
-      (OR (AND A B) (OR A C))
+      (propagateNot (quote (OR (AND $A $B) (OR $A $C))))
+      (quote (OR (AND $A $B) (OR $A $C)))
   )
 !(assertEqual
-      (propagateNot (AND A B))
-      (AND A B)
+      (propagateNot (quote (AND $A $B)))
+      (quote (AND $A $B))
   )
 !(assertEqual
-      (propagateNot (NOT A))
-      (NOT A)
+      (propagateNot (quote (NOT $A)))
+      (quote (NOT $A))
   )
 !(assertEqual
-      (propagateNot (OR A (AND B C)))
-      (OR A (AND B C))
+      (propagateNot (quote (OR $A (AND $B $C))))
+      (quote (OR $A (AND $B $C)))
   )
 !(assertEqual
-      (propagateNot (NOT (OR A (AND B C))))
-      (AND (NOT A) (OR (NOT B) (NOT C) ))
+      (propagateNot (quote (NOT (OR $A (AND $B $C)))))
+      (quote (AND (NOT $A) (OR (NOT $B) (NOT $C) )))
   )
 
 !(assertEqual
-      (propagateNot (NOT (AND A (OR B C))))
-      (OR (NOT A) (AND (NOT B) (NOT C)))
+      (propagateNot (quote (NOT (AND $A (OR $B $C)))))
+      (quote (OR (NOT $A) (AND (NOT $B) (NOT $C))))
   )
 !(assertEqual
-      (propagateNot (AND A (NOT (OR B (AND C D)))))
-      (AND A (AND (NOT B) (OR (NOT C) (NOT D))))
+      (propagateNot (quote (AND $A (NOT (OR $B (AND $C $D))))))
+      (quote (AND $A (AND (NOT $B) (OR (NOT $C) (NOT $D)))))
   )
 
 !(assertEqual
-      (propagateNot (NOT (AND A (NOT (OR B (AND C D))))))
-      (OR (NOT A) (OR B (AND C D)))
+      (propagateNot (quote (NOT (AND $A (NOT (OR $B (AND $C $D)))))))
+      (quote (OR (NOT $A) (OR $B (AND $C $D))))
   )
 
 !(assertEqual
-      (propagateNot (AND A (OR B (AND C D))))
-      (AND A (OR B (AND C D)))
+      (propagateNot (quote (AND $A (OR $B (AND $C $D)))))
+      (quote (AND $A (OR $B (AND $C $D))))
   )
 !(assertEqual
-      (propagateNot (NOT (NOT (NOT (NOT (AND A (AND B (AND C D))))))))
-      (AND A (AND B (AND C D)))
-  )
-
-!(assertEqual
-      (propagateNot (NOT (NOT (NOT (NOT (OR A (AND B (OR C D))))))))
-      (OR A (AND B (OR C D)))
+      (propagateNot (quote (NOT (NOT (NOT (NOT (AND $A (AND $B (AND $C $D)))))))))
+      (quote (AND $A (AND $B (AND $C $D))))
   )
 
 !(assertEqual
-      (propagateNot (NOT (AND (AND I (AND J (NOT (OR K (OR L M))))) (AND B (NOT (AND C (OR D (OR E (NOT (OR F (AND G H)))))))))))
-     (OR (OR (NOT I) (OR (NOT J) (OR K (OR L M)))) (OR (NOT B) (AND C (OR D (OR E (AND (NOT F) (OR (NOT G) (NOT H))))))))
+      (propagateNot (quote (NOT (NOT (NOT (NOT (OR $A (AND $B (OR $C $D)))))))))
+      (quote (OR $A (AND $B (OR $C $D))))
   )
 
 !(assertEqual
-      (propagateNot (NOT (OR (OR I (OR J (AND K (AND L M)))) (OR B (OR C (AND D (AND E (AND F (AND G H)))))))))
-      (AND (AND (NOT I) (AND (NOT J) (OR (NOT K) (OR (NOT L) (NOT M))))) (AND (NOT B) (AND (NOT C) (OR (NOT D) (OR (NOT E) (OR (NOT F) (OR (NOT G) (NOT H))))))))
+      (propagateNot (quote (NOT (AND (AND $I (AND $J (NOT (OR $K (OR $L $M))))) (AND $B (NOT (AND $C (OR $D (OR $E (NOT (OR $F (AND $G $H))))))))))))
+     (quote (OR (OR (NOT $I) (OR (NOT $J) (OR $K (OR $L $M)))) (OR (NOT $B) (AND $C (OR $D (OR $E (AND (NOT $F) (OR (NOT $G) (NOT $H)))))))))
   )
 
 !(assertEqual
-      (propagateNot (NOT (OR (OR (OR C D) B) A)))
-      (AND (AND (AND (NOT C) (NOT D)) (NOT B)) (NOT A))
+      (propagateNot (quote (NOT (OR (OR $I (OR $J (AND $K (AND $L $M)))) (OR $B (OR $C (AND $D (AND $E (AND $F (AND $G $H))))))))))
+      (quote (AND (AND (NOT $I) (AND (NOT $J) (OR (NOT $K) (OR (NOT $L) (NOT $M))))) (AND (NOT $B) (AND (NOT $C) (OR (NOT $D) (OR (NOT $E) (OR (NOT $F) (OR (NOT $G) (NOT $H)))))))))
   )
 
 !(assertEqual
-      (propagateNot (OR (AND (AND C D) B) (NOT A)))
-      (OR (AND (AND C D) B ) (NOT A) )
+      (propagateNot (quote (NOT (OR (OR (OR $C $D) $B) $A))))
+      (quote (AND (AND (AND (NOT $C) (NOT $D)) (NOT $B)) (NOT $A)))
   )
 
-!(assertEqual (propagateNot (AND)) (AND)) ;; check for empty AND
+!(assertEqual
+      (propagateNot (quote (OR (AND (AND $C $D) $B) (NOT $A))))
+      (quote (OR (AND (AND $C $D) $B ) (NOT $A) ))
+  )
 
-!(assertEqual (propagateNot (AND (OR (AND (OR)) (AND (OR (AND (NOT X1))))))) (AND (OR (AND (OR)) (AND (OR (AND (NOT X1)))))))
+!(assertEqual (propagateNot (quote (AND))) (quote (AND))) ;; check for empty AND
+
+!(assertEqual (propagateNot (quote (AND (OR (AND (OR)) (AND (OR (AND (NOT $X1)))))))) (quote (AND (OR (AND (OR)) (AND (OR (AND (NOT $X1))))))))

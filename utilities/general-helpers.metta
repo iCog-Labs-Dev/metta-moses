@@ -103,8 +103,22 @@
 ; It then removes similar elements found in set2 that already exist in set1.
 ; The function uses isMember from general helpers functions.
 
+;; Structural (==-based) membership; never unifies, safe for label vars.
+(= (memberStruct $el $tuple)
+   (if (== $tuple ())
+       False
+       (let ($h $t) (decons-atom $tuple)
+         (if (== $el $h) True (memberStruct $el $t)))))
+
+;; Remove the first structural occurrence of $el from $tuple.
+(= (removeFirst $el $tuple)
+   (if (== $tuple ())
+       ()
+       (let ($h $t) (decons-atom $tuple)
+         (if (== $el $h) $t (cons-atom $h (removeFirst $el $t))))))
+
 ; (: setDifference (-> Expression Expression Expression))
-(= (setDifference $set1 $set2) 
+(= (setDifference $set1 $set2)
     (if (== $set1 ()) () ; Base case: return empty set when $set1 is empty
         (let* (
             ($head (car-atom $set1))  ; Extract the head of set1
@@ -113,7 +127,7 @@
         )
             ; Check if the $head is in set2, if so, skip it
 
-            (if (once (is-member $head $set2))
+            (if (memberStruct $head $set2) ;; is-member unifies — an unbound label var "is a member" of anything
                 $newtail 
                 ; Otherwise, add the head to the new tail, avoiding unnecessary parentheses
                 (if (== (get-metatype $newtail) Expression) (cons-atom $head $newtail) $head)  ; Avoid wrapping the head if it's already properly structured
@@ -130,7 +144,7 @@
 ;; Direct recursion avoids the per-element `replace` dispatch that map-atom
 ;; introduces. A/B confirmed (mux6): within noise of a native Prolog stub.
 (= (findAndReplace $old $new $list)
-   (if (== () (subtraction-atom $old $list))
+   (if (== $old $list) ;; whole-expression replacement; == never binds label vars (subtraction-atom did)
        $new
        (farReplaceWalk $list $old $new)))
 
@@ -164,6 +178,22 @@
        (let $next (car-atom $tuple) (foldl-l $f ($f $next $acc) (cdr-atom $tuple)))
    )
 )
+
+;; Extra-arg overload — var-safe alternative to a capturing foldl-atom, same
+;; rationale as the `map` overloads above: foldl-atom's body compiles to a
+;; yall lambda whose copy_term_nat freshens captured free vars every
+;; iteration, severing label-var identity (see build-logical.metta's knob
+;; recursion for the concrete failure). Context rides through as an explicit
+;; argument instead of a capture:
+;;   (foldl-l $f $ctx $acc $xs)  ~  (foldl-atom $xs $acc $a $x ($f $x $a $ctx))
+(= (foldl-l $f $ctx $acc $tuple)
+   (if (== $tuple ())
+       $acc
+       ;; ($f ...) must be bound via let* — a var-headed application only
+       ;; reduces in binding position (same pattern as the `map` overloads).
+       (let* (($next (car-atom $tuple))
+              ($acc2 ($f $next $acc $ctx)))
+         (foldl-l $f $ctx $acc2 (cdr-atom $tuple)))))
 
 ;; Fold a tuple from right to left
 ;; (: foldr (-> (-> $a $b $b) $b $c $d))
@@ -251,8 +281,16 @@
 (= (filterB $predicate $x $list)
    (wrapperB $predicate $x (superpose $list)))
 
-;; A function to remove all elements found in $common from a $tuple
-(= (removeElement $common $tuple) (subtraction-atom $tuple $common))
+;; A function to remove all elements found in $common from a $tuple.
+;; Structural comparison — subtraction-atom removed by unification, which
+;; deleted/bound unbound label vars.
+(= (removeElement $common $tuple)
+   (if (== $tuple ())
+       ()
+       (let ($h $t) (decons-atom $tuple)
+         (if (memberStruct $h $common)
+             (removeElement $common $t)
+             (cons-atom $h (removeElement $common $t))))))
 
 ; ;; A function that returns True if any of the input atoms are True and False otherwise
 ; ;; Example: input ==> (True True False), output ==> True
@@ -681,16 +719,17 @@
 ;;                              The grounded equality operator, ==, will return `False` when comparing (AND A B) and (AND B A)
 ;;                              === returns `True`.
 ;;                              Used when looking for the POA in the parent's list of children.
+;;                              Structural multiset equality: compares with ==
+;;                              (never unifies — unbound label vars only equal themselves).
 (= (=== $x $y)
-   (if (or (== (get-metatype $x) Symbol) (== (get-metatype $y) Symbol))
+   (if (or (not (== (get-metatype $x) Expression)) (not (== (get-metatype $y) Expression)))
        (== $x $y)
-       (let*
-            (
-                ($a (subtraction-atom $x $y))
-                ($b (subtraction-atom $y $x))
-            )
-            (== (append $a $b) ())
-       )))
+       (if (== $x ())
+           (== $y ())
+           (let ($h $t) (decons-atom $x)
+             (if (memberStruct $h $y)
+                 (=== $t (removeFirst $h $y))
+                 False)))))
 
 ;; Number compartor
 ;; (: compareNum (-> Number Number Atom))
@@ -1184,6 +1223,12 @@
 ; it is used to deconstruct an expression into head and tail and then use them in the then expression
 ; if the expression is empty it will use the else expression
 ;;(: if-decons-expr-custom (-> Expression %Undefined% %Undefined% Expression Expression %Undefined%))
+;; NOTE: no `eval` around $then. Every live caller binds $h/$t before the
+;; call, so $then arrives fully computed; eval re-translates the value at
+;; runtime, and once scoring/boolean-ops registers AND/OR/NOT the tree data
+;; in $then gets executed as boolean calls (partial-closure debris, bound
+;; label vars). The lazy callers that needed the eval (indexAtom/removeAtom/
+;; subtractionAtom above) are dead code.
 (= (if-decons-expr-custom $list $h $t $then $else)
       (if (or (== $list ()) (not (== (get-metatype $list) Expression)))
             $else
@@ -1191,7 +1236,7 @@
                   ($h (car-atom $list))
                   ($t (cdr-atom $list))
                   )
-                (eval $then)
+                $then
             )
             ))
 

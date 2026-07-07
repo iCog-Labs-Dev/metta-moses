@@ -34,7 +34,7 @@
         ($probedTree (probeTreeForActualSetting $tree $targetId $actualSetting))
         ($probedRoot (getNodeById $probedTree $probeRootId))
         ($initialCpxy (treeComplexity $probedRoot))
-        ($reducedRoot $probedRoot)   ;; reduct disabled: was (cleanTree $probedRoot)
+        ($reducedRoot (cleanTree $probedRoot))
         ($reducedCpxy (treeComplexity $reducedRoot))
       )
       (> $initialCpxy $reducedCpxy)))

@@ -51,12 +51,17 @@
 !(import! &self reduct/boolean-reduct/reduce-to-elegance)
 
 ;; ---- Boolean reduction performance helpers ----
-;; Keep the main entry aligned with the benchmark harness:
-;; - native Prolog getLiteralChildren avoids a hot filter-atom path
-;; - SLG tabling memoizes the pure removeEmptyAND tree rewrite
+;; rte-helpers-fast.pl: native Prolog stubs for the hot-path helpers,
+;; ported to the n-ary (AND c1 c2 ...) + labels-as-vars shape.
+;; All dispatch/membership inside is ==/2-based so unbound label vars are
+;; never bound by head unification or memberchk.
 !(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
-!(import! &self (library lib_tabling))
-!(tabled (removeEmptyAND $e))
+;; SLG tabling of removeEmptyAND: disabled — stock PeTTa's import! cannot
+;; load (library lib_tabling), and findings #9 flags variant-renamed table
+;; answers as a risk to shared label-var identity. Revisit only with a
+;; runtime that supports it and fresh identity checks.
+;; !(import! &self (library lib_tabling))
+;; !(tabled (removeEmptyAND $e))
 
 !(import! &self utilities/tree)
 

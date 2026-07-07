@@ -83,36 +83,81 @@
 
 (= (buildTree $expr)
         (if (== (get-metatype $expr) Expression)
-            ; (let ($head $tail) (decons-atom $expr)
-            ;     (mkTree (mkNode $head) (exprToList (map buildTree $tail))))
-            ; (mkTree (mkNode $expr) ())
             (let* (
-              ;; ($_ (println! (-----------------------)))
-              ;; ($_ (println! (Inside buildTree with expr: $expr)))
               (($head $tail) (decons-atom $expr))
-              ($children (exprToList (map buildTree $tail)))
-              ;; ($_ (println! (Building tree with head: $head And children: $children)))
-              ;; ($_ (println! (FinalAnswer: (mkTree (mkNode $head) $children))))
+              ;; Wrapped-list AND/OR: (AND (c1 c2 c3)) — the tail is a 1-tuple
+              ;; whose element is the children tuple. Peel it before recursing.
+              ;; PRIORITIZED-OR, action ops, NOT (unary), and other operators keep n-ary.
+              ($effectiveTail
+                (if (and (List.contains $head (quote (AND OR)))
+                         (== (List.length $tail) 1))
+                    (car-atom $tail)
+                    $tail))
+              ($children (exprToList (map buildTree $effectiveTail)))
             )
-            (mkTree (mkNode $head) $children)
-            )
+            (mkTree (mkNode $head) $children))
             (mkTree (mkNode $expr) ())
         )
-            )
+)
 
+
+;; ---- Shape converters for the cleanTree seam ----
+;; preOrder emits the wrapped-list eval shape (AND ($c1 ... $cn)) that the
+;; scoring/boolean-ops clauses match, and buildTree peels that same shape.
+;; The reduct rules operate on the n-ary shape (AND $c1 ... $cn). These two
+;; convert between the shapes; both are var-safe (structural checks only).
+
+;; (AND ($c1 ... $cn)) -> (AND $c1' ... $cn')  [recursive; NOT stays unary]
+(= (unwrapListShape $expr)
+   (if (not (== (get-metatype $expr) Expression))
+       $expr
+       (if (== $expr ())
+           $expr
+           (let ($h $t) (decons-atom $expr)
+             (if (List.contains $h (quote (AND OR)))
+                 (if (== (List.length $t) 1)
+                     (let $kids (car-atom $t)
+                       (if (== (get-metatype $kids) Expression)
+                           (cons-atom $h (map-atom $kids $k (unwrapListShape $k)))
+                           (cons-atom $h (map-atom $t $k (unwrapListShape $k))))) ;; single leaf child: already n-ary
+                     (cons-atom $h (map-atom $t $k (unwrapListShape $k))))       ;; already n-ary
+                 (if (== $h NOT)
+                     (let $c (car-atom $t) (NOT (unwrapListShape $c)))
+                     (cons-atom $h (map-atom $t $k (unwrapListShape $k)))))))))
+
+;; (AND $c1 ... $cn) -> (AND ($c1' ... $cn'))  [recursive; NOT stays unary]
+(= (wrapListShape $expr)
+   (if (not (== (get-metatype $expr) Expression))
+       $expr
+       (if (== $expr ())
+           $expr
+           (let ($h $t) (decons-atom $expr)
+             (if (List.contains $h (quote (AND OR)))
+                 (cons-atom $h ((map-atom $t $k (wrapListShape $k))))
+                 (if (== $h NOT)
+                     (let $c (car-atom $t) (NOT (wrapListShape $c)))
+                     (cons-atom $h (map-atom $t $k (wrapListShape $k)))))))))
 
 ; (: cleanTree (-> (Tree $a) (Tree $a)))
 
+;; NOTE: plain let* here on purpose. chain/eval re-reduce their results —
+;; with scoring/boolean-ops loaded that fires the global AND/OR eval
+;; clauses on preOrder's (OR ...) output and collapses the candidate to a
+;; boolean. let* binds each result once without re-reduction.
+;; NOTE: plain let* here on purpose. chain/eval/once wrappers deep-
+;; normalize their result term — with scoring/boolean-ops loaded that
+;; fires the global AND/OR/NOT eval clauses on reduce-to's output;
+;; (NOT $var) is the worst case since metta.pl's `not` BINDS the unbound
+;; label var. let* binds each result once without re-reduction.
 (= (cleanTree $tree)
     (let*
         (
           ($preordered (preOrder $tree))
-          ;; ($_ (println! (Preordered: $preordered)))
-          ($reduced (reduce-to $preordered))
-          ;; ($_ (println! "After Reduce"))
-          ;; ($_ (println! (Reduced: $reduced)))
+          ($nary (unwrapListShape $preordered))
+          ($reduced (reduce-to $nary))
+          ($wrapped (wrapListShape $reduced))
           )
-        (buildTree $reduced))
+        (buildTree $wrapped))
     )
 
 ;; Get an id of a certain node. And (0) if the root node.
@@ -323,6 +368,11 @@
 ; (: treeComplexity (-> (Tree $a) Number))
 
 (= (treeComplexity (mkNullVex $x)) 0)
+;; Knob wrappers are transparent metadata (mirrors preOrder): a NullVex knob
+;; contributes 0 via the mkNullVex clause, a tree knob counts its subtree.
+;; Without this clause a probed root containing an embedded knob makes
+;; treeComplexity fail silently, killing the whole representation build.
+(= (treeComplexity (mkKnob $inner $lsk $i)) (treeComplexity $inner))
 (= (treeComplexity (mkTree (mkNode $a) $children)) ;; AND, OR and NOT have no complexity
    (if (isArgument (mkTree (mkNode $a) $children))
        1

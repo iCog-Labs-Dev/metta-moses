@@ -26,8 +26,13 @@
 (= (OR  $args) (any $args))
 (= (NOT $x)    (not $x))
 
+;; Seal the WHOLE template, not just the labels: any tree var that is not
+;; label-identical (e.g. a copy that leaked through a Space, whose atoms are
+;; clause-database terms and come back renamed) would otherwise stay shared,
+;; and eval would bind it to a boolean — permanently corrupting the candidate.
+;; Sealing everything makes scoring side-effect-free on its input.
 (= (evalParsed $template $row)
    (let ($labelsP $expP) $template
-        (sealed $labelsP
+        (sealed ($labelsP $expP)
                 (let $labelsP $row
                      (eval $expP)))))

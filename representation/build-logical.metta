@@ -99,6 +99,28 @@
                        $currentNodeId
                        (childNodeId $currentNodeId (+ $idx 1))))))))
 
+;; Step function for the buildLogical child recursion, driven by the
+;; var-safe foldl-l overload. The old foldl-atom body captured $argLabels
+;; (plus $children/$globalTree/...) free in its compiled yall lambda, and
+;; copy_term_nat freshened those captures on EVERY iteration — under
+;; labels-as-vars this handed each child recursion label vars disconnected
+;; from the scoring table, so every knob below the root controlled an
+;; anonymous literal. All context now arrives as an explicit argument.
+;; The context tuple is tagged with the constant head `blctx`: an untagged
+;; ($node ...) construction puts AND/OR in head position, which becomes a
+;; partial-closure meta-call once scoring/boolean-ops registers them — the
+;; clause head then never matches and the fold dies silently.
+(= (buildLogicalChildStep $ch $acc (blctx $node $children $argLabels $disable-discprobe $globalTree $currentNodeId))
+   (let*
+       (
+         (($prevTrees $prevMap) $acc)
+         ;; Knob wrappers inherit $currentNodeId; non-knob children extend
+         ;; the path by their original position in $children.
+         ($childNodeId (computeChildNodeId $currentNodeId $children $ch))
+         (($tree $map) (buildLogical $ch $node $prevMap $argLabels $disable-discprobe $globalTree $childNodeId))
+       )
+       ((cons $tree $prevTrees) $map)))
+
 ;; --- knob-wrapper clauses (mkNullVex) ---
 (= (buildLogical (mkKnob (mkNullVex $children) $lsk $i) $parentOp $MMap $argLabels)
    (buildLogical (mkKnob (mkNullVex $children) $lsk $i) $parentOp $MMap $argLabels True (mkKnob (mkNullVex $children) $lsk $i) (mkNodeId (0))))
@@ -136,17 +158,16 @@
              ((mkTree (mkNode $node) $newChildren) $t1)
              ;; ($_ (println! (BulidLogical 2)))
              ;; ($_ (println! (newChildren: $newChildren)))
-             (($updatedChildren $updatedMMap) (foldl-atom $newChildren (() $mp1) $acc $ch
-                                                          (let*
-                                                              (
-                                                                (($prevTrees $prevMap) $acc)
-                                                                ;; Compute child's absolute NodeId: knob wrappers inherit
-                                                                ;; $currentNodeId; non-knob children use their original
-                                                                ;; position in $children to extend the path.
-                                                                ($childNodeId (computeChildNodeId $currentNodeId $children $ch))
-                                                                (($tree $map) (buildLogical $ch $node $prevMap $argLabels $disable-discprobe $globalTree $childNodeId))
-                                                              )
-                                                              ((cons $tree $prevTrees) $map))))
+             ;; foldl-l (var-safe) instead of foldl-atom: the old body captured
+             ;; $argLabels/$children/$globalTree free, and the compiled yall
+             ;; lambda copy_term_nat's its captures EVERY iteration — so every
+             ;; recursion below the root received freshened label vars,
+             ;; disconnected from the scoring table. Context now rides through
+             ;; as an explicit argument (see buildLogicalChildStep below).
+             (($updatedChildren $updatedMMap) (foldl-l buildLogicalChildStep
+                                                       (blctx $node $children $argLabels $disable-discprobe $globalTree $currentNodeId)
+                                                       (() $mp1)
+                                                       $newChildren))
              ;; ($_ (println! (BulidLogical 3)))
              (($lastUpdatedTree $lastMp1) (addLogicalKnobsFast (mkTree (mkNode (swapAndOr $node)) ()) True $updatedMMap $argLabels $disable-discprobe $globalTree $currentNodeId))
              ;; ($_ (println! (BulidLogical 4)))

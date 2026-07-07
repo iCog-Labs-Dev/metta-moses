@@ -17,7 +17,10 @@
     (let*
         (
           ($guardSet     (getGuardSet $current))
-          ($handleSet    (concatTuple $dominantSet $guardSet))
+          ;; a leaf POA (bare label var/symbol) yields itself as guard set —
+          ;; wrap it so concatTuple never builds an open list ending in a var
+          ($guardSet'    (if (== (get-metatype $guardSet) Expression) $guardSet ($guardSet)))
+          ($handleSet    (concatTuple $dominantSet $guardSet'))
           ($isConsistent (isConsistentExp $handleSet))
           ; ($_ (println! (===Inside DeleteInconsistentHandle===)))
           ; ($_ (println! (Parameters ==> Parent: $parent Current: $current DominantSet: $dominantSet)))
@@ -27,7 +30,7 @@
               ($parent $current False)
               (if (== $parent $current) ;; If the initial parent itself is in consistent, we don't want to delete it entirely but instead keep a top level AND. This only happens when passing the expression for the first time as $parent and $current will never be equal after that.
                   ((AND) () True)
-                  ((subtraction-atom $parent ($current)) () True)
+                  ((subAll $parent ($current)) () True)
               )) ;; Remove current from parent and return an empty AND.
     )
 )
@@ -90,7 +93,7 @@
                                         )
                     )
                     ; ($_ (println! (UpdatedChildren: $UpdatedChildren)))
-                    (($updatedCurrent $updatedchild $appliedOnCurrent) (if (=== $child $UpdatedChildren) (deleteInconsistentHandle $newCurrent $child $dominantSet) ((findAndReplace $child $UpdatedChildren $newCurrent) $UpdatedChildren $appliedOnChild)))
+                    (($updatedCurrent $updatedchild $appliedOnCurrent) (if (== $child $UpdatedChildren) (deleteInconsistentHandle $newCurrent $child $dominantSet) ((findAndReplace $child $UpdatedChildren $newCurrent) $UpdatedChildren $appliedOnChild)))
                     ($updatedParent (findAndReplace $newCurrent $updatedCurrent $newParent))
                     ; ($_ (println! (Updated Parent: $updatedParent : UpdatedCurrent: $updatedCurrent Bool: (any $appliedOnCurrent $appliedOnChild $applied) )))
                 )

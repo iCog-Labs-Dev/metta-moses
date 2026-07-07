@@ -27,8 +27,11 @@
         ()
         (cons $x (OS.takeN (- $n 1) $xs))))
 
-;; OS.contains -- check if an ordered list contains a particular element
-(= (OS.contains $os $el) (once (is-member $el $os)))
+;; OS.contains -- check if an ordered list contains a particular element.
+;; memberStruct (==-based), NOT is-member: member/2 unifies, and exemplar
+;; trees carry unbound label vars — unifying two exemplars aliases their
+;; label vars with each other, collapsing the scoring table's labels.
+(= (OS.contains $os $el) (memberStruct $el $os))
 
 ;; OS.removeByIdx
 (= (OS.removeByIdx () $index) (Error () "empty set/index out of range"))

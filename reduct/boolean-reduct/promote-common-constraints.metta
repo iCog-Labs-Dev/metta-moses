@@ -31,7 +31,7 @@
                     (
                       ;; (() (println! (Removing Common Literals: $common)))
                       ($updatedChildren (removeCommonLiterals $common $children))
-                      ($updatedLiterals (removeElement $common $literals))
+                      ($updatedLiterals (subAll $literals $common))
                       ($newExp (concatTuple $updatedLiterals $updatedChildren ))
 
                       ($newCurrent (cons-atom OR $newExp))
@@ -51,17 +51,20 @@
 (= (atomIntersection $lit $common)
     (if (== $lit ())
         $common
-        (intersection-atom $lit $common)
+        (intersect $lit $common)
     )
 )
 
 ;; A function to remove literals in $common from a nested tuple: $tuple.
 ;; Example: input: common ==> (A B), tuple ==> ((A C B H) (A B D) (A C F B))
 ;;          output: (((C H) (D) (C F)))
+;; Direct recursion: a map-atom body capturing $common would get fresh copies
+;; of its label vars per element (finding #8) and subAll would never match.
 (= (removeCommonLiterals $common $tuple)
    ( if (== $tuple ())
         ()
-        (map-atom $tuple $tp (removeElement $common $tp))
+        (let ($h $t) (decons-atom $tuple)
+          (cons-atom (subAll $h $common) (removeCommonLiterals $common $t)))
    )
 )
 

@@ -190,7 +190,7 @@
 		                                              ($expr (preOrder $candidate))
 	                                              ($cleanTree (buildTree $expr)))
                                             $cleanTree)
-                                      $candidate))   ;; reduct disabled: was (cleanTree $candidate)
+                                      (cleanTree $candidate)))
 
                       ($_ (add-atom &treeSpace ($id $inst $finalTree)))
                       ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
@@ -203,17 +203,20 @@
      ;;((( (trace! (Done converting instance to tree $candidate) $candidate))))
 
 
+;; NOTE: no memoization here — see getCandidateCached in
+;; scoring/complexity-based-scorer.metta. Storing var-carrying trees in a
+;; Space is unsound (Space atoms live in the clause database, so `match`
+;; returns a COPY with renamed vars, severing the leaves' identity with the
+;; scoring table), and a repr/sread string round-trip has the same problem
+;; (parsing recreates fresh vars). The cached wrapper stores the GROUND
+;; (lbl N) form and relinks indices to the original label vars on retrieval.
 (= (getCandidate $repObj $id $inst)
-   (case (match &treeSpace ($id $inst $tree) $tree)
-             (($tree $tree)
-             (Empty
                 (let*
-                    ( 
+                    (
                       ((mkRep $kmo $tr) $repObj)
                       ;; ($_ (println! (Tree: (preOrder $tr))))
                       ;; ($_ (println! (GetCandidateHelper: $inst $tr)))
                       ($candidate (getCandidateHelper $inst $tr))
-                      ;; ($_ (println! (Found candidate: (preOrder $candidate))))
                       ($rootNode (getRepTree $repObj))
                       ($rootValue (getNodeValue $rootNode))
 	                      ($rootSymbol (if (== (get-metatype $rootValue) Expression)
@@ -226,12 +229,10 @@
 		                                              ($expr (preOrder $candidate))
 	                                              ($cleanTree (buildTree $expr)))
                                             $cleanTree)
-                                      $candidate))   ;; reduct disabled: was (cleanTree $candidate)
-
-                      ($_ (add-atom &treeSpace ($id $inst $finalTree)))
+                                      (cleanTree $candidate)))
                       ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
                     )
-                    $finalTree)))))
+                    $finalTree))
 
 
 ;; Assumes the reverseLookupTable's order never changes during this call.

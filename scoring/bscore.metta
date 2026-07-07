@@ -52,6 +52,38 @@
 ;(: getTable (-> (TruthTableBScore $a) (ITable $a)))
 (= (getTable (mkTruthTableBScore $compCoeff $size $table)) $table)
 
+;; Ground cache key for a preOrder'd candidate expression: every leaf var is
+;; replaced by (lbl <index-in-$labels>). Space `match` unifies, so caching
+;; var-leaf trees directly conflates every same-shaped candidate (an unbound
+;; leaf unifies with anything — see repro-2-bscore-cache-conflation.metta),
+;; and a repr-string key cannot restore identity on retrieval (parsing
+;; recreates fresh vars). The ground index form is exact both ways:
+;; List.index compares with == (var identity), so distinct table vars map to
+;; distinct indices. Direct recursion on purpose: a map-atom body capturing
+;; $labels would copy_term the captured vars per element and break the
+;; identity lookup.
+(= (groundCacheKey $expr $labels)
+   (if (== (get-metatype $expr) Variable)
+       (lbl (List.index $labels $expr))
+       (if (not (== (get-metatype $expr) Expression))
+           $expr
+           (if (== $expr ())
+               ()
+               (let ($h $t) (decons-atom $expr)
+                 (cons-atom (groundCacheKey $h $labels) (groundCacheKey $t $labels)))))))
+
+;; Inverse of groundCacheKey: rebuild a var-leaf expression from the ground
+;; (lbl N) form by relinking each index to the ORIGINAL label var object.
+(= (ungroundKey $expr $labels)
+   (if (not (== (get-metatype $expr) Expression))
+       $expr
+       (if (== $expr ())
+           ()
+           (let ($h $t) (decons-atom $expr)
+             (if (== $h lbl)
+                 (List.getByIdx $labels (car-atom $t))
+                 (cons-atom (ungroundKey $h $labels) (ungroundKey $t $labels)))))))
+
 ;; Function to give a behavioral score for a given tree.
 ;; It takes the Input table and the tree then scores the input table on each row. After which it builds the behavioral score.
 ;;
@@ -64,8 +96,9 @@
 (= (scoreTree (mkITable $table $labels) $tree $cacheSpace)
    (if (== $tree (mkTree (mkNode AND) ()))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
+       (let $key (groundCacheKey (preOrder $tree) $labels)
        (chain (collapse (match $cacheSpace
-               ($tree $bscore)
+               ($key $bscore)
                $bscore))
            $val
            (if (== $val ())
@@ -80,11 +113,11 @@
                    ($outputs (List.flatten (List.map (List.drop (- $length 1)) $table)))
                    ($bScore (List.zipWith compareAndScore $scoreList $outputs))
                    ($result (mkBScore $bScore))
-                   ($_ (add-atom $cacheSpace ($tree $result)))
+                   ($_ (add-atom $cacheSpace ($key $result)))
                )
                $result)
                (car-atom $val)
-           ))))
+           )))))
 
 (= (scoreTreeHelper $template $row) (evalParsed $template $row))
 ;; Return the best possible BehavioralScore given the size of the table.
