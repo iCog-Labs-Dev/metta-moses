@@ -116,3 +116,38 @@
       )
       (< (MultiMap.length $probedMap) (MultiMap.length $unprobedMap)))
     True)
+
+;; All-logical exemplars sit at ratio 1.0, above the 1/5 threshold: enabled.
+!(assertEqual (dynamicDiscProbeDisabled 6 6) False)
+
+;; Exactly 1/5 is not enough -- classic MOSES requires *more* than a fifth.
+!(assertEqual (dynamicDiscProbeDisabled 1 5) True)
+
+;; Just over the threshold flips it on.
+!(assertEqual (dynamicDiscProbeDisabled 2 9) False)
+
+;; No variables: stay disabled rather than divide by zero.
+!(assertEqual (dynamicDiscProbeDisabled 0 0) True)
+
+!(resetState &knobCount)
+
+;; Regression for #475: mux6-shaped exemplar (real search-run shape, not a
+;; trivial one-node tree) previously suspected of breaking buildKnobs under
+;; disc probing. No longer reproduces after the #467 rework.
+!(assertEqual
+    (let*
+      (
+        ($mux6Exemplar
+            (mkTree (mkNode AND)
+                ((mkTree (mkNode OR)
+                    ((mkTree (mkNode AND) ((mkTree (mkNode NOT) ((mkTree (mkNode A0) ()))) (mkTree (mkNode D0) ())))
+                     (mkTree (mkNode AND) ((mkTree (mkNode A0) ()) (mkTree (mkNode NOT) ((mkTree (mkNode A1) ()))) (mkTree (mkNode D2) ())))
+                     (mkTree (mkNode AND) ((mkTree (mkNode A1) ()) (mkTree (mkNode D3) ()))))))))
+        (($unprobedTree $unprobedMap) (buildKnobs $mux6Exemplar () (A0 A1 D0 D1 D2 D3) True))
+        ($_ (resetState &knobCount))
+        (($probedTree $probedMap) (buildKnobs $mux6Exemplar () (A0 A1 D0 D1 D2 D3) False))
+      )
+      (<= (MultiMap.length $probedMap) (MultiMap.length $unprobedMap)))
+    True)
+
+!(resetState &knobCount)
