@@ -2,16 +2,35 @@
 ;;                 Merge Demes                       ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Context-aware candidate materialization: boolean scoring contexts
+;; (mkITable ...) reuse the var-safe ground memo getCandidateCached
+;; (scoring/complexity-based-scorer.metta) that complexityBasedScorer already
+;; populated for every instance in the deme — a hit skips the full
+;; getCandidateHelper + cleanTree re-run. Any other context (game strategy
+;; ($nGames ...), (noCtx) from the legacy arities) keeps plain getCandidate.
+(= (getCandidateCtx $rep $id $ctx $inst)
+   (if (== (get-metatype $ctx) Expression)
+       (if (== $ctx ())
+           (getCandidate $rep $id $inst)
+           (if (== (car-atom $ctx) mkITable)
+               (getCandidateCached $rep $id $inst $ctx)
+               (getCandidate $rep $id $inst)))
+       (getCandidate $rep $id $inst)))
+
 ;; Removes adjacent duplicate ScoredInstances from a sorted list, keeping up to $topCnd unique instances.
 ;; Params:
 ;;    (List (ScoredInstance Cscore)): Sorted list of scored instances.
+;;    $scoringContext: (mkITable ...) for Boolean (enables the candidate memo), else uncached.
 ;;    $topCnd: Maximum number of instances to keep.
 ;; Return: (List (ScoredInstance Cscore)): List with adjacent duplicates removed, limited by $topCnd.
+;; Legacy arity (no scoring context) — kept for existing callers/tests.
+(= (removeDupInsts $rep $id $sInstList $topCnd)
+   (removeDupInsts $rep $id (noCtx) $sInstList $topCnd))
 ; (: removeDupInsts (-> (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
-(= (removeDupInsts $rep $id () $topCnd) ())
-(= (removeDupInsts $rep $id (cons $x ()) $topCnd)
+(= (removeDupInsts $rep $id $ctx () $topCnd) ())
+(= (removeDupInsts $rep $id $ctx (cons $x ()) $topCnd)
    (if (> $topCnd 0) (cons $x ()) ()))
-(= (removeDupInsts $rep $id (cons (mkSInst $x) $tail) $topCnd)
+(= (removeDupInsts $rep $id $ctx (cons (mkSInst $x) $tail) $topCnd)
    (if (== $tail ())
        (if (> $topCnd 0) (cons (mkSInst $x) ()) ())
        (let* (
@@ -22,13 +41,13 @@
          (if (> $topCnd 0)
              (if (isApproxEq (getPenScore (Pair.second $x)) (getPenScore (Pair.second $y)))
                  (let* (
-                        ($tr1 (getCandidate $rep $id (Pair.first $x)))
-                        ($tr2 (getCandidate $rep $id (Pair.first $y)))
+                        ($tr1 (getCandidateCtx $rep $id $ctx (Pair.first $x)))
+                        ($tr2 (getCandidateCtx $rep $id $ctx (Pair.first $y)))
                        )
                    (if (== $tr1 $tr2)
-                       (removeDupInsts $rep $id (cons (mkSInst $x) $rest) (min-atom ($topCnd $lengthOfTail)))
-                       (cons (mkSInst $x) (removeDupInsts $rep $id (cons (mkSInst $y) $rest) (- $topCnd 1)))))
-                 (cons (mkSInst $x) (removeDupInsts $rep $id (cons (mkSInst $y) $rest) (- $topCnd 1))))
+                       (removeDupInsts $rep $id $ctx (cons (mkSInst $x) $rest) (min-atom ($topCnd $lengthOfTail)))
+                       (cons (mkSInst $x) (removeDupInsts $rep $id $ctx (cons (mkSInst $y) $rest) (- $topCnd 1)))))
+                 (cons (mkSInst $x) (removeDupInsts $rep $id $ctx (cons (mkSInst $y) $rest) (- $topCnd 1))))
              ()))) )
 
 ;; Extracts up to $maxCandsPerDeme unique ScoredInstances from a sorted InstanceSet, limited by $nEval.
@@ -38,7 +57,10 @@
 ;;   $maxCandsPerDeme: Maximum candidates per deme.
 ;; Return: (List (ScoredInstance Cscore)): List of unique top-scoring instances.
 ; (: keepTopUniqueCandidates (-> (InstanceSet Cscore) (List (ScoredInstance Cscore))))
+;; Legacy arity (no scoring context) — kept for existing callers/tests.
 (= (keepTopUniqueCandidates $rep $id (mkSInstSet $sortedSInstList))
+   (keepTopUniqueCandidates $rep $id (noCtx) (mkSInstSet $sortedSInstList)))
+(= (keepTopUniqueCandidates $rep $id $ctx (mkSInstSet $sortedSInstList))
  (let*
  (
     ;; ($instExpr (List.listToExpr $sortedSInstList))
@@ -58,7 +80,7 @@
     ;; ($exprList (List.listToExpr $sortedSInstList))
     ;; ($bmr (map-atom $exprList $inst (let (mkSInst $x) $inst (println! (Tree: (preOrder (getCandidate $rep (Pair.first $x))) Inst: (List.listToExpr (second (Pair.first $x))))))))
     ;; ($uniqueTopCandidates (removeDupInsts $uniqueSortedInstList $uTopCnd))
-    ($uniqueTopCandidates (removeDupInsts $rep $id $sortedSInstList $uTopCnd))
+    ($uniqueTopCandidates (removeDupInsts $rep $id $ctx $sortedSInstList $uTopCnd))
     ;; ($uExprList (List.listToExpr $uniqueTopCandidates))
     ;; ($_ (println! ""))
     ;; ($_ (println! (After removing duplicates)))
@@ -126,7 +148,7 @@
         ($inst (getInst $si))
         ;; ($_ (println! (Representation: $rep)))
         ;; ($_ (println! (Instance: $inst)))
-        ($tree (getCandidate $rep $demeId $inst))
+        ($tree (getCandidateCtx $rep $demeId $scoringContext $inst))
         ;; ($_ (println! (Tree: (preOrder $tree))))
         ;; ($_ (println! (ScoringContext: $scoringContext)))
         ($bscore (case $scoringContext
@@ -252,7 +274,7 @@
             ($_ (println! (Demesize: (List.length (second $sortedSInstList)))))
             ;; ($demeExpr (List.listToExpr (second $sortedSInstList)))
             ;; ($_ (println! (UniqueDemeSize: (length (unique-atom $demeExpr)))))
-            ($unqCandidates (keepTopUniqueCandidates $rep $demeId $sortedSInstList))  ;;remove duplicates and limits the size by keeping the top scoring
+            ($unqCandidates (keepTopUniqueCandidates $rep $demeId $scoringContext $sortedSInstList))  ;;remove duplicates and limits the size by keeping the top scoring
             ($_ (println! (KeptUniqueTopCandidates NewSize: (List.length $unqCandidates))))
             ($trimmedDeme (trimDownDeme $unqCandidates))  ;; further trims the deme
             ;; ($_ (println! (DemeToTrees Starting...)))
