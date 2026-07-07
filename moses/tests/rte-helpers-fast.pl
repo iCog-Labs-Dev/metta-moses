@@ -93,6 +93,30 @@ collect_kids([H|T], Kids) :-
 'getGuardSet'([H|_], []) :- H == 'OR', !.
 'getGuardSet'(Exp, Lits) :- 'getLiterals'(Exp, Lits).
 
+%% --- removeEmptyAND/2 (reduct/boolean-reduct/cut-unnecessary-and.metta) ---
+%% Drop ['AND'] (childless AND) subtrees anywhere in the expression; the
+%% dropped node signals upward as 'Nothing' and is filtered out by the
+%% parent. Non-AND expressions map over EVERY element (the head symbol is a
+%% leaf that passes through unchanged), mirroring the MeTTa map/filter pair.
+%% ==/2-only dispatch: a label var head must not unify with 'AND'.
+:- dynamic('removeEmptyAND'/2).
+:- retractall('removeEmptyAND'(_, _)).
+
+'removeEmptyAND'(Exp, Exp) :- \+ is_list(Exp), !.   %% Symbol / Var / Grounded leaf
+'removeEmptyAND'([], []) :- !.
+'removeEmptyAND'([H|T], Out) :- !,
+    (  H == 'AND'
+    -> ( T == [] -> Out = 'Nothing'
+       ; rea_kids_(T, Kids), Out = ['AND'|Kids] )
+    ;  rea_kids_([H|T], Out)
+    ).
+
+rea_kids_([], []).
+rea_kids_([X|Xs], Out) :-
+    'removeEmptyAND'(X, X1),
+    rea_kids_(Xs, R),
+    ( X1 == 'Nothing' -> Out = R ; Out = [X1|R] ).
+
 %% --- isConsistentExp/2 (reduct/boolean-reduct/delete-inconsistent-handle.metta) ---
 %% Short-circuit scan for a complementary pair; NOT is unary wrapped
 %% ['NOT', C]. Complement test uses ==/2 throughout: for label vars that is
@@ -170,8 +194,77 @@ sort_key_of_(_, Cpxy, k(1.0Inf, Cpxy)).  %% NaN -> sort last
 memberq_true([H|_]) :- H == true, !.
 memberq_true([_|T]) :- memberq_true(T).
 
+%% --- groundCacheKey/3 + scoreTableNative/3 (scoring/bscore.metta) ---
+%% scoring/bscore.metta is imported AFTER this consult, so its MeTTa clauses
+%% are APPENDED after these. Every clause below therefore ends in a cut —
+%% otherwise a deterministic call would leave choicepoints into the MeTTa
+%% duplicates (the import-dedupe explosion, findings #1).
+%%
+%% groundCacheKey: replace every leaf var by ['lbl', N] where N is the
+%% ==-identity index in Labels (-1 when absent, mirroring List.index).
+%% Labels holds the UNBOUND label vars — idx_eq_ compares with ==/2 only.
+:- dynamic('groundCacheKey'/3).
+:- retractall('groundCacheKey'(_, _, _)).
+
+'groundCacheKey'(E, Labels, ['lbl', N]) :- var(E), !, idx_eq_(Labels, E, 0, N).
+'groundCacheKey'([], _, []) :- !.
+'groundCacheKey'([H|T], Labels, [GH|GT]) :- !,
+    'groundCacheKey'(H, Labels, GH),
+    'groundCacheKey'(T, Labels, GT).
+'groundCacheKey'(E, _, E) :- !.
+
+idx_eq_([L|_], E, N, N)  :- L == E, !.
+idx_eq_([_|T], E, N0, N) :- !, N1 is N0 + 1, idx_eq_(T, E, N1, N).
+idx_eq_([], _, _, -1).
+
+%% scoreTableNative: behavioral score of a GROUND cache key over the whole
+%% table in one call — per row: evaluate the key (nth0 per ['lbl',N] leaf,
+%% short-circuit AND/OR), compare against the row's last element (output
+%% column), 0 on match / -1 otherwise. The key is ground by construction
+%% (groundCacheKey replaces every var), so pattern-matching it cannot bind
+%% label vars; rows are ground true/false values.
+:- dynamic('scoreTableNative'/3).
+:- retractall('scoreTableNative'(_, _, _)).
+
+'scoreTableNative'(_, [], []) :- !.
+'scoreTableNative'(Key, [Row|Rows], [S|Ss]) :- !,
+    eval_gk_(Key, Row, V),
+    last(Row, Out),
+    ( V == Out -> S = 0 ; S = -1 ),
+    'scoreTableNative'(Key, Rows, Ss).
+'scoreTableNative'(_, T, T) :- !.   %% non-list table — degenerate, unchanged
+
+eval_gk_(K, Row, V) :- is_list(K), !, eval_gk_list_(K, Row, V).
+%% Only boolean literals evaluate; any other leaf FAILS the whole score —
+%% mirroring evalParsed, whose row-unification produced no result for
+%% symbolic-label tables (e.g. deme/tests/score-deme-test.metta), so those
+%% callers see the exact same silent no-solution behavior as before.
+eval_gk_(K, _, K) :- (K == true ; K == false), !.
+
+eval_gk_list_(['lbl', N], Row, V) :- !, N >= 0, nth0(N, Row, V).
+eval_gk_list_(['AND', Ks], Row, V) :- !, and_gk_(Ks, Row, V).
+eval_gk_list_(['OR', Ks],  Row, V) :- !, or_gk_(Ks, Row, V).
+eval_gk_list_(['NOT', K],  Row, V) :- !, eval_gk_(K, Row, V0),
+    ( V0 == true -> V = false
+    ; V0 == false -> V = true
+    ; V = ['NOT', V0] ).            %% non-boolean: inert, scores -1 downstream
+eval_gk_list_(K, _, K).
+
+%% all/any semantics (general-helpers): AND is true unless some child is
+%% false; OR is false unless some child is true — non-boolean children are
+%% skipped, matching (all)/(any)'s is-member scan. Short-circuit added.
+and_gk_([], _, true).
+and_gk_([K|Ks], Row, V) :- eval_gk_(K, Row, V0),
+    ( V0 == false -> V = false ; and_gk_(Ks, Row, V) ).
+or_gk_([], _, false).
+or_gk_([K|Ks], Row, V) :- eval_gk_(K, Row, V0),
+    ( V0 == true -> V = true ; or_gk_(Ks, Row, V) ).
+
 %% Register the stubs as MeTTa funs (idempotent).
 :- register_fun('getLiterals').
+:- register_fun('removeEmptyAND').
+:- register_fun('groundCacheKey').
+:- register_fun('scoreTableNative').
 :- register_fun('getChildrenExp').
 :- register_fun('getGuardSet').
 :- register_fun('isConsistentExp').

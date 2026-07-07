@@ -84,6 +84,36 @@
                  (List.getByIdx $labels (car-atom $t))
                  (cons-atom (ungroundKey $h $labels) (ungroundKey $t $labels)))))))
 
+;; Row evaluator for the GROUND cache-key form ((lbl N) leaves, wrapped-list
+;; (AND ($c1 ... $cn)) / (OR (...)) / (NOT $c)). Pure-MeTTa fallback; the
+;; production override lives in moses/tests/rte-helpers-fast.pl (consulted by
+;; moses.metta) and adds short-circuit AND/OR. $e and $row are fully ground,
+;; so the free captures in the map-atom bodies are copy-safe.
+(= (evalGround $e $row)
+   (if (not (== (get-metatype $e) Expression))
+       ;; Only boolean literals evaluate; any other leaf yields no result —
+       ;; mirroring evalParsed, whose row-unification failed silently for
+       ;; symbolic-label tables (see deme/tests/score-deme-test.metta).
+       (if (or (== $e True) (== $e False)) $e (empty))
+       (let ($h $t) (decons-atom $e)
+         (if (== $h lbl)
+             (List.getByIdx $row (car-atom $t))
+             (if (== $h AND)
+                 (all (map-atom (car-atom $t) $k (evalGround $k $row)))
+                 (if (== $h OR)
+                     (any (map-atom (car-atom $t) $k (evalGround $k $row)))
+                     (if (== $h NOT)
+                         (not (evalGround (car-atom $t) $row))
+                         $e)))))))
+
+;; Behavioral score of a ground candidate key over the whole table in one
+;; pass: per row, evaluate the key and compare with the row's last element
+;; (the output column). Native override in moses/tests/rte-helpers-fast.pl.
+(= (scoreTableNative $key $table)
+   (map-atom $table $row
+     (compareAndScore (evalGround $key $row)
+                      (List.getByIdx $row (- (List.length $row) 1)))))
+
 ;; Function to give a behavioral score for a given tree.
 ;; It takes the Input table and the tree then scores the input table on each row. After which it builds the behavioral score.
 ;;
@@ -103,15 +133,9 @@
            $val
            (if (== $val ())
                (let* (
-                   ;; Eval template: ($labelsList $expressionForm). Built ONCE
-                   ;; per candidate; evalParsed uses it per row via sealed.
-                   ;; See scoring/boolean-ops.metta for shape invariants.
-                   ($template ($labels (preOrder $tree)))
-                   ($scoreList (map-atom $table $ts (scoreTreeHelper $template $ts)))
-                   ;; ($_ (println! (ScoreList: $scoreList)))
-                   ($length (List.length $labels))
-                   ($outputs (List.flatten (List.map (List.drop (- $length 1)) $table)))
-                   ($bScore (List.zipWith compareAndScore $scoreList $outputs))
+                   ;; Score the ground key directly — one pass over the table,
+                   ;; no per-row template copy (see scoreTableNative above).
+                   ($bScore (scoreTableNative $key $table))
                    ($result (mkBScore $bScore))
                    ($_ (add-atom $cacheSpace ($key $result)))
                )
