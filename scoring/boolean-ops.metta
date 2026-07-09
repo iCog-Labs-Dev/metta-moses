@@ -1,38 +1,161 @@
-;; Native boolean evaluation -- vars-at-leaves template, sealed per-row.
+;; Native boolean evaluation -- fold-substitute template, sealed per-row.
 ;;
-;; `varize-itable` (moses/demo-problems.metta) swaps an ITable's symbolic
-;; labels for fresh Prolog vars at the boundary. Representation building
-;; threads those same var objects into candidate tree leaves. scoreTree
-;; then pairs the labels list with `(preOrder $tree)` (utilities/tree.metta)
-;; once per candidate -- no substitution pass, no string round-trip.
+;; ---- Big picture ----
+;; scoreTree builds a `($labelsTerm $expTerm)` template ONCE per candidate
+;; via `candTemplate`. No strings, no parse, no name->var dict.
 ;;
-;; Per row, `evalParsed` uses `sealed` (copy_term/4) to freshen only the
-;; label vars in the body; unification against the row binds those fresh
-;; copies; eval fires AND/OR/NOT on the fresh expression. The template's
-;; vars stay unbound for the next row, and the invariant scaffolding
-;; (AND/OR/NOT, ()) is shared with the original instead of copied.
+;; `candTemplate` runs in two stages:
+;;   1. `preOrderExp` walks the Tree once, emitting an Expression that
+;;      mirrors the tree's structure with label SYMBOLS at leaf positions
+;;      (still placeholders — no vars yet).
+;;   2. `foldTemplate` folds over the labels list. Each iteration mints
+;;      a fresh MeTTa var `$v` (lexical scoping ⇒ fresh Prolog var per
+;;      recursive call) and calls `substExp` to replace ALL occurrences
+;;      of that label symbol in the expression with `$v`. Same-labelled
+;;      leaves get the same var because they're all substituted in one
+;;      sweep. The `$v` is also consed onto the growing labels-term, so
+;;      labels-term and expression share the SAME var at each label's
+;;      position — no dict, no name lookup.
 ;;
-;; The eval clauses share names with the data-constructor pattern
-;; `(mkNode AND)`, `(mkNode NOT)` etc. that pervades the codebase.
-;; Anywhere a bare TUPLE of these symbols appears at a function-argument
-;; position (e.g. `(List.contains $node (AND OR))`), the reducer treats
-;; it as a call: `(AND OR)` matches `(AND $args)` with $args = OR,
-;; reducing to `(all OR)`, then failing silently downstream. The fix is
-;; `(quote (AND OR ...))` at every such site -- see utilities/tree.metta
-;; (preOrder, isArgument, extractArgs, removeLiteral), scoring/bscore
-;; (replaceVarWithTruth), representation/build-logical (buildLogical).
+;; Per row, `evalParsed` uses `sealed` on the labels-term to freshen the
+;; label vars inside a body that (a) unifies fresh labels-term against
+;; the row and (b) evals the fresh expression. The original template
+;; stays pristine so the next row starts from unbound vars.
+;;
+;; ---- sealed ----
+;; sealed compiles to `copy_term/4(Vars, Body, _, FreshBody)` — renames
+;; only the listed vars and shares subterms that don't contain them.
+;; The invariant boolean-op scaffolding (And/Or/Not, ()) has no label
+;; vars, so those subterms are shared with the original instead of
+;; copied every row.
+;;
+;; ---- Operator-name collision sidestep ----
+;; The reduct module builds `(AND <single-expr>)` as a data wrapper.
+;; Defining `(= (AND $args) ...)` would silently dispatch on those. The
+;; fix: define EVAL forms as `And/Or/Not` (CapFirst); `opSym` rewrites
+;; AND->And etc. while building the term.
+;;
+;; ---- Data terms via cons-atom ----
+;; Every constructed term is built with `cons-atom` (a builtin that
+;; returns data) rather than as a literal `(And ...)` expression, so the
+;; reducer doesn't fire the `(= (And $args) ...)` clause at build time.
+;; The template only reaches eval position via the explicit `(eval $expP)`
+;; in `evalParsed`.
 
-(= (AND $args) (all $args))
-(= (OR  $args) (any $args))
-(= (NOT $x)    (not $x))
+;; ---- Wrapped-list operators: single arity-1 clause = n-ary ----
+(= (And $args) (all $args))
+(= (Or  $args) (any $args))
+(= (Not $x)    (not $x))
 
-;; Seal the WHOLE template, not just the labels: any tree var that is not
-;; label-identical (e.g. a copy that leaked through a Space, whose atoms are
-;; clause-database terms and come back renamed) would otherwise stay shared,
-;; and eval would bind it to a boolean — permanently corrupting the candidate.
-;; Sealing everything makes scoring side-effect-free on its input.
+;; ---- opSym: AND->And, OR->Or, else identity. ----
+(= (opSym $r)
+   (case $r
+     ((AND And)
+      (OR  Or)
+      ($_  $r))))
+
+;; ---- preOrderExp: Tree -> Expression form, leaves still as symbols. ----
+;; Mirrors `preOrder` in utilities/tree.metta but returns an Expression
+;; shape that matches what `parse` used to produce for a labels+cand
+;; string: (Op ( c1 c2 …)) for AND/OR, (Not <child>) for NOT, `sym` at
+;; label leaves, (Op ()) at nullary AND/OR leaves. Knob passthroughs
+;; mirror preOrder.
+(= (preOrderExp (mkTree (mkNode $r) ()))
+   (if (once (is-member $r (AND OR)))
+       (let $sym (opSym $r)
+            (quote ($sym ())))
+       $r))
+(= (preOrderExp (mkKnob (mkNullVex $tree) $lsk $i)) ())
+(= (preOrderExp (mkKnob (mkTree $node $children) $lsk $i))
+   (preOrderExp (mkTree $node $children)))
+(= (preOrderExp (mkTree (mkNode $r) (cons $x $xs)))
+   (let $childrenExp (childrenExp (cons $x $xs))
+        (if (== $r NOT)
+            (let $child (car-atom $childrenExp)
+                 (quote (Not $child)))
+            (let $sym (opSym $r)
+                 (quote ($sym $childrenExp))))))
+
+;; childrenExp: Expression of Trees -> Expression of child forms.
+;; map-atom applies preOrderExp; filter-atom drops empty knob passthroughs.
+;; Both bodies capture nothing from outer scope, so yall's per-iteration
+;; copy_term is harmless here (unlike in substExp).
+(= (childrenExp $children)
+   (filter-atom (map-atom $children $c (preOrderExp $c)) $x (not (== $x ()))))
+
+;; ---- substExp: replace every leaf occurrence of $target in $exp with $repl. ----
+;; Manual recursion (NOT map-atom / foldl-atom): those compile to a
+;; SWI yall lambda `[X,Y]>>Body` which is copy_term'd per iteration,
+;; breaking identity for any free vars captured from the outer scope
+;; (like $repl). Standard recursion passes $repl as an argument, whose
+;; identity is preserved by Prolog's call/1.
+;;
+;; A List.foldl variant threading (target, repl, revResult) through the
+;; accumulator was tried and works correctly, but benched ~3% slower --
+;; the tuple-acc unpack and final reverse cost more than they save.
+(= (substExp $target $repl $exp)
+   (if (== (get-metatype $exp) Expression)
+       (if (== $exp ())
+           ()
+           (let*
+             (
+              (($h $rest) (decons-atom $exp))
+              ($newH (substExp $target $repl $h))
+              ($newRest (substExp $target $repl $rest))
+             )
+             (cons $newH $newRest)))
+       (if (== $exp $target) $repl $exp)))
+
+;; ---- foldTemplate: iterate labels, mint fresh var per iteration, ----
+;; ---- substitute label -> var everywhere in $exp. ----
+;; Returns ($labelsTerm $finalExp). Recurse-then-cons preserves original
+;; labels order in $labelsTerm (matching positional row unification).
+;; $v is fresh per recursive call (lexical scoping).
+;;
+;; A List.foldl variant with a named `foldTemplateStep` and a tuple
+;; accumulator ($labelsAcc $expAcc) was tried and works correctly, but
+;; benched ~3% slower — the tuple unpack per iteration and terminal
+;; reverse cost more than the fold saves.
+(= (foldTemplate $labels $exp)
+   (if (== $labels ())
+       (() $exp)
+       (let*
+         (
+          (($h $rest) (decons-atom $labels))
+          ($newExp (substExp $h $v $exp))
+          (($restLabels $finalExp) (foldTemplate $rest $newExp))
+          ($head (cons $v $restLabels))
+         )
+         ($head $finalExp))))
+
+;; ---- candTemplate: entry called ONCE per candidate by scoreTree. ----
+(= (candTemplate $labels $tree)
+   (let $exp (preOrderExp $tree)
+        (foldTemplate $labels $exp)))
+;; ---- Per-row core: template in, bool out. ----
+;; sealed freshens only the labels vars in the body; unification binds
+;; those fresh copies to the row; eval fires And/Or/Not on the fresh
+;; expression. Original template's vars remain unbound for the next row.
+
 (= (evalParsed $template $row)
    (let ($labelsP $expP) $template
-        (sealed ($labelsP $expP)
+        (sealed $labelsP
                 (let $labelsP $row
                      (eval $expP)))))
+
+
+;; ---- expToExp: Expression -> Expression form for test-side callers. ----
+;; Tests pass raw expressions like `(AND A B)` instead of Trees, so we
+;; need the same shape transform (AND->And rename, wrap children Expression)
+;; but starting from an Expression.
+(= (expToExp $e)
+   (if (== (get-metatype $e) Expression)
+       (let ($h $rest) (decons-atom $e)
+            (if (== $h NOT)
+                (let $child (expToExp (car-atom $rest))
+                     (let $node (cons-atom Not (cons-atom $child ())) $node))
+                (let $childrenTerm (map-atom $rest $c (expToExp $c))
+                     (let $sym (opSym $h)
+                          (let $node (cons-atom $sym (cons-atom $childrenTerm ())) $node)))))
+       $e))
+

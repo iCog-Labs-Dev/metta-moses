@@ -52,44 +52,29 @@
 ;(: getTable (-> (TruthTableBScore $a) (ITable $a)))
 (= (getTable (mkTruthTableBScore $compCoeff $size $table)) $table)
 
-;; Ground cache key for a preOrder'd candidate expression: every leaf var is
-;; replaced by (lbl <index-in-$labels>). Space `match` unifies, so caching
-;; var-leaf trees directly conflates every same-shaped candidate (an unbound
-;; leaf unifies with anything — see repro-2-bscore-cache-conflation.metta),
-;; and a repr-string key cannot restore identity on retrieval (parsing
-;; recreates fresh vars). The ground index form is exact both ways:
-;; List.index compares with == (var identity), so distinct table vars map to
-;; distinct indices. Direct recursion on purpose: a map-atom body capturing
-;; $labels would copy_term the captured vars per element and break the
-;; identity lookup.
-(= (groundCacheKey $expr $labels)
-   (if (== (get-metatype $expr) Variable)
-       (lbl (List.index $labels $expr))
-       (if (not (== (get-metatype $expr) Expression))
-           $expr
-           (if (== $expr ())
-               ()
-               (let ($h $t) (decons-atom $expr)
-                 (cons-atom (groundCacheKey $h $labels) (groundCacheKey $t $labels)))))))
-
-;; Inverse of groundCacheKey: rebuild a var-leaf expression from the ground
-;; (lbl N) form by relinking each index to the ORIGINAL label var object.
-(= (ungroundKey $expr $labels)
-   (if (not (== (get-metatype $expr) Expression))
-       $expr
+;; Once per candidate: replace each label symbol in the flat preOrder form
+;; with (lbl N), N = its position in $labels. Non-label symbols (operator
+;; heads AND/OR/NOT, unknown symbols) pass through: List.index returns -1
+;; on miss. Unmapped symbols later yield (empty) in evalRow — preserving
+;; evalParsed's silent-failure contract for symbolic tables. Direct
+;; recursion keeps the walk free of per-element dispatch overhead.
+(= (indexLeaves $expr $labels)
+   (if (== (get-metatype $expr) Expression)
        (if (== $expr ())
            ()
            (let ($h $t) (decons-atom $expr)
-             (if (== $h lbl)
-                 (List.getByIdx $labels (car-atom $t))
-                 (cons-atom (ungroundKey $h $labels) (ungroundKey $t $labels)))))))
+             (cons-atom (indexLeaves $h $labels) (indexLeaves $t $labels))))
+       (if (== (get-metatype $expr) Symbol)
+           (let $i (List.index $labels $expr)
+             (if (== $i -1) $expr (lbl $i)))
+           $expr)))
 
-;; Row evaluator for the GROUND cache-key form of a candidate ((lbl N)
-;; leaves; AND/OR carry a wrapped kids tuple, NOT is unary, any other
-;; operator keeps preOrder's flat n-ary shape). Called once per (candidate,
-;; row) pair as a plain compiled function — no per-row template copy and no
-;; per-row (eval ...) re-translation, which is what made evalParsed the
-;; scoring bottleneck. AND/OR short-circuit on the first False/True.
+;; Row evaluator for the indexed form of a candidate ((lbl N) leaves;
+;; AND/OR/NOT keep preOrder's flat n-ary shape). Called once per
+;; (candidate, row) pair as a plain compiled function — no per-row template
+;; copy and no per-row (eval ...) re-translation, which is what made
+;; evalParsed the scoring bottleneck. AND/OR short-circuit on the first
+;; False/True.
 ;;
 ;; Extensibility contract (same as eval's): an operator this evaluator does
 ;; not know is dispatched via `reduce` on its already-evaluated children —
@@ -113,9 +98,9 @@
              (if (== $h lbl)
                  (List.getByIdx $row (car-atom $t))
                  (if (== $h AND)
-                     (andRow (car-atom $t) $row)
+                     (andRow $t $row)
                      (if (== $h OR)
-                         (orRow (car-atom $t) $row)
+                         (orRow $t $row)
                          (if (== $h NOT)
                              (notRow (evalRow (car-atom $t) $row))
                              ;; Operator head: registered function symbols
@@ -128,9 +113,9 @@
                                    (reduce $call))
                                  (map-atom $e $k (evalRow $k $row)))))))))))
 
-;; Short-circuit conjunction/disjunction over a kids tuple; non-boolean
-;; child values pass through unless decisive, matching all/any's is-member
-;; scan semantics.
+;; Short-circuit conjunction/disjunction over the flat n-ary child tail;
+;; non-boolean child values pass through unless decisive, matching all/any's
+;; is-member scan semantics.
 (= (andRow $kids $row)
    (if (== $kids ())
        True
@@ -160,28 +145,36 @@
 (= (scoreTree (mkITable $table $labels) $tree $cacheSpace)
    (if (== $tree (mkTree (mkNode AND) ()))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
-       (let $preordered (preOrder $tree)
-       (let $key (groundCacheKey $preordered $labels)
        (chain (collapse (match $cacheSpace
-               ($key $bscore)
+               ($tree $bscore)
                $bscore))
            $val
            (if (== $val ())
                (let* (
-                   ;; Each row is scored (evalRow on the ground key) and
-                   ;; compared against its output column (the row's last
-                   ;; element) in a single pass.
+                   ;; The candidate is ground (placeholder labels), so the
+                   ;; Space match above is an exact key. On a miss, index the
+                   ;; labels ONCE and score every row with the compiled
+                   ;; evalRow walker. Each row is scored and compared against
+                   ;; its output column (the row's last element) in a single
+                   ;; pass. map-atom capturing $indexed/$lastIdx is safe:
+                   ;; both are ground, so yall's per-iteration copy_term is
+                   ;; a semantic no-op.
+                   ($indexed (indexLeaves (preOrder $tree) $labels))
                    ($lastIdx (- (List.length $labels) 1))
                    ($bScore (map-atom $table $ts
-                       (compareAndScore (evalRow $key $ts)
+                       (compareAndScore (evalRow $indexed $ts)
                                         (List.getByIdx $ts $lastIdx))))
                    ($result (mkBScore $bScore))
-                   ($_ (add-atom $cacheSpace ($key $result)))
+                   ($_ (add-atom $cacheSpace ($tree $result)))
                )
                $result)
                (car-atom $val)
-           ))))))
+           ))))
 
+;; Retained semantics layer: the var-template path (candTemplate builds the
+;; labels->fresh-var template once; evalParsed unifies each row and evals).
+;; scoreTree's hot path uses evalRow above; this stays available for
+;; non-hot-path callers and the boolean-ops tests.
 (= (scoreTreeHelper $template $row) (evalParsed $template $row))
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
@@ -227,7 +220,7 @@
                   (if (== $h $l)
                       (cons-atom $b $t')
                       (cons-atom $h $t')))))
-       (if (== $boolExpr $l) $b (if (once (is-member $boolExpr (quote (AND OR)))) (quote ($boolExpr)) $boolExpr))))
+       (if (== $boolExpr $l) $b (if (once (is-member $boolExpr (AND OR))) ($boolExpr) $boolExpr))))
 
 ;; Replace ever occurence of all labels (boolean variables) 
 ;;  inside an expression with their corresponding truth values.
