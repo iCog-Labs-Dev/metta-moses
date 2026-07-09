@@ -84,6 +84,70 @@
                  (List.getByIdx $labels (car-atom $t))
                  (cons-atom (ungroundKey $h $labels) (ungroundKey $t $labels)))))))
 
+;; Row evaluator for the GROUND cache-key form of a candidate ((lbl N)
+;; leaves; AND/OR carry a wrapped kids tuple, NOT is unary, any other
+;; operator keeps preOrder's flat n-ary shape). Called once per (candidate,
+;; row) pair as a plain compiled function — no per-row template copy and no
+;; per-row (eval ...) re-translation, which is what made evalParsed the
+;; scoring bottleneck. AND/OR short-circuit on the first False/True.
+;;
+;; Extensibility contract (same as eval's): an operator this evaluator does
+;; not know is dispatched via `reduce` on its already-evaluated children —
+;; a direct call into whatever compiled clause (= (op ...) ...) exists, so
+;; new operators need no change here. The reduce argument must be let-bound
+;; first: reduce on a literal (cons-atom ...) form would dispatch cons-atom
+;; itself rather than the constructed term.
+;;
+;; A Symbol leaf yields no result — mirroring evalParsed, whose row
+;; unification produced no result for symbolic-label tables (callers such as
+;; deme/tests/score-deme-test.metta rely on that silent failure). Boolean
+;; and grounded (numeric) leaves pass through.
+(= (evalRow $e $row)
+   (if (not (== (get-metatype $e) Expression))
+       (if (or (== $e True) (== $e False))
+           $e
+           (if (== (get-metatype $e) Grounded) $e (empty)))
+       (if (== $e ())
+           ()
+           (let ($h $t) (decons-atom $e)
+             (if (== $h lbl)
+                 (List.getByIdx $row (car-atom $t))
+                 (if (== $h AND)
+                     (andRow (car-atom $t) $row)
+                     (if (== $h OR)
+                         (orRow (car-atom $t) $row)
+                         (if (== $h NOT)
+                             (notRow (evalRow (car-atom $t) $row))
+                             ;; Operator head: registered function symbols
+                             ;; report metatype Grounded (not Symbol), so
+                             ;; dispatch every non-Expression head; reduce
+                             ;; leaves non-callable heads (e.g. a bare
+                             ;; boolean tuple) as data.
+                             (if (not (== (get-metatype $h) Expression))
+                                 (let $call (cons-atom $h (map-atom $t $k (evalRow $k $row)))
+                                   (reduce $call))
+                                 (map-atom $e $k (evalRow $k $row)))))))))))
+
+;; Short-circuit conjunction/disjunction over a kids tuple; non-boolean
+;; child values pass through unless decisive, matching all/any's is-member
+;; scan semantics.
+(= (andRow $kids $row)
+   (if (== $kids ())
+       True
+       (let ($k $rest) (decons-atom $kids)
+         (if (== (evalRow $k $row) False)
+             False
+             (andRow $rest $row)))))
+(= (orRow $kids $row)
+   (if (== $kids ())
+       False
+       (let ($k $rest) (decons-atom $kids)
+         (if (== (evalRow $k $row) True)
+             True
+             (orRow $rest $row)))))
+(= (notRow $v)
+   (if (== $v True) False (if (== $v False) True (empty))))
+
 ;; Function to give a behavioral score for a given tree.
 ;; It takes the Input table and the tree then scores the input table on each row. After which it builds the behavioral score.
 ;;
@@ -104,15 +168,12 @@
            $val
            (if (== $val ())
                (let* (
-                   ;; Eval template: ($labelsList $expressionForm), built once
-                   ;; per candidate; evalParsed copies it per row via sealed.
-                   ;; See scoring/boolean-ops.metta for shape invariants.
-                   ($template ($labels $preordered))
-                   ;; Each row is scored and compared against its output
-                   ;; column (the row's last element) in a single pass.
+                   ;; Each row is scored (evalRow on the ground key) and
+                   ;; compared against its output column (the row's last
+                   ;; element) in a single pass.
                    ($lastIdx (- (List.length $labels) 1))
                    ($bScore (map-atom $table $ts
-                       (compareAndScore (scoreTreeHelper $template $ts)
+                       (compareAndScore (evalRow $key $ts)
                                         (List.getByIdx $ts $lastIdx))))
                    ($result (mkBScore $bScore))
                    ($_ (add-atom $cacheSpace ($key $result)))
