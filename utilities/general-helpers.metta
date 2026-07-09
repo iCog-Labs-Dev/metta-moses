@@ -80,11 +80,13 @@
 
 ; a helper function to the isConsistentExp function.
 ; a function which simplifies nested logical negations by reducing them to their simplest form.
-; Renamed from `Not` to `normalizeNot` so scoring/boolean-ops.metta's eval-side
-; `Not` (boolean negation) doesn't collide with it.
+; Renamed from `Not` to `normalizeNot` to keep clear of the boolean eval
+; clauses in scoring/boolean-ops.metta. The (NOT ...) it builds is quoted:
+; with the NOT eval clause registered, a bare (NOT $a) compiles as a call
+; in any file loaded after boolean-ops.
 (= (normalizeNot $a)
     (if (== (get-metatype $a) Symbol)
-        (NOT $a)
+        (quote (NOT $a))
         (if (== (get-metatype $a) Expression)
             (case $a
                 (
@@ -1142,6 +1144,14 @@
 ; it is used to deconstruct an expression into head and tail and then use them in the then expression
 ; if the expression is empty it will use the else expression
 ;;(: if-decons-expr-custom (-> Expression %Undefined% %Undefined% Expression Expression %Undefined%))
+;; NOTE: the (eval $then) below is load-bearing — $then arrives as an
+;; unevaluated expression referencing the caller's $h/$t logic vars, which
+;; this clause binds via car/cdr before eval runs it. BUT eval also
+;; deep-normalizes the RESULT term, which fires scoring/boolean-ops'
+;; AND/OR/NOT clauses on returned tree data. Reduct-path callers that
+;; return boolean tree data therefore must NOT use this helper — see the
+;; plain-if forms of getGuardSet/getGuardSetND in
+;; reduct/boolean-reduct/rte-helpers.metta.
 (= (if-decons-expr-custom $list $h $t $then $else)
       (if (or (== $list ()) (not (== (get-metatype $list) Expression)))
             $else

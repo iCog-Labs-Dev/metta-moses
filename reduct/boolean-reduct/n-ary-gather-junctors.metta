@@ -48,7 +48,9 @@
                     ($parentIsAND (== AND $parent))
 
                   )
-                    (case ($h $parentIsAND)
+                    ;; quote: $h holds AND/OR/NOT; a bare ($h ...) tuple is a
+                    ;; runtime meta-call into scoring/boolean-ops' eval clauses
+                    (case (quote ($h $parentIsAND))
                         (
                             ((NOT True) $expr)
                             ((NOT False) (AND $expr))

@@ -220,7 +220,10 @@
                   (if (== $h $l)
                       (cons-atom $b $t')
                       (cons-atom $h $t')))))
-       (if (== $boolExpr $l) $b (if (once (is-member $boolExpr (AND OR))) ($boolExpr) $boolExpr))))
+       ;; quote both the membership list and the 1-tuple emission: with the
+       ;; AND/OR/NOT eval clauses registered (scoring/boolean-ops), a bare
+       ;; (AND OR) tuple or var-headed ($boolExpr) would compile as a call.
+       (if (== $boolExpr $l) $b (if (once (is-member $boolExpr (quote (AND OR)))) (quote ($boolExpr)) $boolExpr))))
 
 ;; Replace ever occurence of all labels (boolean variables) 
 ;;  inside an expression with their corresponding truth values.

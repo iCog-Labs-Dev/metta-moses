@@ -25,45 +25,48 @@
 ;; ---- sealed ----
 ;; sealed compiles to `copy_term/4(Vars, Body, _, FreshBody)` — renames
 ;; only the listed vars and shares subterms that don't contain them.
-;; The invariant boolean-op scaffolding (And/Or/Not, ()) has no label
+;; The invariant boolean-op scaffolding (AND/OR/NOT, ()) has no label
 ;; vars, so those subterms are shared with the original instead of
 ;; copied every row.
 ;;
-;; ---- Operator-name collision sidestep ----
-;; The reduct module builds `(AND <single-expr>)` as a data wrapper.
-;; Defining `(= (AND $args) ...)` would silently dispatch on those. The
-;; fix: define EVAL forms as `And/Or/Not` (CapFirst); `opSym` rewrites
-;; AND->And etc. while building the term.
+;; ---- Operator-name collision containment: quote ----
+;; The eval clauses below share their names with the AND/OR/NOT data
+;; constructors that pervade candidate trees and reduct expressions.
+;; Once these clauses register, any bare source-level tuple whose head
+;; is one of them — `(NOT $x)` anywhere, arity-1 `(AND ...)`/`(OR ...)`
+;; such as the membership list `(AND OR)` — compiles as a CALL in every
+;; module loaded after this one. The containment discipline is
+;; `(quote ...)` at every such data site: quote returns the tuple as
+;; data, so the clauses fire only under evalParsed's explicit
+;; `(eval $expP)`. Guarded sites: this file (preOrderExp emissions,
+;; is-member list), scoring/bscore (replaceVarWithTruth),
+;; representation/build-logical, representation/logical-canonize,
+;; representation/sample-logical-perms (getArgs emissions), and
+;; utilities/tree (membership lists + nullary preOrder emissions —
+;; order-protected under moses.metta but quoted so test files are safe
+;; regardless of their import order).
 ;;
 ;; ---- Data terms via cons-atom ----
 ;; Every constructed term is built with `cons-atom` (a builtin that
-;; returns data) rather than as a literal `(And ...)` expression, so the
-;; reducer doesn't fire the `(= (And $args) ...)` clause at build time.
+;; returns data) or under `quote` rather than as a bare literal
+;; expression, so the reducer doesn't fire the clauses at build time.
 ;; The template only reaches eval position via the explicit `(eval $expP)`
 ;; in `evalParsed`.
 
 ;; ---- Wrapped-list operators: single arity-1 clause = n-ary ----
-(= (And $args) (all $args))
-(= (Or  $args) (any $args))
-(= (Not $x)    (not $x))
-
-;; ---- opSym: AND->And, OR->Or, else identity. ----
-(= (opSym $r)
-   (case $r
-     ((AND And)
-      (OR  Or)
-      ($_  $r))))
+(= (AND $args) (all $args))
+(= (OR  $args) (any $args))
+(= (NOT $x)    (not $x))
 
 ;; ---- preOrderExp: Tree -> Expression form, leaves still as symbols. ----
 ;; Mirrors `preOrder` in utilities/tree.metta but returns an Expression
-;; shape that matches what `parse` used to produce for a labels+cand
-;; string: (Op ( c1 c2 …)) for AND/OR, (Not <child>) for NOT, `sym` at
-;; label leaves, (Op ()) at nullary AND/OR leaves. Knob passthroughs
-;; mirror preOrder.
+;; shape that matches the eval clauses above: (Op ( c1 c2 …)) for AND/OR,
+;; (NOT <child>) for NOT, `sym` at label leaves, (Op ()) at nullary
+;; AND/OR leaves. Knob passthroughs mirror preOrder. Every emission is
+;; quote-protected so the clauses cannot fire at template-build time.
 (= (preOrderExp (mkTree (mkNode $r) ()))
-   (if (once (is-member $r (AND OR)))
-       (let $sym (opSym $r)
-            (quote ($sym ())))
+   (if (once (is-member $r (quote (AND OR))))
+       (quote ($r ()))
        $r))
 (= (preOrderExp (mkKnob (mkNullVex $tree) $lsk $i)) ())
 (= (preOrderExp (mkKnob (mkTree $node $children) $lsk $i))
@@ -72,9 +75,8 @@
    (let $childrenExp (childrenExp (cons $x $xs))
         (if (== $r NOT)
             (let $child (car-atom $childrenExp)
-                 (quote (Not $child)))
-            (let $sym (opSym $r)
-                 (quote ($sym $childrenExp))))))
+                 (quote (NOT $child)))
+            (quote ($r $childrenExp)))))
 
 ;; childrenExp: Expression of Trees -> Expression of child forms.
 ;; map-atom applies preOrderExp; filter-atom drops empty knob passthroughs.
@@ -134,7 +136,7 @@
         (foldTemplate $labels $exp)))
 ;; ---- Per-row core: template in, bool out. ----
 ;; sealed freshens only the labels vars in the body; unification binds
-;; those fresh copies to the row; eval fires And/Or/Not on the fresh
+;; those fresh copies to the row; eval fires AND/OR/NOT on the fresh
 ;; expression. Original template's vars remain unbound for the next row.
 
 (= (evalParsed $template $row)
@@ -146,16 +148,15 @@
 
 ;; ---- expToExp: Expression -> Expression form for test-side callers. ----
 ;; Tests pass raw expressions like `(AND A B)` instead of Trees, so we
-;; need the same shape transform (AND->And rename, wrap children Expression)
-;; but starting from an Expression.
+;; need the same shape transform (children wrapped into a single tuple)
+;; but starting from an Expression. cons-atom keeps every constructed
+;; term as data.
 (= (expToExp $e)
    (if (== (get-metatype $e) Expression)
        (let ($h $rest) (decons-atom $e)
             (if (== $h NOT)
                 (let $child (expToExp (car-atom $rest))
-                     (let $node (cons-atom Not (cons-atom $child ())) $node))
+                     (let $node (cons-atom NOT (cons-atom $child ())) $node))
                 (let $childrenTerm (map-atom $rest $c (expToExp $c))
-                     (let $sym (opSym $h)
-                          (let $node (cons-atom $sym (cons-atom $childrenTerm ())) $node)))))
+                     (let $node (cons-atom $h (cons-atom $childrenTerm ())) $node))))
        $e))
-

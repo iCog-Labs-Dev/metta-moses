@@ -17,32 +17,32 @@
 ;; Definition: Guard set of a node is the set of literals in the node. 
 ;;                Only AND nodes have guard sets.
 ;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
+;; Plain guarded ifs, NOT if-decons-expr-custom: that helper's (eval $then)
+;; deep-normalizes the returned guard set, firing scoring/boolean-ops'
+;; AND/OR/NOT clauses on the (NOT x) literals inside it.
 (= (getGuardSet $exp)
    (if (== (get-metatype $exp) Expression)
-    (let ($h $t) (if (not (== $exp ())) (decons-atom $exp) (() ()))
-      (if-decons-expr-custom $exp $h $t
-          (if (== $h OR)
-              ()               
-              (getLiterals $exp))
-          $exp)
-    )
-    $exp)
+       (if (== $exp ())
+           $exp
+           (if (== (car-atom $exp) OR)
+               ()
+               (getLiterals $exp)))
+       $exp)
 )
 
 
 ;; A function similar to the getGuardSet function but returns a
 ;;    non deterministic list instead of a collapsed atom.
 ;; Example: (AND (NOT A) (NOT B) A) -> [(NOT A), (NOT B), A]
+;; Plain guarded ifs for the same reason as getGuardSet. Baseline behavior
+;; preserved: decons-atom on () still yields no solution, and OR nodes
+;; yield (empty) — zero ND solutions.
 (= (getGuardSetND $exp)
    (if (or (and (!= $exp ()) (!= (get-metatype $exp) Symbol)) (== (get-metatype $exp) Expression))
-      (let*
-        (
-         (($h $t) (decons-atom $exp))
-         ($then (if (== $h OR) (empty) (getLiteralsND $exp)))
-         ($result (if-decons-expr-custom $exp $h $t $then $exp))
-        )
-        $result
-      )
+      (let ($h $t) (decons-atom $exp)
+        (if (== $h OR)
+            (empty)
+            (getLiteralsND $exp)))
       $exp
     )
 )  

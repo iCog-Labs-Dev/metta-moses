@@ -24,7 +24,9 @@
             ($updatedChildren (filter-atom $children $child (nodeHasChildOrGuard $child)))
             ($updatedCurrent (cons-atom $head $updatedChildren))
           )
-          (case ($head $children)
+          ;; quote: $head holds AND/OR/NOT; a bare ($head ...) tuple is a
+          ;; runtime meta-call into scoring/boolean-ops' eval clauses
+          (case (quote ($head $children))
             (
               ((AND $_) ($parent $current False))
               ((OR ()) ($parent $current False))

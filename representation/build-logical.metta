@@ -25,7 +25,9 @@
                 ((mkTree (mkNode $node) $childern) $head)
                 ;; ($_ (println!( "curId: " $curId "node :" $node)))
                 ;; ($_ (println!( "head: " $head "tail :" $tail)))
-                (($tNew  $mNew) (if (once (is-member $node (AND OR PRIORITIZED-OR))) ;; only build logical knobs for AND/OR nodes, creating sampleLogicalPerms
+                ;; quote: bare (AND OR ...) would compile as an AND call once
+                ;; scoring/boolean-ops' eval clauses are registered
+                (($tNew  $mNew) (if (once (is-member $node (quote (AND OR PRIORITIZED-OR)))) ;; only build logical knobs for AND/OR nodes, creating sampleLogicalPerms
                                     (if (== $node PRIORITIZED-OR)
                                         (buildStrategy $tree (mkNodeId $curId) $MMap $argLabels)
                                         (buildLogicalAt $tree $probeRootId (mkNodeId $curId) $MMap $argLabels $disable-discprobe))
@@ -128,7 +130,7 @@
    (buildLogical (mkTree (mkNode $node) $children) $parentOp $MMap $argLabels $disable-discprobe (mkTree (mkNode $node) $children) (mkNodeId (0))))
 
 (= (buildLogical (mkTree (mkNode $node) $children) $parentOp $MMap $argLabels $disable-discprobe $globalTree $currentNodeId)
-   (if (once (is-member $node (AND OR)))
+   (if (once (is-member $node (quote (AND OR))))
        (let*
            (
              ;; ($_ (println! (BuildLogical 0)))
