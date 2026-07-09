@@ -145,6 +145,35 @@
                 (let $labelsP $row
                      (eval $expP)))))
 
+;; ---- reduce-based per-row core: same contract as evalParsed, no eval. ----
+;; `eval` re-translates the whole expression per row — the historical
+;; scoring bottleneck. `reduceExp` instead walks the row-bound template
+;; bottom-up as plain compiled recursion and dispatches each operator with
+;; a single `reduce` call into its compiled clause. Two reduce gotchas
+;; honored: reduce is single-step, so children are evaluated BEFORE the
+;; parent dispatch; and the dispatched term is let-bound first, so reduce
+;; sees the constructed term rather than the constructor call. Heads that
+;; are not callable (e.g. a row-bound boolean at the head of the wrapped
+;; kids tuple) come back from reduce as data, mirroring eval's behavior.
+(= (reduceExp $e)
+   (if (not (== (get-metatype $e) Expression))
+       $e
+       (if (== $e ())
+           ()
+           (let* (
+                  ($kids (map-atom $e $k (reduceExp $k)))
+                  ($h (car-atom $kids))
+                 )
+             (if (== (get-metatype $h) Expression)
+                 $kids
+                 (reduce $kids))))))
+
+(= (reduceParsed $template $row)
+   (let ($labelsP $expP) $template
+        (sealed $labelsP
+                (let $labelsP $row
+                     (reduceExp $expP)))))
+
 
 ;; ---- expToExp: Expression -> Expression form for test-side callers. ----
 ;; Tests pass raw expressions like `(AND A B)` instead of Trees, so we
