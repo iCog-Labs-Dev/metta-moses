@@ -152,10 +152,6 @@
      )
      ((cons $rebuiltChild $rebuiltRest) $m2)))
 
-
-;; Non-knob trees require no rebuilding.
-(= (rebuildKnobChildren $tree $MMap $actions $perceptions $p) ($tree $MMap))
-
 ;;; Rebuild the original children of a newly inserted action knob.
 ;; The knob itself is preserved while its controlled subtree is recursively rebuilt.
 ;; Input:(mkKnob (mkTree (mkNode and_seq) children) ask idx)
@@ -167,14 +163,18 @@
       )
      ((mkKnob (mkTree (mkNode and_seq) $rebuiltChildren) $ask $idx) $m1)))
 
+;; Non-knob trees require no rebuilding.
+(= (rebuildKnobChildren (mkTree (mkNode $op) $children) $MMap $actions $perceptions $p) 
+   ((mkTree (mkNode $op) $children) $MMap))
+
 ;; Build the representation of an and_seq subtree.
 ;; Mirrors the C++ action-knob construction using the
 ;; internal p=80 insertion policy.
 (= (buildActionAndSeq (mkTree (mkNode and_seq) $children) $MMap $actions $perceptions)
    (let $p 80
       (if (or (== $children ()) (< (randint 99) $p))
-      ;; Insert the knob first, then recursively rebuild the original children.
-      ;; This preserves the C++ insertion order while allowing nested knobs.
+
+          ;; Insert the knob first, then recursively rebuild the original children.
           (let*
              (
                 (($withKnobs $m1) (addActionKnobs (mkTree (mkNode and_seq) $children) True $MMap $actions $perceptions))
@@ -182,25 +182,28 @@
              )
 
              (if (>= (randint 99) $p)
+
                  (let*
                     (
                        ($extraChild (mkTree (mkNode and_seq) ()))
-                       (($extraWrapped $m3) (addActionKnobs $extraChild False $m2  $actions $perceptions))
+                       (($extraWrapped $m3) (addActionKnobs $extraChild False $m2 $actions $perceptions))
                     )
                     (let
-                (mkKnob (mkTree (mkNode and_seq) $rebuiltChildren) $ask $idx) $rebuiltTree
-                ((mkKnob (mkTree (mkNode and_seq) (append $rebuiltChildren (cons $extraWrapped ())))
-                $ask $idx) $m3)))
+                       (mkTree (mkNode and_seq) $rebuiltChildren) $rebuiltTree
+                       ((mkTree (mkNode and_seq) (append $rebuiltChildren (cons $extraWrapped ()))) $m3)))
 
-                 ($rebuiltTree $m2)))
+                  ($rebuiltTree $m2)))
           ;; No knob added at this node.
           (let*
-             ((($rebuiltChildren $m1) (processActionChildren $children $MMap $actions $perceptions $p))
+             (
+                (($rebuiltChildren $m1) (processActionChildren $children $MMap $actions $perceptions $p))
              )
              (if (>= (randint 99) $p)
+
                  (let*
-                    (($extraChild (mkTree (mkNode and_seq) ()))
-                     (($extraWrapped $m2) (addActionKnobs $extraChild False $m1 $actions $perceptions))
+                    (
+                       ($extraChild (mkTree (mkNode and_seq) ()))
+                       (($extraWrapped $m2) (addActionKnobs $extraChild False $m1 $actions $perceptions))
                     )
                     ((mkTree (mkNode and_seq) (append $rebuiltChildren (cons $extraWrapped ()))) $m2))
 
