@@ -16,15 +16,16 @@
 ;;                              oneCcSub ((OR (AND D) (AND B C)) (AND B C) ((NOT B) C)) -> (OR (AND D) (AND C))
 
 (= (oneCcSub $parent $poa $com)
-    (let*
+    (let* 
         (
             ($poaGuardSet (getGuardSet $poa))
             ($invertedCom (invertLiterals $com))
-            ($commonElements (intersect $poaGuardSet $invertedCom))
+            ($commonElements (intersection-atom $poaGuardSet $invertedCom))
         )
-         ;; replace the POA with its subtracted form; findAndReplace compares with ==
-         ;; (a map-atom walk would freshen the captured $poa — finding #8 — and never match)
-         (findAndReplace $poa (subAll $poa $commonElements) $parent)))
+         (map-atom $parent $el
+            (if (trace! (El: $el POA: $poa) (=== $el $poa))
+                (subtraction-atom $poa $commonElements)
+                $el))))
 
 ;; Name:                        invertLiterals
 ;; Description:                 A helper function that negates all literals in a literal only expression.
@@ -33,9 +34,7 @@
 ;;                              invertLiterals (A (NOT B)) -> ((NOT A) B)
 
 (= (invertLiterals $guardSet)
-    (map-atom $guardSet $literal
-      (if (isLeaf $literal)
-          (NOT $literal)                     ;; unify would bind an unbound label var to (NOT $x)
-          (if (== (car-atom $literal) NOT)
-              (car-atom (cdr-atom $literal)) ;; (NOT X) -> X
-              (NOT $literal)))))
+    (map-atom $guardSet $literal 
+      (unify $literal (NOT $x)
+          $x
+          (NOT $literal))))

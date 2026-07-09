@@ -49,19 +49,22 @@
 (= (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable $scorerType)
 (let*
    (
+    ;; ($_ (println! ""))
+    ;; ($_ (println! (MetaPop: $metaPop)))
+    ;; ($_ (println! "Selecting Exemplar"))
     ($exemplar (selectExemplar $metaPop))
-    ($tree (getExemplarTree $exemplar))
+    ;; ($_ (println! $exemplar))
+    ;; ($_ (println! "getting exemplar tree"))
+    ($tree (getExemplarTree $exemplar)) 
     ($_ (println! (SelectedTree: (preOrder $tree))))
+    ;; ($_ (println! "creating deme IDs"))
     ($demeIds (createDemeIds $nExpansion $nDeme))
+    ;; ($_ (println! $demeIds))
+    ; ($argLabels (getArgLabels $itable))
+    ;; ($_ (println! "Creating Deme"))
     ($demes (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar () $scorerType))
     )
-    ;; `map` (from utilities/general-helpers), NOT map-atom: the deme carries
-    ;; label vars in its rep that must share identity with the label vars
-    ;; inside $truthTableBScore. yall's copy_term_nat (invoked by map-atom's
-    ;; compiled lambda) would freshen the captures per iteration and decouple
-    ;; them. This `map` rides captures through Prolog call/1 and preserves
-    ;; shared identity.
-    (map expandDemeHelper $truthTableBScore $optimize $demes)
+    (map-atom $demes $deme (expandDemeHelper $deme $truthTableBScore $optimize))
    ))
 
 ;; Overloaded version for game strategy domain - 8 parameters
@@ -74,7 +77,7 @@
          ($demes (trace! "Creating Deme" (createDeme $nDeme $demeIds $tree)))
          ($gameContext ($nGames $complexityRatio $targetCScore))
       )
-      (map expandDemeHelper $gameContext $optimize $demes)))
+      (map-atom $demes $deme (expandDemeHelper $deme $gameContext $optimize))))
 
 ;; Unified helper for both Boolean and Strategy domains
 ;; Optimizes each deme in the list using the provided optimizer and context

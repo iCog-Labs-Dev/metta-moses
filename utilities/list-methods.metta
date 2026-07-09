@@ -68,7 +68,6 @@
          (List.mapOverArg $f $tail $arg)
          (cons $new-head (List.mapOverArg $f $tail $arg)))))
 
-
 ; (: List.filter (-> (-> $a Bool) (List $a) (List $a)))
 (= (List.filter $p $xs) (filter-atom $xs $x ($p $x)))
 
@@ -89,32 +88,7 @@
 (= (List.max $xs) (max-atom $xs))
 
 ; (: List.contains (-> $a (List $a) Bool))
-;; Explicit ==-recursion, var-safe, both list shapes supported:
-;; - dev used (once (is-member ...)) — is-member UNIFIES, which under
-;;   labels-as-vars binds label vars;
-;; - the interim (any (map-atom $list $x (== $x $a))) was bind-free but
-;;   doubly broken: the yall lambda copy_term_nat'd the captured $a per
-;;   iteration (freshening its label vars, so var-bearing subtrees never
-;;   matched), and map-atom enumerates the raw cons-cell elements
-;;   (cons/head/tail) instead of walking the list, so only the first
-;;   cons element was ever checked (list-methods-test:75 catches this).
-;; Callers pass cons-lists (lsk children) AND plain tuples ((True False),
-;; (quote (AND OR))) — dispatch on the cons head.
-(= (List.contains $a $list)
-   (if (== $list ())
-       False
-       (if (== (car-atom $list) cons)
-           (let (cons $h $t) $list
-                (if (== $h $a) True (List.contains $a $t)))
-           (List.containsTuple $a $list))))
-
-;; Structural membership over a plain tuple (helper for List.contains).
-(= (List.containsTuple $a $xs)
-   (if (== $xs ())
-       False
-       (if (== (car-atom $xs) $a)
-           True
-           (List.containsTuple $a (cdr-atom $xs)))))
+(= (List.contains $a $list) (once (is-member $a $list)) )
 
 ; (: List.replaceAt (-> (List $a) Number $a (List $a)))
 (= (List.replaceAt () $n $elem) ())

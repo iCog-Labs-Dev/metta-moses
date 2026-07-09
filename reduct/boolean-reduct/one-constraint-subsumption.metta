@@ -33,19 +33,27 @@
               ($tail (cdr-atom $current))
               ; ($_ (println! (Head : $head : Tail : $tail)))  
             )
-            (if (== $head AND)
-                (let*
-                  (
-                    ($guardSet (getGuardSet $current))
-                    ($common (intersect $guardSet $commandSet))
+            (case $head
+          
+              (
+                (OR ($parent $current False))
+                (NOT ($parent $current False))
+                (AND
+                  (let*
+                    (
+                      ($guardSet (getGuardSet $current))
+                      ($common (intersection-atom $guardSet $commandSet))
+                    )
+                    (if (== $common ())
+                        ;; (trace! (Parent: $parent : Current : $current)
+                                ($parent $current False)
+                        ;; )
+                        ((removeElement ($current) $parent) () True)) ;; remove current from parent.
                   )
-                  (if (== $common ())
-                      ;; (trace! (Parent: $parent : Current : $current)
-                              ($parent $current False)
-                      ;; )
-                      ((subAll $parent ($current)) () True)) ;; remove current from parent.
                 )
-                ($parent $current False)) ;; OR / NOT / anything else: unchanged
+                ($else ($parent $current False))
+              )
+            )
         )
 
       

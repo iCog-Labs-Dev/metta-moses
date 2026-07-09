@@ -19,30 +19,30 @@
             ($parent $current False)
             (let*
               (
-                  ;; ($_ (println! (===Inside AndCut=== P: $parent C: $current)))
+                  ;; ($_ (println! (===Inside AndCut===)))
+                  ;; ($_ (println! (Current $current : Parent : $parent)))
+                  ;; ($_ (println! (Parent: $parent)))
                   ($parentSec (map-atom $parent $p (removeEmptyAND $p)))
-                  ($currentSec (if (== $parent $current)
+                  ($currentSec (if (=== $parent $current)
                                    $parentSec
                                    (map-atom $current $c (removeEmptyAND $c))))
                   (($guardSet $child) (getLiteralChildren $currentSec))
                   (($h $t) (if (and (== (get-metatype $child) Expression) (not (== $child ()))) (decons-atom $child) (() ())))
-                  ;; plain if, not if-decons-expr-custom: under PeTTaV1 the
-                  ;; module-compiled call dies on the ()-path (car-atom hoisted
-                  ;; past the guard by the specializer)
-                  ($tail (if (== $child ()) "No child" $t))
+                  ($tail (if-decons-expr-custom $child $h $t $t "No child"))
+                  ; ($_ (println! ("Tail: " $tail)))
               )
               (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
                   (let*
                       (
-                          ;; ($_ (println! (===Inside AndCut===)))
+                          ; ($_ (println! (===Inside AndCut===)))
                           ; ($_ (println! (Current $current : Parent : $parent)))
-                          ($childFirst (if (== $child ()) () $h))
+                          ($childFirst (if-decons-expr-custom $child $h $t $h ()))
                           (($grandLiterals $grandChildren) (getLiteralChildren $childFirst))
                           ($allLiterals (map-atom $grandChildren $gC (getGuardSet $gC)))
                           ($common (intersections $allLiterals))
-                          ($updatedParent (subAll $parentSec ($currentSec)))
+                          ($updatedParent (removeElement ($currentSec) $parentSec))
                           ($updatedParent' (if
-                                            (== () (subAll $parentSec $currentSec))
+                                            (== () (subtraction-atom $parentSec $currentSec))
                                             $updatedParent
                                             (addChildren $updatedParent $grandChildren)))
                           ($updatedParent'' (addLiterals $updatedParent' $grandLiterals))
@@ -100,19 +100,22 @@
 )
 
 (= (removeEmptyAND $expr) ;; the function is removing the expression containing empty AND node, but it should return the parent.
-    (if (not (== (get-metatype $expr) Expression))
-        $expr ;; leaf: Symbol / Variable / Grounded
-        (if (== $expr ())
-            $expr
-            (let*
-              (
-                 (($h $t) (decons-atom $expr))
-                 ;(() (println! (H: $h : T: $t)))
-              )
-              ;; == on an unbound $h is False without binding (a case pattern
-              ;; would bind a var head to AND)
-              (if (== $h AND)
-                  (if (== $t ())
-                      Nothing
-                      (cons $h (filter-atom (map-atom $t $ts (removeEmptyAND $ts)) (!= Nothing))))
-                  (filter-atom (map-atom $expr $ex (removeEmptyAND $ex)) (!= Nothing)))))))
+    (case (get-metatype $expr)
+        (
+            (Symbol $expr)
+            (Expression
+                (let*
+                  (
+                     (($h $t) (decons-atom $expr))
+                     ;(() (println! (H: $h : T: $t)))
+                  )
+                    (case ($h $t)
+                        (
+                            ((AND ()) Nothing)
+                            ((AND $else) (cons $h (filter-atom (map-atom $t $ts (removeEmptyAND $ts)) (!= Nothing))))
+                            (($any $else) (filter-atom (map-atom $expr $ex (removeEmptyAND $ex)) (!= Nothing)))
+                        )
+                    )
+                )
+            )
+            ($else $expr))))

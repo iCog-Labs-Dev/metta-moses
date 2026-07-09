@@ -40,7 +40,7 @@
 
 
 (= (loopCreateDeme $demeIds $reps $acc)
-(if (== $reps ())
+(if (== $reps ()) 
     $acc
     (let* (
             ($h (car-atom $reps))

@@ -24,7 +24,6 @@
 
 !(import! &self ../../utilities/tree)
 
-!(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/cacheSpace)
 !(import! &self ../../scoring/fitness)
 !(import! &self ../../scoring/bscore)
@@ -87,26 +86,12 @@
 ;; removeEmptyAND/2 is a pure tree rewrite called 4.35M times on parity3 (and
 ;; with deep intra-call subtree recurrence): tabling collapsed it to ~977K
 ;; calls with the time dropping 16.2 s → 1.9 s in profile measurement.
-;; !(import! &self (library lib_tabling))
-;; !(tabled (removeEmptyAND $e))
+!(import! &self (library lib_tabling))
+!(tabled (removeEmptyAND $e))
 
 ;; When run with nEval of 1000 at this configuration, top result should have a score of 0.
-;; !(assertEqual (let $result (runDemoProblem 0 10 1 None parity3) (second (index-atom (second $result) 0))) 0)
+!(assertEqual (let $result (runDemoProblem 0 10 1 None parity3) (second (index-atom (second $result) 0))) 0)
 ;; TODO: This test case fails because of incorrect creation order when disc probing is enabled. That needs a fix.
 ;; !(runDemoProblem 0 10 1 None mux6)
 
 
-;; !(let* (
-;;          ($A $A)
-;;          ($B $B)
-;;          ($e (quote (OR ((AND ((OR ()))) (AND ((NOT $A) (NOT (OR ((NOT $B) $A))) (OR ($B $A))))))))
-;;          ($r (reduce-to $e))
-;;        )
-;;     (M3-rd: $r vars: $A $B))
-
-!(let*
-   (
-    (($op (cons $a $as) ) (quote (OR ((AND ((OR ()))) (AND ((NOT $A) (NOT (OR ((NOT $B) $A))) (OR ($B $A))))))))
-   )
-   $a
- )

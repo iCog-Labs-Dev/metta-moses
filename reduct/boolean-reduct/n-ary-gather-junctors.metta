@@ -34,28 +34,33 @@
 
 ; (: addAND (-> Expression Symbol Symbol Expression))
 (= (addAND $expr $parent $prev)
-    (if (== (get-metatype $expr) Expression)
-        (let* (
-            (($h $t) (decons-atom $expr))
-            ($parentIsAND (== AND $parent))
+    (case (get-metatype $expr)
+        (
+            (Symbol (if (or (or (or (== AND $expr) (== OR $expr)) (== NOT $expr))
+                            (or (== $parent AND) (== $prev AND)))
+                          $expr
+                          (AND $expr)
+                    )
+            ) ;; track the parent instead of the previous one
+            (Expression
+                (let* (
+                    (($h $t) (decons-atom $expr))
+                    ($parentIsAND (== AND $parent))
 
-          )
-            (if (== $h NOT)
-                (if $parentIsAND $expr (AND $expr))
-                (if (== $h OR)
-                    (if $parentIsAND
-                        (map-atom $expr $ex (addAND $ex $h $h))
-                        (AND (map-atom $expr $ex (addAND $ex $h $h))))
-                    (if (== $h AND)
-                        (map-atom $expr $ex (addAND $ex AND $h))
-                        (if (== $t ()) (addAND $h () ()) (AND)))))
-        )
-        ;; non-Expression = leaf (Symbol, Variable or Grounded):
-        ;; junctor symbols and AND-parented leaves stay bare, others wrap
-        (if (or (or (or (== AND $expr) (== OR $expr)) (== NOT $expr))
-                (or (== $parent AND) (== $prev AND)))
-              $expr
-              (AND $expr)
+                  )
+                    (case ($h $parentIsAND)
+                        (
+                            ((NOT True) $expr)
+                            ((NOT False) (AND $expr))
+                            ((OR True) (map-atom $expr $ex (addAND $ex $h $h)))
+                            ((OR False) (AND (map-atom $expr $ex (addAND $ex $h $h))))
+                            ((AND $_) (map-atom $expr $ex (addAND $ex AND $h)))
+                            (($else $__) (if (== $t ()) (addAND $h () ()) (AND)))
+                        )
+                    )
+                )
+            )
+            ($else $expr)
         )
     )
 )

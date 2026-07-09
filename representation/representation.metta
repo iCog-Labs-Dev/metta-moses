@@ -1,20 +1,3 @@
-;; ---- Per-ft-set builders for the exemplar-arg-seq loop ----
-;; Consumed by (map …) at the callsite in `representation`. Using `map`
-;; instead of map-atom keeps $labels / $exemplar / $exemplar-fts identity
-;; intact — see the map docstring in utilities/general-helpers.
-
-(= (buildArgSeqPrunedItem $ft-set $exemplar-fts $labels $exemplar)
-   (let* (($diff-ft      (subtraction-atom $exemplar-fts $ft-set))
-          ($ft-names     (fsToNames $labels $diff-ft))
-          ($pruned-xmplr (pruneExemplar $exemplar $ft-names))
-          ($final-args   (subtraction-atom $ft-set $exemplar-fts)))
-     ($pruned-xmplr (fsToNames $labels $final-args))))
-
-(= (buildArgSeqUnprunedItem $ft-set $exemplar-fts $labels $exemplar)
-   (let* (($agg        (union-atom-set $ft-set $exemplar-fts))
-          ($final-args (fsToNames $labels $agg)))
-     ($exemplar $final-args)))
-
 ;; (: DiscKnobMap Type)
 ;; (: mkDscMp (-> (MultiMap (DiscSpec $knob)) DiscMap))
 ;; (: mkDscKbMp (-> (Map (NodeId Number)) DiscKnobMap))
@@ -94,28 +77,49 @@
         )
         
         (let* (
+                  ;; ($_ (println! (Inside Representation)))
                   ($exemplar-fts  (filter-atom (treeFtsIndices $exemplar $labels) $x (not (== $x -1))))
-                 ($all-labels (getInputLabels $labels))
+                  ;; ($_ (println! (exemplar features $exemplar-fts)))          ;; exemplarFtsIndices function in deme/expand-deme.metta
+                 ($all-labels (getInputLabels $labels))                       ;; getInputLabels in deme/expand-deme.metta
+                 ;; ($_ (println! "before featureSelector"))
                  ($ft-set-pop (if (== $ft-selection-algo None)
                                   ((genList 0 (- (List.length $labels) 2))) ;; Applying all labels as features
-                                  (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme 50.0 1.0 0.5 1.0 True $scorerType)) ;; applies the right parameteres for feature selection based on selected selection algorithm
+                                  (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme 50.0 1.0 0.5 1.0 True $scorerType)) ;; applies the right parameteres for feature selection based on selected selection algorithm 
                  )
+                 ;; ($_ (println! (Selected Features after feature Selection $ft-set-pop)))
                  ($exemplar-arg-seq                                           ;; apply exemplar feature pruning
                      (if $prune-exemplar
-                           (map buildArgSeqPrunedItem   $exemplar-fts $labels $exemplar $ft-set-pop)
-                           (map buildArgSeqUnprunedItem $exemplar-fts $labels $exemplar $ft-set-pop)))
+                           (map-atom $ft-set-pop $ft-set 
+                              (let* (($diff-ft (subtraction-atom $exemplar-fts $ft-set))
+                                    ;; ($_ (println! (diffffffff $diff-ft)))
+                                     ($ft-names (fsToNames $labels $diff-ft))
+                                     ($pruned-xmplr (pruneExemplar $exemplar $ft-names))
+                                     ($final-args (subtraction-atom $ft-set $exemplar-fts)))  
 
+                                 ($pruned-xmplr (fsToNames $labels $final-args))))
+
+                           (map-atom $ft-set-pop $ft-set 
+                                 (let* (($agg (union-atom-set $ft-set $exemplar-fts))
+                                        ($final-args (fsToNames $labels $agg))
+                                        )  
+
+                                    ($exemplar $final-args)))))
+                  ;; ($_ (println! (Exemplar arg sets after pruning: $exemplar-arg-seq))) 
                   ($with-enforced-fts                                         ;; enforce features
                      (if (== $enforced-fts ())
                            $exemplar-arg-seq
                            (let $sampled-enforced-fts (sampleEnforcedFts $enforced-fts)           ;; from feature-selection/select-top-features.metta
                                     (map-atom $exemplar-arg-seq ($xmplr $args)
-                                             (let $acc (concatT $args $sampled-enforced-fts) ($xmplr $acc))))))
+                                             (let $acc (concatT $args $sampled-enforced-fts) ($xmplr $acc))))))  
+                  ;; ($_ (println! (With enforced features: $with-enforced-fts)))
                   ($filter-empty-args (filter-atom $with-enforced-fts ($xmplr $args) (not (== $args ()))))
+                  ;; ($_ (println! (After filtering empty args: $filter-empty-args)))
               )      ;; filter out exemplar arg pairs that have empty arg list
 
-                     (map-atom $filter-empty-args ($xmplr $argLabels)
+                     (map-atom $filter-empty-args ($xmplr $argLabels) 
                            (let* (
+                                    ;; ($_ (println! (Building representation for arg labels: $argLabels)))
+                                    ;; ($_ (println! (" done buildknobs (:) ")))            ;; BUILD representations on 
                                     (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels $disable-discprobe))            ;; BUILD representations on
                                     ($_ (resetState &knobCount))
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
@@ -203,20 +207,17 @@
      ;;((( (trace! (Done converting instance to tree $candidate) $candidate))))
 
 
-;; NOTE: no memoization here — see getCandidateCached in
-;; scoring/complexity-based-scorer.metta. Storing var-carrying trees in a
-;; Space is unsound (Space atoms live in the clause database, so `match`
-;; returns a COPY with renamed vars, severing the leaves' identity with the
-;; scoring table), and a repr/sread string round-trip has the same problem
-;; (parsing recreates fresh vars). The cached wrapper stores the GROUND
-;; (lbl N) form and relinks indices to the original label vars on retrieval.
 (= (getCandidate $repObj $id $inst)
+   (case (match &treeSpace ($id $inst $tree) $tree)
+             (($tree $tree)
+             (Empty
                 (let*
-                    (
+                    ( 
                       ((mkRep $kmo $tr) $repObj)
                       ;; ($_ (println! (Tree: (preOrder $tr))))
                       ;; ($_ (println! (GetCandidateHelper: $inst $tr)))
                       ($candidate (getCandidateHelper $inst $tr))
+                      ;; ($_ (println! (Found candidate: (preOrder $candidate))))
                       ($rootNode (getRepTree $repObj))
                       ($rootValue (getNodeValue $rootNode))
 	                      ($rootSymbol (if (== (get-metatype $rootValue) Expression)
@@ -230,9 +231,11 @@
 	                                              ($cleanTree (buildTree $expr)))
                                             $cleanTree)
                                       (cleanTree $candidate)))
+
+                      ($_ (add-atom &treeSpace ($id $inst $finalTree)))
                       ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
                     )
-                    $finalTree))
+                    $finalTree)))))
 
 
 ;; Assumes the reverseLookupTable's order never changes during this call.

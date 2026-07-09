@@ -81,27 +81,14 @@
 (= (logicalProbe $tree $probeRootId $targetId $perms $addIfInExemplar $disable-discprobe)
    (logicalProbe $tree $tree $probeRootId $targetId $perms $addIfInExemplar $disable-discprobe))
 
-;; Arg-flipped wrapper so the var-safe `map` (element first, context second)
-;; can drive logicalSubtreeKnob without a capturing map-atom lambda.
-(= (lskForPerm $perm $exemplar) (logicalSubtreeKnob $exemplar $perm))
-
-;; Context-packed wrapper for probeLogicalPair, same rationale.
-(= (probePairInCtx $pair ($globalTree $probeRootId $targetId $children))
-   (probeLogicalPair $globalTree $probeRootId $targetId $children False $pair))
-
 (= (logicalProbe (mkTree $node $children) $globalTree $probeRootId $targetId $perms $addIfInExemplar $discProbeDisabled)
    (let*
      (
       ($exemplar (mkTree $node $children))
-      ;; var-safe map instead of map-atom: the old form captured $exemplar
-      ;; free, and the compiled yall lambda copy_term_nat'd it per perm —
-      ;; under labels-as-vars logicalSubtreeKnob's == membership checks then
-      ;; compared perm vars against a freshened exemplar and NEVER matched,
-      ;; so no knob ever controlled an existing exemplar literal.
-      ($updatedChldLskPair (map lskForPerm $exemplar $perms))
+      ($updatedChldLskPair (map-atom $perms $perm (logicalSubtreeKnob $exemplar $perm)))
       ($probedChldLskPair (if $discProbeDisabled
-                              $updatedChldLskPair
-                              (map probePairInCtx ($globalTree $probeRootId $targetId $children) $updatedChldLskPair)))
+                              $updatedChldLskPair 
+                              (map-atom $updatedChldLskPair $pair (probeLogicalPair $globalTree $probeRootId $targetId $children False $pair))))
       ($filteredChildrenLskPair (filter-atom $probedChldLskPair $pair (and (not (allDisallowed (second $pair))) (or $addIfInExemplar (not (inExemplar (getDiscKnob (second $pair))))))))
       ($updatedChildren (map-atom $filteredChildrenLskPair $ch (first $ch)))
       ($newLskPair (map-atom $filteredChildrenLskPair $ch (second $ch)))
@@ -110,9 +97,7 @@
       ;; Same embed-LSK design as the fast clause above.
       ($updatedKnobChildren (zipWith3 knobId $updatedChildren $newLskPair $index))
 	     )
-	     ;; subAll, not subtraction-atom: children carry label vars, and
-	     ;; unify-based removal deletes/binds the wrong tree (finding #5)
-	     ($newLskPair (mkTree $node (append (subAll $children $updatedChildren) $updatedKnobChildren)))))
+	     ($newLskPair (mkTree $node (append (subtraction-atom $children $updatedChildren) $updatedKnobChildren)))))
 
 ;; Action probe builds one ASK containing all supplied action permutations.
 ;; It intentionally skips disc probing, matching the original action path.

@@ -12,24 +12,28 @@
 ;;        : output: ((AND A (OR A (NOT B))) () True)
 ;; (: zeroConstraintSubsume (-> Expression Expression (Expression Expression Bool)))
 (= (zeroConstraintSubsume $parent $current)
-  (if (not (== (get-metatype $current) Expression))
-      ($parent $current False) ;; leaf POA: Symbol / Variable / Grounded
-      (if (== $current ())
-          ($parent $current False)
-          (let*
-            (
-              (($head $children) (decons-atom $current))
-              ($updatedChildren (filter-atom $children $child (nodeHasChildOrGuard $child)))
-              ($updatedCurrent (cons-atom $head $updatedChildren))
-            )
-            ;; == on an unbound $head never binds it (a case pattern would)
-            (if (== $head OR)
-                (if (== $children ())
-                    ($parent $current False)
-                    ((findAndReplace $current $updatedCurrent $parent) $updatedCurrent (!= $children $updatedChildren)))
-                ($parent $current False)) ;; AND / NOT / var-headed: unchanged
+  (case ((get-metatype $current) $current)
+    (
+      ((Expression ()) ($parent $current False))
+      ((Expression (NOT $x)) ($parent $current False))
+      ((Symbol $current) ($parent $current False))
+      ((Expression $current)
+        (let*
+          (
+            (($head $children) (decons-atom $current))
+            ($updatedChildren (filter-atom $children $child (nodeHasChildOrGuard $child)))
+            ($updatedCurrent (cons-atom $head $updatedChildren))
           )
+          (case ($head $children)
+            (
+              ((AND $_) ($parent $current False))
+              ((OR ()) ($parent $current False))
+              ((OR $children) ((findAndReplace $current $updatedCurrent $parent) $updatedCurrent (!= $children $updatedChildren)))
+            )
+          )
+        )
       )
+    )
   )
 )
 
@@ -42,13 +46,13 @@
 ;;          output: ((OR A C (OR A B)) () True)
 ;; (: zeroConstraintSubsume' (-> Expression Expression (Expression Expression Bool)))
 (= (zeroConstraintSubsume' $parent $current)
-  (if (not (== (get-metatype $current) Expression))
-      ($parent $current False) ;; leaf POA: Symbol / Variable / Grounded
-      (if (== $current ())
-          ($parent $current False)
-          (if (isNotHeaded $current)
-              ($parent $current False)
-              (if (and (== (car-atom $parent) OR) (== $current (AND)))
+  (case ((get-metatype $current) $current)
+    (
+      ((Expression ()) ($parent $current False))
+      ((Expression (NOT $x)) ($parent $current False))
+      ((Symbol $current) ($parent $current False))
+      ((Expression $current)
+        (if (and (== (car-atom $parent) OR) (== $current (AND)))
             ((findAndReplace $parent (AND) $parent) (AND) True) ;; Removes the entire OR if it has an empty AND as child
             (let*
               (
@@ -60,7 +64,7 @@
               ;; POA is AND & OR and has no children and guardSet
               (if (and (not (== $current $parent)) (not (== $parent AND)))
                 (if (and (== $literals ()) (== $children ()))
-                    ((subAll $parent ($current)) () True)
+                    ((removeElement ($current) $parent) () True)
                     ($parent $current False)
                 )
                 ($parent $current False)

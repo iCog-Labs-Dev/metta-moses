@@ -25,20 +25,7 @@
 
 ; (: preOrder (-> (Tree $a) $a))
 
-;; Var-safe: is-member uses member/2 which UNIFIES $r with AND (list head),
-;; binding label vars in every candidate walked here. List.contains uses ==
-;; (structural), so unbound vars simply fall to the leaf branch.
-;;
-;; Boolean operators (AND/OR/NOT) emit the wrapped-list eval shape that
-;; scoring/boolean-ops.metta's clauses match on:
-;;   (AND ($c1 $c2 ...))   (OR ($c1 $c2 ...))   (NOT $child)
-;; Every other operator (PRIORITIZED-OR, action ops, ...) keeps the n-ary
-;; shape (cons-atom $r $lcE) that buildTree and downstream consumers expect.
-;; `quote` on the boolean emissions keeps the wrapped result as data — the
-;; AND/OR/NOT clauses fire only under an explicit `(eval ...)` inside
-;; evalParsed, not during tree construction.
-(= (preOrder (mkTree (mkNode $r) ()))
-   (if (List.contains $r (quote (AND OR))) (quote ($r ())) $r))
+(= (preOrder (mkTree (mkNode $r) ())) (if (once (is-member $r (AND OR))) ($r) $r))
 (= (preOrder (mkKnob (mkNullVex $tree) $lsk $i)) ())
 (= (preOrder (mkKnob (mkTree $node $children) $lsk $i)) (preOrder (mkTree $node $children)))
 (= (preOrder (mkTree (mkNode $r) (cons $x $xs)))
@@ -47,15 +34,13 @@
            ($lc  (List.map preOrder (cons $x $xs)))
            ($lc' (List.filter (compose not isUnit) $lc))
            ($lcE (List.listToExpr $lc'))
+           ;; (()   (println! (Root: $r Children: $lc Children': $lc' Expression: $lcE)))
+           ($exp (cons-atom $r $lcE))
          )
-         (if (== $r NOT)
-             (let $child (car-atom $lcE) (quote (NOT $child)))
-             (if (List.contains $r (quote (AND OR)))
-                 (quote ($r $lcE))
-                 (cons-atom $r $lcE))))
+         $exp)
 )
 
-(= (preOrderDebug (mkTree (mkNode $r) ())) (if (List.contains $r (quote (AND OR))) (quote ($r)) $r))
+(= (preOrderDebug (mkTree (mkNode $r) ())) (if (once (is-member $r (AND OR))) ($r) $r))
 (= (preOrderDebug (mkNullVex $knobs))
    (let*
      (
@@ -83,81 +68,36 @@
 
 (= (buildTree $expr)
         (if (== (get-metatype $expr) Expression)
+            ; (let ($head $tail) (decons-atom $expr)
+            ;     (mkTree (mkNode $head) (exprToList (map buildTree $tail))))
+            ; (mkTree (mkNode $expr) ())
             (let* (
+              ;; ($_ (println! (-----------------------)))
+              ;; ($_ (println! (Inside buildTree with expr: $expr)))
               (($head $tail) (decons-atom $expr))
-              ;; Wrapped-list AND/OR: (AND (c1 c2 c3)) — the tail is a 1-tuple
-              ;; whose element is the children tuple. Peel it before recursing.
-              ;; PRIORITIZED-OR, action ops, NOT (unary), and other operators keep n-ary.
-              ($effectiveTail
-                (if (and (List.contains $head (quote (AND OR)))
-                         (== (List.length $tail) 1))
-                    (car-atom $tail)
-                    $tail))
-              ($children (exprToList (map buildTree $effectiveTail)))
+              ($children (exprToList (map buildTree $tail)))
+              ;; ($_ (println! (Building tree with head: $head And children: $children)))
+              ;; ($_ (println! (FinalAnswer: (mkTree (mkNode $head) $children))))
             )
-            (mkTree (mkNode $head) $children))
+            (mkTree (mkNode $head) $children)
+            )
             (mkTree (mkNode $expr) ())
         )
-)
+            )
 
-
-;; ---- Shape converters for the cleanTree seam ----
-;; preOrder emits the wrapped-list eval shape (AND ($c1 ... $cn)) that the
-;; scoring/boolean-ops clauses match, and buildTree peels that same shape.
-;; The reduct rules operate on the n-ary shape (AND $c1 ... $cn). These two
-;; convert between the shapes; both are var-safe (structural checks only).
-
-;; (AND ($c1 ... $cn)) -> (AND $c1' ... $cn')  [recursive; NOT stays unary]
-(= (unwrapListShape $expr)
-   (if (not (== (get-metatype $expr) Expression))
-       $expr
-       (if (== $expr ())
-           $expr
-           (let ($h $t) (decons-atom $expr)
-             (if (List.contains $h (quote (AND OR)))
-                 (if (== (List.length $t) 1)
-                     (let $kids (car-atom $t)
-                       (if (== (get-metatype $kids) Expression)
-                           (cons-atom $h (map-atom $kids $k (unwrapListShape $k)))
-                           (cons-atom $h (map-atom $t $k (unwrapListShape $k))))) ;; single leaf child: already n-ary
-                     (cons-atom $h (map-atom $t $k (unwrapListShape $k))))       ;; already n-ary
-                 (if (== $h NOT)
-                     (let $c (car-atom $t) (NOT (unwrapListShape $c)))
-                     (cons-atom $h (map-atom $t $k (unwrapListShape $k)))))))))
-
-;; (AND $c1 ... $cn) -> (AND ($c1' ... $cn'))  [recursive; NOT stays unary]
-(= (wrapListShape $expr)
-   (if (not (== (get-metatype $expr) Expression))
-       $expr
-       (if (== $expr ())
-           $expr
-           (let ($h $t) (decons-atom $expr)
-             (if (List.contains $h (quote (AND OR)))
-                 (cons-atom $h ((map-atom $t $k (wrapListShape $k))))
-                 (if (== $h NOT)
-                     (let $c (car-atom $t) (NOT (wrapListShape $c)))
-                     (cons-atom $h (map-atom $t $k (wrapListShape $k)))))))))
 
 ; (: cleanTree (-> (Tree $a) (Tree $a)))
 
-;; NOTE: plain let* here on purpose. chain/eval re-reduce their results —
-;; with scoring/boolean-ops loaded that fires the global AND/OR eval
-;; clauses on preOrder's (OR ...) output and collapses the candidate to a
-;; boolean. let* binds each result once without re-reduction.
-;; NOTE: plain let* here on purpose. chain/eval/once wrappers deep-
-;; normalize their result term — with scoring/boolean-ops loaded that
-;; fires the global AND/OR/NOT eval clauses on reduce-to's output;
-;; (NOT $var) is the worst case since metta.pl's `not` BINDS the unbound
-;; label var. let* binds each result once without re-reduction.
 (= (cleanTree $tree)
     (let*
         (
           ($preordered (preOrder $tree))
-          ($nary (unwrapListShape $preordered))
-          ($reduced (reduce-to $nary))
-          ($wrapped (wrapListShape $reduced))
+          ;; ($_ (println! (Preordered: $preordered)))
+          ($reduced (reduce-to $preordered))
+          ;; ($_ (println! "After Reduce"))
+          ;; ($_ (println! (Reduced: $reduced)))
           )
-        (buildTree $wrapped))
+        (buildTree $reduced))
     )
 
 ;; Get an id of a certain node. And (0) if the root node.
@@ -356,9 +296,8 @@
 ; (: isArgument (-> (Tree $a) Bool))
 
 (= (isArgument (mkNullVex $x)) False)
-;; Var-safe: unbound-var $x is still an argument, not an operator.
 (= (isArgument (mkTree (mkNode $x) $children))
-   (and (not (List.contains $x (quote (AND OR NOT PRIORITIZED-OR)))) (== $children ())))
+   (and (not (once (is-member $x (AND OR NOT PRIORITIZED-OR)))) (== $children ())))
 
 ;; A function to calculate the complexity of a tree.
 ;;  The complexity of a tree is the number of arguments it contains.
@@ -368,10 +307,8 @@
 ; (: treeComplexity (-> (Tree $a) Number))
 
 (= (treeComplexity (mkNullVex $x)) 0)
-;; Knob wrappers are transparent metadata (mirrors preOrder): a NullVex knob
-;; contributes 0 via the mkNullVex clause, a tree knob counts its subtree.
-;; Without this clause a probed root containing an embedded knob makes
-;; treeComplexity fail silently, killing the whole representation build.
+;; A probed root can carry an embedded knob; without this clause the call
+;; fails silently and the representation build dies downstream.
 (= (treeComplexity (mkKnob $inner $lsk $i)) (treeComplexity $inner))
 (= (treeComplexity (mkTree (mkNode $a) $children)) ;; AND, OR and NOT have no complexity
    (if (isArgument (mkTree (mkNode $a) $children))
@@ -391,7 +328,7 @@
 ; (: extractArgs (-> (Tree $a) (List Symbol)))
 
 (= (extractArgs (mkTree (mkNode $node) $children))
-    (if (List.contains $node (quote (AND OR NOT)))
+    (if (once (is-member $node (AND OR NOT)))
         (extractArgsFromList $children)         ;; if it's an operator, collect args from children
         (cons $node ())))                       ;; else it's a literal, return it in a singleton list
     
@@ -420,7 +357,7 @@
 ; (: removeLiteral (-> (Tree $a) Symbol (Tree $a)))
 
 (= (removeLiteral (mkTree (mkNode $node) $children) $symbol)
-    (if (List.contains $node (quote (AND OR NOT)))
+    (if (once (is-member $node (AND OR NOT)))
         (mkTree (mkNode $node) (List.mapOverArg removeLiteral $children $symbol))
         (if (== $node $symbol)
             ()
