@@ -65,27 +65,36 @@
         (representation $nDeme $exemplar (mkITable $table $labels) $ft-selection-algo $prune-exemplar $enforced-fts $scorerType True))
 
 ;; restrictToIncorrect -- classic restrict_incorrect: feed feature selection only
-;; the rows the exemplar mispredicts. Falls back to the full table when it is
-;; already correct everywhere, or when the wrong rows share one output (zero MI).
+;; the rows the exemplar mispredicts, with the exemplar's own columns blanked out.
+;; Falls back to the untouched table when it is already correct everywhere, or when
+;; the wrong rows share one output (zero MI).
 (= (restrictToIncorrect $exemplar (mkITable $table $labels))
    (let* (($expTree (preOrder $exemplar))
           ($len (List.length $labels))
           ($wrongRows (filter-atom $table $row
                         (not (== (scoreTreeHelper $labels $expTree $row)
                                  (index-atom $row (- $len 1)))))))
-     (if (or (== $wrongRows ()) (ric-constant-output $wrongRows $len))
+     (if (ric-constant-output $wrongRows $len)
          (mkITable $table $labels)
-         (mkITable $wrongRows $labels))))
+         (mkITable (ric-blank-xmplr-fts (treeFtsIndices $exemplar $labels) $wrongRows $len) $labels))))
 
-;; True when every row's output column (last column) holds the same value
+;; On the rows the exemplar gets wrong its own features still track the output, so
+;; feature selection would just hand back the features the exemplar already uses and
+;; the search would never gain a new one. Classic blanks those columns rather than
+;; dropping them: a constant column carries no mutual information so it is never
+;; selected, and every remaining column keeps its index.
+(= (ric-blank-xmplr-fts $fts $rows $len)
+   (map-atom $rows $row
+      (map-atom (genList 0 (- $len 1)) $i
+         (if (ric-is-xmplr-ft $i $fts) False (index-atom $row $i)))))
+
+(= (ric-is-xmplr-ft $i $fts)
+   (> (size-atom (filter-atom $fts $f (== $f $i))) 0))
+
+;; True when the output column (last column) holds at most one distinct value.
+;; The empty row set counts as constant, which covers the correct-everywhere case.
 (= (ric-constant-output $rows $len)
-   (ric-all-same (map-atom $rows $r (index-atom $r (- $len 1)))))
-(= (ric-all-same $xs)
-   (if (== $xs ()) True (ric-all-eq (car-atom $xs) (cdr-atom $xs))))
-(= (ric-all-eq $h $xs)
-   (if (== $xs ())
-       True
-       (if (== (car-atom $xs) $h) (ric-all-eq $h (cdr-atom $xs)) False)))
+   (<= (size-atom (unique-atom (map-atom $rows $r (index-atom $r (- $len 1))))) 1))
 
 (= (representation
 ;; Boolean representation constructor with optional logical disc probing
