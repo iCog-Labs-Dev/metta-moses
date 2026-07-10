@@ -42,6 +42,20 @@
 ; getKnobSpec Tests
 !(assertEqual (getKnobSpec (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) (cons (mkDiscSpec 1) ())))) (mkDiscSpec 2))
 
+;; Shared effective-setting validation and mapping.
+!(assertEqual
+  (resolveDiscreteSetting
+    (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ((mkDiscSpec 1))))
+    1)
+  2)
+
+!(assertEqual
+  (resolveDiscreteSetting
+    (mkASK (mkDiscKnob (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())
+           ((mkTree (mkNode A) ())))
+    2)
+  (Error 2 "Invalid effective disc specification."))
+
 ;; Testing getmultiplicity function
 !(assertEqual (getKnobMultip (mkDiscKnob (mkKnob (mkTree (mkNode A) ()) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())) (mkMultip 2))
 !(assertEqual (getKnobMultip (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (mkMultip 2))
