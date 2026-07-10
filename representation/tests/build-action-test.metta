@@ -146,12 +146,16 @@
       (
         ((mkASK $discKnob $perms) $ask)
       )
-      (and (== $updatedSubtree (mkKnob (mkTree (mkNode and_seq) (cons (moveTree) ())) $ask 0))
-           (and
-              (== $discKnob (mkDiscKnob (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))
-              (== (MultiMap.length $mmp) 1)))))
-  True)
-
+      (and 
+           (== $updatedSubtree (mkKnob (mkTree (mkNode and_seq) (cons (moveTree) ())) $ask 0))
+           (and 
+                (== $discKnob (mkDiscKnob (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))
+                (and  
+                      (== $perms (cons (mkTree (mkNode and_seq) (cons (moveTree) ())) ()))
+                      (and
+                        (== (getKnobDefault $ask) (mkDiscSpec 1))
+                        (== (MultiMap.length $mmp) 1)))))))
+      True)
 ;; Embedded action representation drives candidate reconstruction directly.
 !(assertEqual
   (let*
@@ -222,13 +226,22 @@
          (not (== $updatedTree $origTree))))
   True)
 
- !(py-call (random.seed 12)) 
-
 !(assertEqual
   (let ($updatedTree $mmp) (buildAction (mkTree (mkNode and_seq) ()) () (move_forward turn_left) (A B))
     (> (MultiMap.length $mmp) 0))
   True)
+  
+!(py-call (random.seed 0))
 
+!(assertEqual
+  (let*
+    (
+      (($tree $mmp) (buildAction (mkTree (mkNode and_seq) (cons (mkTree (mkNode move_forward) ()) ())) () (move_forward turn_left) ()))
+    )
+    (and
+      (not (== $tree ()))
+      (> (MultiMap.length $mmp) 0)))
+  True)
 ;; buildKnobs dispatches action and strategy roots
 !(assertEqual
   (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) () () (move_forward turn_left) (A B))
@@ -272,4 +285,3 @@
 !(assertEqual
   (actionCleanup (mkTree (mkNode and_seq) (cons (moveTree) ())))
   (mkTree (mkNode and_seq) (cons (moveTree) ())))
- 
