@@ -52,12 +52,11 @@
 ;(: getTable (-> (TruthTableBScore $a) (ITable $a)))
 (= (getTable (mkTruthTableBScore $compCoeff $size $table)) $table)
 
-;; Once per candidate: replace each label symbol in the flat preOrder form
-;; with (lbl N), N = its position in $labels. Non-label symbols (operator
-;; heads AND/OR/NOT, unknown symbols) pass through: List.index returns -1
-;; on miss. Unmapped symbols later yield (empty) in evalRow — preserving
-;; evalParsed's silent-failure contract for symbolic tables. Direct
-;; recursion keeps the walk free of per-element dispatch overhead.
+;; Once per candidate: replace each label symbol in the candidate's
+;; expression form with (lbl N), N = its position in $labels. Non-label
+;; symbols (operator heads AND/OR/NOT, unknown symbols) pass through:
+;; List.index returns -1 on miss. Direct recursion keeps the walk free of
+;; per-element dispatch overhead.
 (= (indexLeaves $expr $labels)
    (if (== (get-metatype $expr) Expression)
        (if (== $expr ())
@@ -69,69 +68,48 @@
              (if (== $i -1) $expr (lbl $i)))
            $expr)))
 
-;; Row evaluator for the indexed form of a candidate ((lbl N) leaves;
-;; AND/OR/NOT keep preOrder's flat n-ary shape). Called once per
-;; (candidate, row) pair as a plain compiled function — no per-row template
-;; copy and no per-row (eval ...) re-translation, which is what made
-;; evalParsed the scoring bottleneck. AND/OR short-circuit on the first
-;; False/True.
+;; Generic row evaluator: a bottom-up walk that applies `reduce` at every
+;; node. The evaluator knows NOTHING about boolean semantics — AND/OR/NOT
+;; (and any future operator) evaluate through their registered clauses in
+;; scoring/boolean-ops.metta via the reduce dispatch, so the operator set
+;; is extended by defining a clause, never by editing this walk. The only
+;; special case is data plumbing: a (lbl N) leaf resolves to the row's
+;; Nth value.
 ;;
-;; Extensibility contract (same as eval's): an operator this evaluator does
-;; not know is dispatched via `reduce` on its already-evaluated children —
-;; a direct call into whatever compiled clause (= (op ...) ...) exists, so
-;; new operators need no change here. The reduce argument must be let-bound
-;; first: reduce on a literal (cons-atom ...) form would dispatch cons-atom
-;; itself rather than the constructed term.
+;; Operates on the wrapped eval shape emitted by preOrderExp
+;; ((Op (kids)) / (NOT child)), which is what the arity-1 clauses expect.
+;; reduce is single-step, so children are evaluated BEFORE the parent
+;; dispatch, and the dispatched term is let-bound — reduce on a literal
+;; (cons-atom ...) form would dispatch cons-atom itself. Atoms
+;; (operator-head symbols, row-bound booleans, numbers) pass through;
+;; expression-headed tuples (e.g. an evaluated kids tuple) stay data,
+;; mirroring reduce's own leave-unevaluated rule.
 ;;
-;; A Symbol leaf yields no result — mirroring evalParsed, whose row
-;; unification produced no result for symbolic-label tables (callers such as
-;; deme/tests/score-deme-test.metta rely on that silent failure). Boolean
-;; and grounded (numeric) leaves pass through.
-(= (evalRow $e $row)
+;; Child iteration is direct tuple recursion rather than map-atom: a
+;; map-atom body capturing $row compiles to a yall lambda that copy_terms
+;; the capture once per element per node — same-state mux6 A/B measured
+;; ~+29% wall for map-atom vs ~+13% for this form over the previous
+;; baseline. The walk stays generic either way.
+(= (reduceRowKids $kids $row)
+   (if (== $kids ())
+       ()
+       (let ($k $rest) (decons-atom $kids)
+         (cons-atom (reduceRow $k $row) (reduceRowKids $rest $row)))))
+
+(= (reduceRow $e $row)
    (if (not (== (get-metatype $e) Expression))
-       (if (or (== $e True) (== $e False))
-           $e
-           (if (== (get-metatype $e) Grounded) $e (empty)))
+       $e
        (if (== $e ())
            ()
-           (let ($h $t) (decons-atom $e)
-             (if (== $h lbl)
-                 (List.getByIdx $row (car-atom $t))
-                 (if (== $h AND)
-                     (andRow $t $row)
-                     (if (== $h OR)
-                         (orRow $t $row)
-                         (if (== $h NOT)
-                             (notRow (evalRow (car-atom $t) $row))
-                             ;; Operator head: registered function symbols
-                             ;; report metatype Grounded (not Symbol), so
-                             ;; dispatch every non-Expression head; reduce
-                             ;; leaves non-callable heads (e.g. a bare
-                             ;; boolean tuple) as data.
-                             (if (not (== (get-metatype $h) Expression))
-                                 (let $call (cons-atom $h (map-atom $t $k (evalRow $k $row)))
-                                   (reduce $call))
-                                 (map-atom $e $k (evalRow $k $row)))))))))))
-
-;; Short-circuit conjunction/disjunction over the flat n-ary child tail;
-;; non-boolean child values pass through unless decisive, matching all/any's
-;; is-member scan semantics.
-(= (andRow $kids $row)
-   (if (== $kids ())
-       True
-       (let ($k $rest) (decons-atom $kids)
-         (if (== (evalRow $k $row) False)
-             False
-             (andRow $rest $row)))))
-(= (orRow $kids $row)
-   (if (== $kids ())
-       False
-       (let ($k $rest) (decons-atom $kids)
-         (if (== (evalRow $k $row) True)
-             True
-             (orRow $rest $row)))))
-(= (notRow $v)
-   (if (== $v True) False (if (== $v False) True (empty))))
+           (if (== (car-atom $e) lbl)
+               (List.getByIdx $row (car-atom (cdr-atom $e)))
+               (let* (
+                      ($kids (reduceRowKids $e $row))
+                      ($h (car-atom $kids))
+                     )
+                 (if (== (get-metatype $h) Expression)
+                     $kids
+                     (reduce $kids)))))))
 
 ;; Function to give a behavioral score for a given tree.
 ;; It takes the Input table and the tree then scores the input table on each row. After which it builds the behavioral score.
@@ -152,17 +130,20 @@
            (if (== $val ())
                (let* (
                    ;; The candidate is ground (placeholder labels), so the
-                   ;; Space match above is an exact key. On a miss, index the
-                   ;; labels ONCE and score every row with the compiled
-                   ;; evalRow walker. Each row is scored and compared against
-                   ;; its output column (the row's last element) in a single
-                   ;; pass. map-atom capturing $indexed/$lastIdx is safe:
-                   ;; both are ground, so yall's per-iteration copy_term is
-                   ;; a semantic no-op.
-                   ($indexed (indexLeaves (preOrder $tree) $labels))
+                   ;; Space match above is an exact key. On a miss, build
+                   ;; the wrapped eval form ONCE (preOrderExp) with labels
+                   ;; indexed to row positions, then score every row with
+                   ;; the generic reduceRow walk — operator semantics come
+                   ;; from the AND/OR/NOT clauses via reduce, not from the
+                   ;; evaluator. Each row is compared against its output
+                   ;; column (the row's last element) in a single pass.
+                   ;; map-atom capturing $indexed/$lastIdx is safe: both
+                   ;; are ground, so yall's per-iteration copy_term is a
+                   ;; semantic no-op.
+                   ($indexed (indexLeaves (preOrderExp $tree) $labels))
                    ($lastIdx (- (List.length $labels) 1))
                    ($bScore (map-atom $table $ts
-                       (compareAndScore (evalRow $indexed $ts)
+                       (compareAndScore (reduceRow $indexed $ts)
                                         (List.getByIdx $ts $lastIdx))))
                    ($result (mkBScore $bScore))
                    ($_ (add-atom $cacheSpace ($tree $result)))
@@ -172,9 +153,10 @@
            ))))
 
 ;; Retained semantics layer: the var-template path (candTemplate builds the
-;; labels->fresh-var template once; evalParsed unifies each row and evals).
-;; scoreTree's hot path uses evalRow above; this stays available for
-;; non-hot-path callers and the boolean-ops tests.
+;; labels->fresh-var template once; evalParsed unifies each row and evals;
+;; reduceParsed is its eval-free sibling). scoreTree's hot path uses the
+;; reduceRow walk above; this stays available for non-hot-path callers and
+;; the boolean-ops tests.
 (= (scoreTreeHelper $template $row) (evalParsed $template $row))
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
