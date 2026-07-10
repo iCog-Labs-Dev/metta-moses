@@ -192,6 +192,21 @@
     ($rows $labels)
 )
 
+;; Built with cons-atom so the result stays data instead of being applied.
+(= (defaultFsHyperparams $scorerType)
+   (cons-atom 50.0 (cons-atom 1.0 (cons-atom 0.5 (cons-atom 1.0 (cons-atom True (cons-atom $scorerType ())))))))
+
+;; Shapes accepted for the second `mkParams` slot:
+;;   ()                              -- defaults, scored by mutual information
+;;   a scorer symbol, mi or pre      -- defaults, scored by that scorer
+;;   the full hyper parameter tuple  -- used as is
+(= (normalizeFsHyperparams $fsScorer)
+   (if (== (get-metatype $fsScorer) Symbol)
+       (defaultFsHyperparams $fsScorer)
+       (if (== $fsScorer ())
+           (defaultFsHyperparams mi)
+           $fsScorer)))
+
 ;; Hillclimbing implementation
 ;;
 ;; Algorihtm:
@@ -218,7 +233,12 @@
     (hillClimbing $POASet $tTableBscorer $centerInst (mkParams applyComplexityBasedScore ())))
     
 ;; (: hillClimbing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
-;; $FsScorer should be passed using a `mkScorer` constructor other wise it will cause an error in PeTTa.
+;; The second slot of `mkParams` carries the arguments the chosen scorer needs:
+;;   applyComplexityBasedScore        -- ()
+;;   applyMutualInformationBasedScore -- ($miConfi $prePenalty $preMinActivation
+;;                                        $preMaxActivation $prePositive $scorerType),
+;;                                       or () to fall back to the defaults
+;;   applyStrategyBasedScore          -- ($nGames $complexityRatio)
 ;; ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $complexityRatio)))
 (= (hillClimbing $POASet $tTableBscorer $centerInst (mkParams $scorer $FsScorer))
   (case (mkParams $scorer)
@@ -243,14 +263,17 @@
             ;; ($_ (println! (iTable: $tTableBscorer)))
             ;; ($_ (println! (Rows: $rows)))
             ;; ($_ (println! (Labels: $labels)))
-            ($FsScorerType (if (== $FsScorer ()) mi $FsScorer))
+            ;; ($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)
+            ($fsHyperparams (normalizeFsHyperparams $FsScorer))
           )
-          (hillClimbing ((min (param hcMaxDistFs) (List.length (second $centerInst))) (param hcMinXoverNeighborsFs) 0) (False False False $centerInst 0 0 0 0 0 0 1)
-              $POASet 
+          ;; Mutual information and precision both peak at 1.0, unlike the deme
+          ;; scores which peak at 0.
+          (hillClimbing ((min (param hcMaxDistFs) (List.length (second $centerInst))) (param hcMinXoverNeighborsFs) 1.0) (False False False $centerInst 0 0 0 0 0 0 1)
+              $POASet
               ($labels $rows () ())
               $centerInst
-              (50.0 1.0 0.5 1.0 True $FsScorerType)
-              estimateNeighborhoodFs crossoverFs 
+              $fsHyperparams
+              estimateNeighborhoodFs crossoverFs
               sampleNewInstancesFs transformFs
           )))
       ((mkParams applyStrategyBasedScore)

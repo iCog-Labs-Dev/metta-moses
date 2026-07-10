@@ -87,8 +87,7 @@
             ) 
 	(case $algo
 		((hc (let $init-instance (List.generate (- (List.length $labels) 1) 0)
-		                      (hcFtSetPop (mkITable $table $labels) $init-instance $scorerType)))
-		                      ;; (hcFtSetPop (mkITable $table $labels) $init-instance $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType))) ;; INFO: This used to get all of the following params but the function can't handle those so removed for now: $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive
+		                      (hcFtSetPop (mkITable $table $labels) $init-instance $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)))
 
 		 (rd (randomFeatureSelection (mkITable $table $labels) $target-size))                                       
 		 (sim (simpleFeatureSelector $th $target-size False (mkITable $table $labels) ()))                           ;; False -- default value for using exp distribution for selection of top N features -- and start with empty feature list as initial features -- th here refers to the minimum score required for feature set to be selected
