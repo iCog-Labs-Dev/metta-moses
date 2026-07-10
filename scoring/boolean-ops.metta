@@ -54,9 +54,51 @@
 ;; in `evalParsed`.
 
 ;; ---- Wrapped-list operators: single arity-1 clause = n-ary ----
-(= (AND $args) (all $args))
-(= (OR  $args) (any $args))
-(= (NOT $x)    (not $x))
+;; The clause bodies are LAZY: children may arrive as unevaluated
+;; row-substituted expressions (the reduceRow path dispatches only the
+;; root), and allLazy/anyLazy force each child on demand via forceB,
+;; short-circuiting on the first decisive value — subtrees on the decided
+;; side are never dispatched at all. Children that arrive already
+;; evaluated (evalParsed's eval path, reduceParsed, direct test calls)
+;; pass through forceB unchanged, so both calling conventions work.
+;;
+;; Extensibility contract: a NEW operator's clause receives its children
+;; in whatever state the caller left them — force any child it consumes
+;; with (forceB $kid) before using the value.
+(= (AND $args) (allLazy $args))
+(= (OR  $args) (anyLazy $args))
+(= (NOT $x)    (not (forceB $x)))
+
+;; Force one child: expressions dispatch through reduce (firing these
+;; clauses recursively, again lazily); atoms — booleans, numbers, symbols
+;; — pass through. reduce leaves non-callable heads as data. The reduce
+;; argument is let-bound: reduce on a bare var-form would dispatch the
+;; constructor call rather than the term.
+(= (forceB $x)
+   (if (== (get-metatype $x) Expression)
+       (if (== $x ())
+           ()
+           (let $call $x (reduce $call)))
+       $x))
+
+;; Short-circuit conjunction/disjunction over a kids tuple. Semantics
+;; match general-helpers' all/any (is-member scan): all = True unless
+;; some child forces to False; any = False unless some child forces to
+;; True; non-boolean values pass through unless decisive.
+(= (allLazy $kids)
+   (if (== $kids ())
+       True
+       (let ($k $rest) (decons-atom $kids)
+         (if (== (forceB $k) False)
+             False
+             (allLazy $rest)))))
+(= (anyLazy $kids)
+   (if (== $kids ())
+       False
+       (let ($k $rest) (decons-atom $kids)
+         (if (== (forceB $k) True)
+             True
+             (anyLazy $rest)))))
 
 ;; ---- preOrderExp: Tree -> Expression form, leaves still as symbols. ----
 ;; Mirrors `preOrder` in utilities/tree.metta but returns an Expression

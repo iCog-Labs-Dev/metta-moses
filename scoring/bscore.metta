@@ -68,48 +68,38 @@
              (if (== $i -1) $expr (lbl $i)))
            $expr)))
 
-;; Generic row evaluator: a bottom-up walk that applies `reduce` at every
-;; node. The evaluator knows NOTHING about boolean semantics — AND/OR/NOT
-;; (and any future operator) evaluate through their registered clauses in
-;; scoring/boolean-ops.metta via the reduce dispatch, so the operator set
-;; is extended by defining a clause, never by editing this walk. The only
-;; special case is data plumbing: a (lbl N) leaf resolves to the row's
-;; Nth value.
+;; Generic row evaluator: pure data plumbing plus ONE reduce at the root.
+;; substRow walks the indexed candidate replacing each (lbl N) leaf with
+;; the row's Nth value — no dispatch, no boolean knowledge. The root of
+;; the substituted expression is then forced through `reduce`, firing the
+;; operator's registered clause in scoring/boolean-ops.metta. The clause
+;; bodies are lazy (allLazy/anyLazy force children on demand), so
+;; evaluation short-circuits: subtrees on the decided side of an AND/OR
+;; are never dispatched. The operator set is extended by defining a
+;; clause, never by editing this walk.
 ;;
 ;; Operates on the wrapped eval shape emitted by preOrderExp
 ;; ((Op (kids)) / (NOT child)), which is what the arity-1 clauses expect.
-;; reduce is single-step, so children are evaluated BEFORE the parent
-;; dispatch, and the dispatched term is let-bound — reduce on a literal
-;; (cons-atom ...) form would dispatch cons-atom itself. Atoms
-;; (operator-head symbols, row-bound booleans, numbers) pass through;
-;; expression-headed tuples (e.g. an evaluated kids tuple) stay data,
-;; mirroring reduce's own leave-unevaluated rule.
-;;
-;; Child iteration is direct tuple recursion rather than map-atom: a
-;; map-atom body capturing $row compiles to a yall lambda that copy_terms
-;; the capture once per element per node — same-state mux6 A/B measured
-;; ~+29% wall for map-atom vs ~+13% for this form over the previous
-;; baseline. The walk stays generic either way.
-(= (reduceRowKids $kids $row)
-   (if (== $kids ())
-       ()
-       (let ($k $rest) (decons-atom $kids)
-         (cons-atom (reduceRow $k $row) (reduceRowKids $rest $row)))))
-
-(= (reduceRow $e $row)
+;; Child iteration is direct tuple recursion rather than map-atom (a
+;; map-atom body capturing $row copy_terms the capture per element).
+(= (substRow $e $row)
    (if (not (== (get-metatype $e) Expression))
        $e
        (if (== $e ())
            ()
            (if (== (car-atom $e) lbl)
                (List.getByIdx $row (car-atom (cdr-atom $e)))
-               (let* (
-                      ($kids (reduceRowKids $e $row))
-                      ($h (car-atom $kids))
-                     )
-                 (if (== (get-metatype $h) Expression)
-                     $kids
-                     (reduce $kids)))))))
+               (substRowKids $e $row)))))
+
+(= (substRowKids $kids $row)
+   (if (== $kids ())
+       ()
+       (let ($k $rest) (decons-atom $kids)
+         (cons-atom (substRow $k $row) (substRowKids $rest $row)))))
+
+(= (reduceRow $e $row)
+   (let $sub (substRow $e $row)
+     (forceB $sub)))
 
 ;; Function to give a behavioral score for a given tree.
 ;; It takes the Input table and the tree then scores the input table on each row. After which it builds the behavioral score.
