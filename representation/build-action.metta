@@ -99,7 +99,14 @@
                     (buildAction $child1 $m1 $actions $perceptions))
                   (buildAction $child $MMap $actions $perceptions))
               ($child $MMap)))))
-  
+
+;; Existing action knobs are rebuilt recursively.
+(= (processActionChild (mkKnob $controlledSubtree $ask $idx) $MMap $actions $perceptions $p)
+   (let*
+      (
+          (($rebuiltSubtree $m1) (buildAction $controlledSubtree $MMap $actions $perceptions))
+      )
+      ((mkKnob $rebuiltSubtree $ask $idx) $m1)))
 ;; Process the children of an and_seq subtree.
 ;; Each child is rebuilt recursively while preserving the C++ p=80
 ;; action-knob insertion policy. Returns:
@@ -152,21 +159,6 @@
      )
      ((cons $rebuiltChild $rebuiltRest) $m2)))
 
-;;; Rebuild the original children of a newly inserted action knob.
-;; The knob itself is preserved while its controlled subtree is recursively rebuilt.
-;; Input:(mkKnob (mkTree (mkNode and_seq) children) ask idx)
-;; Output:   (updatedKnob updatedMMap)
-(= (rebuildKnobChildren (mkKnob (mkTree (mkNode and_seq) $children) $ask $idx) $MMap $actions $perceptions $p)
-   (let*
-      (
-         (($rebuiltChildren $m1) (processActionChildren $children $MMap $actions $perceptions $p))
-      )
-     ((mkKnob (mkTree (mkNode and_seq) $rebuiltChildren) $ask $idx) $m1)))
-
-;; Non-knob trees require no rebuilding.
-(= (rebuildKnobChildren (mkTree (mkNode $op) $children) $MMap $actions $perceptions $p) 
-   ((mkTree (mkNode $op) $children) $MMap))
-
 ;; Build the representation of an and_seq subtree.
 ;; Mirrors the C++ action-knob construction using the
 ;; internal p=80 insertion policy.
@@ -174,25 +166,31 @@
    (let $p 80
       (if (or (== $children ()) (< (randint 99) $p))
 
-          ;; Insert the knob first, then recursively rebuild the original children.
+          ;; Insert the knob, then recursively rebuild the returned tree.
           (let*
              (
                 (($withKnobs $m1) (addActionKnobs (mkTree (mkNode and_seq) $children) True $MMap $actions $perceptions))
-                (($rebuiltTree $m2) (rebuildKnobChildren $withKnobs $m1 $actions $perceptions $p))
              )
+            ;; addActionKnobs returns an updated and_seq tree with the inserted knob
+            ;; already embedded, so recurse over the returned children directly.
+             (let
+                (mkTree (mkNode and_seq) $updatedChildren)
+                $withKnobs
+                (let*
+                   (
+                      (($rebuiltChildren $m2) (processActionChildren $updatedChildren $m1 $actions $perceptions $p))
+                   )
 
-             (if (>= (randint 99) $p)
+                   (if (>= (randint 99) $p)
 
-                 (let*
-                    (
-                       ($extraChild (mkTree (mkNode and_seq) ()))
-                       (($extraWrapped $m3) (addActionKnobs $extraChild False $m2 $actions $perceptions))
-                    )
-                    (let
-                       (mkTree (mkNode and_seq) $rebuiltChildren) $rebuiltTree
-                       ((mkTree (mkNode and_seq) (append $rebuiltChildren (cons $extraWrapped ()))) $m3)))
+                       (let*
+                          (
+                             ($extraChild (mkTree (mkNode and_seq) ()))
+                             (($extraWrapped $m3) (addActionKnobs $extraChild False $m2 $actions $perceptions))
+                          )
+                          ((mkTree (mkNode and_seq) (append $rebuiltChildren (cons $extraWrapped ()))) $m3))
 
-                  ($rebuiltTree $m2)))
+                        ((mkTree (mkNode and_seq) $rebuiltChildren) $m2)))))
           ;; No knob added at this node.
           (let*
              (
