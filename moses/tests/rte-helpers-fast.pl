@@ -204,6 +204,32 @@ sort_key_of_(_, Cpxy, k(1.0Inf, Cpxy)). %% NaN -> sort last
 'any'(Bools, true) :- is_list(Bools), memberchk(true, Bools), !.
 'any'(_, false).
 
+%% --- removeEmptyAND/2 (reduct/boolean-reduct/cut-unnecessary-and.metta) ---
+%% Prunes empty (AND) nodes bottom-up: a bare ['AND'] reduces to 'Nothing',
+%% Nothing-valued kids are dropped from their parent, leaves pass through.
+%% Mirrors the MeTTa case dispatch exactly, including its silent failure on
+%% [] input (decons-atom on () yields no solution). ==-only dispatch; ground
+%% placeholder-label data throughout. Replaces the SLG tabling of the MeTTa
+%% version (moses.metta) — the O(n) walk beats table lookup + answer copy
+%% (827K calls on mux6).
+:- dynamic('removeEmptyAND'/2).
+:- retractall('removeEmptyAND'(_, _)).
+
+'removeEmptyAND'(Exp, Exp) :- \+ is_list(Exp), !.   %% Symbol / Grounded leaf
+'removeEmptyAND'([], _) :- !, fail.                 %% mirror MeTTa: no solution on ()
+'removeEmptyAND'([H|T], Out) :- !,
+    (  H == 'AND'
+    -> ( T == [] -> Out = 'Nothing'
+       ; rea_kids_(T, Kids), Out = ['AND'|Kids] )
+    ;  rea_kids_([H|T], Out)
+    ).
+
+rea_kids_([], []).
+rea_kids_([X|Xs], Out) :-
+    'removeEmptyAND'(X, X1),
+    rea_kids_(Xs, R),
+    ( X1 == 'Nothing' -> Out = R ; Out = [X1|R] ).
+
 %% Register the stubs as MeTTa funs (idempotent).
 :- register_fun('getLiterals').
 :- register_fun('getChildrenExp').
@@ -213,3 +239,4 @@ sort_key_of_(_, Cpxy, k(1.0Inf, Cpxy)). %% NaN -> sort last
 :- register_fun('getGuardSet').
 :- register_fun('sortDeme').
 :- register_fun('any').
+:- register_fun('removeEmptyAND').
