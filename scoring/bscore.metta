@@ -140,12 +140,6 @@
                (car-atom $val)
            ))))
 
-;; Retained semantics layer: the var-template path (candTemplate builds the
-;; labels->fresh-var template once; evalParsed unifies each row and evals;
-;; reduceParsed is its eval-free sibling). scoreTree's hot path uses the
-;; reduceRow walk above; this stays available for non-hot-path callers and
-;; the boolean-ops tests.
-(= (scoreTreeHelper $template $row) (evalParsed $template $row))
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.
