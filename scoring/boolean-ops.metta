@@ -69,16 +69,32 @@
 (= (OR  $args) (anyLazy $args))
 (= (NOT $x)    (not (forceB $x)))
 
-;; Force one child: expressions dispatch through reduce (firing these
-;; clauses recursively, again lazily); atoms — booleans, numbers, symbols
-;; — pass through. reduce leaves non-callable heads as data. The reduce
-;; argument is let-bound: reduce on a bare var-form would dispatch the
-;; constructor call rather than the term.
+;; Portable dynamic dispatch of a wrapped arity-1 operator term (Op Arg):
+;; the var-headed application ($h ...) is lowered to the runtime meta-call
+;; by BOTH PeTTa runtimes. Do NOT use (reduce $var) here: PeTTaV1 extends
+;; the reduce special form to accept a variable, but stock PeTTa (the CI
+;; image) requires a literal call form and mis-compiles a variable
+;; argument — the clause then fails silently at runtime. Terms that are
+;; not arity-1 with an atom head (row-bound value tuples, data) pass
+;; through unchanged, mirroring reduce's leave-unevaluated rule.
+(= (dispatchOp $x)
+   (let ($h $t) (decons-atom $x)
+     (if (== (get-metatype $h) Expression)
+         $x
+         (if (== $t ())
+             $x
+             (if (== (cdr-atom $t) ())
+                 ($h (car-atom $t))
+                 $x)))))
+
+;; Force one child: expressions dispatch through their registered clause
+;; (firing these clauses recursively, again lazily); atoms — booleans,
+;; numbers, symbols — pass through.
 (= (forceB $x)
    (if (== (get-metatype $x) Expression)
        (if (== $x ())
            ()
-           (let $call $x (reduce $call)))
+           (dispatchOp $x))
        $x))
 
 ;; Short-circuit conjunction/disjunction over a kids tuple. Semantics
@@ -192,11 +208,10 @@
 ;; scoring bottleneck. `reduceExp` instead walks the row-bound template
 ;; bottom-up as plain compiled recursion and dispatches each operator with
 ;; a single `reduce` call into its compiled clause. Two reduce gotchas
-;; honored: reduce is single-step, so children are evaluated BEFORE the
-;; parent dispatch; and the dispatched term is let-bound first, so reduce
-;; sees the constructed term rather than the constructor call. Heads that
+;; honored: dispatch is single-step, so children are evaluated BEFORE the
+;; parent dispatch (via dispatchOp — see its portability note). Heads that
 ;; are not callable (e.g. a row-bound boolean at the head of the wrapped
-;; kids tuple) come back from reduce as data, mirroring eval's behavior.
+;; kids tuple) come back as data, mirroring eval's behavior.
 (= (reduceExp $e)
    (if (not (== (get-metatype $e) Expression))
        $e
@@ -208,7 +223,7 @@
                  )
              (if (== (get-metatype $h) Expression)
                  $kids
-                 (reduce $kids))))))
+                 (dispatchOp $kids))))))
 
 (= (reduceParsed $template $row)
    (let ($labelsP $expP) $template
