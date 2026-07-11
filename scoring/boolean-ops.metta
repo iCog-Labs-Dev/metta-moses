@@ -4,8 +4,8 @@
 ;;   once per row:        (reduceRow $indexed $row)
 ;; preOrderExp emits the wrapped eval shape ((Op (kids)) / (NOT child)),
 ;; indexLeaves maps label symbols to (lbl N) column positions, and
-;; reduceRow substitutes the row's values and forces the root — the lazy
-;; AND/OR/NOT clauses below do the rest.
+;; reduceRow substitutes the row's values and evaluates bottom-up,
+;; dispatching each operator node into its clause below.
 ;; The var-template path (expToExp/foldTemplate/evalParsed) has no
 ;; production callers; it is kept as the semantics reference exercised by
 ;; boolean-ops-test.
@@ -16,50 +16,13 @@
 ;; a CALL — wrap such data sites in (quote ...). All constructed terms
 ;; here use cons-atom or quote so nothing fires at build time.
 
-;; Wrapped-list operators: single arity-1 clause = n-ary. Bodies are LAZY:
-;; children arrive unevaluated from reduceRow and are forced on demand,
-;; short-circuiting at the first decisive value; already-evaluated
-;; children (evalParsed path, direct calls) pass through unchanged.
-;; New-operator contract: force any child you consume with (forceB $kid).
-(= (AND $args) (allLazy $args))
-(= (OR  $args) (anyLazy $args))
-(= (NOT $x)    (not (forceB $x)))
-
-;; Force one child: arity-1 atom-headed terms dispatch their clause via a
-;; var-headed application (works on BOTH runtimes); everything else is
-;; data. Do NOT use (reduce $var) here — stock PeTTa (the CI image)
-;; mis-compiles a variable argument to reduce and fails silently; only
-;; PeTTaV1 accepts it.
-(= (forceB $x)
-   (if (== (get-metatype $x) Expression)
-       (if (== $x ())
-           ()
-           (let ($h $t) (decons-atom $x)
-             (if (== (get-metatype $h) Expression)
-                 $x
-                 (if (== $t ())
-                     $x
-                     (if (== (cdr-atom $t) ())
-                         ($h (car-atom $t))
-                         $x)))))
-       $x))
-
-;; Short-circuit conjunction/disjunction over a kids tuple; semantics
-;; match general-helpers' all/any.
-(= (allLazy $kids)
-   (if (== $kids ())
-       True
-       (let ($k $rest) (decons-atom $kids)
-         (if (== (forceB $k) False)
-             False
-             (allLazy $rest)))))
-(= (anyLazy $kids)
-   (if (== $kids ())
-       False
-       (let ($k $rest) (decons-atom $kids)
-         (if (== (forceB $k) True)
-             True
-             (anyLazy $rest)))))
+;; Wrapped-list operators: single arity-1 clause = n-ary. Evaluation is
+;; STRICT — a clause always receives fully evaluated children (reduceRow
+;; evaluates bottom-up; evalParsed's eval normalizes bottom-up), so
+;; new-operator clauses can consume their kids tuple directly.
+(= (AND $args) (all $args))
+(= (OR  $args) (any $args))
+(= (NOT $x)    (not $x))
 
 ;; preOrderExp: Tree -> wrapped eval shape, leaves still label symbols.
 ;; Mirrors utilities/tree's preOrder; every emission is quote-protected.
@@ -96,29 +59,41 @@
              (if (== $i -1) $expr (lbl $i)))
            $expr)))
 
-;; Row evaluation: substRow is pure plumbing — (lbl N) leaves become the
-;; row's Nth value, no dispatch, no boolean knowledge — and reduceRow
-;; forces the substituted root, letting the lazy clauses drive (and
-;; short-circuit) the evaluation. Child iteration is direct recursion:
-;; a map-atom body capturing $row would copy_term the capture per element.
-(= (substRow $e $row)
+;; reduceRow: one bottom-up walk per (candidate, row) — (lbl N) leaves
+;; become the row's Nth value, children evaluate before their parent, and
+;; each arity-1 atom-headed node dispatches its operator clause via a
+;; var-headed application. Do NOT "simplify" that dispatch to
+;; (reduce $var): stock PeTTa (the CI image) mis-compiles a variable
+;; argument to the reduce special form and fails silently; only PeTTaV1
+;; accepts it. Terms that are not arity-1 with an atom head (row-bound
+;; value tuples, data) pass through unchanged. Child iteration is direct
+;; recursion: a map-atom body capturing $row would copy_term the capture
+;; per element.
+(= (reduceRow $e $row)
    (if (not (== (get-metatype $e) Expression))
        $e
        (if (== $e ())
            ()
            (if (== (car-atom $e) lbl)
                (index-atom $row (car-atom (cdr-atom $e)))
-               (substRowKids $e $row)))))
+               (let* (
+                      ($kids (rowKids $e $row))
+                      ($h (car-atom $kids))
+                      ($t (cdr-atom $kids))
+                     )
+                 (if (== (get-metatype $h) Expression)
+                     $kids
+                     (if (== $t ())
+                         $kids
+                         (if (== (cdr-atom $t) ())
+                             ($h (car-atom $t))
+                             $kids))))))))
 
-(= (substRowKids $kids $row)
+(= (rowKids $kids $row)
    (if (== $kids ())
        ()
        (let ($k $rest) (decons-atom $kids)
-         (cons-atom (substRow $k $row) (substRowKids $rest $row)))))
-
-(= (reduceRow $e $row)
-   (let $sub (substRow $e $row)
-     (forceB $sub)))
+         (cons-atom (reduceRow $k $row) (rowKids $rest $row)))))
 
 ;; substExp: replace every leaf occurrence of $target with $repl. Manual
 ;; recursion, NOT map-atom/foldl-atom — their yall lambdas copy_term
