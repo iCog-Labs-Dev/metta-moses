@@ -53,12 +53,11 @@
 
 ;; crossPairsForRef
 ;; Cross one reference instance with all higher-ranked instances to generate offspring.
-(= (crossPairsForRef () $referenceInst $base $acc $limit)
-   $acc)
-
-(= (crossPairsForRef (cons $target $rest) $referenceInst $base $acc $limit)
-   (if (>= (List.length $acc) $limit)
-       $acc
+(= (crossPairsForRef () $referenceInst $base $acc $count $limit)
+   ($acc $count))
+(= (crossPairsForRef (cons $target $rest) $referenceInst $base $acc $count $limit)
+   (if (>= $count $limit)
+      ($acc $count)
        (let*
          (
            ((mkSInst (mkPair $targetInst $targetScore)) $target)
@@ -70,19 +69,20 @@
                  (worstCscore))))
 
            ($newAcc (List.append $offspring $acc))
+           ($newCount (+ $count 1))
          )
-         (crossPairsForRef $rest $referenceInst $base $newAcc $limit))))
-
+         (crossPairsForRef $rest $referenceInst $base $newAcc $newCount $limit))))
+         
 ;; crossPairs
 ;; Generate all pairwise crossover offspring using simplex ordering.
 ;; Uses processed (better) and remaining instances.
-(= (crossPairs $processed () $base $acc $limit)
-   $acc)
+(= (crossPairs $processed () $base $acc $count $limit)
+   ($acc $count))
 
-(= (crossPairs $processed (cons $reference $rest) $base $acc $limit)
+(= (crossPairs $processed (cons $reference $rest) $base $acc $count $limit)
 
-   (if (>= (List.length $acc) $limit)
-       $acc
+   (if (>= $count $limit)
+       ($acc $count)
 
        (let*
          (
@@ -90,11 +90,11 @@
              $reference)
 
            ;; cross reference with all better instances
-           ($updatedAcc
-             (crossPairsForRef $processed $referenceInst $base $acc $limit))
+           (($updatedAcc $updatedCount)
+             (crossPairsForRef $processed $referenceInst $base $acc $count $limit))
               ($newProcessed (List.append $reference $processed))
          )
-          (crossPairs $newProcessed $rest $base $updatedAcc $limit))))
+          (crossPairs $newProcessed $rest $base $updatedAcc $updatedCount $limit))))
 
 ;; crossTripleTargets
 ;; Create offspring by merging a target with two reference instances.

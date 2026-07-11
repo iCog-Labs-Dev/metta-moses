@@ -81,7 +81,7 @@
 
        ($topInsts (List.takeN $nToSort $sortedList))
 
-       ($newInstances (crossPairs () $topInsts $baseInstance () $nToMakeNew))
+       (($newInstances $_) (crossPairs () $topInsts $baseInstance () 0 $nToMakeNew))
        )
       $newInstances
       ))

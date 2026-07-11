@@ -118,30 +118,47 @@
                                                             (cons (mkSInst (mkPair (mkInst (cons 8 ())) (mkCscore 1 0 0 0 8)))()))))))))) (mkDemeId "2")))
 
 ;;crossPairsForRef test
- !(assertEqual
-  (crossPairsForRef
-     (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
-        (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3))) ()))
-     (getInst (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 3))))
-     (mkInst (cons 9 ()))
-     ()
-     2)
-   (cons (mkSInst (mkPair (mkInst (cons 5 ())) (worstCscore)))
-     (cons (mkSInst (mkPair (mkInst (cons 5 ())) (worstCscore))) ())))
-
-;; crossPairs Pairwise Test    
 !(assertEqual
-   (List.length
-      (crossPairs
-         ()
-         (cons
+  (let*
+    (
+      (($instances $count)
+        (crossPairsForRef
+          (cons
+            (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
+            (cons
+              (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
+              ()))
+          (getInst (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 3))))
+          (mkInst (cons 9 ()))
+          ()
+          0
+          2))
+    )
+    ((List.length $instances) $count)
+    )
+  (2 2))
+
+;; crossPairs Pairwise Test
+!(assertEqual
+  (let*
+    (
+      (($instances $count)
+        (crossPairs
+          ()
+          (cons
             (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 3)))
-               (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
-                 (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 1))) ())))
-        (mkInst (cons 9 ()))
-        ()
-         2))
-    2)
+            (cons
+              (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
+              (cons
+                (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 1)))
+                ())))
+          (mkInst (cons 9 ()))
+          ()
+          0
+          2))
+    )
+    ((List.length $instances) $count))
+  (2 2))
 ;; ----------------------------------------
 ;; crossTopTwo integration tests
 ;; ----------------------------------------
