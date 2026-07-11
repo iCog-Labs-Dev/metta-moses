@@ -48,7 +48,7 @@
 !(assertEqual (is-member 3 (1 2 4 5)) False)
 
 !(println! ("testing: setDifference "))
-;; boolean tuples ride under quote/let: this file loads scoring/bscore and
+;; boolean tuples ride under quote: this file loads scoring/bscore and
 ;; thus boolean-ops' AND/OR/NOT eval clauses — a bare tuple at a call site
 ;; would compile as a call instead of data.
 !(assertEqual (setDifference (quote (AND a b (NOT a) c (OR a b))) (quote (a b (NOT a) (OR a b)))) (quote (AND c)))

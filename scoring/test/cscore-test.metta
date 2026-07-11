@@ -45,7 +45,7 @@
         (cons A (cons B (cons Output ())))))
 
 
-;; candidates ride under quote/let: this file loads boolean-ops' AND/OR/NOT
+;; candidates ride under quote: this file loads boolean-ops' AND/OR/NOT
 ;; eval clauses, so a bare (AND A B) at a call site would compile as a call.
 !(assertEqual (getCscore (ttable1) (buildTree (quote (AND A B))) 2.0 &bscoreCache) (mkCscore -1 2 1.0 0.0 -2.0))
 !(assertEqual (getCscore (ttable1) (buildTree (quote (OR A B))) 4 &bscoreCache) (mkCscore 0 2 0.5 0.0 -0.5))

@@ -11,11 +11,16 @@
 ;; production callers; it is kept as the semantics reference exercised by
 ;; boolean-ops-test.
 ;;
+;; DEPENDS ON utilities/general-helpers (all/any, is-member) — entry files
+;; must import it before this module.
+;;
 ;; Quote rule: these clause names double as the data constructors used in
 ;; candidate trees and reduct expressions. Any bare (NOT $x) or arity-1
 ;; (AND ...)/(OR ...) tuple in a module loaded after this one compiles as
-;; a CALL — wrap such data sites in (quote ...). All constructed terms
-;; here use cons-atom or quote so nothing fires at build time.
+;; a CALL — wrap such data sites in (quote ...); a callee that
+;; destructures its argument in the clause head needs the quoted value
+;; let-bound first (see boolean-ops-test). All constructed terms here use
+;; cons-atom or quote so nothing fires at build time.
 
 ;; Wrapped-list operators: single arity-1 clause = n-ary. Evaluation is
 ;; STRICT — a clause always receives fully evaluated children (reduceRow
@@ -77,6 +82,8 @@
                      (if (== $t ())
                          $kids
                          (if (== (cdr-atom $t) ())
+                             ;; portable dispatch — NEVER (reduce $var):
+                             ;; stock PeTTa mis-compiles it (CI-only break)
                              ($h (car-atom $t))
                              $kids))))))))
 

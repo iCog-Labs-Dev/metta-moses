@@ -1,8 +1,12 @@
 ;; Type definitions and functions related to beahvioral socre, behavioral complexity score and turth table behavioral score.
-;; Behavioral score is a list of numbers, where each number represents the score of a particular output. 
+;; Behavioral score is a list of numbers, where each number represents the score of a particular output.
 ;; For boolean expressions, the score is either 0 or -1. Therefore, this behavioral score is a list of 0s and -1s.
-;; In the C++ version, floating point scores and numbers different than -1 and 0 are used as a result of table compression 
+;; In the C++ version, floating point scores and numbers different than -1 and 0 are used as a result of table compression
 ;;  and weighting options. However, we don't have that yet.
+;;
+;; DEPENDS ON scoring/boolean-ops (preOrderExp/reduceRow — scoreTree's
+;; evaluator) and utilities/general-helpers: entry files must import both
+;; BEFORE this module, or scoreTree fails silently (calls compile as data).
 
 ; (: BehavioralScore Type)
 ; ;(: mkBScore (-> (List Number) BehavioralScore))
@@ -17,16 +21,6 @@
 ;; Sums the behavioral score to get a single number.
 ;(: sumBScore (-> BehavioralScore Number))
 (= (sumBScore (mkBScore $bs)) (List.sum $bs))
-
-;; Count wins in a BehavioralScore for game strategies
-;; For game strategies: 1.0 = win, -1.0 = loss, 0.0 = draw
-;; Returns the total number of wins
-;(: countWins (-> BehavioralScore Number))
-(= (countWins (mkBScore ())) 0)
-(= (countWins (mkBScore (cons $head $tail)))
-   (if (== $head 1.0)
-       (+ 1 (countWins (mkBScore $tail)))
-       (countWins (mkBScore $tail))))
 
 ;; Input table with rows, columns and labels of the columns
 ;; An Input Table is just a list of lists.
@@ -164,49 +158,13 @@
 ;(: worstPossibleScore (-> (BehavioralCScore $a) Number))
 (= (worstPossibleScore (mkBCScore $truthTableBScore)) (let (mkBScore $bscore) (worstPossibleScore $truthTableBScore) (List.sum $bscore)))
 
-;; When we have a compressed tree, the min improvement
-;;  will be calculated. For now it's fixed.
-;(: minImprove (-> (BehavioralCScore $a) Number))
-(= (minImprove (mkBCScore $truthTableBScore) (minImprove $truthTableBScore)))
+;; minImprove for BehavioralCScore is served by the catch-all
+;; (= (minImprove $_) 0.5) above — no separate clause (one would overlap
+;; the catch-all and yield duplicate solutions).
 
 
-;;------------------------------------------------------------
-;; getArgLabels
-;;------------------------------------------------------------
-;;  Extracts argument labels (all but the last) from an ITable.
-;;
-;;  The ITable structure is:
-;;    (mkITable $rows $labels)
-;;      where $rows   = list of data rows (each a list of values)
-;;            $labels = list of column labels (symbols)
-;;
-;;  This function returns an expressison of all column labels except the last one,
-;;  which is typically the output label in a truth table.
-;;
-;;  Example:
-;;    (mkITable
-;;      (cons (cons True (cons False (cons True ())))
-;;            (cons (cons False (cons True (cons False ()))) ()))
-;;      (cons 'A (cons 'B (cons 'Y ()))))
-;;
-;;    Labels:   +---+---+---+
-;;              | A | B | Y |
-;;              +---+---+---+
-;;    Output:   ('A 'B)
-;;
-;;   
-;;      +---+---+---+
-;;      | A | B | Y |
-;;      +---+---+---+
-;;      | T | F | T |
-;;      | F | T | F |
-;;      +---+---+---+
-;;      ^^^^^^^^^^^^
-;;      getArgLabels returns only the input labels: [A, B]
-;;
-;;  Usage:
-;;    (getArgLabels $itable)  ; returns (cons 'A (cons 'B ()))
-;;
+;; getArgLabels: all column labels except the last (the output column),
+;; returned as an expression. Test-only today; kept for table utilities.
 ;(:getArgLabels (-> (ITable $a) (List Symbol)))
 (= (getArgLabels (mkITable $rows $labels))
    (let $args
