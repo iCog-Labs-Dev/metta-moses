@@ -30,8 +30,8 @@
 ;; `(quote ...)` at every such data site: quote returns the tuple as
 ;; data, so the clauses fire only under forceB's runtime dispatch or
 ;; evalParsed's explicit `(eval $expP)`. Guarded sites: this file
-;; (preOrderExp emissions,
-;; is-member list), scoring/bscore (replaceVarWithTruth),
+;; (preOrderExp emissions, is-member list), scoring/bscore
+;; (replaceVarWithTruth),
 ;; representation/build-logical, representation/logical-canonize,
 ;; representation/sample-logical-perms (getArgs emissions), and
 ;; utilities/tree (membership lists + nullary preOrder emissions —
@@ -182,6 +182,9 @@
 ;; sealed freshens only the labels vars in the body; unification binds
 ;; those fresh copies to the row; eval fires AND/OR/NOT on the fresh
 ;; expression. Original template's vars remain unbound for the next row.
+;; Mechanism: sealed compiles to SWI-Prolog's copy_term/4 — only the
+;; variables are freshened; ground (label-free) subterms are shared
+;; between the template and the copy, not duplicated per row.
 
 (= (evalParsed $template $row)
    (let ($labelsP $expP) $template

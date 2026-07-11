@@ -66,10 +66,10 @@
              (if (== $i -1) $expr (lbl $i)))
            $expr)))
 
-;; Generic row evaluator: pure data plumbing plus ONE reduce at the root.
+;; Generic row evaluator: pure data plumbing plus ONE dispatch at the root.
 ;; substRow walks the indexed candidate replacing each (lbl N) leaf with
 ;; the row's Nth value — no dispatch, no boolean knowledge. The root of
-;; the substituted expression is then forced through `reduce`, firing the
+;; the substituted expression is then forced through `forceB`, firing the
 ;; operator's registered clause in scoring/boolean-ops.metta. The clause
 ;; bodies are lazy (allLazy/anyLazy force children on demand), so
 ;; evaluation short-circuits: subtrees on the decided side of an AND/OR
@@ -122,8 +122,8 @@
                    ;; the wrapped eval form ONCE (preOrderExp) with labels
                    ;; indexed to row positions, then score every row with
                    ;; the generic reduceRow walk — operator semantics come
-                   ;; from the AND/OR/NOT clauses via reduce, not from the
-                   ;; evaluator. Each row is compared against its output
+                   ;; from the AND/OR/NOT clauses via forceB's dispatch, not
+                   ;; from the evaluator. Each row is compared against its output
                    ;; column (the row's last element) in a single pass.
                    ;; map-atom capturing $indexed/$lastIdx is safe: both
                    ;; are ground, so yall's per-iteration copy_term is a
