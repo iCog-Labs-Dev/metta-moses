@@ -76,7 +76,7 @@ collect_kids([H|T], Kids) :-
 'replaceVarsWithTruth'([LList, BoolExpr], BList, Out) :-
     pairs_keys_values(Pairs, LList, BList),
     list_to_assoc(Pairs, Env),
-    rvw_full(Env, BoolExpr, Out).
+    rvw_full(Env, BoolExpr, Out), !.
 
 rvw_full(Env, [Single], Out) :- !,
     rvw_full(Env, Single, Out).
