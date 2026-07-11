@@ -50,55 +50,6 @@
 ;(: getTable (-> (TruthTableBScore $a) (ITable $a)))
 (= (getTable (mkTruthTableBScore $compCoeff $size $table)) $table)
 
-;; Once per candidate: replace each label symbol in the candidate's
-;; expression form with (lbl N), N = its position in $labels. Non-label
-;; symbols (operator heads AND/OR/NOT, unknown symbols) pass through:
-;; List.index returns -1 on miss. Direct recursion keeps the walk free of
-;; per-element dispatch overhead.
-(= (indexLeaves $expr $labels)
-   (if (== (get-metatype $expr) Expression)
-       (if (== $expr ())
-           ()
-           (let ($h $t) (decons-atom $expr)
-             (cons-atom (indexLeaves $h $labels) (indexLeaves $t $labels))))
-       (if (== (get-metatype $expr) Symbol)
-           (let $i (List.index $labels $expr)
-             (if (== $i -1) $expr (lbl $i)))
-           $expr)))
-
-;; Generic row evaluator: pure data plumbing plus ONE dispatch at the root.
-;; substRow walks the indexed candidate replacing each (lbl N) leaf with
-;; the row's Nth value — no dispatch, no boolean knowledge. The root of
-;; the substituted expression is then forced through `forceB`, firing the
-;; operator's registered clause in scoring/boolean-ops.metta. The clause
-;; bodies are lazy (allLazy/anyLazy force children on demand), so
-;; evaluation short-circuits: subtrees on the decided side of an AND/OR
-;; are never dispatched. The operator set is extended by defining a
-;; clause, never by editing this walk.
-;;
-;; Operates on the wrapped eval shape emitted by preOrderExp
-;; ((Op (kids)) / (NOT child)), which is what the arity-1 clauses expect.
-;; Child iteration is direct tuple recursion rather than map-atom (a
-;; map-atom body capturing $row copy_terms the capture per element).
-(= (substRow $e $row)
-   (if (not (== (get-metatype $e) Expression))
-       $e
-       (if (== $e ())
-           ()
-           (if (== (car-atom $e) lbl)
-               (index-atom $row (car-atom (cdr-atom $e)))
-               (substRowKids $e $row)))))
-
-(= (substRowKids $kids $row)
-   (if (== $kids ())
-       ()
-       (let ($k $rest) (decons-atom $kids)
-         (cons-atom (substRow $k $row) (substRowKids $rest $row)))))
-
-(= (reduceRow $e $row)
-   (let $sub (substRow $e $row)
-     (forceB $sub)))
-
 ;; Function to give a behavioral score for a given tree.
 ;; It takes the Input table and the tree then scores the input table on each row. After which it builds the behavioral score.
 ;;
@@ -117,17 +68,10 @@
            $val
            (if (== $val ())
                (let* (
-                   ;; The candidate is ground (placeholder labels), so the
-                   ;; Space match above is an exact key. On a miss, build
-                   ;; the wrapped eval form ONCE (preOrderExp) with labels
-                   ;; indexed to row positions, then score every row with
-                   ;; the generic reduceRow walk — operator semantics come
-                   ;; from the AND/OR/NOT clauses via forceB's dispatch, not
-                   ;; from the evaluator. Each row is compared against its output
-                   ;; column (the row's last element) in a single pass.
-                   ;; map-atom capturing $indexed/$lastIdx is safe: both
-                   ;; are ground, so yall's per-iteration copy_term is a
-                   ;; semantic no-op.
+                   ;; Ground candidate => the Space match above is an exact
+                   ;; cache key. On a miss, build the indexed eval form ONCE
+                   ;; and score every row with reduceRow — the whole
+                   ;; evaluation pipeline lives in scoring/boolean-ops.metta.
                    ($indexed (indexLeaves (preOrderExp $tree) $labels))
                    ($lastIdx (- (size-atom $labels) 1))
                    ($bScore (map-atom $table $ts

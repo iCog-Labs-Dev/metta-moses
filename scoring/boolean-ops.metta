@@ -1,78 +1,35 @@
-;; Native boolean evaluation -- operator clauses + evaluation helpers.
+;; Native boolean evaluation -- operator clauses + the whole row-eval
+;; pipeline. scoreTree (scoring/bscore.metta) only orchestrates:
+;;   once per candidate:  (indexLeaves (preOrderExp $tree) $labels)
+;;   once per row:        (reduceRow $indexed $row)
+;; preOrderExp emits the wrapped eval shape ((Op (kids)) / (NOT child)),
+;; indexLeaves maps label symbols to (lbl N) column positions, and
+;; reduceRow substitutes the row's values and forces the root — the lazy
+;; AND/OR/NOT clauses below do the rest.
+;; The var-template path (expToExp/foldTemplate/evalParsed) has no
+;; production callers; it is kept as the semantics reference exercised by
+;; boolean-ops-test.
 ;;
-;; ---- Big picture (production path) ----
-;; scoreTree (scoring/bscore.metta) evaluates each candidate against every
-;; table row with no strings, no parse, no name->var dict:
-;;   1. `preOrderExp` (here) walks the Tree once, emitting the wrapped
-;;      eval shape ((Op (kids)) / (NOT child)) with label SYMBOLS at leaf
-;;      positions.
-;;   2. `indexLeaves` (bscore) replaces each label symbol with (lbl N),
-;;      N = the label's column position — done once per candidate.
-;;   3. Per row, `reduceRow` (bscore) substitutes the row's values for the
-;;      (lbl N) leaves and forces the root through `forceB`, firing the
-;;      AND/OR/NOT clauses below; their lazy bodies short-circuit.
-;;
-;; ---- Test-support layer (no production callers) ----
-;; The var-template path is retained for the boolean-ops tests
-;; (boolean-ops-test's callBE): `expToExp` converts a raw test expression
-;; to the wrapped eval shape, `foldTemplate`/`substExp` build a
-;; labels->fresh-var template from it, and `evalParsed` seals the label
-;; vars per row and evals the row-bound expression. It exercises the same
-;; operator clauses through the eval path.
-;;
-;; ---- Operator-name collision containment: quote ----
-;; The eval clauses below share their names with the AND/OR/NOT data
-;; constructors that pervade candidate trees and reduct expressions.
-;; Once these clauses register, any bare source-level tuple whose head
-;; is one of them — `(NOT $x)` anywhere, arity-1 `(AND ...)`/`(OR ...)`
-;; such as the membership list `(AND OR)` — compiles as a CALL in every
-;; module loaded after this one. The containment discipline is
-;; `(quote ...)` at every such data site: quote returns the tuple as
-;; data, so the clauses fire only under forceB's runtime dispatch or
-;; evalParsed's explicit `(eval $expP)`. Guarded sites: this file
-;; (preOrderExp emissions, is-member list), scoring/bscore
-;; (replaceVarWithTruth),
-;; representation/build-logical, representation/logical-canonize,
-;; representation/sample-logical-perms (getArgs emissions), and
-;; utilities/tree (membership lists + nullary preOrder emissions —
-;; order-protected under moses.metta but quoted so test files are safe
-;; regardless of their import order).
-;;
-;; ---- Data terms via cons-atom ----
-;; Every constructed term is built with `cons-atom` (a builtin that
-;; returns data) or under `quote` rather than as a bare literal
-;; expression, so the reducer doesn't fire the clauses at build time.
-;; Constructed terms only reach eval position via forceB's runtime
-;; dispatch (production) or evalParsed's explicit `(eval $expP)` (tests).
+;; Quote rule: these clause names double as the data constructors used in
+;; candidate trees and reduct expressions. Any bare (NOT $x) or arity-1
+;; (AND ...)/(OR ...) tuple in a module loaded after this one compiles as
+;; a CALL — wrap such data sites in (quote ...). All constructed terms
+;; here use cons-atom or quote so nothing fires at build time.
 
-;; ---- Wrapped-list operators: single arity-1 clause = n-ary ----
-;; The clause bodies are LAZY: children may arrive as unevaluated
-;; row-substituted expressions (the reduceRow path dispatches only the
-;; root), and allLazy/anyLazy force each child on demand via forceB,
-;; short-circuiting on the first decisive value — subtrees on the decided
-;; side are never dispatched at all. Children that arrive already
-;; evaluated (evalParsed's eval path, direct test calls) pass through
-;; forceB unchanged, so both calling conventions work.
-;;
-;; Extensibility contract: a NEW operator's clause receives its children
-;; in whatever state the caller left them — force any child it consumes
-;; with (forceB $kid) before using the value.
+;; Wrapped-list operators: single arity-1 clause = n-ary. Bodies are LAZY:
+;; children arrive unevaluated from reduceRow and are forced on demand,
+;; short-circuiting at the first decisive value; already-evaluated
+;; children (evalParsed path, direct calls) pass through unchanged.
+;; New-operator contract: force any child you consume with (forceB $kid).
 (= (AND $args) (allLazy $args))
 (= (OR  $args) (anyLazy $args))
 (= (NOT $x)    (not (forceB $x)))
 
-;; Force one child: expressions dispatch through their registered clause
-;; (firing these clauses recursively, again lazily); atoms — booleans,
-;; numbers, symbols — pass through.
-;;
-;; Portable dynamic dispatch of a wrapped arity-1 operator term (Op Arg):
-;; the var-headed application ($h ...) is lowered to the runtime meta-call
-;; by BOTH PeTTa runtimes. Do NOT use (reduce $var) here: PeTTaV1 extends
-;; the reduce special form to accept a variable, but stock PeTTa (the CI
-;; image) requires a literal call form and mis-compiles a variable
-;; argument — the clause then fails silently at runtime. Terms that are
-;; not arity-1 with an atom head (row-bound value tuples, data) pass
-;; through unchanged, mirroring reduce's leave-unevaluated rule.
+;; Force one child: arity-1 atom-headed terms dispatch their clause via a
+;; var-headed application (works on BOTH runtimes); everything else is
+;; data. Do NOT use (reduce $var) here — stock PeTTa (the CI image)
+;; mis-compiles a variable argument to reduce and fails silently; only
+;; PeTTaV1 accepts it.
 (= (forceB $x)
    (if (== (get-metatype $x) Expression)
        (if (== $x ())
@@ -87,10 +44,8 @@
                          $x)))))
        $x))
 
-;; Short-circuit conjunction/disjunction over a kids tuple. Semantics
-;; match general-helpers' all/any (is-member scan): all = True unless
-;; some child forces to False; any = False unless some child forces to
-;; True; non-boolean values pass through unless decisive.
+;; Short-circuit conjunction/disjunction over a kids tuple; semantics
+;; match general-helpers' all/any.
 (= (allLazy $kids)
    (if (== $kids ())
        True
@@ -106,12 +61,8 @@
              True
              (anyLazy $rest)))))
 
-;; ---- preOrderExp: Tree -> Expression form, leaves still as symbols. ----
-;; Mirrors `preOrder` in utilities/tree.metta but returns an Expression
-;; shape that matches the eval clauses above: (Op ( c1 c2 …)) for AND/OR,
-;; (NOT <child>) for NOT, `sym` at label leaves, (Op ()) at nullary
-;; AND/OR leaves. Knob passthroughs mirror preOrder. Every emission is
-;; quote-protected so the clauses cannot fire at template-build time.
+;; preOrderExp: Tree -> wrapped eval shape, leaves still label symbols.
+;; Mirrors utilities/tree's preOrder; every emission is quote-protected.
 (= (preOrderExp (mkTree (mkNode $r) ()))
    (if (once (is-member $r (quote (AND OR))))
        (quote ($r ()))
@@ -126,23 +77,52 @@
                  (quote (NOT $child)))
             (quote ($r $childrenExp)))))
 
-;; childrenExp: Expression of Trees -> Expression of child forms.
-;; map-atom applies preOrderExp; filter-atom drops empty knob passthroughs.
-;; Both bodies capture nothing from outer scope, so yall's per-iteration
-;; copy_term is harmless here (unlike in substExp).
+;; childrenExp: map preOrderExp over child Trees, dropping empty knob
+;; passthroughs. Bodies capture nothing, so map-atom's yall copy is safe.
 (= (childrenExp $children)
    (filter-atom (map-atom $children $c (preOrderExp $c)) $x (not (== $x ()))))
 
-;; ---- substExp: replace every leaf occurrence of $target in $exp with $repl. ----
-;; Manual recursion (NOT map-atom / foldl-atom): those compile to a
-;; SWI yall lambda `[X,Y]>>Body` which is copy_term'd per iteration,
-;; breaking identity for any free vars captured from the outer scope
-;; (like $repl). Standard recursion passes $repl as an argument, whose
-;; identity is preserved by Prolog's call/1.
-;;
-;; A List.foldl variant threading (target, repl, revResult) through the
-;; accumulator was tried and works correctly, but benched ~3% slower --
-;; the tuple-acc unpack and final reverse cost more than they save.
+;; indexLeaves: once per candidate, replace each label symbol with
+;; (lbl N), N = its column position (List.index misses return -1 and the
+;; symbol passes through — operator heads, unknown symbols).
+(= (indexLeaves $expr $labels)
+   (if (== (get-metatype $expr) Expression)
+       (if (== $expr ())
+           ()
+           (let ($h $t) (decons-atom $expr)
+             (cons-atom (indexLeaves $h $labels) (indexLeaves $t $labels))))
+       (if (== (get-metatype $expr) Symbol)
+           (let $i (List.index $labels $expr)
+             (if (== $i -1) $expr (lbl $i)))
+           $expr)))
+
+;; Row evaluation: substRow is pure plumbing — (lbl N) leaves become the
+;; row's Nth value, no dispatch, no boolean knowledge — and reduceRow
+;; forces the substituted root, letting the lazy clauses drive (and
+;; short-circuit) the evaluation. Child iteration is direct recursion:
+;; a map-atom body capturing $row would copy_term the capture per element.
+(= (substRow $e $row)
+   (if (not (== (get-metatype $e) Expression))
+       $e
+       (if (== $e ())
+           ()
+           (if (== (car-atom $e) lbl)
+               (index-atom $row (car-atom (cdr-atom $e)))
+               (substRowKids $e $row)))))
+
+(= (substRowKids $kids $row)
+   (if (== $kids ())
+       ()
+       (let ($k $rest) (decons-atom $kids)
+         (cons-atom (substRow $k $row) (substRowKids $rest $row)))))
+
+(= (reduceRow $e $row)
+   (let $sub (substRow $e $row)
+     (forceB $sub)))
+
+;; substExp: replace every leaf occurrence of $target with $repl. Manual
+;; recursion, NOT map-atom/foldl-atom — their yall lambdas copy_term
+;; captured vars per iteration, which would break $repl's identity.
 (= (substExp $target $repl $exp)
    (if (== (get-metatype $exp) Expression)
        (if (== $exp ())
@@ -156,16 +136,9 @@
              (cons $newH $newRest)))
        (if (== $exp $target) $repl $exp)))
 
-;; ---- foldTemplate: iterate labels, mint fresh var per iteration, ----
-;; ---- substitute label -> var everywhere in $exp. ----
-;; Returns ($labelsTerm $finalExp). Recurse-then-cons preserves original
-;; labels order in $labelsTerm (matching positional row unification).
-;; $v is fresh per recursive call (lexical scoping).
-;;
-;; A List.foldl variant with a named `foldTemplateStep` and a tuple
-;; accumulator ($labelsAcc $expAcc) was tried and works correctly, but
-;; benched ~3% slower — the tuple unpack per iteration and terminal
-;; reverse cost more than the fold saves.
+;; foldTemplate: mint one fresh var per label ($v is fresh per recursive
+;; call) and substitute it everywhere; returns ($labelsTerm $finalExp)
+;; sharing the same vars positionally for row unification.
 (= (foldTemplate $labels $exp)
    (if (== $labels ())
        (() $exp)
@@ -178,25 +151,17 @@
          )
          ($head $finalExp))))
 
-;; ---- Per-row core: template in, bool out. ----
-;; sealed freshens only the labels vars in the body; unification binds
-;; those fresh copies to the row; eval fires AND/OR/NOT on the fresh
-;; expression. Original template's vars remain unbound for the next row.
-;; Mechanism: sealed compiles to SWI-Prolog's copy_term/4 — only the
-;; variables are freshened; ground (label-free) subterms are shared
-;; between the template and the copy, not duplicated per row.
-
+;; evalParsed: per-row core of the template path. sealed (copy_term)
+;; freshens only the label vars, row unification binds them, eval fires
+;; the clauses; the original template stays unbound for the next row.
 (= (evalParsed $template $row)
    (let ($labelsP $expP) $template
         (sealed $labelsP
                 (let $labelsP $row
                      (eval $expP)))))
 
-;; ---- expToExp: Expression -> Expression form for test-side callers. ----
-;; Tests pass raw expressions like `(AND A B)` instead of Trees, so we
-;; need the same shape transform (children wrapped into a single tuple)
-;; but starting from an Expression. cons-atom keeps every constructed
-;; term as data.
+;; expToExp: same shape transform as preOrderExp but from a raw test
+;; expression like (AND A B) instead of a Tree.
 (= (expToExp $e)
    (if (== (get-metatype $e) Expression)
        (let ($h $rest) (decons-atom $e)
