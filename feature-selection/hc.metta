@@ -4,12 +4,9 @@
 (= (getHcFtPop  () $acc) ())
 (= (getHcFtPop (cons (mkSInst (mkPair (mkInst $list) $score)) $sInsts) $acc)
   (let* (($new-acc (getHcFtPop $sInsts $acc))
-         ;; bitsToIndices lives in deme/score-deme, which is imported after this
-         ;; module, so it resolves only when invoked through a variable. It is also
-         ;; reduced on its own: inside ($score (bitsToIndices ...)) the pair's head
-         ;; is a number, so the call would never be evaluated.
-         ($toIndices bitsToIndices)
-         ($ft-set ($toIndices $list 0 ()))
+         ;; Reduced on its own line: inside ($score (bitsToIndices ...)) the pair's
+         ;; head is a number, so the call would never be evaluated.
+         ($ft-set (bitsToIndices $list 0 ()))
          ($score-ft-set-pair (cons-atom $score (cons-atom $ft-set ()))))
     (cons $score-ft-set-pair $new-acc)))
 
@@ -26,12 +23,9 @@
 (= (hcFtSetPop $iTable $centerInst $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)
   (let* (
          ;; ($_ (println! (debug inside hcFtSetPop)))
-         ;; Invoked through a variable so it resolves at run time. Naming hillClimbing
-         ;; directly would require optimization/hillclimbing to be imported first.
-         ($optimize hillClimbing)
          ;; Built with cons-atom so the tuple stays data instead of being applied.
          ($fsHyperparams (cons-atom $miConfi (cons-atom $prePenalty (cons-atom $preMinActivation (cons-atom $preMaxActivation (cons-atom $prePositive (cons-atom $scorerType ())))))))
-         (((mkInst $inst1) (mkSInstSet $list) $state) ($optimize (mkSInstSet ()) $iTable (mkInst $centerInst) (mkParams applyMutualInformationBasedScore $fsHyperparams))) ;; runs the hillclimbing feature selector
+         (((mkInst $inst1) (mkSInstSet $list) $state) (hillClimbing (mkSInstSet ()) $iTable (mkInst $centerInst) (mkParams applyMutualInformationBasedScore $fsHyperparams))) ;; runs the hillclimbing feature selector
          ($list-of-scoreset-pairs (getHcFtPop $list ()))                                                    ;; separates the scores from the the previous output and puts them in a score feature-set pair tuple -- as list of
          ($unique-pairs (List.tFoldl $list-of-scoreset-pairs union-atom toExp ()))                          ;; finds unquie such pairs duplicats removed -- by way of union-atom
          ($size (size-atom $unique-pairs))
