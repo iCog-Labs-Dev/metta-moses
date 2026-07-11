@@ -94,8 +94,8 @@
 !(import! &self scoring/complexity-based-scorer)
 
 ;; ---- Optimization (hill climbing is the only production-ready algorithm) ----
-!(import! &self optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self optimization/hillclimbing/cross-top-one)
+!(import! &self optimization/hillclimbing/crossover-helpers)
+!(import! &self optimization/hillclimbing/crossover)
 !(import! &self optimization/hillclimbing/hill-climbing-helpers)
 
 ;; ---- Deme + metapopulation pipeline ----

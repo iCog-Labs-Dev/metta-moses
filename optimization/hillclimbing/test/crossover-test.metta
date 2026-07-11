@@ -11,8 +11,8 @@
 
 !(import! &self ../../../../metta-moses/deme/create-deme)
 
-!(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one) ;; notice the / in the import statements -- looks like this is required for every additional inner level of dir you have to go
+!(import! &self ../../../../metta-moses/optimization/hillclimbing/crossover-helpers)
+!(import! &self ../../../../metta-moses/optimization/hillclimbing/crossover) ;; notice the / in the import statements -- looks like this is required for every additional inner level of dir you have to go
 
 (= (wScore) (* -1 (pow-math 10 100))) ;; bind worst score value 
 
