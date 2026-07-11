@@ -1,11 +1,12 @@
 ;; Native boolean evaluation -- operator clauses + the whole row-eval
 ;; pipeline. scoreTree (scoring/bscore.metta) only orchestrates:
-;;   once per candidate:  (indexLeaves (preOrderExp $tree) $labels)
+;;   once per candidate:  (preOrderExp $tree $labels)
 ;;   once per row:        (reduceRow $indexed $row)
-;; preOrderExp emits the wrapped eval shape ((Op (kids)) / (NOT child)),
-;; indexLeaves maps label symbols to (lbl N) column positions, and
-;; reduceRow substitutes the row's values and evaluates bottom-up,
-;; dispatching each operator node into its clause below.
+;; preOrderExp walks the Tree ONCE, emitting the wrapped eval shape
+;; ((Op (kids)) / (NOT child)) with label leaves already indexed to
+;; (lbl N) column positions; reduceRow substitutes the row's values and
+;; evaluates bottom-up, dispatching each operator node into its clause
+;; below.
 ;; The var-template path (expToExp/foldTemplate/evalParsed) has no
 ;; production callers; it is kept as the semantics reference exercised by
 ;; boolean-ops-test.
@@ -24,40 +25,30 @@
 (= (OR  $args) (any $args))
 (= (NOT $x)    (not $x))
 
-;; preOrderExp: Tree -> wrapped eval shape, leaves still label symbols.
-;; Mirrors utilities/tree's preOrder; every emission is quote-protected.
-(= (preOrderExp (mkTree (mkNode $r) ()))
+;; preOrderExp: Tree -> wrapped eval shape in ONE walk, label leaves
+;; indexed to (lbl N) as they are emitted (List.index misses return -1
+;; and the leaf passes through — booleans, unknown symbols). Mirrors
+;; utilities/tree's preOrder; every emission is quote-protected.
+(= (preOrderExp (mkTree (mkNode $r) ()) $labels)
    (if (once (is-member $r (quote (AND OR))))
        (quote ($r ()))
-       $r))
-(= (preOrderExp (mkKnob (mkNullVex $tree) $lsk $i)) ())
-(= (preOrderExp (mkKnob (mkTree $node $children) $lsk $i))
-   (preOrderExp (mkTree $node $children)))
-(= (preOrderExp (mkTree (mkNode $r) (cons $x $xs)))
-   (let $childrenExp (childrenExp (cons $x $xs))
+       (let $i (List.index $labels $r)
+            (if (== $i -1) $r (lbl $i)))))
+(= (preOrderExp (mkKnob (mkNullVex $tree) $lsk $i) $labels) ())
+(= (preOrderExp (mkKnob (mkTree $node $children) $lsk $i) $labels)
+   (preOrderExp (mkTree $node $children) $labels))
+(= (preOrderExp (mkTree (mkNode $r) (cons $x $xs)) $labels)
+   (let $childrenExp (childrenExp (cons $x $xs) $labels)
         (if (== $r NOT)
             (let $child (car-atom $childrenExp)
                  (quote (NOT $child)))
             (quote ($r $childrenExp)))))
 
 ;; childrenExp: map preOrderExp over child Trees, dropping empty knob
-;; passthroughs. Bodies capture nothing, so map-atom's yall copy is safe.
-(= (childrenExp $children)
-   (filter-atom (map-atom $children $c (preOrderExp $c)) $x (not (== $x ()))))
-
-;; indexLeaves: once per candidate, replace each label symbol with
-;; (lbl N), N = its column position (List.index misses return -1 and the
-;; symbol passes through — operator heads, unknown symbols).
-(= (indexLeaves $expr $labels)
-   (if (== (get-metatype $expr) Expression)
-       (if (== $expr ())
-           ()
-           (let ($h $t) (decons-atom $expr)
-             (cons-atom (indexLeaves $h $labels) (indexLeaves $t $labels))))
-       (if (== (get-metatype $expr) Symbol)
-           (let $i (List.index $labels $expr)
-             (if (== $i -1) $expr (lbl $i)))
-           $expr)))
+;; passthroughs. The map-atom body captures only ground terms ($labels),
+;; so yall's per-iteration copy is a semantic no-op.
+(= (childrenExp $children $labels)
+   (filter-atom (map-atom $children $c (preOrderExp $c $labels)) $x (not (== $x ()))))
 
 ;; reduceRow: one bottom-up walk per (candidate, row) — (lbl N) leaves
 ;; become the row's Nth value, children evaluate before their parent, and

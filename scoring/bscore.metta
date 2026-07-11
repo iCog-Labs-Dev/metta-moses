@@ -69,10 +69,11 @@
            (if (== $val ())
                (let* (
                    ;; Ground candidate => the Space match above is an exact
-                   ;; cache key. On a miss, build the indexed eval form ONCE
-                   ;; and score every row with reduceRow — the whole
-                   ;; evaluation pipeline lives in scoring/boolean-ops.metta.
-                   ($indexed (indexLeaves (preOrderExp $tree) $labels))
+                   ;; cache key. On a miss, build the indexed eval form in
+                   ;; ONE tree walk and score every row with reduceRow — the
+                   ;; whole evaluation pipeline lives in
+                   ;; scoring/boolean-ops.metta.
+                   ($indexed (preOrderExp $tree $labels))
                    ($lastIdx (- (size-atom $labels) 1))
                    ($bScore (map-atom $table $ts
                        (compareAndScore (reduceRow $indexed $ts)
