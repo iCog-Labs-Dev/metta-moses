@@ -27,11 +27,11 @@
                                    $parentSec
                                    (map-atom $current $c (removeEmptyAND $c))))
                   (($guardSet $child) (getLiteralChildren $currentSec))
-                  (($h $t) (if (and (== (get-metatype $child) Expression) (not (== $child ()))) (decons-atom $child) (() ())))
+                  (($h $t) (if (and (== (get-metatype $child) Expression) (!= $child ())) (decons-atom $child) (() ())))
                   ;; plain if, NOT if-decons-expr-custom: its (eval $then)
                   ;; deep-normalizes the returned tree data, firing
                   ;; scoring/boolean-ops' AND/OR/NOT clauses
-                  ($tail (if (or (== $child ()) (not (== (get-metatype $child) Expression))) "No child" $t))
+                  ($tail (if (or (== $child ()) (!= (get-metatype $child) Expression)) "No child" $t))
                   ; ($_ (println! ("Tail: " $tail)))
               )
               (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
@@ -39,7 +39,7 @@
                       (
                           ; ($_ (println! (===Inside AndCut===)))
                           ; ($_ (println! (Current $current : Parent : $parent)))
-                          ($childFirst (if (or (== $child ()) (not (== (get-metatype $child) Expression))) () $h))
+                          ($childFirst (if (or (== $child ()) (!= (get-metatype $child) Expression)) () $h))
                           (($grandLiterals $grandChildren) (getLiteralChildren $childFirst))
                           ($allLiterals (map-atom $grandChildren $gC (getGuardSet $gC)))
                           ($common (intersections $allLiterals))

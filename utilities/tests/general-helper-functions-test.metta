@@ -51,14 +51,10 @@
 ;; boolean tuples ride under quote/let: this file loads scoring/bscore and
 ;; thus boolean-ops' AND/OR/NOT eval clauses — a bare tuple at a call site
 ;; would compile as a call instead of data.
-!(let* (($s1 (quote (AND a b (NOT a) c (OR a b)))) ($s2 (quote (a b (NOT a) (OR a b)))) ($exp (quote (AND c))))
-   (assertEqual (setDifference $s1 $s2) $exp))
-!(let* (($s1 (quote (AND a b (NOT a) c (OR a b)))) ($s2 (quote (a c (NOT c) (NOT a)))) ($exp (quote (AND b (OR a b)))))
-   (assertEqual (setDifference $s1 $s2) $exp))
-!(let* (($s1 (quote (AND a b (NOT a) c (OR a b)))) ($exp (quote (AND b (NOT a) c (OR a b)))))
-   (assertEqual (setDifference $s1 (a)) $exp))
-!(let* (($s1 (quote (AND a b (NOT a) c (OR a b v) v))) ($s2 (quote (b (NOT a) v))) ($exp (quote (AND a c (OR a b v)))))
-   (assertEqual (setDifference $s1 $s2) $exp))
+!(assertEqual (setDifference (quote (AND a b (NOT a) c (OR a b))) (quote (a b (NOT a) (OR a b)))) (quote (AND c)))
+!(assertEqual (setDifference (quote (AND a b (NOT a) c (OR a b))) (quote (a c (NOT c) (NOT a)))) (quote (AND b (OR a b))))
+!(assertEqual (setDifference (quote (AND a b (NOT a) c (OR a b))) (a)) (quote (AND b (NOT a) c (OR a b))))
+!(assertEqual (setDifference (quote (AND a b (NOT a) c (OR a b v) v)) (quote (b (NOT a) v))) (quote (AND a c (OR a b v))))
 
 ;; ;; Tests for findAndReplace function ;; FIX: Failing Test case
 ;; !(assertEqual (findAndReplace A Z (B C A (A B C) F G A)) (B C Z (A B C) F G Z))
@@ -368,10 +364,8 @@
 
 ;; Test flatten-list
 !(println! ("testing flatten-list "))
-!(let* (($in (quote (AND A (AND A B)))) ($exp (quote (AND A AND A B))))
-   (assertEqual (flatten-list $in) $exp))
-!(let* (($in (quote (AND A (AND (OR A (NOT C)) (OR B D))))) ($exp (quote (AND A AND OR A (NOT C) OR B D))))
-   (assertEqual (flatten-list $in) $exp))
+!(assertEqual (flatten-list (quote (AND A (AND A B)))) (quote (AND A AND A B)))
+!(assertEqual (flatten-list (quote (AND A (AND (OR A (NOT C)) (OR B D))))) (quote (AND A AND OR A (NOT C) OR B D)))
 
 ;; Test notNt 
 !(bind! NTS (new-state (start expr bop uop term)))
@@ -390,8 +384,8 @@
 !(println! ("testing isValidExp "))
 !(assertEqual (isValidExp A (start expr bop uop term)) True)
 !(assertEqual (isValidExp expr (start expr bop uop term)) False)
-!(let $in (quote (AND A B)) (assertEqual (isValidExp $in (start expr bop uop term)) True))
-!(let $in (quote (OR (AND B null) (NOT B))) (assertEqual (isValidExp $in (start expr bop uop term)) True))
+!(assertEqual (isValidExp (quote (AND A B)) (start expr bop uop term)) True)
+!(assertEqual (isValidExp (quote (OR (AND B null) (NOT B))) (start expr bop uop term)) True)
 
 ;; ;; Test for compose (.)
 !(println! ("testing: compose instead of . "))
@@ -402,7 +396,7 @@
 
 ;; Test for exprToList
 !(println! ("testing exprToList "))
-!(let $in (quote (AND A B)) (assertEqual (exprToList $in) (cons AND (cons A (cons B ())))))
+!(assertEqual (exprToList (quote (AND A B))) (cons AND (cons A (cons B ()))))
 !(assertEqual (exprToList (1 2 3 4)) (cons 1 (cons 2 (cons 3 (cons 4 ())))))
 
 ;; Test for expression pair (tuple)
