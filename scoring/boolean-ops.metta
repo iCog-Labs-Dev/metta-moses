@@ -61,6 +61,10 @@
 (= (OR  $args) (anyLazy $args))
 (= (NOT $x)    (not (forceB $x)))
 
+;; Force one child: expressions dispatch through their registered clause
+;; (firing these clauses recursively, again lazily); atoms — booleans,
+;; numbers, symbols — pass through.
+;;
 ;; Portable dynamic dispatch of a wrapped arity-1 operator term (Op Arg):
 ;; the var-headed application ($h ...) is lowered to the runtime meta-call
 ;; by BOTH PeTTa runtimes. Do NOT use (reduce $var) here: PeTTaV1 extends
@@ -69,24 +73,18 @@
 ;; argument — the clause then fails silently at runtime. Terms that are
 ;; not arity-1 with an atom head (row-bound value tuples, data) pass
 ;; through unchanged, mirroring reduce's leave-unevaluated rule.
-(= (dispatchOp $x)
-   (let ($h $t) (decons-atom $x)
-     (if (== (get-metatype $h) Expression)
-         $x
-         (if (== $t ())
-             $x
-             (if (== (cdr-atom $t) ())
-                 ($h (car-atom $t))
-                 $x)))))
-
-;; Force one child: expressions dispatch through their registered clause
-;; (firing these clauses recursively, again lazily); atoms — booleans,
-;; numbers, symbols — pass through.
 (= (forceB $x)
    (if (== (get-metatype $x) Expression)
        (if (== $x ())
            ()
-           (dispatchOp $x))
+           (let ($h $t) (decons-atom $x)
+             (if (== (get-metatype $h) Expression)
+                 $x
+                 (if (== $t ())
+                     $x
+                     (if (== (cdr-atom $t) ())
+                         ($h (car-atom $t))
+                         $x)))))
        $x))
 
 ;; Short-circuit conjunction/disjunction over a kids tuple. Semantics

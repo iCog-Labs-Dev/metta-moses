@@ -86,7 +86,7 @@
        (if (== $e ())
            ()
            (if (== (car-atom $e) lbl)
-               (List.getByIdx $row (car-atom (cdr-atom $e)))
+               (index-atom $row (car-atom (cdr-atom $e)))
                (substRowKids $e $row)))))
 
 (= (substRowKids $kids $row)
@@ -129,10 +129,10 @@
                    ;; are ground, so yall's per-iteration copy_term is a
                    ;; semantic no-op.
                    ($indexed (indexLeaves (preOrderExp $tree) $labels))
-                   ($lastIdx (- (List.length $labels) 1))
+                   ($lastIdx (- (size-atom $labels) 1))
                    ($bScore (map-atom $table $ts
                        (compareAndScore (reduceRow $indexed $ts)
-                                        (List.getByIdx $ts $lastIdx))))
+                                        (index-atom $ts $lastIdx))))
                    ($result (mkBScore $bScore))
                    ($_ (add-atom $cacheSpace ($tree $result)))
                )
