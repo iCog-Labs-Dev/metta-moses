@@ -58,6 +58,7 @@
 
 !(import! &self scoring/cacheSpace)
 !(import! &self scoring/fitness)
+!(import! &self scoring/boolean-ops)
 !(import! &self scoring/bscore)
 !(import! &self scoring/cscore)
 !(import! &self scoring/complexity-based-scorer)

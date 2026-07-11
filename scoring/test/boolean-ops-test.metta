@@ -1,6 +1,7 @@
 !(import! &self ../../utilities/general-helpers)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../fitness)
+!(import! &self ../boolean-ops)
 !(import! &self ../bscore)
 
 ;; Test helper: build the eval template from (labels, cand-expression) and
@@ -9,9 +10,9 @@
 ;; labels->fresh-vars. No strings, no dict.
 ;;
 ;; Candidate expressions are passed under `quote`: this file imports
-;; bscore (and thus boolean-ops), so a bare (NOT A) / (AND ...) at a call
-;; site would compile as a call into the eval clauses instead of flowing
-;; in as data.
+;; boolean-ops, so a bare (NOT A) / (AND ...) at a call site would
+;; compile as a call into the eval clauses instead of flowing in as
+;; data.
 (= (callBE $labels $row $cand)
    (evalParsed (foldTemplate $labels (expToExp $cand)) $row))
 

@@ -1,5 +1,3 @@
-!(import! &self scoring/boolean-ops)
-
 ;; Type definitions and functions related to beahvioral socre, behavioral complexity score and turth table behavioral score.
 ;; Behavioral score is a list of numbers, where each number represents the score of a particular output. 
 ;; For boolean expressions, the score is either 0 or -1. Therefore, this behavioral score is a list of 0s and -1s.

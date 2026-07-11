@@ -3,6 +3,7 @@
 !(import! &self ../../utilities/tree)
 
 !(import! &self ../fitness)
+!(import! &self ../boolean-ops)
 !(import! &self ../bscore)
 
 

@@ -14,6 +14,7 @@
 
 
 !(import! &self ../fitness)
+!(import! &self ../boolean-ops)
 !(import! &self ../bscore)
 !(import! &self ../cscore)
 
