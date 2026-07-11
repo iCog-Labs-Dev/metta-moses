@@ -123,7 +123,7 @@ $optimDeme
      (
        ($_ (println! (Generation $maxGen)))
        ($optimizedDemes (case $context
-                        ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "expand  deme returnn" (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable mi)))
+                        ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "expand  deme returnn" (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable (param fsScorerType))))
                         (($nGames $opponentPolicy $complexityRatio) (trace! "expand deme return" (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $maxScore $optimize))))))
        (((mkDeme $rep $sInst $demeId)) $optimizedDemes)
        ($_ (println! (OptimizedDeme: (List.length (second $sInst)))))

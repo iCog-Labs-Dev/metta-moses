@@ -25,7 +25,7 @@
 ;;   $index: Current index (starts at 0).
 ;;   $acc: Accumulator for indices where bit is 1.
 ;; Return: Indices as a tuple.
-; (: bitsToIndices (-> (List Number) Number Tuple Tuple))
+;; (: bitsToIndices (-> (List Number) Number Tuple Tuple))
 (= (bitsToIndices () $index $acc) $acc)
 (= (bitsToIndices (cons $bit $rest) $index $acc)
    (chain (bitsToIndices $rest (+ $index 1) $acc) $nextAcc

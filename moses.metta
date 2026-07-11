@@ -74,6 +74,7 @@
 !(import! &self feature-selection/smd)
 !(import! &self feature-selection/incremental)
 !(import! &self feature-selection/random-feature-selection)
+!(import! &self scoring/precision-bscore)
 
 ;; ---- Representation ----
 !(import! &self representation/knob-representation)
@@ -92,8 +93,6 @@
 !(import! &self optimization/hillclimbing/cross-top-one)
 !(import! &self optimization/hillclimbing/hill-climbing-helpers)
 
-;; hc drives hillClimbing, and representation drives featureSelector, so both
-;; follow the optimizer above rather than sitting with their own groups.
 !(import! &self feature-selection/hc)
 !(import! &self feature-selection/feature-selection-main)
 !(import! &self representation/representation)

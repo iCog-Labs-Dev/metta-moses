@@ -194,7 +194,11 @@
 
 ;; Built with cons-atom so the result stays data instead of being applied.
 (= (defaultFsHyperparams $scorerType)
-   (cons-atom 50.0 (cons-atom 1.0 (cons-atom 0.5 (cons-atom 1.0 (cons-atom True (cons-atom $scorerType ())))))))
+   (cons-atom (param fsMiConfi)
+     (cons-atom (param fsPrePenalty)
+       (cons-atom (param fsPreMinActivation)
+         (cons-atom (param fsPreMaxActivation)
+           (cons-atom (param fsPrePositive) (cons-atom $scorerType ())))))))
 
 ;; Shapes accepted for the second `mkParams` slot:
 ;;   ()                              -- defaults, scored by mutual information

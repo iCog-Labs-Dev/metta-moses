@@ -84,7 +84,7 @@
                  ;; ($_ (println! "before featureSelector"))
                  ($ft-set-pop (if (== $ft-selection-algo None)
                                   ((genList 0 (- (List.length $labels) 2))) ;; Applying all labels as features
-                                  (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme 50.0 1.0 0.5 1.0 True $scorerType)) ;; applies the right parameteres for feature selection based on selected selection algorithm 
+                                  (featureSelector $ft-selection-algo (mkITable $table $labels) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme (param fsMiConfi) (param fsPrePenalty) (param fsPreMinActivation) (param fsPreMaxActivation) (param fsPrePositive) $scorerType)) ;; applies the right parameteres for feature selection based on selected selection algorithm
                  )
                  ;; ($_ (println! (Selected Features after feature Selection $ft-set-pop)))
                  ($exemplar-arg-seq                                           ;; apply exemplar feature pruning
