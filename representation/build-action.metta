@@ -169,13 +169,8 @@
           ;; Insert the knob, then recursively rebuild the returned tree.
           (let*
              (
-                (($withKnobs $m1) (addActionKnobs (mkTree (mkNode and_seq) $children) True $MMap $actions $perceptions))
+                (((mkTree (mkNode and_seq) $updatedChildren) $m1) (addActionKnobs (mkTree (mkNode and_seq) $children) True $MMap $actions $perceptions))
              )
-            ;; addActionKnobs returns an updated and_seq tree with the inserted knob
-            ;; already embedded, so recurse over the returned children directly.
-             (let
-                (mkTree (mkNode and_seq) $updatedChildren)
-                $withKnobs
                 (let*
                    (
                       (($rebuiltChildren $m2) (processActionChildren $updatedChildren $m1 $actions $perceptions $p))
@@ -190,7 +185,7 @@
                           )
                           ((mkTree (mkNode and_seq) (append $rebuiltChildren (cons $extraWrapped ()))) $m3))
 
-                        ((mkTree (mkNode and_seq) $rebuiltChildren) $m2)))))
+                        ((mkTree (mkNode and_seq) $rebuiltChildren) $m2))))
           ;; No knob added at this node.
           (let*
              (

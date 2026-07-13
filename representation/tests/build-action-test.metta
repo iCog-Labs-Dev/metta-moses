@@ -231,7 +231,6 @@
     (> (MultiMap.length $mmp) 0))
   True)
   
-!(py-call (random.seed 0))
 
 !(assertEqual
   (let*
