@@ -35,11 +35,6 @@
 !(assertEqual (append (1 2) (3 4)) (1 2 3 4))
 !(assertEqual (append (1 2) ()) (1 2))
 !(assertEqual (append () ()) ())
-;; Tests for the function 'normalizeNot' (renamed from `Not` to avoid
-;; collision with scoring/boolean-ops.metta's eval-side boolean Not).
-!(println! ("Tests for the function normalizeNot"))
-!(assertEqual (normalizeNot (normalizeNot (normalizeNot A))) (normalizeNot A))
-!(assertEqual (normalizeNot (normalizeNot A)) A)
 
 ;; Tests for the function 'is-member'
 !(println! ("test is-member function to  replace isMember custom function"))
@@ -335,8 +330,7 @@
 ;; Test unNest
 
 !(println! ("testig: unNest "))
-!(let* (($in (quote (AND A (AND B C)))) ($exp (quote (AND A AND B C))))
-   (assertEqual (collapse (unNest $in)) $exp))
+!(assertEqual (collapse (unNest (quote (AND A (AND B C))))) (quote (AND A AND B C)))
 !(assertEqual (collapse (unNest (1 2 (3 4 (5))))) (1 2 3 4 5))
 
 ;; Test cleanSpace

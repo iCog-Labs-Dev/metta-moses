@@ -79,22 +79,6 @@
         ((False False)  (foldr cons-atom $y $x)))))
 
 ; a helper function to the isConsistentExp function.
-; a function which simplifies nested logical negations by reducing them to their simplest form.
-; Renamed from `Not` to `normalizeNot` to keep clear of the boolean eval
-; clauses in scoring/boolean-ops.metta. The (NOT ...) it builds is quoted:
-; with the NOT eval clause registered, a bare (NOT $a) compiles as a call
-; in any file loaded after boolean-ops.
-(= (normalizeNot $a)
-    (if (== (get-metatype $a) Symbol)
-        (quote (NOT $a))
-        (if (== (get-metatype $a) Expression)
-            (case $a
-                (
-                    ( (NOT $b) (if (== (get-metatype $b) Symbol) $b (normalizeNot $b)))
-                ))
-    False )))
-
-; a helper function to the isConsistentExp function.
 ; a function which checks if an element is member of a tuple.
 ;; (: isMember (-> $a $aa Bool)) ;; this function can be replace by its exact same builtin petta function is-member
 ;; (= (isMember $x $list)
