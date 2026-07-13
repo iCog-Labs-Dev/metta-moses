@@ -1,15 +1,17 @@
-;; Native boolean evaluation -- operator clauses + the whole row-eval
-;; pipeline. scoreTree (scoring/bscore.metta) only orchestrates:
-;;   once per candidate:  (preOrderExp $tree $labels)
-;;   once per row:        (reduceRow $indexed $row)
-;; preOrderExp walks the Tree ONCE, emitting the wrapped eval shape
-;; ((Op (kids)) / (NOT child)) with label leaves already indexed to
-;; (lbl N) column positions; reduceRow substitutes the row's values and
-;; evaluates bottom-up, dispatching each operator node into its clause
-;; below.
-;; The var-template path (expToExp/foldTemplate/evalParsed) has no
-;; production callers; it is kept as the semantics reference exercised by
-;; boolean-ops-test.
+;; Native boolean evaluation -- operator clauses + the unification-based
+;; row evaluator. scoreTree (scoring/bscore.metta) orchestrates:
+;;   once per candidate:  (candTemplate $labels $tree)
+;;   once per row:        (evalParsed $template $row)
+;; candTemplate walks the Tree once (preOrderExp) into the wrapped eval
+;; shape ((Op (kids)) / (NOT child)) with label leaves, then folds over the
+;; labels replacing each with a fresh MeTTa variable, yielding a template
+;; ($labelsTerm $expTerm) whose labels-term and expression share those
+;; vars positionally. Per row, evalParsed seals the vars, UNIFIES the
+;; labels-term against the row (binding every leaf var to that row's value
+;; in one step), and lets MeTTa's own `eval` reduce the boolean expression
+;; natively through the AND/OR/NOT clauses below. This is the native-MeTTa
+;; evaluation the scorer is built around: real variables, real
+;; unification, real eval — not a hand-rolled interpreter.
 ;;
 ;; DEPENDS ON utilities/general-helpers (all/any, is-member) — entry files
 ;; must import it before this module.
@@ -22,125 +24,83 @@
 ;; let-bound first (see boolean-ops-test). All constructed terms here use
 ;; cons-atom or quote so nothing fires at build time.
 
-;; Wrapped-list operators: single arity-1 clause = n-ary. Evaluation is
-;; STRICT — a clause always receives fully evaluated children (reduceRow
-;; evaluates bottom-up; evalParsed's eval normalizes bottom-up), so
-;; new-operator clauses can consume their kids tuple directly.
+;; Wrapped-list operators: single arity-1 clause = n-ary. eval reduces the
+;; template bottom-up, so each clause receives fully evaluated children.
 (= (AND $args) (all $args))
 (= (OR  $args) (any $args))
 (= (NOT $x)    (not $x))
 
-;; preOrderExp: Tree -> wrapped eval shape in ONE walk, label leaves
-;; indexed to (lbl N) as they are emitted (List.index misses return -1
-;; and the leaf passes through — booleans, unknown symbols). Mirrors
-;; utilities/tree's preOrder; every emission is quote-protected.
-(= (preOrderExp (mkTree (mkNode $r) ()) $labels)
+;; preOrderExp: Tree -> wrapped eval shape, label leaves kept as symbols
+;; (candTemplate later replaces them with fresh vars). Mirrors
+;; utilities/tree's preOrder; every emission is quote-protected so the
+;; clauses cannot fire at template-build time.
+(= (preOrderExp (mkTree (mkNode $r) ()))
    (if (once (is-member $r (quote (AND OR))))
        (quote ($r ()))
-       (let $i (List.index $labels $r)
-            (if (== $i -1) $r (lbl $i)))))
-(= (preOrderExp (mkKnob (mkNullVex $tree) $lsk $i) $labels) ())
-(= (preOrderExp (mkKnob (mkTree $node $children) $lsk $i) $labels)
-   (preOrderExp (mkTree $node $children) $labels))
-(= (preOrderExp (mkTree (mkNode $r) (cons $x $xs)) $labels)
-   (let $childrenExp (childrenExp (cons $x $xs) $labels)
+       $r))
+(= (preOrderExp (mkKnob (mkNullVex $tree) $lsk $i)) ())
+(= (preOrderExp (mkKnob (mkTree $node $children) $lsk $i))
+   (preOrderExp (mkTree $node $children)))
+(= (preOrderExp (mkTree (mkNode $r) (cons $x $xs)))
+   (let $childrenExp (childrenExp (cons $x $xs))
         (if (== $r NOT)
             (let $child (car-atom $childrenExp)
                  (quote (NOT $child)))
             (quote ($r $childrenExp)))))
 
 ;; childrenExp: map preOrderExp over child Trees, dropping empty knob
-;; passthroughs. The map-atom body captures only ground terms ($labels),
-;; so yall's per-iteration copy is a semantic no-op.
-(= (childrenExp $children $labels)
-   (filter-atom (map-atom $children $c (preOrderExp $c $labels)) $x (not (== $x ()))))
+;; passthroughs.
+(= (childrenExp $children)
+   (filter-atom (map-atom $children $c (preOrderExp $c)) $x (!= $x ())))
 
-;; reduceRow: one bottom-up walk per (candidate, row) — (lbl N) leaves
-;; become the row's Nth value, children evaluate before their parent, and
-;; each arity-1 atom-headed node dispatches its operator clause via a
-;; var-headed application. Do NOT "simplify" that dispatch to
-;; (reduce $var): stock PeTTa (the CI image) mis-compiles a variable
-;; argument to the reduce special form and fails silently; only PeTTaV1
-;; accepts it. Terms that are not arity-1 with an atom head (row-bound
-;; value tuples, data) pass through unchanged. Child iteration is direct
-;; recursion: a map-atom body capturing $row would copy_term the capture
-;; per element.
-(= (reduceRow $e $row)
-   (if (not (== (get-metatype $e) Expression))
+;; substExp: replace every leaf occurrence of $target with $repl. The
+;; var-safe (map $f $a $b ...) threads $target/$repl through call/1, so the
+;; single fresh $repl var is shared across every occurrence (map-atom would
+;; copy_term it per element and break that identity).
+(= (substExp $target $repl $exp)
+   (if (== (get-metatype $exp) Expression)
+       (map substExp $target $repl $exp)
+       (if (== $exp $target) $repl $exp)))
+
+;; foldTemplateStep: fold accumulator step — mint a fresh $v for one label,
+;; substitute it for that label in the running expression, and cons it onto
+;; the labels-term (a bare `cons` list so it unifies positionally against
+;; the cons-list rows). $v is shared between the labels-term slot and every
+;; occurrence substExp plants.
+(= (foldTemplateStep $label $acc)
+   (let ($labelsAcc $expAcc) $acc
+        ((cons $v $labelsAcc) (substExp $label $v $expAcc))))
+
+;; candTemplate: build a candidate's row-evaluation template ONCE —
+;; preOrderExp into the wrapped eval shape, then foldr foldTemplateStep to
+;; replace each label with a fresh var. Returns (labelsTerm expTerm)
+;; sharing those vars positionally; foldr's right-to-left order keeps the
+;; labels-term in $labels order without a reversal.
+(= (candTemplate $labels $tree)
+   (let $exp (preOrderExp $tree)
+        (foldr foldTemplateStep (() $exp) $labels)))
+
+;; reduceExp: reduce a (row-bound) template expression bottom-up — reduce
+;; every child (map reduceExp), then apply `reduce` to the node so it
+;; dispatches the operator clause (or the quote wrapper). `reduce` is
+;; single-step and doesn't pre-evaluate its args, so children go first.
+;; $kids MUST be let-bound: (reduce (map ...)) would dispatch the literal
+;; `map` call instead of its result. A reduced child-value tuple like
+;; (True False) has no callable head, so `reduce` returns it unchanged.
+(= (reduceExp $e)
+   (if (!= (get-metatype $e) Expression)
        $e
        (if (== $e ())
            ()
-           (if (== (car-atom $e) lbl)
-               (index-atom $row (car-atom (cdr-atom $e)))
-               (let* (
-                      ($kids (rowKids $e $row))
-                      ($h (car-atom $kids))
-                      ($t (cdr-atom $kids))
-                     )
-                 (if (== (get-metatype $h) Expression)
-                     $kids
-                     (if (== $t ())
-                         $kids
-                         (if (== (cdr-atom $t) ())
-                             ;; portable dispatch — NEVER (reduce $var):
-                             ;; stock PeTTa mis-compiles it (CI-only break)
-                             ($h (car-atom $t))
-                             $kids))))))))
+           (let $kids (map reduceExp $e)
+             (reduce $kids)))))
 
-(= (rowKids $kids $row)
-   (if (== $kids ())
-       ()
-       (let ($k $rest) (decons-atom $kids)
-         (cons-atom (reduceRow $k $row) (rowKids $rest $row)))))
-
-;; substExp: replace every leaf occurrence of $target with $repl. Manual
-;; recursion, NOT map-atom/foldl-atom — their yall lambdas copy_term
-;; captured vars per iteration, which would break $repl's identity.
-(= (substExp $target $repl $exp)
-   (if (== (get-metatype $exp) Expression)
-       (if (== $exp ())
-           ()
-           (let*
-             (
-              (($h $rest) (decons-atom $exp))
-              ($newH (substExp $target $repl $h))
-              ($newRest (substExp $target $repl $rest))
-             )
-             (cons $newH $newRest)))
-       (if (== $exp $target) $repl $exp)))
-
-;; foldTemplate: mint one fresh var per label ($v is fresh per recursive
-;; call) and substitute it everywhere; returns ($labelsTerm $finalExp)
-;; sharing the same vars positionally for row unification.
-(= (foldTemplate $labels $exp)
-   (if (== $labels ())
-       (() $exp)
-       (let*
-         (
-          (($h $rest) (decons-atom $labels))
-          ($newExp (substExp $h $v $exp))
-          (($restLabels $finalExp) (foldTemplate $rest $newExp))
-          ($head (cons $v $restLabels))
-         )
-         ($head $finalExp))))
-
-;; evalParsed: per-row core of the template path. sealed (copy_term)
-;; freshens only the label vars, row unification binds them, eval fires
-;; the clauses; the original template stays unbound for the next row.
+;; evalParsed: per-row core. sealed (copy_term) freshens only the label
+;; vars, row unification binds them, reduceExp reduces the bound
+;; expression through the clauses; the original template stays unbound for
+;; the next row.
 (= (evalParsed $template $row)
    (let ($labelsP $expP) $template
         (sealed $labelsP
                 (let $labelsP $row
-                     (eval $expP)))))
-
-;; expToExp: same shape transform as preOrderExp but from a raw test
-;; expression like (AND A B) instead of a Tree.
-(= (expToExp $e)
-   (if (== (get-metatype $e) Expression)
-       (let ($h $rest) (decons-atom $e)
-            (if (== $h NOT)
-                (let $child (expToExp (car-atom $rest))
-                     (let $node (cons-atom NOT (cons-atom $child ())) $node))
-                (let $childrenTerm (map-atom $rest $c (expToExp $c))
-                     (let $node (cons-atom $h (cons-atom $childrenTerm ())) $node))))
-       $e))
+                     (reduceExp $expP)))))

@@ -181,7 +181,12 @@
               ($ft (foldr $f $i $t)))
          ($f $h $ft))))
 
-;; Apply a given function to every element of a tuple
+;; Apply a given function to every element of a tuple.
+;; Clause-dispatched recursion (NOT map-atom): captured args are threaded
+;; as ordinary arguments through Prolog call/1, so a captured var keeps its
+;; identity across every element — map-atom's yall lambda copy_terms its
+;; captures per element, which severs shared-var identity (see substExp).
+;; Overloads thread 1 or 2 captured args before the tuple.
 ;; (: map (-> (-> $a $b) $c $d))
 (= (map $f $xs)
    (if (== $xs ())
@@ -191,6 +196,18 @@
               ($fh ($f $h))
               ($ft (map $f $t)))
          (cons-atom $fh $ft))))
+(= (map $f $a $xs)
+   (if (== $xs ())
+       ()
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs)))
+         (cons-atom ($f $a $h) (map $f $a $t)))))
+(= (map $f $a $b $xs)
+   (if (== $xs ())
+       ()
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs)))
+         (cons-atom ($f $a $b $h) (map $f $a $b $t)))))
 
 ;; Function: wrapper
 ;; Description: This function applies a predicate to an atom and returns the atom if the predicate is true, otherwise returns an empty expression.

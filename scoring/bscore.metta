@@ -4,7 +4,7 @@
 ;; In the C++ version, floating point scores and numbers different than -1 and 0 are used as a result of table compression
 ;;  and weighting options. However, we don't have that yet.
 ;;
-;; DEPENDS ON scoring/boolean-ops (preOrderExp/reduceRow — scoreTree's
+;; DEPENDS ON scoring/boolean-ops (candTemplate/evalParsed — scoreTree's
 ;; evaluator) and utilities/general-helpers: entry files must import both
 ;; BEFORE this module, or scoreTree fails silently (calls compile as data).
 
@@ -63,21 +63,28 @@
            (if (== $val ())
                (let* (
                    ;; Ground candidate => the Space match above is an exact
-                   ;; cache key. On a miss, build the indexed eval form in
-                   ;; ONE tree walk and score every row with reduceRow — the
-                   ;; whole evaluation pipeline lives in
-                   ;; scoring/boolean-ops.metta.
-                   ($indexed (preOrderExp $tree $labels))
+                   ;; cache key. On a miss, build the var template ONCE
+                   ;; (candTemplate) and score every row by unification +
+                   ;; native eval (evalParsed) — the whole evaluation
+                   ;; pipeline lives in scoring/boolean-ops.metta. The
+                   ;; var-safe (map $f $a $b ...) passes $template by
+                   ;; reference (evalParsed seals its own per-row copy);
+                   ;; map-atom would copy_term the whole template per row.
+                   ($template (candTemplate $labels $tree))
                    ($lastIdx (- (size-atom $labels) 1))
-                   ($bScore (map-atom $table $ts
-                       (compareAndScore (reduceRow $indexed $ts)
-                                        (index-atom $ts $lastIdx))))
+                   ($bScore (map scoreRow $template $lastIdx $table))
                    ($result (mkBScore $bScore))
                    ($_ (add-atom $cacheSpace ($tree $result)))
                )
                $result)
                (car-atom $val)
            ))))
+
+;; Score one row: native-eval the template against it, compare to the
+;; row's output column (last element). Named so scoreTree's per-row loop
+;; can use the var-safe (map ...) instead of a capturing map-atom body.
+(= (scoreRow $template $lastIdx $row)
+   (compareAndScore (evalParsed $template $row) (index-atom $row $lastIdx)))
 
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
