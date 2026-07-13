@@ -170,13 +170,9 @@
           (let*
              (
                 (((mkTree (mkNode and_seq) $updatedChildren) $m1) (addActionKnobs (mkTree (mkNode and_seq) $children) True $MMap $actions $perceptions))
+                (($rebuiltChildren $m2) (processActionChildren $updatedChildren $m1 $actions $perceptions $p))
              )
-                (let*
-                   (
-                      (($rebuiltChildren $m2) (processActionChildren $updatedChildren $m1 $actions $perceptions $p))
-                   )
-
-                   (if (>= (randint 99) $p)
+           (if (>= (randint 99) $p)
 
                        (let*
                           (
@@ -185,7 +181,7 @@
                           )
                           ((mkTree (mkNode and_seq) (append $rebuiltChildren (cons $extraWrapped ()))) $m3))
 
-                        ((mkTree (mkNode and_seq) $rebuiltChildren) $m2))))
+                        ((mkTree (mkNode and_seq) $rebuiltChildren) $m2)))
           ;; No knob added at this node.
           (let*
              (
