@@ -120,41 +120,48 @@
     ($candidate $srcId $dstId))
   ((mkTree (mkNode and_seq) ()) (mkNodeId (0)) (mkNodeId (0))))
 
-;; Direct probes produce action knobs with the expected ASK defaults.
+;; Verify subtree-based action knob helpers produce the expected ASK structure.
 !(assertEqual
   (let*
     (
-      (($tree $mmp) (addActionKnobsAt (mkTree (mkNode and_seq) ()) (mkNodeId (0)) (mkNodeId (0)) True () (move_forward turn_left) ()))
+      (($subtree $mmp) (addActionKnobs (mkTree (mkNode and_seq) ()) True () (move_forward turn_left) ()))
       ($ask (car-atom (MultiMap.values $mmp)))
       ((mkASK $discKnob $perms) $ask)
-      ($embedded (getNodeById $tree (mkNodeId (1))))
+      ($embedded (getNodeById $subtree (mkNodeId (1))))
     )
-    (and (> (MultiMap.length $mmp) 0)
-         (and (== $discKnob (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
-              (== $embedded (mkKnob (mkNullVex $perms) $ask 0)))))
-  True)
+    (and
+      (> (MultiMap.length $mmp) 0)
+      (and
+        (== $discKnob (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
+        (== $embedded (mkKnob (mkNullVex $perms) $ask 0)))))
+    True)
 
 !(assertEqual
-  (let* (($origTree (mkTree (mkNode and_seq) (cons (moveTree) ())))
-         (($updatedTree $mmp) (addSimpleActionKnobsAt $origTree (mkNodeId (0)) (mkNodeId (1)) True () (move_forward turn_left) (A B)))
-         ($ask (car-atom (MultiMap.values $mmp))))
+  (let*
+    (
+      (($updatedSubtree $mmp) (addSimpleActionKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) True ()))
+      ($ask (car-atom (MultiMap.values $mmp)))
+    )
     (let*
       (
         ((mkASK $discKnob $perms) $ask)
-        ($embedded (getNodeById $updatedTree (mkNodeId (1))))
       )
-      (and (== $embedded (mkKnob (moveTree) $ask 0))
-           (and (== $discKnob (mkDiscKnob (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))
-                (and (== $perms (cons (moveTree) ()))
-                     (== (getKnobDefault $ask) (mkDiscSpec 1)))))))
-  True)
-
+      (and 
+           (== $updatedSubtree (mkKnob (mkTree (mkNode and_seq) (cons (moveTree) ())) $ask 0))
+           (and 
+                (== $discKnob (mkDiscKnob (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))
+                (and  
+                      (== $perms (cons (mkTree (mkNode and_seq) (cons (moveTree) ())) ()))
+                      (and
+                        (== (getKnobDefault $ask) (mkDiscSpec 1))
+                        (== (MultiMap.length $mmp) 1)))))))
+      True)
 ;; Embedded action representation drives candidate reconstruction directly.
 !(assertEqual
   (let*
     (
-      (($updatedTree $mmp) (addActionKnobsAt (mkTree (mkNode and_seq) ()) (mkNodeId (0)) (mkNodeId (0)) True () (move_forward turn_left) ()))
-      ($rep (mkRep (mkKbMap (mkDscMp $mmp)) $updatedTree))
+      (($updatedSubtree $mmp) (addActionKnobs (mkTree (mkNode and_seq) ()) True () (move_forward turn_left) ()))
+      ($rep (mkRep (mkKbMap (mkDscMp $mmp)) $updatedSubtree))
       ($absent (getCandidate $rep ActionCandidateAbsent (mkInst (0))))
       ($move (getCandidate $rep ActionCandidateMove (mkInst (1))))
       ($turn (getCandidate $rep ActionCandidateTurn (mkInst (2))))
@@ -186,12 +193,12 @@
 
 ;; action_bool_if keeps its perception child and wraps action branches.
 !(assertEqual
-  (let* (($origTree (mkTree (mkNode action_bool_if)
+  (let* (($origSubtree (mkTree (mkNode action_bool_if)
                      (cons (mkTree (mkNode A) ())
                      (cons (moveTree)
                      (cons (turnTree) ())))))
-         (($updatedTree $mmp) (buildAction $origTree (mkNodeId (0)) () (move_forward turn_left) (A B)))
-         ($perception (getNodeById $updatedTree (mkNodeId (1)))))
+         (($updatedSubtree $mmp) (buildAction $origSubtree () (move_forward turn_left) (A B)))
+         ($perception (getNodeById $updatedSubtree (mkNodeId (1)))))
     (and (== $perception (mkTree (mkNode A) ()))
          (let*
            (
@@ -199,10 +206,10 @@
              ($askB (List.getByIdx (MultiMap.values $mmp) 1))
              ((mkASK $discA $permsA) $askA)
              ((mkASK $discB $permsB) $askB)
-             ($branchAHead (getNodeById $updatedTree (mkNodeId (2 1))))
-             ($branchBHead (getNodeById $updatedTree (mkNodeId (3 1))))
-             ($branchAKnob (getNodeById $updatedTree (mkNodeId (2 2))))
-             ($branchBKnob (getNodeById $updatedTree (mkNodeId (3 2))))
+             ($branchAHead (getNodeById $updatedSubtree (mkNodeId (2 1))))
+             ($branchBHead (getNodeById $updatedSubtree (mkNodeId (3 1))))
+             ($branchAKnob (getNodeById $updatedSubtree (mkNodeId (2 2))))
+             ($branchBKnob (getNodeById $updatedSubtree (mkNodeId (3 2))))
            )
            (and (== $branchAHead (moveTree))
                 (and (== $branchBHead (turnTree))
@@ -210,20 +217,30 @@
                           (and (== $branchBKnob (mkKnob (mkNullVex $permsB) $askB 1))
                                (== (MultiMap.length $mmp) 2))))))))
   True)
-
 ;; and_seq follows the C++ probabilistic path and produces knobs with this seed.
 !(assertEqual
   (let* (($origTree (mkTree (mkNode and_seq) (cons (moveTree) ())))
-         (($updatedTree $mmp) (buildAction $origTree (mkNodeId (0)) () (move_forward turn_left) (A B))))
+         (($updatedTree $mmp) (buildAction $origTree () (move_forward turn_left) (A B)))
+        )
     (and (> (MultiMap.length $mmp) 0)
          (not (== $updatedTree $origTree))))
   True)
 
 !(assertEqual
-  (let ($updatedTree $mmp) (buildAction (mkTree (mkNode and_seq) ()) (mkNodeId (0)) () (move_forward turn_left) (A B))
+  (let ($updatedTree $mmp) (buildAction (mkTree (mkNode and_seq) ()) () (move_forward turn_left) (A B))
     (> (MultiMap.length $mmp) 0))
   True)
+  
 
+!(assertEqual
+  (let*
+    (
+      (($tree $mmp) (buildAction (mkTree (mkNode and_seq) (cons (mkTree (mkNode move_forward) ()) ())) () (move_forward turn_left) ()))
+    )
+    (and
+      (not (== $tree ()))
+      (> (MultiMap.length $mmp) 0)))
+  True)
 ;; buildKnobs dispatches action and strategy roots
 !(assertEqual
   (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) () () (move_forward turn_left) (A B))
