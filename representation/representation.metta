@@ -86,7 +86,7 @@
 (= (ric-blank-xmplr-fts $fts $rows $len)
    (map-atom $rows $row
       (map-atom (genList 0 (- $len 1)) $i
-         (if (ric-is-xmplr-ft $i $fts) False (index-atom $row $i)))))
+         (if (once (is-member $i $fts)) False (index-atom $row $i)))))
 
 (= (ric-is-xmplr-ft $i $fts)
    (> (size-atom (filter-atom $fts $f (== $f $i))) 0))
