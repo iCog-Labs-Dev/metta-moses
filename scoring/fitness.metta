@@ -116,8 +116,8 @@
 ;;
 ;; Instead of substituting variables per row and re-evaluating the whole tree,
 ;; each subtree is evaluated ONCE into a boolean vector over all table rows and
-;; memoized in &subtreeCache, keyed by its canonical (preOrder) expression.
-;; Common subtrees (e.g. (AND A B)) recur across candidates, so the hit rate is
+;; memoized in &subtreeCache, keyed by its wrapped (preOrderExp) expression.
+;; Common subtrees (e.g. (AND (A B))) recur across candidates, so the hit rate is
 ;; far higher than the whole-tree cache and shared work is done only once.
 ;; ---------------------------------------------------------------------------
 
@@ -136,52 +136,125 @@
             ;; redundant bounds check on every cell.
             (map-atom $rows $r (index-atom $r $idx)))))
 
-;; Reduce a list of equal-length boolean columns elementwise with a binary op,
-;; starting from $acc. Generalizes n-ary AND/OR: pass `and` or `or`.
-(= (reduceColumns $op $acc $cols)
-   (if (== $cols ())
-       $acc
-       (reduceColumns $op (List.zipWith $op $acc (car-atom $cols)) (cdr-atom $cols))))
+;; ---------------------------------------------------------------------------
+;; Wrapped-shape columnar evaluation.
+;;
+;; $exp is the wrapped eval shape produced by preOrderExp (scoring/boolean-ops):
+;;   node:          (AND (k1 .. kk)) / (OR (k1 .. kk)) / (NOT k)  -- 2-element
+;;   symbol leaf:   a bare label (A, B, ...)  -> its table column
+;;   grounded leaf: True / False              -> a constant column
+;; Each node is evaluated ONCE into a boolean vector over all rows and memoized
+;; in &subtreeCache keyed by its (ground) wrapped expr, so subtrees shared across
+;; candidates are scored once.
+;;
+;; Operator SEMANTICS live in exactly one place: the (AND/OR/NOT) clauses in
+;; scoring/boolean-ops.metta. Here we never re-implement and/or/not: on a cache
+;; miss the node's ONE-LEVEL row template is built ONCE -- fresh MeTTa vars, one
+;; per child, as a vars-term ($v1 .. $vk) plus the node expr (AND ($v1 .. $vk))
+;; / (OR ($v1 .. $vk)) / (NOT $v1) SHARING those vars -- and each row is then
+;; scored by native unification: sealed freshens the vars (and, because the expr
+;; shares them, the expr with them -- copy_term preserves the identity),
+;; (let $vars $row ...) unifies the fresh vars against that row's child values
+;; positionally in one step, and a single `reduce` dispatches the operator
+;; clause. This is feat's evalParsed pattern (whole-tree template) adapted to
+;; one level per subtree -- real variables, real unification, real dispatch.
+;; Children arrive as already-evaluated VALUE columns, so the single-step
+;; `reduce` suffices (no recursive reduceExp).
+;;
+;; Template terms are built with cons-atom: a bare (AND ...) literal in a body
+;; would FIRE the clause at build time, while cons-atom results stay inert and
+;; preserve var identity between the vars-term and the expr. `reduce` dispatches
+;; its literal head and does not pre-evaluate its argument, so the expr rides in
+;; let-bound. All of this -- shared-var template shape, per-row sealed freshness
+;; (the template stays unbound across rows), n-ary dispatch -- is validated in
+;; the importless probe tmp/probe-sealed.metta.
+;;
+;; Unknown-head contract: a head with no operator clause (e.g. a stray reduct
+;; wrapper) leaves `reduce` returning the node unreduced -- a non-boolean tuple
+;; -- so compareAndScore mismatches every row and the tree scores worst (-1),
+;; exactly matching the old ERROR-column behavior (verified: probe-sealed.metta
+;; reduces a (FOO ($v1 $v2)) template row to (FOO (True False))).
 
-;; Combine child columns for an operator node. AND/OR reduce from the first child
-;; (empty $vs falls back to the identity column, covering preOrder's unit-filtered
-;; empty AND/OR); NOT negates its child inline (too simple to warrant a helper).
-;; A single case-dispatch (not separate clauses) avoids non-deterministic overlap.
-;; Any other head (e.g. an unreduced (reduce-to ...) wrapper left on a degenerate
-;; tree) mirrors the old evaluator, which returned ERROR -> scores worst (-1).
-;(: combineSubtrees (-> Symbol (List (List Bool)) Number (List Bool)))
-(= (combineSubtrees $op $vs $n)
-   (case $op
-     ((AND (if (== $vs ()) (List.repeat $n True)  (reduceColumns and (car-atom $vs) (cdr-atom $vs))))
-      (OR  (if (== $vs ()) (List.repeat $n False) (reduceColumns or  (car-atom $vs) (cdr-atom $vs))))
-      (NOT (List.map not (car-atom $vs)))
-      ($_  (List.repeat $n ERROR)))))
+;; Build an inert operator node from a symbol and an argument tuple (template
+;; vars, or () for the empty identities). NOT is unary: (NOT x). AND/OR take
+;; the tuple as their single argument list: (AND (x1 .. xk)).
+(= (mkOpNode $op $rv)
+   (if (== $op NOT)
+       (cons-atom NOT $rv)
+       (cons-atom $op (cons-atom $rv ()))))
 
-;; Evaluate a canonical (preOrder) (sub)expression into a boolean vector over
-;; all rows, memoizing operator nodes in &subtreeCache. $n is the number of rows.
+;; One fresh MeTTa var per element of $xs: each recursive clause invocation
+;; renames $v fresh, so the result is a tuple of k distinct unbound vars
+;; (cons-atom does not copy, so each var keeps its identity for sharing).
+(= (mkVarsFor $xs)
+   (if (== $xs ())
+       ()
+       (cons-atom $v (mkVarsFor (cdr-atom $xs)))))
+
+;; Build a node's row template ONCE per cache miss: fresh vars (one per child)
+;; plus the operator expr sharing those vars. Returns ($varsTerm $exprTerm),
+;; e.g. (($v1 $v2) (AND ($v1 $v2))) or (($v1) (NOT $v1)).
+(= (mkNodeTemplate $op $cvs)
+   (let* (($vars (mkVarsFor $cvs))
+          ($e    (mkOpNode $op $vars)))
+     ($vars $e)))
+
+;; Score one row through a node template: sealed lists only the vars-term, but
+;; copy_term freshens the body goal together with it, so the expr (sharing the
+;; vars) is freshened in lockstep and the original template stays unbound for
+;; the next row. The inner let unifies the fresh vars against the row's child
+;; values in one positional step; `reduce` then dispatches the operator clause.
+(= (evalRowT $template $row)
+   (let ($vars $e) $template
+        (sealed $vars (let $vars $row (reduce $e)))))
+
+;; Transpose a non-empty list of equal-length columns into a list of per-row
+;; value tuples. Pure ground data -> map-atom is safe. Terminates when the first
+;; column is exhausted (all columns share length n).
+(= (transposeCols $cols)
+   (if (== (car-atom $cols) ())
+       ()
+       (cons-atom (map-atom $cols $c (car-atom $c))
+                  (transposeCols (map-atom $cols $c (cdr-atom $c))))))
+
+;; Child columns of a wrapped node. $rest = (cdr-atom $exp): for NOT it is
+;; (child) (a single wrapped child); for AND/OR it is (kidsList).
+(= (childCols $op $rest $itable $n)
+   (if (== $op NOT)
+       (cons-atom (evalSubtree (car-atom $rest) $itable $n) ())
+       (map-atom (car-atom $rest) $k (evalSubtree $k $itable $n))))
+
+;; Evaluate a wrapped operator node into a boolean column: build the node's
+;; shared-var template ONCE, then score each transposed row through it with
+;; evalRowT. The template threads through the var-safe (map $f $a $xs) from
+;; general-helpers -- map-atom's lambda would copy_term it per row (evalRowT
+;; seals its own per-row copy instead; same reasoning as feat's scoreTree).
+;; Empty AND/OR (no children) reduce their identity node once and repeat it
+;; over all rows.
+(= (evalNode $exp $itable $n)
+   (let* (($op  (car-atom $exp))
+          ($cvs (childCols $op (cdr-atom $exp) $itable $n)))
+     (if (== $cvs ())
+         (List.repeat $n (let $e (mkOpNode $op ()) (reduce $e)))
+         (let $t (mkNodeTemplate $op $cvs)
+           (map evalRowT $t (transposeCols $cvs))))))
+
+;; Evaluate a wrapped (sub)expression into a boolean vector over all rows,
+;; memoizing operator nodes in &subtreeCache keyed by the ground wrapped expr.
 ;(: evalSubtree (-> Expression (ITable $a) Number (List Bool)))
-(= (evalSubtree $expr $itable $n)
-   (if (== (get-metatype $expr) Expression)
-       (if (== (cdr-atom $expr) ())
-           ;; single element: (AND)/(OR) identity, or (X) unwrap
-           (let $h (car-atom $expr)
-             (case $h
-               ((AND (List.repeat $n True))
-                (OR  (List.repeat $n False))
-                ($_  (evalSubtree $h $itable $n)))))
-           ;; operator node: lookup, else recurse children, combine, cache
-           (chain (collapse (match &subtreeCache (subtree $expr $v) $v)) $hit
-             (if (== $hit ())
-                 (let* ((($op $args)   (decons-atom $expr))
-                        ($cvs  (map-atom $args $a (evalSubtree $a $itable $n)))
-                        ($vec  (combineSubtrees $op $cvs $n))
-                        ($_    (add-atom &subtreeCache (subtree $expr $vec))))
-                   $vec)
-                 (car-atom $hit))))
+(= (evalSubtree $exp $itable $n)
+   (if (== (get-metatype $exp) Expression)
+       ;; operator node: cache lookup, else compute + memoize
+       (chain (collapse (match &subtreeCache (subtree $exp $v) $v)) $hit
+         (if (== $hit ())
+             (let* (($col (evalNode $exp $itable $n))
+                    ($_   (add-atom &subtreeCache (subtree $exp $col))))
+               $col)
+             (car-atom $hit)))
        ;; atom leaf: grounded literal (True/False) vs variable column
-       (if (== (get-metatype $expr) Grounded)
-           (List.repeat $n $expr)
-           (varColumn $itable $expr))))
+       (if (== (get-metatype $exp) Grounded)
+           (List.repeat $n $exp)
+           (varColumn $itable $exp))))
 
 
  ;; Evaluates the accuracy of the expression for a single input row (target, inputs) pair.

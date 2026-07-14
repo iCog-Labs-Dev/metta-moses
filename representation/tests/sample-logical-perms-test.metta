@@ -3,6 +3,7 @@
 !(import! &self ../../utilities/general-helpers)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../representation/sample-logical-perms)
+!(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore)
 
 !(py-call (random.seed 42))

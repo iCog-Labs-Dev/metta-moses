@@ -79,18 +79,6 @@
         ((False False)  (foldr cons-atom $y $x)))))
 
 ; a helper function to the isConsistentExp function.
-; a function which simplifies nested logical negations by reducing them to their simplest form. 
-(= (Not $a)
-    (if (== (get-metatype $a) Symbol)
-        (NOT $a)
-        (if (== (get-metatype $a) Expression)
-            (case $a
-                (
-                    ( (NOT $b) (if (== (get-metatype $b) Symbol) $b (Not $b)))
-                ))
-    False )))
-
-; a helper function to the isConsistentExp function.
 ; a function which checks if an element is member of a tuple.
 ;; (: isMember (-> $a $aa Bool)) ;; this function can be replace by its exact same builtin petta function is-member
 ;; (= (isMember $x $list)
@@ -141,16 +129,20 @@
 ;; A function that behaves like a do while loop.
 ;; It executes the functions in the given list and returns the last result.
 ;; (: until (-> (-> $a Bool) (-> $a $a) $a $a))
-;; Disable in favor of PeTTa native `until` lowering/runtime implementation.
+;;
+;; This clause is DEAD CODE under PeTTaV1, whose translator lowers every
+;; `until` call site to the native until_runtime. Under stock PeTTa (the
+;; CI image) there is no such lowering and THIS clause runs — so it must
+;; be eval-free: the former (eval ...) wrappers deep-normalized the loop
+;; state each iteration, firing scoring/boolean-ops' AND/OR/NOT clauses
+;; on the boolean tree data inside the RTE fixed-point state and silently
+;; corrupting the reduct on CI. Plain meta-calls keep the state as data;
+;; verified equivalent on both runtimes.
 (= (until $predicate $function $x)
-    (let* (
-        ($isTrue (eval ($predicate $x)))
-        ($x' (if (== $isTrue true) ("Predicate True Skipping Function Application") ($function $x)))
-    )
-    (if (== $isTrue true)
-        $x
-        (eval (until $predicate $function $x')))
-    ))
+    (let $isTrue ($predicate $x)
+        (if (== $isTrue true)
+            $x
+            (until $predicate $function ($function $x)))))
 
 ;; A foldleft function like the implementation in Haskell.
 ;; It takes a binary function that expects two atoms and
@@ -173,7 +165,12 @@
               ($ft (foldr $f $i $t)))
          ($f $h $ft))))
 
-;; Apply a given function to every element of a tuple
+;; Apply a given function to every element of a tuple.
+;; Clause-dispatched recursion (NOT map-atom): captured args are threaded
+;; as ordinary arguments through Prolog call/1, so a captured var keeps its
+;; identity across every element — map-atom's yall lambda copy_terms its
+;; captures per element, which severs shared-var identity (see substExp).
+;; Overloads thread 1 or 2 captured args before the tuple.
 ;; (: map (-> (-> $a $b) $c $d))
 (= (map $f $xs)
    (if (== $xs ())
@@ -183,6 +180,18 @@
               ($fh ($f $h))
               ($ft (map $f $t)))
          (cons-atom $fh $ft))))
+(= (map $f $a $xs)
+   (if (== $xs ())
+       ()
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs)))
+         (cons-atom ($f $a $h) (map $f $a $t)))))
+(= (map $f $a $b $xs)
+   (if (== $xs ())
+       ()
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs)))
+         (cons-atom ($f $a $b $h) (map $f $a $b $t)))))
 
 ;; Function: wrapper
 ;; Description: This function applies a predicate to an atom and returns the atom if the predicate is true, otherwise returns an empty expression.
@@ -1140,6 +1149,14 @@
 ; it is used to deconstruct an expression into head and tail and then use them in the then expression
 ; if the expression is empty it will use the else expression
 ;;(: if-decons-expr-custom (-> Expression %Undefined% %Undefined% Expression Expression %Undefined%))
+;; NOTE: the (eval $then) below is load-bearing — $then arrives as an
+;; unevaluated expression referencing the caller's $h/$t logic vars, which
+;; this clause binds via car/cdr before eval runs it. BUT eval also
+;; deep-normalizes the RESULT term, which fires scoring/boolean-ops'
+;; AND/OR/NOT clauses on returned tree data. Reduct-path callers that
+;; return boolean tree data therefore must NOT use this helper — see the
+;; plain-if forms of getGuardSet/getGuardSetND in
+;; reduct/boolean-reduct/rte-helpers.metta.
 (= (if-decons-expr-custom $list $h $t $then $else)
       (if (or (== $list ()) (not (== (get-metatype $list) Expression)))
             $else

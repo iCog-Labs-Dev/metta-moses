@@ -14,6 +14,7 @@
 
 
 !(import! &self ../fitness)
+!(import! &self ../boolean-ops)
 !(import! &self ../bscore)
 !(import! &self ../cscore)
 
@@ -44,8 +45,10 @@
         (cons A (cons B (cons Output ())))))
 
 
-!(assertEqual (getCscore (ttable1) (buildTree (AND A B)) 2.0 &bscoreCache) (mkCscore -1 2 1.0 0.0 -2.0))
-!(assertEqual (getCscore (ttable1) (buildTree (OR A B)) 4 &bscoreCache) (mkCscore 0 2 0.5 0.0 -0.5))
+;; candidates ride under quote: this file loads boolean-ops' AND/OR/NOT
+;; eval clauses, so a bare (AND A B) at a call site would compile as a call.
+!(assertEqual (getCscore (ttable1) (buildTree (quote (AND A B))) 2.0 &bscoreCache) (mkCscore -1 2 1.0 0.0 -2.0))
+!(assertEqual (getCscore (ttable1) (buildTree (quote (OR A B))) 4 &bscoreCache) (mkCscore 0 2 0.5 0.0 -0.5))
 ;; the results of the following two tests will be the same as the above two because the trees are the same because it uses the cacheSpace
 ; ! (assertEqual (getCscore ttable2 (buildTree (AND A B)) 2.0) (mkCscore 0 2 1.0 0 -1.0))
 ; ! (assertEqual (getCscore ttable2 (buildTree (OR A B)) 1) (mkCscore -2 2 2.0 0 -4.0))
