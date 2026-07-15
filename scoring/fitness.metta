@@ -161,8 +161,8 @@
 ;; Children arrive as already-evaluated VALUE columns, so the single-step
 ;; `reduce` suffices (no recursive reduceExp).
 ;;
-;; Template terms are built with cons-atom: a bare (AND ...) literal in a body
-;; would FIRE the clause at build time, while cons-atom results stay inert and
+;; Template terms are built with `cons`: a bare (AND ...) literal in a body
+;; would FIRE the clause at build time, while cons-built nodes stay inert and
 ;; preserve var identity between the vars-term and the expr. `reduce` dispatches
 ;; its literal head and does not pre-evaluate its argument, so the expr rides in
 ;; let-bound. All of this -- shared-var template shape, per-row sealed freshness
@@ -176,20 +176,11 @@
 ;; reduces a (FOO ($v1 $v2)) template row to (FOO (True False))).
 ;;
 ;; Structure -- recursion lives in exactly one place. Reading bottom-up:
-;;   mkOpNode, nodeKids, mkNodeTemplate, evalRowT   non-recursive builders
-;;   transposeCols                                  linear walk over one flat
-;;                                                  list (no cycles)
-;;   combineNode                                    column-level only, never
-;;                                                  touches the tree
-;;   evalSubtree                                    THE tree recursion; its one
-;;                                                  self-call is the map-atom
-;;                                                  over (nodeKids $exp)
-
-;; Build an inert operator node from a symbol and an argument tuple (template
-;; vars, or () for the empty identities). Every operator uniformly takes the
-;; tuple as its single argument list: (Op (x1 .. xk)) -- NOT included.
-(= (mkOpNode $op $rv)
-   (cons-atom $op (cons-atom $rv ())))
+;;   mkNodeTemplate, evalRowT     non-recursive builders
+;;   transposeCols                linear walk over one flat list (no cycles)
+;;   combineNode                  column-level only, never touches the tree
+;;   evalSubtree                  THE tree recursion; its one self-call is the
+;;                                map-atom over the node's destructured kids
 
 ;; Build a node's row template ONCE per cache miss: fresh vars (one per child)
 ;; plus the operator expr sharing those vars. Returns ($varsTerm $exprTerm),
@@ -198,12 +189,13 @@
 ;; copy_term -- the very behavior that BREAKS shared-var threading elsewhere
 ;; (see combineNode's var-safe map) -- is exactly what mints k DISTINCT fresh
 ;; vars here. The sharing we DO need (vars-term <-> expr) is established
-;; afterwards by cons-atom, which does not copy. Distinctness, arity, expr
-;; identity and sealed row reuse are all validated in the importless probe
-;; tmp/probe-mapvars.metta.
+;; afterwards by cons, which builds the node inert (a bare (AND ...) literal
+;; would fire the clause at build time) and does not copy. Distinctness,
+;; arity, expr identity and sealed row reuse are all validated in the
+;; importless probe tmp/probe-mapvars.metta.
 (= (mkNodeTemplate $op $cvs)
    (let* (($vars (map-atom $cvs $c $v))
-          ($e    (mkOpNode $op $vars)))
+          ($e    (cons $op (cons $vars ()))))
      ($vars $e)))
 
 ;; Score one row through a node template: sealed lists only the vars-term, but
@@ -224,12 +216,6 @@
        (cons (map-atom $cols $c (car-atom $c))
                   (transposeCols (map-atom $cols $c (cdr-atom $c))))))
 
-;; Child exprs of a wrapped node -- every operator uniformly carries its
-;; children as one wrapped list: (Op (k1 .. kk)) -> (k1 .. kk). Pure accessor,
-;; no recursion.
-(= (nodeKids $exp)
-   (car-atom (cdr-atom $exp)))
-
 ;; Combine already-evaluated child columns into the node's column: build the
 ;; shared-var row template ONCE, transpose the columns into per-row value
 ;; tuples, and score each row through the template (evalRowT). Column-level
@@ -240,7 +226,7 @@
 ;; identity node once and repeat it over all rows.
 (= (combineNode $op $cvs $n)
    (if (== $cvs ())
-       (List.repeat $n (let $e (mkOpNode $op ()) (reduce $e)))
+       (List.repeat $n (let $e (cons $op (cons () ())) (reduce $e)))
        (let $t (mkNodeTemplate $op $cvs)
          (map evalRowT $t (transposeCols $cvs)))))
 
@@ -250,9 +236,9 @@
 ;; each label's table walk (varColumn) to ONCE per run instead of once per
 ;; cache-missed parent -- the "convert the table once for all candidates"
 ;; optimization, realized lazily per label through the same memo.
-;; This is the ONLY tree-recursive function: the map-atom over (nodeKids $exp)
-;; below is its single self-call; everything downstream (combineNode and the
-;; builders it uses) is column-level.
+;; This is the ONLY tree-recursive function: the map-atom over the node's
+;; destructured kids below is its single self-call; everything downstream
+;; (combineNode and the builders it uses) is column-level.
 ;(: evalSubtree (-> Expression (ITable $a) Number (List Bool)))
 (= (evalSubtree $exp $itable $n)
    (if (== (get-metatype $exp) Grounded)
@@ -262,8 +248,10 @@
        (chain (collapse (match &subtreeCache (subtree $exp $v) $v)) $hit
          (if (== $hit ())
              (let* (($col (if (== (get-metatype $exp) Expression)
-                              (let $cvs (map-atom (nodeKids $exp) $k (evalSubtree $k $itable $n))
-                                   (combineNode (car-atom $exp) $cvs $n))
+                              ;; every node is uniformly ($op ($k1 .. $kk))
+                              (let* ((($op $kids) $exp)
+                                     ($cvs (map-atom $kids $k (evalSubtree $k $itable $n))))
+                                (combineNode $op $cvs $n))
                               (varColumn $itable $exp)))
                     ($_   (add-atom &subtreeCache (subtree $exp $col))))
                $col)

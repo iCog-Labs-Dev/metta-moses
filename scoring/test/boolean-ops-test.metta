@@ -72,12 +72,10 @@
    (assertEqual (childrenExp $kids) $exp))
 
 ;; ---- Per-row primitives: node template (built once) + sealed/unify/reduce ----
-;; mkOpNode never fires the clause (cons-atom keeps it inert data).
-!(let $exp (quote (AND (True False))) (assertEqual (mkOpNode AND (True False)) $exp))
-!(let $exp (quote (NOT (True)))       (assertEqual (mkOpNode NOT (True))       $exp))
-!(let $exp (quote (OR ()))            (assertEqual (mkOpNode OR ())            $exp))
 ;; mkNodeTemplate mints one fresh unbound var per child (inline map-atom:
-;; per-element copy_term freshens $v each time -- see fitness.metta).
+;; per-element copy_term freshens $v each time -- see fitness.metta). The
+;; sharing asserts below also prove the node is BUILT inert: had the clause
+;; fired at build time, the expr could not equal the quoted expected shape.
 !(assertEqual (let ($vars $e) (mkNodeTemplate AND (c1 c2 c3)) (size-atom $vars)) 3)
 ;; mkNodeTemplate returns ($varsTerm $exprTerm) SHARING the vars: unifying the
 ;; vars-term against values makes the same values appear inside the expr.
