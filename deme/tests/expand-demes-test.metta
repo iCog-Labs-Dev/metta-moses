@@ -64,8 +64,8 @@
 !(import! &self ../../scoring/cscore)
 !(import! &self ../../scoring/complexity-based-scorer)
 
-!(import! &self ../../optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../optimization/hillclimbing/cross-top-one)
+!(import! &self ../../optimization/hillclimbing/crossover-helpers)
+!(import! &self ../../optimization/hillclimbing/crossover)
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
 
 !(import! &self ../create-deme)

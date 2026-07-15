@@ -48,8 +48,8 @@
 
 !(import! &self moses/neighborhood-sampling)
 
-!(import! &self optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self optimization/hillclimbing/cross-top-one)
+!(import! &self optimization/hillclimbing/crossover-helpers)
+!(import! &self optimization/hillclimbing/crossover)
 !(import! &self optimization/hillclimbing/hill-climbing-helpers)
 
 !(import! &self metapopulation/exemplar-type)
