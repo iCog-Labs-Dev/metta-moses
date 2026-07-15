@@ -76,9 +76,11 @@
         (let* ((($a $b) (pairAt $n $i))
                ($1 (index-atom $argLabels $a))
                ($2 (index-atom $argLabels $b)))
+            ;; quote: these perms are data; var-headed ($swapedOp ...) would
+            ;; meta-call and the literal (NOT $1) would fire boolean-ops' NOT
             (if (< $b $a)
-                ($swapedOp $2 $1)
-                ($swapedOp (NOT $1) $2)))))
+                (quote ($swapedOp $2 $1))
+                (quote ($swapedOp (NOT $1) $2))))))
 
 ;; sampleLogicalPerms -> generate logical permutations for boolean expressions
 ;; Parameters:
@@ -91,7 +93,7 @@
     (let* (($swapedOp (swapAndOr $op))
            ($nPairs $arity)) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
         (if (<= $nPairs 1)
-            (let $arg (car-atom $argLabels) ($arg (NOT $arg)))  ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage
+            (let $arg (car-atom $argLabels) (quote ($arg (NOT $arg))))  ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage; quote keeps (NOT ...) as data now that scoring/boolean-ops registers a NOT clause
             (let* (($upperbound (- (* $arity (- $arity 1)) 1))
                    ($picked (lazyRandomSelector 0 $upperbound $nPairs))
                    ($perms (getArgs $swapedOp $arity $picked $argLabels)))

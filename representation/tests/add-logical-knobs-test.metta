@@ -23,6 +23,7 @@
 !(import! &self ../../representation/logical-probe)
 !(import! &self ../sample-logical-perms) 
 !(import! &self ../add-logical-knobs)
+!(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore)
 
 

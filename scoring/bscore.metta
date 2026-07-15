@@ -69,7 +69,7 @@
    (if (== $tree (mkTree (mkNode AND) ()))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
        (let* (
-           ($expTree (preOrder $tree))
+           ($expTree (preOrderExp $tree))
            ($scoreList (evalSubtree $expTree (mkITable $table $labels) (List.length $table)))
            ($length (List.length $labels))
            ($outputs (List.flatten (List.map (List.drop (- $length 1)) $table)))

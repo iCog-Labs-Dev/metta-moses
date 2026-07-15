@@ -35,6 +35,7 @@
 !(import! &self representation/instance)
 
 !(import! &self scoring/fitness)
+!(import! &self scoring/boolean-ops)
 !(import! &self scoring/bscore)
 !(import! &self scoring/cscore)
 !(import! &self scoring/precision-bscore)

@@ -53,16 +53,17 @@
 ;; ---- Boolean reduction performance helpers ----
 ;; Keep the main entry aligned with the benchmark harness:
 ;; - native Prolog getLiteralChildren avoids a hot filter-atom path
-;; - SLG tabling memoizes the pure removeEmptyAND tree rewrite
+;; - native removeEmptyAND replaces the SLG-tabled MeTTa rewrite: the O(n)
+;;   walk beats table lookup + answer copy, and lib_tabling is no longer
+;;   needed at all
 !(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
-!(import! &self (library lib_tabling))
-!(tabled (removeEmptyAND $e))
 
 !(import! &self utilities/tree)
 
 ;; ---- Scoring ----
 !(import! &self scoring/cacheSpace)
 !(import! &self scoring/fitness)
+!(import! &self scoring/boolean-ops)
 !(import! &self scoring/bscore)
 !(import! &self scoring/cscore)
 

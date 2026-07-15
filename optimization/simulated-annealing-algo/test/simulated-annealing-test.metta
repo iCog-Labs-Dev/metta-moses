@@ -42,6 +42,7 @@
 !(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one)
 
 !(import! &self ../../../../metta-moses/scoring/fitness)
+!(import! &self ../../../../metta-moses/scoring/boolean-ops)
 !(import! &self ../../../../metta-moses/scoring/bscore)
 !(import! &self ../../../../metta-moses/scoring/cscore)
 !(import! &self ../../../../metta-moses/scoring/complexity-based-scorer)
