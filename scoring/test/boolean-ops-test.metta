@@ -76,8 +76,9 @@
 !(let $exp (quote (AND (True False))) (assertEqual (mkOpNode AND (True False)) $exp))
 !(let $exp (quote (NOT (True)))       (assertEqual (mkOpNode NOT (True))       $exp))
 !(let $exp (quote (OR ()))            (assertEqual (mkOpNode OR ())            $exp))
-;; mkVarsFor mints one fresh unbound var per child.
-!(assertEqual (let $vs (mkVarsFor (c1 c2 c3)) (size-atom $vs)) 3)
+;; mkNodeTemplate mints one fresh unbound var per child (inline map-atom:
+;; per-element copy_term freshens $v each time -- see fitness.metta).
+!(assertEqual (let ($vars $e) (mkNodeTemplate AND (c1 c2 c3)) (size-atom $vars)) 3)
 ;; mkNodeTemplate returns ($varsTerm $exprTerm) SHARING the vars: unifying the
 ;; vars-term against values makes the same values appear inside the expr.
 !(let $exp (quote (AND (True False)))

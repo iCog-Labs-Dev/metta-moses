@@ -177,8 +177,8 @@
 ;;
 ;; Structure -- recursion lives in exactly one place. Reading bottom-up:
 ;;   mkOpNode, nodeKids, mkNodeTemplate, evalRowT   non-recursive builders
-;;   mkVarsFor, transposeCols                       linear walks over one flat
-;;                                                  list each (no cycles)
+;;   transposeCols                                  linear walk over one flat
+;;                                                  list (no cycles)
 ;;   combineNode                                    column-level only, never
 ;;                                                  touches the tree
 ;;   evalSubtree                                    THE tree recursion; its one
@@ -191,19 +191,18 @@
 (= (mkOpNode $op $rv)
    (cons-atom $op (cons-atom $rv ())))
 
-;; One fresh MeTTa var per element of $xs: each recursive clause invocation
-;; renames $v fresh, so the result is a tuple of k distinct unbound vars
-;; (cons-atom does not copy, so each var keeps its identity for sharing).
-(= (mkVarsFor $xs)
-   (if (== $xs ())
-       ()
-       (cons-atom $v (mkVarsFor (cdr-atom $xs)))))
-
 ;; Build a node's row template ONCE per cache miss: fresh vars (one per child)
 ;; plus the operator expr sharing those vars. Returns ($varsTerm $exprTerm),
 ;; e.g. (($v1 $v2) (AND ($v1 $v2))) or (($v1) (NOT ($v1))).
+;; The vars are minted by a plain (map-atom $cvs $c $v): its per-element
+;; copy_term -- the very behavior that BREAKS shared-var threading elsewhere
+;; (see combineNode's var-safe map) -- is exactly what mints k DISTINCT fresh
+;; vars here. The sharing we DO need (vars-term <-> expr) is established
+;; afterwards by cons-atom, which does not copy. Distinctness, arity, expr
+;; identity and sealed row reuse are all validated in the importless probe
+;; tmp/probe-mapvars.metta.
 (= (mkNodeTemplate $op $cvs)
-   (let* (($vars (mkVarsFor $cvs))
+   (let* (($vars (map-atom $cvs $c $v))
           ($e    (mkOpNode $op $vars)))
      ($vars $e)))
 
