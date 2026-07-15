@@ -13,22 +13,28 @@
 ;; import it before this module.
 ;;
 ;; Quote rule: these clause names double as the data constructors used in
-;; candidate trees and reduct expressions. Any bare (NOT $x) or arity-1
-;; (AND ...)/(OR ...) tuple in a module loaded after this one compiles as a
-;; CALL -- wrap such data sites in (quote ...). Every emission below is
-;; quote-protected so the clauses cannot fire at template-build time.
+;; candidate trees and reduct expressions. Any bare arity-1 (AND ...)/(OR ...)
+;; tuple -- or a (NOT (...)) whose argument is a singleton -- in a module
+;; loaded after this one compiles as a CALL -- wrap such data sites in
+;; (quote ...). Every emission below is quote-protected so the clauses cannot
+;; fire at template-build time.
 
-;; Wrapped-list operators: single arity-1 clause = n-ary. The engine reduces a
-;; node whose children are already boolean VALUES, so each clause receives fully
+;; Wrapped-list operators: single arity-1 clause = n-ary, and NOT takes the
+;; SAME wrapped argument list as AND/OR -- (NOT (x)) -- so every operator node
+;; is uniformly (Op (kids)) and the engine needs no per-operator shape cases.
+;; NOT's head destructures the singleton, so only the wrapped form fires (flat
+;; data like (NOT A) matches no clause). The engine reduces a node whose
+;; children are already boolean VALUES, so each clause receives fully
 ;; evaluated children.
 (= (AND $args) (all $args))
 (= (OR  $args) (any $args))
-(= (NOT $x)    (not $x))
+(= (NOT ($x))  (not $x))
 
-;; preOrderExp: Tree -> wrapped eval shape. AND/OR nodes become (Op (kids)) and
-;; NOT becomes (NOT child); leaves stay as their label symbol (or a nullary
-;; AND/OR becomes (Op ()), its identity). Mirrors utilities/tree's preOrder but
-;; wraps children in an extra list so evalSubtree can dispatch structurally.
+;; preOrderExp: Tree -> wrapped eval shape. EVERY operator node becomes
+;; (Op (kids)) -- NOT included: (NOT (k)); leaves stay as their label symbol
+;; (or a nullary AND/OR becomes (Op ()), its identity). Mirrors
+;; utilities/tree's preOrder but wraps children in an extra list so evalSubtree
+;; can dispatch structurally.
 ;; Every emission is quote-protected so the AND/OR/NOT clauses cannot fire here.
 (= (preOrderExp (mkTree (mkNode $r) ()))
    (if (once (is-member $r (quote (AND OR))))
@@ -39,10 +45,7 @@
    (preOrderExp (mkTree $node $children)))
 (= (preOrderExp (mkTree (mkNode $r) (cons $x $xs)))
    (let $childrenExp (childrenExp (cons $x $xs))
-        (if (== $r NOT)
-            (let $child (car-atom $childrenExp)
-                 (quote (NOT $child)))
-            (quote ($r $childrenExp)))))
+        (quote ($r $childrenExp))))
 
 ;; childrenExp: map preOrderExp over child Trees, dropping empty knob
 ;; passthroughs.

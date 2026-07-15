@@ -140,7 +140,7 @@
 ;; Wrapped-shape columnar evaluation.
 ;;
 ;; $exp is the wrapped eval shape produced by preOrderExp (scoring/boolean-ops):
-;;   node:          (AND (k1 .. kk)) / (OR (k1 .. kk)) / (NOT k)  -- 2-element
+;;   node:          (AND (k1 .. kk)) / (OR (k1 .. kk)) / (NOT (k))  -- 2-element
 ;;   symbol leaf:   a bare label (A, B, ...)  -> its table column
 ;;   grounded leaf: True / False              -> a constant column
 ;; Each node is evaluated ONCE into a boolean vector over all rows and memoized
@@ -151,7 +151,7 @@
 ;; scoring/boolean-ops.metta. Here we never re-implement and/or/not: on a cache
 ;; miss the node's ONE-LEVEL row template is built ONCE -- fresh MeTTa vars, one
 ;; per child, as a vars-term ($v1 .. $vk) plus the node expr (AND ($v1 .. $vk))
-;; / (OR ($v1 .. $vk)) / (NOT $v1) SHARING those vars -- and each row is then
+;; / (OR ($v1 .. $vk)) / (NOT ($v1)) SHARING those vars -- and each row is then
 ;; scored by native unification: sealed freshens the vars (and, because the expr
 ;; shares them, the expr with them -- copy_term preserves the identity),
 ;; (let $vars $row ...) unifies the fresh vars against that row's child values
@@ -186,12 +186,10 @@
 ;;                                                  over (nodeKids $exp)
 
 ;; Build an inert operator node from a symbol and an argument tuple (template
-;; vars, or () for the empty identities). NOT is unary: (NOT x). AND/OR take
-;; the tuple as their single argument list: (AND (x1 .. xk)).
+;; vars, or () for the empty identities). Every operator uniformly takes the
+;; tuple as its single argument list: (Op (x1 .. xk)) -- NOT included.
 (= (mkOpNode $op $rv)
-   (if (== $op NOT)
-       (cons-atom NOT $rv)
-       (cons-atom $op (cons-atom $rv ()))))
+   (cons-atom $op (cons-atom $rv ())))
 
 ;; One fresh MeTTa var per element of $xs: each recursive clause invocation
 ;; renames $v fresh, so the result is a tuple of k distinct unbound vars
@@ -203,7 +201,7 @@
 
 ;; Build a node's row template ONCE per cache miss: fresh vars (one per child)
 ;; plus the operator expr sharing those vars. Returns ($varsTerm $exprTerm),
-;; e.g. (($v1 $v2) (AND ($v1 $v2))) or (($v1) (NOT $v1)).
+;; e.g. (($v1 $v2) (AND ($v1 $v2))) or (($v1) (NOT ($v1))).
 (= (mkNodeTemplate $op $cvs)
    (let* (($vars (mkVarsFor $cvs))
           ($e    (mkOpNode $op $vars)))
@@ -224,16 +222,14 @@
 (= (transposeCols $cols)
    (if (== (car-atom $cols) ())
        ()
-       (cons-atom (map-atom $cols $c (car-atom $c))
+       (cons (map-atom $cols $c (car-atom $c))
                   (transposeCols (map-atom $cols $c (cdr-atom $c))))))
 
-;; Child exprs of a wrapped node: NOT is unary -- (NOT k) -> (k) -- while
-;; AND/OR carry their children as one wrapped list -- (OP (k1 .. kk)) ->
-;; (k1 .. kk). Pure accessor, no recursion.
+;; Child exprs of a wrapped node -- every operator uniformly carries its
+;; children as one wrapped list: (Op (k1 .. kk)) -> (k1 .. kk). Pure accessor,
+;; no recursion.
 (= (nodeKids $exp)
-   (if (== (car-atom $exp) NOT)
-       (cdr-atom $exp)
-       (car-atom (cdr-atom $exp))))
+   (car-atom (cdr-atom $exp)))
 
 ;; Combine already-evaluated child columns into the node's column: build the
 ;; shared-var row template ONCE, transpose the columns into per-row value

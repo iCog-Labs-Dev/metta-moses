@@ -37,8 +37,8 @@
 !(assertEqual (OR  (False True))                    True)
 !(assertEqual (OR  (False False))                   False)
 !(assertEqual (OR  ())                              False)  ;; empty OR identity
-!(assertEqual (NOT True)                            False)
-!(assertEqual (NOT False)                           True)
+!(assertEqual (NOT (True))                          False)
+!(assertEqual (NOT (False))                         True)
 
 ;; --- evalSubtree end-to-end on WRAPPED shapes (column-level dispatch) ---
 ;; (AND (A B)) over the reference table: and((T T),(F T)) = (F T)
@@ -49,9 +49,9 @@
 !(assertEqual
    (evalSubtree (quote (OR (A B))) (mkITable ((True False False) (True True True)) (A B O)) 2)
    (True True))
-;; (NOT B) = (T F)
+;; (NOT (B)) = (T F)
 !(assertEqual
-   (evalSubtree (quote (NOT B)) (mkITable ((True False False) (True True True)) (A B O)) 2)
+   (evalSubtree (quote (NOT (B))) (mkITable ((True False False) (True True True)) (A B O)) 2)
    (True False))
 ;; bare leaf A = (T T)
 !(assertEqual
@@ -64,9 +64,9 @@
 !(assertEqual
    (evalSubtree (quote (OR ())) (mkITable ((True False False) (True True True)) (A B O)) 2)
    (False False))
-;; nested: (AND ((OR (A B)) (NOT B))) = and((T T),(T F)) = (T F)
+;; nested: (AND ((OR (A B)) (NOT (B)))) = and((T T),(T F)) = (T F)
 !(assertEqual
-   (evalSubtree (quote (AND ((OR (A B)) (NOT B)))) (mkITable ((True False False) (True True True)) (A B O)) 2)
+   (evalSubtree (quote (AND ((OR (A B)) (NOT (B))))) (mkITable ((True False False) (True True True)) (A B O)) 2)
    (True False))
 
 ;; --- memoization: after evaluating (AND (A B)) its column is cached in

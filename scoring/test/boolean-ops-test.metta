@@ -50,11 +50,11 @@
 !(assertEqual (AND (True True True True True True True True True True)) True)
 !(assertEqual (AND (True True True True True True True True True False)) False)
 
-;; ---- NOT (unary) ----
-!(assertEqual (NOT True)  False)
-!(assertEqual (NOT False) True)
-!(assertEqual (NOT (NOT True))  True)
-!(assertEqual (NOT (NOT False)) False)
+;; ---- NOT (same wrapped argument list as AND/OR) ----
+!(assertEqual (NOT (True))  False)
+!(assertEqual (NOT (False)) True)
+!(assertEqual (NOT ((NOT (True))))  True)
+!(assertEqual (NOT ((NOT (False)))) False)
 
 ;; ---- preOrderExp / childrenExp: Tree -> wrapped eval shape ----
 ;; leaf label stays a symbol; nullary AND/OR becomes its identity (Op ()).
@@ -63,7 +63,7 @@
 !(let $exp (quote (OR ()))  (assertEqual (preOrderExp (mkTree (mkNode OR)  ())) $exp))
 !(let* (($cand (quote (AND A B))) ($exp (quote (AND (A B)))))
    (assertEqual (preOrderExp (buildTree $cand)) $exp))
-!(let* (($cand (quote (NOT A))) ($exp (quote (NOT A))))
+!(let* (($cand (quote (NOT A))) ($exp (quote (NOT (A)))))
    (assertEqual (preOrderExp (buildTree $cand)) $exp))
 !(let* (($cand (quote (OR (AND A B) C))) ($exp (quote (OR ((AND (A B)) C)))))
    (assertEqual (preOrderExp (buildTree $cand)) $exp))
@@ -74,7 +74,7 @@
 ;; ---- Per-row primitives: node template (built once) + sealed/unify/reduce ----
 ;; mkOpNode never fires the clause (cons-atom keeps it inert data).
 !(let $exp (quote (AND (True False))) (assertEqual (mkOpNode AND (True False)) $exp))
-!(let $exp (quote (NOT True))         (assertEqual (mkOpNode NOT (True))       $exp))
+!(let $exp (quote (NOT (True)))       (assertEqual (mkOpNode NOT (True))       $exp))
 !(let $exp (quote (OR ()))            (assertEqual (mkOpNode OR ())            $exp))
 ;; mkVarsFor mints one fresh unbound var per child.
 !(assertEqual (let $vs (mkVarsFor (c1 c2 c3)) (size-atom $vs)) 3)
@@ -86,7 +86,7 @@
             ($vars (True False)))
        $e)
      $exp))
-!(let $exp (quote (NOT True))
+!(let $exp (quote (NOT (True)))
    (assertEqual
      (let* ((($vars $e) (mkNodeTemplate NOT (c1)))
             ($vars (True)))
