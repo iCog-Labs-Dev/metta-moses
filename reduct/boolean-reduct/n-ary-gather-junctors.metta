@@ -48,8 +48,11 @@
                     ($parentIsAND (== AND $parent))
 
                   )
-                    ;; quote: $h holds AND/OR/NOT; a bare ($h ...) tuple is a
-                    ;; runtime meta-call into scoring/boolean-ops' eval clauses
+                    ;; quote: a bare ($h ...) tuple would be a runtime meta-call into
+                    ;; scoring/boolean-ops' eval clauses. CAVEAT: `case` normalizes its
+                    ;; scrutinee past the quote (see cut-unnecessary-and.metta); behavior
+                    ;; with the clauses registered is validated end-to-end, not by this
+                    ;; guard alone.
                     (case (quote ($h $parentIsAND))
                         (
                             ((NOT True) $expr)

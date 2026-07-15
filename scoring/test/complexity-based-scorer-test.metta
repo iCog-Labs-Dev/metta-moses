@@ -117,8 +117,13 @@
     )
  (mkTree (mkNode AND) ((mkTree (mkNode A) ()) (mkTree (mkNode OR) ((mkTree (mkNode B) ()) (mkTree (mkNode C) ()) (mkTree (mkNode NOT) ((mkTree (mkNode D) ()))))))))
 
+;; The scorer below evaluates against a DIFFERENT table (ttable2). Every
+;; &subtreeCache entry (subtree/leaf/outputs columns) is valid only for the
+;; table it was computed from, so reset the cache between the two runs.
+!(resetSubtreeCache)
+
 !(assertEqual
- (complexityBasedScorer 
+ (complexityBasedScorer
          (mkRep (knobMapObj) (tree1))
          (mkDemeId "1")
          (mkInst (cons 1 (cons 0 (cons 1 ()))))

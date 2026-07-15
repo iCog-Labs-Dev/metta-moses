@@ -24,7 +24,7 @@
             (let*
               (
                 ($canonized (actionCanonize (mkTree (mkNode $rootOp) $children)))
-                (($updatedTree $updatedMMap) (buildAction $canonized (mkNodeId (0)) $mmp $actions $perceptions))
+                (($updatedTree $updatedMMap) (buildAction $canonized $mmp $actions $perceptions))
                 ($cleanedTree (actionCleanup $updatedTree))
                 ($finalTree (if (isNullVertex $cleanedTree) (mkTree (mkNode and_seq) ()) $cleanedTree))
               )

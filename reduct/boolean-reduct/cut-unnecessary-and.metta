@@ -94,8 +94,14 @@
                   (
                      (($h $t) (decons-atom $expr))
                   )
-                    ;; quote: $h holds AND/OR/NOT; a bare ($h ...) tuple is a
-                    ;; runtime meta-call into scoring/boolean-ops' eval clauses
+                    ;; quote: a bare ($h ...) tuple would be a runtime meta-call into
+                    ;; scoring/boolean-ops' eval clauses. CAVEAT: `case` normalizes its
+                    ;; scrutinee past the quote, so this guard only holds while no
+                    ;; AND/OR/NOT clauses are registered (reduct-only contexts). In the
+                    ;; full pipeline (boolean-ops loaded) this MeTTa clause misdispatches
+                    ;; and correctness relies on the native Prolog removeEmptyAND
+                    ;; override (rte-helpers-fast.pl, consulted in moses.metta)
+                    ;; superseding it — validated end-to-end (CI + mux6 differential).
                     (case (quote ($h $t))
                         (
                             ((AND ()) Nothing)

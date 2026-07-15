@@ -1,12 +1,8 @@
 ;; Type definitions and functions related to beahvioral socre, behavioral complexity score and turth table behavioral score.
-;; Behavioral score is a list of numbers, where each number represents the score of a particular output.
+;; Behavioral score is a list of numbers, where each number represents the score of a particular output. 
 ;; For boolean expressions, the score is either 0 or -1. Therefore, this behavioral score is a list of 0s and -1s.
-;; In the C++ version, floating point scores and numbers different than -1 and 0 are used as a result of table compression
+;; In the C++ version, floating point scores and numbers different than -1 and 0 are used as a result of table compression 
 ;;  and weighting options. However, we don't have that yet.
-;;
-;; DEPENDS ON scoring/boolean-ops (candTemplate/evalParsed — scoreTree's
-;; evaluator) and utilities/general-helpers: entry files must import both
-;; BEFORE this module, or scoreTree fails silently (calls compile as data).
 
 ; (: BehavioralScore Type)
 ; ;(: mkBScore (-> (List Number) BehavioralScore))
@@ -21,6 +17,16 @@
 ;; Sums the behavioral score to get a single number.
 ;(: sumBScore (-> BehavioralScore Number))
 (= (sumBScore (mkBScore $bs)) (List.sum $bs))
+
+;; Count wins in a BehavioralScore for game strategies
+;; For game strategies: 1.0 = win, -1.0 = loss, 0.0 = draw
+;; Returns the total number of wins
+;(: countWins (-> BehavioralScore Number))
+(= (countWins (mkBScore ())) 0)
+(= (countWins (mkBScore (cons $head $tail)))
+   (if (== $head 1.0)
+       (+ 1 (countWins (mkBScore $tail)))
+       (countWins (mkBScore $tail))))
 
 ;; Input table with rows, columns and labels of the columns
 ;; An Input Table is just a list of lists.
@@ -52,40 +58,37 @@
 ;;         $tree - The tree to be scored
 ;;
 ;; Returns: Beahvioral score for the given tree.
-; (: scoreTree (-> (ITable $a) (Tree $a) BehavioralScore))
+; (: scoreTree (-> (ITable $a) (Tree $a) $cacheSpace BehavioralScore))
+;; The score is derived entirely from the columnar subtree cache: evalSubtree
+;; evaluates the tree once into a per-row boolean vector, memoizing every
+;; subtree — including the root expression — in &subtreeCache. The root entry
+;; therefore serves as the whole-tree memo, so no separate whole-tree cache
+;; read/write is needed. $cacheSpace is kept for signature compatibility with
+;; existing callers but is no longer used.
 (= (scoreTree (mkITable $table $labels) $tree $cacheSpace)
    (if (== $tree (mkTree (mkNode AND) ()))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
-       (chain (collapse (match $cacheSpace
-               ($tree $bscore)
-               $bscore))
-           $val
-           (if (== $val ())
-               (let* (
-                   ;; Ground candidate => the Space match above is an exact
-                   ;; cache key. On a miss, build the var template ONCE
-                   ;; (candTemplate) and score every row by unification +
-                   ;; native eval (evalParsed) — the whole evaluation
-                   ;; pipeline lives in scoring/boolean-ops.metta. The
-                   ;; var-safe (map $f $a $b ...) passes $template by
-                   ;; reference (evalParsed seals its own per-row copy);
-                   ;; map-atom would copy_term the whole template per row.
-                   ($template (candTemplate $labels $tree))
-                   ($lastIdx (- (size-atom $labels) 1))
-                   ($bScore (map scoreRow $template $lastIdx $table))
-                   ($result (mkBScore $bScore))
-                   ($_ (add-atom $cacheSpace ($tree $result)))
-               )
-               $result)
-               (car-atom $val)
-           ))))
+       (let* (
+           ($expTree (preOrderExp $tree))
+           ($scoreList (evalSubtree $expTree (mkITable $table $labels) (List.length $table)))
+           ($outputs (outputsColumn $table $labels))
+           ($bScore (List.zipWith compareAndScore $scoreList $outputs))
+       )
+       (mkBScore $bScore))))
 
-;; Score one row: native-eval the template against it, compare to the
-;; row's output column (last element). Named so scoreTree's per-row loop
-;; can use the var-safe (map ...) instead of a capturing map-atom body.
-(= (scoreRow $template $lastIdx $row)
-   (compareAndScore (evalParsed $template $row) (index-atom $row $lastIdx)))
+;; The output (last) column of the scoring table, extracted ONCE per run and
+;; memoized in &subtreeCache (run-scoped, single fixed table -- the same
+;; contract as the subtree entries). Previously every candidate re-walked the
+;; whole row-major table for a column that never changes within a run.
+(= (outputsColumn $table $labels)
+   (chain (collapse (match &subtreeCache (outputsCol $v) $v)) $hit
+     (if (== $hit ())
+         (let* (($o (List.flatten (List.map (List.drop (- (List.length $labels) 1)) $table)))
+                ($_ (add-atom &subtreeCache (outputsCol $o))))
+           $o)
+         (car-atom $hit))))
 
+(= (scoreTreeHelper $labels $expTree $table) (let $a (replaceVarsWithTruth ($labels $expTree) $table) (evaluate $a)))
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.
@@ -130,10 +133,7 @@
                   (if (== $h $l)
                       (cons-atom $b $t')
                       (cons-atom $h $t')))))
-       ;; quote both the membership list and the 1-tuple emission: with the
-       ;; AND/OR/NOT eval clauses registered (scoring/boolean-ops), a bare
-       ;; (AND OR) tuple or var-headed ($boolExpr) would compile as a call.
-       (if (== $boolExpr $l) $b (if (once (is-member $boolExpr (quote (AND OR)))) (quote ($boolExpr)) $boolExpr))))
+       (if (== $boolExpr $l) $b (if (once (is-member $boolExpr (AND OR))) ($boolExpr) $boolExpr))))
 
 ;; Replace ever occurence of all labels (boolean variables) 
 ;;  inside an expression with their corresponding truth values.
@@ -165,13 +165,49 @@
 ;(: worstPossibleScore (-> (BehavioralCScore $a) Number))
 (= (worstPossibleScore (mkBCScore $truthTableBScore)) (let (mkBScore $bscore) (worstPossibleScore $truthTableBScore) (List.sum $bscore)))
 
-;; minImprove for BehavioralCScore is served by the catch-all
-;; (= (minImprove $_) 0.5) above — no separate clause (one would overlap
-;; the catch-all and yield duplicate solutions).
+;; When we have a compressed tree, the min improvement
+;;  will be calculated. For now it's fixed.
+;(: minImprove (-> (BehavioralCScore $a) Number))
+(= (minImprove (mkBCScore $truthTableBScore) (minImprove $truthTableBScore)))
 
 
-;; getArgLabels: all column labels except the last (the output column),
-;; returned as an expression. Test-only today; kept for table utilities.
+;;------------------------------------------------------------
+;; getArgLabels
+;;------------------------------------------------------------
+;;  Extracts argument labels (all but the last) from an ITable.
+;;
+;;  The ITable structure is:
+;;    (mkITable $rows $labels)
+;;      where $rows   = list of data rows (each a list of values)
+;;            $labels = list of column labels (symbols)
+;;
+;;  This function returns an expressison of all column labels except the last one,
+;;  which is typically the output label in a truth table.
+;;
+;;  Example:
+;;    (mkITable
+;;      (cons (cons True (cons False (cons True ())))
+;;            (cons (cons False (cons True (cons False ()))) ()))
+;;      (cons 'A (cons 'B (cons 'Y ()))))
+;;
+;;    Labels:   +---+---+---+
+;;              | A | B | Y |
+;;              +---+---+---+
+;;    Output:   ('A 'B)
+;;
+;;   
+;;      +---+---+---+
+;;      | A | B | Y |
+;;      +---+---+---+
+;;      | T | F | T |
+;;      | F | T | F |
+;;      +---+---+---+
+;;      ^^^^^^^^^^^^
+;;      getArgLabels returns only the input labels: [A, B]
+;;
+;;  Usage:
+;;    (getArgLabels $itable)  ; returns (cons 'A (cons 'B ()))
+;;
 ;(:getArgLabels (-> (ITable $a) (List Symbol)))
 (= (getArgLabels (mkITable $rows $labels))
    (let $args

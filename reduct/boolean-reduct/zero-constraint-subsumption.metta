@@ -24,8 +24,11 @@
             ($updatedChildren (filter-atom $children $child (nodeHasChildOrGuard $child)))
             ($updatedCurrent (cons-atom $head $updatedChildren))
           )
-          ;; quote: $head holds AND/OR/NOT; a bare ($head ...) tuple is a
-          ;; runtime meta-call into scoring/boolean-ops' eval clauses
+          ;; quote: a bare ($head ...) tuple would be a runtime meta-call into
+          ;; scoring/boolean-ops' eval clauses. CAVEAT: `case` normalizes its
+          ;; scrutinee past the quote (see cut-unnecessary-and.metta); behavior
+          ;; with the clauses registered is validated end-to-end, not by this
+          ;; guard alone.
           (case (quote ($head $children))
             (
               ((AND $_) ($parent $current False))
