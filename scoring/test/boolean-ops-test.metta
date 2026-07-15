@@ -68,8 +68,8 @@
 !(let* (($cand (quote (OR (AND A B) C))) ($exp (quote (OR ((AND (A B)) C)))))
    (assertEqual (preOrderExp (buildTree $cand)) $exp))
 ;; childrenExp maps preOrderExp over child Trees.
-!(let* (($kids (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ($exp (quote (A B))))
-   (assertEqual (childrenExp $kids) $exp))
+!(let* (($children (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ($exp (quote (A B))))
+   (assertEqual (childrenExp $children) $exp))
 
 ;; ---- Per-row primitives: node template (built once) + sealed/unify/reduce ----
 ;; mkNodeTemplate mints one fresh unbound var per child (inline map-atom:

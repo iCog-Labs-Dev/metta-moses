@@ -247,7 +247,8 @@
        ;; operator node or label leaf: one shared memo path
        (chain (collapse (match &subtreeCache (subtree $exp $v) $v)) $hit
          (if (== $hit ())
-             (let* (($col (if (== (get-metatype $exp) Expression)
+             (let* (
+                     ($col (if (== (get-metatype $exp) Expression)
                               ;; every node is uniformly ($op ($k1 .. $kk))
                               (let* ((($op $kids) $exp)
                                      ($cvs (map-atom $kids $k (evalSubtree $k $itable $n))))

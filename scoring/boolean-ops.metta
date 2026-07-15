@@ -21,7 +21,7 @@
 
 ;; Wrapped-list operators: single arity-1 clause = n-ary, and NOT takes the
 ;; SAME wrapped argument list as AND/OR -- (NOT (x)) -- so every operator node
-;; is uniformly (Op (kids)) and the engine needs no per-operator shape cases.
+;; is uniformly (Op (children)) and the engine needs no per-operator shape cases.
 ;; NOT's head destructures the singleton, so only the wrapped form fires (flat
 ;; data like (NOT A) matches no clause). The engine reduces a node whose
 ;; children are already boolean VALUES, so each clause receives fully
@@ -31,7 +31,7 @@
 (= (NOT ($x))  (not $x))
 
 ;; preOrderExp: Tree -> wrapped eval shape. EVERY operator node becomes
-;; (Op (kids)) -- NOT included: (NOT (k)); leaves stay as their label symbol
+;; (Op (children)) -- NOT included: (NOT (c)); leaves stay as their label symbol
 ;; (or a nullary AND/OR becomes (Op ()), its identity). Mirrors
 ;; utilities/tree's preOrder but wraps children in an extra list so evalSubtree
 ;; can dispatch structurally.
