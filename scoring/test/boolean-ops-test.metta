@@ -12,7 +12,7 @@
 ;; (fitness.metta) evaluates each subtree ONCE into a per-row column: on a cache
 ;; miss it builds the node's shared-var template once (mkNodeTemplate), then per
 ;; row seals/freshens the vars, unifies them against the row's child values, and
-;; reduce-dispatches the clause (evalRowT).
+;; reduce-dispatches the clause (evalRow).
 ;;
 ;; This file imports boolean-ops, so a bare (AND ...)/(OR ...)/(NOT ...) DATA
 ;; literal at a call site compiles as a CALL into the clauses -- data sites are
@@ -91,25 +91,25 @@
             ($vars (True)))
        $e)
      $exp))
-;; evalRowT: sealed freshening + one-step positional unify + reduce dispatch.
+;; evalRow: sealed freshening + one-step positional unify + reduce dispatch.
 ;; Consecutive rows through the SAME template give independent correct results
 ;; -- proof the sealed copy leaves the template unbound between rows.
 !(assertEqual
    (let $t (mkNodeTemplate AND (c1 c2))
-     ((evalRowT $t (True True)) (evalRowT $t (True False))))
+     ((evalRow $t (True True)) (evalRow $t (True False))))
    (True False))
 !(assertEqual
    (let $t (mkNodeTemplate OR (c1 c2))
-     ((evalRowT $t (False False)) (evalRowT $t (False True))))
+     ((evalRow $t (False False)) (evalRow $t (False True))))
    (False True))
 !(assertEqual
    (let $t (mkNodeTemplate NOT (c1))
-     ((evalRowT $t (True)) (evalRowT $t (False))))
+     ((evalRow $t (True)) (evalRow $t (False))))
    (False True))
 ;; n-ary template: 5 children, one clause dispatches.
 !(assertEqual
    (let $t (mkNodeTemplate AND (c1 c2 c3 c4 c5))
-     ((evalRowT $t (True True True True True)) (evalRowT $t (True True False True True))))
+     ((evalRow $t (True True True True True)) (evalRow $t (True True False True True))))
    (True False))
 ;; transposeCols: list of equal-length columns -> per-row value tuples.
 !(assertEqual (transposeCols ((True True True) (False False False)))

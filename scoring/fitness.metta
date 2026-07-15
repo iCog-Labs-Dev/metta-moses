@@ -146,7 +146,7 @@
 ;; One row through the template: sealed copies vars and expr together (the
 ;; template stays unbound for the next row), the let unifies the row's child
 ;; values positionally, and `reduce` dispatches the operator clause.
-(= (evalRowT $template $row)
+(= (evalRow $template $row)
    (let ($vars $e) $template
         (sealed $vars (let $vars $row (reduce $e)))))
 
@@ -158,13 +158,13 @@
              (transposeCols (map-atom $cols $c (cdr-atom $c))))))
 
 ;; Child columns -> node column: template once, then each transposed row
-;; through evalRowT via the var-safe map (map-atom would copy the template
+;; through evalRow via the var-safe map (map-atom would copy the template
 ;; per row). Childless AND/OR reduce their identity once and repeat it.
 (= (combineNode $op $cvs $n)
    (if (== $cvs ())
        (List.repeat $n (let $e (cons $op (cons () ())) (reduce $e)))
        (let $t (mkNodeTemplate $op $cvs)
-         (map evalRowT $t (transposeCols $cvs)))))
+         (map evalRow $t (transposeCols $cvs)))))
 
 ;; Wrapped (sub)expression -> boolean column. Nodes AND label leaves are
 ;; memoized, so a label's table walk happens once per run. The map-atom over

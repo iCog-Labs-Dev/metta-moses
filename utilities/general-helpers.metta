@@ -129,15 +129,6 @@
 ;; A function that behaves like a do while loop.
 ;; It executes the functions in the given list and returns the last result.
 ;; (: until (-> (-> $a Bool) (-> $a $a) $a $a))
-;;
-;; This clause is DEAD CODE under PeTTaV1, whose translator lowers every
-;; `until` call site to the native until_runtime. Under stock PeTTa (the
-;; CI image) there is no such lowering and THIS clause runs — so it must
-;; be eval-free: the former (eval ...) wrappers deep-normalized the loop
-;; state each iteration, firing scoring/boolean-ops' AND/OR/NOT clauses
-;; on the boolean tree data inside the RTE fixed-point state and silently
-;; corrupting the reduct on CI. Plain meta-calls keep the state as data;
-;; verified equivalent on both runtimes.
 (= (until $predicate $function $x)
     (let $isTrue ($predicate $x)
         (if (== $isTrue true)

@@ -71,22 +71,11 @@
        (let* (
            ($expTree (preOrderExp $tree))
            ($scoreList (evalSubtree $expTree (mkITable $table $labels) (List.length $table)))
-           ($outputs (outputsColumn $table $labels))
+           ($length (List.length $labels))
+           ($outputs (List.flatten (List.map (List.drop (- $length 1)) $table)))
            ($bScore (List.zipWith compareAndScore $scoreList $outputs))
        )
        (mkBScore $bScore))))
-
-;; The output (last) column of the scoring table, extracted ONCE per run and
-;; memoized in &subtreeCache (run-scoped, single fixed table -- the same
-;; contract as the subtree entries). Previously every candidate re-walked the
-;; whole row-major table for a column that never changes within a run.
-(= (outputsColumn $table $labels)
-   (chain (collapse (match &subtreeCache (outputsCol $v) $v)) $hit
-     (if (== $hit ())
-         (let* (($o (List.flatten (List.map (List.drop (- (List.length $labels) 1)) $table)))
-                ($_ (add-atom &subtreeCache (outputsCol $o))))
-           $o)
-         (car-atom $hit))))
 
 (= (scoreTreeHelper $labels $expTree $table) (let $a (replaceVarsWithTruth ($labels $expTree) $table) (evaluate $a)))
 ;; Return the best possible BehavioralScore given the size of the table.
