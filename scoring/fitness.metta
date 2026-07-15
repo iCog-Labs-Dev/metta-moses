@@ -174,6 +174,16 @@
 ;; -- so compareAndScore mismatches every row and the tree scores worst (-1),
 ;; exactly matching the old ERROR-column behavior (verified: probe-sealed.metta
 ;; reduces a (FOO ($v1 $v2)) template row to (FOO (True False))).
+;;
+;; Structure -- recursion lives in exactly one place. Reading bottom-up:
+;;   mkOpNode, nodeKids, mkNodeTemplate, evalRowT   non-recursive builders
+;;   mkVarsFor, transposeCols                       linear walks over one flat
+;;                                                  list each (no cycles)
+;;   combineNode                                    column-level only, never
+;;                                                  touches the tree
+;;   evalSubtree                                    THE tree recursion; its one
+;;                                                  self-call is the map-atom
+;;                                                  over (nodeKids $exp)
 
 ;; Build an inert operator node from a symbol and an argument tuple (template
 ;; vars, or () for the empty identities). NOT is unary: (NOT x). AND/OR take
@@ -217,37 +227,41 @@
        (cons-atom (map-atom $cols $c (car-atom $c))
                   (transposeCols (map-atom $cols $c (cdr-atom $c))))))
 
-;; Child columns of a wrapped node. $rest = (cdr-atom $exp): for NOT it is
-;; (child) (a single wrapped child); for AND/OR it is (kidsList).
-(= (childCols $op $rest $itable $n)
-   (if (== $op NOT)
-       (cons-atom (evalSubtree (car-atom $rest) $itable $n) ())
-       (map-atom (car-atom $rest) $k (evalSubtree $k $itable $n))))
+;; Child exprs of a wrapped node: NOT is unary -- (NOT k) -> (k) -- while
+;; AND/OR carry their children as one wrapped list -- (OP (k1 .. kk)) ->
+;; (k1 .. kk). Pure accessor, no recursion.
+(= (nodeKids $exp)
+   (if (== (car-atom $exp) NOT)
+       (cdr-atom $exp)
+       (car-atom (cdr-atom $exp))))
 
-;; Evaluate a wrapped operator node into a boolean column: build the node's
-;; shared-var template ONCE, then score each transposed row through it with
-;; evalRowT. The template threads through the var-safe (map $f $a $xs) from
-;; general-helpers -- map-atom's lambda would copy_term it per row (evalRowT
-;; seals its own per-row copy instead; same reasoning as feat's scoreTree).
-;; Empty AND/OR (no children) reduce their identity node once and repeat it
-;; over all rows.
-(= (evalNode $exp $itable $n)
-   (let* (($op  (car-atom $exp))
-          ($cvs (childCols $op (cdr-atom $exp) $itable $n)))
-     (if (== $cvs ())
-         (List.repeat $n (let $e (mkOpNode $op ()) (reduce $e)))
-         (let $t (mkNodeTemplate $op $cvs)
-           (map evalRowT $t (transposeCols $cvs))))))
+;; Combine already-evaluated child columns into the node's column: build the
+;; shared-var row template ONCE, transpose the columns into per-row value
+;; tuples, and score each row through the template (evalRowT). Column-level
+;; only -- this never touches the tree. The template threads through the
+;; var-safe (map $f $a $xs) from general-helpers -- map-atom's lambda would
+;; copy_term it per row (evalRowT seals its own per-row copy instead; same
+;; reasoning as feat's scoreTree). Empty AND/OR (no children) reduce their
+;; identity node once and repeat it over all rows.
+(= (combineNode $op $cvs $n)
+   (if (== $cvs ())
+       (List.repeat $n (let $e (mkOpNode $op ()) (reduce $e)))
+       (let $t (mkNodeTemplate $op $cvs)
+         (map evalRowT $t (transposeCols $cvs)))))
 
 ;; Evaluate a wrapped (sub)expression into a boolean vector over all rows,
 ;; memoizing operator nodes in &subtreeCache keyed by the ground wrapped expr.
+;; This is the ONLY tree-recursive function: the map-atom over (nodeKids $exp)
+;; below is its single self-call; everything downstream (combineNode and the
+;; builders it uses) is column-level.
 ;(: evalSubtree (-> Expression (ITable $a) Number (List Bool)))
 (= (evalSubtree $exp $itable $n)
    (if (== (get-metatype $exp) Expression)
-       ;; operator node: cache lookup, else compute + memoize
+       ;; operator node: cache lookup, else recurse children + combine + memoize
        (chain (collapse (match &subtreeCache (subtree $exp $v) $v)) $hit
          (if (== $hit ())
-             (let* (($col (evalNode $exp $itable $n))
+             (let* (($cvs (map-atom (nodeKids $exp) $k (evalSubtree $k $itable $n)))
+                    ($col (combineNode (car-atom $exp) $cvs $n))
                     ($_   (add-atom &subtreeCache (subtree $exp $col))))
                $col)
              (car-atom $hit)))
