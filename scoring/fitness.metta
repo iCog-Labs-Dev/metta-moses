@@ -112,133 +112,63 @@
 
 
 ;; ---------------------------------------------------------------------------
-;; Columnar (vectorized) subtree evaluation with memoization.
-;;
-;; Instead of substituting variables per row and re-evaluating the whole tree,
-;; each subtree is evaluated ONCE into a boolean vector over all table rows and
-;; memoized in &subtreeCache, keyed by its wrapped (preOrderExp) expression.
-;; Common subtrees (e.g. (AND (A B))) recur across candidates, so the hit rate is
-;; far higher than the whole-tree cache and shared work is done only once.
+;; Columnar subtree evaluation over the wrapped preOrderExp shape:
+;;   node = (AND (c1 .. ck)) / (OR (c1 .. ck)) / (NOT (c));  leaf = label | True/False
+;; Every subtree is evaluated ONCE into a boolean column over all rows and
+;; memoized in &subtreeCache, keyed by its ground wrapped expr (valid for the
+;; run's single fixed table). Operator semantics live solely in the AND/OR/NOT
+;; clauses (scoring/boolean-ops): on a cache miss a one-level template with
+;; fresh shared vars is built once and every row is scored by unification --
+;; sealed freshens the vars, a positional let binds the row's child values,
+;; and one let-bound `reduce` dispatches the clause. A head with no clause
+;; stays unreduced and scores worst (-1), like the old ERROR column.
+;; Probes: tmp/probe-sealed.metta, tmp/probe-mapvars.metta.
 ;; ---------------------------------------------------------------------------
 
-;; Extract a variable's column (one boolean per row) from the input table.
+;; Extract a label's column from the row-major table. Unknown label -> loud
+;; Error (malformed input); index-atom skips List.getByIdx's per-cell re-scan.
 ;(: varColumn (-> (ITable $a) Symbol (List Bool)))
 (= (varColumn (mkITable $rows $labels) $label)
    (let $idx (List.index $labels $label)
         (if (== $idx -1)
-            ;; Leaf references a label not in the table. Real candidate trees are
-            ;; built from the table's features so this is a malformed input; fail
-            ;; loudly rather than silently scoring every row -1 (List.getByIdx -1).
             (Error $label "varColumn: label not found in table")
-            ;; $idx is already validated (>= 0, and rows are as wide as $labels),
-            ;; so index straight into the row with the grounded index-atom builtin
-            ;; instead of List.getByIdx, which re-scans the row (size-atom) for a
-            ;; redundant bounds check on every cell.
             (map-atom $rows $r (index-atom $r $idx)))))
 
-;; ---------------------------------------------------------------------------
-;; Wrapped-shape columnar evaluation.
-;;
-;; $exp is the wrapped eval shape produced by preOrderExp (scoring/boolean-ops):
-;;   node:          (AND (k1 .. kk)) / (OR (k1 .. kk)) / (NOT (k))  -- 2-element
-;;   symbol leaf:   a bare label (A, B, ...)  -> its table column
-;;   grounded leaf: True / False              -> a constant column
-;; Each node is evaluated ONCE into a boolean vector over all rows and memoized
-;; in &subtreeCache keyed by its (ground) wrapped expr, so subtrees shared across
-;; candidates are scored once.
-;;
-;; Operator SEMANTICS live in exactly one place: the (AND/OR/NOT) clauses in
-;; scoring/boolean-ops.metta. Here we never re-implement and/or/not: on a cache
-;; miss the node's ONE-LEVEL row template is built ONCE -- fresh MeTTa vars, one
-;; per child, as a vars-term ($v1 .. $vk) plus the node expr (AND ($v1 .. $vk))
-;; / (OR ($v1 .. $vk)) / (NOT ($v1)) SHARING those vars -- and each row is then
-;; scored by native unification: sealed freshens the vars (and, because the expr
-;; shares them, the expr with them -- copy_term preserves the identity),
-;; (let $vars $row ...) unifies the fresh vars against that row's child values
-;; positionally in one step, and a single `reduce` dispatches the operator
-;; clause. This is feat's evalParsed pattern (whole-tree template) adapted to
-;; one level per subtree -- real variables, real unification, real dispatch.
-;; Children arrive as already-evaluated VALUE columns, so the single-step
-;; `reduce` suffices (no recursive reduceExp).
-;;
-;; Template terms are built with `cons`: a bare (AND ...) literal in a body
-;; would FIRE the clause at build time, while cons-built nodes stay inert and
-;; preserve var identity between the vars-term and the expr. `reduce` dispatches
-;; its literal head and does not pre-evaluate its argument, so the expr rides in
-;; let-bound. All of this -- shared-var template shape, per-row sealed freshness
-;; (the template stays unbound across rows), n-ary dispatch -- is validated in
-;; the importless probe tmp/probe-sealed.metta.
-;;
-;; Unknown-head contract: a head with no operator clause (e.g. a stray reduct
-;; wrapper) leaves `reduce` returning the node unreduced -- a non-boolean tuple
-;; -- so compareAndScore mismatches every row and the tree scores worst (-1),
-;; exactly matching the old ERROR-column behavior (verified: probe-sealed.metta
-;; reduces a (FOO ($v1 $v2)) template row to (FOO (True False))).
-;;
-;; Structure -- recursion lives in exactly one place. Reading bottom-up:
-;;   mkNodeTemplate, evalRowT     non-recursive builders
-;;   transposeCols                linear walk over one flat list (no cycles)
-;;   combineNode                  column-level only, never touches the tree
-;;   evalSubtree                  THE tree recursion; its one self-call is the
-;;                                map-atom over the node's destructured kids
-
-;; Build a node's row template ONCE per cache miss: fresh vars (one per child)
-;; plus the operator expr sharing those vars. Returns ($varsTerm $exprTerm),
-;; e.g. (($v1 $v2) (AND ($v1 $v2))) or (($v1) (NOT ($v1))).
-;; The vars are minted by a plain (map-atom $cvs $c $v): its per-element
-;; copy_term -- the very behavior that BREAKS shared-var threading elsewhere
-;; (see combineNode's var-safe map) -- is exactly what mints k DISTINCT fresh
-;; vars here. The sharing we DO need (vars-term <-> expr) is established
-;; afterwards by cons, which builds the node inert (a bare (AND ...) literal
-;; would fire the clause at build time) and does not copy. Distinctness,
-;; arity, expr identity and sealed row reuse are all validated in the
-;; importless probe tmp/probe-mapvars.metta.
+;; Node row-template, built once per cache miss: ($varsTerm $exprTerm) sharing
+;; fresh vars, e.g. (($v1 $v2) (AND ($v1 $v2))). map-atom's per-element
+;; copy_term mints the k distinct vars; `cons` keeps the node inert (a bare
+;; (AND ...) literal would fire the clause at build time).
 (= (mkNodeTemplate $op $cvs)
    (let* (($vars (map-atom $cvs $c $v))
           ($e    (cons $op (cons $vars ()))))
      ($vars $e)))
 
-;; Score one row through a node template: sealed lists only the vars-term, but
-;; copy_term freshens the body goal together with it, so the expr (sharing the
-;; vars) is freshened in lockstep and the original template stays unbound for
-;; the next row. The inner let unifies the fresh vars against the row's child
-;; values in one positional step; `reduce` then dispatches the operator clause.
+;; One row through the template: sealed copies vars and expr together (the
+;; template stays unbound for the next row), the let unifies the row's child
+;; values positionally, and `reduce` dispatches the operator clause.
 (= (evalRowT $template $row)
    (let ($vars $e) $template
         (sealed $vars (let $vars $row (reduce $e)))))
 
-;; Transpose a non-empty list of equal-length columns into a list of per-row
-;; value tuples. Pure ground data -> map-atom is safe. Terminates when the first
-;; column is exhausted (all columns share length n).
+;; Non-empty equal-length columns -> per-row value tuples (ground data only).
 (= (transposeCols $cols)
    (if (== (car-atom $cols) ())
        ()
        (cons (map-atom $cols $c (car-atom $c))
-                  (transposeCols (map-atom $cols $c (cdr-atom $c))))))
+             (transposeCols (map-atom $cols $c (cdr-atom $c))))))
 
-;; Combine already-evaluated child columns into the node's column: build the
-;; shared-var row template ONCE, transpose the columns into per-row value
-;; tuples, and score each row through the template (evalRowT). Column-level
-;; only -- this never touches the tree. The template threads through the
-;; var-safe (map $f $a $xs) from general-helpers -- map-atom's lambda would
-;; copy_term it per row (evalRowT seals its own per-row copy instead; same
-;; reasoning as feat's scoreTree). Empty AND/OR (no children) reduce their
-;; identity node once and repeat it over all rows.
+;; Child columns -> node column: template once, then each transposed row
+;; through evalRowT via the var-safe map (map-atom would copy the template
+;; per row). Childless AND/OR reduce their identity once and repeat it.
 (= (combineNode $op $cvs $n)
    (if (== $cvs ())
        (List.repeat $n (let $e (cons $op (cons () ())) (reduce $e)))
        (let $t (mkNodeTemplate $op $cvs)
          (map evalRowT $t (transposeCols $cvs)))))
 
-;; Evaluate a wrapped (sub)expression into a boolean vector over all rows,
-;; memoizing BOTH operator nodes and label leaves in &subtreeCache keyed by
-;; the ground wrapped expr (leaves by their label symbol). Leaf caching hoists
-;; each label's table walk (varColumn) to ONCE per run instead of once per
-;; cache-missed parent -- the "convert the table once for all candidates"
-;; optimization, realized lazily per label through the same memo.
-;; This is the ONLY tree-recursive function: the map-atom over the node's
-;; destructured kids below is its single self-call; everything downstream
-;; (combineNode and the builders it uses) is column-level.
+;; Wrapped (sub)expression -> boolean column. Nodes AND label leaves are
+;; memoized, so a label's table walk happens once per run. The map-atom over
+;; the destructured children is the engine's only tree recursion.
 ;(: evalSubtree (-> Expression (ITable $a) Number (List Bool)))
 (= (evalSubtree $exp $itable $n)
    (if (== (get-metatype $exp) Grounded)
@@ -249,9 +179,9 @@
          (if (== $hit ())
              (let* (
                      ($col (if (== (get-metatype $exp) Expression)
-                              ;; every node is uniformly ($op ($k1 .. $kk))
-                              (let* ((($op $kids) $exp)
-                                     ($cvs (map-atom $kids $k (evalSubtree $k $itable $n))))
+                              ;; every node is uniformly ($op ($c1 .. $ck))
+                              (let* ((($op $children) $exp)
+                                     ($cvs (map-atom $children $child (evalSubtree $child $itable $n))))
                                 (combineNode $op $cvs $n))
                               (varColumn $itable $exp)))
                     ($_   (add-atom &subtreeCache (subtree $exp $col))))
