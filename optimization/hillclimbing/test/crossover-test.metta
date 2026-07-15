@@ -119,46 +119,33 @@
 
 ;;crossPairsForRef test
 !(assertEqual
-  (let*
-    (
-      (($instances $count)
-        (crossPairsForRef
-          (cons
-            (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
-            (cons
-              (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3)))
-              ()))
-          (getInst (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 3))))
-          (mkInst (cons 9 ()))
-          ()
-          0
-          2))
-    )
-    ((List.length $instances) $count)
-    )
-  (2 2))
+   (crossPairsForRef
+      (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
+         (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3))) ()))
+      (getInst (mkSInst (mkPair (mkInst (5)) (mkCscore 0 0 0 0 3))))
+      (mkInst (cons 9 ()))
+      ()
+      0
+      2)
+   ((cons (mkSInst (mkPair (mkInst (5)) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+      (cons (mkSInst (mkPair (mkInst (5)) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))
+    2))
 
 ;; crossPairs Pairwise Test
 !(assertEqual
-  (let*
-    (
-      (($instances $count)
-        (crossPairs
-          ()
-          (cons
-            (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 3)))
-            (cons
-              (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
-              (cons
-                (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 1)))
-                ())))
-          (mkInst (cons 9 ()))
-          ()
-          0
-          2))
-    )
-    ((List.length $instances) $count))
-  (2 2))
+   (crossPairs
+      ()
+      (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 3)))
+         (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
+            (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 1))) ())))
+      (mkInst (cons 9 ()))
+      ()
+      0
+      2)
+   ((cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+         (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))
+      2))
+
 ;; ----------------------------------------
 ;; crossTopTwo integration tests
 ;; ----------------------------------------
@@ -194,67 +181,45 @@
 
 ;;crossTripleTargets Test 
 !(assertEqual
-   (let*
-      (
-       (($instances $count)
-          (crossTripleTargets
-             (cons
-                (mkSInst (mkPair (mkInst (cons a (cons 5 ()))) (mkCscore 0 0 0 0 1)))
-                ())
-             (mkInst (cons a (cons 3 ())))
-             (mkInst (cons b (cons 3 ())))
-             (mkInst (cons a (cons 2 ())))
-             ()
-             0
-             1))
-      )
-      ((List.length $instances) $count))
-   (1 1))
-
+   (crossTripleTargets
+      (cons (mkSInst (mkPair (mkInst (cons a (cons 5 ()))) (mkCscore 0 0 0 0 1))) ())
+      (mkInst (cons a (cons 3 ())))
+      (mkInst (cons b (cons 3 ())))
+      (mkInst (cons a (cons 2 ())))
+      ()
+      0
+      1)
+   ((cons (mkSInst (mkPair (mkInst (cons b (cons 3 ())) ) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ())
+    1))
 ;; crossTripleRefs Test
 !(assertEqual
-   (let*
-      (
-       (($instances $count)
-          (crossTripleRefs
-             (cons
-                (mkSInst (mkPair (mkInst (cons a (cons 5 ()))) (mkCscore 0 0 0 0 1)))
-                (cons
-                   (mkSInst (mkPair (mkInst (cons b (cons 3 ()))) (mkCscore 0 0 0 0 2)))
-                   ()))
-             (cons
-                (mkSInst (mkPair (mkInst (cons b (cons 5 ()))) (mkCscore 0 0 0 0 3)))
-                ())
-             (mkInst (cons a (cons 9 ())))
-             (mkInst (cons a (cons 0 ())))
-             ()
-             0
-             2))
-      )
-      ((List.length $instances) $count))
-   (2 2))
-
+   (crossTripleRefs
+      (cons (mkSInst (mkPair (mkInst (cons a (cons 5 ()))) (mkCscore 0 0 0 0 1)))
+         (cons (mkSInst (mkPair (mkInst (cons b (cons 3 ()))) (mkCscore 0 0 0 0 2))) ()))
+      (cons (mkSInst (mkPair (mkInst (cons b (cons 5 ()))) (mkCscore 0 0 0 0 3))) ())
+      (mkInst (cons a (cons 9 ())))
+      (mkInst (cons a (cons 0 ())))
+      ()
+      0
+      2)
+   ((cons (mkSInst (mkPair (mkInst (cons b (cons 3 ()))) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+      (cons (mkSInst (mkPair (mkInst (cons b (cons 5 ()))) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))
+    2))
 ;;crossTriples Test
 !(assertEqual
-   (let*
-      (
-       (($instances $count)
-          (crossTriples
-             ()
-             (cons
-                (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 1)))
-                (cons
-                   (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
-                   (cons
-                      (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 3)))
-                      ())))
-             (mkInst (cons 0 ()))
-             ()
-             0
-             2))
-      )
-      ((List.length $instances) $count))
-   (2 2))
+   (crossTriples
+      ()
+      (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 1)))
+         (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
+            (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 3))) ())))
+      (mkInst (cons 0 ()))
+      ()
+      0
+      2)
+   ((cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+      (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))
+    2))
+
 (= (deme3)
           (mkDeme
             (mkRep
