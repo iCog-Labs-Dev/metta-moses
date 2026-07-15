@@ -245,25 +245,29 @@
          (map evalRowT $t (transposeCols $cvs)))))
 
 ;; Evaluate a wrapped (sub)expression into a boolean vector over all rows,
-;; memoizing operator nodes in &subtreeCache keyed by the ground wrapped expr.
+;; memoizing BOTH operator nodes and label leaves in &subtreeCache keyed by
+;; the ground wrapped expr (leaves by their label symbol). Leaf caching hoists
+;; each label's table walk (varColumn) to ONCE per run instead of once per
+;; cache-missed parent -- the "convert the table once for all candidates"
+;; optimization, realized lazily per label through the same memo.
 ;; This is the ONLY tree-recursive function: the map-atom over (nodeKids $exp)
 ;; below is its single self-call; everything downstream (combineNode and the
 ;; builders it uses) is column-level.
 ;(: evalSubtree (-> Expression (ITable $a) Number (List Bool)))
 (= (evalSubtree $exp $itable $n)
-   (if (== (get-metatype $exp) Expression)
-       ;; operator node: cache lookup, else recurse children + combine + memoize
+   (if (== (get-metatype $exp) Grounded)
+       ;; grounded literal (True/False): constant column, not worth caching
+       (List.repeat $n $exp)
+       ;; operator node or label leaf: one shared memo path
        (chain (collapse (match &subtreeCache (subtree $exp $v) $v)) $hit
          (if (== $hit ())
-             (let* (($cvs (map-atom (nodeKids $exp) $k (evalSubtree $k $itable $n)))
-                    ($col (combineNode (car-atom $exp) $cvs $n))
+             (let* (($col (if (== (get-metatype $exp) Expression)
+                              (let $cvs (map-atom (nodeKids $exp) $k (evalSubtree $k $itable $n))
+                                   (combineNode (car-atom $exp) $cvs $n))
+                              (varColumn $itable $exp)))
                     ($_   (add-atom &subtreeCache (subtree $exp $col))))
                $col)
-             (car-atom $hit)))
-       ;; atom leaf: grounded literal (True/False) vs variable column
-       (if (== (get-metatype $exp) Grounded)
-           (List.repeat $n $exp)
-           (varColumn $itable $exp))))
+             (car-atom $hit)))))
 
 
  ;; Evaluates the accuracy of the expression for a single input row (target, inputs) pair.
