@@ -91,6 +91,10 @@
 !(add-atom &params (hcMinXoverNeighborsFs 5))
 !(add-atom &params (hcMaxDistStrategy 3))
 !(add-atom &params (hcMinXoverNeighborsStrategy 3))
+;; Action-domain tier mirrors the strategy tier: action trees live in the
+;; same small-neighborhood hill-climbing regime as game strategies.
+!(add-atom &params (hcMaxDistAction 3))
+!(add-atom &params (hcMinXoverNeighborsAction 3))
 !(add-atom &params (hcMaxEvals 500))
 !(add-atom &params (hcCrossoverPopSize 120))
 !(add-atom &params (hcFractionOfNN 2.0))
@@ -99,6 +103,9 @@
 
 ;; ---- Scoring ----
 !(add-atom &params (complexityRatio 3.5))
+;; nGames: episodes per candidate evaluation in ACTION domains (the action
+;; analog of the strategy example's game count). Override via --nGames=N.
+!(add-atom &params (nGames 12))
 
 ;; ---- Exemplar selection ----
 !(add-atom &params (compxyTemp 6))

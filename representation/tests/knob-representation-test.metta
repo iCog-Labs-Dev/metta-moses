@@ -2,6 +2,7 @@
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/ordered-multimap) 
 !(import! &self ../../utilities/tree)
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../knob-representation)
 
 !(assertEqual (let $return (mkKnob  (mkNodeId (1))) $return)  

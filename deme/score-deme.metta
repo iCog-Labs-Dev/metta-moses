@@ -36,7 +36,30 @@
     )
     (mkSInst (mkPair $i $cscore)))))
 
-;; Scores each instance in an InstanceSet. 
+;; Action-domain scoring helper: instance -> candidate tree -> episodes -> Cscore.
+;; Mirrors applyStrategyBasedScore, but scores through the generic action
+;; evaluator (getActionCscore, scoring/action-score.metta) against the
+;; registered domain $domain. Uses the 3-arg getCandidate: action reps carry
+;; embedded mkASK knobs in a 1-field (mkKbMap (mkDscMp ...)) -- the 4-arg
+;; findDiscKnob path requires the 2-field mkDscKbMp shape.
+;; Params:
+;;   $rep: The representation object
+;;   $id: The deme id
+;;   $instances: List of instances to score
+;;   $domain: Registered action domain symbol
+;;   $nGames: Number of episodes per evaluation
+;;   $complexityRatio: Complexity penalty ratio
+;;   $listOfScoredInst: Accumulator for scored instances
+;; Returns:
+;;   List of scored instances with CScore
+; (: applyActionBasedScore (-> Representation DemeId (List Instance) Symbol Number Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
+(= (applyActionBasedScore $rep $id $instances $domain $nGames $complexityRatio $listOfScoredInst)
+   (map-atom $instances $i
+    (let* (($actionTree (getCandidate $rep $id $i))
+           ($cscore (getActionCscore $actionTree (mkActionCtx ($domain $nGames)) $complexityRatio &actionScoreCache)))
+    (mkSInst (mkPair $i $cscore)))))
+
+;; Scores each instance in an InstanceSet.
 ;; Params:
 ;;   instanceSet: The unscored InstanceSet(or that of with an initial worst score)
 ;;   $rep: The representation object
@@ -50,6 +73,9 @@
           ($instList (List.map removeInstScore $scoredInstList))
           ($scored (case $scoringContext
                         (
+                          ;; Action arm FIRST: the tagged (mkActionCtx ...) shape must win
+                          ;; before the looser patterns below (case arms match in order).
+                          ((mkActionCtx ($domain $nGames)) (applyActionBasedScore $rep $id $instList $domain $nGames $complexityRatio ()))
                           ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio))
                           (($nGames) (applyStrategyBasedScore $rep $id $instList $nGames $complexityRatio ())))))
           )

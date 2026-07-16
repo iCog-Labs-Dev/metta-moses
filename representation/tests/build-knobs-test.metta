@@ -8,6 +8,7 @@
 !(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore)
 
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/lsk)
 !(import! &self ../../representation/logical-probe)

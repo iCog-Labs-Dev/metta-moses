@@ -3,6 +3,7 @@
 !(import! &self ../../utilities/nodeId)
 !(import! &self ../../utilities/tree)
 !(import! &self ../../representation/lsk)
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/logical-probe)
 !(import! &self ../../representation/sample-logical-perms) 

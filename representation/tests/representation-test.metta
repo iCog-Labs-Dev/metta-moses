@@ -20,6 +20,7 @@
 
 !(import! &self ../../utilities/tree) 
 
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/disc-probe)
 !(import! &self ../../representation/lsk)

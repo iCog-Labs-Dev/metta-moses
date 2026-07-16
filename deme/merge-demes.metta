@@ -131,6 +131,9 @@
         ;; ($_ (println! (ScoringContext: $scoringContext)))
         ($bscore (case $scoringContext
                     (((mkITable $rows $labels) (scoreTree $scoringContext $tree &bscoreCache))
+                     ;; Action arm BEFORE the $nGames catch-all: the tagged
+                     ;; (mkActionCtx ...) shape would otherwise be swallowed by it.
+                     ((mkActionCtx ($domain $nGames)) (scoreActionTree $domain $tree $nGames &actionScoreCache))
                      ($nGames (scoreStrategyTree $tree $nGames &strategyScoreCache)))))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
         ;; ($_ (println! (Returning...)))

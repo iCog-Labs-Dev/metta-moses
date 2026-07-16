@@ -64,8 +64,15 @@
 !(import! &self scoring/cacheSpace)
 !(import! &self scoring/fitness)
 !(import! &self scoring/boolean-ops)
+;; Action-domain engine: registry (sentinel clauses gate every later
+;; actionOp / actionDomain* call site) -> evaluator -> structural operators.
+!(import! &self scoring/action-registry)
+!(import! &self scoring/action-eval)
+!(import! &self scoring/action-ops)
 !(import! &self scoring/bscore)
 !(import! &self scoring/cscore)
+;; Action-domain behavioral + composite scoring (needs bscore/cscore above).
+!(import! &self scoring/action-score)
 
 ;; ---- Feature selection ----
 !(import! &self feature-selection/feature-selection-helpers)
@@ -87,12 +94,27 @@
 !(import! &self representation/logical-canonize)
 !(import! &self representation/add-logical-knobs)
 !(import! &self representation/build-logical)
+!(import! &self representation/build-action)
 !(import! &self representation/build-knobs)
 !(import! &self representation/knob-mapper)
 !(import! &self representation/representation)
 !(import! &self representation/create-representation)
 
 !(import! &self scoring/complexity-based-scorer)
+
+;; ---- Action domains ----
+;; Domain packages register themselves against scoring/action-registry at
+;; load time; they only need the shared tic-tac-toe helpers/players (minimal
+;; set mirrored from examples/tic-tac-toe-action/tests). Loaded before the
+;; deme/* pipeline so (moses) sees the domain registered when !(moses) runs.
+!(import! &self examples/tic-tac-toe/tic-tac-toe-helpers)
+!(import! &self examples/tic-tac-toe/moves)
+!(import! &self examples/tic-tac-toe/random-player)
+!(import! &self examples/tic-tac-toe/minimax-player)
+!(import! &self examples/tic-tac-toe-action/ttt-action-world)
+!(import! &self examples/tic-tac-toe-action/ttt-action-primitives)
+!(import! &self examples/tic-tac-toe-action/ttt-action-episode)
+!(import! &self examples/tic-tac-toe-action/ttt-action-registration)
 
 ;; ---- Optimization (hill climbing is the only production-ready algorithm) ----
 !(import! &self optimization/hillclimbing/crossover-helpers)

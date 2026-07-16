@@ -5,6 +5,7 @@
 !(import! &self ../../utilities/ordered-multimap)
 !(import! &self ../../utilities/lazy-random-selector)
 !(import! &self ../../representation/instance)
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../../representation/knob-representation)
 
 !(import! &self ../../scoring/cscore)

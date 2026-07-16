@@ -235,11 +235,16 @@
 ;; ============================================================
 ;; Run unless the user supplied neither a demo `problem` symbol nor a CSV
 ;; `inputFile`. Either is enough to know what to evolve against.
+;; A problem symbol registered as an action domain (via registerActionDomain
+;; in a loaded domain package, e.g. --problem=tttAction) routes to the
+;; action runner; anything else takes the boolean truth-table path.
 (= (moses)
    (if (and (== (param problem)   ())
             (== (param inputFile) ""))
        (no-problem-help-and-exit)
-       (moses-run)))
+       (if (isRegisteredActionDomain (param problem))
+           (moses-run-action (param problem))
+           (moses-run))))
 
 ;; Shown when (moses) is invoked without --problem= on the command line
 ;; and without an in-script (set-param problem ...). Falls through to the
@@ -290,6 +295,42 @@
         ;; ($_ (println! (Result: $result)))
         ($newR (mapG cleanedExemplar $result))
         ($_ (cut)) ;; INFO: This gives few extra seconds performance gain. Do not remove.
+      )
+      (FinalResult $newR)))
+
+;; Action-domain runner, modeled on moses-run above. $domain is the problem
+;; symbol, already verified registered by (moses). The metapop seed is the
+;; empty and_seq exemplar (the action analog of moses-run's `true` tree) at
+;; the defined-worst score: every one of the $nGames episodes forfeits at
+;; -1.0 (see the empty-exemplar loophole note in the episode runner), so
+;; raw score = complexity-penalized score = -1.0 * nGames.
+(= (moses-run-action $domain)
+   (let*
+      (
+        ($seed     (param seed))
+        ($maxGen   (param maxGen))
+        ($nDeme    (param nDeme))
+        ($optAlgo  (param optAlgo))
+        ($optimizer (optimizer-for $optAlgo))
+
+        ($srp (py-call (random.seed $seed)))
+        ;; genCount feeds the cap-size formula inside resizeMetapop (same
+        ;; seeding as moses-run).
+        ($_  (set-param genCount $maxGen))
+        ($cpxPen (param complexityRatio))
+        ($nGames (param nGames))
+        ;; Best reachable raw score is domain knowledge: the domain package
+        ;; declares it (for tttAction: ceil(nGames/2), even episodes winnable
+        ;; against random-player, odd episodes draw at best against minimax).
+        ($bestPossibleScore (actionDomainBestScore $domain $nGames))
+        ($_ (println! (BestPossibleScore: $bestPossibleScore)))
+        ($worst (* -1.0 $nGames))
+        ($metaPop ((mkExemplar (mkTree (mkNode and_seq) ()) (mkDemeId "1") (mkCscore $worst 0 $cpxPen 0 $worst) (mkBScore (List.repeat $nGames -1.0)))))
+        ($result (runMoses $maxGen $bestPossibleScore $metaPop 0 $nDeme
+              (mkActionCtx ($domain $nGames) $cpxPen)
+              $optimizer))
+        ($newR (mapG cleanedExemplar $result))
+        ($_ (cut)) ;; INFO: Mirrors moses-run; commits choice points before returning.
       )
       (FinalResult $newR)))
 

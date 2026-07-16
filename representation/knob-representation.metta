@@ -36,11 +36,12 @@
 ;; (: mkASK (-> DiscreteKnob (List (Tree $a)) ActionSubtreeKnob))
 
 ;; Structural action operators are never domain actions.
+;; The operator list now lives in scoring/action-registry.metta (seeded with
+;; the identical 14 symbols -- behavior-preserving); delegating to the
+;; registry lets later-loaded packages extend the set without editing this
+;; file. action-registry must load BEFORE this file.
 (= (isActionOperator $rootSymbol)
-   (is-member $rootSymbol (and_seq or_seq seq_exec action_not action_bool_if
-                           bool_action_if contin_action_if action_action_if
-                           action_success action_failure action_while
-                           bool_while return_success repeat_n)))
+   (isRegisteredActionOperator $rootSymbol))
 
 ;; Checks if a DiscreteKnob is considered part of the exemplar based on its default specifier.
 ;; Params:

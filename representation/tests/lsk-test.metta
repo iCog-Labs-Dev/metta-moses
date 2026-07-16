@@ -15,6 +15,7 @@
 
 !(import! &self ../../utilities/tree)
 
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../knob-representation)
 !(import! &self ../lsk)
 !(import! &self ../logical-probe) 

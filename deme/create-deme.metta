@@ -28,15 +28,26 @@
 ;;             returns ↠ tuple of demes
 ; (: createDeme (-> Number (List DemeId) (Tree $a) Expression))
 (= (createDeme $nDeme $demeIds $exemplar)
-      (let* 
+      (let*
             (
                   ;; ($_ (println! "creating game representations ...."))
                   ($reps (createRepresentation $nDeme $exemplar))
                   ;; ($_ (println! ("done making representations ..." $reps)))
-            )  
+            )
             (loopCreateDeme $demeIds $reps ())
-      ) 
+      )
 )
+
+;; Action-domain createDeme - tagged with (mkActionDomain $domain) so it can
+;; never collide with the 3-arg game clause above; same body shape.
+;;             $nDeme --      number of demes to create
+;;             $demeIds --    list of deme ids (cons ...)
+;;             $exemplar --   the exemplar tree which the demes are going to be based on
+;;             returns ↠ tuple of demes
+; (: createDeme (-> Number (List DemeId) (Tree $a) ActionDomain Expression))
+(= (createDeme $nDeme $demeIds $exemplar (mkActionDomain $domain))
+      (let $reps (createRepresentation $nDeme $exemplar (mkActionDomain $domain))
+            (loopCreateDeme $demeIds $reps ())))
 
 
 (= (loopCreateDeme $demeIds $reps $acc)

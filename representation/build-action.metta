@@ -239,8 +239,11 @@
            (buildActionBoolIf (mkTree (mkNode action_bool_if) $children) $MMap $actions $perceptions)
            ((mkTree (mkNode $op) $children) $MMap))))
 
+;; The cleanup-op list now lives in scoring/action-registry.metta (seeded
+;; identically with and_seq/or_seq/seq_exec -- behavior-preserving);
+;; action-registry must load BEFORE this file.
 (= (isCleanupActionOperator $op)
-   (is-member $op (and_seq or_seq seq_exec)))
+   (isRegisteredCleanupActionOp $op))
 
 (= (actionCleanup $tree)
    (let ($cleaned $keep) (actionCleanupNode $tree)

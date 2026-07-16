@@ -26,6 +26,7 @@
 !(import! &self ../../examples/tic-tac-toe/moves)
 !(import! &self ../../examples/tic-tac-toe/moses-player)
 
+!(import! &self scoring/action-registry)
 !(import! &self representation/knob-representation)
 !(import! &self representation/lsk)
 !(import! &self representation/knob-mapper)

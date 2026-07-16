@@ -24,3 +24,22 @@
 ;; the user-facing `discProbe` knob (True == enabled) when forwarding.
 (= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
     (let ((mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree)) (representation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType (not (param discProbe))) ((mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree))))
+
+;; Action-domain representation (3 parameters, tagged): threads the
+;; registry's domain actions/perceptions into the action-capable 10-arg
+;; `representation` overload (representation.metta:145-162). That overload
+;; builds exactly ONE rep per call (its $nDeme slot is unused), so the
+;; per-deme loop lives HERE -- the action analog of the loop the 2-arg game
+;; clause delegates to representation.metta:40-51. Knob sampling inside
+;; buildAction is randomized, so demes get distinct representations.
+;; The (mkITable () ()) is a placeholder: the action path of buildKnobs
+;; (build-knobs.metta:20-31) never consults the itable / fs-algo / scorer
+;; slots. Each element is (mkRep (mkKbMap (mkDscMp $mmp)) $tree) -- the
+;; 1-field KnobMap shape loopCreateDeme / expandDemeHelper destructure.
+(= (createRepresentation $nDeme $tree (mkActionDomain $domain))
+   (let* (($actions (registeredDomainActions))
+          ($perceptions (registeredDomainPerceptions))
+          ($demeNumbers (range 0 1 $nDeme)))
+     (map-atom $demeNumbers $x
+       (let ($rep) (representation 1 $tree (mkITable () ()) None False () mi True $actions $perceptions)
+         $rep))))

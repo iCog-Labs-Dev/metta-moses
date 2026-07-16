@@ -7,6 +7,7 @@
 
 !(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore)
+!(import! &self ../../scoring/action-registry)
 
 !(import! &self ../logical-canonize)
 !(import! &self ../knob-representation)

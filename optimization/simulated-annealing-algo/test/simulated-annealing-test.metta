@@ -22,6 +22,7 @@
 
 !(import! &self ../../../../metta-moses/utilities/tree)
 
+!(import! &self ../../../../metta-moses/scoring/action-registry)
 !(import! &self ../../../../metta-moses/representation/knob-representation)
 !(import! &self ../../../../metta-moses/representation/lsk)
 !(import! &self ../../../../metta-moses/representation/logical-probe) 

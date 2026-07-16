@@ -32,6 +32,7 @@
 
 !(import! &self utilities/tree)
 
+!(import! &self scoring/action-registry)
 !(import! &self representation/knob-representation)
 !(import! &self representation/lsk)
 !(import! &self representation/logical-probe)
