@@ -204,12 +204,14 @@
 ;;   ()                              -- defaults, scored by mutual information
 ;;   a scorer symbol, mi or pre      -- defaults, scored by that scorer
 ;;   the full hyper parameter tuple  -- used as is
+;; A scorer name is matched on metatype rather than on Symbol: `mi` is also the
+;; name of a similarity scorer, which makes it Grounded instead of Symbol.
 (= (normalizeFsHyperparams $fsScorer)
-   (if (== (get-metatype $fsScorer) Symbol)
-       (defaultFsHyperparams $fsScorer)
+   (if (== (get-metatype $fsScorer) Expression)
        (if (== $fsScorer ())
            (defaultFsHyperparams mi)
-           $fsScorer)))
+           $fsScorer)
+       (defaultFsHyperparams $fsScorer)))
 
 ;; Hillclimbing implementation
 ;;
