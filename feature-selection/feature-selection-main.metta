@@ -87,7 +87,7 @@
             ) 
 	(case $algo
 		((hc (let $init-instance (indicesToBits $init-fts (- (List.length $labels) 1))     ;; seed the search with the initial features, all zeros when none are given
-		                      (hcFtSetPop (mkITable $table $labels) $init-instance $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)))
+		                      (hcFtSetPop (mkITable $table $labels) $init-instance $scorerType)))
 
 		 (rd (randomFeatureSelection (mkITable $table $labels) $target-size))                                       
 		 (sim (simpleFeatureSelector $th $target-size False (mkITable $table $labels) ()))                           ;; False -- default value for using exp distribution for selection of top N features -- and start with empty feature list as initial features -- th here refers to the minimum score required for feature set to be selected
