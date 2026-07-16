@@ -90,9 +90,9 @@
 
 ;; Initial features reach the search: going through featureSelection with A as the
 ;; initial feature has to seed the same instance the calls above hand-build.
-!(assertEqual (featureSelection hc (ttable2) 0 0 (0) 50.0 1.0 0.5 1.0 True mi)
+!(assertEqual (featureSelection hc (ttable2) 0 0 (0) mi)
     (hcFtSetPop (ttable2) (centerInst) (50.0 1.0 0.5 1.0 True mi)))
 
 ;; and the seed matters: from an all-zero instance the search never reaches (0 2).
-!(assertEqual (featureSelection hc (ttable2) 0 0 () 50.0 1.0 0.5 1.0 True mi)
+!(assertEqual (featureSelection hc (ttable2) 0 0 () mi)
     ((0.311 (2)) (0.311 (1)) (0.311 (0)) (0.0 ())))
