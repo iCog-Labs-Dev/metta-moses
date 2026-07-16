@@ -40,17 +40,10 @@
 !(add-atom &actionRegistry (cleanupActionOp or_seq))
 !(add-atom &actionRegistry (cleanupActionOp seq_exec))
 
-;; ---- Registration API (called by domain packages at load time) ----
-(= (registerActionOperator $op)
-   (add-atom &actionRegistry (structuralActionOp $op)))
-(= (registerDomainAction $op)
-   (add-atom &actionRegistry (domainAction $op)))
-(= (registerDomainPerception $op)
-   (add-atom &actionRegistry (domainPerception $op)))
-(= (registerActionDomain $domain)
-   (add-atom &actionDomains (actionDomain $domain)))
-
 ;; ---- Membership predicates ----
+;; (Defined BEFORE the registration API: its idempotency guards call these,
+;; and PeTTa compiles a call site as a real call only if the callee already
+;; has a clause.)
 (= (isRegisteredActionOperator $op)
    (not (== (collapse (match &actionRegistry (structuralActionOp $op) $op)) ())))
 (= (isRegisteredCleanupActionOp $op)
@@ -61,6 +54,27 @@
    (not (== (collapse (match &actionRegistry (domainPerception $op) $op)) ())))
 (= (isRegisteredActionDomain $domain)
    (not (== (collapse (match &actionDomains (actionDomain $domain) $domain)) ())))
+
+;; ---- Registration API (called by domain packages at load time) ----
+;; IDEMPOTENT: import! does not dedupe, so a domain package loaded twice
+;; would double every registration and corrupt the listers below -- each
+;; register skips the add-atom when the entry is already present.
+(= (registerActionOperator $op)
+   (if (isRegisteredActionOperator $op)
+       ()
+       (add-atom &actionRegistry (structuralActionOp $op))))
+(= (registerDomainAction $op)
+   (if (isRegisteredDomainAction $op)
+       ()
+       (add-atom &actionRegistry (domainAction $op))))
+(= (registerDomainPerception $op)
+   (if (isRegisteredDomainPerception $op)
+       ()
+       (add-atom &actionRegistry (domainPerception $op))))
+(= (registerActionDomain $domain)
+   (if (isRegisteredActionDomain $domain)
+       ()
+       (add-atom &actionDomains (actionDomain $domain))))
 
 ;; ---- Listers ----
 (= (registeredDomainActions)

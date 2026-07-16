@@ -97,6 +97,10 @@
 ;; body failure does not stop the loop; fuel does (world never changes here)
 !(assertEqual (evalAction (bool_while ((cntBelow3 ()) (cntFail ()))) (mkCntWorld 0))
               (mkARes True (mkCntWorld 0)))
+;; ALWAYS-TRUE condition: only the fuel cap (25) stops the loop; the body
+;; runs once per fueled iteration, so the counter lands exactly on the cap
+!(assertEqual (evalAction (bool_while ((action_success ()) (cntInc ()))) (mkCntWorld 0))
+              (mkARes True (mkCntWorld 25)))
 
 ;; ---- 10. repeat_n: raw grounded count child ----
 !(assertEqual (evalAction (repeat_n (4 (cntInc ()))) (mkCntWorld 0)) (mkARes True (mkCntWorld 4)))
@@ -160,6 +164,10 @@
 !(assertEqual (isRegisteredDomainPerception cntBelow3) True)
 !(assertEqual (registeredDomainActions) (cntInc))
 !(assertEqual (registeredDomainPerceptions) (cntBelow3))
+;; registration is idempotent (import! does not dedupe): registering an
+;; already-registered domain action again leaves the lister with ONE entry
+!(registerDomainAction cntInc)
+!(assertEqual (registeredDomainActions) (cntInc))
 ;; resetActionDomain clears domain registrations, keeps structural ops
 !(resetActionDomain)
 !(assertEqual (isRegisteredDomainAction cntInc) False)
