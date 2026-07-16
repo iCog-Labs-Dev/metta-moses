@@ -87,3 +87,12 @@
 ;; miConfi reaches the scorer: at low confidence the same feature sets score lower.
 !(assertEqual (hcFtSetPop (ttable2) (centerInst) 0.001 1.0 0.5 1.0 True mi)
     ((0.8003197748694354 (0 2)) (0.4001598874347177 (0 1)) (0.24884973991609888 (0)) (0.0 ())))
+
+;; Initial features reach the search: going through featureSelection with A as the
+;; initial feature has to seed the same instance the calls above hand-build.
+!(assertEqual (featureSelection hc (ttable2) 0 0 (0) 50.0 1.0 0.5 1.0 True mi)
+    (hcFtSetPop (ttable2) (centerInst) 50.0 1.0 0.5 1.0 True mi))
+
+;; and the seed matters: from an all-zero instance the search never reaches (0 2).
+!(assertEqual (featureSelection hc (ttable2) 0 0 () 50.0 1.0 0.5 1.0 True mi)
+    ((0.311 (2)) (0.311 (1)) (0.311 (0)) (0.0 ())))

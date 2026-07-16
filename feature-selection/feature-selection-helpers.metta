@@ -33,6 +33,16 @@
              (cons-atom $index $nextAcc)
              $nextAcc)))
 
+;; Inverse of bitsToIndices: expands a tuple of feature indices into a bit
+;; vector, starting from all zeros and turning on the bit of each index.
+;; Params:
+;;   $indices: Indices of the features to turn on.
+;;   $length: Number of features, i.e. the width of the bit vector.
+;; Return: List of bits, 1 at every index in $indices and 0 elsewhere.
+;; (: indicesToBits (-> Tuple Number (List Number)))
+(= (indicesToBits $indices $length)
+   (foldl-atom $indices (List.generate $length 0) $bits $i (List.replaceAt $bits $i 1)))
+
 ; (: Table.getColumn (-> Number (List (List $a)) (List $a)))
 (= (Table.getColumn $i ()) ())
 (= (Table.getColumn $i (cons $row $rest))

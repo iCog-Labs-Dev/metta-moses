@@ -86,7 +86,7 @@
             $scorerType         ;; can MI or precision_bscore
             ) 
 	(case $algo
-		((hc (let $init-instance (List.generate (- (List.length $labels) 1) 0)
+		((hc (let $init-instance (indicesToBits $init-fts (- (List.length $labels) 1))     ;; seed the search with the initial features, all zeros when none are given
 		                      (hcFtSetPop (mkITable $table $labels) $init-instance $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)))
 
 		 (rd (randomFeatureSelection (mkITable $table $labels) $target-size))                                       
