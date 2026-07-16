@@ -1,6 +1,6 @@
 ;; getHcFtPop -- returns list of (score ft-set pairs) as (cons ..)
 ;;            -- takes list of scored instances and an empty List () as accumulator
-(: getHcFtPop (-> Expression Expression Expression))
+;; (: getHcFtPop (-> (List (ScoredInstance Number)) Expression (List $a)))
 (= (getHcFtPop  () $acc) ())
 (= (getHcFtPop (cons (mkSInst (mkPair (mkInst $list) $score)) $sInsts) $acc)
   (let* (($new-acc (getHcFtPop $sInsts $acc))
