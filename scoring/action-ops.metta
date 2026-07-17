@@ -5,6 +5,9 @@
 ;; should offer it); the evaluator (scoring/action-eval) is never touched.
 ;; The contract: one clause per operator, shaped
 ;;     (= (<op> $children $world) (mkARes Bool World'))
+;; (Combinators here receive child subprograms, hence $children; domain
+;; PRIMITIVES receive their parameters in the same slot and name it $params
+;; -- see scoring/action-eval.metta's contract header.)
 ;; dispatched by the engine's `reduce` (evalActionNode) exactly like the
 ;; boolean clauses at fitness.metta:141-167 -- no sentinel needed.
 ;;

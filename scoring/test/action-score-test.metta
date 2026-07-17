@@ -28,7 +28,7 @@
 ;; Episodes are deterministic and ORDINAL-distinguishing (even ordinal ->
 ;; 1.0 on success else 0.5; odd ordinal -> 0.0); every invocation is
 ;; RECORDED in &tstEpisodeLog so cache behavior is observable.
-(= (tstInc $children (mkTstWorld $n)) (mkARes True (mkTstWorld (+ $n 1))))
+(= (tstInc $params (mkTstWorld $n)) (mkARes True (mkTstWorld (+ $n 1))))
 
 !(bind! &tstEpisodeLog (new-space))
 (= (tstLogCount) (size-atom (collapse (match &tstEpisodeLog $e $e))))

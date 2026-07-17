@@ -35,8 +35,11 @@ Files (load in this order, after the scoring block):
    `moved` latch) inside it.
 2. **Primitives**: ONE bare-head clause per action/perception, following
    the contract from `scoring/action-ops.metta`:
-   `(= (<name> $children $world) (mkARes <Bool> <World'>))`.
-   Children arrive unevaluated; leaves ignore them. Prefix names with your
+   `(= (<name> $params $world) (mkARes <Bool> <World'>))`.
+   The first slot is the node's argument list — for a primitive those are
+   its PARAMETERS (hence `$params`; `()` for today's nullary leaves, a
+   parametrized action would destructure it). Only structural combinators
+   receive child subprograms there and name it `$children`. Prefix names with your
    domain (`ant...`, `ttt...`) to avoid clause collisions — the engine
    reduce-dispatches on the bare operator symbol, so every domain's clause
    heads share one global namespace. Do NOT add `(: <name> ...)` type

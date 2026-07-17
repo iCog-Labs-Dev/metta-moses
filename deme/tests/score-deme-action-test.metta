@@ -57,8 +57,8 @@
 
 ;; ---- Test-local fitness ----
 ;; sdtBump: increment the counter, succeed. sdtStop: fail, world untouched.
-(= (sdtBump $children $world) (mkARes True (+ $world 1)))
-(= (sdtStop $children $world) (mkARes False $world))
+(= (sdtBump $params $world) (mkARes True (+ $world 1)))
+(= (sdtStop $params $world) (mkARes False $world))
 ;; The vocabulary params are part of the experiment template; quote is
 ;; REQUIRED at the set-param site: sdtBump/sdtStop are live bare-head
 ;; clauses (probe-verified: quote strips on set, the param holds the plain

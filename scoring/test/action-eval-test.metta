@@ -18,9 +18,9 @@
 ;; World: (mkCntWorld $n). cntInc succeeds and bumps the counter (the counter
 ;; is the witness for evaluation order/laziness); cntFail fails and leaves it;
 ;; cntBelow3 is a perception: truth = counter < 3, world untouched.
-(= (cntInc $children (mkCntWorld $n)) (mkARes True (mkCntWorld (+ $n 1))))
-(= (cntFail $children (mkCntWorld $n)) (mkARes False (mkCntWorld $n)))
-(= (cntBelow3 $children (mkCntWorld $n)) (mkARes (< $n 3) (mkCntWorld $n)))
+(= (cntInc $params (mkCntWorld $n)) (mkARes True (mkCntWorld (+ $n 1))))
+(= (cntFail $params (mkCntWorld $n)) (mkARes False (mkCntWorld $n)))
+(= (cntBelow3 $params (mkCntWorld $n)) (mkARes (< $n 3) (mkCntWorld $n)))
 
 ;; ---- 1. Leaf dispatch ----
 !(assertEqual (evalAction (quote (cntInc ())) (mkCntWorld 0)) (mkARes True (mkCntWorld 1)))

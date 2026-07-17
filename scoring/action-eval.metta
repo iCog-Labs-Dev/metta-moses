@@ -3,10 +3,14 @@
 ;; below NEVER names a concrete operator.
 ;;
 ;; THE CONTRACT: every operator -- structural combinator, domain action, or
-;; perception -- is ONE bare-head clause
-;;     (= (<name> $children $world) (mkARes <Bool> <World'>))
-;; $children arrives UNEVALUATED in wrapped shape (each child is (op (cs)),
-;; a bare-symbol/grounded leaf, or a nested node); the clause calls evalAction
+;; perception -- is ONE bare-head clause over the node's argument list:
+;;     (= (<combinator> $children $world) (mkARes <Bool> <World'>))
+;;     (= (<primitive>  $params   $world) (mkARes <Bool> <World'>))
+;; Same slot, two roles: a structural combinator receives CHILD SUBPROGRAMS
+;; ($children); a domain primitive receives its PARAMETERS ($params -- () for
+;; nullary leaves, destructured by a parametrized action). The argument list
+;; arrives UNEVALUATED in wrapped shape (each element is (op (args)), a
+;; bare-symbol/grounded leaf, or a nested node); a combinator calls evalAction
 ;; back for the children it chooses, in the order it chooses -- that is what
 ;; makes and_seq sequential and action_bool_if lazy. Uniform result
 ;; (mkARes $bool $world): action success/failure and perception truth share
@@ -54,7 +58,7 @@
 ;; malformed clause return all collapse to () and map to the defined-worst
 ;; -- the engine can never fail or return a non-ARes.
 (= (evalActionNode $op $children $world)
-   (let* (($e (cons $op (cons $children (cons $world ()))))
+   (let* (($e (cons $op ($children $world)))
           ($rs (collapse (let (mkARes $v $w) (reduce $e) (mkARes $v $w)))))
      (if (== $rs ())
          (mkARes False $world)

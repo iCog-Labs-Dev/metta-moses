@@ -58,27 +58,29 @@
 ;;   $fuel  -- remaining time units; move/turn cost 1, perception is free
 ;;
 ;; Same contract as every domain: one bare-head clause per action/perception,
-;;     (= (<name> $children $world) (mkARes <Bool> <newWorld>))
+;;     (= (<name> $params $world) (mkARes <Bool> <newWorld>))
 ;; The engine knows nothing about ants.
 ;; ============================================================================
 
 ;; ---- grid helpers (domain-local, plain data plumbing) ----------------------
 (= (antWrap $i $n) (if (< $i 0) (+ $i $n) (if (>= $i $n) (- $i $n) $i)))
 
-(= (antCellAt $grid $pos)
-   (index-atom (index-atom $grid (Pair.second $pos)) (Pair.first $pos)))
+(= (antCellAt $grid (mkPair $x $y))
+   (index-atom (index-atom $grid $y) $x))
 
 ;; cell replacement = List.replaceAt (its cons clause head destructures a
 ;; plain tuple row in the parameter position and rebuilds the result;
 ;; positions are toroidally wrapped, so indices are always in range).
-(= (antSetCell $grid $pos $v)
-   (let* (($row (index-atom $grid (Pair.second $pos)))
-          ($newRow (List.replaceAt $row (Pair.first $pos) $v)))
-     (List.replaceAt $grid (Pair.second $pos) $newRow)))
+(= (antSetCell $grid (mkPair $x $y) $v)
+   (let* (
+          ($row (index-atom $grid $y))
+          ($newRow (List.replaceAt $row $x $v)))
+     (List.replaceAt $grid $y $newRow)))
 
 ;; position ahead of the ant, toroidal wrap (classic: (x+1) % ANT_X etc.)
 (= (antAheadPos $grid $pos $dir)
-   (let* (($w (size-atom (index-atom $grid 0)))
+   (let* (
+          ($w (size-atom (index-atom $grid 0)))
           ($h (size-atom $grid))
           ($x (Pair.first $pos))
           ($y (Pair.second $pos)))
@@ -97,7 +99,7 @@
 ;; move_forward always "succeeds"; eating is a side effect. Placing the A
 ;; marker on the target cell consumes any food there, and the vacated cell
 ;; becomes E -- marker and (mkPair $x $y) move together.
-(= (antMoveForward $children (mkAntWorld $grid $pos $dir $eaten $fuel))
+(= (antMoveForward $params (mkAntWorld $grid $pos $dir $eaten $fuel))
    (if (<= $fuel 0)
        (mkARes False (mkAntWorld $grid $pos $dir $eaten $fuel))
        (let* (($ahead (antAheadPos $grid $pos $dir))
@@ -107,18 +109,18 @@
              (mkARes True (mkAntWorld $moved $ahead $dir (+ $eaten 1) (- $fuel 1)))
              (mkARes True (mkAntWorld $moved $ahead $dir $eaten (- $fuel 1)))))))
 
-(= (antTurnLeft $children (mkAntWorld $grid $pos $dir $eaten $fuel))
+(= (antTurnLeft $params (mkAntWorld $grid $pos $dir $eaten $fuel))
    (if (<= $fuel 0)
        (mkARes False (mkAntWorld $grid $pos $dir $eaten $fuel))
        (mkARes True (mkAntWorld $grid $pos (antLeftOf $dir) $eaten (- $fuel 1)))))
 
-(= (antTurnRight $children (mkAntWorld $grid $pos $dir $eaten $fuel))
+(= (antTurnRight $params (mkAntWorld $grid $pos $dir $eaten $fuel))
    (if (<= $fuel 0)
        (mkARes False (mkAntWorld $grid $pos $dir $eaten $fuel))
        (mkARes True (mkAntWorld $grid $pos (antRightOf $dir) $eaten (- $fuel 1)))))
 
 ;; ---- PERCEPTION (free, read-only -- classic is_food_ahead) -----------------
-(= (antFoodAhead $children (mkAntWorld $grid $pos $dir $eaten $fuel))
+(= (antFoodAhead $params (mkAntWorld $grid $pos $dir $eaten $fuel))
    (let $ahead (antAheadPos $grid $pos $dir)
         (mkARes (== (antCellAt $grid $ahead) F) (mkAntWorld $grid $pos $dir $eaten $fuel))))
 

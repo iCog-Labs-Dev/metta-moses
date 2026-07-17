@@ -34,20 +34,20 @@
 ;; the GOAL is position 3. Every move costs 1 fuel.
 ;;
 ;; The whole contract is: one clause per action/perception, shaped
-;;     (= (<name> $children $world) (mkARes <Bool> <newWorld>))
+;;     (= (<name> $params $world) (mkARes <Bool> <newWorld>))
 ;; The evaluator (scoring/action-eval.metta) knows NOTHING about robots --
 ;; it just dispatches these clauses. Delete one, add one, change one:
 ;; the engine never changes.
 ;; ============================================================================
 
 ;; ACTION botForward: step right. Fails (False) when out of fuel.
-(= (botForward $children (mkBotWorld $pos $fuel))
+(= (botForward $params (mkBotWorld $pos $fuel))
    (if (> $fuel 0)
        (mkARes True  (mkBotWorld (+ $pos 1) (- $fuel 1)))
        (mkARes False (mkBotWorld $pos $fuel))))
 
 ;; ACTION botBackward: step left (floor at 0). Also costs fuel.
-(= (botBackward $children (mkBotWorld $pos $fuel))
+(= (botBackward $params (mkBotWorld $pos $fuel))
    (if (> $fuel 0)
        (if (> $pos 0)
            (mkARes True  (mkBotWorld (- $pos 1) (- $fuel 1)))
@@ -57,7 +57,7 @@
 ;; PERCEPTION botAtGoal: True iff standing on the goal. World untouched --
 ;; perceptions and actions share one result protocol, that's what lets
 ;; and_seq / action_bool_if treat any child alike.
-(= (botAtGoal $children (mkBotWorld $pos $fuel))
+(= (botAtGoal $params (mkBotWorld $pos $fuel))
    (mkARes (== $pos 3) (mkBotWorld $pos $fuel)))
 
 ;; ============================================================================
