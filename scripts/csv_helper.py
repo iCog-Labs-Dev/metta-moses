@@ -5,7 +5,7 @@ Called from MeTTa via:
     (py-call (csv_helper.load_boolean_table <path> <target_feature>))
 
 Returns a STRING containing a valid MeTTa S-expression of the form
-    (mkITable <rows-expression-list> <labels-expression-list>)
+    (mkITable <columns-expression-list> <labels-expression-list>)
 which the caller `parse`s back into a MeTTa term.
 
 Every cell is type-checked against a small set of boolean literals; any
@@ -86,9 +86,13 @@ def load_boolean_table(path, target_feature=""):
         target_idx = labels.index(target_feature)
         target_name = target_feature
 
-    # Type-check every cell upfront, build the validated boolean grid with
-    # target column moved to the end.
-    validated_rows = []
+    new_labels = [l for i, l in enumerate(labels) if i != target_idx]
+    new_labels.append(target_name)
+
+    # Type-check every cell upfront and build a column-major table.
+    num_columns = len(new_labels)
+    validated_columns = [[] for _ in range(num_columns)]
+
     for r_num, row in enumerate(body, start=2):  # +1 for header, 1-indexed
         if len(row) != len(labels):
             raise ValueError(
@@ -96,17 +100,19 @@ def load_boolean_table(path, target_feature=""):
                     r=r_num, got=len(row), want=len(labels)
                 )
             )
+
         bools = [
             _to_bool_literal(row[i], r_num, labels[i])
-            for i in range(len(labels))
+            for i in range(num_columns)
         ]
+
         reordered = [b for i, b in enumerate(bools) if i != target_idx]
         reordered.append(bools[target_idx])
-        validated_rows.append(reordered)
 
-    new_labels = [l for i, l in enumerate(labels) if i != target_idx]
-    new_labels.append(target_name)
+        for col_idx, value in enumerate(reordered):
+            validated_columns[col_idx].append(value)
 
-    rows_sexpr = _expr_list(_expr_list(r) for r in validated_rows)
+
+    columns_sexpr = _expr_list(_expr_list(col) for col in validated_columns)
     labels_sexpr = _expr_list(new_labels)
-    return "(mkITable {rows} {labels})".format(rows=rows_sexpr, labels=labels_sexpr)
+    return "(mkITable {rows} {labels})".format( rows=columns_sexpr, labels=labels_sexpr,)
