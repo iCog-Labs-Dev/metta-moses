@@ -169,27 +169,24 @@
 ;; registerActionOperator adds a structural op
 !(registerActionOperator myNewOp)
 !(assertEqual (isRegisteredActionOperator myNewOp) True)
-;; domain action/perception round-trip
-!(assertEqual (isRegisteredDomainAction cntInc) False)
-!(registerDomainAction cntInc)
-!(registerDomainPerception cntBelow3)
-!(assertEqual (isRegisteredDomainAction cntInc) True)
-!(assertEqual (isRegisteredDomainPerception cntBelow3) True)
-;; expected singleton tuples are quoted: (cntInc) bare would be an arity-0
-;; curry of the live cntInc clause head
-!(assertEqual (registeredDomainActions) (quote (cntInc)))
-!(assertEqual (registeredDomainPerceptions) (quote (cntBelow3)))
 ;; registration is idempotent (import! does not dedupe): registering an
-;; already-registered domain action again leaves the lister with ONE entry
-!(registerDomainAction cntInc)
-!(assertEqual (registeredDomainActions) (quote (cntInc)))
-;; resetActionDomain clears domain registrations, keeps structural ops
-!(resetActionDomain)
-!(assertEqual (isRegisteredDomainAction cntInc) False)
-!(assertEqual (isRegisteredDomainPerception cntBelow3) False)
-!(assertEqual (registeredDomainActions) ())
+;; already-registered structural op again leaves exactly ONE atom
+!(registerActionOperator myNewOp)
+!(assertEqual (collapse (match &actionRegistry (structuralActionOp myNewOp) myNewOp)) (myNewOp))
+;; M0 registry slimming: the per-primitive registration API
+;; (registerDomainAction / registerDomainPerception, the
+;; registeredDomainActions / registeredDomainPerceptions listers,
+;; isRegisteredDomainAction / isRegisteredDomainPerception, and
+;; resetActionDomain) was DELETED -- per-domain vocabularies now live only
+;; in the domain's config clauses (actionDomainActions /
+;; actionDomainPerceptions, quoted tuples read via configListSafe in
+;; scoring/action-score.metta). The assertions that exercised that API were
+;; removed with it; structural-op membership is unaffected:
 !(assertEqual (isRegisteredActionOperator and_seq) True)
-;; action-domain registration
+;; action-domain NAME registration (CLI routing) survives the slimming
 !(assertEqual (isRegisteredActionDomain ttt) False)
 !(registerActionDomain ttt)
 !(assertEqual (isRegisteredActionDomain ttt) True)
+;; ...and is idempotent too: re-registering leaves exactly ONE atom
+!(registerActionDomain ttt)
+!(assertEqual (collapse (match &actionDomains (actionDomain ttt) ttt)) (ttt))

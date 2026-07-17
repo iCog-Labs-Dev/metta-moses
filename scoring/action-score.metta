@@ -25,6 +25,14 @@
 ;;       ; runs ONE episode of the COMPILED (actionExp) expression against
 ;;       ; $opp and returns its score, higher = better
 ;;   (= (actionDomainBestScore  <domain> $nEpisodes) <Number>)
+;;   (= (actionDomainActions     <domain>) (quote (<act> ...)))   ; and
+;;   (= (actionDomainPerceptions <domain>) (quote (<perc> ...)))
+;;       ; the domain's knob-layer vocabulary -- the SINGLE source since the
+;;       ; M0 registry slimming (no per-primitive registration exists).
+;;       ; quote is REQUIRED: the primitives are live bare-head clauses, so
+;;       ; an unquoted tuple headed by one compiles as a CALL. Consumers
+;;       ; (representation/create-representation.metta) read every
+;;       ; list-valued config clause through configListSafe below.
 
 ;; ---- Behavioral-score cache ----
 ;; Entries: ($domain $compiledExp $nEpisodes $bscore) -- keyed by the compiled
@@ -40,28 +48,40 @@
    (let $entries (collapse (match &actionScoreCache $e $e))
      (map-atom $entries $e (remove-atom &actionScoreCache $e))))
 
-;; ---- Episode loop ----
+;; ---- Config-clause readers ----
 
-;; actionDomainOpponentsSafe: the opponents tuple, with a missing clause
-;; (unregistered/misconfigured domain) mapped to () instead of a bare failure
-;; -- scoring must never crash, so the no-clause case falls into the same
-;; defined-worst path as an explicitly empty opponents list.
+;; configListSafe: THE way to read a list-valued domain-config clause
+;; (actionDomainOpponents, actionDomainActions, actionDomainPerceptions, ...).
+;; Call it on the COLLAPSED result of the config-clause call --
+;;   (configListSafe (collapse (actionDomain<X> $domain)))
+;; -- because a missing clause (unregistered/misconfigured domain) makes the
+;; bare call fail silently with zero results; collapse turns that into (),
+;; which maps to () here instead of a bare failure. Consumers must never
+;; crash, so the no-clause case falls into the same path as an explicitly
+;; empty list.
 ;; A quote-wrapped tuple (see contract above) is UNWRAPPED here: PeTTaV1
 ;; strips quote on evaluation, but runtimes where (quote (...)) survives as
-;; a size-2 expression get the inner tuple back. Guarded nested ifs, not
-;; `and` -- size-atom/car-atom on a non-expression would error.
+;; a size-2 expression get the inner tuple back; plain inert-symbol tuples
+;; pass through untouched. Guarded nested ifs, not `and` --
+;; size-atom/car-atom on a non-expression would error.
+(= (configListSafe $rs)
+   (if (== $rs ())
+       ()
+       (let $v (car-atom $rs)
+         (if (== (get-metatype $v) Expression)
+             (if (== (size-atom $v) 2)
+                 (if (== (car-atom $v) quote)
+                     (let ($q $inner) $v $inner)
+                     $v)
+                 $v)
+             $v))))
+
+;; ---- Episode loop ----
+
+;; actionDomainOpponentsSafe: the opponents tuple, read through
+;; configListSafe (see above); () = misconfigured -> the defined-worst path.
 (= (actionDomainOpponentsSafe $domain)
-   (chain (collapse (actionDomainOpponents $domain)) $rs
-     (if (== $rs ())
-         ()
-         (let $v (car-atom $rs)
-           (if (== (get-metatype $v) Expression)
-               (if (== (size-atom $v) 2)
-                   (if (== (car-atom $v) quote)
-                       (let ($q $inner) $v $inner)
-                       $v)
-                   $v)
-               $v)))))
+   (configListSafe (collapse (actionDomainOpponents $domain))))
 
 ;; runActionEpisode: ONE episode's score, with a failing/missing
 ;; actionDomainRunEpisode clause mapped to the defined-worst -1.0.

@@ -74,8 +74,9 @@
 
 ;; ---- Registration file sanity (the domain-package interface) ----
 !(assertEqual (isRegisteredActionDomain tttAction) True)
-!(assertEqual (registeredDomainActions) (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
-!(assertEqual (registeredDomainPerceptions) (quote (tttCanWin tttCanBlock tttCenterFree)))
+;; M0 registry slimming: the registeredDomainActions/registeredDomainPerceptions
+;; listers were deleted with the per-primitive registration API; the config
+;; clauses asserted below are now the single source of the vocabulary.
 !(assertEqual (actionDomainActions tttAction) (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
 !(assertEqual (actionDomainPerceptions tttAction) (quote (tttCanWin tttCanBlock tttCenterFree)))
 ;; opponents: the registration clause is quote-wrapped (the player symbols

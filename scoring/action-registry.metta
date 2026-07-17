@@ -1,9 +1,16 @@
-;; Action-domain registry: which operator symbols are structural combinators,
-;; which are cleanup-relevant, and which actions/perceptions the CURRENTLY
-;; loaded domain package contributes. Spaces (not clause lists) so domain
-;; packages loaded at any later time can register themselves without editing
-;; this file -- the pluggable analog of the hard-coded isActionOperator list
-;; in representation/knob-representation.metta.
+;; Action-domain registry. Holds exactly three things:
+;;   (a) structural/cleanup operator membership (structuralActionOp /
+;;       cleanupActionOp atoms) -- the pluggable analog of the hard-coded
+;;       isActionOperator list in representation/knob-representation.metta;
+;;   (b) domain-NAME registration (&actionDomains) for CLI routing
+;;       (registerActionDomain / isRegisteredActionDomain);
+;;   (c) the actionDomain* config sentinels (bottom of file).
+;; Per-domain action/perception VOCABULARIES do NOT live here: they live
+;; ONLY in the domain's config clauses -- (= (actionDomainActions <domain>)
+;; (quote (...))) and the matching actionDomainPerceptions clause -- read
+;; through configListSafe (scoring/action-score.metta). Spaces (not clause
+;; lists) so domain packages loaded at any later time can register
+;; themselves without editing this file.
 ;;
 ;; SENTINEL BASE CLAUSES (the load-order enabler): PeTTa compiles a call site
 ;; as a real call only if at least ONE clause of the callee exists when the
@@ -49,49 +56,21 @@
    (not (== (collapse (match &actionRegistry (structuralActionOp $op) $op)) ())))
 (= (isRegisteredCleanupActionOp $op)
    (not (== (collapse (match &actionRegistry (cleanupActionOp $op) $op)) ())))
-(= (isRegisteredDomainAction $op)
-   (not (== (collapse (match &actionRegistry (domainAction $op) $op)) ())))
-(= (isRegisteredDomainPerception $op)
-   (not (== (collapse (match &actionRegistry (domainPerception $op) $op)) ())))
 (= (isRegisteredActionDomain $domain)
    (not (== (collapse (match &actionDomains (actionDomain $domain) $domain)) ())))
 
 ;; ---- Registration API (called by domain packages at load time) ----
 ;; IDEMPOTENT: import! does not dedupe, so a domain package loaded twice
-;; would double every registration and corrupt the listers below -- each
-;; register skips the add-atom when the entry is already present.
+;; would double every registration -- each register skips the add-atom when
+;; the entry is already present.
 (= (registerActionOperator $op)
    (if (isRegisteredActionOperator $op)
        ()
        (add-atom &actionRegistry (structuralActionOp $op))))
-(= (registerDomainAction $op)
-   (if (isRegisteredDomainAction $op)
-       ()
-       (add-atom &actionRegistry (domainAction $op))))
-(= (registerDomainPerception $op)
-   (if (isRegisteredDomainPerception $op)
-       ()
-       (add-atom &actionRegistry (domainPerception $op))))
 (= (registerActionDomain $domain)
    (if (isRegisteredActionDomain $domain)
        ()
        (add-atom &actionDomains (actionDomain $domain))))
-
-;; ---- Listers ----
-(= (registeredDomainActions)
-   (collapse (match &actionRegistry (domainAction $a) $a)))
-(= (registeredDomainPerceptions)
-   (collapse (match &actionRegistry (domainPerception $p) $p)))
-
-;; resetActionDomain: drop every domainAction/domainPerception registration
-;; (a new domain package re-registers its own). Collapse the matches FIRST,
-;; then remove -- never mutate the space while match is iterating it.
-(= (resetActionDomain)
-   (let* (($as (collapse (match &actionRegistry (domainAction $a) $a)))
-          ($ps (collapse (match &actionRegistry (domainPerception $p) $p)))
-          ($ra (map-atom $as $a (remove-atom &actionRegistry (domainAction $a))))
-          ($rp (map-atom $ps $p (remove-atom &actionRegistry (domainPerception $p)))))
-     ()))
 
 ;; ---- Sentinel base clauses (see header) ----
 ;; Domain-config predicates the scoring layer calls before any domain package

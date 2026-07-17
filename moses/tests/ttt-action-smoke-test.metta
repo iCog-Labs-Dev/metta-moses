@@ -116,21 +116,22 @@
 
 ;; ============================================================
 ;; THE RECIPE DEMO -- registering a NEW action domain with zero pipeline
-;; edits. This is the exact 5-part template from
+;; edits. This is the exact 4-part template from
 ;; examples/tic-tac-toe-action/ttt-action-registration.metta, instantiated
 ;; for a test-local fast variant: tic-tac-toe against random-player ONLY
 ;; (minimax is the expensive opponent; dropping it keeps the smoke run
 ;; fast AND demonstrates that a domain fully owns its opponents tuple).
-;; The tttWin/tttBlock/... primitives were already registered (idempotently)
-;; by the ttt-action-registration import above, so parts 1 is inherited and
-;; only the domain-config clauses + registration are needed here.
+;; The primitives themselves (tttWin/tttBlock/... bare-head clauses) come
+;; from the ttt-action-primitives import above; a domain contributes
+;; NOTHING beyond its config clauses + one registerActionDomain line.
 ;; ============================================================
 
-;; ---- 2. Domain configuration ----
-;; (actions/perceptions clauses are part of the template; the knob layer
-;; reads the global registry, so these document the domain's vocabulary.
-;; quote is REQUIRED on both tuples: the primitives are live bare-head
-;; clauses, so an unquoted tuple headed by one compiles as a CALL)
+;; ---- 1. Domain configuration ----
+;; (the actions/perceptions clauses ARE the domain's vocabulary -- the knob
+;; layer reads them via configListSafe; no per-primitive registration
+;; exists since the M0 registry slimming. quote is REQUIRED on both tuples:
+;; the primitives are live bare-head clauses, so an unquoted tuple headed
+;; by one compiles as a CALL)
 (= (actionDomainActions tttActionFast) (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
 (= (actionDomainPerceptions tttActionFast) (quote (tttCanWin tttCanBlock tttCenterFree)))
 ;; quote is REQUIRED even for this single-opponent tuple: random-player is a
@@ -139,15 +140,15 @@
 ;; silently yield nothing -- the domain would score every episode -1.0.
 (= (actionDomainOpponents tttActionFast) (quote (random-player)))
 
-;; ---- 3. Episode runner (reuses the ttt episode loop + primitives) ----
+;; ---- 2. Episode runner (reuses the ttt episode loop + primitives) ----
 (= (actionDomainRunEpisode tttActionFast $exp $opponent)
    (tttActionEpisode $exp $opponent))
 
-;; ---- 4. Best reachable raw score: every episode plays random-player,
+;; ---- 3. Best reachable raw score: every episode plays random-player,
 ;;         and every game against random-player is winnable -> 1.0 each ----
 (= (actionDomainBestScore tttActionFast $n) (* 1.0 $n))
 
-;; ---- 5. Register the domain ----
+;; ---- 4. Register the domain (name only -- CLI routing) ----
 !(registerActionDomain tttActionFast)
 
 ;; Registration is live before the run: the domain is discoverable and its

@@ -23,7 +23,7 @@ Files (load in this order, after the scoring block):
    opponent policy; win 1.0 / draw 0.0 / loss -1.0; a turn with no
    placement (latch still False) is a forfeit, -1.0.
 4. `ttt-action-registration.metta` — THE domain-package interface (the
-   five numbered sections every domain provides).
+   four numbered sections every domain provides).
 
 ## Adding a new action domain (e.g. ant trail)
 
@@ -31,30 +31,41 @@ Files (load in this order, after the scoring block):
    is opaque to the engine and to all structural ops — only your domain
    clauses inspect it. Encode per-turn/budget bookkeeping (like TTT's
    `moved` latch) inside it.
-2. **Primitives**: ONE clause per action/perception, following the
-   contract from `scoring/action-ops.metta`:
-   `(= (actionOp <name> $children $world) (mkARes <Bool> <World'>))`.
+2. **Primitives**: ONE bare-head clause per action/perception, following
+   the contract from `scoring/action-ops.metta`:
+   `(= (<name> $children $world) (mkARes <Bool> <World'>))`.
    Children arrive unevaluated; leaves ignore them. Prefix names with your
-   domain (`ant...`, `ttt...`) to avoid clause collisions — every domain's
-   clauses share the single `actionOp` predicate. Unknown ops score worst
-   automatically; you never touch the engine.
+   domain (`ant...`, `ttt...`) to avoid clause collisions — the engine
+   reduce-dispatches on the bare operator symbol, so every domain's clause
+   heads share one global namespace. Do NOT add `(: <name> ...)` type
+   declarations to ops — they break the engine's reduce dispatch. Unknown
+   ops score worst automatically; you never touch the engine.
 3. **Episode runner**: run a compiled tree in your world and return a
    Number (higher = better). Decide failure semantics explicitly — TTT
    forfeits (-1.0) on any turn where the tree places no mark, which also
    closes the empty-exemplar (`(and_seq ())`) loophole.
-4. **Registration file**: copy `ttt-action-registration.metta`'s five
-   numbered sections — (1) `registerDomainAction` / `registerDomainPerception`
-   per primitive, (2) `actionDomainActions` / `actionDomainPerceptions` /
-   `actionDomainOpponents` clauses, (3) `actionDomainRunEpisode` (the
-   expression arrives already compiled), (4) `actionDomainBestScore`,
-   (5) `registerActionDomain`. Quote-wrap the opponents tuple —
-   `(quote (<opp> ...))` — whenever any entry names a loaded function
-   (opponent policies usually do): a bare tuple compiles as a call, the
-   clause silently yields nothing, and the domain scores as misconfigured.
-   The scoring layer unwraps the quote.
+4. **Registration file**: copy `ttt-action-registration.metta`'s four
+   numbered sections — (1) `actionDomainActions` / `actionDomainPerceptions`
+   / `actionDomainOpponents` config clauses, (2) `actionDomainRunEpisode`
+   (the expression arrives already compiled), (3) `actionDomainBestScore`,
+   (4) one `registerActionDomain` line (domain NAME only — CLI routing).
+   The config clauses are the single source of the domain's vocabulary;
+   there is no per-primitive registration. THE QUOTE RULE: quote-wrap
+   EVERY config clause that returns a list of op symbols —
+   `(= (actionDomainActions <dom>) (quote (<act> ...)))` — and likewise
+   the opponents tuple whenever any entry names a loaded function
+   (primitives are live bare-head clauses and opponent policies usually
+   are too): a bare tuple compiles as a call, the clause silently yields
+   nothing, and the domain scores as misconfigured. The same rule applies
+   to hand-written wrapped-shape literals in tests/playgrounds —
+   `(evalAction (quote (and_seq (...))) <world>)`. The scoring layer
+   unwraps config-clause quotes via `configListSafe`
+   (`scoring/action-score.metta`); quote strips on evaluation, so
+   consumers always receive the plain tuple.
 5. **Imports**: load your files world → primitives → episode →
    registration, after the scoring block (the registry's sentinel clauses
-   are what let your late-loaded `actionOp` / `actionDomain*` clauses
-   dispatch). Initial exemplars should be `and_seq`-rooted:
+   are what let your late-loaded `actionDomain*` config clauses dispatch;
+   bare-head op clauses need no sentinel — the engine reduce-dispatches
+   them dynamically). Initial exemplars should be `and_seq`-rooted:
    `getCandidate`'s decode branch keys off the root symbol via
    `isActionOperator`.

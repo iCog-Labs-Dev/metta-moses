@@ -55,8 +55,13 @@
 ;; sdtBump: increment the counter, succeed. sdtStop: fail, world untouched.
 (= (sdtBump $children $world) (mkARes True (+ $world 1)))
 (= (sdtStop $children $world) (mkARes False $world))
-!(registerDomainAction sdtBump)
-!(registerDomainAction sdtStop)
+;; Vocabulary lives in the config clauses (single source since the M0
+;; registry slimming; the per-primitive register API was deleted). quote is
+;; REQUIRED: sdtBump/sdtStop are live bare-head clauses. This test's rep is
+;; hand-built below, so nothing here consults the vocabulary -- the clauses
+;; keep the domain-package template complete.
+(= (actionDomainActions sdtDomain) (quote (sdtBump sdtStop)))
+(= (actionDomainPerceptions sdtDomain) ())
 
 ;; Opponents are inert symbols (never head a clause), so no quote is needed.
 (= (actionDomainOpponents sdtDomain) (oppA oppB))

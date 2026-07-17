@@ -25,9 +25,16 @@
 (= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
     (let ((mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree)) (representation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType (not (param discProbe))) ((mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree))))
 
-;; Action-domain representation (3 parameters, tagged): threads the
-;; registry's domain actions/perceptions into the action-capable 10-arg
-;; `representation` overload (representation.metta:145-162). That overload
+;; Action-domain representation (3 parameters, tagged): threads the domain's
+;; action/perception vocabularies into the action-capable 10-arg
+;; `representation` overload (representation.metta:145-162). The vocabularies
+;; come from the domain's config clauses -- (actionDomainActions $domain) /
+;; (actionDomainPerceptions $domain), quote-wrapped tuples unwrapped by
+;; configListSafe (scoring/action-score.metta, loaded earlier in
+;; moses.metta; the registry's sentinels make the config calls compile as
+;; real dynamically-dispatched calls). A domain without config clauses
+;; yields () vocabularies -- same empty-knob-map outcome the registry
+;; listers used to produce before the M0 slimming. That overload
 ;; builds exactly ONE rep per call (its $nDeme slot is unused), so the
 ;; per-deme loop lives HERE -- the action analog of the loop the 2-arg game
 ;; clause delegates to representation.metta:40-51. Knob sampling inside
@@ -37,8 +44,8 @@
 ;; slots. Each element is (mkRep (mkKbMap (mkDscMp $mmp)) $tree) -- the
 ;; 1-field KnobMap shape loopCreateDeme / expandDemeHelper destructure.
 (= (createRepresentation $nDeme $tree (mkActionDomain $domain))
-   (let* (($actions (registeredDomainActions))
-          ($perceptions (registeredDomainPerceptions))
+   (let* (($actions (configListSafe (collapse (actionDomainActions $domain))))
+          ($perceptions (configListSafe (collapse (actionDomainPerceptions $domain))))
           ($demeNumbers (range 0 1 $nDeme)))
      (map-atom $demeNumbers $x
        (let ($rep) (representation 1 $tree (mkITable () ()) None False () mi True $actions $perceptions)

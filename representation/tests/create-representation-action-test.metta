@@ -10,6 +10,10 @@
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cacheSpace)
 !(import! &self ../../scoring/action-registry)
+;; action-score provides configListSafe -- create-representation's action
+;; clause reads the config-clause vocabularies through it, so it must have
+;; a clause BEFORE create-representation loads (mirrors moses.metta order)
+!(import! &self ../../scoring/action-score)
 
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/lsk)
@@ -33,19 +37,21 @@
 
 ;; ============================================================
 ;; createRepresentation / createDeme for the tagged ACTION domain.
-;; Inert test-local vocabulary registered through the registry API --
-;; createRepresentation must pick it up via registeredDomainActions /
-;; registeredDomainPerceptions without any domain package loaded.
+;; Inert test-local vocabulary declared through the domain-config clauses
+;; (the single source since the M0 registry slimming; the per-primitive
+;; registerDomainAction/registerDomainPerception API was deleted) --
+;; createRepresentation must pick it up via (actionDomainActions crtDomain)
+;; / (actionDomainPerceptions crtDomain) through configListSafe without any
+;; domain package loaded. The tuples are quote-wrapped per the config-clause
+;; contract (crt* symbols are inert here, but the convention is uniform).
 ;; ============================================================
 
-!(registerDomainAction crtGo)
-!(registerDomainAction crtTurn)
-!(registerDomainAction crtWait)
-!(registerDomainPerception crtBlocked)
+(= (actionDomainActions crtDomain) (quote (crtGo crtTurn crtWait)))
+(= (actionDomainPerceptions crtDomain) (quote (crtBlocked)))
 
-;; the registry now serves the test vocabulary
-!(assertEqual (registeredDomainActions) (crtGo crtTurn crtWait))
-!(assertEqual (registeredDomainPerceptions) (crtBlocked))
+;; the config clauses serve the test vocabulary through the shared unwrap
+!(assertEqual (configListSafe (collapse (actionDomainActions crtDomain))) (crtGo crtTurn crtWait))
+!(assertEqual (configListSafe (collapse (actionDomainPerceptions crtDomain))) (crtBlocked))
 
 ;; 2 demes -> 2 reps, each the 1-field (mkRep (mkKbMap (mkDscMp $m)) $t)
 ;; shape with a non-empty knob multimap
