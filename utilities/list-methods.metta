@@ -177,16 +177,6 @@
        (List.concat $x (List.flatten $xs))
        (Error $x "Can't be flattened")))
 
-;; Inclusive number range, Haskell's [$from .. $to]; empty when $from > $to.
-;; (NOT named List.range: feature-selection/feature-selection-helpers
-;; already defines an exclusive-end List.range, and a same-name clause here
-;; would duplicate every dispatch in stacks that load both.)
-; (: List.enumFromTo (-> Number Number (List Number)))
-(= (List.enumFromTo $from $to)
-   (if (> $from $to)
-       ()
-       (cons $from (List.enumFromTo (+ $from 1) $to))))
-
 ; (: List.repeat (-> Number $a (List $a)))
 (= (List.repeat $n $a)
    (if (== $n 0)

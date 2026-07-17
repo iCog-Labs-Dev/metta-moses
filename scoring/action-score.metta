@@ -73,7 +73,7 @@
 ;; (mkBScore (list of Numbers)) contents sumBScore / BScore.sub consume
 ;; (scoring/bscore.metta), same shape strategy-scoring builds.
 (= (runActionEpisodes $fn $exp $n)
-   (map runActionEpisode $fn $exp (List.enumFromTo 0 (- $n 1))))
+   (map runActionEpisode $fn $exp (genList (- $n 1))))
 
 ;; ---- Behavioral score (cached) ----
 ;; scoreActionTree: candidate Tree -> mkBScore over $nEpisodes episodes of
