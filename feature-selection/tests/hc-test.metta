@@ -75,23 +75,23 @@
 
 (= (centerInst) (cons 1 (cons 0 (cons 0 (cons 0 ())))))
 
-;;                                miConfi prePenalty preMinAct preMaxAct prePositive scorerType
-!(assertEqual (hcFtSetPop (ttable2) (centerInst) (50.0 1.0 0.5 1.0 True mi))
+;;                                            miConfi prePenalty preMinAct preMaxAct prePositive
+!(assertEqual (hcFtSetPop (ttable2) (centerInst) mi (50.0 1.0 0.5 1.0 True))
     ((1.0 (0 2)) (0.5 (0 1)) (0.311 (0)) (0.311 (0 3)) (0.0 ())))
 
 ;; Same search scored by precision. The runners-up score differently, which is what
 ;; catches a silent fall back to mutual information.
-!(assertEqual (hcFtSetPop (ttable2) (centerInst) (50.0 1.0 0.5 1.0 True pre))
+!(assertEqual (hcFtSetPop (ttable2) (centerInst) pre (50.0 1.0 0.5 1.0 True))
     ((1.0 (0 2)) (0.6666666666666666 (0 1)) (0.5 (0)) (0.5 (0 3)) (0.0 ())))
 
 ;; miConfi reaches the scorer: at low confidence the same feature sets score lower.
-!(assertEqual (hcFtSetPop (ttable2) (centerInst) (0.001 1.0 0.5 1.0 True mi))
+!(assertEqual (hcFtSetPop (ttable2) (centerInst) mi (0.001 1.0 0.5 1.0 True))
     ((0.8003197748694354 (0 2)) (0.4001598874347177 (0 1)) (0.24884973991609888 (0)) (0.0 ())))
 
 ;; Initial features reach the search: going through featureSelection with A as the
 ;; initial feature has to seed the same instance the calls above hand-build.
 !(assertEqual (featureSelection hc (ttable2) 0 0 (0) mi)
-    (hcFtSetPop (ttable2) (centerInst) (50.0 1.0 0.5 1.0 True mi)))
+    (hcFtSetPop (ttable2) (centerInst) mi (50.0 1.0 0.5 1.0 True)))
 
 ;; and the seed matters: from an all-zero instance the search never reaches (0 2).
 !(assertEqual (featureSelection hc (ttable2) 0 0 () mi)

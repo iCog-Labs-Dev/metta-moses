@@ -12,16 +12,16 @@
 
 ;; hcFtSetPop  -- runs the hill climbing feature selector using a center instance
 ;;             -- returns tuple of (score ft-set) pairs
-;;      $fsScorer -- a scorer symbol (mi or pre) to score with the configured
-;;                   hyperparameters, or the full hyperparameter tuple to use as is.
-;;                   See normalizeFsHyperparams for the accepted shapes.
+;;      $scorerType     -- the scorer to score feature sets with, mi or pre
+;;      $fsHyperparams  -- the scorer hyper parameters as one list, in the order
+;;                         defaultFsHyperparams builds them
 ;; Commented out: ITable has no type definition, so every call reduces to Empty.
-;; (: hcFtSetPop (-> (ITable $a) Instance Symbol Expression))
-(= (hcFtSetPop $iTable $centerInst $fsScorer)
+;; (: hcFtSetPop (-> (ITable $a) Instance Symbol Expression Expression))
+(= (hcFtSetPop $iTable $centerInst $scorerType $fsHyperparams)
   (let* (
          ;; ($_ (println! (debug inside hcFtSetPop)))
-         ($fsHyperparams (normalizeFsHyperparams $fsScorer))
-         (((mkInst $inst1) (mkSInstSet $list) $state) (hillClimbing (mkSInstSet ()) $iTable (mkInst $centerInst) (mkParams applyMutualInformationBasedScore $fsHyperparams))) ;; runs the hillclimbing feature selector
+         ($fsParams (withFsScorer $fsHyperparams $scorerType))
+         (((mkInst $inst1) (mkSInstSet $list) $state) (hillClimbing (mkSInstSet ()) $iTable (mkInst $centerInst) (mkParams applyMutualInformationBasedScore $fsParams))) ;; runs the hillclimbing feature selector
          ($list-of-scoreset-pairs (getHcFtPop $list ()))                                                    ;; separates the scores from the the previous output and puts them in a score feature-set pair tuple -- as list of
          ($unique-pairs (List.tFoldl $list-of-scoreset-pairs union-atom toExp ()))                          ;; finds unquie such pairs duplicats removed -- by way of union-atom
          ($size (size-atom $unique-pairs))
