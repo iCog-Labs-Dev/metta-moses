@@ -13,7 +13,7 @@
 ;;
 ;; The run assembly mirrors moses-run-action (moses/demo-problems.metta)
 ;; directly: same empty-exemplar metapop seed, same tagged
-;; (mkActionCtx $nGames $cpxPen) context, same runMoses call.
+;; (mkActionCtx $nTrials $cpxPen) context, same runMoses call.
 ;; Tests never import moses.metta, so runMoses is called here by hand.
 ;;
 ;; Import order mirrors moses.metta top to bottom (registry+defaults FIRST;
@@ -177,7 +177,7 @@
    (isActionOperator $root))
 
 ;; ============================================================
-;; THE RUN -- 2 generations, nDeme 1, nGames 4, target 4.0 (all wins; not
+;; THE RUN -- 2 generations, nDeme 1, nTrials 4, target 4.0 (all wins; not
 ;; expected to be reached in 2 generations, so the run exits via maxGen).
 ;; Structural assertions only -- no exact evolved trees pinned:
 ;;   - the returned metapop is non-empty;

@@ -333,9 +333,9 @@
 ;; arrives through the global params ((param fitness) consumed inside
 ;; scoring/action-score; (param bestScore) consumed here). The metapop
 ;; seed is the empty and_seq exemplar (the action analog of moses-run's
-;; `true` tree) at the defined-worst score: every one of the $nGames
+;; `true` tree) at the defined-worst score: every one of the $nTrials
 ;; episodes forfeits at -1.0 (see the empty-exemplar loophole note in the
-;; episode runner), so raw score = complexity-penalized score = -1.0*nGames.
+;; episode runner), so raw score = complexity-penalized score = -1.0*nTrials.
 (= (moses-run-action)
    (let*
       (
@@ -360,27 +360,27 @@
         ;; seeding as moses-run).
         ($_  (set-param genCount $maxGen))
         ($cpxPen (param complexityRatio))
-        ($nGames (param nGames))
+        ($nTrials (param nTrials))
         ;; Best reachable raw score is experiment knowledge: the fitness
         ;; package declares it as (param bestScore), a function symbol
-        ;; called ($bsFn $nGames). Collapse-guarded: unset ((), a symbol
+        ;; called ($bsFn $nTrials). Collapse-guarded: unset ((), a symbol
         ;; with no clause, a failing call, or a non-Number result -- the
         ;; termination compare needs arithmetic, and e.g. True is Grounded
         ;; but not a Number, so the test is (get-type ...) == Number) ->
         ;; a never-reached target ((pow-math 10 308)), so the run
         ;; terminates via maxGen instead.
         ($bsFn (param bestScore))
-        ($bsRs (collapse ($bsFn $nGames)))
+        ($bsRs (collapse ($bsFn $nTrials)))
         ($bestPossibleScore
            (if (== $bsRs ())
                (pow-math 10 308)
                (let $bsV (car-atom $bsRs)
                  (if (== (get-type $bsV) Number) $bsV (pow-math 10 308)))))
         ($_ (println! (BestPossibleScore: $bestPossibleScore)))
-        ($worst (* -1.0 $nGames))
-        ($metaPop ((mkExemplar (mkTree (mkNode and_seq) ()) (mkDemeId "1") (mkCscore $worst 0 $cpxPen 0 $worst) (mkBScore (List.repeat $nGames -1.0)))))
+        ($worst (* -1.0 $nTrials))
+        ($metaPop ((mkExemplar (mkTree (mkNode and_seq) ()) (mkDemeId "1") (mkCscore $worst 0 $cpxPen 0 $worst) (mkBScore (List.repeat $nTrials -1.0)))))
         ($result (runMoses $maxGen $bestPossibleScore $metaPop 0 $nDeme
-              (mkActionCtx $nGames $cpxPen)
+              (mkActionCtx $nTrials $cpxPen)
               $optimizer))
         ($newR (mapG cleanedExemplar $result))
         ($_ (cut)) ;; INFO: Mirrors moses-run; commits choice points before returning.

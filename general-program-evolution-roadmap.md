@@ -107,7 +107,7 @@ framework entity. (This section supersedes the M0 notes above on
   silently); `perceptions` may be () (action-only knobs).
 - **Routing = context shape.** `(moses)` decides by configuration (action
   vs table, both → loud error); below the entry point everything dispatches
-  on `(mkActionCtx $nGames ...)` shapes exactly as before, minus the domain
+  on `(mkActionCtx $nTrials ...)` shapes exactly as before, minus the domain
   slot. The registry keeps only structural/cleanup operator membership; the
   config sentinels are gone (the var-head `($fn ...)` apply needs none).
 
@@ -137,7 +137,7 @@ Gates:
 
 - Knob-explosion gate: a `(param actionCondKnobProb)` plus a per-rep knob
   cap. Each AND/OR node adds roughly |perceptions| + arity LSKs, and every
-  neighbor evaluated costs nGames episodes.
+  neighbor evaluated costs nTrials episodes.
 - Approval gate: M1 changes semantics pinned by
   representation/tests/build-action-test.metta (37 asserts, "perception
   preserved verbatim") — needs explicit sign-off at that point.

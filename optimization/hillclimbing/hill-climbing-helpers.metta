@@ -277,26 +277,26 @@
         (let*
           (
             ($disc (getDisk $POASet))
-            (($nGames $complexityRatio) $FsScorer)
+            (($nTrials $complexityRatio) $FsScorer)
             ;; $tTableBscorer is the scalar target score (same convention as the
             ;; strategy arm above).
             ($targetPenScore $tTableBscorer)
           )
           ;; Slot-packing: $rowOCoeff <- mkActionCtx (bare symbol), $size <-
-          ;; $nGames, $iTable <- $complexityRatio, so the recursive engine's
+          ;; $nTrials, $iTable <- $complexityRatio, so the recursive engine's
           ;; `($rowOCoeff $size)` at the transform call (case arm
           ;; `$ComplexityRatio`) reconstructs the TAGGED context
-          ;; (mkActionCtx $nGames) positionally -- transform's action arm
+          ;; (mkActionCtx $nTrials) positionally -- transform's action arm
           ;; pattern-matches it exactly (unlike the strategy packing, whose
           ;; ($nGames strategy) does not match transform's 1-tuple pattern).
-          ;; $size = $nGames is a Number, hence non-(), which keeps the
+          ;; $size = $nTrials is a Number, hence non-(), which keeps the
           ;; case ($xOver $size) branches on the non-feature-selection paths
           ;; (those arms only distinguish () from non-(); none patterns on a
           ;; number).
           (hillClimbing ((param hcMaxDistAction) (param hcMinXoverNeighborsAction) $targetPenScore)
                         (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
-                        ($disc mkActionCtx $nGames $complexityRatio)
+                        ($disc mkActionCtx $nTrials $complexityRatio)
                         $centerInst
                         ()
                         estimateNeighborhood crossover

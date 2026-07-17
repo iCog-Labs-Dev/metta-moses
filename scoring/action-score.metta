@@ -120,14 +120,14 @@
 ;; getActionCscore: behavioral score + complexity penalty -> mkCscore.
 ;; DISTINCT name (not a getCscore overload): the existing 4-arg getCscore
 ;; boolean/strategy clauses (scoring/cscore.metta:23-28) already overlap
-;; ambiguously, and (mkActionCtx $nGames) keys the dispatch anyway.
+;; ambiguously, and (mkActionCtx $nTrials) keys the dispatch anyway.
 ;; The penalty math duplicates ~6 lines of getCscore's 3-arg core
 ;; (scoring/cscore.metta:6-20) -- ACCEPTED duplication: that core calls
 ;; treeComplexity internally, and action candidates need
 ;; actionTreeComplexity, so it cannot be funneled through.
 ;(: getActionCscore (-> (Tree $a) ActionCtx Number $space Cscore))
-(= (getActionCscore $tree (mkActionCtx $nGames) $complexityRatio $scoreSpace)
-   (let $bs (scoreActionTree $tree $nGames $scoreSpace)
+(= (getActionCscore $tree (mkActionCtx $nTrials) $complexityRatio $scoreSpace)
+   (let $bs (scoreActionTree $tree $nTrials $scoreSpace)
      (if-error $bs   ;; parity with getCscore; scoreActionTree never errors
         (worstCscore)
         (let* (($bsum (sumBScore $bs))

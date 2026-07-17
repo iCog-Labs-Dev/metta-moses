@@ -46,16 +46,16 @@
 ;;   $rep: The representation object
 ;;   $id: The deme id
 ;;   $instances: List of instances to score
-;;   $nGames: Number of episodes per evaluation
+;;   $nTrials: Number of episodes per evaluation
 ;;   $complexityRatio: Complexity penalty ratio
 ;;   $listOfScoredInst: Accumulator for scored instances
 ;; Returns:
 ;;   List of scored instances with CScore
 ; (: applyActionBasedScore (-> Representation DemeId (List Instance) Number Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
-(= (applyActionBasedScore $rep $id $instances $nGames $complexityRatio $listOfScoredInst)
+(= (applyActionBasedScore $rep $id $instances $nTrials $complexityRatio $listOfScoredInst)
    (map-atom $instances $i
     (let* (($actionTree (getCandidate $rep $id $i))
-           ($cscore (getActionCscore $actionTree (mkActionCtx $nGames) $complexityRatio &actionScoreCache)))
+           ($cscore (getActionCscore $actionTree (mkActionCtx $nTrials) $complexityRatio &actionScoreCache)))
     (mkSInst (mkPair $i $cscore)))))
 
 ;; Scores each instance in an InstanceSet.
@@ -74,7 +74,7 @@
                         (
                           ;; Action arm FIRST: the tagged (mkActionCtx ...) shape must win
                           ;; before the looser patterns below (case arms match in order).
-                          ((mkActionCtx $nGames) (applyActionBasedScore $rep $id $instList $nGames $complexityRatio ()))
+                          ((mkActionCtx $nTrials) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
                           ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio))
                           (($nGames) (applyStrategyBasedScore $rep $id $instList $nGames $complexityRatio ())))))
           )

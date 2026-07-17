@@ -19,8 +19,8 @@
 ;; strategy pattern below. Packs the episode count and complexity ratio for
 ;; the hillClimbing applyActionBasedScore arm (the fitness itself binds
 ;; globally through (param fitness) -- nothing to thread here).
-(= (optimizeDemes $deme (mkActionCtx $nGames $complexityRatio $targetScore) $inst $optimize)
-   ($optimize $deme $targetScore $inst (mkParams applyActionBasedScore ($nGames $complexityRatio))))
+(= (optimizeDemes $deme (mkActionCtx $nTrials $complexityRatio $targetScore) $inst $optimize)
+   ($optimize $deme $targetScore $inst (mkParams applyActionBasedScore ($nTrials $complexityRatio))))
 ;; Game strategy version - unpacks tuple with target score
 ;; Strategy version - unpacks game parameters and calls hillClimbing with mkParams
 (= (optimizeDemes $deme ($nGames $complexityRatio $targetCScore) $inst $optimize)
@@ -86,19 +86,19 @@
       (map-atom $demes $deme (expandDemeHelper $deme $gameContext $optimize))))
 
 ;; Overloaded version for ACTION runs - 6 parameters, keyed by the tagged
-;; (mkActionCtx $nGames $complexityRatio) context runMoses passes, so it is
+;; (mkActionCtx $nTrials $complexityRatio) context runMoses passes, so it is
 ;; arity-correct end to end with its runMoses call site (unlike the 7-param
 ;; strategy overload above, whose runMoses call passes 8 args). The deme
 ;; layer is fitness-blind: the mkActionRep tag routes createDeme to the
 ;; action representation clause, which reads the knob vocabulary from
 ;; (param actions) / (param perceptions).
-(= (expandDeme $metaPop $nExpansion $nDeme (mkActionCtx $nGames $complexityRatio) $maxScore $optimize)
+(= (expandDeme $metaPop $nExpansion $nDeme (mkActionCtx $nTrials $complexityRatio) $maxScore $optimize)
    (let* (($exemplar (selectExemplar $metaPop))
           ($tree (getExemplarTree $exemplar))
           ($_ (println! (SelectedTree: (preOrder $tree))))
           ($demeIds (createDemeIds $nExpansion $nDeme))
           ($demes (createDeme $nDeme $demeIds $tree mkActionRep))
-          ($ctx (mkActionCtx $nGames $complexityRatio $maxScore)))
+          ($ctx (mkActionCtx $nTrials $complexityRatio $maxScore)))
      (map-atom $demes $deme (expandDemeHelper $deme $ctx $optimize))))
 
 ;; Unified helper for both Boolean and Strategy domains
@@ -144,17 +144,17 @@ $optimDeme
     (let*
      (
        ($_ (println! (Generation $maxGen)))
-       ;; Action arm FIRST in both cases below: (mkActionCtx $nGames $cpxRatio)
+       ;; Action arm FIRST in both cases below: (mkActionCtx $nTrials $cpxRatio)
        ;; is a 3-element expression and would otherwise match the loose 3-tuple
        ;; strategy patterns (case arms match in order).
        ($optimizedDemes (case $context
-                        (((mkActionCtx $nGames $cpxRatio) (trace! "expand deme return" (expandDeme $metaPop $nExpansion $nDeme (mkActionCtx $nGames $cpxRatio) $maxScore $optimize)))
+                        (((mkActionCtx $nTrials $cpxRatio) (trace! "expand deme return" (expandDeme $metaPop $nExpansion $nDeme (mkActionCtx $nTrials $cpxRatio) $maxScore $optimize)))
                         (($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "expand  deme returnn" (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable mi)))
                         (($nGames $opponentPolicy $complexityRatio) (trace! "expand deme return" (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $maxScore $optimize))))))
        (((mkDeme $rep $sInst $demeId)) $optimizedDemes)
        ($_ (println! (OptimizedDeme: (List.length (second $sInst)))))
        ($updatedMetaPop (case $context
-                        (((mkActionCtx $nGames $cpxRatio) (trace! "Merging Deme" (mergeDemes $optimizedDemes (mkActionCtx $nGames) $metaPop)))
+                        (((mkActionCtx $nTrials $cpxRatio) (trace! "Merging Deme" (mergeDemes $optimizedDemes (mkActionCtx $nTrials) $metaPop)))
                         (($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "Merging Deme" (mergeDemes $optimizedDemes $itable $metaPop)))
                         (($nGames $opponentPolicy $complexityRatio) (trace! "Merging Deme" (mergeDemes $optimizedDemes ($nGames $opponentPolicy) $metaPop))))))
        ;; ($_ (println! (Updated MetaPop: $updatedMetaPop)))

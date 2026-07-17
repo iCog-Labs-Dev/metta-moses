@@ -41,5 +41,5 @@
 ;; = n - floor(n/2). Computed with integer floor (py-call idiom from
 ;; strategy-scoring.metta:32-37), then scaled by the exact float 1.0 -- no
 ;; float drift.
-(= (tttActionBestScore $nGames)
-   (* 1.0 (- $nGames (py-call (math.floor (/ $nGames 2))))))
+(= (tttActionBestScore $nTrials)
+   (* 1.0 (- $nTrials (py-call (math.floor (/ $nTrials 2))))))

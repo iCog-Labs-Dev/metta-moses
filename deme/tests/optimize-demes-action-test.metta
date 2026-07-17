@@ -20,8 +20,8 @@
 (= (stubOptimizer $deme (mkTruthTableBScore $cpx $size $itable) $inst)
    (stubGotBoolean $deme $inst))
 
-;; The action clause unpacks (mkActionCtx $nGames $cpxRatio $target)
-;; and repacks (mkParams applyActionBasedScore ($nGames $cpxRatio))
+;; The action clause unpacks (mkActionCtx $nTrials $cpxRatio $target)
+;; and repacks (mkParams applyActionBasedScore ($nTrials $cpxRatio))
 ;; plus the bare $target -- assert the stub received exactly that.
 !(assertEqual
   (collapse (optimizeDemes sdtDeme (mkActionCtx 2 3.5 100.0) (mkInst (1)) stubOptimizer))

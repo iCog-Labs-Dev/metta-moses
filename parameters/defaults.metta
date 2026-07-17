@@ -145,9 +145,9 @@
 
 ;; ---- Scoring ----
 !(add-atom &params (complexityRatio 3.5))
-;; nGames: episodes per candidate evaluation in ACTION domains (the action
-;; analog of the strategy example's game count). Override via --nGames=N.
-!(add-atom &params (nGames 12))
+;; nTrials: episodes per candidate evaluation in ACTION domains (the action
+;; analog of the strategy example's game count). Override via --nTrials=N.
+!(add-atom &params (nTrials 12))
 
 ;; ---- Exemplar selection ----
 !(add-atom &params (compxyTemp 6))
