@@ -24,45 +24,41 @@
 ;; these bodies compile).
 
 ;; ---- Sequential combinators (variadic, children as one wrapped tuple) ----
+;; Every sequence combinator (and the fuel-capped loops below) is ONE fold
+;; over the unevaluated children with an (mkARes $v $w) accumulator:
+;; List.foldUntil's $done guard keeps the accumulator untouched once it is
+;; terminal, so a skipped child is walked as plain data but NEVER evaluated
+;; -- the laziness contract pinned by the counter-world tests in
+;; scoring/test/action-eval-test.
+
+;; Terminal-accumulator guards for the folds.
+(= (aresFailed (mkARes $v $w)) (== $v False))
+(= (aresSucceeded (mkARes $v $w)) (== $v True))
+
+;; evalActionStep: shared fold step -- evaluate one child against the
+;; accumulator's world; the child's mkARes IS the next accumulator.
+(= (evalActionStep $child (mkARes $v $w)) (evalAction $child $w))
 
 ;; and_seq: children left->right, each against the world produced by the
 ;; previous child; first failure stops (its world is kept); empty -> success.
-(= (and_seq $children $world) (seqAll $children $world))
-(= (seqAll $children $world)
+(= (and_seq $children $world)
    (if (== (get-metatype $children) Expression)
-       (if (== $children ())
-           (mkARes True $world)
-           (let* ((($child $rest) (decons-atom $children))
-                  ((mkARes $v $w) (evalAction $child $world)))
-             (if (== $v True)
-                 (seqAll $rest $w)
-                 (mkARes False $w))))
+       (List.foldUntil aresFailed evalActionStep (mkARes True $world) $children)
        (mkARes False $world)))   ;; malformed children (not a tuple) -> worst
 
 ;; or_seq: first success wins (its world is kept); the world threads through
 ;; failed children; empty -> failure.
-(= (or_seq $children $world) (seqAny $children $world))
-(= (seqAny $children $world)
+(= (or_seq $children $world)
    (if (== (get-metatype $children) Expression)
-       (if (== $children ())
-           (mkARes False $world)
-           (let* ((($child $rest) (decons-atom $children))
-                  ((mkARes $v $w) (evalAction $child $world)))
-             (if (== $v True)
-                 (mkARes True $w)
-                 (seqAny $rest $w))))
+       (List.foldUntil aresSucceeded evalActionStep (mkARes False $world) $children)
        (mkARes False $world)))
 
 ;; seq_exec: run ALL children regardless of status, thread the world,
 ;; always succeed with the final world.
-(= (seq_exec $children $world) (seqRun $children $world))
-(= (seqRun $children $world)
+(= (seq_exec $children $world)
    (if (== (get-metatype $children) Expression)
-       (if (== $children ())
-           (mkARes True $world)
-           (let* ((($child $rest) (decons-atom $children))
-                  ((mkARes $v $w) (evalAction $child $world)))
-             (seqRun $rest $w)))
+       (let (mkARes $v $w) (List.foldl evalActionStep (mkARes True $world) $children)
+            (mkARes True $w))
        (mkARes False $world)))
 
 ;; ---- Conditionals ----
@@ -93,43 +89,51 @@
 (= (actionWhileCap) 25)
 
 ;; action_while: loop while the child succeeds; cap exhausted or child
-;; failure -> (mkARes True $lastWorld).
+;; failure -> (mkARes True $lastWorld). The loop is the and_seq fold over
+;; $fuel copies of the child: first failure stops (skipped copies are never
+;; evaluated), then the status is forced to True.
+;; actionWhileLoop stays a NAMED arity-3 helper: the totality assertions in
+;; scoring/test/action-eval-test dispatch it as a wrong-arity symbol.
 (= (action_while ($x) $world)
    (actionWhileLoop $x $world (actionWhileCap)))
 (= (actionWhileLoop $x $world $fuel)
-   (if (== $fuel 0)
-       (mkARes True $world)
-       (let (mkARes $v $w) (evalAction $x $world)
-            (if (== $v True)
-                (actionWhileLoop $x $w (- $fuel 1))
-                (mkARes True $w)))))
+   (let (mkARes $v $w)
+        (List.foldUntil aresFailed evalActionStep (mkARes True $world)
+                        (List.repeat $fuel $x))
+        (mkARes True $w)))
 
 ;; bool_while: while the condition holds, run the body and loop on the
 ;; body's world (body status does not stop the loop); same fuel cap;
-;; always (mkARes True $w).
+;; always (mkARes True $w). Same fold, over $fuel copies of the
+;; ($cond $body) pair; one step = one cond test plus, when it holds, one
+;; body run -- a failed accumulator marks "condition failed", stopping the
+;; fold with that world.
 (= (bool_while ($cond $body) $world)
-   (boolWhileLoop $cond $body $world (actionWhileCap)))
-(= (boolWhileLoop $cond $body $world $fuel)
-   (if (== $fuel 0)
-       (mkARes True $world)
-       (let (mkARes $cv $cw) (evalAction $cond $world)
-            (if (== $cv True)
-                (let (mkARes $bv $bw) (evalAction $body $cw)
-                     (boolWhileLoop $cond $body $bw (- $fuel 1)))
-                (mkARes True $cw)))))
+   (let (mkARes $v $w)
+        (List.foldUntil aresFailed boolWhileStep (mkARes True $world)
+                        ;; cons-built pair: $cond/$body are live wrapped
+                        ;; shapes, a bare ($cond $body) literal here would
+                        ;; be applied as a call
+                        (List.repeat (actionWhileCap) (cons $cond (cons $body ()))))
+        (mkARes True $w)))
+(= (boolWhileStep ($cond $body) (mkARes $v $w))
+   (let (mkARes $cv $cw) (evalAction $cond $w)
+        (if (== $cv True)
+            (let (mkARes $bv $bw) (evalAction $body $cw)
+                 (mkARes True $bw))
+            (mkARes False $cw))))
 
 ;; repeat_n: first child is a raw grounded number (read structurally, never
-;; evaluated); run the body $n times threading the world, always succeed.
-;; Non-number count -> defined-worst.
+;; evaluated); run the body $n times threading the world, always succeed:
+;; exactly seq_exec over $n copies of the body. Non-number count ->
+;; defined-worst; a negative count is guarded to the empty run (List.repeat
+;; would not terminate on it).
 (= (repeat_n ($n $body) $world)
    (if (== (get-type $n) Number)
-       (repeatNRun $body $world $n)
+       (if (> $n 0)
+           (seq_exec (List.repeat $n $body) $world)
+           (mkARes True $world))
        (mkARes False $world)))
-(= (repeatNRun $body $world $n)
-   (if (> $n 0)
-       (let (mkARes $v $w) (evalAction $body $world)
-            (repeatNRun $body $w (- $n 1)))
-       (mkARes True $world)))
 
 ;; ---- Intentionally clauseless in phase 1 ----
 ;; bool_action_if / contin_action_if / action_action_if are registered in the

@@ -68,17 +68,13 @@
 (= (antCellAt $grid $pos)
    (index-atom (index-atom $grid (Pair.second $pos)) (Pair.first $pos)))
 
-;; replace element $i of a tuple with $v -- cons both destructures the input
-;; in the parameter position and rebuilds the result.
-(= (antReplaceAt (cons $head $tail) $i $v)
-   (if (== $i 0)
-       (cons $v $tail)
-       (cons $head (antReplaceAt $tail (- $i 1) $v))))
-
+;; cell replacement = List.replaceAt (its cons clause head destructures a
+;; plain tuple row in the parameter position and rebuilds the result;
+;; positions are toroidally wrapped, so indices are always in range).
 (= (antSetCell $grid $pos $v)
    (let* (($row (index-atom $grid (Pair.second $pos)))
-          ($newRow (antReplaceAt $row (Pair.first $pos) $v)))
-     (antReplaceAt $grid (Pair.second $pos) $newRow)))
+          ($newRow (List.replaceAt $row (Pair.first $pos) $v)))
+     (List.replaceAt $grid (Pair.second $pos) $newRow)))
 
 ;; position ahead of the ant, toroidal wrap (classic: (x+1) % ANT_X etc.)
 (= (antAheadPos $grid $pos $dir)
@@ -194,6 +190,11 @@
 ;; One episode: classic's operator() do-while -- re-run the whole program on
 ;; the world it produced, stop when fuel is spent or a pass makes no progress
 ;; (ant_scoring.cc:55-62: `if (at_time == tmp) break;`). Score = pellets.
+;; WHY hand recursion: an `until` encoding needs a packed
+;; ($exp $prevFuel $world) state (no closures to capture $exp; the
+;; zero-progress guard compares fuel across passes) plus named step/done
+;; helpers and a prevFuel sentinel -- more machinery than the do-while it
+;; replaces.
 (= (antRunEpisode $exp $world)
    (let (mkAntWorld $g $p $d $eaten $fuel) $world
         (if (<= $fuel 0)
@@ -205,13 +206,12 @@
 
 ;; ---- the fitness binding (the whole shared contract) -----------------------
 ;; ($fn $exp $i) -> Number: even ordinals run the straight trail, odd ones
-;; the corner trail (parity by flip-recursion -- no mod-math here). Bound
-;; globally via set-param; this playground IS an execution, so it sets the
-;; params itself.
-(= (antOrdinalEven $n) (if (== $n 0) True (not (antOrdinalEven (- $n 1)))))
+;; the corner trail (parity via the shared isEven helper,
+;; utilities/general-helpers). Bound globally via set-param; this
+;; playground IS an execution, so it sets the params itself.
 (= (antFitness $exp $i)
    (antRunEpisode $exp
-     (mkAntWorld (if (antOrdinalEven $i) (antTrailStraight) (antTrailCorner))
+     (mkAntWorld (if (isEven $i) (antTrailStraight) (antTrailCorner))
                  (mkPair 0 0) E 0 (antFuelBudget))))
 ;; every trail holds 5 pellets, so the best over $n episodes is 5 each
 (= (antBestScore $n) (* 5 $n))

@@ -23,11 +23,11 @@
 ;; The scoring layer hands the fitness only the episode ordinal 0..n-1;
 ;; which opponent (or anything else) an ordinal means is this experiment's
 ;; business. Here: even ordinals play random-player, odd ordinals play
-;; minimax-player. Parity is computed by flip-recursion -- no mod-math in
-;; this runtime (probe-verified) -- and a bare symbol returned from an if
-;; branch is inert (only TUPLES headed by live symbols need quoting).
-(= (tttOrdinalEven $n) (if (== $n 0) True (not (tttOrdinalEven (- $n 1)))))
-(= (tttOpponentFor $i) (if (tttOrdinalEven $i) random-player minimax-player))
+;; minimax-player. Parity comes from the shared isEven helper
+;; (utilities/general-helpers, probe-verified in this runtime) -- and a
+;; bare symbol returned from an if branch is inert (only TUPLES headed by
+;; live symbols need quoting).
+(= (tttOpponentFor $i) (if (isEven $i) random-player minimax-player))
 
 ;; ---- The fitness: ($fn $exp $i) -> Number, higher = better ----
 ;; $exp arrives ALREADY COMPILED (wrapped (op (children)) shape) from the

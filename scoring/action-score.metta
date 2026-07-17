@@ -65,15 +65,15 @@
          (let $v (car-atom $rs)
            (if (== (get-type $v) Number) $v -1.0)))))
 
-;; runActionEpisodes: episode scores for ordinals $i .. $n-1, IN ORDER
-;; (episode 0 first). Scores come back cons-listed -- exactly the
+;; runActionEpisodes: episode scores for ordinals 0 .. $n-1, IN ORDER
+;; (episode 0 first): runActionEpisode mapped over the ordinal range, with
+;; the fitness symbol and compiled expression riding as captured args
+;; (the clause-dispatched general-helpers map overload -- in-order,
+;; probe-verified). Scores come back listed -- exactly the
 ;; (mkBScore (list of Numbers)) contents sumBScore / BScore.sub consume
 ;; (scoring/bscore.metta), same shape strategy-scoring builds.
-(= (runActionEpisodes $fn $exp $n $i)
-   (if (>= $i $n)
-       ()
-       (cons (runActionEpisode $fn $exp $i)
-             (runActionEpisodes $fn $exp $n (+ $i 1)))))
+(= (runActionEpisodes $fn $exp $n)
+   (map runActionEpisode $fn $exp (List.enumFromTo 0 (- $n 1))))
 
 ;; ---- Behavioral score (cached) ----
 ;; scoreActionTree: candidate Tree -> mkBScore over $nEpisodes episodes of
@@ -93,7 +93,7 @@
           ($fn (param fitness))
           ($cached (collapse (match $scoreSpace ($fn $exp $nEpisodes $bscore) $bscore))))
      (if (== $cached ())
-         (let* (($bs (mkBScore (runActionEpisodes $fn $exp $nEpisodes 0)))
+         (let* (($bs (mkBScore (runActionEpisodes $fn $exp $nEpisodes)))
                 ($_ (add-atom $scoreSpace ($fn $exp $nEpisodes $bs))))
            $bs)
          (car-atom $cached))))

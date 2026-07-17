@@ -35,6 +35,11 @@
 ;; the board unchanged loses the game -- here that is the tree's turn only,
 ;; since the built-in opponents always move when the game is not over.
 ;; Nested ifs, not `and`.
+;; WHY hand recursion: the loop alternates two different step shapes (tree
+;; turn / opponent turn) and has a mid-step exit with its own result (the
+;; forfeit -1.0), so an `until` encoding would need a packed 4-piece state
+;; plus a synthetic terminal marker; the recursion states the game rules
+;; directly.
 (= (tttActionGameLoop $exp $opponent $board $current)
    (if (is-game-over $board)
        (tttOutcomeScore (get-game-result $board))

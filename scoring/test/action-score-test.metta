@@ -33,12 +33,11 @@
 !(bind! &tstEpisodeLog (new-space))
 (= (tstLogCount) (size-atom (collapse (match &tstEpisodeLog $e $e))))
 
-;; parity by flip-recursion (no mod-math in this runtime)
-(= (tstOrdinalEven $n) (if (== $n 0) True (not (tstOrdinalEven (- $n 1)))))
+;; parity via the shared isEven helper (utilities/general-helpers)
 (= (tstFitness $exp $i)
    (let* (($_ (add-atom &tstEpisodeLog (episodeRan $exp $i)))
           ((mkARes $v $w) (evalAction $exp (mkTstWorld 0))))
-     (if (tstOrdinalEven $i)
+     (if (isEven $i)
          (if (== $v True) 1.0 0.5)   ;; even ordinal: 1.0 on success
          0.0)))                       ;; odd ordinal: always 0.0
 ;; A second, distinguishable fitness for the cache key-isolation test:

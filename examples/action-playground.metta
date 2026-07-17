@@ -123,10 +123,10 @@
 ;;     the scoring layer only hands us 0..n-1; here even ordinals start far
 ;;     from the goal, odd ordinals start near it). Run the program on that
 ;;     start world; score 1.0 if the robot ends on the goal, -1.0 otherwise.
-;;     Higher = better. Parity by flip-recursion (no mod-math here).
-(= (botOrdinalEven $n) (if (== $n 0) True (not (botOrdinalEven (- $n 1)))))
+;;     Higher = better. Parity via the shared isEven helper
+;;     (utilities/general-helpers).
 (= (botFitness $exp $i)
-   (let $start (if (botOrdinalEven $i) (mkBotWorld 0 9) (mkBotWorld 2 9))
+   (let $start (if (isEven $i) (mkBotWorld 0 9) (mkBotWorld 2 9))
         (let (mkARes $v (mkBotWorld $pos $fuel)) (evalAction $exp $start)
              (if (== $pos 3) 1.0 -1.0))))
 

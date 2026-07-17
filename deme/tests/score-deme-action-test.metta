@@ -69,8 +69,8 @@
 
 ;; Episode-ordinal bonus (PRIVATE to the fitness -- the analog of the old
 ;; opponent interleave): even ordinals add 0.0, odd ordinals add 0.25.
-(= (sdtOrdinalEven $n) (if (== $n 0) True (not (sdtOrdinalEven (- $n 1)))))
-(= (sdtOrdinalBonus $i) (if (sdtOrdinalEven $i) 0.0 0.25))
+;; (parity via the shared isEven helper, utilities/general-helpers)
+(= (sdtOrdinalBonus $i) (if (isEven $i) 0.0 0.25))
 ;; Episode score = final counter value + the per-ordinal bonus, so both the
 ;; chosen action AND the ordinal sequence are visible in the bscore.
 (= (sdtFitness $exp $i)

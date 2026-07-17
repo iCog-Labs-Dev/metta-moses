@@ -14,6 +14,13 @@
 (= (List.foldr $f $i $xs)
    (foldl-atom (reverse $xs) $i $acc $x ($f $x $acc)))
 
+;; Short-circuiting foldl: once ($done $acc) holds, $f is never applied
+;; again -- the accumulator rides untouched through the remaining elements
+;; (the fold still walks them as plain data).
+; (: List.foldUntil (-> (-> $b Bool) (-> $a $b $b) $b (List $a) $b))
+(= (List.foldUntil $done $f $init $xs)
+   (foldl-atom $xs $init $acc $x (if ($done $acc) $acc ($f $x $acc))))
+
 ;; Generalized foldl and foldr.
 ;; (foldl-atom (1 2 3 4) 0 $acc $x (+ $acc $x))
 (= (toExp $x) ($x))
@@ -169,6 +176,16 @@
    (if (== (get-metatype $x) Expression)
        (List.concat $x (List.flatten $xs))
        (Error $x "Can't be flattened")))
+
+;; Inclusive number range, Haskell's [$from .. $to]; empty when $from > $to.
+;; (NOT named List.range: feature-selection/feature-selection-helpers
+;; already defines an exclusive-end List.range, and a same-name clause here
+;; would duplicate every dispatch in stacks that load both.)
+; (: List.enumFromTo (-> Number Number (List Number)))
+(= (List.enumFromTo $from $to)
+   (if (> $from $to)
+       ()
+       (cons $from (List.enumFromTo (+ $from 1) $to))))
 
 ; (: List.repeat (-> Number $a (List $a)))
 (= (List.repeat $n $a)
