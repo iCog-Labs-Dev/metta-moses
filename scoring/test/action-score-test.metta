@@ -1,4 +1,8 @@
 !(import! &self ../../utilities/general-helpers)
+;; parameters load BEFORE action-score: the scorer reads (param
+;; actionFitness), and PeTTa gates reduction on load order.
+!(import! &self ../../parameters/registry)
+!(import! &self ../../parameters/defaults)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/tree)
 
@@ -13,33 +17,41 @@
 !(import! &self ../action-ops)
 !(import! &self ../action-score)
 
-;; Generic action-scoring test. A deterministic test domain is defined HERE,
-;; after the scoring layer loaded -- proving a domain plugs in through config
-;; clauses alone (the registry's sentinel clauses make action-score's
-;; actionDomain* call sites dispatch dynamically; operator/primitive clauses
-;; are bare heads found by the engine's reduce dispatch) without touching
-;; scoring.
+;; Generic action-scoring test. A deterministic test FITNESS is defined HERE
+;; and bound via (set-param actionFitness ...) -- proving an experiment plugs
+;; in through the param contract alone (the scorer's var-head ($fn $exp $i)
+;; dispatch finds clauses loaded at any later time; operator/primitive
+;; clauses are bare heads found by the engine's reduce dispatch) without
+;; touching scoring.
 ;;
 ;; World: (mkTstWorld $n); tstInc bumps the counter and succeeds.
-;; Episodes are deterministic and opponent-distinguishing (oppA -> 1.0,
-;; oppB -> 0.0, given a succeeding tree); every invocation is RECORDED in
-;; &tstEpisodeLog so cache behavior is observable.
+;; Episodes are deterministic and ORDINAL-distinguishing (even ordinal ->
+;; 1.0 on success else 0.5; odd ordinal -> 0.0); every invocation is
+;; RECORDED in &tstEpisodeLog so cache behavior is observable.
 (= (tstInc $children (mkTstWorld $n)) (mkARes True (mkTstWorld (+ $n 1))))
 
 !(bind! &tstEpisodeLog (new-space))
 (= (tstLogCount) (size-atom (collapse (match &tstEpisodeLog $e $e))))
 
-(= (actionDomainOpponents tstDomain) (oppA oppB))
-(= (actionDomainRunEpisode tstDomain $exp $opp)
-   (let* (($_ (add-atom &tstEpisodeLog (episodeRan $exp $opp)))
+;; parity by flip-recursion (no mod-math in this runtime)
+(= (tstOrdinalEven $n) (if (== $n 0) True (not (tstOrdinalEven (- $n 1)))))
+(= (tstFitness $exp $i)
+   (let* (($_ (add-atom &tstEpisodeLog (episodeRan $exp $i)))
           ((mkARes $v $w) (evalAction $exp (mkTstWorld 0))))
-     (if (== $opp oppA)
-         (if (== $v True) 1.0 0.5)   ;; oppA: 1.0 on success
-         0.0)))                       ;; oppB: always 0.0
-(= (actionDomainBestScore tstDomain $n) $n)
-;; A domain that explicitly declares NO opponents (edge case 6):
-(= (actionDomainOpponents tstNilDomain) ())
-;; tstGhostDomain deliberately gets NO clauses at all (misconfigured).
+     (if (tstOrdinalEven $i)
+         (if (== $v True) 1.0 0.5)   ;; even ordinal: 1.0 on success
+         0.0)))                       ;; odd ordinal: always 0.0
+;; A second, distinguishable fitness for the cache key-isolation test:
+(= (tstAltFitness $exp $i)
+   (let $_ (add-atom &tstEpisodeLog (altRan $exp $i)) 7.0))
+(= (tstBestScore $n) $n)
+;; tstGhostFitness deliberately gets NO clauses at all (misconfigured).
+;; Non-Number-returning fitnesses for the get-type guard tests (section 6):
+(= (tstBoolFitness $exp $i) True)
+(= (tstStrFitness $exp $i) "oops")
+
+!(set-param actionFitness tstFitness)
+!(set-param actionBestScore tstBestScore)
 
 ;; ---- Hand-built candidate trees ----
 (= (tstLeafTree) (mkTree (mkNode tstInc) ()))
@@ -57,33 +69,45 @@
                                (cons (mkTree (mkNode tstInc) ()) ()))))
                  ()))))
 
-;; ---- 1. Episode interleave: episode i gets opponent (i mod len) ----
-;; 4 episodes over (oppA oppB): oppA oppB oppA oppB -> (1.0 0.0 1.0 0.0),
-;; stable episode order (episodes 2-3 prove the wraparound refill).
-!(assertEqual (scoreActionTree tstDomain (tstSeqTree) 4 &actionScoreCache)
+;; ---- 1. Episode ordinals run 0..n-1 IN ORDER ----
+;; 4 episodes -> ordinals 0,1,2,3 -> (1.0 0.0 1.0 0.0): the FIRST element is
+;; episode 0's score (even -> 1.0), proving episode 0 runs first and the
+;; parity pattern tracks position throughout.
+!(assertEqual (scoreActionTree (tstSeqTree) 4 &actionScoreCache)
               (mkBScore (1.0 0.0 1.0 0.0)))
 
 ;; ---- 2. Cache ----
 ;; first call ran exactly 4 episodes
 !(assertEqual (tstLogCount) 4)
 ;; identical args -> cache hit: same bscore, NO new episodes
-!(assertEqual (scoreActionTree tstDomain (tstSeqTree) 4 &actionScoreCache)
+!(assertEqual (scoreActionTree (tstSeqTree) 4 &actionScoreCache)
               (mkBScore (1.0 0.0 1.0 0.0)))
 !(assertEqual (tstLogCount) 4)
-;; different nEpisodes -> miss: 3 more episodes run (odd count also re-proves
-;; the mod-len wrap: episode 2 refills back to oppA)
-!(assertEqual (scoreActionTree tstDomain (tstSeqTree) 3 &actionScoreCache)
+;; different nEpisodes -> miss: 3 more episodes run
+!(assertEqual (scoreActionTree (tstSeqTree) 3 &actionScoreCache)
               (mkBScore (1.0 0.0 1.0)))
 !(assertEqual (tstLogCount) 7)
 ;; different tree -> miss: 2 more episodes
-!(assertEqual (scoreActionTree tstDomain (tstLeafTree) 2 &actionScoreCache)
+!(assertEqual (scoreActionTree (tstLeafTree) 2 &actionScoreCache)
               (mkBScore (1.0 0.0)))
 !(assertEqual (tstLogCount) 9)
 ;; resetActionScoreCache: the same args re-run their episodes afterwards
 !(resetActionScoreCache)
-!(assertEqual (scoreActionTree tstDomain (tstLeafTree) 2 &actionScoreCache)
+!(assertEqual (scoreActionTree (tstLeafTree) 2 &actionScoreCache)
               (mkBScore (1.0 0.0)))
 !(assertEqual (tstLogCount) 11)
+;; KEY ISOLATION: a DIFFERENT fitness symbol (resetActionScoreCache NOT
+;; called) must MISS for the same tree + nEpisodes -- the fitness symbol is
+;; part of the cache key, so configured fitnesses never share entries.
+!(set-param actionFitness tstAltFitness)
+!(assertEqual (scoreActionTree (tstLeafTree) 2 &actionScoreCache)
+              (mkBScore (7.0 7.0)))
+!(assertEqual (tstLogCount) 13)
+;; ...and switching BACK serves tstFitness's still-cached entry: no re-runs.
+!(set-param actionFitness tstFitness)
+!(assertEqual (scoreActionTree (tstLeafTree) 2 &actionScoreCache)
+              (mkBScore (1.0 0.0)))
+!(assertEqual (tstLogCount) 13)
 
 ;; ---- 3. actionTreeComplexity ----
 ;; structural op with 2 action leaves -> 2
@@ -96,7 +120,7 @@
 !(assertEqual (actionTreeComplexity (mkKnob (tstSeqTree) $lsk 0)) 2)
 ;; null vertex -> 0
 !(assertEqual (actionTreeComplexity (mkNullVex (tstSeqTree))) 0)
-;; unregistered leaf -> 1 (domain actions/perceptions ARE the alphabet)
+;; unregistered leaf -> 1 (actions/perceptions ARE the alphabet)
 !(assertEqual (actionTreeComplexity (mkTree (mkNode noSuchLeaf) ())) 1)
 ;; unregistered interior node -> 1 + children
 !(assertEqual (actionTreeComplexity
@@ -108,14 +132,14 @@
 ;; bscore (1.0 0.0 1.0 0.0) -> sum 2.0; complexity 2; ratio 4.0 -> coef 0.25
 ;; (exact in binary, so float equality is safe); penalty 2*0.25=0.5;
 ;; penalized 2.0-0.5-0.0=1.5. The reset above erased the tstSeqTree/4 cache
-;; entry, so this first call re-runs its 4 episodes (11 -> 15)...
-!(assertEqual (getActionCscore (tstSeqTree) (mkActionCtx (tstDomain 4)) 4.0 &actionScoreCache)
+;; entry, so this first call re-runs its 4 episodes (13 -> 17)...
+!(assertEqual (getActionCscore (tstSeqTree) (mkActionCtx 4) 4.0 &actionScoreCache)
               (mkCscore 2.0 2 0.5 0.0 1.5))
-!(assertEqual (tstLogCount) 15)
+!(assertEqual (tstLogCount) 17)
 ;; ...and the second call hits the fresh cache entry: no new episodes.
-!(assertEqual (getActionCscore (tstSeqTree) (mkActionCtx (tstDomain 4)) 4.0 &actionScoreCache)
+!(assertEqual (getActionCscore (tstSeqTree) (mkActionCtx 4) 4.0 &actionScoreCache)
               (mkCscore 2.0 2 0.5 0.0 1.5))
-!(assertEqual (tstLogCount) 15)
+!(assertEqual (tstLogCount) 17)
 
 ;; ---- 5. Worst path ----
 ;; scoreActionTree can never produce an Error bscore (missing config and
@@ -125,15 +149,32 @@
 !(assertEqual (if-error (Error (mkBScore ()) "bad bscore") (worstCscore) notTaken)
               (worstCscore))
 
-;; ---- 6. Misconfigured domains -> all -1.0, right length, never crash ----
-;; explicitly empty opponents list
-!(assertEqual (scoreActionTree tstNilDomain (tstSeqTree) 3 &actionScoreCache)
+;; ---- 6. Misconfigured fitness -> all -1.0, right length, never crash ----
+;; UNSET param (the () default): every episode scores the defined-worst
+!(set-param actionFitness ())
+!(assertEqual (scoreActionTree (tstSeqTree) 3 &actionScoreCache)
               (mkBScore (-1.0 -1.0 -1.0)))
-;; no config clauses at all
-!(assertEqual (scoreActionTree tstGhostDomain (tstSeqTree) 2 &actionScoreCache)
+;; a fitness SYMBOL with no clauses at all
+!(set-param actionFitness tstGhostFitness)
+!(assertEqual (scoreActionTree (tstSeqTree) 2 &actionScoreCache)
               (mkBScore (-1.0 -1.0)))
-;; neither ran any episode
-!(assertEqual (tstLogCount) 15)
+;; neither ran any logged episode
+!(assertEqual (tstLogCount) 17)
+;; a fitness returning a NON-NUMBER: True is the classic bug (returning
+;; evalAction's status instead of a score) and True IS Grounded, so only
+;; the explicit (get-type ...) == Number guard keeps it out of the bscore
+;; -- each episode maps to -1.0 instead of crashing sumBScore downstream
+!(set-param actionFitness tstBoolFitness)
+!(assertEqual (scoreActionTree (tstSeqTree) 2 &actionScoreCache)
+              (mkBScore (-1.0 -1.0)))
+;; ...same for a string result (also Grounded, also not a Number)
+!(set-param actionFitness tstStrFitness)
+!(assertEqual (scoreActionTree (tstSeqTree) 2 &actionScoreCache)
+              (mkBScore (-1.0 -1.0)))
+;; nEpisodes = 0 -> the empty bscore (restore the real fitness first)
+!(set-param actionFitness tstFitness)
+!(assertEqual (scoreActionTree (tstLeafTree) 0 &actionScoreCache)
+              (mkBScore ()))
 
-;; ---- 7. Remaining domain-config contract surface ----
-!(assertEqual (actionDomainBestScore tstDomain 4) 4)
+;; ---- 7. Remaining param-contract surface ----
+!(assertEqual (let $fn (param actionBestScore) ($fn 4)) 4)

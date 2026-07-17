@@ -24,7 +24,12 @@
 ;; ============================================================================
 
 ;; --- minimal import stack (identical to action-playground, plus pair) -------
+;; parameters/registry+defaults load before scoring/action-score: the scorer
+;; reads the fitness from (param actionFitness), and PeTTa gates reduction
+;; on load order.
 !(import! &self ../utilities/general-helpers)
+!(import! &self ../parameters/registry)
+!(import! &self ../parameters/defaults)
 !(import! &self ../utilities/list-methods)
 !(import! &self ../utilities/pair)
 !(import! &self ../scoring/cacheSpace)
@@ -169,10 +174,11 @@
 ;; scoring layer supplies the loop, the cache, and the bscore/cscore math.
 ;; ============================================================================
 
-;; Two 5-pellet trails, ant at (0 0). The "opponents" slot of the current
-;; contract holds episode VARIANTS (inert tags -> no quote needed); here:
-;; which trail. Scoring alternates them by episode index, so a candidate is
-;; rewarded for following trails IN GENERAL, not for memorizing one map.
+;; Two 5-pellet trails, ant at (0 0). Which trail an episode runs on is
+;; PRIVATE to the fitness below: the scoring layer only hands it the episode
+;; ordinal 0..n-1, and antFitness alternates the trails by ordinal parity,
+;; so a candidate is rewarded for following trails IN GENERAL, not for
+;; memorizing one map.
 (= (antTrailStraight) ((A F F F F F E E)
                        (E E E E E E E E)
                        (E E E E E E E E)))
@@ -197,15 +203,20 @@
                      $e2                                   ;; zero-progress pass -> stop
                      (antRunEpisode $exp (mkAntWorld $g2 $p2 $d2 $e2 $f2)))))))
 
-;; ---- domain registration (the whole shared contract) -----------------------
-(= (actionDomainOpponents antDomain) (trailStraight trailCorner))
-(= (actionDomainRunEpisode antDomain $exp $variant)
+;; ---- the fitness binding (the whole shared contract) -----------------------
+;; ($fn $exp $i) -> Number: even ordinals run the straight trail, odd ones
+;; the corner trail (parity by flip-recursion -- no mod-math here). Bound
+;; globally via set-param; this playground IS an execution, so it sets the
+;; params itself.
+(= (antOrdinalEven $n) (if (== $n 0) True (not (antOrdinalEven (- $n 1)))))
+(= (antFitness $exp $i)
    (antRunEpisode $exp
-     (mkAntWorld (if (== $variant trailStraight) (antTrailStraight) (antTrailCorner))
+     (mkAntWorld (if (antOrdinalEven $i) (antTrailStraight) (antTrailCorner))
                  (mkPair 0 0) E 0 (antFuelBudget))))
 ;; every trail holds 5 pellets, so the best over $n episodes is 5 each
-(= (actionDomainBestScore antDomain $n) (* 5 $n))
-!(registerActionDomain antDomain)
+(= (antBestScore $n) (* 5 $n))
+!(set-param actionFitness antFitness)
+!(set-param actionBestScore antBestScore)
 
 !(println! "---- PART 3: scoring ----------------------------------------------")
 
@@ -224,17 +235,18 @@
 ;; 3a. Tree -> executable shape (same shape you hand-wrote in PART 2).
 !(println! (3a-compiled (actionExp (antFollowerTree))))
 
-;; 3b. Behavioral scores over 4 episodes (trailStraight, trailCorner, ...):
-;;     the follower solves both trails; the naive ant eats only the straight
-;;     run of the corner trail (it marches past the turn, classic behavior).
-!(println! (3b-follower (scoreActionTree antDomain (antFollowerTree) 4 &actionScoreCache)))
-!(println! (3b-naive    (scoreActionTree antDomain (antNaiveTree)    4 &actionScoreCache)))
+;; 3b. Behavioral scores over 4 episodes, ordinals 0..3 IN ORDER (antFitness
+;;     privately maps them straight, corner, straight, corner): the follower
+;;     solves both trails; the naive ant eats only the straight run of the
+;;     corner trail (it marches past the turn, classic behavior).
+!(println! (3b-follower (scoreActionTree (antFollowerTree) 4 &actionScoreCache)))
+!(println! (3b-naive    (scoreActionTree (antNaiveTree)    4 &actionScoreCache)))
 
 ;; 3c. Composite scores: the follower's raw 20 beats naive's 16, and its
 ;;     3-leaf complexity (conditional + perception + 2 actions; structural ops
 ;;     are free) is priced against it by the usual penalty math.
-!(println! (3c-follower (getActionCscore (antFollowerTree) (mkActionCtx (antDomain 4)) 3.5 &actionScoreCache)))
-!(println! (3c-naive    (getActionCscore (antNaiveTree)    (mkActionCtx (antDomain 4)) 3.5 &actionScoreCache)))
+!(println! (3c-follower (getActionCscore (antFollowerTree) (mkActionCtx 4) 3.5 &actionScoreCache)))
+!(println! (3c-naive    (getActionCscore (antNaiveTree)    (mkActionCtx 4) 3.5 &actionScoreCache)))
 
 ;; ============================================================================
 ;; THINGS TO TRY
@@ -251,7 +263,9 @@
 ;;  * Add a perception the classic never had: antOnTrailEdge, or antSeeAnt --
 ;;    with the ant drawn IN the grid, a second ant is just another A marker
 ;;    and a perception away.
-;;  * To make this a runnable MOSES problem (like tttAction), the missing piece
-;;    is only the moses.metta import block for this file -- the pipeline,
+;;  * To make this a runnable MOSES problem (like the ttt experiment), the
+;;    missing pieces are only a moses.metta import for this file plus the
+;;    four set-param bindings (actionFitness/actionBestScore + the
+;;    actionActions/actionPerceptions vocabulary tuples) -- the pipeline,
 ;;    evaluator, and scorer need no edits (see the tic-tac-toe-action README).
 ;; ============================================================================

@@ -1,4 +1,9 @@
 !(import! &self ../../utilities/general-helpers)
+;; parameters load FIRST (mirrors moses.metta): create-representation's
+;; action clause reads (param actionActions)/(param actionPerceptions), and
+;; PeTTa gates reduction on load order.
+!(import! &self ../../parameters/registry)
+!(import! &self ../../parameters/defaults)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/map)
 !(import! &self ../../utilities/ordered-multimap)
@@ -10,10 +15,6 @@
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cacheSpace)
 !(import! &self ../../scoring/action-registry)
-;; action-score provides configListSafe -- create-representation's action
-;; clause reads the config-clause vocabularies through it, so it must have
-;; a clause BEFORE create-representation loads (mirrors moses.metta order)
-!(import! &self ../../scoring/action-score)
 
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/lsk)
@@ -27,8 +28,6 @@
 !(import! &self ../../representation/knob-mapper)
 !(import! &self ../../representation/representation)
 !(import! &self ../../feature-selection/feature-selection-helpers)
-!(import! &self ../../parameters/registry)
-!(import! &self ../../parameters/defaults)
 !(import! &self ../../representation/create-representation)
 
 !(import! &self ../../deme/create-deme)
@@ -36,27 +35,28 @@
 !(py-call (random.seed 12))
 
 ;; ============================================================
-;; createRepresentation / createDeme for the tagged ACTION domain.
-;; Inert test-local vocabulary declared through the domain-config clauses
-;; (the single source since the M0 registry slimming; the per-primitive
-;; registerDomainAction/registerDomainPerception API was deleted) --
-;; createRepresentation must pick it up via (actionDomainActions crtDomain)
-;; / (actionDomainPerceptions crtDomain) through configListSafe without any
-;; domain package loaded. The tuples are quote-wrapped per the config-clause
-;; contract (crt* symbols are inert here, but the convention is uniform).
+;; createRepresentation / createDeme for the mkActionRep-tagged clauses.
+;; Inert test-local vocabulary bound through the GLOBAL PARAMS (the single
+;; source since the params-based redesign; the per-domain config-clause
+;; family was deleted) -- createRepresentation must pick it up via
+;; (param actionActions) / (param actionPerceptions) with no experiment
+;; package loaded. The tuples are quote-wrapped at the set-param sites per
+;; the contract (crt* symbols are inert here, but the convention is
+;; uniform; probe-verified: quote strips on set, the params hold the plain
+;; tuples).
 ;; ============================================================
 
-(= (actionDomainActions crtDomain) (quote (crtGo crtTurn crtWait)))
-(= (actionDomainPerceptions crtDomain) (quote (crtBlocked)))
+!(set-param actionActions (quote (crtGo crtTurn crtWait)))
+!(set-param actionPerceptions (quote (crtBlocked)))
 
-;; the config clauses serve the test vocabulary through the shared unwrap
-!(assertEqual (configListSafe (collapse (actionDomainActions crtDomain))) (crtGo crtTurn crtWait))
-!(assertEqual (configListSafe (collapse (actionDomainPerceptions crtDomain))) (crtBlocked))
+;; the params serve the test vocabulary back as plain tuples
+!(assertEqual (param actionActions) (crtGo crtTurn crtWait))
+!(assertEqual (param actionPerceptions) (crtBlocked))
 
 ;; 2 demes -> 2 reps, each the 1-field (mkRep (mkKbMap (mkDscMp $m)) $t)
 ;; shape with a non-empty knob multimap
 !(assertEqual
-  (let $reps (createRepresentation 2 (mkTree (mkNode and_seq) ()) (mkActionDomain crtDomain))
+  (let $reps (createRepresentation 2 (mkTree (mkNode and_seq) ()) mkActionRep)
     ((size-atom $reps)
      (map-atom $reps $r
        (let (mkRep (mkKbMap (mkDscMp $m)) $t) $r
@@ -68,7 +68,7 @@
   (let $demes (createDeme 2
                 (cons (mkDemeId "act1") (cons (mkDemeId "act2") ()))
                 (mkTree (mkNode and_seq) ())
-                (mkActionDomain crtDomain))
+                mkActionRep)
     ((size-atom $demes)
      (map-atom $demes $d
        (let (mkDeme (mkRep (mkKbMap (mkDscMp $m)) $t) $instSet $id) $d

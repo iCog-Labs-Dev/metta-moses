@@ -1,7 +1,7 @@
 # Toward General Program Evolution — the M0→M4 roadmap
 
-Status: M0 done (branch `feat/generic-action-eval`). M1–M3 designed, not started.
-M4 research-marked.
+Status: M0 done, M0.5 (params-based fitness) done (branch
+`feat/generic-action-eval`). M1–M3 designed, not started. M4 research-marked.
 
 ## Context
 
@@ -83,6 +83,31 @@ convention repo-wide — and deleted redundant registration.
   registration file with four sections (config clauses, episode runner, best
   score, `registerActionDomain`). See
   examples/tic-tac-toe-action/README.md for the recipe.
+
+## M0.5 — Params-based fitness + context-shape routing (DONE)
+
+Superseded M0's domain concept: the "action domain" no longer exists as a
+framework entity. (This section supersedes the M0 notes above on
+`actionDomain*` config clauses, `configListSafe`, and `registerActionDomain`
+— all deleted.)
+
+- **Binding = global params.** An experiment binds via
+  `actionFitness`/`actionBestScore` (function SYMBOLS; CLI-carriable) and
+  `actionActions`/`actionPerceptions` (quoted tuples, in-script only); see
+  parameters/defaults.metta. The scorer calls `($fn $exp $i)` per episode —
+  $i is the ordinal 0..n-1; the ordinal→opponent/trail/world mapping is
+  PRIVATE to the fitness. Cache keyed by (fitness symbol, compiled exp, n).
+  Only Numbers enter the bscore: the episode guard tests
+  `(get-type $v) == Number` (a metatype/Grounded test is NOT enough --
+  True and strings are Grounded); unset/clauseless/failing/non-Number all
+  score the defined-worst -1.0. An action run with `actionActions` unset
+  refuses loudly in `moses-run-action` (a knobless run would otherwise die
+  silently); `actionPerceptions` may be () (action-only knobs).
+- **Routing = context shape.** `(moses)` decides by configuration (action
+  vs table, both → loud error); below the entry point everything dispatches
+  on `(mkActionCtx $nGames ...)` shapes exactly as before, minus the domain
+  slot. The registry keeps only structural/cleanup operator membership; the
+  config sentinels are gone (the var-head `($fn ...)` apply needs none).
 
 ## M1 — Evolved boolean conditions in `action_bool_if` (beyond classic)
 

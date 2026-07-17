@@ -50,6 +50,39 @@
 !(add-atom &params (inputFile     ""))
 !(add-atom &params (targetFeature ""))
 
+;; ---- Action-run binding (the params-based fitness contract) ----
+;; An ACTION experiment binds its fitness through these four params instead
+;; of a table problem; (moses) routes on them (action configured <=>
+;; actionFitness is non-()). All four default to the empty value () --
+;; the same "never set" convention (param problem) relies on -- so unset
+;; detection is (== (param actionFitness) ()).
+;;
+;; actionFitness: a function SYMBOL. The scorer calls ($fn $exp $i) per
+;;   episode -- $exp is the compiled wrapped expression, $i the episode
+;;   ordinal 0..n-1 -- and expects a Number back (higher = better; any
+;;   non-Number result -- True, a string, an unreduced term -- scores the
+;;   defined-worst -1.0 for that episode instead of entering the bscore).
+;;   How the ordinal maps to opponents/trails/start-worlds is PRIVATE to
+;;   that function. Symbols pass through the CLI:
+;;   --actionFitness=tttActionFitness.
+;; actionBestScore: a function SYMBOL, called ($fn $n) -> Number, the
+;;   termination target for n episodes. Unset -> the run exits via maxGen.
+;; actionActions / actionPerceptions: TUPLES of primitive symbols (the knob
+;;   vocabulary read by representation building). actionActions is
+;;   MANDATORY for a run (moses-run-action refuses loudly when it is unset
+;;   -- without it every deme is knobless and the run silently produces
+;;   nothing); actionPerceptions may legitimately be () (an experiment
+;;   with no perceptions builds action-only knobs). Tuples cannot ride the
+;;   CLI, so experiments set them in-script; quote-wrap at the set-param
+;;   site -- !(set-param actionActions (quote (act1 act2 ...))) -- because
+;;   the primitives are live bare-head clauses and an unquoted tuple headed
+;;   by one curries into a `partial` term (probe-verified). quote strips on
+;;   evaluation, so (param actionActions) returns the plain tuple.
+!(add-atom &params (actionFitness     ()))
+!(add-atom &params (actionBestScore   ()))
+!(add-atom &params (actionActions     ()))
+!(add-atom &params (actionPerceptions ()))
+
 ;; ---- Algorithm selection ----
 ;; optAlgo: which deme-local optimizer to dispatch to inside runMoses.
 ;;   Recognized values: hc (hill climbing).

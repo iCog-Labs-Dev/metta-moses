@@ -1,4 +1,8 @@
 !(import! &self ../../../utilities/general-helpers)
+;; parameters load BEFORE scoring/action-score below: the scorer reads
+;; (param actionFitness), and PeTTa gates reduction on load order.
+!(import! &self ../../../parameters/registry)
+!(import! &self ../../../parameters/defaults)
 !(import! &self ../../../utilities/list-methods)
 !(import! &self ../../../utilities/tree)
 !(import! &self ../../../scoring/cacheSpace)
@@ -72,26 +76,27 @@
                                 minimax-player)
               0.0)
 
-;; ---- Registration file sanity (the domain-package interface) ----
-!(assertEqual (isRegisteredActionDomain tttAction) True)
-;; M0 registry slimming: the registeredDomainActions/registeredDomainPerceptions
-;; listers were deleted with the per-primitive registration API; the config
-;; clauses asserted below are now the single source of the vocabulary.
-!(assertEqual (actionDomainActions tttAction) (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
-!(assertEqual (actionDomainPerceptions tttAction) (quote (tttCanWin tttCanBlock tttCenterFree)))
-;; opponents: the registration clause is quote-wrapped (the player symbols
-;; are live functions -- bare, the tuple would compile as a CALL and the
-;; clause would silently yield nothing). Both sides sit under quote so
-;; neither ever calls random-player.
-!(assertEqual (actionDomainOpponents tttAction) (quote (random-player minimax-player)))
-;; ...and the scoring layer's retrieval helper hands the episode loop the
-;; plain unwrapped tuple (THE seam: misconfiguration here silently scores
-;; every episode -1.0)
-!(assertEqual (actionDomainOpponentsSafe tttAction) (quote (random-player minimax-player)))
-;; runEpisode routes through tttActionEpisode ($exp already compiled)
-!(assertEqual (actionDomainRunEpisode tttAction (quote (and_seq ())) firstEmptyPlayer) -1.0)
+;; ---- Registration file sanity (the fitness-package interface) ----
+;; The params-based redesign deleted the actionDomain* config-clause family
+;; (actionDomainActions/Perceptions/Opponents, actionDomainOpponentsSafe,
+;; registerActionDomain): the vocabulary now binds via set-param (asserted
+;; in representation/tests/create-representation-action-test) and the
+;; opponent mapping is PRIVATE to tttActionFitness. What the file exports:
+;; tttOpponentFor -- even ordinals play random-player, odd play
+;; minimax-player (flip-recursion parity, so 2 re-proves the wraparound):
+!(assertEqual (tttOpponentFor 0) random-player)
+!(assertEqual (tttOpponentFor 1) minimax-player)
+!(assertEqual (tttOpponentFor 2) random-player)
+;; tttActionFitness routes through tttActionEpisode ($exp already
+;; compiled). Ordinal 1 -> minimax (deterministic, no random draw
+;; consumed): the empty tree forfeits -> -1.0.
+!(assertEqual (tttActionFitness (quote (and_seq ())) 1) -1.0)
+;; ...and the same call through the param binding (the exact seam the
+;; scoring layer uses -- the header's set-param line, then var-head apply)
+!(set-param actionFitness tttActionFitness)
+!(assertEqual (let $fn (param actionFitness) ($fn (quote (and_seq ())) 1)) -1.0)
 ;; best score = 1.0 * ceil(n/2): even episodes (random-player) winnable,
 ;; odd episodes (minimax-player) draw at best
-!(assertEqual (actionDomainBestScore tttAction 4) 2.0)
-!(assertEqual (actionDomainBestScore tttAction 5) 3.0)
-!(assertEqual (actionDomainBestScore tttAction 1) 1.0)
+!(assertEqual (tttActionBestScore 4) 2.0)
+!(assertEqual (tttActionBestScore 5) 3.0)
+!(assertEqual (tttActionBestScore 1) 1.0)

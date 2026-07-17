@@ -20,16 +20,16 @@
 (= (stubOptimizer $deme (mkTruthTableBScore $cpx $size $itable) $inst)
    (stubGotBoolean $deme $inst))
 
-;; The action clause unpacks (mkActionCtx ($domain $nGames) $cpxRatio $target)
-;; and repacks (mkParams applyActionBasedScore (($domain $nGames) $cpxRatio))
+;; The action clause unpacks (mkActionCtx $nGames $cpxRatio $target)
+;; and repacks (mkParams applyActionBasedScore ($nGames $cpxRatio))
 ;; plus the bare $target -- assert the stub received exactly that.
 !(assertEqual
-  (collapse (optimizeDemes sdtDeme (mkActionCtx (sdtDomain 2) 3.5 100.0) (mkInst (1)) stubOptimizer))
-  ((stubGot sdtDeme 100.0 (mkInst (1)) (mkParams applyActionBasedScore ((sdtDomain 2) 3.5)))))
+  (collapse (optimizeDemes sdtDeme (mkActionCtx 2 3.5 100.0) (mkInst (1)) stubOptimizer))
+  ((stubGot sdtDeme 100.0 (mkInst (1)) (mkParams applyActionBasedScore (2 3.5)))))
 
 ;; dispatch determinism: exactly ONE clause fired for the tagged context
 !(assertEqual
-  (size-atom (collapse (optimizeDemes sdtDeme (mkActionCtx (sdtDomain 2) 3.5 100.0) (mkInst (1)) stubOptimizer)))
+  (size-atom (collapse (optimizeDemes sdtDeme (mkActionCtx 2 3.5 100.0) (mkInst (1)) stubOptimizer)))
   1)
 
 ;; regression guard: the strategy 3-tuple context still routes to

@@ -173,20 +173,13 @@
 ;; already-registered structural op again leaves exactly ONE atom
 !(registerActionOperator myNewOp)
 !(assertEqual (collapse (match &actionRegistry (structuralActionOp myNewOp) myNewOp)) (myNewOp))
-;; M0 registry slimming: the per-primitive registration API
-;; (registerDomainAction / registerDomainPerception, the
-;; registeredDomainActions / registeredDomainPerceptions listers,
-;; isRegisteredDomainAction / isRegisteredDomainPerception, and
-;; resetActionDomain) was DELETED -- per-domain vocabularies now live only
-;; in the domain's config clauses (actionDomainActions /
-;; actionDomainPerceptions, quoted tuples read via configListSafe in
-;; scoring/action-score.metta). The assertions that exercised that API were
-;; removed with it; structural-op membership is unaffected:
+;; Registry slimmings: the M0 pass deleted the per-primitive registration
+;; API (registerDomainAction / registerDomainPerception, the listers, the
+;; membership predicates, resetActionDomain); the params-based redesign
+;; then deleted domain-NAME registration too (registerActionDomain /
+;; isRegisteredActionDomain / &actionDomains -- experiments now bind via
+;; the global params actionFitness / actionBestScore / actionActions /
+;; actionPerceptions, see parameters/defaults.metta). The assertions that
+;; exercised those APIs (including registerActionDomain idempotency) were
+;; removed with them; structural-op membership is unaffected:
 !(assertEqual (isRegisteredActionOperator and_seq) True)
-;; action-domain NAME registration (CLI routing) survives the slimming
-!(assertEqual (isRegisteredActionDomain ttt) False)
-!(registerActionDomain ttt)
-!(assertEqual (isRegisteredActionDomain ttt) True)
-;; ...and is idempotent too: re-registering leaves exactly ONE atom
-!(registerActionDomain ttt)
-!(assertEqual (collapse (match &actionDomains (actionDomain ttt) ttt)) (ttt))

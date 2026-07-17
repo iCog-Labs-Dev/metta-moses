@@ -1,4 +1,8 @@
 !(import! &self ../../utilities/general-helpers)
+;; parameters load BEFORE scoring/action-score below: the scorer reads
+;; (param actionFitness), and PeTTa gates reduction on load order.
+!(import! &self ../../parameters/registry)
+!(import! &self ../../parameters/defaults)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/map)
 !(import! &self ../../utilities/ordered-multimap)
@@ -45,35 +49,36 @@
 ;; ============================================================
 ;; transform dispatch tests for the ACTION scoring context.
 ;;
-;; A deterministic TEST-LOCAL action domain (sdtDomain) is defined here,
-;; after the pipeline loaded -- config clauses + registration only, exactly
-;; like a real domain package. World = a plain number counter (opaque to the
-;; engine); no board, no randomness.
+;; A deterministic TEST-LOCAL fitness (sdtFitness) is defined here, after
+;; the pipeline loaded, and bound via (set-param actionFitness ...) --
+;; exactly like a real experiment. World = a plain number counter (opaque
+;; to the engine); no board, no randomness.
 ;; ============================================================
 
-;; ---- Test-local domain ----
+;; ---- Test-local fitness ----
 ;; sdtBump: increment the counter, succeed. sdtStop: fail, world untouched.
 (= (sdtBump $children $world) (mkARes True (+ $world 1)))
 (= (sdtStop $children $world) (mkARes False $world))
-;; Vocabulary lives in the config clauses (single source since the M0
-;; registry slimming; the per-primitive register API was deleted). quote is
-;; REQUIRED: sdtBump/sdtStop are live bare-head clauses. This test's rep is
-;; hand-built below, so nothing here consults the vocabulary -- the clauses
-;; keep the domain-package template complete.
-(= (actionDomainActions sdtDomain) (quote (sdtBump sdtStop)))
-(= (actionDomainPerceptions sdtDomain) ())
+;; The vocabulary params are part of the experiment template; quote is
+;; REQUIRED at the set-param site: sdtBump/sdtStop are live bare-head
+;; clauses (probe-verified: quote strips on set, the param holds the plain
+;; tuple). This test's rep is hand-built below, so nothing here consults
+;; the vocabulary -- the bindings keep the experiment template complete.
+!(set-param actionActions (quote (sdtBump sdtStop)))
+!(set-param actionPerceptions ())
 
-;; Opponents are inert symbols (never head a clause), so no quote is needed.
-(= (actionDomainOpponents sdtDomain) (oppA oppB))
-(= (sdtOppBonus oppA) 0.0)
-(= (sdtOppBonus oppB) 0.25)
-;; Episode score = final counter value + a per-opponent bonus, so both the
-;; chosen action AND the opponent interleave are visible in the bscore.
-(= (actionDomainRunEpisode sdtDomain $exp $opp)
+;; Episode-ordinal bonus (PRIVATE to the fitness -- the analog of the old
+;; opponent interleave): even ordinals add 0.0, odd ordinals add 0.25.
+(= (sdtOrdinalEven $n) (if (== $n 0) True (not (sdtOrdinalEven (- $n 1)))))
+(= (sdtOrdinalBonus $i) (if (sdtOrdinalEven $i) 0.0 0.25))
+;; Episode score = final counter value + the per-ordinal bonus, so both the
+;; chosen action AND the ordinal sequence are visible in the bscore.
+(= (sdtFitness $exp $i)
    (let (mkARes $v $w) (evalAction $exp 0)
-        (+ $w (sdtOppBonus $opp))))
-(= (actionDomainBestScore sdtDomain $n) (* 1.0 $n))
-!(registerActionDomain sdtDomain)
+        (+ $w (sdtOrdinalBonus $i))))
+(= (sdtBestScore $n) (* 1.0 $n))
+!(set-param actionFitness sdtFitness)
+!(set-param actionBestScore sdtBestScore)
 
 ;; ---- Hand-built action representation: one embedded mkASK knob under an
 ;;      and_seq root (shape mirrors representation/tests/build-action-test
@@ -88,14 +93,14 @@
 
 ;; ---- (a) applyActionBasedScore ----
 ;; empty instance list -> empty scored list (mirrors the strategy helper test)
-!(assertEqual (applyActionBasedScore (sdtRep) (mkDemeId "sdtA") () sdtDomain 2 3.5 ()) ())
+!(assertEqual (applyActionBasedScore (sdtRep) (mkDemeId "sdtA") () 2 3.5 ()) ())
 
 ;; instance (1) picks sdtBump: candidate (and_seq (sdtBump)).
-;; 2 episodes, opponents interleaved oppA,oppB -> bscore (1.0 1.25),
+;; 2 episodes, ordinals 0,1 -> bonuses 0.0,0.25 -> bscore (1.0 1.25),
 ;; raw = 2.25 (exact in binary); complexity = 1 (and_seq costs 0).
 !(assertEqual
   (let* (($scored (applyActionBasedScore (sdtRep) (mkDemeId "sdtA")
-                     ((mkInst (1))) sdtDomain 2 3.5 ()))
+                     ((mkInst (1))) 2 3.5 ()))
          (((mkSInst (mkPair $inst (mkCscore $raw $cpx $pen $u $penScore)))) $scored))
     ($inst $raw $cpx))
   ((mkInst (1)) 2.25 1))
@@ -108,7 +113,7 @@
                     (mkSInstSet ((mkSInst (mkPair (mkInst (2)) -1.0e308))))
                     (sdtRep)
                     (mkDemeId "sdtB")
-                    (mkActionCtx (sdtDomain 2))
+                    (mkActionCtx 2)
                     3.5))
          ((mkSInstSet ((mkSInst (mkPair $inst (mkCscore $raw $cpx $pen $u $penScore))))) $result))
     ($inst $raw $cpx))
@@ -122,7 +127,7 @@
                     (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 0) (sdtAsk)))))
                            (mkTree (mkNode and_seq) ((mkKnob (mkNullVex (sdtPerms)) (sdtAsk) 0))))
                     (mkDemeId "sdtC")
-                    (mkActionCtx (sdtDomain 2))
+                    (mkActionCtx 2)
                     3.5))
          ((mkSInstSet ((mkSInst (mkPair $inst (mkCscore $raw $cpx $pen $u $penScore))))) $result))
     (isApproxEq $penScore (- $raw $pen)))

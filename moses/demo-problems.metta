@@ -233,30 +233,53 @@
 ;;
 ;;      sh run.sh moses.metta -s --help
 ;; ============================================================
-;; Run unless the user supplied neither a demo `problem` symbol nor a CSV
-;; `inputFile`. Either is enough to know what to evolve against.
-;; A problem symbol registered as an action domain (via registerActionDomain
-;; in a loaded domain package, e.g. --problem=tttAction) routes to the
-;; action runner; anything else takes the boolean truth-table path.
+;; Route by CONFIGURATION: an ACTION run is configured iff (param
+;; actionFitness) is non-empty (set via --actionFitness=<fn> or an in-script
+;; set-param); a TABLE run is configured iff a demo `problem` symbol or a
+;; CSV `inputFile` was supplied. Exactly one of the two must hold:
+;;   both    -> loud error + help (no silent precedence)
+;;   neither -> help
+;;   action  -> (moses-run-action)   table -> (moses-run)
 (= (moses)
-   (if (and (== (param problem)   ())
-            (== (param inputFile) ""))
-       (no-problem-help-and-exit)
-       (if (isRegisteredActionDomain (param problem))
-           (moses-run-action (param problem))
-           (moses-run))))
+   (let* (($actionConfigured (not (== (param actionFitness) ())))
+          ($tableConfigured  (not (and (== (param problem)   ())
+                                       (== (param inputFile) "")))))
+     (if (and $actionConfigured $tableConfigured)
+         (both-configured-error-and-exit)
+         (if $actionConfigured
+             (moses-run-action)
+             (if $tableConfigured
+                 (moses-run)
+                 (no-problem-help-and-exit))))))
 
-;; Shown when (moses) is invoked without --problem= on the command line
-;; and without an in-script (set-param problem ...). Falls through to the
-;; standard --help dump so the user sees every knob and value.
+;; Shown when BOTH an action fitness and a table problem are configured:
+;; there is no meaningful precedence between them, so the run refuses loudly
+;; instead of silently picking one.
+(= (both-configured-error-and-exit)
+   (let*
+      (
+        ($_ (println! ""))
+        ($_ (println! "Error: both an action fitness and a table problem are configured; unset one."))
+        ($_ (println! "  action route: --actionFitness=<fn>   (or !(set-param actionFitness <fn>))"))
+        ($_ (println! "  table route:  --problem=<name> / --inputFile=<csv>"))
+        ($_ (print-help-and-exit))
+      )
+      ()))
+
+;; Shown when (moses) is invoked with neither a table problem (--problem= /
+;; --inputFile=) nor an action fitness (--actionFitness=). Falls through to
+;; the standard --help dump so the user sees every knob and value.
 (= (no-problem-help-and-exit)
    (let*
       (
         ($_ (println! ""))
         ($_ (println! "No problem specified."))
-        ($_ (println! "Pass --problem=<name> on the command line, e.g.:"))
+        ($_ (println! "For a boolean table run, pass --problem=<name>, e.g.:"))
         ($_ (println! "    sh run.sh moses.metta -s --problem=parity3"))
         ($_ (println! "or programmatically:  !(set-param problem parity3)"))
+        ($_ (println! "For an action run, bind a fitness function instead:"))
+        ($_ (println! "    --actionFitness=tttActionFitness  (or !(set-param actionFitness <fn>))"))
+        ($_ (println! "plus the vocabulary params -- see parameters/defaults.metta."))
         ($_ (print-help-and-exit))
       )
       ()))
@@ -298,15 +321,26 @@
       )
       (FinalResult $newR)))
 
-;; Action-domain runner, modeled on moses-run above. $domain is the problem
-;; symbol, already verified registered by (moses). The metapop seed is the
-;; empty and_seq exemplar (the action analog of moses-run's `true` tree) at
-;; the defined-worst score: every one of the $nGames episodes forfeits at
-;; -1.0 (see the empty-exemplar loophole note in the episode runner), so
-;; raw score = complexity-penalized score = -1.0 * nGames.
-(= (moses-run-action $domain)
+;; Action runner, modeled on moses-run above. The experiment's fitness
+;; arrives through the global params ((param actionFitness) consumed inside
+;; scoring/action-score; (param actionBestScore) consumed here). The metapop
+;; seed is the empty and_seq exemplar (the action analog of moses-run's
+;; `true` tree) at the defined-worst score: every one of the $nGames
+;; episodes forfeits at -1.0 (see the empty-exemplar loophole note in the
+;; episode runner), so raw score = complexity-penalized score = -1.0*nGames.
+(= (moses-run-action)
    (let*
       (
+        ;; Refuse loudly when the knob vocabulary is missing: with an empty
+        ;; actionActions every deme is knobless, so the run would print its
+        ;; generations and silently produce no result. actionPerceptions MAY
+        ;; legitimately be (): an experiment with no perceptions builds
+        ;; action-only knobs (sampleActionPerms returns the bare action
+        ;; list, representation/build-action.metta:18-21), so only
+        ;; actionActions is mandatory. The error path halts the process.
+        ($_vocabGuard (if (== (param actionActions) ())
+                          (missing-action-vocab-error-and-exit)
+                          ()))
         ($seed     (param seed))
         ($maxGen   (param maxGen))
         ($nDeme    (param nDeme))
@@ -319,20 +353,47 @@
         ($_  (set-param genCount $maxGen))
         ($cpxPen (param complexityRatio))
         ($nGames (param nGames))
-        ;; Best reachable raw score is domain knowledge: the domain package
-        ;; declares it (for tttAction: ceil(nGames/2), even episodes winnable
-        ;; against random-player, odd episodes draw at best against minimax).
-        ($bestPossibleScore (actionDomainBestScore $domain $nGames))
+        ;; Best reachable raw score is experiment knowledge: the fitness
+        ;; package declares it as (param actionBestScore), a function symbol
+        ;; called ($bsFn $nGames). Collapse-guarded: unset ((), a symbol
+        ;; with no clause, a failing call, or a non-Number result -- the
+        ;; termination compare needs arithmetic, and e.g. True is Grounded
+        ;; but not a Number, so the test is (get-type ...) == Number) ->
+        ;; a never-reached target ((pow-math 10 308)), so the run
+        ;; terminates via maxGen instead.
+        ($bsFn (param actionBestScore))
+        ($bsRs (collapse ($bsFn $nGames)))
+        ($bestPossibleScore
+           (if (== $bsRs ())
+               (pow-math 10 308)
+               (let $bsV (car-atom $bsRs)
+                 (if (== (get-type $bsV) Number) $bsV (pow-math 10 308)))))
         ($_ (println! (BestPossibleScore: $bestPossibleScore)))
         ($worst (* -1.0 $nGames))
         ($metaPop ((mkExemplar (mkTree (mkNode and_seq) ()) (mkDemeId "1") (mkCscore $worst 0 $cpxPen 0 $worst) (mkBScore (List.repeat $nGames -1.0)))))
         ($result (runMoses $maxGen $bestPossibleScore $metaPop 0 $nDeme
-              (mkActionCtx ($domain $nGames) $cpxPen)
+              (mkActionCtx $nGames $cpxPen)
               $optimizer))
         ($newR (mapG cleanedExemplar $result))
         ($_ (cut)) ;; INFO: Mirrors moses-run; commits choice points before returning.
       )
       (FinalResult $newR)))
+
+;; Shown when an action run is configured (actionFitness set) but the knob
+;; vocabulary is not: same loud-refusal style as
+;; both-configured-error-and-exit -- no silent knobless run.
+(= (missing-action-vocab-error-and-exit)
+   (let*
+      (
+        ($_ (println! ""))
+        ($_ (println! "Error: actionFitness is configured but actionActions is unset."))
+        ($_ (println! "Without an action vocabulary every deme is knobless and the run produces nothing."))
+        ($_ (println! "Bind it in-script before !(moses), quote-wrapped:"))
+        ($_ (println! "    !(set-param actionActions (quote (act1 act2 ...)))"))
+        ($_ (println! "(actionPerceptions may stay () -- that builds action-only knobs.)"))
+        ($_ (print-help-and-exit))
+      )
+      ()))
 
 ;; Maps the optAlgo symbol to the concrete optimizer function used by
 ;; runMoses. Only hill climbing is integration-tested today; the SA and

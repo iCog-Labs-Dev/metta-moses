@@ -10,7 +10,12 @@
 ;; ============================================================================
 
 ;; --- minimal import stack (engine + scoring helpers), nothing else ----------
+;; parameters/registry+defaults load before scoring/action-score: the scorer
+;; reads the fitness from (param actionFitness), and PeTTa gates reduction
+;; on load order.
 !(import! &self ../utilities/general-helpers)
+!(import! &self ../parameters/registry)
+!(import! &self ../parameters/defaults)
 !(import! &self ../utilities/list-methods)
 !(import! &self ../scoring/cacheSpace)
 !(import! &self ../scoring/fitness)
@@ -109,28 +114,31 @@
 ;; ============================================================================
 ;; PART 3 -- SCORE programs. This is the split you asked about:
 ;;   * the evaluator above is domain-agnostic and generic;
-;;   * the FITNESS below is yours: you say what an episode is and what a
-;;     score means, via three ordinary clauses. That's the entire interface.
+;;   * the FITNESS below is yours: ONE ordinary function ($fn $exp $i) that
+;;     says what episode ordinal $i means and what a score is. You bind it
+;;     with (set-param actionFitness <fn>). That's the entire interface.
 ;; ============================================================================
 
-;; (1) Episode variants ("opponents" slot). Here: two different start
-;;     positions. Inert symbols -- if these named loaded functions (like the
-;;     tic-tac-toe players) the tuple would need (quote (...)).
-(= (actionDomainOpponents botDomain) (startFar startNear))
-
-;; (2) One episode: run the program on the variant's start world; score 1.0
-;;     if the robot ends on the goal, -1.0 otherwise. Higher = better.
-(= (actionDomainRunEpisode botDomain $exp $variant)
-   (let $start (if (== $variant startFar) (mkBotWorld 0 9) (mkBotWorld 2 9))
+;; (1)+(2) The fitness: episode ordinal -> start position (PRIVATE mapping:
+;;     the scoring layer only hands us 0..n-1; here even ordinals start far
+;;     from the goal, odd ordinals start near it). Run the program on that
+;;     start world; score 1.0 if the robot ends on the goal, -1.0 otherwise.
+;;     Higher = better. Parity by flip-recursion (no mod-math here).
+(= (botOrdinalEven $n) (if (== $n 0) True (not (botOrdinalEven (- $n 1)))))
+(= (botFitness $exp $i)
+   (let $start (if (botOrdinalEven $i) (mkBotWorld 0 9) (mkBotWorld 2 9))
         (let (mkARes $v (mkBotWorld $pos $fuel)) (evalAction $exp $start)
              (if (== $pos 3) 1.0 -1.0))))
 
 ;; (3) Best reachable raw score over $n episodes (used as the evolution
 ;;     termination target in a full run).
-(= (actionDomainBestScore botDomain $n) (* 1.0 $n))
+(= (botBestScore $n) (* 1.0 $n))
 
-;; Make it a live domain (in a full run this also enables --problem=botDomain).
-!(registerActionDomain botDomain)
+;; Bind the fitness: this playground IS an execution, so it sets the params
+;; itself (a full moses.metta run would do the same in-script, plus
+;; actionActions/actionPerceptions for the knob vocabulary).
+!(set-param actionFitness botFitness)
+!(set-param actionBestScore botBestScore)
 
 !(println! "---- PART 3: scoring ----------------------------------------------")
 
@@ -150,17 +158,17 @@
 ;; 3a. Tree -> executable expression (proof it's the same shape as PART 2):
 !(println! (3a-compiled (actionExp (walkerTree))))
 
-;; 3b. Behavioural score = one number per episode. 4 episodes alternate the
-;;     variants (startFar, startNear, startFar, startNear).
+;; 3b. Behavioural score = one number per episode. Episodes run IN ORDER,
+;;     ordinals 0..3; botFitness privately maps them far, near, far, near.
 ;;     Walker solves both starts; naive only the far one.
-!(println! (3b-walker (scoreActionTree botDomain (walkerTree) 4 &actionScoreCache)))
-!(println! (3b-naive  (scoreActionTree botDomain (naiveTree)  4 &actionScoreCache)))
+!(println! (3b-walker (scoreActionTree (walkerTree) 4 &actionScoreCache)))
+!(println! (3b-naive  (scoreActionTree (naiveTree)  4 &actionScoreCache)))
 
 ;; 3c. Composite score = raw sum minus a complexity penalty, so between two
 ;;     equally-correct programs the SIMPLER one wins selection.
 ;;     (mkCscore <rawSum> <complexity> <penalty> <uniformity> <penalizedScore>)
-!(println! (3c-walker (getActionCscore (walkerTree) (mkActionCtx (botDomain 4)) 3.5 &actionScoreCache)))
-!(println! (3c-naive  (getActionCscore (naiveTree)  (mkActionCtx (botDomain 4)) 3.5 &actionScoreCache)))
+!(println! (3c-walker (getActionCscore (walkerTree) (mkActionCtx 4) 3.5 &actionScoreCache)))
+!(println! (3c-naive  (getActionCscore (naiveTree)  (mkActionCtx 4) 3.5 &actionScoreCache)))
 
 ;; ============================================================================
 ;; THINGS TO TRY
@@ -171,9 +179,11 @@
 ;;  * Starve it: give the walker (mkBotWorld 0 2) in 2e -- fuel runs out,
 ;;    bool_while exits when the body fails, robot stuck at 2.
 ;;  * Make an episode variant startBeyond -> (mkBotWorld 4 9): now walking
-;;    forward can NEVER reach 3; only a program using botBackward can. Add it
-;;    to the opponents tuple and see which programs survive.
-;;  * NOTE on caching: scoreActionTree memoizes per (domain, tree, nEpisodes)
-;;    in &actionScoreCache. If you EDIT a domain clause and rescore the same
-;;    tree in one session, call !(resetActionScoreCache) first.
+;;    forward can NEVER reach 3; only a program using botBackward can. Route
+;;    some ordinals to it inside botFitness and see which programs survive --
+;;    the ordinal->world mapping is entirely yours.
+;;  * NOTE on caching: scoreActionTree memoizes per (fitness symbol, tree,
+;;    nEpisodes) in &actionScoreCache. If you EDIT the fitness clause and
+;;    rescore the same tree in one session, call !(resetActionScoreCache)
+;;    first (a DIFFERENT fitness symbol keys fresh entries by itself).
 ;; ============================================================================

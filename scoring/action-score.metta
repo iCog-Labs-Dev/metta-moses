@@ -1,44 +1,38 @@
-;; Generic behavioral + composite scoring for action domains -- the action
-;; analog of scoreStrategyTree/getCscore. NOTHING here is domain-specific:
-;; a domain plugs in by contributing config clauses only (see contract below);
-;; this file never names a concrete domain, opponent, or world shape.
+;; Generic behavioral + composite scoring for action programs -- the action
+;; analog of scoreStrategyTree/getCscore. NOTHING here is experiment-specific:
+;; this file never names a concrete fitness, opponent, or world shape.
 ;;
-;; LOAD POSITION: after scoring/action-registry (whose sentinel clauses for
-;; actionDomainRunEpisode/actionDomainOpponents/actionDomainBestScore make the
-;; call sites below compile as real, dynamically-dispatched calls -- PeTTa
-;; gates reduction on load order), after scoring/action-eval + action-ops
-;; (actionExp / isRegisteredActionOperator), and after scoring/bscore +
-;; scoring/cscore (mkBScore consumers, sumBScore, getComplexityCoef,
-;; updatePenalizedScore, worstCscore).
+;; THE PARAM CONTRACT (how a fitness attaches -- see parameters/defaults.metta
+;; for the defaults and the quote rule):
+;;   actionFitness   -- a function SYMBOL $fn. The scorer calls ($fn $exp $i)
+;;       once per episode: $exp is the COMPILED wrapped expression (actionExp
+;;       output), $i the episode ordinal 0..n-1, IN ORDER. It must return a
+;;       Number, higher = better. Whether ordinals map to opponents, trails,
+;;       start worlds, or nothing at all is PRIVATE to that function -- the
+;;       framework only hands it the ordinal.
+;;   actionBestScore -- a function SYMBOL, ($fn $n) -> Number, the raw-score
+;;       termination target for n episodes (consumed by moses-run-action).
+;;   actionActions / actionPerceptions -- tuples of primitive symbols, the
+;;       knob vocabulary (consumed by representation/create-representation).
+;; Unset actionFitness, a fitness symbol with no matching clause, a failing
+;; call, or a non-Number episode result (e.g. a fitness that returns True
+;; or a string) all map to the defined-worst -1.0 for that episode -- the
+;; bscore only ever holds Numbers, never a crash (see runActionEpisode's
+;; get-type guard).
 ;;
-;; DOMAIN-CONFIG CONTRACT (each is one clause per domain, added by the domain
-;; package at any later load time):
-;;   (= (actionDomainOpponents  <domain>) (quote (<opp> ...)))   ; tuple of
-;;       episode variants/opponents. The tuple SHOULD be quote-wrapped -- and
-;;       MUST be when any entry names a loaded function, or the body compiles
-;;       as a CALL (the standard data-site hazard) and the domain silently
-;;       scores as misconfigured. Plain inert-symbol tuples remain accepted;
-;;       actionDomainOpponentsSafe unwraps either form. () or (quote ()) or a
-;;       missing clause = misconfigured -> the defined-worst all -1.0 score,
-;;       never a crash
-;;   (= (actionDomainRunEpisode <domain> $compiledExp $opp) <Number>)
-;;       ; runs ONE episode of the COMPILED (actionExp) expression against
-;;       ; $opp and returns its score, higher = better
-;;   (= (actionDomainBestScore  <domain> $nEpisodes) <Number>)
-;;   (= (actionDomainActions     <domain>) (quote (<act> ...)))   ; and
-;;   (= (actionDomainPerceptions <domain>) (quote (<perc> ...)))
-;;       ; the domain's knob-layer vocabulary -- the SINGLE source since the
-;;       ; M0 registry slimming (no per-primitive registration exists).
-;;       ; quote is REQUIRED: the primitives are live bare-head clauses, so
-;;       ; an unquoted tuple headed by one compiles as a CALL. Consumers
-;;       ; (representation/create-representation.metta) read every
-;;       ; list-valued config clause through configListSafe below.
+;; LOAD POSITION: after parameters/registry+defaults ((param ...) must have a
+;; clause -- PeTTa gates reduction on load order), after scoring/action-eval +
+;; action-ops (actionExp / isRegisteredActionOperator), and after
+;; scoring/bscore + scoring/cscore (mkBScore consumers, sumBScore,
+;; getComplexityCoef, updatePenalizedScore, worstCscore).
 
 ;; ---- Behavioral-score cache ----
-;; Entries: ($domain $compiledExp $nEpisodes $bscore) -- keyed by the compiled
-;; expression so identical candidates share an entry (mirrors
+;; Entries: ($fitnessSymbol $compiledExp $nEpisodes $bscore) -- keyed by the
+;; compiled expression so identical candidates share an entry (mirrors
 ;; &strategyScoreCache + scoreStrategyTree in
-;; examples/tic-tac-toe/strategy-scoring.metta:48-57).
+;; examples/tic-tac-toe/strategy-scoring.metta:48-57). The configured fitness
+;; SYMBOL is part of the key: two different fitnesses must never share
+;; entries for the same tree.
 !(bind! &actionScoreCache (new-space))
 
 ;; Empty the action-score cache (mirrors resetSubtreeCache in
@@ -48,94 +42,66 @@
    (let $entries (collapse (match &actionScoreCache $e $e))
      (map-atom $entries $e (remove-atom &actionScoreCache $e))))
 
-;; ---- Config-clause readers ----
-
-;; configListSafe: THE way to read a list-valued domain-config clause
-;; (actionDomainOpponents, actionDomainActions, actionDomainPerceptions, ...).
-;; Call it on the COLLAPSED result of the config-clause call --
-;;   (configListSafe (collapse (actionDomain<X> $domain)))
-;; -- because a missing clause (unregistered/misconfigured domain) makes the
-;; bare call fail silently with zero results; collapse turns that into (),
-;; which maps to () here instead of a bare failure. Consumers must never
-;; crash, so the no-clause case falls into the same path as an explicitly
-;; empty list.
-;; A quote-wrapped tuple (see contract above) is UNWRAPPED here: PeTTaV1
-;; strips quote on evaluation, but runtimes where (quote (...)) survives as
-;; a size-2 expression get the inner tuple back; plain inert-symbol tuples
-;; pass through untouched. Guarded nested ifs, not `and` --
-;; size-atom/car-atom on a non-expression would error.
-(= (configListSafe $rs)
-   (if (== $rs ())
-       ()
-       (let $v (car-atom $rs)
-         (if (== (get-metatype $v) Expression)
-             (if (== (size-atom $v) 2)
-                 (if (== (car-atom $v) quote)
-                     (let ($q $inner) $v $inner)
-                     $v)
-                 $v)
-             $v))))
-
 ;; ---- Episode loop ----
 
-;; actionDomainOpponentsSafe: the opponents tuple, read through
-;; configListSafe (see above); () = misconfigured -> the defined-worst path.
-(= (actionDomainOpponentsSafe $domain)
-   (configListSafe (collapse (actionDomainOpponents $domain))))
+;; runActionEpisode: ONE episode's score -- the var-head application
+;; ($fn $exp $i) (repo idiom: dynamic dispatch on a symbol-valued variable).
+;; The collapse-guard maps every misconfiguration to the defined-worst -1.0:
+;; a failing call collapses to (); an UNSET param (() head) or a symbol with
+;; no matching clause does NOT collapse to () -- the unreduced term itself
+;; comes back (probe-verified) -- and a buggy fitness may return a
+;; non-numeric value outright (True is the classic case: evalAction yields
+;; (mkARes True $world), and True IS Grounded, so a metatype test would
+;; leak it into the bscore and crash sumBScore's arithmetic downstream).
+;; ONLY a Number may enter the bscore, so the guard tests
+;; (get-type $v) == Number explicitly (probe-verified: ints/floats,
+;; negatives, and 0/0.0 all type as Number and pass through untouched;
+;; True -> Bool, "x" -> String, symbols/expressions -> %Undefined%, all
+;; mapped to -1.0).
+(= (runActionEpisode $fn $exp $i)
+   (chain (collapse ($fn $exp $i)) $rs
+     (if (== $rs ())
+         -1.0
+         (let $v (car-atom $rs)
+           (if (== (get-type $v) Number) $v -1.0)))))
 
-;; runActionEpisode: ONE episode's score, with a failing/missing
-;; actionDomainRunEpisode clause mapped to the defined-worst -1.0.
-(= (runActionEpisode $domain $exp $opp)
-   (chain (collapse (actionDomainRunEpisode $domain $exp $opp)) $rs
-     (if (== $rs ()) -1.0 (car-atom $rs))))
-
-;; runActionEpisodes: $n episode scores of a compiled expression, opponents
-;; interleaved deterministically by episode index -- episode i (0-based) gets
-;; opponent (i mod len). No mod-math in this runtime (probe-verified), so the
-;; cycle is structural: walk a working copy of the opponents tuple, refill
-;; from the original when it empties. INVARIANT: the loop is only entered
-;; with a non-() full opponents list ($all), so the refill branch can never
-;; spin -- the () case was already routed to the defined-worst path above.
-;; Scores come back cons-listed in episode
-;; order -- exactly the (mkBScore (list of Numbers)) contents sumBScore /
-;; BScore.sub consume (scoring/bscore.metta), same shape strategy-scoring
-;; builds.
-(= (runActionEpisodes $domain $exp $n)
-   (let $opps (actionDomainOpponentsSafe $domain)
-     (if (== $opps ())
-         (List.repeat $n -1.0)     ;; misconfigured domain -> defined-worst
-         (runActionEpisodesLoop $domain $exp $n $opps $opps))))
-(= (runActionEpisodesLoop $domain $exp $n $remaining $all)
-   (if (<= $n 0)
+;; runActionEpisodes: episode scores for ordinals $i .. $n-1, IN ORDER
+;; (episode 0 first). Scores come back cons-listed -- exactly the
+;; (mkBScore (list of Numbers)) contents sumBScore / BScore.sub consume
+;; (scoring/bscore.metta), same shape strategy-scoring builds.
+(= (runActionEpisodes $fn $exp $n $i)
+   (if (>= $i $n)
        ()
-       (if (== $remaining ())
-           (runActionEpisodesLoop $domain $exp $n $all $all)
-           (let* ((($opp $rest) (decons-atom $remaining))
-                  ($score (runActionEpisode $domain $exp $opp)))
-             (cons $score (runActionEpisodesLoop $domain $exp (- $n 1) $rest $all))))))
+       (cons (runActionEpisode $fn $exp $i)
+             (runActionEpisodes $fn $exp $n (+ $i 1)))))
 
 ;; ---- Behavioral score (cached) ----
-;; scoreActionTree: candidate Tree -> mkBScore over $nEpisodes episodes.
-;; The tree is compiled ONCE via actionExp; the compiled expression is the
-;; cache key, so structurally identical candidates never re-run episodes.
+;; scoreActionTree: candidate Tree -> mkBScore over $nEpisodes episodes of
+;; the CONFIGURED fitness ((param actionFitness)). The tree is compiled ONCE
+;; via actionExp; ($fn $exp $nEpisodes) is the cache key, so structurally
+;; identical candidates never re-run episodes -- and switching the fitness
+;; param can never serve another fitness's entries.
 ;; Cache miss -> run episodes, memoize, return; hit -> cached value.
-;; NOTE: misconfigured-domain results (the all -1.0 bscore) are cached too --
-;; if the domain package is configured/loaded only AFTERWARDS, call
-;; (resetActionScoreCache) or the stale worst scores keep being served.
-;(: scoreActionTree (-> Symbol (Tree $a) Number $space BehavioralScore))
-(= (scoreActionTree $domain $tree $nEpisodes $scoreSpace)
+;; NOTE: misconfigured results (the all -1.0 bscore of an unset fitness) are
+;; cached too, keyed under () -- if actionFitness is configured only
+;; AFTERWARDS the new symbol keys fresh entries, but re-binding the SAME
+;; symbol to new behavior needs (resetActionScoreCache) or the stale scores
+;; keep being served.
+;(: scoreActionTree (-> (Tree $a) Number $space BehavioralScore))
+(= (scoreActionTree $tree $nEpisodes $scoreSpace)
    (let* (($exp (actionExp $tree))
-          ($cached (collapse (match $scoreSpace ($domain $exp $nEpisodes $bscore) $bscore))))
+          ($fn (param actionFitness))
+          ($cached (collapse (match $scoreSpace ($fn $exp $nEpisodes $bscore) $bscore))))
      (if (== $cached ())
-         (let* (($bs (mkBScore (runActionEpisodes $domain $exp $nEpisodes)))
-                ($_ (add-atom $scoreSpace ($domain $exp $nEpisodes $bs))))
+         (let* (($bs (mkBScore (runActionEpisodes $fn $exp $nEpisodes 0)))
+                ($_ (add-atom $scoreSpace ($fn $exp $nEpisodes $bs))))
            $bs)
          (car-atom $cached))))
 
 ;; ---- Complexity ----
-;; actionTreeComplexity: number of domain-action/perception leaves in a
-;; candidate Tree; registered structural combinators cost 0 (they are the
-;; action analog of AND/OR/NOT). Deliberately SEPARATE from treeComplexity in
+;; actionTreeComplexity: number of action/perception leaves in a candidate
+;; Tree; registered structural combinators cost 0 (they are the action
+;; analog of AND/OR/NOT). Deliberately SEPARATE from treeComplexity in
 ;; utilities/tree.metta:312-319 -- that one hard-codes the boolean operator
 ;; list (AND OR NOT PRIORITIZED-OR) and loads before the scoring layer, so it
 ;; cannot consult &actionRegistry; keeping this here leaves boolean complexity
@@ -147,21 +113,21 @@
    (if (isRegisteredActionOperator $a)
        (List.sum (List.map actionTreeComplexity $children))
        (if (== $children ())
-           1     ;; domain actions/perceptions ARE the alphabet
+           1     ;; actions/perceptions ARE the alphabet
            (+ 1 (List.sum (List.map actionTreeComplexity $children))))))
 
 ;; ---- Composite score ----
 ;; getActionCscore: behavioral score + complexity penalty -> mkCscore.
 ;; DISTINCT name (not a getCscore overload): the existing 4-arg getCscore
 ;; boolean/strategy clauses (scoring/cscore.metta:23-28) already overlap
-;; ambiguously, and (mkActionCtx ($domain $nGames)) keys the dispatch anyway.
+;; ambiguously, and (mkActionCtx $nGames) keys the dispatch anyway.
 ;; The penalty math duplicates ~6 lines of getCscore's 3-arg core
 ;; (scoring/cscore.metta:6-20) -- ACCEPTED duplication: that core calls
 ;; treeComplexity internally, and action candidates need
 ;; actionTreeComplexity, so it cannot be funneled through.
 ;(: getActionCscore (-> (Tree $a) ActionCtx Number $space Cscore))
-(= (getActionCscore $tree (mkActionCtx ($domain $nGames)) $complexityRatio $scoreSpace)
-   (let $bs (scoreActionTree $domain $tree $nGames $scoreSpace)
+(= (getActionCscore $tree (mkActionCtx $nGames) $complexityRatio $scoreSpace)
+   (let $bs (scoreActionTree $tree $nGames $scoreSpace)
      (if-error $bs   ;; parity with getCscore; scoreActionTree never errors
         (worstCscore)
         (let* (($bsum (sumBScore $bs))

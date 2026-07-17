@@ -64,9 +64,9 @@
 !(import! &self scoring/cacheSpace)
 !(import! &self scoring/fitness)
 !(import! &self scoring/boolean-ops)
-;; Action-domain engine: registry (sentinel clauses gate every later
-;; actionDomain* config call site; operator clauses are bare heads found by
-;; the evaluator's reduce dispatch) -> evaluator -> structural operators.
+;; Action engine: registry (structural/cleanup operator membership only;
+;; operator clauses are bare heads found by the evaluator's reduce
+;; dispatch) -> evaluator -> structural operators.
 !(import! &self scoring/action-registry)
 !(import! &self scoring/action-eval)
 !(import! &self scoring/action-ops)
@@ -103,11 +103,12 @@
 
 !(import! &self scoring/complexity-based-scorer)
 
-;; ---- Action domains ----
-;; Domain packages register themselves against scoring/action-registry at
-;; load time; they only need the shared tic-tac-toe helpers/players (minimal
-;; set mirrored from examples/tic-tac-toe-action/tests). Loaded before the
-;; deme/* pipeline so (moses) sees the domain registered when !(moses) runs.
+;; ---- Action fitness packages ----
+;; ttt-action-registration DEFINES the tic-tac-toe fitness functions
+;; (tttActionFitness / tttActionBestScore) but sets NO params -- loading it
+;; only makes the symbols available for --actionFitness=tttActionFitness /
+;; set-param binding. It needs the shared tic-tac-toe helpers/players
+;; (minimal set mirrored from examples/tic-tac-toe-action/tests).
 !(import! &self examples/tic-tac-toe/tic-tac-toe-helpers)
 !(import! &self examples/tic-tac-toe/moves)
 !(import! &self examples/tic-tac-toe/random-player)

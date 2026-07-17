@@ -1,45 +1,45 @@
-;; THE DOMAIN-PACKAGE INTERFACE -- this file is the template every future
-;; action domain copies (see README.md, "Adding a new action domain").
-;; Four numbered sections; the scoring layer discovers everything about
-;; this domain through them and never names a tic-tac-toe symbol.
+;; THE FITNESS-PACKAGE INTERFACE -- this file is the template every future
+;; action experiment copies (see README.md). It DEFINES the tic-tac-toe
+;; fitness functions and nothing else: it sets NO params, so merely loading
+;; it never turns a run into an action run. To RUN this experiment, bind the
+;; four action params (parameters/defaults.metta):
 ;;
-;; Loads after scoring/action-registry (whose sentinel clauses make the
-;; actionDomain* clauses below dispatch dynamically) and after
-;; ttt-action-episode.
+;;   !(set-param actionFitness tttActionFitness)
+;;   !(set-param actionBestScore tttActionBestScore)
+;;   !(set-param actionActions (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
+;;   !(set-param actionPerceptions (quote (tttCanWin tttCanBlock tttCenterFree)))
+;;
+;; (probe-verified: quote strips at the set-param site, so the params hold
+;; the plain tuples; quote is REQUIRED because the primitives are live
+;; bare-head clauses and an unquoted tuple headed by one curries into a
+;; `partial` term. The two function SYMBOLS can also ride the CLI:
+;; --actionFitness=tttActionFitness --actionBestScore=tttActionBestScore --
+;; the tuple params cannot, so set them in-script.)
+;;
+;; Loads after ttt-action-episode (tttActionEpisode) and the shared
+;; tic-tac-toe players (random-player / minimax-player).
 
-;; ---- 1. Domain configuration ----
-;; The vocabulary clauses are the SINGLE source of the domain's actions and
-;; perceptions -- the knob layer (create-representation) reads them through
-;; configListSafe; there is no per-primitive registration.
-;; quote is REQUIRED on both vocabulary tuples: every primitive is a live
-;; bare-head clause (arity 2), so an unquoted tuple headed by one would
-;; compile as a CALL (matching arity fires the clause; any other arity
-;; curries into an inert `partial` term). Quote strips on evaluation, so
-;; callers still receive the plain tuple.
-(= (actionDomainActions tttAction) (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
-(= (actionDomainPerceptions tttAction) (quote (tttCanWin tttCanBlock tttCenterFree)))
-;; quote is REQUIRED here: random-player/minimax-player are live 2-arity
-;; functions, so an unquoted (random-player minimax-player) body compiles as
-;; a CALL (this repo's standard data-site hazard) and the clause silently
-;; yields nothing -- the scoring layer would see a misconfigured domain and
-;; score every episode -1.0. actionDomainOpponentsSafe unwraps the quote.
-(= (actionDomainOpponents tttAction) (quote (random-player minimax-player)))
+;; ---- Episode-ordinal -> opponent mapping (PRIVATE to this fitness) ----
+;; The scoring layer hands the fitness only the episode ordinal 0..n-1;
+;; which opponent (or anything else) an ordinal means is this experiment's
+;; business. Here: even ordinals play random-player, odd ordinals play
+;; minimax-player. Parity is computed by flip-recursion -- no mod-math in
+;; this runtime (probe-verified) -- and a bare symbol returned from an if
+;; branch is inert (only TUPLES headed by live symbols need quoting).
+(= (tttOrdinalEven $n) (if (== $n 0) True (not (tttOrdinalEven (- $n 1)))))
+(= (tttOpponentFor $i) (if (tttOrdinalEven $i) random-player minimax-player))
 
-;; ---- 2. Episode runner ----
+;; ---- The fitness: ($fn $exp $i) -> Number, higher = better ----
 ;; $exp arrives ALREADY COMPILED (wrapped (op (children)) shape) from the
-;; scoring layer; $opponent is one element of (actionDomainOpponents ...).
-(= (actionDomainRunEpisode tttAction $exp $opponent)
-   (tttActionEpisode $exp $opponent))
+;; scoring layer; $i is the episode ordinal.
+(= (tttActionFitness $exp $i)
+   (tttActionEpisode $exp (tttOpponentFor $i)))
 
-;; ---- 3. Best reachable raw score for $nGames episodes ----
-;; The scoring layer interleaves opponents by episode index: episode i gets
-;; opponent (i mod 2), so even episodes play random-player (winnable ->
-;; 1.0 each) and odd episodes play minimax-player (a draw, 0.0, at best).
-;; Best = 1.0 * ceil(nGames/2) = nGames - floor(nGames/2). Computed with
-;; integer floor (py-call idiom from strategy-scoring.metta:32-37), then
-;; scaled by the exact float 1.0 -- no float drift.
-(= (actionDomainBestScore tttAction $nGames)
+;; ---- Best reachable raw score for $n episodes: ($fn $n) -> Number ----
+;; Even episodes (random-player) are winnable (1.0 each); odd episodes
+;; (minimax-player) draw at best (0.0). Best = 1.0 * ceil(n/2)
+;; = n - floor(n/2). Computed with integer floor (py-call idiom from
+;; strategy-scoring.metta:32-37), then scaled by the exact float 1.0 -- no
+;; float drift.
+(= (tttActionBestScore $nGames)
    (* 1.0 (- $nGames (py-call (math.floor (/ $nGames 2))))))
-
-;; ---- 4. Register the domain (name only -- CLI routing) ----
-!(registerActionDomain tttAction)

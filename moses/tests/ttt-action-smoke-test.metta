@@ -5,14 +5,15 @@
 ;;   1. Proof the whole generic action pipeline (representation -> deme ->
 ;;      hillclimbing -> scoring -> metapopulation) completes a real (small)
 ;;      MOSES evolution run and improves on the empty and_seq exemplar.
-;;   2. A living demo of the "add a new action domain with ZERO pipeline
-;;      edits" recipe: this test registers its OWN domain variant
-;;      (tttActionFast, random-player only) below, reusing the tic-tac-toe
-;;      action primitives -- exactly what a user adding a domain would do.
+;;   2. A living demo of the "add a new action experiment with ZERO pipeline
+;;      edits" recipe: this test defines its OWN fitness (smokeFitness,
+;;      random-player only) below and binds it through the four action
+;;      params, reusing the tic-tac-toe action primitives -- exactly what a
+;;      user adding an experiment would do.
 ;;
 ;; The run assembly mirrors moses-run-action (moses/demo-problems.metta)
 ;; directly: same empty-exemplar metapop seed, same tagged
-;; (mkActionCtx ($domain $nGames) $cpxPen) context, same runMoses call.
+;; (mkActionCtx $nGames $cpxPen) context, same runMoses call.
 ;; Tests never import moses.metta, so runMoses is called here by hand.
 ;;
 ;; Import order mirrors moses.metta top to bottom (registry+defaults FIRST;
@@ -115,46 +116,41 @@
 !(py-call (random.seed 0))
 
 ;; ============================================================
-;; THE RECIPE DEMO -- registering a NEW action domain with zero pipeline
-;; edits. This is the exact 4-part template from
+;; THE RECIPE DEMO -- binding a NEW action fitness with zero pipeline
+;; edits. This is the exact template from
 ;; examples/tic-tac-toe-action/ttt-action-registration.metta, instantiated
-;; for a test-local fast variant: tic-tac-toe against random-player ONLY
-;; (minimax is the expensive opponent; dropping it keeps the smoke run
-;; fast AND demonstrates that a domain fully owns its opponents tuple).
-;; The primitives themselves (tttWin/tttBlock/... bare-head clauses) come
-;; from the ttt-action-primitives import above; a domain contributes
-;; NOTHING beyond its config clauses + one registerActionDomain line.
+;; for a test-local fast variant: tic-tac-toe against random-player ONLY,
+;; every ordinal (minimax is the expensive opponent; dropping it keeps the
+;; smoke run fast AND demonstrates that a fitness fully owns its
+;; ordinal->opponent mapping). The primitives themselves
+;; (tttWin/tttBlock/... bare-head clauses) come from the
+;; ttt-action-primitives import above; an experiment contributes NOTHING
+;; beyond its fitness clauses + the four set-param bindings.
 ;; ============================================================
 
-;; ---- 1. Domain configuration ----
-;; (the actions/perceptions clauses ARE the domain's vocabulary -- the knob
-;; layer reads them via configListSafe; no per-primitive registration
-;; exists since the M0 registry slimming. quote is REQUIRED on both tuples:
-;; the primitives are live bare-head clauses, so an unquoted tuple headed
-;; by one compiles as a CALL)
-(= (actionDomainActions tttActionFast) (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
-(= (actionDomainPerceptions tttActionFast) (quote (tttCanWin tttCanBlock tttCenterFree)))
-;; quote is REQUIRED even for this single-opponent tuple: random-player is a
-;; live 2-arity function, so a bare (random-player) body would compile as a
-;; zero-arg CALL (the standard data-site hazard) and the clause would
-;; silently yield nothing -- the domain would score every episode -1.0.
-(= (actionDomainOpponents tttActionFast) (quote (random-player)))
+;; ---- 1. The fitness: ($fn $exp $i) -> Number; the ordinal is ignored,
+;;         every episode plays random-player (reuses the ttt episode loop) --
+(= (smokeFitness $exp $i) (tttActionEpisode $exp random-player))
 
-;; ---- 2. Episode runner (reuses the ttt episode loop + primitives) ----
-(= (actionDomainRunEpisode tttActionFast $exp $opponent)
-   (tttActionEpisode $exp $opponent))
-
-;; ---- 3. Best reachable raw score: every episode plays random-player,
+;; ---- 2. Best reachable raw score: every episode plays random-player,
 ;;         and every game against random-player is winnable -> 1.0 each ----
-(= (actionDomainBestScore tttActionFast $n) (* 1.0 $n))
+(= (smokeBestScore $n) (* 1.0 $n))
 
-;; ---- 4. Register the domain (name only -- CLI routing) ----
-!(registerActionDomain tttActionFast)
+;; ---- 3. Bind the experiment through the global params. quote is REQUIRED
+;;         on both vocabulary tuples at the set-param site: the primitives
+;;         are live bare-head clauses, so an unquoted tuple headed by one
+;;         curries into a `partial` term (probe-verified; quote strips on
+;;         set, the params hold the plain tuples) ----
+!(set-param actionFitness smokeFitness)
+!(set-param actionBestScore smokeBestScore)
+!(set-param actionActions (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
+!(set-param actionPerceptions (quote (tttCanWin tttCanBlock tttCenterFree)))
 
-;; Registration is live before the run: the domain is discoverable and its
-;; best-score clause answers through the dynamically-dispatched config API.
-!(assertEqual (isRegisteredActionDomain tttActionFast) True)
-!(assertEqual (actionDomainBestScore tttActionFast 4) 4.0)
+;; The binding is live before the run: the configured fitness symbol is
+;; discoverable and the best-score function answers through the same
+;; var-head dispatch the runner uses.
+!(assertEqual (param actionFitness) smokeFitness)
+!(assertEqual (let $fn (param actionBestScore) ($fn 4)) 4.0)
 
 ;; ============================================================
 ;; Small-run parameters (the moses-run-action assembly, shrunk):
@@ -198,7 +194,7 @@
 !(assertEqual
   (let* (
       ($result (runMoses 2 4.0 (smokeMetaPop) 0 1
-                         (mkActionCtx (tttActionFast 4) 3.5)
+                         (mkActionCtx 4 3.5)
                          hillClimbing))
       ($_ (println! ""))
       ($_ (println! "==== Smoke-run result (tree preorder + bscore sum) ===="))

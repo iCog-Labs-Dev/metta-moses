@@ -38,15 +38,17 @@
       )
 )
 
-;; Action-domain createDeme - tagged with (mkActionDomain $domain) so it can
-;; never collide with the 3-arg game clause above; same body shape.
+;; Action createDeme - tagged with the bare mkActionRep symbol (heads no
+;; clauses, so it is inert) so it can never collide with the 3-arg game
+;; clause above; same body shape. The vocabulary the representation builds
+;; from comes from the global params (see create-representation.metta).
 ;;             $nDeme --      number of demes to create
 ;;             $demeIds --    list of deme ids (cons ...)
 ;;             $exemplar --   the exemplar tree which the demes are going to be based on
 ;;             returns ↠ tuple of demes
-; (: createDeme (-> Number (List DemeId) (Tree $a) ActionDomain Expression))
-(= (createDeme $nDeme $demeIds $exemplar (mkActionDomain $domain))
-      (let $reps (createRepresentation $nDeme $exemplar (mkActionDomain $domain))
+; (: createDeme (-> Number (List DemeId) (Tree $a) Symbol Expression))
+(= (createDeme $nDeme $demeIds $exemplar mkActionRep)
+      (let $reps (createRepresentation $nDeme $exemplar mkActionRep)
             (loopCreateDeme $demeIds $reps ())))
 
 
