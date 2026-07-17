@@ -18,8 +18,13 @@
 !(registerDomainPerception tttCenterFree)
 
 ;; ---- 2. Domain configuration ----
-(= (actionDomainActions tttAction) (tttWin tttBlock tttCenter tttCorner tttSide))
-(= (actionDomainPerceptions tttAction) (tttCanWin tttCanBlock tttCenterFree))
+;; quote is REQUIRED on both vocabulary tuples: every primitive is a live
+;; bare-head clause (arity 2), so an unquoted tuple headed by one would
+;; compile as a CALL (matching arity fires the clause; any other arity
+;; curries into an inert `partial` term). Quote strips on evaluation, so
+;; callers still receive the plain tuple.
+(= (actionDomainActions tttAction) (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
+(= (actionDomainPerceptions tttAction) (quote (tttCanWin tttCanBlock tttCenterFree)))
 ;; quote is REQUIRED here: random-player/minimax-player are live 2-arity
 ;; functions, so an unquoted (random-player minimax-player) body compiles as
 ;; a CALL (this repo's standard data-site hazard) and the clause silently

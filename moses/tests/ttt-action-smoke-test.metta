@@ -128,9 +128,11 @@
 
 ;; ---- 2. Domain configuration ----
 ;; (actions/perceptions clauses are part of the template; the knob layer
-;; reads the global registry, so these document the domain's vocabulary)
-(= (actionDomainActions tttActionFast) (tttWin tttBlock tttCenter tttCorner tttSide))
-(= (actionDomainPerceptions tttActionFast) (tttCanWin tttCanBlock tttCenterFree))
+;; reads the global registry, so these document the domain's vocabulary.
+;; quote is REQUIRED on both tuples: the primitives are live bare-head
+;; clauses, so an unquoted tuple headed by one compiles as a CALL)
+(= (actionDomainActions tttActionFast) (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
+(= (actionDomainPerceptions tttActionFast) (quote (tttCanWin tttCanBlock tttCenterFree)))
 ;; quote is REQUIRED even for this single-opponent tuple: random-player is a
 ;; live 2-arity function, so a bare (random-player) body would compile as a
 ;; zero-arg CALL (the standard data-site hazard) and the clause would

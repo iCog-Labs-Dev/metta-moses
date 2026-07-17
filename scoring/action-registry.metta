@@ -9,11 +9,12 @@
 ;; as a real call only if at least ONE clause of the callee exists when the
 ;; caller loads; clauses added by LATER-loaded files are then dispatched
 ;; dynamically at runtime. So this file, loaded FIRST, pins one never-matching
-;; base clause for actionOp and for every actionDomain* config predicate that
-;; the generic evaluator / scoring layer calls. Without these, those call
-;; sites would compile as inert DATA and no later-loaded operator or domain
-;; clause could ever fire. (Probe-verified: late-loaded actionOp clauses
-;; dispatch through an engine compiled against the sentinel alone.)
+;; base clause for every actionDomain* config predicate that the scoring
+;; layer calls. Without these, those call sites would compile as inert DATA
+;; and no later-loaded domain clause could ever fire. (Operator dispatch
+;; needs NO sentinel: the evaluator reduce-dispatches bare operator heads on
+;; a cons-built term, the boolean engine's mechanism -- see
+;; scoring/action-eval.)
 
 !(bind! &actionRegistry (new-space))
 !(bind! &actionDomains (new-space))
@@ -93,11 +94,6 @@
      ()))
 
 ;; ---- Sentinel base clauses (see header) ----
-;; actionOp: one clause per operator, added by scoring/action-ops (structural)
-;; and by domain packages (actions/perceptions). The sentinel op symbol is
-;; never produced by any tree, so this clause never fires in practice.
-(= (actionOp actionOpSentinel $children $world) (mkARes False $world))
-
 ;; Domain-config predicates the scoring layer calls before any domain package
 ;; loads (Stage 2 compiles its call sites against these):
 (= (actionDomainRunEpisode actionDomainSentinel $exp $variant) -1.0)

@@ -53,8 +53,8 @@
 
 ;; ---- Test-local domain ----
 ;; sdtBump: increment the counter, succeed. sdtStop: fail, world untouched.
-(= (actionOp sdtBump $children $world) (mkARes True (+ $world 1)))
-(= (actionOp sdtStop $children $world) (mkARes False $world))
+(= (sdtBump $children $world) (mkARes True (+ $world 1)))
+(= (sdtStop $children $world) (mkARes False $world))
 !(registerDomainAction sdtBump)
 !(registerDomainAction sdtStop)
 

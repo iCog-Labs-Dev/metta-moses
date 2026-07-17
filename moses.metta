@@ -65,7 +65,8 @@
 !(import! &self scoring/fitness)
 !(import! &self scoring/boolean-ops)
 ;; Action-domain engine: registry (sentinel clauses gate every later
-;; actionOp / actionDomain* call site) -> evaluator -> structural operators.
+;; actionDomain* config call site; operator clauses are bare heads found by
+;; the evaluator's reduce dispatch) -> evaluator -> structural operators.
 !(import! &self scoring/action-registry)
 !(import! &self scoring/action-eval)
 !(import! &self scoring/action-ops)

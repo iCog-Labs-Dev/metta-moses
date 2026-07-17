@@ -16,13 +16,15 @@
 ;; Generic action-scoring test. A deterministic test domain is defined HERE,
 ;; after the scoring layer loaded -- proving a domain plugs in through config
 ;; clauses alone (the registry's sentinel clauses make action-score's
-;; actionDomain* call sites dispatch dynamically) without touching scoring.
+;; actionDomain* call sites dispatch dynamically; operator/primitive clauses
+;; are bare heads found by the engine's reduce dispatch) without touching
+;; scoring.
 ;;
 ;; World: (mkTstWorld $n); tstInc bumps the counter and succeeds.
 ;; Episodes are deterministic and opponent-distinguishing (oppA -> 1.0,
 ;; oppB -> 0.0, given a succeeding tree); every invocation is RECORDED in
 ;; &tstEpisodeLog so cache behavior is observable.
-(= (actionOp tstInc $children (mkTstWorld $n)) (mkARes True (mkTstWorld (+ $n 1))))
+(= (tstInc $children (mkTstWorld $n)) (mkARes True (mkTstWorld (+ $n 1))))
 
 !(bind! &tstEpisodeLog (new-space))
 (= (tstLogCount) (size-atom (collapse (match &tstEpisodeLog $e $e))))
