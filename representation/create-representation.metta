@@ -23,4 +23,4 @@
 ;; The eighth arg to `representation` is `$disable-discprobe`, so we negate
 ;; the user-facing `discProbe` knob (True == enabled) when forwarding.
 (= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
-    (let ((mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree)) (representation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType (not (param discProbe))) ((mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree))))
+    (representation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType (not (param discProbe))))
