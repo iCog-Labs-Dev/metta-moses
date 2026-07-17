@@ -192,13 +192,13 @@
     ($rows $labels)
 )
 
-;; Built with cons-atom so the result stays data instead of being applied.
-(= (defaultFsHyperparams $scorerType)
-   (cons-atom (param fsMiConfi)
-     (cons-atom (param fsPrePenalty)
-       (cons-atom (param fsPreMinActivation)
-         (cons-atom (param fsPreMaxActivation)
-           (cons-atom (param fsPrePositive) (cons-atom $scorerType ())))))))
+;; The configured feature selection hyper parameters, in the order the scorers read them.
+(= (defaultFsHyperparams)
+   ((param fsMiConfi) (param fsPrePenalty) (param fsPreMinActivation) (param fsPreMaxActivation) (param fsPrePositive)))
+
+;; Appends the scorer name, which is what the scorers expect in the last slot.
+(= (withFsScorer $fsHyperparams $scorerType)
+   (union-atom $fsHyperparams (cons-atom $scorerType ())))
 
 ;; Shapes accepted for the second `mkParams` slot:
 ;;   ()                              -- defaults, scored by mutual information
@@ -209,9 +209,9 @@
 (= (normalizeFsHyperparams $fsScorer)
    (if (== (get-metatype $fsScorer) Expression)
        (if (== $fsScorer ())
-           (defaultFsHyperparams mi)
+           (withFsScorer (defaultFsHyperparams) mi)
            $fsScorer)
-       (defaultFsHyperparams $fsScorer)))
+       (withFsScorer (defaultFsHyperparams) $fsScorer)))
 
 ;; Hillclimbing implementation
 ;;
