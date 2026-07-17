@@ -14,13 +14,6 @@
 (= (List.foldr $f $i $xs)
    (foldl-atom (reverse $xs) $i $acc $x ($f $x $acc)))
 
-;; Short-circuiting foldl: once ($done $acc) holds, $f is never applied
-;; again -- the accumulator rides untouched through the remaining elements
-;; (the fold still walks them as plain data).
-; (: List.foldUntil (-> (-> $b Bool) (-> $a $b $b) $b (List $a) $b))
-(= (List.foldUntil $done $f $init $xs)
-   (foldl-atom $xs $init $acc $x (if ($done $acc) $acc ($f $x $acc))))
-
 ;; Generalized foldl and foldr.
 ;; (foldl-atom (1 2 3 4) 0 $acc $x (+ $acc $x))
 (= (toExp $x) ($x))

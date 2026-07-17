@@ -27,33 +27,44 @@
 ;; these bodies compile).
 
 ;; ---- Sequential combinators (variadic, children as one wrapped tuple) ----
-;; Every sequence combinator (and the fuel-capped loops below) is ONE fold
-;; over the unevaluated children with an (mkARes $v $w) accumulator:
-;; List.foldUntil's $done guard keeps the accumulator untouched once it is
-;; terminal, so a skipped child is walked as plain data but NEVER evaluated
-;; -- the laziness contract pinned by the counter-world tests in
+;; and_seq/or_seq (and the fuel-capped loops below) are Haskell's allM/anyM
+;; -- Control.Monad.Extra's short-circuit monadic all/any -- instantiated at
+;; the action-state monad, which is why allM/anyM live HERE and not in
+;; list-methods: the (mkARes Bool World) threading is this file's protocol.
+
+;; allM/anyM: $f : ($x $world) -> (mkARes Bool World'). allM stops at the
+;; first False result (its world kept; empty -> True); anyM at the first
+;; True (empty -> False). Once terminal, the fold walks the remaining
+;; elements as plain data WITHOUT applying $f -- unevaluated children are
+;; never run, the laziness contract pinned by the counter-world tests in
 ;; scoring/test/action-eval-test.
+(= (allM $f $world $xs)
+   (foldl-atom $xs (mkARes True $world) $acc $x
+     (let (mkARes $v $w) $acc
+          (if (== $v False) $acc ($f $x $w)))))
 
-;; Terminal-accumulator guards for the folds.
-(= (aresFailed (mkARes $v $w)) (== $v False))
-(= (aresSucceeded (mkARes $v $w)) (== $v True))
+(= (anyM $f $world $xs)
+   (foldl-atom $xs (mkARes False $world) $acc $x
+     (let (mkARes $v $w) $acc
+          (if (== $v True) $acc ($f $x $w)))))
 
-;; evalActionStep: shared fold step -- evaluate one child against the
-;; accumulator's world; the child's mkARes IS the next accumulator.
+;; evalActionStep: fold step for the no-short-circuit seq_exec -- evaluate
+;; one child against the accumulator's world; the child's mkARes IS the
+;; next accumulator.
 (= (evalActionStep $child (mkARes $v $w)) (evalAction $child $w))
 
 ;; and_seq: children left->right, each against the world produced by the
 ;; previous child; first failure stops (its world is kept); empty -> success.
 (= (and_seq $children $world)
    (if (== (get-metatype $children) Expression)
-       (List.foldUntil aresFailed evalActionStep (mkARes True $world) $children)
+       (allM evalAction $world $children)
        (mkARes False $world)))   ;; malformed children (not a tuple) -> worst
 
 ;; or_seq: first success wins (its world is kept); the world threads through
 ;; failed children; empty -> failure.
 (= (or_seq $children $world)
    (if (== (get-metatype $children) Expression)
-       (List.foldUntil aresSucceeded evalActionStep (mkARes False $world) $children)
+       (anyM evalAction $world $children)
        (mkARes False $world)))
 
 ;; seq_exec: run ALL children regardless of status, thread the world,
@@ -92,35 +103,33 @@
 (= (actionWhileCap) 25)
 
 ;; action_while: loop while the child succeeds; cap exhausted or child
-;; failure -> (mkARes True $lastWorld). The loop is the and_seq fold over
-;; $fuel copies of the child: first failure stops (skipped copies are never
-;; evaluated), then the status is forced to True.
+;; failure -> (mkARes True $lastWorld). The loop is allM over $fuel copies
+;; of the child: first failure stops (skipped copies are never evaluated),
+;; then the status is forced to True.
 ;; actionWhileLoop stays a NAMED arity-3 helper: the totality assertions in
 ;; scoring/test/action-eval-test dispatch it as a wrong-arity symbol.
 (= (action_while ($x) $world)
    (actionWhileLoop $x $world (actionWhileCap)))
 (= (actionWhileLoop $x $world $fuel)
    (let (mkARes $v $w)
-        (List.foldUntil aresFailed evalActionStep (mkARes True $world)
-                        (List.repeat $fuel $x))
+        (allM evalAction $world (List.repeat $fuel $x))
         (mkARes True $w)))
 
 ;; bool_while: while the condition holds, run the body and loop on the
 ;; body's world (body status does not stop the loop); same fuel cap;
-;; always (mkARes True $w). Same fold, over $fuel copies of the
-;; ($cond $body) pair; one step = one cond test plus, when it holds, one
-;; body run -- a failed accumulator marks "condition failed", stopping the
-;; fold with that world.
+;; always (mkARes True $w). allM over $fuel copies of the ($cond $body)
+;; pair; one step = one cond test plus, when it holds, one body run -- a
+;; False step result marks "condition failed", stopping the loop with the
+;; condition's world.
 (= (bool_while ($cond $body) $world)
    (let (mkARes $v $w)
-        (List.foldUntil aresFailed boolWhileStep (mkARes True $world)
-                        ;; cons-built pair: $cond/$body are live wrapped
-                        ;; shapes, a bare ($cond $body) literal here would
-                        ;; be applied as a call
-                        (List.repeat (actionWhileCap) (cons $cond (cons $body ()))))
+        (allM boolWhileStep $world
+              ;; cons-built pair: $cond/$body are live wrapped shapes, a
+              ;; bare ($cond $body) literal here would be applied as a call
+              (List.repeat (actionWhileCap) (cons $cond (cons $body ()))))
         (mkARes True $w)))
-(= (boolWhileStep ($cond $body) (mkARes $v $w))
-   (let (mkARes $cv $cw) (evalAction $cond $w)
+(= (boolWhileStep ($cond $body) $world)
+   (let (mkARes $cv $cw) (evalAction $cond $world)
         (if (== $cv True)
             (let (mkARes $bv $bw) (evalAction $body $cw)
                  (mkARes True $bw))

@@ -74,7 +74,7 @@
 ;; get-type return a non-%Undefined% type and silently reroute that
 ;; operator's bare-symbol leaves to the constant-literal branch below instead
 ;; of clause dispatch -- keep operator clauses undeclared.
-(= (isActionGroundLiteral $x) (not (== (get-type $x) %Undefined%)))
+(= (isActionGroundLiteral $x) (!= (get-type $x) %Undefined%))
 
 ;; evalAction: wrapped expression -> (mkARes Bool World).
 ;;   (op (children)) node  -> operator clause via evalActionNode
