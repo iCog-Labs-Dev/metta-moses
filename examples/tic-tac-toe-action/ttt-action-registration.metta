@@ -4,16 +4,16 @@
 ;; it never turns a run into an action run. To RUN this experiment, bind the
 ;; four action params (parameters/defaults.metta):
 ;;
-;;   !(set-param actionFitness tttActionFitness)
-;;   !(set-param actionBestScore tttActionBestScore)
-;;   !(set-param actionActions (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
-;;   !(set-param actionPerceptions (quote (tttCanWin tttCanBlock tttCenterFree)))
+;;   !(set-param fitness tttActionFitness)
+;;   !(set-param bestScore tttActionBestScore)
+;;   !(set-param actions (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
+;;   !(set-param perceptions (quote (tttCanWin tttCanBlock tttCenterFree)))
 ;;
 ;; (probe-verified: quote strips at the set-param site, so the params hold
 ;; the plain tuples; quote is REQUIRED because the primitives are live
 ;; bare-head clauses and an unquoted tuple headed by one curries into a
 ;; `partial` term. The two function SYMBOLS can also ride the CLI:
-;; --actionFitness=tttActionFitness --actionBestScore=tttActionBestScore --
+;; --fitness=tttActionFitness --bestScore=tttActionBestScore --
 ;; the tuple params cannot, so set them in-script.)
 ;;
 ;; Loads after ttt-action-episode (tttActionEpisode) and the shared

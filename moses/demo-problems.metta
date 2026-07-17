@@ -234,14 +234,14 @@
 ;;      sh run.sh moses.metta -s --help
 ;; ============================================================
 ;; Route by CONFIGURATION: an ACTION run is configured iff (param
-;; actionFitness) is non-empty (set via --actionFitness=<fn> or an in-script
+;; fitness) is non-empty (set via --fitness=<fn> or an in-script
 ;; set-param); a TABLE run is configured iff a demo `problem` symbol or a
 ;; CSV `inputFile` was supplied. Exactly one of the two must hold:
 ;;   both    -> loud error + help (no silent precedence)
 ;;   neither -> help
 ;;   action  -> (moses-run-action)   table -> (moses-run)
 (= (moses)
-   (let* (($actionConfigured (not (== (param actionFitness) ())))
+   (let* (($actionConfigured (not (== (param fitness) ())))
           ($tableConfigured  (not (and (== (param problem)   ())
                                        (== (param inputFile) "")))))
      (if (and $actionConfigured $tableConfigured)
@@ -260,14 +260,14 @@
       (
         ($_ (println! ""))
         ($_ (println! "Error: both an action fitness and a table problem are configured; unset one."))
-        ($_ (println! "  action route: --actionFitness=<fn>   (or !(set-param actionFitness <fn>))"))
+        ($_ (println! "  action route: --fitness=<fn>   (or !(set-param fitness <fn>))"))
         ($_ (println! "  table route:  --problem=<name> / --inputFile=<csv>"))
         ($_ (print-help-and-exit))
       )
       ()))
 
 ;; Shown when (moses) is invoked with neither a table problem (--problem= /
-;; --inputFile=) nor an action fitness (--actionFitness=). Falls through to
+;; --inputFile=) nor an action fitness (--fitness=). Falls through to
 ;; the standard --help dump so the user sees every knob and value.
 (= (no-problem-help-and-exit)
    (let*
@@ -278,7 +278,7 @@
         ($_ (println! "    sh run.sh moses.metta -s --problem=parity3"))
         ($_ (println! "or programmatically:  !(set-param problem parity3)"))
         ($_ (println! "For an action run, bind a fitness function instead:"))
-        ($_ (println! "    --actionFitness=tttActionFitness  (or !(set-param actionFitness <fn>))"))
+        ($_ (println! "    --fitness=tttActionFitness  (or !(set-param fitness <fn>))"))
         ($_ (println! "plus the vocabulary params -- see parameters/defaults.metta."))
         ($_ (print-help-and-exit))
       )
@@ -309,7 +309,15 @@
         ($truthTableBScore (createTruthTableBScore $cpxPen $itable))
         (($ctor $worstPossibleBScore) (worstPossibleScore $truthTableBScore))
         ($worstPossibleScore (List.sum $worstPossibleBScore))
-        ($bestPosssibleScore (getBestPossibleScore))
+        ;; Termination target: (getBestPossibleScore)'s hardcoded 0 (a
+        ;; clean table classified perfectly) unless (param bestScore)
+        ;; carries an explicit NUMBER override -- the table-run half of
+        ;; the bestScore contract (the action runner below treats the
+        ;; same param as a function symbol; see parameters/defaults.metta).
+        ($bsParam (param bestScore))
+        ($bestPosssibleScore (if (== (get-type $bsParam) Number)
+                                 $bsParam
+                                 (getBestPossibleScore)))
         ($_ (println! (BestPossibleScore: $bestPosssibleScore)))
         ($metaPop ((mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore))))
         ($result (runMoses $maxGen $bestPosssibleScore $metaPop 0 $nDeme
@@ -322,8 +330,8 @@
       (FinalResult $newR)))
 
 ;; Action runner, modeled on moses-run above. The experiment's fitness
-;; arrives through the global params ((param actionFitness) consumed inside
-;; scoring/action-score; (param actionBestScore) consumed here). The metapop
+;; arrives through the global params ((param fitness) consumed inside
+;; scoring/action-score; (param bestScore) consumed here). The metapop
 ;; seed is the empty and_seq exemplar (the action analog of moses-run's
 ;; `true` tree) at the defined-worst score: every one of the $nGames
 ;; episodes forfeits at -1.0 (see the empty-exemplar loophole note in the
@@ -332,13 +340,13 @@
    (let*
       (
         ;; Refuse loudly when the knob vocabulary is missing: with an empty
-        ;; actionActions every deme is knobless, so the run would print its
-        ;; generations and silently produce no result. actionPerceptions MAY
+        ;; actions every deme is knobless, so the run would print its
+        ;; generations and silently produce no result. perceptions MAY
         ;; legitimately be (): an experiment with no perceptions builds
         ;; action-only knobs (sampleActionPerms returns the bare action
         ;; list, representation/build-action.metta:18-21), so only
-        ;; actionActions is mandatory. The error path halts the process.
-        ($_vocabGuard (if (== (param actionActions) ())
+        ;; actions is mandatory. The error path halts the process.
+        ($_vocabGuard (if (== (param actions) ())
                           (missing-action-vocab-error-and-exit)
                           ()))
         ($seed     (param seed))
@@ -354,14 +362,14 @@
         ($cpxPen (param complexityRatio))
         ($nGames (param nGames))
         ;; Best reachable raw score is experiment knowledge: the fitness
-        ;; package declares it as (param actionBestScore), a function symbol
+        ;; package declares it as (param bestScore), a function symbol
         ;; called ($bsFn $nGames). Collapse-guarded: unset ((), a symbol
         ;; with no clause, a failing call, or a non-Number result -- the
         ;; termination compare needs arithmetic, and e.g. True is Grounded
         ;; but not a Number, so the test is (get-type ...) == Number) ->
         ;; a never-reached target ((pow-math 10 308)), so the run
         ;; terminates via maxGen instead.
-        ($bsFn (param actionBestScore))
+        ($bsFn (param bestScore))
         ($bsRs (collapse ($bsFn $nGames)))
         ($bestPossibleScore
            (if (== $bsRs ())
@@ -379,18 +387,18 @@
       )
       (FinalResult $newR)))
 
-;; Shown when an action run is configured (actionFitness set) but the knob
+;; Shown when an action run is configured (fitness set) but the knob
 ;; vocabulary is not: same loud-refusal style as
 ;; both-configured-error-and-exit -- no silent knobless run.
 (= (missing-action-vocab-error-and-exit)
    (let*
       (
         ($_ (println! ""))
-        ($_ (println! "Error: actionFitness is configured but actionActions is unset."))
+        ($_ (println! "Error: fitness is configured but actions is unset."))
         ($_ (println! "Without an action vocabulary every deme is knobless and the run produces nothing."))
         ($_ (println! "Bind it in-script before !(moses), quote-wrapped:"))
-        ($_ (println! "    !(set-param actionActions (quote (act1 act2 ...)))"))
-        ($_ (println! "(actionPerceptions may stay () -- that builds action-only knobs.)"))
+        ($_ (println! "    !(set-param actions (quote (act1 act2 ...)))"))
+        ($_ (println! "(perceptions may stay () -- that builds action-only knobs.)"))
         ($_ (print-help-and-exit))
       )
       ()))

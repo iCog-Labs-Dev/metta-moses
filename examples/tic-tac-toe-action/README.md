@@ -53,13 +53,13 @@ Files (load in this order, after the scoring block):
    (`parameters/defaults.metta`); the file that defines the fitness sets
    NO params, the RUN does:
 
-       !(set-param actionFitness <dom>Fitness)
-       !(set-param actionBestScore <dom>BestScore)
-       !(set-param actionActions (quote (<act> ...)))
-       !(set-param actionPerceptions (quote (<perc> ...)))
+       !(set-param fitness <dom>Fitness)
+       !(set-param bestScore <dom>BestScore)
+       !(set-param actions (quote (<act> ...)))
+       !(set-param perceptions (quote (<perc> ...)))
 
    The two function SYMBOLS can also ride the CLI
-   (`--actionFitness=<dom>Fitness --actionBestScore=<dom>BestScore`); the
+   (`--fitness=<dom>Fitness --bestScore=<dom>BestScore`); the
    vocabulary tuples cannot, so set them in-script. THE QUOTE RULE:
    quote-wrap BOTH vocabulary tuples at the set-param site — the
    primitives are live bare-head clauses, and an unquoted tuple headed by

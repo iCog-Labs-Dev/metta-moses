@@ -25,7 +25,7 @@
 
 ;; --- minimal import stack (identical to action-playground, plus pair) -------
 ;; parameters/registry+defaults load before scoring/action-score: the scorer
-;; reads the fitness from (param actionFitness), and PeTTa gates reduction
+;; reads the fitness from (param fitness), and PeTTa gates reduction
 ;; on load order.
 !(import! &self ../utilities/general-helpers)
 !(import! &self ../parameters/registry)
@@ -215,8 +215,8 @@
                  (mkPair 0 0) E 0 (antFuelBudget))))
 ;; every trail holds 5 pellets, so the best over $n episodes is 5 each
 (= (antBestScore $n) (* 5 $n))
-!(set-param actionFitness antFitness)
-!(set-param actionBestScore antBestScore)
+!(set-param fitness antFitness)
+!(set-param bestScore antBestScore)
 
 !(println! "---- PART 3: scoring ----------------------------------------------")
 
@@ -265,7 +265,7 @@
 ;;    and a perception away.
 ;;  * To make this a runnable MOSES problem (like the ttt experiment), the
 ;;    missing pieces are only a moses.metta import for this file plus the
-;;    four set-param bindings (actionFitness/actionBestScore + the
-;;    actionActions/actionPerceptions vocabulary tuples) -- the pipeline,
+;;    four set-param bindings (fitness/bestScore + the
+;;    actions/perceptions vocabulary tuples) -- the pipeline,
 ;;    evaluator, and scorer need no edits (see the tic-tac-toe-action README).
 ;; ============================================================================

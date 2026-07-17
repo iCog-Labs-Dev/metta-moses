@@ -178,8 +178,8 @@
 ;; membership predicates, resetActionDomain); the params-based redesign
 ;; then deleted domain-NAME registration too (registerActionDomain /
 ;; isRegisteredActionDomain / &actionDomains -- experiments now bind via
-;; the global params actionFitness / actionBestScore / actionActions /
-;; actionPerceptions, see parameters/defaults.metta). The assertions that
+;; the global params fitness / bestScore / actions /
+;; perceptions, see parameters/defaults.metta). The assertions that
 ;; exercised those APIs (including registerActionDomain idempotency) were
 ;; removed with them; structural-op membership is unaffected:
 !(assertEqual (isRegisteredActionOperator and_seq) True)

@@ -1,6 +1,6 @@
 !(import! &self ../../../utilities/general-helpers)
 ;; parameters load BEFORE scoring/action-score below: the scorer reads
-;; (param actionFitness), and PeTTa gates reduction on load order.
+;; (param fitness), and PeTTa gates reduction on load order.
 !(import! &self ../../../parameters/registry)
 !(import! &self ../../../parameters/defaults)
 !(import! &self ../../../utilities/list-methods)
@@ -93,8 +93,8 @@
 !(assertEqual (tttActionFitness (quote (and_seq ())) 1) -1.0)
 ;; ...and the same call through the param binding (the exact seam the
 ;; scoring layer uses -- the header's set-param line, then var-head apply)
-!(set-param actionFitness tttActionFitness)
-!(assertEqual (let $fn (param actionFitness) ($fn (quote (and_seq ())) 1)) -1.0)
+!(set-param fitness tttActionFitness)
+!(assertEqual (let $fn (param fitness) ($fn (quote (and_seq ())) 1)) -1.0)
 ;; best score = 1.0 * ceil(n/2): even episodes (random-player) winnable,
 ;; odd episodes (minimax-player) draw at best
 !(assertEqual (tttActionBestScore 4) 2.0)

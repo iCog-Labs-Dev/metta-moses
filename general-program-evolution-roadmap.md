@@ -92,17 +92,19 @@ framework entity. (This section supersedes the M0 notes above on
 — all deleted.)
 
 - **Binding = global params.** An experiment binds via
-  `actionFitness`/`actionBestScore` (function SYMBOLS; CLI-carriable) and
-  `actionActions`/`actionPerceptions` (quoted tuples, in-script only); see
+  `fitness`/`bestScore` (function SYMBOLS; CLI-carriable; on the TABLE
+  route `bestScore` may instead be a plain Number used directly as the
+  termination target) and
+  `actions`/`perceptions` (quoted tuples, in-script only); see
   parameters/defaults.metta. The scorer calls `($fn $exp $i)` per episode —
   $i is the ordinal 0..n-1; the ordinal→opponent/trail/world mapping is
   PRIVATE to the fitness. Cache keyed by (fitness symbol, compiled exp, n).
   Only Numbers enter the bscore: the episode guard tests
   `(get-type $v) == Number` (a metatype/Grounded test is NOT enough --
   True and strings are Grounded); unset/clauseless/failing/non-Number all
-  score the defined-worst -1.0. An action run with `actionActions` unset
+  score the defined-worst -1.0. An action run with `actions` unset
   refuses loudly in `moses-run-action` (a knobless run would otherwise die
-  silently); `actionPerceptions` may be () (action-only knobs).
+  silently); `perceptions` may be () (action-only knobs).
 - **Routing = context shape.** `(moses)` decides by configuration (action
   vs table, both → loud error); below the entry point everything dispatches
   on `(mkActionCtx $nGames ...)` shapes exactly as before, minus the domain

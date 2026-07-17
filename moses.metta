@@ -106,7 +106,7 @@
 ;; ---- Action fitness packages ----
 ;; ttt-action-registration DEFINES the tic-tac-toe fitness functions
 ;; (tttActionFitness / tttActionBestScore) but sets NO params -- loading it
-;; only makes the symbols available for --actionFitness=tttActionFitness /
+;; only makes the symbols available for --fitness=tttActionFitness /
 ;; set-param binding. It needs the shared tic-tac-toe helpers/players
 ;; (minimal set mirrored from examples/tic-tac-toe-action/tests).
 !(import! &self examples/tic-tac-toe/tic-tac-toe-helpers)

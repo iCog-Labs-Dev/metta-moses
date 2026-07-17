@@ -4,17 +4,17 @@
 ;;
 ;; THE PARAM CONTRACT (how a fitness attaches -- see parameters/defaults.metta
 ;; for the defaults and the quote rule):
-;;   actionFitness   -- a function SYMBOL $fn. The scorer calls ($fn $exp $i)
+;;   fitness   -- a function SYMBOL $fn. The scorer calls ($fn $exp $i)
 ;;       once per episode: $exp is the COMPILED wrapped expression (actionExp
 ;;       output), $i the episode ordinal 0..n-1, IN ORDER. It must return a
 ;;       Number, higher = better. Whether ordinals map to opponents, trails,
 ;;       start worlds, or nothing at all is PRIVATE to that function -- the
 ;;       framework only hands it the ordinal.
-;;   actionBestScore -- a function SYMBOL, ($fn $n) -> Number, the raw-score
+;;   bestScore -- a function SYMBOL, ($fn $n) -> Number, the raw-score
 ;;       termination target for n episodes (consumed by moses-run-action).
-;;   actionActions / actionPerceptions -- tuples of primitive symbols, the
+;;   actions / perceptions -- tuples of primitive symbols, the
 ;;       knob vocabulary (consumed by representation/create-representation).
-;; Unset actionFitness, a fitness symbol with no matching clause, a failing
+;; Unset fitness, a fitness symbol with no matching clause, a failing
 ;; call, or a non-Number episode result (e.g. a fitness that returns True
 ;; or a string) all map to the defined-worst -1.0 for that episode -- the
 ;; bscore only ever holds Numbers, never a crash (see runActionEpisode's
@@ -77,20 +77,20 @@
 
 ;; ---- Behavioral score (cached) ----
 ;; scoreActionTree: candidate Tree -> mkBScore over $nEpisodes episodes of
-;; the CONFIGURED fitness ((param actionFitness)). The tree is compiled ONCE
+;; the CONFIGURED fitness ((param fitness)). The tree is compiled ONCE
 ;; via actionExp; ($fn $exp $nEpisodes) is the cache key, so structurally
 ;; identical candidates never re-run episodes -- and switching the fitness
 ;; param can never serve another fitness's entries.
 ;; Cache miss -> run episodes, memoize, return; hit -> cached value.
 ;; NOTE: misconfigured results (the all -1.0 bscore of an unset fitness) are
-;; cached too, keyed under () -- if actionFitness is configured only
+;; cached too, keyed under () -- if fitness is configured only
 ;; AFTERWARDS the new symbol keys fresh entries, but re-binding the SAME
 ;; symbol to new behavior needs (resetActionScoreCache) or the stale scores
 ;; keep being served.
 ;(: scoreActionTree (-> (Tree $a) Number $space BehavioralScore))
 (= (scoreActionTree $tree $nEpisodes $scoreSpace)
    (let* (($exp (actionExp $tree))
-          ($fn (param actionFitness))
+          ($fn (param fitness))
           ($cached (collapse (match $scoreSpace ($fn $exp $nEpisodes $bscore) $bscore))))
      (if (== $cached ())
          (let* (($bs (mkBScore (runActionEpisodes $fn $exp $nEpisodes 0)))

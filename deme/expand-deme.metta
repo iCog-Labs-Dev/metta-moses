@@ -18,7 +18,7 @@
 ;; Action version - tagged context, dispatched BEFORE the loose 3-tuple
 ;; strategy pattern below. Packs the episode count and complexity ratio for
 ;; the hillClimbing applyActionBasedScore arm (the fitness itself binds
-;; globally through (param actionFitness) -- nothing to thread here).
+;; globally through (param fitness) -- nothing to thread here).
 (= (optimizeDemes $deme (mkActionCtx $nGames $complexityRatio $targetScore) $inst $optimize)
    ($optimize $deme $targetScore $inst (mkParams applyActionBasedScore ($nGames $complexityRatio))))
 ;; Game strategy version - unpacks tuple with target score
@@ -91,7 +91,7 @@
 ;; strategy overload above, whose runMoses call passes 8 args). The deme
 ;; layer is fitness-blind: the mkActionRep tag routes createDeme to the
 ;; action representation clause, which reads the knob vocabulary from
-;; (param actionActions) / (param actionPerceptions).
+;; (param actions) / (param perceptions).
 (= (expandDeme $metaPop $nExpansion $nDeme (mkActionCtx $nGames $complexityRatio) $maxScore $optimize)
    (let* (($exemplar (selectExemplar $metaPop))
           ($tree (getExemplarTree $exemplar))

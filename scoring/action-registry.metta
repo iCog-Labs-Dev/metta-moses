@@ -7,7 +7,7 @@
 ;; That is ALL the framework registers about actions. Everything an
 ;; EXPERIMENT contributes -- its fitness function, best-score function, and
 ;; action/perception vocabularies -- binds through the global params
-;; (actionFitness / actionBestScore / actionActions / actionPerceptions;
+;; (fitness / bestScore / actions / perceptions;
 ;; see parameters/defaults.metta and scoring/action-score.metta). There is
 ;; no domain-name registration and no per-domain config-clause family.
 ;;

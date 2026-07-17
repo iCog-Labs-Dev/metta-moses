@@ -29,8 +29,8 @@
 ;; symbol -- it heads no clauses, so it is inert in every position): threads
 ;; the experiment's action/perception vocabularies into the action-capable
 ;; 10-arg `representation` overload (representation.metta:145-162). The
-;; vocabularies come from the GLOBAL PARAMS (param actionActions) /
-;; (param actionPerceptions) -- tuples of primitive symbols, quote-wrapped
+;; vocabularies come from the GLOBAL PARAMS (param actions) /
+;; (param perceptions) -- tuples of primitive symbols, quote-wrapped
 ;; at their set-param sites per the contract in parameters/defaults.metta
 ;; (probe-verified: quote strips at set-param, so the values retrieved here
 ;; are the plain tuples; no unwrap needed). Unset params yield () -- the
@@ -44,8 +44,8 @@
 ;; slots. Each element is (mkRep (mkKbMap (mkDscMp $mmp)) $tree) -- the
 ;; 1-field KnobMap shape loopCreateDeme / expandDemeHelper destructure.
 (= (createRepresentation $nDeme $tree mkActionRep)
-   (let* (($actions (param actionActions))
-          ($perceptions (param actionPerceptions))
+   (let* (($actions (param actions))
+          ($perceptions (param perceptions))
           ($demeNumbers (range 0 1 $nDeme)))
      (map-atom $demeNumbers $x
        (let ($rep) (representation 1 $tree (mkITable () ()) None False () mi True $actions $perceptions)

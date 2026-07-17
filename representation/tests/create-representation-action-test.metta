@@ -1,6 +1,6 @@
 !(import! &self ../../utilities/general-helpers)
 ;; parameters load FIRST (mirrors moses.metta): create-representation's
-;; action clause reads (param actionActions)/(param actionPerceptions), and
+;; action clause reads (param actions)/(param perceptions), and
 ;; PeTTa gates reduction on load order.
 !(import! &self ../../parameters/registry)
 !(import! &self ../../parameters/defaults)
@@ -39,19 +39,19 @@
 ;; Inert test-local vocabulary bound through the GLOBAL PARAMS (the single
 ;; source since the params-based redesign; the per-domain config-clause
 ;; family was deleted) -- createRepresentation must pick it up via
-;; (param actionActions) / (param actionPerceptions) with no experiment
+;; (param actions) / (param perceptions) with no experiment
 ;; package loaded. The tuples are quote-wrapped at the set-param sites per
 ;; the contract (crt* symbols are inert here, but the convention is
 ;; uniform; probe-verified: quote strips on set, the params hold the plain
 ;; tuples).
 ;; ============================================================
 
-!(set-param actionActions (quote (crtGo crtTurn crtWait)))
-!(set-param actionPerceptions (quote (crtBlocked)))
+!(set-param actions (quote (crtGo crtTurn crtWait)))
+!(set-param perceptions (quote (crtBlocked)))
 
 ;; the params serve the test vocabulary back as plain tuples
-!(assertEqual (param actionActions) (crtGo crtTurn crtWait))
-!(assertEqual (param actionPerceptions) (crtBlocked))
+!(assertEqual (param actions) (crtGo crtTurn crtWait))
+!(assertEqual (param perceptions) (crtBlocked))
 
 ;; 2 demes -> 2 reps, each the 1-field (mkRep (mkKbMap (mkDscMp $m)) $t)
 ;; shape with a non-empty knob multimap

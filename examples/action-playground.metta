@@ -11,7 +11,7 @@
 
 ;; --- minimal import stack (engine + scoring helpers), nothing else ----------
 ;; parameters/registry+defaults load before scoring/action-score: the scorer
-;; reads the fitness from (param actionFitness), and PeTTa gates reduction
+;; reads the fitness from (param fitness), and PeTTa gates reduction
 ;; on load order.
 !(import! &self ../utilities/general-helpers)
 !(import! &self ../parameters/registry)
@@ -116,7 +116,7 @@
 ;;   * the evaluator above is domain-agnostic and generic;
 ;;   * the FITNESS below is yours: ONE ordinary function ($fn $exp $i) that
 ;;     says what episode ordinal $i means and what a score is. You bind it
-;;     with (set-param actionFitness <fn>). That's the entire interface.
+;;     with (set-param fitness <fn>). That's the entire interface.
 ;; ============================================================================
 
 ;; (1)+(2) The fitness: episode ordinal -> start position (PRIVATE mapping:
@@ -136,9 +136,9 @@
 
 ;; Bind the fitness: this playground IS an execution, so it sets the params
 ;; itself (a full moses.metta run would do the same in-script, plus
-;; actionActions/actionPerceptions for the knob vocabulary).
-!(set-param actionFitness botFitness)
-!(set-param actionBestScore botBestScore)
+;; actions/perceptions for the knob vocabulary).
+!(set-param fitness botFitness)
+!(set-param bestScore botBestScore)
 
 !(println! "---- PART 3: scoring ----------------------------------------------")
 

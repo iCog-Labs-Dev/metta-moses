@@ -141,16 +141,16 @@
 ;;         are live bare-head clauses, so an unquoted tuple headed by one
 ;;         curries into a `partial` term (probe-verified; quote strips on
 ;;         set, the params hold the plain tuples) ----
-!(set-param actionFitness smokeFitness)
-!(set-param actionBestScore smokeBestScore)
-!(set-param actionActions (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
-!(set-param actionPerceptions (quote (tttCanWin tttCanBlock tttCenterFree)))
+!(set-param fitness smokeFitness)
+!(set-param bestScore smokeBestScore)
+!(set-param actions (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
+!(set-param perceptions (quote (tttCanWin tttCanBlock tttCenterFree)))
 
 ;; The binding is live before the run: the configured fitness symbol is
 ;; discoverable and the best-score function answers through the same
 ;; var-head dispatch the runner uses.
-!(assertEqual (param actionFitness) smokeFitness)
-!(assertEqual (let $fn (param actionBestScore) ($fn 4)) 4.0)
+!(assertEqual (param fitness) smokeFitness)
+!(assertEqual (let $fn (param bestScore) ($fn 4)) 4.0)
 
 ;; ============================================================
 ;; Small-run parameters (the moses-run-action assembly, shrunk):

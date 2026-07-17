@@ -39,7 +39,7 @@
 ;; Action scoring helper: instance -> candidate tree -> episodes -> Cscore.
 ;; Mirrors applyStrategyBasedScore, but scores through the generic action
 ;; evaluator (getActionCscore, scoring/action-score.metta) against the
-;; fitness configured in (param actionFitness). Uses the 3-arg getCandidate:
+;; fitness configured in (param fitness). Uses the 3-arg getCandidate:
 ;; action reps carry embedded mkASK knobs in a 1-field (mkKbMap (mkDscMp ...))
 ;; -- the 4-arg findDiscKnob path requires the 2-field mkDscKbMp shape.
 ;; Params:

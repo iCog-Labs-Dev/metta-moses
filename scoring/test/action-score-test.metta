@@ -1,6 +1,6 @@
 !(import! &self ../../utilities/general-helpers)
 ;; parameters load BEFORE action-score: the scorer reads (param
-;; actionFitness), and PeTTa gates reduction on load order.
+;; fitness), and PeTTa gates reduction on load order.
 !(import! &self ../../parameters/registry)
 !(import! &self ../../parameters/defaults)
 !(import! &self ../../utilities/list-methods)
@@ -18,7 +18,7 @@
 !(import! &self ../action-score)
 
 ;; Generic action-scoring test. A deterministic test FITNESS is defined HERE
-;; and bound via (set-param actionFitness ...) -- proving an experiment plugs
+;; and bound via (set-param fitness ...) -- proving an experiment plugs
 ;; in through the param contract alone (the scorer's var-head ($fn $exp $i)
 ;; dispatch finds clauses loaded at any later time; operator/primitive
 ;; clauses are bare heads found by the engine's reduce dispatch) without
@@ -50,8 +50,8 @@
 (= (tstBoolFitness $exp $i) True)
 (= (tstStrFitness $exp $i) "oops")
 
-!(set-param actionFitness tstFitness)
-!(set-param actionBestScore tstBestScore)
+!(set-param fitness tstFitness)
+!(set-param bestScore tstBestScore)
 
 ;; ---- Hand-built candidate trees ----
 (= (tstLeafTree) (mkTree (mkNode tstInc) ()))
@@ -99,12 +99,12 @@
 ;; KEY ISOLATION: a DIFFERENT fitness symbol (resetActionScoreCache NOT
 ;; called) must MISS for the same tree + nEpisodes -- the fitness symbol is
 ;; part of the cache key, so configured fitnesses never share entries.
-!(set-param actionFitness tstAltFitness)
+!(set-param fitness tstAltFitness)
 !(assertEqual (scoreActionTree (tstLeafTree) 2 &actionScoreCache)
               (mkBScore (7.0 7.0)))
 !(assertEqual (tstLogCount) 13)
 ;; ...and switching BACK serves tstFitness's still-cached entry: no re-runs.
-!(set-param actionFitness tstFitness)
+!(set-param fitness tstFitness)
 !(assertEqual (scoreActionTree (tstLeafTree) 2 &actionScoreCache)
               (mkBScore (1.0 0.0)))
 !(assertEqual (tstLogCount) 13)
@@ -151,11 +151,11 @@
 
 ;; ---- 6. Misconfigured fitness -> all -1.0, right length, never crash ----
 ;; UNSET param (the () default): every episode scores the defined-worst
-!(set-param actionFitness ())
+!(set-param fitness ())
 !(assertEqual (scoreActionTree (tstSeqTree) 3 &actionScoreCache)
               (mkBScore (-1.0 -1.0 -1.0)))
 ;; a fitness SYMBOL with no clauses at all
-!(set-param actionFitness tstGhostFitness)
+!(set-param fitness tstGhostFitness)
 !(assertEqual (scoreActionTree (tstSeqTree) 2 &actionScoreCache)
               (mkBScore (-1.0 -1.0)))
 ;; neither ran any logged episode
@@ -164,17 +164,17 @@
 ;; evalAction's status instead of a score) and True IS Grounded, so only
 ;; the explicit (get-type ...) == Number guard keeps it out of the bscore
 ;; -- each episode maps to -1.0 instead of crashing sumBScore downstream
-!(set-param actionFitness tstBoolFitness)
+!(set-param fitness tstBoolFitness)
 !(assertEqual (scoreActionTree (tstSeqTree) 2 &actionScoreCache)
               (mkBScore (-1.0 -1.0)))
 ;; ...same for a string result (also Grounded, also not a Number)
-!(set-param actionFitness tstStrFitness)
+!(set-param fitness tstStrFitness)
 !(assertEqual (scoreActionTree (tstSeqTree) 2 &actionScoreCache)
               (mkBScore (-1.0 -1.0)))
 ;; nEpisodes = 0 -> the empty bscore (restore the real fitness first)
-!(set-param actionFitness tstFitness)
+!(set-param fitness tstFitness)
 !(assertEqual (scoreActionTree (tstLeafTree) 0 &actionScoreCache)
               (mkBScore ()))
 
 ;; ---- 7. Remaining param-contract surface ----
-!(assertEqual (let $fn (param actionBestScore) ($fn 4)) 4)
+!(assertEqual (let $fn (param bestScore) ($fn 4)) 4)

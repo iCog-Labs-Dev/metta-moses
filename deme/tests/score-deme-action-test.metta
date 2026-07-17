@@ -1,6 +1,6 @@
 !(import! &self ../../utilities/general-helpers)
 ;; parameters load BEFORE scoring/action-score below: the scorer reads
-;; (param actionFitness), and PeTTa gates reduction on load order.
+;; (param fitness), and PeTTa gates reduction on load order.
 !(import! &self ../../parameters/registry)
 !(import! &self ../../parameters/defaults)
 !(import! &self ../../utilities/list-methods)
@@ -50,7 +50,7 @@
 ;; transform dispatch tests for the ACTION scoring context.
 ;;
 ;; A deterministic TEST-LOCAL fitness (sdtFitness) is defined here, after
-;; the pipeline loaded, and bound via (set-param actionFitness ...) --
+;; the pipeline loaded, and bound via (set-param fitness ...) --
 ;; exactly like a real experiment. World = a plain number counter (opaque
 ;; to the engine); no board, no randomness.
 ;; ============================================================
@@ -64,8 +64,8 @@
 ;; clauses (probe-verified: quote strips on set, the param holds the plain
 ;; tuple). This test's rep is hand-built below, so nothing here consults
 ;; the vocabulary -- the bindings keep the experiment template complete.
-!(set-param actionActions (quote (sdtBump sdtStop)))
-!(set-param actionPerceptions ())
+!(set-param actions (quote (sdtBump sdtStop)))
+!(set-param perceptions ())
 
 ;; Episode-ordinal bonus (PRIVATE to the fitness -- the analog of the old
 ;; opponent interleave): even ordinals add 0.0, odd ordinals add 0.25.
@@ -77,8 +77,8 @@
    (let (mkARes $v $w) (evalAction $exp 0)
         (+ $w (sdtOrdinalBonus $i))))
 (= (sdtBestScore $n) (* 1.0 $n))
-!(set-param actionFitness sdtFitness)
-!(set-param actionBestScore sdtBestScore)
+!(set-param fitness sdtFitness)
+!(set-param bestScore sdtBestScore)
 
 ;; ---- Hand-built action representation: one embedded mkASK knob under an
 ;;      and_seq root (shape mirrors representation/tests/build-action-test
