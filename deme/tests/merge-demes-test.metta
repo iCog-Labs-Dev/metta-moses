@@ -554,6 +554,9 @@
                                      (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (cons 0 (cons 0 ())))) ()))
 )
 
+!(bind! &deme1 (new-space))
+!(bind! &deme2 (new-space))
+
 (= (rep1) (mkRep 
        (mkKbMap 
          (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ())))
@@ -569,9 +572,9 @@
 (= (instSet1) (mkSInstSet 
        (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 5.0 2 0.571 0.0 4.429))) ())))   
 (= (demeId1) (mkDemeId "1"))                        
-!(add-atom &deme1 (rep1))
-!(add-atom &deme1 (instSet1))
-!(add-atom &deme1 (demeId1))
+!(let $x (rep1) (add-atom &deme1 $x))
+!(let $y (instSet1) (add-atom &deme1 $y))
+!(let $z (demeId1) (add-atom &deme1 $z))
 
 (= (rep2) (mkRep 
        (mkKbMap 
@@ -588,9 +591,9 @@
 (= (instSet2) (mkSInstSet 
        (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 6.0 2 0.571 0.0 5.429))) ())))   
 (= (demeId2) (mkDemeId "2"))                        
-!(add-atom &deme2 (rep1))
-!(add-atom &deme2 (instSet1))
-!(add-atom &deme2 (demeId1))
+!(let $x (rep2) (add-atom &deme2 $x))
+!(let $y (instSet2) (add-atom &deme2 $y))
+!(let $z (demeId2) (add-atom &deme2 $z))
 
 !(assertEqual (demeToTrees 
      (mkRep 
@@ -609,7 +612,7 @@
        (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 6.0 2 0.571 0.0 5.429))) ()))
       (mkDemeId "2")
               1) 
-              (cons (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playblock) ()) ()))) (mkDemeId "1") (mkCscore 5.0 2 0.571 0.0 4.429) (mkBScore (cons -1.0 ()))) ()))
+              (cons (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playside) ()) ()))) (mkDemeId "2") (mkCscore 6.0 2 0.571 0.0 5.429) (mkBScore (cons -1.0 ()))) ()))
 
 ;; mergeDemes (strategy variant): original positional args
 ;;   5 2 0 1   1 ()   3 0.004 1000
