@@ -20,37 +20,36 @@
             (List.uniqueValuesCount $xs $new-tuple-added))))
 
 ; (: Table.getColumn (-> Number (List (List $a)) (List $a)))
-(= (Table.getColumn $i ()) ())
-(= (Table.getColumn $i (cons $row $rest))
-    (cons (List.at $i $row) (Table.getColumn $i $rest)))
-; ;; Table.pop        -- gets and removes a column from the current ttable structure
-; ;;                  -- returns the remaining table and the culumn asked for
-(= (Table.pop $i ()) ())
-(= (Table.pop $i (cons $row $rest))
-    (let (cons $d $ds) $row
-        (if (== $i 0)
-            (cons $ds (Table.pop $i $rest))
-            (cons (cons $d (List.pop (- $i 1) $ds)) (Table.pop $i $rest)))))
-; removes the first column from table
-; ; (: Table.pop (-> (List (List $a)) (List (List $a))))
-; (= (Table.pop $rows)
-;     (unify $rows () ()
-;         (unify $rows (cons (cons $d $ds) $rest)
-;             (cons $ds (Table.pop $rest)) ())))
+(= (Table.getColumn $i $table)
+    (if (== $table ())
+         ()
+       (List.at $i $table)))
 
-;; returns the last column of the table
+;; Table.pop        -- gets and removes a column from the current ttable structure
+;;                  -- returns the remaining table
+(= (Table.pop $i $table)
+    (if (== $table ())
+         ()
+         (List.pop $i $table)))
+
+;; Removes the first column from a column-major table.
+; (: Table.pop (-> (List (List $a)) (List (List $a))))
+(= (Table.pop $table)
+    (List.pop 0 $table))
+
+;;  returns the last column of the table
 ; (: Table.getOutputColumn (-> ITable (List $a)))
 (= (Table.getOutputColumn (mkITable $table $labels))
-    (chain (List.length $labels) $colNum 
-    (chain (Table.getColumn (- $colNum 1) $table) $oc   
-    $oc  ))
-)
+    (chain (List.length $labels) $colNum
+        (Table.getColumn (- $colNum 1) $table)))
+
 
 ;;;;;;;;;;;;;;
 ;; Transpose;;
 ;;;;;;;;;;;;;;
 ; (: Table._transposeHelper (-> (List Number) (List (List $a)) (List (List $a))))
 (= (Table._transposeHelper () $table) ())
+
 (= (Table._transposeHelper (cons $i $rest) $table)
     (cons (Table.getColumn $i $table)
           (Table._transposeHelper $rest $table)))
@@ -236,7 +235,7 @@
             (if (= $datarows (cons $row $rows))
                 (chain (map-atom $indices $i (List.at $i $row)) $dataTuple
                     (cons $dataTuple (zipColumn $indices $rows)))
-                ()))))
+                 ()))))
 
 ;; return marginal probabilities as tuple (p1 p2)
 ; (: marginalProbs (-> Number Expression Expression))
