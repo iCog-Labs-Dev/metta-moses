@@ -38,6 +38,29 @@
       ) 
 )
 
+;; Ant action-domain createDeme - creates action representations with embedded
+;; ASK knobs using the domain-local action/perception vocabulary.
+(= (createDeme $nDeme $demeIds $exemplar (mkAntContext $steps $complexityRatio $actions $perceptions))
+      (let*
+            (
+                  ($demeCount (genList 0 (- $nDeme 1)))
+                  ($reps (map-atom $demeCount $x
+                        (representation
+                              1
+                              $exemplar
+                              (mkITable () ())
+                              None
+                              False
+                              ()
+                              mi
+                              True
+                              $actions
+                              $perceptions)))
+            )
+            (loopCreateDeme $demeIds $reps ())
+      )
+)
+
 
 (= (loopCreateDeme $demeIds $reps $acc)
 (if (== $reps ()) 
