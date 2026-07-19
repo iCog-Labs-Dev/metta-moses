@@ -228,15 +228,22 @@
 
 (= (cachedMutualInformation $itable $featureIndices)
     (lruCache (param defaultCacheSize) ((calculateMutualInformation) ($itable $featureIndices))))
-; (: zipColumn (-> Expression (List (List $a)) (List $a)))        
-(= (zipColumn $indices $datarows)
+
+;; Build row-wise tuples from selected columns in a column-major table.
+; (: zipColumn (-> Expression (List (List $a)) (List $a)))
+(= (zipColumn $indices $table)
     (if (== $indices ())
         ()
-        (unify $datarows () ()
-            (if (= $datarows (cons $row $rows))
-                (chain (map-atom $indices $i (List.at $i $row)) $dataTuple
-                    (cons $dataTuple (zipColumn $indices $rows)))
-                 ()))))
+        (chain (map-atom $indices $i (Table.getColumn $i $table)) $columns
+            (chain (List.length (List.at 0 $columns)) $rowCount
+                (zipColumnHelper $columns (List.range 0 $rowCount))))))
+
+;; (: zipColumnHelper (-> (List (List $a)) (List Number) (List $a)))
+(= (zipColumnHelper $columns ()) ())
+
+(= (zipColumnHelper $columns (cons $rowIdx $rest))
+    (chain (map-atom $columns $column (List.at $rowIdx $column)) $dataTuple
+        (cons $dataTuple (zipColumnHelper $columns $rest))))
 
 ;; return marginal probabilities as tuple (p1 p2)
 ; (: marginalProbs (-> Number Expression Expression))
