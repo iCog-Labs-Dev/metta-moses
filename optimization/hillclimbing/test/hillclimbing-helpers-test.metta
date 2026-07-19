@@ -160,9 +160,15 @@
     )
 (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
-(= (deme) (mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) ( (mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1)))) (mkSInstSet ()) (mkDemeId "1")))
+!(bind! &deme1 (new-space))
 
-(= (demes) ((mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) ))))) (mkTree (mkNode AND) ((mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1)))) (mkSInstSet ()) (mkDemeId "1"))))
+(= (rep1) (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) ( (mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1)))))
+(= (instSet1) (mkSInstSet ()))
+(= (demeId1) (mkDemeId "1"))
+
+!(let $x (rep1) (add-atom &deme1 $x))
+!(let $y (instSet1) (add-atom &deme1 $y))
+!(let $z (demeId1) (add-atom &deme1 $z))
 
 (= (table1) (createTruthTableBScore 2 (mkITable
                          (cons (cons False (cons False (cons False ()))) 
@@ -185,17 +191,23 @@
 !(assertEqual
    (let*
      (
-       (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (hillClimbing (deme) (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
+       (($instance $demespace $state) (hillClimbing &deme1 (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
+       ($instSet (match $demespace (mkSInstSet $s) $s))
        ($instanceCount (List.length $instSet))
        ($scoredElems (List.map isScored $instSet))
      )
      ((>= $instanceCount 4) (List.any $scoredElems)))
 (True True))
 
+!(bind! &deme2 (new-space))
+!(let $x (mkRep () ()) (add-atom &deme2 $x))
+!(let $y (mkSInstSet ()) (add-atom &deme2 $y))
+!(let $z (mkDemeId ()) (add-atom &deme2 $z))
 !(assertEqual
    (let*
      (
-       (($instance (mkSInstSet $instSet) $state) (hillClimbing (mkSInstSet ()) (itable) (mkInst (cons 1 (cons 0 ()))) (mkParams applyMutualInformationBasedScore mi)))
+       (($instance $demespace $state) (hillClimbing &deme2 (itable) (mkInst (cons 1 (cons 0 ()))) (mkParams applyMutualInformationBasedScore mi)))
+       ($instSet (match $demespace (mkSInstSet $s) $s))
        ($instanceCount (List.length $instSet))
        ($scoredElems (List.map isScored $instSet))
      )
@@ -207,7 +219,8 @@
 !(assertEqual 
   (let* 
   (
-    (($instance (mkDeme $rep (mkSInstSet $sInstSet) $demeId) $state) (hillClimbing (deme) (table1) (mkInst (cons 2 (cons 2 ()))) (mkParams applyComplexityBasedScore ())))
+    (($instance $demespace $state) (hillClimbing &deme1 (table1) (mkInst (cons 2 (cons 2 ()))) (mkParams applyComplexityBasedScore ())))
+    ($sInstSet (match $demespace (mkSInstSet $s) $s))
     ((mkSInst (mkPair $bestInst $bestScore)) (List.foldl hillScoreHelper (mkSInst (mkPair (mkInst (2 2)) (mkCscore -4 2 1.0 0.0 -5.0))) $sInstSet))
   )
   (or (== $instance $bestInst) (<= (- (getPenScore $bestScore) -5) 0.5))
