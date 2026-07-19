@@ -30,8 +30,9 @@
 
 ;; similar to the above 'crossTopOne' but with slight changes on the comparison function that is passed to the Lost.partialSort to compare the mutualInformation based scores
 ; (: crossTopOneFs (-> (InstanceSet $a) Number Number Number Instance (InstanceSet $a)))
-(= (crossTopOneFs (mkSInstSet $instSet) $nToMake $sampleStart $sampleSize $baseInstance)
+(= (crossTopOneFs $demeSpace $nToMake $sampleStart $sampleSize $baseInstance)
    (let* (
+           ($instSet (match $demeSpace (mkSInstSet $instS) $instS))
            ;; ($_ (println! (Inside crossTopOneFs)))
            ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
            ;; ($_ (println! (NToMake: $nToMakeNew)))

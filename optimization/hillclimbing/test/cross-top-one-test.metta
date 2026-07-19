@@ -16,21 +16,26 @@
 
 (= (wScore) (* -1 (pow-math 10 100))) ;; bind worst score value 
 
-(= (demeSize (mkDeme $rep (mkSInstSet $list) $demeId)) (List.length $list))
+(= (demeSize $demespace) 
+   (List.length (match $demespace (mkSInstSet $list) $list)))
 
-(= (deme1) 
-        (mkDeme 
-        (mkRep 
-            (mkKbMap (mkDscMp ())) (mkTree (mkNode A) ()))
-                     (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1))) 
+!(bind! &deme1 (new-space))
+
+(= (rep1) (mkRep 
+            (mkKbMap (mkDscMp ())) (mkTree (mkNode A) ())))
+(= (instSet1) (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1))) 
                         (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 1 2 3 4 3))) 
                             (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 1 2 3 4 4)))
                                 (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 2 3 4 2))) 
                                     (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5))) 
                                         (cons (mkSInst (mkPair (mkInst (cons 10 ())) (mkCscore 1 2 3 4 0.5))) 
                                             (cons (mkSInst (mkPair (mkInst (cons 12 ())) (mkCscore 1 2 3 4 0.25))) 
-                                                (cons (mkSInst (mkPair (mkInst (cons 15 ())) (mkCscore 1 2 3 4 0.15))) ()))))))))) (mkDemeId "1")))
+                                                (cons (mkSInst (mkPair (mkInst (cons 15 ())) (mkCscore 1 2 3 4 0.15))) ()))))))))))
+(= (demeId1) (mkDemeId "1"))
 
+!(let $x (rep1) (add-atom &deme1 $x))
+!(let $y (instSet1) (add-atom &deme1 $y))
+!(let $z (demeId1) (add-atom &deme1 $z))
 
 ;; Test cases  -- swapValue
 !(assertEqual (swapValue 1 2 2) 1)     
@@ -70,17 +75,15 @@
                             (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) 
                                 (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))))
 ;; Test cases -- crossTopOne
-;;use List.length as it returns insatance not deme
-!(assertEqual (List.length (crossTopOne (deme1) 3 0 4 (mkInst (cons 2 ())))) 2)
-!(assertEqual (List.length (crossTopOne (deme1) 4 0 5 (mkInst (cons 2 ())))) 3)
+;;use List.length as it returns instance not deme
+!(assertEqual (List.length (crossTopOne &deme1 3 0 4 (mkInst (cons 2 ())))) 2)
+!(assertEqual (List.length (crossTopOne &deme1 4 0 5 (mkInst (cons 2 ())))) 3)
 
-!(assertEqual
-  (crossTopOne
-    (mkDeme
-      (mkRep
+!(bind! &deme2 (new-space))
+    (= (rep2) (mkRep
         (mkKbMap (mkDscMp ()))
-        (mkTree (mkNode A) ()))
-      (mkSInstSet
+        (mkTree (mkNode A) ())))
+    (= (instSet2) (mkSInstSet
         (cons
           (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1)))
           (cons
@@ -91,23 +94,29 @@
                 (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 2 3 4 2)))
                 (cons
                   (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5)))
-                  ()))))))
-      (mkDemeId "1")) 3 0 4 (mkInst (cons 2 ())))
+                  ())))))))
+
+    !(let $x (rep2) (add-atom &deme2 $x))
+    !(let $y (instSet2) (add-atom &deme2 $y))
+    !(let $z (demeId1) (add-atom &deme2 $z))
+
+!(assertEqual
+  (crossTopOne &deme2 3 0 4 (mkInst (cons 2 ())))
     (cons
      (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
       (cons 
         (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ())))
 
 ;; Test deme: small population with simple integer instances and fixed scores
-(= (deme2)
-   (mkDeme
-       (mkRep
+
+!(bind! &deme3 (new-space))
+(= (rep3) (mkRep
            (mkKbMap
               (mkDscKbMp 
                (cons ()))
                (mkDscMp ()))
-               (mkTree (mkNode A) ()))
-             (mkSInstSet
+               (mkTree (mkNode A) ())))
+(= (instSet3) (mkSInstSet
                     (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 1 0 0 0 3)))
                           (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 1 0 0 0 2)))
                               (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 0 0 0 1)))
@@ -115,7 +124,12 @@
                                          (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 0 0 0 5)))
                                                (cons (mkSInst (mkPair (mkInst (cons 6 ())) (mkCscore 1 0 0 0 6)))
                                                       (cons (mkSInst (mkPair (mkInst (cons 7 ())) (mkCscore 1 0 0 0 7)))
-                                                            (cons (mkSInst (mkPair (mkInst (cons 8 ())) (mkCscore 1 0 0 0 8)))()))))))))) (mkDemeId "2")))
+                                                            (cons (mkSInst (mkPair (mkInst (cons 8 ())) (mkCscore 1 0 0 0 8)))()))))))))))
+(= (demeid2) (mkDemeId "2"))
+
+!(let $x (rep3) (add-atom &deme3 $x))
+!(let $y (instSet3) (add-atom &deme3 $y))
+!(let $z (demeId2) (add-atom &deme3 $z))
 
 ;;crossPairsForRef test
  !(assertEqual
@@ -147,16 +161,13 @@
 ;; ----------------------------------------
 ;; Instance Size test 
 ;; use List.length
-!(assertEqual (List.length (crossTopTwo (deme2) 3 0 4 (mkInst (cons 3 ())))) 3)
+!(assertEqual (List.length (crossTopTwo &deme3 3 0 4 (mkInst (cons 3 ())))) 3)
 
-;; full crossover test                                      
-!(assertEqual
-    (crossTopTwo
-      (mkDeme
-        (mkRep
+!(bind! &deme4 (new-space))
+    (= (rep4) (mkRep
           (mkKbMap (mkDscKbMp (cons ())) (mkDscMp ()))
-          (mkTree (mkNode A) ()))
-        (mkSInstSet
+          (mkTree (mkNode A) ())))
+    (= (instSet4) (mkSInstSet
           (cons
             (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1)))
             (cons
@@ -167,9 +178,15 @@
                   (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 2 3 4 2)))
                   (cons
                     (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5)))
-                    ()))))))
-        (mkDemeId "1"))
-      3 0 4 (mkInst (cons 2 ())))
+                    ())))))))
+
+    !(let $x (rep4) (add-atom &deme4 $x))
+    !(let $y (instSet4) (add-atom &deme4 $y))
+    !(let $z (demeId1) (add-atom &deme4 $z))
+
+;; full crossover test                                      
+!(assertEqual
+    (crossTopTwo &deme4 3 0 4 (mkInst (cons 2 ())))
 
     (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
       (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
@@ -213,16 +230,15 @@
          1))
    1)
 
+!(bind! &deme5 (new-space))
 
-(= (deme3)
-          (mkDeme
-            (mkRep
+(= (rep5) (mkRep
               (mkKbMap
                  (mkDscKbMp 
                    (cons ()))
                   (mkDscMp ()))
-              (mkTree (mkNode A) ()))
-             (mkSInstSet
+              (mkTree (mkNode A) ())))
+(= (instSet5) (mkSInstSet
                         (cons
                            (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 1)))
                            (cons
@@ -237,8 +253,12 @@
                                        (mkSInst (mkPair (mkInst (cons 6 ())) (mkCscore 0 0 0 0 6)))
                                        (cons
                                           (mkSInst (mkPair (mkInst (cons 7 ())) (mkCscore 0 0 0 0 7)))
-                                 ()))))))))
-                        (mkDemeId "3")))
+                                 ())))))))))
+(= (demeId3) (mkDemeId "3"))
+
+!(let $x (rep5) (add-atom &deme5 $x))
+!(let $y (instSet5) (add-atom &deme5 $y))
+!(let $z (demeId3) (add-atom &deme5 $z))
 
 ;; ----------------------------------------
 ;; crossTopThree integration tests
@@ -246,16 +266,14 @@
 
 ;; Instance Size test 
 ;; use List.length
-!(assertEqual (List.length (crossTopThree (deme3) 4 0 5 (mkInst  (cons 2 ())))) 4)
+;; crossTopThree integration test
+!(assertEqual (List.length (crossTopThree &deme5 4 0 5 (mkInst (cons 2 ())))) 4)
 
-;; full crossover test
-!(assertEqual
-    (crossTopThree
-      (mkDeme
-        (mkRep
+!(bind! &deme6 (new-space))
+    (= (rep6) (mkRep
           (mkKbMap (mkDscKbMp (cons ())) (mkDscMp ()))
-          (mkTree (mkNode A) ()))
-        (mkSInstSet
+          (mkTree (mkNode A) ())))
+    (= (instSet6) (mkSInstSet
           (cons
             (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1)))
             (cons
@@ -266,8 +284,15 @@
                   (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 2 3 4 2)))
                   (cons
                     (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5)))
-                    ()))))))
-        (mkDemeId "3")) 3 0 4 (mkInst (cons 2 ())))
+                    ())))))))
+
+    !(let $x (rep6) (add-atom &deme6 $x))
+    !(let $y (instSet6) (add-atom &deme6 $y))
+    !(let $z (demeId3) (add-atom &deme6 $z))
+
+;; full crossover test
+!(assertEqual
+    (crossTopThree &deme6 3 0 4 (mkInst (cons 2 ())))
 
       (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
         (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
