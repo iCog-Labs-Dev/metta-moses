@@ -4,7 +4,10 @@
 ;; removed python binding for compatibility with workflow -- XXX 
 ;; bind is not supported for constants (as of 13 NOV) in PeTTa -- thus using function style notation
 (= (NO_EXEMPLAR) "empty metapopulation")
-(= (INV_TEMP) (/ 100.0 (param compxyTemp)))
+;; C++ uses metapop_parameters::complexity_temperature for both Boltzmann
+;; exemplar selection and merge trimming.  Reading that same registry key here
+;; removes the former split-brain compxyTemp/complexityTemperature behavior.
+(= (INV_TEMP) (/ 100.0 (param complexityTemperature)))
 
 ;; exemplar  selection
 ;; if the the metapopulation is empty - throw error and quit
@@ -27,6 +30,33 @@
                     ;; ($pr (println! (HstScr: $hstScr Sum: $sum)))
                   )
                   (rouletteSelect $metaPop $normalizedProbs $sum) )))))
+
+;; Ant visit accounting is intentionally kept outside Exemplar so public
+;; exemplar and runMoses interfaces remain unchanged.  A revisit value of zero
+;; allows one expansion; N allows the initial expansion plus N revisits.
+(= (antVisitCount $tree ()) 0)
+(= (antVisitCount $tree (cons (mkAntVisit $visitedTree $count) $rest))
+   (if (== $tree $visitedTree)
+       $count
+       (antVisitCount $tree $rest)))
+
+(= (recordAntVisit $tree ()) ((mkAntVisit $tree 1)))
+(= (recordAntVisit $tree (cons (mkAntVisit $visitedTree $count) $rest))
+   (if (== $tree $visitedTree)
+       (cons (mkAntVisit $visitedTree (+ $count 1)) $rest)
+       (cons (mkAntVisit $visitedTree $count) (recordAntVisit $tree $rest))))
+
+(= (antEligibleExemplars () $visits $revisit) ())
+(= (antEligibleExemplars
+      (cons (mkExemplar $tree $demeId $cscore $bscore) $rest)
+      $visits $revisit)
+   (let $exemplar (mkExemplar $tree $demeId $cscore $bscore)
+     (if (<= (antVisitCount $tree $visits) $revisit)
+         (cons $exemplar (antEligibleExemplars $rest $visits $revisit))
+         (antEligibleExemplars $rest $visits $revisit))))
+
+(= (selectAntExemplar $metaPop $visits $revisit)
+   (selectExemplar (antEligibleExemplars $metaPop $visits $revisit)))
 
 ;; get penalized scores of all the exemplars as a list of Numbers
 ;;      (cons $x $xs) -- pattern for the list of exemplars constructed by cons

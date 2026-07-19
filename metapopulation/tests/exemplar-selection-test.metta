@@ -1,13 +1,21 @@
-!(import! &self ../../../metta-moses/utilities/general-helpers)
-!(import! &self ../../../metta-moses/parameters/registry)
-!(import! &self ../../../metta-moses/parameters/defaults)
-!(import! &self ../../../metta-moses/utilities/list-methods)
-!(import! &self ../../../metta-moses/utilities/ordered-set)
-!(import! &self ../../../metta-moses/scoring/cscore.metta)
-!(import! &self ../../../metta-moses/utilities/tree)
-!(import! &self ../../../metta-moses/metapopulation/exemplar-selection)
-!(import! &self ../../../metta-moses/metapopulation/metapopulation)
+!(import! &self ../../utilities/general-helpers)
+!(import! &self ../../parameters/registry)
+!(import! &self ../../parameters/defaults)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/ordered-set)
+!(import! &self ../../scoring/cscore.metta)
+!(import! &self ../../utilities/tree)
+!(import! &self ../../metapopulation/exemplar-selection)
+!(import! &self ../../metapopulation/metapopulation)
 (: A Bool)
+
+;; Exemplar selection and metapopulation trimming must share the same C++
+;; complexity temperature.  This guards against reintroducing compxyTemp as an
+;; independent, silently colder selector setting.
+!(set-param complexityTemperature 2000)
+!(assertEqual (INV_TEMP) 0.05)
+!(set-param complexityTemperature 6)
+
 ;; Get penalized scores
 ; !(assertEqual (getPnScore ()) ())
 ; !(assertEqual 
@@ -86,6 +94,21 @@
 (= (treeA-x) (mkExemplar treeA (mkDemeId "7") (mkCscore 0.95 0.3 0.2 0.1 0.4) (mkBscore (cons 1 (cons 1 ())))))
 
 !(assertEqual (selectExemplar (cons (treeA-x) ())) (treeA-x))
+
+;; Ant visit filtering is functional: revisit=0 exhausts a one-tree pool after
+;; one expansion, while revisit=1 permits exactly one additional expansion.
+!(assertEqual
+  (let* (
+         ($antExemplar (mkExemplar (treeA) (mkDemeId "ant-visit")
+                         (mkCscore 0 0 0 0 0) (mkBScore (0))))
+         ($visits1 (recordAntVisit (treeA) ()))
+         ($visits2 (recordAntVisit (treeA) $visits1))
+        )
+    ((antVisitCount (treeA) $visits2)
+     (List.length (antEligibleExemplars ($antExemplar) $visits1 0))
+     (List.length (antEligibleExemplars ($antExemplar) $visits1 1))
+     (selectAntExemplar ($antExemplar) $visits2 1)))
+  (2 0 1 (Error () "empty metapopulation")))
 
 (= (test1-exemplars)
   (cons (mkExemplar (treeA) (mkDemeId "1") (mkCscore 0.8 0.3 0.1 0.01 0.4) (mkBscore (cons 1 (cons 1 ()))))  

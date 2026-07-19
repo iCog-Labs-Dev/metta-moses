@@ -131,6 +131,8 @@
         ;; ($_ (println! (ScoringContext: $scoringContext)))
         ($bscore (case $scoringContext
                     (((mkITable $rows $labels) (scoreTree $scoringContext $tree &bscoreCache))
+                     ((mkAntContext $steps $complexityRatio $actions $perceptions)
+                      (scoreAntTree (cleanActionTree $tree) $steps))
                      ($nGames (scoreStrategyTree $tree $nGames &strategyScoreCache)))))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
         ;; ($_ (println! (Returning...)))
@@ -190,6 +192,16 @@
 (= (removeDominated (cons $exemplar ())) (cons $exemplar ()))
 (= (removeDominated (cons $exemplar (cons $next $rest)))
    (removeDominatedRec $exemplar (cons $next $rest) ()))
+
+;; Ant-only dominance policy.  Keeping this decision as a pure helper makes
+;; both modes testable without constructing a full representation-backed deme.
+(= (candidatesAfterDominance $candidates $context)
+   (case $context
+     (((mkAntContext $steps $complexityRatio $actions $perceptions)
+        (if (param antDiscardDominated)
+            (removeDominated $candidates)
+            $candidates))
+      ($otherContext (removeDominated $candidates)))))
 
 ;; Helper: Compares an exemplar with others, accumulating non-dominated exemplars.
 ;; Params:
@@ -263,10 +275,12 @@
             ;; ($_ (println! ("--")))
             ($candidates (getNewCandidates $potCandidates $metapop)) ;;which aren't found in the meta pop
             ;; ($_ (println! (NewCandidates: (List.length $candidates))))
-            ($removedDominated (removeDominated $candidates))  ;;removeDominated
-            ;; ($_ (println! (Removed Dominated: $removedDominated)))
-            ($_ (println! (Going to merge (List.length $removedDominated) Instances)))
-            ($updatedMetaPop (mergeCandidates $removedDominated $metapop))  ;;merge candidates into metapop
+            ;; Ant retains dominated stepping stones by default, matching C++
+            ;; metapop_parameters. Other domains keep the existing behavior.
+            ($retainedCandidates
+              (candidatesAfterDominance $candidates $scoringContext))
+            ($_ (println! (Going to merge (List.length $retainedCandidates) Instances)))
+            ($updatedMetaPop (mergeCandidates $retainedCandidates $metapop))  ;;merge candidates into metapop
             ;; ($_ (println! (merged Candidate: $updatedMetaPop)))
             ($_ (println! (Metapop size before resize: (OS.length $updatedMetaPop))))
             ($resizedMetapop (resizeMetapop $updatedMetaPop))  ;;resize the metapop

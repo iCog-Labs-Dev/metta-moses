@@ -142,6 +142,20 @@
      ((mkDeme $rep (mkSInstSet $finalSet) $demeId) $nNewAdded)
 ))
 
+;; Ant crossover preserves the C++ population ordering: existing scored
+;; instances remain the prefix and newly produced, unscored offspring follow.
+(= (merge3AntDemes $origDeme $newInstances1 $newInstances2 $newInstances3)
+   (let* (
+          ((mkDeme $rep (mkSInstSet $origSet) $demeId) $origDeme)
+          ($temp (List.appendList $newInstances1 $newInstances2))
+          ($allNewInstances (List.appendList $temp $newInstances3))
+          ($uniqueNewInstances (unique-atom $allNewInstances))
+          ;; List.appendList(a, b) is implemented as append(b, a).
+          ($finalSet (List.appendList $uniqueNewInstances $origSet))
+         )
+     ((mkDeme $rep (mkSInstSet $finalSet) $demeId)
+      (List.length $uniqueNewInstances))))
+
 ;; crossover
 ;; Main crossover driver.
 ;; Distributes the crossover budget across 1-, 2-, and 3-simplex operators,
@@ -150,11 +164,10 @@
 ;; (: crossover (-> Number Number Instance Deme (Deme Number)))
 (= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme)
 
-   ;; (trace! (Running crossover to make: (min $nNewInstances 120) instances)
-   ;; INFO: The 120 is crossover_pop_size parameter that should come from hillClimbing   
+   ;; Keep the crossover population configurable; 120 is the C++ default.
     (let*
       (
-       ($nToMake (min $nNewInstances 120))
+       ($nToMake (min $nNewInstances (param hcCrossoverPopSize)))
    
        ($newInstances1 (crossTopOne $deme (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst))
        ($newInstances2 (crossTopTwo $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
@@ -163,6 +176,45 @@
       (merge3Demes $deme $newInstances1 $newInstances2 $newInstances3)
 )
  )
+
+;; Ant-only crossover wrapper; generic domains retain their historical merge
+;; ordering until the deferred generic parity work is undertaken.
+(= (crossoverAnt $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme)
+   (let* (
+          ($nToMake (min $nNewInstances (param hcCrossoverPopSize)))
+          ($newInstances1 (crossTopOne $deme (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst))
+          ($newInstances2 (crossTopTwo $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
+          ($newInstances3 (crossTopThree $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
+         )
+     (merge3AntDemes $deme $newInstances1 $newInstances2 $newInstances3)))
+
+;; Raw ant fitness is tracked independently from the penalized center score.
+(= (bestRawAntScore $scoredInstances)
+   (List.max (map-atom $scoredInstances $scoredInst
+               (let (mkSInst (mkPair $inst $score)) $scoredInst
+                 (getScore $score)))))
+
+(= (bestRawAntDeme (mkDeme $rep (mkSInstSet $scoredInstances) $id))
+   (bestRawAntScore $scoredInstances))
+
+;; Ant-only incremental scoring lives beside hill climbing so the optimizer's
+;; compiled call sees it directly. New samples carry worstCscore; old samples
+;; retain their scores and do not invoke the simulator again.
+(= (scoreNewAntInstancesCounted () $rep $id $context) (() 0))
+(= (scoreNewAntInstancesCounted
+      (cons (mkSInst (mkPair $inst $score)) $rest) $rep $id $context)
+   (let ($scoredRest $restCount)
+        (scoreNewAntInstancesCounted $rest $rep $id $context)
+     (if (< (getScore $score) (* -1 (pow-math 10 90)))
+         ((cons (mkSInst (mkPair $inst (antBasedScorer $rep $id $inst $context)))
+                $scoredRest)
+          (+ $restCount 1))
+         ((cons (mkSInst (mkPair $inst $score)) $scoredRest) $restCount))))
+
+(= (transformAntIncremental (mkSInstSet $instances) $rep $id $context)
+   (let ($scored $count)
+        (scoreNewAntInstancesCounted $instances $rep $id $context)
+     ((mkSInstSet $scored) $count)))
  ;; )
     ;; WARN: The $nNewInstances might not be the actual number of instances created.
 ;; crossover for feature selection
@@ -222,7 +274,8 @@
 ;; ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $complexityRatio)))
 (= (hillClimbing $POASet $tTableBscorer $centerInst (mkParams $scorer $FsScorer))
   (case (mkParams $scorer)
-    (((mkParams applyComplexityBasedScore)
+    (
+      ((mkParams applyComplexityBasedScore)
         (let*
           (
             ($disc (getDisk $POASet))
@@ -271,7 +324,25 @@
                         $centerInst
                         ()
                         estimateNeighborhood crossover
-                        sampleNewInstances transform))))))
+                        sampleNewInstances transform)))
+      ((mkParams applyAntBasedScore)
+        ;; Ant has its own C++-matched distance and crossover threshold.  It
+        ;; must not inherit the smaller strategy-search values.
+        (let*
+          (
+            ($disc (getDisk $POASet))
+            ((mkAntContext $steps $complexityRatio $actions $perceptions) $FsScorer)
+            ($targetPenScore $tTableBscorer)
+          )
+          (hillClimbing ((param hcMaxDistAnt) (param hcMinXoverNeighborsAnt) $targetPenScore)
+                        (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
+                        $POASet
+                        ($disc ant ant $FsScorer)
+                        $centerInst
+                        ()
+                        estimateNeighborhood crossoverAnt
+                        sampleNewInstances transform)))
+    )))
 
 (= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
                  ($alreadyXover $lastChance $__ $prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i)
@@ -290,11 +361,27 @@
         ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
         ;; ($_ (println! ""))
 
-        ($maxEvals (param hcMaxEvals))
+        ;; Use the deliberately smaller MeTTa ant budget documented in
+        ;; defaults; other domains retain the existing generic HC budget.
+        ($maxEvals (if (== $size ant) (param hcMaxEvalsAnt) (param hcMaxEvals)))
         ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors))
 
+        ;; Ant's evaluation counter is no longer also used as its population
+        ;; index.  The latter is derived from the retained scored instances.
+        ($currentDemeSize
+          (if (== $size ant)
+              (let (mkDeme $_rep (mkSInstSet $currentInstances) $_id) $POASet
+                (List.length $currentInstances))
+              $currentNInstances))
+
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
-        ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance)))) ;; INFO: Has to be greater than 2 minimum.
+        ;; Honor the C++ crossover switch.  Previously crossover was always
+        ;; enabled regardless of configuration.
+        ($xOver (and (param hcCrossover)
+                     (and (> $i 2)
+                          (and (or (not (== $size ant))
+                                   (>= $currentDemeSize 3))
+                               (and (not $alreadyXover) (or $largeNbh $lastChance)))))) ;; INFO: Has to be greater than 2 minimum.
         ($_ (println! (Crossover: $xOver)))
         ($_ (println! (CenterInst: (second $centerInst))))
         ($_ (println! (size: $size)))
@@ -305,9 +392,9 @@
           ((mkDeme $rep $updatedInstSet $id) $newInstances)
                                                             (case ($xOver $size)
                                                               (
-                                                                ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet)
+                                                                ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $prevCenter $POASet)
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
-                                                                ((True $notEmpty)  ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $centerInst $POASet))
+                                                                ((True $notEmpty)  ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $centerInst $POASet))
                                                                 ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst (mkITable $rowOCoeff $neighborhood) $POASet $d)
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
                                                                 ((False $notEmpty)
@@ -330,18 +417,32 @@
         ;; deconstruct the hyper params for fs function
         (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType) (if (== () $hyperparamsfs) (() () () () () ()) $hyperparamsfs))
 
-        ((mkSInstSet $scoredInstances) (if (or (== $rep ()) (== $id ())) 
-                                           ($transformFunction 
+        ($scoreBatch
+          (if (== $size ant)
+              (transformAntIncremental $updatedInstSet $rep $id $iTable)
+              ((if (or (== $rep ()) (== $id ()))
+                    ($transformFunction
                                                                 $updatedInstSet
                                                                 (mkITable $rowOCoeff $neighborhood)
                                                                 $miConfi $prePenalty
                                                                 $preMinActivation $preMaxActivation
                                                                 $prePositive $scorerType)
-                                          (case $iTable
-                                            (
-                                              ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep $id (mkITable $rows $labels) $rowOCoeff))
-                                              ($ComplexityRatio ($transformFunction $updatedInstSet $rep $id ($rowOCoeff $size) $ComplexityRatio))
-                                            ))))
+                    (case $iTable
+                      (
+                        ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep $id (mkITable $rows $labels) $rowOCoeff))
+                        ((mkAntContext $steps $complexityRatio $actions $perceptions)
+                         ($transformFunction $updatedInstSet $rep $id $iTable $complexityRatio))
+                        ($ComplexityRatio ($transformFunction $updatedInstSet $rep $id ($rowOCoeff $size) $ComplexityRatio)))))
+               $newInstances)))
+        (($scoredSet $actualNewEvals) $scoreBatch)
+        ((mkSInstSet $scoredInstances) $scoredSet)
+        ($updatedEvalCount (+ $currentNInstances $actualNewEvals))
+        ($_antEvalDiagnostics
+          (if (and (== $size ant) (param antDiagnostics))
+              (println! (AntHillClimbingEvaluations
+                           (actualNew $actualNewEvals)
+                           (cumulativeLocal $updatedEvalCount)))
+              ()))
 
         ($updatedDeme (if (or (== $rep ()) (== $id ())) 
                           (mkSInstSet $scoredInstances) 
@@ -372,23 +473,32 @@
         
         ;; ($_ (println! (NextDistance: $nextDistance)))
 
-        (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
-                              (if (and (== $totalNNeighbors 1) (== $nextDistance 1))
+        ($hillStepResult (if (and (== $totalNNeighbors 1) (== $nextDistance 1))
                                   (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
-                                                ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $prevStart $prevSize $nextBestSscore $nextBestScore (+ $currentNInstances $newInstances) $nextDistance (+ 1 $i)) ;; Updated state
+                                                ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $prevStart $prevSize $nextBestSscore $nextBestScore $updatedEvalCount $nextDistance (+ 1 $i)) ;; Updated state
                                                 $updatedDeme
                                                 ($neighborhood $rowOCoeff $size $iTable)
                                                 $nextCenterInst
                                                 $hyperparamsfs
                                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
-                                  ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentNInstances $newInstances $nextBestSscore $nextBestScore (+ $currentNInstances $newInstances) $nextDistance $i))))
+                                  ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentDemeSize $newInstances $nextBestSscore $nextBestScore $updatedEvalCount $nextDistance $i))))
+        (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)) $hillStepResult)
         
         ;; Termination check compares against the scalar `$bestPossibleScore`,
         ;; which carries the *raw* best score (matching classic MOSES). So we
         ;; must extract the raw-score field from the candidate's Cscore here,
         ;; not the penalty-adjusted one -- comparing penScore against a raw
         ;; target would mix the complexity penalty into the threshold.
-        ($scoreToCompareBelow (if (or (== $rep ()) (== $id ())) $newBestSscore (getScore $newBestSscore)))
+        ($scoreToCompareBelow
+          (if (== $size ant)
+              (bestRawAntDeme $newDeme)
+              (if (or (== $rep ()) (== $id ())) $newBestSscore (getScore $newBestSscore))))
+        ($_antBestDiagnostics
+          (if (and (== $size ant) (param antDiagnostics))
+              (println! (AntHillClimbingBest
+                           (bestRaw $scoreToCompareBelow)
+                           (bestPenalized $newBestScore)))
+              ()))
         ;; ($_ (println! (Found newBestSscore After (+ 1 $i) iteration is: $newBestSscore $scoreToCompareBelow)))
         ;; ($_ (println! ""))
         ($_ (cut)) ;; Commit choice points before tail-recursing — mirrors runMoses pattern. This gives few extra seconds of speed
@@ -400,10 +510,14 @@
             ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
                   )
             (let ($finalCenter $finalDeme ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
-              ;; TODO: The C++ version checks the hyper parameter hc_params.crossover before getting here.
-              ;; TODO: The C++ version checks for the hc_params.widen_search too. For now, we're assuming it is always true. 
-              ;;       Hence the omission of the distance check from the C++ Hence the omission of the distance check from the C++
-              (if (and (and (not $newHasImproved) (not $newLastChance)) (not $newXover))
+              ;; Match the C++ "last chance" rule: simplex crossover is tried
+              ;; after a stalled nearest-neighbor scan when widening is off,
+              ;; or only after widened search has exhausted maxDist.
+              (if (and (param hcCrossover)
+                       (and (and (not $newHasImproved) (not $newLastChance))
+                            (and (not $newXover)
+                                 (or (not (param hcWidenSearch))
+                                     (< $maxDist $newDistance)))))
                   ;; If we just did the nearest neighbors and found no improvement,
                   ;;  then try again one last time, we may get lucky.
                   (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
@@ -422,7 +536,9 @@
                   (trace! (Terminating because of maximum distance reached)
                   ($finalCenter $finalDeme ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
                   ) ;; I don't know why I didn't do this earlier but incrementing is needed here.
-                  (if (not $finalHasImproved)
+                  ;; With widening disabled, stop at the local optimum exactly
+                  ;; as C++ does.  When enabled, continue at the wider distance.
+                  (if (and (not $finalHasImproved) (not (param hcWidenSearch)))
                       (trace! (Terminating because score hasn't improved) ($finalCenter $finalDeme ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI)))
                       (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
                                 ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state

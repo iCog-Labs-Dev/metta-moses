@@ -72,6 +72,10 @@
 !(add-atom &params (maxCandPerDeme 100))
 !(add-atom &params (minPoolSize 20))
 !(add-atom &params (nToKeep 50))
+;; Ant-only parity controls.  Classic MOSES keeps dominated stepping stones
+;; and expands an exemplar once unless revisits are explicitly requested.
+!(add-atom &params (antDiscardDominated False))
+!(add-atom &params (antRevisit 0))
 
 ;; ---- Deme expansion ----
 !(add-atom &params (maxCandOutput 10))
@@ -91,6 +95,17 @@
 !(add-atom &params (hcMinXoverNeighborsFs 5))
 !(add-atom &params (hcMaxDistStrategy 3))
 !(add-atom &params (hcMinXoverNeighborsStrategy 3))
+;; Santa Fe uses the C++ action-domain search geometry instead of inheriting
+;; the unrelated strategy defaults.  The local budget is intentionally 2,000:
+;; it now counts actual new ant scorer calls, but remains deliberately smaller
+;; than the much larger C++ regression budget for practical MeTTa runtimes.
+!(add-atom &params (hcMaxDistAnt 4))
+!(add-atom &params (hcMinXoverNeighborsAnt 400))
+!(add-atom &params (hcMaxEvalsAnt 2000))
+;; These switches mirror hc_parameters.  Keeping widening off and crossover on
+;; matches the successful Santa Fe configuration and the C++ defaults.
+!(add-atom &params (hcWidenSearch False))
+!(add-atom &params (hcCrossover True))
 !(add-atom &params (hcMaxEvals 500))
 !(add-atom &params (hcCrossoverPopSize 120))
 !(add-atom &params (hcFractionOfNN 2.0))
@@ -99,8 +114,20 @@
 
 ;; ---- Scoring ----
 !(add-atom &params (complexityRatio 3.5))
+!(add-atom &params (antSteps 600))
+!(add-atom &params (antFoodCount 89))
+;; Diagnostic baseline: use the 0.16 ratio from the C++ Santa Fe performance
+;; diary's successful seed-10 run.  The newer AntUTest's 0.06 ratio is paired
+;; with a much larger one-million-evaluation allowance and is too stiff for the
+;; deliberately smaller MeTTa search budget.
+!(add-atom &params (antComplexityRatio 0.16))
+!(add-atom &params (antComplexityTemperature 2000))
+;; Enables ant-only generation telemetry without adding noise to normal runs.
+!(add-atom &params (antDiagnostics False))
 
 ;; ---- Exemplar selection ----
+;; Deprecated compatibility alias.  Selection now reads complexityTemperature
+;; so the same temperature governs selection and metapopulation trimming.
 !(add-atom &params (compxyTemp 6))
 
 ;; ---- Caching ----

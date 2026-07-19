@@ -114,6 +114,33 @@
 ; Testcase for binomial
 !(assertEqual (binomial 5 2) 10)
 
+;; Ant crossover appends offspring after the scored population, preserving the
+;; previous sample range used by subsequent simplex crossover iterations.
+!(assertEqual
+  (let* (
+         ($old1 (mkSInst (mkPair (mkInst (0)) (mkCscore -2 0 0 0 -2))))
+         ($old2 (mkSInst (mkPair (mkInst (1)) (mkCscore -1 0 0 0 -1))))
+         ($new1 (mkSInst (mkPair (mkInst (2)) (worstCscore))))
+         (($mergedDeme $added)
+           (merge3AntDemes
+             (mkDeme ant-rep (mkSInstSet ($old1 $old2)) (mkDemeId "ant-x"))
+             ($new1) () ()))
+         ((mkDeme $rep (mkSInstSet $merged) $id) $mergedDeme)
+        )
+    ($merged $added))
+  (((mkSInst (mkPair (mkInst (0)) (mkCscore -2 0 0 0 -2)))
+    (mkSInst (mkPair (mkInst (1)) (mkCscore -1 0 0 0 -1)))
+    (mkSInst (mkPair (mkInst (2)) (worstCscore))))
+   1))
+
+;; Raw termination tracking is independent of which candidate has the best
+;; complexity-penalized score.
+!(assertEqual
+  (bestRawAntScore
+    ((mkSInst (mkPair (mkInst (0)) (mkCscore 0 20 100 0 -100)))
+     (mkSInst (mkPair (mkInst (1)) (mkCscore -1 0 0 0 -1)))))
+  0)
+
 ; Testcase 1 for countNeighborhood
 !(assertEqual 
  (countNeighborhood
