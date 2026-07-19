@@ -85,7 +85,17 @@
 
 !(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
 
-(= (deme) (mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) (mkSInstSet ()) (mkDemeId "1")))
+!(bind! &deme1 (new-space))
+
+(= (rep1) (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) )
+
+(= (instSet1) (mkSInstSet ()))
+(= (demeId1) (mkDemeId "1")) 
+
+!(let $x (rep1) (add-atom &deme1 $x))
+!(let $y (instSet1) (add-atom &deme1 $y))
+!(let $z (demeId1) (add-atom &deme1 $z))
+
 (= (table1) (eval (createTruthTableBScore 2 (mkITable
                          (cons (cons False (cons False (cons False ()))) 
                          (cons (cons True (cons False (cons False ()))) 
@@ -180,14 +190,20 @@
 !(assertEqual 
 (let* 
 (
-    ($optimizeDemesReturn (optimizeDemes (deme) 
+    ;; same space-based representation path as the rest of the file.
+    ($optimizeDemesReturn (optimizeDemes &deme1 
                 (table1) 
                 (mkInst (cons 0 (cons 0 ()))) 
                 hillClimbing
                 ))
     ($_ (println! "optimizeDemes Returns"))
     ($_ (println! $optimizeDemesReturn))
-    (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemesReturn)
+
+    ;; Update the pattern to match the returned space reference
+    (($instance $returnedDemeSpace $state) $optimizeDemesReturn)
+    ;; Fetch the instSet from the space instead of tuple destructuring
+    ($instSet (match $returnedDemeSpace (mkSInstSet $set) $set))
+
     ($instanceCount (List.length $instSet))
     ($scoredElems (List.map isScored $instSet))
 )
