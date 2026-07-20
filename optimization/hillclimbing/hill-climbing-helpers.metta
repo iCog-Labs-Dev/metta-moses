@@ -229,7 +229,7 @@
             ($disc (getDisk $POASet))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer))
           )
-          (hillClimbing ((min (param hcMaxDistBoolean) (List.length (second $centerInst))) (param hcMinXoverNeighborsBoolean) 0) (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
+          (hillClimbing ((min (param hcMaxDist) (List.length (second $centerInst))) (param hcMinXoverNeighbors) 0) (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
                         ($disc $cpxCoeff $size $iTable)
                         $centerInst
@@ -246,7 +246,7 @@
             ;; ($_ (println! (Labels: $labels)))
             ($FsScorerType (if (== $FsScorer ()) mi $FsScorer))
           )
-          (hillClimbing ((min (param hcMaxDistFs) (List.length (second $centerInst))) (param hcMinXoverNeighborsFs) 0) (False False False $centerInst 0 0 0 0 0 0 1)
+          (hillClimbing ((min (param hcMaxDist) (List.length (second $centerInst))) (param hcMinXoverNeighbors) 0) (False False False $centerInst 0 0 0 0 0 0 1)
               $POASet 
               ($labels $rows () ())
               $centerInst
@@ -265,7 +265,7 @@
             ;; Keep a non-empty sentinel in the third slot so the recursive
             ;; strategy path still follows the non-feature-selection branches.
           )
-          (hillClimbing ((param hcMaxDistStrategy) (param hcMinXoverNeighborsStrategy) $targetPenScore)
+          (hillClimbing ((param hcMaxDist) (param hcMinXoverNeighbors) $targetPenScore)
                         (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
                         ($disc $nGames strategy $complexityRatio) ;; INFO: `strategy` is used only as a non-empty marker so this recursive call follows the normal strategy branch instead of the feature-selection branch that is selected when the third slot is ().
@@ -293,7 +293,7 @@
           ;; case ($xOver $size) branches on the non-feature-selection paths
           ;; (those arms only distinguish () from non-(); none patterns on a
           ;; number).
-          (hillClimbing ((param hcMaxDistAction) (param hcMinXoverNeighborsAction) $targetPenScore)
+          (hillClimbing ((param hcMaxDist) (param hcMinXoverNeighbors) $targetPenScore)
                         (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
                         ($disc mkActionCtx $nTrials $complexityRatio)

@@ -126,7 +126,7 @@
         (allM boolWhileStep $world
               ;; cons-built pair: $cond/$body are live wrapped shapes, a
               ;; bare ($cond $body) literal here would be applied as a call
-              (List.repeat (actionWhileCap) (cons $cond (cons $body ()))))
+              (List.repeat (actionWhileCap) (cons $cond ($body))))
         (mkARes True $w)))
 (= (boolWhileStep ($cond $body) $world)
    (let (mkARes $cv $cw) (evalAction $cond $world)

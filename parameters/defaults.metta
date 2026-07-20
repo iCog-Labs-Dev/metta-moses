@@ -124,19 +124,17 @@
 !(add-atom &params (genCount 1000))
 
 ;; ---- Hill climbing ----
-;; The original code carries three contextual variants of maxDist
-;; and minXoverNeighbors (boolean / feature-selection / strategy).
-;; We expose all three as flat keys to preserve current behaviour.
-!(add-atom &params (hcMaxDistBoolean 4))
-!(add-atom &params (hcMinXoverNeighborsBoolean 400))
-!(add-atom &params (hcMaxDistFs 3))
-!(add-atom &params (hcMinXoverNeighborsFs 5))
-!(add-atom &params (hcMaxDistStrategy 3))
-!(add-atom &params (hcMinXoverNeighborsStrategy 3))
-;; Action-domain tier mirrors the strategy tier: action trees live in the
-;; same small-neighborhood hill-climbing regime as game strategies.
-!(add-atom &params (hcMaxDistAction 3))
-!(add-atom &params (hcMinXoverNeighborsAction 3))
+;; hcMaxDist: maximum Hamming distance from the center instance the
+;; neighborhood search explores (classic optim_parameters::max_dist).
+;; hcMinXoverNeighbors: neighborhood-size threshold above which the
+;; crossover path engages (classic hc_params::crossover_min_neighbors,
+;; classic default 400). ONE value each, regardless of problem kind --
+;; the per-domain tiers (Boolean/Fs/Strategy/Action) that used to live
+;; here redefined the same concept four times with untuned copies; tune
+;; per RUN instead via --hcMaxDist=N / --hcMinXoverNeighbors=N or
+;; in-script set-param.
+!(add-atom &params (hcMaxDist 4))
+!(add-atom &params (hcMinXoverNeighbors 400))
 !(add-atom &params (hcMaxEvals 500))
 !(add-atom &params (hcCrossoverPopSize 120))
 !(add-atom &params (hcFractionOfNN 2.0))
