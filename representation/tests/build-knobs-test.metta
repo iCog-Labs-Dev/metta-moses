@@ -47,62 +47,52 @@
 (and $treeChanged $hasKnobs)
 ) True)
 
+
 ;; =============================================================================
-;; buildKnobs - PRIORITIZED-OR strategy path
+;; buildKnobs (5-arity) - action-domain dispatch (replaces retired strategy path)
 ;; =============================================================================
+;; The ttt play* symbols ride as an ordinary action vocabulary argument;
+;; perceptions are () (deterministic sampling). canwin is an inert perception.
+(= (pwTree) (mkTree (mkNode playwin) ()))
+(= (pbTree) (mkTree (mkNode playblock) ()))
+(= (pcTree) (mkTree (mkNode playcenter) ()))
+(= (pcrTree) (mkTree (mkNode playcorner) ()))
+(= (cwTree) (mkTree (mkNode canwin) ()))
+(= (tttActs) (playwin playblock playcenter playcorner playside))
 
-;; Simple strategy tree verifies buildKnobs dispatches PRIORITIZED-OR roots.
-(= (gameTree1) (mkTree (mkNode PRIORITIZED-OR)
-                  (cons (mkTree (mkNode playcenter) ())
-                  (cons (mkTree (mkNode playcorner) ()) ()))))
+;; (a) A non-and_seq structural root (or_seq) is canonized: the root becomes
+;; and_seq and the original or_seq subtree is preserved as child (1). Only the
+;; structure is pinned -- or_seq children are not recursed and the root-knob
+;; insertion is probabilistic, so the knob count is left unpinned.
+!(assertEqual
+  (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode or_seq) ((pwTree))) () () (tttActs) ())
+    ((getNodeValue (getNodeById $updatedTree (mkNodeId (0))))
+     (getNodeById $updatedTree (mkNodeId (1)))))
+  ((mkNode and_seq) (mkTree (mkNode or_seq) ((pwTree)))))
 
-;; Single-child strategy trees should still get strategy knobs.
-!(assertEqual (let* (
-    (($updatedTree $MMap) (buildKnobs
-                            (mkTree (mkNode PRIORITIZED-OR)
-                                   (cons (mkTree (mkNode playwin) ()) ()))
-                            () (playwin playblock)))
-    ($mmLength (MultiMap.length $MMap))
-)
-(== $mmLength 5)
-) True)
+;; (b) Multi-child twin: the original or_seq subtree is still child (1).
+!(assertEqual
+  (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode or_seq) ((pcTree) (pcrTree))) () () (tttActs) ())
+    (getNodeById $updatedTree (mkNodeId (1))))
+  (mkTree (mkNode or_seq) ((pcTree) (pcrTree))))
 
-;; Multi-child strategy trees should register the expected root knobs.
-!(assertEqual (let* (
-    (($updatedTree $MMap) (buildKnobs (gameTree1) () (playcenter playcorner)))
-    ($mmLength (MultiMap.length $MMap))
-)
-(== $mmLength 5)
-) True)
+;; (c) A bare domain-action root is canonized to and_seq and registers knobs
+;; (branch-robust: every branch adds at least one knob).
+!(assertEqual
+  (let ($updatedTree $mmp) (buildKnobs (pwTree) () () (tttActs) ())
+    (and (== (getNodeValue (getNodeById $updatedTree (mkNodeId (0)))) (mkNode and_seq))
+         (> (MultiMap.length $mmp) 0)))
+  True)
 
-;; Strategy knob building should modify the original PRIORITIZED-OR tree.
-!(assertEqual (let* (
-    (($updatedTree $MMap) (buildKnobs
-                            (mkTree (mkNode PRIORITIZED-OR)
-                                   (cons (mkTree (mkNode playwin) ()) ()))
-                            () (playwin playblock)))
-    ($treeChanged (not (== $updatedTree (mkTree (mkNode PRIORITIZED-OR)
-                                               (cons (mkTree (mkNode playwin) ()) ())))))
-)
-$treeChanged
-) True)
+;; (d) A nested and_seq containing an action_bool_if registers several knobs.
+;; The floor >= 3 is branch-robust: the action_bool_if alone contributes two
+;; branch knobs and the outer and_seq contributes at least one more.
+!(assertEqual
+  (let ($updatedTree $mmp)
+       (buildKnobs (mkTree (mkNode and_seq) ((pcTree) (mkTree (mkNode action_bool_if) ((cwTree) (pwTree) (pbTree))))) () () (tttActs) ())
+    (>= (MultiMap.length $mmp) 3))
+  True)
 
-;; Nested PRIORITIZED-OR trees protect recursive strategy handling.
-(= (complexGameTree) (mkTree (mkNode PRIORITIZED-OR)
-                            (cons (mkTree (mkNode playcenter) ())
-                            (cons (mkTree (mkNode PRIORITIZED-OR)
-                                         (cons (mkTree (mkNode playcorner) ())
-                                         (cons (mkTree (mkNode playblock) ()) ())))
-                            ()))))
-
-;; Nested strategy trees should create knobs for more than the root alone.
-!(assertEqual (let* (
-    (($updatedTree $MMap) (buildKnobs (complexGameTree) () (playcenter playcorner playblock)))
-    ($mmLength (MultiMap.length $MMap))
-    ($hasNestedKnobs (>= $mmLength 10))
-)
-$hasNestedKnobs
-) True)
 
 ;; =============================================================================
 ;; buildKnobs (5-arity) - action path

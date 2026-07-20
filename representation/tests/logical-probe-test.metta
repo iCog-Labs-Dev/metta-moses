@@ -35,83 +35,79 @@
       ((mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
       (mkTree (mkNode OR) ((mkTree (mkNode C) ()) (mkKnob (mkTree (mkNode B) ()) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())) 0)))))
 
-;; Tests for strategyProbe function (game strategy version)
-;; strategyProbe test 1: Multiple game move permutations
-!(assertEqual 
-    (=== (strategyProbe
-      (mkTree (mkNode PRIORITIZED-OR)     
-        (cons (mkTree (mkNode playcenter) ())
-          (cons (mkTree (mkNode playcorner) ()) ())))
-      (mkNodeId (0))           
-      ((mkTree (mkNode playblock) ()) (mkTree (mkNode playcenter) ()))    
+;; Tests for actionProbe / simpleActionProbe (action-domain version).
+;; These replace the retired game-strategy probe cases with the same ttt
+;; vocabulary as inert action symbols. Key delta: actionProbe makes ONE ASK
+;; holding all supplied perms and appends a single knob, whereas the old
+;; per-move probe built one subtree-knob per perm.
+(= (pwTree) (mkTree (mkNode playwin) ()))
+(= (pbTree) (mkTree (mkNode playblock) ()))
+(= (pcTree) (mkTree (mkNode playcenter) ()))
+(= (pcrTree) (mkTree (mkNode playcorner) ()))
+(= (pfTree) (mkTree (mkNode playfork) ()))
+
+;; actionProbe test 1: two perms at the root append one ASK-controlled knob as
+;; the new (3rd) child, its mkNullVex holding BOTH perms, multip |perms|+1 = 3.
+!(assertEqual
+    (actionProbe
+      (mkTree (mkNode and_seq) ((pcTree) (pcrTree)))
+      (mkNodeId (0))
+      ((pbTree) (pcTree))
       True
       ())
-      ( ((mkSSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))    
-        (mkTree (mkNode PRIORITIZED-OR) 
-                (cons (mkTree (mkNode playcenter) ()) 
-                (cons (mkTree (mkNode playcorner) ()) 
-                (cons (mkNullVex 
-                       (cons (mkTree (mkNode playblock) ()) ())) ())))))) True)
+    ( ((mkASK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) ((pbTree) (pcTree))))
+      (mkTree (mkNode and_seq)
+        ((pcTree) (pcrTree)
+         (mkKnob (mkNullVex ((pbTree) (pcTree)))
+                 (mkASK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) ((pbTree) (pcTree)))
+                 0)))))
 
-;; strategyProbe test 2: Single game move permutation
-!(assertEqual 
-    (=== (strategyProbe
-      (mkTree (mkNode PRIORITIZED-OR)
-                  (cons (mkTree (mkNode playcenter) ())
-                  (cons (mkTree (mkNode playcorner) ()) ())))
-      (mkNodeId (0))           
-      ((mkTree (mkNode playcorner) ()))    
+;; simpleActionProbe test: the node at (2) is wrapped in place (not appended),
+;; multip 2, default 1 (present), perms = the single wrapped subtree.
+!(assertEqual
+    (simpleActionProbe
+      (mkTree (mkNode and_seq) ((pcTree) (pcrTree)))
+      (mkNodeId (2))
       True
       ())
+    ( ((mkASK (mkDiscKnob (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()) ((pcrTree))))
+      (mkTree (mkNode and_seq)
+        ((pcTree)
+         (mkKnob (pcrTree)
+                 (mkASK (mkDiscKnob (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()) ((pcrTree)))
+                 0)))))
 
-     (((mkSSK 
-        (mkDiscKnob (mkKnob  (mkNodeId (2))) 
-          (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))
-
-      (mkTree (mkNode PRIORITIZED-OR) 
-            (cons (mkTree (mkNode playcenter) ()) 
-            (cons (mkTree (mkNode playcorner) ()) ()))))) True)
-
-;; Test empty permutation list for strategyProbe
-!(assertEqual 
-    (=== (strategyProbe
-      (mkTree (mkNode PRIORITIZED-OR)
-                  (cons (mkTree (mkNode playcenter) ()) ()))
-      (mkNodeId (0))           
-      ()    
+;; Empty perms: no knob, tree unchanged.
+!(assertEqual
+    (actionProbe
+      (mkTree (mkNode and_seq) ((pcTree)))
+      (mkNodeId (0))
+      ()
       True
       ())
-     (() (mkTree (mkNode PRIORITIZED-OR) 
-                 (cons (mkTree (mkNode playcenter) ()) ())))) True)
+    (() (mkTree (mkNode and_seq) ((pcTree)))))
 
-;; Test strategyProbe with diverse game moves
-!(assertEqual 
-    (=== (strategyProbe
-      (mkTree (mkNode PRIORITIZED-OR)     
-        (cons (mkTree (mkNode playwin) ())
-          (cons (mkTree (mkNode playfork) ()) ())))
-      (mkNodeId (0))           
-      ((mkTree (mkNode playblock) ()))    
+;; actionProbe with a single perm and diverse moves: one knob appended as the
+;; new (3rd) child, mkNullVex holding the lone perm, multip |perms|+1 = 2.
+!(assertEqual
+    (actionProbe
+      (mkTree (mkNode and_seq) ((pwTree) (pfTree)))
+      (mkNodeId (0))
+      ((pbTree))
       True
       ())
-      ( ((mkSSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())))    
-        (mkTree (mkNode PRIORITIZED-OR) 
-                (cons (mkTree (mkNode playwin) ()) 
-                (cons (mkTree (mkNode playfork) ()) 
-                (cons (mkNullVex 
-                       (cons (mkTree (mkNode playblock) ()) ())) ())))))) True)
+    ( ((mkASK (mkDiscKnob (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) ((pbTree))))
+      (mkTree (mkNode and_seq)
+        ((pwTree) (pfTree)
+         (mkKnob (mkNullVex ((pbTree)))
+                 (mkASK (mkDiscKnob (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) ((pbTree)))
+                 0)))))
 
-; ;; Test that strategyProbe creates SSK knobs (multiplicity 2) not LSK knobs (multiplicity 3)
-!(assertEqual 
+;; Multiplicity law: the ASK multip is |perms|+1, so 1 perm -> 2, 2 perms -> 3.
+!(assertEqual
     (let* (
-        (($knobs $tree) (strategyProbe
-                           (mkTree (mkNode PRIORITIZED-OR)
-                                   (cons (mkTree (mkNode playcenter) ()) ()))
-                           (mkNodeId (0))
-                           ((mkTree (mkNode playcorner) ()))
-                           True
-                           ()))
-        ($firstKnob (car-atom $knobs))
-        ($multi (getKnobMultip $firstKnob))
-    )
-    (== $multi (mkMultip 2))) True)
+        (($knobs1 $t1) (actionProbe (mkTree (mkNode and_seq) ((pcTree))) (mkNodeId (0)) ((pbTree)) True ()))
+        (($knobs2 $t2) (actionProbe (mkTree (mkNode and_seq) ((pcTree))) (mkNodeId (0)) ((pbTree) (pcTree)) True ()))
+      )
+      ((getKnobMultip (car-atom $knobs1)) (getKnobMultip (car-atom $knobs2))))
+    ((mkMultip 2) (mkMultip 3)))

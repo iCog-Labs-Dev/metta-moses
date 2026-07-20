@@ -243,20 +243,28 @@
       (not (== $tree ()))
       (> (MultiMap.length $mmp) 0)))
   True)
-;; buildKnobs dispatches action and strategy roots
+;; buildKnobs dispatches action roots (and_seq and other structural roots)
 !(assertEqual
   (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) () () (move_forward turn_left) (A B))
     (> (MultiMap.length $mmp) 0))
   True)
 
+;; A non-and_seq structural root (or_seq) is canonized: the root becomes
+;; and_seq and the original or_seq subtree is preserved as child (1). Structural
+;; pin only (the root-knob insertion is probabilistic).
 !(assertEqual
-  (let* (($tree (mkTree (mkNode PRIORITIZED-OR)
+  (let* (($tree (mkTree (mkNode or_seq)
                   (cons (mkTree (mkNode playcenter) ())
                   (cons (mkTree (mkNode playcorner) ())
                   (cons (mkTree (mkNode playblock) ()) ())))))
-         (($updatedTree $mmp) (buildKnobs $tree () (playcenter playcorner playblock) () ())))
-    (> (MultiMap.length $mmp) 0))
-  True)
+         (($updatedTree $mmp) (buildKnobs $tree () () (playcenter playcorner playblock) ())))
+    ((getNodeValue (getNodeById $updatedTree (mkNodeId (0))))
+     (getNodeById $updatedTree (mkNodeId (1)))))
+  ((mkNode and_seq)
+   (mkTree (mkNode or_seq)
+     (cons (mkTree (mkNode playcenter) ())
+     (cons (mkTree (mkNode playcorner) ())
+     (cons (mkTree (mkNode playblock) ()) ()))))))
 
 ;; Canonize and cleanup mirror the C++ action pre/post passes.
 !(assertEqual

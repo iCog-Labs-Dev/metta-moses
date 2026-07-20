@@ -202,110 +202,90 @@
     0)
     ((mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) (mkNodeId (0)) (mkNodeId (0))))
 
-;; Testcase 1: When the game move subtree isn't found in the target's children list
+;; ---------------------------------------------------------------------------
+;; Action-subtree-knob cases (replace the retired game-strategy SSK cases).
+;; The ttt play* symbols are reused as inert action vocabulary. Key delta from
+;; SSK: an ASK stores every selectable perm inside the knob (its $perms field),
+;; so the placeholder appended to the tree is an EMPTY (mkNullVex ()) -- the
+;; perm does NOT live under the placeholder as it did for SSK.
+;; ---------------------------------------------------------------------------
+(= (pbTree) (mkTree (mkNode playblock) ()))
+(= (pcTree) (mkTree (mkNode playcenter) ()))
+(= (pcrTree) (mkTree (mkNode playcorner) ()))
+
+;; actionSubtreeKnob (node-id form): appends an empty null-vertex placeholder as
+;; the new 3rd child; the ASK carries the perm and multip |perms|+1 = 2, id (3).
 !(assertEqual
-  (strategySubtreeKnob
-    (mkTree (mkNode PRIORITIZED-OR)
-      (cons (mkTree (mkNode playcenter) ())
-        (cons (mkTree (mkNode playcorner) ()) ())))
+  (actionSubtreeKnob
+    (mkTree (mkNode and_seq) ((pcTree) (pcrTree)))
     (mkNodeId (0))
-    (mkTree (mkNode playblock) ()))
-  (
-    (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkNullVex (cons (mkTree (mkNode playblock) ()) ())) ()))))
-    (mkSSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))
-  ))
+    ((pbTree)))
+  ((mkTree (mkNode and_seq) ((pcTree) (pcrTree) (mkNullVex ())))
+   (mkASK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) ((pbTree)))))
 
-;; Testcase 2: When the game move subtree is found in the target's children list
+;; simpleActionSubtreeKnob (node-id form): the tree is UNCHANGED and the knob
+;; references the existing node (2) with default 1 (present) and perms equal to
+;; that very subtree. (The SSK membership search now lives in
+;; processActionChild -- pinned at build-knobs-test.metta and
+;; build-action-test.metta:141-160.)
 !(assertEqual
-  (strategySubtreeKnob
-    (mkTree (mkNode PRIORITIZED-OR)
-      (cons (mkTree (mkNode playcenter) ())
-        (cons (mkTree (mkNode playcorner) ())
-          (cons (mkTree (mkNode playblock) ()) ()))))
-    (mkNodeId (0))
-    (mkTree (mkNode playcorner) ()))
-  (
-    (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) 
-                        (cons (mkTree (mkNode playcorner) ()) 
-                        (cons (mkTree (mkNode playblock) ()) ()))))
-    (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))
-  ))
+  (simpleActionSubtreeKnob
+    (mkTree (mkNode and_seq) ((pcTree) (pcrTree) (pbTree)))
+    (mkNodeId (2)))
+  ((mkTree (mkNode and_seq) ((pcTree) (pcrTree) (pbTree)))
+   (mkASK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()) ((pcrTree)))))
 
-;; getNodeId test cases for SSK
-!(assertEqual (getNodeId (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1 0))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (mkNodeId (1 0)))
-!(assertEqual (getNodeId (mkSSK (mkDiscKnob (mkKnob (mkNodeId (3 5))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (mkNodeId (3 5)))
-
-;; Game strategy trees for testing
-(= (gameTree1) (mkTree (mkNode PRIORITIZED-OR)
-    (cons (mkTree (mkNode playcenter) ())
-      (cons (mkTree (mkNode playcorner) ()) ()))))
-
-(= (gameTree2) (mkTree (mkNode PRIORITIZED-OR)
-            (cons (mkTree (mkNode playcenter) ())
-            (cons (mkNullVex
-                    (cons (mkTree (mkNode playblock) ()) ())) ()))))
-
-;; Test invalid disc specification for SSK (should not exceed 1)
+;; getNodeId on an ASK returns the embedded node id (twins, mirroring the LSK
+;; twins above).
 !(assertEqual
-  (appendToSSK
-    (gameTree1)
-    (mkSSK
-      (mkDiscKnob
-        (mkKnob (mkNodeId (2)))
-        (mkMultip 2)
-        (mkDiscSpec 1)
-        (mkDiscSpec 0)
-        ()))
-    (mkTree (mkNode PRIORITIZED-OR) ())
+  ( (getNodeId (mkASK (mkDiscKnob (mkKnob (mkNodeId (1 0))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) ((pbTree))))
+    (getNodeId (mkASK (mkDiscKnob (mkKnob (mkNodeId (3 5))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()) ((pbTree)))) )
+  ((mkNodeId (1 0)) (mkNodeId (3 5))))
+
+;; getDiscSpec on an ASK returns the (default current) pair.
+!(assertEqual
+  (getDiscSpec (mkASK (mkDiscKnob (mkKnob (mkNodeId (2 3))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()) ((pbTree))))
+  (1 1))
+
+;; appendToASK: a setting at or beyond the effective multiplicity is an error.
+!(assertEqual
+  (appendToASK
+    (mkTree (mkNode and_seq) ((pcTree)))
+    (mkASK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) ((pbTree)))
+    (mkTree (mkNode and_seq) ())
     (mkNodeId (0))
     2)
-  (Error 2 "Invalid disc specification for strategy:- cannot exceed 1."))
+  (Error 2 "Invalid effective disc specification for action knob."))
 
-;; Test appending to empty tree (SSK)
+;; appendToASK, action-subtree ASK (default 0): setting 1 appends the selected
+;; perm and STOPS recursion, so both returned ids stay at the parent.
 !(assertEqual
-  (appendToSSK
-    (gameTree1)
-    (mkSSK
-      (mkDiscKnob
-         (mkKnob (mkNodeId (0)))
-         (mkMultip 2)
-         (mkDiscSpec 1)
-         (mkDiscSpec 0)
-         ()))
-    (mkNullVex ())
+  (appendToASK
+    (mkTree (mkNode and_seq) ())
+    (mkASK (mkDiscKnob (mkKnob (mkNodeId (0))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) ((pbTree)))
+    (mkTree (mkNode and_seq) ())
     (mkNodeId (0))
     1)
-    ((mkTree (mkNode PRIORITIZED-OR) ()) (mkNodeId (0)) (mkNodeId (1))))
+  ((mkTree (mkNode and_seq) ((pbTree))) (mkNodeId (0)) (mkNodeId (0))))
 
-;; Test SSK KnobSetting 1: Present move
+;; appendToASK, simple-action ASK (default 1): setting 1 appends the existing
+;; subtree and keeps recursing, so the src id is the knob's node (2) and the
+;; dst id is the newly appended child, also (2).
 !(assertEqual
-  (appendToSSK
-    (gameTree2)
-    (mkSSK
-      (mkDiscKnob
-        (mkKnob (mkNodeId (2)))
-        (mkMultip 2)
-        (mkDiscSpec 1)
-        (mkDiscSpec 0)
-        ()))
-    (mkTree (mkNode PRIORITIZED-OR)
-        (cons (mkTree (mkNode playcenter) ()) ()))
+  (appendToASK
+    (mkTree (mkNode and_seq) ((pcTree) (pcrTree)))
+    (mkASK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()) ((pcrTree)))
+    (mkTree (mkNode and_seq) ((pcTree)))
     (mkNodeId (0))
     1)
-    ((mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playblock) ()) ()))) (mkNodeId (2 1)) (mkNodeId (2))))
+  ((mkTree (mkNode and_seq) ((pcTree) (pcrTree))) (mkNodeId (2)) (mkNodeId (2))))
 
-;; Test SSK KnobSetting 0: Absent move (NullVex)
+;; appendToASK setting 0: the candidate is unchanged and both ids are the parent.
 !(assertEqual
-  (appendToSSK
-    (gameTree2)
-    (mkSSK
-      (mkDiscKnob
-        (mkKnob (mkNodeId (2)))
-        (mkMultip 2)
-        (mkDiscSpec 0)
-        (mkDiscSpec 0)
-        ()))
-    (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) ()))
+  (appendToASK
+    (mkTree (mkNode and_seq) ((pcTree)))
+    (mkASK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) ((pbTree)))
+    (mkTree (mkNode and_seq) ((pcTree)))
     (mkNodeId (0))
     0)
-    ((mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) ())) (mkNodeId (0)) (mkNodeId (0))))
+  ((mkTree (mkNode and_seq) ((pcTree))) (mkNodeId (0)) (mkNodeId (0))))
