@@ -36,7 +36,7 @@
       (mkTree (mkNode OR) ((mkTree (mkNode C) ()) (mkKnob (mkTree (mkNode B) ()) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())) 0)))))
 
 ;; Tests for actionProbe / simpleActionProbe (action-domain version).
-;; These replace the retired game-strategy probe cases with the same ttt
+;; These replace the retired per-move subtree-probe cases with the same ttt
 ;; vocabulary as inert action symbols. Key delta: actionProbe makes ONE ASK
 ;; holding all supplied perms and appends a single knob, whereas the old
 ;; per-move probe built one subtree-knob per perm.

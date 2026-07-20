@@ -143,8 +143,8 @@
 
 ;; ---- Scoring ----
 !(add-atom &params (complexityRatio 3.5))
-;; nTrials: episodes per candidate evaluation in ACTION domains (the action
-;; analog of the strategy example's game count). Override via --nTrials=N.
+;; nTrials: episodes per candidate evaluation in ACTION domains (the
+;; per-episode trial count). Override via --nTrials=N.
 !(add-atom &params (nTrials 12))
 
 ;; ---- Exemplar selection ----

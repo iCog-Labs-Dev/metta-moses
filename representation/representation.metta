@@ -157,8 +157,8 @@
 ;; Helper function to extract tree from representation
 (= (getRepTree (mkRep $knobMapObj $tree)) $tree)
 
-;; Universal getCandidate that works for both boolean and game strategies
-;; Uses preOrder+buildTree to unwrap mkNullVex for games, cleanTree for boolean
+;; Universal getCandidate that works for both boolean and action domains
+;; Uses preOrder+buildTree to unwrap mkNullVex for actions, cleanTree for boolean
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
 ;; TODO: This should be removed when the game tree has been fixed to match the boolean.
 (= (getCandidate $srcid $repObj $id $inst)

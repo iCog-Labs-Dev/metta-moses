@@ -24,7 +24,7 @@
 ;; which opponent (or anything else) an ordinal means is this experiment's
 ;; business. Here: even ordinals play minimax-player, odd ordinals play
 ;; random-player -- floor(n/2) random + ceil(n/2) minimax games over
-;; ordinals 0..n-1, the legacy strategy domain's split. Parity comes from
+;; ordinals 0..n-1. Parity comes from
 ;; the shared isEven helper (utilities/general-helpers, probe-verified in
 ;; this runtime) -- and a bare symbol returned from an if branch is inert
 ;; (only TUPLES headed by live symbols need quoting).
@@ -39,8 +39,8 @@
 ;; ---- Best reachable raw score for $n episodes: ($fn $n) -> Number ----
 ;; Odd episodes (random-player) are winnable (1.0 each); even episodes
 ;; (minimax-player) draw at best (0.0). Best = 1.0 * floor(n/2) -- the
-;; legacy strategy example's reachable optimum. Computed with integer
-;; floor (py-call idiom from strategy-scoring.metta:32-37), then scaled by
+;; reachable optimum: one win per winnable (odd) episode. Computed with
+;; integer floor (math.floor via py-call), then scaled by
 ;; the exact float 1.0 -- no float drift.
 (= (tttActionBestScore $nTrials)
    (* 1.0 (py-call (math.floor (/ $nTrials 2)))))

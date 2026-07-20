@@ -96,18 +96,16 @@
                          ())
              (cons $subtree ())))))
 
-;; Retrieves the node ID from a Logical Subtree Knob (LSK) or Strategy Subtree Knob (SSK).
+;; Retrieves the node ID from a Logical Subtree Knob (LSK) or Action Subtree Knob (ASK).
 ;; (: getNodeId (-> LogicalSubtreeKnob NodeId))
-;; (: getNodeId (-> StrategySubtreeKnob NodeId))
 ;; (: getNodeId (-> ActionSubtreeKnob NodeId))
 (= (getNodeId (mkLSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
    $nodeId)
 (= (getNodeId (mkASK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList) $perms))
    $nodeId)
 
-;; Retrieves the current and default disc specifications from an LSK, SSK, or ASK.
+;; Retrieves the current and default disc specifications from an LSK or ASK.
 ;; (:getDiscSpec (-> LogicalSubtreeKnob (DiscSpec DiscSpec)))
-;; (:getDiscSpec (-> StrategySubtreeKnob (DiscSpec DiscSpec)))
 ;; (:getDiscSpec (-> ActionSubtreeKnob (DiscSpec DiscSpec)))
 (= (getDiscSpec (mkLSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
     (let ((mkDiscSpec $def) (mkDiscSpec $cur)) ($default $current) ($def $cur)))
@@ -117,7 +115,6 @@
 
 ;; appendTo dispatcher - calls the appropriate function based on knob type
 ;; (: appendTo (-> (Tree $a) LogicalSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
-;; (: appendTo (-> (Tree $a) StrategySubtreeKnob (Tree $a) NodeId Number (Tree $a)))
 ;; (: appendTo (-> (Tree $a) ActionSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
 (= (appendTo $updatedTree (mkLSK $discKnob) $tree $parentId $d)
     (appendToLSK $updatedTree (mkLSK $discKnob) $tree $parentId $d))

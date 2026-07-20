@@ -1,8 +1,8 @@
 ;; Episode runner: play ONE full tic-tac-toe game with a compiled action
 ;; tree as the X player and an opponent policy as O, and return the raw
-;; score on the strategy example's scale (win 1.0 / draw 0.0 / loss -1.0,
-;; re-implemented locally as tttOutcomeScore -- this package stays
-;; decoupled from examples/tic-tac-toe/strategy-scoring).
+;; score on the standard scale (win 1.0 / draw 0.0 / loss -1.0,
+;; re-implemented locally as tttOutcomeScore -- this package carries its
+;; own outcome scoring).
 ;;
 ;; Loads after ttt-action-world, ttt-action-primitives,
 ;; scoring/action-eval and the tic-tac-toe helpers/players.

@@ -1,5 +1,6 @@
 ;; Generic behavioral + composite scoring for action programs -- the action
-;; analog of scoreStrategyTree/getCscore. NOTHING here is experiment-specific:
+;; counterpart of the boolean behavioral scorer and getCscore. NOTHING here is
+;; experiment-specific:
 ;; this file never names a concrete fitness, opponent, or world shape.
 ;;
 ;; THE PARAM CONTRACT (how a fitness attaches -- see parameters/defaults.metta
@@ -28,9 +29,8 @@
 
 ;; ---- Behavioral-score cache ----
 ;; Entries: ($fitnessSymbol $compiledExp $nEpisodes $bscore) -- keyed by the
-;; compiled expression so identical candidates share an entry (mirrors
-;; &strategyScoreCache + scoreStrategyTree in
-;; examples/tic-tac-toe/strategy-scoring.metta:48-57). The configured fitness
+;; compiled expression so identical candidates share an entry (the same
+;; behavioral-score memo pattern the boolean scorer uses). The configured fitness
 ;; SYMBOL is part of the key: two different fitnesses must never share
 ;; entries for the same tree.
 !(bind! &actionScoreCache (new-space))
@@ -71,7 +71,8 @@
 ;; (the clause-dispatched general-helpers map overload -- in-order,
 ;; probe-verified). Scores come back listed -- exactly the
 ;; (mkBScore (list of Numbers)) contents sumBScore / BScore.sub consume
-;; (scoring/bscore.metta), same shape strategy-scoring builds.
+;; (scoring/bscore.metta) -- the same mkBScore-of-Numbers shape every
+;; behavioral scorer builds.
 (= (runActionEpisodes $fn $exp $n)
    (map runActionEpisode $fn $exp (genList (- $n 1))))
 
@@ -103,7 +104,7 @@
 ;; Tree; registered structural combinators cost 0 (they are the action
 ;; analog of AND/OR/NOT). Deliberately SEPARATE from treeComplexity in
 ;; utilities/tree.metta:312-319 -- that one hard-codes the boolean operator
-;; list (AND OR NOT PRIORITIZED-OR) and loads before the scoring layer, so it
+;; list (AND OR NOT) and loads before the scoring layer, so it
 ;; cannot consult &actionRegistry; keeping this here leaves boolean complexity
 ;; behavior untouched.
 ;(: actionTreeComplexity (-> (Tree $a) Number))
@@ -119,7 +120,7 @@
 ;; ---- Composite score ----
 ;; getActionCscore: behavioral score + complexity penalty -> mkCscore.
 ;; DISTINCT name (not a getCscore overload): the existing 4-arg getCscore
-;; boolean/strategy clauses (scoring/cscore.metta:23-28) already overlap
+;; boolean clauses (scoring/cscore.metta:23-28) already overlap
 ;; ambiguously, and (mkActionCtx $nTrials) keys the dispatch anyway.
 ;; The penalty math duplicates ~6 lines of getCscore's 3-arg core
 ;; (scoring/cscore.metta:6-20) -- ACCEPTED duplication: that core calls

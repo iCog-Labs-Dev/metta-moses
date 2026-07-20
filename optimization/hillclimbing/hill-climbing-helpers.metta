@@ -259,8 +259,7 @@
           (
             ($disc (getDisk $POASet))
             (($nTrials $complexityRatio) $FsScorer)
-            ;; $tTableBscorer is the scalar target score (same convention as the
-            ;; strategy arm above).
+            ;; $tTableBscorer is the scalar target score for this action arm.
             ($targetPenScore $tTableBscorer)
           )
           ;; Slot-packing: $rowOCoeff <- mkActionCtx (bare symbol), $size <-

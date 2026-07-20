@@ -103,7 +103,7 @@
           (mkTree (mkNode and_seq) ((mkKnob (mkNullVex (sdtPerms)) (sdtAsk) 0)))))
 
 ;; ---- (a) applyActionBasedScore ----
-;; empty instance list -> empty scored list (mirrors the strategy helper test)
+;; empty instance list -> empty scored list (the scorer maps over instances)
 !(assertEqual (applyActionBasedScore (sdtRep) (mkDemeId "sdtA") () 2 3.5 ()) ())
 
 ;; instance (1) picks sdtBump: candidate (and_seq (sdtBump)).

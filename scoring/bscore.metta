@@ -18,8 +18,8 @@
 ;(: sumBScore (-> BehavioralScore Number))
 (= (sumBScore (mkBScore $bs)) (List.sum $bs))
 
-;; Count wins in a BehavioralScore for game strategies
-;; For game strategies: 1.0 = win, -1.0 = loss, 0.0 = draw
+;; Count wins in a BehavioralScore for game-playing candidates
+;; For game-playing candidates: 1.0 = win, -1.0 = loss, 0.0 = draw
 ;; Returns the total number of wins
 ;(: countWins (-> BehavioralScore Number))
 (= (countWins (mkBScore ())) 0)

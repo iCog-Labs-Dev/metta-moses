@@ -2,7 +2,7 @@
 ;;
 ;; World = (mkTTTWorld $board $player $moved)
 ;;   $board  -- the engine board tuple (E E E E E E E E E), indices 0-8
-;;              row-major (see examples/tic-tac-toe/game-engine.metta).
+;;              row-major.
 ;;   $player -- the mark the candidate tree plays (X in this package).
 ;;   $moved  -- the ONE-MOVE-PER-TURN LATCH. A tic-tac-toe turn admits
 ;;              exactly one placement, so every placement action becomes a
@@ -12,8 +12,8 @@
 ;;              actually places a mark consumes the turn, later actions in
 ;;              the same turn succeed without touching the board. In
 ;;              particular (or_seq tttWin tttBlock tttCenter tttCorner
-;;              tttSide) is semantically equal to the existing
-;;              PRIORITIZED-OR strategy of the tic-tac-toe strategy example.
+;;              tttSide) is a first-success priority chain over those moves:
+;;              the earliest available move consumes the turn.
 ;;
 ;; Loads after examples/tic-tac-toe/tic-tac-toe-helpers (replace-by-index
 ;; must have clauses when applyTTTMove compiles).
