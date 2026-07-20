@@ -21,7 +21,6 @@
 
 !(import! &self ../../utilities/tree)
 !(import! &self ../../scoring/cacheSpace)
-!(import! &self ../../scoring/strategy-score-cache)
 
 !(import! &self ../../scoring/fitness)
 !(import! &self ../../scoring/boolean-ops)
@@ -41,6 +40,18 @@
 !(import! &self ../../representation/instance)
 
 !(import! &self ../../scoring/complexity-based-scorer)
+
+;; The tic-tac-toe action fitness package (shared players + world/primitives/
+;; episode/registration): supplies tttActionFitness / tttActionBestScore and
+;; the domain vocabulary for the ttt action asserts appended below.
+!(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
+!(import! &self ../../examples/tic-tac-toe/moves)
+!(import! &self ../../examples/tic-tac-toe/random-player)
+!(import! &self ../../examples/tic-tac-toe/minimax-player)
+!(import! &self ../../examples/tic-tac-toe-action/ttt-action-world)
+!(import! &self ../../examples/tic-tac-toe-action/ttt-action-primitives)
+!(import! &self ../../examples/tic-tac-toe-action/ttt-action-episode)
+!(import! &self ../../examples/tic-tac-toe-action/ttt-action-registration)
 
 !(import! &self ../../moses/neighborhood-sampling)
 
@@ -169,20 +180,57 @@
    2.0)
    (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) ()))))
 
-;; strategy arm: a bare ($n) context still routes to applyStrategyBasedScore
-;; (fixture from score-deme-test; empty instance set keeps it deterministic)
-(= (StrategyRep)
-   (mkRep
-     (mkKbMap
-       (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ())))
-       (mkDscMp
-         (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))
-         (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))
-         ()))))
-     (mkTree (mkNode PRIORITIZED-OR)
-       (cons (mkTree (mkNode playcenter) ())
-             (cons (mkTree (mkNode playcorner) ()) ())))))
+;; ============================================================
+;; Real action-domain scoring: the converted strategy asserts (was:
+;; score-deme-test @192-204, the applyStrategyBasedScore / transform pins for
+;; the PRIORITIZED-OR playcenter/playcorner strategy). Here the candidate is
+;; scored through the generic action stack against tttActionFitness. The ttt
+;; params are bound AFTER the sdt/boolean asserts above so those keep running
+;; under their own fitness.
+;;
+;; Hand-built action rep: an or_seq root with two embedded mkASK knobs
+;; (shape mirrors the sdtRep above / representation/tests/build-action-test);
+;; instance (0) -> knob absent, (1) -> its primitive. Instance (1 1) selects
+;; both -> candidate (or_seq (tttCenter tttCorner)).
+(= (tttCenterTree) (mkTree (mkNode tttCenter) ()))
+(= (tttCornerTree) (mkTree (mkNode tttCorner) ()))
+(= (tttAsk1) (mkASK (mkDiscKnob (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) ((tttCenterTree))))
+(= (tttAsk2) (mkASK (mkDiscKnob (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()) ((tttCornerTree))))
+(= (tttActionRep)
+   (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 0) (tttAsk1)) ((mkDiscSpec 1) (tttAsk2)))))
+          (mkTree (mkNode or_seq)
+            ((mkKnob (mkNullVex ((tttCenterTree))) (tttAsk1) 0)
+             (mkKnob (mkNullVex ((tttCornerTree))) (tttAsk2) 1)))))
 
+;; Bind the ttt experiment template (quote at the vocabulary set-param sites:
+;; the primitives are live bare-head clauses -- see ttt-action-registration).
+!(set-param fitness tttActionFitness)
+!(set-param bestScore tttActionBestScore)
+!(set-param actions (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
+!(set-param perceptions (quote (tttCanWin tttCanBlock tttCenterFree)))
+
+;; (a) empty instance list -> empty scored list (was: applyStrategyBasedScore
+;; ... () 1 3.5 () -> ()).
+!(assertEqual (applyActionBasedScore (tttActionRep) (mkDemeId "ttt0") () 1 3.5 ()) ())
+
+;; (b) instance (1 1) -> candidate (or_seq tttCenter tttCorner). n=1, ordinal 0
+;; -> minimax (deterministic): the two-action tree runs out of moves and
+;; forfeits -> raw -1.0; complexity 2; pen = 2 * coef(3.5) = 0.5714285714...
+;; (was: applyStrategyBasedScore instance (1 1) -> the same -1.0/2 cscore).
+!(assertEqual (applyActionBasedScore (tttActionRep) (mkDemeId "ttt1")
+                     (cons (mkInst (cons 1 (cons 1 ()))) ()) 1 3.5 ())
+              ((mkSInst (mkPair (mkInst (1 1)) (mkCscore -1.0 2 0.5714285714285714 0.0 -1.5714285714285714)))))
+
+;; (c) transform of an empty instance set through the tagged action context
+;; (was: transform (mkSInstSet ()) ... (1) 3.5 -> (mkSInstSet ())).
 !(assertEqual
-   (transform (mkSInstSet ()) (StrategyRep) (mkDemeId "1") (1) 3.5)
+   (transform (mkSInstSet ()) (tttActionRep) (mkDemeId "ttt2") (mkActionCtx 1) 3.5)
    (mkSInstSet ()))
+
+;; (d) transform of a worst-score sentinel: instance (1 1) rescored to the same
+;; cscore as (b). Same (fitness exp n) triple -> &actionScoreCache hit, so no
+;; re-run (was: the transform-rescore strategy assert).
+!(assertEqual (transform
+   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) -1.0e308)) ()))
+   (tttActionRep) (mkDemeId "ttt3") (mkActionCtx 1) 3.5)
+   (mkSInstSet ((mkSInst (mkPair (mkInst (1 1)) (mkCscore -1.0 2 0.5714285714285714 0.0 -1.5714285714285714))))))

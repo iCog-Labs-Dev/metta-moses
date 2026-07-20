@@ -16,15 +16,6 @@
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 
 !(import! &self ../../utilities/tree)
-!(import! &self ../../scoring/strategy-score-cache)
-
-!(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
-!(import! &self ../../examples/tic-tac-toe/random-player)
-!(import! &self ../../examples/tic-tac-toe/strategy-scoring)
-!(import! &self ../../examples/tic-tac-toe/minimax-player)
-!(import! &self ../../examples/tic-tac-toe/game-engine)
-!(import! &self ../../examples/tic-tac-toe/moves)
-!(import! &self ../../examples/tic-tac-toe/moses-player)
 
 !(import! &self scoring/action-registry)
 !(import! &self representation/knob-representation)
@@ -177,28 +168,3 @@
    (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 0 ())))) 0.5)) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 1 ())))) 0.33333333333333337)) ())))
    )
 
-(= (StrategyRep)
-   (mkRep 
-     (mkKbMap 
-       (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ())))
-       (mkDscMp 
-         (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
-         (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
-         ()))))
-     (mkTree (mkNode PRIORITIZED-OR) 
-       (cons (mkTree (mkNode playcenter) ()) 
-             (cons (mkTree (mkNode playcorner) ()) ())))))
-
-!(assertEqual (applyStrategyBasedScore (StrategyRep) (mkDemeId "1") () 1 3.5 ()) ())
-
-!(assertEqual (applyStrategyBasedScore (StrategyRep) (mkDemeId "1")
-                     (cons (mkInst (cons 1 (cons 1 ())))  ()) 1 3.5 ()) 
-                     ((mkSInst (mkPair (mkInst (1 1)) (mkCscore -1.0 2 0.5714285714285714 0.0 -1.5714285714285714)))))
-
-!(assertEqual
-   (transform (mkSInstSet ()) (StrategyRep) (mkDemeId "1") (1) 3.5)
-   (mkSInstSet ()))
-
-!(assertEqual (transform
-   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) -1.0e308)) ()))
-   (StrategyRep) (mkDemeId "1") (1) 3.5) (mkSInstSet ((mkSInst (mkPair (mkInst (1 1)) (mkCscore -1.0 2 0.5714285714285714 0.0 -1.5714285714285714))))))
