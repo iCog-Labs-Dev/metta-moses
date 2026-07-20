@@ -189,6 +189,9 @@ $optimDeme
 ;; childless exemplar is a bare operator symbol (e.g. and_seq), and a live
 ;; ($tree $score) pair headed by it would curry into a partial term now that
 ;; action operators are bare clause heads.
-(= (cleanedExemplar (mkExemplar $tree $demeId $cscore (mkBScore $bscore))) ((preOrder $tree) (List.sum $bscore)))
+(= (cleanedExemplar (mkExemplar $tree $demeId $cscore (mkBScore $bscore)))
+   (let* (($p (preOrder $tree))
+          ($s (List.sum $bscore)))
+     (cons-atom $p (cons-atom $s ()))))
 
 (= (printInstance (mkInst $inst)) (println! (List.listToExpr $inst)))
