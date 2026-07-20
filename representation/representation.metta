@@ -33,22 +33,6 @@
 ; )   
 ; (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
 ; ))
-;; Game representation constructor with execution guard
-;; Params: Tree (Exemplar), Number of demes
-;; Returns: List of Representations
-;;(: representation (-> (Tree $a) Number (List Representation)))
-(= (representation $exemplar $nDeme)
-   (let* (
-          ($demeCount (range 0 1 $nDeme))
-        
-          ($result (map-atom $demeCount $x 
-                      (let*
-                        (
-                          (($updatedTree $dscMp) (buildKnobs $exemplar () ()))
-                          ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
-                          ($rep (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))   
-                          $rep))))
-         $result))
 ;; (: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol Expression))
 (= (representation
 ;; Boolean representation constructor with feature selection
@@ -196,9 +180,8 @@
 	                      ($rootSymbol (if (== (get-metatype $rootValue) Expression)
 		                              (car-atom (cdr-atom $rootValue))
 		                              $rootValue))
-		                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
 		                      ($isActionDomain (isActionOperator $rootSymbol))
-		                      ($finalTree (if (or $isGameStrategy $isActionDomain)
+		                      ($finalTree (if $isActionDomain
 		                                      (let* (
 		                                              ($expr (preOrder $candidate))
 	                                              ($cleanTree (buildTree $expr)))
@@ -232,9 +215,8 @@
 	                      ($rootSymbol (if (== (get-metatype $rootValue) Expression)
 		                              (car-atom (cdr-atom $rootValue))
 		                              $rootValue))
-		                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
 		                      ($isActionDomain (isActionOperator $rootSymbol))
-		                      ($finalTree (if (or $isGameStrategy $isActionDomain)
+		                      ($finalTree (if $isActionDomain
 		                                      (let* (
 		                                              ($expr (preOrder $candidate))
 	                                              ($cleanTree (buildTree $expr)))
@@ -352,7 +334,7 @@
              (getCandidateHelper (mkInst $inst) (List.getByIdx $perms (- $setting 1)))
              (getCandidateHelper (mkInst $inst) $controlledSubtree)))))
 
-;; Null-vertex unwrapping for LSK and SSK knobs only.
+;; Null-vertex unwrapping for LSK knobs only.
 ;; mkASK knobs are handled exclusively by the ASK rule above,
 ;; which reads perms directly from the controlled NullVex.
 ;; Keeping this generic caused double evaluation whenever the
@@ -360,8 +342,6 @@
 ;; the same (mkKnob (mkNullVex ...) (mkASK ...) $i) expression.
 (= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) (mkLSK $discKnob) $i))
    (getCandidateHelper $inst (mkKnob $child (mkLSK $discKnob) $i)))
-(= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) (mkSSK $discKnob) $i))
-   (getCandidateHelper $inst (mkKnob $child (mkSSK $discKnob) $i)))
 
 ;; Specialized fast clause: empty disallowed list means effective settings map
 ;; one-to-one to actual settings, so we skip mapEffectiveDiscSpec entirely.

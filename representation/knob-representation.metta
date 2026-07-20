@@ -27,10 +27,6 @@
 ;; (: LogicalSubtreeKnob Type)
 ;; (: mkLSK (-> DiscreteKnob LogicalSubtreeKnob))
 
-;; Strategy subtree knob representation (for game strategies)
-;; (: StrategySubtreeKnob Type)
-;; (: mkSSK (-> DiscreteKnob StrategySubtreeKnob))
-
 ;; Action subtree knob representation
 ;; (: ActionSubtreeKnob Type)
 ;; (: mkASK (-> DiscreteKnob (List (Tree $a)) ActionSubtreeKnob))
@@ -61,7 +57,6 @@
 ;; (: getDiscKnob (-> StrategySubtreeKnob DiscreteKnob))
 ;; (: getDiscKnob (-> ActionSubtreeKnob DiscreteKnob))
 (= (getDiscKnob (mkLSK $DiscKnob )) $DiscKnob)
-(= (getDiscKnob (mkSSK $DiscKnob )) $DiscKnob)
 (= (getDiscKnob (mkASK $DiscKnob $perms)) $DiscKnob)
 
 ;; Extracts the Tree component from a LogicalSubtreeKnob (mkLSK).
@@ -82,7 +77,6 @@
 (= (getRawKnobMultip (mkDiscKnob $multiplicity $curr $def $disAll)) $multiplicity)
 (= (getRawKnobMultip (mkDiscKnob $knob $multiplicity $curr $def $disAll)) $multiplicity)
 (= (getRawKnobMultip (mkLSK $discKnob )) (getRawKnobMultip $discKnob))
-(= (getRawKnobMultip (mkSSK $discKnob )) (getRawKnobMultip $discKnob))
 (= (getRawKnobMultip (mkASK $discKnob $perms)) (getRawKnobMultip $discKnob))
 
 ;; Extracts the default setting and disallowed settings from a knob.
@@ -93,7 +87,6 @@
 (= (getKnobDefault (mkDiscKnob $multiplicity $current $default $disAll)) $default)
 (= (getKnobDefault (mkDiscKnob $knob $multiplicity $current $default $disAll)) $default)
 (= (getKnobDefault (mkLSK $discKnob )) (getKnobDefault $discKnob))
-(= (getKnobDefault (mkSSK $discKnob )) (getKnobDefault $discKnob))
 (= (getKnobDefault (mkASK $discKnob $perms)) (getKnobDefault $discKnob))
 
 ;; (: getDisallowedSpecs (-> DiscreteKnob (List DiscSpec)))
@@ -103,7 +96,6 @@
 (= (getDisallowedSpecs (mkDiscKnob $multiplicity $current $default $disAll)) $disAll)
 (= (getDisallowedSpecs (mkDiscKnob $knob $multiplicity $current $default $disAll)) $disAll)
 (= (getDisallowedSpecs (mkLSK $discKnob )) (getDisallowedSpecs $discKnob))
-(= (getDisallowedSpecs (mkSSK $discKnob )) (getDisallowedSpecs $discKnob))
 (= (getDisallowedSpecs (mkASK $discKnob $perms)) (getDisallowedSpecs $discKnob))
 
 (= (countNonDefaultDisallowed (mkDiscSpec $default) ()) 0)
@@ -124,7 +116,6 @@
 (= (getKnobMultip (mkDiscKnob $knob (mkMultip $multiplicity) $current $default $disAll))
    (mkMultip (- $multiplicity (countNonDefaultDisallowed $default $disAll))))
 (= (getKnobMultip (mkLSK $discKnob )) (getKnobMultip $discKnob))
-(= (getKnobMultip (mkSSK $discKnob )) (getKnobMultip $discKnob))
 (= (getKnobMultip (mkASK $discKnob $perms)) (getKnobMultip $discKnob))
 
 ;; Calculates the knob Specification of an LSK, SSK, or ASK
@@ -133,8 +124,6 @@
 ;; (: getKnobSpec (-> ActionSubtreeKnob DiscSpec))
 (= (getKnobSpec (mkLSK $discKnob))
    (let (mkMultip $multip) (getKnobMultip (mkLSK $discKnob)) (mkDiscSpec $multip)))
-(= (getKnobSpec (mkSSK $discKnob))
-   (let (mkMultip $multip) (getKnobMultip (mkSSK $discKnob)) (mkDiscSpec $multip)))
 (= (getKnobSpec (mkASK $discKnob $perms))
    (let (mkMultip $multip) (getKnobMultip (mkASK $discKnob $perms)) (mkDiscSpec $multip)))
 
@@ -183,7 +172,6 @@
 ;; (: getKnobLoc (-> ActionSubtreeKnob (NodeId)))
 (= (getKnobLoc (mkDiscKnob (mkKnob $loc) $multip $curr $def $dis)) $loc)
 (= (getKnobLoc (mkLSK $discKnob )) (getKnobLoc $discKnob))
-(= (getKnobLoc (mkSSK $discKnob )) (getKnobLoc $discKnob))
 (= (getKnobLoc (mkASK $discKnob $perms)) (getKnobLoc $discKnob))
 
 ;; A comparison function for discSpec 

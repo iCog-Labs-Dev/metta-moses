@@ -53,35 +53,6 @@
              ($reducedSubtree (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
              ((mkNullVex ($subtree)) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))))
 
-;; strategySubtreeKnob -> Creates Strategy Subtree Knob (SSK) for game moves
-;; Params:
-;;  $tree: The tree structure where the strategy subtree knob will be applied
-;;  $target: The parent node to which the SSK's place holder will be added
-;;  $subtree: The subtree to be appended (game move or strategy)
-;; Returns: ($tree StrategySubtreeKnob)
-;; (: strategySubtreeKnob (-> (Tree $a) NodeId (Tree $a) (Tree $a StrategySubtreeKnob)))
-(= (strategySubtreeKnob $tree (mkNodeId $target) $subtree)
-   (let $childrenOfTarget (getChildrenById $tree (mkNodeId $target))
-       ;; Case 1: Subtree already exists in children
-       (if (== True (List.contains $subtree $childrenOfTarget))
-           (let $idOfSubtree (getSubtreeId $tree (mkNodeId $target) $subtree 0)
-               ;; Create Knob: Multiplicity 2 (0=Absent, 1=Present). Default=1 (Present)
-               ($tree (mkSSK (mkDiscKnob (mkKnob (updateID $idOfSubtree)) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())))
-           )
-           ;; Case 2: New Subtree (Insert placeholder)
-           (let*
-               (
-                   ;; Insert NullVertex placeholder
-                   (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex ())))
-                   ;; Attach the actual subtree to the placeholder
-                   (($subtreeAppendedTree $subtreeId) (appendChild $nullVexAppendedTree $nullVexId $subtree))
-               )
-               ($subtreeAppendedTree (mkSSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())))
-           )
-       )
-   )
-)
-
 ;; Action subtree knobs store all selectable action permutations in the knob.
 ;; The two-argument form follows the current embedded-knob representation.
 (= (actionSubtreeKnob $perms)
@@ -131,8 +102,6 @@
 ;; (: getNodeId (-> ActionSubtreeKnob NodeId))
 (= (getNodeId (mkLSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
    $nodeId)
-(= (getNodeId (mkSSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
-   $nodeId)
 (= (getNodeId (mkASK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList) $perms))
    $nodeId)
 
@@ -141,8 +110,6 @@
 ;; (:getDiscSpec (-> StrategySubtreeKnob (DiscSpec DiscSpec)))
 ;; (:getDiscSpec (-> ActionSubtreeKnob (DiscSpec DiscSpec)))
 (= (getDiscSpec (mkLSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
-    (let ((mkDiscSpec $def) (mkDiscSpec $cur)) ($default $current) ($def $cur)))
-(= (getDiscSpec (mkSSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
     (let ((mkDiscSpec $def) (mkDiscSpec $cur)) ($default $current) ($def $cur)))
 (= (getDiscSpec (mkASK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList) $perms))
     (let ((mkDiscSpec $def) (mkDiscSpec $cur)) ($default $current) ($def $cur)))
@@ -154,8 +121,6 @@
 ;; (: appendTo (-> (Tree $a) ActionSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
 (= (appendTo $updatedTree (mkLSK $discKnob) $tree $parentId $d)
     (appendToLSK $updatedTree (mkLSK $discKnob) $tree $parentId $d))
-(= (appendTo $updatedTree (mkSSK $discKnob) $tree $parentId $d)
-    (appendToSSK $updatedTree (mkSSK $discKnob) $tree $parentId $d))
 (= (appendTo $updatedTree (mkASK $discKnob $perms) $tree $parentId $d)
     (appendToASK $updatedTree (mkASK $discKnob $perms) $tree $parentId $d))
 
@@ -207,47 +172,6 @@
                                 ($tree $parentId $parentId)
                                 (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
                                         ((first $treeChIdPair) $newSrcId (if (== $parentId $newDstId) (second $treeChIdPair) $newDstId))))))))) ;; INFO: Just incase if the append fails and stores the result somewhere else, we need to add a test case here to cmpare between targetNode and appendChild node.
-
-;; appendTo for Strategy Subtree Knobs (SSK) - No negation for game moves
-;; Params:
-;;  $ssk: The strategy subtree knob containing information on how the subtree is appended
-;;  $tree: An incomplete tree to be built
-;;  $parentId: The location where the new node will be added
-;;  $d: The current setting of the knob (0=Absent, 1=Present)
-;; (: appendToSSK (-> (Tree $a) StrategySubtreeKnob (Tree $a) NodeId Number (Tree $a)))
-(= (appendToSSK $updatedTree $ssk $tree $parentId $d)
-    (let*
-       (
-        ;; ($_ (println! (lsk: $lsk)))
-        ;; ($_ (println! (ParentId: $parentId)))
-        ;; ($_ (println! (D: $d)))
-        ((mkNodeId $targetId) (getNodeId $ssk))
-        ((mkNodeId $dstId) (if (= (mkNodeId (0)) $parentId) (mkNodeId ()) $parentId))
-        ;; ($_ (println! (DstId: $dstId)))
-        ($targetTree (getNodeById  $updatedTree (mkNodeId $targetId)))
-        ($newPosition (+ (List.length (getChildren (getNodeById  $tree $parentId))) 1))
-        ;; ($_ (println! (newPosition: $newPosition)))
-        ;; ($_ (println! (if (== $targetId (1 1 1)) $targetTree NotPrinting)))
-        (($subtree $newSrcId) (if (== True (isNullVertex $targetTree))
-                        (let (mkNullVex (cons $child ())) $targetTree ($child (mkNodeId (union-atom $targetId (1)))))
-                        ($targetTree (mkNodeId $targetId))
-                    ))        
-        ;; ($_ (println! ("subtree ": $subtree $targetTree)))
-        ;; ($_ (println! (CandidateSoFar: (preOrder $tree))))
-        ;; ($_ (println! ("subtree ": (getNodeValue $subtree) parentId(OldDstId): $parentId srcId: $newSrcId targetId: $targetId)))
-      )
-      (if (> $d 1)
-          (Error $d "Invalid disc specification for strategy:- cannot exceed 1.")
-          (let ($treeToAppend $newDstId)
-                            (case $d
-                                (
-                                  (1  ((mkTree (getNodeValue $subtree) ()) (mkNodeId (union-atom $dstId ($newPosition))))) ;; If present
-                                  (0  ((mkNullVex (cons $subtree ())) $parentId)))) ;; If absent
-
-                            (if (isNullVertex $treeToAppend)
-	                                ($tree $parentId $parentId)
-	                                (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
-	                                        ((first $treeChIdPair) $newSrcId (if (== $parentId $newDstId) (second $treeChIdPair) $newDstId))))))))
 
 ;;;; ---------------------------------------------------------------------------
 ;; appendToASK appends a permutation subtree for an Action Subtree Knob.
