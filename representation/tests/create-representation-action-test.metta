@@ -35,28 +35,28 @@
 !(py-call (random.seed 12))
 
 ;; ============================================================
-;; createRepresentation / createDeme for the mkActionRep-tagged clauses.
-;; Inert test-local vocabulary bound through the GLOBAL PARAMS (the single
-;; source since the params-based redesign; the per-domain config-clause
-;; family was deleted) -- createRepresentation must pick it up via
-;; (param actions) / (param perceptions) with no experiment
-;; package loaded. The tuples are quote-wrapped at the set-param sites per
-;; the contract (crt* symbols are inert here, but the convention is
-;; uniform; probe-verified: quote strips on set, the params hold the plain
-;; tuples).
+;; createRepresentation / createDeme action clauses: the vocabulary rides
+;; as ORDINARY ARGUMENTS (arity routes the dispatch -- no tag), so the
+;; representation layer is a pure function of its inputs. In a full run
+;; the one (param actions)/(param perceptions) read happens at the deme
+;; boundary (expand-deme.metta's action overload); this test passes the
+;; tuples directly. crt* symbols are inert, so plain literals are safe;
+;; quote-wrap the params in a real experiment where the primitives head
+;; live clauses.
 ;; ============================================================
 
+;; the params-boundary shape: set-param then read serves plain tuples back
+;; (what expand-deme's boundary read receives before forwarding as args)
 !(set-param actions (quote (crtGo crtTurn crtWait)))
 !(set-param perceptions (quote (crtBlocked)))
-
-;; the params serve the test vocabulary back as plain tuples
 !(assertEqual (param actions) (crtGo crtTurn crtWait))
 !(assertEqual (param perceptions) (crtBlocked))
 
 ;; 2 demes -> 2 reps, each the 1-field (mkRep (mkKbMap (mkDscMp $m)) $t)
 ;; shape with a non-empty knob multimap
 !(assertEqual
-  (let $reps (createRepresentation 2 (mkTree (mkNode and_seq) ()) mkActionRep)
+  (let $reps (createRepresentation 2 (mkTree (mkNode and_seq) ())
+                                   (crtGo crtTurn crtWait) (crtBlocked))
     ((size-atom $reps)
      (map-atom $reps $r
        (let (mkRep (mkKbMap (mkDscMp $m)) $t) $r
@@ -68,7 +68,7 @@
   (let $demes (createDeme 2
                 (cons (mkDemeId "act1") (cons (mkDemeId "act2") ()))
                 (mkTree (mkNode and_seq) ())
-                mkActionRep)
+                (crtGo crtTurn crtWait) (crtBlocked))
     ((size-atom $demes)
      (map-atom $demes $d
        (let (mkDeme (mkRep (mkKbMap (mkDscMp $m)) $t) $instSet $id) $d

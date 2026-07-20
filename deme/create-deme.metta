@@ -38,17 +38,19 @@
       )
 )
 
-;; Action createDeme - tagged with the bare mkActionRep symbol (heads no
-;; clauses, so it is inert) so it can never collide with the 3-arg game
-;; clause above; same body shape. The vocabulary the representation builds
-;; from comes from the global params (see create-representation.metta).
-;;             $nDeme --      number of demes to create
-;;             $demeIds --    list of deme ids (cons ...)
-;;             $exemplar --   the exemplar tree which the demes are going to be based on
+;; Action createDeme - the action/perception vocabularies ride as ARGUMENTS
+;; (5-ary: no collision with the 3-arg game clause above or the 8-arg
+;; boolean clause below); same body shape. This layer just forwards them --
+;; the one params read happens at the deme boundary in expand-deme.metta.
+;;             $nDeme --       number of demes to create
+;;             $demeIds --     list of deme ids (cons ...)
+;;             $exemplar --    the exemplar tree which the demes are going to be based on
+;;             $actions --     tuple of domain action symbols (knob vocabulary)
+;;             $perceptions -- tuple of perception symbols (may be ())
 ;;             returns ↠ tuple of demes
-; (: createDeme (-> Number (List DemeId) (Tree $a) Symbol Expression))
-(= (createDeme $nDeme $demeIds $exemplar mkActionRep)
-      (let $reps (createRepresentation $nDeme $exemplar mkActionRep)
+; (: createDeme (-> Number (List DemeId) (Tree $a) Expression Expression Expression))
+(= (createDeme $nDeme $demeIds $exemplar $actions $perceptions)
+      (let $reps (createRepresentation $nDeme $exemplar $actions $perceptions)
             (loopCreateDeme $demeIds $reps ())))
 
 

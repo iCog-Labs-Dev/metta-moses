@@ -88,16 +88,20 @@
 ;; Overloaded version for ACTION runs - 6 parameters, keyed by the tagged
 ;; (mkActionCtx $nTrials $complexityRatio) context runMoses passes, so it is
 ;; arity-correct end to end with its runMoses call site (unlike the 7-param
-;; strategy overload above, whose runMoses call passes 8 args). The deme
-;; layer is fitness-blind: the mkActionRep tag routes createDeme to the
-;; action representation clause, which reads the knob vocabulary from
-;; (param actions) / (param perceptions).
+;; strategy overload above, whose runMoses call passes 8 args). This deme
+;; boundary is where the knob vocabulary crosses from global params to
+;; plain arguments: the ONE (param actions)/(param perceptions) read
+;; happens here (already validated by moses-run-action's loud guard), and
+;; createDeme/createRepresentation below receive the tuples as ordinary
+;; parameters -- the representation layer never touches the params registry.
 (= (expandDeme $metaPop $nExpansion $nDeme (mkActionCtx $nTrials $complexityRatio) $maxScore $optimize)
    (let* (($exemplar (selectExemplar $metaPop))
           ($tree (getExemplarTree $exemplar))
           ($_ (println! (SelectedTree: (preOrder $tree))))
           ($demeIds (createDemeIds $nExpansion $nDeme))
-          ($demes (createDeme $nDeme $demeIds $tree mkActionRep))
+          ($actions (param actions))
+          ($perceptions (param perceptions))
+          ($demes (createDeme $nDeme $demeIds $tree $actions $perceptions))
           ($ctx (mkActionCtx $nTrials $complexityRatio $maxScore)))
      (map-atom $demes $deme (expandDemeHelper $deme $ctx $optimize))))
 
@@ -185,9 +189,6 @@ $optimDeme
 ;; childless exemplar is a bare operator symbol (e.g. and_seq), and a live
 ;; ($tree $score) pair headed by it would curry into a partial term now that
 ;; action operators are bare clause heads.
-(= (cleanedExemplar (mkExemplar $tree $demeId $cscore (mkBScore $bscore)))
-   (let* (($p (preOrder $tree))
-          ($s (List.sum $bscore)))
-     (cons-atom $p (cons-atom $s ()))))
+(= (cleanedExemplar (mkExemplar $tree $demeId $cscore (mkBScore $bscore))) ((preOrder $tree) (List.sum $bscore)))
 
 (= (printInstance (mkInst $inst)) (println! (List.listToExpr $inst)))
