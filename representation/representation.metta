@@ -154,6 +154,15 @@
             $actions
             $perceptions
          )
+         (representation $exemplar $actions $perceptions))
+
+;; Lean action overload (3-ary; the game clause is 2-ary, boolean 8-ary):
+;; an episodic representation needs exactly the exemplar and the two
+;; vocabularies. The table/feature-selection/discprobe slots of the wider
+;; overloads above exist only for signature compatibility -- buildKnobs'
+;; action path never consults them -- so they are not parameters here at
+;; all rather than hardcoded placeholders.
+(= (representation $exemplar $actions $perceptions)
          (let* (
                   (($updatedTree $dscMp) (buildKnobs $exemplar () () $actions $perceptions))
                   ($_ (resetState &knobCount))

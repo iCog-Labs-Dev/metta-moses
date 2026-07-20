@@ -31,18 +31,18 @@
 ;; function of its inputs: the one (param actions)/(param perceptions) read
 ;; happens at the deme boundary (expand-deme.metta's action overload), where
 ;; moses-run-action's loud missing-vocab guard has already validated them.
-;; Threads the vocabularies into the action-capable 10-arg `representation`
-;; overload (representation.metta:145-162). That overload builds exactly ONE
-;; rep per call (its $nDeme slot is unused), so the per-deme loop lives HERE
-;; -- the action analog of the loop the 2-arg game clause delegates to
-;; representation.metta:40-51. Knob sampling inside buildAction is
-;; randomized, so demes get distinct representations.
-;; The (mkITable () ()) is a placeholder: the action path of buildKnobs
-;; (build-knobs.metta:20-31) never consults the itable / fs-algo / scorer
-;; slots. Each element is (mkRep (mkKbMap (mkDscMp $mmp)) $tree) -- the
-;; 1-field KnobMap shape loopCreateDeme / expandDemeHelper destructure.
+;; Threads the vocabularies into the LEAN 3-ary `representation` overload
+;; (exemplar + the two vocabularies -- everything an episodic rep needs; the
+;; wider overloads' table/feature-selection/discprobe slots don't apply to
+;; the action path and are not passed at all). That overload builds exactly
+;; ONE rep per call, so the per-deme loop lives HERE -- the action analog of
+;; the loop the 2-arg game clause delegates to representation.metta:40-51.
+;; Knob sampling inside buildAction is randomized, so demes get distinct
+;; representations. Each element is (mkRep (mkKbMap (mkDscMp $mmp)) $tree)
+;; -- the 1-field KnobMap shape loopCreateDeme / expandDemeHelper
+;; destructure.
 (= (createRepresentation $nDeme $tree $actions $perceptions)
    (let $demeNumbers (range 0 1 $nDeme)
      (map-atom $demeNumbers $x
-       (let ($rep) (representation 1 $tree (mkITable () ()) None False () mi True $actions $perceptions)
+       (let ($rep) (representation $tree $actions $perceptions)
          $rep))))
