@@ -32,11 +32,14 @@
   (size-atom (collapse (optimizeDemes sdtDeme (mkActionCtx 2 3.5 100.0) (mkInst (1)) stubOptimizer)))
   1)
 
-;; regression guard: the strategy 3-tuple context still routes to
-;; applyStrategyBasedScore packing (its clause precedes the catch-all)
+;; behavior-change guard: the strategy 3-tuple clause is gone, so a bare
+;; 3-tuple context now falls through to the untagged catch-all, which calls
+;; the 3-arg stubOptimizer. That stub's only 3-arg clause pins its 2nd arg to
+;; (mkTruthTableBScore ...); a bare 3-tuple fails that destructure, so the
+;; call silently fails and collapse yields the empty result.
 !(assertEqual
   (collapse (optimizeDemes sdtDeme (2 3.5 100.0) (mkInst (1)) stubOptimizer))
-  ((stubGot sdtDeme 100.0 (mkInst (1)) (mkParams applyStrategyBasedScore (2 3.5)))))
+  ())
 
 ;; regression guard: a boolean (mkTruthTableBScore ...) context still takes
 ;; the untagged catch-all, passing the context through opaquely

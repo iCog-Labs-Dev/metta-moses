@@ -22,10 +22,6 @@
 ;; Boolean version - uses scoreTree
 (= (getCscore (mkITable $rows $labels) $tree $complexityRatio $scoreSpace)
    (getCscore $tree $complexityRatio (scoreTree (mkITable $rows $labels) $tree $scoreSpace)))
-
-;; Strategy version - uses mixed-opponent scoreStrategyTree
-(= (getCscore $tree $nGames $complexityRatio $scoreSpace)
-   (getCscore $tree $complexityRatio (scoreStrategyTree $tree $nGames $scoreSpace)))
 ;; getComplexityCoef -- calcualtes the complexity coeffient of a tree   
 ;; takes complexity ratio as input and returns complexity coefficient
 ;; complexity ratio, unless set by the user, has 3.5 for a default value

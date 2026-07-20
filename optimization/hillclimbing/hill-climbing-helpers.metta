@@ -220,7 +220,7 @@
     
 ;; (: hillClimbing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
 ;; $FsScorer should be passed using a `mkScorer` constructor other wise it will cause an error in PeTTa.
-;; ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $complexityRatio)))
+;; ($optimize $deme $targetScore $inst (mkParams applyActionBasedScore ($nTrials $complexityRatio)))
 (= (hillClimbing $POASet $tTableBscorer $centerInst (mkParams $scorer $FsScorer))
   (case (mkParams $scorer)
     (((mkParams applyComplexityBasedScore)
@@ -254,25 +254,6 @@
               estimateNeighborhoodFs crossoverFs 
               sampleNewInstancesFs transformFs
           )))
-      ((mkParams applyStrategyBasedScore)
-        (let*
-          (
-            ($disc (getDisk $POASet))
-            (($nGames $complexityRatio) $FsScorer)
-            ;; $tTableBscorer is the scalar `$maxScore` for the strategy path
-            ;; (was a Cscore struct before the termination switched to scalar).
-            ($targetPenScore $tTableBscorer)
-            ;; Keep a non-empty sentinel in the third slot so the recursive
-            ;; strategy path still follows the non-feature-selection branches.
-          )
-          (hillClimbing ((param hcMaxDist) (param hcMinXoverNeighbors) $targetPenScore)
-                        (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
-                        $POASet
-                        ($disc $nGames strategy $complexityRatio) ;; INFO: `strategy` is used only as a non-empty marker so this recursive call follows the normal strategy branch instead of the feature-selection branch that is selected when the third slot is ().
-                        $centerInst
-                        ()
-                        estimateNeighborhood crossover
-                        sampleNewInstances transform)))
       ((mkParams applyActionBasedScore)
         (let*
           (
@@ -287,8 +268,7 @@
           ;; `($rowOCoeff $size)` at the transform call (case arm
           ;; `$ComplexityRatio`) reconstructs the TAGGED context
           ;; (mkActionCtx $nTrials) positionally -- transform's action arm
-          ;; pattern-matches it exactly (unlike the strategy packing, whose
-          ;; ($nGames strategy) does not match transform's 1-tuple pattern).
+          ;; pattern-matches it exactly.
           ;; $size = $nTrials is a Number, hence non-(), which keeps the
           ;; case ($xOver $size) branches on the non-feature-selection paths
           ;; (those arms only distinguish () from non-(); none patterns on a
@@ -476,7 +456,6 @@
 ;; Helper to get initial disc spec from a knob
 (= (getInitDiscSpec (mkLSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts)))
    (if (== $opts ()) $init 0))
-(= (getInitDiscSpec (mkSSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts))) $init)
 
 ;; Helper to initialize center instance from deme
 ;; Creates an instance with knobs set to their initial disc specs

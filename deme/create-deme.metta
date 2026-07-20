@@ -21,26 +21,9 @@
             (loopCreateDeme $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
       ) 
 )
-;; Game strategy createDeme - creates demes with empty instance sets for game strategies
-;;             $nDeme --      number of demes to create
-;;             $demeIds --    list of deme ids (cons ...)
-;;             $exemplar --   the exemplar tree which the demes are going to be based on 
-;;             returns ↠ tuple of demes
-; (: createDeme (-> Number (List DemeId) (Tree $a) Expression))
-(= (createDeme $nDeme $demeIds $exemplar)
-      (let*
-            (
-                  ;; ($_ (println! "creating game representations ...."))
-                  ($reps (createRepresentation $nDeme $exemplar))
-                  ;; ($_ (println! ("done making representations ..." $reps)))
-            )
-            (loopCreateDeme $demeIds $reps ())
-      )
-)
-
 ;; Action createDeme - the action/perception vocabularies ride as ARGUMENTS
-;; (5-ary: no collision with the 3-arg game clause above or the 8-arg
-;; boolean clause below); same body shape. This layer just forwards them --
+;; (5-ary: no collision with the 8-arg boolean clause above); same body
+;; shape. This layer just forwards them --
 ;; the one params read happens at the deme boundary in expand-deme.metta.
 ;;             $nDeme --       number of demes to create
 ;;             $demeIds --     list of deme ids (cons ...)

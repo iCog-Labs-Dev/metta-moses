@@ -15,16 +15,12 @@
 ;;   $optimize: The optimizer function to apply to each deme.
 ;;  Returns: (List Deme): A new list where each deme has been optimized.
 ; (: optimizeDemes (-> (List Deme) $context Instance $optimize (Instance Deme $state)))
-;; Action version - tagged context, dispatched BEFORE the loose 3-tuple
-;; strategy pattern below. Packs the episode count and complexity ratio for
+;; Action version - tagged context, dispatched BEFORE the all-variable
+;; catch-all below. Packs the episode count and complexity ratio for
 ;; the hillClimbing applyActionBasedScore arm (the fitness itself binds
 ;; globally through (param fitness) -- nothing to thread here).
 (= (optimizeDemes $deme (mkActionCtx $nTrials $complexityRatio $targetScore) $inst $optimize)
    ($optimize $deme $targetScore $inst (mkParams applyActionBasedScore ($nTrials $complexityRatio))))
-;; Game strategy version - unpacks tuple with target score
-;; Strategy version - unpacks game parameters and calls hillClimbing with mkParams
-(= (optimizeDemes $deme ($nGames $complexityRatio $targetCScore) $inst $optimize)
-   ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $complexityRatio))))
 ;; Boolean version - passes context as-is
 (= (optimizeDemes $deme $context $inst $optimize)
    ($optimize $deme $context $inst))
@@ -73,22 +69,9 @@
     (map-atom $demes $deme (expandDemeHelper $deme $truthTableBScore $optimize))
    ))
 
-;; Overloaded version for game strategy domain - 8 parameters
-(= (expandDeme $metaPop $nExpansion $nDeme $nGames $complexityRatio $targetCScore $optimize)
-   (let*
-      (
-         ($exemplar (trace! "Selecting Exemplar" (selectExemplar $metaPop)))
-         ($tree (trace! "getting exemplar tree" (getExemplarTree $exemplar)))
-         ($demeIds (trace! "creating deme IDs" (createDemeIds $nExpansion $nDeme)))
-         ($demes (trace! "Creating Deme" (createDeme $nDeme $demeIds $tree)))
-         ($gameContext ($nGames $complexityRatio $targetCScore))
-      )
-      (map-atom $demes $deme (expandDemeHelper $deme $gameContext $optimize))))
-
 ;; Overloaded version for ACTION runs - 6 parameters, keyed by the tagged
 ;; (mkActionCtx $nTrials $complexityRatio) context runMoses passes, so it is
-;; arity-correct end to end with its runMoses call site (unlike the 7-param
-;; strategy overload above, whose runMoses call passes 8 args). This deme
+;; arity-correct end to end with its runMoses call site. This deme
 ;; boundary is where the knob vocabulary crosses from global params to
 ;; plain arguments: the ONE (param actions)/(param perceptions) read
 ;; happens here (already validated by moses-run-action's loud guard), and
@@ -148,19 +131,16 @@ $optimDeme
     (let*
      (
        ($_ (println! (Generation $maxGen)))
-       ;; Action arm FIRST in both cases below: (mkActionCtx $nTrials $cpxRatio)
-       ;; is a 3-element expression and would otherwise match the loose 3-tuple
-       ;; strategy patterns (case arms match in order).
+       ;; Action arm keyed by the tagged (mkActionCtx $nTrials $cpxRatio) 3-element
+       ;; context; the boolean arm below is a disjoint 4-element tuple.
        ($optimizedDemes (case $context
                         (((mkActionCtx $nTrials $cpxRatio) (trace! "expand deme return" (expandDeme $metaPop $nExpansion $nDeme (mkActionCtx $nTrials $cpxRatio) $maxScore $optimize)))
-                        (($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "expand  deme returnn" (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable mi)))
-                        (($nGames $opponentPolicy $complexityRatio) (trace! "expand deme return" (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $maxScore $optimize))))))
+                        (($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "expand  deme returnn" (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable mi))))))
        (((mkDeme $rep $sInst $demeId)) $optimizedDemes)
        ($_ (println! (OptimizedDeme: (List.length (second $sInst)))))
        ($updatedMetaPop (case $context
                         (((mkActionCtx $nTrials $cpxRatio) (trace! "Merging Deme" (mergeDemes $optimizedDemes (mkActionCtx $nTrials) $metaPop)))
-                        (($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "Merging Deme" (mergeDemes $optimizedDemes $itable $metaPop)))
-                        (($nGames $opponentPolicy $complexityRatio) (trace! "Merging Deme" (mergeDemes $optimizedDemes ($nGames $opponentPolicy) $metaPop))))))
+                        (($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "Merging Deme" (mergeDemes $optimizedDemes $itable $metaPop))))))
        ;; ($_ (println! (Updated MetaPop: $updatedMetaPop)))
        ($top (OS.getByIdx 0 $metaPop))
        ;; ($_ (println! (Top Exemplar before expansion: $top)))

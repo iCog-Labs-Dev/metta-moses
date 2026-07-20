@@ -131,10 +131,9 @@
         ;; ($_ (println! (ScoringContext: $scoringContext)))
         ($bscore (case $scoringContext
                     (((mkITable $rows $labels) (scoreTree $scoringContext $tree &bscoreCache))
-                     ;; Action arm BEFORE the $nGames catch-all: the tagged
-                     ;; (mkActionCtx ...) shape would otherwise be swallowed by it.
-                     ((mkActionCtx $nTrials) (scoreActionTree $tree $nTrials &actionScoreCache))
-                     ($nGames (scoreStrategyTree $tree $nGames &strategyScoreCache)))))
+                     ;; Action arm: tagged (mkActionCtx ...) context, disjoint from
+                     ;; the boolean (mkITable ...) arm above.
+                     ((mkActionCtx $nTrials) (scoreActionTree $tree $nTrials &actionScoreCache)))))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
         ;; ($_ (println! (Returning...)))
     )

@@ -49,14 +49,10 @@
 !(import! &self ../../representation/representation)
 !(import! &self ../../representation/create-representation)
 
-!(import! &self ../../scoring/strategy-score-cache)
 !(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
 !(import! &self ../../examples/tic-tac-toe/random-player)
 !(import! &self ../../examples/tic-tac-toe/minimax-player)
-!(import! &self ../../examples/tic-tac-toe/game-engine)
 !(import! &self ../../examples/tic-tac-toe/moves)
-!(import! &self ../../examples/tic-tac-toe/moses-player)
-!(import! &self ../../examples/tic-tac-toe/strategy-scoring)
 
 !(import! &self ../../scoring/cacheSpace)
 !(import! &self ../../scoring/fitness)
@@ -367,92 +363,3 @@
 ;; ;;    $newR
 ;; ;;  )
 ;; ;;
-;; ;; Empty strategy metapop -  empty PRIORITIZED-OR with worst CScore
-;; ;; this empty strategy can be used as a starting point to evolve better strategy 
-;; (= (emptyStrategyMetaPop)
-;;    (cons
-;;      (mkExemplar
-;;        (mkTree (mkNode PRIORITIZED-OR) ())  ;;  empty - no children
-;;        (mkDemeId "0")
-;;        (eval (worstCscore))  ;; Worst CScore
-;;        (mkBScore (cons -10000.0 ())))
-;;      ()))
-;;
-;; ;; by uncomment this test and also adjust the parameter settings we can check the full evolution process of runMosesStrategy, and see how the strategy evolves from empty strategy to better strategy.
-;; ; !(runMoses
-;; ;     2                              ;; maxGen - 3 generations 
-;; ;     (mkCscore 10.0 0 0 0.0 10)     ;; Target: 10/10 wins,
-;; ;     3                              ;; maxCandOutput - return top 3 strategies
-;; ;     (emptyStrategyMetaPop)         ;; metaPop - start with empty strategy
-;; ;     0                              ;; nExpansion - generation counter
-;; ;     2                              ;; nDeme - 3 demes (more diversity)
-;; ;     (10 3.5)                       ;; nGames - 10 games per evaluation
-;; ;     hillClimbing                   ;; optimize - optimizer function
-;; ;     30                             ;; nEval - not used
-;; ;     5                              ;; maxCandsPerDeme - top 5 per deme
-;; ;     2                              ;; minPoolSize - min deme size
-;; ;     1.0                            ;; complexityTemperature - for trimming
-;; ;     5                              ;; nToKeep - keep top 5
-;; ;     0.004                          ;; capCoef - capacity coefficient
-;; ;     1000)   
-;; ;; ;; metapop for testing ;; INFO: The following should be commented once the strategy tree has been fixed.
-;; ;; (= (strategyMetaPop)
-;; ;;    (cons
-;; ;;      (mkExemplar
-;; ;;        (mkTree (mkNode PRIORITIZED-OR)
-;; ;;          (cons (mkTree (mkNode playwin) ())
-;; ;;                (cons (mkTree (mkNode playblock) ()) ())))
-;; ;;        (mkDemeId "0")
-;; ;;        (mkCscore 2.0 2 0.57 0.0 1.43)
-;; ;;        (mkBScore (cons 2.0 ())))
-;; ;;      ()))
-;; ;;
-;; ;; ;; !(assertEqual ;; INFO: This test case is blocking the reset. But works fine on it's own.
-;; ;; ;;    (let* (
-;; ;; ;;      ($optimizedDemes (expandDeme
-;; ;; ;;                         (strategyMetaPop) 
-;; ;; ;;                         0 1 5 random-player 3.5 
-;; ;; ;;                         (mkCscore 5.0 5 1.43 0.0 3.57) 
-;; ;; ;;                         hillClimbing))
-;; ;; ;;      ($demeCount (size-atom $optimizedDemes))
-;; ;; ;;    )
-;; ;; ;;    (>= $demeCount 1))
-;; ;; ;;    True)
-;; ;; ;;
-;; ;; !(assertEqual
-;; ;;    (let* (
-;; ;;      ($result (runMoses
-;; ;;                 1                              ;; maxGen
-;; ;;                 (mkCscore 5.0 5 1.43 0.0 3.57) ;; target
-;; ;;                 3                              ;; maxCandOutput
-;; ;;                 (strategyMetaPop)              ;; metaPop
-;; ;;                 0 1                            ;; nExpansion, nDeme
-;; ;;                 (5 3.5)            ;; nGames, opponent, ratio
-;; ;;                 hillClimbing                   ;; optimizer
-;; ;;                 30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
-;; ;;                 5 0.004 1000))                 ;; nToKeep, capCoef, genCount
-;; ;;      ($resultSize (eval (OS.length $result)))
-;; ;;    )
-;; ;;    (>= $resultSize 1))
-;; ;;    True)
-;; ;;
-;; ;; !(assertEqual
-;; ;;    (let* (
-;; ;;      ($result (runMoses
-;; ;;                 1                              ;; maxGen
-;; ;;                 (mkCscore 5.0 5 1.43 0.0 3.57) ;; target
-;; ;;                 1                              ;; maxCandOutput
-;; ;;                 (strategyMetaPop)              ;; metaPop
-;; ;;                 0 1                            ;; nExpansion, nDeme
-;; ;;                 (5 3.5)            ;; nGames, opponent, ratio
-;; ;;                 hillClimbing                   ;; optimizer
-;; ;;                 30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
-;; ;;                 5 0.004 1000))                 ;; nToKeep, capCoef, genCount
-;; ;;      ($topExemplar (eval (OS.getByIdx 0 $result)))
-;; ;;      ($topScore (eval (getExemplarCscore $topExemplar)))
-;; ;;      ($penScore (eval (getPenScore $topScore)))
-;; ;;      ;; Score should be better than worst possible
-;; ;;      ($isValid (> $penScore -1000.0))
-;; ;;    )
-;; ;;    $isValid)
-;; ;;    True)
