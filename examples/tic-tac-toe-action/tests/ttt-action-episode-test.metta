@@ -82,21 +82,21 @@
 ;; registerActionDomain): the vocabulary now binds via set-param (asserted
 ;; in representation/tests/create-representation-action-test) and the
 ;; opponent mapping is PRIVATE to tttActionFitness. What the file exports:
-;; tttOpponentFor -- even ordinals play random-player, odd play
-;; minimax-player (flip-recursion parity, so 2 re-proves the wraparound):
-!(assertEqual (tttOpponentFor 0) random-player)
-!(assertEqual (tttOpponentFor 1) minimax-player)
-!(assertEqual (tttOpponentFor 2) random-player)
+;; tttOpponentFor -- even ordinals play minimax-player, odd play
+;; random-player (flip-recursion parity, so 2 re-proves the wraparound):
+!(assertEqual (tttOpponentFor 0) minimax-player)
+!(assertEqual (tttOpponentFor 1) random-player)
+!(assertEqual (tttOpponentFor 2) minimax-player)
 ;; tttActionFitness routes through tttActionEpisode ($exp already
-;; compiled). Ordinal 1 -> minimax (deterministic, no random draw
+;; compiled). Ordinal 0 -> minimax (deterministic, no random draw
 ;; consumed): the empty tree forfeits -> -1.0.
-!(assertEqual (tttActionFitness (quote (and_seq ())) 1) -1.0)
+!(assertEqual (tttActionFitness (quote (and_seq ())) 0) -1.0)
 ;; ...and the same call through the param binding (the exact seam the
 ;; scoring layer uses -- the header's set-param line, then var-head apply)
 !(set-param fitness tttActionFitness)
-!(assertEqual (let $fn (param fitness) ($fn (quote (and_seq ())) 1)) -1.0)
-;; best score = 1.0 * ceil(n/2): even episodes (random-player) winnable,
-;; odd episodes (minimax-player) draw at best
+!(assertEqual (let $fn (param fitness) ($fn (quote (and_seq ())) 0)) -1.0)
+;; best score = 1.0 * floor(n/2): odd episodes (random-player) winnable,
+;; even episodes (minimax-player) draw at best
 !(assertEqual (tttActionBestScore 4) 2.0)
-!(assertEqual (tttActionBestScore 5) 3.0)
-!(assertEqual (tttActionBestScore 1) 1.0)
+!(assertEqual (tttActionBestScore 5) 2.0)
+!(assertEqual (tttActionBestScore 1) 0.0)

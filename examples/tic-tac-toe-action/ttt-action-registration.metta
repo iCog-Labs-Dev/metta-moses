@@ -22,12 +22,13 @@
 ;; ---- Episode-ordinal -> opponent mapping (PRIVATE to this fitness) ----
 ;; The scoring layer hands the fitness only the episode ordinal 0..n-1;
 ;; which opponent (or anything else) an ordinal means is this experiment's
-;; business. Here: even ordinals play random-player, odd ordinals play
-;; minimax-player. Parity comes from the shared isEven helper
-;; (utilities/general-helpers, probe-verified in this runtime) -- and a
-;; bare symbol returned from an if branch is inert (only TUPLES headed by
-;; live symbols need quoting).
-(= (tttOpponentFor $i) (if (isEven $i) random-player minimax-player))
+;; business. Here: even ordinals play minimax-player, odd ordinals play
+;; random-player -- floor(n/2) random + ceil(n/2) minimax games over
+;; ordinals 0..n-1, the legacy strategy domain's split. Parity comes from
+;; the shared isEven helper (utilities/general-helpers, probe-verified in
+;; this runtime) -- and a bare symbol returned from an if branch is inert
+;; (only TUPLES headed by live symbols need quoting).
+(= (tttOpponentFor $i) (if (isEven $i) minimax-player random-player))
 
 ;; ---- The fitness: ($fn $exp $i) -> Number, higher = better ----
 ;; $exp arrives ALREADY COMPILED (wrapped (op (children)) shape) from the
@@ -36,10 +37,10 @@
    (tttActionEpisode $exp (tttOpponentFor $i)))
 
 ;; ---- Best reachable raw score for $n episodes: ($fn $n) -> Number ----
-;; Even episodes (random-player) are winnable (1.0 each); odd episodes
-;; (minimax-player) draw at best (0.0). Best = 1.0 * ceil(n/2)
-;; = n - floor(n/2). Computed with integer floor (py-call idiom from
-;; strategy-scoring.metta:32-37), then scaled by the exact float 1.0 -- no
-;; float drift.
+;; Odd episodes (random-player) are winnable (1.0 each); even episodes
+;; (minimax-player) draw at best (0.0). Best = 1.0 * floor(n/2) -- the
+;; legacy strategy example's reachable optimum. Computed with integer
+;; floor (py-call idiom from strategy-scoring.metta:32-37), then scaled by
+;; the exact float 1.0 -- no float drift.
 (= (tttActionBestScore $nTrials)
-   (* 1.0 (- $nTrials (py-call (math.floor (/ $nTrials 2))))))
+   (* 1.0 (py-call (math.floor (/ $nTrials 2)))))
