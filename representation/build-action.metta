@@ -43,15 +43,13 @@
        ($perception (randElement $perceptions))
        ($actA (List.getByIdx $actions $aIdx))
        ($actB (List.getByIdx $actions $bIdx))
-       ;; Build the perm INERTLY with cons-atom: action_bool_if is a live
-       ;; bare-head clause (scoring/action-ops), so a source-literal
-       ;; (action_bool_if $perception $actA $actB) in this tail position
-       ;; would be an arity-3 call of the arity-2 head -- in this
-       ;; imported-module context that raises a hard Prolog error
-       ;; (length/2: Domain error), not a quiet `partial` term.
-       ;; cons-atom yields the identical flat tuple.
-       ($perm (cons-atom action_bool_if
-                (cons-atom $perception (cons-atom $actA (cons-atom $actB ())))))
+       ;; quote: action_bool_if is a live bare-head clause
+       ;; (scoring/action-ops), so an unquoted (action_bool_if ...) literal
+       ;; in this tail position would be an arity-3 call of the arity-2
+       ;; head (a hard Prolog length/2 error in this imported-module
+       ;; context). quote substitutes the bound values and strips once,
+       ;; yielding the plain flat tuple.
+       ($perm (quote (action_bool_if $perception $actA $actB)))
      )
      $perm))
 

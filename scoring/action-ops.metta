@@ -124,9 +124,10 @@
 (= (bool_while ($cond $body) $world)
    (let (mkARes $v $w)
         (allM boolWhileStep $world
-              ;; cons-built pair: $cond/$body are live wrapped shapes, a
-              ;; bare ($cond $body) literal here would be applied as a call
-              (List.repeat (actionWhileCap) (cons $cond ($body))))
+              ;; quoted pair: $cond/$body are live wrapped shapes, an
+              ;; unquoted ($cond $body) literal here would be applied as a
+              ;; call; quote substitutes the bindings and strips once
+              (List.repeat (actionWhileCap) (quote ($cond $body))))
         (mkARes True $w)))
 (= (boolWhileStep ($cond $body) $world)
    (let (mkARes $cv $cw) (evalAction $cond $world)

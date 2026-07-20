@@ -185,13 +185,14 @@ $optimDeme
 (= (mapG $f $xs) (map-atom $xs $f))
 
 (= (printExemplar (mkExemplar $tree $demeId $cscore $bscore)) (println! (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore)))
-;; The (tree score) pair is built inertly with cons-atom: preOrder of a
-;; childless exemplar is a bare operator symbol (e.g. and_seq), and a live
-;; ($tree $score) pair headed by it would curry into a partial term now that
-;; action operators are bare clause heads.
+;; The (tree score) pair is quote-built: preOrder of a childless exemplar
+;; is a bare operator symbol (e.g. and_seq), and an unquoted ($p $s) pair
+;; headed by it would curry into a partial term now that action operators
+;; are bare clause heads. quote substitutes the bound values and strips
+;; once, yielding the plain pair.
 (= (cleanedExemplar (mkExemplar $tree $demeId $cscore (mkBScore $bscore)))
    (let* (($p (preOrder $tree))
           ($s (List.sum $bscore)))
-     (cons-atom $p (cons-atom $s ()))))
+     (quote ($p $s))))
 
 (= (printInstance (mkInst $inst)) (println! (List.listToExpr $inst)))

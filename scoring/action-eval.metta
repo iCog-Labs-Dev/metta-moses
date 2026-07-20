@@ -47,7 +47,8 @@
        False))
 
 ;; evalActionNode: dispatch ONE node to its operator clause -- reduce on a
-;; cons-built term (`cons` keeps the node inert while building; a bare
+;; quote-built term (quote substitutes the bound $op/$children/$world and
+;; strips once, handing reduce the raw application; an unquoted
 ;; ($op ...) literal could fire a clause at compile time). The
 ;; (mkARes $v $w) unify-destructure sits INSIDE the collapse: only a
 ;; well-formed mkARes survives it, so an unreduced term (unknown op), a
@@ -58,7 +59,7 @@
 ;; malformed clause return all collapse to () and map to the defined-worst
 ;; -- the engine can never fail or return a non-ARes.
 (= (evalActionNode $op $children $world)
-   (let* (($e (cons $op ($children $world)))
+   (let* (($e (quote ($op $children $world)))
           ($rs (collapse (let (mkARes $v $w) (reduce $e) (mkARes $v $w)))))
      (if (== $rs ())
          (mkARes False $world)
