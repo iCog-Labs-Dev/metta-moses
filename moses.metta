@@ -73,9 +73,8 @@
 !(import! &self feature-selection/simple)
 !(import! &self feature-selection/smd)
 !(import! &self feature-selection/incremental)
-!(import! &self feature-selection/hc)
 !(import! &self feature-selection/random-feature-selection)
-!(import! &self feature-selection/feature-selection-main)
+!(import! &self scoring/precision-bscore)
 
 ;; ---- Representation ----
 !(import! &self representation/knob-representation)
@@ -88,15 +87,18 @@
 !(import! &self representation/build-logical)
 !(import! &self representation/build-knobs)
 !(import! &self representation/knob-mapper)
-!(import! &self representation/representation)
-!(import! &self representation/create-representation)
-
-!(import! &self scoring/complexity-based-scorer)
 
 ;; ---- Optimization (hill climbing is the only production-ready algorithm) ----
 !(import! &self optimization/hillclimbing/cross-top-one-helpers)
 !(import! &self optimization/hillclimbing/cross-top-one)
 !(import! &self optimization/hillclimbing/hill-climbing-helpers)
+
+!(import! &self feature-selection/hc)
+!(import! &self feature-selection/feature-selection-main)
+!(import! &self representation/representation)
+!(import! &self representation/create-representation)
+
+!(import! &self scoring/complexity-based-scorer)
 
 ;; ---- Deme + metapopulation pipeline ----
 !(import! &self deme/create-deme)

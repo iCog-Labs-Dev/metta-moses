@@ -198,3 +198,8 @@
      (< $conf2 $conf3)) True)  ;; bigger dataset → higher confidence
 
 !(assertEqual (calculateConfidence 1 0 0.1) 0.0)  ;; No features -> confidence 0
+
+!(assertEqual (indicesToBits () 5) (List.generate 5 0))  ;; no initial features -> every bit off
+!(assertEqual (indicesToBits (0 2 4) 5) (1 0 1 0 1))
+!(assertEqual (indicesToBits (3) 4) (0 0 0 1))
+!(assertEqual (bitsToIndices (indicesToBits (0 2 4) 5) 0 ()) (0 2 4))  ;; inverse of bitsToIndices

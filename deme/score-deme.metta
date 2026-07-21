@@ -55,20 +55,6 @@
           )
   (mkSInstSet $scored)))
 
-;; Converts a list of bits (0s and 1s) to a tuple of indices where the bit is 1.
-;; Params:
-;;   $bits: List of bits (0 or 1).
-;;   $index: Current index (starts at 0).
-;;   $acc: Accumulator for indices where bit is 1.
-;; Return: Indices as a tuple.
-; (: bitsToIndices (-> (List Number) Number Tuple Tuple))
-(= (bitsToIndices () $index $acc) $acc)
-(= (bitsToIndices (cons $bit $rest) $index $acc)
-   (chain (bitsToIndices $rest (+ $index 1) $acc) $nextAcc     
-         (if (== $bit 1)
-             (cons-atom $index $nextAcc)
-             $nextAcc)))
-
 ;; similar to the above 'applyComplexityBasedScore' but uses the mutualInformation based scoring for features selection
 ;; Applies mutual information based scoring to a list of Instances.
 ;; Params:

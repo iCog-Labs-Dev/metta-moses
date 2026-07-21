@@ -57,8 +57,11 @@
 ;;   passing them will halt with a clear error.
 ;; fsAlgo: which feature-selection algorithm runMoses pipes into expandDeme.
 ;;   Recognized values include: None, smd, sim, inc, rd, mi, hc.
+;; fsScorerType: the score the hc feature selector maximizes: mi or pre.
+;;   The other selectors score by mutual information directly and ignore it.
 !(add-atom &params (optAlgo hc))
 !(add-atom &params (fsAlgo  None))
+!(add-atom &params (fsScorerType mi))
 
 ;; ---- Representation building ----
 ;; discProbe: prune complexity-reducing knob settings during logical-probe
@@ -96,6 +99,14 @@
 !(add-atom &params (hcFractionOfNN 2.0))
 !(add-atom &params (hcMinDemeSize 50))
 !(add-atom &params (hcScoreImprovedThreshold 0.5))
+
+;; ---- Feature-selection scorers ----
+;; Hyperparameters handed to the scorer named by fsScorerType.
+!(add-atom &params (fsMiConfi          50.0))
+!(add-atom &params (fsPrePenalty       1.0))
+!(add-atom &params (fsPreMinActivation 0.5))
+!(add-atom &params (fsPreMaxActivation 1.0))
+!(add-atom &params (fsPrePositive      True))
 
 ;; ---- Scoring ----
 !(add-atom &params (complexityRatio 3.5))

@@ -19,6 +19,30 @@
         (chain (union-atom $acc (($x 1))) $new-tuple-added
             (List.uniqueValuesCount $xs $new-tuple-added))))
 
+;; Converts a list of bits (0s and 1s) to a tuple of indices where the bit is 1.
+;; Params:
+;;   $bits: List of bits (0 or 1).
+;;   $index: Current index (starts at 0).
+;;   $acc: Accumulator for indices where bit is 1.
+;; Return: Indices as a tuple.
+;; (: bitsToIndices (-> (List Number) Number Tuple Tuple))
+(= (bitsToIndices () $index $acc) $acc)
+(= (bitsToIndices (cons $bit $rest) $index $acc)
+   (chain (bitsToIndices $rest (+ $index 1) $acc) $nextAcc
+         (if (== $bit 1)
+             (cons-atom $index $nextAcc)
+             $nextAcc)))
+
+;; Inverse of bitsToIndices: expands a tuple of feature indices into a bit
+;; vector, starting from all zeros and turning on the bit of each index.
+;; Params:
+;;   $indices: Indices of the features to turn on.
+;;   $length: Number of features, i.e. the width of the bit vector.
+;; Return: List of bits, 1 at every index in $indices and 0 elsewhere.
+;; (: indicesToBits (-> Tuple Number (List Number)))
+(= (indicesToBits $indices $length)
+   (foldl-atom $indices (List.generate $length 0) $bits $i (List.replaceAt $bits $i 1)))
+
 ; (: Table.getColumn (-> Number (List (List $a)) (List $a)))
 (= (Table.getColumn $i ()) ())
 (= (Table.getColumn $i (cons $row $rest))
