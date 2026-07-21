@@ -396,3 +396,29 @@
      (mkTree (mkNode and_seq) ((mkTree (mkNode action_bool_if) ((mkTree (mkNode antFoodAhead) ()) (mkTree (mkNode antMoveForward) ()) (mkTree (mkNode antTurnRight) ())))))
      (mkTree (mkNode and_seq) ((mkTree (mkNode action_bool_if) ((mkTree (mkNode antFoodAhead) ()) (mkTree (mkNode and_seq) ((mkTree (mkNode antMoveForward) ()) (mkTree (mkNode antTurnLeft) ()))) (mkTree (mkNode and_seq) ((mkTree (mkNode antTurnRight) ()))))))))
     ((mkBScore (5 5 5 5)) (mkBScore (5 5 5 5)) (mkBScore (5 5 5 5)))))
+
+;; ============================================================================
+;; CLASSIC EQUIVALENCE -- runMoses SCORE check (commented out -- uncomment to
+;; test). Does the CLASSIC demonstration hold: can MOSES EVOLVE a program that
+;; attains the BEST possible score (eat every pellet)?
+;;
+;; Like PART 4 this evolves with runMoses, but it pins the SCORE, not the tree:
+;; it reads the top exemplar's raw score and asserts it equals the optimum. The
+;; classic OpenCog/Koza ant is the 32x32 Santa Fe trail whose optimum is 89
+;; (all food, 600-step budget); here (the scaled trails) the optimum is
+;;   antBestScore(4) = 5 pellets x 4 episodes = 20,
+;; and the seeded run reaches it -- so this is the "reaches the best score"
+;; demonstration for the scaled domain. Re-seed to 0 so the run is reproducible
+;; (PARTS 1-3 consume no RNG; the ant fitness is deterministic).
+;;
+;; FOR THE TRUE CLASSIC: swap the scaled trails for the full 32x32 Santa Fe grid
+;; (antBestScore per episode = 89), set the target and the asserted score to 89,
+;; and give runMoses a larger maxGen / nDeme -- reaching 89 is the hard search
+;; the classic is famous for, so a 2-generation run will NOT attain it.
+;; ============================================================================
+;; !(py-call (random.seed 0))
+;; !(assertEqual
+;;    (let $m (runMoses 2 20.0 (antMetaPop) 0 1 (mkActionCtx 4 3.5) hillClimbing)
+;;         (getScore (getExemplarCscore (OS.getByIdx 0 $m))))
+;;    20)
+;; ============================================================================
