@@ -116,10 +116,12 @@
 !(add-atom &params (complexityRatio 3.5))
 !(add-atom &params (antSteps 600))
 !(add-atom &params (antFoodCount 89))
-;; Diagnostic baseline: use the 0.16 ratio from the C++ Santa Fe performance
-;; diary's successful seed-10 run.  The newer AntUTest's 0.06 ratio is paired
-;; with a much larger one-million-evaluation allowance and is too stiff for the
-;; deliberately smaller MeTTa search budget.
+;; Use the 0.16 ratio from the C++ Santa Fe performance diary.
+;; Previous comment: this was the strongest practical-budget MeTTa setting.
+;; The deterministic convergence regression now overrides it with 0.5, which
+;; reduces complexity pressure and reaches all 89 pellets quickly. Keep 0.16 as
+;; the production default for C++ configuration parity, and keep exact search
+;; trajectories in ANT_SEARCH_PARITY.md.
 !(add-atom &params (antComplexityRatio 0.16))
 !(add-atom &params (antComplexityTemperature 2000))
 ;; Enables ant-only generation telemetry without adding noise to normal runs.
