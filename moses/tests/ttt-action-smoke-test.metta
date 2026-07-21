@@ -129,8 +129,10 @@
 ;; ============================================================
 
 ;; ---- 1. The fitness: ($fn $exp $i) -> Number; the ordinal is ignored,
-;;         every episode plays random-player (reuses the ttt episode loop) --
-(= (smokeFitness $exp $i) (tttActionEpisode $exp random-player))
+;;         every episode seats the agent as X against random-player (reuses
+;;         the ttt episode loop) -- so every game is winnable, keeping the
+;;         smokeBestScore = n target valid ----
+(= (smokeFitness $exp $i) (tttActionEpisode $exp X random-player))
 
 ;; ---- 2. Best reachable raw score: every episode plays random-player,
 ;;         and every game against random-player is winnable -> 1.0 each ----

@@ -19,13 +19,15 @@ Files (load in this order, after the scoring block):
    equals the strategy example's PRIORITIZED-OR).
 2. `ttt-action-primitives.metta` — actions `tttWin tttBlock tttCenter
    tttCorner tttSide`, perceptions `tttCanWin tttCanBlock tttCenterFree`.
-3. `ttt-action-episode.metta` — `tttActionEpisode`: one game as X vs an
-   opponent policy; win 1.0 / draw 0.0 / loss -1.0; a turn with no
-   placement (latch still False) is a forfeit, -1.0.
+3. `ttt-action-episode.metta` — `tttActionEpisode`: one game with the tree
+   seated as a given agent mark (X or O) vs an opponent policy; win 1.0 /
+   draw 0.0 / loss -1.0, scored RELATIVE to the agent's seat; X still moves
+   first, so an O-seated agent responds to the opponent's opener; a turn
+   with no placement (latch still False) is a forfeit, -1.0.
 4. `ttt-action-registration.metta` — THE fitness-package interface: the
-   fitness function `tttActionFitness` (episode ordinal → opponent is
-   private to it) and `tttActionBestScore`. It sets NO params; an
-   experiment run binds them (see below).
+   fitness function `tttActionFitness` (episode ordinal → (seat, opponent)
+   is private to it: a 4-way cycle on `i mod 4`) and `tttActionBestScore`.
+   It sets NO params; an experiment run binds them (see below).
 
 ## Adding a new action experiment (e.g. ant trail)
 
@@ -47,8 +49,9 @@ Files (load in this order, after the scoring block):
    ops score worst automatically; you never touch the engine.
 3. **Fitness function**: one clause `(= (<dom>Fitness $exp $i) <Number>)` —
    $exp arrives already compiled, $i is the episode ordinal 0..n-1; how
-   ordinals map to opponents/trails/start worlds is entirely yours (TTT:
-   even → random-player, odd → minimax-player). Add a best-score function
+   ordinals map to seats/opponents/trails/start worlds is entirely yours
+   (TTT cycles the four (seat × opponent) cells on `i mod 4`: X/minimax,
+   O/minimax, X/random, O/random). Add a best-score function
    `(= (<dom>BestScore $n) <Number>)`. Decide failure semantics explicitly
    — TTT forfeits (-1.0) on any turn where the tree places no mark, which
    also closes the empty-exemplar (`(and_seq ())`) loophole.

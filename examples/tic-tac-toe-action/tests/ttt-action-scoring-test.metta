@@ -53,14 +53,19 @@
         (find-best-move-loop $board $empty -1000 -1 $player (get-opponent $player))))
 (= (ssMinimaxAct $params $world) (applyTTTMove $world (ssMinimaxIdx (worldBoard $world) (worldPlayer $world))))
 
-;; ---- Test-local fitnesses (fix the opponent; ordinal ignored) ----
-(= (ssVsMinimax $exp $i) (tttActionEpisode $exp minimax-player))
-(= (ssVsRandom  $exp $i) (tttActionEpisode $exp random-player))
+;; ---- Test-local fitnesses (fix the opponent, agent seated as X; ordinal
+;;      ignored) -- the direct analog of the old evaluate-strategy n X me op ----
+(= (ssVsMinimax $exp $i) (tttActionEpisode $exp X minimax-player))
+(= (ssVsRandom  $exp $i) (tttActionEpisode $exp X random-player))
 
-;; ---- Outcome -> raw score (was: score-result X X / X O / Draw X) ----
-!(assertEqual (tttOutcomeScore X) 1.0)
-!(assertEqual (tttOutcomeScore O) -1.0)
-!(assertEqual (tttOutcomeScore Draw) 0.0)
+;; ---- Outcome -> raw score, seat-relative (was: score-result $result
+;;      $playerMark). tttOutcomeScore now takes the agent's mark: result X
+;;      is a win for an X agent, a LOSS for an O agent; Draw is 0.0 for
+;;      either. This is the perspective-relativity the strategy path had. ----
+!(assertEqual (tttOutcomeScore X X) 1.0)
+!(assertEqual (tttOutcomeScore X O) -1.0)
+!(assertEqual (tttOutcomeScore O O) 1.0)
+!(assertEqual (tttOutcomeScore Draw X) 0.0)
 
 ;; ---- Episode lists (was: evaluate-strategy ...) ----
 ;; random candidate vs minimax: minimax never LOSES, but a random candidate
@@ -92,10 +97,18 @@
               (mkBScore (0.0 0.0 0.0)))
 
 ;; ---- Composite score (was: cscore-test @122-130, the PRIORITIZED-OR
-;;      playcenter/playside/playcorner strategy scored over 5 mixed-opponent
-;;      games). Here the center-first action tree scored via tttActionFitness:
-;;      even ordinals face minimax (draw 0.0), odd ordinals face random
-;;      (2 winnable games -> 2.0). complexity = 3 leaves. ----
+;;      playcenter/playside/playcorner strategy scored over 5 mixed games).
+;;      Here the center-first action tree scored via tttActionFitness, which
+;;      now cycles the agent through the four (seat x opponent) cells on
+;;      i mod 4. Over ordinals 0..4 (bscore in ordinal order):
+;;        i=0 X/minimax -> 0.0 (center-first draws perfect play),
+;;        i=1 O/minimax -> -1.0 (no block: loses as O),
+;;        i=2 X/random  -> 1.0  (win, seed 42),
+;;        i=3 O/random  -> 1.0  (win, seed 42),
+;;        i=4 X/minimax -> 0.0  (draw)
+;;      => raw 1.0 (was 2.0 under the old all-X, parity-opponent scheme).
+;;      complexity = 3 leaves; the two random cells are seed-42 pins at this
+;;      file position, the minimax cells are deterministic. ----
 !(set-param fitness tttActionFitness)
 (= (ActionStrategyTree)
    (mkTree (mkNode or_seq)
@@ -103,4 +116,4 @@
            (cons (mkTree (mkNode tttSide) ())
                  (cons (mkTree (mkNode tttCorner) ()) ())))))
 !(assertEqual (getActionCscore (ActionStrategyTree) (mkActionCtx 5) 3.5 &actionScoreCache)
-              (mkCscore 2.0 3 0.8571428571428571 0.0 1.1428571428571428))
+              (mkCscore 1.0 3 0.8571428571428571 0.0 0.1428571428571429))
