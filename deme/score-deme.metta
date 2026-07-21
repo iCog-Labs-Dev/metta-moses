@@ -73,32 +73,30 @@
 ;; Applies mutual information based scoring to a list of Instances.
 ;; Params:
 ;;   (cons (mkInst $i) $is): List of Instances.
-;;   (mkITable $rows $labels): Input table with rows and labels.
+;;   (mkITable $table $labels): Input table with rows and labels.
 ;;   $listOfScoredInst: Accumulator for Scored Instances.
 ;; Returns:
 ;;   List of Scored Instances with mutual information based scores.
 ; (: applyMutualInformationBasedScore (-> (List Instance) (ITable $a) (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
-(= (applyMutualInformationBasedScore () (mkITable $rows $labels) $miConfi $listOfScoredInst) 
-   ;; (trace! (Returning $listOfScoredInst)
-           $listOfScoredInst
-   ;; )
-)
-(= (applyMutualInformationBasedScore (cons (mkInst $i) $is) (mkITable $rows $labels) $miConf $listOfScoredInst)
+(= (applyMutualInformationBasedScore () (mkITable $table $labels) $miConfi $listOfScoredInst)
+   $listOfScoredInst)
+   
+(= (applyMutualInformationBasedScore (cons (mkInst $i) $is) (mkITable $table $labels) $miConf $listOfScoredInst)
 (let*
 (
-    ($targetColumn (Table.getOutputColumn (mkITable $rows $labels)))
+    ($targetColumn (Table.getOutputColumn (mkITable $table $labels)))
     ($indices (bitsToIndices $i 0 ()))
-    ($zippedCols (zipColumn $indices $rows))
+    ($zippedCols (zipColumn $indices $table))
+
     ($score (mutualInformation $zippedCols $targetColumn))
-    
-    ; in the c++ it also calculates the confidence too
-    ($confidence (calculateConfidence (size-atom $indices) (List.length $rows) $miConf))
+
+    ;; number of samples = length of any column
+    ($confidence (calculateConfidence (size-atom $indices) (List.length (Table.getColumn 0 $table)) $miConf))
     ($scoreConfi (* $score $confidence))
     ($scoredInst (mkSInst (mkPair (mkInst $i) $scoreConfi)))
     ($uListofScoredInst (cons $scoredInst $listOfScoredInst))
 )
-(applyMutualInformationBasedScore $is (mkITable $rows $labels) $miConf $uListofScoredInst)))
-
+(applyMutualInformationBasedScore $is (mkITable $table $labels) $miConf $uListofScoredInst)))
 
 ;; similar to the above 'transform' but uses the mutualInformation based scoring for features selection
 ;; Scores each instance in an InstanceSet. 
