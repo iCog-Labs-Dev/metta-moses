@@ -197,8 +197,10 @@
    ((param fsMiConfi) (param fsPrePenalty) (param fsPreMinActivation) (param fsPreMaxActivation) (param fsPrePositive)))
 
 ;; Appends the scorer name, which is what the scorers expect in the last slot.
+;; The name is quoted because `mi` is also a similarity scorer, so an unquoted
+;; ($scorerType) would be evaluated as a call to it.
 (= (withFsScorer $fsHyperparams $scorerType)
-   (union-atom $fsHyperparams (cons-atom $scorerType ())))
+   (union-atom $fsHyperparams (quote ($scorerType))))
 
 ;; Shapes accepted for the second `mkParams` slot:
 ;;   ()                              -- defaults, scored by mutual information
