@@ -74,9 +74,17 @@
 ;; executed recursively multiple times.
 ;; Therefore, until the transform function is fixed, this test case remains commented out.
 
+;; Previous expectation used the old sum-of-multiplicities estimate: two
+;; three-way knobs produced population size 7.
+;; !(assertEqual
+;;     (let (mkDeme $rep (mkSInstSet $instSet) $id)
+;;          (univariate (deme) (table1) 2.0 1 0.5 0.5
+;;                      (mkCscore -0.1 2 0.1 0.1 3))
+;;          (== (List.length $instSet) 7)) True)
+;; C++ uses information-theoretic bits: 2*log2(3), yielding population size 4.
 !(assertEqual
-    (let (mkDeme $rep (mkSInstSet $instSet) $id) 
-         (univariate (deme) (table1) 2.0 1 0.5 0.5 (mkCscore -0.1 2 0.1 0.1 3))          
-         (== (List.length $instSet) 7)) True)
-
+    (let (mkDeme $rep (mkSInstSet $instSet) $id)
+         (univariate (deme) (table1) 2.0 1 0.5 0.5
+                     (mkCscore -0.1 2 0.1 0.1 3))
+         (== (List.length $instSet) 4)) True)
 

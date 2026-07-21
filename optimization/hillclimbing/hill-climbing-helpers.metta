@@ -1,12 +1,37 @@
-;; Verbatim port of the Infromation theoretic bits function from c++
+;; A negative value means that a direct hill-climbing caller has not supplied
+;; an outer ant evaluation allowance. expandAntDemeHelperCounted temporarily
+;; replaces it with the budget remaining in the complete ant run.
+!(bind! &antLocalEvalLimit (new-state -1))
+
+;; Verbatim port of the Information theoretic bits function from C++.
 ;; Params: $knobMap: A map of knobs with their multiplicities
-;; Returns: Sum of the multiplicities of the knobs in the map
+;; Returns: Sum of log2(multiplicity) for the knobs in the map.
 ; (: informationTheoreticBits (-> (MultiMap (DiscSpec $knob)) Number))
+;; C++ measures the information carried by a discrete field, rather than the
+;; number of values in that field.  A seven-way ant action knob therefore adds
+;; log2(7) bits, not seven bits.  The old sum-of-multiplicities implementation
+;; is retained below as a comment so the parity correction remains explicit.
+;; (= (informationTheoreticBits $knobMap)
+;;     (chain (MultiMap.values $knobMap) $knobs
+;;       (chain (List.map getKnobMultip $knobs) $multips
+;;         (chain (List.foldr add (mkMultip 0) $multips) $res
+;;           (let (mkMultip $val) $res $val)))))
+(= (knobInformationBits $knob)
+   (let (mkMultip $multiplicity) (getKnobMultip $knob)
+     (log-math 2 $multiplicity)))
+
+;; The first log2 parity version used `chain` plus `List.foldr`.  It produced
+;; the right value as a top-level query, but PeTTa could not reduce that result
+;; when `estimateNeighborhood` consumed it as a nested expression; the real ant
+;; run consequently stopped at distance one.  Keep that version documented:
+;; (= (informationTheoreticBits $knobMap)
+;;     (chain (MultiMap.values $knobMap) $knobs
+;;       (List.foldr add 0 (List.map knobInformationBits $knobs))))
+;; A native fold has the same sum/order and remains compositional when called
+;; from the estimator.
 (= (informationTheoreticBits $knobMap)
-    (chain (MultiMap.values $knobMap) $knobs
-      (chain (List.map getKnobMultip $knobs) $multips
-        (chain (List.foldr add (mkMultip 0) $multips) $res
-          (let (mkMultip $val) $res $val)))))
+   (foldl-atom (MultiMap.values $knobMap) 0 $bits $knob
+     (+ $bits (knobInformationBits $knob))))
 
 ;; feature selection version of the informationTheoreticBits function
 ;; In the case of feature selection, the information theoretic bits is simply the number of features we have
@@ -17,15 +42,40 @@
 ;; Verbatim port of the Estimate neighborhood function from c++
 ;; Params: $distance: The hamming distance from the current knob
 ;;         $knobMap: A map of knobs with their multiplicities
-;; Returns: 2 * Sum of the multiplicities of the knobs in the map and binomial coefficient if the estiamte starts becoming very large.
+;; Returns: twice the truncated information-bit estimate at distance one, or
+;;          its binomial coefficient at greater distances.
 ; (: estimateNeighborhood (-> Number (MultiMap (DiscSpec $knob)) Number))
+;; The previous version passed an impossible distance directly to `binomial`.
+;; That returned zero whenever the requested distance exceeded the estimated
+;; information-bit dimension.  C++ instead clamps the distance to that
+;; dimension before selecting the distance-one or binomial estimate.  Keep the
+;; previous definition here so the behavioral correction is reviewable:
+;; (= (estimateNeighborhood $distance $knobMap)
+;;    (if (== $distance 0)
+;;        1
+;;        (let $nnEstimate (floor-math (informationTheoreticBits $knobMap))
+;;           (if (== $distance 1)
+;;               (* 2 $nnEstimate)
+;;               (binomial $nnEstimate $distance)))))
 (= (estimateNeighborhood $distance $knobMap)
    (if (== $distance 0)
        1
-       (let $nnEstimate (informationTheoreticBits $knobMap)
-          (if (== $distance 1)
+       ;; C++ stores the floating-point information sum in size_t before using
+       ;; it as a neighborhood dimension.  Preserve both previous forms for
+       ;; context: leaving it fractional is semantically wrong, while the
+       ;; repository's user-defined `int` wrapper does not reduce when its
+       ;; argument is bound inside this `let` under PeTTa.  `floor-math` is the
+       ;; exact nonnegative size_t truncation and remains grounded here.
+       ;; (let $nnEstimate (informationTheoreticBits $knobMap)
+       ;; (let $nnEstimate (int (informationTheoreticBits $knobMap))
+       (let $nnEstimate (floor-math (informationTheoreticBits $knobMap))
+         ;; Match hill_climbing::estimate_neighborhood: an approximate field
+         ;; dimension smaller than the requested Hamming distance still has
+         ;; one maximally distant combination; it is not an empty neighborhood.
+         (let $clampedDistance (min $distance $nnEstimate)
+          (if (== $clampedDistance 1)
               (* 2 $nnEstimate)
-              (binomial $nnEstimate $distance))))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
+              (binomial $nnEstimate $clampedDistance)))))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
 
 ;; similar to the above 'estimateNeighborhood' but this one uses the informationTheoreticBitsFs which is for feature selection
 ; (: estimateNeighborhoodFs (-> Number (List Symbol) Number))
@@ -123,7 +173,7 @@
   
 ;; merge3Demes
 ;; Combines offspring instances produced by the three crossover operators,
-;; removes duplicates, appends unique offspring to the original deme,
+;; removes duplicates, appends unique offspring after the original deme,
 ;; and returns the updated deme together with the number of new instances added.
 (= (merge3Demes $origDeme $newInstances1 $newInstances2 $newInstances3)
 
@@ -131,30 +181,39 @@
       (
        ((mkDeme $rep (mkSInstSet $origSet) $demeId) $origDeme)
 
-       ($temp (List.appendList $newInstances1 $newInstances2))
-       ($allNewInstances (List.appendList $temp $newInstances3))
+       ;; List.appendList(a, b) is implemented as append(b, a). The former
+       ;; calls therefore reversed the crossover groups to 3,2,1:
+       ;; ($temp (List.appendList $newInstances1 $newInstances2))
+       ;; ($allNewInstances (List.appendList $temp $newInstances3))
+       ;; Reverse the helper arguments so first-occurrence deduplication sees
+       ;; the same one-, two-, then three-simplex order as the C++ driver.
+       ($temp (List.appendList $newInstances2 $newInstances1))
+       ($allNewInstances (List.appendList $newInstances3 $temp))
 
        ($uniqueNewInstances (unique-atom $allNewInstances))
-       ($finalSet (List.appendList $uniqueNewInstances $origSet))
+       ;; Crossover can rediscover a vector that is already in the scored
+       ;; prefix.  Comparing the complete mkSInst row misses that duplicate
+       ;; because the rediscovered row carries worstCscore while the existing
+       ;; row carries its real score.  Filter by the instance payload so an
+       ;; already evaluated vector is neither appended nor charged again.
+       ($origInstances
+         (map-atom $origSet $row
+           (let (mkSInst (mkPair $inst $_score)) $row $inst)))
+       ($freshNewInstances
+         (filter-atom $uniqueNewInstances $row
+           (let (mkSInst (mkPair $inst $_score)) $row
+             (not (is-member $inst $origInstances)))))
 
-       ($nNewAdded (List.length $uniqueNewInstances))
+       ;; Previous version compared whole scored rows and therefore retained
+       ;; an old vector whenever its old and placeholder scores differed:
+       ;; ($finalSet (List.appendList $uniqueNewInstances $origSet))
+       ;; ($nNewAdded (List.length $uniqueNewInstances))
+       ($finalSet (List.appendList $freshNewInstances $origSet))
+
+       ($nNewAdded (List.length $freshNewInstances))
       )
      ((mkDeme $rep (mkSInstSet $finalSet) $demeId) $nNewAdded)
 ))
-
-;; Ant crossover preserves the C++ population ordering: existing scored
-;; instances remain the prefix and newly produced, unscored offspring follow.
-(= (merge3AntDemes $origDeme $newInstances1 $newInstances2 $newInstances3)
-   (let* (
-          ((mkDeme $rep (mkSInstSet $origSet) $demeId) $origDeme)
-          ($temp (List.appendList $newInstances1 $newInstances2))
-          ($allNewInstances (List.appendList $temp $newInstances3))
-          ($uniqueNewInstances (unique-atom $allNewInstances))
-          ;; List.appendList(a, b) is implemented as append(b, a).
-          ($finalSet (List.appendList $uniqueNewInstances $origSet))
-         )
-     ((mkDeme $rep (mkSInstSet $finalSet) $demeId)
-      (List.length $uniqueNewInstances))))
 
 ;; crossover
 ;; Main crossover driver.
@@ -177,22 +236,12 @@
 )
  )
 
-;; Ant-only crossover wrapper; generic domains retain their historical merge
-;; ordering until the deferred generic parity work is undertaken.
-(= (crossoverAnt $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme)
-   (let* (
-          ($nToMake (min $nNewInstances (param hcCrossoverPopSize)))
-          ($newInstances1 (crossTopOne $deme (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst))
-          ($newInstances2 (crossTopTwo $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
-          ($newInstances3 (crossTopThree $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
-         )
-     (merge3AntDemes $deme $newInstances1 $newInstances2 $newInstances3)))
-
 ;; Raw ant fitness is tracked independently from the penalized center score.
 (= (bestRawAntScore $scoredInstances)
-   (List.max (map-atom $scoredInstances $scoredInst
-               (let (mkSInst (mkPair $inst $score)) $scoredInst
-                 (getScore $score)))))
+   (foldl-atom $scoredInstances () $bestRaw $scoredInst
+     (let (mkSInst (mkPair $inst $score)) $scoredInst
+       (let $raw (getScore $score)
+         (if (== $bestRaw ()) $raw (max $bestRaw $raw))))))
 
 (= (bestRawAntDeme (mkDeme $rep (mkSInstSet $scoredInstances) $id))
    (bestRawAntScore $scoredInstances))
@@ -200,16 +249,83 @@
 ;; Ant-only incremental scoring lives beside hill climbing so the optimizer's
 ;; compiled call sees it directly. New samples carry worstCscore; old samples
 ;; retain their scores and do not invoke the simulator again.
-(= (scoreNewAntInstancesCounted () $rep $id $context) (() 0))
-(= (scoreNewAntInstancesCounted
-      (cons (mkSInst (mkPair $inst $score)) $rest) $rep $id $context)
-   (let ($scoredRest $restCount)
-        (scoreNewAntInstancesCounted $rest $rep $id $context)
-     (if (< (getScore $score) (* -1 (pow-math 10 90)))
-         ((cons (mkSInst (mkPair $inst (antBasedScorer $rep $id $inst $context)))
-                $scoredRest)
-          (+ $restCount 1))
-         ((cons (mkSInst (mkPair $inst $score)) $scoredRest) $restCount))))
+;; Previous version (kept deliberately): each worstCscore row called the ant
+;; simulator, even when different knob vectors reduced to the same action tree.
+;; (= (scoreNewAntInstancesCounted () $rep $id $context) (() 0))
+;; (= (scoreNewAntInstancesCounted
+;;       (cons (mkSInst (mkPair $inst $score)) $rest) $rep $id $context)
+;;    (let ($scoredRest $restCount)
+;;         (scoreNewAntInstancesCounted $rest $rep $id $context)
+;;      (if (< (getScore $score) (* -1 (pow-math 10 90)))
+;;          ((cons (mkSInst (mkPair $inst (antBasedScorer $rep $id $inst $context)))
+;;                 $scoredRest)
+;;           (+ $restCount 1))
+;;          ((cons (mkSInst (mkPair $inst $score)) $scoredRest) $restCount))))
+
+;; Look up the composite score of an already evaluated cleaned tree in the
+;; current scoring batch. `()` is safe as the miss marker because a Cscore is
+;; always represented by mkCscore, never by the empty expression.
+(= (antCachedScoreForTree $tree ()) ())
+(= (antCachedScoreForTree
+      $tree
+      (cons (mkAntTreeScore $cachedTree $cachedScore) $rest))
+   (if (== $tree $cachedTree)
+       $cachedScore
+       (antCachedScoreForTree $tree $rest)))
+
+;; Score an already materialized and reduced action tree without reconstructing
+;; it a second time through antBasedScorer.
+(= (scoreCleanedAntTree
+      $cleanedTree
+      (mkAntContext $steps $complexityRatio $actions $perceptions))
+   (getAntCscore $cleanedTree $complexityRatio $steps))
+
+;; Previous wording called this cache generation-local; its lifetime is one
+;; transform call, so scoring-batch-local is the precise scope.
+;; Thread a small, scoring-batch-local tree->score cache from left to right. This
+;; preserves input order, leaves every previously scored row byte-for-byte
+;; unchanged, and counts only the first simulation of each newly materialized
+;; cleaned tree. The cache is intentionally not seeded from old rows: those
+;; rows stay completely untouched and this helper measures new batch work.
+(= (scoreNewAntInstancesCachedCounted
+      () $rep $id $context $treeScoreCache)
+   (() 0 $treeScoreCache))
+(= (scoreNewAntInstancesCachedCounted
+      (cons (mkSInst (mkPair $inst $score)) $rest)
+      $rep $id $context $treeScoreCache)
+   (if (< (getScore $score) (* -1 (pow-math 10 90)))
+       (let* (
+              ($materializedTree (getCandidate $rep $id $inst))
+              ($cleanedTree (cleanActionTree $materializedTree))
+              ($cachedScore
+                (antCachedScoreForTree $cleanedTree $treeScoreCache))
+              (($resolvedScore $didEvaluate $updatedCache)
+                (if (== $cachedScore ())
+                    (let $newScore (scoreCleanedAntTree $cleanedTree $context)
+                      ($newScore
+                       1
+                       (cons (mkAntTreeScore $cleanedTree $newScore)
+                             $treeScoreCache)))
+                    ($cachedScore 0 $treeScoreCache)))
+              (($scoredRest $restCount $finalCache)
+                (scoreNewAntInstancesCachedCounted
+                  $rest $rep $id $context $updatedCache))
+             )
+         ((cons (mkSInst (mkPair $inst $resolvedScore)) $scoredRest)
+          (+ $didEvaluate $restCount)
+          $finalCache))
+       (let ($scoredRest $restCount $finalCache)
+            (scoreNewAntInstancesCachedCounted
+              $rest $rep $id $context $treeScoreCache)
+         ((cons (mkSInst (mkPair $inst $score)) $scoredRest)
+          $restCount
+          $finalCache))))
+
+(= (scoreNewAntInstancesCounted $instances $rep $id $context)
+   (let ($scored $count $finalCache)
+        (scoreNewAntInstancesCachedCounted
+          $instances $rep $id $context ())
+     ($scored $count)))
 
 (= (transformAntIncremental (mkSInstSet $instances) $rep $id $context)
    (let ($scored $count)
@@ -340,8 +456,13 @@
                         ($disc ant ant $FsScorer)
                         $centerInst
                         ()
-                        estimateNeighborhood crossoverAnt
-                        sampleNewInstances transform)))
+                        estimateNeighborhood crossover
+                        ;; The former shared sampler returned a nominal count
+                        ;; even when ant knob vectors repeated. The ant wrapper
+                        ;; preserves sampling RNG order but appends/counts only
+                        ;; unique vectors that have not already been evaluated.
+                        ;; sampleNewInstances transform)))
+                        sampleNewAntInstances transform)))
     )))
 
 (= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
@@ -353,17 +474,46 @@
                  $estimateFunction $crossoverFunction $samplingFunction $transformFunction) ;; Helper functions
    (let*
       (
-        ($_ (println! ""))
-        ($_ (println! (Iteration $i running)))
+        ;; Preserve generic HC logging, but keep ant output opt-in because a
+        ;; convergence run can execute thousands of iterations.
+        ($progressEnabled
+          (if (== $size ant) (param antDiagnostics) True))
+        ($_blank
+          (if $progressEnabled (println! "") ()))
+        ($_iteration
+          (if $progressEnabled (println! (Iteration $i running)) ()))
 
+        ;; Temporary full-map tracing isolated the non-compositional estimator
+        ;; bug.  Keep it commented for future representation debugging; it is
+        ;; intentionally disabled because large action maps made search logs
+        ;; exceed a megabyte:
+        ;; ($_antNeighborhoodInput
+        ;;   (if (and (== $size ant) (param antDiagnostics))
+        ;;       (println! (AntHillClimbingNeighborhoodInput
+        ;;                    (distance $d) (disc $neighborhood)))
+        ;;       ()))
         ($totalNNeighbors ($estimateFunction $d $neighborhood))
+        ($_antNeighborhoodEstimate
+          (if (and (== $size ant) (param antDiagnostics))
+              (println! (AntHillClimbingNeighborhoodEstimate
+                           (distance $d) (neighbors $totalNNeighbors)))
+              ()))
 
         ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
         ;; ($_ (println! ""))
 
         ;; Use the deliberately smaller MeTTa ant budget documented in
         ;; defaults; other domains retain the existing generic HC budget.
-        ($maxEvals (if (== $size ant) (param hcMaxEvalsAnt) (param hcMaxEvals)))
+        ;; The old expression gave every deme a fresh full ant allowance, so a
+        ;; multi-deme expansion could exceed the outer actual-evaluation budget:
+        ;; ($maxEvals (if (== $size ant) (param hcMaxEvalsAnt) (param hcMaxEvals)))
+        ($configuredMaxEvals
+          (if (== $size ant) (param hcMaxEvalsAnt) (param hcMaxEvals)))
+        ($outerAntLimit (if (== $size ant) (get-state &antLocalEvalLimit) -1))
+        ($maxEvals
+          (if (and (== $size ant) (>= $outerAntLimit 0))
+              (min $configuredMaxEvals $outerAntLimit)
+              $configuredMaxEvals))
         ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors))
 
         ;; Ant's evaluation counter is no longer also used as its population
@@ -382,11 +532,19 @@
                           (and (or (not (== $size ant))
                                    (>= $currentDemeSize 3))
                                (and (not $alreadyXover) (or $largeNbh $lastChance)))))) ;; INFO: Has to be greater than 2 minimum.
-        ($_ (println! (Crossover: $xOver)))
-        ($_ (println! (CenterInst: (second $centerInst))))
-        ($_ (println! (size: $size)))
+        ($_crossover
+          (if $progressEnabled (println! (Crossover: $xOver)) ()))
+        ($_center
+          (if $progressEnabled
+              (println! (CenterInst: (second $centerInst)))
+              ()))
+        ($_size
+          (if $progressEnabled (println! (size: $size)) ()))
         ;; ($_ (println! ($totalNNeighbors : $nNewNeighbors : $prevCenter : $POASet : $d)))
-        ($_ (println! ($totalNNeighbors : $nNewNeighbors : $d)))
+        ($_neighborhood
+          (if $progressEnabled
+              (println! ($totalNNeighbors : $nNewNeighbors : $d))
+              ()))
         ( 
           ; $newPOA
           ((mkDeme $rep $updatedInstSet $id) $newInstances)
@@ -394,7 +552,12 @@
                                                               (
                                                                 ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $prevCenter $POASet)
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
-                                                                ((True $notEmpty)  ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $centerInst $POASet))
+                                                                ;; C++ crosses the previous sample relative to the center from which that
+                                                                ;; sample was generated.  Using the newly selected center reinterprets
+                                                                ;; every mutation delta against the wrong base instance.
+                                                                ;; Previous incorrect call (kept deliberately):
+                                                                ;; ((True $notEmpty) ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $centerInst $POASet))
+                                                                ((True $notEmpty)  ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $prevCenter $POASet))
                                                                 ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst (mkITable $rowOCoeff $neighborhood) $POASet $d)
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
                                                                 ((False $notEmpty)
@@ -463,7 +626,10 @@
         
         ;; ($_ (println! (Best instance: (Pair.first $newBestInstPair))))
         ;; ($_ (println! (Best candidate: (preOrder (getCandidate $rep (Pair.first $newBestInstPair))))))
-        ($_ (println! (New best score: $newBestScore)))
+        ($_best
+          (if $progressEnabled
+              (println! (New best score: $newBestScore))
+              ()))
         ;; ($_ (println! ""))
 
         ($nextCenterInst (if $hasImproved (Pair.first $newBestInstPair) $centerInst))

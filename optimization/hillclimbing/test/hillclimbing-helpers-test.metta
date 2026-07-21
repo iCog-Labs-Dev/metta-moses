@@ -72,21 +72,19 @@
 
 ;; Test informationTheoreticBits with a knob 
 ;; map containing two knobs with same multiplicity of 3
-!(assertEqual (informationTheoreticBits (knobmap1)) 6)
+;; Previous sum-of-multiplicities expectation: 6.
+;; !(assertEqual (informationTheoreticBits (knobmap1)) 6)
+!(assertEqual
+  (informationTheoreticBits (knobmap1))
+  (+ (log-math 2 3) (log-math 2 3)))
 
 ;; Test informationTheoreticBits with a knob
 ;; map containing two knobs with different multiplicity of 2 and 3
-!(assertEqual (informationTheoreticBits (knobmap2)) 5)
-;; Test informationTheoreticBits with a knob 
-;; map containing two knobs with same multiplicity of 3
-!(assertEqual (informationTheoreticBits (knobmap1)) 6)
-; ;; Test informationTheoreticBits with a knob 
-; ;; map containing two knobs with same multiplicity of 3
-!(assertEqual (informationTheoreticBits (knobmap1)) 6)
-
-;; Test informationTheoreticBits with a knob
-;; map containing two knobs with different multiplicity of 2 and 3
-!(assertEqual (informationTheoreticBits (knobmap2)) 5)
+;; Previous sum-of-multiplicities expectation: 5.
+;; !(assertEqual (informationTheoreticBits (knobmap2)) 5)
+!(assertEqual
+  (informationTheoreticBits (knobmap2))
+  (+ (log-math 2 2) (log-math 2 3)))
 
 ;; Testcase for informationTheoreticBitsFs
 !(assertEqual
@@ -94,12 +92,38 @@
 
 ;; Testing estimateNeighborhood on the above knob maps
 !(assertEqual (estimateNeighborhood 0 (knobmap1)) 1)
-!(assertEqual (estimateNeighborhood 1 (knobmap2)) 10)
-!(assertEqual (estimateNeighborhood 2 (knobmap1)) 15)
-!(assertEqual (estimateNeighborhood 2 (knobmap2)) 10)
-!(assertEqual (estimateNeighborhood 3 (knobmap1)) 20)
+;; C++ truncates the information sum to size_t: floor(log2(2)+log2(3))=2
+;; and floor(2*log2(3))=3 before estimating these neighborhoods.
+;; Previous multiplicity-based expectations: 10, 15, 10, and 20.
+;; !(assertEqual (estimateNeighborhood 1 (knobmap2)) 10)
+;; !(assertEqual (estimateNeighborhood 2 (knobmap1)) 15)
+;; !(assertEqual (estimateNeighborhood 2 (knobmap2)) 10)
+;; !(assertEqual (estimateNeighborhood 3 (knobmap1)) 20)
+!(assertEqual (estimateNeighborhood 1 (knobmap2)) 4)
+!(assertEqual (estimateNeighborhood 2 (knobmap1)) 3)
+!(assertEqual (estimateNeighborhood 2 (knobmap2)) 1)
+!(assertEqual (estimateNeighborhood 3 (knobmap1)) 1)
 
-!(assertEqual (estimateNeighborhood 7 (knobmap1)) 0)
+;; The old estimator sent distance 7 directly to binomial(3, 7), incorrectly
+;; treating the over-wide request as an empty neighborhood.
+;; !(assertEqual (estimateNeighborhood 7 (knobmap1)) 0)
+;; C++ clamps the request to the estimated bit dimension first: C(3, 3) = 1.
+!(assertEqual (estimateNeighborhood 7 (knobmap1)) 1)
+;; Exercise the same clamp with a different estimated dimension so this does
+;; not merely duplicate the boundary case above.
+!(assertEqual (estimateNeighborhood 3 (knobmap2)) 1)
+
+;; Action-subtree knobs are the shape exercised by the ant pipeline.  This
+;; catches the former nested `int` expression that stayed unreduced at the
+;; second hill-climbing iteration even though direct arithmetic tests passed.
+!(assertEqual
+  (estimateNeighborhood
+    1
+    (((mkDiscSpec 7)
+       (mkASK
+         (mkDiscKnob (mkMultip 7) (mkDiscSpec 0) (mkDiscSpec 0) ())
+         ()))))
+  4)
 
 ;; Testcase for estimateNeighborhoodFs
 !(assertEqual
@@ -114,24 +138,35 @@
 ; Testcase for binomial
 !(assertEqual (binomial 5 2) 10)
 
-;; Ant crossover appends offspring after the scored population, preserving the
-;; previous sample range used by subsequent simplex crossover iterations.
+;; Shared crossover merging appends unique offspring after the scored
+;; population. Ant therefore preserves the previous sample range without a
+;; domain-specific merge implementation.
 !(assertEqual
   (let* (
          ($old1 (mkSInst (mkPair (mkInst (0)) (mkCscore -2 0 0 0 -2))))
          ($old2 (mkSInst (mkPair (mkInst (1)) (mkCscore -1 0 0 0 -1))))
          ($new1 (mkSInst (mkPair (mkInst (2)) (worstCscore))))
+         ($new2 (mkSInst (mkPair (mkInst (3)) (worstCscore))))
+         ($new3 (mkSInst (mkPair (mkInst (4)) (worstCscore))))
+         ;; This has the same instance as $old1 but a placeholder score.  A
+         ;; whole-row comparison used to append it and rescore vector (0).
+         ($rediscoveredOld1 (mkSInst (mkPair (mkInst (0)) (worstCscore))))
          (($mergedDeme $added)
-           (merge3AntDemes
+           (merge3Demes
              (mkDeme ant-rep (mkSInstSet ($old1 $old2)) (mkDemeId "ant-x"))
-             ($new1) () ()))
-         ((mkDeme $rep (mkSInstSet $merged) $id) $mergedDeme)
+             ($new1) ($new2 $new1 $rediscoveredOld1) ($new3)))
+         ((mkDeme $rep (mkSInstSet (cons $prefix1 (cons $prefix2 $offspring))) $id)
+          $mergedDeme)
         )
-    ($merged $added))
-  (((mkSInst (mkPair (mkInst (0)) (mkCscore -2 0 0 0 -2)))
-    (mkSInst (mkPair (mkInst (1)) (mkCscore -1 0 0 0 -1)))
-    (mkSInst (mkPair (mkInst (2)) (worstCscore))))
-   1))
+    ($prefix1 $prefix2 $added $offspring
+      (is-member $rediscoveredOld1 $offspring)))
+  ((mkSInst (mkPair (mkInst (0)) (mkCscore -2 0 0 0 -2)))
+   (mkSInst (mkPair (mkInst (1)) (mkCscore -1 0 0 0 -1)))
+   3
+   ((mkSInst (mkPair (mkInst (2)) (worstCscore)))
+    (mkSInst (mkPair (mkInst (3)) (worstCscore)))
+    (mkSInst (mkPair (mkInst (4)) (worstCscore))))
+   False))
 
 ;; Raw termination tracking is independent of which candidate has the best
 ;; complexity-penalized score.
@@ -140,6 +175,9 @@
     ((mkSInst (mkPair (mkInst (0)) (mkCscore 0 20 100 0 -100)))
      (mkSInst (mkPair (mkInst (1)) (mkCscore -1 0 0 0 -1)))))
   0)
+
+;; Folding an empty deme retains the previous raw-score sentinel.
+!(assertEqual (bestRawAntScore ()) ())
 
 ; Testcase 1 for countNeighborhood
 !(assertEqual 

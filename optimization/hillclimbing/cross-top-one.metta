@@ -13,7 +13,13 @@
 
        ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
        (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
-       ($list (List.partialSort instance> $newInst $nToMakeNew ()))
+       ;; C++ restricts partial_sort to the recorded sample window and asks
+       ;; for one reference plus nToMake targets.  The old lines sorted the
+       ;; entire suffix and requested only nToMake entries, which both leaked
+       ;; candidates from later windows and left only nToMake-1 targets.
+       ;; ($list (List.partialSort instance> $newInst $nToMakeNew ()))
+       ($sample (List.takeN $sampleSize $newInst))
+       ($list (List.partialSort instance> $sample (+ $nToMakeNew 1) ()))
       )
       (if (== $list ())
           ()
@@ -21,7 +27,9 @@
              (
               ((cons $reference $rest) $list)
 
-              ($targetExpr (List.takeN (- $nToMakeNew 1) $rest))
+              ;; Previous off-by-one target selection (kept deliberately):
+              ;; ($targetExpr (List.takeN (- $nToMakeNew 1) $rest))
+              ($targetExpr (List.takeN $nToMakeNew $rest))
               ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
 
               ($newInstances (merger $targetExpr $baseInstance $referenceInst))
@@ -70,18 +78,29 @@
      (
       ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
       (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
+      ;; Match the half-open [sampleStart, sampleStart + sampleSize) range
+      ;; passed to std::partial_sort in C++.  The previous implementation
+      ;; passed all of $newInst, so an instance outside the sample could win.
+      ;; ($sortedList (List.partialSort instance> $newInst $nToSort ()))
+      ($sample (List.takeN $sampleSize $newInst))
 
       ($pairCount (/ (* $sampleSize (- $sampleSize 1)) 2))
       ($nToMakeNew (if (< $pairCount $nToMake) $pairCount $nToMake))
 
-       ($nToSortRaw (+ (sqrt-math (* 2 $nToMakeNew)) 3))
+       ;; C++ assigns sqrt(2*n)+3 to unsigned, truncating the estimate.
+       ;; ($nToSortRaw (+ (sqrt-math (* 2 $nToMakeNew)) 3))
+       ($nToSortRaw (int (+ (sqrt-math (* 2 $nToMakeNew)) 3)))
        ($nToSort (if (< $sampleSize $nToSortRaw) $sampleSize $nToSortRaw))
 
-       ($sortedList (List.partialSort instance> $newInst $nToSort ()))
+       ($sortedList (List.partialSort instance> $sample $nToSort ()))
 
-       ($topInsts (List.takeN $nToSort $sortedList))
+       ;; C++ traverses the complete sample; only its top nToSort prefix is
+       ;; ordered.  The requested result limit stops traversal before the
+       ;; unsorted tail can affect the intended simplex prefix.
+       ;; ($topInsts (List.takeN $nToSort $sortedList))
 
-       ($newInstances (crossPairs () $topInsts $baseInstance () $nToMakeNew))
+       ;; ($newInstances (crossPairs () $topInsts $baseInstance () $nToMakeNew))
+       ($newInstances (crossPairs () $sortedList $baseInstance () $nToMakeNew))
        )
       $newInstances
       ))
@@ -110,18 +129,29 @@
       ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
 
         (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
+        ;; Restrict ranking to the recorded C++ sample window.  Previously a
+        ;; later instance in the deme could enter this crossover population.
+        ;; ($sortedList (List.partialSort instance> $newInst $nToSort ()))
+        ($sample (List.takeN $sampleSize $newInst))
 
         ;; sample_size choose 3
         ($tripleFactor (* (- $sampleSize 1) (- $sampleSize 2)))
         ($maxTriples (/ (* $sampleSize $tripleFactor) 6))
         ($nToMakeNew (if (< $maxTriples $nToMake) $maxTriples $nToMake))
 
-       ($nToSortRaw (+ (cbrt-math (* 6 $nToMakeNew)) 3))
+       ;; C++ stores cbrt(6*n)+3 in unsigned before using it as an index.
+       ;; ($nToSortRaw (+ (cbrt-math (* 6 $nToMakeNew)) 3))
+       ($nToSortRaw (int (+ (cbrt-math (* 6 $nToMakeNew)) 3)))
        ($nToSort (if (< $sampleSize $nToSortRaw) $sampleSize $nToSortRaw))
-       ($sortedList (List.partialSort instance> $newInst $nToSort ()))
+       ($sortedList (List.partialSort instance> $sample $nToSort ()))
 
-        ($topInsts (List.takeN $nToSort $sortedList))
-        ($newInstances (crossTriples () $topInsts $baseInstance () $nToMakeNew))
+        ;; The C++ i-loop traverses the full sample after partially sorting its
+        ;; prefix.  The former MeTTa traversal only visited $topInsts.
+        ;; ($topInsts (List.takeN $nToSort $sortedList))
+        ;; ($newInstances (crossTriples () $topInsts $baseInstance () $nToMakeNew))
+        ($newInstances
+          (crossTriples () $sortedList 0 $baseInstance
+            (makeCrossoverSlots $nToMakeNew) $nToMakeNew))
         )
 
        $newInstances

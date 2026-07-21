@@ -398,6 +398,52 @@
     ;; ($_ (println! ""))
  )
  ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId) $updatedNumNewInstances)))
+
+;; Ant scoring is expensive enough that repeated knob vectors should not use
+;; the actual-scorer budget.  The generic sampler above intentionally retains
+;; its historical behavior for Boolean and strategy searches.  This helper
+;; removes duplicate sampled rows and rows whose instances are already present
+;; in the deme, while preserving the first occurrence and its sample order.
+(= (uniqueUnseenScoredInstances $sampledRows $existingRows)
+   (let* (
+          ($existingInstances
+            (map-atom $existingRows $row (removeInstScore $row)))
+          ($uniqueSampledRows (unique-atom $sampledRows))
+         )
+     (filter-atom $uniqueSampledRows $row
+       (not (is-member (removeInstScore $row) $existingInstances)))))
+
+;; Ant-only sampling wrapper.  Sampling still consumes the same random values
+;; as the shared implementation, but only unique, previously unseen vectors
+;; are appended and reported as new.  This makes the returned count equal the
+;; number of rows that can actually require scoring.
+(= (sampleNewAntInstances
+      $totalNeighbors $numNewInstances $centerInst
+      (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree)
+              (mkSInstSet $existingRows) $demeId)
+      $dist)
+   (let* (
+          ($originalDeme
+            (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree)
+                    (mkSInstSet $existingRows) $demeId))
+          (($sampledDeme $_previousNominalCount)
+            (sampleNewInstances $totalNeighbors $numNewInstances $centerInst
+                                $originalDeme $dist))
+          ((mkDeme $sampledRep (mkSInstSet $allSampledRows) $sampledId)
+            $sampledDeme)
+          ($sampledRows
+            (List.drop (List.length $existingRows) $allSampledRows))
+          ($freshRows
+            (uniqueUnseenScoredInstances $sampledRows $existingRows))
+          ;; Previous version kept every sampled row and returned its nominal
+          ;; request count, even when vectors repeated:
+          ;; ($finalRows $allSampledRows)
+          ;; ($actualNewCount $_previousNominalCount)
+          ($finalRows (List.concat $existingRows $freshRows))
+          ($actualNewCount (List.length $freshRows))
+         )
+     ((mkDeme $sampledRep (mkSInstSet $finalRows) $sampledId)
+      $actualNewCount)))
 ;; similar to the above 'sampleNewInstances' but with slight changes for the feature selection
 ;; Uses the countNeighborhoodFs, sampleFromNeighborhoodFs, initInstScoreFs
 ;; It sets the multiplicy to 2 which is 0 and 1 for the feature selection
