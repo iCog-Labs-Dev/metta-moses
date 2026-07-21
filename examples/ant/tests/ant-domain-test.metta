@@ -12,18 +12,66 @@
 (= (turnRightTree) (mkTree (mkNode turn_right) ()))
 (= (foodAheadTree) (mkTree (mkNode is_food_ahead) ()))
 
-;; C++ treats the empty sequential seed as zero complexity, while primitive
-;; action and perception leaves continue to contribute one each.
+;; Exact program evolved by the historical seed-1 convergence experiment.
+;; Keeping it as a cheap semantic fixture protects its behavior without making
+;; the ordinary suite repeat a long search or promising the same current path.
+(= (evolvedPerfectAntTree)
+   (buildTree
+     (and_seq
+       (action_bool_if is_food_ahead
+         (and_seq move_forward move_forward)
+         (and_seq
+           turn_left
+           turn_left
+           (action_bool_if is_food_ahead
+             (and_seq move_forward)
+             (and_seq turn_right))
+           move_forward))
+       turn_right)))
+
+;; Previous regression (incorrect): this encoded the old assumption that an
+;; ant perception contributes complexity one.
+;; !(assertEqual
+;;   ((antTreeComplexity (ant-exemplar))
+;;    (antTreeComplexity (moveTree))
+;;    (antTreeComplexity (foodAheadTree))
+;;    (antTreeComplexity
+;;      (mkTree (mkNode action_bool_if)
+;;        ((foodAheadTree) (moveTree) (turnRightTree)))))
+;;   (0 1 1 3))
+
+;; C++ `tree_complexity` assigns one to builtin ant actions and action-result
+;; constants, but zero to perceptions and structural operators.  The
+;; conditional therefore costs only its two action branches.
 !(assertEqual
   ((antTreeComplexity (ant-exemplar))
    (antTreeComplexity (moveTree))
+   (antTreeComplexity (turnLeftTree))
+   (antTreeComplexity (turnRightTree))
    (antTreeComplexity (foodAheadTree))
+   (antTreeComplexity (mkTree (mkNode action_success) ()))
+   (antTreeComplexity (mkTree (mkNode action_failure) ()))
+   (antTreeComplexity (mkTree (mkNode True) ()))
+   (antTreeComplexity (mkTree (mkNode False) ()))
    (antTreeComplexity
      (mkTree (mkNode action_bool_if)
        ((foodAheadTree) (moveTree) (turnRightTree)))))
-  (0 1 1 3))
+  (0 1 1 1 0 1 1 0 0 2))
 
 !(assertEqual (List.length (ant-food-coords)) (ant-food-count))
+
+;; Stateless Boolean junctors use the conventional empty identities and fold
+;; every condition against the same ant state.
+!(assertEqual
+  ((antEvalBoolAnd () (antInitialState))
+   (antEvalBoolOr () (antInitialState))
+   (antEvalBoolAnd
+     ((mkTree (mkNode True) ()) (foodAheadTree))
+     (antInitialState))
+   (antEvalBoolOr
+     ((mkTree (mkNode False) ()) (foodAheadTree))
+     (antInitialState)))
+  (True False True True))
 
 
 !(assertEqual
@@ -84,6 +132,26 @@
 !(assertEqual
   (scoreAntTree (moveTree) 600)
   (mkBScore (-89 3)))
+
+;; A previously measured BScore must be sufficient to construct the complete
+;; ant Cscore.  This is the no-resimulation path used for the initial exemplar.
+!(assertEqual
+  (getAntCscoreFromBScore
+    (moveTree) 0.16 (mkBScore (-89 3)))
+  (mkCscore -86 1 6.25 0.0 -92.25))
+
+;; The evolved controller needs the configured 600-action allowance: it eats
+;; 68 pellets by action 400 and all 89 by action 600.  Its Cscore independently
+;; verifies the corrected action-only complexity convention.
+!(assertEqual
+  ((scoreAntTree (evolvedPerfectAntTree) 400)
+   (scoreAntTree (evolvedPerfectAntTree) 600)
+   (antTreeComplexity (evolvedPerfectAntTree))
+   (getAntCscore (evolvedPerfectAntTree) 0.16 600))
+  ((mkBScore (-89 68))
+   (mkBScore (-89 89))
+   8
+   (mkCscore 0 8 50.0 0.0 -50.0)))
 
 !(assertEqual
   (scoreAntTree (mkTree (mkNode unknown_ant_action) ()) 600)

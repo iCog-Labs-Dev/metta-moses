@@ -2,6 +2,11 @@
 ;; Classic Santa Fe ant domain
 ;; ---------------------------------------------------------------------------
 
+;; The complete-run evaluator limit is ant-specific, so register it with the
+;; domain instead of changing generic parameter-specialization state. CLI
+;; overrides remain compatible because moses.metta applies them afterward.
+!(add-atom &params (antMaxEvals 100000))
+
 ;; Shared state variables used below:
 ;; - $x, $y: current ant position on the 32x32 toroidal grid.
 ;; - $dir: current direction; 0=north, 1=east, 2=south, 3=west.
@@ -177,22 +182,25 @@
        ((mkTree (mkNode OR) $children) (antEvalBoolOr $children $state))
        ($other False))))
 
-;; antEvalBoolAnd: fold boolean AND over condition children.
-;;          `$child` is the current condition subtree;
-;;          `$rest` is the remaining condition list;
-;;          `$state` is the ant state used by all children.
-
+;; antEvalBoolAnd evaluates the condition list recursively.  Keeping the
+;; explicit recursion matters here: the attempted fold form below changed the
+;; evaluator's reduction behavior and made the known 11-pellet trail follower
+;; score zero, even though perceptions themselves do not mutate ant state.
+;; Previous incorrect fold version (retained for comparison):
+;; (= (antEvalBoolAnd $children $state)
+;;    (foldl-atom $children True $result $child
+;;      (and $result (antEvalBool $child $state))))
 (= (antEvalBoolAnd () $state) True)
 (= (antEvalBoolAnd (cons $child $rest) $state)
    (and (antEvalBool $child $state)
         (antEvalBoolAnd $rest $state)))
 
-;; antEvalBoolOr: fold boolean OR over condition children.
-;;          `$child` is the current condition subtree;
-;;          `$rest` is the remaining condition list;
-;;          `$state` is the ant state used by all children.
+;; antEvalBoolOr follows the same evaluator-safe recursive shape as AND.
 ;;          C++ note: no direct C++ helper; this is the OR counterpart to `antEvalBoolAnd`.
-
+;; Previous incorrect fold version (retained for comparison):
+;; (= (antEvalBoolOr $children $state)
+;;    (foldl-atom $children False $result $child
+;;      (or $result (antEvalBool $child $state))))
 (= (antEvalBoolOr () $state) False)
 (= (antEvalBoolOr (cons $child $rest) $state)
    (or (antEvalBool $child $state)
@@ -331,25 +339,38 @@
 (= (scoreAntTree $tree $steps)
    (mkBScore ((- 0 (ant-food-count)) (antFoodEaten (antRunTree $tree $steps)))))
 
-;; antTreeComplexity: match the C++ action-tree complexity convention.  The
-;; empty sequential_and seed is structural scaffolding and costs zero, while
-;; primitive ant actions and perceptions each cost one.
+;; antTreeComplexity: match C++ `tree_complexity`.  The empty sequential_and
+;; seed and structural/Boolean/perception nodes cost zero.  Only primitive ant
+;; actions and action-result constants cost one in this domain.  In particular,
+;; `is_food_ahead` is an ant perception, not a C++ builtin action, so charging it
+;; would over-penalize the conditional structure needed to follow the trail.
 (= (antTreeComplexity (mkNullVex $children)) 0)
+;; Previous implementation (incorrect): it counted `is_food_ahead` as a
+;; primitive action and therefore assigned it complexity one.
+;; (= (antTreeComplexity (mkTree (mkNode $op) $children))
+;;    (if (== $children ())
+;;        (if (is-member $op (move_forward turn_left turn_right is_food_ahead)) 1 0)
+;;        (foldl-atom $children 0 $total $child
+;;          (+ $total (antTreeComplexity $child)))))
+
+;; C++ counts ant builtin actions and `action_result` leaves.  Keep the
+;; structural recursion unchanged so operators such as `action_bool_if`,
+;; `and_seq`, `AND`, and `NOT` contribute only their qualifying descendants.
 (= (antTreeComplexity (mkTree (mkNode $op) $children))
    (if (== $children ())
-       (if (is-member $op (move_forward turn_left turn_right is_food_ahead)) 1 0)
-       (List.sum (List.map antTreeComplexity $children))))
+       (if (is-member $op
+             (move_forward turn_left turn_right action_success action_failure))
+           1
+           0)
+       (foldl-atom $children 0 $total $child
+         (+ $total (antTreeComplexity $child)))))
 
-;; getAntCscore: compute composite score for an ant candidate.
-;;          `$tree` is the already-cleaned candidate action tree;
-;;          `$complexityRatio` controls the generic complexity penalty coefficient;
-;;          `$steps` is the primitive-action limit passed to ant simulation.
-;;          C++ note: corresponds to `behave_cscore` over `ant_bscore`; MeTTa reuses
-;;          generic `getCscore`.
-
-(= (getAntCscore $tree $complexityRatio $steps)
+;; getAntCscoreFromBScore: construct the ant composite score from a behavioral
+;;          score that has already been measured.  Keeping simulation outside
+;;          this helper lets the pipeline score its initial exemplar exactly
+;;          once and account for that one real evaluator call.
+(= (getAntCscoreFromBScore $tree $complexityRatio $bscore)
    (let* (
-          ($bscore (scoreAntTree $tree $steps))
           ($rawScore (sumBScore $bscore))
           ($complexity (antTreeComplexity $tree))
           ($complexityPenalty (* $complexity (getComplexityCoef $complexityRatio)))
@@ -358,6 +379,34 @@
        (mkCscore $rawScore $complexity $complexityPenalty 0.0
                  (* -1 (pow-math 10 308)))
        False)))
+
+;; getAntCscore: compute composite score for an ant candidate.
+;;          `$tree` is the already-cleaned candidate action tree;
+;;          `$complexityRatio` controls the generic complexity penalty coefficient;
+;;          `$steps` is the primitive-action limit passed to ant simulation.
+;;          C++ note: corresponds to `behave_cscore` over `ant_bscore`; MeTTa reuses
+;;          generic `getCscore`.
+;;
+;; Previous version: composite-score construction was embedded here.  Calling
+;; this after a caller had already obtained the BScore silently simulated the
+;; same tree a second time.
+;; (= (getAntCscore $tree $complexityRatio $steps)
+;;    (let* (
+;;           ($bscore (scoreAntTree $tree $steps))
+;;           ($rawScore (sumBScore $bscore))
+;;           ($complexity (antTreeComplexity $tree))
+;;           ($complexityPenalty (* $complexity (getComplexityCoef $complexityRatio)))
+;;          )
+;;      (updatePenalizedScore
+;;        (mkCscore $rawScore $complexity $complexityPenalty 0.0
+;;                  (* -1 (pow-math 10 308)))
+;;        False)))
+;;
+;; Preserve the convenient public scorer while delegating the score conversion
+;; to the reusable no-simulation helper above.
+(= (getAntCscore $tree $complexityRatio $steps)
+   (getAntCscoreFromBScore
+     $tree $complexityRatio (scoreAntTree $tree $steps)))
 
 ;; antBasedScorer: score one instance in an ant representation.
 ;;          `$rep` is the representation with embedded ASK knobs;
@@ -370,8 +419,13 @@
 ;;          `$tree` is the materialized candidate;
 ;;          `$cleanedTree` is `$tree` after action reduction.
 ;;          C++ note: corresponds to materialize -> action_reduction -> behave_cscore.
-;;          MeTTa intentionally does not cache ant scores because each score uses a
-;;          fresh mutable trail state.
+;;          Previous comment before deterministic cleaned-tree deduplication:
+;;          "MeTTa intentionally does not cache ant scores because each score uses a
+;;          fresh mutable trail state."
+;;          In fact, every call *starts* from the same fresh trail state, so the
+;;          score is deterministic for a cleaned tree. The hill climber may safely
+;;          reuse that result within a scoring batch; this primitive scorer still
+;;          performs one independent simulation when called directly.
 
 (= (antBasedScorer $rep $id $inst (mkAntContext $steps $complexityRatio $actions $perceptions))
    (let* (($tree (getCandidate $rep $id $inst))
