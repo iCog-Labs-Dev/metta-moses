@@ -90,7 +90,7 @@ def load_boolean_table(path, target_feature=""):
     new_labels.append(target_name)
 
     # Type-check every cell upfront and build a column-major table.
-    num_columns = len(new_labels)
+    num_columns = len(labels)
     validated_columns = [[] for _ in range(num_columns)]
 
     for r_num, row in enumerate(body, start=2):  # +1 for header, 1-indexed
