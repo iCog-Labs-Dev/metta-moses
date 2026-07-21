@@ -17,13 +17,23 @@
        (let* (
               (($next $rest) (decons-atom $tail))
               ((mkSInst $y) $next)
+              ;; PeTTa does not reliably reduce Pair.second when it is nested
+              ;; directly inside another user-defined call.  Destructure both
+              ;; pairs once so score comparison and materialization receive
+              ;; concrete values instead of literal Pair.second expressions.
+              ;; Previous nested lines (retained verbatim for diagnosis):
+              ;; (if (isApproxEq (getPenScore (Pair.second $x)) (getPenScore (Pair.second $y)))
+              ;;        ($tr1 (getCandidate $rep $id (Pair.first $x)))
+              ;;        ($tr2 (getCandidate $rep $id (Pair.first $y)))
+              ((mkPair $xInst $xScore) $x)
+              ((mkPair $yInst $yScore) $y)
               ($lengthOfTail (List.length $tail))
              )
          (if (> $topCnd 0)
-             (if (isApproxEq (getPenScore (Pair.second $x)) (getPenScore (Pair.second $y)))
+             (if (isApproxEq (getPenScore $xScore) (getPenScore $yScore))
                  (let* (
-                        ($tr1 (getCandidate $rep $id (Pair.first $x)))
-                        ($tr2 (getCandidate $rep $id (Pair.first $y)))
+                        ($tr1 (getCandidate $rep $id $xInst))
+                        ($tr2 (getCandidate $rep $id $yInst))
                        )
                    (if (== $tr1 $tr2)
                        (removeDupInsts $rep $id (cons (mkSInst $x) $rest) (min-atom ($topCnd $lengthOfTail)))
@@ -111,6 +121,45 @@
        ($filteredSInstList (filterDemeByScore $sInstList (- $demeSize 1) $botSc)))
        $filteredSInstList))))
 
+;; Find the strongest raw ant result before merge's penalized-score filters.
+;; C++ `_best_candidates` breaks a raw-score tie by lower complexity; an exact
+;; raw/complexity tie keeps the first evaluated instance in this single-result
+;; MeTTa accumulator.
+(= (bestRawAntScoredInstance (mkSInstSet ())) ())
+(= (bestRawAntScoredInstance (mkSInstSet (cons $first $rest)))
+   (foldl-atom $rest $first $best $candidate
+     (let* (
+            ($candidateScore (getSInstScore $candidate))
+            ($bestScore (getSInstScore $best))
+            ($candidateRaw (getScore $candidateScore))
+            ($bestRaw (getScore $bestScore))
+           )
+       ;; Previous version compared only raw score and therefore hid a later,
+       ;; equally fit but simpler candidate from the all-time accumulator:
+       ;; (if (> $candidateRaw $bestRaw) $candidate $best)
+       (if (> $candidateRaw $bestRaw)
+           $candidate
+           (if (< $candidateRaw $bestRaw)
+               $best
+               (if (< (getComp $candidateScore) (getComp $bestScore))
+                   $candidate
+                   $best))))))
+
+;; Previous ant experiment reinserted the raw-best instance into the trimmed
+;; deme.  That kept the result visible, but it also made a candidate that C++
+;; stores separately eligible for later Boltzmann selection.  The ant run loop
+;; now carries the raw champion independently, so merge remains penalized-only:
+;; (= (retainRawBestAntInstance $allScored $trimmed $scoringContext)
+;;    (case $scoringContext
+;;      (((mkAntContext $steps $complexityRatio $actions $perceptions)
+;;         (let $rawBest (bestRawAntScoredInstance $allScored)
+;;           (if (== $rawBest ())
+;;               $trimmed
+;;               (if (List.contains $rawBest $trimmed)
+;;                   $trimmed
+;;                   (cons $rawBest $trimmed)))))
+;;       ($otherContext $trimmed))))
+
 ;; Converts a Deme into a list of Exemplars by transforming each ScoredInstance into a scored tree.
 ;; Params:
 ;;   $deme: A deme containing a representation, scored instance set, and demeId.
@@ -132,7 +181,16 @@
         ($bscore (case $scoringContext
                     (((mkITable $rows $labels) (scoreTree $scoringContext $tree &bscoreCache))
                      ((mkAntContext $steps $complexityRatio $actions $perceptions)
-                      (scoreAntTree (cleanActionTree $tree) $steps))
+                      ;; Ant instances have already been simulated by the deme scorer.
+                      ;; Re-running the mutable trail simulation here spent an uncounted
+                      ;; evaluation during every merge.  The stored raw Cscore is exactly
+                      ;; `-ant-food-count + pellets-eaten`, so reconstruct the two-component
+                      ;; behavioral score without executing the candidate a second time.
+                      ;; Previous implementation (kept for comparison as requested):
+                      ;; (scoreAntTree (cleanActionTree $tree) $steps)
+                      (mkBScore
+                        ((- 0 (ant-food-count))
+                         (+ (getScore $cscore) (ant-food-count)))))
                      ($nGames (scoreStrategyTree $tree $nGames &strategyScoreCache)))))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
         ;; ($_ (println! (Returning...)))
@@ -235,6 +293,23 @@
    (let $updatedMetaPop (OS.insert compareExemplar $x $metapop)
       (mergeCandidates $xs $updatedMetaPop)))
 
+;; Previous ant experiment also reinserted the raw champion after metapopulation
+;; resizing.  Besides changing selection probabilities, that could exceed the
+;; configured archive cap.  Raw-best output is now assembled only when the ant
+;; loop finishes:
+;; (= (reserveRawBestAntExemplar () $resized) $resized)
+;; (= (reserveRawBestAntExemplar $unresized $resized)
+;;    (let $rawBest (bestRawAntExemplar $unresized)
+;;      (if (OS.contains $resized $rawBest)
+;;          $resized
+;;          (OS.insert compareExemplar $rawBest $resized))))
+;; (= (resizeMetapopForContext $metapop $scoringContext)
+;;    (let $resized (resizeMetapop $metapop)
+;;      (case $scoringContext
+;;        (((mkAntContext $steps $complexityRatio $actions $perceptions)
+;;           (reserveRawBestAntExemplar $metapop $resized))
+;;         ($otherContext $resized)))))
+
 ;; Merges a deme's candidates into a metapopulation, processing through sorting, deduplication, trimming, tree conversion, filtering, dominance removal, merging, and resizing.
 ;; Params:
 ;;   $demes: List of demes to process.
@@ -269,7 +344,13 @@
             ($trimmedDeme (trimDownDeme $unqCandidates))  ;; further trims the deme
             ;; ($_ (println! (DemeToTrees Starting...)))
             ($_ (println! (TrimmedDownDeme: (List.length $trimmedDeme))))
-            ($potCandidates (demeToTrees (mkDeme $rep (mkSInstSet $trimmedDeme) $demeId) $scoringContext)) ;;convert instances to trees
+            ;; The previous ant experiment inserted `retainRawBestAntInstance`
+            ;; here.  The run loop now records that candidate before merge, so
+            ;; only normal penalized survivors enter the selectable archive.
+            ($potCandidates
+              (demeToTrees
+                (mkDeme $rep (mkSInstSet $trimmedDeme) $demeId)
+                $scoringContext)) ;;convert instances to trees
             ($_ (println! (Before getNewCandidates: (List.length $potCandidates))))
             ;; ($_ (println! (Metapop: $metapop)))
             ;; ($_ (println! ("--")))
@@ -283,7 +364,9 @@
             ($updatedMetaPop (mergeCandidates $retainedCandidates $metapop))  ;;merge candidates into metapop
             ;; ($_ (println! (merged Candidate: $updatedMetaPop)))
             ($_ (println! (Metapop size before resize: (OS.length $updatedMetaPop))))
-            ($resizedMetapop (resizeMetapop $updatedMetaPop))  ;;resize the metapop
+            ;; Raw ant champions are stored outside the selectable archive;
+            ;; normal resize semantics therefore apply to every domain.
+            ($resizedMetapop (resizeMetapop $updatedMetaPop))
             ($_ (println! (Metapop size after resize: (OS.length $resizedMetapop))))
             ; ($resizedMetapop (if (<= (param nToKeep) (OS.length $updatedMetaPop)) (OS.getTopN (param nToKeep) $updatedMetaPop) $updatedMetaPop)) ;; select top nToKeep candidates
             ;; ($_ (println! (Resized Metapop: $resizedMetapop)))

@@ -40,11 +40,40 @@
 
 ;; Ant action-domain createDeme - creates action representations with embedded
 ;; ASK knobs using the domain-local action/perception vocabulary.
+;; Classic C++ MOSES discards a representation whose field set is empty and
+;; asks the outer loop to try another exemplar.  An empty action knob map is
+;; the MeTTa equivalent: there is no coordinate that hill climbing can vary.
+(= (antRepresentationExpandable
+      (mkRep (mkKbMap (mkDscMp $mmp)) $tree))
+   (> (MultiMap.length $mmp) 0))
+
+;; Filter each randomized representation independently.  Some random builds
+;; of the same exemplar can expose knobs while others expose none, so rejecting
+;; an exemplar by tree shape would incorrectly throw useful demes away.
+(= (antExpandableRepresentations $representations)
+   (filter-atom $representations $rep
+     (antRepresentationExpandable $rep)))
+
 (= (createDeme $nDeme $demeIds $exemplar (mkAntContext $steps $complexityRatio $actions $perceptions))
       (let*
             (
                   ($demeCount (genList 0 (- $nDeme 1)))
-                  ($reps (map-atom $demeCount $x
+                  ;; Previous version retained empty representations and sent
+                  ;; an empty instance into neighborhood sampling, where the
+                  ;; sampler necessarily failed while reading knob index zero:
+                  ;; ($reps (map-atom $demeCount $x
+                  ;;       (representation
+                  ;;             1
+                  ;;             $exemplar
+                  ;;             (mkITable () ())
+                  ;;             None
+                  ;;             False
+                  ;;             ()
+                  ;;             mi
+                  ;;             True
+                  ;;             $actions
+                  ;;             $perceptions)))
+                  ($candidateReps (map-atom $demeCount $x
                         (representation
                               1
                               $exemplar
@@ -56,6 +85,7 @@
                               True
                               $actions
                               $perceptions)))
+                  ($reps (antExpandableRepresentations $candidateReps))
             )
             (loopCreateDeme $demeIds $reps ())
       )

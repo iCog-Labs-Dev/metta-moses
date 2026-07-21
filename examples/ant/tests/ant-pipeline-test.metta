@@ -73,27 +73,31 @@
 
 ;; FinalResult rows have the form: (<pre-order action expression> <raw score>).
 ;; Raw ant score is -89 + pellets-eaten, so every valid result is in [-89, 0].
-(= (antFinalScoresValid ()) True)
-(= (antFinalScoresValid (cons ($treeExpr $score) $rest))
-   (and (>= $score (- 0 (ant-food-count)))
-        (and (<= $score (ant-best-possible-score))
-             (antFinalScoresValid $rest))))
+(= (antFinalScoresValid $rows)
+   (foldl-atom $rows True $valid $row
+     (let ($treeExpr $score) $row
+       (and $valid
+            (and (>= $score (- 0 (ant-food-count)))
+                 (<= $score (ant-best-possible-score)))))))
 
 ;; Rebuild and clean each returned expression, then verify that independent ant
 ;; simulation reproduces the behavioral score stored by the pipeline.
-(= (antFinalRescoresMatch () $steps) True)
-(= (antFinalRescoresMatch (cons ($treeExpr $score) $rest) $steps)
-   (let $rescored
-        (sumBScore (scoreAntTree (cleanActionTree (buildTree $treeExpr)) $steps))
-     (and (== $rescored $score)
-          (antFinalRescoresMatch $rest $steps))))
+(= (antFinalRescoresMatch $rows $steps)
+   (foldl-atom $rows True $matches $row
+     (let ($treeExpr $score) $row
+       (let $rescored
+            (sumBScore
+              (scoreAntTree (cleanActionTree (buildTree $treeExpr)) $steps))
+         (and $matches (== $rescored $score))))))
 
-(= (antBestFinalRow (cons $row ())) $row)
-(= (antBestFinalRow (cons ($treeExpr $score) $rest))
-   (let ($bestTreeExpr $bestScore) (antBestFinalRow $rest)
-     (if (>= $score $bestScore)
-         ($treeExpr $score)
-         ($bestTreeExpr $bestScore))))
+
+(= (antBestFinalRow (cons $firstRow $rest))
+   (foldl-atom $rest $firstRow $bestRow $row
+     (let* (
+            (($bestTreeExpr $bestScore) $bestRow)
+            (($treeExpr $score) $row)
+           )
+       (if (> $score $bestScore) $row $bestRow))))
 
 ;; The empty initial exemplar prints as `and_seq`.  Require the evolutionary
 ;; pipeline to return at least one materialized candidate in addition to merely
@@ -104,27 +108,89 @@
        (antHasMaterializedCandidate $rest)
        True))
 
+; ;; These focused collection regressions are retained here as the previous
+; ;; pipeline-local versions. Their active equivalents now live in
+; ;; ant-integration-test.metta, keeping this expensive test to one search.
+; ;; Initial-instance construction fuses value extraction and default projection
+; ;; without changing map order or the resulting knob values.
+; !(assertEqual
+;   (let $map
+;        (((mkDiscSpec 1)
+;           (mkLSK
+;             (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 1) ())))
+;         ((mkDiscSpec 2)
+;           (mkLSK
+;             (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 2) ()))))
+;     (createInitialInstance $map))
+;   (1 2))
+
+; ;; Diagnostic materialization maps each deme independently, flattens exactly
+; ;; one level, and counts every scored instance across the same deme list.
+; !(assertEqual
+;   (let* (
+;          ($tree
+;            (mkTree (mkNode and_seq)
+;              ((mkTree (mkNode move_forward) ()))))
+;          ($rep (mkRep (mkKbMap (mkDscMp ())) $tree))
+;          ($scored (mkSInst (mkPair (mkInst ()) (worstCscore))))
+;          ($demes
+;            ((mkDeme $rep (mkSInstSet ($scored $scored))
+;                     (mkDemeId "diagnostic-1"))
+;             (mkDeme $rep (mkSInstSet ($scored))
+;                     (mkDemeId "diagnostic-2"))))
+;         )
+;     ((antDiagnosticDemeTrees $demes)
+;      (antDiagnosticEvaluationCount $demes)))
+;   (((mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ())))
+;     (mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ())))
+;     (mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ()))))
+;    3))
+
+; ;; Raw fitness is folded independently, while penalized fitness comes directly
+; ;; from the already ordered metapopulation head.
+; !(assertEqual
+;   (antMetapopBestScores
+;     ((mkExemplar
+;        (mkTree (mkNode and_seq) ()) (mkDemeId "penalized-best")
+;        (mkCscore -5 0 0 0 -10) (mkBScore (-5)))
+;      (mkExemplar
+;        (mkTree (mkNode move_forward) ()) (mkDemeId "raw-best")
+;        (mkCscore -2 0 0 0 -20) (mkBScore (-2)))))
+;   (-2 -10))
+
 !(set-param problem ant)
 !(set-param seed 10)
 ;; Build two independently randomized representations from each selected
-;; parent. The seed-10 search first reaches its -24 result at expansion 23; a
+;; parent. Keep the former cutoff rationale below as a historical comment: it
+;; describes the pre-parity-fix 0.20 experiment, not an expected result now.
+;; Previous rationale: the seed-10 search first reached -24 at expansion 23; a
 ;; 50-generation trial found no later improvement while doubling pool growth,
-;; so 25 generations is the evidence-based regression cutoff.
-!(set-param maxGen 25)
+;; so 25 generations was the evidence-based regression cutoff.
+;; The previous checked-in experiment ran all 25 generations here:
+;; !(set-param maxGen 25)
+;; Seed 10 first improves from -78 to -40 at expansion 5. Six expansions are
+;; therefore the shortest stable prefix that proves selection, representation
+;; construction, scoring, merge, and subsequent re-expansion all work, while
+;; keeping the ordinary suite practical. The complete 25-generation trajectory
+;; remains recorded in ANT_SEARCH_PARITY.md as an opt-in search experiment.
+!(set-param maxGen 6)
 !(set-param nDeme 2)
 !(set-param optAlgo hc)
 !(set-param antSteps 600)
-;; A ratio of 0.20 lowers the per-node penalty from 6.25 to 5.0, allowing a raw
-;; fitness gain to promote moderately larger trail-following trees more often.
-!(set-param antComplexityRatio 0.20)
+;; Match the successful seed-10 C++ performance-diary configuration.  The
+;; previous 0.20 value belonged to a later MeTTa breadth experiment, not the
+;; parity regression, so retain that superseded setting only as history.
+;; !(set-param antComplexityRatio 0.20)
+!(set-param antComplexityRatio 0.16)
 !(set-param antComplexityTemperature 2000)
 ;; Preserve breadth: retain dominated stepping stones and expand each program
 ;; only once while unvisited candidates remain available.
 !(set-param antDiscardDominated False)
 !(set-param antRevisit 0)
-;; Print unique candidate coverage and raw/penalized progress each generation
-;; so a stable plateau can be distinguished from insufficient exploration.
-!(set-param antDiagnostics True)
+;; C++-parity search always uses hot penalized-score Boltzmann selection.
+;; Keep ordinary test output compact; detailed generation telemetry remains
+;; available through --antDiagnostics=True for opt-in convergence runs.
+!(set-param antDiagnostics False)
 !(set-param hcMaxDistAnt 4)
 !(set-param hcMinXoverNeighborsAnt 400)
 !(set-param hcMaxEvalsAnt 2000)
@@ -135,18 +201,40 @@
 ;; Keep all checks inside one assertion so the expensive search executes once.
 !(assertEqual
   (let (FinalResult $rows) (moses-run)
-    (let* (
-           (($bestTreeExpr $bestScore) (antBestFinalRow $rows))
-           ($pelletsEaten (+ (ant-food-count) $bestScore))
-           ($_ (println! (AntSearchBestTree: $bestTreeExpr)))
-           ($_ (println! (AntSearchBestScore: $bestScore)))
-           ($_ (println! (AntSearchPelletsEaten: $pelletsEaten of (ant-food-count))))
-           ($_ (if (== $bestScore (ant-best-possible-score))
-                   (println! "ANT SEARCH FOUND A PERFECT 89-PELLET TREE")
-                   (println! "Ant search completed without requiring a perfect tree"))))
-      (and (> (List.length $rows) 0)
-           (and (antFinalScoresValid $rows)
-                (and (> $bestScore -28)
-                     (and (antHasMaterializedCandidate $rows)
-                          (antFinalRescoresMatch $rows (param antSteps))))))))
+    (case $rows
+      (
+        (() False)
+        ((cons $firstRow $rest)
+          (let* (
+                 (($bestTreeExpr $bestScore) (antBestFinalRow $rows))
+                 ($pelletsEaten (+ (ant-food-count) $bestScore))
+                 ($initialExemplarScore
+                   (sumBScore
+                     (scoreAntTree (ant-exemplar) (param antSteps))))
+                 ($scoresValid (antFinalScoresValid $rows))
+                 ($hasMaterializedCandidate (antHasMaterializedCandidate $rows))
+                 ($rescoresMatch
+                   (antFinalRescoresMatch $rows (param antSteps)))
+                 ($_ (println! (AntSearchBestTree: $bestTreeExpr)))
+                 ($_ (println! (AntSearchBestScore: $bestScore)))
+                 ($_ (println! (AntSearchPelletsEaten: $pelletsEaten of (ant-food-count))))
+                 ($_ (if (== $bestScore (ant-best-possible-score))
+                         (println! "ANT SEARCH FOUND A PERFECT 89-PELLET TREE")
+                         (println! "Ant search completed without requiring a perfect tree"))))
+            (and $scoresValid
+                 ;; The old assertion encoded a result from the pre-parity-fix
+                 ;; trajectory and would make this functional pipeline test
+                 ;; brittle.  Require genuine improvement over the empty seed
+                 ;; by rescoring that exemplar, without treating one seed's
+                 ;; plateau as API.
+                 ;; (and (> $bestScore -28)
+                 (and (> $bestScore $initialExemplarScore)
+                      ;; Seed 10 remains at -78 through the first expansion and
+                      ;; crosses this deliberately loose floor only after
+                      ;; repeated expand/merge cycles.  This prevents a
+                      ;; one-generation early-exit regression from passing.
+                      (and (> $bestScore -70)
+                           (and $hasMaterializedCandidate
+                                $rescoresMatch))))))
+      )))
   True)

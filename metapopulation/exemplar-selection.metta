@@ -46,17 +46,59 @@
        (cons (mkAntVisit $visitedTree (+ $count 1)) $rest)
        (cons (mkAntVisit $visitedTree $count) (recordAntVisit $tree $rest))))
 
-(= (antEligibleExemplars () $visits $revisit) ())
-(= (antEligibleExemplars
-      (cons (mkExemplar $tree $demeId $cscore $bscore) $rest)
-      $visits $revisit)
-   (let $exemplar (mkExemplar $tree $demeId $cscore $bscore)
-     (if (<= (antVisitCount $tree $visits) $revisit)
-         (cons $exemplar (antEligibleExemplars $rest $visits $revisit))
-         (antEligibleExemplars $rest $visits $revisit))))
+;; Native filtering preserves metapopulation order while avoiding a MeTTa
+;; rewrite for every candidate.  As in C++, a negative limit means unlimited
+;; revisits; otherwise N permits the first visit plus N revisits.
+(= (antEligibleExemplars $metaPop $visits $revisit)
+   (filter-atom
+     $metaPop
+     (mkExemplar $tree $demeId $cscore $bscore)
+     (if (< $revisit 0)
+         True
+         (<= (antVisitCount $tree $visits) $revisit))))
 
 (= (selectAntExemplar $metaPop $visits $revisit)
    (selectExemplar (antEligibleExemplars $metaPop $visits $revisit)))
+
+;; Fold raw fitness without allocating a score list.  Match C++
+;; `_best_candidates`: prefer lower complexity when raw fitness ties, then keep
+;; the earliest exemplar when both raw score and complexity tie exactly.
+;; The first folded version projected raw score through a separate helper. The
+;; final tie-break needs complexity too, so the fold below destructures each
+;; Cscore once and leaves this former helper as history rather than dead code:
+;; (= (antExemplarRawScore
+;;       (mkExemplar $tree $demeId
+;;                   (mkCscore $score $complexity $complexityPenalty
+;;                             $diversityPenalty $penalizedScore)
+;;                   $bscore))
+;;    $score)
+
+(= (bestRawAntExemplar (cons $first $rest))
+   (foldl-atom $rest $first $best $candidate
+     (let* (
+            ((mkExemplar $_candidateTree $_candidateId
+                         (mkCscore $candidateRaw $candidateComplexity
+                                   $_candidateComplexityPenalty
+                                   $_candidateDiversityPenalty
+                                   $_candidatePenalized)
+                         $_candidateBscore)
+              $candidate)
+            ((mkExemplar $_bestTree $_bestId
+                         (mkCscore $bestRaw $bestComplexity
+                                   $_bestComplexityPenalty
+                                   $_bestDiversityPenalty $_bestPenalized)
+                         $_bestBscore)
+              $best)
+           )
+       ;; Previous raw-only comparison (retained for the parity correction):
+       ;; (if (> $candidateRaw $bestRaw) $candidate $best)
+       (if (> $candidateRaw $bestRaw)
+           $candidate
+           (if (< $candidateRaw $bestRaw)
+               $best
+               (if (< $candidateComplexity $bestComplexity)
+                   $candidate
+                   $best))))))
 
 ;; get penalized scores of all the exemplars as a list of Numbers
 ;;      (cons $x $xs) -- pattern for the list of exemplars constructed by cons
