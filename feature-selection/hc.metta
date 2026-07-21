@@ -7,7 +7,7 @@
          ;; Reduced on its own line: inside ($score (bitsToIndices ...)) the pair's
          ;; head is a number, so the call would never be evaluated.
          ($ft-set (bitsToIndices $list 0 ()))
-         ($score-ft-set-pair (cons-atom $score (cons-atom $ft-set ()))))
+         ($score-ft-set-pair ($score $ft-set)))
     (cons $score-ft-set-pair $new-acc)))
 
 ;; hcFtSetPop  -- runs the hill climbing feature selector using a center instance
