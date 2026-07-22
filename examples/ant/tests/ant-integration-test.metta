@@ -52,8 +52,6 @@
 ;; merge-demes' ant branch uses the domain's score vocabulary, so load that
 ;; vocabulary before importing the generic merge implementation, as moses.metta does.
 !(import! &self ../../../deme/merge-demes)
-;; Previous order loaded expand-deme before the optimizer it specializes:
-;; !(import! &self ../../../deme/expand-deme)
 
 !(import! &self ../../../optimization/hillclimbing/cross-top-one-helpers)
 !(import! &self ../../../optimization/hillclimbing/cross-top-one)
@@ -423,27 +421,9 @@
   (True True True -1))
 
 ;; A real ant representation may introduce semantically neutral `and_seq`
-;; wrappers around the root and branches.  Consequently exact tree equality
-;; is too strict for the default-instance invariant.  Retain that first form
-;; here to document why the regression compares observable semantics instead.
-;; !(assertEqual
-;;   (let* (
-;;          ($rep
-;;            (representation
-;;              1 (trailFollowerTree) (mkITable () ()) None False () mi True
-;;              (ant-actions) (ant-perceptions)))
-;;          ((mkRep (mkKbMap (mkDscMp $mmp)) $representedTree) $rep)
-;;          ($defaultInstance (mkInst (createInitialInstance $mmp)))
-;;          ($materialized
-;;            (getCandidate $rep (mkDemeId "ant-default-round-trip")
-;;                          $defaultInstance)))
-;;     (cleanActionTree $materialized))
-;;   (cleanActionTree (trailFollowerTree)))
-
-;; Strong coordinate-order invariant: defaults extracted from the randomized
-;; representation must materialize a nonempty program with the exemplar's
-;; direct behavioral score and complexity.  This jointly exercises multimap
-;; order, knob indexes, ASK defaults, materialization, and action reduction.
+;; wrappers, so validate its default materialization by behavior and complexity
+;; rather than exact syntax. This also exercises multimap order, knob indexes,
+;; ASK defaults, materialization, and action reduction.
 !(assertEqual
   (let* (
          ($_seed (py-call (random.seed 10)))

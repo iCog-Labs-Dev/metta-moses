@@ -117,7 +117,6 @@
 !(add-atom &params (antSteps 600))
 !(add-atom &params (antFoodCount 89))
 ;; Use the 0.16 ratio from the C++ Santa Fe performance diary.
-;; Previous comment: this was the strongest practical-budget MeTTa setting.
 ;; The deterministic convergence regression now overrides it with 0.5, which
 ;; reduces complexity pressure and reaches all 89 pellets quickly. Keep 0.16 as
 ;; the production default for C++ configuration parity, and keep exact search

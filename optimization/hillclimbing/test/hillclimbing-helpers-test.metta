@@ -72,16 +72,12 @@
 
 ;; Test informationTheoreticBits with a knob 
 ;; map containing two knobs with same multiplicity of 3
-;; Previous sum-of-multiplicities expectation: 6.
-;; !(assertEqual (informationTheoreticBits (knobmap1)) 6)
 !(assertEqual
   (informationTheoreticBits (knobmap1))
   (+ (log-math 2 3) (log-math 2 3)))
 
 ;; Test informationTheoreticBits with a knob
 ;; map containing two knobs with different multiplicity of 2 and 3
-;; Previous sum-of-multiplicities expectation: 5.
-;; !(assertEqual (informationTheoreticBits (knobmap2)) 5)
 !(assertEqual
   (informationTheoreticBits (knobmap2))
   (+ (log-math 2 2) (log-math 2 3)))
@@ -94,28 +90,19 @@
 !(assertEqual (estimateNeighborhood 0 (knobmap1)) 1)
 ;; C++ truncates the information sum to size_t: floor(log2(2)+log2(3))=2
 ;; and floor(2*log2(3))=3 before estimating these neighborhoods.
-;; Previous multiplicity-based expectations: 10, 15, 10, and 20.
-;; !(assertEqual (estimateNeighborhood 1 (knobmap2)) 10)
-;; !(assertEqual (estimateNeighborhood 2 (knobmap1)) 15)
-;; !(assertEqual (estimateNeighborhood 2 (knobmap2)) 10)
-;; !(assertEqual (estimateNeighborhood 3 (knobmap1)) 20)
 !(assertEqual (estimateNeighborhood 1 (knobmap2)) 4)
 !(assertEqual (estimateNeighborhood 2 (knobmap1)) 3)
 !(assertEqual (estimateNeighborhood 2 (knobmap2)) 1)
 !(assertEqual (estimateNeighborhood 3 (knobmap1)) 1)
 
-;; The old estimator sent distance 7 directly to binomial(3, 7), incorrectly
-;; treating the over-wide request as an empty neighborhood.
-;; !(assertEqual (estimateNeighborhood 7 (knobmap1)) 0)
 ;; C++ clamps the request to the estimated bit dimension first: C(3, 3) = 1.
 !(assertEqual (estimateNeighborhood 7 (knobmap1)) 1)
 ;; Exercise the same clamp with a different estimated dimension so this does
 ;; not merely duplicate the boundary case above.
 !(assertEqual (estimateNeighborhood 3 (knobmap2)) 1)
 
-;; Action-subtree knobs are the shape exercised by the ant pipeline.  This
-;; catches the former nested `int` expression that stayed unreduced at the
-;; second hill-climbing iteration even though direct arithmetic tests passed.
+;; Action-subtree knobs exercise the nested estimator shape used by the ant
+;; pipeline.
 !(assertEqual
   (estimateNeighborhood
     1

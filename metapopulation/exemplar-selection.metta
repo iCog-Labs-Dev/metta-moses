@@ -60,43 +60,27 @@
 (= (selectAntExemplar $metaPop $visits $revisit)
    (selectExemplar (antEligibleExemplars $metaPop $visits $revisit)))
 
-;; Fold raw fitness without allocating a score list.  Match C++
-;; `_best_candidates`: prefer lower complexity when raw fitness ties, then keep
-;; the earliest exemplar when both raw score and complexity tie exactly.
-;; The first folded version projected raw score through a separate helper. The
-;; final tie-break needs complexity too, so the fold below destructures each
-;; Cscore once and leaves this former helper as history rather than dead code:
-;; (= (antExemplarRawScore
-;;       (mkExemplar $tree $demeId
-;;                   (mkCscore $score $complexity $complexityPenalty
-;;                             $diversityPenalty $penalizedScore)
-;;                   $bscore))
-;;    $score)
-
+;; Fold raw fitness without allocating score lists or manually destructuring
+;; Exemplar and Cscore values.  Starting from the first row preserves the
+;; non-empty-input contract. C++ prefers lower complexity on a raw-score tie;
+;; an exact tie keeps the earlier exemplar.
+;;
+;; Keep this comparison local rather than calling the pairwise helper in
+;; expand-deme: PeTTa specializes the ant outer loop across that module boundary
+;; and otherwise leaves the pipeline assertion unresolved before deme merge.
 (= (bestRawAntExemplar (cons $first $rest))
    (foldl-atom $rest $first $best $candidate
      (let* (
-            ((mkExemplar $_candidateTree $_candidateId
-                         (mkCscore $candidateRaw $candidateComplexity
-                                   $_candidateComplexityPenalty
-                                   $_candidateDiversityPenalty
-                                   $_candidatePenalized)
-                         $_candidateBscore)
-              $candidate)
-            ((mkExemplar $_bestTree $_bestId
-                         (mkCscore $bestRaw $bestComplexity
-                                   $_bestComplexityPenalty
-                                   $_bestDiversityPenalty $_bestPenalized)
-                         $_bestBscore)
-              $best)
+            ($candidateCscore (getExemplarCscore $candidate))
+            ($bestCscore (getExemplarCscore $best))
+            ($candidateRaw (getScore $candidateCscore))
+            ($bestRaw (getScore $bestCscore))
            )
-       ;; Previous raw-only comparison (retained for the parity correction):
-       ;; (if (> $candidateRaw $bestRaw) $candidate $best)
        (if (> $candidateRaw $bestRaw)
            $candidate
            (if (< $candidateRaw $bestRaw)
                $best
-               (if (< $candidateComplexity $bestComplexity)
+               (if (< (getComp $candidateCscore) (getComp $bestCscore))
                    $candidate
                    $best))))))
 
@@ -110,7 +94,6 @@
 ;;  a function to normalize the score values into normalized scores of Boltzman distribution
 ;; the function is specific to this distribution type
 ; (: normalizeProbs (-> Number Number (List Number) (List Number)))
-;; (= (normalizeProbs $invTemp $best ()) ())
 (= (normalizeProbs $invTemp $best $xs) (map-atom $xs $x (if (isinf-math $x) 0 (exp (* (- $x $best) $invTemp)))))
 
 ;; the main roulette select function

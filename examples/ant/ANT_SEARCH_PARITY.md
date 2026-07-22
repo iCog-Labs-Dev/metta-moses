@@ -4,6 +4,10 @@ This note records why the ant search used to plateau near raw score `-78`, what
 is now aligned with classic C++ MOSES, and which generic changes remain
 deliberately deferred.
 
+For a current stage-by-stage comparison of the ant action-selection path with
+Boolean evolution, including a proposed unification architecture, see
+[ANT_VS_BOOLEAN_PIPELINE.md](ANT_VS_BOOLEAN_PIPELINE.md).
+
 ## C++ behavior
 
 The reference implementation is the classic C++ MOSES source tree, principally
@@ -20,9 +24,6 @@ the files under `moses/optimization`, `moses/metapopulation`, and
   is exhausted, then increments the selected exemplar's visit count.
 - `moses/local_moses.cc` increments expansion IDs and evaluation statistics
   from actual new evaluations before merging the resulting deme.
-<!-- Previous incorrect description: primitive actions and perceptions both
-contribute complexity. -->
-
 - The Santa Fe action vocabulary assigns no complexity to the empty
   `sequential_and` seed. Primitive action nodes and the result constants
   `action_success`/`action_failure` contribute one each; `is_food_ahead`,
@@ -45,10 +46,6 @@ The ant pipeline previously:
 4. stripped and recomputed every accumulated instance score each iteration;
 5. used a nominal requested sample count as both population size and evaluation
    count;
-<!-- Previous incorrect item 6: prepended crossover offspring, invalidating
-previous-range bookkeeping. The shared helper already preserved the population
-prefix; only its simplex grouping and sample bounds needed correction. -->
-
 6. kept redundant ant-only crossover helpers even though the shared helper
    already appended offspring after the existing population;
 7. counted the empty `and_seq` seed as complexity one; and
@@ -80,15 +77,9 @@ The normal `moses-run` dispatcher now routes ant to the counted ant loop
   the previous center as the base for the previous sample. Its one-, two-, and
   three-simplex operators now stay inside the recorded sample window and match
   the C++ target counts/traversal.
-<!-- Previous incorrect description: the empty seed was zero-complexity while
-primitive ant actions and is_food_ahead all retained unit complexity. -->
-
 - The empty `and_seq` seed has complexity zero. Primitive action nodes and
   `action_success`/`action_failure` have unit complexity; `is_food_ahead`,
   Boolean constants, and structural nodes have zero complexity.
-<!-- Previous imprecise description: termination is checked against the newly
-merged metapopulation. -->
-
 - Expansion numbers advance, producing distinct deme IDs. Each generation's
   raw best updates the separate all-time champion before merge, and target
   termination checks that champion after the merge completes.
@@ -150,9 +141,6 @@ Additional parity and accounting corrections now in place are:
 ## Diagnostics
 
 Set `antDiagnostics=True` to emit:
-
-<!-- Previous imprecise diagnostic descriptions referred to newly scored
-instances and to the information dimension itself. -->
 
 - `AntHillClimbingEvaluations`: actual simulator calls and cumulative local
   simulator calls; equal reduced trees can share one call;
@@ -235,10 +223,6 @@ than a current regression contract. It improved from `-78` at expansion 0, to
 `-40` at expansion 5, to `-27` at expansion 12, and to `-22` at expansion 18,
 where it remained through expansion 24.
 
-<!-- Previous expansion-only accounting:
-The final result ate 67 of 89 pellets (`-22`) after 5,559 actual ant simulator
-calls and retained 5,146 candidates.
--->
 The final result ate 67 of 89 pellets (`-22`) after 5,560 complete-run ant
 simulator calls and retained 5,146 candidates. Of those calls, 5,559 evaluated
 expansion-generated instances and one evaluated the initial exemplar:
@@ -314,12 +298,6 @@ sh run.sh /path/to/metta-moses/moses.metta -s \
   --maxCandPerDeme=-1
 ```
 
-<!-- Previous status before the ratio-0.5 convergence experiment:
-A current convergence rerun remained opt-in because the historical runs took
-roughly nine minutes, while the ordinary pipeline test checked only a six-
-expansion seed-10 prefix.
--->
-
 The current auto-discovered pipeline test instead uses the practical ratio-0.5
 configuration documented above and requires a perfect independently rescored
 result. This historical ratio-0.16 section remains useful for distinguishing the
@@ -342,9 +320,6 @@ best small-budget MeTTa setting in this sweep. They also confirm that forcing
 the current raw champion is not automatically useful: the successful run used
 ordinary complexity-penalized Boltzmann selection with no revisits.
 
-<!-- Previous heading: "Verified seed-10 trajectories". Those observations
-predate the complexity, information-bit, crossover, merge, and global-budget
-parity corrections and are not current regression expectations. -->
 ## Historical seed-10 trajectories (before the current parity fixes)
 
 Before the corrections listed above, two independent 25-generation runs
@@ -379,9 +354,6 @@ exemplar and `antComplexityRatio=0.20`. It deterministically reached raw `-24`
         (and_seq turn_left move_forward)))))
 ```
 
-<!-- Previous contradictory wording: the 50-generation experiment therefore
-stopped after 25 generations. -->
-
 A 50-generation pre-fix verification found no improvement after expansion 23,
 while the retained metapopulation grew from roughly 5,500 candidates at
 discovery to 12,876 candidates. That result motivated a subsequent 25-generation
@@ -390,10 +362,6 @@ exemplar; previously the penalized top-N conversion could retain it internally
 but omit it from `FinalResult`.
 
 ## Historical raw-elite exploitation experiment
-
-<!-- Previous wording called this the "next experiment" and said its parameters
-remained available for opt-in use.  Both claims became stale when the inferior
-overlay was removed; the section now records results only as history. -->
 
 An earlier experimental worktree exposed two ant-only parameters for a
 raw-elite selection overlay. The experiment was discarded because the mode does

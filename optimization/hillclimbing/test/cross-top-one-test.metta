@@ -71,9 +71,6 @@
                                 (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))))
 ;; Test cases -- crossTopOne
 ;;use List.length as it returns insatance not deme
-;; Previous off-by-one expectations: 2 and 3.
-;; !(assertEqual (List.length (crossTopOne (deme1) 3 0 4 (mkInst (cons 2 ())))) 2)
-;; !(assertEqual (List.length (crossTopOne (deme1) 4 0 5 (mkInst (cons 2 ())))) 3)
 !(assertEqual (List.length (crossTopOne (deme1) 3 0 4 (mkInst (cons 2 ())))) 3)
 !(assertEqual (List.length (crossTopOne (deme1) 4 0 5 (mkInst (cons 2 ())))) 4)
 
@@ -184,10 +181,6 @@
       (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
         (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))))
 
-;; The old helper test called the former append-only five-argument API. It is
-;; retained as a note now that the implementation models C++ destination slots:
-;; !(assertEqual (List.length (crossTriples () $sample $base () 1)) 1)
-
 ;; C++ 3-simplex regression. With four ranked one-hot mutations and four
 ;; requested offspring, k runs to i-1 and writes n=C(i,3)+C(j,2)+k. Later loop
 ;; visits overwrite earlier slots, yielding the four combinations below.
@@ -283,6 +276,4 @@
       ;; slot 2 therefore still contains the temporary i=3,j=1,k=1 write.
       (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
         (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
-          ;; Previous conventional-combination expectation was instance 4.
-          ;; (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ())
           (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))))

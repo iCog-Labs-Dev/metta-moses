@@ -1,18 +1,8 @@
-;; Previous warning retained for history:
-;; WARN: This code might be generating knobs out of order. Check if the knob map returned from the representation building preserves the order of knob creation.
 ;; Disc maps are ordered multimaps whose action comparator deliberately appends
 ;; equal/unordered specs. Reading them through the matching MultiMap API makes
 ;; that coordinate-order invariant explicit instead of relying on the generic
 ;; Map implementation having the same list representation.
 (= (createInitialInstance $dscMp)
-   ;; Previous version used the generic accessor and three temporary lists;
-   ;; retain it verbatim so the old traversal and replacement stay visible:
-   ;; (let* (
-   ;;        ($knobs (Map.values $dscMp))
-   ;;        ($defaults (List.map getKnobDefault $knobs))
-   ;;        ($finalDefaults (List.map second $defaults))
-   ;;       )
-   ;;       $finalDefaults)
    (let $knobs (MultiMap.values $dscMp)
      (map-atom $knobs $knob
        (second (getKnobDefault $knob)))))
@@ -37,11 +27,6 @@
         ($other
          ($optimize $deme $context $inst))
       )))
-
-;; Extracts default specification from a knob
-; (: getKnobDefault (-> $knob Number))
-;; (= (getKnobDefault (mkLSK (mkDiscKnob $multip $curr (mkDiscSpec $def) $dis))) $def)
-;; (= (getKnobDefault (mkSSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
 
 ;; Runs one deme-creation and optimization step, then merges the optimized deme into the metapopulation.
 ;; Params:
@@ -94,29 +79,8 @@
       )
       (map-atom $demes $deme (expandDemeHelper $deme $gameContext $optimize))))
 
-;; Ant action-domain expansion.
-;; Previous version duplicated selection, context construction, deme creation,
-;; and optimization instead of delegating to the selected-exemplar helper:
-;; (= (expandDeme $metaPop $nExpansion $nDeme
-;;                (mkAntContext $steps $complexityRatio $actions $perceptions)
-;;                $optimize)
-;;    (let*
-;;       (
-;;          ($context
-;;            (mkAntContext $steps $complexityRatio $actions $perceptions))
-;;          ($exemplar
-;;            (trace! "Selecting Exemplar" (selectExemplar $metaPop)))
-;;          ($tree
-;;            (trace! "getting exemplar tree" (getExemplarTree $exemplar)))
-;;          ($demeIds
-;;            (trace! "creating deme IDs"
-;;                    (createDemeIds $nExpansion $nDeme)))
-;;          ($demes
-;;            (trace! "Creating Deme"
-;;                    (createDeme $nDeme $demeIds $tree $context)))
-;;       )
-;;       (map-atom $demes $deme
-;;         (expandDemeHelper $deme $context $optimize))))
+;; Ant action-domain expansion. Generic/direct callers select here, while the
+;; ant-specific outer loop passes its already selected exemplar to the helper.
 (= (expandDeme $metaPop $nExpansion $nDeme (mkAntContext $steps $complexityRatio $actions $perceptions) $optimize)
    (let $exemplar (trace! "Selecting Exemplar" (selectExemplar $metaPop))
      (expandSelectedAntExemplar
@@ -148,10 +112,6 @@
 (= (expandDemeHelper (mkDeme (mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree) $sInstList $demeId) $context $optimize)
 (let*
 (
-    ;; Previous unused intermediate retained deliberately:
-    ;; ($lengthOfDscKbMp (Map.length $dscKbMp))
-    ;; Previous zero-filled initializer retained deliberately:
-    ;; ($generatedList (List.generate $lengthOfDscKbMp 0))
     ($generatedList (createInitialInstance $dscKbMp))
     ($_ (println! (GeneratedList: $generatedList)))
     ($deme (mkDeme (mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree) $sInstList $demeId))
@@ -192,33 +152,6 @@ $optimDeme
           ($_restoreLocalLimit (change-state! &antLocalEvalLimit -1))
          )
      ($optimizedDeme (antHillStateEvaluationCount $state))))
-
-;; Previous greedy recursion gave the first deme up to the full local limit and
-;; only its leftovers to later randomized representations. Near the complete-run
-;; cap that made representation order determine which demes were optimized:
-;; (= (expandAntDemesCounted () $context $optimize $remainingBudget) (() 0))
-;; (= (expandAntDemesCounted (cons $deme $rest) $context $optimize
-;;                            $remainingBudget)
-;;    (if (== $remainingBudget 0)
-;;        (() 0)
-;;        (let* (
-;;               ($configuredLocalLimit (param hcMaxEvalsAnt))
-;;               ($localLimit
-;;                 (if (< $remainingBudget 0)
-;;                     $configuredLocalLimit
-;;                     (min $configuredLocalLimit $remainingBudget)))
-;;               (($optimizedDeme $used)
-;;                 (expandAntDemeHelperCounted
-;;                   $deme $context $optimize $localLimit))
-;;               ($nextRemaining
-;;                 (if (< $remainingBudget 0)
-;;                     -1
-;;                     (- $remainingBudget $used)))
-;;               (($optimizedRest $restUsed)
-;;                 (expandAntDemesCounted
-;;                   $rest $context $optimize $nextRemaining))
-;;              )
-;;          ((cons $optimizedDeme $optimizedRest) (+ $used $restUsed)))))
 
 ;; Optimize with a fixed fair share. C++ divides the expansion allowance by
 ;; deme count; MeTTa distributes the integer remainder across the earliest
@@ -265,8 +198,8 @@ $optimDeme
      (expandAntDemesWithShares
        $demes $context $optimize $baseLimit $extraSlots)))
 
-;; Counted counterpart used by runAntMoses.  The compatibility helper above is
-;; intentionally retained for direct callers that only need the deme list.
+;; The counted helper returns both optimized demes and actual scorer calls.
+;; The uncounted helper remains available to generic and direct callers.
 (= (expandSelectedAntExemplarCounted
       $exemplar $nExpansion $nDeme
       (mkAntContext $steps $complexityRatio $actions $perceptions)
@@ -288,17 +221,6 @@ $optimDeme
 ;; Ant search diagnostics materialize and clean each optimized instance before
 ;; counting it.  This reports distinct candidate programs, not merely sampled
 ;; knob vectors, because several vectors can reduce to the same action tree.
-;; Previous recursive traversal (retained deliberately):
-;; (= (antDiagnosticDemeTrees ()) ())
-;; (= (antDiagnosticDemeTrees
-;;       (cons (mkDeme $rep (mkSInstSet $instances) $demeId) $rest))
-;;    (let* (
-;;           ($trees (map-atom $instances $scoredInst
-;;                     (cleanActionTree
-;;                       (getCandidate $rep $demeId (getInst $scoredInst)))))
-;;           ($restTrees (antDiagnosticDemeTrees $rest))
-;;          )
-;;      (append $trees $restTrees)))
 (= (antDiagnosticDemeTrees $demes)
    (List.flatten
      (map-atom $demes $deme
@@ -310,12 +232,6 @@ $optimDeme
 ;; Emit one compact record after each merge.  Raw and penalized maxima are
 ;; reported independently because the strongest food-eating program need not
 ;; be the program preferred by complexity-penalized hill climbing.
-;; Previous recursive counter (retained deliberately):
-;; (= (antDiagnosticEvaluationCount ()) 0)
-;; (= (antDiagnosticEvaluationCount
-;;       (cons (mkDeme $rep (mkSInstSet $instances) $demeId) $rest))
-;;    (+ (List.length $instances)
-;;       (antDiagnosticEvaluationCount $rest)))
 (= (antDiagnosticEvaluationCount $demes)
    (foldl-atom $demes 0 $count $deme
      (let (mkDeme $rep (mkSInstSet $instances) $demeId) $deme
@@ -323,6 +239,8 @@ $optimDeme
 
 ;; Select the stronger of two independently stored raw champions.  C++ breaks
 ;; raw-score ties by lower complexity; an exact tie keeps the earlier result.
+;; This helper remains beside the specialized ant outer loop; moving it into
+;; exemplar-selection causes PeTTa to leave that specialized call unresolved.
 (= (betterRawAntExemplar () $candidate) $candidate)
 (= (betterRawAntExemplar $best ()) $best)
 (= (betterRawAntExemplar $best $candidate)
@@ -368,8 +286,6 @@ $optimDeme
    (let* (
           ($candidateTrees (antDiagnosticDemeTrees $optimizedDemes))
           ($uniqueCandidates (length (unique-atom $candidateTrees)))
-          ;; Previous version inferred both values from retained deme length:
-          ;; ($actualEvaluations (antDiagnosticEvaluationCount $optimizedDemes))
          )
      (println! (AntGenerationDiagnostics
                  (remaining $remainingGen)
@@ -377,8 +293,6 @@ $optimDeme
                  (selected (preOrder (getExemplarTree $selectedExemplar)))
                  (visitCount $visitCount)
                  (actualNewEvaluations $actualEvaluations)
-                 ;; Previous output repeated the per-generation value here:
-                 ;; (cumulativeLocalEvaluations $actualEvaluations)
                  (cumulativeEvaluations $cumulativeEvaluations)
                  (uniqueCandidates $uniqueCandidates)
                  (retainedCandidates (OS.length $updatedMetaPop))
@@ -406,13 +320,11 @@ $optimDeme
 ;; Common ant-loop finish helper. Penalized order governs the selectable
 ;; metapopulation, while one output slot is reserved for the separately tracked
 ;; raw champion.  That candidate never feeds back into roulette selection.
-(= (antMetapopContainsTree () $tree) False)
-(= (antMetapopContainsTree
-      (cons (mkExemplar $candidateTree $demeId $cscore $bscore) $rest)
-      $tree)
-   (if (== $candidateTree $tree)
-       True
-       (antMetapopContainsTree $rest $tree)))
+;; Tree membership is a stateless collection reduction. Reuse the Exemplar
+;; accessor instead of recursively duplicating its constructor shape.
+(= (antMetapopContainsTree $metaPop $tree)
+   (foldl-atom $metaPop False $contains $candidate
+     (or $contains (== (getExemplarTree $candidate) $tree))))
 
 (= (finishAntMetapop $metaPop $rawBest)
    (let $limit (param maxCandOutput)
@@ -425,10 +337,7 @@ $optimDeme
            (if (== $rawBest ())
                $topCandidates
                (let $rawTree (getExemplarTree $rawBest)
-                 ;; Previous version compared complete exemplars. The same
-                 ;; program rediscovered under another deme ID then occupied
-                 ;; two final-output slots:
-                 ;; (if (OS.contains $topCandidates $rawBest) ...)
+                 ;; Deduplicate by tree because rediscovery can change deme ID.
                  (if (antMetapopContainsTree $topCandidates $rawTree)
                      $topCandidates
                      (cons $rawBest
@@ -451,50 +360,6 @@ $optimDeme
 ;; Ant-only outer MOSES loop.  It preserves stepping stones, expands each tree
 ;; according to antRevisit, increments expansion IDs, and checks the newly
 ;; merged population rather than the pre-expansion one.
-;;
-;; Previous version carried no cumulative evaluation count. Retain the whole
-;; implementation, rather than a placeholder, so the control-flow correction
-;; can be audited directly:
-;; (= (runAntMoses $maxGen $maxScore $metaPop $nExpansion $nDeme $context
-;;                 $optimize $visits)
-;;    (if (== $maxGen 0)
-;;        (finishAntMetapop $metaPop)
-;;        (let $selected
-;;          (selectAntExemplar $metaPop $visits (param antRevisit))
-;;          (case $selected
-;;            (((Error $payload $message)
-;;               (trace! (Ant search exhausted eligible exemplars)
-;;                       (finishAntMetapop $metaPop)))
-;;             ($exemplar
-;;               (let* (
-;;                      ($tree (getExemplarTree $exemplar))
-;;                      ($updatedVisits (recordAntVisit $tree $visits))
-;;                      ($visitCount
-;;                        (antVisitCount $tree $updatedVisits))
-;;                      ($_ (println! (Generation $maxGen)))
-;;                      ($optimizedDemes
-;;                        (expandSelectedAntExemplar
-;;                          $exemplar $nExpansion $nDeme
-;;                          $context $optimize))
-;;                      ($updatedMetaPop
-;;                        (mergeDemes $optimizedDemes $context $metaPop))
-;;                      ($_antDiagnostics
-;;                        (if (param antDiagnostics)
-;;                            (printAntGenerationDiagnostics
-;;                              $maxGen $nExpansion $exemplar $visitCount
-;;                              $optimizedDemes $updatedMetaPop)
-;;                            ()))
-;;                      ($bestRaw
-;;                        (bestAntMetapopRawScore $updatedMetaPop))
-;;                      ($_ (clearSpace &treeSpace))
-;;                      ($_ (cut))
-;;                     )
-;;                 (if (>= $bestRaw $maxScore)
-;;                     (finishAntMetapop $updatedMetaPop)
-;;                     (runAntMoses
-;;                       (- $maxGen 1) $maxScore $updatedMetaPop
-;;                       (+ $nExpansion 1) $nDeme $context $optimize
-;;                       $updatedVisits)))))))))
 (= (runAntMoses $maxGen $maxScore $metaPop $nExpansion $nDeme $context
                 $optimize $visits)
    ;; Compatibility semantics start counting new expansion scores at zero;
@@ -547,8 +412,7 @@ $optimDeme
    (if (== $maxGen 0)
        (finishAntMetapop $metaPop $bestRawExemplar)
        (if (antRawTargetReached $bestRawExemplar $maxScore)
-           ;; Previous loop checked the target only after a new merge, so a
-           ;; perfect input/resumed metapopulation was expanded unnecessarily.
+           ;; A resumed population that already meets the target needs no work.
            (finishAntMetapop $metaPop $bestRawExemplar)
            (if (not (antExpansionEnabled $nDeme))
                (trace! (Ant search has no positive deme/evaluation allowance
@@ -567,10 +431,8 @@ $optimDeme
                  (trace! (Ant search exhausted eligible exemplars)
                          (finishAntMetapop $metaPop $bestRawExemplar))
                  (let* (
-                        ;; C++ selects every exemplar from the hot penalized
-                        ;; Boltzmann distribution.  A raw-elite overlay was
-                        ;; tested during experimentation but performed worse
-                        ;; and is intentionally absent from committed search.
+                        ;; C++ selects from the hot penalized Boltzmann
+                        ;; distribution; the raw champion remains diagnostic.
                         ($exemplar (selectExemplar $eligible))
                         ($tree (getExemplarTree $exemplar))
                         ($updatedVisits (recordAntVisit $tree $visits))
@@ -594,28 +456,15 @@ $optimDeme
                                 (eligibleCandidates
                                   (List.length $eligible))))
                               ()))
-                        ;; Previous version expanded every deme with its full
-                        ;; local allowance and inferred work from deme length:
-                        ;; ($optimizedDemes
-                        ;;   (expandSelectedAntExemplar ...))
                         (($optimizedDemes $actualEvaluations)
                           (expandSelectedAntExemplarCounted
                             $exemplar $nExpansion $nDeme $context $optimize
                             (antRemainingEvaluationBudget
                               $cumulativeEvaluations)))
                        )
-                   ;; Previous version unconditionally merged the result here:
-                   ;; ($updatedCumulativeEvaluations
-                   ;;   (+ $cumulativeEvaluations $actualEvaluations))
-                   ;; ($updatedMetaPop
-                   ;;   (mergeDemes $optimizedDemes $context $metaPop))
-                   ;; Without this branch, an empty expansion would flow through
-                   ;; normal merge and generation accounting. Before creation-time
-                   ;; filtering was added, the same path could also enter hill
-                   ;; climbing without a knob and reduce the relation to `()`.
-                   ;; Match C++ `expand_deme`: the failed exemplar stays marked
-                   ;; visited, but retry at the same expansion without charging
-                   ;; a generation, deme ID, or evaluator call.
+                   ;; Match C++ `expand_deme`: an empty representation leaves
+                   ;; the exemplar visited and retries without charging a
+                   ;; generation, expansion ID, or evaluator call.
                    (if (== $optimizedDemes ())
                        (let* (
                               ($_antEmptyRepDiagnostics
@@ -676,9 +525,6 @@ $optimDeme
                                    $updatedCumulativeEvaluations)
                                  (finishAntMetapop
                                    $updatedMetaPop $updatedRawBest)
-                                 ;; Previous recursion discarded actual
-                                 ;; evaluation totals by calling runAntMoses:
-                                 ;; (runAntMoses ... $updatedVisits)
                                  (runAntMosesCountedWithBest
                                    (- $maxGen 1) $maxScore $updatedMetaPop
                                    (+ $nExpansion 1) $nDeme $context $optimize
@@ -755,10 +601,7 @@ $optimDeme
          (runMoses (- $maxGen 1) $maxScore $updatedMetaPop $nExpansion $nDeme $context $optimize)))))
 
 
-;; Some helpers specific to final testing
+;; Final-result conversion helpers.
 (= (mapG $f $xs) (map-atom $xs $f))
 
-(= (printExemplar (mkExemplar $tree $demeId $cscore $bscore)) (println! (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore)))
 (= (cleanedExemplar (mkExemplar $tree $demeId $cscore (mkBScore $bscore))) ((preOrder $tree) (List.sum $bscore)))
-
-(= (printInstance (mkInst $inst)) (println! (List.listToExpr $inst)))

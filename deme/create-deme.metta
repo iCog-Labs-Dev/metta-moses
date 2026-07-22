@@ -14,9 +14,7 @@
 (= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
       (let* 
             (
-                  ;; ($_ (println! "creating representations ...."))
                   ($reps (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts  $scorerType))
-                  ;; ($_ (println! (done making representations ... $reps)))
             ) 
             (loopCreateDeme $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
       ) 
@@ -30,9 +28,7 @@
 (= (createDeme $nDeme $demeIds $exemplar)
       (let* 
             (
-                  ;; ($_ (println! "creating game representations ...."))
                   ($reps (createRepresentation $nDeme $exemplar))
-                  ;; ($_ (println! ("done making representations ..." $reps)))
             )  
             (loopCreateDeme $demeIds $reps ())
       ) 
@@ -58,21 +54,6 @@
       (let*
             (
                   ($demeCount (genList 0 (- $nDeme 1)))
-                  ;; Previous version retained empty representations and sent
-                  ;; an empty instance into neighborhood sampling, where the
-                  ;; sampler necessarily failed while reading knob index zero:
-                  ;; ($reps (map-atom $demeCount $x
-                  ;;       (representation
-                  ;;             1
-                  ;;             $exemplar
-                  ;;             (mkITable () ())
-                  ;;             None
-                  ;;             False
-                  ;;             ()
-                  ;;             mi
-                  ;;             True
-                  ;;             $actions
-                  ;;             $perceptions)))
                   ($candidateReps (map-atom $demeCount $x
                         (representation
                               1
@@ -103,11 +84,3 @@
                  ($deme (mkDeme $h (mkSInstSet ()) $demeId))
                  ($new-acc (union-atom $acc ($deme))))
                (loopCreateDeme (List.tail $demeIds) $t $new-acc)))))
-;; previous version of loopCreateDeme using if-decons-expr-custom
-;       (if-decons-expr-custom $reps $h $t
-;             (let* (($demeId (List.head $demeIds)) 
-;                    ($deme (mkDeme $h (mkSInstSet ()) $demeId))
-;                    ($new-acc (union-atom $acc ($deme))))
-                  
-;                   (loopCreateDeme (List.tail $demeIds) $t $new-acc))
-;                $acc))    

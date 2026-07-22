@@ -1,12 +1,10 @@
 ;; Deterministic end-to-end Santa Fe ant perfect-convergence regression.
 ;;
-;; The generation and evaluation limits are deliberately extended, but raw-target
-;; termination ends the verified seed-1 search after only three expansions.  The
-;; test covers ant dispatch, action representation, hill climbing, scoring, deme
-;; expansion, metapopulation merging, and FinalResult conversion, and now requires
-;; the evolved program to eat all 89 pellets.
-;; Previous contract: finding a perfect program was reported as a milestone but
-;; was not required for this test to pass.
+;; The generation and evaluation limits are deliberately generous, but raw-target
+;; termination ends the verified seed-1 search through expansion ID 2 (three
+;; expansions). The test covers ant dispatch, action representation, hill
+;; climbing, scoring, deme expansion, metapopulation merging, and FinalResult
+;; conversion, and requires the evolved program to eat all 89 pellets.
 
 !(import! &self ../../../utilities/general-helpers)
 !(import! &self ../../../parameters/registry)
@@ -111,86 +109,17 @@
        (antHasMaterializedCandidate $rest)
        True))
 
-; ;; These focused collection regressions are retained here as the previous
-; ;; pipeline-local versions. Their active equivalents now live in
-; ;; ant-integration-test.metta, keeping this expensive test to one search.
-; ;; Initial-instance construction fuses value extraction and default projection
-; ;; without changing map order or the resulting knob values.
-; !(assertEqual
-;   (let $map
-;        (((mkDiscSpec 1)
-;           (mkLSK
-;             (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 1) ())))
-;         ((mkDiscSpec 2)
-;           (mkLSK
-;             (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 2) ()))))
-;     (createInitialInstance $map))
-;   (1 2))
-
-; ;; Diagnostic materialization maps each deme independently, flattens exactly
-; ;; one level, and counts every scored instance across the same deme list.
-; !(assertEqual
-;   (let* (
-;          ($tree
-;            (mkTree (mkNode and_seq)
-;              ((mkTree (mkNode move_forward) ()))))
-;          ($rep (mkRep (mkKbMap (mkDscMp ())) $tree))
-;          ($scored (mkSInst (mkPair (mkInst ()) (worstCscore))))
-;          ($demes
-;            ((mkDeme $rep (mkSInstSet ($scored $scored))
-;                     (mkDemeId "diagnostic-1"))
-;             (mkDeme $rep (mkSInstSet ($scored))
-;                     (mkDemeId "diagnostic-2"))))
-;         )
-;     ((antDiagnosticDemeTrees $demes)
-;      (antDiagnosticEvaluationCount $demes)))
-;   (((mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ())))
-;     (mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ())))
-;     (mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ()))))
-;    3))
-
-; ;; Raw fitness is folded independently, while penalized fitness comes directly
-; ;; from the already ordered metapopulation head.
-; !(assertEqual
-;   (antMetapopBestScores
-;     ((mkExemplar
-;        (mkTree (mkNode and_seq) ()) (mkDemeId "penalized-best")
-;        (mkCscore -5 0 0 0 -10) (mkBScore (-5)))
-;      (mkExemplar
-;        (mkTree (mkNode move_forward) ()) (mkDemeId "raw-best")
-;        (mkCscore -2 0 0 0 -20) (mkBScore (-2)))))
-;   (-2 -10))
-
 !(set-param problem ant)
-;; The finalized seed-1 experiment reaches raw score 0 reproducibly with the
-;; reduced-but-still-active complexity pressure configured below.
-;; Previous quick search seed:
-;; !(set-param seed 10)
+;; This seed reproducibly reaches raw score 0 with the search settings below.
 !(set-param seed 1)
-;; Build two independently randomized representations from each selected
-;; parent. Keep the former cutoff rationale below as a historical comment: it
-;; describes the pre-parity-fix 0.20 experiment, not an expected result now.
-;; Previous rationale: the seed-10 search first reached -24 at expansion 23; a
-;; 50-generation trial found no later improvement while doubling pool growth,
-;; so 25 generations was the evidence-based regression cutoff.
-;; The previous checked-in experiment ran all 25 generations here:
-;; !(set-param maxGen 25)
-;; Seed 10 first improves from -78 to -40 at expansion 5. Six expansions were
-;; therefore the shortest stable prefix that proves selection, representation
-;; construction, scoring, merge, and subsequent re-expansion all work, while
-;; keeping the ordinary suite practical. That previous active cutoff was:
-;; !(set-param maxGen 6)
 ;; Use a generous generation ceiling for convergence. Target-score termination
-;; stops the verified trajectory at expansion 2, so this does not execute 1,000
-;; expansions during the ordinary suite.
+;; stops the verified trajectory through expansion ID 2, so the ordinary suite
+;; does not execute all 1,000 expansions.
 !(set-param maxGen 1000)
+;; Build two independently randomized representations around each selected tree.
 !(set-param nDeme 2)
 !(set-param optAlgo hc)
 !(set-param antSteps 600)
-;; The previous 0.20 value belonged to a MeTTa breadth experiment, and 0.16 is
-;; the C++ performance-diary parity setting; retain both as search history.
-;; !(set-param antComplexityRatio 0.20)
-;; !(set-param antComplexityRatio 0.16)
 ;; getComplexityCoef is the inverse of this ratio. Raising it to 0.5 lowers the
 ;; per-action penalty from 6.25 to 2 while preserving penalized-score hill
 ;; climbing. That lets useful control structure survive long enough to evolve a
@@ -216,6 +145,8 @@
 !(set-param maxCandPerDeme -1)
 
 ;; Keep all checks inside one assertion so the expensive search executes once.
+;; Assert behavior and an independent rescore rather than one exact tree syntax;
+;; the FinalResult may contain several semantically perfect programs.
 !(assertEqual
   (let (FinalResult $rows) (moses-run)
     (case $rows
@@ -237,19 +168,7 @@
                  ($_ (println! (AntSearchPelletsEaten: $pelletsEaten of (ant-food-count))))
                  ($_ (if (== $bestScore (ant-best-possible-score))
                          (println! "ANT SEARCH FOUND A PERFECT 89-PELLET TREE")
-                         ;; Previous optional-milestone message:
-                         ;; (println! "Ant search completed without requiring a perfect tree")
                          (println! "ANT SEARCH FAILED TO FIND THE REQUIRED PERFECT TREE"))))
-            ;; Previous quick pipeline acceptance required only improvement over
-            ;; the empty exemplar and a loose score floor:
-            ;; (and $scoresValid
-            ;;      (and (> $bestScore $initialExemplarScore)
-            ;;           (and (> $bestScore -70)
-            ;;                (and $hasMaterializedCandidate $rescoresMatch))))
-            ;; The extended convergence setting has been reproduced twice, so
-            ;; raw perfection and an independent 600-step rescore are now the
-            ;; functional contract. Do not couple it to one exact tree syntax;
-            ;; the verified FinalResult can contain several perfect programs.
             (and $scoresValid
                  (and (== $bestScore (ant-best-possible-score))
                       (and (== $pelletsEaten (ant-food-count))

@@ -96,46 +96,6 @@
          )
           (crossPairs $newProcessed $rest $base $updatedAcc $limit))))
 
-;; The former triple traversal is retained verbatim as comments.  It grew the
-;; target pool while iterating j references and stopped on accumulator length.
-;; That does not match C++: j starts at one, k runs from zero to i-1, and each
-;; child is written to n=C(i,3)+C(j,2)+k, overwriting an earlier slot when the
-;; simplex loops revisit that index.
-;;
-;; (= (crossTripleTargets () $jRef $iRef $base $acc $limit)
-;;    $acc)
-;; (= (crossTripleTargets (cons $target $rest) $jRef $iRef $base $acc $limit)
-;;    (if (>= (List.length $acc) $limit)
-;;        $acc
-;;        (let*
-;;          (
-;;            ((mkSInst (mkPair $targetInst $score)) $target)
-;;            ($merged (mkSInst (mkPair (mergeInstance (mergeInstance $targetInst $base $iRef) $base $jRef) (worstCscore))))
-;;            ($newAcc (cons $merged $acc))
-;;          )
-;;          (crossTripleTargets $rest $jRef $iRef $base $newAcc $limit))))
-;; (= (crossTripleRefs () $processed $iRef $base $acc $limit) $acc)
-;; (= (crossTripleRefs (cons $j $jRest) $processed $iRef $base $acc $limit)
-;;     (if (>= (List.length $acc) $limit)
-;;         $acc
-;;         (let*
-;;           (
-;;             ((mkSInst (mkPair $jInst $jScore)) $j)
-;;             ($updatedAcc (crossTripleTargets $processed $jInst $iRef $base $acc $limit))
-;;           )
-;;           (crossTripleRefs $jRest (cons $j $processed) $iRef $base $updatedAcc $limit))))
-;; (= (crossTriples $processed () $base $acc $limit) $acc)
-;; (= (crossTriples $processed (cons $i $iRest) $base $acc $limit)
-;;    (if (>= (List.length $acc) $limit)
-;;        $acc
-;;        (let*
-;;          (
-;;            ((mkSInst (mkPair $iInst $iScore)) $i)
-;;            ($updatedAcc (crossTripleRefs $processed $processed $iInst $base $acc $limit))
-;;            ($newProcessed (List.append $i $processed))
-;;          )
-;;          (crossTriples $newProcessed $iRest $base $updatedAcc $limit))))
-
 ;; makeCrossoverSlots -- Model the C++ resize(num_to_make) destination array.
 ;; Every reachable slot is populated before it is returned; the sentinel atoms
 ;; make an accidental hole visible in a regression instead of hiding it.
@@ -173,9 +133,8 @@
            (crossTripleTargets $rest (+ $k 1) $j $i
              $jRef $iRef $base $updatedSlots $limit)))))
 
-;; crossTripleRefs -- Execute j=1..i-1.  The target list stays fixed at the i
-;; already-processed instances; the previous version incorrectly consed each
-;; j reference into it and therefore changed the k-loop while traversing it.
+;; crossTripleRefs -- Execute j=1..i-1. The target list stays fixed at the i
+;; already-processed instances throughout the k-loop.
 (= (crossTripleRefs () $j $targets $i $iRef $base $slots $limit)
    ($slots False))
 (= (crossTripleRefs (cons $jScored $jRest) $j $targets $i $iRef $base $slots $limit)

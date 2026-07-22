@@ -130,19 +130,14 @@
 (= (sampleFromNeighborhood` $n $dist (mkKbMap (mkDscMp $disc)) (mkInst $centralInst))
         (let* 
             (
-              ;; ($_ (println! ""))
-              ;; ($_ (println! (Params: $n $dist (mkKbMap (mkDscKbMp $itDiscKnob) (mkDscMp $disc)) (mkInst $centralInst))))
               ($knobLen (MultiMap.length $disc))
               ($instLen (List.length $centralInst))
-              ;; ($_ (println! (KnobLen: $knobLen InstLen: $instLen)))
               )
               (if (== $knobLen $instLen)
                   (let* (
                     ($selectedIndices (lazyRandomSelector 0 (- $instLen 1) $dist))
-                    ;; ($_ (println! (SelectedIndices: $selectedIndices)))
                     ($updatedInst (foldl-atom $selectedIndices $centralInst $updated $rand (updateInst $rand $disc $updated)))
                     ($inst (mkInst $updatedInst))
-                    ;; ($_ (println! (UpdatedInst: $updatedInst)))
                   )
                   $inst) 
                   (Error ($knobLen $instLen) "Not Equal"))))
@@ -216,17 +211,11 @@
 ;; (: sampleFromNeighborhood (-> Number Number KnobMap Instance (List Instance)))
 (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
    (let* (
-      ;; ($_ (println! (Inside sampleFromNeighborhoodFs: $sampleSize $dist $inst)))
       ($list (genList (- $sampleSize 1)))
 
       ($x (map-atom $list $i (sampleFromNeighborhood` $i $dist $kbMp $inst)))
     )
     $x))
-
-;; (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst $multip)
-;;         (if (not (isPossibleSize $sampleSize $dist $inst $multip))
-;;             (Error ("Cannot generate " $sampleSize " instances at distance " $dist " from " $inst) (Requested sample size too large))
-;;             (selectUnique () $sampleSize $dist $kbMp $inst)))
 
 ;; this function helps the 'sampleFromNeighborhood' function in which Recursively collects unique instances with identical Hamming distance.
 ;;  and Terminates when sample size reaches zero, returning the final filtered list.
@@ -240,10 +229,6 @@
                 (selectUnique ($generatedFirst) (- $sampleSize 1) $dist $kbMp $inst))
            (let $generatedInstance (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)
                 (selectUnique (concatT ($generatedInstance) $expr ) (- $sampleSize 1) $dist $kbMp $inst)
-                           ;; (if (is-member $generatedInstance $expr)
-                           ;;     (selectUnique $expr $sampleSize $dist $kbMp $inst)
-                           ;;     (selectUnique (concatT ($generatedInstance) $expr ) (- $sampleSize 1) $dist $kbMp $inst)
-                           ;;  )
            ))))
 
 ;; similar to the above 'sampleFromNeighborhood' but with slight modification to make it compatible with the feature selection
@@ -251,18 +236,10 @@
 ; (: sampleFromNeighborhoodFs (-> Number Number (ITable Bool) Instance (List Instance)))
 (= (sampleFromNeighborhoodFs $sampleSize $dist $itable $inst)
    (let* (
-      ;; ($_ (println! (Inside sampleFromNeighborhoodFs: $sampleSize $dist $inst)))
       ($list (genList (- $sampleSize 1)))
       ($x (map-atom $list $i (sampleFromNeighborhoodFs` $i $dist $itable $inst)))
     )
     (exprToList $x)))
-   
-;; this function calculates factorial of a number which can be used in " isPossibleSize " function
-;; (: factorial (-> Number Number))
-;; (= (factorial $n) 
-;; (if (<= $n 1) 1 
-;; (* $n (factorial (- $n 1)
-;; ))))
 
 ;;  isPossibleSize: Calculates if the requested number of neighbors can be generated at a given distance from a center instance.
 ;; Uses combinatorics: chooses $dist positions from instance length and counts variations based on knob multiplicity.
@@ -278,9 +255,7 @@
 (= (isPossibleSize $sampleSize $dist (mkInst $centralInst)) 
     
            (let* (
-               ; () (println! (Inside isPossibleSize: $inst $dist $sampleSize)))
                ($instLen (List.length $centralInst))
-               ;  (() (println! (Instance Length: $instLen)))
                ($n (factorial $instLen))
                ($r (factorial (- $instLen $dist)))
                ($d (factorial $dist))
@@ -289,7 +264,6 @@
                ($totalNeighbors (* $maxNeighbors $m))
              ) 
                (>= $totalNeighbors $sampleSize)
-               ; $totalNeighbors
 
             )
 )
@@ -353,11 +327,6 @@
 (= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) (mkSInstSet $instList) $demeId) $dist)
  (let*
   (
-    ;; ($_ (println! (DimSize: (Map.length $dkm))))
-    ;; ($_ (println! (Inside sampleNewInstances: $totalNeighbors $numNewInstances $centerInst)))
-    ;; ($_ (println! (Distance: $dist CenterInst: $centerInst)))
-    ;; ($_ (println! ""))
-
     (($spec $knob) (MultiMap.getByIdx 0 $disc))
     ((mkMultip $m) (getKnobMultip $knob))
     ($kbMp (mkKbMap (mkDscMp $disc)))
@@ -365,37 +334,15 @@
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (countNeighborhood $kbMp $centerInst $dist $numNewInstances)
              $totalNeighbors))
-    ;; ($_ (println! (updatedTotalNeighbors: $updatedTotalNeighbors)))
     ($updatedNumNewInstances 
          (if (< $numNewInstances $updatedTotalNeighbors)  
              $numNewInstances
              $updatedTotalNeighbors))
-    ;; ($_ (println! (Inside sampleNewInstances: (< $numNewInstances $updatedTotalNeighbors) Neighbors: $updatedTotalNeighbors numNewInstances: $numNewInstances Distance: $dist)))
-    ;; ($_ (println! (Sampling:  (< $numNewInstances $updatedTotalNeighbors) CenterInst: $centerInst Distance: $dist)))
     ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
                        (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
-                       ;; (swapList (generateAllInNeighborhood (mkMultip 3) $centerInst $dist)))) ;; INFO: Used to improve result but not needed any more
                        (generateAllInNeighborhoodForDisc (mkDscMp $disc) $centerInst $dist)))
-    ;; ($_ (println! (NewInstances: $newInstances)))
-    ;; ($exprInstances (List.listToExpr $newInstances))
-    ;; ($uExprInstances (unique-atom $exprInstances))
-    ;; ($_ (println! (NewInstances: (List.length $newInstances) (UniqueInstances: (length $uExprInstances)))))
-
-    ;; ($_ (println! (Previous Instances)))
-    ;; ($__ (eval (List.map (|-> ((mkSInst $i)) (printInstance (Pair.first $i))) $instList)))
-    ;; ($_ (println! ""))
-
     ($scoredNewInstances (List.map initInstScore $newInstances))
-
-    ;; ($_ (println! (Scored new Instances)))
-    ;; ($____ (eval (List.map (|-> ((mkSInst $i)) (printInstance (Pair.first $i))) $scoredNewInstances)))
-    ;; ($_ (println! ""))
-
     ($updatedInstList (List.concat $instList $scoredNewInstances))
-
-    ;; ($_ (println! (UpdatedInst)))
-    ;; ($_____ (eval (List.map (|-> ((mkSInst $i)) (printInstance (Pair.first $i))) $updatedInstList)))
-    ;; ($_ (println! ""))
  )
  ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId) $updatedNumNewInstances)))
 
@@ -426,7 +373,7 @@
           ($originalDeme
             (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree)
                     (mkSInstSet $existingRows) $demeId))
-          (($sampledDeme $_previousNominalCount)
+          (($sampledDeme $_nominalCount)
             (sampleNewInstances $totalNeighbors $numNewInstances $centerInst
                                 $originalDeme $dist))
           ((mkDeme $sampledRep (mkSInstSet $allSampledRows) $sampledId)
@@ -435,10 +382,6 @@
             (List.drop (List.length $existingRows) $allSampledRows))
           ($freshRows
             (uniqueUnseenScoredInstances $sampledRows $existingRows))
-          ;; Previous version kept every sampled row and returned its nominal
-          ;; request count, even when vectors repeated:
-          ;; ($finalRows $allSampledRows)
-          ;; ($actualNewCount $_previousNominalCount)
           ($finalRows (List.concat $existingRows $freshRows))
           ($actualNewCount (List.length $freshRows))
          )
@@ -452,10 +395,6 @@
 (= (sampleNewInstancesFs $totalNeighbors $numNewInstances $centerInst $itable (mkSInstSet $instList) $dist)
  (let*
   (
-    ;; ($_ (println! (Inside sampleNewInstancesFs: $totalNeighbors $numNewInstances $centerInst)))
-    ;; ($_ (println! (Distance: $dist CenterInst: $centerInst)))
-    ;; ($_ (println! ""))
-
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (countNeighborhoodFs $centerInst $dist $numNewInstances)

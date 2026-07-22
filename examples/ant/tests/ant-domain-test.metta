@@ -29,17 +29,6 @@
            move_forward))
        turn_right)))
 
-;; Previous regression (incorrect): this encoded the old assumption that an
-;; ant perception contributes complexity one.
-;; !(assertEqual
-;;   ((antTreeComplexity (ant-exemplar))
-;;    (antTreeComplexity (moveTree))
-;;    (antTreeComplexity (foodAheadTree))
-;;    (antTreeComplexity
-;;      (mkTree (mkNode action_bool_if)
-;;        ((foodAheadTree) (moveTree) (turnRightTree)))))
-;;   (0 1 1 3))
-
 ;; C++ `tree_complexity` assigns one to builtin ant actions and action-result
 ;; constants, but zero to perceptions and structural operators.  The
 ;; conditional therefore costs only its two action branches.

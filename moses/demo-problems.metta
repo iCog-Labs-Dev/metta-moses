@@ -319,11 +319,8 @@
         ($_  (set-param genCount $maxGen))
         ($initialTree (ant-exemplar))
         ($initialBscore (scoreAntTree $initialTree $steps))
-        ;; Previous version rescored the initial tree inside getAntCscore even
-        ;; though its behavioral score had just been computed above:
-        ;; ($initialCscore (getAntCscore $initialTree $complexityRatio $steps))
-        ;; Build the Cscore from the stored BScore so initialization performs
-        ;; exactly one real ant simulation.
+        ;; Derive the Cscore from the stored BScore so initialization performs
+        ;; exactly one ant simulation.
         ($initialCscore
           (getAntCscoreFromBScore
             $initialTree $complexityRatio $initialBscore))
@@ -331,12 +328,8 @@
         ($metaPop ((mkExemplar $initialTree (mkDemeId "1") $initialCscore $initialBscore)))
         ;; Ant uses the parity loop with explicit visit accounting.  Generic
         ;; runMoses remains unchanged for Boolean and strategy pipelines.
-        ;; Previous version entered the compatibility wrapper, which seeded
-        ;; cumulative evaluations at zero and omitted the initialization call:
-        ;; ($result (runAntMoses $maxGen (ant-best-possible-score) $metaPop 0
-        ;;       $nDeme $context $optimizer ()))
-        ;; Seed the counted loop with the one scoreAntTree call above.  This
-        ;; makes antMaxEvals and diagnostics cover the complete ant run.
+        ;; Seed the counted loop with the initialization call so antMaxEvals
+        ;; and diagnostics cover the complete ant run.
         ($result (runAntMosesCounted
               $maxGen (ant-best-possible-score) $metaPop 0
               $nDeme $context $optimizer () 1))
