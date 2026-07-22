@@ -197,27 +197,59 @@
 (= (combineOp OR  $childCols $n) (List.foldl colZipOr  (List.repeat $n False) $childCols))
 (= (combineOp NOT $childCols $n) (colNot (car-atom $childCols)))
 
-;; Wrapped (sub)expression -> boolean column. Nodes AND label leaves are
-;; memoized, so a label's table walk happens once per run. The map-atom over
-;; the destructured children is the engine's only tree recursion.
+;; === lib_memo per-subtree memoization (PR-165 ONLY -- EXPERIMENTAL) =========
+;; This evalSubtree uses PR-165's lib_memo runtime memoization instead of the
+;; &subtreeCache atomspace memo -- the atomspace subtree cache is NO LONGER
+;; USED. On PeTTaV1 the `(library lib_memo)` import silently no-ops and the
+;; memoize/config-memoize/clear-memoize calls become inert, so evalColM runs
+;; UNMEMOIZED there -- still CORRECT, but with NO subtree caching at all (hence
+;; SLOWER than dev, whose &subtreeCache is removed here). The memoization win
+;; is PR-165-only. EXPERIMENTAL: local exp/memo-prototype branch ONLY -- do NOT
+;; push to dev (CI runs on PeTTaV1, where this regresses to no caching).
+;;
+;; Per lib_memo_doc.md: reproducible preset (clear-memoize + clear-memoize-stats
+;; + config-memoize) at load; `!(memoize evalColM 1)` declared immediately
+;; BEFORE evalColM's definition (memoize-before-def); arity-1 memoization keyed
+;; on the SYMBOLIC subexpression only -- the fixed table + row count ride in a
+;; tiny ctx space so they never bloat the key; unique-limit 100000 >> distinct
+;; subtree keys for a mux6 solve (no thrash), wtinylfu for the stable hot set.
+;; &subtreeCache is never reset during a solve and the table is fixed, so a
+;; never-cleared lib_memo cache reproduces the identical per-subtree
+;; cross-candidate sharing -- verified: mux6 FinalResult byte-identical to dev,
+;; 6838 hits / 2618 miss on the replay stream.
+!(import! &self (library lib_memo))
+!(clear-memoize)
+!(clear-memoize-stats)
+!(config-memoize (unique-limit 100000) (strategy wtinylfu) (size-limit 5))
+!(bind! &emCtx (new-space))
+;; ctx cell: single-valued (rel -> value), remove-then-add keeps it single
+(= (emPut $rel $val)
+   (let* (($_  (collapse (match &emCtx ($rel $o) (remove-atom &emCtx ($rel $o)))))
+          ($_2 (add-atom &emCtx ($rel $val))))
+     ()))
+(= (emCtxTable) (car-atom (collapse (match &emCtx (emT $t) $t))))
+(= (emCtxN)     (car-atom (collapse (match &emCtx (emN $n) $n))))
+
+;; memoize-before-def (lib_memo_doc.md): the decl must precede the clause.
+!(memoize evalColM 1)
+(= (evalColM $exp)
+   (if (== (get-metatype $exp) Grounded)
+       (List.repeat (emCtxN) $exp)
+       (if (== (get-metatype $exp) Expression)
+           ;; every node is uniformly ($op ($c1 .. $ck)); recurse via the
+           ;; memoized evalColM on the SYMBOLIC children (per-subtree sharing).
+           (let* ((($op $children) $exp)
+                  ($cvs (map-atom $children $child (evalColM $child))))
+             (combineOp $op $cvs (emCtxN)))
+           (varColumn (emCtxTable) $exp))))
+
+;; evalSubtree keeps its 3-arg signature (scoreTree caller unchanged): publish
+;; the fixed table/n into the ctx space, then delegate to the memoized evalColM.
 ;(: evalSubtree (-> Expression (ITable $a) Number (List Bool)))
 (= (evalSubtree $exp $itable $n)
-   (if (== (get-metatype $exp) Grounded)
-       ;; grounded literal (True/False): constant column, not worth caching
-       (List.repeat $n $exp)
-       ;; operator node or label leaf: one shared memo path
-       (chain (collapse (match &subtreeCache (subtree $exp $v) $v)) $hit
-         (if (== $hit ())
-             (let* (
-                     ($col (if (== (get-metatype $exp) Expression)
-                              ;; every node is uniformly ($op ($c1 .. $ck))
-                              (let* ((($op $children) $exp)
-                                     ($cvs (map-atom $children $child (evalSubtree $child $itable $n))))
-                                (combineOp $op $cvs $n))
-                              (varColumn $itable $exp)))
-                    ($_   (add-atom &subtreeCache (subtree $exp $col))))
-               $col)
-             (car-atom $hit)))))
+   (let* (($_  (emPut emT $itable))
+          ($_2 (emPut emN $n)))
+     (evalColM $exp)))
 
 
  ;; Evaluates the accuracy of the expression for a single input row (target, inputs) pair.
