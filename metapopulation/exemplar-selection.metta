@@ -60,27 +60,35 @@
 (= (selectAntExemplar $metaPop $visits $revisit)
    (selectExemplar (antEligibleExemplars $metaPop $visits $revisit)))
 
-;; Fold raw fitness without allocating score lists or manually destructuring
-;; Exemplar and Cscore values.  Starting from the first row preserves the
-;; non-empty-input contract. C++ prefers lower complexity on a raw-score tie;
-;; an exact tie keeps the earlier exemplar.
+;; Fold raw fitness without allocating a score list. Starting from the first
+;; row preserves the non-empty-input contract. C++ prefers lower complexity on
+;; a raw-score tie; an exact tie keeps the earlier exemplar.
 ;;
-;; Keep this comparison local rather than calling the pairwise helper in
-;; expand-deme: PeTTa specializes the ant outer loop across that module boundary
-;; and otherwise leaves the pipeline assertion unresolved before deme merge.
+;; Directly destructure both exemplars here. Although getExemplarCscore and
+;; getComp work independently, PeTTa currently fails to compose those accessor
+;; calls inside foldl-atom and silently returns no result for a multi-row list.
 (= (bestRawAntExemplar (cons $first $rest))
    (foldl-atom $rest $first $best $candidate
      (let* (
-            ($candidateCscore (getExemplarCscore $candidate))
-            ($bestCscore (getExemplarCscore $best))
-            ($candidateRaw (getScore $candidateCscore))
-            ($bestRaw (getScore $bestCscore))
+            ((mkExemplar $_candidateTree $_candidateId
+                         (mkCscore $candidateRaw $candidateComplexity
+                                   $_candidateComplexityPenalty
+                                   $_candidateDiversityPenalty
+                                   $_candidatePenalized)
+                         $_candidateBscore)
+              $candidate)
+            ((mkExemplar $_bestTree $_bestId
+                         (mkCscore $bestRaw $bestComplexity
+                                   $_bestComplexityPenalty
+                                   $_bestDiversityPenalty $_bestPenalized)
+                         $_bestBscore)
+              $best)
            )
        (if (> $candidateRaw $bestRaw)
            $candidate
            (if (< $candidateRaw $bestRaw)
                $best
-               (if (< (getComp $candidateCscore) (getComp $bestCscore))
+               (if (< $candidateComplexity $bestComplexity)
                    $candidate
                    $best))))))
 
