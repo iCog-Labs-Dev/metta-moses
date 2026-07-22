@@ -46,9 +46,9 @@
 ;; and PeTTa compiles a call site as a real call only if the callee already
 ;; has a clause.)
 (= (isRegisteredActionOperator $op)
-   (not (== (collapse (match &actionRegistry (structuralActionOp $op) $op)) ())))
+   (!= (collapse (match &actionRegistry (structuralActionOp $op) $op)) ()))
 (= (isRegisteredCleanupActionOp $op)
-   (not (== (collapse (match &actionRegistry (cleanupActionOp $op) $op)) ())))
+   (!= (collapse (match &actionRegistry (cleanupActionOp $op) $op)) ()))
 
 ;; ---- Registration API (called by operator packages at load time) ----
 ;; IDEMPOTENT: import! does not dedupe, so a package loaded twice would

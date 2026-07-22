@@ -16,7 +16,7 @@
                       (buildLogical $canonized $canonRootOp $mmp $argLabels $disable-discprobe $canonized (mkNodeId (0))))))))
 
 (= (buildKnobs (mkTree (mkNode $rootOp) $children) $mmp $argLabels $actions $perceptions)
-        (if (or (isActionOperator $rootOp) (once (is-member $rootOp $actions)))
+        (if (or (isActionOperator $rootOp) (once (is-member $rootOp $actions))) ;; is-member A (A A B B) true, true
             (let*
               (
                 ($canonized (actionCanonize (mkTree (mkNode $rootOp) $children)))

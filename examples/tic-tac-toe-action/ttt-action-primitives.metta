@@ -31,12 +31,12 @@
 
 ;; tttCanWin: the player has an immediate winning placement.
 (= (tttCanWin $params $world)
-   (mkARes (not (== (play-win (worldBoard $world) (worldPlayer $world)) False))
+   (mkARes (!= (play-win (worldBoard $world) (worldPlayer $world)) False)
            $world))
 
 ;; tttCanBlock: the opponent has an immediate winning placement to block.
 (= (tttCanBlock $params $world)
-   (mkARes (not (== (play-block (worldBoard $world) (worldPlayer $world)) False))
+   (mkARes (!= (play-block (worldBoard $world) (worldPlayer $world)) False)
            $world))
 
 ;; tttCenterFree: the center cell (index 4 in the 0-8 row-major board,

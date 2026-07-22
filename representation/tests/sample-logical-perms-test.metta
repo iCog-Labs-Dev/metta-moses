@@ -22,12 +22,11 @@
 ;; A pair permutation is (action_bool_if <perception> <actA> <actB>) with
 ;; two distinct actions drawn from the vocabulary and a perception drawn from
 ;; the perceptions list.
-(= (isActionPairPerm $perm $actions $perceptions)
-   (let (action_bool_if $perception $actA $actB) $perm
-     (and (once (is-member $perception $perceptions))
-          (and (once (is-member $actA $actions))
-               (and (once (is-member $actB $actions))
-                    (not (== $actA $actB)))))))
+(= (isActionPairPerm (action_bool_if $perception $actA $actB) $actions $perceptions)
+   (all ((once (is-member $perception $perceptions))
+         (once (is-member $actA $actions))
+         (once (is-member $actB $actions))
+         (!= $actA $actB))))
 
 ;; Degenerate guards: single action, or empty perceptions, return the
 ;; vocabulary unchanged.

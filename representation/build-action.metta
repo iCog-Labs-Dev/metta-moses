@@ -242,7 +242,7 @@
    (if (== $op and_seq)
        (buildActionAndSeq (mkTree (mkNode and_seq) $children) $MMap $actions $perceptions)
 
-       (if (== $op action_bool_if)
+       (if (== $op action_bool_if) ;; (action_bool_if ($cond $a $b))
            (buildActionBoolIf (mkTree (mkNode action_bool_if) $children) $MMap $actions $perceptions)
            ((mkTree (mkNode $op) $children) $MMap))))
 
