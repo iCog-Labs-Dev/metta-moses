@@ -353,8 +353,7 @@
 ;; in the deme, while preserving the first occurrence and its sample order.
 (= (uniqueUnseenScoredInstances $sampledRows $existingRows)
    (let* (
-          ($existingInstances
-            (map-atom $existingRows $row (removeInstScore $row)))
+          ($existingInstances (map-atom $existingRows $row (removeInstScore $row)))
           ($uniqueSampledRows (unique-atom $sampledRows))
          )
      (filter-atom $uniqueSampledRows $row
@@ -378,10 +377,8 @@
                                 $originalDeme $dist))
           ((mkDeme $sampledRep (mkSInstSet $allSampledRows) $sampledId)
             $sampledDeme)
-          ($sampledRows
-            (List.drop (List.length $existingRows) $allSampledRows))
-          ($freshRows
-            (uniqueUnseenScoredInstances $sampledRows $existingRows))
+          ($sampledRows (List.drop (List.length $existingRows) $allSampledRows))
+          ($freshRows (uniqueUnseenScoredInstances $sampledRows $existingRows))
           ($finalRows (List.concat $existingRows $freshRows))
           ($actualNewCount (List.length $freshRows))
          )

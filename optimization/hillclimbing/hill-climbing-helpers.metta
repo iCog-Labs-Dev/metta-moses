@@ -247,8 +247,7 @@
        (let* (
               ($materializedTree (getCandidate $rep $id $inst))
               ($cleanedTree (cleanActionTree $materializedTree))
-              ($cachedScore
-                (antCachedScoreForTree $cleanedTree $treeScoreCache))
+              ($cachedScore (antCachedScoreForTree $cleanedTree $treeScoreCache))
               (($resolvedScore $didEvaluate $updatedCache)
                 (if (== $cachedScore ())
                     (let $newScore (scoreCleanedAntTree $cleanedTree $context)
@@ -423,12 +422,9 @@
       (
         ;; Preserve generic HC logging, but keep ant output opt-in because a
         ;; convergence run can execute thousands of iterations.
-        ($progressEnabled
-          (if (== $size ant) (param antDiagnostics) True))
-        ($_blank
-          (if $progressEnabled (println! "") ()))
-        ($_iteration
-          (if $progressEnabled (println! (Iteration $i running)) ()))
+        ($progressEnabled (if (== $size ant) (param antDiagnostics) True))
+        ($_blank (if $progressEnabled (println! "") ()))
+        ($_iteration (if $progressEnabled (println! (Iteration $i running)) ()))
 
         ($totalNNeighbors ($estimateFunction $d $neighborhood))
         ($_antNeighborhoodEstimate
@@ -441,8 +437,7 @@
         ;; defaults; other domains retain the existing generic HC budget. The
         ;; outer allowance prevents multiple demes from overspending the
         ;; complete-run budget.
-        ($configuredMaxEvals
-          (if (== $size ant) (param hcMaxEvalsAnt) (param hcMaxEvals)))
+        ($configuredMaxEvals (if (== $size ant) (param hcMaxEvalsAnt) (param hcMaxEvals)))
         ($outerAntLimit (if (== $size ant) (get-state &antLocalEvalLimit) -1))
         ($maxEvals
           (if (and (== $size ant) (>= $outerAntLimit 0))
@@ -465,14 +460,12 @@
                           (and (or (not (== $size ant))
                                    (>= $currentDemeSize 3))
                                (and (not $alreadyXover) (or $largeNbh $lastChance)))))) ;; INFO: Has to be greater than 2 minimum.
-        ($_crossover
-          (if $progressEnabled (println! (Crossover: $xOver)) ()))
+        ($_crossover (if $progressEnabled (println! (Crossover: $xOver)) ()))
         ($_center
           (if $progressEnabled
               (println! (CenterInst: (second $centerInst)))
               ()))
-        ($_size
-          (if $progressEnabled (println! (size: $size)) ()))
+        ($_size (if $progressEnabled (println! (size: $size)) ()))
         ($_neighborhood
           (if $progressEnabled
               (println! ($totalNNeighbors : $nNewNeighbors : $d))

@@ -321,9 +321,7 @@
         ($initialBscore (scoreAntTree $initialTree $steps))
         ;; Derive the Cscore from the stored BScore so initialization performs
         ;; exactly one ant simulation.
-        ($initialCscore
-          (getAntCscoreFromBScore
-            $initialTree $complexityRatio $initialBscore))
+        ($initialCscore (getAntCscoreFromBScore $initialTree $complexityRatio $initialBscore))
         ($_ (println! (BestPossibleScore: (ant-best-possible-score))))
         ($metaPop ((mkExemplar $initialTree (mkDemeId "1") $initialCscore $initialBscore)))
         ;; Ant uses the parity loop with explicit visit accounting.  Generic

@@ -205,8 +205,7 @@ $optimDeme
       (mkAntContext $steps $complexityRatio $actions $perceptions)
       $optimize $remainingBudget)
    (let* (
-          ($context
-            (mkAntContext $steps $complexityRatio $actions $perceptions))
+          ($context (mkAntContext $steps $complexityRatio $actions $perceptions))
           ($tree (getExemplarTree $exemplar))
           ($_selectedDiagnostics
             (if (param antDiagnostics)
@@ -436,8 +435,7 @@ $optimDeme
                         ($exemplar (selectExemplar $eligible))
                         ($tree (getExemplarTree $exemplar))
                         ($updatedVisits (recordAntVisit $tree $visits))
-                        ($visitCount
-                          (antVisitCount $tree $updatedVisits))
+                        ($visitCount (antVisitCount $tree $updatedVisits))
                         ($_generationDiagnostics
                           (if (param antDiagnostics)
                               (println! (Generation $maxGen))
@@ -447,14 +445,9 @@ $optimDeme
                               (println! (AntExemplarSelection
                                 (expansion $nExpansion)
                                 (mode boltzmann)
-                                (selectedRaw
-                                  (getScore
-                                    (getExemplarCscore $exemplar)))
-                                (selectedPenalized
-                                  (getPenScore
-                                    (getExemplarCscore $exemplar)))
-                                (eligibleCandidates
-                                  (List.length $eligible))))
+                                (selectedRaw (getScore (getExemplarCscore $exemplar)))
+                                (selectedPenalized (getPenScore (getExemplarCscore $exemplar)))
+                                (eligibleCandidates (List.length $eligible))))
                               ()))
                         (($optimizedDemes $actualEvaluations)
                           (expandSelectedAntExemplarCounted
@@ -488,24 +481,12 @@ $optimDeme
                              $retryVisits $retryEvaluations
                              $bestRawExemplar)))
                        (let* (
-                              ($updatedCumulativeEvaluations
-                                (+ $cumulativeEvaluations
-                                   $actualEvaluations))
-                              ($generationRawBest
-                                (bestRawAntExemplarFromDemes
-                                  $optimizedDemes $context))
-                              ($updatedRawBest
-                                (betterRawAntExemplar
-                                  $bestRawExemplar $generationRawBest))
-                              ($updatedMetaPop
-                                (mergeDemes
-                                  $optimizedDemes $context $metaPop))
-                              ($bestRaw
-                                (getScore
-                                  (getExemplarCscore $updatedRawBest)))
-                              ($bestPenalized
-                                (getExemplarPenScore
-                                  (OS.getByIdx 0 $updatedMetaPop)))
+                              ($updatedCumulativeEvaluations (+ $cumulativeEvaluations $actualEvaluations))
+                              ($generationRawBest (bestRawAntExemplarFromDemes $optimizedDemes $context))
+                              ($updatedRawBest (betterRawAntExemplar $bestRawExemplar $generationRawBest))
+                              ($updatedMetaPop (mergeDemes $optimizedDemes $context $metaPop))
+                              ($bestRaw (getScore (getExemplarCscore $updatedRawBest)))
+                              ($bestPenalized (getExemplarPenScore (OS.getByIdx 0 $updatedMetaPop)))
                               ($_antDiagnostics
                                 (if (param antDiagnostics)
                                     (printAntGenerationDiagnostics
@@ -521,8 +502,7 @@ $optimDeme
                          (if (>= $bestRaw $maxScore)
                              (finishAntMetapop
                                $updatedMetaPop $updatedRawBest)
-                             (if (antEvaluationBudgetReached
-                                   $updatedCumulativeEvaluations)
+                             (if (antEvaluationBudgetReached $updatedCumulativeEvaluations)
                                  (finishAntMetapop
                                    $updatedMetaPop $updatedRawBest)
                                  (runAntMosesCountedWithBest
