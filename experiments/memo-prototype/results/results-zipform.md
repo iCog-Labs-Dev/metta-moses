@@ -799,3 +799,57 @@ vs &subtreeCache atomspace), (3) dispatch includes the rewrite step, dev does no
 Same-runtime, scoring-loop-only (T0-T1, excludes import/startup). Reps bimodal
 (contention high mode discarded; low mode is the clean compute estimate).
 Files: drv_mux6_dev.metta.
+
+---
+
+## Full-pipeline mux6 solve: columnar evalSubtree vs dev — 2026-07-22
+
+`sh /home/yab/PeTTaV1/run.sh moses.metta -s --problem=mux6 --nEval=1000 --maxGen=10`,
+PeTTaV1, performance governor + AC (no power skew). A/B = swap ONLY
+scoring/fitness.metta between the columnar clause-dispatch combineOp (NEW) and
+dev's per-row sealed/reduce combineNode (DEV), everything else identical,
+alternating pairs. FinalResult byte-identical (var-normalized) across all runs.
+
+| Pair | NEW (columnar) | DEV (per-row) |
+|------|----------------|---------------|
+| 1 | 28.253s | 30.366s |
+| 2 | 28.951s | 31.084s |
+| 3 | 27.505s | 32.186s |
+| 4 | 27.164s | 31.607s |
+| **mean** | **27.97s** | **31.31s** |
+
+NEW is **~11% faster** end-to-end (mean 27.97 vs 31.31; median 27.9 vs 31.35),
+with CLEAN separation — the slowest NEW run (28.95s) beats the fastest DEV run
+(30.37s). Identical solutions. This is the whole-pipeline payoff of the
+columnar scoring integration (scoring is a minority of the run, yet the ~1.8x
+scoring speedup still moves total wall ~11%). Runs on PeTTaV1 today; lib_memo
+per-subtree memoization (PR-165) would stack further on top.
+
+---
+
+## Full-pipeline mux6 on PR-165: dev vs columnar-space vs columnar-memo — 2026-07-22
+
+Consistent-runtime A/B (all on PR-165, alternating rounds, swap only
+scoring/fitness.metta, FinalResult byte-identical across all):
+
+| Cell | mean | vs dev |
+|------|------|--------|
+| dev (per-row sealed/reduce + &subtreeCache) | 29.63s | — |
+| columnar + &subtreeCache | 27.48s | ~7% faster |
+| columnar + lib_memo (evalColM memoized, NO &subtreeCache) | 27.79s | ~6% faster |
+
+**The speedup is the columnar combine, not the cache backend.** lib_memo and
+&subtreeCache tie at mux6 scale -- memoize verified ACTIVE (6838 hit / 2618 miss
+on the replay stream, FinalResult identical to dev, &subtreeCache fully removed
+from the eval path). At 64-row columns lib_memo's indexed lookup and the
+atomspace match/add cost the same per entry; lib_memo only pulls ahead on large
+columns (experiment crossover ~thousands of rows). So swapping the space for
+lib_memo is architecturally cleaner (no atomspace churn, cache is the runtime's
+job) but not faster on mux6.
+
+COMMITTED (exp/memo-prototype, local only, NOT pushed): scoring/fitness.metta now
+uses the lib_memo evalColM version (per lib_memo_doc.md conventions). PR-165-only
+win: on PeTTaV1 the lib_memo import no-ops and evalColM runs unmemoized (correct
+but uncached). The columnar-only + &subtreeCache version (runs on both runtimes,
+~7% on PeTTaV1 and PR-165) is at commit 686839b if a both-runtimes variant is
+wanted.
