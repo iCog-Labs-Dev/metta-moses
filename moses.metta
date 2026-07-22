@@ -108,15 +108,15 @@
 ;; (tttActionFitness / tttActionBestScore) but sets NO params -- loading it
 ;; only makes the symbols available for --fitness=tttActionFitness /
 ;; set-param binding. It needs the shared tic-tac-toe helpers/players
-;; (minimal set mirrored from examples/tic-tac-toe-action/tests).
+;; (minimal set mirrored from examples/tic-tac-toe/tests).
 !(import! &self examples/tic-tac-toe/tic-tac-toe-helpers)
 !(import! &self examples/tic-tac-toe/moves)
 !(import! &self examples/tic-tac-toe/random-player)
 !(import! &self examples/tic-tac-toe/minimax-player)
-!(import! &self examples/tic-tac-toe-action/ttt-action-world)
-!(import! &self examples/tic-tac-toe-action/ttt-action-primitives)
-!(import! &self examples/tic-tac-toe-action/ttt-action-episode)
-!(import! &self examples/tic-tac-toe-action/ttt-action-registration)
+!(import! &self examples/tic-tac-toe/ttt-action-world)
+!(import! &self examples/tic-tac-toe/ttt-action-primitives)
+!(import! &self examples/tic-tac-toe/ttt-action-episode)
+!(import! &self examples/tic-tac-toe/ttt-action-registration)
 
 ;; ---- Optimization (hill climbing is the only production-ready algorithm) ----
 !(import! &self optimization/hillclimbing/crossover-helpers)

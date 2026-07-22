@@ -48,10 +48,10 @@
 !(import! &self ../../examples/tic-tac-toe/moves)
 !(import! &self ../../examples/tic-tac-toe/random-player)
 !(import! &self ../../examples/tic-tac-toe/minimax-player)
-!(import! &self ../../examples/tic-tac-toe-action/ttt-action-world)
-!(import! &self ../../examples/tic-tac-toe-action/ttt-action-primitives)
-!(import! &self ../../examples/tic-tac-toe-action/ttt-action-episode)
-!(import! &self ../../examples/tic-tac-toe-action/ttt-action-registration)
+!(import! &self ../../examples/tic-tac-toe/ttt-action-world)
+!(import! &self ../../examples/tic-tac-toe/ttt-action-primitives)
+!(import! &self ../../examples/tic-tac-toe/ttt-action-episode)
+!(import! &self ../../examples/tic-tac-toe/ttt-action-registration)
 
 !(import! &self ../../moses/neighborhood-sampling)
 

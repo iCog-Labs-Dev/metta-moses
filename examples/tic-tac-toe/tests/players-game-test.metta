@@ -7,7 +7,7 @@
 ;; Tests the surviving PLAYERS (random / minimax / alpha-beta minimax) by
 ;; running them head-to-head. The game engine's tree-as-player arm
 ;; (moses-player) is gone; interpreting a tree as X is now pinned by
-;; examples/tic-tac-toe-action/tests/ttt-action-episode-test. This file keeps
+;; tests/ttt-action-episode-test. This file keeps
 ;; a test-local two-policy loop -- play-game-loop (game-engine.metta:36-50)
 ;; minus the printing -- so the seed-42 draw stream is unchanged (one draw
 ;; per random move, players applied in the same X-then-O order).

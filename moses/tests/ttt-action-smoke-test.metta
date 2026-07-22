@@ -89,10 +89,10 @@
 !(import! &self ../../examples/tic-tac-toe/moves)
 !(import! &self ../../examples/tic-tac-toe/random-player)
 !(import! &self ../../examples/tic-tac-toe/minimax-player)
-!(import! &self ../../examples/tic-tac-toe-action/ttt-action-world)
-!(import! &self ../../examples/tic-tac-toe-action/ttt-action-primitives)
-!(import! &self ../../examples/tic-tac-toe-action/ttt-action-episode)
-!(import! &self ../../examples/tic-tac-toe-action/ttt-action-registration)
+!(import! &self ../../examples/tic-tac-toe/ttt-action-world)
+!(import! &self ../../examples/tic-tac-toe/ttt-action-primitives)
+!(import! &self ../../examples/tic-tac-toe/ttt-action-episode)
+!(import! &self ../../examples/tic-tac-toe/ttt-action-registration)
 
 !(import! &self ../../optimization/hillclimbing/crossover-helpers)
 !(import! &self ../../optimization/hillclimbing/crossover)
@@ -118,7 +118,7 @@
 ;; ============================================================
 ;; THE RECIPE DEMO -- binding a NEW action fitness with zero pipeline
 ;; edits. This is the exact template from
-;; examples/tic-tac-toe-action/ttt-action-registration.metta, instantiated
+;; examples/tic-tac-toe/ttt-action-registration.metta, instantiated
 ;; for a test-local fast variant: tic-tac-toe against random-player ONLY,
 ;; every ordinal (minimax is the expensive opponent; dropping it keeps the
 ;; smoke run fast AND demonstrates that a fitness fully owns its

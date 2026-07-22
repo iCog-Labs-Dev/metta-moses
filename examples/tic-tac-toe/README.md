@@ -1,16 +1,19 @@
 # Tic-tac-toe as a generic ACTION experiment
 
-This package expresses tic-tac-toe as an action experiment for the
-pluggable generic action evaluator (`scoring/action-registry.metta`,
+This folder holds two layers of the same game. The shared board engine
+(`tic-tac-toe-helpers.metta`, `moves.metta`, `random-player.metta`,
+`minimax-player.metta`, `alpha-beta-minimax-player.metta`) provides the
+board, move finders, and opponent policies. The `ttt-action-*.metta` files
+on top of it express tic-tac-toe as an action experiment for the pluggable
+generic action evaluator (`scoring/action-registry.metta`,
 `scoring/action-eval.metta`, `scoring/action-ops.metta`). It is the
 reference fitness package: candidate trees built from structural operators
 (`and_seq`, `or_seq`, ...) plus the actions/perceptions below are executed
 by `evalAction` against an opaque world, and a fitness function turns one
-episode ordinal into a raw score. The existing strategy example in
-`examples/tic-tac-toe/` remains a separate, untouched package; this one
-only reuses its board helpers, move finders, and opponent policies.
+episode ordinal into a raw score. The action layer only reuses the board
+engine's helpers, move finders, and opponent policies.
 
-Files (load in this order, after the scoring block):
+Action-layer files (load in this order, after the scoring block):
 
 1. `ttt-action-world.metta` — world `(mkTTTWorld board player moved)`,
    accessors, and `applyTTTMove` (the one-move-per-turn latch: once a

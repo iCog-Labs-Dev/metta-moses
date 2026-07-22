@@ -82,7 +82,7 @@ convention repo-wide — and deleted redundant registration.
 - A domain package is now: world + primitives + episode runner + one
   registration file with four sections (config clauses, episode runner, best
   score, `registerActionDomain`). See
-  examples/tic-tac-toe-action/README.md for the recipe.
+  examples/tic-tac-toe/README.md for the recipe.
 
 ## M0.5 — Params-based fitness + context-shape routing (DONE)
 
