@@ -1,0 +1,174 @@
+(BestPossibleScore: 0)
+(Generation 2)
+"expand  deme returnn"
+(SelectedTree: true)
+(GeneratedList: (0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0))
+""
+(Iteration 1 running)
+(Crossover: false)
+(CenterInst: (0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0))
+(size: 8)
+(1 : 1 : 0)
+(New best score: -8.0)
+""
+(Iteration 2 running)
+(Crossover: false)
+(CenterInst: (0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0))
+(size: 8)
+(144 : 288 : 1)
+(New best score: -4.285714285714286)
+""
+(Iteration 3 running)
+(Crossover: false)
+(CenterInst: (0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0))
+(size: 8)
+(144 : 288 : 1)
+(New best score: -3.857142857142857)
+""
+(Iteration 4 running)
+(Crossover: true)
+(CenterInst: (0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0))
+(size: 8)
+(2556 : 403 : 2)
+(New best score: -3.4285714285714284)
+""
+(Iteration 5 running)
+(Crossover: false)
+(CenterInst: (0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 2 0 0 1))
+(size: 8)
+(144 : 288 : 1)
+(New best score: -3.4285714285714284)
+""
+(Iteration 6 running)
+(Crossover: true)
+(CenterInst: (0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 2 0 0 1))
+(size: 8)
+(2556 : 275 : 2)
+(New best score: -3.4285714285714284)
+(Terminating because score hasn't improved)
+(Terminating because score hasn't improved)
+(Terminating because score hasn't improved)
+(Terminating because score hasn't improved)
+(OptimizedDeme: 305)
+"Merging Deme"
+(Demesize: 305)
+(nEval: 1000 LenSInstList: 305)
+(TopCnd: 305)
+(Keep 100 Unique instances from 305)
+(KeptUniqueTopCandidates NewSize: 100)
+(TrimmedDownDeme: 100)
+(Before getNewCandidates: 100)
+(Going to merge 47 Instances)
+(Metapop size before resize: 48)
+(Metapop size after resize: 47)
+""
+(Generation 1)
+"expand  deme returnn"
+(SelectedTree: (AND (OR (AND X1 X2) (AND (NOT X3) (OR X1 X2)))))
+(GeneratedList: (0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 0 1 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0))
+""
+(Iteration 1 running)
+(Crossover: false)
+(CenterInst: (0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 0 1 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0))
+(size: 8)
+(1 : 1 : 0)
+(New best score: -3.4285714285714284)
+""
+(Iteration 2 running)
+(Crossover: false)
+(CenterInst: (0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 0 1 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0))
+(size: 8)
+(588 : 499 : 1)
+(New best score: -3.4285714285714284)
+""
+(Iteration 3 running)
+(Crossover: true)
+(CenterInst: (0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1 0 0 1 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0))
+(size: 8)
+(43071 : 303 : 2)
+(New best score: -3.2857142857142856)
+(Terminating because score hasn't improved)
+(Terminating because score hasn't improved)
+(Terminating because score hasn't improved)
+(OptimizedDeme: 277)
+"Merging Deme"
+(Demesize: 277)
+(nEval: 1000 LenSInstList: 277)
+(TopCnd: 277)
+(Keep 100 Unique instances from 277)
+(KeptUniqueTopCandidates NewSize: 100)
+(TrimmedDownDeme: 100)
+(Before getNewCandidates: 100)
+(Going to merge 6 Instances)
+(Metapop size before resize: 53)
+(Metapop size after resize: 53)
+""
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+true
+()
+(FinalResult (((AND (OR (AND (NOT X3) (OR X1 X2)) (AND (OR X1 (NOT X2)) (OR X2 (AND (NOT X1) X3))))) -1) ((AND (OR (AND X1 X2) (AND (NOT X3) (OR X1 X2)))) -2) ((AND (OR (AND (NOT X3) (OR X1 X2)) (AND X1 X2))) -2) ((AND (OR (AND X2 X1) (AND (NOT X3) (OR X1 X2)))) -2) ((AND (OR (AND (NOT X1) (NOT X2)) (AND X1 X2) (NOT X3))) -2) ((AND (OR (AND X3 X1 X2) (AND (NOT X3) (OR X1 X2)))) -2) ((AND (OR (AND X1 X2 X3) (AND (NOT X3) (OR X1 X2)))) -2) ((AND (OR (AND X2 X1 X2) (AND (NOT X3) (OR X1 X2)))) -2) ((AND (OR (AND X1 X2 X1) (AND (NOT X3) (OR X1 X2)))) -2) ((AND (OR (AND X2 X1 X3) (AND (NOT X3) (OR X1 X2)))) -2)))

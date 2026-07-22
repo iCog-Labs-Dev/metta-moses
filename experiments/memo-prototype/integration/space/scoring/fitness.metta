@@ -112,17 +112,21 @@
 
 
 ;; ---------------------------------------------------------------------------
+;; INTEGRATION VARIANT: S-control (experiments/memo-prototype/integration/space)
 ;; Columnar subtree evaluation over the wrapped preOrderExp shape:
 ;;   node = (AND (c1 .. ck)) / (OR (c1 .. ck)) / (NOT (c));  leaf = label | True/False
 ;; Every subtree is evaluated ONCE into a boolean column over all rows and
 ;; memoized in &subtreeCache, keyed by its ground wrapped expr (valid for the
-;; run's single fixed table). Operator semantics live solely in the AND/OR/NOT
-;; clauses (scoring/boolean-ops): on a cache miss a one-level template with
-;; fresh shared vars is built once and every row is scored by unification --
-;; sealed freshens the vars, a positional let binds the row's child values,
-;; and one let-bound `reduce` dispatches the clause. A head with no clause
-;; stays unreduced and scores worst (-1), like the old ERROR column.
-;; Probes: tmp/probe-sealed.metta, tmp/probe-mapvars.metta.
+;; run's single fixed table) -- UNCHANGED from production. What changed is
+;; HOW child columns are combined into a node column: instead of the
+;; sealed/reduce row-template machinery (mkNodeTemplate/evalRow/transposeCols/
+;; combineNode, PeTTaV1-only), this variant uses the stock-safe columnar fold
+;; `combineOp` (ported from experiments/memo-prototype/common/
+;; kernel-common.metta), which runs on both PeTTaV1 and PR-165. This is the
+;; ONLY change in this file relative to production scoring/fitness.metta; the
+;; &subtreeCache memo mechanism, varColumn, and evalSubtree's cache
+;; match/add-atom logic are all unchanged, so an M-vs-S comparison on this
+;; runtime isolates the cache mechanism, not the combine primitive.
 ;; ---------------------------------------------------------------------------
 
 ;; Extract a label's column from the row-major table. Unknown label -> loud
@@ -134,68 +138,33 @@
             (Error $label "varColumn: label not found in table")
             (map-atom $rows $r (index-atom $r $idx)))))
 
-;; Node row-template, built once per cache miss: ($varsTerm $exprTerm) sharing
-;; fresh vars, e.g. (($v1 $v2) (AND ($v1 $v2))). map-atom's per-element
-;; copy_term mints the k distinct vars; `cons` keeps the node inert (a bare
-;; (AND ...) literal would fire the clause at build time).
-(= (mkNodeTemplate $op $cvs)
-   (let* (($vars (map-atom $cvs $c $v))
-          ($e    (cons $op (cons $vars ()))))
-     ($vars $e)))
-
-;; One row through the template: sealed copies vars and expr together (the
-;; template stays unbound for the next row), the let unifies the row's child
-;; values positionally, and `reduce` dispatches the operator clause.
-(= (evalRow $template $row)
-   (let ($vars $e) $template
-        (sealed $vars (let $vars $row (reduce $e)))))
-
-;; Non-empty equal-length columns -> per-row value tuples (ground data only).
-(= (transposeCols $cols)
-   (if (== (car-atom $cols) ())
-       ()
-       (cons (map-atom $cols $c (car-atom $c))
-             (transposeCols (map-atom $cols $c (cdr-atom $c))))))
-
-;; Child columns -> node column: template once, then each transposed row
-;; through evalRow via the var-safe map (map-atom would copy the template
-;; per row). Childless AND/OR reduce their identity once and repeat it.
-(= (combineNode $op $cvs $n)
-   (if (== $cvs ())
-       (List.repeat $n (let $e (cons $op (cons () ())) (reduce $e)))
-       (let $t (mkNodeTemplate $op $cvs)
-         (map evalRow $t (transposeCols $cvs)))))
-
-;; --- Columnar node combine (child columns -> node column) --------------------
-;; This is the columnar-kernel approach validated in experiments/memo-prototype
-;; (the "dispatch evaluator"): instead of building a per-row template and
-;; dispatching `reduce` once PER ROW (mkNodeTemplate/evalRow above), each
-;; operator is ONE CLAUSE that folds the child COLUMNS with a whole-column
-;; zipWith. On mux6 this was ~1.8x faster than the per-row sealed/reduce path
-;; over the same &subtreeCache, with byte-identical output. Runs on PeTTaV1
-;; (no lib_memo needed -- the &subtreeCache walk below is unchanged); dropping
-;; in lib_memo per-subtree memoization is the further speedup that lands once
-;; PR-165 is merged.
-;;
-;; Clause dispatch on the op (disjoint literal heads AND/OR/NOT, no variable
-;; catch-all -> no overlapping-clause hazard), mirroring the prototype's
-;; dispatchZip. Adding an operator is one clause here -- no evalSubtree change.
-;; NOTE: the per-row template above (mkNodeTemplate/evalRow/transposeCols/
-;; combineNode) is now LEGACY -- retained only because scoring/test/
-;; boolean-ops-test.metta pins its internals; a real integration would migrate
-;; that test and delete them.
+;; --- Ported from experiments/memo-prototype/common/kernel-common.metta ---
+;; Per-row boolean ops (True/False are Grounded booleans from the table).
 (= (and2 $a $b) (if (and (== $a True) (== $b True)) True False))
 (= (or2  $a $b) (if (or  (== $a True) (== $b True)) True False))
-(= (colZipAnd $childCol $acc) (List.zipWith and2 $childCol $acc))
-(= (colZipOr  $childCol $acc) (List.zipWith or2  $childCol $acc))
 (= (colNot $col) (map-atom $col $b (if (== $b True) False True)))
 
-;; combineOp: op x list-of-child-columns x row count -> node column. Folding an
-;; empty child-column list over the identity seed reproduces the degenerate
-;; arities: (AND ()) -> all-True, (OR ()) -> all-False (matches production).
-(= (combineOp AND $childCols $n) (List.foldl colZipAnd (List.repeat $n True)  $childCols))
-(= (combineOp OR  $childCols $n) (List.foldl colZipOr  (List.repeat $n False) $childCols))
-(= (combineOp NOT $childCols $n) (colNot (car-atom $childCols)))
+;; Column-level zip folds used to combine child columns. List.zipWith/
+;; List.foldl/List.repeat are the production copies already imported via
+;; utilities/list-methods.metta (verified byte-identical to the prototype's
+;; common/list-helpers.metta), so no list-helper duplication is needed here.
+(= (colZipAnd $childCol $acc) (List.zipWith and2 $childCol $acc))
+(= (colZipOr  $childCol $acc) (List.zipWith or2  $childCol $acc))
+
+;; combineOp: op symbol x list-of-child-columns x row count -> column.
+;; AND folds zipWith and2 over children seeded with an all-True column ($n
+;; long); OR seeds all-False; NOT takes its single child column. Folding an
+;; empty child-column list over the seed naturally reproduces the identity
+;; column, matching production semantics: (AND ()) -> all-True,
+;; (OR ()) -> all-False.
+(= (combineOp $op $childCols $n)
+   (if (== $op AND)
+       (List.foldl colZipAnd (List.repeat $n True) $childCols)
+       (if (== $op OR)
+           (List.foldl colZipOr (List.repeat $n False) $childCols)
+           (if (== $op NOT)
+               (colNot (car-atom $childCols))
+               (Error $op "combineOp: unknown operator")))))
 
 ;; Wrapped (sub)expression -> boolean column. Nodes AND label leaves are
 ;; memoized, so a label's table walk happens once per run. The map-atom over

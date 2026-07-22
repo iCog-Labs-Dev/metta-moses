@@ -1,0 +1,1 @@
+/home/yab/PeTTa-pr165/run.sh "$(pwd)/drv_rand12_zipform_P.metta" >  2>&1  117.25s user 0.48s system 99% cpu 1:58.19 total

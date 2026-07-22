@@ -1,0 +1,1 @@
+"$RUNTIME" "$driver_path" > "$log" 2>&1  114.35s user 0.58s system 99% cpu 1:55.39 total

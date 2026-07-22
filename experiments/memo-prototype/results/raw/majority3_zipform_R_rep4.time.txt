@@ -1,0 +1,1 @@
+"$RUNTIME" "$(pwd)/drv_${w}_zipform_R.metta" > "$log" 2>&1  0.29s user 0.02s system 100% cpu 0.314 total

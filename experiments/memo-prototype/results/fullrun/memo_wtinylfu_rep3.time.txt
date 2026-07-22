@@ -1,0 +1,1 @@
+timeout 900 /home/yab/PeTTa-pr165/run.sh moses.metta --problem=mux6  --nDeme=  25.19s user 1.21s system 99% cpu 26.498 total
