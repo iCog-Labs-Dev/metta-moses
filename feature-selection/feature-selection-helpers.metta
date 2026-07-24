@@ -216,15 +216,14 @@
 
 
 (= (calculateMutualInformation (mkITable $rows $labels) $featureIndices)
-    (chain (- (List.length $labels) 1) $targetIndex
-        (chain (Table.getColumn $targetIndex $rows) $targetColumn
-                    ;; feature MI calculation
-            (chain (zipColumn $featureIndices $rows) $jointColumn
-                (chain (mutualInformation $jointColumn $targetColumn) $miScore
-                    (chain (List.length $targetColumn) $rowCount ;; Use the number of examples for confidence scaling.
-
-                        (chain (calculateConfidence (size-atom $featureIndices) $rowCount 50.0) $confidence
-                                (* $miScore $confidence))))))))
+    (let* (
+           ($targetIndex (- (List.length $labels) 1))
+           ($targetColumn (Table.getColumn $targetIndex $rows))
+           ($jointColumn (zipColumn $featureIndices $rows))
+           ($miScore (mutualInformation $jointColumn $targetColumn))
+           ($confidence (calculateConfidence (size-atom $featureIndices) (List.length $targetColumn) 50.0))
+          )
+          (* $miScore $confidence)))
 
 (= (cachedMutualInformation $itable $featureIndices)
     (lruCache (param defaultCacheSize) ((calculateMutualInformation) ($itable $featureIndices))))
@@ -234,14 +233,16 @@
 (= (zipColumn $indices $table)
     (if (== $indices ())
         ()
-        (chain (map-atom $indices $i (Table.getColumn $i $table)) $columns
-            (chain (List.length (List.at 0 $columns)) $rowCount
-                (zipColumnHelper $columns (List.range 0 $rowCount))))))
+        (let* (
+               ($columns (map-atom $indices $i (Table.getColumn $i $table)))
+              )
+              (zipColumnHelper $columns (List.range 0 (List.length (List.at 0 $columns)))))))
 
 ;; (: zipColumnHelper (-> (List (List $a)) (List Number) (List $a)))
 (= (zipColumnHelper $columns ()) ())
 
 (= (zipColumnHelper $columns (cons $rowIdx $rest))
+
     (chain (map-atom $columns $column (List.at $rowIdx $column)) $dataTuple
         (cons $dataTuple (zipColumnHelper $columns $rest))))
 
