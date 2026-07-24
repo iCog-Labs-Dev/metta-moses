@@ -13,7 +13,7 @@
 
         (chain (py-call (random.randint 0 2147483647)) $seed                                        ;; random seed to break ties between equally-scored features
         (chain (List.length $labels) $colNum
-            (chain (List.length $table) $rowNum
+            (chain (List.length (Table.getColumn 0 $table)) $rowNum
                 (chain (Table.getColumn (- $colNum 1) $table) $oc                                  ;; get the output column
                     (chain (selectorIterator $th $rowNum $oc $labels $table 0 $seed $acc) $selected-features  ;; the output format might need to change into sth like ((1) (2) (3) (4))
                         (chain (if $expDist                                                                        ;; this is the actual selection after the scoring
@@ -36,7 +36,7 @@
         (chain (Table.getColumn 0 $dataRows) $if
         (chain (Table.pop 0 $dataRows) $rem-table                            ;; remove the first column -- better than carrying around the whole table
         (chain (mutualInformation $if $oc) $mi
-            (chain (calculateConfidence (size-atom $if) (List.length $dataRows) 50.0) $confidence
+            (chain (calculateConfidence (size-atom $if) $rowNum 50.0) $confidence
                 (chain (* $mi $confidence) $actualScore
                     (if (>= $actualScore $th)
                         (chain (eval (insertPair > (featureSet< $seed) ($actualScore ($counter)) $acc)) $new-acc   ;; seeded tie-break for equal scores (matches selectTopFts / OpenCog)
