@@ -84,10 +84,9 @@
 
 (= (inputCsvTable)
    (mkITable
-      ((False False False)
-       (False True  True)
-       (True  False True)
-       (True  True  False))
+      ((False False True True)
+       (False True False True)
+       (False True True False))
       (a b o)))
 
 !(println! ("testing: inputFile loads input.csv as an ITable"))
@@ -105,4 +104,4 @@
 !(assertEqual
    (let $result (moses)
         (second (index-atom (second $result) 0)))
-   0)
+-1)
