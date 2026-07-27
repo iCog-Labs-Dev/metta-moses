@@ -197,32 +197,34 @@
 (= (combineOp OR  $childCols $n) (List.foldl colZipOr  (List.repeat $n False) $childCols))
 (= (combineOp NOT $childCols $n) (colNot (car-atom $childCols)))
 
-;; === lib_memo per-subtree memoization (PR-165 ONLY -- EXPERIMENTAL) =========
-;; This evalSubtree uses PR-165's lib_memo runtime memoization instead of the
-;; &subtreeCache atomspace memo -- the atomspace subtree cache is NO LONGER
-;; USED. On PeTTaV1 the `(library lib_memo)` import silently no-ops and the
-;; memoize/config-memoize/clear-memoize calls become inert, so evalColM runs
-;; UNMEMOIZED there -- still CORRECT, but with NO subtree caching at all (hence
-;; SLOWER than dev, whose &subtreeCache is removed here). The memoization win
-;; is PR-165-only. EXPERIMENTAL: local exp/memo-prototype branch ONLY -- do NOT
-;; push to dev (CI runs on PeTTaV1, where this regresses to no caching).
+;; === FULL ZIPFORM PIPELINE (PR-165 lib_memo) -- EXPERIMENTAL ================
+;; The boss-literal design: a REWRITE PASS materializes each candidate as an
+;; explicit higher-order column term --
+;;   (AND (x (OR (y z)))) -> (zZip and2 (zCol x) (zZip or2 (zCol y) (zCol z)))
+;; -- then a dispatch evaluator scores it columnar-ly, with lib_memo memoizing
+;; EACH sub-term so a sub-formula shared across candidates computes its column
+;; ONCE (cross-candidate sub-term sharing -- the point of the boss's design).
 ;;
-;; Per lib_memo_doc.md: reproducible preset (clear-memoize + clear-memoize-stats
-;; + config-memoize) at load; `!(memoize evalColM 1)` declared immediately
-;; BEFORE evalColM's definition (memoize-before-def); arity-1 memoization keyed
-;; on the SYMBOLIC subexpression only -- the fixed table + row count ride in a
-;; tiny ctx space so they never bloat the key; unique-limit 100000 >> distinct
-;; subtree keys for a mux6 solve (no thrash), wtinylfu for the stable hot set.
-;; &subtreeCache is never reset during a solve and the table is fixed, so a
-;; never-cleared lib_memo cache reproduces the identical per-subtree
-;; cross-candidate sharing -- verified: mux6 FinalResult byte-identical to dev,
-;; 6838 hits / 2618 miss on the replay stream.
+;; ROW FUNCTIONS are the and2/or2/not2 HELPERS (defined above / just below),
+;; NOT the production AND/OR/NOT operators. rowFnOf maps a candidate op symbol
+;; to its helper. This deliberately does NOT redefine production's AND/OR/NOT
+;; (leaving reduct/crossover/representation untouched) -- an earlier attempt
+;; that redefined them at binary arity broke the full solve even though the
+;; scoring destructure worked in isolation.
+;;  - Candidates from preOrderExp are quote-protected, so (AND (children))
+;;    stays inert and the rewriter destructures it structurally (variable head).
+;;  - The ops TABLES (monoids/memptyTable) are quote-protected because AND/OR
+;;    ARE production-defined heads.
+;;  - Dispatch tags are z-prefixed (zCol/zFmap/zZip/zZipN) because production
+;;    defines a bare `zipWith` (utilities/general-helpers.metta:301).
+;;
+;; PR-165 ONLY (lib_memo). On PeTTaV1 the memoize calls no-op -> UNMEMOIZED
+;; (correct but uncached). EXPERIMENTAL, local branch only, do NOT push.
 !(import! &self (library lib_memo))
 !(clear-memoize)
 !(clear-memoize-stats)
 !(config-memoize (unique-limit 100000) (strategy wtinylfu) (size-limit 5))
 !(bind! &emCtx (new-space))
-;; ctx cell: single-valued (rel -> value), remove-then-add keeps it single
 (= (emPut $rel $val)
    (let* (($_  (collapse (match &emCtx ($rel $o) (remove-atom &emCtx ($rel $o)))))
           ($_2 (add-atom &emCtx ($rel $val))))
@@ -230,26 +232,71 @@
 (= (emCtxTable) (car-atom (collapse (match &emCtx (emT $t) $t))))
 (= (emCtxN)     (car-atom (collapse (match &emCtx (emN $n) $n))))
 
-;; memoize-before-def (lib_memo_doc.md): the decl must precede the clause.
-!(memoize evalColM 1)
-(= (evalColM $exp)
-   (if (== (get-metatype $exp) Grounded)
-       (List.repeat (emCtxN) $exp)
-       (if (== (get-metatype $exp) Expression)
-           ;; every node is uniformly ($op ($c1 .. $ck)); recurse via the
-           ;; memoized evalColM on the SYMBOLIC children (per-subtree sharing).
-           (let* ((($op $children) $exp)
-                  ($cvs (map-atom $children $child (evalColM $child))))
-             (combineOp $op $cvs (emCtxN)))
-           (varColumn (emCtxTable) $exp))))
+;; row-fn helpers: and2/or2 already defined above (for the retired combineOp);
+;; not2 is the per-cell negation. These are NOT the production AND/OR/NOT ops.
+(= (not2 $a) (if (== $a True) False True))
+;; rowFnOf: candidate op symbol -> row-function helper. Single if-chain (no
+;; overlapping clauses); unknown ops pass through unchanged.
+(= (rowFnOf $op) (if (== $op AND) and2 (if (== $op OR) or2 (if (== $op NOT) not2 $op))))
 
-;; evalSubtree keeps its 3-arg signature (scoreTree caller unchanged): publish
-;; the fixed table/n into the ctx space, then delegate to the memoized evalColM.
+;; monoid tables (quote-protected: AND/OR are production-defined heads). AND/OR
+;; are associative with identities True/False -> n-ary folds to nested binary.
+(= (monoids) (quote (AND OR)))
+(= (isMonoid $op) (once (is-member $op (monoids))))
+(= (memptyTable) (quote ((AND True) (OR False))))
+(= (memptyScan () $op) (Error $op "mempty: no nullary identity"))
+(= (memptyScan (cons ($k $v) $rest) $op) (if (== $k $op) $v (memptyScan $rest $op)))
+(= (mempty $op) (memptyScan (memptyTable) $op))
+
+;; --- rewriter: wrapped candidate -> materialized column term ----------------
+(= (foldr1 $fn $children)
+   (if (== (List.length $children) 1)
+       (car-atom $children)
+       (let $rest (foldr1 $fn (cdr-atom $children))
+         (cons zZip (cons $fn (cons (car-atom $children) (cons $rest ())))))))
+(= (rewriteTree $exp)
+   (if (== (get-metatype $exp) Grounded)
+       $exp
+       (if (== (get-metatype $exp) Symbol)
+           (cons zCol (cons $exp ()))
+           (let ($op $children) $exp
+             (case (List.length $children)
+               ((0 (if (isMonoid $op) (mempty $op)
+                       (Error $exp "rewriteTree: nullary non-foldable op")))
+                (1 (let $c1 (rewriteTree (car-atom $children))
+                     (if (isMonoid $op) $c1
+                         (cons zFmap (cons (rowFnOf $op) (cons $c1 ()))))))
+                (2 (let* (($l (rewriteTree (index-atom $children 0)))
+                          ($r (rewriteTree (index-atom $children 1))))
+                     (cons zZip (cons (rowFnOf $op) (cons $l (cons $r ()))))))
+                ($_ (let $recChildren (map-atom $children $c (rewriteTree $c))
+                      (if (isMonoid $op)
+                          (foldr1 (rowFnOf $op) $recChildren)
+                          (cons zZipN (cons (rowFnOf $op) (cons $recChildren ()))))))))))))
+;; memoized rewrite (table-independent: same candidate -> same term)
+!(memoize rewriteTreeCached 1)
+(= (rewriteTreeCached $exp) (rewriteTree $exp))
+
+;; --- evaluator: dispatch on the materialized term, memoized per sub-term ----
+;; z-tags are structurally disjoint literal heads (no variable catch-all).
+(= (dispatchZip (zCol $label))   (varColumn (emCtxTable) $label))
+(= (dispatchZip (zFmap $f $c))   (map-atom (evalZipTerm $c) $v ($f $v)))
+(= (dispatchZip (zZip $f $a $b)) (List.zipWith $f (evalZipTerm $a) (evalZipTerm $b)))
+(= (dispatchZip (zZipN $op $cols))
+   (map-atom (transposeCols (map-atom $cols $c (evalZipTerm $c))) $row ($op $row)))
+
+!(memoize evalZipTerm 1)
+(= (evalZipTerm $term)
+   (if (== (get-metatype $term) Grounded)
+       (List.repeat (emCtxN) $term)
+       (dispatchZip $term)))
+
+;; evalSubtree: publish table/n, then rewrite -> evaluate (both memoized).
 ;(: evalSubtree (-> Expression (ITable $a) Number (List Bool)))
 (= (evalSubtree $exp $itable $n)
    (let* (($_  (emPut emT $itable))
           ($_2 (emPut emN $n)))
-     (evalColM $exp)))
+     (evalZipTerm (rewriteTreeCached $exp))))
 
 
  ;; Evaluates the accuracy of the expression for a single input row (target, inputs) pair.
