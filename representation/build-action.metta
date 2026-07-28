@@ -43,7 +43,6 @@
        ($perception (randElement $perceptions))
        ($actA (List.getByIdx $actions $aIdx))
        ($actB (List.getByIdx $actions $bIdx))
-       ($perm (quote (action_bool_if $perception $actA $actB)))
      )
      (action_bool_if $perception $actA $actB)))
 

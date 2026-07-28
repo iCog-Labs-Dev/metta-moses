@@ -1,1 +1,0 @@
-sh /home/yab/PeTTaV1/run.sh moses.metta -s --problem=mux6 --maxGen=10   >  2>  30.19s user 1.11s system 99% cpu 31.403 total
