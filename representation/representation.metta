@@ -322,48 +322,52 @@
 
 ;; getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst)
 
-(= (getCandidateHelperLSK (mkInst $inst) $controlledSubtree $lsk $i)
-   (let*
-      (
-        ($setting (resolveDiscreteSetting $lsk (index-atom $inst $i)))
-        ($logicalSubtree (case $controlledSubtree
-                            (
-                              ((mkNullVex ($child)) $child)
-                              ($other $other))))
-      )
-      (case $setting
-         (
-           ((Error $badSetting $message) (Error $badSetting $message))
-           (0 ())
-           (1 (getCandidateHelper (mkInst $inst) $logicalSubtree))
-           (2 (mkTree (mkNode NOT) ((getCandidateHelper (mkInst $inst) $logicalSubtree))))))))
-
-(= (getCandidateHelperASK (mkInst $inst) $controlledSubtree $ask $perms $i)
-   (let*
-      (
-         ((mkDiscSpec $defaultSetting) (getKnobDefault $ask))
-         ($setting (resolveDiscreteSetting $ask (index-atom $inst $i)))
-      )
-      (case $setting
-         (
-           ((Error $badSetting $message) (Error $badSetting $message))
-           (0 ())
-           ($actualSetting
-             (if (== $defaultSetting 0)
-                 (getCandidateHelper (mkInst $inst) (List.getByIdx $perms (- $actualSetting 1)))
-                 (getCandidateHelper (mkInst $inst) $controlledSubtree)))))))
-
-(= (getCandidateHelper (mkInst $inst) (mkKnob $controlledSubtree (mkLSK $discKnob) $i))
-   (getCandidateHelperLSK (mkInst $inst) $controlledSubtree (mkLSK $discKnob) $i))
-
 (= (getCandidateHelper (mkInst $inst) (mkKnob $controlledSubtree (mkASK $discKnob $perms) $i))
-   (getCandidateHelperASK (mkInst $inst) $controlledSubtree (mkASK $discKnob $perms) $perms $i))
+   (let*
+      (
+         ($ask (mkASK $discKnob $perms))
+         ((mkDiscSpec $defaultSetting) (getKnobDefault $ask))
+         ($setting (if (!= (getDisallowedSpecs $ask) ())
+                     (mapEffectiveDiscSpec $ask (index-atom $inst $i))
+                     (index-atom $inst $i)))
+      )
+      (if (== $setting 0)
+         ()
+         (if (== $defaultSetting 0)
+             (getCandidateHelper (mkInst $inst) (List.getByIdx $perms (- $setting 1)))
+             (getCandidateHelper (mkInst $inst) $controlledSubtree)))))
 
-;; mkASK knobs are handled exclusively by the ASK rule above, which reads
-;; perms directly from the embedded knob metadata. Keeping a generic null
-;; unwrapping rule here can double-evaluate action knobs.
+;; Null-vertex unwrapping for LSK and SSK knobs only.
+;; mkASK knobs are handled exclusively by the ASK rule above,
+;; which reads perms directly from the controlled NullVex.
+;; Keeping this generic caused double evaluation whenever the
+;; ASK rule (Rule A) and this unwrapping rule both fired on
+;; the same (mkKnob (mkNullVex ...) (mkASK ...) $i) expression.
+(= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) (mkLSK $discKnob) $i))
+   (getCandidateHelper $inst (mkKnob $child (mkLSK $discKnob) $i)))
 (= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) (mkSSK $discKnob) $i))
    (getCandidateHelper $inst (mkKnob $child (mkSSK $discKnob) $i)))
+
+;; Specialized fast clause: empty disallowed list means effective settings map
+;; one-to-one to actual settings, so we skip mapEffectiveDiscSpec entirely.
+;; This is byte-for-byte the pre-merge ref/RepresentationBuilding body.
+;; NOTE: This clause assumes MeTTa dispatches the literal-empty `()` disAll
+;; pattern in preference to the generic `$lsk` clause below — the same
+;; literal-driven dispatch we relied on for $disable-discprobe True/False.
+(= (getCandidateHelper (mkInst $inst) (mkKnob (mkTree $node $children) (mkLSK (mkDiscKnob $m $c $d $disAllowed)) $i))
+   (let*
+     (
+       ($setting (if (!= $disAllowed ())
+                     (mapEffectiveDiscSpec (mkLSK (mkDiscKnob $m $c $d $disAllowed)) (index-atom $inst $i))
+                     (index-atom $inst $i)))
+     )
+     (if (== $setting 0)
+         ()
+         (let $newChildren (filter-atom (map-atom $children $ch (getCandidateHelper (mkInst $inst) $ch)) (!= ()))
+              (case $setting
+                 (
+                   (1 (mkTree $node $newChildren))
+                   (2 (mkTree (mkNode NOT) ((mkTree $node $newChildren))))))))))
 
 (= (getCandidateHelper $inst (mkTree $node $children))
    (let $newChildren (map-atom $children $ch (getCandidateHelper $inst $ch))

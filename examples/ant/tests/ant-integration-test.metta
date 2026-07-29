@@ -71,14 +71,8 @@
 
 (= (manualAntRep)
    (let ($updatedTree $mmp)
-        (addActionKnobsAt
-           (ant-exemplar)
-           (mkNodeId (0))
-           (mkNodeId (0))
-           True
-           ()
-           (ant-actions)
-           (ant-perceptions))
+        (addActionKnobs
+           (ant-exemplar) True () (ant-actions) (ant-perceptions))
       (mkRep (mkKbMap (mkDscMp $mmp)) $updatedTree)))
 
 ;; Constant action-result exemplars contain no mutable coordinate.  This is the
