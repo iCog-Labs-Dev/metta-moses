@@ -66,18 +66,9 @@
 (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 ()))) (mkCscore -3 1 0.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 1 ()))) (mkCscore -2 2 1.0 0.0 -3.0))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 ()))) (mkCscore -3 1 0.5 0.0 -3.5))) ()))))
 ) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 1 ()))) (mkCscore -2 2 1.0 0.0 -3.0))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 ()))) (mkCscore -3 1 0.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 1 ()))) (mkCscore -2 2 1.0 0.0 -3.0))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 ()))) (mkCscore -3 1 0.5 0.0 -3.5))) ())))))
 
-;;Testcase -- univariate
-;; This test case is commented out because when the transform function is called more than once, it duplicates values exponentially.
-;; In this case, the transform function is called inside univariateMainLoop,
-;; which is recursive and is executed 6 times (until $genCount equals $MaxGensCount).
-;; Additionally, it is also called in the univariateOptimize function, which is also recursive.
-;; The test case works correctly (it returns is true, shoud true as expected), but it is being
-;; executed recursively multiple times.
-;; Therefore, until the transform function is fixed, this test case remains commented out.
-
+;; C++ information-theoretic sizing gives two three-way knobs a population of 4.
 !(assertEqual
-    (let (mkDeme $rep (mkSInstSet $instSet) $id) 
-         (univariate (deme) (table1) 2.0 1 0.5 0.5 (mkCscore -0.1 2 0.1 0.1 3))          
-         (== (List.length $instSet) 7)) True)
-
-
+    (let (mkDeme $rep (mkSInstSet $instSet) $id)
+         (univariate (deme) (table1) 2.0 1 0.5 0.5
+                     (mkCscore -0.1 2 0.1 0.1 3))
+         (== (List.length $instSet) 4)) True)

@@ -4,7 +4,10 @@
 ;; removed python binding for compatibility with workflow -- XXX 
 ;; bind is not supported for constants (as of 13 NOV) in PeTTa -- thus using function style notation
 (= (NO_EXEMPLAR) "empty metapopulation")
-(= (INV_TEMP) (/ 100.0 (param compxyTemp)))
+;; C++ uses metapop_parameters::complexity_temperature for both Boltzmann
+;; exemplar selection and merge trimming.  Reading that same registry key here
+;; removes the former split-brain compxyTemp/complexityTemperature behavior.
+(= (INV_TEMP) (/ 100.0 (param complexityTemperature)))
 
 ;; exemplar  selection
 ;; if the the metapopulation is empty - throw error and quit
@@ -28,6 +31,67 @@
                   )
                   (rouletteSelect $metaPop $normalizedProbs $sum) )))))
 
+;; Ant visit accounting is intentionally kept outside Exemplar so public
+;; exemplar and runMoses interfaces remain unchanged.  A revisit value of zero
+;; allows one expansion; N allows the initial expansion plus N revisits.
+(= (antVisitCount $tree ()) 0)
+(= (antVisitCount $tree (cons (mkAntVisit $visitedTree $count) $rest))
+   (if (== $tree $visitedTree)
+       $count
+       (antVisitCount $tree $rest)))
+
+(= (recordAntVisit $tree ()) ((mkAntVisit $tree 1)))
+(= (recordAntVisit $tree (cons (mkAntVisit $visitedTree $count) $rest))
+   (if (== $tree $visitedTree)
+       (cons (mkAntVisit $visitedTree (+ $count 1)) $rest)
+       (cons (mkAntVisit $visitedTree $count) (recordAntVisit $tree $rest))))
+
+;; Native filtering preserves metapopulation order while avoiding a MeTTa
+;; rewrite for every candidate.  As in C++, a negative limit means unlimited
+;; revisits; otherwise N permits the first visit plus N revisits.
+(= (antEligibleExemplars $metaPop $visits $revisit)
+   (filter-atom
+     $metaPop
+     (mkExemplar $tree $demeId $cscore $bscore)
+     (if (< $revisit 0)
+         True
+         (<= (antVisitCount $tree $visits) $revisit))))
+
+(= (selectAntExemplar $metaPop $visits $revisit)
+   (selectExemplar (antEligibleExemplars $metaPop $visits $revisit)))
+
+;; Fold raw fitness without allocating a score list. Starting from the first
+;; row preserves the non-empty-input contract. C++ prefers lower complexity on
+;; a raw-score tie; an exact tie keeps the earlier exemplar.
+;;
+;; Directly destructure both exemplars here. Although getExemplarCscore and
+;; getComp work independently, PeTTa currently fails to compose those accessor
+;; calls inside foldl-atom and silently returns no result for a multi-row list.
+(= (bestRawAntExemplar (cons $first $rest))
+   (foldl-atom $rest $first $best $candidate
+     (let* (
+            ((mkExemplar $_candidateTree $_candidateId
+                         (mkCscore $candidateRaw $candidateComplexity
+                                   $_candidateComplexityPenalty
+                                   $_candidateDiversityPenalty
+                                   $_candidatePenalized)
+                         $_candidateBscore)
+              $candidate)
+            ((mkExemplar $_bestTree $_bestId
+                         (mkCscore $bestRaw $bestComplexity
+                                   $_bestComplexityPenalty
+                                   $_bestDiversityPenalty $_bestPenalized)
+                         $_bestBscore)
+              $best)
+           )
+       (if (> $candidateRaw $bestRaw)
+           $candidate
+           (if (< $candidateRaw $bestRaw)
+               $best
+               (if (< $candidateComplexity $bestComplexity)
+                   $candidate
+                   $best))))))
+
 ;; get penalized scores of all the exemplars as a list of Numbers
 ;;      (cons $x $xs) -- pattern for the list of exemplars constructed by cons
 ;;      made use of deconstruction by pattern matching
@@ -38,7 +102,6 @@
 ;;  a function to normalize the score values into normalized scores of Boltzman distribution
 ;; the function is specific to this distribution type
 ; (: normalizeProbs (-> Number Number (List Number) (List Number)))
-;; (= (normalizeProbs $invTemp $best ()) ())
 (= (normalizeProbs $invTemp $best $xs) (map-atom $xs $x (if (isinf-math $x) 0 (exp (* (- $x $best) $invTemp)))))
 
 ;; the main roulette select function

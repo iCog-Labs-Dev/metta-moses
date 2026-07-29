@@ -50,6 +50,20 @@
 !(import! &self reduct/boolean-reduct/promote-common-constraints)
 !(import! &self reduct/boolean-reduct/reduce-to-elegance)
 
+;; ---- Action reduction rules ----
+!(import! &self reduct/action-reduct/action-vocab)
+!(import! &self reduct/action-reduct/action-helpers)
+!(import! &self reduct/action-reduct/action-properties)
+!(import! &self reduct/action-reduct/reduce-action-if)
+!(import! &self reduct/action-reduct/reduce-action-action-if)
+!(import! &self reduct/action-reduct/reduce-const-action-seq)
+!(import! &self reduct/action-reduct/reduce-action-not)
+!(import! &self reduct/action-reduct/reduce-action-while)
+!(import! &self reduct/action-reduct/reduce-seq-result)
+!(import! &self reduct/action-reduct/reduce-null-vertices)
+!(import! &self reduct/action-reduct/reduce-action-properties)
+!(import! &self reduct/action-reduct/action-reduction)
+
 ;; ---- Boolean reduction performance helpers ----
 ;; Keep the main entry aligned with the benchmark harness:
 ;; - native Prolog getLiteralChildren avoids a hot filter-atom path
@@ -87,12 +101,16 @@
 !(import! &self representation/logical-canonize)
 !(import! &self representation/add-logical-knobs)
 !(import! &self representation/build-logical)
+!(import! &self representation/build-action)
 !(import! &self representation/build-knobs)
 !(import! &self representation/knob-mapper)
 !(import! &self representation/representation)
 !(import! &self representation/create-representation)
 
 !(import! &self scoring/complexity-based-scorer)
+
+;; ---- Ant action-domain example ----
+!(import! &self examples/ant/ant-domain)
 
 ;; ---- Optimization (hill climbing is the only production-ready algorithm) ----
 !(import! &self optimization/hillclimbing/crossover-helpers)

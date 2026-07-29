@@ -227,3 +227,24 @@
       )
       $neighbors)
    (cons (mkInst (cons 0 (cons 1 ()))) ()))
+
+;; Ant sampling retains the first occurrence of each new knob vector and drops
+;; both repeated samples and vectors already present in the scored deme.  The
+;; previous generic sampling behavior remains unchanged for other domains.
+!(assertEqual
+   (let* (
+          ($old0
+            (mkSInst (mkPair (mkInst (0 0))
+                             (mkCscore -89 0 0 0 -89))))
+          ($new1
+            (mkSInst (mkPair (mkInst (1 0)) (worstCscore))))
+          ($new2
+            (mkSInst (mkPair (mkInst (0 1)) (worstCscore))))
+         )
+     (uniqueUnseenScoredInstances
+       ($new1 $new1
+        (mkSInst (mkPair (mkInst (0 0)) (worstCscore)))
+        $new2)
+       ($old0)))
+   ((mkSInst (mkPair (mkInst (1 0)) (worstCscore)))
+    (mkSInst (mkPair (mkInst (0 1)) (worstCscore)))))

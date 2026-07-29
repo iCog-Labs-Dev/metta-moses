@@ -257,6 +257,11 @@
       ()))
 
 (= (moses-run)
+   (case (param problem)
+      ((ant (moses-ant-run))
+       ($other (moses-table-run)))))
+
+(= (moses-table-run)
    (let*
       (
         ;; Pull every input from the registry up-front so the body
@@ -290,6 +295,44 @@
         ;; ($_ (println! (Result: $result)))
         ($newR (mapG cleanedExemplar $result))
         ($_ (cut)) ;; INFO: This gives few extra seconds performance gain. Do not remove.
+      )
+      (FinalResult $newR)))
+
+(= (moses-ant-run)
+   (let*
+      (
+        ($seed     (param seed))
+        ($maxGen   (param maxGen))
+        ($nDeme    (param nDeme))
+        ($optAlgo  (param optAlgo))
+        ($optimizer (optimizer-for $optAlgo))
+        ($steps (param antSteps))
+        ($complexityRatio (param antComplexityRatio))
+        ($complexityTemperature (param antComplexityTemperature))
+        ($context (mkAntContext $steps $complexityRatio (ant-actions) (ant-perceptions)))
+
+        ;; Santa Fe's successful C++ configuration uses one hot temperature
+        ;; for both exemplar selection and merge trimming.  Install the
+        ;; ant-specific value before either operation runs.
+        ($_temp (set-param complexityTemperature $complexityTemperature))
+        ($srp (py-call (random.seed $seed)))
+        ($_  (set-param genCount $maxGen))
+        ($initialTree (ant-exemplar))
+        ($initialBscore (scoreAntTree $initialTree $steps))
+        ;; Derive the Cscore from the stored BScore so initialization performs
+        ;; exactly one ant simulation.
+        ($initialCscore (getAntCscoreFromBScore $initialTree $complexityRatio $initialBscore))
+        ($_ (println! (BestPossibleScore: (ant-best-possible-score))))
+        ($metaPop ((mkExemplar $initialTree (mkDemeId "1") $initialCscore $initialBscore)))
+        ;; Ant uses the parity loop with explicit visit accounting.  Generic
+        ;; runMoses remains unchanged for Boolean and strategy pipelines.
+        ;; Seed the counted loop with the initialization call so antMaxEvals
+        ;; and diagnostics cover the complete ant run.
+        ($result (runAntMosesCounted
+              $maxGen (ant-best-possible-score) $metaPop 0
+              $nDeme $context $optimizer () 1))
+        ($newR (mapG cleanedExemplar $result))
+        ($_ (cut))
       )
       (FinalResult $newR)))
 
@@ -327,4 +370,3 @@
         ($_5 (set-param problem $problem))
       )
       (moses)))
-

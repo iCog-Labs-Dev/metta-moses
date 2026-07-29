@@ -474,6 +474,31 @@
        ())))
 ; 
 ; Testcase for mergeCandidates
+;; Ant keeps the dominated C stepping stone by default; the opt-in policy
+;; applies the same dominance filter exercised immediately above.
+(= (antDominanceCandidates)
+   ((mkExemplar (mkTree (mkNode A) ()) (mkDemeId "ant-a")
+      (mkCscore -1 1 1 0 -2) (mkBScore (2 1)))
+    (mkExemplar (mkTree (mkNode B) ()) (mkDemeId "ant-b")
+      (mkCscore -1 1 1 0 -2) (mkBScore (1 2)))
+    (mkExemplar (mkTree (mkNode C) ()) (mkDemeId "ant-c")
+      (mkCscore -2 1 1 0 -3) (mkBScore (1 0)))))
+
+!(assertEqual
+  (let* (
+         ($_ (set-param antDiscardDominated False))
+         ($kept (List.length
+                  (candidatesAfterDominance (antDominanceCandidates)
+                    (mkAntContext 600 0.16 () ()))))
+         ($_ (set-param antDiscardDominated True))
+         ($filtered (List.length
+                      (candidatesAfterDominance (antDominanceCandidates)
+                        (mkAntContext 600 0.16 () ()))))
+         ($_ (set-param antDiscardDominated False))
+        )
+    ($kept $filtered))
+  (3 2))
+
 ; ! ("Merge candidates tests")
 !(assertEqual
  (mergeCandidates

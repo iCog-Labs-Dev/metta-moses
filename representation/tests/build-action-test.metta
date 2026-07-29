@@ -9,6 +9,19 @@
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cacheSpace)
 
+!(import! &self ../../reduct/action-reduct/action-vocab)
+!(import! &self ../../reduct/action-reduct/action-helpers)
+!(import! &self ../../reduct/action-reduct/action-properties)
+!(import! &self ../../reduct/action-reduct/reduce-action-if)
+!(import! &self ../../reduct/action-reduct/reduce-action-action-if)
+!(import! &self ../../reduct/action-reduct/reduce-const-action-seq)
+!(import! &self ../../reduct/action-reduct/reduce-action-not)
+!(import! &self ../../reduct/action-reduct/reduce-action-while)
+!(import! &self ../../reduct/action-reduct/reduce-seq-result)
+!(import! &self ../../reduct/action-reduct/reduce-null-vertices)
+!(import! &self ../../reduct/action-reduct/reduce-action-properties)
+!(import! &self ../../reduct/action-reduct/action-reduction)
+
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/lsk)
 !(import! &self ../../representation/logical-probe)
@@ -30,6 +43,7 @@
 !(assertEqual (isActionOperator and_seq) True)
 !(assertEqual (isActionOperator action_bool_if) True)
 !(assertEqual (isActionOperator seq_exec) True)
+!(assertEqual (isActionOperator exec_seq) True)
 !(assertEqual (isActionOperator move_forward) False)
 
 !(assertEqual (isDomainAction move_forward (move_forward turn_left)) True)
@@ -168,9 +182,16 @@
       ($turn (getCandidate $rep ActionCandidateTurn (mkInst (2))))
     )
     ($absent $move $turn))
-  ((mkTree (mkNode and_seq) ())
+  ((mkTree (mkNode action_success) ())
    (mkTree (mkNode and_seq) ((moveTree)))
    (mkTree (mkNode and_seq) ((turnTree)))))
+
+!(assertEqual
+  (getCandidate
+    (mkRep (mkKbMap (mkDscMp ())) (mkTree (mkNode exec_seq) ()))
+    ExecSeqCandidateEmptyStatic
+    (mkInst ()))
+  (mkTree (mkNode action_success) ()))
 
 ;; Simple-action ASK present mode recurses into the embedded controlled subtree.
 !(assertEqual
@@ -276,6 +297,10 @@
 
 !(assertEqual
   (actionCleanup (mkTree (mkNode seq_exec) ()))
+  (mkNullVex ()))
+
+!(assertEqual
+  (actionCleanup (mkTree (mkNode exec_seq) ()))
   (mkNullVex ()))
 
 !(assertEqual

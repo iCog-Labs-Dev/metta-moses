@@ -14,9 +14,7 @@
 (= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
       (let* 
             (
-                  ;; ($_ (println! "creating representations ...."))
                   ($reps (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts  $scorerType))
-                  ;; ($_ (println! (done making representations ... $reps)))
             ) 
             (loopCreateDeme $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
       ) 
@@ -30,12 +28,48 @@
 (= (createDeme $nDeme $demeIds $exemplar)
       (let* 
             (
-                  ;; ($_ (println! "creating game representations ...."))
                   ($reps (createRepresentation $nDeme $exemplar))
-                  ;; ($_ (println! ("done making representations ..." $reps)))
             )  
             (loopCreateDeme $demeIds $reps ())
       ) 
+)
+
+;; Ant action-domain createDeme - creates action representations with embedded
+;; ASK knobs using the domain-local action/perception vocabulary.
+;; Classic C++ MOSES discards a representation whose field set is empty and
+;; asks the outer loop to try another exemplar.  An empty action knob map is
+;; the MeTTa equivalent: there is no coordinate that hill climbing can vary.
+(= (antRepresentationExpandable
+      (mkRep (mkKbMap (mkDscMp $mmp)) $tree))
+   (> (MultiMap.length $mmp) 0))
+
+;; Filter each randomized representation independently.  Some random builds
+;; of the same exemplar can expose knobs while others expose none, so rejecting
+;; an exemplar by tree shape would incorrectly throw useful demes away.
+(= (antExpandableRepresentations $representations)
+   (filter-atom $representations $rep
+     (antRepresentationExpandable $rep)))
+
+(= (createDeme $nDeme $demeIds $exemplar (mkAntContext $steps $complexityRatio $actions $perceptions))
+      (let*
+            (
+                  ($demeCount (genList 0 (- $nDeme 1)))
+                  ($candidateReps (map-atom $demeCount $x
+                        (representation
+                              1
+                              $exemplar
+                              (mkITable () ())
+                              None
+                              False
+                              ()
+                              mi
+                              True
+                              $actions
+                              $perceptions)))
+                  ($reps (antExpandableRepresentations $candidateReps))
+            )
+            (loopCreateDeme $demeIds $reps ())
+      )
 )
 
 
@@ -50,11 +84,3 @@
                  ($deme (mkDeme $h (mkSInstSet ()) $demeId))
                  ($new-acc (union-atom $acc ($deme))))
                (loopCreateDeme (List.tail $demeIds) $t $new-acc)))))
-;; previous version of loopCreateDeme using if-decons-expr-custom
-;       (if-decons-expr-custom $reps $h $t
-;             (let* (($demeId (List.head $demeIds)) 
-;                    ($deme (mkDeme $h (mkSInstSet ()) $demeId))
-;                    ($new-acc (union-atom $acc ($deme))))
-                  
-;                   (loopCreateDeme (List.tail $demeIds) $t $new-acc))
-;                $acc))    

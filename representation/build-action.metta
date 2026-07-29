@@ -240,7 +240,7 @@
            ((mkTree (mkNode $op) $children) $MMap))))
 
 (= (isCleanupActionOperator $op)
-   (is-member $op (and_seq or_seq seq_exec)))
+   (is-member $op (and_seq or_seq seq_exec exec_seq)))
 
 (= (actionCleanup $tree)
    (let ($cleaned $keep) (actionCleanupNode $tree)
