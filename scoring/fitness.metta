@@ -179,8 +179,8 @@
 ;; (zipWith $op ..) / (fmap $op ..), so there is no rowFnTable.
 ;;
 ;; HAZARD -- col / fmap / zipWith / zipWithN and the operator symbols are all
-;; LIVE HEADS, so every mention of them as DATA (every emitted term, and the op
-;; tables below) must be `quote`d, or it fires instead of staying inert.
+;; LIVE HEADS, so every mention of them as DATA (every emitted term) must be
+;; `quote`d, or it fires instead of staying inert.
 ;;
 ;; lib_memo supplies the memoization; without it the memoize directives no-op
 ;; and the same code runs correct but uncached.
@@ -211,24 +211,21 @@
 (= (fmap $f $c)         (map-atom $c $v ($f $v)))
 (= (zipWithN $op $cols) (map-atom (transposeCols $cols) $row ($op $row)))
 
-;; --- op tables --------------------------------------------------------------
+;; --- operator registry ------------------------------------------------------
 ;; A monoid op folds: n-ary nodes right-fold into nested BINARY zipWith terms,
 ;; 0 children -> the identity column, 1 child -> the child. NOT is unary and so
 ;; absent. ADDING A BOOLEAN OPERATOR costs, by kind:
 ;;   binary  -- one row clause (= (OP $a $b) ..) in scoring/boolean-ops.metta.
 ;;   unary   -- (= (OP $a) ..); reached via `fmap`, so it gets a BARE cell.
 ;;   n-ary   -- (= (OP ($a $b $c)) ..); reached via `zipWithN`, one row tuple.
-;;   monoid  -- the row clause PLUS registration in (monoids) and (memptyTable)
-;;              here, the only registration sites; rewriteTree derives the rest.
-(= (monoids) (quote (AND OR XOR)))
-(= (isMonoid $op) (once (is-member $op (monoids))))
-(= (memptyTable) (quote ((AND True) (OR False) (XOR False))))
-(= (memptyScan () $op) (Error $op "mempty: no nullary identity registered for this op"))
-(= (memptyScan (cons ($k $v) $rest) $op)
-   (if (== $k $op) $v (memptyScan $rest $op)))
-;; mempty: op symbol -> its 0-arity identity. Loud Error default -- silently
-;; guessing a wrong identity would corrupt every row of the column.
-(= (mempty $op) (memptyScan (memptyTable) $op))
+;;   monoid  -- the row clause PLUS one `mempty` case below, the single
+;;              registration site; isMonoid and rewriteTree derive the rest.
+;;
+;; mempty: op symbol -> its 0-arity identity, () for anything unregistered.
+;; `case` on the bare symbol does not fire the op's own clauses (as in
+;; `evaluate` above), and () is the sentinel isMonoid tests.
+(= (mempty $op)   (case $op ((AND True) (OR False) (XOR False) ($_ ()))))
+(= (isMonoid $op) (not (== (mempty $op) ())))
 
 ;; --- rewriter helper --------------------------------------------------------
 ;; The combiner List.foldr1 (utilities/list-methods) threads over an
