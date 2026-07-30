@@ -49,38 +49,36 @@
 ;; --- evalTree end-to-end on candidate Trees (column-level dispatch) ---
 ;; AND[A B] over the reference table: and((T T),(F T)) = (F T)
 !(assertEqual
-   (evalTree (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ())))
+   (evalTree (buildTree (quote (AND A B)))
              (mkITable ((True False False) (True True True)) (A B O)) 2)
    (False True))
 ;; OR[A B] = (T T)
 !(assertEqual
-   (evalTree (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ())))
+   (evalTree (buildTree (quote (OR A B)))
              (mkITable ((True False False) (True True True)) (A B O)) 2)
    (True True))
 ;; NOT[B] = (T F)
 !(assertEqual
-   (evalTree (mkTree (mkNode NOT) (cons (mkTree (mkNode B) ()) ()))
+   (evalTree (buildTree (quote (NOT B)))
              (mkITable ((True False False) (True True True)) (A B O)) 2)
    (True False))
 ;; bare leaf A = (T T)
 !(assertEqual
-   (evalTree (mkTree (mkNode A) ())
+   (evalTree (buildTree (quote A))
              (mkITable ((True False False) (True True True)) (A B O)) 2)
    (True True))
 ;; childless AND / OR -> identity column repeated over the n rows
 !(assertEqual
-   (evalTree (mkTree (mkNode AND) ())
+   (evalTree (buildTree (quote (AND)))
              (mkITable ((True False False) (True True True)) (A B O)) 2)
    (True True))
 !(assertEqual
-   (evalTree (mkTree (mkNode OR) ())
+   (evalTree (buildTree (quote (OR)))
              (mkITable ((True False False) (True True True)) (A B O)) 2)
    (False False))
 ;; nested: AND[ OR[A B]  NOT[B] ] = and((T T),(T F)) = (T F)
 !(assertEqual
-   (evalTree (mkTree (mkNode AND)
-                     (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ())))
-                           (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode B) ()) ())) ())))
+   (evalTree (buildTree (quote (AND (OR A B) (NOT B))))
              (mkITable ((True False False) (True True True)) (A B O)) 2)
    (True False))
 
@@ -100,8 +98,9 @@
 ;;   OR[AND[A B] NOT[B]] = or((F T),(T F)) = (True True)
 !(assertEqual
    (let* (($t      (mkITable ((True False False) (True True True)) (A B O)))
-          ($shared (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))))
-          ($outer  (mkTree (mkNode OR) (cons $shared (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode B) ()) ())) ()))))
+          ($shared (buildTree (quote (AND A B))))
+          ;; raw ADT: buildTree takes a flat expr, so it cannot embed $shared itself
+          ($outer  (mkTree (mkNode OR) (cons $shared (cons (buildTree (quote (NOT B))) ()))))
           ($first  (evalTree $shared $t 2))
           ($inLarger (evalTree $outer $t 2))
           ($repeat (evalTree $shared $t 2)))

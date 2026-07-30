@@ -64,9 +64,9 @@
 ;; A leaf label becomes its column reference; a nullary AND/OR becomes its
 ;; identity CONSTANT (mempty), which evalSubtree broadcasts over the rows.
 ;; Expected terms are quote-guarded -- col/fmap/zipWith are LIVE heads here.
-!(let $exp (quote (col A)) (assertEqual (rewriteTree (mkTree (mkNode A) ())) $exp))
-!(assertEqual (rewriteTree (mkTree (mkNode AND) ())) True)
-!(assertEqual (rewriteTree (mkTree (mkNode OR)  ())) False)
+!(let $exp (quote (col A)) (assertEqual (rewriteTree (buildTree (quote A))) $exp))
+!(assertEqual (rewriteTree (buildTree (quote (AND)))) True)
+!(assertEqual (rewriteTree (buildTree (quote (OR))))  False)
 !(let* (($cand (quote (AND A B))) ($exp (quote (zipWith AND (col A) (col B)))))
    (assertEqual (rewriteTree (buildTree $cand)) $exp))
 !(let* (($cand (quote (NOT A))) ($exp (quote (fmap NOT (col A)))))
@@ -77,6 +77,7 @@
 ;; Child mapping and null-knob filtering in one node: three declared children
 ;; with a null knob in the middle, so A and B map into the term in order, the
 ;; knob drops out, and the SURVIVING count (2) selects the binary zipWith branch.
+;; raw ADT: buildTree cannot produce mkKnob/mkNullVex children.
 !(let* (($children (cons (mkTree (mkNode A) ())
                          (cons (mkKnob (mkNullVex (cons (mkTree (mkNode C) ()) ())) (lsk) 0)
                                (cons (mkTree (mkNode B) ()) ()))))
