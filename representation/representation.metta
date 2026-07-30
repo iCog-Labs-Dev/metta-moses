@@ -39,7 +39,9 @@
 ;;(: representation (-> (Tree $a) Number (List Representation)))
 (= (representation $exemplar $nDeme)
    (let* (
-          ($demeCount (range 0 1 $nDeme))
+          ;; Representation construction already depends on the general
+          ;; helpers, so enumerate demes without feature-selection's `range`.
+          ($demeCount (genList 0 (- $nDeme 1)))
         
           ($result (map-atom $demeCount $x 
                       (let*
