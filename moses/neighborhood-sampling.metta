@@ -327,63 +327,40 @@
 (= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) (mkSInstSet $instList) $demeId) $dist)
  (let*
   (
-    (($spec $knob) (MultiMap.getByIdx 0 $disc))
-    ((mkMultip $m) (getKnobMultip $knob))
+    ;; No first-knob lookup is needed here. Avoiding that unused access also
+    ;; keeps an empty knob map on the normal representation-skip path.
     ($kbMp (mkKbMap (mkDscMp $disc)))
     ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (countNeighborhood $kbMp $centerInst $dist $numNewInstances)
              $totalNeighbors))
-    ($updatedNumNewInstances 
-         (if (< $numNewInstances $updatedTotalNeighbors)  
-             $numNewInstances
-             $updatedTotalNeighbors))
     ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
                        (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
                        (generateAllInNeighborhoodForDisc (mkDscMp $disc) $centerInst $dist)))
     ($scoredNewInstances (List.map initInstScore $newInstances))
-    ($updatedInstList (List.concat $instList $scoredNewInstances))
+    ;; A sampled vector can be repeated or can already be present in the deme.
+    ;; Preserve sampling order, append only genuinely new vectors, and return
+    ;; the number of rows that can require a scorer call.
+    ($freshInstances
+      (uniqueUnseenScoredInstances $scoredNewInstances $instList))
+    ($updatedInstList (List.concat $instList $freshInstances))
+    ($actualNewInstances (List.length $freshInstances))
  )
- ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId) $updatedNumNewInstances)))
+ ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId)
+  $actualNewInstances)))
 
-;; Ant scoring is expensive enough that repeated knob vectors should not use
-;; the actual-scorer budget.  The generic sampler above intentionally retains
-;; its historical behavior for Boolean and strategy searches.  This helper
-;; removes duplicate sampled rows and rows whose instances are already present
-;; in the deme, while preserving the first occurrence and its sample order.
+;; Remove duplicate sampled rows and rows whose instances are already present
+;; in the deme, preserving the first occurrence and its sample order.
 (= (uniqueUnseenScoredInstances $sampledRows $existingRows)
    (let* (
           ($existingInstances (map-atom $existingRows $row (removeInstScore $row)))
           ($uniqueSampledRows (unique-atom $sampledRows))
          )
      (filter-atom $uniqueSampledRows $row
-       (not (is-member (removeInstScore $row) $existingInstances)))))
+       (not
+         (once
+           (is-member (removeInstScore $row) $existingInstances))))))
 
-;; Ant-only sampling wrapper.  Sampling still consumes the same random values
-;; as the shared implementation, but only unique, previously unseen vectors
-;; are appended and reported as new.  This makes the returned count equal the
-;; number of rows that can actually require scoring.
-(= (sampleNewAntInstances
-      $totalNeighbors $numNewInstances $centerInst
-      (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree)
-              (mkSInstSet $existingRows) $demeId)
-      $dist)
-   (let* (
-          ($originalDeme
-            (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree)
-                    (mkSInstSet $existingRows) $demeId))
-          (($sampledDeme $_nominalCount)
-            (sampleNewInstances $totalNeighbors $numNewInstances $centerInst
-                                $originalDeme $dist))
-          ((mkDeme $sampledRep (mkSInstSet $allSampledRows) $sampledId)
-            $sampledDeme)
-          ($sampledRows (List.drop (List.length $existingRows) $allSampledRows))
-          ($freshRows (uniqueUnseenScoredInstances $sampledRows $existingRows))
-          ($finalRows (List.concat $existingRows $freshRows))
-          ($actualNewCount (List.length $freshRows))
-         )
-     ((mkDeme $sampledRep (mkSInstSet $finalRows) $sampledId)
-      $actualNewCount)))
 ;; similar to the above 'sampleNewInstances' but with slight changes for the feature selection
 ;; Uses the countNeighborhoodFs, sampleFromNeighborhoodFs, initInstScoreFs
 ;; It sets the multiplicy to 2 which is 0 and 1 for the feature selection
@@ -396,14 +373,16 @@
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (countNeighborhoodFs $centerInst $dist $numNewInstances)
              $totalNeighbors))
-    ($updatedNumNewInstances 
-         (if (< $numNewInstances $updatedTotalNeighbors)  
-             $numNewInstances
-             $updatedTotalNeighbors))
     ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
                        (sampleFromNeighborhoodFs $numNewInstances $dist $itable $centerInst)
                        (generateAllInNeighborhood (mkMultip 2) $centerInst $dist)))
     ($scoredNewInstances (List.map initInstScoreFs $newInstances))
-    ($updatedInstList (List.concat $instList $scoredNewInstances))
+    ;; Feature-selection populations obey the same append-only contract:
+    ;; retain old rows, discard duplicate vectors, and count only fresh suffix
+    ;; rows that the mutual-information scorer will actually receive.
+    ($freshInstances
+      (uniqueUnseenScoredInstances $scoredNewInstances $instList))
+    ($updatedInstList (List.concat $instList $freshInstances))
+    ($actualNewInstances (List.length $freshInstances))
  )
- ((mkSInstSet $updatedInstList) $updatedNumNewInstances)))
+ ((mkSInstSet $updatedInstList) $actualNewInstances)))

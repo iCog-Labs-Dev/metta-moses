@@ -51,7 +51,7 @@
           ($scored (case $scoringContext
                         (
                           ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio))
-                          ((mkAntContext $steps $antComplexityRatio $actions $perceptions)
+                          ((mkAntContext $steps $complexityRatio $actions $perceptions)
                            (applyAntBasedScore $rep $id $instList $scoringContext))
                           (($nGames) (applyStrategyBasedScore $rep $id $instList $nGames $complexityRatio ())))))
           )

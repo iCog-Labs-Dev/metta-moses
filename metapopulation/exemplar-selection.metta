@@ -31,34 +31,37 @@
                   )
                   (rouletteSelect $metaPop $normalizedProbs $sum) )))))
 
-;; Ant visit accounting is intentionally kept outside Exemplar so public
-;; exemplar and runMoses interfaces remain unchanged.  A revisit value of zero
-;; allows one expansion; N allows the initial expansion plus N revisits.
-(= (antVisitCount $tree ()) 0)
-(= (antVisitCount $tree (cons (mkAntVisit $visitedTree $count) $rest))
+;; Visit accounting is kept outside Exemplar so public exemplar and runMoses
+;; interfaces remain unchanged.  A revisit value of zero allows one expansion;
+;; N allows the initial expansion plus N revisits.
+(= (visitCount $tree ()) 0)
+(= (visitCount $tree (cons (mkVisit $visitedTree $count) $rest))
    (if (== $tree $visitedTree)
        $count
-       (antVisitCount $tree $rest)))
+       (visitCount $tree $rest)))
 
-(= (recordAntVisit $tree ()) ((mkAntVisit $tree 1)))
-(= (recordAntVisit $tree (cons (mkAntVisit $visitedTree $count) $rest))
+;; Increment the selected tree's existing visit record, or append its first
+;; visit while retaining the order of all previously tracked trees.
+(= (recordVisit $tree ()) ((mkVisit $tree 1)))
+(= (recordVisit $tree (cons (mkVisit $visitedTree $count) $rest))
    (if (== $tree $visitedTree)
-       (cons (mkAntVisit $visitedTree (+ $count 1)) $rest)
-       (cons (mkAntVisit $visitedTree $count) (recordAntVisit $tree $rest))))
+       (cons (mkVisit $visitedTree (+ $count 1)) $rest)
+       (cons (mkVisit $visitedTree $count) (recordVisit $tree $rest))))
 
 ;; Native filtering preserves metapopulation order while avoiding a MeTTa
 ;; rewrite for every candidate.  As in C++, a negative limit means unlimited
 ;; revisits; otherwise N permits the first visit plus N revisits.
-(= (antEligibleExemplars $metaPop $visits $revisit)
+(= (eligibleExemplars $metaPop $visits $revisit)
    (filter-atom
      $metaPop
      (mkExemplar $tree $demeId $cscore $bscore)
      (if (< $revisit 0)
          True
-         (<= (antVisitCount $tree $visits) $revisit))))
+         (<= (visitCount $tree $visits) $revisit))))
 
-(= (selectAntExemplar $metaPop $visits $revisit)
-   (selectExemplar (antEligibleExemplars $metaPop $visits $revisit)))
+;; Apply the normal Boltzmann selector once to the visit-eligible pool.
+(= (selectEligibleExemplar $metaPop $visits $revisit)
+   (selectExemplar (eligibleExemplars $metaPop $visits $revisit)))
 
 ;; Fold raw fitness without allocating a score list. Starting from the first
 ;; row preserves the non-empty-input contract. C++ prefers lower complexity on
@@ -67,7 +70,8 @@
 ;; Directly destructure both exemplars here. Although getExemplarCscore and
 ;; getComp work independently, PeTTa currently fails to compose those accessor
 ;; calls inside foldl-atom and silently returns no result for a multi-row list.
-(= (bestRawAntExemplar (cons $first $rest))
+(= (bestRawExemplar ()) ())
+(= (bestRawExemplar (cons $first $rest))
    (foldl-atom $rest $first $best $candidate
      (let* (
             ((mkExemplar $_candidateTree $_candidateId

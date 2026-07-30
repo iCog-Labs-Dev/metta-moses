@@ -36,13 +36,10 @@
 ; (: crossTopOneFs (-> (InstanceSet $a) Number Number Number Instance (InstanceSet $a)))
 (= (crossTopOneFs (mkSInstSet $instSet) $nToMake $sampleStart $sampleSize $baseInstance)
    (let* (
-           ;; ($_ (println! (Inside crossTopOneFs)))
            ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
-           ;; ($_ (println! (NToMake: $nToMakeNew)))
            (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
-           ($list (List.partialSort instanceFs>= $newInst $nToMakeNew ())) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
-           ;; ($_ (println! (New instances After merging: $newInstances)))
-           ;; ($_ (println! ""))
+           ($sample (List.takeN $sampleSize $newInst))
+           ($list (List.partialSort instanceFs>= $sample $nToMakeNew ()))
          )
          (if (== $list ())
              (mkSInstSet $instSet)
@@ -54,8 +51,23 @@
 
                  ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
                  ($newInstances (mergerFs $targetExpr $baseInstance $referenceInst))
+                 ($uniqueNewInstances (unique-atom (exprToList $newInstances)))
+                 ;; The unified incremental scorer relies on an append-only
+                 ;; population: preserve every existing scored row and add
+                 ;; only genuinely new instance payloads at the end.
+                 ($existingInstances
+                   (map-atom $instSet $row
+                     (getInst $row)))
+                 ($freshNewInstances
+                   (filter-atom $uniqueNewInstances $row
+                     (not
+                       (once
+                         (is-member
+                           (getInst $row)
+                           $existingInstances)))))
                )
-               (mkSInstSet (List.appendList (exprToList $newInstances) $newInst))))))
+               (mkSInstSet
+                 (List.appendList $freshNewInstances $instSet))))))
 
 ;; crossTopTwo
 ;; Performs 2-simplex crossover (pairwise combinations).

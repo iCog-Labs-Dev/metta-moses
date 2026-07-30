@@ -50,11 +50,16 @@
     ($nEval            (param nEval))
     ($maxCandsPerDeme  (param maxCandPerDeme))
     ($lenSInstList (List.length $sortedSInstList))
-    ($_ (println! (nEval: $nEval LenSInstList: $lenSInstList)))
+    ($_ (if (param diagnostics)
+           (println! (nEval: $nEval LenSInstList: $lenSInstList))
+           ()))
     ($topCnd (min-atom ($nEval $lenSInstList)))
-    ($_ (println! (TopCnd: $topCnd)))
+    ($_ (if (param diagnostics) (println! (TopCnd: $topCnd)) ()))
     ($uTopCnd (if (>= $maxCandsPerDeme 0) (min-atom ($topCnd $maxCandsPerDeme)) $topCnd))
-    ($_ (println! (Keep $uTopCnd Unique instances from (List.length $sortedSInstList))))
+    ($_ (if (param diagnostics)
+           (println! (Keep $uTopCnd Unique instances from
+                           (List.length $sortedSInstList)))
+           ()))
     ($uniqueTopCandidates (removeDupInsts $rep $id $sortedSInstList $uTopCnd))
  )
  $uniqueTopCandidates
@@ -102,12 +107,12 @@
        ($filteredSInstList (filterDemeByScore $sInstList (- $demeSize 1) $botSc)))
        $filteredSInstList))))
 
-;; Find the strongest raw ant result before merge's penalized-score filters.
+;; Find the strongest raw result before merge's penalized-score filters.
 ;; C++ `_best_candidates` breaks a raw-score tie by lower complexity; an exact
 ;; raw/complexity tie keeps the first evaluated instance in this single-result
 ;; MeTTa accumulator.
-(= (bestRawAntScoredInstance (mkSInstSet ())) ())
-(= (bestRawAntScoredInstance (mkSInstSet (cons $first $rest)))
+(= (bestRawScoredInstance (mkSInstSet ())) ())
+(= (bestRawScoredInstance (mkSInstSet (cons $first $rest)))
    (foldl-atom $rest $first $best $candidate
      (let* (
             ($candidateScore (getSInstScore $candidate))
@@ -206,15 +211,13 @@
 (= (removeDominated (cons $exemplar (cons $next $rest)))
    (removeDominatedRec $exemplar (cons $next $rest) ()))
 
-;; Ant-only dominance policy.  Keeping this decision as a pure helper makes
-;; both modes testable without constructing a full representation-backed deme.
-(= (candidatesAfterDominance $candidates $context)
-   (case $context
-     (((mkAntContext $steps $complexityRatio $actions $perceptions)
-        (if (param antDiscardDominated)
-            (removeDominated $candidates)
-            $candidates))
-      ($otherContext (removeDominated $candidates)))))
+;; Dominance retention is a search policy, not a scoring-domain property.
+;; Keeping it as a pure helper lets Boolean and action problems use the same
+;; C++-compatible default while still allowing pruning as an explicit option.
+(= (candidatesAfterDominance $candidates)
+   (if (param discardDominated)
+       (removeDominated $candidates)
+       $candidates))
 
 ;; Helper: Compares an exemplar with others, accumulating non-dominated exemplars.
 ;; Params:
@@ -269,28 +272,48 @@
             (($headDeme $tailDeme) (decons-atom $demes))
             ((mkDeme $rep $sInstList $demeId) $headDeme)
             ($sortedSInstList (sortDeme $sInstList)) ;; sorting the instances inside the deme by decreasing order
-            ($_ (println! (Demesize: (List.length (second $sortedSInstList)))))
+            ($_ (if (param diagnostics)
+                   (println! (Demesize:
+                               (List.length (second $sortedSInstList))))
+                   ()))
             ($unqCandidates (keepTopUniqueCandidates $rep $demeId $sortedSInstList))  ;;remove duplicates and limits the size by keeping the top scoring
-            ($_ (println! (KeptUniqueTopCandidates NewSize: (List.length $unqCandidates))))
+            ($_ (if (param diagnostics)
+                   (println! (KeptUniqueTopCandidates NewSize:
+                               (List.length $unqCandidates)))
+                   ()))
             ($trimmedDeme (trimDownDeme $unqCandidates))  ;; further trims the deme
-            ($_ (println! (TrimmedDownDeme: (List.length $trimmedDeme))))
+            ($_ (if (param diagnostics)
+                   (println! (TrimmedDownDeme:
+                               (List.length $trimmedDeme)))
+                   ()))
             ($potCandidates
               (demeToTrees
                 (mkDeme $rep (mkSInstSet $trimmedDeme) $demeId)
                 $scoringContext)) ;;convert instances to trees
-            ($_ (println! (Before getNewCandidates: (List.length $potCandidates))))
+            ($_ (if (param diagnostics)
+                   (println! (Before getNewCandidates:
+                               (List.length $potCandidates)))
+                   ()))
             ($candidates (getNewCandidates $potCandidates $metapop)) ;;which aren't found in the meta pop
-            ;; Ant retains dominated stepping stones by default, matching C++
-            ;; metapop_parameters. Other domains keep the existing behavior.
-            ($retainedCandidates
-              (candidatesAfterDominance $candidates $scoringContext))
-            ($_ (println! (Going to merge (List.length $retainedCandidates) Instances)))
+            ;; Retain dominated stepping stones by default for every problem,
+            ;; matching the shared C++ metapopulation policy.
+            ($retainedCandidates (candidatesAfterDominance $candidates))
+            ($_ (if (param diagnostics)
+                   (println! (Going to merge
+                               (List.length $retainedCandidates) Instances))
+                   ()))
             ($updatedMetaPop (mergeCandidates $retainedCandidates $metapop))  ;;merge candidates into metapop
-            ($_ (println! (Metapop size before resize: (OS.length $updatedMetaPop))))
-            ;; Raw ant champions are stored outside the selectable archive;
-            ;; normal resize semantics therefore apply to every domain.
+            ($_ (if (param diagnostics)
+                   (println! (Metapop size before resize:
+                               (OS.length $updatedMetaPop)))
+                   ()))
+            ;; The all-time raw champion is tracked outside the selectable
+            ;; archive, so normal resize semantics apply to every domain.
             ($resizedMetapop (resizeMetapop $updatedMetaPop))
-            ($_ (println! (Metapop size after resize: (OS.length $resizedMetapop))))
+            ($_ (if (param diagnostics)
+                   (println! (Metapop size after resize:
+                               (OS.length $resizedMetapop)))
+                   ()))
         )
             (if (== $tailDeme ()) $resizedMetapop
                 (mergeDemes $tailDeme $scoringContext $resizedMetapop)

@@ -1,7 +1,7 @@
 ;; A negative value means that a direct hill-climbing caller has not supplied
-;; an outer ant evaluation allowance. expandAntDemeHelperCounted temporarily
-;; replaces it with the budget remaining in the complete ant run.
-!(bind! &antLocalEvalLimit (new-state -1))
+;; a share of the complete-run evaluation allowance. Counted deme expansion
+;; temporarily replaces it with the budget allocated to that deme.
+!(bind! &localEvalLimit (new-state -1))
 
 ;; Verbatim port of the Information theoretic bits function from C++.
 ;; Params: $knobMap: A map of knobs with their multiplicities
@@ -169,7 +169,7 @@
        ($freshNewInstances
          (filter-atom $uniqueNewInstances $row
            (let (mkSInst (mkPair $inst $_score)) $row
-             (not (is-member $inst $origInstances)))))
+             (not (once (is-member $inst $origInstances))))))
 
        ($finalSet (List.appendList $freshNewInstances $origSet))
 
@@ -199,96 +199,197 @@
 )
  )
 
-;; Raw ant fitness is tracked independently from the penalized center score.
-(= (bestRawAntScore $scoredInstances)
+;; Raw fitness is tracked independently from the penalized center score.
+(= (bestRawScore $scoredInstances)
    (foldl-atom $scoredInstances () $bestRaw $scoredInst
      (let (mkSInst (mkPair $inst $score)) $scoredInst
        (let $raw (getScore $score)
          (if (== $bestRaw ()) $raw (max $bestRaw $raw))))))
 
-(= (bestRawAntDeme (mkDeme $rep (mkSInstSet $scoredInstances) $id))
-   (bestRawAntScore $scoredInstances))
+;; Project the raw-best score directly from a deme's attached scored rows.
+(= (bestRawDeme (mkDeme $rep (mkSInstSet $scoredInstances) $id))
+   (bestRawScore $scoredInstances))
 
-;; Ant-only incremental scoring lives beside hill climbing so the optimizer's
-;; compiled call sees it directly. New samples carry worstCscore; old samples
-;; retain their scores and do not invoke the simulator again. Distinct knob
-;; vectors that reduce to the same action tree share a batch-local score.
-
-;; Look up the composite score of an already evaluated cleaned tree in the
-;; current scoring batch. `()` is safe as the miss marker because a Cscore is
-;; always represented by mkCscore, never by the empty expression.
-(= (antCachedScoreForTree $tree ()) ())
-(= (antCachedScoreForTree
+;; `()` is a safe cache-miss marker because real scores are constructed values.
+(= (cachedScoreForTree $tree ()) ())
+(= (cachedScoreForTree
       $tree
-      (cons (mkAntTreeScore $cachedTree $cachedScore) $rest))
+      (cons (mkTreeScore $cachedTree $cachedScore) $rest))
    (if (== $tree $cachedTree)
        $cachedScore
-       (antCachedScoreForTree $tree $rest)))
+       (cachedScoreForTree $tree $rest)))
 
-;; Score an already materialized and reduced action tree without reconstructing
-;; it a second time through antBasedScorer.
-(= (scoreCleanedAntTree
-      $cleanedTree
+;; Strategy representations still require the legacy source-node-aware
+;; materializer. Boolean and action representations use the normal three-
+;; argument form. Keeping this choice at one boundary prevents the shared
+;; incremental scorer from subtly changing strategy candidate construction.
+(= (materializeCandidateForContext $rep $id $inst $context)
+   (case $context
+     (((mkStrategyScoreContext $nGames $complexityRatio)
+       (getCandidate (mkNodeId (0)) $rep $id $inst))
+      ($other (getCandidate $rep $id $inst)))))
+
+;; Score a materialized program without reconstructing it through the
+;; representation-specific scorer.
+(= (scoreMaterializedTree
+      $tree
       (mkAntContext $steps $complexityRatio $actions $perceptions))
-   (getAntCscore $cleanedTree $complexityRatio $steps))
+   (getAntCscore $tree $complexityRatio $steps))
+(= (scoreMaterializedTree $tree
+                          ((mkITable $rows $labels) $complexityRatio))
+   (getCscore (mkITable $rows $labels) $tree
+              $complexityRatio &bscoreCache))
+(= (scoreMaterializedTree
+      $tree (mkStrategyScoreContext $nGames $complexityRatio))
+   (getCscore $tree $nGames $complexityRatio &strategyScoreCache))
 
-;; Thread a small, scoring-batch-local tree->score cache from left to right. This
-;; preserves input order, leaves every previously scored row byte-for-byte
-;; unchanged, and counts only the first simulation of each newly materialized
-;; cleaned tree. The cache is intentionally not seeded from old rows: those
-;; rows stay completely untouched and this helper measures new batch work.
-(= (scoreNewAntInstancesCachedCounted
+;; New rows are marked explicitly with worstCscore. Structural comparison
+;; states that invariant directly and cannot misclassify a legitimate, very
+;; poor score through an arbitrary numeric threshold.
+(= (scoreNeedsEvaluation $score) (== $score (worstCscore)))
+
+;; Seed both the batch cache and run cache from rows that already carry real
+;; scores. A new vector that reduces to an old program then reuses that score.
+(= (seedTreeScoreCache () $rep $id $context $cache) $cache)
+(= (seedTreeScoreCache
+      (cons (mkSInst (mkPair $inst $score)) $rest)
+      $rep $id $context $cache)
+   (let $nextCache
+        (if (scoreNeedsEvaluation $score)
+            $cache
+            (let $tree
+                 (materializeCandidateForContext
+                   $rep $id $inst $context)
+              (let* (
+                     ($_global
+                       (cacheCandidateScore $context $tree $score))
+                     ($updated
+                       (if (== (cachedScoreForTree $tree $cache) ())
+                           (cons (mkTreeScore $tree $score) $cache)
+                           $cache))
+                    )
+                $updated)))
+     (seedTreeScoreCache
+       $rest $rep $id $context $nextCache)))
+
+;; Preserve input order and count only a genuinely new scorer invocation.
+(= (scoreNewInstancesCachedCounted
       () $rep $id $context $treeScoreCache)
    (() 0 $treeScoreCache))
-(= (scoreNewAntInstancesCachedCounted
+(= (scoreNewInstancesCachedCounted
       (cons (mkSInst (mkPair $inst $score)) $rest)
       $rep $id $context $treeScoreCache)
-   (if (< (getScore $score) (* -1 (pow-math 10 90)))
+   (if (scoreNeedsEvaluation $score)
        (let* (
-              ($materializedTree (getCandidate $rep $id $inst))
-              ($cleanedTree (cleanActionTree $materializedTree))
-              ($cachedScore (antCachedScoreForTree $cleanedTree $treeScoreCache))
+              ($tree
+                (materializeCandidateForContext
+                  $rep $id $inst $context))
+              ($batchScore
+                (cachedScoreForTree $tree $treeScoreCache))
+              ($runScore
+                (if (== $batchScore ())
+                    (cachedCandidateScore $context $tree)
+                    $batchScore))
               (($resolvedScore $didEvaluate $updatedCache)
-                (if (== $cachedScore ())
-                    (let $newScore (scoreCleanedAntTree $cleanedTree $context)
-                      ($newScore
-                       1
-                       (cons (mkAntTreeScore $cleanedTree $newScore)
-                             $treeScoreCache)))
-                    ($cachedScore 0 $treeScoreCache)))
+                (if (== $runScore ())
+                    (let $newScore (scoreMaterializedTree $tree $context)
+                      (let $_cached
+                           (cacheCandidateScore $context $tree $newScore)
+                        ($newScore
+                         1
+                         (cons (mkTreeScore $tree $newScore)
+                               $treeScoreCache))))
+                    ($runScore
+                     0
+                     (if (== $batchScore ())
+                         (cons (mkTreeScore $tree $runScore)
+                               $treeScoreCache)
+                         $treeScoreCache))))
               (($scoredRest $restCount $finalCache)
-                (scoreNewAntInstancesCachedCounted
+                (scoreNewInstancesCachedCounted
                   $rest $rep $id $context $updatedCache))
              )
          ((cons (mkSInst (mkPair $inst $resolvedScore)) $scoredRest)
           (+ $didEvaluate $restCount)
           $finalCache))
        (let ($scoredRest $restCount $finalCache)
-            (scoreNewAntInstancesCachedCounted
+            (scoreNewInstancesCachedCounted
               $rest $rep $id $context $treeScoreCache)
          ((cons (mkSInst (mkPair $inst $score)) $scoredRest)
           $restCount
           $finalCache))))
 
-(= (scoreNewAntInstancesCounted $instances $rep $id $context)
-   (let ($scored $count $finalCache)
-        (scoreNewAntInstancesCachedCounted
-          $instances $rep $id $context ())
+;; Seed local deduplication from attached scores, score every unresolved row at
+;; most once, and return the exact number of newly invoked scorers.
+(= (scoreNewInstancesCounted $instances $rep $id $context)
+   (let* (
+          ($initialCache
+            (seedTreeScoreCache $instances $rep $id $context ()))
+          (($scored $count $finalCache)
+            (scoreNewInstancesCachedCounted
+              $instances $rep $id $context $initialCache))
+         )
      ($scored $count)))
 
-(= (transformAntIncremental (mkSInstSet $instances) $rep $id $context)
+;; Incrementally score a complete instance set while preserving its wrapper.
+(= (transformIncremental (mkSInstSet $instances) $rep $id $context)
    (let ($scored $count)
-        (scoreNewAntInstancesCounted $instances $rep $id $context)
+        (scoreNewInstancesCounted $instances $rep $id $context)
      ((mkSInstSet $scored) $count)))
- ;; )
-    ;; WARN: The $nNewInstances might not be the actual number of instances created.
+
+;; Sampling and crossover both append new rows after the existing scored
+;; population. Preserve that prefix byte-for-byte and traverse only the suffix
+;; that can need work. This avoids rematerializing an ever-growing deme twice
+;; on every hill-climbing iteration.
+(= (transformAppendedIncremental
+      (mkSInstSet $instances) $prefixSize $rep $id $context)
+   (let* (
+          ($prefix (List.takeN $prefixSize $instances))
+          ($suffix (List.drop $prefixSize $instances))
+          (($scoredSuffix $count $finalCache)
+            (scoreNewInstancesCachedCounted
+              $suffix $rep $id $context ()))
+         )
+     ((mkSInstSet (List.concat $prefix $scoredSuffix)) $count)))
+
+;; Feature-selection hill climbing has no representation/id pair, but it still
+;; appends new rows after an already-scored prefix. Score only that suffix and
+;; report its real row count instead of rescoring the accumulated population.
+(= (transformAppendedFeatureSelection
+      (mkSInstSet $instances) $prefixSize $transformFunction $itable
+      $miConfidence $prePenalty $preMinActivation $preMaxActivation
+      $prePositive $scorerType)
+   (let* (
+          ($prefix (List.takeN $prefixSize $instances))
+          ($suffix (List.drop $prefixSize $instances))
+          ($scoredSuffix
+            ($transformFunction
+              (mkSInstSet $suffix) $itable
+              $miConfidence $prePenalty $preMinActivation
+              $preMaxActivation $prePositive $scorerType))
+          ((mkSInstSet $scoredRows) $scoredSuffix)
+         )
+     ((mkSInstSet (List.concat $prefix $scoredRows))
+      (List.length $suffix))))
+
+;; Direct hill-climbing callers may provide an already-scored initial deme.
+;; Seed those attached scores once at the public boundary; recursive iterations
+;; then use the run cache and the suffix-only path above.
+(= (seedAttachedCandidateScores
+      (mkDeme $rep (mkSInstSet $instances) $id) $context)
+   (seedTreeScoreCache $instances $rep $id $context ()))
 ;; crossover for feature selection
 ; (: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
 (= (crossoverFs $size $nNewInstances $sampleStart $sampleSize $centerInst $scoredInstSet)
-   ;; (trace! (Running cross over for $centerInst)
-           ((crossTopOneFs $scoredInstSet $nNewInstances $sampleStart $sampleSize $centerInst) (if (< (- $sampleSize 1) $nNewInstances) (- $sampleSize 1) $nNewInstances))
-           ;; )
-   ) ;; WARN: The $nNewInstances might not be the actual number of instances created.
+   (let* (
+          ((mkSInstSet $before) $scoredInstSet)
+          ($updated
+            (crossTopOneFs
+              $scoredInstSet $nNewInstances
+              $sampleStart $sampleSize $centerInst))
+          ((mkSInstSet $after) $updated)
+         )
+     ($updated (- (List.length $after) (List.length $before)))))
 
 ;; (: returnBest (-> (ScoredInstance Number) (ScoredInstance Number) (ScoredInstance Number)))
 (= (returnBest (mkSInst $inst1) (mkSInst $inst2)) (returnBest < (mkSInst $inst1) (mkSInst $inst2)) )
@@ -345,8 +446,11 @@
           (
             ($disc (getDisk $POASet))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer))
+            ($_seedAttached
+              (seedAttachedCandidateScores
+                $POASet ($iTable $cpxCoeff)))
           )
-          (hillClimbing ((min (param hcMaxDistBoolean) (List.length (second $centerInst))) (param hcMinXoverNeighborsBoolean) 0) (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
+          (hillClimbing ((min (param maxDist) (List.length (second $centerInst))) (param minXoverNeighbors) 0) (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
                         ($disc $cpxCoeff $size $iTable)
                         $centerInst
@@ -363,7 +467,7 @@
             ;; ($_ (println! (Labels: $labels)))
             ($FsScorerType (if (== $FsScorer ()) mi $FsScorer))
           )
-          (hillClimbing ((min (param hcMaxDistFs) (List.length (second $centerInst))) (param hcMinXoverNeighborsFs) 0) (False False False $centerInst 0 0 0 0 0 0 1)
+          (hillClimbing ((min (param maxDist) (List.length (second $centerInst))) (param minXoverNeighbors) 0) (False False False $centerInst 0 0 0 0 0 0 1)
               $POASet 
               ($labels $rows () ())
               $centerInst
@@ -379,10 +483,14 @@
             ;; $tTableBscorer is the scalar `$maxScore` for the strategy path
             ;; (was a Cscore struct before the termination switched to scalar).
             ($targetPenScore $tTableBscorer)
+            ($_seedAttached
+              (seedAttachedCandidateScores
+                $POASet
+                (mkStrategyScoreContext $nGames $complexityRatio)))
             ;; Keep a non-empty sentinel in the third slot so the recursive
             ;; strategy path still follows the non-feature-selection branches.
           )
-          (hillClimbing ((param hcMaxDistStrategy) (param hcMinXoverNeighborsStrategy) $targetPenScore)
+          (hillClimbing ((param maxDist) (param minXoverNeighbors) $targetPenScore)
                         (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
                         ($disc $nGames strategy $complexityRatio) ;; INFO: `strategy` is used only as a non-empty marker so this recursive call follows the normal strategy branch instead of the feature-selection branch that is selected when the third slot is ().
@@ -391,24 +499,25 @@
                         estimateNeighborhood crossover
                         sampleNewInstances transform)))
       ((mkParams applyAntBasedScore)
-        ;; Ant has its own C++-matched distance and crossover threshold.  It
-        ;; must not inherit the smaller strategy-search values.
+        ;; Action scoring changes the context, not the shared search controls.
         (let*
           (
             ($disc (getDisk $POASet))
             ((mkAntContext $steps $complexityRatio $actions $perceptions) $FsScorer)
             ($targetPenScore $tTableBscorer)
+            ($_seedAttached
+              (seedAttachedCandidateScores $POASet $FsScorer))
           )
-          (hillClimbing ((param hcMaxDistAnt) (param hcMinXoverNeighborsAnt) $targetPenScore)
+          (hillClimbing ((param maxDist) (param minXoverNeighbors) $targetPenScore)
                         (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         $POASet
-                        ($disc ant ant $FsScorer)
+                        ;; `action` is a neutral optimizer mode; Santa Fe
+                        ;; details remain entirely inside the scoring context.
+                        ($disc action action $FsScorer)
                         $centerInst
                         ()
                         estimateNeighborhood crossover
-                        ;; Preserve sampling RNG order while appending and
-                        ;; counting only unique, previously unseen ant vectors.
-                        sampleNewAntInstances transform)))
+                        sampleNewInstances transform)))
     )))
 
 (= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
@@ -420,35 +529,34 @@
                  $estimateFunction $crossoverFunction $samplingFunction $transformFunction) ;; Helper functions
    (let*
       (
-        ;; Preserve generic HC logging, but keep ant output opt-in because a
-        ;; convergence run can execute thousands of iterations.
-        ($progressEnabled (if (== $size ant) (param antDiagnostics) True))
+        ;; Long searches can execute thousands of iterations, so progress
+        ;; output is controlled uniformly for every problem.
+        ($progressEnabled (param diagnostics))
         ($_blank (if $progressEnabled (println! "") ()))
         ($_iteration (if $progressEnabled (println! (Iteration $i running)) ()))
 
         ($totalNNeighbors ($estimateFunction $d $neighborhood))
-        ($_antNeighborhoodEstimate
-          (if (and (== $size ant) (param antDiagnostics))
-              (println! (AntHillClimbingNeighborhoodEstimate
+        ($_neighborhoodEstimate
+          (if (param diagnostics)
+              (println! (HillClimbingNeighborhoodEstimate
                            (distance $d) (neighbors $totalNNeighbors)))
               ()))
 
-        ;; Use the deliberately smaller MeTTa ant budget documented in
-        ;; defaults; other domains retain the existing generic HC budget. The
-        ;; outer allowance prevents multiple demes from overspending the
-        ;; complete-run budget.
-        ($configuredMaxEvals (if (== $size ant) (param hcMaxEvalsAnt) (param hcMaxEvals)))
-        ($outerAntLimit (if (== $size ant) (get-state &antLocalEvalLimit) -1))
+        ;; Counted expansion installs this deme's fair share of the remaining
+        ;; complete-run budget. Direct calls fall back to maxEvals. A large
+        ;; numeric allowance represents the documented negative/unlimited mode.
+        ($outerLimit (get-state &localEvalLimit))
+        ($configuredLimit
+          (if (< $outerLimit 0) (param maxEvals) $outerLimit))
         ($maxEvals
-          (if (and (== $size ant) (>= $outerAntLimit 0))
-              (min $configuredMaxEvals $outerAntLimit)
-              $configuredMaxEvals))
+          (if (< $configuredLimit 0)
+              (pow-math 10 18)
+              $configuredLimit))
         ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors))
 
-        ;; Ant's evaluation counter is no longer also used as its population
-        ;; index.  The latter is derived from the retained scored instances.
+        ;; Evaluation count and population index are different quantities.
         ($currentDemeSize
-          (if (== $size ant)
+          (if (and (not (== $rep ())) (not (== $id ())))
               (let (mkDeme $_rep (mkSInstSet $currentInstances) $_id) $POASet
                 (List.length $currentInstances))
               $currentNInstances))
@@ -457,8 +565,7 @@
         ;; Honor the C++ crossover switch.
         ($xOver (and (param hcCrossover)
                      (and (> $i 2)
-                          (and (or (not (== $size ant))
-                                   (>= $currentDemeSize 3))
+                          (and (>= $currentDemeSize 3)
                                (and (not $alreadyXover) (or $largeNbh $lastChance)))))) ;; INFO: Has to be greater than 2 minimum.
         ($_crossover (if $progressEnabled (println! (Crossover: $xOver)) ()))
         ($_center
@@ -501,29 +608,28 @@
         ;; deconstruct the hyper params for fs function
         (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType) (if (== () $hyperparamsfs) (() () () () () ()) $hyperparamsfs))
 
+        ($incrementalContext
+          (case $size
+            ((action $iTable)
+             (strategy
+               (mkStrategyScoreContext $rowOCoeff $iTable))
+             ($other ($iTable $rowOCoeff)))))
         ($scoreBatch
-          (if (== $size ant)
-              (transformAntIncremental $updatedInstSet $rep $id $iTable)
-              ((if (or (== $rep ()) (== $id ()))
-                    ($transformFunction
-                                                                $updatedInstSet
-                                                                (mkITable $rowOCoeff $neighborhood)
-                                                                $miConfi $prePenalty
-                                                                $preMinActivation $preMaxActivation
-                                                                $prePositive $scorerType)
-                    (case $iTable
-                      (
-                        ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep $id (mkITable $rows $labels) $rowOCoeff))
-                        ((mkAntContext $steps $complexityRatio $actions $perceptions)
-                         ($transformFunction $updatedInstSet $rep $id $iTable $complexityRatio))
-                        ($ComplexityRatio ($transformFunction $updatedInstSet $rep $id ($rowOCoeff $size) $ComplexityRatio)))))
-               $newInstances)))
+          (if (or (== $rep ()) (== $id ()))
+              (transformAppendedFeatureSelection
+                $updatedInstSet $currentDemeSize $transformFunction
+                (mkITable $rowOCoeff $neighborhood)
+                $miConfi $prePenalty $preMinActivation
+                $preMaxActivation $prePositive $scorerType)
+              (transformAppendedIncremental
+                $updatedInstSet $currentDemeSize
+                $rep $id $incrementalContext)))
         (($scoredSet $actualNewEvals) $scoreBatch)
         ((mkSInstSet $scoredInstances) $scoredSet)
         ($updatedEvalCount (+ $currentNInstances $actualNewEvals))
-        ($_antEvalDiagnostics
-          (if (and (== $size ant) (param antDiagnostics))
-              (println! (AntHillClimbingEvaluations
+        ($_evalDiagnostics
+          (if (param diagnostics)
+              (println! (HillClimbingEvaluations
                            (actualNew $actualNewEvals)
                            (cumulativeLocal $updatedEvalCount)))
               ()))
@@ -577,12 +683,12 @@
         ;; not the penalty-adjusted one -- comparing penScore against a raw
         ;; target would mix the complexity penalty into the threshold.
         ($scoreToCompareBelow
-          (if (== $size ant)
-              (bestRawAntDeme $newDeme)
-              (if (or (== $rep ()) (== $id ())) $newBestSscore (getScore $newBestSscore))))
-        ($_antBestDiagnostics
-          (if (and (== $size ant) (param antDiagnostics))
-              (println! (AntHillClimbingBest
+          (if (or (== $rep ()) (== $id ()))
+              $newBestSscore
+              (bestRawDeme $newDeme)))
+        ($_bestDiagnostics
+          (if (param diagnostics)
+              (println! (HillClimbingBest
                            (bestRaw $scoreToCompareBelow)
                            (bestPenalized $newBestScore)))
               ()))

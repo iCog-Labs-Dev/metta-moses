@@ -130,6 +130,9 @@
 !(import! &self deme/deme-id-creation)
 !(import! &self deme/score-deme)
 !(import! &self deme/merge-demes)
+;; Domain-specific representation and scorer dispatch is assembled here at
+;; the production entry point, before the shared expansion lifecycle uses it.
+!(import! &self deme/domain-adapter)
 !(import! &self deme/expand-deme)
 
 ;; ---- Top-level entry point: defines (moses), (optimizer-for ...) ----
