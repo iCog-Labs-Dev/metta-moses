@@ -208,14 +208,6 @@
        (let $sexpr (py-call (csv_helper.load_boolean_table (param inputFile) (param targetFeature)))
             (parse $sexpr))))
 
-;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
-;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;;                   smd      ;; the new arguments for feature selection algo
-;;                   (createTruthTableBScore 2 (xortable))
-;;                   hillClimbing
-;;                   100 10 20 2
-;;                   (xortable)
-;;                   10 0.004 1000))
 ;; ============================================================
 ;;  Top-level MOSES entry point.
 ;;
@@ -256,11 +248,14 @@
       )
       ()))
 
+;; Dispatch the configured problem to its domain-specific setup; both setup
+;; paths subsequently enter the same shared runMoses search lifecycle.
 (= (moses-run)
    (case (param problem)
       ((ant (moses-ant-run))
        ($other (moses-table-run)))))
 
+;; Construct Boolean/table scoring inputs and seed the shared MOSES pipeline.
 (= (moses-table-run)
    (let*
       (
@@ -298,6 +293,7 @@
       )
       (FinalResult $newR)))
 
+;; Construct Santa Fe action scoring inputs and seed the shared MOSES pipeline.
 (= (moses-ant-run)
    (let*
       (
@@ -306,15 +302,13 @@
         ($nDeme    (param nDeme))
         ($optAlgo  (param optAlgo))
         ($optimizer (optimizer-for $optAlgo))
-        ($steps (param antSteps))
-        ($complexityRatio (param antComplexityRatio))
-        ($complexityTemperature (param antComplexityTemperature))
+        ;; Action domains consume the same public scoring controls as Boolean
+        ;; domains. `steps` is meaningful to this stateful evaluator, while
+        ;; Boolean scorers harmlessly leave it unused.
+        ($steps (param steps))
+        ($complexityRatio (param complexityRatio))
         ($context (mkAntContext $steps $complexityRatio (ant-actions) (ant-perceptions)))
 
-        ;; Santa Fe's successful C++ configuration uses one hot temperature
-        ;; for both exemplar selection and merge trimming.  Install the
-        ;; ant-specific value before either operation runs.
-        ($_temp (set-param complexityTemperature $complexityTemperature))
         ($srp (py-call (random.seed $seed)))
         ($_  (set-param genCount $maxGen))
         ($initialTree (ant-exemplar))
@@ -324,13 +318,12 @@
         ($initialCscore (getAntCscoreFromBScore $initialTree $complexityRatio $initialBscore))
         ($_ (println! (BestPossibleScore: (ant-best-possible-score))))
         ($metaPop ((mkExemplar $initialTree (mkDemeId "1") $initialCscore $initialBscore)))
-        ;; Ant uses the parity loop with explicit visit accounting.  Generic
-        ;; runMoses remains unchanged for Boolean and strategy pipelines.
-        ;; Seed the counted loop with the initialization call so antMaxEvals
-        ;; and diagnostics cover the complete ant run.
-        ($result (runAntMosesCounted
+        ;; The scoring context is the only domain-specific input: selection,
+        ;; expansion, evaluation accounting, merge, termination, and
+        ;; finalization all pass through the same runMoses pipeline.
+        ($result (runMoses
               $maxGen (ant-best-possible-score) $metaPop 0
-              $nDeme $context $optimizer () 1))
+              $nDeme $context $optimizer))
         ($newR (mapG cleanedExemplar $result))
         ($_ (cut))
       )

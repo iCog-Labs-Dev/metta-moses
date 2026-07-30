@@ -40,6 +40,7 @@
 !(import! &self ../../../representation/create-representation)
 !(import! &self ../../../representation/instance)
 
+!(import! &self ../../../deme/deme-id-creation)
 !(import! &self ../../../deme/create-deme)
 
 ;; The raw-champion merge regression exercises actual metapopulation ordering,
@@ -53,32 +54,59 @@
 ;; vocabulary before importing the generic merge implementation, as moses.metta does.
 !(import! &self ../../../deme/merge-demes)
 
-!(import! &self ../../../optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../../optimization/hillclimbing/cross-top-one)
+!(import! &self ../../../optimization/hillclimbing/crossover-helpers)
+!(import! &self ../../../optimization/hillclimbing/crossover)
 !(import! &self ../../../optimization/hillclimbing/hill-climbing-helpers)
 ;; Mirror the production import graph so the counted expansion helper can
 ;; specialize its higher-order hill-climbing call in this integration test.
+!(import! &self ../../../deme/domain-adapter)
 !(import! &self ../../../deme/expand-deme)
 
 !(py-call (random.seed 10))
 
-;; The complete-run evaluator limit is registered only when the ant domain is
-;; loaded, protecting unrelated generic parameter specialization.
-!(assertEqual (param antMaxEvals) 100000)
+;; Search controls come from the same registry keys used by Boolean problems.
+!(assertEqual
+  ((param maxEvals) (param maxDist) (param steps)
+   (param complexityRatio))
+  (25000 4 600 3.5))
 
 (= (antContextForTest)
    (mkAntContext 600 0.16 (ant-actions) (ant-perceptions)))
 
+;; Supply a deterministically scored action exemplar for adapter contracts.
+(= (antAdapterSeed)
+   (mkExemplar
+     (ant-exemplar)
+     (mkDemeId "ant-adapter-seed")
+     (mkCscore -89 0 0.0 0.0 -89.0)
+     (mkBScore (-89 0))))
+
+;; Capture the scorer and payload selected by action-context dispatch.
+(= (actionAdapterOptimizerProbe
+      $deme $target $inst (mkParams $scorer $payload))
+   (AdapterCall scored $target $scorer $payload))
+
+;; The shared lifecycle sees only neutral adapter operations. This focused
+;; contract test verifies that the action context is converted at the adapter
+;; boundary to its scorer, merge context, target, and initial evaluation cost.
+!(assertEqual
+  ((optimizerContextFor (antContextForTest) 0)
+   (mergeContextFor (antContextForTest))
+   (initialEvaluationCount (antContextForTest))
+   (optimizeDeme
+     probeDeme
+     (optimizerContextFor (antContextForTest) 0)
+     (mkInst ())
+     actionAdapterOptimizerProbe))
+  ((mkOptimizerContext (antContextForTest) 0)
+   (antContextForTest)
+   1
+   (AdapterCall scored 0 applyAntBasedScore (antContextForTest))))
+
 (= (manualAntRep)
    (let ($updatedTree $mmp)
-        (addActionKnobsAt
-           (ant-exemplar)
-           (mkNodeId (0))
-           (mkNodeId (0))
-           True
-           ()
-           (ant-actions)
-           (ant-perceptions))
+        (addActionKnobs
+           (ant-exemplar) True () (ant-actions) (ant-perceptions))
       (mkRep (mkKbMap (mkDscMp $mmp)) $updatedTree)))
 
 ;; Constant action-result exemplars contain no mutable coordinate.  This is the
@@ -140,19 +168,35 @@
 (= (antDemeFunctionalSummaries $demes)
    (map-atom $demes $deme (antDemeFunctionalSummary $deme)))
 
-;; Ant deme multiplicity must be driven only by nDeme. This also guards against
-;; an unresolved list-producing helper being interpreted as literal map input.
+;; Action deme multiplicity must be driven only by nDeme after entering through
+;; the domain adapter. This also guards against an unresolved list-producing
+;; helper being interpreted as literal map input.
 !(assertEqual
-  (createDeme 0 () (ant-exemplar) (antContextForTest))
+  (createSelectedDemes
+    (antAdapterSeed) 0 0 (antContextForTest))
   ())
 
 ;; Empty representations must be distinguished from real action
 ;; representations before hill climbing.  The latter would otherwise try to
 ;; read knob zero from an empty multimap.
 !(assertEqual
-  ((antRepresentationExpandable
+  ((representationExpandable
      (emptyAntRep (mkTree (mkNode action_success) ())))
-   (antRepresentationExpandable (manualAntRep)))
+   (representationExpandable (manualAntRep)))
+  (False True))
+
+;; The same field predicate supports the indexed knob-map shape used by the
+;; Boolean and strategy representations.
+!(assertEqual
+  (let (mkRep (mkKbMap (mkDscMp $mmp)) $tree) (manualAntRep)
+    ((representationExpandable
+       (mkRep
+         (mkKbMap (mkDscKbMp ()) (mkDscMp ()))
+         $tree))
+     (representationExpandable
+       (mkRep
+         (mkKbMap (mkDscKbMp ()) (mkDscMp $mmp))
+         $tree))))
   (False True))
 
 ;; A tree's expandability cannot be inferred from its root symbol because the
@@ -163,7 +207,7 @@
   (let* (
          ($validRep (manualAntRep))
          ($filtered
-           (antExpandableRepresentations
+           (expandableRepresentations
              ((emptyAntRep (mkTree (mkNode action_success) ()))
               $validRep
               (emptyAntRep (mkTree (mkNode action_failure) ())))))
@@ -199,28 +243,22 @@
   (let* (
          ($_seed (py-call (random.seed 10)))
          ($demes
-           (createDeme
-             1
-             ((mkDemeId "ant-1"))
-             (ant-exemplar)
-             (antContextForTest)))
+           (createSelectedDemes
+             (antAdapterSeed) 0 1 (antContextForTest)))
         )
     (antDemeFunctionalSummaries $demes))
-  (((mkDemeId "ant-1") True True -89 -89 True)))
+  (((mkDemeId (numStr 1)) True True -89 -89 True)))
 
 !(assertEqual
   (let* (
          ($_seed (py-call (random.seed 10)))
          ($demes
-           (createDeme
-             2
-             ((mkDemeId "ant-1") (mkDemeId "ant-2"))
-             (ant-exemplar)
-             (antContextForTest)))
+           (createSelectedDemes
+             (antAdapterSeed) 0 2 (antContextForTest)))
         )
     (antDemeFunctionalSummaries $demes))
-  (((mkDemeId "ant-1") True True -89 -89 True)
-   ((mkDemeId "ant-2") True True -89 -89 True)))
+  (((mkDemeId (1 . 0)) True True -89 -89 True)
+   ((mkDemeId (1 . 1)) True True -89 -89 True)))
 
 ;; The counted expansion exposes `(() 0)` as the retry signal without invoking
 ;; the simulator.  nDeme=0 makes that signal deterministic without depending on
@@ -235,20 +273,21 @@
      (mkBScore (-89 0))))
 
 !(assertEqual
-  (expandSelectedAntExemplarCounted
+  (expandSelectedExemplarCounted
     (constantAntExemplar) 7 0 (antContextForTest)
-    hillClimbing 25)
+    0 hillClimbing 25)
   (() 0))
 
 !(assertEqual
-  (runAntMosesCounted
+  (runMosesCounted
     1 0 ((constantAntExemplar)) 7 0
     (antContextForTest) hillClimbing () 11)
   ((constantAntExemplar)))
 
 ;; Combine the deterministic empty-representation signal above with the
 ;; actual retry transition.  The failed tree becomes ineligible at revisit=0,
-;; the second tree remains selectable, and no counter advances.
+;; the second tree remains selectable, and the bounded attempt advances the
+;; generation/expansion counters without charging a scorer call.
 !(assertEqual
   (let* (
          ($nextExemplar
@@ -257,18 +296,18 @@
              (mkCscore -86 1 6.25 0.0 -92.25)
              (mkBScore (-89 3))))
          ($updatedVisits
-           (recordAntVisit
+           (recordVisit
              (getExemplarTree (constantAntExemplar)) ()))
          (($retryGen $retryExpansion $retryVisits $retryEvaluations)
-           (antEmptyRepresentationRetryState
+           (emptyRepresentationRetryState
              5 7 $updatedVisits 11))
          ($eligible
-           (antEligibleExemplars
+           (eligibleExemplars
              ((constantAntExemplar) $nextExemplar)
              $retryVisits 0))
         )
     ($retryGen $retryExpansion $retryEvaluations $eligible))
-  (5 7 11
+  (4 8 11
    ((mkExemplar
       (mkTree (mkNode move_forward) ()) (mkDemeId "ant-next")
       (mkCscore -86 1 6.25 0.0 -92.25)
@@ -278,6 +317,10 @@
   (let (mkRep (mkKbMap (mkDscMp $mmp)) $tree) (manualAntRep)
     (MultiMap.length $mmp))
   1)
+
+;; Starting a public action run must also succeed when treeSpace is already
+;; empty; cache reset helpers always return a sequencing value.
+!(assertEqual (resetDomainRunCaches (antContextForTest)) True)
 
 !(assertEqual
   (getCandidate (manualAntRep) AntAbsent (mkInst (0)))
@@ -321,10 +364,10 @@
   (((mkDiscSpec 4) (mkDiscSpec 2)) (2 1)))
 
 ;; The ninth hill-climbing state field is the number of real scorer calls.
-;; Keep this positional contract explicit because the outer ant budget relies
+;; Keep this positional contract explicit because the outer budget relies
 ;; on it rather than estimating evaluations from retained deme size.
 !(assertEqual
-  (antHillStateEvaluationCount
+  (hillStateEvaluationCount
     (False False True previous-center 0 12
      (worstCscore) -42 37 4 6))
   37)
@@ -334,66 +377,59 @@
 ;; integration assertions and tests in this process cannot inherit test state.
 !(assertEqual
   (let* (
-         ($_finite (set-param antMaxEvals 10))
+         ($_finite (set-param maxEvals 10))
          ($below
-           ((antEvaluationBudgetReached 9)
-            (antRemainingEvaluationBudget 9)))
+           ((evaluationBudgetReached 9)
+            (remainingEvaluationBudget 9)))
          ($atLimit
-           ((antEvaluationBudgetReached 10)
-            (antRemainingEvaluationBudget 10)))
+           ((evaluationBudgetReached 10)
+            (remainingEvaluationBudget 10)))
          ($pastLimit
-           ((antEvaluationBudgetReached 14)
-            (antRemainingEvaluationBudget 14)))
-         ($_unlimited (set-param antMaxEvals -1))
+           ((evaluationBudgetReached 14)
+            (remainingEvaluationBudget 14)))
+         ($_unlimited (set-param maxEvals -1))
          ($unlimited
-           ((antEvaluationBudgetReached 1000000)
-            (antRemainingEvaluationBudget 1000000)))
-         ($_restore (set-param antMaxEvals 100000))
+           ((evaluationBudgetReached 1000000)
+            (remainingEvaluationBudget 1000000)))
+         ($_restore (set-param maxEvals 25000))
         )
-    ($below $atLimit $pastLimit $unlimited (param antMaxEvals)))
-  ((False 1) (True 0) (True 0) (False -1) 100000))
+    ($below $atLimit $pastLimit $unlimited (param maxEvals)))
+  ((False 1) (True 0) (True 0) (False -1) 25000))
 
 ;; A direct or resumed ant run may already contain a target-reaching raw
 ;; champion. Detect it before representation construction or optimization.
 !(assertEqual
-  ((antRawTargetReached
+  ((rawTargetReached
      (mkExemplar
        (trailFollowerTree) (mkDemeId "target")
        (mkCscore 0 2 12.5 0.0 -12.5) (mkBScore (-89 89)))
      0)
-   (antRawTargetReached
+   (rawTargetReached
      (mkExemplar
        (trailFollowerTree) (mkDemeId "below-target")
        (mkCscore -1 2 12.5 0.0 -13.5) (mkBScore (-89 88)))
      0)
-   (antRawTargetReached () 0))
+   (rawTargetReached () 0))
   (True False False))
 
-;; Invalid zero-work configurations terminate before entering hill climbing.
-;; Restore the local limit immediately so no later assertion inherits the test.
+;; Deme availability is independent from the global budget; the outer budget
+;; check prevents zero-budget optimization before expansion.
 !(assertEqual
-  (let* (
-         ($previousLocalLimit (param hcMaxEvalsAnt))
-         ($zeroDemes (antExpansionEnabled 0))
-         ($_zeroLocal (set-param hcMaxEvalsAnt 0))
-         ($zeroLocal (antExpansionEnabled 2))
-         ($_restore (set-param hcMaxEvalsAnt $previousLocalLimit))
-        )
-    ($zeroDemes $zeroLocal (antExpansionEnabled 2)))
-  (False False True))
+  ((expansionEnabled 0) (expansionEnabled 2))
+  (False True))
 
 ;; moses-ant-run seeds the counted loop with one initial simulation.  Starting
 ;; that loop at a one-call global limit must therefore return the seed without
 ;; constructing or optimizing a representation.
 !(assertEqual
   (let* (
-         ($previousBudget (param antMaxEvals))
-         ($_limit (set-param antMaxEvals 1))
+         ($previousBudget (param maxEvals))
+         ($_limit (set-param maxEvals 1))
          ($result
-           (runAntMosesCounted
+           (runMosesCounted
              100 0 ((constantAntExemplar)) 0 2
              (antContextForTest) hillClimbing () 1))
-         ($_restore (set-param antMaxEvals $previousBudget))
+         ($_restore (set-param maxEvals $previousBudget))
         )
     $result)
   ((constantAntExemplar)))
@@ -411,13 +447,14 @@
              (mkCscore -89 0 0.0 0.0 -89.0)
              (mkBScore (-89 0))))
          (($demes $used)
-           (expandSelectedAntExemplarCounted
-             $seedExemplar 3 2 (antContextForTest) hillClimbing 3))
+           (expandSelectedExemplarCounted
+             $seedExemplar 3 2 (antContextForTest)
+             0 hillClimbing 3))
         )
     ((> $used 0)
      (<= $used 3)
      (== (List.length $demes) 2)
-     (get-state &antLocalEvalLimit)))
+     (get-state &localEvalLimit)))
   (True True True -1))
 
 ;; A real ant representation may introduce semantically neutral `and_seq`
@@ -515,11 +552,11 @@
              (mkSInstSet ($penalizedWinner $rawPerfect))
              (mkDemeId "ant-raw-champion")))
          ($trackedRaw
-           (bestRawAntExemplarFromDemes
+           (bestRawExemplarFromDemes
              ($deme) (antContextForTest)))
          ($merged
            (mergeDemes ($deme) (antContextForTest) ()))
-         ($selectableRaw (bestRawAntExemplar $merged))
+         ($selectableRaw (bestRawExemplar $merged))
          ($bestPenalized (OS.getByIdx 0 $merged))
          ($summary
            ((getScore (getExemplarCscore $trackedRaw))
@@ -553,7 +590,7 @@
            (mkSInst (mkPair (mkInst (2))
                             (mkCscore -3 2 12.5 0.0 -15.5))))
         )
-    (bestRawAntScoredInstance
+    (bestRawScoredInstance
       (mkSInstSet ($first $simpler $exactTie))))
   (mkSInst
     (mkPair (mkInst (1))
@@ -576,15 +613,15 @@
              (mkBScore (-89 89))))
          ($selectable ($penalizedWinner))
          ($trackedRaw
-           (betterRawAntExemplar $penalizedWinner $rawPerfect))
-         ($finished (finishAntMetapop $selectable $trackedRaw))
+           (betterRawExemplar $penalizedWinner $rawPerfect))
+         ($finished (finishMetapop $selectable $trackedRaw))
         )
     ((getScore
        (getExemplarCscore $trackedRaw))
      (getPenScore
        (getExemplarCscore (OS.getByIdx 0 $selectable)))
      (getScore
-       (getExemplarCscore (bestRawAntExemplar $finished)))
+       (getExemplarCscore (bestRawExemplar $finished)))
      (OS.length $selectable)
      (OS.length $finished)))
   (0 -78.0 0 1 2))
@@ -604,7 +641,7 @@
              (mkCscore -78 2 12.5 0.0 -90.5)
              (mkBScore (-89 11))))
          ($finished
-           (finishAntMetapop ($retained) $sameTreeChampion))
+           (finishMetapop ($retained) $sameTreeChampion))
          ((mkExemplar $tree (mkDemeId $id) $cscore $bscore)
            (List.head $finished))
         )
@@ -628,8 +665,8 @@
             (mkDeme $rep (mkSInstSet ($scored))
                     (mkDemeId "diagnostic-2"))))
         )
-    ((antDiagnosticDemeTrees $demes)
-     (antDiagnosticEvaluationCount $demes)))
+    ((diagnosticDemeTrees $demes)
+     (diagnosticDemeRowCount $demes)))
   (((mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ())))
     (mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ())))
     (mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ()))))
@@ -638,7 +675,7 @@
 ;; Raw fitness is folded independently while the penalized maximum comes from
 ;; the already ordered metapopulation head.
 !(assertEqual
-  (antMetapopBestScores
+  (metapopBestScores
     ((mkExemplar
        (mkTree (mkNode and_seq) ()) (mkDemeId "penalized-best")
        (mkCscore -5 0 0 0 -10) (mkBScore (-5)))
@@ -650,12 +687,17 @@
 ;; Incremental ant scoring must preserve a prior score verbatim and invoke the
 ;; simulator only for the worstCscore-marked new instance.
 !(assertEqual
-  (transformAntIncremental
+  (let* (
+         ($_reset (resetCandidateScoreCache))
+         ($result
+           (transformIncremental
     (mkSInstSet
       ((mkSInst (mkPair (mkInst (0)) (mkCscore -77 4 25.0 0.0 -102.0)))
        (mkSInst (mkPair (mkInst (1)) (worstCscore)))))
     (manualAntRep) (mkDemeId "ant-incremental")
-    (antContextForTest))
+             (antContextForTest)))
+        )
+    $result)
   ((mkSInstSet
      ((mkSInst (mkPair (mkInst (0)) (mkCscore -77 4 25.0 0.0 -102.0)))
       (mkSInst (mkPair (mkInst (1)) (mkCscore -86 1 6.25 0.0 -92.25)))))
@@ -663,28 +705,69 @@
 
 ;; Distinct new knob vectors can materialize to one reduced action tree. They
 ;; must retain their original order and both receive the same Cscore, while the
-;; actual-evaluation count records only one invocation of the ant simulator.
+;; first actual-evaluation count records only one simulator invocation. A later
+;; scoring call reuses that score and records zero new invocations.
 !(assertEqual
   (let* (
+         ($_reset (resetCandidateScoreCache))
          ($rep (duplicateReducedAntRep))
          ($id (mkDemeId "ant-cleaned-tree-cache"))
-         (($scoredSet $actualEvaluations)
-           (transformAntIncremental
+         (($scoredSet $firstEvaluations)
+           (transformIncremental
              (mkSInstSet
                ((mkSInst (mkPair (mkInst (1)) (worstCscore)))
                 (mkSInst (mkPair (mkInst (2)) (worstCscore)))))
              $rep $id (antContextForTest)))
+         (($cachedSet $secondEvaluations)
+           (transformIncremental
+             (mkSInstSet
+               ((mkSInst (mkPair (mkInst (2)) (worstCscore)))))
+             $rep (mkDemeId "ant-later-deme") (antContextForTest)))
          ($tree1 (cleanActionTree (getCandidate $rep $id (mkInst (1)))))
          ($tree2 (cleanActionTree (getCandidate $rep $id (mkInst (2)))))
         )
-    ($scoredSet $actualEvaluations (== $tree1 $tree2)))
+    ($scoredSet $firstEvaluations $cachedSet $secondEvaluations
+     (== $tree1 $tree2)))
   ((mkSInstSet
      ((mkSInst (mkPair (mkInst (1))
         (mkCscore -86 1 6.25 0.0 -92.25)))
       (mkSInst (mkPair (mkInst (2))
         (mkCscore -86 1 6.25 0.0 -92.25)))))
    1
+   (mkSInstSet
+     ((mkSInst (mkPair (mkInst (2))
+        (mkCscore -86 1 6.25 0.0 -92.25)))))
+   0
    True))
+
+;; The production suffix-only path can reuse a score attached to the old
+;; prefix. Distinct knob vectors that reduce to the same tree remain in order,
+;; while no new simulator call is charged.
+!(assertEqual
+  (let* (
+         ($_reset (resetCandidateScoreCache))
+         ($rep (duplicateReducedAntRep))
+         ($id (mkDemeId "ant-appended-cache"))
+         ($knownScore (mkCscore -86 1 6.25 0.0 -92.25))
+         ($old (mkSInst (mkPair (mkInst (1)) $knownScore)))
+         ($_seed
+           (seedAttachedCandidateScores
+             (mkDeme $rep (mkSInstSet ($old)) $id)
+             (antContextForTest)))
+         (($scoredSet $actualEvaluations)
+           (transformAppendedIncremental
+             (mkSInstSet
+               ($old
+                (mkSInst (mkPair (mkInst (2)) (worstCscore)))))
+             1 $rep $id (antContextForTest)))
+        )
+    ($scoredSet $actualEvaluations))
+  ((mkSInstSet
+     ((mkSInst (mkPair (mkInst (1))
+                       (mkCscore -86 1 6.25 0.0 -92.25)))
+      (mkSInst (mkPair (mkInst (2))
+                       (mkCscore -86 1 6.25 0.0 -92.25)))))
+   0))
 
 !(assertEqual
   (let* (($plainMoveEaten (antFoodEaten (antRunTree (antMoveTree) 600)))

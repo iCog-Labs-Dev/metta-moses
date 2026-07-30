@@ -95,78 +95,80 @@
 
 !(assertEqual (selectExemplar (cons (treeA-x) ())) (treeA-x))
 
-;; Ant eligibility is an order-preserving structural-tree filter.  Deme IDs
+;; Eligibility is an order-preserving structural-tree filter.  Deme IDs
 ;; and scores do not create separate visit allowances for the same tree.
-(= (antVisitExemplarA $id $penalty)
+(= (visitExemplarA $id $penalty)
    (mkExemplar (treeA) (mkDemeId $id)
      (mkCscore 0 0 0 0 $penalty) (mkBScore (0))))
-(= (antVisitExemplarB $id)
+(= (visitExemplarB $id)
    (mkExemplar (treeB) (mkDemeId $id)
      (mkCscore 0 0 0 0 0) (mkBScore (0))))
-(= (antVisitExemplarC $id)
+(= (visitExemplarC $id)
    (mkExemplar (treeC) (mkDemeId $id)
      (mkCscore 0 0 0 0 0) (mkBScore (0))))
-(= (antVisitExemplarY $id)
+(= (visitExemplarY $id)
    (mkExemplar (treeY) (mkDemeId $id)
      (mkCscore 0 0 0 0 0) (mkBScore (0))))
 
-!(assertEqual (antEligibleExemplars () () 0) ())
+!(assertEqual (eligibleExemplars () () 0) ())
 
 ;; Exhausted candidates are removed without disturbing the relative order of
 ;; the candidates that remain.
 !(assertEqual
-  (antEligibleExemplars
-    ((antVisitExemplarA "a" 0)
-     (antVisitExemplarB "b")
-     (antVisitExemplarC "c")
-     (antVisitExemplarY "y"))
-    ((mkAntVisit (treeA) 1) (mkAntVisit (treeC) 2))
+  (eligibleExemplars
+    ((visitExemplarA "a" 0)
+     (visitExemplarB "b")
+     (visitExemplarC "c")
+     (visitExemplarY "y"))
+    ((mkVisit (treeA) 1) (mkVisit (treeC) 2))
     0)
-  ((antVisitExemplarB "b") (antVisitExemplarY "y")))
+  ((visitExemplarB "b") (visitExemplarY "y")))
 
 ;; Both exemplars containing treeA share one count even though their deme IDs
 ;; and penalized scores differ.
 !(assertEqual
-  (antEligibleExemplars
-    ((antVisitExemplarA "a-1" 0)
-     (antVisitExemplarB "b")
-     (antVisitExemplarA "a-2" -1))
-    ((mkAntVisit (treeA) 1))
+  (eligibleExemplars
+    ((visitExemplarA "a-1" 0)
+     (visitExemplarB "b")
+     (visitExemplarA "a-2" -1))
+    ((mkVisit (treeA) 1))
     0)
-  ((antVisitExemplarB "b")))
+  ((visitExemplarB "b")))
 
 ;; revisit=0 permits only the initial visit; positive N permits N additional
 ;; visits, and any negative value leaves even heavily visited trees eligible.
 !(assertEqual
   (let* (
-         ($antExemplar (antVisitExemplarA "ant-visit" 0))
-         ($visits1 (recordAntVisit (treeA) ()))
-         ($visits2 (recordAntVisit (treeA) $visits1))
+         ($exemplar (visitExemplarA "visit" 0))
+         ($visits1 (recordVisit (treeA) ()))
+         ($visits2 (recordVisit (treeA) $visits1))
         )
-    ((antVisitCount (treeA) $visits2)
-     (antEligibleExemplars ($antExemplar) () 0)
-     (List.length (antEligibleExemplars ($antExemplar) $visits1 0))
-     (List.length (antEligibleExemplars ($antExemplar) $visits1 1))
-     (List.length (antEligibleExemplars ($antExemplar) $visits2 1))
-     (antEligibleExemplars ($antExemplar) $visits2 -1)
-     (selectAntExemplar ($antExemplar) $visits2 1)))
-  (2 ((antVisitExemplarA "ant-visit" 0)) 0 1 0
-     ((antVisitExemplarA "ant-visit" 0))
+    ((visitCount (treeA) $visits2)
+     (eligibleExemplars ($exemplar) () 0)
+     (List.length (eligibleExemplars ($exemplar) $visits1 0))
+     (List.length (eligibleExemplars ($exemplar) $visits1 1))
+     (List.length (eligibleExemplars ($exemplar) $visits2 1))
+     (eligibleExemplars ($exemplar) $visits2 -1)
+     (selectEligibleExemplar ($exemplar) $visits2 1)))
+  (2 ((visitExemplarA "visit" 0)) 0 1 0
+     ((visitExemplarA "visit" 0))
      (Error () "empty metapopulation")))
 
 ;; Raw-best selection follows C++: lower complexity wins a raw-score tie, while
 ;; the earlier exemplar survives an exact raw/complexity tie. Penalized order
 ;; is deliberately irrelevant to this all-time candidate record.
-(= (antRawTestExemplar $tree $id $raw $complexity $penalized)
+(= (rawTestExemplar $tree $id $raw $complexity $penalized)
    (mkExemplar $tree (mkDemeId $id)
      (mkCscore $raw $complexity 0 0 $penalized) (mkBScore ($raw))))
 !(assertEqual
-  (bestRawAntExemplar
-    ((antRawTestExemplar (treeA) "first" -3 4 -1)
-     (antRawTestExemplar (treeB) "simpler-tie" -3 2 -20)
-     (antRawTestExemplar (treeC) "exact-tie" -3 2 0)
-     (antRawTestExemplar (treeY) "worse" -4 0 0)))
-  (antRawTestExemplar (treeB) "simpler-tie" -3 2 -20))
+  (bestRawExemplar
+    ((rawTestExemplar (treeA) "first" -3 4 -1)
+     (rawTestExemplar (treeB) "simpler-tie" -3 2 -20)
+     (rawTestExemplar (treeC) "exact-tie" -3 2 0)
+     (rawTestExemplar (treeY) "worse" -4 0 0)))
+  (rawTestExemplar (treeB) "simpler-tie" -3 2 -20))
+
+!(assertEqual (bestRawExemplar ()) ())
 
 (= (test1-exemplars)
   (cons (mkExemplar (treeA) (mkDemeId "1") (mkCscore 0.8 0.3 0.1 0.01 0.4) (mkBscore (cons 1 (cons 1 ()))))  

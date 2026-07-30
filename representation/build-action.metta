@@ -13,7 +13,9 @@
 
 (= (randint $max) (py-call (random.randint 0 $max)))
 
-(= (isDomainAction $op $actions) (is-member $op $actions))
+;; Domain-membership predicates must return one Boolean, not is-member's
+;; comparison-by-comparison alternatives.
+(= (isDomainAction $op $actions) (once (is-member $op $actions)))
 
 (= (sampleActionPerms $actions $perceptions)
    (if (== $perceptions ())
@@ -51,141 +53,198 @@
    (cons (actionPairFromIndex $perceptions $actions $actionCount $pairIdx)
          (actionPairsFromIndexes $rest $perceptions $actions $actionCount)))
 
-;; Add one action-subtree ASK at the target node.
-(= (addActionKnobsAt $tree $probeRootId (mkNodeId $tgtId) $addIfInExemplar $MMap $actions $perceptions)
+;; Add action-subtree ASK knobs to a subtree.
+;; Input: subtree
+;; Output: (updatedSubtree updatedMMap)
+(= (addActionKnobs $subtree $addIfInExemplar $MMap $actions $perceptions)
    (let*
      (
        ($perms (sampleActionPerms $actions $perceptions))
        ($treePerms (map-atom $perms $perm (buildTree $perm)))
        ($idx (MultiMap.length $MMap))
-       (($knobs $updatedTree) (actionProbe $tree (mkNodeId $tgtId) $treePerms $addIfInExemplar () $idx))
+       (($knobs $updatedSubtree) (actionProbe $subtree (mkNodeId (0)) $treePerms $addIfInExemplar () $idx))
        ($pairs (pairKnobWithSpec $knobs))
        ($mmp (expToMMap $pairs $MMap discSpec<))
      )
-     ($updatedTree $mmp)))
+     ($updatedSubtree $mmp)))
 
-;; Add one simple-action ASK over an existing subtree.
-(= (addSimpleActionKnobsAt $tree $probeRootId (mkNodeId $tgtId) $addIfInExemplar $MMap $actions $perceptions)
+;; Add simple-action ASK knobs to a subtree.
+;; Input: subtree
+;; Output: (updatedSubtree updatedMMap)
+(= (addSimpleActionKnobs $subtree $addIfInExemplar $MMap)
    (let*
      (
        ($idx (MultiMap.length $MMap))
-       (($knobs $updatedTree) (simpleActionProbe $tree (mkNodeId $tgtId) $addIfInExemplar () $idx))
+       (($knobs $updatedSubtree) (simpleActionProbe $subtree (mkNodeId (0)) $addIfInExemplar () $idx))
        ($pairs (pairKnobWithSpec $knobs))
        ($mmp (expToMMap $pairs $MMap discSpec<))
      )
-     ($updatedTree $mmp)))
+     ($updatedSubtree $mmp)))
 
-;; Process one child of and_seq. This preserves the C++ p=80 policy.
-(= (processActionChildAt $tree (mkNodeId $parentId) (mkNodeId $childId) $child $MMap $actions $perceptions $p)
+;; Process a single child of an and_seq subtree.
+;; Applies the C++ p=80 action-knob insertion policy.
+;; Returns:(rebuiltChild updatedMMap)
+(= (processActionChild $child $MMap $actions $perceptions $p)
    (let (mkTree (mkNode $childOp) $_) $child
       (if (isDomainAction $childOp $actions)
           (if (> (randint 99) $p)
-              (addSimpleActionKnobsAt $tree $parentId (mkNodeId $childId) True $MMap $actions $perceptions)
-              (let $wrappedTree (insertNodeAtPosition $tree (mkNodeId $childId) (mkNode and_seq))
-                 (addActionKnobsAt $wrappedTree $parentId (mkNodeId $childId) False $MMap $actions $perceptions)))
+              (addSimpleActionKnobs $child True $MMap)
+              (addActionKnobs (mkTree (mkNode and_seq) (cons $child ())) False $MMap $actions $perceptions))
+              
           (if (== $childOp action_bool_if)
               (if (>= (randint 99) $p)
-                  (let ($t1 $m1) (addSimpleActionKnobsAt $tree $parentId (mkNodeId $childId) True $MMap $actions $perceptions)
-                      (buildAction $t1 (mkNodeId $childId) $m1 $actions $perceptions))
-                  (buildAction $tree (mkNodeId $childId) $MMap $actions $perceptions))
-              ($tree $MMap)))))
+                  (let*
+                    (
+                      (($child1 $m1)
+                          (addSimpleActionKnobs $child True $MMap))
+                    )
+                    (buildAction $child1 $m1 $actions $perceptions))
+                  (buildAction $child $MMap $actions $perceptions))
+              ($child $MMap)))))
 
-(= (processActionChildren $tree (mkNodeId $parentId) () $childIdx $MMap $actions $perceptions $p)
-   ($tree $MMap))
+;; Existing action knobs are rebuilt recursively.
+(= (processActionChild (mkKnob $controlledSubtree $ask $idx) $MMap $actions $perceptions $p)
+   (let*
+      (
+          (($rebuiltSubtree $m1) (buildAction $controlledSubtree $MMap $actions $perceptions))
+      )
+      ((mkKnob $rebuiltSubtree $ask $idx) $m1)))
+;; Process the children of an and_seq subtree.
+;; Each child is rebuilt recursively while preserving the C++ p=80
+;; action-knob insertion policy. Returns:
+;;   (rebuiltChildren updatedMMap)
+(= (processActionChildren () $MMap $actions $perceptions $p) (() $MMap))
 
-(= (processActionChildren $tree (mkNodeId $parentId) (cons $child $rest) $childIdx $MMap $actions $perceptions $p)
+(= (processActionChildren (cons $child $rest) $MMap $actions $perceptions $p)
    (let*
      (
-       ($childId (if (== $parentId (0)) ($childIdx) (concatT $parentId ($childIdx))))
-       (($t1 $m1) (processActionChildAt $tree (mkNodeId $parentId) (mkNodeId $childId) $child $MMap $actions $perceptions $p))
+       (($newChild $m1) (processActionChild $child $MMap $actions $perceptions $p))
+       (($newRest $m2) (processActionChildren $rest $m1 $actions $perceptions $p))
      )
-     (processActionChildren $t1 (mkNodeId $parentId) $rest (+ $childIdx 1) $m1 $actions $perceptions $p)))
+     ((cons $newChild $newRest) $m2)))
 
-;; Process action_bool_if branches. Child 1 is perception and is skipped.
-(= (processActionBoolIfChildAt $tree (mkNodeId $parentId) (mkNodeId $childId) $child $MMap $actions $perceptions)
+;; Process one action branch of an action_bool_if subtree.
+;; The perception child is handled separately.
+(= (processActionBoolIfChild $child $MMap $actions $perceptions)
    (let (mkTree (mkNode $childOp) $_) $child
       (if (isDomainAction $childOp $actions)
-          (let $wrappedTree (insertNodeAtPosition $tree (mkNodeId $childId) (mkNode and_seq))
-            (addActionKnobsAt $wrappedTree $parentId (mkNodeId $childId) False $MMap $actions $perceptions))
+         (addActionKnobs (mkTree (mkNode and_seq) (cons $child ())) False $MMap $actions $perceptions)
+
           (if (== $childOp and_seq)
-              (buildAction $tree (mkNodeId $childId) $MMap $actions $perceptions)
-              ($tree $MMap)))))
+              (buildAction $child $MMap $actions $perceptions)
+              ($child $MMap)))))
 
-(= (processActionBoolIfChildren $tree (mkNodeId $parentId) () $childIdx $MMap $actions $perceptions)
-   ($tree $MMap))
+;; Process the children of an action_bool_if subtree.
+;; The first child is the perception and is preserved unchanged.
+;; Remaining action branches are rebuilt recursively.
+(= (processActionBoolIfChildren () $MMap $actions $perceptions) 
+   (() $MMap))
 
-(= (processActionBoolIfChildren $tree (mkNodeId $parentId) (cons $child $rest) $childIdx $MMap $actions $perceptions)
-   (if (== $childIdx 1)
-       (processActionBoolIfChildren $tree (mkNodeId $parentId) $rest (+ $childIdx 1) $MMap $actions $perceptions)
-       (let*
-         (
-           ($childId (if (== $parentId (0)) ($childIdx) (concatT $parentId ($childIdx))))
-           (($t1 $m1) (processActionBoolIfChildAt $tree (mkNodeId $parentId) (mkNodeId $childId) $child $MMap $actions $perceptions))
-         )
-         (processActionBoolIfChildren $t1 (mkNodeId $parentId) $rest (+ $childIdx 1) $m1 $actions $perceptions))))
+;; The first child is the perception predicate.
+;; Only the action branches are recursively rebuilt.
+(= (processActionBoolIfChildren (cons $perception $rest) $MMap $actions $perceptions)
+   (let*
+     (
+       (($rebuiltRest $m1) (processActionBoolIfBranches $rest $MMap $actions $perceptions))
+      )
+       ((cons $perception $rebuiltRest) $m1)))
 
-;; Handle sequential_and nodes with the fixed internal C++ probability p=80.
-(= (buildActionAndSeq $tree (mkNodeId $nodeId) $children $MMap $actions $perceptions)
+;; Rebuild the action branches of an action_bool_if subtree.
+;; Returns:  (rebuiltBranches updatedMMap)
+(= (processActionBoolIfBranches () $MMap $actions $perceptions) (() $MMap))
+
+(= (processActionBoolIfBranches (cons $child $rest) $MMap $actions $perceptions)
+   (let*
+     (
+       (($rebuiltChild $m1) (processActionBoolIfChild $child $MMap $actions $perceptions))
+       (($rebuiltRest $m2) (processActionBoolIfBranches $rest $m1 $actions $perceptions))
+     )
+     ((cons $rebuiltChild $rebuiltRest) $m2)))
+
+;; Build the representation of an and_seq subtree.
+;; Mirrors the C++ action-knob construction using the
+;; internal p=80 insertion policy.
+(= (buildActionAndSeq (mkTree (mkNode and_seq) $children) $MMap $actions $perceptions)
    (let $p 80
-    (if (or (== $children ()) (< (randint 99) $p))
-        (let*
-          (
-            (($t1 $m1) (addActionKnobsAt $tree (mkNodeId $nodeId) (mkNodeId $nodeId) True $MMap $actions $perceptions))
-            (($t2 $m2) (processActionChildren $t1 (mkNodeId $nodeId) $children 1 $m1 $actions $perceptions $p))
-          )
-          (if (>= (randint 99) $p)
-              (let*
-                (
-                  ($builtTree (buildTree (and_seq)))
-                  (($t3 $newId) (appendChild $t2 (mkNodeId $nodeId) $builtTree))
-                )
-                (addActionKnobsAt $t3 (mkNodeId $nodeId) $newId False $m2 $actions $perceptions))
-              ($t2 $m2)))
-        (let ($t1 $m1) (processActionChildren $tree (mkNodeId $nodeId) $children 1 $MMap $actions $perceptions $p)
-          (if (>= (randint 99) $p)
-              (let*
-                (
-                  ($builtTree (buildTree (and_seq)))
-                  (($t2 $newId) (appendChild $t1 (mkNodeId $nodeId) $builtTree))
-                )
-                (addActionKnobsAt $t2 (mkNodeId $nodeId) $newId False $m1 $actions $perceptions))
-              ($t1 $m1))))))
+      (if (or (== $children ()) (< (randint 99) $p))
 
-(= (buildActionBoolIf $tree (mkNodeId $nodeId) $children $MMap $actions $perceptions)
-   (processActionBoolIfChildren $tree (mkNodeId $nodeId) $children 1 $MMap $actions $perceptions))
-
-(= (buildAction $tree (mkNodeId $nodeId) $MMap $actions $perceptions)
-  (let $subtree (getNodeById $tree (mkNodeId $nodeId))
-    (case $subtree
-      (
-        ((mkKnob $controlledSubtree (mkASK $discKnob $perms) $i)
-           (let*
+          ;; Insert the knob, then recursively rebuild the returned tree.
+          (let*
              (
-               ($ask (mkASK $discKnob $perms))
-               ((mkDiscSpec $defaultSetting) (getKnobDefault $ask))
+                (((mkTree (mkNode and_seq) $updatedChildren) $m1) (addActionKnobs (mkTree (mkNode and_seq) $children) True $MMap $actions $perceptions))
+                (($rebuiltChildren $m2) (processActionChildren $updatedChildren $m1 $actions $perceptions $p))
              )
-             (if (== $defaultSetting 0)
-                 ($tree $MMap)
-                 (let*
-                   (
-                     (($rebuiltSubtree $updatedMMap) (buildAction $controlledSubtree (mkNodeId (0)) $MMap $actions $perceptions))
-                     ($updatedTree (replaceNodeById $tree (mkNodeId $nodeId) (mkKnob $rebuiltSubtree $ask $i)))
-                   )
-                   ($updatedTree $updatedMMap)))))
-        ($other
-          (if (or (== $subtree ()) (isNullVertex $subtree))
-              ($tree $MMap)
-              (let (mkTree (mkNode $op) $_) $subtree
-                (if (== $op and_seq)
-                    (let $children (getChildren $subtree)
-                      (buildActionAndSeq $tree (mkNodeId $nodeId) $children $MMap $actions $perceptions))
-                    (if (== $op action_bool_if)
-                        (let $children (getChildren $subtree)
-                          (buildActionBoolIf $tree (mkNodeId $nodeId) $children $MMap $actions $perceptions))
-                        ($tree $MMap))))))))))
+           (if (>= (randint 99) $p)
 
+                       (let*
+                          (
+                             ($extraChild (mkTree (mkNode and_seq) ()))
+                             (($extraWrapped $m3) (addActionKnobs $extraChild False $m2 $actions $perceptions))
+                          )
+                          ((mkTree (mkNode and_seq) (append $rebuiltChildren (cons $extraWrapped ()))) $m3))
+
+                        ((mkTree (mkNode and_seq) $rebuiltChildren) $m2)))
+          ;; No knob added at this node.
+          (let*
+             (
+                (($rebuiltChildren $m1) (processActionChildren $children $MMap $actions $perceptions $p))
+             )
+             (if (>= (randint 99) $p)
+
+                 (let*
+                    (
+                       ($extraChild (mkTree (mkNode and_seq) ()))
+                       (($extraWrapped $m2) (addActionKnobs $extraChild False $m1 $actions $perceptions))
+                    )
+                    ((mkTree (mkNode and_seq) (append $rebuiltChildren (cons $extraWrapped ()))) $m2))
+
+                 ((mkTree (mkNode and_seq) $rebuiltChildren) $m1))))))
+
+;; Build the representation of an action_bool_if subtree.
+(= (buildActionBoolIf (mkTree (mkNode action_bool_if) $children) $MMap $actions $perceptions)
+   (let*
+      (
+         (($rebuiltChildren $m1) (processActionBoolIfChildren $children $MMap $actions $perceptions))
+      )
+      ((mkTree (mkNode action_bool_if) $rebuiltChildren) $m1)))
+
+;; Recursively rebuild an action subtree.
+;; Input: subtree
+;; Output: (rebuiltSubtree updatedMMap)
+;; Existing knobs are rebuilt only when their default
+;; setting is not the exemplar.
+(= (buildAction () $MMap $actions $perceptions) (() $MMap))
+
+(= (buildAction (mkNullVex $children) $MMap $actions $perceptions) 
+  ((mkNullVex $children) $MMap))
+
+(= (buildAction (mkKnob $controlledSubtree (mkASK $discKnob $perms) $i) $MMap $actions $perceptions)
+   (let*
+     (
+      ($ask (mkASK $discKnob $perms)) ((mkDiscSpec $defaultSetting) (getKnobDefault $ask))
+     )
+     (if (== $defaultSetting 0)
+         ((mkKnob $controlledSubtree $ask $i) $MMap)
+         (let*
+           (
+             (($rebuiltSubtree $updatedMMap) (buildAction $controlledSubtree $MMap $actions $perceptions))
+           )
+           ((mkKnob $rebuiltSubtree $ask $i) $updatedMMap)))))
+           
+;; Dispatch to the appropriate subtree builder.
+;; Non-action operators are returned unchanged.
+(= (buildAction (mkTree (mkNode $op) $children) $MMap $actions $perceptions)
+   (if (== $op and_seq)
+       (buildActionAndSeq (mkTree (mkNode and_seq) $children) $MMap $actions $perceptions)
+
+       (if (== $op action_bool_if)
+           (buildActionBoolIf (mkTree (mkNode action_bool_if) $children) $MMap $actions $perceptions)
+           ((mkTree (mkNode $op) $children) $MMap))))
+
+;; Identify sequence operators whose empty children must be removed during
+;; candidate cleanup, committing membership to one Boolean result.
 (= (isCleanupActionOperator $op)
-   (is-member $op (and_seq or_seq seq_exec exec_seq)))
+   (once (is-member $op (and_seq or_seq seq_exec exec_seq))))
 
 (= (actionCleanup $tree)
    (let ($cleaned $keep) (actionCleanupNode $tree)

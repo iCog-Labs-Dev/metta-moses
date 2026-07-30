@@ -3,6 +3,7 @@
 !(import! &self ../../utilities/tree)
 
 !(import! &self ../fitness)
+!(import! &self ../boolean-ops)
 !(import! &self ../bscore)
 
 
@@ -42,36 +43,37 @@
    (getTable (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ()))))))
    (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ())))))
 
-;; Test Score Tree Helper Function test to replace all occurences of a given variable with a truth value 
-!(assertEqual
-   (replaceVarWithTruth (True A) (AND A B (OR A B (NOT A))))
-   (AND True B (OR True B (NOT True))))
-!(assertEqual
-   (replaceVarWithTruth (False B) (AND A B (OR A B (NOT A))))
-   (AND A False (OR A False (NOT A))))
+;; Test Score Tree Helper Function test to replace all occurences of a given variable with a truth value
+;; Boolean expressions ride under quote/let: this file loads boolean-ops'
+;; AND/OR/NOT eval clauses, so a bare tuple at a call site would compile
+;; as a call instead of data.
+!(let* (($in (quote (AND A B (OR A B (NOT A))))) ($exp (quote (AND True B (OR True B (NOT True))))))
+   (assertEqual (replaceVarWithTruth (True A) $in) $exp))
+!(let* (($in (quote (AND A B (OR A B (NOT A))))) ($exp (quote (AND A False (OR A False (NOT A))))))
+   (assertEqual (replaceVarWithTruth (False B) $in) $exp))
 
 ;; Test Score Tree Helper function to replace all occurences of all variables with their corresponding truth values
-!(assertEqual
-   (replaceVarsWithTruth ((cons A (cons B ())) (AND A B (OR A B (NOT A)))) (cons True (cons False ())))
-   (AND True False (OR True False (NOT True))))
-!(assertEqual
-   (replaceVarsWithTruth ((cons A (cons B ())) (AND A B (OR A B (NOT A)))) (cons False (cons True ())))
-   (AND False True (OR False True (NOT False))))
+!(let* (($in (quote (AND A B (OR A B (NOT A))))) ($exp (quote (AND True False (OR True False (NOT True))))))
+   (assertEqual (replaceVarsWithTruth ((cons A (cons B ())) $in) (cons True (cons False ()))) $exp))
+!(let* (($in (quote (AND A B (OR A B (NOT A))))) ($exp (quote (AND False True (OR False True (NOT False))))))
+   (assertEqual (replaceVarsWithTruth ((cons A (cons B ())) $in) (cons False (cons True ()))) $exp))
 
 ;; Test Score Tree function, given a boolean expression and tree should return a behavioral score
-!(assertEqual
-   (scoreTree (mkITable (cons (cons True (cons False (cons False ())))
-                        (cons (cons True (cons True  (cons True ()))) ())) 
-                        (cons A (cons B (cons O ())))) 
-              (buildTree (OR A B)) &bscoreCache)
-   (mkBScore (cons -1 (cons 0 ()))))
+!(let $cand (quote (OR A B))
+   (assertEqual
+     (scoreTree (mkITable (cons (cons True (cons False (cons False ())))
+                          (cons (cons True (cons True  (cons True ()))) ()))
+                          (cons A (cons B (cons O ()))))
+                (buildTree $cand) &bscoreCache)
+     (mkBScore (cons -1 (cons 0 ())))))
 
-!(assertEqual
-   (scoreTree (mkITable (cons (cons True (cons False (cons False ())))
-                                   (cons (cons True (cons True  (cons True ()))) ())) 
-                                   (cons A (cons B (cons O ())))) 
-              (buildTree (AND A B)) &bscoreCache)
-   (mkBScore (cons 0 (cons 0 ()))))
+!(let $cand (quote (AND A B))
+   (assertEqual
+     (scoreTree (mkITable (cons (cons True (cons False (cons False ())))
+                                     (cons (cons True (cons True  (cons True ()))) ()))
+                                     (cons A (cons B (cons O ()))))
+                (buildTree $cand) &bscoreCache)
+     (mkBScore (cons 0 (cons 0 ())))))
 
 ;; Test sumBScore
 !(assertEqual (sumBScore (mkBScore (cons 1 (cons 2 (cons 0 (cons 1 ())))))) 4)

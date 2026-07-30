@@ -14,7 +14,7 @@
 
 ;; ---------------------------------------------------------------------------
 ;; getActionResult: evaluates the static success status of an action expression.
-;; The result is a tribool: True, False, or Unknown. 
+;; The result is a tribool: True, False, or Unknown.
 ;; Important cases:
 ;; - action_not inverts only known results; Unknown remains Unknown.
 ;; - and_seq/or_seq delegate to sequence-specific folds below.

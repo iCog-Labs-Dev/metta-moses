@@ -38,10 +38,11 @@
 !(import! &self ../../../../metta-moses/representation/instance)
 
 
-!(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one)
+!(import! &self ../../../../metta-moses/optimization/hillclimbing/crossover-helpers)
+!(import! &self ../../../../metta-moses/optimization/hillclimbing/crossover)
 
 !(import! &self ../../../../metta-moses/scoring/fitness)
+!(import! &self ../../../../metta-moses/scoring/boolean-ops)
 !(import! &self ../../../../metta-moses/scoring/bscore)
 !(import! &self ../../../../metta-moses/scoring/cscore)
 !(import! &self ../../../../metta-moses/scoring/complexity-based-scorer)
@@ -52,6 +53,7 @@
 !(import! &self ../../../../metta-moses/deme/deme-id-creation)
 !(import! &self ../../../../metta-moses/deme/create-deme)
 !(import! &self ../../../../metta-moses/deme/score-deme)
+!(import! &self ../../../../metta-moses/deme/domain-adapter)
 !(import! &self ../../../../metta-moses/deme/expand-deme)
 
 
@@ -69,19 +71,17 @@
 (= (demes) (cons (mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) ))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) (mkSInstSet ()) (mkDemeId "1")) ()))
 
 (= (table1) (createTruthTableBScore 2 (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons False ()))) 
-                         (cons (cons False (cons True (cons False ())))
-                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ())))) 
+                         (cons (cons False (cons False (cons True (cons True ())))) 
+                         (cons (cons False (cons True (cons False (cons True ())))) ())))
                          (cons A (cons B (cons O ()))))))
 
-(= (itable) (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons False ()))) 
-                         (cons (cons False (cons True (cons False ())))
-                         (cons (cons True (cons True (cons True ()))) ()))))
-                         (cons A (cons B (cons O ())))))
-                      
+ (= (itable) (mkITable
+                         (cons (cons False (cons True (cons False (cons True ())))) 
+                         (cons (cons False (cons False (cons True (cons True ())))) 
+                         (cons (cons False (cons False (cons False (cons True ())))) ())))
+                         (cons A (cons B (cons O ())))))   
+
 ;;(: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 !(simulated annealing test ----------)

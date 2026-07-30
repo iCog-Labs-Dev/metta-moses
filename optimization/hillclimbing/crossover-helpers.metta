@@ -53,12 +53,29 @@
 
 ;; crossPairsForRef
 ;; Cross one reference instance with all higher-ranked instances to generate offspring.
-(= (crossPairsForRef () $referenceInst $base $acc $limit)
-   $acc)
-
+(= (crossPairsForRef () $referenceInst $base $acc $limit) $acc)
 (= (crossPairsForRef (cons $target $rest) $referenceInst $base $acc $limit)
    (if (>= (List.length $acc) $limit)
        $acc
+       (let*
+         (
+           ((mkSInst (mkPair $targetInst $targetScore)) $target)
+           ($offspring
+             (mkSInst
+               (mkPair
+                 (mergeInstance $targetInst $base $referenceInst)
+                 (worstCscore))))
+           ($newAcc (List.append $offspring $acc))
+         )
+         (crossPairsForRef
+           $rest $referenceInst $base $newAcc $limit))))
+
+;; Count-threading compatibility overload retained for existing Boolean tests.
+(= (crossPairsForRef () $referenceInst $base $acc $count $limit)
+   ($acc $count))
+(= (crossPairsForRef (cons $target $rest) $referenceInst $base $acc $count $limit)
+   (if (>= $count $limit)
+      ($acc $count)
        (let*
          (
            ((mkSInst (mkPair $targetInst $targetScore)) $target)
@@ -70,19 +87,35 @@
                  (worstCscore))))
 
            ($newAcc (List.append $offspring $acc))
+           ($newCount (+ $count 1))
          )
-         (crossPairsForRef $rest $referenceInst $base $newAcc $limit))))
+         (crossPairsForRef $rest $referenceInst $base $newAcc $newCount $limit))))
 
 ;; crossPairs
 ;; Generate all pairwise crossover offspring using simplex ordering.
 ;; Uses processed (better) and remaining instances.
-(= (crossPairs $processed () $base $acc $limit)
-   $acc)
-
+(= (crossPairs $processed () $base $acc $limit) $acc)
 (= (crossPairs $processed (cons $reference $rest) $base $acc $limit)
-
    (if (>= (List.length $acc) $limit)
        $acc
+       (let*
+         (
+           ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
+           ($updatedAcc
+             (crossPairsForRef
+               $processed $referenceInst $base $acc $limit))
+           ($newProcessed (List.append $reference $processed))
+         )
+         (crossPairs $newProcessed $rest $base $updatedAcc $limit))))
+
+;; Count-threading compatibility overload retained for existing Boolean tests.
+(= (crossPairs $processed () $base $acc $count $limit)
+   ($acc $count))
+
+(= (crossPairs $processed (cons $reference $rest) $base $acc $count $limit)
+
+   (if (>= $count $limit)
+       ($acc $count)
 
        (let*
          (
@@ -90,11 +123,11 @@
              $reference)
 
            ;; cross reference with all better instances
-           ($updatedAcc
-             (crossPairsForRef $processed $referenceInst $base $acc $limit))
+           (($updatedAcc $updatedCount)
+             (crossPairsForRef $processed $referenceInst $base $acc $count $limit))
               ($newProcessed (List.append $reference $processed))
          )
-          (crossPairs $newProcessed $rest $base $updatedAcc $limit))))
+          (crossPairs $newProcessed $rest $base $updatedAcc $updatedCount $limit))))
 
 ;; makeCrossoverSlots -- Model the C++ resize(num_to_make) destination array.
 ;; Every reachable slot is populated before it is returned; the sentinel atoms
@@ -168,4 +201,3 @@
          $updatedSlots
          (crossTriples $newProcessed $iRest (+ $i 1)
            $base $updatedSlots $limit))))
-    

@@ -14,7 +14,11 @@
 (= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
       (let* 
             (
-                  ($reps (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts  $scorerType))
+                  ($candidateReps
+                    (createRepresentation
+                      $nDeme $exemplar (mkITable $table $labels)
+                      $algo $prune-exemplar $enforced-fts $scorerType))
+                  ($reps (expandableRepresentations $candidateReps))
             ) 
             (loopCreateDeme $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
       ) 
@@ -28,28 +32,33 @@
 (= (createDeme $nDeme $demeIds $exemplar)
       (let* 
             (
-                  ($reps (createRepresentation $nDeme $exemplar))
+                  ($candidateReps
+                    (createRepresentation $nDeme $exemplar))
+                  ($reps (expandableRepresentations $candidateReps))
             )  
             (loopCreateDeme $demeIds $reps ())
       ) 
 )
 
-;; Ant action-domain createDeme - creates action representations with embedded
-;; ASK knobs using the domain-local action/perception vocabulary.
-;; Classic C++ MOSES discards a representation whose field set is empty and
-;; asks the outer loop to try another exemplar.  An empty action knob map is
-;; the MeTTa equivalent: there is no coordinate that hill climbing can vary.
-(= (antRepresentationExpandable
+;; Classic C++ MOSES discards every representation whose field set is empty,
+;; regardless of the scoring domain. An empty MeTTa disc map is equivalent:
+;; there is no coordinate that an optimizer can vary.
+(= (representationExpandable
       (mkRep (mkKbMap (mkDscMp $mmp)) $tree))
+   (> (MultiMap.length $mmp) 0))
+(= (representationExpandable
+      (mkRep (mkKbMap $dscKbMp (mkDscMp $mmp)) $tree))
    (> (MultiMap.length $mmp) 0))
 
 ;; Filter each randomized representation independently.  Some random builds
 ;; of the same exemplar can expose knobs while others expose none, so rejecting
 ;; an exemplar by tree shape would incorrectly throw useful demes away.
-(= (antExpandableRepresentations $representations)
+(= (expandableRepresentations $representations)
    (filter-atom $representations $rep
-     (antRepresentationExpandable $rep)))
+     (representationExpandable $rep)))
 
+;; Action-domain construction differs only in how it builds a representation:
+;; the shared field filter and deme assembly are identical to other domains.
 (= (createDeme $nDeme $demeIds $exemplar (mkAntContext $steps $complexityRatio $actions $perceptions))
       (let*
             (
@@ -66,7 +75,7 @@
                               True
                               $actions
                               $perceptions)))
-                  ($reps (antExpandableRepresentations $candidateReps))
+                  ($reps (expandableRepresentations $candidateReps))
             )
             (loopCreateDeme $demeIds $reps ())
       )

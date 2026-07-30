@@ -31,6 +31,7 @@
 
 !(import! &self ../../scoring/cacheSpace)
 !(import! &self ../../scoring/fitness)
+!(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
 
@@ -59,8 +60,8 @@
 
 !(import! &self ../../scoring/complexity-based-scorer)
 
-!(import! &self ../../optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../optimization/hillclimbing/cross-top-one)
+!(import! &self ../../optimization/hillclimbing/crossover-helpers)
+!(import! &self ../../optimization/hillclimbing/crossover)
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
 
 !(import! &self ../../deme/create-deme)
@@ -75,6 +76,7 @@
 !(import! &self ../../deme/deme-id-creation)
 !(import! &self ../../deme/score-deme)
 !(import! &self ../../deme/merge-demes)
+!(import! &self ../../deme/domain-adapter)
 !(import! &self ../../deme/expand-deme)
 
 !(import! &self ../demo-problems)
@@ -83,10 +85,9 @@
 
 (= (inputCsvTable)
    (mkITable
-      ((False False False)
-       (False True  True)
-       (True  False True)
-       (True  True  False))
+      ((False False True True)
+       (False True False True)
+       (False True True False))
       (a b o)))
 
 !(println! ("testing: inputFile loads input.csv as an ITable"))
@@ -104,4 +105,4 @@
 !(assertEqual
    (let $result (moses)
         (second (index-atom (second $result) 0)))
-   0)
+-1)

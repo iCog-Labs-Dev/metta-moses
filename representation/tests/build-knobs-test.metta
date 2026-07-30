@@ -5,6 +5,7 @@
 !(import! &self ../../utilities/nodeId)
 !(import! &self ../../utilities/tree)
 
+!(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore)
 
 !(import! &self ../../representation/knob-representation)

@@ -45,6 +45,7 @@
 !(import! &self ../../representation/build-knobs)
 !(import! &self ../../representation/knob-mapper)
 
+!(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
 

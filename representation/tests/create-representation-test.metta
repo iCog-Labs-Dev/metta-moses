@@ -21,6 +21,7 @@
 
 !(import! &self ../../utilities/tree) 
 
+!(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
 

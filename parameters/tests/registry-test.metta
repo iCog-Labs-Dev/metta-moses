@@ -11,30 +11,48 @@
 !(assertEqual (param nToKeep)               50)
 !(assertEqual (param nEval)                 10000)
 !(assertEqual (param maxCandOutput)         10)
+!(assertEqual (param maxEvals)              25000)
+!(assertEqual (param maxDist)               4)
+!(assertEqual (param minXoverNeighbors)     400)
+!(assertEqual (param steps)                 600)
 !(assertEqual (param complexityRatio)       3.5)
-!(assertEqual (param antSteps)              600)
-!(assertEqual (param antFoodCount)          89)
-;; Keep the registry regression aligned with the diagnostic Santa Fe baseline.
-!(assertEqual (param antComplexityRatio)    0.16)
-!(assertEqual (param antComplexityTemperature) 2000)
-!(assertEqual (param antDiagnostics)        False)
-!(assertEqual (param antDiscardDominated)   False)
-!(assertEqual (param antRevisit)            0)
-!(assertEqual (param hcMaxDistBoolean)      4)
-!(assertEqual (param hcMinXoverNeighborsBoolean) 400)
-!(assertEqual (param hcMaxDistAnt)          4)
-!(assertEqual (param hcMinXoverNeighborsAnt) 400)
-!(assertEqual (param hcMaxEvalsAnt)         2000)
+!(assertEqual (param diagnostics)           False)
+!(assertEqual (param discardDominated)      False)
+!(assertEqual (param revisit)               0)
 !(assertEqual (param hcWidenSearch)         False)
 !(assertEqual (param hcCrossover)           True)
 !(assertEqual (param hcCrossoverPopSize)    120)
 !(assertEqual (param hcFractionOfNN)        2.0)
-!(assertEqual (param compxyTemp)            6)
 !(assertEqual (param defaultCacheSize)      60)
 
 ;; ---- Unknown key returns () ----
 !(println! ("testing: param lookup of unknown key returns ()"))
 !(assertEqual (param thisKeyDoesNotExist) ())
+
+;; ---- Removed aliases stay absent ----
+;; Problem-specific parameter families formerly made Boolean and action runs
+;; enter different search pipelines. They are intentionally not compatibility
+;; aliases: callers must configure the neutral keys above.
+!(println! ("testing: obsolete problem-specific aliases are absent"))
+!(assertEqual (param antMaxEvals) ())
+!(assertEqual (param hcMaxEvals) ())
+!(assertEqual (param hcMaxEvalsAnt) ())
+!(assertEqual (param hcMaxDistBoolean) ())
+!(assertEqual (param hcMaxDistFs) ())
+!(assertEqual (param hcMaxDistStrategy) ())
+!(assertEqual (param hcMaxDistAnt) ())
+!(assertEqual (param hcMinXoverNeighborsBoolean) ())
+!(assertEqual (param hcMinXoverNeighborsFs) ())
+!(assertEqual (param hcMinXoverNeighborsStrategy) ())
+!(assertEqual (param hcMinXoverNeighborsAnt) ())
+!(assertEqual (param antSteps) ())
+!(assertEqual (param antFoodCount) ())
+!(assertEqual (param antComplexityRatio) ())
+!(assertEqual (param antComplexityTemperature) ())
+!(assertEqual (param antRevisit) ())
+!(assertEqual (param antDiscardDominated) ())
+!(assertEqual (param antDiagnostics) ())
+!(assertEqual (param compxyTemp) ())
 
 ;; ---- set-param overrides ----
 !(println! ("testing: set-param updates value"))
@@ -43,6 +61,9 @@
 
 !(set-param complexityRatio 1.25)
 !(assertEqual (param complexityRatio) 1.25)
+
+!(set-param maxEvals 1234)
+!(assertEqual (param maxEvals) 1234)
 
 ;; ---- set-param installs a brand-new key ----
 !(println! ("testing: set-param can introduce a new key"))

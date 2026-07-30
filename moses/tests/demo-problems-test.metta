@@ -24,6 +24,7 @@
 
 !(import! &self ../../../../scoring/cacheSpace)
 !(import! &self ../../../../scoring/fitness)
+!(import! &self ../../../../scoring/boolean-ops)
 !(import! &self ../../../../scoring/bscore)
 !(import! &self ../../../../scoring/cscore)
 
@@ -52,8 +53,8 @@
 
 !(import! &self ../../../../scoring/complexity-based-scorer)
 
-!(import! &self ../../../../optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../../../optimization/hillclimbing/cross-top-one)
+!(import! &self ../../../../optimization/hillclimbing/crossover-helpers)
+!(import! &self ../../../../optimization/hillclimbing/crossover)
 !(import! &self ../../../../optimization/hillclimbing/hill-climbing-helpers)
 
 !(import! &self ../../../../deme/create-deme)
@@ -69,6 +70,7 @@
 !(import! &self ../../../../deme/deme-id-creation)
 !(import! &self ../../../../deme/score-deme)
 !(import! &self ../../../../deme/merge-demes)
+!(import! &self ../../../../deme/domain-adapter)
 !(import! &self ../../../../deme/expand-deme)
 
 !(import! &self ../../../demo-problems)

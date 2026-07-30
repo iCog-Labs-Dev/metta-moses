@@ -3,7 +3,9 @@
 ;; ---------------------------------------------------------------------------
 
 (= (isActionResultIfOp $op)
-   (is-member $op (action_action_if bool_action_if contin_action_if)))
+   (once
+     (is-member $op
+       (action_action_if bool_action_if contin_action_if))))
 
 ;; reduceActionIf: constant-condition and identical-branch folding for
 ;; action_bool_if (the action analogue of a boolean if-then-else).

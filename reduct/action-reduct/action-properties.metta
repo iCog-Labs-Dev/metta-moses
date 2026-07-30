@@ -24,7 +24,7 @@
 ;; Checks if an action is reversible. Ant problem example: "turn_left"
 ;; and "turn_right" are opposite actions that undo each other.
 (= (isReversible $action)
-   (is-member $action (turn_left turn_right)))
+   (once (is-member $action (turn_left turn_right))))
 
 ;; Returns the reversing action. Ant problem example: the reversal of
 ;; "turn_left" is "turn_right", and vice-versa.
@@ -37,21 +37,24 @@
 ;; Checks if sequential actions can sum their argument. Real-world example:
 ;; two sequential moves "step(1)" and "step(2)" can sum to "step(3)".
 (= (isAdditive $action $index)
-   (is-member ($action $index)
-              ((dummy_additive_action 0))))
+   (once
+     (is-member ($action $index)
+                ((dummy_additive_action 0)))))
 
 ;; Checks if an argument of 0 makes the action a no-op. Real-world
 ;; example: "step(0)" immediately succeeds without moving the agent.
 (= (isZeroNeutral $action $index)
-   (is-member ($action $index)
-              ((dummy_zero_neutral_action 0))))
+   (once
+     (is-member ($action $index)
+                ((dummy_zero_neutral_action 0)))))
 
 ;; Checks if an argument is periodic/modular. Real-world example:
 ;; rotation angles that wrap around every 360 degrees or 2pi radians.
 (= (isModulo $action $index)
-   (is-member ($action $index)
-              ((dummy_modular_action 0)
-               (dummy_modular_action 1))))
+   (once
+     (is-member ($action $index)
+                ((dummy_modular_action 0)
+                 (dummy_modular_action 1)))))
 
 ;; Returns the lower bound of a periodic argument (e.g. -3.14 for radians
 ;; or -180 for degrees).

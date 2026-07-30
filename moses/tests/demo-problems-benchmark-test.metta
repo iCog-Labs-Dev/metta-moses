@@ -26,6 +26,7 @@
 
 !(import! &self ../../scoring/cacheSpace)
 !(import! &self ../../scoring/fitness)
+!(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
 
@@ -55,8 +56,8 @@
 
 !(import! &self ../../scoring/complexity-based-scorer)
 
-!(import! &self ../../optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../optimization/hillclimbing/cross-top-one)
+!(import! &self ../../optimization/hillclimbing/crossover-helpers)
+!(import! &self ../../optimization/hillclimbing/crossover)
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
 
 !(import! &self ../../deme/create-deme)
@@ -72,6 +73,7 @@
 !(import! &self ../../deme/deme-id-creation)
 !(import! &self ../../deme/score-deme)
 !(import! &self ../../deme/merge-demes)
+!(import! &self ../../deme/domain-adapter)
 !(import! &self ../../deme/expand-deme)
 
 !(import! &self ../demo-problems)
@@ -80,17 +82,30 @@
 ;; MeTTa-level rewrites lost to filter-atom's tight inner loop. A Prolog
 ;; predicate compiled to native code wins on both fronts: one walk instead of
 ;; two, and zero per-element reduce/2 dispatch.
-!(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
+ !(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
 
-;; --- Performance: SLG tabling on pure tree-rewrite predicates ---
-;; removeEmptyAND/2 is a pure tree rewrite called 4.35M times on parity3 (and
-;; with deep intra-call subtree recurrence): tabling collapsed it to ~977K
-;; calls with the time dropping 16.2 s → 1.9 s in profile measurement.
-!(import! &self (library lib_tabling))
-!(tabled (removeEmptyAND $e))
+;; --- Performance: native removeEmptyAND (in rte-helpers-fast.pl above) ---
+;; Replaces the former SLG tabling of the MeTTa rewrite: the native O(n)
+;; walk beat the tabled version on parity3 (32.2s vs 34.5s A/B, AC state)
+;; and lib_tabling is no longer needed. Mirrors moses.metta.
 
 ;; When run with nEval of 1000 at this configuration, top result should have a score of 0.
-!(assertEqual (let $result (runDemoProblem 0 10 1 None parity3) (second (index-atom (second $result) 0))) 0)
+;; Preserve this historical trajectory explicitly. Production defaults now
+;; retain dominated stepping stones and visit each exemplar once, while this
+;; regression predates those C++-parity policies.
+!(assertEqual
+  (let* (
+         ($previousDiscard (param discardDominated))
+         ($previousRevisit (param revisit))
+         ($_discard (set-param discardDominated True))
+         ($_revisit (set-param revisit -1))
+         ($result (runDemoProblem 0 10 1 None parity3))
+         ($score (second (index-atom (second $result) 0)))
+         ($_restoreDiscard
+           (set-param discardDominated $previousDiscard))
+         ($_restoreRevisit (set-param revisit $previousRevisit))
+        )
+    $score)
+  0)
 ;; TODO: This test case fails because of incorrect creation order when disc probing is enabled. That needs a fix.
-;!(runDemoProblem 0 10 1 None parity3)
-
+;; !(runDemoProblem 0 10 1 None mux6)
