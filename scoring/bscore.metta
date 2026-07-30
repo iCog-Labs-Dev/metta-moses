@@ -59,25 +59,21 @@
 ;;
 ;; Returns: Beahvioral score for the given tree.
 ; (: scoreTree (-> (ITable $a) (Tree $a) $cacheSpace BehavioralScore))
-;; The score is derived entirely from the columnar subtree cache: evalSubtree
-;; evaluates the tree once into a per-row boolean vector, memoizing every
-;; subtree — including the root expression — in &subtreeCache. The root entry
-;; therefore serves as the whole-tree memo, so no separate whole-tree cache
-;; read/write is needed. $cacheSpace is kept for signature compatibility with
-;; existing callers but is no longer used.
+;; The score comes entirely from the columnar zipform engine: evalTree
+;; (scoring/fitness) compiles the tree into a column term and walks it,
+;; memoizing every sub-term including the root, so no separate whole-tree cache
+;; is needed. $cacheSpace is kept for signature compatibility, but is unused.
 (= (scoreTree (mkITable $table $labels) $tree $cacheSpace)
    (if (== $tree (mkTree (mkNode AND) ()))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
        (let* (
-           ($expTree (preOrderExp $tree))
-           ($scoreList (evalSubtree $expTree (mkITable $table $labels) (List.length $table)))
+           ($scoreList (evalTree $tree (mkITable $table $labels) (List.length $table)))
            ($length (List.length $labels))
            ($outputs (List.flatten (List.map (List.drop (- $length 1)) $table)))
            ($bScore (List.zipWith compareAndScore $scoreList $outputs))
        )
        (mkBScore $bScore))))
 
-(= (scoreTreeHelper $labels $expTree $table) (let $a (replaceVarsWithTruth ($labels $expTree) $table) (evaluate $a)))
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Altohugh the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.

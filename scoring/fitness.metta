@@ -112,16 +112,13 @@
 
 
 ;; ---------------------------------------------------------------------------
-;; Columnar subtree evaluation over the wrapped preOrderExp shape:
-;;   node = (AND (c1 .. ck)) / (OR (c1 .. ck)) / (NOT (c));  leaf = label | True/False
-;; Every subtree is evaluated ONCE into a boolean column over all rows and
-;; memoized in &subtreeCache, keyed by its ground wrapped expr (valid for the
-;; run's single fixed table). Operator semantics live solely in the AND/OR/NOT
-;; clauses (scoring/boolean-ops): on a cache miss a one-level template with
-;; fresh shared vars is built once and every row is scored by unification --
-;; sealed freshens the vars, a positional let binds the row's child values,
-;; and one let-bound `reduce` dispatches the clause. A head with no clause
-;; stays unreduced and scores worst (-1), like the old ERROR column.
+;; Columnar subtree evaluation: every subtree is evaluated ONCE into a boolean
+;; column over all rows of the run's single fixed table, never row-by-row
+;; expression rewriting. Operator semantics live solely in the AND/OR/NOT
+;; clauses (scoring/boolean-ops); a head with no clause stays unreduced and
+;; scores worst (-1), like the old ERROR column. varColumn (immediately below)
+;; is the table accessor; the live scoring path is the zipform column engine
+;; further down (rewriteTree -> evalSubtree).
 ;; Probes: tmp/probe-sealed.metta, tmp/probe-mapvars.metta.
 ;; ---------------------------------------------------------------------------
 
@@ -134,6 +131,12 @@
             (Error $label "varColumn: label not found in table")
             (map-atom $rows $r (index-atom $r $idx)))))
 
+;; --- LEGACY per-row node evaluation -----------------------------------------
+;; mkNodeTemplate / evalRow / combineNode build one wrapped node's column by
+;; dispatching `reduce` ONCE PER ROW. On no scoring path; retained only because
+;; scoring/test/boolean-ops-test.metta pins their internals. transposeCols is
+;; NOT legacy -- zipWithN still uses it.
+;;
 ;; Node row-template, built once per cache miss: ($varsTerm $exprTerm) sharing
 ;; fresh vars, e.g. (($v1 $v2) (AND ($v1 $v2))). map-atom's per-element
 ;; copy_term mints the k distinct vars; `cons` keeps the node inert (a bare
@@ -166,137 +169,155 @@
        (let $t (mkNodeTemplate $op $cvs)
          (map evalRow $t (transposeCols $cvs)))))
 
-;; --- Columnar node combine (child columns -> node column) --------------------
-;; This is the columnar-kernel approach validated in experiments/memo-prototype
-;; (the "dispatch evaluator"): instead of building a per-row template and
-;; dispatching `reduce` once PER ROW (mkNodeTemplate/evalRow above), each
-;; operator is ONE CLAUSE that folds the child COLUMNS with a whole-column
-;; zipWith. On mux6 this was ~1.8x faster than the per-row sealed/reduce path
-;; over the same &subtreeCache, with byte-identical output. Runs on PeTTaV1
-;; (no lib_memo needed -- the &subtreeCache walk below is unchanged); dropping
-;; in lib_memo per-subtree memoization is the further speedup that lands once
-;; PR-165 is merged.
+;; === ZIPFORM COLUMN ENGINE (compile -> materialized term -> memoized walk) ==
+;; rewriteTree compiles each candidate Tree into an explicit column term --
+;;   (AND x (OR y z)) -> (zipWith AND (col x) (zipWith OR (col y) (col z)))
+;; -- and evalSubtree walks that term bottom-up, memoizing PER SUB-TERM, so a
+;; sub-formula shared across candidates computes its column ONCE.
+;; ROW FUNCTIONS are the AND/OR/NOT/XOR operators at their row arity
+;; (scoring/boolean-ops): the compiler passes the op SYMBOL straight into
+;; (zipWith $op ..) / (fmap $op ..), so there is no rowFnTable.
 ;;
-;; Clause dispatch on the op (disjoint literal heads AND/OR/NOT, no variable
-;; catch-all -> no overlapping-clause hazard), mirroring the prototype's
-;; dispatchZip. Adding an operator is one clause here -- no evalSubtree change.
-;; NOTE: the per-row template above (mkNodeTemplate/evalRow/transposeCols/
-;; combineNode) is now LEGACY -- retained only because scoring/test/
-;; boolean-ops-test.metta pins its internals; a real integration would migrate
-;; that test and delete them.
-(= (and2 $a $b) (if (and (== $a True) (== $b True)) True False))
-(= (or2  $a $b) (if (or  (== $a True) (== $b True)) True False))
-(= (colZipAnd $childCol $acc) (List.zipWith and2 $childCol $acc))
-(= (colZipOr  $childCol $acc) (List.zipWith or2  $childCol $acc))
-(= (colNot $col) (map-atom $col $b (if (== $b True) False True)))
-
-;; combineOp: op x list-of-child-columns x row count -> node column. Folding an
-;; empty child-column list over the identity seed reproduces the degenerate
-;; arities: (AND ()) -> all-True, (OR ()) -> all-False (matches production).
-(= (combineOp AND $childCols $n) (List.foldl colZipAnd (List.repeat $n True)  $childCols))
-(= (combineOp OR  $childCols $n) (List.foldl colZipOr  (List.repeat $n False) $childCols))
-(= (combineOp NOT $childCols $n) (colNot (car-atom $childCols)))
-
-;; === FULL ZIPFORM PIPELINE (PR-165 lib_memo) -- EXPERIMENTAL ================
-;; The boss-literal design: a REWRITE PASS materializes each candidate as an
-;; explicit higher-order column term --
-;;   (AND (x (OR (y z)))) -> (zZip and2 (zCol x) (zZip or2 (zCol y) (zCol z)))
-;; -- then a dispatch evaluator scores it columnar-ly, with lib_memo memoizing
-;; EACH sub-term so a sub-formula shared across candidates computes its column
-;; ONCE (cross-candidate sub-term sharing -- the point of the boss's design).
+;; HAZARD -- col / fmap / zipWith / zipWithN and the operator symbols are all
+;; LIVE HEADS, so every mention of them as DATA (every emitted term, and the op
+;; tables below) must be `quote`d, or it fires instead of staying inert.
 ;;
-;; ROW FUNCTIONS are the and2/or2/not2 HELPERS (defined above / just below),
-;; NOT the production AND/OR/NOT operators. rowFnOf maps a candidate op symbol
-;; to its helper. This deliberately does NOT redefine production's AND/OR/NOT
-;; (leaving reduct/crossover/representation untouched) -- an earlier attempt
-;; that redefined them at binary arity broke the full solve even though the
-;; scoring destructure worked in isolation.
-;;  - Candidates from preOrderExp are quote-protected, so (AND (children))
-;;    stays inert and the rewriter destructures it structurally (variable head).
-;;  - The ops TABLES (monoids/memptyTable) are quote-protected because AND/OR
-;;    ARE production-defined heads.
-;;  - Dispatch tags are z-prefixed (zCol/zFmap/zZip/zZipN) because production
-;;    defines a bare `zipWith` (utilities/general-helpers.metta:301).
-;;
-;; PR-165 ONLY (lib_memo). On PeTTaV1 the memoize calls no-op -> UNMEMOIZED
-;; (correct but uncached). EXPERIMENTAL, local branch only, do NOT push.
+;; lib_memo supplies the memoization; without it the memoize directives no-op
+;; and the same code runs correct but uncached.
 !(import! &self (library lib_memo))
 !(clear-memoize)
 !(clear-memoize-stats)
 !(config-memoize (unique-limit 100000) (strategy wtinylfu) (size-limit 5))
-!(bind! &emCtx (new-space))
-(= (emPut $rel $val)
-   (let* (($_  (collapse (match &emCtx ($rel $o) (remove-atom &emCtx ($rel $o)))))
-          ($_2 (add-atom &emCtx ($rel $val))))
-     ()))
-(= (emCtxTable) (car-atom (collapse (match &emCtx (emT $t) $t))))
-(= (emCtxN)     (car-atom (collapse (match &emCtx (emN $n) $n))))
 
-;; row-fn helpers: and2/or2 already defined above (for the retired combineOp);
-;; not2 is the per-cell negation. These are NOT the production AND/OR/NOT ops.
-(= (not2 $a) (if (== $a True) False True))
-;; rowFnOf: candidate op symbol -> row-function helper. Single if-chain (no
-;; overlapping clauses); unknown ops pass through unchanged.
-(= (rowFnOf $op) (if (== $op AND) and2 (if (== $op OR) or2 (if (== $op NOT) not2 $op))))
+;; --- table plumbing ---------------------------------------------------------
+;; !! ENTRY-FILE REQUIREMENT: any entry file that imports scoring/fitness AND
+;; scores must import parameters/registry FIRST -- otherwise setZipTable never
+;; binds and evalTree yields ZERO solutions with no error, so every downstream
+;; assertion passes vacuously.
+;;
+;; setZipTable: install the run's fixed table and cache its row count, which
+;; `col` and the True/False broadcast read back. The destructuring binding must
+;; stay inside the let*.
+(= (setZipTable $itable)
+   (let* (((mkITable $rows $labels) $itable)
+          ($_  (set-param zipTable $itable))
+          ($_2 (set-param zipRowCount (List.length $rows))))
+     (List.length $rows)))
 
-;; monoid tables (quote-protected: AND/OR are production-defined heads). AND/OR
-;; are associative with identities True/False -> n-ary folds to nested binary.
-(= (monoids) (quote (AND OR)))
+;; --- the zip term's vocabulary, as functions over evaluated child columns ----
+;; zipWith is absent on purpose: general-helpers' zipWith already IS the
+;; binary-row-function-over-two-columns combinator this term shape needs.
+(= (col $label)         (varColumn (param zipTable) $label))
+(= (fmap $f $c)         (map-atom $c $v ($f $v)))
+(= (zipWithN $op $cols) (map-atom (transposeCols $cols) $row ($op $row)))
+
+;; --- op tables --------------------------------------------------------------
+;; A monoid op folds: n-ary nodes right-fold into nested BINARY zipWith terms,
+;; 0 children -> the identity column, 1 child -> the child. NOT is unary and so
+;; absent. ADDING A BOOLEAN OPERATOR costs, by kind:
+;;   binary  -- one row clause (= (OP $a $b) ..) in scoring/boolean-ops.metta.
+;;   unary   -- (= (OP $a) ..); reached via `fmap`, so it gets a BARE cell.
+;;   n-ary   -- (= (OP ($a $b $c)) ..); reached via `zipWithN`, one row tuple.
+;;   monoid  -- the row clause PLUS registration in (monoids) and (memptyTable)
+;;              here, the only registration sites; rewriteTree derives the rest.
+(= (monoids) (quote (AND OR XOR)))
 (= (isMonoid $op) (once (is-member $op (monoids))))
-(= (memptyTable) (quote ((AND True) (OR False))))
-(= (memptyScan () $op) (Error $op "mempty: no nullary identity"))
-(= (memptyScan (cons ($k $v) $rest) $op) (if (== $k $op) $v (memptyScan $rest $op)))
+(= (memptyTable) (quote ((AND True) (OR False) (XOR False))))
+(= (memptyScan () $op) (Error $op "mempty: no nullary identity registered for this op"))
+(= (memptyScan (cons ($k $v) $rest) $op)
+   (if (== $k $op) $v (memptyScan $rest $op)))
+;; mempty: op symbol -> its 0-arity identity. Loud Error default -- silently
+;; guessing a wrong identity would corrupt every row of the column.
 (= (mempty $op) (memptyScan (memptyTable) $op))
 
-;; --- rewriter: wrapped candidate -> materialized column term ----------------
+;; --- rewriter helper --------------------------------------------------------
+;; foldr1: right-fold an already-rewritten (arity > 2) child-column list into
+;; nested binary zipWith terms with row fn $fn (here the op symbol itself).
+;; HAZARD: quoted emission (`zipWith` is live). `quote` only SUBSTITUTES bound
+;; variables, so the head child is let-bound rather than inlined as (car-atom ..).
 (= (foldr1 $fn $children)
    (if (== (List.length $children) 1)
        (car-atom $children)
-       (let $rest (foldr1 $fn (cdr-atom $children))
-         (cons zZip (cons $fn (cons (car-atom $children) (cons $rest ())))))))
-(= (rewriteTree $exp)
-   (if (== (get-metatype $exp) Grounded)
-       $exp
-       (if (== (get-metatype $exp) Symbol)
-           (cons zCol (cons $exp ()))
-           (let ($op $children) $exp
-             (case (List.length $children)
-               ((0 (if (isMonoid $op) (mempty $op)
-                       (Error $exp "rewriteTree: nullary non-foldable op")))
-                (1 (let $c1 (rewriteTree (car-atom $children))
-                     (if (isMonoid $op) $c1
-                         (cons zFmap (cons (rowFnOf $op) (cons $c1 ()))))))
-                (2 (let* (($l (rewriteTree (index-atom $children 0)))
-                          ($r (rewriteTree (index-atom $children 1))))
-                     (cons zZip (cons (rowFnOf $op) (cons $l (cons $r ()))))))
-                ($_ (let $recChildren (map-atom $children $c (rewriteTree $c))
-                      (if (isMonoid $op)
-                          (foldr1 (rowFnOf $op) $recChildren)
-                          (cons zZipN (cons (rowFnOf $op) (cons $recChildren ()))))))))))))
-;; memoized rewrite (table-independent: same candidate -> same term)
+       (let* (($hd   (car-atom $children))
+              ($rest (foldr1 $fn (cdr-atom $children))))
+         (quote (zipWith $fn $hd $rest)))))
+
+;; --- rewriteTree: candidate Tree ADT -> materialized columnar term ----------
+;; CONSUMES the mkTree / mkNode / mkKnob candidate ADT and EMITS the columnar
+;; term as inert DATA (every emission quoted -- see the HAZARD above): this is a
+;; COMPILER, not an evaluator, and never reads the table or computes a column.
+;; An n-ary monoid node right-folds (foldr1) into NESTED BINARY terms rather
+;; than one flat node, so each nesting level is its own memo key -- that is
+;; where the cross-candidate sub-column sharing comes from. Both nullary paths
+;; guard on isMonoid (the childless clause here, the zero-SURVIVING-children
+;; case in the operator clause), so they agree for every registered monoid.
+;; Only the ROOT call is memoized; the recursion is not.
+;;
+;; Childless node: a monoid gives its identity, True/False pass straight
+;; through, anything else is a leaf label and compiles to its column reference.
+(= (rewriteTree (mkTree (mkNode $r) ()))
+   (if (isMonoid $r)
+       (mempty $r)
+       (if (or (== $r True) (== $r False))
+           $r
+           (quote (col $r)))))
+
+;; Knob clauses, reachable because this compiler consumes the raw ADT: a null
+;; knob contributes nothing (the operator clause's filter drops it), a real knob
+;; compiles its inner tree with $lsk and $i discarded.
+(= (rewriteTree (mkKnob (mkNullVex $tree) $lsk $i)) ())
+(= (rewriteTree (mkKnob (mkTree $node $children) $lsk $i))
+   (rewriteTree (mkTree $node $children)))
+
+;; Operator node. Children are compiled in place and null-knob children drop
+;; out, so it is the SURVIVING count -- not the declared one -- that drives the
+;; dispatch, and 0 IS reachable (every child a null knob); the $_ branch must
+;; not swallow it, hence the explicit 0 case. All emissions are quoted, the
+;; 0-case Error argument included: it reports the offending node as data.
+(= (rewriteTree (mkTree (mkNode $r) (cons $x $xs)))
+   (let $cols (filter-atom (map-atom (cons $x $xs) $c (rewriteTree $c)) $y (!= $y ()))
+     (case (List.length $cols)
+       ((0 (if (isMonoid $r)
+               (mempty $r)
+               (Error (quote ($r ())) "rewriteTree: nullary non-foldable op")))
+        (1 (let $c1 (car-atom $cols)
+             (if (isMonoid $r)
+                 $c1
+                 (quote (fmap $r $c1)))))
+        (2 (let* (($lc (index-atom $cols 0))
+                  ($rc (index-atom $cols 1)))
+             (quote (zipWith $r $lc $rc))))
+        ($_ (if (isMonoid $r)
+                (foldr1 $r $cols)
+                (quote (zipWithN $r $cols))))))))
+
+;; Memoized compile. TABLE-INDEPENDENT: the same candidate always compiles to
+;; the same term whatever table is installed, so this cache never needs clearing
+;; for correctness. Keyed on the RAW ADT, which carries knob identity ($lsk/$i).
 !(memoize rewriteTreeCached 1)
-(= (rewriteTreeCached $exp) (rewriteTree $exp))
+(= (rewriteTreeCached $tree) (rewriteTree $tree))
 
-;; --- evaluator: dispatch on the materialized term, memoized per sub-term ----
-;; z-tags are structurally disjoint literal heads (no variable catch-all).
-(= (dispatchZip (zCol $label))   (varColumn (emCtxTable) $label))
-(= (dispatchZip (zFmap $f $c))   (map-atom (evalZipTerm $c) $v ($f $v)))
-(= (dispatchZip (zZip $f $a $b)) (List.zipWith $f (evalZipTerm $a) (evalZipTerm $b)))
-(= (dispatchZip (zZipN $op $cols))
-   (map-atom (transposeCols (map-atom $cols $c (evalZipTerm $c))) $row ($op $row)))
+;; --- evaluator: one generic memoized walk over the materialized term --------
+;; True/False broadcast to a full column; an Expression evaluates its children
+;; first (each through the memo) and `reduce`s the rebuilt node, firing
+;; col/fmap/zipWith/zipWithN; anything else (an op symbol riding as a
+;; row-function argument) passes through.
+!(memoize evalSubtree 1)
+(= (evalSubtree $term)
+   (if (or (== $term True) (== $term False))
+       (List.repeat (param zipRowCount) $term)
+       (if (== (get-metatype $term) Expression)
+           (let $node (map-atom $term $c (evalSubtree $c))
+             (reduce $node))
+           $term)))
 
-!(memoize evalZipTerm 1)
-(= (evalZipTerm $term)
-   (if (== (get-metatype $term) Grounded)
-       (List.repeat (emCtxN) $term)
-       (dispatchZip $term)))
-
-;; evalSubtree: publish table/n, then rewrite -> evaluate (both memoized).
-;(: evalSubtree (-> Expression (ITable $a) Number (List Bool)))
-(= (evalSubtree $exp $itable $n)
-   (let* (($_  (emPut emT $itable))
-          ($_2 (emPut emN $n)))
-     (evalZipTerm (rewriteTreeCached $exp))))
+;; evalTree/3: the scoring entry point -- publish the table, then compile ->
+;; walk (both memoized). evalTree takes a candidate TREE, evalSubtree an
+;; already-materialized columnar TERM. $n is unused -- the row count comes from
+;; setZipTable -- but the arity is kept because callers pass it.
+;(: evalTree (-> (Tree $a) (ITable $a) Number (List Bool)))
+(= (evalTree $tree $itable $n)
+   (let $_ (setZipTable $itable) (evalSubtree (rewriteTreeCached $tree))))
 
 
  ;; Evaluates the accuracy of the expression for a single input row (target, inputs) pair.

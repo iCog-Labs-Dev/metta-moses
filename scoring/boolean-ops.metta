@@ -1,7 +1,7 @@
 ;; Native boolean evaluation: the three operator clauses are the SINGLE source
-;; of AND/OR/NOT semantics; preOrderExp turns a candidate Tree into the wrapped
-;; eval shape that evalSubtree (scoring/fitness) scores columnar-ly,
-;; reduce-dispatching the clauses per row. Depends on general-helpers (all/any).
+;; of AND/OR/NOT semantics; scoring/fitness's rewriteTree turns a candidate Tree
+;; into a materialized column term that names these ops as its row functions,
+;; and evalSubtree reduce-dispatches them. Depends on general-helpers (all/any).
 ;;
 ;; Quote rule: these clause names double as data constructors. A bare arity-1
 ;; (AND ...)/(OR ...) tuple or singleton-argument (NOT (...)) in any module
@@ -14,20 +14,23 @@
 (= (OR  $args) (any $args))
 (= (NOT ($x))  (not $x))
 
-;; preOrderExp: Tree -> wrapped shape. Every operator node becomes
-;; (Op (children)); leaves stay label symbols; nullary AND/OR -> (Op ()), its
-;; identity. Emissions are quote-protected so the clauses cannot fire here.
-(= (preOrderExp (mkTree (mkNode $r) ()))
-   (if (once (is-member $r (quote (AND OR))))
-       (quote ($r ()))
-       $r))
-(= (preOrderExp (mkKnob (mkNullVex $tree) $lsk $i)) ())
-(= (preOrderExp (mkKnob (mkTree $node $children) $lsk $i))
-   (preOrderExp (mkTree $node $children)))
-(= (preOrderExp (mkTree (mkNode $r) (cons $x $xs)))
-   (let $childrenExp (childrenExp (cons $x $xs))
-        (quote ($r $childrenExp))))
-
-;; childrenExp: preOrderExp over child Trees, dropping empty knob passthroughs.
-(= (childrenExp $children)
-   (filter-atom (map-atom $children $c (preOrderExp $c)) $x (!= $x ())))
+;; --- ROW (scalar, per-cell) arities: the zipform column engine ---------------
+;; The rewriter passes the op SYMBOL straight into its emitted (zipWith $op ..)
+;; / (fmap $op ..) nodes, so the op symbol IS the row function (no rowFnTable).
+;; These scalar clauses INTENTIONALLY coexist with the n-ary data clauses above:
+;; AND/2 and OR/2 are distinct predicates from AND/1 and OR/1, and for NOT the
+;; wrapped clause cannot match a bare cell while the scalar clause's body fails
+;; on a 1-tuple, so each operand shape selects exactly one clause.
+;; RISK: NOT/1 scalar overlaps NOT/1 wrapped on the same head and arity -- the
+;; documented backtracking hazard; recheck solution counts if either clause,
+;; the operand shapes, or the runtime changes.
+;; RISK: applied to SYMBOLS, (AND x1 x2) now yields zero solutions where it once
+;; yielded an unreduced term. No current caller does that; a future one would
+;; fail silently.
+(= (AND $a $b) (and $a $b))
+(= (OR  $a $b) (or  $a $b))
+(= (NOT $a)    (not $a))
+;; XOR has a row arity only; it lives here beside its monoid/mempty registration
+;; in fitness.metta, which without a definition would let (XOR ...) score to
+;; unreduced terms with no error.
+(= (XOR $a $b) (or (and $a (not $b)) (and (not $a) $b)))

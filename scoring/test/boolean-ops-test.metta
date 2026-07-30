@@ -1,4 +1,9 @@
 !(import! &self ../../utilities/general-helpers)
+;; ENTRY-FILE REQUIREMENT: scoring/fitness publishes the run's table through the
+;; parameter registry, so a scoring entry file must bind &params and load the
+;; registry first, else evalTree silently yields zero solutions.
+!(bind! &params (new-space))
+!(import! &self ../../parameters/registry)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/tree)
 !(import! &self ../cacheSpace)
@@ -8,18 +13,17 @@
 
 ;; Native boolean evaluation for the MERGED columnar engine. The operator
 ;; SEMANTICS live in the AND/OR/NOT clauses (boolean-ops.metta); scoreTree turns
-;; a candidate Tree into the wrapped eval shape with preOrderExp and evalSubtree
-;; (fitness.metta) evaluates each subtree ONCE into a per-row column: on a cache
-;; miss it builds the node's shared-var template once (mkNodeTemplate), then per
-;; row seals/freshens the vars, unifies them against the row's child values, and
-;; reduce-dispatches the clause (evalRow).
+;; a candidate Tree into a materialized column term with rewriteTree and
+;; evalSubtree (fitness.metta) walks that term, evaluating each sub-term ONCE
+;; into a per-row column. The LEGACY per-row primitives (mkNodeTemplate/evalRow)
+;; are off the scoring path but still pinned below.
 ;;
 ;; This file imports boolean-ops, so a bare (AND ...)/(OR ...)/(NOT ...) DATA
 ;; literal at a call site compiles as a CALL into the clauses -- data sites are
 ;; quote-guarded, and expected wrapped values are written under quote too.
 
-;; Whole-column evaluator built from the production pieces: preOrderExp ->
-;; evalSubtree over the shared 4-row table -> the candidate's per-row column.
+;; Whole-column evaluator built from the production pieces: buildTree ->
+;; evalTree over the shared 4-row table -> the candidate's per-row column.
 ;; Mirrors feat's callBE (candTemplate/evalParsed), which do not exist in the
 ;; merged engine; here the same behavior is exercised through the columnar path.
 ;;
@@ -32,7 +36,7 @@
 (= (t4Rows) ((True True True True) (True False False False) (False True False True) (False False True False)))
 (= (t4Labs) (A B C D))
 (= (colE $cand)
-   (evalSubtree (preOrderExp (buildTree $cand)) (mkITable (t4Rows) (t4Labs)) 4))
+   (evalTree (buildTree $cand) (mkITable (t4Rows) (t4Labs)) 4))
 ;; Legacy per-row column via the old evaluate/replaceVarsWithTruth path (parity).
 (= (legacyColE $cand)
    (map-atom (t4Rows) $r (evaluate (replaceVarsWithTruth ((t4Labs) $cand) $r))))
@@ -56,20 +60,28 @@
 !(assertEqual (NOT ((NOT (True))))  True)
 !(assertEqual (NOT ((NOT (False)))) False)
 
-;; ---- preOrderExp / childrenExp: Tree -> wrapped eval shape ----
-;; leaf label stays a symbol; nullary AND/OR becomes its identity (Op ()).
-!(assertEqual (preOrderExp (mkTree (mkNode A) ())) A)
-!(let $exp (quote (AND ())) (assertEqual (preOrderExp (mkTree (mkNode AND) ())) $exp))
-!(let $exp (quote (OR ()))  (assertEqual (preOrderExp (mkTree (mkNode OR)  ())) $exp))
-!(let* (($cand (quote (AND A B))) ($exp (quote (AND (A B)))))
-   (assertEqual (preOrderExp (buildTree $cand)) $exp))
-!(let* (($cand (quote (NOT A))) ($exp (quote (NOT (A)))))
-   (assertEqual (preOrderExp (buildTree $cand)) $exp))
-!(let* (($cand (quote (OR (AND A B) C))) ($exp (quote (OR ((AND (A B)) C)))))
-   (assertEqual (preOrderExp (buildTree $cand)) $exp))
-;; childrenExp maps preOrderExp over child Trees.
-!(let* (($children (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ($exp (quote (A B))))
-   (assertEqual (childrenExp $children) $exp))
+;; ---- rewriteTree: Tree -> materialized column term ----
+;; A leaf label becomes its column reference; a nullary AND/OR becomes its
+;; identity CONSTANT (mempty), which evalSubtree broadcasts over the rows.
+;; Expected terms are quote-guarded -- col/fmap/zipWith are LIVE heads here.
+!(let $exp (quote (col A)) (assertEqual (rewriteTree (mkTree (mkNode A) ())) $exp))
+!(assertEqual (rewriteTree (mkTree (mkNode AND) ())) True)
+!(assertEqual (rewriteTree (mkTree (mkNode OR)  ())) False)
+!(let* (($cand (quote (AND A B))) ($exp (quote (zipWith AND (col A) (col B)))))
+   (assertEqual (rewriteTree (buildTree $cand)) $exp))
+!(let* (($cand (quote (NOT A))) ($exp (quote (fmap NOT (col A)))))
+   (assertEqual (rewriteTree (buildTree $cand)) $exp))
+!(let* (($cand (quote (OR (AND A B) C)))
+        ($exp (quote (zipWith OR (zipWith AND (col A) (col B)) (col C)))))
+   (assertEqual (rewriteTree (buildTree $cand)) $exp))
+;; Child mapping and null-knob filtering in one node: three declared children
+;; with a null knob in the middle, so A and B map into the term in order, the
+;; knob drops out, and the SURVIVING count (2) selects the binary zipWith branch.
+!(let* (($children (cons (mkTree (mkNode A) ())
+                         (cons (mkKnob (mkNullVex (cons (mkTree (mkNode C) ()) ())) (lsk) 0)
+                               (cons (mkTree (mkNode B) ()) ()))))
+        ($exp (quote (zipWith AND (col A) (col B)))))
+   (assertEqual (rewriteTree (mkTree (mkNode AND) $children)) $exp))
 
 ;; ---- Per-row primitives: node template (built once) + sealed/unify/reduce ----
 ;; mkNodeTemplate mints one fresh unbound var per child (inline map-atom:

@@ -1,4 +1,9 @@
 !(import! &self ../../utilities/general-helpers)
+;; ENTRY-FILE REQUIREMENT: scoring/fitness publishes the run's table through the
+;; parameter registry, so a scoring entry file must bind &params and load the
+;; registry first, else evalTree silently yields zero solutions.
+!(bind! &params (new-space))
+!(import! &self ../../parameters/registry)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/map)
 !(import! &self ../../utilities/ordered-multimap)
