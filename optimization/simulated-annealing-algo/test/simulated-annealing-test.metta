@@ -53,6 +53,7 @@
 !(import! &self ../../../../metta-moses/deme/deme-id-creation)
 !(import! &self ../../../../metta-moses/deme/create-deme)
 !(import! &self ../../../../metta-moses/deme/score-deme)
+!(import! &self ../../../../metta-moses/deme/domain-adapter)
 !(import! &self ../../../../metta-moses/deme/expand-deme)
 
 

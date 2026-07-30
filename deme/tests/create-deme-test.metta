@@ -67,14 +67,8 @@
 !(import! &self ../create-deme)
 !(import! &self ../score-deme)
 !(import! &self ../merge-demes)
+!(import! &self ../domain-adapter)
 !(import! &self ../expand-deme)
-
-;; (= (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
-    ;; ($updatedDeme (expandDeme metaPop2 0 1 False sim table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
-    ;; ($demes (trace! "Creating Deme" (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar ())))                   ;;createRepresentation and createDemeId are under this
-;; (= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts))
-;; (= (createDeme 1 (cons (mkDemeId "1") $tree ) $exemplar ttable1 $algo $prune-exemplar $enforced-fts))
-;;
 
 (= (table1) (mkITable
                          (cons (cons False (cons False (cons False ()))) 
@@ -82,6 +76,23 @@
                          (cons (cons False (cons True (cons False ())))
                          (cons (cons True (cons True (cons True ()))) ()))))
                          (cons A (cons B (cons O ())))))
+
+;; Strategy deme enumeration uses the general helper directly and therefore
+;; produces exactly the requested number of independently built, expandable
+;; representations without importing feature-selection's `range`.
+(= (strategyTreeForDemeTest)
+   (mkTree
+     (mkNode PRIORITIZED-OR)
+     ((mkTree (mkNode playcenter) ())
+      (mkTree (mkNode playcorner) ()))))
+
+!(assertEqual
+  (List.length
+    (createDeme
+      2
+      ((mkDemeId "strategy-1") (mkDemeId "strategy-2"))
+      (strategyTreeForDemeTest)))
+  2)
 
 ;; INFO: This test case passes but hangs after finishing. No idea why. The function it self doesn't hang but the execution does.
 ;; !(assertEqual (createDeme 1 (cons (mkDemeId "1") ()) (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) ())) 

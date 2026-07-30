@@ -1,8 +1,8 @@
 ;; Deterministic end-to-end Santa Fe ant perfect-convergence regression.
 ;;
 ;; The generation and evaluation limits are deliberately generous, but raw-target
-;; termination ends the verified seed-1 search through expansion ID 2 (three
-;; expansions). The test covers ant dispatch, action representation, hill
+;; termination ends the verified seed-1 search as soon as it finds a
+;; perfect program. The test covers ant dispatch, action representation, hill
 ;; climbing, scoring, deme expansion, metapopulation merging, and FinalResult
 ;; conversion, and requires the evolved program to eat all 89 pellets.
 
@@ -69,6 +69,7 @@
 !(import! &self ../../../deme/deme-id-creation)
 !(import! &self ../../../deme/score-deme)
 !(import! &self ../../../deme/merge-demes)
+!(import! &self ../../../deme/domain-adapter)
 !(import! &self ../../../deme/expand-deme)
 !(import! &self ../../../moses/demo-problems)
 
@@ -110,7 +111,9 @@
        True))
 
 !(set-param problem ant)
-;; This seed reproducibly reaches raw score 0 with the search settings below.
+;; Repository history and repeated local runs verify this perfect trajectory.
+;; Seed 10 is a separate near-perfect convergence experiment, not this fast
+;; regression fixture.
 !(set-param seed 1)
 ;; Use a generous generation ceiling for convergence. Target-score termination
 ;; stops the verified trajectory through expansion ID 2, so the ordinary suite
@@ -119,27 +122,26 @@
 ;; Build two independently randomized representations around each selected tree.
 !(set-param nDeme 2)
 !(set-param optAlgo hc)
-!(set-param antSteps 600)
+!(set-param steps 600)
 ;; getComplexityCoef is the inverse of this ratio. Raising it to 0.5 lowers the
 ;; per-action penalty from 6.25 to 2 while preserving penalized-score hill
 ;; climbing. That lets useful control structure survive long enough to evolve a
 ;; perfect complexity-8 tree, whose penalized score is -16 instead of -50.
-!(set-param antComplexityRatio 0.5)
-!(set-param antComplexityTemperature 2000)
+!(set-param complexityRatio 0.5)
+!(set-param complexityTemperature 2000)
 ;; Preserve breadth: retain dominated stepping stones and expand each program
 ;; only once while unvisited candidates remain available.
-!(set-param antDiscardDominated False)
-!(set-param antRevisit 0)
+!(set-param discardDominated False)
+!(set-param revisit 0)
 ;; C++-parity search always uses hot penalized-score Boltzmann selection.
 ;; Keep ordinary test output compact; detailed generation telemetry remains
-;; available through --antDiagnostics=True for opt-in convergence runs.
-!(set-param antDiagnostics False)
-!(set-param hcMaxDistAnt 4)
-!(set-param hcMinXoverNeighborsAnt 400)
-!(set-param hcMaxEvalsAnt 2000)
+;; available through --diagnostics=True for opt-in convergence runs.
+!(set-param diagnostics False)
+!(set-param maxDist 4)
+!(set-param minXoverNeighbors 400)
 ;; This is a complete-run safety ceiling over actual scorer calls, not a request
-;; to spend all 30,000. The deterministic target stop occurs after 520 calls.
-!(set-param antMaxEvals 30000)
+;; to spend all 30,000. Remaining budget is shared by the generated demes.
+!(set-param maxEvals 30000)
 !(set-param hcWidenSearch False)
 !(set-param hcCrossover True)
 !(set-param maxCandPerDeme -1)
@@ -158,11 +160,11 @@
                  ($pelletsEaten (+ (ant-food-count) $bestScore))
                  ($initialExemplarScore
                    (sumBScore
-                     (scoreAntTree (ant-exemplar) (param antSteps))))
+                     (scoreAntTree (ant-exemplar) (param steps))))
                  ($scoresValid (antFinalScoresValid $rows))
                  ($hasMaterializedCandidate (antHasMaterializedCandidate $rows))
                  ($rescoresMatch
-                   (antFinalRescoresMatch $rows (param antSteps)))
+                   (antFinalRescoresMatch $rows (param steps)))
                  ($_ (println! (AntSearchBestTree: $bestTreeExpr)))
                  ($_ (println! (AntSearchBestScore: $bestScore)))
                  ($_ (println! (AntSearchPelletsEaten: $pelletsEaten of (ant-food-count))))

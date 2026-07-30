@@ -81,6 +81,7 @@
 !(import! &self ../deme-id-creation)
 !(import! &self ../score-deme)
 !(import! &self ../merge-demes)
+!(import! &self ../domain-adapter)
 !(import! &self ../expand-deme)
 
  !(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
@@ -99,6 +100,13 @@
                          (cons (cons False (cons True (cons False ())))
                          (cons (cons True (cons True (cons True ()))) ()))))
                          (cons A (cons B (cons O ())))))                         
+
+;; Public contexts retain their existing shapes, while the adapter converts
+;; them to the inputs required by the shared optimizer and merge lifecycle.
+(= (booleanAdapterContext)
+   (False sim (table1) (ttable1)))
+(= (strategyAdapterContext)
+   (10 probeOpponent 3.5))
 
 (= (ortable) (eval (createTruthTableBScore 2 (mkITable
                          (cons (cons False (cons False (cons False ()))) 
@@ -176,35 +184,74 @@
 ; (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (eval (worstCscore))))
 
-;; Testcase for optimizeDemes               
+;; A deterministic optimizer probe exposes the fair local allowance in its
+;; returned deme ID and reports that allowance as its actual evaluation count.
+;; This tests the shared budget dispatcher without starting a stochastic
+;; feature-selection search.
+(= (budgetProbeOptimizer
+      (mkDeme $rep $scoredInstances $demeId) $context $initialInstance)
+   (let $localLimit (get-state &localEvalLimit)
+     ($initialInstance
+      (mkDeme $rep $scoredInstances (mkDemeId $localLimit))
+      (False False False $initialInstance 0 0
+       (worstCscore) -1 $localLimit 1 1))))
+
+;; Extract the numeric share encoded by budgetProbeOptimizer in a deme ID.
+(= (numericDemeId
+      (mkDeme $rep $scoredInstances (mkDemeId $id)))
+   $id)
+
+;; Probe both optimizer call conventions without performing a search.
+(= (adapterOptimizerProbe $deme $target $inst)
+   (AdapterCall plain $target))
+(= (adapterOptimizerProbe
+      $deme $target $inst (mkParams $scorer $payload))
+   (AdapterCall scored $target $scorer $payload))
+
+;; Boolean and strategy contexts must each produce one deterministic adapter
+;; result while preserving their historical optimizer calling convention.
+!(assertEqual
+  ((optimizerContextFor (booleanAdapterContext) 7)
+   (mergeContextFor (booleanAdapterContext))
+   (initialEvaluationCount (booleanAdapterContext))
+   (optimizerContextFor (strategyAdapterContext) 7)
+   (mergeContextFor (strategyAdapterContext))
+   (initialEvaluationCount (strategyAdapterContext)))
+  ((table1) (ttable1) 0 (10 3.5 7) 10 0))
+
+!(assertEqual
+  ((optimizeDeme
+     probeDeme
+     (optimizerContextFor (booleanAdapterContext) 7)
+     (mkInst ())
+     adapterOptimizerProbe)
+   (optimizeDeme
+     probeDeme
+     (optimizerContextFor (strategyAdapterContext) 7)
+     (mkInst ())
+     adapterOptimizerProbe))
+  ((AdapterCall plain (table1))
+   (AdapterCall scored 7 applyStrategyBasedScore (10 3.5))))
+
+;; Keep the direct optimizer test compact. The production 25,000-call default
+;; is intended for full searches, not a focused unit test.
+!(set-param maxEvals 10)
+
+;; Testcase for optimizeDeme
 !(assertEqual 
 (let* 
 (
-    ($optimizeDemesReturn (optimizeDemes (deme) 
+    ($optimizeDemeReturn (optimizeDeme (deme)
                 (table1) 
                 (mkInst (cons 0 (cons 0 ()))) 
                 hillClimbing
                 ))
-    ($_ (println! "optimizeDemes Returns"))
-    ($_ (println! $optimizeDemesReturn))
-    (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemesReturn)
+    (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemeReturn)
     ($instanceCount (List.length $instSet))
     ($scoredElems (List.map isScored $instSet))
 )
 ((>= $instanceCount 4) (List.any $scoredElems)))
 (True True))
-
-;; ;; Testcase for expandDeme INFO: For some reason this test case disturbs the next test case but is fine alone.
-;; !(assertEqual
-;; (let*
-;; (
-;;     ($updatedDeme (expandDeme (metaPop2) 0 1 False sim 
-;;                     (table1)
-;;                     hillClimbing 
-;;                     (ttable1)
-;;                     mi))
-;;     ($updatedDemeLength (size-atom $updatedDeme)))
-;; (>= $updatedDemeLength 1)) True)
 
 ;; The original tests passed `5 2 0 1 3 0.004 1000` (and
 ;; `maxCandOutput=3`). Test 4 nudges minPoolSize from 0 to 2 just before
@@ -218,73 +265,53 @@
 !(set-param capCoef 0.004)
 !(set-param genCount 1000)
 
-;; Testcase for runMoses
+;; The reusable counted expansion divides three remaining calls fairly across
+;; two Boolean demes. It also restores the temporary local allowance after
+;; both optimizations complete.
 !(assertEqual
-(let*
-(
-    ($_ (println! (running started)))
-    ($topCandidates (runMoses 2 0 (metaPop2) 0 2 (False sim
-    (table1)
-    (ttable1))
-    hillClimbing))
-    ($topCandidatesLength (OS.length $topCandidates))
-)
-(>= $topCandidatesLength 1)
-) True)
+  (let* (
+         (($optimizedDemes $actualEvaluations)
+           (expandDemesCounted
+             ((deme) (deme)) (table1) budgetProbeOptimizer 3))
+         ($localShares
+           (map-atom $optimizedDemes $optimizedDeme
+             (numericDemeId $optimizedDeme)))
+        )
+    ($localShares $actualEvaluations (get-state &localEvalLimit)))
+  ((2 1) 3 -1))
 
-;; Testcase for runMoses
+;; At zero budget the shared lifecycle guard reports exhaustion immediately,
+;; leaves no remaining allowance, and finalizes the existing Boolean archive.
+;; The end-to-end Boolean benchmark separately exercises `runMoses`; keeping
+;; this unit test at the guard boundary avoids enumerating PeTTa's stochastic
+;; feature-selection choices.
+!(set-param maxEvals 0)
 !(assertEqual
-(let*
-(
-    ($topCandidates (runMoses 1 0 (metaPop2) 0 2 (False rd
-    (table1)
-    (ttable1))
-    hillClimbing))
-    ($topCandidatesLength (OS.length $topCandidates))
-)
-(>= $topCandidatesLength 1)
-) True)
+  ((evaluationBudgetReached 0)
+   (remainingEvaluationBudget 0)
+   (OS.length (finishMetapop (metaPop2))))
+  (True 0 1))
+!(set-param maxEvals 10)
 
-;; Testcase for runMoses
-!(assertEqual
-(let*
-(
-    ($topCandidates (runMoses 1 0 (metaPop2) 0 2 (False inc
-    (table1)
-    (ttable1))
-    hillClimbing))
-    ($topCandidatesLength (OS.length $topCandidates))
-)
-(>= $topCandidatesLength 1)
-) True)
-
-;; Testcase 2 for runmoses.
-;; When maxGen become 10, test number of returned instances is not greater than maxCandOutput,
-;;              where maxCandOutput is 3 and minPoolSize is 2
+;; Finalization enforces maxCandOutput directly. Exercising this invariant on
+;; a fixed archive avoids conflating it with the many stochastic trajectories
+;; produced by a ten-generation feature-selection search.
 !(set-param minPoolSize 2)
 !(assertEqual
-(let $length
-((OS.length (runMoses 10 0 (metaPop2) 0 2
-    (False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-    inc      ;; the new arguments for feature selection algo
-    (eval (createTruthTableBScore 2 (mkITable
-                          (cons (cons False (cons False (cons False ())))
-                          (cons (cons True (cons False (cons False ())))
-                          (cons (cons False (cons True (cons False ())))
-                          (cons (cons True (cons True (cons True ()))) ()))))
-                          (cons A (cons B (cons O ()))))))
-    (mkITable
-                          (cons (cons False (cons False (cons False ())))
-                          (cons (cons True (cons False (cons False ())))
-                          (cons (cons False (cons True (cons False ())))
-                          (cons (cons True (cons True (cons True ()))) ()))))
-                          (cons A (cons B (cons O ())))))
-    hillClimbing)
-    ))
-        (> $length 3)
-)
-    False
-)
+  (let* (
+         ($archive
+           ((mkExemplar (mkTree (mkNode A) ()) (mkDemeId "a")
+                        (mkCscore -1 1 0 0 -1) (mkBScore (-1)))
+            (mkExemplar (mkTree (mkNode B) ()) (mkDemeId "b")
+                        (mkCscore -2 1 0 0 -2) (mkBScore (-2)))
+            (mkExemplar (mkTree (mkNode C) ()) (mkDemeId "c")
+                        (mkCscore -3 1 0 0 -3) (mkBScore (-3)))
+            (mkExemplar (mkTree (mkNode D) ()) (mkDemeId "d")
+                        (mkCscore -4 1 0 0 -4) (mkBScore (-4)))))
+         ($finalized (finishMetapop $archive))
+        )
+    (OS.length $finalized))
+  3)
 ;; ; ; with OR table and AND init exemplar     
 ;; ; !(runMoses 7 1 3 (metaPop) 0 2 
 ;; ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
