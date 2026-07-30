@@ -231,22 +231,17 @@
 (= (mempty $op) (memptyScan (memptyTable) $op))
 
 ;; --- rewriter helper --------------------------------------------------------
-;; foldr1: right-fold an already-rewritten (arity > 2) child-column list into
-;; nested binary zipWith terms with row fn $fn (here the op symbol itself).
-;; HAZARD: quoted emission (`zipWith` is live). `quote` only SUBSTITUTES bound
-;; variables, so the head child is let-bound rather than inlined as (car-atom ..).
-(= (foldr1 $fn $children)
-   (if (== (List.length $children) 1)
-       (car-atom $children)
-       (let* (($hd   (car-atom $children))
-              ($rest (foldr1 $fn (cdr-atom $children))))
-         (quote (zipWith $fn $hd $rest)))))
+;; The combiner List.foldr1 (utilities/list-methods) threads over an
+;; already-rewritten child-column list: one nested binary zipWith node per step.
+;; Passed partially applied as (zipNode $op), so the fold stays generic.
+;; HAZARD: quoted emission (`zipWith` is live).
+(= (zipNode $op $l $r) (quote (zipWith $op $l $r)))
 
 ;; --- rewriteTree: candidate Tree ADT -> materialized columnar term ----------
 ;; CONSUMES the mkTree / mkNode / mkKnob candidate ADT and EMITS the columnar
 ;; term as inert DATA (every emission quoted -- see the HAZARD above): this is a
 ;; COMPILER, not an evaluator, and never reads the table or computes a column.
-;; An n-ary monoid node right-folds (foldr1) into NESTED BINARY terms rather
+;; An n-ary monoid node right-folds (List.foldr1) into NESTED BINARY terms rather
 ;; than one flat node, so each nesting level is its own memo key -- that is
 ;; where the cross-candidate sub-column sharing comes from. Both nullary paths
 ;; guard on isMonoid (the childless clause here, the zero-SURVIVING-children
@@ -288,7 +283,7 @@
                   ($rc (index-atom $cols 1)))
              (quote (zipWith $r $lc $rc))))
         ($_ (if (isMonoid $r)
-                (foldr1 $r $cols)
+                (List.foldr1 (zipNode $r) $cols)
                 (quote (zipWithN $r $cols))))))))
 
 ;; Memoized compile. TABLE-INDEPENDENT: the same candidate always compiles to
