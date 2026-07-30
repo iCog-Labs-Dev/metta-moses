@@ -21,7 +21,7 @@
        (cons-atom $action $args)))
 
 (= (isActionSeqOp $op)
-   (is-member $op (and_seq or_seq exec_seq)))
+   (once (is-member $op (and_seq or_seq exec_seq))))
 
 ;; ---------------------------------------------------------------------------
 ;; reduceIdempotent (C++ reduce_idempotent)

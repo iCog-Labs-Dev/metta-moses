@@ -36,11 +36,15 @@
 ;; (: mkASK (-> DiscreteKnob (List (Tree $a)) ActionSubtreeKnob))
 
 ;; Structural action operators are never domain actions.
+;; PeTTa's is-member exposes one Boolean result per comparison, so commit this
+;; classification to one scalar result before representation dispatch.
 (= (isActionOperator $rootSymbol)
-   (is-member $rootSymbol (and_seq or_seq seq_exec exec_seq action_not action_bool_if
-                           bool_action_if contin_action_if action_action_if
-                           action_success action_failure action_while
-                           bool_while return_success repeat_n)))
+   (once
+     (is-member $rootSymbol
+       (and_seq or_seq seq_exec exec_seq action_not action_bool_if
+        bool_action_if contin_action_if action_action_if
+        action_success action_failure action_while
+        bool_while return_success repeat_n))))
 
 ;; Checks if a DiscreteKnob is considered part of the exemplar based on its default specifier.
 ;; Params:

@@ -20,7 +20,8 @@
 (= (buildKnobs (mkTree (mkNode $rootOp) $children) $mmp $argLabels $actions $perceptions)
     (if (== $rootOp PRIORITIZED-OR)
         (buildStrategy (mkTree (mkNode PRIORITIZED-OR) $children) (mkNodeId (0)) $mmp $argLabels)
-        (if (or (isActionOperator $rootOp) (is-member $rootOp $actions))
+        (if (or (isActionOperator $rootOp)
+                (once (is-member $rootOp $actions)))
             (let*
               (
                 ($canonized (actionCanonize (mkTree (mkNode $rootOp) $children)))

@@ -13,7 +13,9 @@
 
 (= (randint $max) (py-call (random.randint 0 $max)))
 
-(= (isDomainAction $op $actions) (is-member $op $actions))
+;; Domain-membership predicates must return one Boolean, not is-member's
+;; comparison-by-comparison alternatives.
+(= (isDomainAction $op $actions) (once (is-member $op $actions)))
 
 (= (sampleActionPerms $actions $perceptions)
    (if (== $perceptions ())
@@ -239,8 +241,10 @@
            (buildActionBoolIf (mkTree (mkNode action_bool_if) $children) $MMap $actions $perceptions)
            ((mkTree (mkNode $op) $children) $MMap))))
 
+;; Identify sequence operators whose empty children must be removed during
+;; candidate cleanup, committing membership to one Boolean result.
 (= (isCleanupActionOperator $op)
-   (is-member $op (and_seq or_seq seq_exec exec_seq)))
+   (once (is-member $op (and_seq or_seq seq_exec exec_seq))))
 
 (= (actionCleanup $tree)
    (let ($cleaned $keep) (actionCleanupNode $tree)

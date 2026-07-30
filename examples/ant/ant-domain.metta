@@ -2,11 +2,6 @@
 ;; Classic Santa Fe ant domain
 ;; ---------------------------------------------------------------------------
 
-;; The complete-run evaluator limit is ant-specific, so register it with the
-;; domain instead of changing generic parameter-specialization state. CLI
-;; overrides remain compatible because moses.metta applies them afterward.
-!(add-atom &params (antMaxEvals 100000))
-
 ;; Shared state variables used below:
 ;; - $x, $y: current ant position on the 32x32 toroidal grid.
 ;; - $dir: current direction; 0=north, 1=east, 2=south, 3=west.
@@ -50,7 +45,7 @@
 ;;           C++ note: ant combo vocabulary marks all three actions as always_succeeds.
 
 (= (antAlwaysSucceeds $action)
-   (is-member $action (move_forward turn_left turn_right)))
+   (once (is-member $action (move_forward turn_left turn_right))))
 
 ;; ant-food-coords: return the fixed Santa Fe trail food coordinates.
 ;;          each item is `($x $y)`, the coordinate of one initial pellet.
@@ -323,7 +318,9 @@
 ;; scoreAntTree: compute the behavioral score vector for an ant candidate.
 ;;          `$tree` is the candidate action tree to simulate;
 ;;          `$steps` is the primitive-action limit. The first score component is
-;;          `-antFoodCount`; the second component is the food count from `antFoodEaten`.
+;;          `-(ant-food-count)`; the second component is the food count from
+;;          `antFoodEaten`. The trail size is a domain constant, not a tunable
+;;          search parameter.
 ;;          C++ note: mirrors `ant_bscore::operator()`, `{-89, _aff(tr)}`.
 
 (= (scoreAntTree $tree $steps)
@@ -340,8 +337,10 @@
 ;; `and_seq`, `AND`, and `NOT` contribute only their qualifying descendants.
 (= (antTreeComplexity (mkTree (mkNode $op) $children))
    (if (== $children ())
-       (if (is-member $op
-             (move_forward turn_left turn_right action_success action_failure))
+       (if (once
+             (is-member $op
+               (move_forward turn_left turn_right
+                action_success action_failure)))
            1
            0)
        (foldl-atom $children 0 $total $child
