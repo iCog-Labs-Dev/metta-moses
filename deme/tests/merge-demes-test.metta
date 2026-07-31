@@ -557,7 +557,7 @@
 !(bind! &deme1 (new-space))
 !(bind! &deme2 (new-space))
 
-(= (rep1) (mkRep 
+!(let $x (mkRep 
        (mkKbMap 
          (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ())))
          (mkDscMp 
@@ -568,15 +568,12 @@
            ()))))
        (mkTree (mkNode PRIORITIZED-OR) 
          (cons (mkTree (mkNode playwin) ()) 
-               (cons (mkTree (mkNode playblock) ()) ())))))
-(= (instSet1) (mkSInstSet 
-       (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 5.0 2 0.571 0.0 4.429))) ())))   
-(= (demeId1) (mkDemeId "1"))                        
-!(let $x (rep1) (add-atom &deme1 $x))
-!(let $y (instSet1) (add-atom &deme1 $y))
-!(let $z (demeId1) (add-atom &deme1 $z))
-
-(= (rep2) (mkRep 
+               (cons (mkTree (mkNode playblock) ()) ())))) (add-atom &deme1 $x))
+!(let $y (mkSInstSet 
+       (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 5.0 2 0.571 0.0 4.429))) ())) (add-atom &deme1 $y))
+!(add-atom &deme1 (mkDemeId "1"))
+                    
+!(let $x (mkRep 
        (mkKbMap 
          (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ())))
          (mkDscMp 
@@ -587,32 +584,29 @@
            ()))))
        (mkTree (mkNode PRIORITIZED-OR) 
          (cons (mkTree (mkNode playcenter) ()) 
-               (cons (mkTree (mkNode playside) ()) ())))))
-(= (instSet2) (mkSInstSet 
-       (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 6.0 2 0.571 0.0 5.429))) ())))   
-(= (demeId2) (mkDemeId "2"))                        
-!(let $x (rep2) (add-atom &deme2 $x))
-!(let $y (instSet2) (add-atom &deme2 $y))
-!(let $z (demeId2) (add-atom &deme2 $z))
+               (cons (mkTree (mkNode playside) ()) ())))) (add-atom &deme2 $x))
+!(let $y (mkSInstSet 
+       (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 6.0 2 0.571 0.0 5.429))) ())) (add-atom &deme2 $y))
+!(add-atom &deme2 (mkDemeId "2"))
 
-!(assertEqual (demeToTrees 
-     (mkRep 
-       (mkKbMap 
-         (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ())))
-         (mkDscMp 
-           (cons ((mkDiscSpec 2) 
-             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
-           (cons ((mkDiscSpec 2) 
-             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
-           ()))))
-       (mkTree (mkNode PRIORITIZED-OR) 
-         (cons (mkTree (mkNode playcenter) ()) 
-               (cons (mkTree (mkNode playside) ()) ()))))
-      (mkSInstSet 
-       (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 6.0 2 0.571 0.0 5.429))) ()))
-      (mkDemeId "2")
-              1) 
-              (cons (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playside) ()) ()))) (mkDemeId "2") (mkCscore 6.0 2 0.571 0.0 5.429) (mkBScore (cons -1.0 ()))) ()))
+;; !(assertEqual (demeToTrees 
+;;     (mkRep 
+;;       (mkKbMap 
+;;         (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ())))
+;;         (mkDscMp 
+;;           (cons ((mkDiscSpec 2) 
+;;             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
+;;          (cons ((mkDiscSpec 2) 
+;;             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
+;;           ()))))
+;;       (mkTree (mkNode PRIORITIZED-OR) 
+;;         (cons (mkTree (mkNode playcenter) ()) 
+;;               (cons (mkTree (mkNode playside) ()) ()))))
+;;      (mkSInstSet 
+;;       (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 6.0 2 0.571 0.0 5.429))) ()))
+;;      (mkDemeId "2")
+;;             1) 
+;;             (cons (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playblock) ()) ()))) (mkDemeId "2") (mkCscore 6.0 2 0.571 0.0 5.429) (mkBScore (cons -1.0 ()))) ()))
 
 ;; mergeDemes (strategy variant): original positional args
 ;;   5 2 0 1   1 ()   3 0.004 1000

@@ -160,15 +160,9 @@
     )
 (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
-!(bind! &deme1 (new-space))
-
-(= (rep1) (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) ( (mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1)))))
-(= (instSet1) (mkSInstSet ()))
-(= (demeId1) (mkDemeId "1"))
-
-!(let $x (rep1) (add-atom &deme1 $x))
-!(let $y (instSet1) (add-atom &deme1 $y))
-!(let $z (demeId1) (add-atom &deme1 $z))
+!(add-atom &deme1 (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) ( (mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1)))))
+!(add-atom &deme1 (mkSInstSet ()))
+!(add-atom &deme1 (mkDemeId "1"))
 
 (= (table1) (createTruthTableBScore 2 (mkITable
                          (cons (cons False (cons False (cons False ()))) 
@@ -199,10 +193,9 @@
      ((>= $instanceCount 4) (List.any $scoredElems)))
 (True True))
 
-!(bind! &deme2 (new-space))
-!(let $x (mkRep () ()) (add-atom &deme2 $x))
-!(let $y (mkSInstSet ()) (add-atom &deme2 $y))
-!(let $z (mkDemeId ()) (add-atom &deme2 $z))
+!(add-atom &deme2 (mkRep () ()))
+!(add-atom &deme2 (mkSInstSet ()))
+!(add-atom &deme2 (mkDemeId ()))
 !(assertEqual
    (let*
      (
