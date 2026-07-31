@@ -77,10 +77,9 @@
 ;;
 
 (= (table1) (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons False ()))) 
-                         (cons (cons False (cons True (cons False ())))
-                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ()))))
+                         (cons (cons False (cons False (cons True (cons True ()))))
+                         (cons (cons False (cons False (cons False (cons True ())))) ())))
                          (cons A (cons B (cons O ())))))
 
 ;; INFO: This test case passes but hangs after finishing. No idea why. The function it self doesn't hang but the execution does.

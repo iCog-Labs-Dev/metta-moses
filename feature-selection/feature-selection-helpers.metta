@@ -47,18 +47,18 @@
 ;;;;;;;;;;;;;;
 ;; Transpose;;
 ;;;;;;;;;;;;;;
-; (: Table._transposeHelper (-> (List Number) (List (List $a)) (List (List $a))))
-(= (Table._transposeHelper () $table) ())
-
-(= (Table._transposeHelper (cons $i $rest) $table)
-    (cons (Table.getColumn $i $table)
-          (Table._transposeHelper $rest $table)))
-
+;; Swap the two axes of a list of equal-length lists (row-major <-> column-major).
+;; Peels one cell off the front of every sublist per step, so it is correct for
+;; non-square tables. NOTE: this must NOT be written in terms of Table.getColumn
+;; -- that one indexes the column-major payload directly, which would make the
+;; whole function an identity.
 ; (: Table.transpose (-> (List (List $a)) (List (List $a))))
-(= (Table.transpose $table)
-    (let $numCols (List.length (List.head $table))
-        (let $indices (List.range 0 $numCols)
-            (Table._transposeHelper $indices $table))))
+(= (Table.transpose ()) ())
+(= (Table.transpose (cons $first $rest))
+    (if (== $first ())
+        ()
+        (cons (map-atom (cons $first $rest) $sublist (List.head $sublist))
+              (Table.transpose (map-atom (cons $first $rest) $sublist (List.tail $sublist))))))
 ;;;;;;;;;;;;;;
 ;; Transpose;;
 ;;;;;;;;;;;;;;

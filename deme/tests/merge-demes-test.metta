@@ -105,14 +105,16 @@
            (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 0 ())))) (mkCscore -0.2 1 0.1 0.1 -0.4)))
                  (cons  (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 2 ())))) (mkCscore 0 2 1.0 0 -1.0))) ())))))
 
-(= (ttable1) (mkITable (cons (cons True (cons False (cons True ())))
-                        (cons (cons True (cons True  (cons True ()))) ())) 
+(= (ttable1) (mkITable (cons (cons True (cons True ()))
+                       (cons (cons False (cons True ()))
+                       (cons (cons True (cons True ())) ()))) 
                         (cons A (cons B (cons O ())))))
 (= (ttable2) (mkITable
-                    (cons (cons True (cons True (cons True (cons True (cons True ())))))
-                    (cons (cons True (cons False (cons False (cons False (cons False ())))))
-                    (cons (cons False (cons True (cons False (cons False (cons False ())))))
-                    (cons (cons False (cons False (cons False (cons False (cons False ()))))) ()))))
+                    (cons (cons True (cons True (cons False (cons False ()))))
+                    (cons (cons True (cons False (cons True (cons False ()))))
+                    (cons (cons True (cons False (cons False (cons False ()))))
+                    (cons (cons True (cons False (cons False (cons False ()))))
+                    (cons (cons True (cons False (cons False (cons False ())))) ())))))
                     (cons A (cons B (cons C (cons D (cons output ())))))))
 
 (= (metaPop) (cons (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ()))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (cons 0 (cons 0 ()))))

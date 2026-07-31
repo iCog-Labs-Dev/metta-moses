@@ -471,14 +471,14 @@
 !(assertEqual (treeComplexity (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1)) 0)
 
 ;; Test case for alphabetSize
-!(bind! ttable1 (new-state (mkITable (cons (cons True (cons False (cons True ())))
-                        (cons (cons True (cons True  (cons True ()))) ())) 
+!(bind! ttable1 (new-state (mkITable (cons (cons True (cons True ()))
+                                     (cons (cons False (cons True ()))
+                                     (cons (cons True (cons True ())) ()))) 
                         (cons A (cons B (cons O ()))))))
 !(bind! ttable2 (new-state (mkITable
-                    (cons (cons True (cons True (cons True ())))
-                    (cons (cons True (cons False (cons False ())))
-                    (cons (cons False (cons True (cons False ())))
-                    (cons (cons False (cons False (cons False ()))) ()))))
+                    (cons (cons True (cons True (cons False (cons False ()))))
+                    (cons (cons True (cons False (cons True (cons False ()))))
+                    (cons (cons True (cons False (cons False (cons False ())))) ())))
                     (cons A (cons B (cons Output ()))))))
 
 !(println! ("testing: alphabetSize"))

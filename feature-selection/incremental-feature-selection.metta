@@ -31,19 +31,21 @@
 ;; Incremental Feature Selection Algorithm
 
 
-(= (get-column $n ()) ())
-(= (get-column $n (cons $row $rows))
-   (cons (List.getByIdx $row $n) (get-column $n $rows)))
+;; The mkITable payload is COLUMN-major, so column $n is simply its $n-th
+;; element -- no per-row walk.
+(= (get-column $n $columns) (List.getByIdx $columns $n))
 
-(= (extract-features $indices $row)
-   (if (== $indices ())
+;; Row-wise tuples over the selected columns: ((c0r0 c1r0 ..) (c0r1 c1r1 ..) ..)
+;; This is what the entropy/MI helpers below consume as "one observation per row".
+(= (zip-selected-columns ()) ())
+(= (zip-selected-columns (cons $first $rest))
+   (if (== $first ())
        ()
-       (let (cons $idx $restIndices) $indices
-            (cons (List.getByIdx $row $idx) (extract-features $restIndices $row)))))
+       (cons (map-atom (cons $first $rest) $column (List.head $column))
+             (zip-selected-columns (map-atom (cons $first $rest) $column (List.tail $column))))))
 
-(= (get-columns $indices ()) ())
-(= (get-columns $indices (cons $row $rows))
-   (cons (extract-features $indices $row) (get-columns $indices $rows)))
+(= (get-columns $indices $columns)
+   (zip-selected-columns (map-atom $indices $i (get-column $i $columns))))
 
 (= (unique-list ()) ())
 (= (unique-list (cons $h $t))
@@ -71,17 +73,17 @@
               ($probs (map-prob $uniqueZ $z $n)))
                 (- 0.0 (List.sum (map-entropy-term $probs))))))
 
-(= (get-target-col (mkITable $rows $features))
+(= (get-target-col (mkITable $columns $features))
       (- (List.length $features) 1))
 
-(= (get-rows (mkITable $rows $features)) $rows)
+(= (get-table-columns (mkITable $columns $features)) $columns)
 
 (= (mi-score $table $indices)
    (if (== $indices ()) 0.0
-       (let* (($rows (get-rows $table))
+       (let* (($columns (get-table-columns $table))
               ($targetCol (get-target-col $table))
-              ($y (get-column $targetCol $rows))
-              ($x (get-columns $indices $rows))
+              ($y (get-column $targetCol $columns))
+              ($x (get-columns $indices $columns))
               ($xy (List.zip $x $y)))
              (- (+ (entropy $x) (entropy $y)) (entropy $xy)))))
 

@@ -11,10 +11,9 @@
 
 (= (andTable)
    (mkITable
-     (cons (cons True (cons True (cons True ())))
-     (cons (cons True (cons False (cons False ())))
-     (cons (cons False (cons True (cons False ())))
-     (cons (cons False (cons False (cons False ()))) ()))))
+     (cons (cons True (cons True (cons False (cons False ()))))
+     (cons (cons True (cons False (cons True (cons False ()))))
+     (cons (cons True (cons False (cons False (cons False ())))) ())))
      (cons A (cons B (cons Output ())))))
 
 
