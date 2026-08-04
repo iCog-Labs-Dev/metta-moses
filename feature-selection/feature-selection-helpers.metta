@@ -229,22 +229,17 @@
     (lruCache (param defaultCacheSize) ((calculateMutualInformation) ($itable $featureIndices))))
 
 ;; Build row-wise tuples from selected columns in a column-major table.
+;; Selecting the columns and swapping the axes IS Table.transpose, so this is a
+;; one-liner over it. The previous zipColumnHelper reached every cell through
+;; List.at, a linear cons-walk, costing O(rows^2 * cols) visits; Table.transpose
+;; peels heads for O(rows * cols). zipColumn sits on every hot mutual-information
+;; path (smd, calculateMutualInformation, score-deme, precision-bscore), so the
+;; difference is ~32x the cell visits per MI evaluation on a 64-row table.
+;; An empty $indices maps to an empty column list, which Table.transpose sends
+;; to (), matching the old explicit guard.
 ; (: zipColumn (-> Expression (List (List $a)) (List $a)))
 (= (zipColumn $indices $table)
-    (if (== $indices ())
-        ()
-        (let* (
-               ($columns (map-atom $indices $i (Table.getColumn $i $table)))
-              )
-              (zipColumnHelper $columns (List.range 0 (List.length (List.at 0 $columns)))))))
-
-;; (: zipColumnHelper (-> (List (List $a)) (List Number) (List $a)))
-(= (zipColumnHelper $columns ()) ())
-
-(= (zipColumnHelper $columns (cons $rowIdx $rest))
-
-    (chain (map-atom $columns $column (List.at $rowIdx $column)) $dataTuple
-        (cons $dataTuple (zipColumnHelper $columns $rest))))
+    (Table.transpose (map-atom $indices $i (Table.getColumn $i $table))))
 
 ;; return marginal probabilities as tuple (p1 p2)
 ; (: marginalProbs (-> Number Expression Expression))

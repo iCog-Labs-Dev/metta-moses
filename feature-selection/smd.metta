@@ -39,7 +39,7 @@
             (collapse 
                 (chain (superpose $indices) $i
                     (chain (mutualInformation (Table.getColumn $i $table) $oc) $mi
-                                (chain (calculateConfidence (size-atom $indices) (List.length $oc) 50.0) $confi   ;; sample count = rows = length of the output column
+                                (chain (calculateConfidence (size-atom $indices) (ITable.rowCount $table) 50.0) $confi   ;; sample count = number of data rows
                                         ((* $mi $confi) ($i))  
                                 )
                     )
@@ -71,7 +71,7 @@
                         (chain (union-atom $used-indices ((superpose $candidate-indices))) $new-indices   ;; form a union of used indices tuple and one unused index for each such an index
                             (chain (zipColumn $new-indices $table) $zipped-input-feature                  ;; form a zipped pair, triplet .. of input feature values from the table
                                 (chain (mutualInformation $zipped-input-feature $oc) $mi
-                                    (chain (calculateConfidence (size-atom $new-indices) (List.length $oc) 50.0) $confi   ;; sample count = rows = length of the output column
+                                    (chain (calculateConfidence (size-atom $new-indices) (ITable.rowCount $table) 50.0) $confi   ;; sample count = number of data rows
                                         ((* $mi $confi) $new-indices)    
                                     )
                                 )

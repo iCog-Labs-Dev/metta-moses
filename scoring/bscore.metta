@@ -35,13 +35,8 @@
 ;(: ITable (-> $a Type))
 ;(: mkITable (-> (List (List $a)) (List Symbol) (ITable $a)))
 
-;; Number of data rows in a column-major payload. Every column holds one cell
-;; per row, so the first column's length is the row count; an empty table has
-;; no rows. Defined here because bscore/fitness load before the Table.* helpers
-;; in feature-selection/feature-selection-helpers.
-;(: iTableRowCount (-> (List (List $a)) Number))
-(= (iTableRowCount ()) 0)
-(= (iTableRowCount (cons $column $rest)) (List.length $column))
+;; The row count of a payload comes from ITable.rowCount in utilities/list-methods,
+;; which is the single definition shared by scoring and feature-selection alike.
 
 ;; TruthTableBScore is a type that contains the complexity coefficient, size of the table and the input table itself.
 ;; Using this type we can get behavioral score and behavioral complexity score.
@@ -54,7 +49,7 @@
 ;; INFO: This could have been done by overloading the mkTruthTableBScore function, but
 ;;  that has shown to be problematic for certain cases. Best to avoid it whenever we can.
 ;(: createTruthTableBScore (-> Number (ITable $a) (TruthTableBScore $a)))
-(= (createTruthTableBScore $complexityCoeff (mkITable $itable $labels)) (mkTruthTableBScore $complexityCoeff (iTableRowCount $itable) (mkITable $itable $labels)))
+(= (createTruthTableBScore $complexityCoeff (mkITable $itable $labels)) (mkTruthTableBScore $complexityCoeff (ITable.rowCount $itable) (mkITable $itable $labels)))
 
 ;; Return the table from truth table bscore
 ;(: getTable (-> (TruthTableBScore $a) (ITable $a)))
@@ -78,16 +73,26 @@
 (= (scoreTree (mkITable $columns $labels) $tree $cacheSpace)
    (if (== $tree (mkTree (mkNode AND) ()))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $columns $labels)))
-       (let* (
-           ($expTree (preOrderExp $tree))
-           ($rowCount (iTableRowCount $columns))
-           ($scoreList (evalSubtree $expTree (mkITable $columns $labels) $rowCount))
-           ($length (List.length $labels))
-           ;; the output column is the last element of the column-major payload
-           ($outputs (if (== $columns ()) () (index-atom $columns (- $length 1))))
-           ($bScore (List.zipWith compareAndScore $scoreList $outputs))
-       )
-       (mkBScore $bScore))))
+       ;; Shape check BEFORE the let*. index-atom is PARTIAL: out of range it
+       ;; yields zero solutions rather than an Error, and a zero-solution call
+       ;; makes this clause -- and every caller up to (moses) -- vanish silently
+       ;; while the run still exits 0. The Error has to be scoreTree's own result:
+       ;; binding it into $outputs instead would let List.zipWith consume the
+       ;; three-element (Error ...) term itself as a column of output data and
+       ;; hand back a fabricated bscore.
+       (if (< (List.length $columns) (List.length $labels))
+           (Error (mkITable $columns $labels)
+                  "scoreTree: payload has fewer columns than labels")
+           (let* (
+               ($expTree (preOrderExp $tree))
+               ($rowCount (ITable.rowCount $columns))
+               ($scoreList (evalSubtree $expTree (mkITable $columns $labels) $rowCount))
+               ($length (List.length $labels))
+               ;; the output column is the last element of the column-major payload
+               ($outputs (if (== $columns ()) () (index-atom $columns (- $length 1))))
+               ($bScore (List.zipWith compareAndScore $scoreList $outputs))
+           )
+           (mkBScore $bScore)))))
 
 (= (scoreTreeHelper $labels $expTree $table) (let $a (replaceVarsWithTruth ($labels $expTree) $table) (evaluate $a)))
 ;; Return the best possible BehavioralScore given the size of the table.
