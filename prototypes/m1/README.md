@@ -11,6 +11,10 @@ still works.
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo.metta -s )
 
+# the same thing starting from an empty program
+( ulimit -v 8000000; timeout 900 \
+    sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-from-scratch.metta -s )
+
 # the checks -- silence means everything passed
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run.metta -s )
@@ -41,6 +45,7 @@ So the search did not just find a better program. It found one that had to
 | | |
 |---|---|
 | `demo.metta` | the guided walkthrough. Start here. |
+| `demo-from-scratch.metta` | the same machinery with no starting program — where it gets stuck, and why |
 | `core/prelude.metta` | list and tree helpers. Nothing interesting. |
 | `core/monad.metta` | how a context (a world, a board, a table row) is threaded |
 | `core/evaluator.metta` | running a program |
@@ -99,3 +104,11 @@ and every answer comes back doubled. `demo.metta` and `tests/run.metta` import
   not wired in.
 - **No reduction, no complexity penalty, no population.** The search is one
   hill climb from one starting point.
+
+`demo-from-scratch.metta` is where those last two stop being footnotes. Given
+an empty program the search cannot move at all: the only single change worth
+making costs -24 before it pays 2, and no arrangement of primitives can
+introduce a conditional, so the ceiling is 2 regardless. Given a conditional to
+start from — even a badly wired one — it reaches the best possible score in a
+single move. The difficulty is what the representation can offer, not how hard
+the search tries.
