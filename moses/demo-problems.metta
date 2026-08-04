@@ -208,14 +208,6 @@
        (let $sexpr (py-call (csv_helper.load_boolean_table (param inputFile) (param targetFeature)))
             (parse $sexpr))))
 
-;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
-;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;;                   smd      ;; the new arguments for feature selection algo
-;;                   (createTruthTableBScore 2 (xortable))
-;;                   hillClimbing
-;;                   100 10 20 2
-;;                   (xortable)
-;;                   10 0.004 1000))
 ;; ============================================================
 ;;  Top-level MOSES entry point.
 ;;
@@ -256,7 +248,15 @@
       )
       ()))
 
+;; Dispatch the configured problem to its domain-specific setup; both setup
+;; paths subsequently enter the same shared runMoses search lifecycle.
 (= (moses-run)
+   (case (param problem)
+      ((ant (moses-ant-run))
+       ($other (moses-table-run)))))
+
+;; Construct Boolean/table scoring inputs and seed the shared MOSES pipeline.
+(= (moses-table-run)
    (let*
       (
         ;; Pull every input from the registry up-front so the body
@@ -290,6 +290,42 @@
         ;; ($_ (println! (Result: $result)))
         ($newR (mapG cleanedExemplar $result))
         ($_ (cut)) ;; INFO: This gives few extra seconds performance gain. Do not remove.
+      )
+      (FinalResult $newR)))
+
+;; Construct Santa Fe action scoring inputs and seed the shared MOSES pipeline.
+(= (moses-ant-run)
+   (let*
+      (
+        ($seed     (param seed))
+        ($maxGen   (param maxGen))
+        ($nDeme    (param nDeme))
+        ($optAlgo  (param optAlgo))
+        ($optimizer (optimizer-for $optAlgo))
+        ;; Action domains consume the same public scoring controls as Boolean
+        ;; domains. `steps` is meaningful to this stateful evaluator, while
+        ;; Boolean scorers harmlessly leave it unused.
+        ($steps (param steps))
+        ($complexityRatio (param complexityRatio))
+        ($context (mkAntContext $steps $complexityRatio (ant-actions) (ant-perceptions)))
+
+        ($srp (py-call (random.seed $seed)))
+        ($_  (set-param genCount $maxGen))
+        ($initialTree (ant-exemplar))
+        ($initialBscore (scoreAntTree $initialTree $steps))
+        ;; Derive the Cscore from the stored BScore so initialization performs
+        ;; exactly one ant simulation.
+        ($initialCscore (getAntCscoreFromBScore $initialTree $complexityRatio $initialBscore))
+        ($_ (println! (BestPossibleScore: (ant-best-possible-score))))
+        ($metaPop ((mkExemplar $initialTree (mkDemeId "1") $initialCscore $initialBscore)))
+        ;; The scoring context is the only domain-specific input: selection,
+        ;; expansion, evaluation accounting, merge, termination, and
+        ;; finalization all pass through the same runMoses pipeline.
+        ($result (runMoses
+              $maxGen (ant-best-possible-score) $metaPop 0
+              $nDeme $context $optimizer))
+        ($newR (mapG cleanedExemplar $result))
+        ($_ (cut))
       )
       (FinalResult $newR)))
 
@@ -327,4 +363,3 @@
         ($_5 (set-param problem $problem))
       )
       (moses)))
-

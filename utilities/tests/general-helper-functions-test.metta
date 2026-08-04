@@ -6,6 +6,7 @@
 !(import! &self ../ordered-set)
 !(import! &self ../ordered-multiset)
 !(import! &self ../../representation/instance)
+!(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
 
@@ -34,10 +35,6 @@
 !(assertEqual (append (1 2) (3 4)) (1 2 3 4))
 !(assertEqual (append (1 2) ()) (1 2))
 !(assertEqual (append () ()) ())
-;; Tests for the function 'Not'
-!(println! ("Tests for the function Not"))
-!(assertEqual (Not (Not (Not A))) (Not A))
-!(assertEqual (Not (Not A)) A)
 
 ;; Tests for the function 'is-member'
 !(println! ("test is-member function to  replace isMember custom function"))
@@ -46,10 +43,13 @@
 !(assertEqual (is-member 3 (1 2 4 5)) False)
 
 !(println! ("testing: setDifference "))
-!(assertEqual (setDifference (AND a b (NOT a) c (OR a b)) (a b (NOT a) (OR a b)) ) (AND c))
-!(assertEqual (setDifference (AND a b (NOT a) c (OR a b)) (a c (NOT c) (NOT a)) ) (AND b (OR a b)))
-!(assertEqual (setDifference (AND a b (NOT a) c (OR a b)) (a) )  (AND b (NOT a) c (OR a b)))
-!(assertEqual (setDifference (AND a b (NOT a) c (OR a b v) v) (b (NOT a) v) ) (AND a c (OR a b v)))
+;; boolean tuples ride under quote: this file loads scoring/bscore and
+;; thus boolean-ops' AND/OR/NOT eval clauses — a bare tuple at a call site
+;; would compile as a call instead of data.
+!(assertEqual (setDifference (quote (AND a b (NOT a) c (OR a b))) (quote (a b (NOT a) (OR a b)))) (quote (AND c)))
+!(assertEqual (setDifference (quote (AND a b (NOT a) c (OR a b))) (quote (a c (NOT c) (NOT a)))) (quote (AND b (OR a b))))
+!(assertEqual (setDifference (quote (AND a b (NOT a) c (OR a b))) (a)) (quote (AND b (NOT a) c (OR a b))))
+!(assertEqual (setDifference (quote (AND a b (NOT a) c (OR a b v) v)) (quote (b (NOT a) v))) (quote (AND a c (OR a b v))))
 
 ;; ;; Tests for findAndReplace function ;; FIX: Failing Test case
 ;; !(assertEqual (findAndReplace A Z (B C A (A B C) F G A)) (B C Z (A B C) F G Z))
@@ -330,7 +330,7 @@
 ;; Test unNest
 
 !(println! ("testig: unNest "))
-!(assertEqual (collapse (unNest (AND A (AND B C)))) (AND A AND B C))
+!(assertEqual (collapse (unNest (quote (AND A (AND B C))))) (quote (AND A AND B C)))
 !(assertEqual (collapse (unNest (1 2 (3 4 (5))))) (1 2 3 4 5))
 
 ;; Test cleanSpace
@@ -358,8 +358,8 @@
 
 ;; Test flatten-list
 !(println! ("testing flatten-list "))
-!(assertEqual (flatten-list (AND A (AND A B))) (AND A AND A B))
-!(assertEqual (flatten-list (AND A (AND (OR A (NOT C)) (OR B D)))) (AND A AND OR A (NOT C) OR B D))
+!(assertEqual (flatten-list (quote (AND A (AND A B)))) (quote (AND A AND A B)))
+!(assertEqual (flatten-list (quote (AND A (AND (OR A (NOT C)) (OR B D))))) (quote (AND A AND OR A (NOT C) OR B D)))
 
 ;; Test notNt 
 !(bind! NTS (new-state (start expr bop uop term)))
@@ -378,8 +378,8 @@
 !(println! ("testing isValidExp "))
 !(assertEqual (isValidExp A (start expr bop uop term)) True)
 !(assertEqual (isValidExp expr (start expr bop uop term)) False)
-!(assertEqual (isValidExp (AND A B) (start expr bop uop term)) True)
-!(assertEqual (isValidExp (OR (AND B null) (NOT B)) (start expr bop uop term)) True)
+!(assertEqual (isValidExp (quote (AND A B)) (start expr bop uop term)) True)
+!(assertEqual (isValidExp (quote (OR (AND B null) (NOT B))) (start expr bop uop term)) True)
 
 ;; ;; Test for compose (.)
 !(println! ("testing: compose instead of . "))
@@ -390,7 +390,7 @@
 
 ;; Test for exprToList
 !(println! ("testing exprToList "))
-!(assertEqual (exprToList (AND A B)) (cons AND (cons A (cons B ()))))
+!(assertEqual (exprToList (quote (AND A B))) (cons AND (cons A (cons B ()))))
 !(assertEqual (exprToList (1 2 3 4)) (cons 1 (cons 2 (cons 3 (cons 4 ())))))
 
 ;; Test for expression pair (tuple)

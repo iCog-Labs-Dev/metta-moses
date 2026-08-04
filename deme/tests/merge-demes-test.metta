@@ -44,6 +44,7 @@
 !(import! &self ../../examples/tic-tac-toe/moses-player)
 
 !(import! &self ../../scoring/fitness)
+!(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore) 
 !(import! &self ../../scoring/cscore)
 !(import! &self ../../scoring/complexity-based-scorer)
@@ -103,6 +104,45 @@
 (= (sInstSet) (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 0 ())))) (mkCscore -0.1 2 0.2 0.3 -0.6)))
            (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 0 ())))) (mkCscore -0.2 1 0.1 0.1 -0.4)))
                  (cons  (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 2 ())))) (mkCscore 0 2 1.0 0 -1.0))) ())))))
+
+;; Raw-best tracking is independent of penalized ordering.  Lower complexity
+;; breaks a raw-score tie and an exact raw/complexity tie keeps the first row.
+(= (rawBestInstances)
+   (mkSInstSet
+     ((mkSInst (mkPair (mkInst (1)) (mkCscore -3 4 0 0 -1)))
+      (mkSInst (mkPair (mkInst (2)) (mkCscore -3 2 0 0 -20)))
+      (mkSInst (mkPair (mkInst (3)) (mkCscore -3 2 0 0 0)))
+      (mkSInst (mkPair (mkInst (4)) (mkCscore -4 0 0 0 0))))))
+
+!(assertEqual
+  (bestRawScoredInstance (rawBestInstances))
+  (mkSInst (mkPair (mkInst (2)) (mkCscore -3 2 0 0 -20))))
+
+!(assertEqual (bestRawScoredInstance (mkSInstSet ())) ())
+
+;; Dominance retention is shared by Boolean and action problems.  Every
+;; problem keeps the dominated C stepping stone by default; the opt-in policy
+;; applies the same dominance filter independently of scoring context.
+(= (dominanceCandidates)
+   ((mkExemplar (mkTree (mkNode A) ()) (mkDemeId "candidate-a")
+      (mkCscore -1 1 1 0 -2) (mkBScore (2 1)))
+    (mkExemplar (mkTree (mkNode B) ()) (mkDemeId "candidate-b")
+      (mkCscore -1 1 1 0 -2) (mkBScore (1 2)))
+    (mkExemplar (mkTree (mkNode C) ()) (mkDemeId "candidate-c")
+      (mkCscore -2 1 1 0 -3) (mkBScore (1 0)))))
+
+!(assertEqual
+  (let* (
+         ($_ (set-param discardDominated False))
+         ($kept (List.length
+                  (candidatesAfterDominance (dominanceCandidates))))
+         ($_ (set-param discardDominated True))
+         ($filtered (List.length
+                      (candidatesAfterDominance (dominanceCandidates))))
+         ($_ (set-param discardDominated False))
+        )
+    ($kept $filtered))
+  (3 2))
 
 (= (ttable1) (mkITable (cons (cons True (cons False (cons True ())))
                         (cons (cons True (cons True  (cons True ()))) ())) 

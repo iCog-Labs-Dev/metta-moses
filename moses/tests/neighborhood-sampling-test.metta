@@ -161,30 +161,35 @@
    (cons 2 (cons 2 (cons 2 ()))))
 
 ; Testcase-2 for sampleNewInstances
-; totalNeighbors will be updated, samples new instances 
+; Duplicate knob vectors are suppressed, so the returned count is the six
+; distinct distance-two neighbors rather than the seven nominal samples.
 !(assertEqual 
-   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num) 
+   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num)
    (sampleNewInstances 
    10 
    7 
    (mkInst (cons 0 (cons 0 (cons 0 ())))) 
    (deme) 
    2)
-   (List.map (distance' (mkInst (cons 0 (cons 0 (cons 0 ()))))) (List.map removeInstScore $updatedInstList)))
-   (cons 2 (cons 2 (cons 2 (cons 2 (cons 2 (cons 2 (cons 2 ()))))))))
+   ($num
+    (List.map (distance' (mkInst (cons 0 (cons 0 (cons 0 ())))))
+              (List.map removeInstScore $updatedInstList))))
+   (6 (2 2 2 2 2 2)))
 
 ; Testcase-3 for sampleNewInstances
-; totalNeighbors will be updated, generates all instances in neighborhood
+; The exhaustive branch also removes duplicate vectors before appending them.
 !(assertEqual 
-   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num) 
+   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num)
    (sampleNewInstances 
    4
    5 
    (mkInst (cons 0 (cons 0 (cons 0 ())))) 
    (deme) 
    2)
-   (List.map (distance' (mkInst (cons 0 (cons 0 (cons 0 ()))))) (List.map removeInstScore $updatedInstList)))
-   (cons 2 (cons 2 (cons 2 (cons 2 (cons 2 ()))))))
+   ($num
+    (List.map (distance' (mkInst (cons 0 (cons 0 (cons 0 ())))))
+              (List.map removeInstScore $updatedInstList))))
+   (4 (2 2 2 2)))
 
 ; Testcase-4 for sampleNewInstances
 ; totalNeighbors & numNewInstances won't be updated, samples new instances
@@ -227,3 +232,42 @@
       )
       $neighbors)
    (cons (mkInst (cons 0 (cons 1 ()))) ()))
+
+;; Shared sampling retains the first occurrence of each new knob vector and
+;; drops both repeated samples and vectors already present in the scored deme.
+!(assertEqual
+   (let* (
+          ($old0
+            (mkSInst (mkPair (mkInst (0 0))
+                             (mkCscore -89 0 0 0 -89))))
+          ($new1
+            (mkSInst (mkPair (mkInst (1 0)) (worstCscore))))
+          ($new2
+            (mkSInst (mkPair (mkInst (0 1)) (worstCscore))))
+         )
+     (uniqueUnseenScoredInstances
+       ($new1 $new1
+        (mkSInst (mkPair (mkInst (0 0)) (worstCscore)))
+        $new2)
+       ($old0)))
+   ((mkSInst (mkPair (mkInst (1 0)) (worstCscore)))
+    (mkSInst (mkPair (mkInst (0 1)) (worstCscore)))))
+
+;; Feature-selection sampling uses the same duplicate suppression and returns
+;; the size of the genuinely new suffix, not the nominal request.
+!(assertEqual
+  (let* (
+         ($retained
+           (mkSInst (mkPair (mkInst (1 0)) 0.5)))
+         (($updated $actualNew)
+           (sampleNewInstancesFs
+             2 2 (mkInst (0 0))
+             (mkITable () (A B O))
+             (mkSInstSet ($retained))
+             1))
+         ((mkSInstSet $rows) $updated)
+        )
+    ($actualNew
+     (map-atom $rows $row (removeInstScore $row))
+     (getSInstScore (List.head $rows))))
+  (1 ((mkInst (1 0)) (mkInst (0 1))) 0.5))

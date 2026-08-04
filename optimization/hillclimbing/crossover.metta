@@ -13,7 +13,10 @@
 
        ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
        (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
-       ($list (List.partialSort instance> $newInst $nToMakeNew ()))
+       ;; Restrict partial_sort to the recorded sample window and request one
+       ;; reference plus nToMake targets.
+       ($sample (List.takeN $sampleSize $newInst))
+       ($list (List.partialSort instance> $sample (+ $nToMakeNew 1) ()))
       )
       (if (== $list ())
           ()
@@ -21,7 +24,7 @@
              (
               ((cons $reference $rest) $list)
 
-              ($targetExpr (List.takeN (- $nToMakeNew 1) $rest))
+              ($targetExpr (List.takeN $nToMakeNew $rest))
               ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
 
               ($newInstances (merger $targetExpr $baseInstance $referenceInst))
@@ -33,13 +36,10 @@
 ; (: crossTopOneFs (-> (InstanceSet $a) Number Number Number Instance (InstanceSet $a)))
 (= (crossTopOneFs (mkSInstSet $instSet) $nToMake $sampleStart $sampleSize $baseInstance)
    (let* (
-           ;; ($_ (println! (Inside crossTopOneFs)))
            ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
-           ;; ($_ (println! (NToMake: $nToMakeNew)))
            (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
-           ($list (List.partialSort instanceFs>= $newInst $nToMakeNew ())) ;; deconstruct the partial sorted set of instances into the reference and the rest and take the next N values from the rest for crossover
-           ;; ($_ (println! (New instances After merging: $newInstances)))
-           ;; ($_ (println! ""))
+           ($sample (List.takeN $sampleSize $newInst))
+           ($list (List.partialSort instanceFs>= $sample $nToMakeNew ()))
          )
          (if (== $list ())
              (mkSInstSet $instSet)
@@ -51,8 +51,23 @@
 
                  ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
                  ($newInstances (mergerFs $targetExpr $baseInstance $referenceInst))
+                 ($uniqueNewInstances (unique-atom (exprToList $newInstances)))
+                 ;; The unified incremental scorer relies on an append-only
+                 ;; population: preserve every existing scored row and add
+                 ;; only genuinely new instance payloads at the end.
+                 ($existingInstances
+                   (map-atom $instSet $row
+                     (getInst $row)))
+                 ($freshNewInstances
+                   (filter-atom $uniqueNewInstances $row
+                     (not
+                       (once
+                         (is-member
+                           (getInst $row)
+                           $existingInstances)))))
                )
-               (mkSInstSet (List.appendList (exprToList $newInstances) $newInst))))))
+               (mkSInstSet
+                 (List.appendList $freshNewInstances $instSet))))))
 
 ;; crossTopTwo
 ;; Performs 2-simplex crossover (pairwise combinations).
@@ -70,18 +85,23 @@
      (
       ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
       (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
+      ;; Match the half-open [sampleStart, sampleStart + sampleSize) range
+      ;; passed to std::partial_sort in C++.
+      ($sample (List.takeN $sampleSize $newInst))
 
       ($pairCount (/ (* $sampleSize (- $sampleSize 1)) 2))
       ($nToMakeNew (if (< $pairCount $nToMake) $pairCount $nToMake))
 
-       ($nToSortRaw (+ (sqrt-math (* 2 $nToMakeNew)) 3))
+       ;; C++ assigns sqrt(2*n)+3 to unsigned, truncating the estimate.
+       ($nToSortRaw (int (+ (sqrt-math (* 2 $nToMakeNew)) 3)))
        ($nToSort (if (< $sampleSize $nToSortRaw) $sampleSize $nToSortRaw))
 
-       ($sortedList (List.partialSort instance> $newInst $nToSort ()))
+       ($sortedList (List.partialSort instance> $sample $nToSort ()))
 
-       ($topInsts (List.takeN $nToSort $sortedList))
-
-       ($newInstances (crossPairs () $topInsts $baseInstance () $nToMakeNew))
+       ;; C++ traverses the complete sample; only its top nToSort prefix is
+       ;; ordered. The result limit stops traversal before the unsorted tail
+       ;; can affect the intended simplex prefix.
+       ($newInstances (crossPairs () $sortedList $baseInstance () $nToMakeNew))
        )
       $newInstances
       ))
@@ -110,18 +130,24 @@
       ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
 
         (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
+        ;; Restrict ranking to the recorded C++ sample window.
+        ($sample (List.takeN $sampleSize $newInst))
 
         ;; sample_size choose 3
         ($tripleFactor (* (- $sampleSize 1) (- $sampleSize 2)))
         ($maxTriples (/ (* $sampleSize $tripleFactor) 6))
         ($nToMakeNew (if (< $maxTriples $nToMake) $maxTriples $nToMake))
 
-       ($nToSortRaw (+ (cbrt-math (* 6 $nToMakeNew)) 3))
+       ;; C++ stores cbrt(6*n)+3 in unsigned before using it as an index.
+       ($nToSortRaw (int (+ (cbrt-math (* 6 $nToMakeNew)) 3)))
        ($nToSort (if (< $sampleSize $nToSortRaw) $sampleSize $nToSortRaw))
-       ($sortedList (List.partialSort instance> $newInst $nToSort ()))
+       ($sortedList (List.partialSort instance> $sample $nToSort ()))
 
-        ($topInsts (List.takeN $nToSort $sortedList))
-        ($newInstances (crossTriples () $topInsts $baseInstance () $nToMakeNew))
+        ;; The C++ i-loop traverses the full sample after partially sorting its
+        ;; prefix.
+        ($newInstances
+          (crossTriples () $sortedList 0 $baseInstance
+            (makeCrossoverSlots $nToMakeNew) $nToMakeNew))
         )
 
        $newInstances

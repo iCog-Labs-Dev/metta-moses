@@ -4,19 +4,22 @@
 !(import! &self feature-selection/simple)
 
 (= (ttable) (mkITable  
-            (cons (cons True (cons True (cons False (cons True (cons True ())))))
-            (cons (cons True (cons False (cons False (cons True (cons True ())))))
-            (cons (cons False (cons True (cons False (cons True (cons False ())))))
-            (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
+            (cons (cons True (cons True (cons False (cons False ()))))
+            (cons (cons True (cons False (cons True (cons False ()))))
+            (cons (cons False (cons False (cons False (cons False ()))))
+            (cons (cons True (cons True (cons True (cons False ())))) 
+            (cons (cons True (cons True (cons False (cons False ())))) ())))))
             
             (cons A (cons B (cons C (cons D (cons Output ())))))))
 
-; ;; MI threshold 0.0
-!(assertEqual (simpleFeatureSelector 0.0 2 False (ttable) ()) ((0 (0 1))))
-!(assertEqual (simpleFeatureSelector 0.0 3 False (ttable) ()) ((0 (0 1 2))))
+;; ties are now broken randomly, so seed the RNG for reproducible results
+!(py-call (random.seed 42))
+
+!(assertEqual (simpleFeatureSelector 0.0 2 False (ttable) ()) ((0 (0 3))))
+!(assertEqual (simpleFeatureSelector 0.0 3 False (ttable) ()) ((0 (0 3 1))))
 !(assertEqual (simpleFeatureSelector 0.0 1 False (ttable) ()) ((0 (0))))
 
-;; MI threshold 0.5
+;; MI threshold 0.5 -- only feature 0 scores above threshold (deterministic)
 !(assertEqual (simpleFeatureSelector 0.5 2 False (ttable) ()) ((0 (0))))
 
 ;; MI threshold 1.1

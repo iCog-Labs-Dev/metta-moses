@@ -465,6 +465,10 @@
 !(assertEqual (treeComplexity (buildTree (AND (NOT A) (OR A B)))) 3)
 !(assertEqual (treeComplexity (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) ())) ()))) 0)
 !(assertEqual (treeComplexity (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) ())) ()))) 1)
+;; A knob-embedded tree scores as its embedded tree: the mkKnob clause
+;; recurses into the inner tree ($lsk and $i carry no complexity).
+!(assertEqual (treeComplexity (mkKnob (buildTree (AND (NOT A) (OR A B))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())) 0)) 3)
+!(assertEqual (treeComplexity (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1)) 0)
 
 ;; Test case for alphabetSize
 !(bind! ttable1 (new-state (mkITable (cons (cons True (cons False (cons True ())))

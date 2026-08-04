@@ -11,8 +11,8 @@
 
 !(import! &self ../../../../metta-moses/deme/create-deme)
 
-!(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../../../metta-moses/optimization/hillclimbing/cross-top-one) ;; notice the / in the import statements -- looks like this is required for every additional inner level of dir you have to go
+!(import! &self ../../../../metta-moses/optimization/hillclimbing/crossover-helpers)
+!(import! &self ../../../../metta-moses/optimization/hillclimbing/crossover) ;; notice the / in the import statements -- looks like this is required for every additional inner level of dir you have to go
 
 (= (wScore) (* -1 (pow-math 10 100))) ;; bind worst score value 
 
@@ -71,8 +71,8 @@
                                 (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))))
 ;; Test cases -- crossTopOne
 ;;use List.length as it returns insatance not deme
-!(assertEqual (List.length (crossTopOne (deme1) 3 0 4 (mkInst (cons 2 ())))) 2)
-!(assertEqual (List.length (crossTopOne (deme1) 4 0 5 (mkInst (cons 2 ())))) 3)
+!(assertEqual (List.length (crossTopOne (deme1) 3 0 4 (mkInst (cons 2 ())))) 3)
+!(assertEqual (List.length (crossTopOne (deme1) 4 0 5 (mkInst (cons 2 ())))) 4)
 
 !(assertEqual
   (crossTopOne
@@ -93,10 +93,14 @@
                   (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 1 2 3 4 5)))
                   ()))))))
       (mkDemeId "1")) 3 0 4 (mkInst (cons 2 ())))
+    ;; The score-5 instance lies outside sampleSize=4. Reference 2 equals the
+    ;; base, so the three in-window targets remain 3, 4, and 5.
     (cons
-     (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
-      (cons 
-        (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ())))
+      (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+      (cons
+        (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+        (cons
+          (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))))
 
 ;; Test deme: small population with simple integer instances and fixed scores
 (= (deme2)
@@ -118,30 +122,34 @@
                                                             (cons (mkSInst (mkPair (mkInst (cons 8 ())) (mkCscore 1 0 0 0 8)))()))))))))) (mkDemeId "2")))
 
 ;;crossPairsForRef test
- !(assertEqual
-  (crossPairsForRef
-     (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
-        (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3))) ()))
-     (getInst (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 0 0 0 0 3))))
-     (mkInst (cons 9 ()))
-     ()
-     2)
-   (cons (mkSInst (mkPair (mkInst (cons 5 ())) (worstCscore)))
-     (cons (mkSInst (mkPair (mkInst (cons 5 ())) (worstCscore))) ())))
-
-;; crossPairs Pairwise Test    
 !(assertEqual
-   (List.length
-      (crossPairs
-         ()
-         (cons
-            (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 3)))
-               (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
-                 (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 1))) ())))
-        (mkInst (cons 9 ()))
-        ()
-         2))
-    2)
+   (crossPairsForRef
+      (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 2)))
+         (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 3))) ()))
+      (getInst (mkSInst (mkPair (mkInst (5)) (mkCscore 0 0 0 0 3))))
+      (mkInst (cons 9 ()))
+      ()
+      0
+      2)
+   ((cons (mkSInst (mkPair (mkInst (5)) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+      (cons (mkSInst (mkPair (mkInst (5)) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))
+    2))
+
+;; crossPairs Pairwise Test
+!(assertEqual
+   (crossPairs
+      ()
+      (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 3)))
+         (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
+            (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 1))) ())))
+      (mkInst (cons 9 ()))
+      ()
+      0
+      2)
+   ((cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+         (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))
+      2))
+
 ;; ----------------------------------------
 ;; crossTopTwo integration tests
 ;; ----------------------------------------
@@ -171,47 +179,45 @@
         (mkDemeId "1"))
       3 0 4 (mkInst (cons 2 ())))
 
-    (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
-      (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
-        (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))))
+    ;; SampleSize=4 excludes the later score-5 instance. The C++ pair order is
+    ;; (0,1), (0,2), (1,2) after ranking the in-window sample.
+    (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+      (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+        (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))))
 
-;;crossTripleTargets Test 
+;; C++ 3-simplex regression. With four ranked one-hot mutations and four
+;; requested offspring, k runs to i-1 and writes n=C(i,3)+C(j,2)+k. Later loop
+;; visits overwrite earlier slots, yielding the four combinations below.
+(= (cppTripleSample)
+   (cons (mkSInst (mkPair (mkInst (1 0 0 0)) (mkCscore 0 0 0 0 4)))
+     (cons (mkSInst (mkPair (mkInst (0 1 0 0)) (mkCscore 0 0 0 0 3)))
+       (cons (mkSInst (mkPair (mkInst (0 0 1 0)) (mkCscore 0 0 0 0 2)))
+         (cons (mkSInst (mkPair (mkInst (0 0 0 1)) (mkCscore 0 0 0 0 1))) ())))))
+
+;; C++ 2-simplex order is i=1.. and j=0..i-1. One-hot mutations
+;; make every pair distinguishable and guard that traversal order.
 !(assertEqual
-   (crossTripleTargets
-      (cons (mkSInst (mkPair (mkInst (cons a (cons 5 ()))) (mkCscore 0 0 0 0 1))) ())
-      (mkInst (cons a (cons 3 ())))
-      (mkInst (cons b (cons 3 ())))
-      (mkInst (cons a (cons 2 ())))
-      ()
-      1)
- (cons (mkSInst (mkPair (mkInst (cons b (cons 3 ()))) (worstCscore)))()))
+  (crossPairs () (cppTripleSample) (mkInst (0 0 0 0)) () 4)
+  (cons (mkSInst (mkPair (mkInst (1 1 0 0)) (worstCscore)))
+    (cons (mkSInst (mkPair (mkInst (1 0 1 0)) (worstCscore)))
+      (cons (mkSInst (mkPair (mkInst (0 1 1 0)) (worstCscore)))
+        (cons (mkSInst (mkPair (mkInst (1 0 0 1)) (worstCscore))) ())))))
 
-;; crossTripleRefs Test
- !(assertEqual
-   (List.length
-      (crossTripleRefs
-       (cons (mkSInst (mkPair (mkInst (cons a (cons 5 ()))) (mkCscore 0 0 0 0 1)))
-        (cons (mkSInst (mkPair (mkInst (cons b (cons 3 ()))) (mkCscore 0 0 0 0 2))) ()))
-         (cons (mkSInst (mkPair (mkInst (cons b (cons 5 ())))  (mkCscore 0 0 0 0 3))) ())
-
-         (mkInst (cons a (cons 9 ())))
-         (mkInst (cons a (cons 0 ())))
-         ()
-         2))
-    2)
-
-;;crossTriples Test
 !(assertEqual
-   (List.length
-      (crossTriples
-         ()
-         (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore 0 0 0 0 1)))
-          (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 0 0 0 0 2)))
-              (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 0 0 0 0 3))) ())))
-         (mkInst (cons 0 ()))
-         ()
-         1))
-   1)
+  (crossTriples () (cppTripleSample) 0 (mkInst (0 0 0 0))
+    (makeCrossoverSlots 4) 4)
+  (cons (mkSInst (mkPair (mkInst (1 1 1 0)) (worstCscore)))
+    (cons (mkSInst (mkPair (mkInst (1 1 0 1)) (worstCscore)))
+      (cons (mkSInst (mkPair (mkInst (1 0 1 1)) (worstCscore)))
+        (cons (mkSInst (mkPair (mkInst (0 1 1 1)) (worstCscore))) ())))))
+
+;; With a two-child limit, slot 1 must contain the later overwrite from i=3,
+;; not the temporary child written while i=2.
+!(assertEqual
+  (crossTriples () (cppTripleSample) 0 (mkInst (0 0 0 0))
+    (makeCrossoverSlots 2) 2)
+  (cons (mkSInst (mkPair (mkInst (1 1 1 0)) (worstCscore)))
+    (cons (mkSInst (mkPair (mkInst (1 1 0 1)) (worstCscore))) ())))
 
 
 (= (deme3)
@@ -269,7 +275,9 @@
                     ()))))))
         (mkDemeId "3")) 3 0 4 (mkInst (cons 2 ())))
 
-      (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
-        (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
-          (cons (mkSInst (mkPair (mkInst (cons 1 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))))
-
+      ;; The later score-5 instance is outside sampleSize=4. With a partial
+      ;; three-child request, C++ returns as soon as loop index n reaches 3;
+      ;; slot 2 therefore still contains the temporary i=3,j=1,k=1 write.
+      (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+        (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore))))
+          (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore (wScore) 0 0.0 0.0 (wScore)))) ()))))

@@ -18,6 +18,19 @@
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 
+!(import! &self ../../reduct/action-reduct/action-vocab)
+!(import! &self ../../reduct/action-reduct/action-helpers)
+!(import! &self ../../reduct/action-reduct/action-properties)
+!(import! &self ../../reduct/action-reduct/reduce-action-if)
+!(import! &self ../../reduct/action-reduct/reduce-action-action-if)
+!(import! &self ../../reduct/action-reduct/reduce-const-action-seq)
+!(import! &self ../../reduct/action-reduct/reduce-action-not)
+!(import! &self ../../reduct/action-reduct/reduce-action-while)
+!(import! &self ../../reduct/action-reduct/reduce-seq-result)
+!(import! &self ../../reduct/action-reduct/reduce-null-vertices)
+!(import! &self ../../reduct/action-reduct/reduce-action-properties)
+!(import! &self ../../reduct/action-reduct/action-reduction)
+
 !(import! &self ../../utilities/tree) 
 
 !(import! &self ../../representation/knob-representation)
@@ -28,9 +41,11 @@
 !(import! &self ../../representation/sample-logical-perms) 
 !(import! &self ../../representation/add-logical-knobs)
 !(import! &self ../../representation/build-logical)
+!(import! &self ../../representation/build-action)
 !(import! &self ../../representation/build-knobs)
 !(import! &self ../../representation/knob-mapper)
 
+!(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
 
@@ -48,6 +63,64 @@
 !(import! &self ../../feature-selection/feature-selection-main)
 
 !(import! &self ../../representation/representation)
+
+;; Embedded LSK and ASK candidate reconstruction is the canonical path for
+;; discrete-knob materialization.
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (0))
+      (mkKnob (mkTree (mkNode A) ())
+              (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
+              0))
+  ())
+
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (1))
+      (mkKnob (mkTree (mkNode A) ())
+              (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
+              0))
+  (mkTree (mkNode A) ()))
+
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (2))
+      (mkKnob (mkTree (mkNode A) ())
+              (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
+              0))
+  (mkTree (mkNode NOT) ((mkTree (mkNode A) ()))))
+
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (1))
+      (mkKnob (mkNullVex ((mkTree (mkNode D) ())))
+              (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ((mkDiscSpec 1))))
+              0))
+  (mkTree (mkNode NOT) ((mkTree (mkNode D) ()))))
+
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (1))
+      (mkTree (mkNode and_seq)
+        ((mkKnob (mkNullVex ((mkTree (mkNode move_forward) ()) (mkTree (mkNode turn_left) ())))
+                 (mkASK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
+                        ((mkTree (mkNode move_forward) ()) (mkTree (mkNode turn_left) ())))
+                 0))))
+  (mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ()))))
+
+!(assertEqual
+  (let*
+    (
+      (($actionControlled $actionAsk) (actionSubtreeKnob ((mkTree (mkNode turn_left) ()))))
+      (($simpleControlled $simpleAsk)
+        (simpleActionSubtreeKnob
+          (mkTree (mkNode and_seq)
+            ((mkKnob $actionControlled $actionAsk 1)))))
+    )
+    (getCandidateHelper
+      (mkInst (1 1))
+      (mkKnob $simpleControlled $simpleAsk 0)))
+  (mkTree (mkNode and_seq) ((mkTree (mkNode turn_left) ()))))
 
 
 (= (tree1)
@@ -374,3 +447,92 @@
         )
         ((mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode OR) ((mkTree (mkNode AND) ((mkKnob (mkTree (mkNode OR) ((mkTree (mkNode A) ()) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 12) (mkKnob (mkNullVex ((mkTree (mkNode C) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 13) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode NOT) ((mkTree (mkNode B) ()))) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 14) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode A) ()) (mkTree (mkNode B) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 15) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode A) ()) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 16))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())) 6) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 7) (mkKnob (mkNullVex ((mkTree (mkNode C) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 8) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode A) ()) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 9) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode NOT) ((mkTree (mkNode B) ()))) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 10) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode A) ()) (mkTree (mkNode B) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 11) (mkTree (mkNode OR) ((mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 17) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 18) (mkKnob (mkNullVex ((mkTree (mkNode C) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 19) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode NOT) ((mkTree (mkNode A) ()))) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 20) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode A) ()) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 21) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode A) ()) (mkTree (mkNode B) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 22))))) (mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) (mkKnob (mkNullVex ((mkTree (mkNode C) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 2) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode NOT) ((mkTree (mkNode B) ()))) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 3) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode NOT) ((mkTree (mkNode A) ()))) (mkTree (mkNode B) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 4) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode A) ()) (mkTree (mkNode B) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 5) (mkTree (mkNode AND) ((mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 23) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 24) (mkKnob (mkNullVex ((mkTree (mkNode C) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 25) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode NOT) ((mkTree (mkNode A) ()))) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 26) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode NOT) ((mkTree (mkNode A) ()))) (mkTree (mkNode B) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 27) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode A) ()) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 28)))))))
 )
+
+;; Test cases for action selection representation building
+!("===================Test cases for action selection representation building============================")
+
+;; getCandidateHelper rebuilds the embedded action tree only; getCandidate is
+;; the boundary that applies static action reduction before scoring/caching.
+!(assertEqual
+  (getCandidateHelper
+    (mkInst ())
+    (mkTree (mkNode and_seq) ((mkTree (mkNode action_success) ()))))
+  (mkTree (mkNode and_seq) ((mkTree (mkNode action_success) ()))))
+
+!(assertEqual
+  (getCandidate
+    (mkRep (mkKbMap (mkDscMp ())) (mkTree (mkNode and_seq) ()))
+    ActionCandidateEmptyStatic
+    (mkInst ()))
+  (mkTree (mkNode action_success) ()))
+
+!(assertEqual
+  (getCandidate
+    (mkRep (mkKbMap (mkDscMp ()))
+           (mkTree (mkNode and_seq)
+             ((mkTree (mkNode action_success) ())
+              (mkTree (mkNode and_seq) ((mkTree (mkNode turn_left) ()))))))
+    ActionCandidateReducedStatic
+    (mkInst ()))
+  (mkTree (mkNode and_seq) ((mkTree (mkNode turn_left) ()))))
+
+!(assertEqual
+  (getCandidate
+    (mkRep (mkKbMap (mkDscMp ()))
+           (mkTree (mkNode PRIORITIZED-OR)
+             ((mkTree (mkNode and_seq) ()))))
+    StrategyCandidateUnchanged
+    (mkInst ()))
+  (mkTree (mkNode PRIORITIZED-OR) ((mkTree (mkNode and_seq) ()))))
+
+!(py-call (random.seed 12))
+
+!(assertEqual
+  (let* (($actions (move_forward turn_left))
+         ($perceptions (A B))
+         ($exemplar (mkTree (mkNode and_seq) (cons (mkTree (mkNode move_forward) ()) ())))
+         ($rep (representation 1 $exemplar (mkITable () ()) None False () mi True $actions $perceptions))
+         ((mkRep (mkKbMap $dscKbMp) $updatedTree) $rep)
+         ;; Get candidates using the representation to ensure it generates valid trees
+         ($absent (getCandidate $rep ActionCandidateAbsent (mkInst (0 0))))
+         ($move (getCandidate $rep ActionCandidateMove (mkInst (1 1))))
+         ($turn (getCandidate $rep ActionCandidateTurn (mkInst (2 2)))))
+    ($absent $move $turn))
+  ((mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ())))
+   (mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ()) (mkTree (mkNode move_forward) ()) (mkTree (mkNode move_forward) ())))
+   (mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ()) (mkTree (mkNode turn_left) ()) (mkTree (mkNode turn_left) ())))))
+
+!(py-call (random.seed 12))
+!(assertEqual
+  (let* (($actions (move_forward turn_left))
+         ($perceptions (A B))
+         ($exemplar (mkTree (mkNode action_bool_if)
+                     (cons (mkTree (mkNode A) ())
+                     (cons (mkTree (mkNode move_forward) ())
+                     (cons (mkTree (mkNode turn_left) ()) ())))))
+         ($rep (representation 1 $exemplar (mkITable () ()) None False () mi True $actions $perceptions))
+         ((mkRep (mkKbMap $dscKbMp) $updatedTree) $rep))
+    (getCandidateHelper (mkInst (1 1 1)) $updatedTree))
+  (mkTree (mkNode and_seq)
+    ((mkTree (mkNode action_bool_if)
+       ((mkTree (mkNode A) ())
+        (mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ()) (mkTree (mkNode move_forward) ())))
+        (mkTree (mkNode and_seq) ((mkTree (mkNode turn_left) ()) (mkTree (mkNode move_forward) ())))))
+     (mkTree (mkNode move_forward) ()))))
+
+!(py-call (random.seed 12))
+!(assertEqual
+  (let* (($actions (move_forward turn_left))
+         ($perceptions (A B))
+         ($exemplar (mkTree (mkNode and_seq) (cons (mkTree (mkNode move_forward) ()) ())))
+         ;; Use the signature without $disable-discprobe
+         ($rep (representation 1 $exemplar (mkITable () ()) None False () mi $actions $perceptions))
+         ((mkRep (mkKbMap $dscKbMp) $updatedTree) $rep)
+         ;; Get candidates using the representation to ensure it generates valid trees
+         ($absent (getCandidate $rep ActionCandidateAbsentDefault (mkInst (0 0))))
+         ($move (getCandidate $rep ActionCandidateMoveDefault (mkInst (1 1))))
+         ($turn (getCandidate $rep ActionCandidateTurnDefault (mkInst (2 2)))))
+    ($absent $move $turn))
+  ((mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ())))
+   (mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ()) (mkTree (mkNode move_forward) ()) (mkTree (mkNode move_forward) ())))
+   (mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ()) (mkTree (mkNode turn_left) ()) (mkTree (mkNode turn_left) ())))))

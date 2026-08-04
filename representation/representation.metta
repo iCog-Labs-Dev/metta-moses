@@ -39,7 +39,9 @@
 ;;(: representation (-> (Tree $a) Number (List Representation)))
 (= (representation $exemplar $nDeme)
    (let* (
-          ($demeCount (range 0 1 $nDeme))
+          ;; Representation construction already depends on the general
+          ;; helpers, so enumerate demes without feature-selection's `range`.
+          ($demeCount (genList 0 (- $nDeme 1)))
         
           ($result (map-atom $demeCount $x 
                       (let*
@@ -159,13 +161,27 @@
                   ($_ (resetState &knobCount))
                   ($dscKbMp (mkDscMp $dscMp))
                )
-               ((mkRep (mkKbMap $dscKbMp) $updatedTree))))
+               (mkRep (mkKbMap $dscKbMp) $updatedTree)))
 
 ;; Helper function to extract tree from representation
 (= (getRepTree (mkRep $knobMapObj $tree)) $tree)
 
-;; Universal getCandidate that works for both boolean and game strategies
-;; Uses preOrder+buildTree to unwrap mkNullVex for games, cleanTree for boolean
+;; Candidate finalization keeps strategy trees untouched. Action programs use
+;; static action reduction; all other candidates use boolean reduction.
+(= (candidateRootSymbol $tree)
+   (let $rootValue (getNodeValue $tree)
+      (if (== (get-metatype $rootValue) Expression)
+          (car-atom (cdr-atom $rootValue))
+          $rootValue)))
+
+(= (finalizeCandidateTree $rootSymbol $candidate)
+   (if (== $rootSymbol PRIORITIZED-OR)
+       $candidate
+       (if (isActionOperator $rootSymbol)
+           (cleanActionTree $candidate)
+           (cleanTree $candidate))))
+
+;; Universal getCandidate that works for boolean, action, and legacy strategy trees.
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
 ;; TODO: This should be removed when the game tree has been fixed to match the boolean.
 (= (getCandidate $srcid $repObj $id $inst)
@@ -183,18 +199,8 @@
                       ($candidate (getCandidateRec $repObj $inst $parentid $srcid $parentid (mkNullVex ())))
                       ;; ($_ (println! (Found candidate: (preOrder $candidate))))
                       ($rootNode (getNodeById (getRepTree $repObj) $srcid))
-                      ($rootValue (getNodeValue $rootNode))
-	                      ($rootSymbol (if (== (get-metatype $rootValue) Expression)
-		                              (car-atom (cdr-atom $rootValue))
-		                              $rootValue))
-		                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
-		                      ($isActionDomain (isActionOperator $rootSymbol))
-		                      ($finalTree (if (or $isGameStrategy $isActionDomain)
-		                                      (let* (
-		                                              ($expr (preOrder $candidate))
-	                                              ($cleanTree (buildTree $expr)))
-                                            $cleanTree)
-                                      (cleanTree $candidate)))
+                      ($rootSymbol (candidateRootSymbol $rootNode))
+                      ($finalTree (finalizeCandidateTree $rootSymbol $candidate))
 
                       ($_ (add-atom &treeSpace ($id $inst $finalTree)))
                       ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
@@ -219,18 +225,8 @@
                       ($candidate (getCandidateHelper $inst $tr))
                       ;; ($_ (println! (Found candidate: (preOrder $candidate))))
                       ($rootNode (getRepTree $repObj))
-                      ($rootValue (getNodeValue $rootNode))
-	                      ($rootSymbol (if (== (get-metatype $rootValue) Expression)
-		                              (car-atom (cdr-atom $rootValue))
-		                              $rootValue))
-		                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
-		                      ($isActionDomain (isActionOperator $rootSymbol))
-		                      ($finalTree (if (or $isGameStrategy $isActionDomain)
-		                                      (let* (
-		                                              ($expr (preOrder $candidate))
-	                                              ($cleanTree (buildTree $expr)))
-                                            $cleanTree)
-                                      (cleanTree $candidate)))
+                      ($rootSymbol (candidateRootSymbol $rootNode))
+                      ($finalTree (finalizeCandidateTree $rootSymbol $candidate))
 
                       ($_ (add-atom &treeSpace ($id $inst $finalTree)))
                       ;; ($_ (println! (Cleaned Tree: $cleanedTree)))

@@ -14,14 +14,12 @@
 ;;       (param $name).
 ;;
 ;;  Notes:
-;;    - Names are kept identical to the local variable names used
-;;      historically in the codebase, to keep the migration easy.
-;;    - The older metapopulation/metapopulation-params.metta also
-;;      writes into &params (capCoef / discardDominated /
-;;      maxCandPerDeme / compTemp). It is kept for backward
-;;      compatibility with the existing
-;;      metapopulation-params-test.metta but is no longer the
-;;      source of truth.
+;;    - Parameters describe algorithm behavior, not problem families.
+;;      Boolean, strategy, feature-selection, and action problems therefore
+;;      read the same keys and may override them for a particular run.
+;;    - The older metapopulation/metapopulation-params.metta also writes into
+;;      &params for its isolated compatibility tests, but this registry is the
+;;      source of truth for the production pipeline.
 ;; ============================================================
 
 !(bind! &params (new-space))
@@ -72,9 +70,21 @@
 !(add-atom &params (maxCandPerDeme 100))
 !(add-atom &params (minPoolSize 20))
 !(add-atom &params (nToKeep 50))
+;; Classic MOSES keeps dominated stepping stones by default and expands an
+;; exemplar once unless the user explicitly permits revisits.
+!(add-atom &params (discardDominated False))
+!(add-atom &params (revisit 0))
+;; Detailed per-expansion telemetry is opt-in for every problem family.
+!(add-atom &params (diagnostics False))
 
 ;; ---- Deme expansion ----
 !(add-atom &params (maxCandOutput 10))
+;; maxEvals is the complete-run budget of actual new scorer calls, including
+;; initialization. Zero disables expansion; a negative value is unlimited.
+!(add-atom &params (maxEvals 25000))
+;; nEval currently limits retained merge candidates. Despite its historical
+;; name, it is not an evaluator-call budget and must not be conflated with
+;; maxEvals until that interface is renamed.
 !(add-atom &params (nEval 10000))
 ;; genCount feeds capSize() inside resizeMetapop. Callers normally seed it
 ;; with the initial $maxGen of the run; this default is a safety floor so
@@ -82,16 +92,13 @@
 !(add-atom &params (genCount 1000))
 
 ;; ---- Hill climbing ----
-;; The original code carries three contextual variants of maxDist
-;; and minXoverNeighbors (boolean / feature-selection / strategy).
-;; We expose all three as flat keys to preserve current behaviour.
-!(add-atom &params (hcMaxDistBoolean 4))
-!(add-atom &params (hcMinXoverNeighborsBoolean 400))
-!(add-atom &params (hcMaxDistFs 3))
-!(add-atom &params (hcMinXoverNeighborsFs 5))
-!(add-atom &params (hcMaxDistStrategy 3))
-!(add-atom &params (hcMinXoverNeighborsStrategy 3))
-!(add-atom &params (hcMaxEvals 500))
+;; These shared geometry controls reach every hill-climbing specialization.
+!(add-atom &params (maxDist 4))
+!(add-atom &params (minXoverNeighbors 400))
+;; These switches mirror hc_parameters.  Keeping widening off and crossover on
+;; matches the successful Santa Fe configuration and the C++ defaults.
+!(add-atom &params (hcWidenSearch False))
+!(add-atom &params (hcCrossover True))
 !(add-atom &params (hcCrossoverPopSize 120))
 !(add-atom &params (hcFractionOfNN 2.0))
 !(add-atom &params (hcMinDemeSize 50))
@@ -99,9 +106,9 @@
 
 ;; ---- Scoring ----
 !(add-atom &params (complexityRatio 3.5))
-
-;; ---- Exemplar selection ----
-!(add-atom &params (compxyTemp 6))
+;; Evaluator horizon for domains with stateful execution, such as Santa Fe.
+;; Boolean scorers do not consume this setting.
+!(add-atom &params (steps 600))
 
 ;; ---- Caching ----
 !(add-atom &params (defaultCacheSize 60))

@@ -5,7 +5,7 @@
 
 ;; Check if action operator is associative
 (= (isAssociative $op)
-   (is-member $op (and_seq or_seq exec_seq)))
+   (once (is-member $op (and_seq or_seq exec_seq))))
 
 ;; levelNode: flatten one action sequence node.
 ;; If the current root is an associative action sequence operator, splice

@@ -36,11 +36,15 @@
 ;; (: mkASK (-> DiscreteKnob (List (Tree $a)) ActionSubtreeKnob))
 
 ;; Structural action operators are never domain actions.
+;; PeTTa's is-member exposes one Boolean result per comparison, so commit this
+;; classification to one scalar result before representation dispatch.
 (= (isActionOperator $rootSymbol)
-   (is-member $rootSymbol (and_seq or_seq seq_exec action_not action_bool_if
-                           bool_action_if contin_action_if action_action_if
-                           action_success action_failure action_while
-                           bool_while return_success repeat_n)))
+   (once
+     (is-member $rootSymbol
+       (and_seq or_seq seq_exec exec_seq action_not action_bool_if
+        bool_action_if contin_action_if action_action_if
+        action_success action_failure action_while
+        bool_while return_success repeat_n))))
 
 ;; Checks if a DiscreteKnob is considered part of the exemplar based on its default specifier.
 ;; Params:
@@ -171,6 +175,14 @@
           (if (or (== $effectiveSetting 0) (allDisallowed $knob))
               $default
               (nthAllowedActualSetting 0 $effectiveSetting $default $disAll)))))
+
+;; Validates an effective discrete setting and maps it to the actual setting
+;; represented by embedded knob metadata.
+(= (resolveDiscreteSetting $knob $effectiveSetting)
+   (let (mkMultip $effectiveMultip) (getKnobMultip $knob)
+      (if (>= $effectiveSetting $effectiveMultip)
+          (Error $effectiveSetting "Invalid effective disc specification.")
+          (mapEffectiveDiscSpec $knob $effectiveSetting))))
 
 ;; Extracts the location from a discrete, logical subtree, or strategy subtree knob.
 ;; Params:

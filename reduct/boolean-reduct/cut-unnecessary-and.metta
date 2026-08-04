@@ -19,24 +19,21 @@
             ($parent $current False)
             (let*
               (
-                  ;; ($_ (println! (===Inside AndCut===)))
-                  ;; ($_ (println! (Current $current : Parent : $parent)))
-                  ;; ($_ (println! (Parent: $parent)))
                   ($parentSec (map-atom $parent $p (removeEmptyAND $p)))
                   ($currentSec (if (=== $parent $current)
                                    $parentSec
                                    (map-atom $current $c (removeEmptyAND $c))))
                   (($guardSet $child) (getLiteralChildren $currentSec))
-                  (($h $t) (if (and (== (get-metatype $child) Expression) (not (== $child ()))) (decons-atom $child) (() ())))
-                  ($tail (if-decons-expr-custom $child $h $t $t "No child"))
-                  ; ($_ (println! ("Tail: " $tail)))
+                  (($h $t) (if (and (== (get-metatype $child) Expression) (!= $child ())) (decons-atom $child) (() ())))
+                  ;; plain if, NOT if-decons-expr-custom: its (eval $then)
+                  ;; deep-normalizes the returned tree data, firing
+                  ;; scoring/boolean-ops' AND/OR/NOT clauses
+                  ($tail (if (or (== $child ()) (!= (get-metatype $child) Expression)) "No child" $t))
               )
               (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
                   (let*
                       (
-                          ; ($_ (println! (===Inside AndCut===)))
-                          ; ($_ (println! (Current $current : Parent : $parent)))
-                          ($childFirst (if-decons-expr-custom $child $h $t $h ()))
+                          ($childFirst (if (or (== $child ()) (!= (get-metatype $child) Expression)) () $h))
                           (($grandLiterals $grandChildren) (getLiteralChildren $childFirst))
                           ($allLiterals (map-atom $grandChildren $gC (getGuardSet $gC)))
                           ($common (intersections $allLiterals))
@@ -47,15 +44,6 @@
                                             (addChildren $updatedParent $grandChildren)))
                           ($updatedParent'' (addLiterals $updatedParent' $grandLiterals))
 
-                          ; ($l (println! (===Inside AndCut Log===)))
-                          ; ($l (println! (All Literals: $allLiterals)))
-                          ; ($l (println! (GrandChildren: $grandChildren : GrandLiterals: $grandLiterals)))
-                          ; ($l (println! (UpdatedParent: $updatedParent : UpdatedParent': $updatedParent' )))
-                          ; ($l (println! (UpdatedParent'': $updatedParent'' )))
-                          ; ($l (println! (ChildFirst: $childFirst)))
-                          ; ($l (println! (Child: $child)))
-                          ; ($l (println! (AllLiterals: $allLiterals)))
-                          ; ($l (println! (Common: $common)))
 
                       )
                       (if (== $common ())
@@ -89,8 +77,6 @@
 (= (applyAndCut ($parent $bool ($child $remainingChildren)))
       (let*
         (
-          ;; ($_ (println! (===Inside ApplyAndCut===)))
-          ;; ($_ (println! (Parent: $parent : Child: $child : RemainingChildren: $remainingChildren : bool: $bool)))
           (($updatedParent $updatedChild $appliedOrCut) (andCut $parent $child))
           ($nextChild (if (~= $remainingChildren ()) (car-atom $remainingChildren) ()))
           ($restChildren (if (~= $remainingChildren ()) (cdr-atom $remainingChildren) ()))
@@ -107,9 +93,16 @@
                 (let*
                   (
                      (($h $t) (decons-atom $expr))
-                     ;(() (println! (H: $h : T: $t)))
                   )
-                    (case ($h $t)
+                    ;; quote: a bare ($h ...) tuple would be a runtime meta-call into
+                    ;; scoring/boolean-ops' eval clauses. CAVEAT: `case` normalizes its
+                    ;; scrutinee past the quote, so this guard only holds while no
+                    ;; AND/OR/NOT clauses are registered (reduct-only contexts). In the
+                    ;; full pipeline (boolean-ops loaded) this MeTTa clause misdispatches
+                    ;; and correctness relies on the native Prolog removeEmptyAND
+                    ;; override (rte-helpers-fast.pl, consulted in moses.metta)
+                    ;; superseding it — validated end-to-end (CI + mux6 differential).
+                    (case (quote ($h $t))
                         (
                             ((AND ()) Nothing)
                             ((AND $else) (cons $h (filter-atom (map-atom $t $ts (removeEmptyAND $ts)) (!= Nothing))))

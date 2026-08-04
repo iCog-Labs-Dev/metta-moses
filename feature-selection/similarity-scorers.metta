@@ -19,7 +19,7 @@
 ;; mutualInformationBtwSets  -- calculates the MI between feature sets by using entropy values        
 (= (mutualInformationBtwSets $set1 $set2 (mkITable $table $labels))
     (let* (($union (union-atom $set1 $set2))
-            ($len (List.length $table))                                                                                   ;; total number of rows
+            ($len (List.length (Table.getColumn 0 $table)))                                                                                   ;; total number of rows
             (($set1-zip $set2-zip $union-zip) (map-atom ($set1 $set2 $union) $set (zipColumn $set $table))) 
             (($zip1-count $zip2-count $union-count) (map-atom ($set1-zip $set2-zip $union-zip) $zip (List.uniqueValuesCount $zip ())))
             (($e1 $e2 $eu) (map-atom ($zip1-count $zip2-count $union-count) $count (entropy $count $len 0))))

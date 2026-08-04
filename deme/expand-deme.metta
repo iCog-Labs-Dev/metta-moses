@@ -1,159 +1,399 @@
-;; WARN: This code might be generating knobs out of order. Check if the knob map returned from the representation building preserves the order of knob creation.
+;; Disc maps are ordered multimaps whose action comparator deliberately appends
+;; equal/unordered specs. Reading them through the matching MultiMap API makes
+;; that coordinate-order guarantee explicit instead of relying on the generic
+;; Map implementation having the same list representation.
 (= (createInitialInstance $dscMp)
+   (let $knobs (MultiMap.values $dscMp)
+     (map-atom $knobs $knob
+       (second (getKnobDefault $knob)))))
+
+;; The ninth hill-climbing state field is the number of actual scorer calls.
+(= (hillStateEvaluationCount
+      ($alreadyXover $lastChance $hasImproved $prevCenter $prevStart
+       $prevSize $bestCscore $bestScore $actualEvaluations $distance $iteration))
+   $actualEvaluations)
+
+;; Optimize one deme under its fair share of the remaining complete-run
+;; allowance. The temporary state is restored for direct optimizer callers.
+(= (optimizeDemeCounted
+      (mkDeme (mkRep (mkKbMap (mkDscMp $dscKbMp)) $tree)
+              $scoredInstances $demeId)
+      $optimizerContext $optimize $localLimit)
    (let* (
-          ($knobs (Map.values $dscMp))
-          ($defaults (List.map getKnobDefault $knobs))
-          ($finalDefaults (List.map second $defaults))
+          ($generatedList (createInitialInstance $dscKbMp))
+          ($_generated
+            (if (param diagnostics)
+                (println! (GeneratedList: $generatedList))
+                ()))
+          ($deme
+            (mkDeme (mkRep (mkKbMap (mkDscMp $dscKbMp)) $tree)
+                    $scoredInstances $demeId))
+          ($_setLocalLimit (change-state! &localEvalLimit $localLimit))
+          (($inst $optimizedDeme $state)
+            (optimizeDeme $deme $optimizerContext
+                          (mkInst $generatedList) $optimize))
+          ($_restoreLocalLimit (change-state! &localEvalLimit -1))
          )
-         $finalDefaults))
+     ($optimizedDeme (hillStateEvaluationCount $state))))
 
-;; Recursively optimizes each deme in a list using the provided optimizer function.
-;; Params:
-;;   (List Deme): The list of demes to optimize.
-;;   $context: The scoring context - either TruthTableBScore or tuple ($nGames $opponentPolicy)
-;;   $inst: The initial instance for optimization.
-;;   $optimize: The optimizer function to apply to each deme.
-;;  Returns: (List Deme): A new list where each deme has been optimized.
-; (: optimizeDemes (-> (List Deme) $context Instance $optimize (Instance Deme $state)))
-;; Game strategy version - unpacks tuple with target score
-;; Strategy version - unpacks game parameters and calls hillClimbing with mkParams
-(= (optimizeDemes $deme ($nGames $complexityRatio $targetCScore) $inst $optimize)
-   ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $complexityRatio))))
-;; Boolean version - passes context as-is
-(= (optimizeDemes $deme $context $inst $optimize)
-   ($optimize $deme $context $inst))
+;; Divide a finite allowance evenly, assigning remainder calls to the earliest
+;; demes. The sum of local shares never exceeds the remaining global budget.
+(= (expandDemesWithShares
+      () $optimizerContext $optimize $baseLimit $extraSlots)
+   (() 0))
+(= (expandDemesWithShares
+      (cons $deme $rest) $optimizerContext $optimize
+      $baseLimit $extraSlots)
+   (let* (
+          ($hasExtra (> $extraSlots 0))
+          ($localLimit (+ $baseLimit (if $hasExtra 1 0)))
+          ($nextExtra (if $hasExtra (- $extraSlots 1) 0))
+         )
+     (if (<= $localLimit 0)
+         (() 0)
+         (let* (
+                (($optimizedDeme $used)
+                  (optimizeDemeCounted
+                    $deme $optimizerContext $optimize $localLimit))
+                (($optimizedRest $restUsed)
+                  (expandDemesWithShares
+                    $rest $optimizerContext $optimize
+                    $baseLimit $nextExtra))
+               )
+           ((cons $optimizedDeme $optimizedRest)
+            (+ $used $restUsed))))))
 
-;; Extracts default specification from a knob
-; (: getKnobDefault (-> $knob Number))
-;; (= (getKnobDefault (mkLSK (mkDiscKnob $multip $curr (mkDiscSpec $def) $dis))) $def)
-;; (= (getKnobDefault (mkSSK (mkDiscKnob $knob $multip $curr (mkDiscSpec $def) $dis))) $def)
+;; Allocate the remaining complete-run budget across all demes in this
+;; expansion. A negative budget represents unlimited evaluation.
+(= (expandDemesCounted
+      () $optimizerContext $optimize $remainingBudget)
+   (() 0))
+(= (expandDemesCounted
+      (cons $firstDeme $restDemes)
+      $optimizerContext $optimize $remainingBudget)
+   (let* (
+          ($demes (cons $firstDeme $restDemes))
+          ($demeCount (List.length $demes))
+          ($baseLimit
+            (if (< $remainingBudget 0)
+                (pow-math 10 18)
+                (floor-math (/ $remainingBudget $demeCount))))
+          ($extraSlots
+            (if (< $remainingBudget 0)
+                0
+                (% $remainingBudget $demeCount)))
+         )
+     (expandDemesWithShares
+       $demes $optimizerContext $optimize $baseLimit $extraSlots)))
 
-;; Runs one deme-creation and optimization step, then merges the optimized deme into the metapopulation.
-;; Params:
-;;   $metaPop: The current metapopulation.
-;;   $nExpansion: Expansion count or deme index.
-;;   $nDeme: Number of demes to create.
-;;   $truthTableBScore: TruthTableBScore
-;;   $optimize: Optimizer function (e.g., hill climbing).
-;;   $nEval: Maximum number of evaluations.
-;;   $maxCandsPerDeme: Maximum candidates per deme.
-;;   $minPoolSize: Minimum deme size to retain.
-;;   $complexityTemperature: Parameter for score range in trimming.
-;;   $itable: The input table.
-;;   $nToKeep: Target size for resized metapopulation.
-;;   $capCoef: Capacity coefficient for resizing.
-;;   $genCount: Generation count for resizing.
-;; Returns:
-   ;;   $updatedMetaPop: Updated metapopulation with the new optimized deme merged in.
-; (: expandDeme (-> (OS (Exemplar $a)) Number Number Bool Symbol (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)) $Scorer Number Number Number Number (ITable $a) Number Number Number (OS (Exemplar $a))))
-(= (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable $scorerType)
-(let*
-   (
-    ;; ($_ (println! ""))
-    ;; ($_ (println! (MetaPop: $metaPop)))
-    ;; ($_ (println! "Selecting Exemplar"))
-    ($exemplar (selectExemplar $metaPop))
-    ;; ($_ (println! $exemplar))
-    ;; ($_ (println! "getting exemplar tree"))
-    ($tree (getExemplarTree $exemplar)) 
-    ($_ (println! (SelectedTree: (preOrder $tree))))
-    ;; ($_ (println! "creating deme IDs"))
-    ($demeIds (createDemeIds $nExpansion $nDeme))
-    ;; ($_ (println! $demeIds))
-    ; ($argLabels (getArgLabels $itable))
-    ;; ($_ (println! "Creating Deme"))
-    ($demes (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar () $scorerType))
-    )
-    (map-atom $demes $deme (expandDemeHelper $deme $truthTableBScore $optimize))
-   ))
+;; Build and optimize every deme for an already selected exemplar, returning
+;; both the optimized demes and the number of actual scorer calls they used.
+(= (expandSelectedExemplarCounted
+      $exemplar $nExpansion $nDeme $context $maxScore
+      $optimize $remainingBudget)
+   (let* (
+          ($_selected
+            (if (param diagnostics)
+                (println! (SelectedTree:
+                            (preOrder (getExemplarTree $exemplar))))
+                ()))
+          ($demes
+            (createSelectedDemes
+              $exemplar $nExpansion $nDeme $context))
+          ($optimizerContext (optimizerContextFor $context $maxScore))
+         )
+     (expandDemesCounted
+       $demes $optimizerContext $optimize $remainingBudget)))
 
-;; Overloaded version for game strategy domain - 8 parameters
-(= (expandDeme $metaPop $nExpansion $nDeme $nGames $complexityRatio $targetCScore $optimize)
-   (let*
-      (
-         ($exemplar (trace! "Selecting Exemplar" (selectExemplar $metaPop)))
-         ($tree (trace! "getting exemplar tree" (getExemplarTree $exemplar)))
-         ($demeIds (trace! "creating deme IDs" (createDemeIds $nExpansion $nDeme)))
-         ($demes (trace! "Creating Deme" (createDeme $nDeme $demeIds $tree)))
-         ($gameContext ($nGames $complexityRatio $targetCScore))
-      )
-      (map-atom $demes $deme (expandDemeHelper $deme $gameContext $optimize))))
+;; Diagnostics materialize each candidate once before treeSpace is cleared.
+(= (diagnosticDemeTrees $demes)
+   (List.flatten
+     (map-atom $demes $deme
+       (let (mkDeme $rep (mkSInstSet $instances) $demeId) $deme
+         (map-atom $instances $scoredInst
+           (getCandidate $rep $demeId (getInst $scoredInst)))))))
 
-;; Unified helper for both Boolean and Strategy domains
-;; Optimizes each deme in the list using the provided optimizer and context
-;; Params:
-;;   $deme: Deme to optimize
-;;   $context: Scoring context (ITable for Boolean, tuple for Strategy)
-;;   $optimize: Optimizer function
-;; Returns: Optimized deme with scored instances
-(= (expandDemeHelper (mkDeme (mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree) $sInstList $demeId) $context $optimize)
-(let*
-(
-    ($lengthOfDscKbMp (Map.length $dscKbMp))
-    ;; ($generatedList (List.generate $lengthOfDscKbMp 0))
-    ($generatedList (createInitialInstance $dscKbMp))
-    ($_ (println! (GeneratedList: $generatedList)))
-    ($deme (mkDeme (mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree) $sInstList $demeId))
-    ;; ($_ (println! (Rep: (mkRep (mkKbMap (mkDscKbMp $dscKbMp) (mkDscMp $dscMp)) $updatedTree))))
-    ;; ($_ (println! "Optimizing Deme"))
-    (($inst $optimDeme $state) (optimizeDemes $deme $context (mkInst $generatedList) $optimize))
-)
-$optimDeme
-))
-;; The main loop
-;; Takes 2 termination criterias:
-;;     - $maxGen : how many times we want the loop to run
-;;     - $maxScore : the maximum *raw* score we want the top Examplar to reach.
-;;                   This is a scalar (Number), matching classic MOSES'
-;;                   `score_t target_score = c_scorer.best_possible_score()`.
-;;                   For clean boolean tables it's 0. The complexity penalty
-;;                   is applied per-candidate during scoring, separate from
-;;                   this termination check.
-; (: runMoses (-> Number Number (OS (Exemplar $a)) Number Number $Context $Optimize (OS (Exemplar $a))))
-;; TODO: $nEval isn't being used. Increase it so that it works as expected.
-;; To enable that, we may need to change our termination condition so that the generation is equivalent to the number of expansion as well.
-;; The number of expansions in the open cog classic is equivalent to the number of deme expansions. That looks like the same thing we are doing here but not sure.
-(= (runMoses $maxGen $maxScore $metaPop $nExpansion $nDeme $context $optimize)
-(if (== $maxGen 0)
-    (if (<= (param maxCandOutput) (OS.length $metaPop))
-        (let $topCandidates (OS.getTopN (param maxCandOutput) $metaPop) $topCandidates)
-        $metaPop
-  )
-    (let*
-     (
-       ($_ (println! (Generation $maxGen)))
-       ($optimizedDemes (case $context
-                        ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "expand  deme returnn" (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable mi)))
-                        (($nGames $opponentPolicy $complexityRatio) (trace! "expand deme return" (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $maxScore $optimize))))))
-       (((mkDeme $rep $sInst $demeId)) $optimizedDemes)
-       ($_ (println! (OptimizedDeme: (List.length (second $sInst)))))
-       ($updatedMetaPop (case $context
-                        ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "Merging Deme" (mergeDemes $optimizedDemes $itable $metaPop)))
-                        (($nGames $opponentPolicy $complexityRatio) (trace! "Merging Deme" (mergeDemes $optimizedDemes ($nGames $opponentPolicy) $metaPop))))))
-       ;; ($_ (println! (Updated MetaPop: $updatedMetaPop)))
-       ($top (OS.getByIdx 0 $metaPop))
-       ;; ($_ (println! (Top Exemplar before expansion: $top)))
-       ($topScore (getExemplarCscore $top))
-       ;; ($_ (println! (topscore: $topScore)))
-       ;; ($_ (println! (Top: $topScore Max: $maxScore (cScore>= $topScore $maxScore))))
-       ($nothing (clearSpace &treeSpace))
-       ($_ (cut)) ;; INFO: This cut speeds things up. Don't remove it.
-       ($_ (println! ""))
-      )
- ;; Match classic semantics: compare the raw behavioural score against the
- ;; scalar `$maxScore`. The Cscore's complexity / penalty fields are
- ;; consulted elsewhere when ranking candidates but not at termination.
- (if (>= (getScore $topScore) $maxScore)
-         (if (<= (param maxCandOutput) (OS.length $updatedMetaPop))
-             (OS.getTopN (param maxCandOutput) $updatedMetaPop)
-             $updatedMetaPop)
-         (runMoses (- $maxGen 1) $maxScore $updatedMetaPop $nExpansion $nDeme $context $optimize)))))
+;; Count retained instance rows across diagnostic demes without allocating an
+;; intermediate list.
+(= (diagnosticDemeRowCount $demes)
+   (foldl-atom $demes 0 $count $deme
+     (let (mkDeme $rep (mkSInstSet $instances) $demeId) $deme
+       (+ $count (List.length $instances)))))
+
+;; Breaks raw-score ties by lower complexity; an exact tie retains the earlier candidate.
+(= (betterRawExemplar () $candidate) $candidate)
+(= (betterRawExemplar $best ()) $best)
+(= (betterRawExemplar $best $candidate)
+   (bestRawExemplar ($best $candidate)))
+
+;; Convert only a deme's raw-best scored row into an exemplar. This reuses its
+;; attached score and does not invoke the problem scorer during diagnostics.
+(= (rawBestExemplarFromDeme
+      (mkDeme $rep $scoredInstances $demeId) $mergeContext)
+   (let $rawBest (bestRawScoredInstance $scoredInstances)
+     (if (== $rawBest ())
+         ()
+         (List.head
+           (demeToTrees
+             (mkDeme $rep (mkSInstSet ($rawBest)) $demeId)
+             $mergeContext)))))
+
+;; Fold the per-deme raw champions into one expansion-wide raw champion.
+(= (bestRawExemplarFromDemes $demes $mergeContext)
+   (foldl-atom $demes () $best $deme
+     (betterRawExemplar
+       $best (rawBestExemplarFromDeme $deme $mergeContext))))
+
+;; Report raw and penalized archive leaders independently because complexity
+;; penalties can make them different exemplars.
+(= (metapopBestScores ()) ())
+(= (metapopBestScores $metaPop)
+   (let* (
+          ($rawBest (bestRawExemplar $metaPop))
+          ($penalizedBest (OS.getByIdx 0 $metaPop))
+         )
+     ((getScore (getExemplarCscore $rawBest))
+      (getExemplarPenScore $penalizedBest))))
+
+;; Emit one generation record using already-computed selection, evaluation,
+;; archive, raw-score, and penalized-score information.
+(= (printGenerationDiagnostics
+      $remainingGen $nExpansion $selectedExemplar $selectedVisitCount
+      $optimizedDemes $updatedMetaPop ($bestRaw $bestPenalized)
+      $actualEvaluations $cumulativeEvaluations)
+   (let $candidateTrees (diagnosticDemeTrees $optimizedDemes)
+     (println! (GenerationDiagnostics
+                 (remaining $remainingGen)
+                 (expansion $nExpansion)
+                 (selected
+                   (preOrder (getExemplarTree $selectedExemplar)))
+                 (selectedVisits $selectedVisitCount)
+                 (actualNewEvaluations $actualEvaluations)
+                 (cumulativeEvaluations $cumulativeEvaluations)
+                 (uniqueCandidates
+                   (length (unique-atom $candidateTrees)))
+                 (retainedCandidates (OS.length $updatedMetaPop))
+                 (bestRaw $bestRaw)
+                 (bestPenalized $bestPenalized)))))
+
+;; Penalized order governs the selectable archive, while one output slot is
+;; reserved for the independently tracked raw champion.
+(= (metapopContainsTree $metaPop $tree)
+   (foldl-atom $metaPop False $contains $candidate
+     (or $contains (== (getExemplarTree $candidate) $tree))))
+
+;; Limit final output by penalized order while ensuring the independently
+;; tracked raw champion is not lost.
+(= (finishMetapop $metaPop $rawBest)
+   (let $limit (param maxCandOutput)
+     (if (<= $limit 0)
+         ()
+         (let $topCandidates
+              (if (<= $limit (OS.length $metaPop))
+                  (OS.getTopN $limit $metaPop)
+                  $metaPop)
+           (if (== $rawBest ())
+               $topCandidates
+               (let $rawTree (getExemplarTree $rawBest)
+                 (if (metapopContainsTree $topCandidates $rawTree)
+                     $topCandidates
+                     (cons $rawBest
+                           (OS.takeN (- $limit 1)
+                                     $topCandidates)))))))))
+
+;; Compatibility overload derives the raw champion from a non-empty archive.
+(= (finishMetapop $metaPop)
+   (if (== $metaPop ())
+       ()
+       (finishMetapop $metaPop (bestRawExemplar $metaPop))))
+
+;; Advance generation and expansion counters after an exemplar produces no
+;; optimizable representation, without charging an evaluation.
+(= (emptyRepresentationRetryState
+      $maxGen $nExpansion $updatedVisits $cumulativeEvaluations)
+   ;; A failed representation consumes one bounded expansion attempt. Without
+   ;; this transition, `revisit < 0` could select an intrinsically unexpandable
+   ;; tree forever without spending either generation or evaluation budget.
+   ((- $maxGen 1) (+ $nExpansion 1)
+    $updatedVisits $cumulativeEvaluations))
+
+;; Test whether the complete-run scorer-call allowance has been exhausted.
+;; A negative configured allowance is unlimited.
+(= (evaluationBudgetReached $actualEvaluations)
+   (let $budget (param maxEvals)
+     (if (< $budget 0) False (>= $actualEvaluations $budget))))
+
+;; Return the unspent complete-run allowance, preserving -1 as the unlimited
+;; sentinel expected by counted expansion.
+(= (remainingEvaluationBudget $actualEvaluations)
+   (let $budget (param maxEvals)
+     (if (< $budget 0) -1 (max 0 (- $budget $actualEvaluations)))))
+
+;; Termination uses raw fitness, not the complexity-penalized archive order.
+(= (rawTargetReached () $maxScore) False)
+(= (rawTargetReached
+      (mkExemplar $tree $demeId
+                  (mkCscore $raw $complexity $complexityPenalty
+                            $diversityPenalty $penalizedScore)
+                  $bscore)
+      $maxScore)
+   (>= $raw $maxScore))
+
+;; A zero-deme configuration intentionally disables expansion.
+(= (expansionEnabled $nDeme) (> $nDeme 0))
+
+;; One shared loop handles visits, budgets, expansion, merging, raw-target
+;; termination, and finalization for every problem family.
+(= (runMoses $maxGen $maxScore $metaPop $nExpansion $nDeme
+             $context $optimize)
+   (let* (
+          ($_reset (resetCandidateScoreCache))
+          ($_domainReset (resetDomainRunCaches $context))
+          ($_seed (seedInitialCandidateCache $context $metaPop))
+         )
+     (runMosesCounted
+       $maxGen $maxScore $metaPop $nExpansion $nDeme
+       $context $optimize ()
+       (initialEvaluationCount $context))))
+
+;; Initialize the raw champion before entering the recursive counted loop.
+(= (runMosesCounted $maxGen $maxScore $metaPop $nExpansion $nDeme
+                    $context $optimize $visits $cumulativeEvaluations)
+   (let $initialRawBest
+        (if (== $metaPop ()) () (bestRawExemplar $metaPop))
+     (runMosesCountedWithBest
+       $maxGen $maxScore $metaPop $nExpansion $nDeme
+       $context $optimize $visits $cumulativeEvaluations $initialRawBest)))
+
+;; Recursive shared lifecycle: select an eligible exemplar, spend only the
+;; remaining real-evaluation budget, merge results, and retain both leaders.
+(= (runMosesCountedWithBest
+      $maxGen $maxScore $metaPop $nExpansion $nDeme
+      $context $optimize $visits $cumulativeEvaluations $rawChampion)
+   (if (<= $maxGen 0)
+       (finishMetapop $metaPop $rawChampion)
+       (if (rawTargetReached $rawChampion $maxScore)
+           (finishMetapop $metaPop $rawChampion)
+           (if (not (expansionEnabled $nDeme))
+               (finishMetapop $metaPop $rawChampion)
+               (if (evaluationBudgetReached $cumulativeEvaluations)
+                   (finishMetapop $metaPop $rawChampion)
+                   (let $eligible
+                        (eligibleExemplars
+                          $metaPop $visits (param revisit))
+                     (if (== $eligible ())
+                         (finishMetapop $metaPop $rawChampion)
+                         (let* (
+                                ($exemplar (selectExemplar $eligible))
+                                ($tree (getExemplarTree $exemplar))
+                                ($updatedVisits (recordVisit $tree $visits))
+                                ($selectedVisitCount (visitCount $tree $updatedVisits))
+                                ($_selection
+                                  (if (param diagnostics)
+                                      (println! (ExemplarSelection
+                                        (expansion $nExpansion)
+                                        (selectedRaw
+                                          (getScore
+                                            (getExemplarCscore
+                                              $exemplar)))
+                                        (selectedPenalized
+                                          (getExemplarPenScore
+                                            $exemplar))
+                                        (eligibleCandidates
+                                          (List.length $eligible))))
+                                      ()))
+                                (($optimizedDemes $actualEvaluations)
+                                  (expandSelectedExemplarCounted
+                                    $exemplar $nExpansion $nDeme
+                                    $context $maxScore $optimize
+                                    (remainingEvaluationBudget
+                                      $cumulativeEvaluations)))
+                               )
+                           (if (== $optimizedDemes ())
+                               (let* (
+                                      ($_skipped
+                                        (if (param diagnostics)
+                                            (println!
+                                              (RepresentationSkipped
+                                                (expansion $nExpansion)
+                                                (selected (preOrder $tree))
+                                                (reason emptyKnobMap)))
+                                            ()))
+                                      ($_clear (clearSpace &treeSpace))
+                                      ($_cut (cut))
+                                     )
+                                 (let ($retryGen $retryExpansion
+                                       $retryVisits $retryEvaluations)
+                                      (emptyRepresentationRetryState
+                                        $maxGen $nExpansion
+                                        $updatedVisits
+                                        $cumulativeEvaluations)
+                                   (runMosesCountedWithBest
+                                     $retryGen $maxScore $metaPop
+                                     $retryExpansion $nDeme
+                                     $context $optimize $retryVisits
+                                     $retryEvaluations
+                                     $rawChampion)))
+                               (let* (
+                                      ($updatedEvaluations
+                                        (+ $cumulativeEvaluations
+                                           $actualEvaluations))
+                                      ($mergeContext
+                                        (mergeContextFor $context))
+                                      ($generationRawBest
+                                        (bestRawExemplarFromDemes
+                                          $optimizedDemes
+                                          $mergeContext))
+                                      ($updatedRawBest
+                                        (betterRawExemplar
+                                          $rawChampion
+                                          $generationRawBest))
+                                      ($updatedMetaPop
+                                        (mergeDemes
+                                          $optimizedDemes
+                                          $mergeContext $metaPop))
+                                      ($bestRaw
+                                        (getScore
+                                          (getExemplarCscore
+                                            $updatedRawBest)))
+                                      ($bestPenalized
+                                        (if (== $updatedMetaPop ())
+                                            ()
+                                            (getExemplarPenScore
+                                              (OS.getByIdx
+                                                0 $updatedMetaPop))))
+                                      ($_diagnostics
+                                        (if (param diagnostics)
+                                            (printGenerationDiagnostics
+                                              $maxGen $nExpansion
+                                              $exemplar
+                                              $selectedVisitCount
+                                              $optimizedDemes
+                                              $updatedMetaPop
+                                              ($bestRaw $bestPenalized)
+                                              $actualEvaluations
+                                              $updatedEvaluations)
+                                            ()))
+                                      ($_clear (clearSpace &treeSpace))
+                                      ($_cut (cut))
+                                     )
+                                 (if (or (>= $bestRaw $maxScore)
+                                         (evaluationBudgetReached
+                                           $updatedEvaluations))
+                                     (finishMetapop
+                                       $updatedMetaPop
+                                       $updatedRawBest)
+                                     (runMosesCountedWithBest
+                                       (- $maxGen 1) $maxScore
+                                       $updatedMetaPop
+                                       (+ $nExpansion 1) $nDeme
+                                       $context $optimize
+                                       $updatedVisits
+                                       $updatedEvaluations
+                                       $updatedRawBest))))))))))))
 
 
-;; Some helpers specific to final testing
+;; Final-result conversion helpers.
 (= (mapG $f $xs) (map-atom $xs $f))
 
-(= (printExemplar (mkExemplar $tree $demeId $cscore $bscore)) (println! (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore)))
 (= (cleanedExemplar (mkExemplar $tree $demeId $cscore (mkBScore $bscore))) ((preOrder $tree) (List.sum $bscore)))
-
-(= (printInstance (mkInst $inst)) (println! (List.listToExpr $inst)))

@@ -7,29 +7,21 @@
 
 (= (andTable) 
    (mkITable
-     (cons (cons True (cons True (cons True ())))      
-     (cons (cons True (cons False (cons False ())))    
-     (cons (cons False (cons True (cons False ())))    
-     (cons (cons False (cons False (cons False ()))) ()))))
+     (cons (cons True (cons True (cons False (cons False ()))))      
+     (cons (cons True (cons False (cons True (cons False ()))))    
+     (cons (cons True (cons False (cons False (cons False ())))) ())))
      (cons A (cons B (cons Output ())))))
 
-; ;; Test data: Precision Table
+;; Test data: Precision Table
 ; this is directy taken from the moses c++ test file
 ;; reference: https://github.com/opencog/moses/blob/master/tests/moses/precision.csv
-(= (precisionTable)
-   (mkITable
-     (cons (cons False (cons False (cons False ())))  
-     (cons (cons True  (cons False (cons False ())))   
-     (cons (cons False (cons False (cons False ())))  
-     (cons (cons True  (cons False (cons False ())))   
-     (cons (cons True  (cons False (cons False ())))  
-     (cons (cons False (cons False (cons True  ())))  
-     (cons (cons False (cons False (cons True  ())))  
-     (cons (cons False (cons True  (cons True  ())))  
-     (cons (cons False (cons True  (cons True  ())))  
-     (cons (cons False (cons True  (cons True  ()))) ()))))))))))
-     (cons v1 (cons v2 (cons target ())))))
 
+(= (precisionTable)
+   (mkITable 
+     (cons (cons False (cons True (cons False (cons True (cons True (cons False (cons False (cons False (cons False (cons False ())))))))))) 
+     (cons (cons False (cons False (cons False (cons False (cons False (cons False (cons False (cons True (cons True (cons True ()))))))))))
+     (cons (cons False (cons False (cons False (cons False (cons False (cons True (cons True (cons True (cons True (cons True ())))))))))) ())))
+     (cons v1 (cons v2 (cons target ())))))
 
 ; Test of count Table
 ; !(assertEqual (countTable (True True True) 2 ()) (cons ((True True) (1 0)) ()))
@@ -77,10 +69,12 @@
 ;; Test ExtractTable
 
 (= (testRows) 
-            (cons (cons True (cons True (cons False (cons True (cons True ())))))
-            (cons (cons True (cons False (cons False (cons True (cons True ())))))
-            (cons (cons False (cons True (cons False (cons True (cons False ())))))
-            (cons (cons False (cons False (cons False (cons True (cons False ()))))) ())))))
+            (cons (cons True (cons True (cons False (cons False ()))))
+            (cons (cons True (cons False (cons True (cons False ()))))
+            (cons (cons False (cons False (cons False (cons False ()))))
+            (cons (cons True (cons True (cons True (cons True ())))) 
+            (cons (cons True (cons True (cons False (cons False ())))) ()))))))
+            
 (= (testLabels) (cons A (cons B (cons C (cons D (cons Output ()))))))
 
 !(assertEqual (extractTable (0) (testRows) (testLabels))

@@ -50,19 +50,34 @@
 !(import! &self reduct/boolean-reduct/promote-common-constraints)
 !(import! &self reduct/boolean-reduct/reduce-to-elegance)
 
+;; ---- Action reduction rules ----
+!(import! &self reduct/action-reduct/action-vocab)
+!(import! &self reduct/action-reduct/action-helpers)
+!(import! &self reduct/action-reduct/action-properties)
+!(import! &self reduct/action-reduct/reduce-action-if)
+!(import! &self reduct/action-reduct/reduce-action-action-if)
+!(import! &self reduct/action-reduct/reduce-const-action-seq)
+!(import! &self reduct/action-reduct/reduce-action-not)
+!(import! &self reduct/action-reduct/reduce-action-while)
+!(import! &self reduct/action-reduct/reduce-seq-result)
+!(import! &self reduct/action-reduct/reduce-null-vertices)
+!(import! &self reduct/action-reduct/reduce-action-properties)
+!(import! &self reduct/action-reduct/action-reduction)
+
 ;; ---- Boolean reduction performance helpers ----
 ;; Keep the main entry aligned with the benchmark harness:
 ;; - native Prolog getLiteralChildren avoids a hot filter-atom path
-;; - SLG tabling memoizes the pure removeEmptyAND tree rewrite
+;; - native removeEmptyAND replaces the SLG-tabled MeTTa rewrite: the O(n)
+;;   walk beats table lookup + answer copy, and lib_tabling is no longer
+;;   needed at all
 !(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
-!(import! &self (library lib_tabling))
-!(tabled (removeEmptyAND $e))
 
 !(import! &self utilities/tree)
 
 ;; ---- Scoring ----
 !(import! &self scoring/cacheSpace)
 !(import! &self scoring/fitness)
+!(import! &self scoring/boolean-ops)
 !(import! &self scoring/bscore)
 !(import! &self scoring/cscore)
 
@@ -86,6 +101,7 @@
 !(import! &self representation/logical-canonize)
 !(import! &self representation/add-logical-knobs)
 !(import! &self representation/build-logical)
+!(import! &self representation/build-action)
 !(import! &self representation/build-knobs)
 !(import! &self representation/knob-mapper)
 !(import! &self representation/representation)
@@ -93,9 +109,12 @@
 
 !(import! &self scoring/complexity-based-scorer)
 
+;; ---- Ant action-domain example ----
+!(import! &self examples/ant/ant-domain)
+
 ;; ---- Optimization (hill climbing is the only production-ready algorithm) ----
-!(import! &self optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self optimization/hillclimbing/cross-top-one)
+!(import! &self optimization/hillclimbing/crossover-helpers)
+!(import! &self optimization/hillclimbing/crossover)
 !(import! &self optimization/hillclimbing/hill-climbing-helpers)
 
 ;; ---- Deme + metapopulation pipeline ----
@@ -111,6 +130,9 @@
 !(import! &self deme/deme-id-creation)
 !(import! &self deme/score-deme)
 !(import! &self deme/merge-demes)
+;; Domain-specific representation and scorer dispatch is assembled here at
+;; the production entry point, before the shared expansion lifecycle uses it.
+!(import! &self deme/domain-adapter)
 !(import! &self deme/expand-deme)
 
 ;; ---- Top-level entry point: defines (moses), (optimizer-for ...) ----
