@@ -37,15 +37,10 @@
 
 ;; Row-wise tuples over the selected columns: ((c0r0 c1r0 ..) (c0r1 c1r1 ..) ..)
 ;; This is what the entropy/MI helpers below consume as "one observation per row".
-(= (zip-selected-columns ()) ())
-(= (zip-selected-columns (cons $first $rest))
-   (if (== $first ())
-       ()
-       (cons (map-atom (cons $first $rest) $column (List.head $column))
-             (zip-selected-columns (map-atom (cons $first $rest) $column (List.tail $column))))))
-
+;; Swapping the axes is exactly Table.transpose (feature-selection-helpers), which
+;; every importer of this file loads first, mirroring moses.metta's order.
 (= (get-columns $indices $columns)
-   (zip-selected-columns (map-atom $indices $i (get-column $i $columns))))
+   (Table.transpose (map-atom $indices $i (get-column $i $columns))))
 
 (= (unique-list ()) ())
 (= (unique-list (cons $h $t))
