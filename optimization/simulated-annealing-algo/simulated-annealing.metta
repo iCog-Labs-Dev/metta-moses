@@ -141,15 +141,9 @@
                                                                   $preMinActivation $preMaxActivation
                                                                   $prePositive $scorerType
                                                                   )
-                                                (case $iTable
-                                                  (
-                                                    ((mkITable $rows $labels) ($transformFunction $updatedInstSet $rep $id (mkITable $rows $labels) $rowOCoeff))
-                                                    ($ComplexityRatio ($transformFunction $updatedInstSet $rep $id ($rowOCoeff $size) $ComplexityRatio))
-                                                  ))))
-
-              ;; Deconstruct old instance set to remove it
-              ($oldinstset (match $POASet (mkSInstSet $s) $s))
-              ($_ (remove-atom $POASet (mkSInstSet $oldinstset)))
+                                                ($transformFunction $updatedInstSet $rep $id $iTable $rowOCoeff)))
+              ;; Remove old instance set and update with new scored instances
+              ($_ (remove-atom $POASet (mkSInstSet $s)))
               ($_ (add-atom $POASet (mkSInstSet $scoredInstances)))
 
               ($_ (println! (Scored instances: $scoredInstances)))
