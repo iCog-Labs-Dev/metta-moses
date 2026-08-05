@@ -18,8 +18,8 @@
           ($r (wrapKnobs $rest)))
      (cons-atom $k $r)))
 
-(= (addLogicalKnobs (mkTree (mkNode $op) $children) $labels)
-   (let* (($perms (logicalPerms $op $labels))
+(= (addLogicalKnobs (mkTree (mkNode $op) $children))
+   (let* (($perms (logicalPerms $op))
           ($pairs (map-atom $perms $p (logicalSubtreeKnob $children $p)))
           ($taken (map-atom $pairs $q (car-atom $q)))
           ($knobbed (wrapKnobs $pairs))
@@ -36,31 +36,31 @@
 ;; Between them these give one full AND-over-ORs-over-literals alternation per
 ;; build. Deeper structure accumulates when an evolved program is fed back in
 ;; as the next starting point.
-(= (buildLogical $tree $parentOp $labels)
+(= (buildLogical $tree $parentOp)
    (if (isJunctor (nodeSymOf $tree))
-       (buildJunctor $tree $labels)
-       (addLogicalKnobs (mkTree (mkNode (flipJunctor $parentOp)) ($tree)) $labels)))
+       (buildJunctor $tree)
+       (addLogicalKnobs (mkTree (mkNode (flipJunctor $parentOp)) ($tree)))))
 
-(= (buildJunctor (mkTree (mkNode $op) $children) $labels)
-   (let* (($knobbed (addLogicalKnobs (mkTree (mkNode $op) $children) $labels))
-          ($deeper (recurseKids (kidsOf $knobbed) $op $labels))
-          ($fresh (addLogicalKnobs (mkTree (mkNode (flipJunctor $op)) ()) $labels)))
+(= (buildJunctor (mkTree (mkNode $op) $children))
+   (let* (($knobbed (addLogicalKnobs (mkTree (mkNode $op) $children)))
+          ($deeper (recurseKids (kidsOf $knobbed) $op))
+          ($fresh (addLogicalKnobs (mkTree (mkNode (flipJunctor $op)) ()))))
      (mkTree (mkNode $op) (union-atom $deeper ($fresh)))))
 
-(= (recurseKids () $op $labels) ())
-(= (recurseKids (cons $c $rest) $op $labels)
-   (let* (($b (recurseKid $c $op $labels))
-          ($r (recurseKids $rest $op $labels)))
+(= (recurseKids () $op) ())
+(= (recurseKids (cons $c $rest) $op)
+   (let* (($b (recurseKid $c $op))
+          ($r (recurseKids $rest $op)))
      (cons-atom $b $r)))
 
 ;; a knob holding a real subtree is gone into; a placeholder is not, because
 ;; there is nothing there yet
-(= (recurseKid (mkKnob $sub $k $i) $op $labels)
+(= (recurseKid (mkKnob $sub $k $i) $op)
    (if (isNullVex $sub)
        (mkKnob $sub $k $i)
-       (mkKnob (buildLogical $sub $op $labels) $k $i)))
-(= (recurseKid (mkTree $node $kids) $op $labels)
-   (buildLogical (mkTree $node $kids) $op $labels))
+       (mkKnob (buildLogical $sub $op) $k $i)))
+(= (recurseKid (mkTree $node $kids) $op)
+   (buildLogical (mkTree $node $kids) $op))
 
 ;; a lone literal becomes a one-element conjunction, so the recursion above
 ;; always starts at a junctor
@@ -68,9 +68,8 @@
    (if (isJunctor (nodeSymOf $t)) $t (mkTree (mkNode AND) ($t))))
 
 ;; --- slots ------------------------------------------------------------------
-;; A Bool slot gets the whole boolean treatment above, over the Bool vocabulary.
-(= (buildBoolSlot $child)
-   (buildJunctor (logicalCanonize $child) (primsOfType Bool)))
+;; A Bool slot gets the whole boolean treatment above.
+(= (buildBoolSlot $child) (buildJunctor (logicalCanonize $child)))
 
 ;; Any other slot: a primitive child is knobbed; a compound child is gone into,
 ;; so its own slots get knobbed instead.
@@ -90,15 +89,20 @@
           ($r (buildSlots $rest $op (+ $i 1))))
      (cons-atom $b $r)))
 
-;; A node that takes any number of children gets one extra, knobbed over that
-;; type's vocabulary -- this is how the search GROWS a program rather than only
-;; editing what is already there.
+;; A node that takes any number of children can GROW: every candidate of the
+;; right type gets its own switched-off knob, and switching one on adds that
+;; child. This is how the search builds a program up rather than only editing
+;; what is already there.
+;;
+;; ONE KNOB PER CANDIDATE, each with two settings -- drop it or keep it. Not
+;; one knob whose settings are the candidates: that would let the node hold at
+;; most one new child ever, so (and_seq GRAB STEP) could never be built, and
+;; a conditional could never sit alongside anything else.
 (= (extraSlot $op)
    (if (isVariadic $op)
        (let* (($t (index-atom (argTypeOf $op) 1))
-              ($i (nextIdx))
-              ($perms (map-atom (primsOfType $t) $s (leafOf $s))))
-         ((mkKnob (mkNullVex ()) (mkASK (+ 1 (size-atom $perms)) 0 $perms) $i)))
+              ($perms (permsFor $op $t)))
+         (wrapKnobs (map-atom $perms $p (growthKnob $p))))
        ()))
 
 (= (buildNode (mkTree (mkNode $op) $children))

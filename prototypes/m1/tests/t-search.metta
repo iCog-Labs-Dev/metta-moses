@@ -24,6 +24,10 @@
 (= (looksAtSomething $t) (!= (kidsOf (condOfCandidate $t)) ()))
 !(test (looksAtSomething (candidateOf (m1Rep) (bestInst))) True)
 
-;; and it beats every program that never looks -- 10 against a ceiling of 2
-!(test (> (bestScore) (maxOf (blindScores))) True)
+;; and it beats every program that never looks. The ceiling of 2 is not
+;; asserted here -- t-domain checks it over all fourteen such programs -- so
+;; this file does not redefine that machinery. A second copy of a definition
+;; does not shadow the first: both clauses apply and every answer comes back
+;; multiplied.
+!(test (> (bestScore) 2) True)
 !(test (- (bestScore) (m1Score (m1Rep) (defaultInstance (m1Rep)))) 35)

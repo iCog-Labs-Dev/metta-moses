@@ -4,7 +4,16 @@
 ;;   ( ulimit -v 8000000; timeout 900 \
 ;;       sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run.metta -s )
 ;;
-;; A silent finish means every check passed; a failure prints and stops.
+;; A failure prints and stops. But absence of failures is NOT enough: count the
+;; ticks and compare them against the number of checks written down.
+;;
+;;   ...run.metta -s ) | grep -c ✅              -> must be 148
+;;   cat prototypes/m1/tests/t-*.metta | grep -c '^!(test'
+;;
+;; A check whose expected value is a program written out longhand is a CALL. If
+;; it is not wrapped in `quote` it yields no answer and the whole check quietly
+;; does not run -- no pass, no fail, no output.
+;;
 ;; Start with t-operators: if those fail, nothing below them is trustworthy.
 ;; ============================================================================
 !(import! &self prototypes/m1/all)

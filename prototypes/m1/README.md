@@ -15,10 +15,22 @@ still works.
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-from-scratch.metta -s )
 
-# the checks -- silence means everything passed
+# the checks -- every line should end in a green tick
 ( ulimit -v 8000000; timeout 900 \
-    sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run.metta -s )
+    sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run.metta -s ) | grep -c ✅
 ```
+
+That last count must equal the number of checks written down:
+
+```sh
+cat prototypes/m1/tests/t-*.metta | grep -c '^!(test'
+```
+
+Both are **148**. Compare them; do not just look for failures. A check whose
+expected value is a program written out longhand is a *call*, and unless it is
+wrapped in `quote` it produces no answer and the check never runs — printing
+nothing at all, neither pass nor fail. Eleven checks were silently missing this
+way before the counts were compared.
 
 The `ulimit`/`timeout` wrapper is not optional — an unbounded run can exhaust
 memory and take the whole session with it.
@@ -45,14 +57,14 @@ So the search did not just find a better program. It found one that had to
 | | |
 |---|---|
 | `demo.metta` | the guided walkthrough. Start here. |
-| `demo-from-scratch.metta` | the same machinery with no starting program — where it gets stuck, and why |
+| `demo-from-scratch.metta` | the same machinery with no starting program at all |
 | `core/prelude.metta` | list and tree helpers. Nothing interesting. |
 | `core/monad.metta` | how a context (a world, a board, a table row) is threaded |
 | `core/evaluator.metta` | running a program |
 | `core/operators.metta` | the operators themselves |
 | `core/types.metta` | the questions the builder asks instead of naming operators |
 | `knobs/knob.metta` | what a knob is |
-| `knobs/perms.metta` | what candidates get offered at a boolean node |
+| `knobs/perms.metta` | what candidates get offered at a position, and how they are built |
 | `knobs/builder.metta` | turning one program into a space of programs |
 | `knobs/decode.metta` | turning a point in that space back into a program |
 | `search/hillclimb.metta` | looking for a better point |
@@ -72,10 +84,21 @@ evolved condition — it does not matter which operator the slot belongs to.
 Declare a new perception and it joins the vocabulary on its own; nothing else
 changes.
 
-**Conditions can grow structure, not just flip.** The candidates offered at a
-boolean node include *pairs* joined by the opposite connective, so an `AND` can
-acquire an `OR` inside it. One build gives one full alternation; feeding an
-evolved program back in as the next starting point gives another.
+**A candidate is a whole operator, not just a symbol.** What gets offered at a
+position is either a primitive or an operator with *every* argument filled by
+something of the type that argument asks for — `(OR (NOT p) q)`, and equally
+`(action_bool_if m1FoodHere m1Grab m1Step)`. A half-filled operator is never
+offered. This is what lets structure appear that the search could not have
+assembled one piece at a time, and it is the same trick in both directions:
+an `AND` can acquire an `OR` inside it, and a program with no conditional can
+grow one.
+
+**One candidate is one knob.** A knob's settings are the ways *that* candidate
+can be handled — two for an action (out, in), three for a test (out, in,
+negated). The number of candidates on offer is the number of *knobs*, never the
+width of one. Folding the candidates into a single knob's settings would mean a
+position could hold at most one of them, so `(and_seq GRAB STEP)` could never
+be built and a conditional could never sit alongside anything else.
 
 ## Two things that will bite you
 
@@ -93,22 +116,30 @@ and every answer comes back doubled. `demo.metta` and `tests/run.metta` import
 
 ## What it does not do
 
-- **Only conjunctions of literals and pairs.** A three-level formula like
-  `(AND (OR ...) (OR (NOT ...) (AND ...)))` needs a second generation.
+- **One level of structure per candidate.** A candidate's arguments are
+  primitives, so a three-level formula like
+  `(AND (OR ...) (OR (NOT ...) (AND ...)))` needs a second generation. Raising
+  `seqArity` or nesting the fill would go deeper at an exponential cost in
+  knobs; `permCount` is the budget that keeps it honest.
 - **Primitives take no parameters.** A perception like "is this cell an F?"
   that takes an argument would be admitted to the vocabulary and then called
   with nothing, failing silently. Filling parameter slots needs a vocabulary of
   *values*, which is a separate piece of work.
-- **Slot filling offers primitives only.** The machinery to also offer built
-  composites is present in `core/types.metta` and works, but is deliberately
-  not wired in.
 - **No reduction, no complexity penalty, no population.** The search is one
   hill climb from one starting point.
 
-`demo-from-scratch.metta` is where those last two stop being footnotes. Given
-an empty program the search cannot move at all: the only single change worth
-making costs -24 before it pays 2, and no arrangement of primitives can
-introduce a conditional, so the ceiling is 2 regardless. Given a conditional to
-start from — even a badly wired one — it reaches the best possible score in a
-single move. The difficulty is what the representation can offer, not how hard
-the search tries.
+`demo-from-scratch.metta` is where the candidate rule stops being a footnote.
+Given an empty program — eight candidates, all switched off, scoring 0 — the
+search reaches **10 in a single move**, by saying yes to
+`(action_bool_if m1FoodHere m1Grab m1Step)`.
+
+Had only bare primitives been on offer it would have gone nowhere, for two
+reasons that have nothing to do with search effort. A **valley**: grab-then-step
+is worth 2, but the first addition alone costs −24 and a climb that only accepts
+improvements cannot cross that. And a **ceiling** behind it: every program made
+of grab and step is capped at 2, because none of them looks, so crossing the
+valley would not have helped either.
+
+Offering complete operators goes *around* both. The valley is still there — this
+is a single hill climb, and MOSES's answer to valleys is a population, which is
+not built here.

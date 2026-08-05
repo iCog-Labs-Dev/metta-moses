@@ -32,5 +32,19 @@
 
 ;; the vocabulary, read straight out of the declarations. Delete a declaration
 ;; and the corresponding knob stops being built.
-!(test (primsOfType Bool) (m1FoodHere m1FoodAhead))
-!(test (primsOfType Act)  (m1Grab m1Step))
+!(test (primsOfType Bool) (quote (m1FoodHere m1FoodAhead)))
+!(test (primsOfType Act)  (quote (m1Grab m1Step)))
+
+;; ...and the same question asked of the things that take CHILDREN. This is
+;; what lets a candidate be an operator with its arguments filled in, rather
+;; than only a bare primitive.
+!(test (declaredOpsOfType Act)  (quote (action_bool_if and_seq or_seq action_not)))
+!(test (declaredOpsOfType Bool) ())          ;; AND/OR/NOT cannot be declared...
+!(test (undeclaredOpsOfType Bool) (quote (AND OR NOT)))  ;; ...so they are named once
+!(test (undeclaredOpsOfType Act)  ())
+!(test (opsOfType Bool) (quote (AND OR NOT)))
+
+;; negation is a knob SETTING, so the negator is never offered as an operator
+;; to build a candidate out of
+!(test (isNegator NOT) True)
+!(test (isNegator OR)  False)

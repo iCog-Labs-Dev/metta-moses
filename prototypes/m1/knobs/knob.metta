@@ -11,6 +11,12 @@
 ;;     (mkLSK <settings> <default>)         0 = absent, 1 = present, 2 = negated
 ;;     (mkASK <settings> <default> <perms>) 0 = absent, n = the (n-1)th perm
 ;;
+;; A knob holds ONE candidate, and its settings are the ways THAT candidate can
+;; be handled -- three for a test (absent, as written, negated), two for an
+;; action (absent, present). The number of candidates offered at a position is
+;; a different quantity entirely: it is the number of knobs there, never the
+;; width of one of them.
+;;
 ;; ONE counter hands out indices, for both kinds. Two counters is the classic
 ;; way to break this: the indices collide, decode reads the wrong slot, and
 ;; nothing reports an error -- you just get a different program than you asked
@@ -56,5 +62,10 @@
              ($neg (mkLSK 3 1))
              ((mkNullVex ($perm)) (mkLSK 3 0))))))
 
-;; an action-side knob: keep this subtree, or drop it
+;; an action-side knob over something the program already has: keep it, or
+;; drop it. Two settings, whatever the subtree is.
 (= (subtreeKnob $child) ($child (mkASK 2 1 ($child))))
+
+;; the same knob for a candidate the program does NOT have yet: add it, or
+;; leave it out. Starts out.
+(= (growthKnob $perm) ((mkNullVex ($perm)) (mkASK 2 0 ($perm))))

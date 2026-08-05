@@ -48,6 +48,28 @@
 ;; primitive and it joins the vocabulary with no other change anywhere.
 (= (primsOfType $t) (collapse (match &self (: $op (-> Params $c $t)) $op)))
 
+;; Which OPERATORS produce type $t -- the ones that take children rather than
+;; parameters? Same source, same story: declare one and it joins.
+;;
+;; `quote` on the result of the match is not optional. The pair ($op $a) is a
+;; two-element term headed by a live operator, so without it the match template
+;; CALLS the operator and hands back a half-applied term.
+(= (declaredOpsOfType $t)
+   (let $pairs (collapse (match &self (: $op (-> $a $c $t)) (quote ($op $a))))
+     (map-atom (filter-atom $pairs $p (!= (index-atom $p 1) Params)) $p (car-atom $p))))
+
+;; AND/OR/NOT carry no declaration (see the note above), so they are named here
+;; -- this file is the one place in the prototype where an operator name may
+;; appear, and everything else asks these questions instead.
+(= (undeclaredOpsOfType $t) (if (== $t Bool) (quote (AND OR NOT)) ()))
+
+(= (opsOfType $t) (union-atom (undeclaredOpsOfType $t) (declaredOpsOfType $t)))
+
+;; Negation is a knob SETTING, not a candidate of its own: an LSK's third
+;; setting already negates whatever it holds. So the negator is never offered
+;; as an operator to build a candidate out of.
+(= (isNegator $op) (== $op NOT))
+
 ;; --- boolean structure ------------------------------------------------------
 ;; AND and OR alternate as you go down a boolean expression: the children of an
 ;; AND are ORs and vice versa. `flip` is that alternation.
