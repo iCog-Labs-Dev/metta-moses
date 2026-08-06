@@ -37,3 +37,12 @@
 !(println! ("testing: try-apply-flag is a no-op for non-flag arguments"))
 !(try-apply-flag something-else)
 !(assertEqual (param capCoef) 77)   ;; unchanged from above
+
+!(assertEqual
+   (parse-comma-list (atom_chars "tttCanWin,tttCanBlock"))
+   (tttCanWin tttCanBlock))
+   
+!(assertEqual
+   (parse-comma-list (atom_chars "tttWin,tttBlock,tttCenter"))
+   (tttWin tttBlock tttCenter))
+
