@@ -1,24 +1,31 @@
 ;; ============================================================
-;;  Command-line override parsing.
+;; Command-line parameter override parsing.
 ;;
-;;  Reads command-line arguments of the form --name=value via
-;;  PeTTa's argv/2 builtin and applies each as (set-param ...).
-;;  Non-matching arguments (script name, -s, etc.) are ignored.
+;; Reads command-line arguments of the form --name=value via
+;; PeTTa's argv/2 builtin and applies recognized overrides through
+;; (set-param ...).
 ;;
-;;  Usage:
-;;    sh run.sh script.metta -s --capCoef=100 --maxDist=6
+;; CLI arguments are optional: when no override is supplied, the
+;; existing values from parameters/defaults.metta remain unchanged.
 ;;
-;;  Invocation:
-;;    The driver script should call !(apply-cli-overrides) once,
-;;    after defaults.metta has loaded.
+;; Non-parameter arguments (script name, -s, etc.) are ignored.
+;;
+;; Usage:
+;;   sh run.sh script.metta -s --capCoef=100 --maxDist=6
+;;
+;; Invocation:
+;;   The driver script should call !(apply-cli-overrides) once,
+;;   after defaults.metta has loaded.
 ;; ============================================================
 
 ;; -------- Top-level entry --------
-;; argv/2 in PeTTa is bound on its second argument but left non-deterministic
-;; on the index: with the index unbound, the underlying nth0 backtracks
-;; through every valid position. Wrapping the call in collapse therefore
-;; gathers every argv entry in a single findall — no need to walk indices
-;; by hand and detect the failing boundary.
+;;
+;; argv/2 is queried with an unbound index, allowing it to backtrack
+;; over all command-line arguments. collapse collects those arguments
+;; into a list.
+;;
+;; Each argument is then passed to try-apply-flag. Arguments that are
+;; not recognized as CLI parameter overrides are ignored.
 (= (apply-cli-overrides)
    (let* (
           ($args (collapse (argv $_)))
@@ -91,43 +98,75 @@
        (parse-value $rest None $acc)
        (parse-name $rest (Some (atom_concat $acc $h)))))
 
-;; Walk chars after '=' accumulating the value atom, then parse it.
-;; parse/1 coerces strings like "100", "3.5", "True" into the
-;; corresponding Number / Bool atoms; bare atoms come back unchanged.
+;; -------- Value parser --------
+;;
+;; Walk chars after '=' accumulating the value atom.
+;;
+;; Scalar values preserve the existing behaviour:
+;;
+;;   100        -> 100
+;;   3.5        -> 3.5
+;;   True       -> True
+;;   hc         -> hc
+;;
+;; Comma-separated values are interpreted as a tuple:
+;;
+;;   a,b,c      -> (a b c)
+;;
+;; The tuple is quoted because action/perception primitives are live
+;; symbols. This preserves the same representation produced by:
+;;
+;;   !(set-param actions
+;;       (quote (tttWin tttBlock tttCenter)))
+;;
+;; Empty values remain invalid, preserving the previous behaviour.
 (= (parse-value () None $name) ())        ;; '--name='
+
 (= (parse-value () (Some $acc) $name)
    (parse-value-atom $acc $name))
+
 (= (parse-value (cons $h $rest) None $name)
    (parse-value $rest (Some $h) $name))
+
 (= (parse-value (cons $h $rest) (Some $acc) $name)
-   (parse-value $rest (Some (atom_concat $acc $h))))
+   (parse-value $rest (Some (atom_concat $acc $h)) $name))
+
 
 ;; -------- Parsed value dispatch --------
 ;;
-;; Scalar values are handled exactly as before:
+;; Decide whether the accumulated value is a scalar or a
+;; comma-separated tuple.
 ;;
-;;   --capCoef=100      -> 100
-;;   --complexityRatio=3.5 -> 3.5
-;;   --fitness=foo      -> foo
+;; Scalar values are parsed normally:
 ;;
-;; Comma-separated values are parsed as a tuple:
+;;   --capCoef=100          -> 100
+;;   --complexityRatio=3.5  -> 3.5
+;;   --fitness=foo          -> foo
+;;
+;; Comma-separated values are converted into a tuple:
 ;;
 ;;   --actions=tttWin,tttBlock,tttCenter
 ;;       -> (tttWin tttBlock tttCenter)
 ;;
-;; The tuple is quoted because action/perception names are live
-;; MeTTa symbols. Without quote, the tuple can be interpreted as
-;; an expression headed by the first action/perception symbol.
+;; The resulting tuple is quoted so that action/perception symbols
+;; are stored as data rather than evaluated as an expression.
+;;
+;; This produces the same parameter representation as:
+;;
+;;   !(set-param actions
+;;       (quote (tttWin tttBlock tttCenter)))
 (= (parse-value-atom $acc $name)
    (let $chars (atom_chars $acc)
         (case (contains-comma $chars)
            (
-             (True (let $items (collapse (parse-comma-list $chars))
-                              (flag $name (quote $items))))
-             (False (flag $name (parse $acc)))))))
+             (True
+                (let $items (parse-comma-list $chars)
+                     (flag $name (quote $items))))
+             (False
+                (flag $name (parse $acc)))))))
 
-;; -------- Comma detection --------
 
+;; Check whether a character list contains a comma.
 (= (contains-comma ()) False)
 (= (contains-comma (cons $h $rest))
    (if (== $h ,)
@@ -145,30 +184,39 @@
 ;;
 ;;   (tttWin tttBlock tttCenter)
 ;;
-;; Elements are individually passed through parse/1 so normal
-;; scalar parsing remains available for list values.
-
+;; Each element is independently passed through parse/1 so that
+;; normal atom/number/bool conversion is preserved for list values.
+;;
+;; $current is the current element being accumulated.
+;; $acc contains already-parsed elements in reverse order.
 (= (parse-comma-list $chars)
    (parse-comma-list $chars None ()))
 
 
-;; End of input with no current element.
+;; End of input: parse the final element and reverse the accumulated
+;; elements so the original CLI ordering is preserved.
 (= (parse-comma-list () None $acc)
    (reverse $acc))
 
-;; End of input with a final element.
 (= (parse-comma-list () (Some $current) $acc)
    (reverse (cons-atom (parse $current) $acc)))
 
-;; First character of a new element.
+;; Comma terminates the current element.
 (= (parse-comma-list (cons $h $rest) None $acc)
    (if (== $h ,)
        ()
-       (parse-comma-list $rest (Some $h) $acc)))
+       (parse-comma-list
+          $rest
+          (Some $h)
+          $acc)))
 
-;; Continue current element, or terminate it at comma.
 (= (parse-comma-list (cons $h $rest) (Some $current) $acc)
    (if (== $h ,)
-       (parse-comma-list $rest None (cons-atom (parse $current) $acc))
-       (parse-comma-list $rest
-          (Some (atom_concat $current $h)) $acc)))
+       (parse-comma-list
+          $rest
+          None
+          (cons-atom (parse $current) $acc))
+       (parse-comma-list
+          $rest
+          (Some (atom_concat $current $h))
+          $acc)))
