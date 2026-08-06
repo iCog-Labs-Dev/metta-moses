@@ -96,8 +96,79 @@
 ;; corresponding Number / Bool atoms; bare atoms come back unchanged.
 (= (parse-value () None $name) ())        ;; '--name='
 (= (parse-value () (Some $acc) $name)
-   (flag $name (parse $acc)))
+   (parse-value-atom $acc $name))
 (= (parse-value (cons $h $rest) None $name)
    (parse-value $rest (Some $h) $name))
 (= (parse-value (cons $h $rest) (Some $acc) $name)
-   (parse-value $rest (Some (atom_concat $acc $h)) $name))
+   (parse-value $rest (Some (atom_concat $acc $h))))
+
+;; -------- Parsed value dispatch --------
+;;
+;; Scalar values are handled exactly as before:
+;;
+;;   --capCoef=100      -> 100
+;;   --complexityRatio=3.5 -> 3.5
+;;   --fitness=foo      -> foo
+;;
+;; Comma-separated values are parsed as a tuple:
+;;
+;;   --actions=tttWin,tttBlock,tttCenter
+;;       -> (tttWin tttBlock tttCenter)
+;;
+;; The tuple is quoted because action/perception names are live
+;; MeTTa symbols. Without quote, the tuple can be interpreted as
+;; an expression headed by the first action/perception symbol.
+(= (parse-value-atom $acc $name)
+   (let $chars (atom_chars $acc)
+        (case (contains-comma $chars)
+           (
+             (True (let $items (collapse (parse-comma-list $chars))
+                              (flag $name (quote $items))))
+             (False (flag $name (parse $acc)))))))
+
+;; -------- Comma detection --------
+
+(= (contains-comma ()) False)
+(= (contains-comma (cons $h $rest))
+   (if (== $h ,)
+       True
+       (contains-comma $rest)))
+
+
+;; -------- Comma-separated list parser --------
+;;
+;; Converts:
+;;
+;;   tttWin,tttBlock,tttCenter
+;;
+;; into:
+;;
+;;   (tttWin tttBlock tttCenter)
+;;
+;; Elements are individually passed through parse/1 so normal
+;; scalar parsing remains available for list values.
+
+(= (parse-comma-list $chars)
+   (parse-comma-list $chars None ()))
+
+
+;; End of input with no current element.
+(= (parse-comma-list () None $acc)
+   (reverse $acc))
+
+;; End of input with a final element.
+(= (parse-comma-list () (Some $current) $acc)
+   (reverse (cons-atom (parse $current) $acc)))
+
+;; First character of a new element.
+(= (parse-comma-list (cons $h $rest) None $acc)
+   (if (== $h ,)
+       ()
+       (parse-comma-list $rest (Some $h) $acc)))
+
+;; Continue current element, or terminate it at comma.
+(= (parse-comma-list (cons $h $rest) (Some $current) $acc)
+   (if (== $h ,)
+       (parse-comma-list $rest None (cons-atom (parse $current) $acc))
+       (parse-comma-list $rest
+          (Some (atom_concat $current $h)) $acc)))
