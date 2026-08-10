@@ -50,6 +50,3 @@
        (if (isGroundLiteral $program)
            (mreturn $program $ctx)
            (evalNode $program () $ctx))))
-
-;; the continuation the conditional uses; must sit below evalProgram
-(= (pickBranch $then $else $value) (evalProgram (if $value $then $else)))

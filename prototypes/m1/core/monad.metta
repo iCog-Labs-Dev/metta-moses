@@ -56,33 +56,34 @@
 ;; ever run -- that is where the laziness in and_seq / AND comes from.
 (= (ifM $test $then $else $ctx) (if $test ($then $ctx) ($else $ctx)))
 
-;; liftM, i.e. fmap for a monad:  fmap f m = m >>= (return . f)
+;; `|->` IS A LAMBDA, and it is what keeps this file free of one-off helpers.
+;; The runtime compiles (|-> (args) body) into a fresh anonymous clause, works
+;; out which variables in the body came from outside, and hands back a closure
+;; over them. So `mbind`'s continuation can be written where it is used instead
+;; of being lifted out, named, and given its captured variables as leading
+;; parameters by hand.
 ;;
-;; EVERY combinator in this file keeps $ctx as an explicit last parameter, and
-;; that is not cosmetic -- it is the rule that makes the file work. A clause's
-;; arity is registered from its SOURCE head, before any eta-expansion, so a
-;; combinator written without $ctx registers one lower; a call meaning to
-;; partially apply it then looks like a complete call and compiles to a
-;; predicate that does not exist. Both of these were caught here, and only by
-;; the arity smoke tests at the top of tests/t-operators.metta:
-;;   - (mfmap $fn $computation) made `(mfmap not (evalProgram $child))` in NOT
-;;     compile to a nonexistent mfmap/3;
-;;   - (fmapStep $fn $value) eta-expanded to /4, and the specializer then
-;;     emitted a call to its /3, which does not exist.
-(= (fmapStep $fn $value $ctx) (mreturn ($fn $value) $ctx))
-(= (mfmap $fn $computation $ctx) (mbind $computation (fmapStep $fn) $ctx))
+;; TWO PARAMETERS, ALWAYS: the value AND the context. Written with just the
+;; value the body would end in a partial, the generated clause would
+;; eta-expand, and its arity is registered BEFORE that happens -- so the
+;; specializer emits a call to an arity that does not exist:
+;;     'mbind_Spec_[...]'/4: Unknown procedure: lambda_2/3
+;;                           However, there are definitions for: lambda_2/4
+;; This is the same rule every clause here follows -- keep $ctx explicit so the
+;; body is a COMPLETE call -- and it has now bitten four times. The arity smoke
+;; tests at the top of tests/t-operators.metta are what catch it; nothing else
+;; does, because the failure is silent everywhere else.
 
-;; Control.Monad.Extra.allM / anyM. Haskell writes them with its own ifM,
+;; liftM, i.e. fmap for a monad:  fmap f m = m >>= \v -> return (f v)
+(= (mfmap $fn $computation $ctx)
+   (mbind $computation (|-> ($v $c) (mreturn ($fn $v) $c)) $ctx))
+
+;; Control.Monad.Extra.allM / anyM, as Haskell writes them:
 ;;
-;;     allM p (x:xs) = ifM (p x) (allM p xs) (return False)
+;;     allM p []     = return True
+;;     allM p (x:xs) = p x >>= \v -> if v then allM p xs else return False
 ;;
-;; which desugars to exactly what is below: run the head, then branch on the
-;; value it produced. The `\v -> ...` becomes a named step, because there are
-;; no lambdas here -- the same trick pickBranch uses in core/operators.metta,
-;; with the captured variables hoisted into leading parameters so that a
-;; partial application is the closure. The step also takes $ctx, for the reason
-;; given above: written value-last it would eta-expand, and the specializer
-;; then emits a call at the pre-eta arity that does not exist.
+;; Run the head, then branch on the value it produced.
 ;;
 ;; The two clauses match on the SHAPE of the list rather than testing it for
 ;; emptiness. That is not a style choice: arguments here are built strictly, so
@@ -93,12 +94,12 @@
 ;; and simply fails -- which is what maps a malformed node to the worst score,
 ;; and is why the operators need no guard of their own.
 (= (allM $fn () $ctx) (mreturn True $ctx))
-(= (allM $fn (cons $x $xs) $ctx) (mbind ($fn $x) (allMStep $fn $xs) $ctx))
-(= (allMStep $fn $xs $value $ctx) (ifM $value (allM $fn $xs) (mreturn False) $ctx))
+(= (allM $fn (cons $x $xs) $ctx)
+   (mbind ($fn $x) (|-> ($v $c) (ifM $v (allM $fn $xs) (mreturn False) $c)) $ctx))
 
 (= (anyM $fn () $ctx) (mreturn False $ctx))
-(= (anyM $fn (cons $x $xs) $ctx) (mbind ($fn $x) (anyMStep $fn $xs) $ctx))
-(= (anyMStep $fn $xs $value $ctx) (ifM $value (mreturn True) (anyM $fn $xs) $ctx))
+(= (anyM $fn (cons $x $xs) $ctx)
+   (mbind ($fn $x) (|-> ($v $c) (ifM $v (mreturn True) (anyM $fn $xs) $c)) $ctx))
 
 ;; const True
 (= (constTrue $ignored) True)

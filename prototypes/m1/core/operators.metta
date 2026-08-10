@@ -29,7 +29,8 @@
 ;; --- the conditional: the only operator that truly needs `bind`, because
 ;;     the value decides which branch runs and that branch changes the context.
 ;;     The untaken branch is never evaluated.
-(= (action_bool_if ($cond $then $else)) (mbind (evalProgram $cond) (pickBranch $then $else)))
+(= (action_bool_if ($cond $then $else))
+   (mbind (evalProgram $cond) (|-> ($v $c) (evalProgram (if $v $then $else) $c))))
 
 ;; --- reshaping a result: `fmap`, not `bind` (neither touches the context) ---
 (= (action_not ($child))     (mfmap not       (evalProgram $child)))
