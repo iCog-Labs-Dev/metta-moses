@@ -9,29 +9,30 @@
 ;; on its own -- and the whole answer turns on what it is OFFERED.
 ;; ============================================================================
 !(import! &self prototypes/m1/all)
+!(import! &self prototypes/m1/domain/tape)
 
 (= (line) "--------------------------------------------------------------")
 (= (emptyProgram) (mkTree (mkNode and_seq) ()))
-(= (eRep) (buildRep (emptyProgram)))
+(= (eRep) (buildKnobs (emptyProgram)))
 (= (nKnobs) (knobCountOf (eRep)))
 
 ;; the program a single knob gives, and what it is worth
-(= (onlyKnob $k) (setNth (defaultInstance (eRep)) $k 1))
-(= (eachProgram) (map-atom (rangeTo (nKnobs)) $k (showTree (candidateOf (eRep) (onlyKnob $k)))))
+(= (onlyKnob $k) (changeAt (exemplarInst (eRep)) $k 1))
+(= (eachProgram) (map-atom (rangeTo (nKnobs)) $k (preOrderExp (getCandidate (eRep) (onlyKnob $k)))))
 (= (eachScore)   (map-atom (rangeTo (nKnobs)) $k (m1Score (eRep) (onlyKnob $k))))
 
 ;; the score after each accepted move, so "how fast" is visible
 (= (trajectory $rep $mults $inst $score $fuel)
    (if (<= $fuel 0)
        ($score)
-       (let ($ni $ns) (climbStep m1ScoreExp $rep $mults $inst $score)
+       (let ($ni $ns) (hillClimbingStep m1ScoreExp $rep $mults $inst $score)
          (if (== $ns $score)
              ($score)
              (cons-atom $score (trajectory $rep $mults $ni $ns (- $fuel 1)))))))
 
 (= (scoreTrail $rep)
-   (let* (($m (multsOf $rep))
-          ($d (defaultInstance $rep)))
+   (let* (($m (knobMultiplicities $rep))
+          ($d (exemplarInst $rep)))
      (trajectory $rep $m $d (m1Score $rep $d) 20)))
 
 ;; every program that never looks: sequences of GRAB/STEP up to length 3
@@ -43,7 +44,7 @@
            (union-atom $acc (map-atom $tails $t (cons-atom $a $t)))))))
 (= (blindScores)
    (let $all (union-atom (m1Seqs 1) (union-atom (m1Seqs 2) (m1Seqs 3)))
-     (map-atom $all $kids (m1ScoreExp (compileTree (mkTree (mkNode and_seq) $kids))))))
+     (map-atom $all $kids (m1ScoreExp (preOrderExp (mkTree (mkNode and_seq) $kids))))))
 
 
 !(println! "")
@@ -53,15 +54,15 @@
 !(println! "  Same creature, same loops of food, same 14 moves. But this")
 !(println! "  time the program we begin with is empty -- it does nothing.")
 !(println! "==============================================================")
-!(println! (starting-program (showTree (emptyProgram))))
-!(println! (it-scores (m1ScoreExp (compileTree (emptyProgram)))))
+!(println! (starting-program (preOrderExp (emptyProgram))))
+!(println! (it-scores (m1ScoreExp (preOrderExp (emptyProgram)))))
 
 !(println! "")
 !(println! (line))
 !(println! "STEP 1.  What is on offer?")
 !(println! (line))
 !(println! (knobs (nKnobs)))
-!(println! (settings (multsOf (eRep))))
+!(println! (settings (knobMultiplicities (eRep))))
 !(println! "  An empty sequence has nothing inside it to adjust, so every")
 !(println! "  knob here is a place to GROW: one knob per candidate, each")
 !(println! "  offering to add that candidate or leave it out.")
@@ -72,9 +73,9 @@
 !(println! (line))
 !(println! "STEP 2.  Run the search.")
 !(println! (line))
-!(println! (found (let ($i $s) (searchBest m1ScoreExp (eRep))
-                    (showTree (candidateOf (eRep) $i)))))
-!(println! (score (let ($i $s) (searchBest m1ScoreExp (eRep)) $s)))
+!(println! (found (let ($i $s) (hillClimbing m1ScoreExp (eRep))
+                    (preOrderExp (getCandidate (eRep) $i)))))
+!(println! (score (let ($i $s) (hillClimbing m1ScoreExp (eRep)) $s)))
 !(println! (score-after-each-accepted-move (scoreTrail (eRep))))
 !(println! "  One move, from nothing to the best score the world allows.")
 
@@ -86,7 +87,7 @@
 !(println! "  needed three decisions at once -- the test and both branches")
 !(println! "  -- and the types said what each of them had to be, so it was")
 !(println! "  assembled before the search ever saw it:")
-!(println! (the-winning-candidate (showTree (index-atom (permsFor and_seq Act) 3))))
+!(println! (the-winning-candidate (preOrderExp (index-atom (samplePerms and_seq Act) 3))))
 !(println! "  The search only had to say yes.")
 
 !(println! "")

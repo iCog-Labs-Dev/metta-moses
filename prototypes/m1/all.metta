@@ -10,6 +10,10 @@
 ;; The order is not arbitrary: the evaluator must be in place before the
 ;; operators, because each operator body ends in a partially applied call to it
 ;; and that is resolved as the file is read.
+;;
+;; NO DOMAIN IS LOADED HERE. Everything below is domain-independent, so a demo
+;; or a test suite picks its own world by importing this and then one file out
+;; of domain/. Loading two domains at once would merge their vocabularies.
 ;; ============================================================================
 !(import! &self prototypes/m1/core/prelude)
 !(import! &self prototypes/m1/core/monad)
@@ -23,4 +27,3 @@
 !(import! &self prototypes/m1/knobs/decode)
 
 !(import! &self prototypes/m1/search/hillclimb)
-!(import! &self prototypes/m1/domain/tape)

@@ -27,8 +27,8 @@
 !(test (isJunctor AND)     True)
 !(test (isJunctor OR)      True)
 !(test (isJunctor and_seq) False)
-!(test (flipJunctor AND) OR)
-!(test (flipJunctor OR)  AND)
+!(test (swapAndOr AND) OR)
+!(test (swapAndOr OR)  AND)
 
 ;; the vocabulary, read straight out of the declarations. Delete a declaration
 ;; and the corresponding knob stops being built.
@@ -43,8 +43,3 @@
 !(test (undeclaredOpsOfType Bool) (quote (AND OR NOT)))  ;; ...so they are named once
 !(test (undeclaredOpsOfType Act)  ())
 !(test (opsOfType Bool) (quote (AND OR NOT)))
-
-;; negation is a knob SETTING, so the negator is never offered as an operator
-;; to build a candidate out of
-!(test (isNegator NOT) True)
-!(test (isNegator OR)  False)

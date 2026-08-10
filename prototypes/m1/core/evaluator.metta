@@ -14,8 +14,11 @@
 ;; "does it have no declared type?" -- inverts the moment any operator is given
 ;; a type, at which point the operator stops being called and starts returning
 ;; itself, silently.
-(= (isConstantType $t)
-   (if (== $t Bool) True (if (== $t Number) True (if (== $t String) True False))))
+;;
+;; Via containsIn rather than a bare is-member: is-member succeeds once per
+;; match, and this answer feeds every dispatch, so a second solution would
+;; double the whole run.
+(= (isConstantType $type) (containsIn (Bool Number String) $type))
 
 (= (isGroundLiteral $x) (isConstantType (get-type $x)))
 
@@ -26,22 +29,23 @@
 ;; collapses to nothing, and becomes the worst result. The evaluator cannot
 ;; crash on a badly formed program, which matters when programs are evolved.
 (= (evalNode $op $children $ctx)
-   (let* (($e (quote ($op $children $ctx)))
-          ($rs (collapse (let (mkRes $v $w) (reduce $e) (mkRes $v $w)))))
-     (if (== $rs ()) (mzero $ctx) (car-atom $rs))))
+   (let* (($call    (quote ($op $children $ctx)))
+          ($results (collapse (let (mkRes $value $after) (reduce $call)
+                                   (mkRes $value $after)))))
+     (if (== $results ()) (mzero $ctx) (car-atom $results))))
 
 ;; Run a program.  Shapes:
 ;;   (op (child ...))  a node
 ;;   True / 7 / "x"    a constant
 ;;   op                a bare operator symbol -- treated as (op ())
-(= (evalProgram $exp $ctx)
-   (if (isExpr $exp)
-       (if (== (size-atom $exp) 2)
-           (let ($op $children) $exp (evalNode $op $children $ctx))
+(= (evalProgram $program $ctx)
+   (if (isExpr $program)
+       (if (== (size-atom $program) 2)
+           (let ($op $children) $program (evalNode $op $children $ctx))
            (mzero $ctx))
-       (if (isGroundLiteral $exp)
-           (mreturn $exp $ctx)
-           (evalNode $exp () $ctx))))
+       (if (isGroundLiteral $program)
+           (mreturn $program $ctx)
+           (evalNode $program () $ctx))))
 
 ;; the continuation the conditional uses; must sit below evalProgram
-(= (pickBranch $then $else $v) (evalProgram (if $v $then $else)))
+(= (pickBranch $then $else $value) (evalProgram (if $value $then $else)))

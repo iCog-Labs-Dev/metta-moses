@@ -22,31 +22,35 @@
 ;; exactly as they found it.
 ;; ============================================================================
 
-(= (m1Next $cells $pos) (if (>= (+ $pos 1) (size-atom $cells)) 0 (+ $pos 1)))
+(= (m1Next $cells $position)
+   (if (>= (+ $position 1) (size-atom $cells)) 0 (+ $position 1)))
 
-(= (m1SetCell $cells $i $v)
-   (let $idxs (rangeTo (size-atom $cells))
-     (map-atom $idxs $k (if (== $k $i) $v (index-atom $cells $k)))))
+(= (m1SetCell $cells $at $value)
+   (map-atom (rangeTo (size-atom $cells)) $index
+             (if (== $index $at) $value (index-atom $cells $index))))
 
 ;; --- actions ----------------------------------------------------------------
-(= (m1Grab $params (mkW $c $p $e $pen $f))
-   (if (<= $f 0)
-       (mkRes False (mkW $c $p $e $pen $f))
-       (if (== (index-atom $c $p) F)
-           (mkRes True (mkW (m1SetCell $c $p E) $p (+ $e 1) $pen (- $f 1)))
-           (mkRes True (mkW $c $p $e (+ $pen 1) (- $f 1))))))
+(= (m1Grab $params (mkW $cells $position $eaten $wasted $fuel))
+   (if (<= $fuel 0)
+       (mkRes False (mkW $cells $position $eaten $wasted $fuel))
+       (if (== (index-atom $cells $position) F)
+           (mkRes True (mkW (m1SetCell $cells $position E) $position
+                            (+ $eaten 1) $wasted (- $fuel 1)))
+           (mkRes True (mkW $cells $position $eaten (+ $wasted 1) (- $fuel 1))))))
 
-(= (m1Step $params (mkW $c $p $e $pen $f))
-   (if (<= $f 0)
-       (mkRes False (mkW $c $p $e $pen $f))
-       (mkRes True (mkW $c (m1Next $c $p) $e $pen (- $f 1)))))
+(= (m1Step $params (mkW $cells $position $eaten $wasted $fuel))
+   (if (<= $fuel 0)
+       (mkRes False (mkW $cells $position $eaten $wasted $fuel))
+       (mkRes True (mkW $cells (m1Next $cells $position) $eaten $wasted (- $fuel 1)))))
 
 ;; --- perceptions ------------------------------------------------------------
-(= (m1FoodHere $params (mkW $c $p $e $pen $f))
-   (mkRes (== (index-atom $c $p) F) (mkW $c $p $e $pen $f)))
+(= (m1FoodHere $params (mkW $cells $position $eaten $wasted $fuel))
+   (mkRes (== (index-atom $cells $position) F)
+          (mkW $cells $position $eaten $wasted $fuel)))
 
-(= (m1FoodAhead $params (mkW $c $p $e $pen $f))
-   (mkRes (== (index-atom $c (m1Next $c $p)) F) (mkW $c $p $e $pen $f)))
+(= (m1FoodAhead $params (mkW $cells $position $eaten $wasted $fuel))
+   (mkRes (== (index-atom $cells (m1Next $cells $position)) F)
+          (mkW $cells $position $eaten $wasted $fuel)))
 
 ;; --- two tapes --------------------------------------------------------------
 ;; They agree at position 0 and differ EVERYWHERE else. A program that never
@@ -56,25 +60,27 @@
 (= (m1TapeA) (F F E F E F E F E))      ;; food at 0,1,3,5,7
 (= (m1TapeB) (F E F E F E F E F))      ;; food at 0,2,4,6,8
 (= (m1Fuel) 14)                        ;; exactly one lap if played perfectly
-(= (m1World $i) (mkW (if (== (% $i 2) 0) (m1TapeA) (m1TapeB)) 0 0 0 (m1Fuel)))
+(= (m1World $episode) (mkW (if (== (% $episode 2) 0) (m1TapeA) (m1TapeB)) 0 0 0 (m1Fuel)))
 (= (m1BestScore) 10)
 
 ;; --- running one episode ----------------------------------------------------
 ;; The program is run over and over until the fuel is gone. The check for "no
 ;; fuel was used" is what stops a program that never acts from looping forever;
 ;; it simply scores 0.
-(= (m1RunEpisode $exp (mkW $c $p $e $pen $f))
-   (if (<= $f 0)
-       (- $e $pen)
-       (let (mkRes $v (mkW $c2 $p2 $e2 $pen2 $f2))
-            (evalProgram $exp (mkW $c $p $e $pen $f))
-         (if (== $f2 $f)
-             (- $e2 $pen2)
-             (m1RunEpisode $exp (mkW $c2 $p2 $e2 $pen2 $f2))))))
+(= (m1RunEpisode $program (mkW $cells $position $eaten $wasted $fuel))
+   (if (<= $fuel 0)
+       (- $eaten $wasted)
+       (let (mkRes $value $next)
+            (evalProgram $program (mkW $cells $position $eaten $wasted $fuel))
+         (let (mkW $cellsAfter $posAfter $eatenAfter $wastedAfter $fuelAfter) $next
+           ;; no fuel used means the program never acts -- stop, or it loops
+           (if (== $fuelAfter $fuel)
+               (- $eatenAfter $wastedAfter)
+               (m1RunEpisode $program $next))))))
 
-(= (m1Fitness $exp $i) (m1RunEpisode $exp (m1World $i)))
-(= (m1ScoreExp $exp) (+ (m1Fitness $exp 0) (m1Fitness $exp 1)))
-(= (m1FoodCount $cells) (foldl-atom $cells 0 $a $x (if (== $x F) (+ $a 1) $a)))
+(= (m1Fitness $program $episode) (m1RunEpisode $program (m1World $episode)))
+(= (m1ScoreExp $program) (+ (m1Fitness $program 0) (m1Fitness $program 1)))
+(= (m1FoodCount $cells) (foldl-atom $cells 0 $count $cell (if (== $cell F) (+ $count 1) $count)))
 
 ;; --- the program we start from ----------------------------------------------
 ;; Deliberately wrong: it steps when it sees food and grabs when it does not.
@@ -85,7 +91,7 @@
          (mkTree (mkNode m1Step) ())
          (mkTree (mkNode m1Grab) ()))))))
 
-(= (m1Rep) (buildRep (m1Exemplar)))
+(= (m1Rep) (buildKnobs (m1Exemplar)))
 
 ;; the one line that connects this domain to the generic machinery
 (= (m1Score $rep $inst) (scoreInstance m1ScoreExp $rep $inst))
@@ -104,19 +110,11 @@
 ;; may go in a slot. Declare a new perception here and it joins the boolean
 ;; vocabulary automatically -- nothing else changes.
 ;;
-;; AND, OR and NOT are absent on purpose: a declaration applies to a symbol no
-;; matter how many arguments a use of it has, and those three deliberately have
-;; two forms. core/types.metta carries their signatures instead.
+;; A domain declares ONLY its own primitives. The operators they are combined
+;; with -- and_seq, action_bool_if and the rest -- are declared once in
+;; core/types.metta, because they belong to no domain.
 ;; ============================================================================
-(: Act Type)
-(: Params Type)
-
 (: m1Grab      (-> Params $ctx Act))
 (: m1Step      (-> Params $ctx Act))
 (: m1FoodHere  (-> Params $ctx Bool))
 (: m1FoodAhead (-> Params $ctx Bool))
-
-(: action_bool_if (-> (Bool Act Act) $ctx Act))
-(: and_seq        (-> (Seq Act) $ctx Act))
-(: or_seq         (-> (Seq Act) $ctx Act))
-(: action_not     (-> (Act) $ctx Act))

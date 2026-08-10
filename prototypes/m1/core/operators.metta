@@ -21,11 +21,11 @@
 ;; --- the conditional: the only operator that truly needs `bind`, because
 ;;     the value decides which branch runs and that branch changes the context.
 ;;     The untaken branch is never evaluated.
-(= (action_bool_if ($c $t $e)) (mbind (evalProgram $c) (pickBranch $t $e)))
+(= (action_bool_if ($cond $then $else)) (mbind (evalProgram $cond) (pickBranch $then $else)))
 
 ;; --- reshaping a result: `fmap`, not `bind` (neither touches the context) ---
-(= (action_not ($x))     (mfmap not       (evalProgram $x)))
-(= (return_success ($x)) (mfmap constTrue (evalProgram $x)))
+(= (action_not ($child))     (mfmap not       (evalProgram $child)))
+(= (return_success ($child)) (mfmap constTrue (evalProgram $child)))
 
 (= (action_success ()) (mreturn True))
 (= (action_failure ()) (mreturn False))
@@ -40,16 +40,16 @@
 ;; instead of like "no condition".
 (= (AND $children) (ifM (isExpr $children) (allM evalProgram $children) mzero))
 (= (OR  $children) (ifM (isExpr $children) (anyM evalProgram $children) mzero))
-(= (NOT ($x))      (mfmap not (evalProgram $x)))
+(= (NOT ($child))  (mfmap not (evalProgram $child)))
 
 ;; --- boolean combinators, plain-value form ----------------------------------
 ;; The same three symbols, used on values that are already computed. They do
 ;; not clash with the versions above: these bodies are COMPLETE applications,
 ;; so they do not get an extra parameter, and the two families end up as
 ;; separate definitions distinguished by how many arguments they take.
-(= (AND $args) (allT $args))
-(= (OR  $args) (anyT $args))
-(= (NOT ($x))  (not $x))
+(= (AND $values) (allT $values))
+(= (OR  $values) (anyT $values))
+(= (NOT ($value)) (not $value))
 
-(= (allT $xs) (foldl-atom $xs True  $a $x (and $a $x)))
-(= (anyT $xs) (foldl-atom $xs False $a $x (or  $a $x)))
+(= (allT $values) (foldl-atom $values True  $acc $value (and $acc $value)))
+(= (anyT $values) (foldl-atom $values False $acc $value (or  $acc $value)))

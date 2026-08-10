@@ -69,7 +69,7 @@
 
 (= (blindScores)
    (let $all (union-atom (m1Seqs 1) (union-atom (m1Seqs 2) (m1Seqs 3)))
-     (map-atom $all $kids (m1ScoreExp (compileTree (mkTree (mkNode and_seq) $kids))))))
+     (map-atom $all $kids (m1ScoreExp (preOrderExp (mkTree (mkNode and_seq) $kids))))))
 
 !(test (size-atom (blindScores)) 14)    ;; 2 + 4 + 8
 !(test (maxOf (blindScores))      2)    ;; and not one of them beats the bound

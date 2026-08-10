@@ -17,6 +17,7 @@
 ;; Start with t-operators: if those fail, nothing below them is trustworthy.
 ;; ============================================================================
 !(import! &self prototypes/m1/all)
+!(import! &self prototypes/m1/domain/tape)
 
 !(import! &self prototypes/m1/tests/t-operators)
 !(import! &self prototypes/m1/tests/t-types)

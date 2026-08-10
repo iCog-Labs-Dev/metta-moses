@@ -15,18 +15,24 @@ still works.
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-from-scratch.metta -s )
 
+# a second world, where ONE test is not enough
+( ulimit -v 8000000; timeout 900 \
+    sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-orchard.metta -s )
+
 # the checks -- every line should end in a green tick
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run.metta -s ) | grep -c ✅
+( ulimit -v 8000000; timeout 900 \
+    sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run-orchard.metta -s ) | grep -c ✅
 ```
 
-That last count must equal the number of checks written down:
+Each count must equal the number of checks written down for that suite:
 
 ```sh
-cat prototypes/m1/tests/t-*.metta | grep -c '^!(test'
-```
-
-Both are **148**. Compare them; do not just look for failures. A check whose
+cat prototypes/m1/tests/t-{operators,types,knobs,decode,domain,search}.metta \
+    | grep -c '^!(test'                                    # 149, the tape suite
+grep -c '^!(test' prototypes/m1/tests/t-orchard.metta       #  66, the orchard suite
+``` Compare them; do not just look for failures. A check whose
 expected value is a program written out longhand is a *call*, and unless it is
 wrapped in `quote` it produces no answer and the check never runs — printing
 nothing at all, neither pass nor fail. Eleven checks were silently missing this
@@ -52,12 +58,26 @@ course on both. Whatever it gains on one, it loses on the other.
 So the search did not just find a better program. It found one that had to
 *look* to be that good.
 
+`demo-orchard.metta` is a second world asking a harder question. Cells hold
+fresh fruit, spoiled fruit, or nothing; picking is worth +2, −3 and −1. Two
+perceptions are available and **neither is any use alone** — every conditional
+built from a single one scores between −6 and −25, all of them worse than doing
+nothing, because picking wherever nothing is spoiled means picking at empty
+cells and an empty pick does not move you. Only `(AND fruitHere freshHere)`
+picks out a fresh fruit, and that is worth 12. The search gets there in one
+knob: the second candidate at the condition position is the perception that was
+missing, and switching it on puts it alongside the one already there.
+
+Same core, same knobs, same search. `domain/orchard.metta` declares four
+primitives and says what a program is worth; nothing else changes.
+
 ## Reading order
 
 | | |
 |---|---|
 | `demo.metta` | the guided walkthrough. Start here. |
 | `demo-from-scratch.metta` | the same machinery with no starting program at all |
+| `demo-orchard.metta` | a second world where one test is not enough — the case for compound conditions |
 | `core/prelude.metta` | list and tree helpers. Nothing interesting. |
 | `core/monad.metta` | how a context (a world, a board, a table row) is threaded |
 | `core/evaluator.metta` | running a program |
@@ -68,8 +88,19 @@ So the search did not just find a better program. It found one that had to
 | `knobs/builder.metta` | turning one program into a space of programs |
 | `knobs/decode.metta` | turning a point in that space back into a program |
 | `search/hillclimb.metta` | looking for a better point |
-| `domain/tape.metta` | the toy world — the only file that knows what a context is |
-| `all.metta` | loads everything, in the one order that works |
+| `domain/tape.metta` | the first world — a domain file is the only kind that knows what a context is |
+| `domain/orchard.metta` | the second world, drop-in against the same core |
+| `all.metta` | loads everything domain-independent, in the one order that works |
+
+`all.metta` loads **no domain**. A demo or a test suite picks one:
+
+```metta
+!(import! &self prototypes/m1/all)
+!(import! &self prototypes/m1/domain/tape)
+```
+
+Loading two at once would merge their vocabularies, which is exactly what the
+type queries would then report.
 
 ## Three ideas worth the detour
 
@@ -108,11 +139,59 @@ silently scores worst while the run still looks healthy. `ifM` exists for this,
 and `tests/t-operators.metta` checks each operator's arity individually. If
 those fail, ignore everything below them.
 
-**Only `all.metta` imports.** Loading a file twice defines everything in it
-twice, and duplicate definitions here do not replace each other — they pile up
-and every answer comes back doubled. `demo.metta` and `tests/run.metta` import
-`all.metta` and nothing else; no file under `core/`, `knobs/`, `search/` or
-`domain/` imports anything.
+**Only `all.metta` and a domain get imported.** Loading a file twice defines
+everything in it twice, and duplicate definitions here do not replace each other
+— they pile up and every answer comes back doubled. That is not hypothetical: a
+`blindScores` helper defined in two test files turned one assertion into 65537
+solutions. No file under `core/`, `knobs/`, `search/` or `domain/` imports
+anything.
+
+**A program is never pretty-printed.** There is no `showTree`. A program is
+shown by *compiling* it — `preOrderExp`, the same call the scorer makes — so
+what a demo prints is exactly the term the evaluator receives, `(op (children))`
+with leaves as `(op ())`. It is noisier to read and it cannot drift.
+
+## Where these names come from
+
+Nothing here is invented where MOSES already had a word for it. Read the middle
+column if you know the production tree, the right one if you know the C++.
+
+| this prototype | metta-moses | classic MOSES |
+|---|---|---|
+| `buildKnobs` | `buildKnobs` | `build_knobs` |
+| `buildLogical` | `buildLogical` | `build_knobs::build_logical` |
+| `addLogicalKnobs` | `addLogicalKnobs` | `add_logical_knobs` |
+| `logicalCanonize` | `logicalCanonize` | `logical_canonize` |
+| `addSimpleActionKnobs` | `addSimpleActionKnobs` | `add_simple_action_knobs` |
+| `logicalSubtreeKnob` / `mkLSK` | same | `logical_subtree_knob` |
+| `simpleActionSubtreeKnob` | `simpleActionSubtreeKnob` | `simple_action_subtree_knob` |
+| `actionSubtreeKnob` / `mkASK` | `actionSubtreeKnob` | `action_subtree_knob` |
+| `sampleLogicalPerms` | `sampleLogicalPerms` | `sample_logical_perms` |
+| `samplePerms` | — (`sampleLogicalPerms` + `sampleActionPerms`) | — (`sample_logical_perms` + `sample_action_perms`) |
+| `permittedOpsFor` | `swapAndOr` | `swap_and_or` + `permitted_op` |
+| `swapAndOr` | `swapAndOr` | `swap_and_or` |
+| `getCandidate` | `getCandidate` | `representation::get_candidate` |
+| `getCandidateRec` | `getCandidateRec` | `get_candidate_rec` |
+| `cleanTree` | `cleanTree` | `clean_combo_tree` / `logical_cleanup` |
+| `preOrderExp` | `preOrderExp` | — (`combo_tree` runs directly) |
+| `knobMultiplicities` | `getKnobMultip` | `field_set::disc_spec::multy` |
+| `exemplarInst` | `initCenterInst` | `representation::exemplar_inst` |
+| `changeAt` | `changeAt` | `field_set::set_raw` |
+| `varyNKnobs` | `varyNKnobs` | `vary_n_knobs` |
+| `generateAllInNeighborhood` | `generateAllInNeighborhood` | `generate_all_in_neighborhood` |
+| `hillClimbing` | `hillClimbing` | `hill_climbing::operator()` |
+| `isPrimitive` | `isAnArgument` | `is_argument` |
+
+Two entries are worth reading twice. `samplePerms` is **one** function where both
+implementations have two, because the type of the slot is an argument rather
+than something baked into the function name. And `permittedOpsFor` generalises
+`swapAndOr`: rather than "inside an AND, use OR", the rule is "a candidate is
+never headed by the operator it will sit under", which produces the AND/OR
+alternation as a special case and also keeps `(NOT (NOT p))` from being offered.
+
+Things with no counterpart keep descriptive names: `slotTypesOf`, `fillersOfType`,
+`vocabsOf`, `fillAt`, `usableFilling`, `candidateAt`, `sampleCandidates`. They
+are the type-driven filling machinery, which is the part that is genuinely new.
 
 ## What it does not do
 

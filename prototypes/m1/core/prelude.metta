@@ -7,27 +7,40 @@
 
 ;; 0, 1, ... n-1.  ASCENDING -- several things below rebuild lists by mapping
 ;; over these indices, and a descending range would silently reverse them.
-(= (rangeFrom $i $n) (if (>= $i $n) () (cons-atom $i (rangeFrom (+ $i 1) $n))))
-(= (rangeTo $n) (rangeFrom 0 $n))
+(= (rangeFrom $from $upto)
+   (if (>= $from $upto) () (cons-atom $from (rangeFrom (+ $from 1) $upto))))
+(= (rangeTo $upto) (rangeFrom 0 $upto))
 
-(= (lastOf $xs) (index-atom $xs (- (size-atom $xs) 1)))
+(= (lastOf $items) (index-atom $items (- (size-atom $items) 1)))
 
-;; Position of $x in $xs, or -1.
-;; $idxs is LET-BOUND on purpose: `superpose` does not evaluate its argument,
-;; so (superpose (rangeTo ...)) would superpose over the literal two-element
-;; term `(rangeTo ...)` and quietly produce nothing.
-(= (idxOfIn $xs $x)
-   (let* (($idxs (rangeTo (size-atom $xs)))
-          ($hits (collapse (let $i (superpose $idxs)
-                                (if (== (index-atom $xs $i) $x) $i (empty))))))
-     (if (== $hits ()) -1 (car-atom $hits))))
+;; $count copies of $item -- the production tree's List.repeat.
+(= (repeat $item $count)
+   (if (== $count 0)
+       ()
+       (let $rest (repeat $item (- $count 1)) (cons-atom $item $rest))))
 
-(= (containsIn $xs $x) (!= (idxOfIn $xs $x) -1))
+;; `once` is not optional here: is-member succeeds once per matching element,
+;; so on a list holding two copies of $wanted this would return two answers,
+;; and every caller -- and every caller of every caller -- would come back
+;; doubled.
+(= (containsIn $items $wanted) (once (is-member $wanted $items)))
 
-;; Every element of $xs except those in $ys.
-(= (without $xs $ys) (filter-atom $xs $x (not (containsIn $ys $x))))
+;; Every element of $items except those in $unwanted.
+(= (without $items $unwanted)
+   (filter-atom $items $item (not (containsIn $unwanted $item))))
 
-(= (maxOf $xs) (foldl-atom $xs -1000000 $a $x (if (> $x $a) $x $a)))
+;; Haskell's nub: drop repeats, keeping the first of each. The membership
+;; test is doing the work -- union-atom CONCATENATES, it does not deduplicate.
+(= (nub $items)
+   (foldl-atom $items () $kept $item
+     (if (containsIn $kept $item) $kept (union-atom $kept ($item)))))
+
+;; Haskell's take: the first $count items, or all of them if there are fewer.
+(= (takeFirst $count $items)
+   (let $howMany (if (< $count (size-atom $items)) $count (size-atom $items))
+     (map-atom (rangeTo $howMany) $i (index-atom $items $i))))
+
+(= (maxOf $numbers) (foldl-atom $numbers -1000000 $best $n (if (> $n $best) $n $best)))
 
 
 ;; ---------------------------------------------------------------------------
@@ -39,28 +52,16 @@
 ;;     (mkKnob <controlled subtree> <knob> <index>)   a knobbed position
 ;;     (mkNullVex (<subtree>))                        a position that is empty
 ;;                                                    unless its knob turns on
+;;
+;; There is no pretty-printer. A program is shown by COMPILING it (see
+;; knobs/decode.metta), so what you read in a demo is the exact term the
+;; evaluator is handed -- there is no second representation that could drift.
 ;; ---------------------------------------------------------------------------
 
-(= (leafOf $s) (mkTree (mkNode $s) ()))
-(= (nodeSymOf (mkTree (mkNode $s) $kids)) $s)
-(= (kidsOf (mkTree (mkNode $s) $kids)) $kids)
-(= (isNullVex $x) (== (car-atom $x) mkNullVex))
+(= (leafOf $symbol) (mkTree (mkNode $symbol) ()))
+(= (nodeSymOf (mkTree (mkNode $symbol) $children)) $symbol)
+(= (kidsOf (mkTree (mkNode $symbol) $children)) $children)
+(= (isNullVex $subtree) (== (car-atom $subtree) mkNullVex))
 
-;; Wrap $t in a negation node.
-(= (negated $t) (mkTree (mkNode NOT) ($t)))
-
-
-;; ---------------------------------------------------------------------------
-;; showTree -- compact printing.  (mkTree (mkNode a) ((mkTree (mkNode b) ())))
-;; prints as (a (b)), which is what makes the demo readable.
-;; Knobs print as (KNOB <index> <kind> <multiplicity> <default> <subtree>).
-;; ---------------------------------------------------------------------------
-(= (showTree (mkNullVex ()))  EMPTY)
-(= (showTree (mkNullVex ($t))) (let $in (showTree $t) (quote (OFF $in))))
-(= (showTree (mkTree (mkNode $s) ())) $s)
-(= (showTree (mkTree (mkNode $s) (cons $x $xs)))
-   (let $kids (map-atom (cons $x $xs) $c (showTree $c)) (quote ($s $kids))))
-(= (showTree (mkKnob $sub (mkLSK $m $d) $i))
-   (let $in (showTree $sub) (quote (KNOB $i LSK $m $d $in))))
-(= (showTree (mkKnob $sub (mkASK $m $d $p) $i))
-   (let $in (showTree $sub) (quote (KNOB $i ASK $m $d $in))))
+;; Wrap $subtree in a negation node.
+(= (negated $subtree) (mkTree (mkNode NOT) ($subtree)))

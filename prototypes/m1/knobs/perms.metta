@@ -41,94 +41,99 @@
 ;; is much larger; this is the budget.
 (= (permCount) 6)
 
-;; What each argument slot of a sampled use of $op asks for.
-(= (slotTypesOf $op)
-   (let $a (argTypeOf $op)
-     (if (== (car-atom $a) Seq)
-         (let $t (index-atom $a 1) (map-atom (rangeTo (seqArity)) $k $t))
-         $a)))
+;; What each argument slot of a sampled use of $operator asks for.
+(= (slotTypesOf $operator)
+   (let $argTypes (argTypeOf $operator)
+     (if (== (car-atom $argTypes) Seq)
+         (repeat (index-atom $argTypes 1) (seqArity))
+         $argTypes)))
 
 ;; What may go IN one of those slots. Primitives of the right type -- and, for
 ;; a test, their negations too. There is no knob inside a candidate to flip a
 ;; polarity later, so both polarities have to be offered up front; this is what
 ;; makes (OR (NOT p) q) reachable.
-(= (fillersOfType $t)
-   (let $lits (map-atom (primsOfType $t) $s (leafOf $s))
-     (if (== $t Bool) (union-atom $lits (map-atom $lits $l (negated $l))) $lits)))
+(= (fillersOfType $type)
+   (let $literals (map-atom (primsOfType $type) $symbol (leafOf $symbol))
+     (if (== $type Bool)
+         (union-atom $literals (map-atom $literals $literal (negated $literal)))
+         $literals)))
 
-(= (vocabsOf $op) (map-atom (slotTypesOf $op) $t (fillersOfType $t)))
+(= (vocabsOf $operator) (map-atom (slotTypesOf $operator) $type (fillersOfType $type)))
 
 ;; --- walking the fillings ---------------------------------------------------
-;; The $j-th way of filling the slots, counting like an odometer over the
-;; vocabularies. The LAST slot turns fastest (hence the two reverses), so
-;; consecutive j vary the arguments while holding the leading one steady --
-;; with the first slot turning fastest a three-argument operator would repeat
-;; its last two arguments for as long as the budget lasts.
-(= (fillLeft $vocabs $j)
-   (if (== $vocabs ()) ()
-       (let* (($v (car-atom $vocabs))
-              ($n (size-atom $v))
-              ($here (index-atom $v (% $j $n)))
-              ($rest (fillLeft (cdr-atom $vocabs) (floor-math (/ $j $n)))))
-         (cons-atom $here $rest))))
+;; The $index-th way of filling the slots, counted like an odometer over the
+;; vocabularies: the LAST slot turns fastest, so consecutive indices vary the
+;; trailing arguments while holding the leading one steady. With the first slot
+;; turning fastest, a three-argument operator would repeat its last two
+;; arguments for as long as the budget lasted.
+;;
+;; Reading the vocabularies right to left is what makes the last slot fastest;
+;; the accumulator carries what is left of the index, and the picks pile up in
+;; the correct order as it goes.
+(= (fillAt $vocabs $index)
+   (let ($leftover $args)
+        (foldl-atom (reverse $vocabs) ($index ()) $acc $vocab
+          (let* ((($remaining $picked) $acc)
+                 ($size (size-atom $vocab))
+                 ($choice (index-atom $vocab (% $remaining $size))))
+            ((floor-math (/ $remaining $size)) (cons-atom $choice $picked))))
+     $args))
 
-(= (fillAt $vocabs $j) (reverse (fillLeft (reverse $vocabs) $j)))
-(= (fillCount $vocabs) (foldl-atom $vocabs 1 $a $v (* $a (size-atom $v))))
+(= (fillCount $vocabs) (foldl-atom $vocabs 1 $total $vocab (* $total (size-atom $vocab))))
 
+;; --- which fillings are worth a knob ----------------------------------------
 ;; Two slots holding the same test add nothing: (OR p p) is just p, and
 ;; (OR p (NOT p)) is just true. So a filling is thrown away when two slots
 ;; share a base, polarity ignored.
-(= (baseOf $t) (if (== (nodeSymOf $t) NOT) (car-atom (kidsOf $t)) $t))
+(= (baseOf $subtree)
+   (if (== (nodeSymOf $subtree) NOT) (car-atom (kidsOf $subtree)) $subtree))
 
-(= (allDistinct ()) True)
-(= (allDistinct (cons $x $rest))
-   (if (containsIn $rest $x) False (allDistinct $rest)))
+(= (allDistinct $items) (== (size-atom $items) (size-atom (nub $items))))
 
-(= (usableFill $args) (allDistinct (map-atom $args $a (baseOf $a))))
+;; ...and an argument is never headed by the operator it sits under. That is
+;; the same rule that keeps an OR out of an OR one level up, applied one level
+;; down: it is what stops (NOT (NOT p)) being offered as though it were new.
+(= (usableFilling $operator $args)
+   (and (allDistinct (map-atom $args $arg (baseOf $arg)))
+        (not (containsIn (map-atom $args $arg (nodeSymOf $arg)) $operator))))
 
 ;; --- sampling ---------------------------------------------------------------
-;; The $i-th candidate: operators taken in turn, so a small budget spends
-;; itself across all of them instead of exhausting the first.
-(= (compoundAt $ops $i)
-   (let* (($n (size-atom $ops))
-          ($op (index-atom $ops (% $i $n)))
-          ($args (fillAt (vocabsOf $op) (floor-math (/ $i $n)))))
-     (if (usableFill $args) (mkTree (mkNode $op) $args) ())))
+;; The $index-th candidate: operators taken in turn, so a small budget spends
+;; itself across all of them instead of exhausting the first. Unusable fillings
+;; come back as (), and are dropped below.
+(= (candidateAt $operators $index)
+   (let* (($count (size-atom $operators))
+          ($operator (index-atom $operators (% $index $count)))
+          ($args (fillAt (vocabsOf $operator) (floor-math (/ $index $count)))))
+     (if (usableFilling $operator $args) (mkTree (mkNode $operator) $args) ())))
 
-;; how far the walk can go before every operator has run out of fillings
-(= (permLimit $ops)
-   (* (size-atom $ops)
-      (foldl-atom $ops 1 $a $o (let $f (fillCount (vocabsOf $o)) (if (> $f $a) $f $a)))))
+;; how far the walk has to go before every operator has run out of fillings
+(= (permLimit $operators)
+   (* (size-atom $operators)
+      (maxOf (map-atom $operators $operator (fillCount (vocabsOf $operator))))))
 
-;; Walk until $n candidates have been collected, skipping the unusable ones and
-;; any repeat (operators with few fillings come round again).
-(= (sampleCompounds $ops $i $limit $n $acc)
-   (if (>= $i $limit) $acc
-   (if (<= $n 0) $acc
-       (let $p (compoundAt $ops $i)
-         (if (== $p ())
-             (sampleCompounds $ops (+ $i 1) $limit $n $acc)
-             (if (containsIn $acc $p)
-                 (sampleCompounds $ops (+ $i 1) $limit $n $acc)
-                 (sampleCompounds $ops (+ $i 1) $limit (- $n 1)
-                                  (union-atom $acc ($p)))))))))
+;; Walk the whole space, drop the unusable, drop repeats (an operator with few
+;; fillings comes round again), keep the first $budget.
+(= (sampleCandidates $operators $budget)
+   (let $walked (map-atom (rangeTo (permLimit $operators)) $index
+                          (candidateAt $operators $index))
+     (takeFirst $budget (nub (filter-atom $walked $candidate (!= $candidate ()))))))
 
-;; Which operators may head a candidate for a slot of type $t sitting under
+;; Which operators may head a candidate for a slot of type $type sitting under
 ;; $parent. Not the parent's own operator -- (and_seq (and_seq ...)) says
 ;; nothing new, and for tests this is exactly the AND/OR alternation: the
-;; candidates offered inside an AND are ORs and vice versa. Not the negator
-;; either; that is a knob setting.
-(= (permOpsFor $parent $t)
-   (filter-atom (opsOfType $t) $o (if (== $o $parent) False (not (isNegator $o)))))
+;; candidates offered inside an AND are ORs and vice versa.
+(= (permittedOpsFor $parent $type)
+   (filter-atom (opsOfType $type) $operator (!= $operator $parent)))
 
-;; Every candidate for a slot of type $t under $parent.
-(= (permsFor $parent $t)
-   (let* (($lits (map-atom (primsOfType $t) $s (leafOf $s)))
-          ($ops  (permOpsFor $parent $t))
-          ($comp (if (== $ops ())
-                     ()
-                     (sampleCompounds $ops 0 (permLimit $ops) (permCount) ()))))
-     (union-atom $lits $comp)))
+;; Every candidate for a slot of type $type under $parent.
+(= (samplePerms $parent $type)
+   (let* (($literals (map-atom (primsOfType $type) $symbol (leafOf $symbol)))
+          ($operators (permittedOpsFor $parent $type))
+          ($compounds (if (== $operators ())
+                          ()
+                          (sampleCandidates $operators (permCount)))))
+     (union-atom $literals $compounds)))
 
 ;; the boolean case is the same question asked of type Bool
-(= (logicalPerms $op) (permsFor $op Bool))
+(= (sampleLogicalPerms $parent) (samplePerms $parent Bool))

@@ -7,44 +7,46 @@
 ;; nothing improves.
 ;;
 ;; Deliberately the simplest thing that works. No randomness, so every run
-;; gives the same answer.
+;; gives the same answer. Names follow the production tree's
+;; optimization/hillclimbing (classic: neighborhood_sampling.h, hill-climbing.cc).
 ;; ============================================================================
 
-(= (setNth $xs $i $v)
-   (let $idxs (rangeTo (size-atom $xs))
-     (map-atom $idxs $k (if (== $k $i) $v (index-atom $xs $k)))))
+;; classic: field_set::set_raw
+(= (changeAt $items $index $value)
+   (map-atom (rangeTo (size-atom $items)) $i (if (== $i $index) $value (index-atom $items $i))))
 
-;; every instance that differs from $inst in knob $i alone
-(= (neighboursAt $mults $inst $i)
-   (let* (($m (index-atom $mults $i))
-          ($cur (index-atom $inst $i))
-          ($vals (filter-atom (rangeTo $m) $v (!= $v $cur))))
-     (map-atom $vals $v (setNth $inst $i $v))))
+;; every instance that differs from $inst in knob $index alone
+(= (varyNKnobs $mults $inst $index)
+   (let* (($settings (index-atom $mults $index))
+          ($current  (index-atom $inst $index))
+          ($others   (filter-atom (rangeTo $settings) $setting (!= $setting $current))))
+     (map-atom $others $setting (changeAt $inst $index $setting))))
 
-(= (neighbours $mults $inst)
-   (let $idxs (rangeTo (size-atom $inst))
-     (foldl-atom $idxs () $acc $i (union-atom $acc (neighboursAt $mults $inst $i)))))
+(= (generateAllInNeighborhood $mults $inst)
+   (let $indices (rangeTo (size-atom $inst))
+     (foldl-atom $indices () $found $index
+       (union-atom $found (varyNKnobs $mults $inst $index)))))
 
 ;; the best single move, or where we already are if nothing is better
-(= (climbStep $scorer $rep $mults $inst $score)
-   (let $ns (neighbours $mults $inst)
-     (foldl-atom $ns ($inst $score) $best $n
-       (let* ((($bi $bs) $best)
-              ($s (scoreInstance $scorer $rep $n)))
-         (if (> $s $bs) ($n $s) $best)))))
+(= (hillClimbingStep $scorer $rep $mults $inst $score)
+   (let $neighbours (generateAllInNeighborhood $mults $inst)
+     (foldl-atom $neighbours ($inst $score) $best $neighbour
+       (let* ((($bestInst $bestScore) $best)
+              ($neighbourScore (scoreInstance $scorer $rep $neighbour)))
+         (if (> $neighbourScore $bestScore) ($neighbour $neighbourScore) $best)))))
 
-(= (climb $scorer $rep $mults $inst $score $fuel)
+(= (hillClimbingLoop $scorer $rep $mults $inst $score $fuel)
    (if (<= $fuel 0)
        ($inst $score)
-       (let ($ni $ns) (climbStep $scorer $rep $mults $inst $score)
-         (if (== $ns $score)
+       (let ($nextInst $nextScore) (hillClimbingStep $scorer $rep $mults $inst $score)
+         (if (== $nextScore $score)
              ($inst $score)
-             (climb $scorer $rep $mults $ni $ns (- $fuel 1))))))
+             (hillClimbingLoop $scorer $rep $mults $nextInst $nextScore (- $fuel 1))))))
 
 (= (searchSteps) 40)
 
-(= (searchBest $scorer $rep)
-   (let* (($mults (multsOf $rep))
-          ($start (defaultInstance $rep))
-          ($s0 (scoreInstance $scorer $rep $start)))
-     (climb $scorer $rep $mults $start $s0 (searchSteps))))
+(= (hillClimbing $scorer $rep)
+   (let* (($mults (knobMultiplicities $rep))
+          ($start (exemplarInst $rep))
+          ($startScore (scoreInstance $scorer $rep $start)))
+     (hillClimbingLoop $scorer $rep $mults $start $startScore (searchSteps))))
