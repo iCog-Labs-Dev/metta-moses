@@ -141,9 +141,12 @@ same operators work for any domain, and only the file under `domain/` knows
 what is being evaluated.
 
 **Only `mreturn` and `mbind` know what a computation is.** They are the monad
-instance — Haskell's `return` and `>>=` — and `ifM`, `mfmap`, `allM` and `anyM`
-are derived from them exactly as Haskell derives them, so none of them would
-change if the representation did. A combinator that takes the result apart is
+instance — Haskell's `return` and `>>=` — and `mfmap`, `allM` and `anyM` are
+derived from them exactly as Haskell derives them, so none of them would change
+if the representation did. Where Haskell writes a lambda after `>>=`, this
+writes a named step whose captured variables are leading parameters, so a
+partial application is the closure; `pickBranch`, `fmapStep` and `allMStep` are
+all that same shape. A combinator that takes the result apart is
 not a monadic combinator; it is this monad's code wearing a general name. That
 distinction is what removed the second, context-free set of `AND`/`OR`/`NOT`
 clauses, and with them the last hardcoded list of which operators exist.

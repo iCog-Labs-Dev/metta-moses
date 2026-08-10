@@ -44,15 +44,17 @@
 ;; Derived. Nothing below mentions mkRes.
 ;; ---------------------------------------------------------------------------
 
-;; Data.Bool.bool -- choose between two things on a plain Bool. The test comes
-;; LAST so that (chooseM $then $else) is a continuation mbind can be handed.
-(= (chooseM $then $else $test) (if $test $then $else))
-
-;; Control.Monad.Extra.ifM :: m Bool -> m a -> m a -> m a
-;;     ifM b t f = do { b' <- b ; if b' then t else f }
+;; `if` over a plain Bool, choosing between two COMPUTATIONS. The test is an
+;; ordinary value, not an m Bool -- Haskell's `if`, not its `ifM`.
+;;
+;; It exists because a clause body that ends in a bare `if` does not
+;; eta-expand: the enclosing operator would compile one argument short and
+;; every program would silently score worst. Ending in a call to this instead
+;; keeps that from happening.
+;;
 ;; Both branches arrive as unapplied computations and only the chosen one is
-;; ever run -- that is where the laziness in and_seq / AND actually comes from.
-(= (ifM $test $then $else $ctx) (mbind $test (chooseM $then $else) $ctx))
+;; ever run -- that is where the laziness in and_seq / AND comes from.
+(= (ifM $test $then $else $ctx) (if $test ($then $ctx) ($else $ctx)))
 
 ;; liftM, i.e. fmap for a monad:  fmap f m = m >>= (return . f)
 ;;
@@ -70,12 +72,17 @@
 (= (fmapStep $fn $value $ctx) (mreturn ($fn $value) $ctx))
 (= (mfmap $fn $computation $ctx) (mbind $computation (fmapStep $fn) $ctx))
 
-;; Control.Monad.Extra.allM / anyM, written the way Haskell writes them:
+;; Control.Monad.Extra.allM / anyM. Haskell writes them with its own ifM,
 ;;
-;;     allM p []     = return True
 ;;     allM p (x:xs) = ifM (p x) (allM p xs) (return False)
-;;     anyM p []     = return False
-;;     anyM p (x:xs) = ifM (p x) (return True) (anyM p xs)
+;;
+;; which desugars to exactly what is below: run the head, then branch on the
+;; value it produced. The `\v -> ...` becomes a named step, because there are
+;; no lambdas here -- the same trick pickBranch uses in core/operators.metta,
+;; with the captured variables hoisted into leading parameters so that a
+;; partial application is the closure. The step also takes $ctx, for the reason
+;; given above: written value-last it would eta-expand, and the specializer
+;; then emits a call at the pre-eta arity that does not exist.
 ;;
 ;; The two clauses match on the SHAPE of the list rather than testing it for
 ;; emptiness. That is not a style choice: arguments here are built strictly, so
@@ -86,12 +93,12 @@
 ;; and simply fails -- which is what maps a malformed node to the worst score,
 ;; and is why the operators need no guard of their own.
 (= (allM $fn () $ctx) (mreturn True $ctx))
-(= (allM $fn (cons $x $xs) $ctx)
-   (ifM ($fn $x) (allM $fn $xs) (mreturn False) $ctx))
+(= (allM $fn (cons $x $xs) $ctx) (mbind ($fn $x) (allMStep $fn $xs) $ctx))
+(= (allMStep $fn $xs $value $ctx) (ifM $value (allM $fn $xs) (mreturn False) $ctx))
 
 (= (anyM $fn () $ctx) (mreturn False $ctx))
-(= (anyM $fn (cons $x $xs) $ctx)
-   (ifM ($fn $x) (mreturn True) (anyM $fn $xs) $ctx))
+(= (anyM $fn (cons $x $xs) $ctx) (mbind ($fn $x) (anyMStep $fn $xs) $ctx))
+(= (anyMStep $fn $xs $value $ctx) (ifM $value (mreturn True) (anyM $fn $xs) $ctx))
 
 ;; const True
 (= (constTrue $ignored) True)
