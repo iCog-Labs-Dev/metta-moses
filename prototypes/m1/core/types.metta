@@ -13,24 +13,35 @@
 ;;     ($t1 $t2 ...)    exactly this many, each with its own type
 ;;
 ;; From that, a handful of questions answer everything the builder needs, and
-;; the builder never has to know a single operator by name. Classic MOSES asks
+;; the builder never has to know a single operator by name.
+;;
+;; A DECLARED OPERATOR CANNOT BE CALLED FROM A SOURCE CALL SITE -- only through
+;; the evaluator's `reduce`, which never consults declarations. Writing
+;; (AND (True False)) literally in a file yields nothing at all: the compiler
+;; injects a type check at such a site, and a tuple's type comes back as
+;; (Bool Bool), which does not unify with (Seq Bool). That is a property every
+;; declared operator here already had; it only became visible when AND and OR
+;; were declared, because they were the only ones anything called that way.
+;;
+;; This file still names AND, OR and NOT in isJunctor and swapAndOr, as do
+;; logicalCanonize, negated and baseOf elsewhere. That is not vocabulary
+;; hardcoding -- the AND/OR alternation is inherently about those symbols.
+;; What the declarations removed is the hardcoded list of what EXISTS.
+;;
+;; Classic MOSES asks
 ;; the same questions of a combo signature -- get_signature_inputs,
 ;; get_signature_output, permitted_op -- but has to hardcode the vocabulary per
 ;; problem type; here the declarations ARE the vocabulary.
 ;; ============================================================================
 
-;; AND/OR/NOT cannot carry a (: ...) declaration: a declaration applies to a
-;; symbol regardless of how many arguments a use of it has, and these symbols
-;; deliberately have two forms. Their signatures live here instead.
-;; One clause with a chain of tests -- two clauses with the same head would
-;; both apply and produce duplicate answers.
-(= (sigFallback $op)
-   (if (== $op AND) (-> (Seq Bool) $ctx Bool)
-   (if (== $op OR)  (-> (Seq Bool) $ctx Bool)
-   (if (== $op NOT) (-> (Bool) $ctx Bool)
-                    (-> Params $ctx Unknown)))))
-
-(= (sigOf $op) (let $declared (get-type $op) (if (isExpr $declared) $declared (sigFallback $op))))
+;; Everything the builder needs comes from the declaration. A symbol with no
+;; declaration falls back to "a leaf of unknown type" -- that net has to be
+;; here, because without it argTypeOf would index into %Undefined% and produce
+;; zero solutions in silence. action_success, action_failure and return_success
+;; are undeclared today and reach this path.
+(= (sigOf $op)
+   (let $declared (get-type $op)
+     (if (isExpr $declared) $declared (-> Params $ctx Unknown))))
 
 ;; classic: get_signature_inputs / get_signature_output
 (= (argTypeOf $op) (index-atom (sigOf $op) 1))
@@ -68,12 +79,7 @@
      (map-atom (filter-atom $signatures $sig (!= (index-atom $sig 1) Params))
                $sig (car-atom $sig))))
 
-;; AND/OR/NOT carry no declaration (see the note above), so they are named here
-;; -- this file is the one place in the prototype where an operator name may
-;; appear, and everything else asks these questions instead.
-(= (undeclaredOpsOfType $type) (if (== $type Bool) (quote (AND OR NOT)) ()))
-
-(= (opsOfType $type) (union-atom (undeclaredOpsOfType $type) (declaredOpsOfType $type)))
+(= (opsOfType $type) (declaredOpsOfType $type))
 
 ;; --- boolean structure ------------------------------------------------------
 ;; AND and OR alternate as you go down a boolean expression: the children of an
@@ -93,9 +99,16 @@
 ;; be loaded together without duplicating every one of these, and a duplicated
 ;; declaration doubles every answer that goes through sigOf.
 ;;
-;; AND, OR and NOT are absent on purpose: a declaration applies to a symbol no
-;; matter how many arguments a use of it has, and those three deliberately have
-;; two forms. sigFallback above carries their signatures instead.
+;; AND/OR/NOT are declared here like everything else. They could not be while
+;; they had a second, context-free set of clauses, because a declaration makes
+;; a symbol uncallable from a source call site -- see the note at the top of
+;; this file -- and those clauses were the only thing calling them that way.
+;; With one definition each, nothing calls them from source, so the cost is
+;; zero and their signatures no longer have to be hardcoded.
+;;
+;; Order matters: it is the order primsOfType and declaredOpsOfType hand the
+;; vocabulary back in, and knobs/perms.metta spends a budget walking that
+;; vocabulary. domain/berries.metta depends on it deliberately.
 ;; ============================================================================
 (: Act Type)
 (: Params Type)
@@ -104,3 +117,7 @@
 (: and_seq        (-> (Seq Act) $ctx Act))
 (: or_seq         (-> (Seq Act) $ctx Act))
 (: action_not     (-> (Act) $ctx Act))
+
+(: AND (-> (Seq Bool) $ctx Bool))
+(: OR  (-> (Seq Bool) $ctx Bool))
+(: NOT (-> (Bool) $ctx Bool))

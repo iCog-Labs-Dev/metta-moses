@@ -39,7 +39,16 @@
 ;; what lets a candidate be an operator with its arguments filled in, rather
 ;; than only a bare primitive.
 !(test (declaredOpsOfType Act)  (quote (action_bool_if and_seq or_seq action_not)))
-!(test (declaredOpsOfType Bool) ())          ;; AND/OR/NOT cannot be declared...
-!(test (undeclaredOpsOfType Bool) (quote (AND OR NOT)))  ;; ...so they are named once
-!(test (undeclaredOpsOfType Act)  ())
+!(test (declaredOpsOfType Bool) (quote (AND OR NOT)))
 !(test (opsOfType Bool) (quote (AND OR NOT)))
+!(test (opsOfType Act)  (quote (action_bool_if and_seq or_seq action_not)))
+
+;; A declared operator can no longer be called from a source call site -- only
+;; through the evaluator's reduce, which does not consult declarations. This is
+;; the entire price of declaring AND/OR/NOT, and it is pinned here so it is a
+;; documented property rather than a surprise. The arity checks at the top of
+;; t-operators prove the reduce path is unaffected.
+!(test (collapse (AND (True True))) ())
+!(test (collapse (OR (True False))) ())
+;; the same was already true of every other declared operator
+!(test (collapse (and_seq () w0)) ())

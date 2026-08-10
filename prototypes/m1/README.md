@@ -36,7 +36,7 @@ Each count must equal the number of checks written down for that suite:
 
 ```sh
 cat prototypes/m1/tests/t-{operators,types,knobs,decode,domain,search}.metta \
-    | grep -c '^!(test'                                    # 149, the tape suite
+    | grep -c '^!(test'                                    # 147, the tape suite
 grep -c '^!(test' prototypes/m1/tests/t-orchard.metta       #  66, the orchard suite
 grep -c '^!(test' prototypes/m1/tests/t-berries.metta       #  47, the berry suite
 ``` Compare them; do not just look for failures. A check whose
@@ -134,10 +134,19 @@ type queries would then report.
 
 ## Three ideas worth the detour
 
-**Operators never mention the context.** `(= (and_seq $children) ...)` — no
-world, no board, nothing. Each body ends in a partially applied call and the
-compiler supplies the missing argument. So the same operators work for any
-domain, and only `domain/tape.metta` knows what is being evaluated.
+**Operators never mention the context.** `(= (and_seq $children) (allM evalProgram $children))`
+— no world, no board, nothing, and no conditional either. Each body ends in a
+partially applied call and the compiler supplies the missing argument. So the
+same operators work for any domain, and only the file under `domain/` knows
+what is being evaluated.
+
+**Only `mreturn` and `mbind` know what a computation is.** They are the monad
+instance — Haskell's `return` and `>>=` — and `ifM`, `mfmap`, `allM` and `anyM`
+are derived from them exactly as Haskell derives them, so none of them would
+change if the representation did. A combinator that takes the result apart is
+not a monadic combinator; it is this monad's code wearing a general name. That
+distinction is what removed the second, context-free set of `AND`/`OR`/`NOT`
+clauses, and with them the last hardcoded list of which operators exist.
 
 **The builder never names an operator.** It asks the type declarations: what
 does this slot want, and what can produce that? A slot wanting `Bool` gets an
@@ -161,13 +170,26 @@ width of one. Folding the candidates into a single knob's settings would mean a
 position could hold at most one of them, so `(and_seq GRAB STEP)` could never
 be built and a conditional could never sit alongside anything else.
 
-## Two things that will bite you
+## Things that will bite you
 
-**Every operator body must end in a call.** A body starting with a bare `if`
-does not get the extra argument, compiles one short, and then *every* program
-silently scores worst while the run still looks healthy. `ifM` exists for this,
-and `tests/t-operators.metta` checks each operator's arity individually. If
-those fail, ignore everything below them.
+**Every operator body must end in a call, and every monad combinator must keep
+its context parameter.** Two different failures, one symptom. A body starting
+with a bare `if` does not get the extra argument and compiles one short; and a
+combinator written without an explicit `$ctx` registers at one arity lower, so
+a call meaning to *partially* apply it looks complete and compiles to a
+predicate that does not exist. Either way dispatch quietly fails and *every*
+program scores worst while the run still looks healthy. `tests/t-operators.metta`
+checks each operator's arity individually and those checks come first; both
+failures above were caught by them and by nothing else. If they fail, ignore
+every result below them.
+
+**A declared operator cannot be called from source.** Writing `(AND (True False))`
+literally in a file yields nothing — the compiler injects a type check at such a
+site, and a tuple's type comes back as `(Bool Bool)`, which does not unify with
+the declared `(Seq Bool)`. Operators are reached only through the evaluator's
+`reduce`, which never consults declarations. This was always true of every
+declared operator; it only became visible when `AND` and `OR` were declared,
+because they were the only ones anything called directly.
 
 **Only `all.metta` and a domain get imported.** Loading a file twice defines
 everything in it twice, and duplicate definitions here do not replace each other
