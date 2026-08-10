@@ -34,15 +34,15 @@
 !(test (evalProgram (quote (AND ()))     w0) (mkRes True w0))
 !(test (evalProgram (quote (OR ()))      w0) (mkRes False w0))
 
-;; --- AND/OR/NOT exist in two forms and must not interfere -------------------
-;; on plain values...
-!(test (AND (True True))   True)
-!(test (AND (True False))  False)
-!(test (AND ())            True)
-!(test (OR  (False True))  True)
-!(test (OR  ())            False)
-!(test (NOT (True))        False)
-;; ...and on programs, threading a context
+;; --- malformed children score worst, they do not crash ---------------------
+;; There is no guard in the operators for this. allM and anyM match on the
+;; shape of the list, so children that are not a list match no clause, the call
+;; produces nothing, and evalNode's collapse turns that into the worst result.
+;; Delete this check and the guard's removal stops being covered by anything.
+!(test (evalProgram (quote (AND notATuple)) w0) (mkRes False w0))
+!(test (evalProgram (quote (and_seq notATuple)) w0) (mkRes False w0))
+
+;; --- the boolean operators on programs, threading a context ----------------
 !(test (evalProgram (quote (AND ((m1FoodHere ()) (m1FoodAhead ())))) (mkW (F F) 0 0 0 5))
        (mkRes True (mkW (F F) 0 0 0 5)))
 !(test (evalProgram (quote (AND ((m1FoodHere ()) (m1FoodAhead ())))) (mkW (F E) 0 0 0 5))

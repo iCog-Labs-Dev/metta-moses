@@ -28,11 +28,15 @@
 ;; children, a malformed clause -- fails to produce a well-formed (mkRes ...),
 ;; collapses to nothing, and becomes the worst result. The evaluator cannot
 ;; crash on a badly formed program, which matters when programs are evolved.
+;;
+;; The worst result hands back the context it was GIVEN, so a failed subprogram
+;; cannot corrupt anything: the context is a value being returned, not a
+;; location being written.
 (= (evalNode $op $children $ctx)
    (let* (($call    (quote ($op $children $ctx)))
           ($results (collapse (let (mkRes $value $after) (reduce $call)
                                    (mkRes $value $after)))))
-     (if (== $results ()) (mzero $ctx) (car-atom $results))))
+     (if (== $results ()) (mreturn False $ctx) (car-atom $results))))
 
 ;; Run a program.  Shapes:
 ;;   (op (child ...))  a node
@@ -42,7 +46,7 @@
    (if (isExpr $program)
        (if (== (size-atom $program) 2)
            (let ($op $children) $program (evalNode $op $children $ctx))
-           (mzero $ctx))
+           (mreturn False $ctx))
        (if (isGroundLiteral $program)
            (mreturn $program $ctx)
            (evalNode $program () $ctx))))
