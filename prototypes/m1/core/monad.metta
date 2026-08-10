@@ -44,17 +44,22 @@
 ;; Derived. Nothing below mentions mkRes.
 ;; ---------------------------------------------------------------------------
 
-;; `if` over a plain Bool, choosing between two COMPUTATIONS. The test is an
-;; ordinary value, not an m Bool -- Haskell's `if`, not its `ifM`.
+;; Control.Monad.Extra.ifM :: m Bool -> m a -> m a -> m a
 ;;
-;; It exists because a clause body that ends in a bare `if` does not
-;; eta-expand: the enclosing operator would compile one argument short and
-;; every program would silently score worst. Ending in a call to this instead
-;; keeps that from happening.
+;;     ifM b t f = b >>= \b' -> if b' then t else f
 ;;
-;; Both branches arrive as unapplied computations and only the chosen one is
-;; ever run -- that is where the laziness in and_seq / AND comes from.
-(= (ifM $test $then $else $ctx) (if $test ($then $ctx) ($else $ctx)))
+;; The TEST is a computation, not a plain Bool, which is what keeps this
+;; generic: the only thing it does with a computation is hand it to mbind. An
+;; earlier version applied the branches to a context itself, which tied it to
+;; this particular shape of monad for no gain.
+;;
+;; The lambda needs only the value. Its body SELECTS one of two computations
+;; and hands it back rather than completing a call, so nothing eta-expands and
+;; the second parameter the other lambdas in this file need is unnecessary
+;; here. mbind applies whichever branch was chosen to the threaded context --
+;; and never touches the other one, which is where the laziness in and_seq and
+;; AND comes from.
+(= (ifM $test $then $else $ctx) (mbind $test (|-> ($v) (if $v $then $else)) $ctx))
 
 ;; `|->` IS A LAMBDA, and it is what keeps this file free of one-off helpers.
 ;; The runtime compiles (|-> (args) body) into a fresh anonymous clause, works
@@ -78,12 +83,14 @@
 (= (mfmap $fn $computation $ctx)
    (mbind $computation (|-> ($v $c) (mreturn ($fn $v) $c)) $ctx))
 
-;; Control.Monad.Extra.allM / anyM, as Haskell writes them:
+;; Control.Monad.Extra.allM / anyM, as Haskell writes them -- and with a
+;; monadic ifM they need no lambda of their own at all:
 ;;
 ;;     allM p []     = return True
-;;     allM p (x:xs) = p x >>= \v -> if v then allM p xs else return False
+;;     allM p (x:xs) = ifM (p x) (allM p xs) (return False)
 ;;
-;; Run the head, then branch on the value it produced.
+;; The recursive call and the `return False` are both built but unapplied, so
+;; only the branch that is chosen ever runs and the walk genuinely stops.
 ;;
 ;; The two clauses match on the SHAPE of the list rather than testing it for
 ;; emptiness. That is not a style choice: arguments here are built strictly, so
@@ -94,12 +101,10 @@
 ;; and simply fails -- which is what maps a malformed node to the worst score,
 ;; and is why the operators need no guard of their own.
 (= (allM $fn () $ctx) (mreturn True $ctx))
-(= (allM $fn (cons $x $xs) $ctx)
-   (mbind ($fn $x) (|-> ($v $c) (ifM $v (allM $fn $xs) (mreturn False) $c)) $ctx))
+(= (allM $fn (cons $x $xs) $ctx) (ifM ($fn $x) (allM $fn $xs) (mreturn False) $ctx))
 
 (= (anyM $fn () $ctx) (mreturn False $ctx))
-(= (anyM $fn (cons $x $xs) $ctx)
-   (mbind ($fn $x) (|-> ($v $c) (ifM $v (mreturn True) (anyM $fn $xs) $c)) $ctx))
+(= (anyM $fn (cons $x $xs) $ctx) (ifM ($fn $x) (mreturn True) (anyM $fn $xs) $ctx))
 
 ;; const True
 (= (constTrue $ignored) True)

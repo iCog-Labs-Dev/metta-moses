@@ -145,9 +145,10 @@ instance — Haskell's `return` and `>>=` — and `mfmap`, `allM` and `anyM` are
 derived from them exactly as Haskell derives them, so none of them would change
 if the representation did. Where Haskell writes a lambda after `>>=`, so does
 this — `|->` is a real lambda in the runtime, and it compiles to an anonymous
-clause closed over whatever the body used from outside. It takes **two**
-parameters here, the value and the context, so that its body is a complete call;
-with one it would eta-expand and the specializer would then call an arity that
+clause closed over whatever the body used from outside. A lambda whose body
+*selects* something (`ifM`'s) takes just the value; one whose body would
+otherwise stop short of a finished call (`mfmap`'s) also takes the context,
+because otherwise it eta-expands and the specializer then calls an arity that
 does not exist. A combinator that takes the result apart is
 not a monadic combinator; it is this monad's code wearing a general name. That
 distinction is what removed the second, context-free set of `AND`/`OR`/`NOT`
