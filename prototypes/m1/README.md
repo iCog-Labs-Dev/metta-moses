@@ -19,11 +19,17 @@ still works.
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-orchard.metta -s )
 
+# a third, where the answer is not among the candidates at all
+( ulimit -v 8000000; timeout 900 \
+    sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-berries.metta -s )
+
 # the checks -- every line should end in a green tick
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run.metta -s ) | grep -c ✅
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run-orchard.metta -s ) | grep -c ✅
+( ulimit -v 8000000; timeout 900 \
+    sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run-berries.metta -s ) | grep -c ✅
 ```
 
 Each count must equal the number of checks written down for that suite:
@@ -32,6 +38,7 @@ Each count must equal the number of checks written down for that suite:
 cat prototypes/m1/tests/t-{operators,types,knobs,decode,domain,search}.metta \
     | grep -c '^!(test'                                    # 149, the tape suite
 grep -c '^!(test' prototypes/m1/tests/t-orchard.metta       #  66, the orchard suite
+grep -c '^!(test' prototypes/m1/tests/t-berries.metta       #  47, the berry suite
 ``` Compare them; do not just look for failures. A check whose
 expected value is a program written out longhand is a *call*, and unless it is
 wrapped in `quote` it produces no answer and the check never runs — printing
@@ -71,6 +78,27 @@ missing, and switching it on puts it alongside the one already there.
 Same core, same knobs, same search. `domain/orchard.metta` declares four
 primitives and says what a program is worth; nothing else changes.
 
+`demo-berries.metta` takes away the thing that made the orchard easy. Berries
+are ripe by colour or by smell, and some of the ripe-looking ones are wormy, so
+the answer is `(AND (OR berryRed berrySweet) (NOT berryWormy))` — and
+**`(OR berryRed berrySweet)` is not one of the candidates**. The sampler works
+to a budget, its odometer holds the leading argument steady longest, and
+`berryWormy` is declared first, so every pair on offer leads with `berryWormy`
+and the one we need is never reached. No single knob can produce the answer:
+the best a single setting reaches is 8 out of 16.
+
+It gets there anyway, in **two moves** — `−4 → 8 → 16`. The first switches on
+`(NOT berryWormy)`, which *is* on the menu. The second adds `berrySweet` inside
+the OR node the builder leaves under every condition, alongside the `berryRed`
+already sitting there. That node is the whole reason a shape nobody offered is
+still reachable: the candidates are the letters, and the node is where words get
+spelled.
+
+It also marks the limit honestly. Both moves had to pay off on their own,
+because a single hill climb accepts nothing else. An answer whose first half is
+worthless without its second is still out of reach — which is what a population
+is for, and there isn't one here.
+
 ## Reading order
 
 | | |
@@ -78,6 +106,7 @@ primitives and says what a program is worth; nothing else changes.
 | `demo.metta` | the guided walkthrough. Start here. |
 | `demo-from-scratch.metta` | the same machinery with no starting program at all |
 | `demo-orchard.metta` | a second world where one test is not enough — the case for compound conditions |
+| `demo-berries.metta` | a third where the answer is not a candidate at all, and has to be assembled |
 | `core/prelude.metta` | list and tree helpers. Nothing interesting. |
 | `core/monad.metta` | how a context (a world, a board, a table row) is threaded |
 | `core/evaluator.metta` | running a program |
@@ -90,6 +119,7 @@ primitives and says what a program is worth; nothing else changes.
 | `search/hillclimb.metta` | looking for a better point |
 | `domain/tape.metta` | the first world — a domain file is the only kind that knows what a context is |
 | `domain/orchard.metta` | the second world, drop-in against the same core |
+| `domain/berries.metta` | the third — the one the sampler cannot hand over |
 | `all.metta` | loads everything domain-independent, in the one order that works |
 
 `all.metta` loads **no domain**. A demo or a test suite picks one:
