@@ -25,14 +25,17 @@
 ;;
 ;; CRITICAL: &subtreeCache is keyed by the symbolic subtree expr and is valid
 ;; only for ONE fixed table (a run scores one table). So the whole end-to-end
-;; section evaluates every candidate against the SAME 4-row table (t4Rows/t4Labs)
+;; section evaluates every candidate against the SAME 4-row table (t4Cols/t4Labs)
 ;; -- evaluating a shared subexpr (e.g. (OR A B)) against two different tables in
 ;; one file would return a stale cached column. Columns of A B C D over the rows:
 ;;   A=(T T F F) B=(T F T F) C=(T F F T) D=(T F T F)
+;; t4Cols is the COLUMN-major payload; t4Rows is the same data row-major, for
+;; the legacy per-row path below.
+(= (t4Cols) ((True True False False) (True False True False) (True False False True) (True False True False)))
 (= (t4Rows) ((True True True True) (True False False False) (False True False True) (False False True False)))
 (= (t4Labs) (A B C D))
 (= (colE $cand)
-   (evalSubtree (preOrderExp (buildTree $cand)) (mkITable (t4Rows) (t4Labs)) 4))
+   (evalSubtree (preOrderExp (buildTree $cand)) (mkITable (t4Cols) (t4Labs)) 4))
 ;; Legacy per-row column via the old evaluate/replaceVarsWithTruth path (parity).
 (= (legacyColE $cand)
    (map-atom (t4Rows) $r (evaluate (replaceVarsWithTruth ((t4Labs) $cand) $r))))

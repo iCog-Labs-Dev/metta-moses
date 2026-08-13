@@ -150,7 +150,7 @@
 ;; similar to the above 'sampleFromNeighborhood`' but slight changes for the feature selection
 ;; applies capping to the distance because at somepoint the distance would be greater that the length of the instance and lazyRandomSelector would cause error
 ; (: sampleFromNeighborhoodFs` (-> Number Number (ITable Bool) Instance Instance))
-(= (sampleFromNeighborhoodFs` $n $dist (mkITable (cons $row $rows) $labels) (mkInst $centralInst))
+(= (sampleFromNeighborhoodFs` $n $dist (mkITable (cons $column $columns) $labels) (mkInst $centralInst))
         (let* 
             (
               ($featureLen (- (List.length $labels) 1)) 

@@ -28,8 +28,10 @@
        (+ 1 (countWins (mkBScore $tail)))
        (countWins (mkBScore $tail))))
 
-;; Input table with rows, columns and labels of the columns
-;; An Input Table is just a list of lists.
+;; Input table with rows, columns and labels of the columns.
+;; An Input Table is just a list of lists, stored COLUMN-major: the payload is
+;; the list of columns and its i-th element is the column labelled by the i-th
+;; label. The last column is the output column.
 ;(: ITable (-> $a Type))
 ;(: mkITable (-> (List (List $a)) (List Symbol) (ITable $a)))
 
@@ -44,7 +46,7 @@
 ;; INFO: This could have been done by overloading the mkTruthTableBScore function, but
 ;;  that has shown to be problematic for certain cases. Best to avoid it whenever we can.
 ;(: createTruthTableBScore (-> Number (ITable $a) (TruthTableBScore $a)))
-(= (createTruthTableBScore $complexityCoeff (mkITable $itable $labels)) (mkTruthTableBScore $complexityCoeff (List.length $itable) (mkITable $itable $labels)))
+(= (createTruthTableBScore $complexityCoeff (mkITable $itable $labels)) (mkTruthTableBScore $complexityCoeff (ITable.rowCount $itable) (mkITable $itable $labels)))
 
 ;; Return the table from truth table bscore
 ;(: getTable (-> (TruthTableBScore $a) (ITable $a)))
@@ -65,14 +67,16 @@
 ;; therefore serves as the whole-tree memo, so no separate whole-tree cache
 ;; read/write is needed. $cacheSpace is kept for signature compatibility with
 ;; existing callers but is no longer used.
-(= (scoreTree (mkITable $table $labels) $tree $cacheSpace)
+(= (scoreTree (mkITable $columns $labels) $tree $cacheSpace)
    (if (== $tree (mkTree (mkNode AND) ()))
-       (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $table $labels)))
+       (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $columns $labels)))
        (let* (
            ($expTree (preOrderExp $tree))
-           ($scoreList (evalSubtree $expTree (mkITable $table $labels) (List.length $table)))
+           ($rowCount (ITable.rowCount $columns))
+           ($scoreList (evalSubtree $expTree (mkITable $columns $labels) $rowCount))
            ($length (List.length $labels))
-           ($outputs (List.flatten (List.map (List.drop (- $length 1)) $table)))
+           ;; the output column is the last element of the column-major payload
+           ($outputs (index-atom $columns (- $length 1)))
            ($bScore (List.zipWith compareAndScore $scoreList $outputs))
        )
        (mkBScore $bScore))))
@@ -166,18 +170,15 @@
 ;;  Extracts argument labels (all but the last) from an ITable.
 ;;
 ;;  The ITable structure is:
-;;    (mkITable $rows $labels)
-;;      where $rows   = list of data rows (each a list of values)
-;;            $labels = list of column labels (symbols)
+;;    (mkITable $columns $labels)
+;;      where $columns = list of data columns (each a list of values, one per row)
+;;            $labels  = list of column labels (symbols)
 ;;
 ;;  This function returns an expressison of all column labels except the last one,
 ;;  which is typically the output label in a truth table.
 ;;
-;;  Example:
-;;    (mkITable
-;;      (cons (cons True (cons False (cons True ())))
-;;            (cons (cons False (cons True (cons False ()))) ()))
-;;      (cons 'A (cons 'B (cons 'Y ()))))
+;;  Example (columns A=(T F), B=(F T), Y=(T F)):
+;;    (mkITable ((True False) (False True) (True False)) ('A 'B 'Y))
 ;;
 ;;    Labels:   +---+---+---+
 ;;              | A | B | Y |
@@ -198,7 +199,7 @@
 ;;    (getArgLabels $itable)  ; returns (cons 'A (cons 'B ()))
 ;;
 ;(:getArgLabels (-> (ITable $a) (List Symbol)))
-(= (getArgLabels (mkITable $rows $labels))
+(= (getArgLabels (mkITable $columns $labels))
    (let $args
         (List.takeN (- (List.length $labels) 1) $labels )
         (List.listToExpr $args)))

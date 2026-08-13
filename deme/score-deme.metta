@@ -91,7 +91,7 @@
     ($score (mutualInformation $zippedCols $targetColumn))
 
     ;; number of samples = length of any column
-    ($confidence (calculateConfidence (size-atom $indices) (List.length (Table.getColumn 0 $table)) $miConf))
+    ($confidence (calculateConfidence (size-atom $indices) (ITable.rowCount $table) $miConf))
     ($scoreConfi (* $score $confidence))
     ($scoredInst (mkSInst (mkPair (mkInst $i) $scoreConfi)))
     ($uListofScoredInst (cons $scoredInst $listOfScoredInst))

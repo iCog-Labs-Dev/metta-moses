@@ -32,16 +32,16 @@
 
 (= (ttable1)
     (mkITable
-        (cons (cons True (cons False (cons True ())))
-        (cons (cons True (cons True (cons True ()))) ()))
+        (cons (cons True (cons True ()))
+        (cons (cons False (cons True ()))
+        (cons (cons True (cons True ())) ())))
         (cons A (cons B (cons O ())))))
 
 (= (ttable2)
     (mkITable
-        (cons (cons True (cons True (cons True ())))
-        (cons (cons True (cons False (cons False ())))
-        (cons (cons False (cons True (cons False ())))
-        (cons (cons False (cons False (cons False ()))) ()))))
+        (cons (cons True (cons True (cons False (cons False ()))))
+        (cons (cons True (cons False (cons True (cons False ()))))
+        (cons (cons True (cons False (cons False (cons False ())))) ())))
         (cons A (cons B (cons Output ())))))
 
 

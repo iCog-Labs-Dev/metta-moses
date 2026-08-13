@@ -6,29 +6,35 @@
 !(py-call (random.seed 42))
 
 (= (table1) (mkITable 
-    (cons (cons True (cons True (cons False (cons True (cons True ())))))
-    (cons (cons True (cons False (cons False (cons True (cons True ())))))
-    (cons (cons False (cons True (cons False (cons True (cons False ())))))
-    (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
+    (cons (cons True (cons True (cons False (cons False ()))))
+    (cons (cons True (cons False (cons True (cons False ()))))
+    (cons (cons False (cons False (cons False (cons False ()))))
+    (cons (cons True (cons True (cons True (cons True ()))))
+    (cons (cons True (cons True (cons False (cons False ())))) ())))))
     (cons A (cons B (cons C (cons D (cons Output ())))))))
 
 (= (table_xor) (mkITable
-    (cons (cons True  (cons True  (cons False ())))
-    (cons (cons True  (cons False (cons True  ())))
-    (cons (cons False (cons True  (cons True  ())))
-    (cons (cons False (cons False (cons False ()))) ()))))
+    (cons (cons True (cons True (cons False (cons False ()))))
+    (cons (cons True (cons False (cons True (cons False ()))))
+    (cons (cons False (cons True (cons True (cons False ())))) ())))
     (cons A (cons B (cons Output ())))))
 
 (= (table3) (mkITable 
-    (cons (cons False (cons True (cons True (cons False (cons True ())))))
-    (cons (cons True (cons True (cons False (cons False (cons False ())))))
-    (cons (cons True (cons False (cons True (cons True (cons True ())))))
-    (cons (cons False (cons False (cons True (cons True (cons False ()))))) ()))))
+    (cons (cons False (cons True (cons True (cons False ()))))
+    (cons (cons True (cons True (cons False (cons False ()))))
+    (cons (cons True (cons False (cons True (cons True ()))))
+    (cons (cons False (cons False (cons True (cons True ()))))
+    (cons (cons True (cons False (cons True (cons False ())))) ())))))
     (cons X1 (cons X2 (cons X3 (cons X4 (cons Result ())))))))
 
 (= (table4) (mkITable 
-    (cons (cons True (cons True (cons False (cons True (cons False (cons True (cons True ())))))))
-    (cons (cons False (cons True (cons True (cons False (cons True (cons False (cons False ()))))))) ()))
+    (cons (cons True (cons False ()))
+    (cons (cons True (cons True ()))
+    (cons (cons False (cons True ()))
+    (cons (cons True (cons False ()))
+    (cons (cons False (cons True ()))
+    (cons (cons True (cons False ()))
+    (cons (cons True (cons False ())) ())))))))
     (cons A (cons B (cons C (cons D (cons E (cons F (cons Output ())))))))))
 
 ;; TESTS FOR randomFeatureSelection

@@ -347,7 +347,7 @@
                
                (($filteredColumns $filteredLabels)  (extractTable $featureIndices $columns $labels))
                
-               ($totalWeight (List.length (Table.getColumn 0 $columns)))
+               ($totalWeight (ITable.rowCount $columns))
                
                ($precision (precisionBScore $filteredColumns $filteredLabels $penalty 
                                           $clampedMinAct $clampedMaxAct $totalWeight))

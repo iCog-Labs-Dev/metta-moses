@@ -88,14 +88,18 @@
             ))
 
 (= (knobMapObj) (mkKbMap (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))))
-(= (ttable1) (mkITable (cons (cons True (cons False (cons False (cons True (cons True ())))))
-                        (cons (cons True (cons True (cons True (cons False (cons True ()))))) ()))
+(= (ttable1) (mkITable (cons (cons True (cons True ()))
+                       (cons (cons False (cons True ()))
+                       (cons (cons False (cons True ()))
+                       (cons (cons True (cons False ()))
+                       (cons (cons True (cons True ())) ())))))
                         (cons A (cons B (cons C (cons D (cons O ())) )))))
 (= (ttable2) (mkITable
-                    (cons (cons True (cons True (cons False (cons True (cons True ())))))
-                    (cons (cons True (cons False (cons False (cons True (cons True ())))))
-                    (cons (cons False (cons True (cons False (cons True (cons False ())))))
-                    (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
+                    (cons (cons True (cons True (cons False (cons False ()))))
+                    (cons (cons True (cons False (cons True (cons False ()))))
+                    (cons (cons False (cons False (cons False (cons False ()))))
+                    (cons (cons True (cons True (cons True (cons True ()))))
+                    (cons (cons True (cons True (cons False (cons False ())))) ())))))
                     (cons A (cons B (cons C (cons D (cons Output ())))))))
 
 ;; Testcases for the complexityBasedScorer

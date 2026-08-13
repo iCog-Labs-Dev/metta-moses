@@ -104,4 +104,4 @@
 !(assertEqual
    (let $result (moses)
         (second (index-atom (second $result) 0)))
--1)
+   0)

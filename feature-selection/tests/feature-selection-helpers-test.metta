@@ -58,9 +58,18 @@
 
 ;; Test
 !(assertEqual (Table.pop 0 ()) ())
-!(assertEqual (Table.pop 0 (itable)) 
+!(assertEqual (Table.pop 0 (itable))
         (cons (cons False (cons True (cons False ())))
         (cons (cons False (cons False (cons True ()))) ())))
+
+;; Test -- Table.transpose swaps the two axes. The non-square cases are the
+;; regression guard; a Table.getColumn-based transpose is an identity instead.
+!(assertEqual (Table.transpose ()) ())
+!(assertEqual (Table.transpose (itable))
+              ((True False False) (False True False) (True False True)))
+!(assertEqual (Table.transpose ((1 2 3) (4 5 6))) ((1 4) (2 5) (3 6)))
+!(assertEqual (Table.transpose ((1 4) (2 5) (3 6))) ((1 2 3) (4 5 6)))
+!(assertEqual (Table.transpose (Table.transpose (itable))) (itable))
 
 
 ;; Test lexicographic ordering of featureSets

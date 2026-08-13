@@ -112,7 +112,8 @@ def load_boolean_table(path, target_feature=""):
         for col_idx, value in enumerate(reordered):
             validated_columns[col_idx].append(value)
 
-
     columns_sexpr = _expr_list(_expr_list(col) for col in validated_columns)
     labels_sexpr = _expr_list(new_labels)
-    return "(mkITable {rows} {labels})".format( rows=columns_sexpr, labels=labels_sexpr,)
+    return "(mkITable {columns} {labels})".format(
+        columns=columns_sexpr, labels=labels_sexpr
+    )
