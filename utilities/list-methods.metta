@@ -57,12 +57,10 @@
 ; (: List.length (-> (List $a) Number))
 (= (List.length $xs) (size-atom $xs))
 
-;; Row count of a column-major ITable payload. Every column holds one cell per
-;; row, so the first column's length is the row count; an empty payload has no
-;; rows. This is the single definition for the whole tree: it lives here rather
-;; than beside the Table.* helpers because scoring/fitness and scoring/bscore
-;; load long before feature-selection/feature-selection-helpers, and every
-;; module that needs a row count already imports list-methods ahead of it.
+;; Row count of a column-major ITable payload: every column holds one cell per
+;; row, so the first column's length is the row count. Defined here rather than
+;; beside the Table.* helpers because scoring loads long before
+;; feature-selection, and every consumer already imports list-methods.
 ; (: ITable.rowCount (-> (List (List $a)) Number))
 (= (ITable.rowCount ()) 0)
 (= (ITable.rowCount (cons $column $rest)) (List.length $column))

@@ -47,18 +47,18 @@
 ;;;;;;;;;;;;;;
 ;; Transpose;;
 ;;;;;;;;;;;;;;
-;; Swap the two axes of a list of equal-length lists (row-major <-> column-major).
-;; Peels one cell off the front of every sublist per step, so it is correct for
-;; non-square tables. NOTE: this must NOT be written in terms of Table.getColumn
-;; -- that one indexes the column-major payload directly, which would make the
-;; whole function an identity.
+;; Swap the two axes of a list of equal-length lists (row-major <-> column-major),
+;; peeling one cell off the front of every sublist per step. Not expressible via
+;; Table.getColumn: that indexes the column-major payload directly, which would
+;; make this an identity.
 ; (: Table.transpose (-> (List (List $a)) (List (List $a))))
 (= (Table.transpose ()) ())
 (= (Table.transpose (cons $first $rest))
     (if (== $first ())
         ()
-        (cons (map-atom (cons $first $rest) $sublist (List.head $sublist))
-              (Table.transpose (map-atom (cons $first $rest) $sublist (List.tail $sublist))))))
+        (let $table (cons $first $rest)
+             (cons (map-atom $table $sublist (List.head $sublist))
+                   (Table.transpose (map-atom $table $sublist (List.tail $sublist)))))))
 ;;;;;;;;;;;;;;
 ;; Transpose;;
 ;;;;;;;;;;;;;;
@@ -229,14 +229,6 @@
     (lruCache (param defaultCacheSize) ((calculateMutualInformation) ($itable $featureIndices))))
 
 ;; Build row-wise tuples from selected columns in a column-major table.
-;; Selecting the columns and swapping the axes IS Table.transpose, so this is a
-;; one-liner over it. The previous zipColumnHelper reached every cell through
-;; List.at, a linear cons-walk, costing O(rows^2 * cols) visits; Table.transpose
-;; peels heads for O(rows * cols). zipColumn sits on every hot mutual-information
-;; path (smd, calculateMutualInformation, score-deme, precision-bscore), so the
-;; difference is ~32x the cell visits per MI evaluation on a 64-row table.
-;; An empty $indices maps to an empty column list, which Table.transpose sends
-;; to (), matching the old explicit guard.
 ; (: zipColumn (-> Expression (List (List $a)) (List $a)))
 (= (zipColumn $indices $table)
     (Table.transpose (map-atom $indices $i (Table.getColumn $i $table))))

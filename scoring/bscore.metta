@@ -35,9 +35,6 @@
 ;(: ITable (-> $a Type))
 ;(: mkITable (-> (List (List $a)) (List Symbol) (ITable $a)))
 
-;; The row count of a payload comes from ITable.rowCount in utilities/list-methods,
-;; which is the single definition shared by scoring and feature-selection alike.
-
 ;; TruthTableBScore is a type that contains the complexity coefficient, size of the table and the input table itself.
 ;; Using this type we can get behavioral score and behavioral complexity score.
 ;; This table is the cTruthTableBScore in the C++. The C stands for compressed. But omitted here since the table won't be compressed during this version.
@@ -73,26 +70,16 @@
 (= (scoreTree (mkITable $columns $labels) $tree $cacheSpace)
    (if (== $tree (mkTree (mkNode AND) ()))
        (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $columns $labels)))
-       ;; Shape check BEFORE the let*. index-atom is PARTIAL: out of range it
-       ;; yields zero solutions rather than an Error, and a zero-solution call
-       ;; makes this clause -- and every caller up to (moses) -- vanish silently
-       ;; while the run still exits 0. The Error has to be scoreTree's own result:
-       ;; binding it into $outputs instead would let List.zipWith consume the
-       ;; three-element (Error ...) term itself as a column of output data and
-       ;; hand back a fabricated bscore.
-       (if (< (List.length $columns) (List.length $labels))
-           (Error (mkITable $columns $labels)
-                  "scoreTree: payload has fewer columns than labels")
-           (let* (
-               ($expTree (preOrderExp $tree))
-               ($rowCount (ITable.rowCount $columns))
-               ($scoreList (evalSubtree $expTree (mkITable $columns $labels) $rowCount))
-               ($length (List.length $labels))
-               ;; the output column is the last element of the column-major payload
-               ($outputs (if (== $columns ()) () (index-atom $columns (- $length 1))))
-               ($bScore (List.zipWith compareAndScore $scoreList $outputs))
-           )
-           (mkBScore $bScore)))))
+       (let* (
+           ($expTree (preOrderExp $tree))
+           ($rowCount (ITable.rowCount $columns))
+           ($scoreList (evalSubtree $expTree (mkITable $columns $labels) $rowCount))
+           ($length (List.length $labels))
+           ;; the output column is the last element of the column-major payload
+           ($outputs (index-atom $columns (- $length 1)))
+           ($bScore (List.zipWith compareAndScore $scoreList $outputs))
+       )
+       (mkBScore $bScore))))
 
 (= (scoreTreeHelper $labels $expTree $table) (let $a (replaceVarsWithTruth ($labels $expTree) $table) (evaluate $a)))
 ;; Return the best possible BehavioralScore given the size of the table.
@@ -191,11 +178,7 @@
 ;;  which is typically the output label in a truth table.
 ;;
 ;;  Example (columns A=(T F), B=(F T), Y=(T F)):
-;;    (mkITable
-;;      (cons (cons True (cons False ()))
-;;      (cons (cons False (cons True ()))
-;;      (cons (cons True (cons False ())) ())))
-;;      (cons 'A (cons 'B (cons 'Y ()))))
+;;    (mkITable ((True False) (False True) (True False)) ('A 'B 'Y))
 ;;
 ;;    Labels:   +---+---+---+
 ;;              | A | B | Y |

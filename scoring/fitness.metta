@@ -125,21 +125,15 @@
 ;; Probes: tmp/probe-sealed.metta, tmp/probe-mapvars.metta.
 ;; ---------------------------------------------------------------------------
 
-;; Extract a label's column from the column-major table: the payload is the
-;; list of columns, so the label's column is one index-atom away (no per-row
-;; walk at all). Both malformed-input cases -> loud Error: an unknown label,
-;; and a label whose column is missing because the payload is shorter than the
-;; label list. The second guard matters because index-atom is PARTIAL -- out of
-;; range it yields zero solutions, not an Error, and a zero-solution call makes
-;; every enclosing computation vanish silently while the run still exits 0.
+;; Extract a label's column from the column-major table: the payload is the list
+;; of columns, so the label's column is one index-atom away. Unknown label ->
+;; loud Error (malformed input).
 ;(: varColumn (-> (ITable $a) Symbol (List Bool)))
 (= (varColumn (mkITable $columns $labels) $label)
    (let $idx (List.index $labels $label)
         (if (== $idx -1)
             (Error $label "varColumn: label not found in table")
-            (if (>= $idx (List.length $columns))
-                (Error $label "varColumn: no column for label (payload shorter than labels)")
-                (index-atom $columns $idx)))))
+            (index-atom $columns $idx))))
 
 ;; Node row-template, built once per cache miss: ($varsTerm $exprTerm) sharing
 ;; fresh vars, e.g. (($v1 $v2) (AND ($v1 $v2))). map-atom's per-element

@@ -31,35 +31,14 @@
 ;; Incremental Feature Selection Algorithm
 
 
-;; The mkITable payload is COLUMN-major, so column $n is simply its $n-th
-;; element -- no per-row walk.
+;; The payload is COLUMN-major, so column $n is its $n-th element.
 (= (get-column $n $columns) (List.getByIdx $columns $n))
 
-;; Row-wise tuples over the selected columns: ((c0r0 c1r0 ..) (c0r1 c1r1 ..) ..)
-;; This is what the entropy/MI helpers below consume as "one observation per row".
-;; Swapping the axes is exactly Table.transpose from feature-selection-helpers.
-;; NOTE on availability: moses.metta does NOT import this file (it imports the
-;; unrelated feature-selection/incremental), so the only importers are the four
-;; test files, and each of them loads feature-selection-helpers first. Anything
-;; that starts importing this module must do the same or the call below will
-;; compile as data and silently fail to reduce.
-;;
-;; Indices are validated first: get-column returns an (Error () ...) term for an
-;; out-of-range index, and Table.transpose would happily treat that 3-element
-;; term as a 3-row column and zip its sub-atoms in as data cells, yielding a
-;; finite, plausible-looking MI score computed over fabricated values.
+;; Row-wise tuples over the selected columns, one observation per row: that is
+;; Table.transpose, from feature-selection-helpers, which every importer of this
+;; file must load first.
 (= (get-columns $indices $columns)
-   (if (anyOutOfRange $indices (List.length $columns))
-       (Error ($indices (List.length $columns))
-              "get-columns: feature index out of range for this table")
-       (Table.transpose (map-atom $indices $i (get-column $i $columns)))))
-
-;; True if any index falls outside [0, $columnCount). Folded rather than written
-;; with a partially applied predicate: ($f $x) with $f bound to (pred $n) builds
-;; the nested head ((pred $n) $x), not (pred $n $x).
-; (: anyOutOfRange (-> (List Number) Number Bool))
-(= (anyOutOfRange $indices $columnCount)
-   (foldl-atom $indices False $acc $i (or $acc (or (< $i 0) (>= $i $columnCount)))))
+   (Table.transpose (map-atom $indices $i (get-column $i $columns))))
 
 (= (unique-list ()) ())
 (= (unique-list (cons $h $t))
@@ -92,19 +71,14 @@
 
 (= (get-table-columns (mkITable $columns $features)) $columns)
 
-;; The get-columns Error is propagated rather than measured: entropy over a
-;; three-element (Error ...) term would happily return a finite number, which is
-;; exactly the fabricated-but-plausible score the index guard exists to prevent.
 (= (mi-score $table $indices)
    (if (== $indices ()) 0.0
        (let* (($columns (get-table-columns $table))
               ($targetCol (get-target-col $table))
               ($y (get-column $targetCol $columns))
-              ($x (get-columns $indices $columns)))
-             (if (anyOutOfRange $indices (List.length $columns))
-                 $x                                  ;; the (Error ...) get-columns returned
-                 (let $xy (List.zip $x $y)
-                      (- (+ (entropy $x) (entropy $y)) (entropy $xy)))))))
+              ($x (get-columns $indices $columns))
+              ($xy (List.zip $x $y)))
+             (- (+ (entropy $x) (entropy $y)) (entropy $xy)))))
 
 ;; --- Incremental Feature Selection Algorithm ---
 (= (comb $k $list)

@@ -29,8 +29,8 @@
 ;; -- evaluating a shared subexpr (e.g. (OR A B)) against two different tables in
 ;; one file would return a stale cached column. Columns of A B C D over the rows:
 ;;   A=(T T F F) B=(T F T F) C=(T F F T) D=(T F T F)
-;; The ITable payload is COLUMN-major (t4Cols, one sublist per label); t4Rows
-;; holds the same data row-major for the legacy per-row path below.
+;; t4Cols is the COLUMN-major payload; t4Rows is the same data row-major, for
+;; the legacy per-row path below.
 (= (t4Cols) ((True True False False) (True False True False) (True False False True) (True False True False)))
 (= (t4Rows) ((True True True True) (True False False False) (False True False True) (False False True False)))
 (= (t4Labs) (A B C D))

@@ -62,16 +62,13 @@
         (cons (cons False (cons True (cons False ())))
         (cons (cons False (cons False (cons True ()))) ())))
 
-;; Test -- Table.transpose swaps the two axes (row-major <-> column-major).
-;; The non-square cases are the regression guard: writing this in terms of
-;; Table.getColumn -- which indexes the column-major payload directly -- turns
-;; the whole function into an identity that errors on non-square input.
+;; Test -- Table.transpose swaps the two axes. The non-square cases are the
+;; regression guard; a Table.getColumn-based transpose is an identity instead.
 !(assertEqual (Table.transpose ()) ())
 !(assertEqual (Table.transpose (itable))
               ((True False False) (False True False) (True False True)))
 !(assertEqual (Table.transpose ((1 2 3) (4 5 6))) ((1 4) (2 5) (3 6)))
 !(assertEqual (Table.transpose ((1 4) (2 5) (3 6))) ((1 2 3) (4 5 6)))
-;; transposing twice is the identity
 !(assertEqual (Table.transpose (Table.transpose (itable))) (itable))
 
 

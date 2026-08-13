@@ -1,7 +1,6 @@
 ;; Every table below is an (mkITable <columns> <labels>) in COLUMN-major form:
 ;; the payload's i-th sublist is the whole column of the i-th label, one cell per
-;; data row, and the last sublist is the Out column. Consumers (varColumn,
-;; scoreTree, Table.getColumn, zipColumn, ...) index this payload directly.
+;; data row, and the last sublist is the Out column.
 
 ;; 3-Bit Parity: Output is True if the number of True inputs is odd. Labels: X1, X2, X3, Out
 ;; Example: (XOR X1 X2 X3) => (OR (AND A (NOT B) (NOT C)) (AND (NOT A) B (NOT C)) (AND (NOT A) (NOT B) C) (AND A B C))
