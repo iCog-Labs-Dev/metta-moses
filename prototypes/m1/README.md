@@ -23,6 +23,10 @@ still works.
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-berries.metta -s )
 
+# a fourth with no actions in it at all -- just a boolean formula to find
+( ulimit -v 8000000; timeout 900 \
+    sh /home/yab/PeTTaV1/run.sh prototypes/m1/walkthrough-alarm.metta -s )
+
 # the checks -- every line should end in a green tick
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run.metta -s ) | grep -c ✅
@@ -30,6 +34,8 @@ still works.
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run-orchard.metta -s ) | grep -c ✅
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run-berries.metta -s ) | grep -c ✅
+( ulimit -v 8000000; timeout 900 \
+    sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run-alarm.metta -s ) | grep -c ✅
 ```
 
 Each count must equal the number of checks written down for that suite:
@@ -39,6 +45,7 @@ cat prototypes/m1/tests/t-{operators,types,knobs,decode,domain,search}.metta \
     | grep -c '^!(test'                                    # 147, the tape suite
 grep -c '^!(test' prototypes/m1/tests/t-orchard.metta       #  66, the orchard suite
 grep -c '^!(test' prototypes/m1/tests/t-berries.metta       #  47, the berry suite
+grep -c '^!(test' prototypes/m1/tests/t-alarm.metta         #  39, the boolean suite
 ``` Compare them; do not just look for failures. A check whose
 expected value is a program written out longhand is a *call*, and unless it is
 wrapped in `quote` it produces no answer and the check never runs — printing
@@ -107,6 +114,8 @@ is for, and there isn't one here.
 | `demo-from-scratch.metta` | the same machinery with no starting program at all |
 | `demo-orchard.metta` | a second world where one test is not enough — the case for compound conditions |
 | `demo-berries.metta` | a third where the answer is not a candidate at all, and has to be assembled |
+| `walkthrough-alarm.metta` | **throwaway.** Single-steps the real execution, printing every intermediate value, over a domain with no actions in it |
+| `walkthrough-tape.metta` | **throwaway.** The same nine frames over the action domain, so the two read side by side |
 | `core/prelude.metta` | list and tree helpers. Nothing interesting. |
 | `core/monad.metta` | how a context (a world, a board, a table row) is threaded |
 | `core/evaluator.metta` | running a program |
@@ -120,6 +129,7 @@ is for, and there isn't one here.
 | `domain/tape.metta` | the first world — a domain file is the only kind that knows what a context is |
 | `domain/orchard.metta` | the second world, drop-in against the same core |
 | `domain/berries.metta` | the third — the one the sampler cannot hand over |
+| `domain/alarm.metta` | a fourth with no actions at all — the classic boolean path: an `mkITable` of rows, one parametrised `colAt` standing for every column, and a 0/−1 behavioural score |
 | `all.metta` | loads everything domain-independent, in the one order that works |
 
 `all.metta` loads **no domain**. A demo or a test suite picks one:
@@ -134,25 +144,32 @@ type queries would then report.
 
 ## Three ideas worth the detour
 
-**Operators never mention the context.** `(= (and_seq $children) (allM evalProgram $children))`
-— no world, no board, nothing, and no conditional either. Each body ends in a
-partially applied call and the compiler supplies the missing argument. So the
-same operators work for any domain, and only the file under `domain/` knows
-what is being evaluated.
+**Operators never mention the context.** `(= (and_seq $children) (allM evalTerm $children))`
+— no world, no board, nothing, and no conditional either. So the same operators
+work for any domain, and only the file under `domain/` knows what is being
+evaluated.
 
-**Only `mreturn` and `mbind` know what a computation is.** They are the monad
-instance — Haskell's `return` and `>>=` — and `mfmap`, `allM` and `anyM` are
-derived from them exactly as Haskell derives them, so none of them would change
-if the representation did. Where Haskell writes a lambda after `>>=`, so does
-this — `|->` is a real lambda in the runtime, and it compiles to an anonymous
-clause closed over whatever the body used from outside. A lambda whose body
-*selects* something (`ifM`'s) takes just the value; one whose body would
-otherwise stop short of a finished call (`mfmap`'s) also takes the context,
-because otherwise it eta-expands and the specializer then calls an arity that
-does not exist. A combinator that takes the result apart is
-not a monadic combinator; it is this monad's code wearing a general name. That
-distinction is what removed the second, context-free set of `AND`/`OR`/`NOT`
-clauses, and with them the last hardcoded list of which operators exist.
+**The context is ambient, and only `core/monad.metta` may name it.** It lives in
+a state cell reached through `getCtx` and `putCtx` — Haskell's `MonadState`
+`get` and `put` — and those two are the abstraction barrier: they are the seam
+to use if it ever has to go back to being a threaded value.
+
+This is the `IO`/`ST` way of hiding state rather than the `State s` way.
+`State s a = s -> (a, s)` hides it inside a wrapped function, which needs
+closures; `IO` hides it by making it ambient, and `RealWorld` is a fiction
+nothing threads. `Control.Monad.Extra`'s `allM` is `Monad m =>` and is written
+identically for both, which is why `core/monad.metta`'s two definitions are
+character-for-character the Haskell ones.
+
+What does *not* survive is a definable `>>=`. Arguments here are built strictly,
+so by the time a function is entered its arguments have already run — a
+user-defined bind would receive a value rather than a computation it could
+choose whether to run. So `m >>= k` is `let`, `fmap f m` is `(f m)`, `return v`
+is `v`, and `ifM` is `if`. `ifM` in particular *must* be `if`, because only a
+special form is lazy in its branches; written as a function, `allM`'s recursive
+call would run before the test was looked at. A real `>>=` needs some way to
+hold an unrun computation, and the three ways to do that — partial application,
+a closure, or data — are all things this prototype deliberately does not use.
 
 **The builder never names an operator.** It asks the type declarations: what
 does this slot want, and what can produce that? A slot wanting `Bool` gets an
@@ -178,15 +195,36 @@ be built and a conditional could never sit alongside anything else.
 
 ## Things that will bite you
 
-**Every operator body must end in a call, and every monad combinator must keep
-its context parameter.** Two different failures, one symptom. A body starting
-with a bare `if` does not get the extra argument and compiles one short; and a
-combinator written without an explicit `$ctx` registers at one arity lower, so
-a call meaning to *partially* apply it looks complete and compiles to a
-predicate that does not exist. Either way dispatch quietly fails and *every*
-program scores worst while the run still looks healthy. `tests/t-operators.metta`
-checks each operator's arity individually and those checks come first; both
-failures above were caught by them and by nothing else. If they fail, ignore
+**An operator must call `evalTerm`, never `evalProgram`.** `evalProgram` is the
+boundary: it writes the cell from its argument, so an operator that called it
+would discard the context threaded so far and restart from whatever it was
+handed. Nothing errors — the laziness and threading checks in
+`tests/t-operators.metta` are what catch it. This replaced eta-expansion as the
+thing to get wrong here.
+
+**Import order gates reduction.** A call to a function that has not been
+imported yet compiles as *data* rather than failing. `core/types.metta` must
+load before `core/evaluator.metta` (`evalNode` asks `isPrimitive`), and the
+evaluator before the operators. `all.metta` is the only file that imports, and
+its order is the working one.
+
+**Mutation is not undone by backtracking.** PeTTa's state is `nb_setval`, and
+`collapse` backtracks looking for further solutions — so a second solution would
+run the actions *again*. Every `collapse` in `evalNode` has `once` inside it for
+that reason. The single-solution discipline elsewhere (`containsIn`'s `once`,
+`nub`) is load-bearing in a way it was not when contexts were values: a stray
+duplicate used to show up as a doubled number, and now shows up as extra
+actions.
+
+**A program that fails partway keeps what it already did.** When contexts were
+values, the worst result handed back the context it was *given*. With the
+context in a cell that would take a snapshot and a restore, and this prototype
+deliberately does not. Nothing reaches it today — the builder only emits
+well-formed programs from declared vocabulary — but it is no longer true.
+
+**`tests/t-operators.metta` still opens with arity checks, and they still come
+first.** A symbol compiled at the wrong arity fails dispatch silently and
+*every* program scores worst while the run looks healthy. If those fail, ignore
 every result below them.
 
 **A declared operator cannot be called from source.** Writing `(AND (True False))`
