@@ -122,10 +122,7 @@
 ;; ripe by smell alone.
 (= (berryExemplar)
    (mkTree (mkNode and_seq)
-     ((mkTree (mkNode action_bool_if)
-        ((mkTree (mkNode berryRed) ())
-         (mkTree (mkNode berryPick) ())
-         (mkTree (mkNode berryWalk) ()))))))
+     ()))
 
 (= (berryRep) (buildKnobs (berryExemplar)))
 

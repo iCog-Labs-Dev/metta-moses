@@ -41,8 +41,14 @@
 
 (= (theAnswer)
    (quote (and_seq ((action_bool_if
-                      ((AND ((OR ((berryRed ()) (berrySweet ()))) (NOT ((berryWormy ())))))
-                       (berryPick ()) (berryWalk ()))))))) 
+                      ((AND (
+                              (OR (
+                                    (berryRed ())
+                                    (berrySweet ())
+                                  ))
+                              (NOT ((berryWormy ())))))
+                       (berryPick ())
+                       (berryWalk ()))))))) 
 
 (= (bestNeighbour)
    (maxOf (map-atom (generateAllInNeighborhood (knobMultiplicities (berryRep)) (start))
