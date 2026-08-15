@@ -52,8 +52,36 @@
 ;; a test, their negations too. There is no knob inside a candidate to flip a
 ;; polarity later, so both polarities have to be offered up front; this is what
 ;; makes (OR (NOT p) q) reachable.
+;; --- turning a primitive into candidates ------------------------------------
+;; Most primitives are ONE leaf: `m1FoodHere` is a candidate, full stop.
+;;
+;; A primitive can instead be a FAMILY. `colAt` is one function standing for
+;; every column of a table, so the builder adds one leaf per column -- (colAt
+;; (0)), (colAt (1)), (colAt (2)) -- and neither the builder nor colAt itself
+;; ever chooses between them. They are simply N candidates that happen to share
+;; a definition, exactly as N per-column primitives were N candidates that did
+;; not.
+;;
+;; A family says how big it is by defining `paramsOf`; a single leaf says
+;; nothing, and there is nothing to say. The seed clause below exists only so
+;; the predicate is defined: an unmatched call then FAILS and collapses to (),
+;; whereas a call to a predicate with no clauses at all comes back unreduced.
+(= (paramsOf noSuchPrimitive) ())
+
+(= (instancesOf $op)
+   (let $found (collapse (paramsOf $op))
+     (if (== $found ())
+         ((leafOf $op))
+         (map-atom (car-atom $found) $slot
+                   (mkTree (mkNode $op) (map-atom $slot $param (leafOf $param)))))))
+
+;; Every candidate leaf of a type -- the flattened vocabulary.
+(= (literalsOfType $type)
+   (foldl-atom (primsOfType $type) () $found $symbol
+               (union-atom $found (instancesOf $symbol))))
+
 (= (fillersOfType $type)
-   (let $literals (map-atom (primsOfType $type) $symbol (leafOf $symbol))
+   (let $literals (literalsOfType $type)
      (if (== $type Bool)
          (union-atom $literals (map-atom $literals $literal (negated $literal)))
          $literals)))
@@ -114,6 +142,8 @@
 
 ;; Walk the whole space, drop the unusable, drop repeats (an operator with few
 ;; fillings comes round again), keep the first $budget.
+;; AND, and_seq => (AND berryFresh berryWorm), (action_bool_if berryFresh berrPick berryWalk)
+;; (Seq Bool)
 (= (sampleCandidates $operators $budget)
    (let $walked (map-atom (rangeTo (permLimit $operators)) $index
                           (candidateAt $operators $index))
@@ -124,11 +154,11 @@
 ;; nothing new, and for tests this is exactly the AND/OR alternation: the
 ;; candidates offered inside an AND are ORs and vice versa.
 (= (permittedOpsFor $parent $type)
-   (filter-atom (opsOfType $type) $operator (!= $operator $parent)))
+   (filter-atom (opsOfType $type) $operator (!= $operator $parent))) ;; (AND (AND) ) => and_seq, and_seq
 
 ;; Every candidate for a slot of type $type under $parent.
-(= (samplePerms $parent $type)
-   (let* (($literals (map-atom (primsOfType $type) $symbol (leafOf $symbol)))
+(= (samplePerms $parent $type) ;; A, B, C (AND B C), (OR B C)
+   (let* (($literals (literalsOfType $type))
           ($operators (permittedOpsFor $parent $type))
           ($compounds (if (== $operators ())
                           ()

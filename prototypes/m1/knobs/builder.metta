@@ -111,7 +111,7 @@
 ;; `slotType` answers for any position of a variadic operator, so the element
 ;; type is one type query rather than a hand-taken-apart signature.
 (= (extraSlot $op)
-   (if (isVariadic $op)
+   (if (isVariadic $op) ;; Op nary
        (wrapKnobs (map-atom (samplePerms $op (slotType $op 0)) $candidate
                             (actionSubtreeKnob $candidate)))
        ()))
@@ -119,8 +119,18 @@
 ;; The growth knobs are bound FIRST, so they take the low indices; the demos
 ;; and tests read those positions by number.
 (= (buildNode (mkTree (mkNode $op) $children))
-   (let* (($grown (extraSlot $op))
-          ($built (buildSlots $children $op)))
+   (let* (($grown (extraSlot $op)) ;; New Knobs
+          ($built (buildSlots $children $op))) ;; Building children
      (mkTree (mkNode $op) (union-atom $built $grown))))
 
-(= (buildKnobs $tree) (let $ignored (resetIdx) (buildNode $tree)))
+;; The root is built against the type IT produces, exactly as every other
+;; position is built against the type its slot asks for. An action-rooted
+;; exemplar reaches buildNode as before; a BOOLEAN-rooted one -- a program that
+;; is nothing but a condition -- reaches buildBoolSlot instead, and so gets
+;; three-setting test knobs and the AND/OR alternation rather than the
+;; two-setting action knobs buildNode would have hung on it.
+;;
+;; Routing on the type here is the only thing that had to change for a purely
+;; boolean problem to run through this machinery; see domain/alarm.metta.
+(= (buildKnobs $tree)
+   (let $ignored (resetIdx) (buildSlot (retTypeOf (nodeSymOf $tree)) $tree)))
