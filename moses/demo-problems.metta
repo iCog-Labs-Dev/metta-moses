@@ -408,6 +408,7 @@
 ;; univariate implementations under optimization/ exist but have never
 ;; been wired into the deme-expansion path. Add a clause here when a new
 ;; algorithm becomes ready.
+;; WARN: Shouldn't this be $optimizer instead of hc?
 (= (optimizer-for hc)
      (case $optimizer
           (
