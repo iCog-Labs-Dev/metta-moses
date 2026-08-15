@@ -7,13 +7,13 @@
 ;;
 ;;   there are three kinds of cell, and picking is right at exactly one of them
 ;;   (FS). Each perception is true at two of the three -- fruitHere at FS and
-;;   FX, freshHere at FS and E -- and so is each negation. No single test, and
+;;   FX, noRotHere at FS and E -- and so is each negation. No single test, and
 ;;   no single negated test, is true at FS and nowhere else. So every program
 ;;   whose condition is one test either picks the spoiled fruit or picks at
 ;;   empty cells; and picking at an empty cell leaves the cell empty and the
 ;;   creature where it was, so it does that for the rest of its fuel.
 ;;
-;; Only (AND fruitHere freshHere) is true at FS alone. The tests below check the
+;; Only (AND fruitHere noRotHere) is true at FS alone. The tests below check the
 ;; facts that case analysis rests on, and then the scores it predicts.
 ;;
 ;; The upper bound is arithmetic: three fresh fruits at 2 each is 6 a ring, and
@@ -83,20 +83,20 @@
        (mkRes True  (mkOrchard (FS FX E) 1 3 4 5)))
 !(test (evalProgram (quote (orchFruitHere ())) (mkOrchard (FS FX E) 2 3 4 5))
        (mkRes False (mkOrchard (FS FX E) 2 3 4 5)))
-!(test (evalProgram (quote (orchFreshHere ())) (mkOrchard (FS FX E) 0 3 4 5))
+!(test (evalProgram (quote (orchNoRotHere ())) (mkOrchard (FS FX E) 0 3 4 5))
        (mkRes True  (mkOrchard (FS FX E) 0 3 4 5)))
-!(test (evalProgram (quote (orchFreshHere ())) (mkOrchard (FS FX E) 1 3 4 5))
+!(test (evalProgram (quote (orchNoRotHere ())) (mkOrchard (FS FX E) 1 3 4 5))
        (mkRes False (mkOrchard (FS FX E) 1 3 4 5)))
-!(test (evalProgram (quote (orchFreshHere ())) (mkOrchard (FS FX E) 2 3 4 5))
+!(test (evalProgram (quote (orchNoRotHere ())) (mkOrchard (FS FX E) 2 3 4 5))
        (mkRes True  (mkOrchard (FS FX E) 2 3 4 5)))
 
 ;; and the conjunction is true at FS and nowhere else -- the one thing neither
 ;; perception can say on its own
-!(test (resValOf (evalProgram (quote (AND ((orchFruitHere ()) (orchFreshHere ()))))
+!(test (resValOf (evalProgram (quote (AND ((orchFruitHere ()) (orchNoRotHere ()))))
                               (mkOrchard (FS FX E) 0 0 0 5))) True)
-!(test (resValOf (evalProgram (quote (AND ((orchFruitHere ()) (orchFreshHere ()))))
+!(test (resValOf (evalProgram (quote (AND ((orchFruitHere ()) (orchNoRotHere ()))))
                               (mkOrchard (FS FX E) 1 0 0 5))) False)
-!(test (resValOf (evalProgram (quote (AND ((orchFruitHere ()) (orchFreshHere ()))))
+!(test (resValOf (evalProgram (quote (AND ((orchFruitHere ()) (orchNoRotHere ()))))
                               (mkOrchard (FS FX E) 2 0 0 5))) False)
 
 ;; --- the starting program ---------------------------------------------------
@@ -110,10 +110,10 @@
 ;; --- the program that is right ----------------------------------------------
 ;; Six a ring, which is every fresh fruit with nothing wasted, which is the
 ;; arithmetic ceiling.
-!(test (orchFitness (quote (and_seq ((action_bool_if ((AND ((orchFruitHere ()) (orchFreshHere ()))) (orchPick ()) (orchWalk ()))))))  0) 6)
-!(test (orchFitness (quote (and_seq ((action_bool_if ((AND ((orchFruitHere ()) (orchFreshHere ()))) (orchPick ()) (orchWalk ()))))))  1) 6)
-!(test (orchScoreExp (quote (and_seq ((action_bool_if ((AND ((orchFruitHere ()) (orchFreshHere ()))) (orchPick ()) (orchWalk ())))))))  12)
-!(test (orchScoreExp (quote (and_seq ((action_bool_if ((AND ((orchFruitHere ()) (orchFreshHere ()))) (orchPick ()) (orchWalk ())))))))  (orchBestScore))
+!(test (orchFitness (quote (and_seq ((action_bool_if ((AND ((orchFruitHere ()) (orchNoRotHere ()))) (orchPick ()) (orchWalk ()))))))  0) 6)
+!(test (orchFitness (quote (and_seq ((action_bool_if ((AND ((orchFruitHere ()) (orchNoRotHere ()))) (orchPick ()) (orchWalk ()))))))  1) 6)
+!(test (orchScoreExp (quote (and_seq ((action_bool_if ((AND ((orchFruitHere ()) (orchNoRotHere ()))) (orchPick ()) (orchWalk ())))))))  12)
+!(test (orchScoreExp (quote (and_seq ((action_bool_if ((AND ((orchFruitHere ()) (orchNoRotHere ()))) (orchPick ()) (orchWalk ())))))))  (orchBestScore))
 
 ;; --- doing nothing ----------------------------------------------------------
 ;; The bar every single-test program has to clear, and none of them does.
@@ -130,10 +130,10 @@
            (action_bool_if ((orchFruitHere ()) (orchWalk ()) (orchPick ())))
            (action_bool_if ((NOT ((orchFruitHere ()))) (orchPick ()) (orchWalk ())))
            (action_bool_if ((NOT ((orchFruitHere ()))) (orchWalk ()) (orchPick ())))
-           (action_bool_if ((orchFreshHere ()) (orchPick ()) (orchWalk ())))
-           (action_bool_if ((orchFreshHere ()) (orchWalk ()) (orchPick ())))
-           (action_bool_if ((NOT ((orchFreshHere ()))) (orchPick ()) (orchWalk ())))
-           (action_bool_if ((NOT ((orchFreshHere ()))) (orchWalk ()) (orchPick ()))))))
+           (action_bool_if ((orchNoRotHere ()) (orchPick ()) (orchWalk ())))
+           (action_bool_if ((orchNoRotHere ()) (orchWalk ()) (orchPick ())))
+           (action_bool_if ((NOT ((orchNoRotHere ()))) (orchPick ()) (orchWalk ())))
+           (action_bool_if ((NOT ((orchNoRotHere ()))) (orchWalk ()) (orchPick ()))))))
 
 (= (orchSingleScores) (map-atom (orchSingles) $p (orchScoreExp $p)))
 
@@ -193,9 +193,9 @@
 
 ;; and what it found is the conjunction -- both perceptions, in one condition
 !(test (orchMentions (preOrderExp (getCandidate (orchRep) (orchSearchInst))) orchFruitHere) True)
-!(test (orchMentions (preOrderExp (getCandidate (orchRep) (orchSearchInst))) orchFreshHere) True)
+!(test (orchMentions (preOrderExp (getCandidate (orchRep) (orchSearchInst))) orchNoRotHere) True)
 !(test (preOrderExp (getCandidate (orchRep) (orchSearchInst)))
-       (quote (and_seq ((action_bool_if ((AND ((OR ((orchFruitHere ()))) (orchFreshHere ())))
+       (quote (and_seq ((action_bool_if ((AND ((OR ((orchFruitHere ()))) (orchNoRotHere ())))
                                          (orchPick ()) (orchWalk ())))))))
 ;; drop either conjunct and it is back among the single-test programs, all of
 ;; which are worse than doing nothing

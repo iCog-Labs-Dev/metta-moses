@@ -10,17 +10,26 @@
 ;; Two things it can DO:    orchPick   eat what is here -- and eating the bad
 ;;                                     fruit costs more than eating nothing
 ;;                          orchWalk   move on one cell
-;; Two things it can SEE:   orchFruitHere   is there fruit here, of any kind?
-;;                          orchFreshHere   is there nothing spoiled here?
 ;;
-;; THE POINT OF THIS WORLD: neither perception is worth anything on its own.
-;;   - pick whenever there is fruit here, and you eat the spoiled fruit too
-;;   - pick whenever nothing is spoiled here, and you pick at empty cells --
-;;     and picking at an empty cell leaves it empty, so you never move again
-;; Only the CONJUNCTION picks out a fresh fruit, and a conjunction is a thing
-;; the search has to BUILD: it is not any single perception, nor any single
-;; perception negated. domain/tape.metta asks whether looking is worth it; this
-;; one asks whether looking at TWO things at once is.
+;; TWO SENSES, AND EACH IS BLIND TO WHAT THE OTHER SEES:
+;;
+;;     orchFruitHere   SIGHT. There is something in this cell. Fresh and
+;;                     spoiled fruit look alike, so this is true at FS and FX.
+;;     orchNoRotHere   SMELL. Nothing here smells of rot. True at FS -- and
+;;                     also at E, because bare ground does not smell of rot
+;;                     either.
+;;
+;; So sight cannot tell good fruit from bad, and smell cannot tell fruit from
+;; bare ground. That is the point of the world, and it is why NEITHER SENSE IS
+;; WORTH ANYTHING ON ITS OWN:
+;;   - pick whenever you see something, and you eat the spoiled fruit too
+;;   - pick whenever you smell no rot, and you pick at empty cells -- and
+;;     picking at an empty cell leaves it empty, so you never move again
+;;
+;; Only "I can see something AND I cannot smell rot" is fresh fruit, and a
+;; conjunction is a thing the search has to BUILD: it is not any single sense,
+;; nor any single sense negated. domain/tape.metta asks whether looking is
+;; worth it; this one asks whether using two senses at once is.
 ;;
 ;; Same rule as domain/tape.metta, and for the same reason: an action reports
 ;; success while there is fuel, whatever it found. Were a wasted pick to report
@@ -62,16 +71,18 @@
 
 ;; --- perceptions ------------------------------------------------------------
 ;; Between them these two split the three cells into overlapping halves. Neither
-;; half is the answer; their intersection is.
+;; half is the answer; their INTERSECTION is, and it is the only cell worth
+;; picking.
 ;;              FS      FX      E
-;; fruitHere    True    True    False
-;; freshHere    True    False   True
+;; fruitHere    True    True    False     <- sight: something is there
+;; noRotHere    True    False   True      <- smell: nothing rotten
+;;              ^^^^ only FS is both
 (= (orchFruitHere $params (mkOrchard $cells $position $eaten $wasted $fuel))
    (let $cell (index-atom $cells $position)
      (mkRes (or (== $cell FS) (== $cell FX))
             (mkOrchard $cells $position $eaten $wasted $fuel))))
 
-(= (orchFreshHere $params (mkOrchard $cells $position $eaten $wasted $fuel))
+(= (orchNoRotHere $params (mkOrchard $cells $position $eaten $wasted $fuel))
    (let $cell (index-atom $cells $position)
      (mkRes (or (== $cell FS) (== $cell E))
             (mkOrchard $cells $position $eaten $wasted $fuel))))
@@ -138,4 +149,4 @@
 (: orchPick      (-> Params $ctx Act))
 (: orchWalk      (-> Params $ctx Act))
 (: orchFruitHere (-> Params $ctx Bool))
-(: orchFreshHere (-> Params $ctx Bool))
+(: orchNoRotHere (-> Params $ctx Bool))
