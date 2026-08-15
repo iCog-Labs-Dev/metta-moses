@@ -7,9 +7,12 @@
 ;; tests/run.metta each import this and nothing else, and no file below imports
 ;; anything at all.
 ;;
-;; The order is not arbitrary: the evaluator must be in place before the
-;; operators, because each operator body ends in a partially applied call to it
-;; and that is resolved as the file is read.
+;; The order is not arbitrary, and a call to a function that has not been
+;; imported yet compiles as DATA rather than failing, so getting it wrong is
+;; silent. Two dependencies fix it:
+;;   types before evaluator    -- evalNode asks isPrimitive to decide whether a
+;;                                symbol takes a context or is context-free
+;;   evaluator before operators -- every operator body calls evalTerm
 ;;
 ;; NO DOMAIN IS LOADED HERE. Everything below is domain-independent, so a demo
 ;; or a test suite picks its own world by importing this and then one file out
@@ -17,9 +20,9 @@
 ;; ============================================================================
 !(import! &self prototypes/m1/core/prelude)
 !(import! &self prototypes/m1/core/monad)
+!(import! &self prototypes/m1/core/types)
 !(import! &self prototypes/m1/core/evaluator)
 !(import! &self prototypes/m1/core/operators)
-!(import! &self prototypes/m1/core/types)
 
 !(import! &self prototypes/m1/knobs/knob)
 !(import! &self prototypes/m1/knobs/perms)

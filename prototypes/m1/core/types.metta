@@ -41,20 +41,24 @@
 ;; are undeclared today and reach this path.
 (= (sigOf $op)
    (let $declared (get-type $op)
-     (if (isExpr $declared) $declared (-> Params $ctx Unknown))))
+     (if (isExpr $declared) $declared (-> Params $ctx Unknown)))) ;;  ;; Undefined
 
 ;; classic: get_signature_inputs / get_signature_output
-(= (argTypeOf $op) (index-atom (sigOf $op) 1))
+;; (-> (Bool Act Act) Act)
+;; (-> (Seq Bool) Act)
+(= (argTypeOf $op) (index-atom (sigOf $op) 1)) ;; (-> (Bool Bool) Bool) => (AND $a $b)
 (= (retTypeOf $op) (lastOf (sigOf $op)))
 
 ;; What does child number $slot want to be?  (classic: std::next(arg_types, a))
 (= (slotType $op $slot)
    (let $argTypes (argTypeOf $op)
-     (if (isExpr $argTypes)
-         (if (== (car-atom $argTypes) Seq)
+     (if (isExpr $argTypes) ;; (-> Number Bool)
+         (if (== (car-atom $argTypes) Seq) ;; (: AND (-> (Seq Bool)) )
              (index-atom $argTypes 1)
-             (index-atom $argTypes $slot))
-         Params)))
+             (if (== (car-atom $argTypes) Params)
+                 Params
+                 (index-atom $argTypes $slot)))
+         Params))) ;; Leaf Node
 
 ;; classic calls this is_argument (metta-moses: isAnArgument) -- the same test,
 ;; generalised past "is it a column of the input table".
@@ -65,7 +69,11 @@
 ;; Which primitives produce type $type?  This is the vocabulary the builder
 ;; draws on, and it is read straight out of the declarations -- declare a new
 ;; primitive and it joins the vocabulary with no other change anywhere.
-(= (primsOfType $type) (collapse (match &self (: $op (-> Params $ctx $type)) $op)))
+;; (: A (-> Params () Bool))
+;; (: B (-> Params () Bool))
+;; (: C (-> Params () Bool))
+
+(= (primsOfType $type) (collapse (match &self (: $op (-> Params $ctx $type)) $op))) ;; (berryRipe, BerrySweeth ...)
 
 ;; Which OPERATORS produce type $type -- the ones that take children rather
 ;; than parameters? Same source, same story: declare one and it joins.
@@ -120,4 +128,4 @@
 
 (: AND (-> (Seq Bool) $ctx Bool))
 (: OR  (-> (Seq Bool) $ctx Bool))
-(: NOT (-> (Bool) $ctx Bool))
+(: NOT (-> (Bool) $ctx Bool)) 

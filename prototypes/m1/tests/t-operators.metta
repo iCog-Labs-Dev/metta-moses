@@ -7,12 +7,23 @@
 ;; ============================================================================
 
 ;; --- READ THESE FIRST -------------------------------------------------------
-;; Each one proves an operator was compiled with the number of arguments the
-;; evaluator calls it with. If an operator body accidentally ends in a bare
-;; `if`, it is compiled one argument short, dispatch quietly fails, and EVERY
-;; program scores worst while the run still looks healthy. These catch that
-;; before any score is computed.
+;; Each one proves a symbol was compiled with the number of arguments the
+;; evaluator calls it with. Get that wrong and dispatch quietly fails, EVERY
+;; program scores worst, and the run still looks healthy. These catch it before
+;; any score is computed.
+;;
+;; There are two shapes now, and which one a symbol takes is exactly what
+;; evalNode routes on:
+;;
+;;   an OPERATOR is context-free -- children alone, returning a bare value
+;;   a LEAF takes a context and hands back an mkRes, the way every domain
+;;   primitive does. return_success, action_success and action_failure are
+;;   undeclared, so they route as leaves; see core/operators.metta.
 (= (arityOk $op $children)
+   (let $e (quote ($op $children))
+     (collapse (let $v (reduce $e) True))))
+
+(= (leafArityOk $op $children)
    (let $e (quote ($op $children w0))
      (collapse (let (mkRes $v $w) (reduce $e) True))))
 
@@ -22,9 +33,9 @@
 !(test (arityOk OR ())                            (True))
 !(test (arityOk NOT (True))                       (True))
 !(test (arityOk action_not (True))                (True))
-!(test (arityOk return_success (True))            (True))
-!(test (arityOk action_success ())                (True))
-!(test (arityOk action_failure ())                (True))
+!(test (leafArityOk return_success (True))        (True))
+!(test (leafArityOk action_success ())            (True))
+!(test (leafArityOk action_failure ())            (True))
 !(test (arityOk action_bool_if (True True False)) (True))
 
 ;; --- empty cases. The search depends on these: a condition with everything
@@ -51,13 +62,18 @@
        (mkRes True (mkW (E F) 0 0 0 5)))
 
 ;; --- an operator takes no context of its own --------------------------------
-;; It is reached at the arity the evaluator uses, and there is no version one
-;; argument wider. Adding a context parameter breaks both of these at once.
+;; It is reached with its children ALONE, and handing it a context finds no
+;; clause at all. That is the property the whole design rests on: the context is
+;; ambient, so an operator has nothing to receive. Give AND a context parameter
+;; and the second of these starts succeeding.
 !(test (evalProgram (quote (AND ((m1FoodHere ())))) (mkW (F E) 0 0 0 5))
        (mkRes True (mkW (F E) 0 0 0 5)))
-!(test (let $e (quote (AND ((m1FoodHere ())) somethingExtra (mkW (F E) 0 0 0 5)))
-         (collapse (let (mkRes $v $w) (reduce $e) True)))
-       ())
+;; Asked as "does a value come back", not "does anything come back": an
+;; over-applied call does not fail, it hands back an unusable term. What must
+;; be true is that handing an operator a context does not yield a Bool.
+!(test (let $e (quote (AND ((m1FoodHere ())) (mkW (F E) 0 0 0 5)))
+         (collapse (let $v (reduce $e) (isGroundLiteral $v))))
+       (False))
 
 ;; --- laziness ---------------------------------------------------------------
 ;; Every check below puts an ACTION where a skipped evaluation would show up.
