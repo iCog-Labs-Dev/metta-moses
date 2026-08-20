@@ -435,6 +435,11 @@
 ;; (= (reduce $expr) (let ($parent $__ $applied) (reduceToElegance $expr $expr () ()) (trace! (Result: ($parent $__ $applied)) (if $applied (reduce $parent) $parent))))
 ; (: applyReduce (-> (Expression Expression Bool) (Expression Expression Bool)))
 (= (applyReduce ($parent $current $applied))
+   ;; The empty OR is false and already elegant. Re-normalising it lets addAND
+   ;; rebuild (AND (OR)), where the dangling-junctor cleanup deletes the false as
+   ;; if it were one of the empty placeholders that arrive from knob building.
+   (if (== $current (OR))
+       ((OR) (OR) False)
    (let*
          (
             ;; ($_ (println! (==== Inside ApplyReduce ====)))
@@ -454,7 +459,7 @@
            ;; ($_ (println! (FinalParent: $finalParent)))
         )
          (reduceToElegance $finalParent $finalAdd () ())
-         ))
+         )))
 
 (= (removeAndNodesFromGuards $expr)
    (if (== (get-metatype $expr) Symbol)

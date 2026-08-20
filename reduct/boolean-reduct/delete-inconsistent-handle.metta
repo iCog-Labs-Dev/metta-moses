@@ -7,7 +7,9 @@
 ;;                and its negagtion.
 ;; Preconditions: The point of application (POA) is AND node and
 ;;                its handle set is inconsistent.
-;; Action: The function removes the POA and updates the parent.
+;; Action: The POA is false. An OR parent simply drops it, false being the
+;;            OR-identity; an AND parent (and the root) collapses to the empty
+;;            OR instead, since false annihilates a conjunction.
 ;;            It then returns the updated parent, an empty expression and
 ;;            a boolean value of True if applied.
 ;; Example: input: POA ==> (AND (NOT A) (OR B C)), dominantSet ==> (A), parent ==> (OR B (AND (NOT A) (OR B C)))
@@ -19,16 +21,21 @@
           ($guardSet     (getGuardSet $current))
           ($handleSet    (concatTuple $dominantSet $guardSet))
           ($isConsistent (isConsistentExp $handleSet))
+          ($parentHead   (if (and (!= $parent ()) (== (get-metatype $parent) Expression)) (car-atom $parent) ()))
+          ($withoutPOA   (subtraction-atom $parent ($current)))
+          ;; the applyDeleteIncons* walkers can pass a sibling as $parent, where
+          ;; removing the POA is a no-op -- only a real conjunct can be annihilated
+          ($isConjunct   (and (== $parentHead AND) (!= $withoutPOA $parent)))
           ; ($_ (println! (===Inside DeleteInconsistentHandle===)))
           ; ($_ (println! (Parameters ==> Parent: $parent Current: $current DominantSet: $dominantSet)))
           ; ($_ (println! (GuardSet : $guardSet : HandleSet : $handleSet : IsConsistent : $isConsistent)))
         )
         (if $isConsistent
               ($parent $current False)
-              (if (== $parent $current) ;; If the initial parent itself is in consistent, we don't want to delete it entirely but instead keep a top level AND. This only happens when passing the expression for the first time as $parent and $current will never be equal after that.
-                  ((AND) () True)
-                  ((subtraction-atom $parent ($current)) () True)
-              )) ;; Remove current from parent and return an empty AND.
+              (if (or (== $parent $current) $isConjunct)
+                  ((OR) () True)
+                  ($withoutPOA () True)
+              ))
     )
 )
 
