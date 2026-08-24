@@ -28,6 +28,7 @@
 !(import! &self parameters/cli)
 
 ;; ---- Utilities ----
+!(import! &self deme/demeSpaceName.py)
 !(import! &self utilities/list-methods)
 !(import! &self utilities/pair)
 !(import! &self utilities/map)
