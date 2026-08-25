@@ -30,3 +30,6 @@
 !(import! &self prototypes/m1/knobs/decode)
 
 !(import! &self prototypes/m1/search/hillclimb)
+
+;; the top-level call -- last, because it assembles everything above it
+!(import! &self prototypes/m1/search/moses)

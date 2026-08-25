@@ -7,13 +7,14 @@ still works.
 ## Run it
 
 ```sh
-# the guided walkthrough -- start here, no background needed
+# Every demo is ONE call -- (m1Moses <name> <exemplar> <scorer> <best>) -- and
+# search/moses.metta is the only place the pieces are assembled. Each run also
+# repeats itself from an EMPTY program and prints both, so a result that only
+# works because the exemplar was already half the answer says so.
+
+# a creature on a tape: is it worth LOOKING before you grab?
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo.metta -s )
-
-# the same thing starting from an empty program
-( ulimit -v 8000000; timeout 900 \
-    sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-from-scratch.metta -s )
 
 # a second world, where ONE test is not enough
 ( ulimit -v 8000000; timeout 900 \
@@ -23,9 +24,17 @@ still works.
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-berries.metta -s )
 
-# a fourth with no actions in it at all -- just a boolean formula to find
+# no actions at all -- an input table and a boolean formula to find
 ( ulimit -v 8000000; timeout 900 \
-    sh /home/yab/PeTTaV1/run.sh prototypes/m1/walkthrough-alarm.metta -s )
+    sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-alarm.metta -s )
+
+# tuning a NUMBER -- a contin knob walking to a value in no table
+( ulimit -v 8000000; timeout 900 \
+    sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-thermostat.metta -s )
+
+# actions AND numbers at once -- three knob kinds in one instance vector
+( ulimit -v 8000000; timeout 900 \
+    sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-grove.metta -s )
 
 # the checks -- every line should end in a green tick
 ( ulimit -v 8000000; timeout 900 \
@@ -36,6 +45,10 @@ still works.
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run-berries.metta -s ) | grep -c ✅
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run-alarm.metta -s ) | grep -c ✅
+( ulimit -v 8000000; timeout 900 \
+    sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run-thermostat.metta -s ) | grep -c ✅
+( ulimit -v 8000000; timeout 900 \
+    sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run-grove.metta -s ) | grep -c ✅
 ```
 
 Each count must equal the number of checks written down for that suite:
@@ -46,11 +59,21 @@ cat prototypes/m1/tests/t-{operators,types,knobs,decode,domain,search}.metta \
 grep -c '^!(test' prototypes/m1/tests/t-orchard.metta       #  66, the orchard suite
 grep -c '^!(test' prototypes/m1/tests/t-berries.metta       #  47, the berry suite
 grep -c '^!(test' prototypes/m1/tests/t-alarm.metta         #  39, the boolean suite
-``` Compare them; do not just look for failures. A check whose
-expected value is a program written out longhand is a *call*, and unless it is
-wrapped in `quote` it produces no answer and the check never runs — printing
-nothing at all, neither pass nor fail. Eleven checks were silently missing this
-way before the counts were compared.
+grep -c '^!(test' prototypes/m1/tests/t-thermostat.metta    #  48, a tuned threshold
+grep -c '^!(test' prototypes/m1/tests/t-grove.metta         #  54, the mixed suite
+``` Compare them; do not just look for failures, and note that the two ways of
+coming up short mean different things.
+
+A check whose expected value is a program written out longhand is a *call*, and
+unless it is wrapped in `quote` it produces no answer and the check never runs —
+printing nothing at all, neither pass nor fail. Eleven checks were silently
+missing this way before the counts were compared. **That is a short count with no
+failure.**
+
+A short count *with* a failure means something else: `test` calls `halt(1)` on
+mismatch (`metta.pl:200`), so the run stopped at the first red tick and every
+check after it never ran. Berries reports 29 + 1 for exactly this reason — its
+exemplar is deliberately emptied, and 17 checks sit behind the failure.
 
 The `ulimit`/`timeout` wrapper is not optional — an unbounded run can exhaust
 memory and take the whole session with it.
@@ -110,12 +133,13 @@ is for, and there isn't one here.
 
 | | |
 |---|---|
-| `demo.metta` | the guided walkthrough. Start here. |
-| `demo-from-scratch.metta` | the same machinery with no starting program at all |
-| `demo-orchard.metta` | a second world where one test is not enough — the case for compound conditions |
-| `demo-berries.metta` | a third where the answer is not a candidate at all, and has to be assembled |
-| `walkthrough-alarm.metta` | **throwaway.** Single-steps the real execution, printing every intermediate value, over a domain with no actions in it |
-| `walkthrough-tape.metta` | **throwaway.** The same nine frames over the action domain, so the two read side by side |
+| `search/moses.metta` | **the top-level call.** The one place the pieces are assembled — `(m1Moses <name> <exemplar> <scorer> <best>)`. Read this and you have read the pipeline. |
+| `demo.metta` | a creature on a tape: is it worth LOOKING before you grab? Start here. |
+| `demo-orchard.metta` | two senses, each blind to what the other sees — the case for compound conditions |
+| `demo-berries.metta` | the answer is not a candidate at all, and has to be assembled |
+| `demo-alarm.metta` | no world: an input table, a row for a context, one parametrised primitive per column |
+| `demo-thermostat.metta` | a numeric table, and a VALUE to find that appears nowhere in the problem |
+| `demo-grove.metta` | the mixed case — actions, a numeric condition, and two tuned numbers in one tree |
 | `core/prelude.metta` | list and tree helpers. Nothing interesting. |
 | `core/monad.metta` | how a context (a world, a board, a table row) is threaded |
 | `core/evaluator.metta` | running a program |
@@ -303,7 +327,7 @@ are the type-driven filling machinery, which is the part that is genuinely new.
 - **No reduction, no complexity penalty, no population.** The search is one
   hill climb from one starting point.
 
-`demo-from-scratch.metta` is where the candidate rule stops being a footnote.
+Every demo prints its run from an empty program too, which is where the candidate rule stops being a footnote.
 Given an empty program — eight candidates, all switched off, scoring 0 — the
 search reaches **10 in a single move**, by saying yes to
 `(action_bool_if m1FoodHere m1Grab m1Step)`.

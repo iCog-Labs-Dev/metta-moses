@@ -1,146 +1,35 @@
 ;; ============================================================================
-;; demo.metta -- watch a program improve itself. Start here.
+;; demo.metta -- THE TAPE WORLD: is it worth LOOKING before you grab?
 ;;
 ;;   ( ulimit -v 8000000; timeout 900 \
 ;;       sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo.metta -s )
 ;;
-;; No knowledge of the rest of the codebase is needed to follow this.
+;; WORLD        a strip of cells, some holding food. The creature has fuel, a
+;;              position, and a tally of what it ate and what it wasted.
+;; CONTEXT      that world -- and the program CHANGES it. Every action spends
+;;              fuel and either moves or eats, so the context handed to the next
+;;              step is not the one this step got. This is the case the whole
+;;              context-threading machinery exists for.
+;; IT CAN DO    m1Step (move on), m1Grab (eat what is here).
+;; IT CAN SEE   m1FoodHere, m1FoodAhead. Looking costs nothing.
+;; SCORE        food eaten minus food wasted, summed over two episodes. Higher
+;;              is better; 10 is everything there is to get.
+;; THE POINT    grabbing blindly wastes more than it gains, and NO program that
+;;              never looks can score above 2 -- the two episodes agree in one
+;;              place and differ everywhere else, so a blind program runs an
+;;              identical course on both and gives back whatever it gains. The
+;;              question is whether the search discovers that looking first
+;;              pays, which means BUILDING a conditional rather than picking an
+;;              action.
+;;
+;; The exemplar is deliberately backwards: it steps when it sees food and grabs
+;; when it does not.
+;;
+;; One call. Everything else -- building the knobs, walking the neighbourhood,
+;; decoding, scoring -- is search/moses.metta, and it is the same call every
+;; other demo here makes.
 ;; ============================================================================
 !(import! &self prototypes/m1/all)
 !(import! &self prototypes/m1/domain/tape)
 
-;; every program that never looks: sequences of GRAB/STEP up to length 3
-(= (m1Acts) ((mkTree (mkNode m1Grab) ()) (mkTree (mkNode m1Step) ())))
-(= (m1Seqs $n)
-   (if (<= $n 0) (())
-       (let $tails (m1Seqs (- $n 1))
-         (foldl-atom (m1Acts) () $acc $a
-           (union-atom $acc (map-atom $tails $t (cons-atom $a $t)))))))
-(= (blindScores)
-   (let $all (union-atom (m1Seqs 1) (union-atom (m1Seqs 2) (m1Seqs 3)))
-     (map-atom $all $kids (m1ScoreExp (preOrderExp (mkTree (mkNode and_seq) $kids))))))
-
-(= (line) "--------------------------------------------------------------")
-(= (start) (exemplarInst (m1Rep)))
-
-!(println! "")
-!(println! "==============================================================")
-!(println! "  A creature walks a loop of cells. Some cells contain food.")
-!(println! "  It can GRAB (eat what is here, or waste the move if nothing")
-!(println! "  is here) and STEP (move on one cell). It can also LOOK: is")
-!(println! "  there food here? is there food ahead?")
-!(println! "")
-!(println! "  It gets 14 moves. Score = food eaten minus moves wasted.")
-!(println! "==============================================================")
-!(println! (the-two-loops-it-is-tested-on (m1TapeA) (m1TapeB)))
-!(println! (moves-allowed (m1Fuel)))
-!(println! (best-possible-score (m1BestScore)))
-
-!(println! "")
-!(println! (line))
-!(println! "STEP 1.  The program we start from -- and it is a bad one.")
-!(println! (line))
-!(println! (program (preOrderExp (m1Exemplar))))
-!(println! "  Read it as: if there is food here, STEP (walk away from it);")
-!(println! "  otherwise GRAB (at an empty cell). Exactly backwards.")
-!(println! (it-scores (m1ScoreExp (preOrderExp (m1Exemplar)))))
-!(println! "  -25 out of a possible 10.")
-
-!(println! "")
-!(println! (line))
-!(println! "STEP 2.  What can be changed? Nothing is hard-coded -- the")
-!(println! "         builder asks the program's own type declarations.")
-!(println! (line))
-!(println! (the-conditional-takes (argTypeOf action_bool_if)))
-!(println! "  ...so its first child must be a Bool -- a test -- and the")
-!(println! "  other two are things to DO.")
-!(println! (things-that-produce-a-test (primsOfType Bool)))
-!(println! (things-that-produce-an-action (primsOfType Act)))
-!(println! (things-that-take-children-and-produce-an-action (opsOfType Act)))
-!(println! "  Those lists were not written down anywhere. They were read")
-!(println! "  out of the declarations. Add a new perception and it joins")
-!(println! "  the first list on its own.")
-
-!(println! "")
-!(println! (line))
-!(println! "STEP 3.  What may go in each place -- the CANDIDATES.")
-!(println! (line))
-!(println! "  A candidate is one complete thing that could sit somewhere.")
-!(println! "  Either a single primitive, or an operator with EVERY argument")
-!(println! "  filled by something of the type that argument asks for.")
-!(println! "  Half-filled operators are not offered.")
-!(println! "")
-!(println! "  Where a TEST goes:")
-!(println! (candidates (map-atom (sampleLogicalPerms AND) $p (preOrderExp $p))))
-!(println! "  Where an ACTION goes:")
-!(println! (candidates (map-atom (samplePerms and_seq Act) $p (preOrderExp $p))))
-!(println! "  The test list shows both halves of the rule: pairs joined by")
-!(println! "  the OPPOSITE operator (an OR, because these sit inside an AND)")
-!(println! "  and negations. A negated candidate is not made redundant by a")
-!(println! "  knob being able to negate -- one is a thing to offer, the other")
-!(println! "  is a way to handle it.")
-!(println! "")
-!(println! "  Note the last list. Because action_bool_if says its first")
-!(println! "  argument is a Bool, a perception was fetched to fill it, and")
-!(println! "  a whole conditional became one candidate -- so a program with")
-!(println! "  no conditional in it can grow one.")
-
-!(println! "")
-!(println! (line))
-!(println! "STEP 4.  Every candidate becomes ONE knob.")
-!(println! (line))
-!(println! (how-many-knobs (knobCountOf (m1Rep))))
-!(println! (settings-each-knob-has (knobMultiplicities (m1Rep))))
-!(println! "  A knob's settings are the ways ONE candidate can be handled:")
-!(println! "  two for an action (leave it out, put it in) and three for a")
-!(println! "  test (leave it out, put it in, put in its opposite).")
-!(println! "")
-!(println! "  That is deliberately NOT one knob whose settings are the")
-!(println! "  candidates. With separate knobs, several candidates can be")
-!(println! "  switched on at the same time; with one wide knob the program")
-!(println! "  could only ever hold one of them.")
-
-!(println! "")
-!(println! (line))
-!(println! "STEP 5.  One knob setting = one program.")
-!(println! (line))
-!(println! "  All knobs at their starting values give back exactly the")
-!(println! "  program we began with:")
-!(println! (starting-settings (start)))
-!(println! (which-is (preOrderExp (getCandidate (m1Rep) (start)))))
-!(println! (scoring (m1Score (m1Rep) (start))))
-!(println! "")
-!(println! "  Change ONE knob -- the one holding the test -- to its")
-!(println! "  opposite:")
-!(println! (which-gives (preOrderExp (getCandidate (m1Rep) (changeAt (start) 8 2)))))
-!(println! (scoring (m1Score (m1Rep) (changeAt (start) 8 2))))
-!(println! "  One setting: -25 becomes 10.")
-!(println! "")
-!(println! "  A different knob builds a condition out of TWO tests:")
-!(println! (a-compound-test (preOrderExp (getCandidate (m1Rep) (changeAt (start) 11 1)))))
-!(println! "")
-!(println! "  And a knob at the growth position adds a SECOND conditional")
-!(println! "  alongside the first, in one piece:")
-!(println! (a-second-conditional (preOrderExp (getCandidate (m1Rep) (changeAt (start) 3 1)))))
-
-!(println! "")
-!(println! (line))
-!(println! "STEP 6.  The search: change one knob at a time, keep what helps.")
-!(println! (line))
-!(println! (found (let ($i $s) (hillClimbing m1ScoreExp (m1Rep))
-                    (preOrderExp (getCandidate (m1Rep) $i)))))
-!(println! (score (let ($i $s) (hillClimbing m1ScoreExp (m1Rep)) $s)))
-
-!(println! "")
-!(println! (line))
-!(println! "STEP 7.  Why the looking is what mattered.")
-!(println! (line))
-!(println! "  A program that never LOOKS behaves the same on both loops --")
-!(println! "  the loops were built to agree in one place and differ")
-!(println! "  everywhere else, so whatever such a program gains on one it")
-!(println! "  gives back on the other. Every such program, checked:")
-!(println! (best-score-without-looking (maxOf (blindScores))))
-!(println! (best-score-with-looking (let ($i $s) (hillClimbing m1ScoreExp (m1Rep)) $s)))
-!(println! "  2 against 10. The search did not just find a better program;")
-!(println! "  it found one that had to look to be that good.")
-!(println! "")
+!(m1Moses tape (m1Exemplar) m1ScoreExp (m1BestScore))
