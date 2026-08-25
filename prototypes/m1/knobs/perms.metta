@@ -68,12 +68,24 @@
 ;; whereas a call to a predicate with no clauses at all comes back unreduced.
 (= (paramsOf noSuchPrimitive) ())
 
+;; A primitive can also have a parameter that is a NUMBER TO TUNE rather than a
+;; set to choose from -- it declares `continOf` instead of `paramsOf` (see
+;; knobs/knob.metta). That is one candidate, not a family: the value it starts at
+;; is the declared mean, and the search moves it from there. So the same question
+;; -- what goes in this primitive's parameter slot? -- has three answers, and a
+;; primitive gives exactly one of them.
 (= (instancesOf $op)
    (let $found (collapse (paramsOf $op))
      (if (== $found ())
-         ((leafOf $op))
+         (continInstancesOf $op)
          (map-atom (car-atom $found) $slot
                    (mkTree (mkNode $op) (map-atom $slot $param (leafOf $param)))))))
+
+(= (continInstancesOf $op)
+   (let $spec (continSpecOf $op)
+     (if (== $spec ())
+         ((leafOf $op))
+         ((mkTree (mkNode $op) ((leafOf (continMean $spec))))))))
 
 ;; Every candidate leaf of a type -- the flattened vocabulary.
 (= (literalsOfType $type)
@@ -149,12 +161,25 @@
                           (candidateAt $operators $index))
      (takeFirst $budget (nub (filter-atom $walked $candidate (!= $candidate ()))))))
 
+;; An operator none of whose slots can be filled is not a candidate head at all.
+;; Without this the odometer walks into (% $remaining 0) inside fillAt, and that
+;; is NOT a silent failure: `%` compiles to a direct goal outside reduce's catch,
+;; so the whole run dies with a zero-divisor.
+;;
+;; It bites as soon as operators are declared in core/ that a given domain has no
+;; vocabulary for. `numGt` returns Bool, so every domain sees it in opsOfType
+;; Bool -- but only a domain with numeric primitives can fill its Number slots.
+;; The mixture is what breaks: one fillable operator lifts permLimit above zero,
+;; and then candidateAt reaches the unfillable one.
+(= (isFillable $operator) (> (fillCount (vocabsOf $operator)) 0))
+
 ;; Which operators may head a candidate for a slot of type $type sitting under
 ;; $parent. Not the parent's own operator -- (and_seq (and_seq ...)) says
 ;; nothing new, and for tests this is exactly the AND/OR alternation: the
 ;; candidates offered inside an AND are ORs and vice versa.
 (= (permittedOpsFor $parent $type)
-   (filter-atom (opsOfType $type) $operator (!= $operator $parent))) ;; (AND (AND) ) => and_seq, and_seq
+   (filter-atom (opsOfType $type) $operator
+                (and (isFillable $operator) (!= $operator $parent))))
 
 ;; Every candidate for a slot of type $type under $parent.
 (= (samplePerms $parent $type) ;; A, B, C (AND B C), (OR B C)
