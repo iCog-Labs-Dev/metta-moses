@@ -50,61 +50,25 @@
 ;; Between them these give one full AND-over-ORs-over-literals alternation per
 ;; build. Deeper structure accumulates when an evolved program is fed back in
 ;; as the next starting point.
-;; --- tunable numbers inside a subtree ---------------------------------------
-;; classic's build_contin: a flat scan for numbers to tune, with no intelligence
-;; of its own -- every decision about WHERE one may live was already made, by the
-;; declaration. It runs AFTER the logical knobs are assigned, exactly as classic
-;; runs build_contin after add_logical_knobs on a predicate's argument, because
-;; assignKnobs matches a candidate against the children it already has and a
-;; knob-bearing child would match nothing -- the exemplar's own condition would
-;; be dropped and re-offered, losing the round-trip.
-;;
-;; It walks THROUGH a knob, because a knob's controlled subtree may hold a
-;; tunable primitive, and THROUGH a placeholder, because a placeholder is a
-;; disabled knob rather than the absence of one. A number inside a switched-off
-;; candidate owns its slots like any other knob; they just do not affect the
-;; decoded program until the candidate above them is switched on.
-;;
-;; There is no second copy of a candidate to keep in step: an ASK decodes the
-;; same controlled subtree an LSK does, so walking the subtree is the whole job.
-(= (addContinKnobs (mkKnob $subtree $knob $index))
-   (mkKnob (addContinKnobs $subtree) $knob $index))
-(= (addContinKnobs (mkNullVex $held))
-   (mkNullVex (map-atom $held $sub (addContinKnobs $sub))))
-(= (addContinKnobs (mkTree (mkNode $symbol) $children))
-   (let $spec (continSpecOf $symbol)
-     (if (== $spec ())
-         (mkTree (mkNode $symbol) (map-atom $children $child (addContinKnobs $child)))
-         (mkTree (mkNode $symbol) ((continKnobFor (car-atom $children) $spec))))))
-
 (= (buildLogical $tree $parentOp)
    (if (isJunctor (nodeSymOf $tree))
        (buildJunctor $tree)
-       (addContinKnobs
-         (addLogicalKnobs (mkTree (mkNode (swapAndOr $parentOp)) ($tree))))))
+       (addLogicalKnobs (mkTree (mkNode (swapAndOr $parentOp)) ($tree)))))
 
 (= (buildJunctor (mkTree (mkNode $op) $children))
    (let* (($knobbed (addLogicalKnobs (mkTree (mkNode $op) $children)))
           ($deeper  (recurseKids (kidsOf $knobbed) $op))
-          ;; the grow-into node's candidates are placeholders too, and they get
-          ;; their contin knobs for the same reason -- switched off is not absent
-          ($fresh   (addContinKnobs
-                      (addLogicalKnobs (mkTree (mkNode (swapAndOr $op)) ())))))
+          ($fresh   (addLogicalKnobs (mkTree (mkNode (swapAndOr $op)) ()))))
      (mkTree (mkNode $op) (union-atom $deeper ($fresh)))))
 
 (= (recurseKids $children $parentOp)
    (map-atom $children $child (recurseKid $child $parentOp)))
 
-;; A knob holding a real subtree is gone into. A placeholder gets its contin
-;; knobs -- switched off is not absent -- but NOT a further round of logical
-;; knobs, and that is a TERMINATION condition rather than a saving. buildJunctor
-;; appends a fresh grow-into node of placeholders every time it runs, so sending
-;; placeholders back into buildLogical spawns more placeholders without bound;
-;; probed, and the build does not come back. Refining a switched-on candidate
-;; therefore needs a depth bound before it could be tried at all.
+;; a knob holding a real subtree is gone into; a placeholder is not, because
+;; there is nothing there yet
 (= (recurseKid (mkKnob $subtree $knob $index) $parentOp)
    (if (isNullVex $subtree)
-       (addContinKnobs (mkKnob $subtree $knob $index))
+       (mkKnob $subtree $knob $index)
        (mkKnob (buildLogical $subtree $parentOp) $knob $index)))
 (= (recurseKid (mkTree $node $children) $parentOp)
    (buildLogical (mkTree $node $children) $parentOp))
@@ -120,12 +84,9 @@
 
 ;; Any other slot: a primitive child is knobbed; a compound child is gone into,
 ;; so its own slots get knobbed instead.
-;; A primitive with a tunable parameter gets BOTH knobs: the keep-or-drop one
-;; over the whole action, and a contin knob on its parameter inside. That is why
-;; the ASK decode recurses -- see knobs/decode.metta.
 (= (addSimpleActionKnobs $child)
    (if (isPrimitive (nodeSymOf $child))
-       (wrapKnob (simpleActionSubtreeKnob (addContinKnobs $child)))
+       (wrapKnob (simpleActionSubtreeKnob $child))
        (buildNode $child)))
 
 (= (buildSlot $type $child)
@@ -149,17 +110,10 @@
 ;;
 ;; `slotType` answers for any position of a variadic operator, so the element
 ;; type is one type query rather than a hand-taken-apart signature.
-;; The candidate is scanned for tunable numbers BEFORE it is wrapped, which is
-;; what addSimpleActionKnobs already does one slot over. Scanning first is what
-;; keeps an ASK's two copies of its candidate identical -- the placeholder it
-;; holds as a subtree and the raw one in its perms -- with a single allocation.
-;; Without this a grow-into candidate is switched on with its numbers frozen at
-;; their declared means, which is the action-side half of the same bug the
-;; placeholder walk fixes on the boolean side.
 (= (extraSlot $op)
    (if (isVariadic $op) ;; Op nary
        (wrapKnobs (map-atom (samplePerms $op (slotType $op 0)) $candidate
-                            (actionSubtreeKnob (addContinKnobs $candidate))))
+                            (actionSubtreeKnob $candidate)))
        ()))
 
 ;; The growth knobs are bound FIRST, so they take the low indices; the demos

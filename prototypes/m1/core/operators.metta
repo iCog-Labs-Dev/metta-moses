@@ -56,21 +56,6 @@
 (= (OR  $children) (anyM evalTerm $children))
 (= (NOT ($child))  (not (evalTerm $child)))
 
-;; --- the bridge from numbers to conditions ----------------------------------
-;; A MeTTa builtin cannot BE an operator here. Every node arrives as
-;; (op (children)) -- ONE argument, the child list -- so `>` would be looked up
-;; at arity 2 and PeTTa hands back a partial instead of a truth value. One
-;; wrapper clause fixes it: the child list comes apart in the head, evalTerm runs
-;; each child, and the builtin sees plain numbers.
-;;
-;; This is classic MOSES's `greater_than_zero` by another name -- there too the
-;; contin-to-bool bridge is a hand-written operator, not a general coercion.
-;;
-;; No guard for a non-numeric child: `>` raises, reduce catches it
-;; (translator.pl:57), and evalNode maps the empty collapse to False -- the same
-;; path any malformed child has always taken.
-(= (numGt ($a $b)) (> (evalTerm $a) (evalTerm $b)))
-
 ;; --- the three that still name a context ------------------------------------
 ;; These are UNDECLARED, and evalNode routes an undeclared symbol as a leaf --
 ;; so they are called the way a domain primitive is, with the context, and must

@@ -38,16 +38,9 @@
 ;; ...and the same question asked of the things that take CHILDREN. This is
 ;; what lets a candidate be an operator with its arguments filled in, rather
 ;; than only a bare primitive.
-;; numGt is here even though the tape world has no numbers: these two read the
-;; DECLARATIONS, and numGt is declared in core/types.metta once for every domain.
-;; What keeps it harmless is a later filter, not this list -- knobs/perms.metta's
-;; isFillable drops an operator whose slots have no vocabulary, so
-;; `permittedOpsFor AND Bool` is still (OR NOT) here and no candidate list, knob
-;; count or score anywhere moves. tests/t-knobs.metta:72 is what pins that, and
-;; it is the test to watch if this one is ever changed again.
 !(test (declaredOpsOfType Act)  (quote (action_bool_if and_seq or_seq action_not)))
-!(test (declaredOpsOfType Bool) (quote (AND OR NOT numGt)))
-!(test (opsOfType Bool) (quote (AND OR NOT numGt)))
+!(test (declaredOpsOfType Bool) (quote (AND OR NOT)))
+!(test (opsOfType Bool) (quote (AND OR NOT)))
 !(test (opsOfType Act)  (quote (action_bool_if and_seq or_seq action_not)))
 
 ;; A declared operator can no longer be called from a source call site -- only

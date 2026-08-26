@@ -128,12 +128,4 @@
 
 (: AND (-> (Seq Bool) $ctx Bool))
 (: OR  (-> (Seq Bool) $ctx Bool))
-(: NOT (-> (Bool) $ctx Bool))
-
-;; numGt turns two numbers into a condition, so it is in `opsOfType Bool` for
-;; EVERY domain -- including the four that have no numbers at all. That is safe
-;; only because knobs/perms.metta drops an operator whose slots cannot be filled;
-;; a domain with no Number primitives never sees numGt offered. Read the comment
-;; on isFillable before removing it: without that guard this one declaration
-;; kills every existing run with a zero-divisor.
-(: numGt (-> (Number Number) $ctx Bool))
+(: NOT (-> (Bool) $ctx Bool)) 

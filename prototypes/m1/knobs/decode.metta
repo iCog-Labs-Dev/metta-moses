@@ -24,31 +24,9 @@
              (getCandidateRec $inst $subtree)
              (negated (getCandidateRec $inst $subtree))))))
 
-(= (getCandidateRec $inst (mkKnob $subtree (mkASK $settings $default) $index))
+(= (getCandidateRec $inst (mkKnob $subtree (mkASK $settings $default $perms) $index))
    (let $setting (index-atom $inst $index)
-     (if (== $setting 0)
-         ()
-         (getCandidateRec $inst $subtree))))
-
-;; ^ AN ASK IS AN LSK WITHOUT THE NEGATION. Same shape, same fields, and it
-;; decodes the same controlled subtree; the only difference is that it has two
-;; settings rather than three because there is nothing to negate.
-;;
-;; It used to carry a third field, a `perms` list, and decode THAT instead of
-;; its subtree -- so the candidate was stored twice, once wrapped in the
-;; placeholder that knobSpecs walks and once raw in the list that decode read.
-;; Two copies that had to be kept identical by hand: plant a knob in one and not
-;; the other and the instance vector grows a slot nothing reads, or loses one
-;; something does. Dropping the field removes the possibility rather than
-;; managing it, and makes the two knob kinds structurally the same.
-
-;; A contin knob reads its `depth` consecutive slots as a WALK and answers the
-;; number that walk arrives at. It is the one knob that can never answer () --
-;; there is no absent setting, because all-Stop already means "the number it was
-;; built with" rather than "no number".
-(= (getCandidateRec $inst (mkKnob $subtree (mkCTK $mean $step $expansion $depth) $index))
-   (let $trits (map-atom (rangeTo $depth) $i (index-atom $inst (+ $index $i)))
-     (leafOf (continWalk $trits $mean $step $expansion))))
+     (if (== $setting 0) () (index-atom $perms (- $setting 1)))))
 
 (= (getCandidateRec $inst (mkNullVex ()))        ())
 (= (getCandidateRec $inst (mkNullVex ($subtree))) (getCandidateRec $inst $subtree))
@@ -112,35 +90,17 @@
 ;; instance vector comes out too short.
 (= (knobSpecs (mkKnob $subtree (mkLSK $settings $default) $index))
    (union-atom (($index $settings $default)) (knobSpecs $subtree)))
-(= (knobSpecs (mkKnob $subtree (mkASK $settings $default) $index))
+(= (knobSpecs (mkKnob $subtree (mkASK $settings $default $perms) $index))
    (union-atom (($index $settings $default)) (knobSpecs $subtree)))
-;; A contin knob owns `depth` CONSECUTIVE slots, so it contributes `depth` specs
-;; rather than one -- a 3-setting trit each, every one defaulting to 0 (Stop).
-;; That default is what makes the exemplar instance decode back to the number the
-;; representation was built with.
-(= (knobSpecs (mkKnob $subtree (mkCTK $mean $step $expansion $depth) $index))
-   (union-atom (map-atom (rangeTo $depth) $i ((+ $index $i) 3 0))
-               (knobSpecs $subtree)))
-;; A PLACEHOLDER IS A DISABLED KNOB, NOT THE ABSENCE OF ONE. It holds a
-;; candidate that is switched off, and knobs inside a switched-off candidate
-;; still own their slots -- they simply have no effect on the decoded program
-;; until the candidate above them is switched on. Reporting () here instead is
-;; what used to make a contin knob unplantable inside a candidate, and with it
-;; any number the exemplar did not already contain unreachable.
-(= (knobSpecs (mkNullVex $held))
-   (foldl-atom $held () $found $sub (union-atom $found (knobSpecs $sub))))
+(= (knobSpecs (mkNullVex $placeholder)) ())   ;; a placeholder holds no knobs
 (= (knobSpecs (mkTree $node $children))
    (foldl-atom $children () $found $child (union-atom $found (knobSpecs $child))))
 
 (= (knobKindIdx (mkKnob $subtree (mkLSK $settings $default) $index))
    (union-atom (($index LSK)) (knobKindIdx $subtree)))
-(= (knobKindIdx (mkKnob $subtree (mkASK $settings $default) $index))
+(= (knobKindIdx (mkKnob $subtree (mkASK $settings $default $perms) $index))
    (union-atom (($index ASK)) (knobKindIdx $subtree)))
-(= (knobKindIdx (mkKnob $subtree (mkCTK $mean $step $expansion $depth) $index))
-   (union-atom (map-atom (rangeTo $depth) $i ((+ $index $i) CTK))
-               (knobKindIdx $subtree)))
-(= (knobKindIdx (mkNullVex $held))
-   (foldl-atom $held () $found $sub (union-atom $found (knobKindIdx $sub))))
+(= (knobKindIdx (mkNullVex $placeholder)) ())
 (= (knobKindIdx (mkTree $node $children))
    (foldl-atom $children () $found $child (union-atom $found (knobKindIdx $child))))
 
