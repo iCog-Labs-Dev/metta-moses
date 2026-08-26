@@ -27,30 +27,73 @@
 
 
 ;; Test case to make sure it varyNKnobs generates unique and all available neighbors.
+;; After Fix 1: varyNKnobs now generates instances at EXACTLY the target distance,
+;; matching C++ vary_n_knobs semantics. C(4,2)*2^2 = 24 for multips=(2 1), dist=2.
 !(assertEqual (let*
                 (
                   ($original (varyNKnobs (2 1) (0 0 0 1) 2))
                   ($unique (unique-atom (varyNKnobs (2 1) (0 0 0 1) 2))))
-                (and (== (length $original) (length $unique)) (== (length $original) 32))) true)
+                (and (== (length $original) (length $unique)) (== (length $original) 24))) true)
 
-;; At distance 2 should generate total of 32 neighbors
-;; !(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 2) ((List.length $a) (get-type $a))) (32 (List Instance)))
-!(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 2) (List.length $a)) 32) ;; Since the type system isn't working properly the above has been replaced with this test case. Change when type starts working correctly.
+;; At distance 2 should generate total of 24 neighbors (exactly dist=2)
+;; C(4,2)*2^2 = 24 after Fix 1 (was 32 when cumulative 1..dist)
+;; !(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 2) ((List.length $a) (get-type $a))) (24 (List Instance)))
+!(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 2) (List.length $a)) 24) ;; Since the type system isn't working properly the above has been replaced with this test case. Change when type starts working correctly.
 ;; !(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 1) ((List.length $a) (get-type $a))) (8 (List Instance)))
 !(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 1) (List.length $a)) 8) ;; Since the type system isn't working properly the above has been replaced with this test case. Change when type starts working correctly.
 
-;; At distance 3 should generate total of 64 neighbors
-;; !(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 3) ((List.length $a) (get-type $a))) (64 (List Instance)))
-!(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 3) (List.length $a)) 64) ;; Since the type system isn't working properly the above has been replaced with this test case. Change when type starts working correctly.
+;; At distance 3 should generate total of 32 neighbors (exactly dist=3)
+;; C(4,3)*2^3 = 32 after Fix 1 (was 64 when cumulative 1..dist)
+;; !(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 3) ((List.length $a) (get-type $a))) (32 (List Instance)))
+!(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 3) (List.length $a)) 32) ;; Since the type system isn't working properly the above has been replaced with this test case. Change when type starts working correctly.
 
-;; Generated neighbors should be 32 in length and center shouldn't be member.
+;; Generated neighbors should be 24 in length and center shouldn't be member.
 ;;    Distance 0 indicates a center node being present.
+;; After Fix 1: exactly dist=2 → C(4,2)*2^2 = 24 (was 32 when cumulative)
 !(assertEqual
    (let $distList
         (List.map ((curry distance) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ())))))) 
                   (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 2))
         ((List.length $distList) (List.contains 0 $distList))) 
-   (32 False))
+   (24 False))
+
+;; Verify all generated neighbors are at EXACTLY the target distance
+;; (matching C++ NeighborSamplingUTest.cxxtest assertions).
+;; Uses foldl to check every distance equals the target.
+!(assertEqual
+   (let*
+      (
+        ($center (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))))
+        ($neighbors (generateAllInNeighborhood (mkMultip 3) $center 2))
+        ($dists (List.map ((curry distance') $center) $neighbors))
+        ($allExact (foldl-atom $dists True $acc $d (and $acc (== $d 2))))
+      )
+      ((List.length $dists) $allExact))
+   (24 True))
+
+;; Same check at distance 1
+!(assertEqual
+   (let*
+      (
+        ($center (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))))
+        ($neighbors (generateAllInNeighborhood (mkMultip 3) $center 1))
+        ($dists (List.map ((curry distance') $center) $neighbors))
+        ($allExact (foldl-atom $dists True $acc $d (and $acc (== $d 1))))
+      )
+      ((List.length $dists) $allExact))
+   (8 True))
+
+;; Same check at distance 3
+!(assertEqual
+   (let*
+      (
+        ($center (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))))
+        ($neighbors (generateAllInNeighborhood (mkMultip 3) $center 3))
+        ($dists (List.map ((curry distance') $center) $neighbors))
+        ($allExact (foldl-atom $dists True $acc $d (and $acc (== $d 3))))
+      )
+      ((List.length $dists) $allExact))
+   (32 True))
 
 (= (tree1)
         (mkTree (mkNode AND)

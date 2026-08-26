@@ -17,8 +17,8 @@
 ;; A native fold remains compositional when the estimator consumes the result
 ;; as a nested expression under PeTTa.
 (= (informationTheoreticBits $knobMap)
-   (foldl-atom (MultiMap.values $knobMap) 0 $bits $knob
-     (+ $bits (knobInformationBits $knob))))
+   (floor-math (foldl-atom (MultiMap.values $knobMap) 0 $bits $knob
+     (+ $bits (knobInformationBits $knob)))))
 
 ;; feature selection version of the informationTheoreticBits function
 ;; In the case of feature selection, the information theoretic bits is simply the number of features we have
@@ -89,20 +89,34 @@
 ; a helper function to the countNeighborhood method
 ;; (: countNeighborhoodFromIdx (-> KnobMap Instance Number Number Number Number))
 (= (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst $dist $startIdx $maxCount)
-(if (== $dist 0)
-    1
-    (if (>= $startIdx (MultiMap.length $dscMp))
-        0
-        (let $updatedNumInstances (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst $dist (+ $startIdx 1) $maxCount)
-          (if  (> $updatedNumInstances $maxCount)
-               $updatedNumInstances
-               (let*
-                 (
-                    (($kbSpec $knob) (MultiMap.getByIdx $startIdx $dscMp))
-                    ((mkMultip $multip) (getKnobMultip $knob))
-                    ($uUpdatedNumInstances (+ $updatedNumInstances (* (- $multip 1) (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst (- $dist 1) (+ $startIdx 1) $maxCount))))
-                 )
-                 $uUpdatedNumInstances))))))
+   (let*
+     (
+       (($kbSpec $knob) (MultiMap.getByIdx $startIdx $dscMp))
+       ((mkMultip $multip) (getKnobMultip $knob))
+       ($isBoolTail (and (== $multip 2) (allBooleanKnobs (mkKbMap (mkDscMp $dscMp)) (+ $startIdx 1))))
+     )
+     (case ($dist (>= $startIdx (MultiMap.length $dscMp)) $isBoolTail)
+       (
+         ((0 $_ $_) 1)
+         (($dist True $_) 0)
+         (($dist False True)
+          (let* (($n (- (MultiMap.length $dscMp) $startIdx)))
+            (if (> $dist $n) 
+              0
+              (let $count (binomial $n $dist) (if (> $count $maxCount) $maxCount $count)))))
+         (($dist False False)
+          (let $updatedNumInstances (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst $dist (+ $startIdx 1) $maxCount)
+            (if (> $updatedNumInstances $maxCount)
+                $updatedNumInstances
+                (+ $updatedNumInstances (* (- $multip 1) (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst (- $dist 1) (+ $startIdx 1) $maxCount))))))))))
+
+;; Helper: check if all knobs from $startIdx onward have multiplicity 2 (boolean).
+(= (allBooleanKnobs (mkKbMap (mkDscMp ())) $startIdx) True)
+(= (allBooleanKnobs (mkKbMap (mkDscMp (cons ($spec $knob) $tail))) $startIdx)
+   (let (mkMultip $multip) (getKnobMultip $knob)
+     (if (== $multip 2)
+         (allBooleanKnobs (mkKbMap (mkDscMp $tail)) (+ $startIdx 1))
+         False)))
 
 ; countNeighborhood
 ;; (: countNeighborhood (-> KnobMap Instance Number Number Number))
