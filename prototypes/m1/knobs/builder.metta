@@ -50,19 +50,23 @@
 ;; Between them these give one full AND-over-ORs-over-literals alternation per
 ;; build. Deeper structure accumulates when an evolved program is fed back in
 ;; as the next starting point.
+;;
+;; The literal branch wraps and knobs, and THEN goes inside for numbers.
+;; `buildInner` runs after addLogicalKnobs and never before: assignKnobs matches
+;; a candidate against the children the node already has, and a knob-bearing
+;; child matches nothing, so knobbing first would drop the exemplar's own
+;; condition and re-offer it as a placeholder -- losing the round trip. classic
+;; orders it the same way (build_knobs.cc: add_logical_knobs, then
+;; contin_canonize + build_contin on the predicate's argument).
 (= (buildLogical $tree $parentOp)
    (if (isJunctor (nodeSymOf $tree))
-       (buildJunctor $tree)
-       (addLogicalKnobs (mkTree (mkNode (swapAndOr $parentOp)) ($tree)))))
-
-(= (buildJunctor (mkTree (mkNode $op) $children))
-   (let* (($knobbed (addLogicalKnobs (mkTree (mkNode $op) $children)))
-          ($deeper  (recurseKids (kidsOf $knobbed) $op))
-          ($fresh   (addLogicalKnobs (mkTree (mkNode (swapAndOr $op)) ()))))
-     (mkTree (mkNode $op) (union-atom $deeper ($fresh)))))
-
-(= (recurseKids $children $parentOp)
-   (map-atom $children $child (recurseKid $child $parentOp)))
+       (let* (($op      (nodeSymOf $tree))
+              ($knobbed (addLogicalKnobs $tree))
+              ($deeper  (map-atom (kidsOf $knobbed) $child (recurseKid $child $op)))
+              ($fresh   (addLogicalKnobs (mkTree (mkNode (swapAndOr $op)) ()))))
+         (mkTree (mkNode $op) (union-atom $deeper ($fresh))))
+       (buildInner
+         (addLogicalKnobs (mkTree (mkNode (swapAndOr $parentOp)) ($tree))))))
 
 ;; a knob holding a real subtree is gone into; a placeholder is not, because
 ;; there is nothing there yet
@@ -79,8 +83,12 @@
    (if (isJunctor (nodeSymOf $tree)) $tree (mkTree (mkNode AND) ($tree))))
 
 ;; --- slots ------------------------------------------------------------------
-;; A Bool slot gets the whole boolean treatment above.
-(= (buildBoolSlot $child) (buildJunctor (logicalCanonize $child)))
+;; A Bool slot gets the whole boolean treatment above. logicalCanonize always
+;; hands back a junctor, so buildLogical takes its first branch and the parent
+;; op is never read -- the tree's own symbol stands in for it.
+(= (buildBoolSlot $child)
+   (let $canonized (logicalCanonize $child)
+     (buildLogical $canonized (nodeSymOf $canonized))))
 
 ;; Any other slot: a primitive child is knobbed; a compound child is gone into,
 ;; so its own slots get knobbed instead.
@@ -89,8 +97,53 @@
        (wrapKnob (simpleActionSubtreeKnob $child))
        (buildNode $child)))
 
+;; A Number slot gets a knob on its VALUE. A Params slot gets NOTHING -- it is a
+;; parametrised leaf's own parameter, colAt's column index, and the walk must
+;; not go inside. Remove that branch and a column index becomes tunable: the
+;; program stays well-formed and starts reading the wrong column. classic needs
+;; no such branch because there an argument is a different vertex type from a
+;; constant, so its scan cannot see one.
 (= (buildSlot $type $child)
-   (if (== $type Bool) (buildBoolSlot $child) (addSimpleActionKnobs $child)))
+   (if (== $type Params)
+       $child
+       (if (== $type Bool)
+           (buildBoolSlot $child)
+           (if (== $type Number)
+               (buildNumberSlot $child)
+               (addSimpleActionKnobs $child)))))
+
+;; A number the author wrote gets a walk attached, with itself as the mean.
+;; Anything else is a subtree, walked for numbers of its own.
+;;
+;; isNumberLiteral, NOT isGroundLiteral: the latter is true of Bool and String
+;; too, so it would make True or "8" the mean of an arithmetic walk. Literals of
+;; other types are left as written -- there is no knob kind for them yet.
+(= (buildNumberSlot $child)
+   (if (isNumberLiteral (nodeSymOf $child))
+       (continKnobFor $child)
+       (buildInner $child)))
+
+;; --- looking inside something the boolean recursion treats as opaque --------
+;; m1's build_contin: a flat walk that knobs ONLY Number slots and walks through
+;; every other kind. It must not send a Bool slot to buildSlot -- that would
+;; re-enter the boolean machinery and double every knob already hung.
+;;
+;; It goes THROUGH a knob, since a controlled subtree may hold a number, and
+;; stops at a PLACEHOLDER: knobSpecs reports no knobs inside a switched-off
+;; candidate, so a knob there would leave a gap in the instance vector. That is
+;; why a tunable number has to be one the exemplar wrote.
+(= (buildInner (mkKnob $subtree $knob $index))
+   (mkKnob (buildInner $subtree) $knob $index))
+(= (buildInner (mkNullVex $held)) (mkNullVex $held))
+(= (buildInner (mkTree (mkNode $symbol) $children))
+   (if (isPrimitive $symbol)
+       (mkTree (mkNode $symbol) $children)
+       (mkTree (mkNode $symbol)
+               (map-atom (rangeTo (size-atom $children)) $slot
+                 (let $child (index-atom $children $slot)
+                   (if (== (slotType $symbol $slot) Number)
+                       (buildNumberSlot $child)
+                       (buildInner $child)))))))
 
 ;; Each child is built against the type ITS OWN position asks for, so the walk
 ;; is over the positions rather than over the children.
