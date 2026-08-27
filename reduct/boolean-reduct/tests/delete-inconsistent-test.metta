@@ -8,8 +8,9 @@
 !(assertEqual (deleteInconsistentHandle (AND) () ()) ((AND) () False))
 !(assertEqual (deleteInconsistentHandle (AND (A)) (A) (B C)) ((AND (A)) (A) False))
 !(assertEqual (deleteInconsistentHandle (AND (A)) (A) (B C)) ((AND (A)) (A) False))
-!(assertEqual (deleteInconsistentHandle (AND (A)) (A) ((NOT A) B C)) ((AND) () True)) ;; replaces A with AND
-!(assertEqual (deleteInconsistentHandle (AND (A)) (A) (B C (NOT A))) ((AND) () True)) ;; 
+;; false under an AND parent annihilates it, so the parent becomes the empty OR
+!(assertEqual (deleteInconsistentHandle (AND (A)) (A) ((NOT A) B C)) ((OR) () True))
+!(assertEqual (deleteInconsistentHandle (AND (A)) (A) (B C (NOT A))) ((OR) () True))
 !(assertEqual (deleteInconsistentHandle (AND A) A (B C)) ((AND A) A False))
 
 ;; Test 02 - for OR and NOT expressions

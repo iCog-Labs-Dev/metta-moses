@@ -39,9 +39,10 @@
 )
 
 ;; Test 07: Test case from Holman paper page #39
+;; promoting (NOT B) empties the second branch, so the POA is true and leaves the parent
 !(assertEqual
     (promoteCommonConstraints (AND A (OR (AND (NOT B) C) (AND (NOT B))) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))) (OR (AND (NOT B) C) (AND (NOT B))))
-    ((AND A (NOT B) (OR (AND C) (AND)) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))) (OR (AND C) (AND)) True)
+    ((AND A (NOT B) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))) () True)
 )
 
 ;;remove element Test

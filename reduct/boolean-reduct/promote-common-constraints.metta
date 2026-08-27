@@ -11,6 +11,8 @@
 ;;              parent of the POA and the updated parent, the updated
 ;;              POA and a boolean indicator whether the transformation
 ;;              is applied or not are returned in a tuple.
+;;            A branch the subtraction empties is the empty conjunction, i.e.
+;;              true, so the POA is a tautology and is dropped from the parent.
 ;; Example: input: POA ==> (OR (AND (NOT B) C) (NOT B)), parent ==> (AND A (OR (AND (NOT B) C) (NOT B)) (OR (NOT C) (AND (NOT B) (NOT D))))
 ;;        : output: ((AND A (NOT B) (OR (AND C) (AND)) (OR (NOT C) (AND (NOT B) (NOG D)))) () True)
 ;(: promoteCommonConstraints (-> Expression Expression (Expression Expression Bool)))
@@ -32,13 +34,30 @@
                       ;; (() (println! (Removing Common Literals: $common)))
                       ($updatedChildren (removeCommonLiterals $common $children))
                       ($updatedLiterals (removeElement $common $literals))
-                      ($newExp (concatTuple $updatedLiterals $updatedChildren ))
-
-                      ($newCurrent (cons-atom OR $newExp))
-                      ($updatedParent (findAndReplace $current $newCurrent $parent))
-                      ($updatedParent' (addLiterals $updatedParent $common))
+                      ;; A branch emptied by the promotion is true, and so is the POA.
+                      ;; Guarded on every branch being a sub-expression: findCommon reads
+                      ;; only those branches' guard sets, so with a bare literal branch
+                      ;; alongside them an empty (AND) proves nothing.
+                      ($currentHead (if (== (get-metatype $current) Expression) (car-atom $current) ()))
+                      ($isTautology (and (and (== $currentHead OR) (== $literals ()))
+                                         (any (map-atom $updatedChildren $b (== $b (AND))))))
                     )
-                    ($updatedParent' $newCurrent True)
+                    (if $isTautology
+                        ;; true is the AND-identity: the POA leaves, the promoted literals stay
+                        (if (== $parent $current)
+                            ((AND) () True)
+                            ((addLiterals (removeElement ($current) $parent) $common) () True))
+                        (let*
+                            (
+                              ($newExp (concatTuple $updatedLiterals $updatedChildren ))
+
+                              ($newCurrent (cons-atom OR $newExp))
+                              ($updatedParent (findAndReplace $current $newCurrent $parent))
+                              ($updatedParent' (addLiterals $updatedParent $common))
+                            )
+                            ($updatedParent' $newCurrent True)
+                        )
+                    )
                 )
             )
         )
