@@ -153,8 +153,22 @@
 ;; $parent. Not the parent's own operator -- (and_seq (and_seq ...)) says
 ;; nothing new, and for tests this is exactly the AND/OR alternation: the
 ;; candidates offered inside an AND are ORs and vice versa.
+;; An operator none of whose slots can be filled is not a candidate head at all.
+;; Without this the odometer walks into (% $remaining 0) inside fillAt, and that
+;; is NOT a silent failure: `%` compiles to a direct goal outside reduce's catch
+;; (metta.pl), so the whole run dies with a zero-divisor.
+;;
+;; It bites as soon as a domain has a vocabulary for one type and none for
+;; another. A numeric table is exactly that: numGt is fillable from the columns
+;; and lifts permLimit above zero, while AND and OR have no Bool literals to
+;; draw on -- and then candidateAt reaches the unfillable one. With ONLY
+;; unfillable operators permLimit is 0, rangeTo 0 is (), and candidateAt is
+;; never reached, which is why this went unnoticed for so long.
+(= (isFillable $operator) (> (fillCount (vocabsOf $operator)) 0))
+
 (= (permittedOpsFor $parent $type)
-   (filter-atom (opsOfType $type) $operator (!= $operator $parent))) ;; (AND (AND) ) => and_seq, and_seq
+   (filter-atom (opsOfType $type) $operator
+                (and (isFillable $operator) (!= $operator $parent)))) ;; (AND (AND) ) => and_seq, and_seq
 
 ;; Every candidate for a slot of type $type under $parent.
 (= (samplePerms $parent $type) ;; A, B, C (AND B C), (OR B C)
