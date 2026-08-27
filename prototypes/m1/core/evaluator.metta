@@ -43,6 +43,20 @@
 
 (= (isGroundLiteral $x) (isConstantType (get-type $x)))
 
+;; A NUMBER specifically, which is a different question and must not be
+;; confused with the one above. isGroundLiteral is the right test for RENDERING
+;; a leaf -- True and "8" print bare exactly as 5 does -- and the wrong test for
+;; deciding what may be TUNED: a contin walk adds a step size to its mean, so
+;; starting one at True or at "8" is arithmetic on something that is not a
+;; number. knobs/builder.metta asks this one.
+;;
+;; A direct == on the WHOLE type, not a membership test like the one above:
+;; get-type answers Number for a numeric literal and an arrow expression for
+;; anything callable, so a function returning a Number is correctly not a
+;; number. It also answers once, which matters here for the same reason it
+;; matters above -- a second solution would double every build.
+(= (isNumberLiteral $x) (== Number (get-type $x)))
+
 ;; --- running one node -------------------------------------------------------
 ;; Two kinds of thing can head a node, and the type declarations already say
 ;; which is which, so no operator is named here:
