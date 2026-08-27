@@ -7,8 +7,13 @@
 ;; A failure prints and stops. But absence of failures is NOT enough: count the
 ;; ticks and compare them against the number of checks written down.
 ;;
-;;   ...run.metta -s ) | grep -c ✅              -> must be 148
-;;   cat prototypes/m1/tests/t-*.metta | grep -c '^!(test'
+;;   ...run.metta -s ) | grep -c ✅              -> must be 147
+;;   cat prototypes/m1/tests/t-{operators,types,knobs,decode,domain,search}.metta \
+;;       | grep -c '^!(test'
+;;
+;; The brace list, not t-*.metta: the other suites in this directory belong to
+;; domains this runner does not load, and sweeping them in gives a number that
+;; matches nothing.
 ;;
 ;; A check whose expected value is a program written out longhand is a CALL. If
 ;; it is not wrapped in `quote` it yields no answer and the whole check quietly

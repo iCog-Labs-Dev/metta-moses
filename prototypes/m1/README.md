@@ -28,11 +28,8 @@ still works.
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-alarm.metta -s )
 
-# tuning a NUMBER -- a contin knob walking to a value in no table
-( ulimit -v 8000000; timeout 900 \
-    sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-thermostat.metta -s )
-
-# actions AND numbers at once -- three knob kinds in one instance vector
+# a NUMBER, not a subtree -- the exemplar's structure is right and its
+# threshold is wrong, and no rearrangement of subtrees can fix that
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/demo-grove.metta -s )
 
@@ -46,7 +43,7 @@ still works.
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run-alarm.metta -s ) | grep -c ✅
 ( ulimit -v 8000000; timeout 900 \
-    sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run-thermostat.metta -s ) | grep -c ✅
+    sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run-contin.metta -s ) | grep -c ✅
 ( ulimit -v 8000000; timeout 900 \
     sh /home/yab/PeTTaV1/run.sh prototypes/m1/tests/run-grove.metta -s ) | grep -c ✅
 ```
@@ -59,8 +56,8 @@ cat prototypes/m1/tests/t-{operators,types,knobs,decode,domain,search}.metta \
 grep -c '^!(test' prototypes/m1/tests/t-orchard.metta       #  66, the orchard suite
 grep -c '^!(test' prototypes/m1/tests/t-berries.metta       #  47, the berry suite
 grep -c '^!(test' prototypes/m1/tests/t-alarm.metta         #  39, the boolean suite
-grep -c '^!(test' prototypes/m1/tests/t-thermostat.metta    #  48, a tuned threshold
-grep -c '^!(test' prototypes/m1/tests/t-grove.metta         #  54, the mixed suite
+grep -c '^!(test' prototypes/m1/tests/t-contin.metta        #  80, tunable numbers
+grep -c '^!(test' prototypes/m1/tests/t-grove.metta         #  27, the mixed suite
 ``` Compare them; do not just look for failures, and note that the two ways of
 coming up short mean different things.
 
@@ -138,8 +135,7 @@ is for, and there isn't one here.
 | `demo-orchard.metta` | two senses, each blind to what the other sees — the case for compound conditions |
 | `demo-berries.metta` | the answer is not a candidate at all, and has to be assembled |
 | `demo-alarm.metta` | no world: an input table, a row for a context, one parametrised primitive per column |
-| `demo-thermostat.metta` | a numeric table, and a VALUE to find that appears nowhere in the problem |
-| `demo-grove.metta` | the mixed case — actions, a numeric condition, and two tuned numbers in one tree |
+| `demo-grove.metta` | a tunable NUMBER, alongside action and condition knobs in one instance vector |
 | `core/prelude.metta` | list and tree helpers. Nothing interesting. |
 | `core/monad.metta` | how a context (a world, a board, a table row) is threaded |
 | `core/evaluator.metta` | running a program |
@@ -286,6 +282,12 @@ column if you know the production tree, the right one if you know the C++.
 | `logicalSubtreeKnob` / `mkLSK` | same | `logical_subtree_knob` |
 | `simpleActionSubtreeKnob` | `simpleActionSubtreeKnob` | `simple_action_subtree_knob` |
 | `actionSubtreeKnob` / `mkASK` | `actionSubtreeKnob` | `action_subtree_knob` |
+| `continKnobFor` / `mkCTK` | — | `contin_knob` |
+| `continWalk` / `continLeft` / `continRight` | — | `field_set::contin_stepper` |
+| `continDefaults` / `mkContin` | — | `field_set::contin_spec` |
+| `buildInner` | — | `build_knobs::build_contin` |
+| `numGt` | — | `greater_than_zero` |
+| `isFillable` | — | — (classic's `permitted_op` filters symbols, not fillability) |
 | `sampleLogicalPerms` | `sampleLogicalPerms` | `sample_logical_perms` |
 | `samplePerms` | — (`sampleLogicalPerms` + `sampleActionPerms`) | — (`sample_logical_perms` + `sample_action_perms`) |
 | `permittedOpsFor` | `swapAndOr` | `swap_and_or` + `permitted_op` |
@@ -326,6 +328,30 @@ are the type-driven filling machinery, which is the part that is genuinely new.
   *values*, which is a separate piece of work.
 - **No reduction, no complexity penalty, no population.** The search is one
   hill climb from one starting point.
+- **A number is tunable only where the program already has one.** A tunable
+  number takes its starting value from the tree, so a number the author wrote
+  or an exemplar carried can be moved, and one that exists nowhere cannot be
+  invented. Classic gets around this by *planting* constants — `contin_canonize`
+  rewrites a term into `c1 + (c2 * p1) / p2` and hangs `*(0 $i)` on every
+  argument, so tuning a coefficient off zero switches an input on. That is the
+  symbolic-regression half of classic, it is what makes its ~43 arithmetic
+  reduction rules necessary, and none of it is here. `demo-grove.metta` reports
+  the consequence rather than hiding it: its control run from an empty program
+  has nothing to tune and says so.
+- **A number inside a switched-off candidate gets no knob.** Its slots would
+  not be reported by `knobSpecs`, so the instance vector would come out short.
+  Switching a candidate on and tuning it in the same run needs placeholders to
+  be treated as disabled knobs rather than as absent ones.
+- **One step size for the whole run.** `continDefaults` is a single spec, as
+  classic's `_step_size` / `_expansion` / `_depth` are single `build_knobs`
+  members. A threshold ranging over tens and a stride ranging over ones cannot
+  both be served well by it. Classic tried per-position adaptation and
+  abandoned it — the code is still there, `#if 0`'d, with the verdict that it
+  "often slows down the search, and rarely/never seems to provide better
+  answers".
+- **A Number slot's occupant is fixed once built.** The search tunes the numbers
+  in a comparison and can swap in a whole different comparison, but cannot
+  change which sense one of them reads.
 
 Every demo prints its run from an empty program too, which is where the candidate rule stops being a footnote.
 Given an empty program — eight candidates, all switched off, scoring 0 — the
