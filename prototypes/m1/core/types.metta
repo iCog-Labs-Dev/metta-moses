@@ -128,4 +128,4 @@
 
 (: AND (-> (Seq Bool) $ctx Bool))
 (: OR  (-> (Seq Bool) $ctx Bool))
-(: NOT (-> (Bool) $ctx Bool)) 
+(: NOT (-> (Bool) $ctx Bool))
