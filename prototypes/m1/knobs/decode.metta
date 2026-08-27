@@ -28,6 +28,15 @@
    (let $setting (index-atom $inst $index)
      (if (== $setting 0) () (index-atom $perms (- $setting 1)))))
 
+;; A tunable number reads its `depth` consecutive slots as a WALK and answers
+;; the number that walk arrives at. It is the one knob that can never answer ()
+;; -- there is no absent setting, because all-Stop already means "the number it
+;; was built with" rather than "no number". classic says the same thing as
+;; contin_knob::in_exemplar() { return true; }.
+(= (getCandidateRec $inst (mkKnob $subtree (mkCTK $mean $step $expansion $depth) $index))
+   (let $trits (map-atom (rangeTo $depth) $i (index-atom $inst (+ $index $i)))
+     (leafOf (continWalk $trits $mean $step $expansion))))
+
 (= (getCandidateRec $inst (mkNullVex ()))        ())
 (= (getCandidateRec $inst (mkNullVex ($subtree))) (getCandidateRec $inst $subtree))
 
@@ -92,6 +101,15 @@
    (union-atom (($index $settings $default)) (knobSpecs $subtree)))
 (= (knobSpecs (mkKnob $subtree (mkASK $settings $default $perms) $index))
    (union-atom (($index $settings $default)) (knobSpecs $subtree)))
+;; A tunable number owns `depth` CONSECUTIVE slots, so it contributes `depth`
+;; specs rather than one -- a 3-setting trit each, every one defaulting to 0
+;; (Stop). That default is what makes the exemplar instance decode back to the
+;; number the representation was built with.
+;;
+;; No recursion into the subtree here, unlike LSK and ASK: a CTK's subtree is a
+;; numeric leaf, so there is nothing under it that could hold a knob.
+(= (knobSpecs (mkKnob $subtree (mkCTK $mean $step $expansion $depth) $index))
+   (map-atom (rangeTo $depth) $i ((+ $index $i) 3 0)))
 (= (knobSpecs (mkNullVex $placeholder)) ())   ;; a placeholder holds no knobs
 (= (knobSpecs (mkTree $node $children))
    (foldl-atom $children () $found $child (union-atom $found (knobSpecs $child))))
@@ -100,6 +118,8 @@
    (union-atom (($index LSK)) (knobKindIdx $subtree)))
 (= (knobKindIdx (mkKnob $subtree (mkASK $settings $default $perms) $index))
    (union-atom (($index ASK)) (knobKindIdx $subtree)))
+(= (knobKindIdx (mkKnob $subtree (mkCTK $mean $step $expansion $depth) $index))
+   (map-atom (rangeTo $depth) $i ((+ $index $i) CTK)))
 (= (knobKindIdx (mkNullVex $placeholder)) ())
 (= (knobKindIdx (mkTree $node $children))
    (foldl-atom $children () $found $child (union-atom $found (knobKindIdx $child))))
