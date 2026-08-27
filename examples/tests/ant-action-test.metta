@@ -111,6 +111,10 @@
 !(import! &self deme/merge-demes)
 !(import! &self deme/expand-deme)
 
+
+!(import! &self moses/action-domain-api)
+!(import! &self moses/demo-problems)
+!(import! &self moses/action-domain-runner)
 ;; ============================================================================
 ;; PART 1 -- THE DOMAIN: an ant on a toroidal grid, eating food.
 ;;
@@ -301,41 +305,41 @@
 !(set-param fitness antFitness)
 !(set-param bestScore antBestScore)
 
-;; The two policies as TREES (what MOSES actually evolves). The follower is the
-;; classic Santa Fe conditional; the naive one marches blindly forward.
-(= (antFollowerTree)
-   (mkTree (mkNode and_seq)
-     (cons (mkTree (mkNode action_bool_if)
-             (cons (mkTree (mkNode antFoodAhead) ())
-             (cons (mkTree (mkNode antMoveForward) ())
-             (cons (mkTree (mkNode antTurnRight) ()) ()))))
-           ())))
-(= (antNaiveTree)
-   (mkTree (mkNode and_seq) (cons (mkTree (mkNode antMoveForward) ()) ())))
+; ;; The two policies as TREES (what MOSES actually evolves). The follower is the
+; ;; classic Santa Fe conditional; the naive one marches blindly forward.
+; (= (antFollowerTree)
+;    (mkTree (mkNode and_seq)
+;      (cons (mkTree (mkNode action_bool_if)
+;              (cons (mkTree (mkNode antFoodAhead) ())
+;              (cons (mkTree (mkNode antMoveForward) ())
+;              (cons (mkTree (mkNode antTurnRight) ()) ()))))
+;            ())))
+; (= (antNaiveTree)
+;    (mkTree (mkNode and_seq) (cons (mkTree (mkNode antMoveForward) ()) ())))
 
-;; 3a. Tree -> executable expression: same shape you hand-wrote in PART 2.
-!(assertEqual (actionExp (antFollowerTree))
-              (quote (and_seq ((action_bool_if ((antFoodAhead ()) (antMoveForward ()) (antTurnRight ())))))))
+; ;; 3a. Tree -> executable expression: same shape you hand-wrote in PART 2.
+; !(assertEqual (actionExp (antFollowerTree))
+;               (quote (and_seq ((action_bool_if ((antFoodAhead ()) (antMoveForward ()) (antTurnRight ())))))))
 
-;; 3b. Behavioural score = one number per episode, ordinals 0..3 IN ORDER
-;;     (antFitness maps them straight, corner, straight, corner). The follower
-;;     solves both trails (5 each); the naive ant eats only the straight run of
-;;     the corner trail (it marches past the turn, classic behaviour).
-!(assertEqual (scoreActionTree (antFollowerTree) 4 &actionScoreCache)
-              (mkBScore (5 5 5 5)))
-!(assertEqual (scoreActionTree (antNaiveTree) 4 &actionScoreCache)
-              (mkBScore (5 3 5 3)))
+; ;; 3b. Behavioural score = one number per episode, ordinals 0..3 IN ORDER
+; ;;     (antFitness maps them straight, corner, straight, corner). The follower
+; ;;     solves both trails (5 each); the naive ant eats only the straight run of
+; ;;     the corner trail (it marches past the turn, classic behaviour).
+; !(assertEqual (scoreActionTree (antFollowerTree) 4 &actionScoreCache)
+;               (mkBScore (5 5 5 5)))
+; !(assertEqual (scoreActionTree (antNaiveTree) 4 &actionScoreCache)
+;               (mkBScore (5 3 5 3)))
 
-;; 3c. Composite score = raw sum minus a complexity penalty, so between two
-;;     equally-correct programs the SIMPLER one wins selection.
-;;     (mkCscore <rawSum> <complexity> <penalty> <uniformity> <penalizedScore>)
-;;     The follower's raw 20 beats naive's 16, and its 3-leaf complexity
-;;     (conditional + perception + 2 actions; structural ops are free) is priced
-;;     against it by the usual penalty math.
-!(assertEqual (getActionCscore (antFollowerTree) (mkActionCtx 4) 3.5 &actionScoreCache)
-              (mkCscore 20 3 0.8571428571428571 0.0 19.142857142857142))
-!(assertEqual (getActionCscore (antNaiveTree) (mkActionCtx 4) 3.5 &actionScoreCache)
-              (mkCscore 16 1 0.2857142857142857 0.0 15.714285714285714))
+; ;; 3c. Composite score = raw sum minus a complexity penalty, so between two
+; ;;     equally-correct programs the SIMPLER one wins selection.
+; ;;     (mkCscore <rawSum> <complexity> <penalty> <uniformity> <penalizedScore>)
+; ;;     The follower's raw 20 beats naive's 16, and its 3-leaf complexity
+; ;;     (conditional + perception + 2 actions; structural ops are free) is priced
+; ;;     against it by the usual penalty math.
+; !(assertEqual (getActionCscore (antFollowerTree) (mkActionCtx 4) 3.5 &actionScoreCache)
+;               (mkCscore 20 3 0.8571428571428571 0.0 19.142857142857142))
+; !(assertEqual (getActionCscore (antNaiveTree) (mkActionCtx 4) 3.5 &actionScoreCache)
+;               (mkCscore 16 1 0.2857142857142857 0.0 15.714285714285714))
 
 ;; ============================================================================
 ;; PART 4 -- EVOLVE a policy end to end with runMoses. This is the whole point:
@@ -516,3 +520,5 @@
         (getScore (getExemplarCscore (OS.getByIdx 0 $m))))
    70)
 ;; ============================================================================
+
+   

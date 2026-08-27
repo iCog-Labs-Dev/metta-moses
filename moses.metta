@@ -138,8 +138,12 @@
 !(import! &self deme/merge-demes)
 !(import! &self deme/expand-deme)
 
-;; ---- Top-level entry point: defines (moses), (optimizer-for ...) ----
+;; ---- MOSES API ----
+!(import! &self moses/action-domain-api)
 !(import! &self moses/demo-problems)
+!(import! &self moses/action-domain-runner)
+;; ---- Top-level entry point: defines (moses), (optimizer-for ...) ----
+
 
 ;; ---- Bootstrap the Python CSV helper used by the --inputFile path ----
 ;; csv_helper.load_boolean_table(path, target) returns an (mkITable ...)

@@ -208,49 +208,26 @@
        (let $sexpr (py-call (csv_helper.load_boolean_table (param inputFile) (param targetFeature)))
             (parse $sexpr))))
 
-;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
-;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;;                   smd      ;; the new arguments for feature selection algo
-;;                   (createTruthTableBScore 2 (xortable))
-;;                   hillClimbing
-;;                   100 10 20 2
-;;                   (xortable)
-;;                   10 0.004 1000))
-;; ============================================================
-;;  Top-level MOSES entry point.
-;;
-;;  Zero-argument entry point:
-;;
-;;      !(moses)
-;;
-;;  Override any knob from the command line:
-;;
-;;      sh run.sh moses.metta -s \
-;;          --problem=parity3 --maxGen=20 --nDeme=2 \
-;;          --fsAlgo=smd --optAlgo=hc --capCoef=80
-;;
-;;  Inspect every recognized knob:
-;;
-;;      sh run.sh moses.metta -s --help
-;; ============================================================
-;; Route by CONFIGURATION: an ACTION run is configured iff (param
-;; fitness) is non-empty (set via --fitness=<fn> or an in-script
-;; set-param); a TABLE run is configured iff a demo `problem` symbol or a
-;; CSV `inputFile` was supplied. Exactly one of the two must hold:
-;;   both    -> loud error + help (no silent precedence)
-;;   neither -> help
-;;   action  -> (moses-run-action)   table -> (moses-run)
+
+;; ============================================================================
+;; Top-level MOSES entry point.
+;; Routes between action-domain and boolean-table runs.
+;; ============================================================================
 (= (moses)
-   (let* (($actionConfigured (not (== (param fitness) ())))
-          ($tableConfigured  (not (and (== (param problem)   ())
-                                       (== (param inputFile) "")))))
-     (if (and $actionConfigured $tableConfigured)
-         (both-configured-error-and-exit)
-         (if $actionConfigured
-             (moses-run-action)
-             (if $tableConfigured
-                 (moses-run)
-                 (no-problem-help-and-exit))))))
+   (let*
+      (
+        ($actionConfigured (not (== (param fitness) ())))
+        ($tableConfigured
+           (not (and (== (param problem) ())
+                    (== (param inputFile) ""))))
+      )
+      (if (and $actionConfigured $tableConfigured)
+          (both-configured-error-and-exit)
+          (if $actionConfigured
+              (runCurrentActionDomain)
+              (if $tableConfigured
+                  (moses-run)
+                  (no-problem-help-and-exit))))))
 
 ;; Shown when BOTH an action fitness and a table problem are configured:
 ;; there is no meaningful precedence between them, so the run refuses loudly
@@ -283,7 +260,8 @@
         ($_ (print-help-and-exit))
       )
       ()))
-
+      
+;; Read the configuration and initialize the table-based MOSES run.
 (= (moses-run)
    (let*
       (
@@ -329,64 +307,7 @@
       )
       (FinalResult $newR)))
 
-;; Action runner, modeled on moses-run above. The experiment's fitness
-;; arrives through the global params ((param fitness) consumed inside
-;; scoring/action-score; (param bestScore) consumed here). The metapop
-;; seed is the empty and_seq exemplar (the action analog of moses-run's
-;; `true` tree) at the defined-worst score: every one of the $nTrials
-;; episodes forfeits at -1.0 (see the empty-exemplar loophole note in the
-;; episode runner), so raw score = complexity-penalized score = -1.0*nTrials.
-(= (moses-run-action)
-   (let*
-      (
-        ;; Refuse loudly when the knob vocabulary is missing: with an empty
-        ;; actions every deme is knobless, so the run would print its
-        ;; generations and silently produce no result. perceptions MAY
-        ;; legitimately be (): an experiment with no perceptions builds
-        ;; action-only knobs (sampleActionPerms returns the bare action
-        ;; list, representation/build-action.metta:18-21), so only
-        ;; actions is mandatory. The error path halts the process.
-        ($_vocabGuard (if (== (param actions) ())
-                          (missing-action-vocab-error-and-exit)
-                          ()))
-        ($seed     (param seed))
-        ($maxGen   (param maxGen))
-        ($nDeme    (param nDeme))
-        ($optAlgo  (param optAlgo))
-        ($optimizer (optimizer-for $optAlgo))
-
-        ($srp (py-call (random.seed $seed)))
-        ;; genCount feeds the cap-size formula inside resizeMetapop (same
-        ;; seeding as moses-run).
-        ($_  (set-param genCount $maxGen))
-        ($cpxPen (param complexityRatio))
-        ($nTrials (param nTrials))
-        ;; Best reachable raw score is experiment knowledge: the fitness
-        ;; package declares it as (param bestScore), a function symbol
-        ;; called ($bsFn $nTrials). Collapse-guarded: unset ((), a symbol
-        ;; with no clause, a failing call, or a non-Number result -- the
-        ;; termination compare needs arithmetic, and e.g. True is Grounded
-        ;; but not a Number, so the test is (get-type ...) == Number) ->
-        ;; a never-reached target ((pow-math 10 308)), so the run
-        ;; terminates via maxGen instead.
-        ($bsFn (param bestScore))
-        ($bsRs (collapse ($bsFn $nTrials)))
-        ($bestPossibleScore
-           (if (== $bsRs ())
-               (pow-math 10 308)
-               (let $bsV (car-atom $bsRs)
-                 (if (== (get-type $bsV) Number) $bsV (pow-math 10 308)))))
-        ($_ (println! (BestPossibleScore: $bestPossibleScore)))
-        ($worst (* -1.0 $nTrials))
-        ($metaPop ((mkExemplar (mkTree (mkNode and_seq) ()) (mkDemeId "1") (mkCscore $worst 0 $cpxPen 0 $worst) (mkBScore (List.repeat $nTrials -1.0)))))
-        ($result (runMoses $maxGen $bestPossibleScore $metaPop 0 $nDeme
-              (mkActionCtx $nTrials $cpxPen)
-              $optimizer))
-        ($newR (mapG cleanedExemplar $result))
-        ($_ (cut)) ;; INFO: Mirrors moses-run; commits choice points before returning.
-      )
-      (FinalResult $newR)))
-
+      
 ;; Shown when an action run is configured (fitness set) but the knob
 ;; vocabulary is not: same loud-refusal style as
 ;; both-configured-error-and-exit -- no silent knobless run.
