@@ -86,29 +86,48 @@
 ;; Returns:
 ;;   Count of instances at distance $dist from $inst
 
-; a helper function to the countNeighborhood method
+;; Count combinations at one exact distance from the current instance.
+;; The distance-zero result represents the unchanged instance and the index
+;; guard prevents recursive calls from reading beyond the final knob.
 ;; (: countNeighborhoodFromIdx (-> KnobMap Instance Number Number Number Number))
 (= (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst $dist $startIdx $maxCount)
-   (let*
-     (
-       (($kbSpec $knob) (MultiMap.getByIdx $startIdx $dscMp))
-       ((mkMultip $multip) (getKnobMultip $knob))
-       ($isBoolTail (and (== $multip 2) (allBooleanKnobs (mkKbMap (mkDscMp $dscMp)) (+ $startIdx 1))))
-     )
-     (case ($dist (>= $startIdx (MultiMap.length $dscMp)) $isBoolTail)
-       (
-         ((0 $_ $_) 1)
-         (($dist True $_) 0)
-         (($dist False True)
-          (let* (($n (- (MultiMap.length $dscMp) $startIdx)))
-            (if (> $dist $n) 
-              0
-              (let $count (binomial $n $dist) (if (> $count $maxCount) $maxCount $count)))))
-         (($dist False False)
-          (let $updatedNumInstances (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst $dist (+ $startIdx 1) $maxCount)
-            (if (> $updatedNumInstances $maxCount)
-                $updatedNumInstances
-                (+ $updatedNumInstances (* (- $multip 1) (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst (- $dist 1) (+ $startIdx 1) $maxCount))))))))))
+   (if (== $dist 0)
+       1
+       (if (>= $startIdx (MultiMap.length $dscMp))
+           0
+           (let*
+             (
+               (($kbSpec $knob) (MultiMap.getByIdx $startIdx $dscMp))
+               ((mkMultip $multip) (getKnobMultip $knob))
+               ;; A Boolean-only suffix has a direct binomial count, avoiding
+               ;; the per-knob recursion used for mixed-multiplicity maps.
+               ($isBoolTail
+                 (and (== $multip 2)
+                      (allBooleanKnobs
+                        (mkKbMap (mkDscMp $dscMp)) (+ $startIdx 1))))
+             )
+             (if $isBoolTail
+                 (let* (($n (- (MultiMap.length $dscMp) $startIdx)))
+                   ;; Distances beyond the remaining Boolean dimensions are
+                   ;; impossible; otherwise cap the count for callers that
+                   ;; only need a bounded neighborhood estimate.
+                   (if (> $dist $n)
+                       0
+                       (let $count (binomial $n $dist)
+                         (if (> $count $maxCount) $maxCount $count))))
+                 ;; For mixed knobs, skip or change the current knob and add
+                 ;; the resulting counts from the remaining dimensions.
+                 (let $updatedNumInstances
+                            (countNeighborhoodFromIdx
+                              (mkKbMap (mkDscMp $dscMp)) $inst $dist
+                              (+ $startIdx 1) $maxCount)
+                   (if (> $updatedNumInstances $maxCount)
+                       $updatedNumInstances
+                       (+ $updatedNumInstances
+                          (* (- $multip 1)
+                             (countNeighborhoodFromIdx
+                               (mkKbMap (mkDscMp $dscMp)) $inst
+                               (- $dist 1) (+ $startIdx 1) $maxCount))))))))))
 
 ;; Helper: check if all knobs from $startIdx onward have multiplicity 2 (boolean).
 (= (allBooleanKnobs (mkKbMap (mkDscMp ())) $startIdx) True)
