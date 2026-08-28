@@ -43,20 +43,58 @@
    (cons (effectiveSpecValues (getKnobMultip $knob))
          (discEffectiveSpecLists (mkDscMp $tail))))
 
-(= (varyNKnobsBySpecLists $specLists $instExp $dist)
-   (varyNKnobsBySpecLists $specLists $instExp $dist 0))
-(= (varyNKnobsBySpecLists $specLists $instExp $dist $startI)
+;; Previous implementation: generated instances at all distances 1..dist.
+;; Preserved for reference; renamed to avoid confusion with the corrected version.
+(= (varyNKnobsBySpecListsAllDistances $specLists $instExp $dist)
+   (varyNKnobsBySpecListsAllDistances $specLists $instExp $dist 0))
+(= (varyNKnobsBySpecListsAllDistances $specLists $instExp $dist $startI)
    (if (or (== $dist 0) (== $startI (length $instExp)))
        ()
        (let*
          (
            ($specs (List.getByIdx $specLists $startI))
            ($changeIs (map-atom $specs $m (changeAt $m $startI $instExp)))
-           ($changeRest (varyNKnobsBySpecLists $specLists $instExp $dist (+ $startI 1)))
-           ($changeDs (map-atom $changeIs $changeI (varyNKnobsBySpecLists $specLists $changeI (- $dist 1) (+ $startI 1))))
+           ($changeRest (varyNKnobsBySpecListsAllDistances $specLists $instExp $dist (+ $startI 1)))
+           ($changeDs (map-atom $changeIs $changeI (varyNKnobsBySpecListsAllDistances $specLists $changeI (- $dist 1) (+ $startI 1))))
            ($flatDs (foldl-atom $changeDs () $acc $changeD (append $changeD $acc)))
            ($acc (append $changeIs $changeRest))
            ($final (append $acc $flatDs))
+         )
+         (filter-atom $final isNotUnit))))
+
+;; Corrected implementation matching C++ vary_n_knobs semantics for spec lists.
+;; Same fix as varyNKnobs: returns the instance at dist == 0, dead end at
+;; startI >= length, and omits single-position $changeIs from the output.
+(= (varyNKnobsBySpecLists $specLists $instExp $dist)
+   (varyNKnobsBySpecLists $specLists $instExp $dist 0))
+(= (varyNKnobsBySpecLists $specLists $instExp $dist $startI)
+   (case ($dist (>= $startI (length $instExp)))
+     (
+       ((0 $_) ($instExp))
+       ((1 $_) (varyNKnobsBySpecListsDist1 $specLists $instExp $startI))
+       (($dist True) ())
+       (($dist False)
+        (let*
+          (
+            ($specs (List.getByIdx $specLists $startI))
+            ($changeRest (varyNKnobsBySpecLists $specLists $instExp $dist (+ $startI 1)))
+            ($changeDs (map-atom $specs $m (varyNKnobsBySpecLists $specLists (changeAt $m $startI $instExp) (- $dist 1) (+ $startI 1))))
+            ($flatDs (foldl-atom $changeDs () $acc $changeD (append $changeD $acc)))
+            ($final (append $changeRest $flatDs))
+          )
+          (filter-atom $final isNotUnit))))))
+
+;; Fast path for dist=1: flat iteration over positions, no recursive
+;; list-of-lists construction. Matches varyNKnobsDist1 pattern.
+(= (varyNKnobsBySpecListsDist1 $specLists $instExp $startI)
+   (if (>= $startI (length $instExp))
+       ()
+       (let*
+         (
+           ($specs (List.getByIdx $specLists $startI))
+           ($currentVariations (map-atom $specs $m (changeAt $m $startI $instExp)))
+           ($restVariations (varyNKnobsBySpecListsDist1 $specLists $instExp (+ $startI 1)))
+           ($final (append $currentVariations $restVariations))
          )
          (filter-atom $final isNotUnit))))
 
@@ -91,18 +129,58 @@
 ;;   $instExp: The center instance as an expression of numbers
 ;;   $dist: The hamming distance
 
-(= (varyNKnobs $multips $instExp $dist) (varyNKnobs $multips $instExp $dist 0))
-(= (varyNKnobs $multips $instExp $dist $startI)
+;; Previous implementation: generated instances at all distances 1..dist.
+;; Preserved for reference; renamed to avoid confusion with the corrected version.
+(= (varyNKnobsAllDistances $multips $instExp $dist) (varyNKnobsAllDistances $multips $instExp $dist 0))
+(= (varyNKnobsAllDistances $multips $instExp $dist $startI)
    (if (or (== $dist 0) (== $startI (length $instExp)))
        ()
        (let*
          (
            ($changeIs (map-atom $multips $m (changeAt $m $startI $instExp)))
-           ($changeRest (varyNKnobs $multips $instExp $dist (+ $startI 1)))
-           ($changeDs (map-atom $changeIs $changeI (varyNKnobs $multips $changeI (- $dist 1) (+ $startI 1))))
+           ($changeRest (varyNKnobsAllDistances $multips $instExp $dist (+ $startI 1)))
+           ($changeDs (map-atom $changeIs $changeI (varyNKnobsAllDistances $multips $changeI (- $dist 1) (+ $startI 1))))
            ($flatDs (foldl-atom $changeDs () $acc $changeD (append $changeD $acc)))
            ($acc (append $changeIs $changeRest))
            ($final (append $acc $flatDs))
+         )
+         (filter-atom $final isNotUnit))))
+
+;; Corrected implementation matching C++ vary_n_knobs semantics.
+;; Generates instances at EXACTLY the target distance by only recording
+;; the instance when dist == 0 (all modifications consumed), removing
+;; the $changeIs (single-position variations) from the output, and
+;; keeping only $changeDs (multi-position recursive variations).
+;; The base case returns the instance itself when dist == 0,
+;; and the dead end (startI >= length) returns () for unresolvable paths.
+(= (varyNKnobs $multips $instExp $dist) (varyNKnobs $multips $instExp $dist 0))
+(= (varyNKnobs $multips $instExp $dist $startI)
+   (case ($dist (>= $startI (length $instExp)))
+     (
+       ((0 $_) ($instExp))
+       ((1 $_) (varyNKnobsDist1 $multips $instExp $startI))
+       (($dist True) ())
+       (($dist False)
+        (let*
+          (
+            ($changeRest (varyNKnobs $multips $instExp $dist (+ $startI 1)))
+            ($changeDs (map-atom $multips $m (varyNKnobs $multips (changeAt $m $startI $instExp) (- $dist 1) (+ $startI 1))))
+            ($flatDs (foldl-atom $changeDs () $acc $changeD (append $changeD $acc)))
+            ($final (append $changeRest $flatDs))
+          )
+          (filter-atom $final isNotUnit))))))
+
+;; Fast path for dist=1: flat iteration over positions, no recursive
+;; list-of-lists construction. Analogous to C++ UNROLL_TAIL_CALL /
+;; UNROLL_TAIL_CALL_DISC macros (neighborhood_sampling.h:359-389,417-434).
+(= (varyNKnobsDist1 $multips $instExp $startI)
+   (if (>= $startI (length $instExp))
+       ()
+       (let*
+         (
+           ($currentVariations (map-atom $multips $m (changeAt $m $startI $instExp)))
+           ($restVariations (varyNKnobsDist1 $multips $instExp (+ $startI 1)))
+           ($final (append $currentVariations $restVariations))
          )
          (filter-atom $final isNotUnit))))
 

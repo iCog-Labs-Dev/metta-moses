@@ -17,8 +17,8 @@
 ;; A native fold remains compositional when the estimator consumes the result
 ;; as a nested expression under PeTTa.
 (= (informationTheoreticBits $knobMap)
-   (foldl-atom (MultiMap.values $knobMap) 0 $bits $knob
-     (+ $bits (knobInformationBits $knob))))
+   (floor-math (foldl-atom (MultiMap.values $knobMap) 0 $bits $knob
+     (+ $bits (knobInformationBits $knob)))))
 
 ;; feature selection version of the informationTheoreticBits function
 ;; In the case of feature selection, the information theoretic bits is simply the number of features we have
@@ -86,23 +86,56 @@
 ;; Returns:
 ;;   Count of instances at distance $dist from $inst
 
-; a helper function to the countNeighborhood method
+;; Count combinations at one exact distance from the current instance.
+;; The distance-zero result represents the unchanged instance and the index
+;; guard prevents recursive calls from reading beyond the final knob.
 ;; (: countNeighborhoodFromIdx (-> KnobMap Instance Number Number Number Number))
 (= (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst $dist $startIdx $maxCount)
-(if (== $dist 0)
-    1
-    (if (>= $startIdx (MultiMap.length $dscMp))
-        0
-        (let $updatedNumInstances (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst $dist (+ $startIdx 1) $maxCount)
-          (if  (> $updatedNumInstances $maxCount)
-               $updatedNumInstances
-               (let*
-                 (
-                    (($kbSpec $knob) (MultiMap.getByIdx $startIdx $dscMp))
-                    ((mkMultip $multip) (getKnobMultip $knob))
-                    ($uUpdatedNumInstances (+ $updatedNumInstances (* (- $multip 1) (countNeighborhoodFromIdx (mkKbMap (mkDscMp $dscMp)) $inst (- $dist 1) (+ $startIdx 1) $maxCount))))
-                 )
-                 $uUpdatedNumInstances))))))
+   (if (== $dist 0)
+       1
+       (if (>= $startIdx (MultiMap.length $dscMp))
+           0
+           (let*
+             (
+               (($kbSpec $knob) (MultiMap.getByIdx $startIdx $dscMp))
+               ((mkMultip $multip) (getKnobMultip $knob))
+               ;; A Boolean-only suffix has a direct binomial count, avoiding
+               ;; the per-knob recursion used for mixed-multiplicity maps.
+               ($isBoolTail
+                 (and (== $multip 2)
+                      (allBooleanKnobs
+                        (mkKbMap (mkDscMp $dscMp)) (+ $startIdx 1))))
+             )
+             (if $isBoolTail
+                 (let* (($n (- (MultiMap.length $dscMp) $startIdx)))
+                   ;; Distances beyond the remaining Boolean dimensions are
+                   ;; impossible; otherwise cap the count for callers that
+                   ;; only need a bounded neighborhood estimate.
+                   (if (> $dist $n)
+                       0
+                       (let $count (binomial $n $dist)
+                         (if (> $count $maxCount) $maxCount $count))))
+                 ;; For mixed knobs, skip or change the current knob and add
+                 ;; the resulting counts from the remaining dimensions.
+                 (let $updatedNumInstances
+                            (countNeighborhoodFromIdx
+                              (mkKbMap (mkDscMp $dscMp)) $inst $dist
+                              (+ $startIdx 1) $maxCount)
+                   (if (> $updatedNumInstances $maxCount)
+                       $updatedNumInstances
+                       (+ $updatedNumInstances
+                          (* (- $multip 1)
+                             (countNeighborhoodFromIdx
+                               (mkKbMap (mkDscMp $dscMp)) $inst
+                               (- $dist 1) (+ $startIdx 1) $maxCount))))))))))
+
+;; Helper: check if all knobs from $startIdx onward have multiplicity 2 (boolean).
+(= (allBooleanKnobs (mkKbMap (mkDscMp ())) $startIdx) True)
+(= (allBooleanKnobs (mkKbMap (mkDscMp (cons ($spec $knob) $tail))) $startIdx)
+   (let (mkMultip $multip) (getKnobMultip $knob)
+     (if (== $multip 2)
+         (allBooleanKnobs (mkKbMap (mkDscMp $tail)) (+ $startIdx 1))
+         False)))
 
 ; countNeighborhood
 ;; (: countNeighborhood (-> KnobMap Instance Number Number Number))

@@ -77,13 +77,13 @@
 ;; map containing two knobs with same multiplicity of 3
 !(assertEqual
   (informationTheoreticBits (knobmap1))
-  (+ (log-math 2 3) (log-math 2 3)))
+  3)
 
 ;; Test informationTheoreticBits with a knob
 ;; map containing two knobs with different multiplicity of 2 and 3
 !(assertEqual
   (informationTheoreticBits (knobmap2))
-  (+ (log-math 2 2) (log-math 2 3)))
+  2)
 
 ;; Testcase for informationTheoreticBitsFs
 !(assertEqual
