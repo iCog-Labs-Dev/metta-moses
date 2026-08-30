@@ -59,7 +59,6 @@
 !(import! &self ../../../optimization/hillclimbing/hill-climbing-helpers)
 ;; Mirror the production import graph so the counted expansion helper can
 ;; specialize its higher-order hill-climbing call in this integration test.
-!(import! &self ../../../deme/domain-adapter)
 !(import! &self ../../../deme/expand-deme)
 
 !(py-call (random.seed 10))
@@ -79,7 +78,7 @@
      (ant-exemplar)
      (mkDemeId "ant-adapter-seed")
      (mkCscore -89 0 0.0 0.0 -89.0)
-     (mkBScore (-89 0))))
+     (mkBScore -89)))
 
 ;; Capture the scorer and payload selected by action-context dispatch.
 (= (actionAdapterOptimizerProbe
@@ -143,7 +142,7 @@
 ;; the standard one-condition trail follower eats eleven pellets in 600 steps.
 !(assertEqual
   (scoreAntTree (trailFollowerTree) 600)
-  (mkBScore (-89 11)))
+  (mkBScore -78))
 
 (= (antDemeFunctionalSummary
      (mkDeme
@@ -270,7 +269,7 @@
      (mkTree (mkNode action_success) ())
      (mkDemeId "ant-constant")
      (mkCscore -89 1 6.25 0.0 -95.25)
-     (mkBScore (-89 0))))
+     (mkBScore -89)))
 
 !(assertEqual
   (expandSelectedExemplarCounted
@@ -294,7 +293,7 @@
            (mkExemplar
              (antMoveTree) (mkDemeId "ant-next")
              (mkCscore -86 1 6.25 0.0 -92.25)
-             (mkBScore (-89 3))))
+             (mkBScore -86)))
          ($updatedVisits
            (recordVisit
              (getExemplarTree (constantAntExemplar)) ()))
@@ -311,7 +310,7 @@
    ((mkExemplar
       (mkTree (mkNode move_forward) ()) (mkDemeId "ant-next")
       (mkCscore -86 1 6.25 0.0 -92.25)
-      (mkBScore (-89 3))))))
+      (mkBScore -86)))))
 
 !(assertEqual
   (let (mkRep (mkKbMap (mkDscMp $mmp)) $tree) (manualAntRep)
@@ -402,12 +401,12 @@
   ((rawTargetReached
      (mkExemplar
        (trailFollowerTree) (mkDemeId "target")
-       (mkCscore 0 2 12.5 0.0 -12.5) (mkBScore (-89 89)))
+       (mkCscore 0 2 12.5 0.0 -12.5) (mkBScore 0))
      0)
    (rawTargetReached
      (mkExemplar
        (trailFollowerTree) (mkDemeId "below-target")
-       (mkCscore -1 2 12.5 0.0 -13.5) (mkBScore (-89 88)))
+       (mkCscore -1 2 12.5 0.0 -13.5) (mkBScore -1))
      0)
    (rawTargetReached () 0))
   (True False False))
@@ -445,7 +444,7 @@
            (mkExemplar
              (ant-exemplar) (mkDemeId "ant-budget-seed")
              (mkCscore -89 0 0.0 0.0 -89.0)
-             (mkBScore (-89 0))))
+             (mkBScore -89)))
          (($demes $used)
            (expandSelectedExemplarCounted
              $seedExemplar 3 2 (antContextForTest)
@@ -492,14 +491,12 @@
      (not (== $materialized ()))))
   (True True True))
 
-;; The ant behavioral-score protocol is loss baseline plus pellets eaten:
-;; raw=-89+pellets, so pellets can be recovered as raw+89 without simulation.
+;; The ant behavioral-score protocol is a single raw objective:
+;; raw=-89+pellets, so the scalar BScore equals the stored raw Cscore.
 !(assertEqual
   (let $storedCscore (mkCscore -86 1 6.25 0.0 -92.25)
-    (mkBScore
-      ((- 0 (ant-food-count))
-       (+ (getScore $storedCscore) (ant-food-count)))))
-  (mkBScore (-89 3)))
+    (mkBScore (getScore $storedCscore)))
+  (mkBScore -86))
 
 ;; Ant deme merging must reuse the raw score already stored on a scored
 ;; instance.  The first two fields prove that the derived behavioral score is
@@ -522,8 +519,8 @@
     ($derivedBscore
      (scoreAntTree (cleanActionTree $tree) 600)
      $retainedCscore))
-  ((mkBScore (-89 3))
-   (mkBScore (-89 3))
+  ((mkBScore -86)
+   (mkBScore -86)
    (mkCscore -86 1 6.25 0.0 -92.25)))
 
 ;; A raw-perfect instance can rank behind a much weaker but simpler instance
@@ -605,12 +602,12 @@
            (mkExemplar
              (antMoveTree) (mkDemeId "penalized")
              (mkCscore -78 0 0.0 0.0 -78.0)
-             (mkBScore (-89 11))))
+             (mkBScore -78)))
          ($rawPerfect
            (mkExemplar
              (trailFollowerTree) (mkDemeId "raw")
              (mkCscore 0 20 125.0 0.0 -125.0)
-             (mkBScore (-89 89))))
+             (mkBScore 0)))
          ($selectable ($penalizedWinner))
          ($trackedRaw
            (betterRawExemplar $penalizedWinner $rawPerfect))
@@ -634,12 +631,12 @@
            (mkExemplar
              (trailFollowerTree) (mkDemeId "retained-id")
              (mkCscore -78 2 12.5 0.0 -90.5)
-             (mkBScore (-89 11))))
+             (mkBScore -78)))
          ($sameTreeChampion
            (mkExemplar
              (trailFollowerTree) (mkDemeId "champion-id")
              (mkCscore -78 2 12.5 0.0 -90.5)
-             (mkBScore (-89 11))))
+             (mkBScore -78)))
          ($finished
            (finishMetapop ($retained) $sameTreeChampion))
          ((mkExemplar $tree (mkDemeId $id) $cscore $bscore)

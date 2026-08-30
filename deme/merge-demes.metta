@@ -147,11 +147,10 @@
                       ;; Ant instances have already been simulated by the deme scorer.
                       ;; Re-running the mutable trail simulation here would spend an
                       ;; uncounted evaluation during every merge. The stored raw Cscore is exactly
-                      ;; `-ant-food-count + pellets-eaten`, so reconstruct the two-component
-                      ;; behavioral score without executing the candidate a second time.
-                      (mkBScore
-                        ((- 0 (ant-food-count))
-                         (+ (getScore $cscore) (ant-food-count)))))
+                      ;; `-ant-food-count + pellets-eaten` is already the stored raw score,
+                      ;; so reconstruct the single-component behavioral score without
+                      ;; executing the candidate a second time.
+                      (mkBScore (getScore $cscore)))
                      ($nGames (scoreStrategyTree $tree $nGames &strategyScoreCache)))))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
     )

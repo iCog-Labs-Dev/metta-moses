@@ -67,7 +67,6 @@
 !(import! &self ../create-deme)
 !(import! &self ../score-deme)
 !(import! &self ../merge-demes)
-!(import! &self ../domain-adapter)
 !(import! &self ../expand-deme)
 
 (= (table1) (mkITable

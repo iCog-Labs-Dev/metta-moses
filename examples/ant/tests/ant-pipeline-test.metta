@@ -69,7 +69,6 @@
 !(import! &self ../../../deme/deme-id-creation)
 !(import! &self ../../../deme/score-deme)
 !(import! &self ../../../deme/merge-demes)
-!(import! &self ../../../deme/domain-adapter)
 !(import! &self ../../../deme/expand-deme)
 !(import! &self ../../../moses/demo-problems)
 

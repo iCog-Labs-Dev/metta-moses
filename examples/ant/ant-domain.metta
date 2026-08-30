@@ -160,6 +160,18 @@
            (mkAntEval (antStepAction $action (mkAntState $x $y $dir $time $food $eaten)) True)
            (mkAntEval (mkAntState $x $y $dir $time $food $eaten) False))))
 
+;; Evaluate a boolean conjunction with a caller-provided condition evaluator.
+(= (evalBoolAnd $evaluator () $state) True)
+(= (evalBoolAnd $evaluator (cons $child $rest) $state)
+   (and ($evaluator $child $state)
+      (evalBoolAnd $evaluator $rest $state)))
+
+;; Evaluate a boolean disjunction with a caller-provided condition evaluator.
+(= (evalBoolOr $evaluator () $state) False)
+(= (evalBoolOr $evaluator (cons $child $rest) $state)
+   (or ($evaluator $child $state)
+      (evalBoolOr $evaluator $rest $state)))
+
 ;; antEvalBool: evaluate a boolean condition tree in the current ant state.
 ;;          `$tree` is the condition tree being evaluated;
 ;;          `$state` is the current ant state;
@@ -173,23 +185,31 @@
        ((mkTree (mkNode False) ()) False)
        ((mkTree (mkNode is_food_ahead) ()) (antFoodAhead $state))
        ((mkTree (mkNode NOT) (cons $child ())) (not (antEvalBool $child $state)))
-       ((mkTree (mkNode AND) $children) (antEvalBoolAnd $children $state))
-       ((mkTree (mkNode OR) $children) (antEvalBoolOr $children $state))
+      ((mkTree (mkNode AND) $children) (evalBoolAnd antEvalBool $children $state))
+      ((mkTree (mkNode OR) $children) (evalBoolOr antEvalBool $children $state))
        ($other False))))
 
-;; antEvalBoolAnd evaluates the condition list recursively. Explicit recursion
-;; preserves PeTTa's evaluator-safe reduction and short-circuit behavior.
-(= (antEvalBoolAnd () $state) True)
-(= (antEvalBoolAnd (cons $child $rest) $state)
-   (and (antEvalBool $child $state)
-        (antEvalBoolAnd $rest $state)))
+;; Evaluate an action sequence whose children must all succeed.
+(= (evalAndSeq $evaluator () $state $steps) (mkAntEval $state True))
+(= (evalAndSeq $evaluator (cons $child $rest) $state $steps)
+   (let (mkAntEval $nextState $result) ($evaluator $child $state $steps)
+     (if $result
+         (evalAndSeq $evaluator $rest $nextState $steps)
+         (mkAntEval $nextState False))))
 
-;; antEvalBoolOr follows the same evaluator-safe recursive shape as AND.
-;;          C++ note: no direct C++ helper; this is the OR counterpart to `antEvalBoolAnd`.
-(= (antEvalBoolOr () $state) False)
-(= (antEvalBoolOr (cons $child $rest) $state)
-   (or (antEvalBool $child $state)
-       (antEvalBoolOr $rest $state)))
+;; Evaluate an action sequence until one child succeeds.
+(= (evalOrSeq $evaluator () $state $steps) (mkAntEval $state False))
+(= (evalOrSeq $evaluator (cons $child $rest) $state $steps)
+   (let (mkAntEval $nextState $result) ($evaluator $child $state $steps)
+     (if $result
+         (mkAntEval $nextState True)
+         (evalOrSeq $evaluator $rest $nextState $steps))))
+
+;; Evaluate every child for its effects while ignoring individual results.
+(= (evalExecSeq $evaluator () $state $steps) (mkAntEval $state True))
+(= (evalExecSeq $evaluator (cons $child $rest) $state $steps)
+   (let (mkAntEval $nextState $result) ($evaluator $child $state $steps)
+     (evalExecSeq $evaluator $rest $nextState $steps)))
 
 ;; antEvalTree: interpret an action tree once, returning updated state and action
 ;; result.
@@ -210,9 +230,9 @@
       (((mkNullVex $children) (mkAntEval $state True))
        ((mkTree (mkNode action_success) ()) (mkAntEval $state True))
        ((mkTree (mkNode action_failure) ()) (mkAntEval $state False))
-       ((mkTree (mkNode and_seq) $children) (antEvalAndSeq $children $state $steps))
-       ((mkTree (mkNode or_seq) $children) (antEvalOrSeq $children $state $steps))
-       ((mkTree (mkNode exec_seq) $children) (antEvalExecSeq $children $state $steps))
+      ((mkTree (mkNode and_seq) $children) (evalAndSeq antEvalTree $children $state $steps))
+      ((mkTree (mkNode or_seq) $children) (evalOrSeq antEvalTree $children $state $steps))
+      ((mkTree (mkNode exec_seq) $children) (evalExecSeq antEvalTree $children $state $steps))
        ((mkTree (mkNode action_bool_if)
                 (cons $condition (cons $thenBranch (cons $elseBranch ()))))
                   (if (antEvalBool $condition $state)
@@ -220,56 +240,6 @@
                       (antEvalTree $elseBranch $state $steps)))
        ((mkTree (mkNode $action) ()) (antEvalPrimitive $action $state $steps))
        ($other (mkAntEval $state False)))))
-
-;; antEvalAndSeq: evaluate an `and_seq` child list from left to right.
-;;          `$child` is the current action subtree;
-;;          `$rest` is the remaining children;
-;;          `$state` is the input state for the current child;
-;;          `$steps` is the primitive-action budget;
-;;          `$nextState` is the state after `$child`;
-;;          `$result` is that child's success/failure result.
-;;          C++ note: mirrors C++ sequential_and traversal. MeTTa explicitly
-;;          short-circuits on False to match action-result semantics.
-
-(= (antEvalAndSeq () $state $steps) (mkAntEval $state True))
-(= (antEvalAndSeq (cons $child $rest) $state $steps)
-   (let (mkAntEval $nextState $result) (antEvalTree $child $state $steps)
-     (if $result
-         (antEvalAndSeq $rest $nextState $steps)
-         (mkAntEval $nextState False))))
-
-;; antEvalOrSeq: evaluate an `or_seq` child list until the first successful child.
-;;          `$child` is the current action subtree;
-;;          `$rest` is the remaining children;
-;;          `$state` is the input state for the current child;
-;;          `$steps` is the primitive-action budget;
-;;          `$nextState` is the state after `$child`;
-;;          `$result` is that child's success/failure result.
-;;          C++ note: no ant-scoring.cc branch; this supports the generic MeTTa action
-;;          operator `or_seq`.
-
-(= (antEvalOrSeq () $state $steps) (mkAntEval $state False))
-(= (antEvalOrSeq (cons $child $rest) $state $steps)
-   (let (mkAntEval $nextState $result) (antEvalTree $child $state $steps)
-     (if $result
-         (mkAntEval $nextState True)
-         (antEvalOrSeq $rest $nextState $steps))))
-
-;; antEvalExecSeq: evaluate an `exec_seq` child list, preserving effects and ignoring
-;; child success/failure.
-;;          `$child` is the current action subtree;
-;;          `$rest` is the remaining children;
-;;          `$state` is the input state for the current child;
-;;          `$steps` is the primitive-action budget;
-;;          `$nextState` is the state after `$child`;
-;;          `$result` is that child's success/failure result and is intentionally ignored.
-;;          C++ note: no ant-scoring.cc branch; this supports the generic MeTTa action
-;;          operator `exec_seq`.
-
-(= (antEvalExecSeq () $state $steps) (mkAntEval $state True))
-(= (antEvalExecSeq (cons $child $rest) $state $steps)
-   (let (mkAntEval $nextState $result) (antEvalTree $child $state $steps)
-     (antEvalExecSeq $rest $nextState $steps)))
 
 ;; antStateTime: extract elapsed primitive-action time from an ant state.
 ;;          state fields are from the shared guide; only `$time` is returned.
@@ -315,16 +285,16 @@
 
 (= (antFoodEaten (mkAntState $x $y $dir $time $food $eaten)) $eaten)
 
-;; scoreAntTree: compute the behavioral score vector for an ant candidate.
+;; scoreAntTree: compute the scalar behavioral score for an ant candidate.
 ;;          `$tree` is the candidate action tree to simulate;
-;;          `$steps` is the primitive-action limit. The first score component is
-;;          `-(ant-food-count)`; the second component is the food count from
-;;          `antFoodEaten`. The trail size is a domain constant, not a tunable
-;;          search parameter.
-;;          C++ note: mirrors `ant_bscore::operator()`, `{-89, _aff(tr)}`.
+;;          `$steps` is the primitive-action limit. The raw objective is the
+;;          single number `-ant-food-count + pelletsEaten`, which is sufficient
+;;          to rank ant candidates and matches the generic BScore reduction used
+;;          elsewhere in the pipeline.
+;;          C++ note: mirrors `ant_bscore::operator()`, `-89 + _aff(tr)`.
 
 (= (scoreAntTree $tree $steps)
-   (mkBScore ((- 0 (ant-food-count)) (antFoodEaten (antRunTree $tree $steps)))))
+   (mkBScore (- (antFoodEaten (antRunTree $tree $steps)) (ant-food-count))))
 
 ;; antTreeComplexity: match C++ `tree_complexity`.  The empty sequential_and
 ;; seed and structural/Boolean/perception nodes cost zero.  Only primitive ant
