@@ -285,16 +285,16 @@
 
 (= (antFoodEaten (mkAntState $x $y $dir $time $food $eaten)) $eaten)
 
-;; scoreAntTree: compute the scalar behavioral score for an ant candidate.
+;; scoreAntTree: compute the behavioral score for an ant candidate.
 ;;          `$tree` is the candidate action tree to simulate;
 ;;          `$steps` is the primitive-action limit. The raw objective is the
-;;          single number `-ant-food-count + pelletsEaten`, which is sufficient
-;;          to rank ant candidates and matches the generic BScore reduction used
-;;          elsewhere in the pipeline.
+;;          single value `-ant-food-count + pelletsEaten`, wrapped in a
+;;          one-element BScore for compatibility with the generic behavioral
+;;          scoring pipeline.
 ;;          C++ note: mirrors `ant_bscore::operator()`, `-89 + _aff(tr)`.
 
 (= (scoreAntTree $tree $steps)
-   (mkBScore (- (antFoodEaten (antRunTree $tree $steps)) (ant-food-count))))
+   (mkBScore ((- (antFoodEaten (antRunTree $tree $steps)) (ant-food-count)))))
 
 ;; antTreeComplexity: match C++ `tree_complexity`.  The empty sequential_and
 ;; seed and structural/Boolean/perception nodes cost zero.  Only primitive ant

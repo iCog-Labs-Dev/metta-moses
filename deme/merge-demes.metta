@@ -150,7 +150,7 @@
                       ;; `-ant-food-count + pellets-eaten` is already the stored raw score,
                       ;; so reconstruct the single-component behavioral score without
                       ;; executing the candidate a second time.
-                      (mkBScore (getScore $cscore)))
+                      (mkBScore ((getScore $cscore))))
                      ($nGames (scoreStrategyTree $tree $nGames &strategyScoreCache)))))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
     )

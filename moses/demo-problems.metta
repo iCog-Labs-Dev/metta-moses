@@ -313,6 +313,7 @@
         ($_  (set-param genCount $maxGen))
         ($initialTree (ant-exemplar))
         ($initialBscore (scoreAntTree $initialTree $steps))
+      ;   ($_ (println! (InitialBScore: $initialBscore)))
         ;; Derive the Cscore from the stored BScore so initialization performs
         ;; exactly one ant simulation.
         ($initialCscore (getAntCscoreFromBScore $initialTree $complexityRatio $initialBscore))
@@ -321,9 +322,8 @@
         ;; The scoring context is the only domain-specific input: selection,
         ;; expansion, evaluation accounting, merge, termination, and
         ;; finalization all pass through the same runMoses pipeline.
-        ($result (runMoses
-              $maxGen (ant-best-possible-score) $metaPop 0
-              $nDeme $context $optimizer))
+        ($result (runMoses $maxGen (ant-best-possible-score) $metaPop 0 $nDeme $context $optimizer))
+         ($_ (println! (Result: $result)))
         ($newR (mapG cleanedExemplar $result))
         ($_ (cut))
       )

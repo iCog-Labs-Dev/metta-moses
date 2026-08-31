@@ -86,9 +86,7 @@
 (= (antFinalRescoresMatch $rows $steps)
    (foldl-atom $rows True $matches $row
      (let ($treeExpr $score) $row
-       (let $rescored
-            (sumBScore
-              (scoreAntTree (cleanActionTree (buildTree $treeExpr)) $steps))
+       (let $rescored (sumBScore (scoreAntTree (cleanActionTree (buildTree $treeExpr)) $steps))
          (and $matches (== $rescored $score))))))
 
 
@@ -149,7 +147,8 @@
 ;; Assert behavior and an independent rescore rather than one exact tree syntax;
 ;; the FinalResult may contain several semantically perfect programs.
 !(assertEqual
-  (let (FinalResult $rows) (moses-run)
+  (let* (((FinalResult $rows) (moses-run))
+        ($_ (println! (Printing from testt file: $rows))))
     (case $rows
       (
         (() False)
