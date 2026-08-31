@@ -417,9 +417,9 @@
   ((expansionEnabled 0) (expansionEnabled 2))
   (False True))
 
-;; moses-ant-run seeds the counted loop with one initial simulation.  Starting
-;; that loop at a one-call global limit must therefore return the seed without
-;; constructing or optimizing a representation.
+;; The unified moses-run seeds the counted loop with one initial simulation via
+;; ant-initial-metapop.  Starting that loop at a one-call global limit must
+;; therefore return the seed without constructing or optimizing a representation.
 !(assertEqual
   (let* (
          ($previousBudget (param maxEvals))

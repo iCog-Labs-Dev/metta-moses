@@ -382,3 +382,34 @@
        (mkPair $inst
                (antBasedScorer $rep $id $inst
                                (mkAntContext $steps $complexityRatio $actions $perceptions))))))
+
+;; ---------------------------------------------------------------------------
+;; problem-context protocol helpers
+;; ---------------------------------------------------------------------------
+;; These three functions let the general entry point treat the ant domain
+;; uniformly alongside Boolean and CSV domains via (problem-context) in
+;; moses/demo-problems.metta.  They must be the only callers of &params
+;; inside ant-domain.metta; all simulation logic stays in the functions above.
+
+;; ant-problem-context: build the scoring context from the current &params.
+;;   Returns an mkAntContext ready to pass to runMoses.
+(= (ant-problem-context)
+   (mkAntContext (param steps) (param complexityRatio)
+                 (ant-actions) (ant-perceptions)))
+
+;; ant-initial-metapop: construct the singleton seed metapopulation.
+;;   Runs exactly one ant simulation so that initialEvaluationCount returns 1
+;;   and the pipeline's evaluation accounting starts correctly.
+;;   `$context` must be the mkAntContext returned by (ant-problem-context).
+(= (ant-initial-metapop $context)
+   (let* (
+          ($tree    (ant-exemplar))
+          ($bscore  (scoreAntTree $tree (param steps)))
+          ($cscore  (getAntCscoreFromBScore $tree (param complexityRatio) $bscore))
+         )
+     ((mkExemplar $tree (mkDemeId "1") $cscore $bscore))))
+
+;; ant-target-score: raw score at which runMoses terminates early.
+;;   Delegates to the domain constant so the entry point needs no
+;;   ant-specific knowledge.
+(= (ant-target-score) (ant-best-possible-score))

@@ -248,86 +248,73 @@
       )
       ()))
 
-;; Dispatch the configured problem to its domain-specific setup; both setup
-;; paths subsequently enter the same shared runMoses search lifecycle.
-(= (moses-run)
+;; problem-context: map the configured problem to the triple
+;;   (context  metaPop  bestPossibleScore)
+;; that the shared runMoses entry point requires.
+;;
+;; `context` is the domain-specific value threaded through expand-deme.metta's
+;; polymorphic dispatch (mkAntContext for action domains; the
+;; (False $fsAlgo $bscore $itable) tuple for Boolean/CSV domains).
+;; `metaPop` is the singleton ordered-set seed exemplar for this run.
+;; `bestPossibleScore` is the raw-score termination target.
+;;
+;; To add a new domain, add one clause here and three helpers to its
+;; *-domain.metta file following the ant pattern above.
+(= (problem-context)
    (case (param problem)
-      ((ant (moses-ant-run))
-       ($other (moses-table-run)))))
+     ((ant
+        (let $ctx (ant-problem-context)
+          ($ctx (ant-initial-metapop $ctx) (ant-target-score))))
+      ($other
+        (let* (
+               ($cpxPen           (param complexityRatio))
+               ($itable           (resolve-itable))
+               ($truthTableBScore (createTruthTableBScore $cpxPen $itable))
+               (($ctor $worstB)   (worstPossibleScore $truthTableBScore))
+               ($worstScore       (List.sum $worstB))
+               ($metaPop
+                  ((mkExemplar (mkTree (mkNode true) ())
+                               (mkDemeId "1")
+                               (mkCscore $worstScore 0 $cpxPen 0 $worstScore)
+                               ($ctor $worstB))))
+              )
+          ((False (param fsAlgo) $truthTableBScore $itable)
+           $metaPop
+           (getBestPossibleScore)))))))
 
-;; Construct Boolean/table scoring inputs and seed the shared MOSES pipeline.
-(= (moses-table-run)
+;; Single unified entry point for every domain family.
+;; Reads all hyperparameters from &params; all domain-specific logic is
+;; encapsulated in (problem-context) and the expand-deme.metta adapters.
+(= (moses-run)
    (let*
       (
-        ;; Pull every input from the registry up-front so the body
-        ;; reads like the historical runDemoProblem.
-        ($seed     (param seed))
-        ($maxGen   (param maxGen))
-        ($nDeme    (param nDeme))
-        ($fsAlgo   (param fsAlgo))
-        ($optAlgo  (param optAlgo))
-        ($problem  (param problem))
+        ($seed      (param seed))
+        ($maxGen    (param maxGen))
+        ($nDeme     (param nDeme))
+        ($optAlgo   (param optAlgo))
         ($optimizer (optimizer-for $optAlgo))
 
         ($srp (py-call (random.seed $seed)))
         ;; genCount feeds the cap-size formula inside resizeMetapop; it
         ;; is conceptually the initial $maxGen and stays constant across
-        ;; the recursion, so we seed it once here.
-        ($_  (set-param genCount $maxGen))
-        ($cpxPen (param complexityRatio))
-        ;; Resolve the input table once: a CSV the user passed via
-        ;; --inputFile, otherwise the demo problem named by `problem`.
-        ($itable (resolve-itable))
-        ($truthTableBScore (createTruthTableBScore $cpxPen $itable))
-        (($ctor $worstPossibleBScore) (worstPossibleScore $truthTableBScore))
-        ($worstPossibleScore (List.sum $worstPossibleBScore))
-        ($bestPosssibleScore (getBestPossibleScore))
-        ($_ (println! (BestPossibleScore: $bestPosssibleScore)))
-        ($metaPop ((mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore))))
-        ($result (runMoses $maxGen $bestPosssibleScore $metaPop 0 $nDeme
-              (False $fsAlgo $truthTableBScore $itable)
-              $optimizer))
-        ;; ($_ (println! (Result: $result)))
+        ;; the recursion, so we seed it once here before (problem-context)
+        ;; may invoke any scorer that depends on it.
+        ($_ (set-param genCount $maxGen))
+
+        (($context $metaPop $bestPossibleScore) (problem-context))
+        ($_ (println! (BestPossibleScore: $bestPossibleScore)))
+
+        ;; The scoring context is the only domain-specific input: selection,
+        ;; expansion, evaluation accounting, merge, termination, and
+        ;; finalization all pass through the same runMoses pipeline.
+        ($result (runMoses $maxGen $bestPossibleScore $metaPop 0 $nDeme
+                           $context $optimizer))
         ($newR (mapG cleanedExemplar $result))
         ($_ (cut)) ;; INFO: This gives few extra seconds performance gain. Do not remove.
       )
       (FinalResult $newR)))
 
-;; Construct Santa Fe action scoring inputs and seed the shared MOSES pipeline.
-(= (moses-ant-run)
-   (let*
-      (
-        ($seed     (param seed))
-        ($maxGen   (param maxGen))
-        ($nDeme    (param nDeme))
-        ($optAlgo  (param optAlgo))
-        ($optimizer (optimizer-for $optAlgo))
-        ;; Action domains consume the same public scoring controls as Boolean
-        ;; domains. `steps` is meaningful to this stateful evaluator, while
-        ;; Boolean scorers harmlessly leave it unused.
-        ($steps (param steps))
-        ($complexityRatio (param complexityRatio))
-        ($context (mkAntContext $steps $complexityRatio (ant-actions) (ant-perceptions)))
 
-        ($srp (py-call (random.seed $seed)))
-        ($_  (set-param genCount $maxGen))
-        ($initialTree (ant-exemplar))
-        ($initialBscore (scoreAntTree $initialTree $steps))
-      ;   ($_ (println! (InitialBScore: $initialBscore)))
-        ;; Derive the Cscore from the stored BScore so initialization performs
-        ;; exactly one ant simulation.
-        ($initialCscore (getAntCscoreFromBScore $initialTree $complexityRatio $initialBscore))
-        ($_ (println! (BestPossibleScore: (ant-best-possible-score))))
-        ($metaPop ((mkExemplar $initialTree (mkDemeId "1") $initialCscore $initialBscore)))
-        ;; The scoring context is the only domain-specific input: selection,
-        ;; expansion, evaluation accounting, merge, termination, and
-        ;; finalization all pass through the same runMoses pipeline.
-        ($result (runMoses $maxGen (ant-best-possible-score) $metaPop 0 $nDeme $context $optimizer))
-         ($_ (println! (Result: $result)))
-        ($newR (mapG cleanedExemplar $result))
-        ($_ (cut))
-      )
-      (FinalResult $newR)))
 
 ;; Maps the optAlgo symbol to the concrete optimizer function used by
 ;; runMoses. Only hill climbing is integration-tested today; the SA and
