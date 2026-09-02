@@ -92,6 +92,9 @@
 !(add-atom &params (actions     ()))
 !(add-atom &params (perceptions ()))
 
+!(add-atom &params (domainFile ""))
+
+
 ;; ---- Algorithm selection ----
 ;; optAlgo: which deme-local optimizer to dispatch to inside runMoses.
 ;;   Recognized values: hc (hill climbing).
