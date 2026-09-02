@@ -318,6 +318,21 @@
        1
        (List.sum (List.map treeComplexity $children))))          
 
+;; Same measure as treeComplexity but read straight off a preOrder/reduce-to
+;; expression, so callers that only need the count can skip rebuilding a Tree.
+
+; (: exprComplexity (-> $a Number))
+
+(= (exprComplexity $e)
+   (if (== (get-metatype $e) Expression)
+       (if (== $e ())
+           0
+           (let ($head $tail) (decons-atom $e)
+              (if (== $tail ())
+                  (if (once (is-member $head (quote (AND OR NOT PRIORITIZED-OR)))) 0 1)
+                  (List.sum (List.map exprComplexity $tail)))))
+       1))
+
 ;; NOTE: for future use -- a function to determine the alphabet size of a given tree for computation of complexity ratio
 ;; takes a truth table and adds 3 (for AND,. OR and NOT) to the number of input labels
 

@@ -28,27 +28,39 @@
       (replaceNodeById $tree $targetId $probedSubtree)))
 
 ;; True when applying a setting and cleaning the probed root lowers complexity.
-(= (settingReducesComplexity $tree $probeRootId $targetId $actualSetting)
+;; $subtree is the controlled subtree, resolved once by the caller instead of
+;; being re-walked for every setting.
+(= (settingReducesComplexity $tree $probeRootId $targetId $subtree $actualSetting)
    (let*
       (
-        ($probedTree (probeTreeForActualSetting $tree $targetId $actualSetting))
+        ($probedSubtree (applyLogicalSettingToSubtree $subtree $actualSetting))
+        ($probedTree (replaceNodeById $tree $targetId $probedSubtree))
         ($probedRoot (getNodeById $probedTree $probeRootId))
         ($initialCpxy (treeComplexity $probedRoot))
-        ($reducedRoot (cleanTree $probedRoot))
-        ($reducedCpxy (treeComplexity $reducedRoot))
+        ;; reduce-to already yields the reduced expression; cleanTree would only
+        ;; rebuild it into a Tree so treeComplexity can walk it a second time.
+        ($reducedCpxy (exprComplexity (reduce-to (preOrder $probedRoot))))
       )
       (> $initialCpxy $reducedCpxy)))
 
 ;; Tests all effective non-default settings and accumulates disallowed actual
 ;; settings for a knob.
 (= (probeEffectiveSettings $tree $probeRootId $targetId $lsk $setting $acc)
-   (let (mkMultip $m) (getKnobMultip $lsk)
-      (if (>= $setting $m)
-          $acc
-          (let $actualSetting (mapEffectiveDiscSpec $lsk $setting)
-             (if (settingReducesComplexity $tree $probeRootId $targetId $actualSetting)
-                 (probeEffectiveSettings $tree $probeRootId $targetId $lsk (+ $setting 1) (cons-atom (mkDiscSpec $actualSetting) $acc))
-                 (probeEffectiveSettings $tree $probeRootId $targetId $lsk (+ $setting 1) $acc))))))
+   (let*
+      (
+        ((mkMultip $m) (getKnobMultip $lsk))
+        ($subtree (probeControlledSubtree $tree $targetId))
+      )
+      (probeSettingsFrom $tree $probeRootId $targetId $lsk $subtree $m $setting $acc)))
+
+(= (probeSettingsFrom $tree $probeRootId $targetId $lsk $subtree $m $setting $acc)
+   (if (>= $setting $m)
+       $acc
+       (let $actualSetting (mapEffectiveDiscSpec $lsk $setting)
+          (probeSettingsFrom $tree $probeRootId $targetId $lsk $subtree $m (+ $setting 1)
+             (if (settingReducesComplexity $tree $probeRootId $targetId $subtree $actualSetting)
+                 (cons-atom (mkDiscSpec $actualSetting) $acc)
+                 $acc)))))
 
 ;; Updates an id-free LSK with settings disallowed in the supplied context.
 (= (discProbe $tree $probeRootId $targetId $lsk)
