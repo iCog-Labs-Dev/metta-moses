@@ -4,8 +4,7 @@
 ;; removed python binding for compatibility with workflow -- XXX 
 ;; bind is not supported for constants (as of 13 NOV) in PeTTa -- thus using function style notation
 (= (NO_EXEMPLAR) "empty metapopulation")
-(= (COMPXY_TEMP) 6)
-(= (INV_TEMP) (/ 100.0 (COMPXY_TEMP)))
+(= (INV_TEMP) (/ 100.0 (param compxyTemp)))
 
 ;; exemplar  selection
 ;; if the the metapopulation is empty - throw error and quit

@@ -50,7 +50,9 @@
   (case (mkParams $scorer)
     (((mkParams applyComplexityBasedScore)
         (let*
-          (($disc (getDisk $POASet))
+          (
+            ($representation (match $POASet (mkRep $kbmp $tree) (mkRep $kbmp $tree)))
+            ($disc (getDiskfromRep $representation))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer)))
           (simulated-annealing $POASet
                         ($disc $cpxCoeff $size $iTable)
@@ -99,6 +101,9 @@
               ;; ($_ (println! ""))
               ; ($_ (println! $hyper))
               ; ($_ (println! ($rows $labels)))
+              ($rep (let $return (match $POASet (mkRep $knmp $tree) (mkRep $knmp $tree)) (if (== $return (mkRep () ())) () $return)))
+              ($id (let $returnn (match $POASet (mkDemeId $dmid) (mkDemeId $dmid)) (if (== $returnn (mkDemeId ())) () $returnn)))
+
               ($totalNNeighbors ($estimateFunction $d $neighborhood))
 
               ($_ (println! (Estimated neighbors: $totalNNeighbors)))
@@ -111,16 +116,15 @@
               ($_ (println! (Crossover: $xOver)))
               ;; Generate a new instance using crossover
               
-              (((mkDeme $rep $updatedInstSet $id) $newInstances) (case ($xOver $size)
+              (($updatedInstSet $newInstances) (case ($xOver $size)
                                                                    (
                                                                 ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet)
-                                                                              ((mkDeme () $updatedInstSet ()) $newInstances)))
+                                                                              ($updatedInstSet $newInstances)))
                                                                 ((True $notEmpty)  ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet))
                                                                 ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $POASet $d)
-                                                                              ((mkDeme () $updatedInstSet ()) $newInstances)))
+                                                                              ($updatedInstSet $newInstances)))
                                                                 ((False $notEmpty) 
                                                                         (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $POASet $d)
-                                                                        ;; (trace! ("Result: " $result) )))
                                                                         $result))
                                                               )
                                                                     ))
@@ -138,14 +142,11 @@
                                                                   $prePositive $scorerType
                                                                   )
                                                 ($transformFunction $updatedInstSet $rep $id $iTable $rowOCoeff)))
-
-              ($updatedPOASet (if (or (== $rep ()) (== $id ())) 
-                          (mkSInstSet $scoredInstances) 
-                          (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
-        
+              ;; Remove old instance set and update with new scored instances
+              ($_ (remove-atom $POASet (mkSInstSet $s)))
+              ($_ (add-atom $POASet (mkSInstSet $scoredInstances)))
 
               ($_ (println! (Scored instances: $scoredInstances)))
-              ;; ($_ (println! ""))
 
               ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $prevCenter  $bestSscore)) $scoredInstances))
               ($newBestScore (if (or (== $rep ()) (== $id ())) 
@@ -153,11 +154,6 @@
                                 (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
               ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
         
-              ;; ($_ (println! (Best instance: $newBestInstPair)))
-              ;; ($_ (println! (New best score: $newBestScore)))
-              ;; ($_ (println! (Has Improved: $hasImproved)))
-              ;; ($_ (println! ""))
-
               ; ;; Calculate the energy of the current and new instance, and the acceptanceProb
               ($pScore (if (== $rep ()) $bestSscore (getPenScore $bestSscore)))
               ($energy (getEnergy $pScore))
@@ -167,21 +163,9 @@
               ; ;; Actual acceptance probabitlity which is the product of the intensity and acceptance probability.
               ($actualAcceptanceProb (* $acceptanceProb 0.85))
 
-              ;; ($_ (println! (Energy: $energy)))
-              ;; ($_ (println! (New energy: $newEnergy)))
-              ;; ($_ (println! (Acceptance probability: $acceptanceProb)))
-              ;; ($_ (println! (Random float: $randomFloat)))
-              ;; ($_ (println! (Actual acceptance probability: $actualAcceptanceProb)))
-              ;; ($_ (println! ""))
-
               ; ;; Check for acceptance
               ($isAccepted (> $actualAcceptanceProb $randomFloat))
               
-              ;; ($_ (println! (Is accepted: $isAccepted)))
-              ;; ($_ (println! (New instances: $newInstances)))
-              ;; ($_ (println! ""))
-              
-              ($newPOASet (if $isAccepted $updatedPOASet $POASet))
               ($newCenter (if $isAccepted (Pair.first $newBestInstPair) $prevCenter))
               ($newDistance (if $hasImproved 1 (if (not $xOver) (+ 1 $d) $d)))
               ($newBestSscore (if $isAccepted (Pair.second $newBestInstPair) $bestSscore))
@@ -193,7 +177,7 @@
 
                           
             )
-            (simulated-annealing $newPOASet 
+            (simulated-annealing $POASet 
                                 ($neighborhood $rowOCoeff $size $iTable)
                                 $initCenter
                                 ($maxDist $minXoverNeighbors $bestPossibleScore) ;; $constParams

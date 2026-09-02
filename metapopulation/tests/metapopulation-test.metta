@@ -1,4 +1,6 @@
 !(import! &self ../../../metta-moses/utilities/general-helpers)
+!(import! &self ../../../metta-moses/parameters/registry)
+!(import! &self ../../../metta-moses/parameters/defaults)
 !(import! &self ../../../metta-moses/utilities/list-methods)
 !(import! &self ../../../metta-moses/utilities/ordered-set)
 !(import! &self ../../../metta-moses/utilities/tree)
@@ -239,8 +241,16 @@
                     (mkBScore (cons 0.6 ())))
                   ())))))))))
 
-!(assertEqual (let $a (resizeMetapop (pop5) 3 5 3 0.004 1000) (OS.length $a)) 6)
-!(assertEqual (let $a (resizeMetapop (pop5) 3 5 2 0.003 1000) (OS.length $a)) 4)
+!(set-param nToKeep 3)
+!(set-param minPoolSize 5)
+!(set-param complexityTemperature 3)
+!(set-param capCoef 0.004)
+!(set-param genCount 1000)
+!(assertEqual (let $a (resizeMetapop (pop5)) (OS.length $a)) 6)
+
+!(set-param complexityTemperature 2)
+!(set-param capCoef 0.003)
+!(assertEqual (let $a (resizeMetapop (pop5)) (OS.length $a)) 4)
 
 ;; Testcases for compareExemplar
 !(assertEqual

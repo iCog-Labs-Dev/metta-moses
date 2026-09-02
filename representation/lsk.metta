@@ -82,28 +82,82 @@
    )
 )
 
+;; Action subtree knobs store all selectable action permutations in the knob.
+;; The two-argument form follows the current embedded-knob representation.
+(= (actionSubtreeKnob $perms)
+   ((mkNullVex $perms)
+    (mkASK (mkDiscKnob (mkMultip (+ (length $perms) 1))
+                       (mkDiscSpec 0)
+                       (mkDiscSpec 0)
+                       ())
+           $perms)))
+
+(= (simpleActionSubtreeKnob $subtree)
+   ($subtree
+    (mkASK (mkDiscKnob (mkMultip 2)
+                       (mkDiscSpec 1)
+                       (mkDiscSpec 1)
+                       ())
+           (cons $subtree ()))))
+
+;; Compatibility form for node-id based callers.
+(= (actionSubtreeKnob $tree (mkNodeId $target) $perms)
+   (let*
+     (
+       (($nullVexTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex ())))
+       ($multip (+ (length $perms) 1))
+     )
+     ($nullVexTree
+      (mkASK (mkDiscKnob (mkKnob (updateID $nullVexId))
+                         (mkMultip $multip)
+                         (mkDiscSpec 0)
+                         (mkDiscSpec 0)
+                         ())
+             $perms))))
+
+(= (simpleActionSubtreeKnob $tree (mkNodeId $target))
+   (let $subtree (getNodeById $tree (mkNodeId $target))
+     ($tree
+      (mkASK (mkDiscKnob (mkKnob (updateID (mkNodeId $target)))
+                         (mkMultip 2)
+                         (mkDiscSpec 1)
+                         (mkDiscSpec 1)
+                         ())
+             (cons $subtree ())))))
 
 ;; Retrieves the node ID from a Logical Subtree Knob (LSK) or Strategy Subtree Knob (SSK).
 ;; (: getNodeId (-> LogicalSubtreeKnob NodeId))
 ;; (: getNodeId (-> StrategySubtreeKnob NodeId))
+;; (: getNodeId (-> ActionSubtreeKnob NodeId))
 (= (getNodeId (mkLSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
    $nodeId)
 (= (getNodeId (mkSSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
    $nodeId)
+(= (getNodeId (mkASK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList) $perms))
+   $nodeId)
 
-;; Retrieves the current and default disc specifications from an LSK.
+;; Retrieves the current and default disc specifications from an LSK, SSK, or ASK.
 ;; (:getDiscSpec (-> LogicalSubtreeKnob (DiscSpec DiscSpec)))
+;; (:getDiscSpec (-> StrategySubtreeKnob (DiscSpec DiscSpec)))
+;; (:getDiscSpec (-> ActionSubtreeKnob (DiscSpec DiscSpec)))
 (= (getDiscSpec (mkLSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
+    (let ((mkDiscSpec $def) (mkDiscSpec $cur)) ($default $current) ($def $cur)))
+(= (getDiscSpec (mkSSK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList)))
+    (let ((mkDiscSpec $def) (mkDiscSpec $cur)) ($default $current) ($def $cur)))
+(= (getDiscSpec (mkASK (mkDiscKnob (mkKnob $nodeId) $multi $default $current $discSpecList) $perms))
     (let ((mkDiscSpec $def) (mkDiscSpec $cur)) ($default $current) ($def $cur)))
 
 
 ;; appendTo dispatcher - calls the appropriate function based on knob type
 ;; (: appendTo (-> (Tree $a) LogicalSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
 ;; (: appendTo (-> (Tree $a) StrategySubtreeKnob (Tree $a) NodeId Number (Tree $a)))
+;; (: appendTo (-> (Tree $a) ActionSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
 (= (appendTo $updatedTree (mkLSK $discKnob) $tree $parentId $d)
     (appendToLSK $updatedTree (mkLSK $discKnob) $tree $parentId $d))
 (= (appendTo $updatedTree (mkSSK $discKnob) $tree $parentId $d)
     (appendToSSK $updatedTree (mkSSK $discKnob) $tree $parentId $d))
+(= (appendTo $updatedTree (mkASK $discKnob $perms) $tree $parentId $d)
+    (appendToASK $updatedTree (mkASK $discKnob $perms) $tree $parentId $d))
 
     
 ;; Appends a subtree or a null vertex in place of a logical subtree 
@@ -191,6 +245,33 @@
                                   (0  ((mkNullVex (cons $subtree ())) $parentId)))) ;; If absent
 
                             (if (isNullVertex $treeToAppend)
-                                ($tree $parentId $parentId)
-                                (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
-                                        ((first $treeChIdPair) $newSrcId (if (== $parentId $newDstId) (second $treeChIdPair) $newDstId))))))))
+	                                ($tree $parentId $parentId)
+	                                (chain (appendChild $tree $parentId $treeToAppend) $treeChIdPair
+	                                        ((first $treeChIdPair) $newSrcId (if (== $parentId $newDstId) (second $treeChIdPair) $newDstId))))))))
+
+;;;; ---------------------------------------------------------------------------
+;; appendToASK appends a permutation subtree for an Action Subtree Knob.
+;;
+;; default 0: action-subtree ASK, append selected perm and stop recursion.
+;; default 1: simple-action ASK, append existing subtree and recurse.
+;; Returns ($updatedTree $newSrcId $newDstId).
+;; ---------------------------------------------------------------------------
+(= (appendToASK $updatedTree $ask $tree $parentId $d)
+    (let*
+       (
+        ((mkNodeId $targetId) (getNodeId $ask))
+        ((mkNodeId $dstId) (if (= (mkNodeId (0)) $parentId) (mkNodeId ()) $parentId))
+        ((mkMultip $effectiveMultip) (getKnobMultip $ask))
+        ((mkDiscSpec $defaultSetting) (getKnobDefault $ask))
+        ((mkASK $discKnob $perms) $ask)
+       )
+      (if (>= $d $effectiveMultip)
+          (Error $d "Invalid effective disc specification for action knob.")
+          (let $actualD (mapEffectiveDiscSpec $ask $d)
+            (if (== $actualD 0)
+                ($tree $parentId $parentId)
+                (let $expressionToAppend (List.getByIdx $perms (- $actualD 1))
+                  (let $treeChIdPair (appendChild $tree $parentId $expressionToAppend)
+                    (if (== $defaultSetting 0)
+                        ((first $treeChIdPair) $parentId $parentId)
+                        ((first $treeChIdPair) (mkNodeId $targetId) (second $treeChIdPair))))))))))

@@ -1,5 +1,7 @@
 !(import! &self ../demeSpaceName.py)
 !(import! &self ../../utilities/general-helpers)
+!(import! &self ../../parameters/registry)
+!(import! &self ../../parameters/defaults)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/pair)
 !(import! &self ../../utilities/map)
@@ -83,7 +85,12 @@
 
 !(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
 
-(= (deme) (mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) (mkSInstSet ()) (mkDemeId "1")))
+!(bind! &deme1 (new-space))
+
+!(let $x (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) (add-atom &deme1 $x))
+!(let $y (mkSInstSet ()) (add-atom &deme1 $y))
+!(let $z (mkDemeId "1") (add-atom &deme1 $z))
+
 (= (table1) (eval (createTruthTableBScore 2 (mkITable
                          (cons (cons False (cons False (cons False ()))) 
                          (cons (cons True (cons False (cons False ()))) 
@@ -178,14 +185,20 @@
 !(assertEqual 
 (let* 
 (
-    ($optimizeDemesReturn (optimizeDemes (deme) 
+    ;; same space-based representation path as the rest of the file.
+    ($optimizeDemesReturn (optimizeDemes &deme1 
                 (table1) 
                 (mkInst (cons 0 (cons 0 ()))) 
                 hillClimbing
                 ))
     ($_ (println! "optimizeDemes Returns"))
     ($_ (println! $optimizeDemesReturn))
-    (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemesReturn)
+
+    ;; Update the pattern to match the returned space reference
+    (($instance $returnedDemeSpace $state) $optimizeDemesReturn)
+    ;; Fetch the instSet from the space instead of tuple destructuring
+    ($instSet (match $returnedDemeSpace (mkSInstSet $set) $set))
+
     ($instanceCount (List.length $instSet))
     ($scoredElems (List.map isScored $instSet))
 )
@@ -204,16 +217,27 @@
 ;;     ($updatedDemeLength (size-atom $updatedDeme)))
 ;; (>= $updatedDemeLength 1)) True)
 
+;; The original tests passed `5 2 0 1 3 0.004 1000` (and
+;; `maxCandOutput=3`). Test 4 nudges minPoolSize from 0 to 2 just before
+;; its call.
+!(set-param maxCandOutput 3)
+!(set-param nEval 5)
+!(set-param maxCandPerDeme 2)
+!(set-param minPoolSize 0)
+!(set-param complexityTemperature 1)
+!(set-param nToKeep 3)
+!(set-param capCoef 0.004)
+!(set-param genCount 1000)
+
 ;; Testcase for runMoses
 !(assertEqual
 (let*
 (
     ($_ (println! (running started)))
-    ($topCandidates (runMoses 2 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 (False sim 
-    (table1) 
-    (ttable1)) 
-    hillClimbing 5 2 0 1 
-    3 0.004 1000))
+    ($topCandidates (runMoses 2 0 (metaPop2) 0 2 (False sim
+    (table1)
+    (ttable1))
+    hillClimbing))
     ($topCandidatesLength (OS.length $topCandidates))
 )
 (>= $topCandidatesLength 1)
@@ -223,11 +247,10 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 (False rd 
+    ($topCandidates (runMoses 1 0 (metaPop2) 0 2 (False rd
     (table1)
     (ttable1))
-    hillClimbing 5 2 0 1 
-    3 0.004 1000))
+    hillClimbing))
     ($topCandidatesLength (OS.length $topCandidates))
 )
 (>= $topCandidatesLength 1)
@@ -237,45 +260,44 @@
 !(assertEqual
 (let*
 (
-    ($topCandidates (runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 (False inc 
+    ($topCandidates (runMoses 1 0 (metaPop2) 0 2 (False inc
     (table1)
     (ttable1))
-    hillClimbing 5 2 0 1
-    3 0.004 1000))
+    hillClimbing))
     ($topCandidatesLength (OS.length $topCandidates))
 )
 (>= $topCandidatesLength 1)
 ) True)
 
-;; Testcase 2 for runmoses. 
-;; When maxGen become 10, test number of returned instances is not greater than maxCandOutput, 
+;; Testcase 2 for runmoses.
+;; When maxGen become 10, test number of returned instances is not greater than maxCandOutput,
 ;;              where maxCandOutput is 3 and minPoolSize is 2
+!(set-param minPoolSize 2)
 !(assertEqual
 (let $length
-((OS.length (runMoses 10 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
+((OS.length (runMoses 10 0 (metaPop2) 0 2
     (False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
     inc      ;; the new arguments for feature selection algo
     (eval (createTruthTableBScore 2 (mkITable
-                          (cons (cons False (cons False (cons False ()))) 
-                          (cons (cons True (cons False (cons False ()))) 
+                          (cons (cons False (cons False (cons False ())))
+                          (cons (cons True (cons False (cons False ())))
                           (cons (cons False (cons True (cons False ())))
                           (cons (cons True (cons True (cons True ()))) ()))))
                           (cons A (cons B (cons O ()))))))
     (mkITable
-                          (cons (cons False (cons False (cons False ()))) 
-                          (cons (cons True (cons False (cons False ()))) 
+                          (cons (cons False (cons False (cons False ())))
+                          (cons (cons True (cons False (cons False ())))
                           (cons (cons False (cons True (cons False ())))
                           (cons (cons True (cons True (cons True ()))) ()))))
                           (cons A (cons B (cons O ())))))
-    hillClimbing 5 2 2 1
-    3 0.004 1000)
+    hillClimbing)
     ))
         (> $length 3)
 )
     False
-) 
+)
 ;; ; ; with OR table and AND init exemplar     
-;; ; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
+;; ; !(runMoses 7 1 3 (metaPop) 0 2 
 ;; ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;; ;     smd      ;; the new arguments for feature selection algo
 ;; ;     (eval (createTruthTableBScore 2 (mkITable
@@ -294,7 +316,7 @@
 ;; ;                          (cons A (cons B (cons O ())))) 
 ;; ;     3 0.004 1000)
 ;; ; ; with OR table and AND init exemplar     
-;; ; !(runMoses 7 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop) 0 2 
+;; ; !(runMoses 7 1 3 (metaPop) 0 2 
 ;; ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;; ;     smd      ;; the new arguments for feature selection algo
 ;; ;     (eval (createTruthTableBScore 2 (mkITable
@@ -313,7 +335,7 @@
 ;; ;                           (cons A (cons B (cons O ()))))  
 ;; ;     3 0.004 1000)
 ;;
-;; ; !(runMoses 1 (mkCscore -0.1 2 0.1 0.1 3) 3 (metaPop2) 0 2 
+;; ; !(runMoses 1 1 3 (metaPop2) 0 2 
 ;; ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;; ;     smd      ;; the new arguments for feature selection algo
 ;; ;     (eval (createTruthTableBScore 2 
@@ -340,7 +362,7 @@
 ;; ;; (AND (OR (AND A (NOT B)) (AND (NOT A) B)))
 ;; ;; !(let*
 ;; ;;    (
-;; ;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
+;; ;;     ($result (runMoses 20 1 10 (metaPop2) 0 2
 ;; ;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
 ;; ;;                   smd      ;; the new arguments for feature selection algo
 ;; ;;                   (eval (createTruthTableBScore 2 (xortable)))
