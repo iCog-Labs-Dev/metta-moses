@@ -2,43 +2,41 @@
 ;; External Bot Action Domain
 ;; ================================================================
 ;;
-;; This file is intentionally external to the generic MOSES
-;; implementation.
+;; This file defines a complete action domain outside the generic
+;; MOSES implementation.
 ;;
 ;; It defines:
-;;   1. Domain state
-;;   2. Domain actions
-;;   3. Domain perceptions
-;;   4. Fitness
-;;   5. Best-score contract
-;;   6. MOSES parameter bindings
+;;   - domain state
+;;   - actions
+;;   - perceptions
+;;   - fitness
+;;   - best-score contract
+;;   - MOSES parameter bindings
 ;;
-;; It is loaded through:
+;; Loaded with:
 ;;
-;;     --domainFile=<path>
+;;   --domainFile=<path>
 ;;
-;; The generic MOSES pipeline should not need to know anything
-;; about this domain.
+;; The generic MOSES pipeline does not contain any domain-specific
+;; knowledge about this environment.
 ;; ================================================================
 
 
 ;; ----------------------------------------------------------------
-;; Domain state
+;; Domain State
 ;; ----------------------------------------------------------------
-
-;; Bot world:
 ;;
+;; Bot world:
 ;;   $pos  = current position
-;;   $fuel = remaining number of actions
+;;   $fuel = remaining actions
 ;;
 ;; Goal:
-;;
 ;;   position 3
-;;
 ;; ----------------------------------------------------------------
 
+
 ;; ----------------------------------------------------------------
-;; Action: move forward
+;; Action: Move Forward
 ;; ----------------------------------------------------------------
 
 (= (botForward $params (mkBotWorld $pos $fuel))
@@ -56,7 +54,7 @@
 
 
 ;; ----------------------------------------------------------------
-;; Action: move backward
+;; Action: Move Backward
 ;; ----------------------------------------------------------------
 
 (= (botBackward $params (mkBotWorld $pos $fuel))
@@ -80,7 +78,7 @@
 
 
 ;; ----------------------------------------------------------------
-;; Perception: are we at the goal?
+;; Perception: At Goal
 ;; ----------------------------------------------------------------
 
 (= (botAtGoal $params (mkBotWorld $pos $fuel))
@@ -95,22 +93,18 @@
 ;; Fitness
 ;; ----------------------------------------------------------------
 ;;
-;; MOSES action fitness contract:
+;; Fitness contract:
+;;   (fitness $exemplar $trial-index)
 ;;
-;;     (fitness $exemplar $trial-index)
+;; Each trial evaluates the action expression from an initial
+;; world state.
 ;;
-;; The action expression is evaluated from an initial world.
-;;
-;; We use two starting positions so that the evolved program
-;; must handle more than one initial condition.
-;;
-;; Success:
-;;     final position == 3
+;; Two starting positions are used so the evolved program must
+;; handle multiple initial conditions.
 ;;
 ;; Score:
-;;     1.0  -> success
-;;    -1.0  -> failure
-;;
+;;   1.0  = success
+;;  -1.0  = failure
 ;; ----------------------------------------------------------------
 
 (= (botFitness $exp $i)
@@ -128,26 +122,20 @@
             $exp
             $start))
       )
-
       (if (== $pos 3)
           1.0
           -1.0)))
 
 
 ;; ----------------------------------------------------------------
-;; Best possible score
+;; Best Score
 ;; ----------------------------------------------------------------
 ;;
-;; MOSES calls:
+;; Contract:
+;;   (bestScore $nTrials)
 ;;
-;;     (bestScore $nTrials)
-;;
-;; where $nTrials is the configured number of fitness trials.
-;;
-;; Every trial can score 1.0, therefore:
-;;
-;;     bestScore(n) = n
-;;
+;; Each trial can achieve a score of 1.0, so the best possible
+;; score is equal to the number of trials.
 ;; ----------------------------------------------------------------
 
 (= (botBestScore $n)
@@ -155,25 +143,25 @@
 
 
 ;; ----------------------------------------------------------------
-;; External domain configuration
+;; External Domain Configuration
 ;; ----------------------------------------------------------------
 ;;
-;; These are the parameters consumed by the generic action route.
+;; Configure the parameters consumed by the generic action route.
 ;;
 ;; actions:
-;;     Vocabulary available to the action representation.
+;;   Action vocabulary available to the action representation.
 ;;
 ;; perceptions:
-;;     Perception vocabulary available to evolved programs.
+;;   Perception vocabulary available to evolved programs.
 ;;
 ;; fitness:
-;;     Domain fitness function.
+;;   Domain fitness function.
 ;;
 ;; bestScore:
-;;     Domain best-score function.
+;;   Domain best-score function.
 ;;
-;; quote is important because actions/perceptions are vocabulary
-;; values rather than calls that should be evaluated immediately.
+;; Vocabulary values are quoted so they are stored as values rather
+;; than evaluated immediately.
 ;; ----------------------------------------------------------------
 
 !(set-param actions
@@ -190,4 +178,3 @@
 
 !(set-param bestScore
    botBestScore)
-
