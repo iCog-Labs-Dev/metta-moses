@@ -466,7 +466,12 @@
             ($propNotExpr (propagateNot $current))
             ($gatherJunctorExpr (gatherJunctors $propNotExpr))
             ($initAdd (addAND $gatherJunctorExpr))
-            ($finalAdd (addAND $initAdd True))
+            ($wrappedAdd (addAND $initAdd True))
+            ;; dedupSiblings mirrors classic's equal_subtree erase loop at the top of reduce().
+            ;; It has to follow addAND, because addAND's wrapping is what creates most
+            ;; duplicates: (OR (AND B) B ...) normalises to (OR (AND B) (AND B) ...), and that
+            ;; duplicate alternative desynchronises the OR walker.
+            ($finalAdd (dedupSiblings $wrappedAdd))
             ($finalParent (findAndReplace $current $finalAdd $parent))
 
            ;; ($_ (println! (==== ApplyReduce Log ====)))
