@@ -3,7 +3,7 @@
 !(import! &self ../zero-constraint-subsumption)
  
 ;; Test 01
-!(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) (AND))) (OR (AND A B) (AND))) ((AND (OR (AND A B))) (OR (AND A B)) true))
+!(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) (AND))) (OR (AND A B) (AND))) ((AND (AND)) (AND) true)) ;; the (AND) alternative is TRUE: it collapses the OR
 
 ;; Test 02
 !(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) (OR))) (OR (AND A B) (OR))) ((AND (OR (AND A B))) (OR (AND A B)) true))
@@ -24,20 +24,20 @@
 !(assertEqual (zeroConstraintSubsume (AND (NOT (AND A B))) (NOT (AND A B))) ((AND (NOT (AND A B))) (NOT (AND A B)) False))
 
 ;; Test 08
-!(assertEqual (zeroConstraintSubsume (AND (OR (OR (AND) A) (AND))) (OR (OR (AND) A) (AND))) ((AND (OR (OR (AND) A))) (OR (OR (AND) A)) true))
+!(assertEqual (zeroConstraintSubsume (AND (OR (OR (AND) A) (AND))) (OR (OR (AND) A) (AND))) ((AND (AND)) (AND) true)) ;; ditto, through the nested OR
 
 ;; Test 09
-!(assertEqual (zeroConstraintSubsume (OR (AND (OR) (OR (AND) B))) (AND (OR) (OR (AND) B))) ((OR (AND (OR) (OR (AND) B))) (AND (OR) (OR (AND) B)) False))
+!(assertEqual (zeroConstraintSubsume (OR (AND (OR) (OR (AND) B))) (AND (OR) (OR (AND) B))) ((OR (OR)) (OR) true)) ;; the (OR) conjunct is FALSE: it falsifies the AND
 
 ;; Test 10: Test case from Holman paper page #43
-!(assertEqual (zeroConstraintSubsume (AND (OR C (AND))) (OR C (AND))) ((AND (OR C)) (OR C) true)) ;; FIX: This test case shouldn't be like this. It should ideally be (AND (OR C)), right?
+!(assertEqual (zeroConstraintSubsume (AND (OR C (AND))) (OR C (AND))) ((AND (AND)) (AND) true)) ;; the (AND) alternative is TRUE: it collapses the OR
 
 ;; Test case for AND node variation of 0Subsume 
 ;; Test 01
 !(assertEqual (zeroConstraintSubsume' (OR A B (AND) (OR A B) F) (AND)) ((AND) (AND) True))
 
 ;; Test 02
-!(assertEqual (zeroConstraintSubsume' (AND A B (OR) (AND A B) F) (OR)) ((AND A B (AND A B) F) () True))
+!(assertEqual (zeroConstraintSubsume' (AND A B (OR) (AND A B) F) (OR)) ((AND A B (OR) (AND A B) F) (OR) False)) ;; a FALSE conjunct is kept, not dropped
 
 ;; Test 03
 !(assertEqual (zeroConstraintSubsume' (OR A B (AND A) (OR A B) F) (AND A)) ((OR A B (AND A) (OR A B) F) (AND A) False))

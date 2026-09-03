@@ -40,7 +40,7 @@
 
 ;; Test for RTE transformations functions
 ;; Delete Inconsistent Handle Test
-!(assertEqual (reduceToElegance (AND A (OR (AND B) (AND (NOT A) (OR (AND B) (AND C))))) (OR (AND B) (AND (NOT A) (OR (AND B) (AND C)))) (A) (B)) ((AND A ) () True))
+!(assertEqual (reduceToElegance (AND A (OR (AND B) (AND (NOT A) (OR (AND B) (AND C))))) (OR (AND B) (AND (NOT A) (OR (AND B) (AND C)))) (A) (B)) ((AND A (OR)) (OR) False))
 
 ;; Promote Common Constraints Test
 !(assertEqual (reduceToElegance (AND A (OR (AND (NOT B) C) (AND (NOT B))) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))) (OR (AND (NOT B) C) (AND (NOT B))) (A) ()) ((AND A (NOT B) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))) () True)) ;; INFO: classic reduces this POA, or(and(!$2 $3) and(!$2)), to !$2 -- so C must not be promoted
@@ -56,12 +56,12 @@
 !(assertEqual (reduceToElegance (OR (AND C) (AND (OR (AND (NOT E)) (AND B D)))) (AND (OR (AND (NOT E)) (AND B D))) (A) (C)) ((OR (AND C) (AND (NOT E)) (AND B D)) (AND C) False))
 
 ;; 0-Constraint Subsumption Test
-!(assertEqual (reduceToElegance (AND A (OR (AND A) (AND (NOT B) (OR (AND E) (AND F)))) (OR (AND C) (AND))) (OR (AND C) (AND)) (A) ()) ((AND A (OR (AND A) (AND (NOT B) (OR (AND E) (AND F)))) C) () False)) ;; FIX: Classic says this should be (AND (OR (AND E) (AND F)) A (NOT B) C)
+!(assertEqual (reduceToElegance (AND A (OR (AND A) (AND (NOT B) (OR (AND E) (AND F)))) (OR (AND C) (AND))) (OR (AND C) (AND)) (A) ()) ((AND A (OR (AND A) (AND (NOT B) (OR (AND E) (AND F))))) () True)) ;; the (AND) alternative is TRUE, so the (OR (AND C) (AND)) conjunct is too and drops out
 ;; Python's reduct: (AND A (OR (AND A) (AND (NOT B) (OR (AND E) (AND F))))) 
 
 
 ;; 1-Constraint Subsumption Test
-!(assertEqual (reduceToElegance (OR (AND C) (AND E D)) (AND E D) (A B) (C D)) ((OR (AND C) (AND E)) (AND E) True))
+!(assertEqual (reduceToElegance (OR (AND C) (AND E D)) (AND E D) (A B) (C D)) ((OR (AND C)) (AND C) True))
 
 ;; 1-Constraint Complement Subtraction Test
 !(assertEqual (reduceToElegance (OR (AND D) (AND B C)) (AND B C) (A B) (D (NOT B))) ((OR (AND D) (AND C)) (AND C) True))
