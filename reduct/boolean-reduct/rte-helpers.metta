@@ -165,3 +165,24 @@
                 ($first (car-atom $nestedTuple))
                 ($tail (cdr-atom $nestedTuple)))
               (findCommonLiterals $first $tail)))))))
+
+;; Name:                        invertLiterals
+;; Description:                 A helper function that negates all literals in a literal only expression.
+;;                              Used when finding a negated literal of the POA in the guardset of the commanding AND node.
+;; Example:                     invertLiterals (A B) -> ((NOT A) (NOT B))
+;;                              invertLiterals (A (NOT B)) -> ((NOT A) B)
+
+(= (invertLiterals $guardSet) (map-atom $guardSet $literal (invertLiteral $literal)))
+
+;; Negates a single literal.
+;; LIVE-HEAD HAZARD: a structural head check, NOT (unify $literal (NOT $x) $x (NOT $literal)).
+;; Once scoring/boolean-ops is loaded NOT is a DEFINED head, so both the unify pattern
+;; and a bare (NOT $literal) become live calls: they yield the wrong number of solutions
+;; (two for a non-match, none for a match) and silently take the whole reduction with them.
+;; quote substitutes the binding and strips once, yielding (NOT A) as plain data.
+(= (invertLiteral $literal)
+   (if (== (get-metatype $literal) Symbol)
+       (quote (NOT $literal))
+       (if (== (car-atom $literal) NOT)
+           (car-atom (cdr-atom $literal))
+           (quote (NOT $literal)))))

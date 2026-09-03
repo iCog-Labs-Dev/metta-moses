@@ -27,14 +27,5 @@
                 (subtraction-atom $poa $commonElements)
                 $el))))
 
-;; Name:                        invertLiterals
-;; Description:                 A helper function that negates all literals in a literal only expression.
-;;                              Used when finding a negated literal of the POA in the guardset of the commanding AND node.
-;; Example:                     invertLiterals (A B) -> ((NOT A) (NOT B))
-;;                              invertLiterals (A (NOT B)) -> ((NOT A) B)
-
-(= (invertLiterals $guardSet)
-    (map-atom $guardSet $literal 
-      (unify $literal (NOT $x)
-          $x
-          (NOT $literal))))
+;; invertLiterals now lives in rte-helpers.metta: reduce-to-elegance needs it too,
+;; and a reduct module must not carry an import! header.
