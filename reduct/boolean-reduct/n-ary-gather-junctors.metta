@@ -82,6 +82,16 @@
                 ($tupleWithOp (cons-atom $op $newTuple))
             )
             (
+                ;; A junctor that has nothing left in it is a DANGLING placeholder from knob
+                ;; building -- classic deletes these before ENF ever runs, and so must we, or
+                ;; the ENF pass reads them as its own (AND)=true / (OR)=false constants. It
+                ;; costs nothing here: this traversal already rebuilds every junctor from its
+                ;; children, so splicing in nothing deletes the node and cascades to a parent
+                ;; the deletion empties. The root is exempt ($prev is () there) -- a whole tree
+                ;; that reduces to a constant must keep it.
+                if (and (== $newTuple ()) (and (~= $prev ()) (or (== $op AND) (== $op OR))))
+                    ()
+                (
                 if (== $op $prev)
                     $newTuple
                     (
@@ -90,6 +100,7 @@
                             ($tupleWithOp)
                     )
 
+                )
             )
         )
         
