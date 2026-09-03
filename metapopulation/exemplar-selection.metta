@@ -52,9 +52,7 @@
 ;; rewrite for every candidate.  As in C++, a negative limit means unlimited
 ;; revisits; otherwise N permits the first visit plus N revisits.
 (= (eligibleExemplars $metaPop $visits $revisit)
-   (filter-atom
-     $metaPop
-     (mkExemplar $tree $demeId $cscore $bscore)
+   (filter-atom $metaPop (mkExemplar $tree $demeId $cscore $bscore)
      (if (< $revisit 0)
          True
          (<= (visitCount $tree $visits) $revisit))))

@@ -48,7 +48,7 @@ moses-run
                              -> finishMetapop
 ```
 
-The scoring context enters through `deme/domain-adapter.metta`. That adapter
+The scoring context enters through `deme/expand-deme.metta`. The shared module
 selects the appropriate representation constructor, optimizer scorer, merge
 conversion, cache reset, and seed accounting. `expand-deme.metta` consequently
 contains no action-specific constructors or scorer names. Once the adapter has
@@ -243,7 +243,7 @@ The regression suite checks, across the applicable problem families:
 
 - Dispatch and domain initialization: `moses/demo-problems.metta`
 - Domain-context translation for representation creation, optimizer calls,
-  merging, cache reset, and seed accounting: `deme/domain-adapter.metta`
+  merging, cache reset, and seed accounting: `deme/expand-deme.metta`
 - Shared lifecycle, counted expansion, budgeting, diagnostics, and finalization:
   `deme/expand-deme.metta`
 - Visit filtering and Boltzmann selection:

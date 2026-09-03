@@ -49,7 +49,6 @@
 !(import! &self ../../../deme/deme-id-creation)
 !(import! &self ../../../deme/create-deme)
 !(import! &self ../../../deme/score-deme)
-!(import! &self ../../../deme/domain-adapter)
 !(import! &self ../../../deme/expand-deme)
 
 !(import! &self ../hill-climbing-helpers)

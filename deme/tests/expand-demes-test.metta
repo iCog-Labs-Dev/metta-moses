@@ -81,7 +81,6 @@
 !(import! &self ../deme-id-creation)
 !(import! &self ../score-deme)
 !(import! &self ../merge-demes)
-!(import! &self ../domain-adapter)
 !(import! &self ../expand-deme)
 
  !(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))

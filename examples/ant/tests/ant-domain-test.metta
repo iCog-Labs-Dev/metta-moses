@@ -52,12 +52,12 @@
 ;; Stateless Boolean junctors use the conventional empty identities and fold
 ;; every condition against the same ant state.
 !(assertEqual
-  ((antEvalBoolAnd () (antInitialState))
-   (antEvalBoolOr () (antInitialState))
-   (antEvalBoolAnd
+  ((evalBoolAnd antEvalBool () (antInitialState))
+   (evalBoolOr antEvalBool () (antInitialState))
+   (evalBoolAnd antEvalBool
      ((mkTree (mkNode True) ()) (foodAheadTree))
      (antInitialState))
-   (antEvalBoolOr
+   (evalBoolOr antEvalBool
      ((mkTree (mkNode False) ()) (foodAheadTree))
      (antInitialState)))
   (True False True True))
@@ -112,21 +112,21 @@
 
 !(assertEqual
   (scoreAntTree (mkTree (mkNode action_success) ()) 600)
-  (mkBScore (-89 0)))
+  (mkBScore (-89)))
 
 !(assertEqual
   (scoreAntTree (mkTree (mkNode action_failure) ()) 600)
-  (mkBScore (-89 0)))
+  (mkBScore (-89)))
 
 !(assertEqual
   (scoreAntTree (moveTree) 600)
-  (mkBScore (-89 3)))
+  (mkBScore (-86)))
 
 ;; A previously measured BScore must be sufficient to construct the complete
 ;; ant Cscore.  This is the no-resimulation path used for the initial exemplar.
 !(assertEqual
   (getAntCscoreFromBScore
-    (moveTree) 0.16 (mkBScore (-89 3)))
+    (moveTree) 0.16 (mkBScore (-86)))
   (mkCscore -86 1 6.25 0.0 -92.25))
 
 ;; The evolved controller needs the configured 600-action allowance: it eats
@@ -137,11 +137,11 @@
    (scoreAntTree (evolvedPerfectAntTree) 600)
    (antTreeComplexity (evolvedPerfectAntTree))
    (getAntCscore (evolvedPerfectAntTree) 0.16 600))
-  ((mkBScore (-89 68))
-   (mkBScore (-89 89))
+  ((mkBScore (-21))
+   (mkBScore (0))
    8
    (mkCscore 0 8 50.0 0.0 -50.0)))
 
 !(assertEqual
   (scoreAntTree (mkTree (mkNode unknown_ant_action) ()) 600)
-  (mkBScore (-89 0)))
+  (mkBScore (-89)))
