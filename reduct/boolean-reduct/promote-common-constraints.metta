@@ -23,9 +23,21 @@
               ;; (() (println! (=== Inside PromoteCommonConstraints ===)))
               ;; (() (println! (Parameters ==> Parent: $parent Current: $current)))
 
+              ($currentHead (if (== (get-metatype $current) Expression) (car-atom $current) ()))
               (($literals $children) (getLiteralChildren $current))
               ($childrenLiteral (if (not (== $children ())) (map-atom $children $ch (getLiterals $ch)) ()))
-              ($common (if (not (== $childrenLiteral ())) (findCommon $childrenLiteral) ()))
+              ;; ONLY for an OR POA, where the literals really are alternatives: a BARE LITERAL
+              ;; alternative is an alternative like any other and its guard set is just itself.
+              ;; Intersecting only the sub-expression branches made the promotion unsound --
+              ;; (OR (AND A B) C D) promoted A and B, which do not appear in the C or D branches
+              ;; at all, rewriting (A^B) v C v D as A ^ B ^ (C v D).
+              ;; In an AND POA the same literals are CONJUNCTS, not alternatives, so they must
+              ;; stay out of the intersection: treating (AND F)'s guard set as an alternative
+              ;; set makes F "common to every branch" and promotes the node into an empty OR.
+              ;; quote: ($lit) is a live-head tuple ((NOT B)) once boolean-ops is loaded.
+              ($bareGuardSets (if (== $currentHead OR) (map-atom $literals $lit (quote ($lit))) ()))
+              ($allGuardSets (concatTuple $bareGuardSets $childrenLiteral))
+              ($common (if (not (== $allGuardSets ())) (findCommon $allGuardSets) ()))
             )
             (if (== $common ())
                 ($parent $current False)
@@ -34,13 +46,14 @@
                       ;; (() (println! (Removing Common Literals: $common)))
                       ($updatedChildren (removeCommonLiterals $common $children))
                       ($updatedLiterals (removeElement $common $literals))
-                      ;; A branch emptied by the promotion is true, and so is the POA.
-                      ;; Guarded on every branch being a sub-expression: findCommon reads
-                      ;; only those branches' guard sets, so with a bare literal branch
-                      ;; alongside them an empty (AND) proves nothing.
-                      ($currentHead (if (== (get-metatype $current) Expression) (car-atom $current) ()))
-                      ($isTautology (and (and (== $currentHead OR) (== $literals ()))
-                                         (any (map-atom $updatedChildren $b (== $b (AND))))))
+                      ;; A branch the promotion empties is the empty conjunction, i.e. true,
+                      ;; and true in a disjunction makes the whole POA true. Now that the
+                      ;; intersection covers every alternative this needs no bare-literal
+                      ;; guard: a bare literal consumed by the promotion is itself such an
+                      ;; emptied branch, which is what (!= $updatedLiterals $literals) detects.
+                      ($isTautology (and (== $currentHead OR)
+                                         (or (not (== $updatedLiterals $literals))
+                                             (any (map-atom $updatedChildren $b (== $b (AND)))))))
                     )
                     (if $isTautology
                         ;; true is the AND-identity: the POA leaves, the promoted literals stay
