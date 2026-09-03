@@ -62,12 +62,22 @@
         ;; contradiction that emptied an OR was dropped from its AND parent as though it were
         ;; the identity -- silently turning an unsatisfiable tree into TRUE.
         ;;
-        ;; Row 2 is deliberately NOT collapsed here. This function only ever sees
-        ;; ($parent $current), so rewriting $parent to (OR) would discard whatever $parent was
-        ;; nested inside -- and the RTE walkers do not always pass a genuine parent/child pair.
-        ;; Leaving the (OR) in place is enough: applyConstantLaws falsifies the conjunction on
-        ;; the next round, walking the whole tree so the enclosing context survives. What
-        ;; matters is only that the constant is not DESTROYED here.
+        ;; The two annihilator rows are handled DIFFERENTLY, and the asymmetry is forced --
+        ;; both symmetric alternatives were tried and measured worse:
+        ;;
+        ;;  - Row 2 must NOT be collapsed here. This function only ever sees ($parent $current),
+        ;;    so rewriting $parent to (OR) discards whatever $parent was nested inside, and the
+        ;;    RTE walkers do not always pass a genuine parent/child pair. Collapsing it turned
+        ;;    (OR !C B (AND (OR !C B) (OR B !C))) into false instead of !C v B. Leaving the (OR)
+        ;;    in place is enough: applyConstantLaws falsifies the conjunction at the end of the
+        ;;    round, walking the whole tree so the enclosing context survives.
+        ;;  - Row 1 must NOT be deferred the same way. Leaving an (AND) sitting inside an OR for
+        ;;    applyConstantLaws to collect breaks the transformations that run before it -- a
+        ;;    Nothing from removeEmptyAND leaks into the guard set. Measured over the 808-tree
+        ;;    differential: 508/508 -> 506/508 harvested and 300/300 -> 279/300 adversarial.
+        ;;
+        ;; So: propagate the TRUE here, preserve the FALSE for the end-of-round laws. What
+        ;; matters in both cases is that the constant is never DESTROYED.
         (if (and (== (car-atom $parent) OR) (== $current (AND)))
             ((findAndReplace $parent (AND) $parent) (AND) True)
             (let*
