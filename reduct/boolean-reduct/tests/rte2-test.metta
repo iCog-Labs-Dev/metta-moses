@@ -56,7 +56,7 @@
 !(assertEqual (reduceToElegance (OR (AND C) (AND (OR (AND (NOT E)) (AND B D)))) (AND (OR (AND (NOT E)) (AND B D))) (A) (C)) ((OR (AND C) (AND (NOT E)) (AND B D)) (AND C) False))
 
 ;; 0-Constraint Subsumption Test
-!(assertEqual (reduceToElegance (AND A (OR (AND A) (AND (NOT B) (OR (AND E) (AND F)))) (OR (AND C) (AND))) (OR (AND C) (AND)) (A) ()) ((AND A (OR (AND A) (AND (NOT B) (OR (AND E) (AND F))))) () True)) ;; the (AND) alternative is TRUE, so the (OR (AND C) (AND)) conjunct is too and drops out
+!(assertEqual (reduceToElegance (AND A (OR (AND A) (AND (NOT B) (OR (AND E) (AND F)))) (OR (AND C))) (OR (AND C)) (A) ()) ((AND A C (OR (AND A) (AND (NOT B) (OR (AND E) (AND F))))) () True)) ;; C is promoted out of its single-alternative OR; classic gives A ^ C
 ;; Python's reduct: (AND A (OR (AND A) (AND (NOT B) (OR (AND E) (AND F))))) 
 
 

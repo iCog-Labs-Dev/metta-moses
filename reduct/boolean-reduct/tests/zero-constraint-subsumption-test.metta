@@ -3,7 +3,7 @@
 !(import! &self ../zero-constraint-subsumption)
  
 ;; Test 01
-!(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) (AND))) (OR (AND A B) (AND))) ((AND (AND)) (AND) true)) ;; the (AND) alternative is TRUE: it collapses the OR
+!(assertEqual (zeroConstraintSubsume (AND (OR (AND A B))) (OR (AND A B))) ((AND (OR (AND A B))) (OR (AND A B)) False)) ;; nothing to collapse: no constant present
 
 ;; Test 02
 !(assertEqual (zeroConstraintSubsume (AND (OR (AND A B) (OR))) (OR (AND A B) (OR))) ((AND (OR (AND A B))) (OR (AND A B)) true))
@@ -24,13 +24,13 @@
 !(assertEqual (zeroConstraintSubsume (AND (NOT (AND A B))) (NOT (AND A B))) ((AND (NOT (AND A B))) (NOT (AND A B)) False))
 
 ;; Test 08
-!(assertEqual (zeroConstraintSubsume (AND (OR (OR (AND) A) (AND))) (OR (OR (AND) A) (AND))) ((AND (AND)) (AND) true)) ;; ditto, through the nested OR
+!(assertEqual (zeroConstraintSubsume (AND (OR A)) (OR A)) ((AND (OR A)) (OR A) False)) ;; ditto, once the nested placeholders are gone
 
 ;; Test 09
-!(assertEqual (zeroConstraintSubsume (OR (AND (OR) (OR (AND) B))) (AND (OR) (OR (AND) B))) ((OR (OR)) (OR) true)) ;; the (OR) conjunct is FALSE: it falsifies the AND
+!(assertEqual (zeroConstraintSubsume (OR (AND (OR) B)) (AND (OR) B)) ((OR (OR)) (OR) True)) ;; a FALSE conjunct falsifies its AND, and false is the OR-identity
 
 ;; Test 10: Test case from Holman paper page #43
-!(assertEqual (zeroConstraintSubsume (AND (OR C (AND))) (OR C (AND))) ((AND (AND)) (AND) true)) ;; the (AND) alternative is TRUE: it collapses the OR
+!(assertEqual (zeroConstraintSubsume (AND (OR C)) (OR C)) ((AND (OR C)) (OR C) False)) ;; ditto
 
 ;; Test case for AND node variation of 0Subsume 
 ;; Test 01
