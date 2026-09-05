@@ -153,19 +153,12 @@
 
 
 ;; ---- Apply command-line configuration ----
-;; The first pass captures --domainFile and all other CLI parameters.
 !(apply-cli-overrides)
 
 ;; ---- Load external domain ----
 ;; The domain file is imported into the same MeTTa environment, so all
-;; domain-defined actions, perceptions, fitness functions, execution
-;; semantics, and other definitions become available to generic MOSES.
+;; domain-defined actions, perceptions, fitness functions other definitions become available to generic MOSES.
 !(load-domain-file)
-
-;; ---- Re-apply command-line overrides ----
-;; A domain file may provide its own parameter defaults. Explicit CLI
-;; arguments must have the highest precedence.
-!(apply-cli-overrides)
 
 ;; ---- Run ----
 !(moses)
