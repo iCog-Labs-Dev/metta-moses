@@ -26,7 +26,7 @@
 !(import! &self parameters/registry)
 !(import! &self parameters/defaults)
 !(import! &self parameters/cli)
-
+!(import! &self parameters/domain-loader)
 ;; ---- Utilities ----
 !(import! &self utilities/list-methods)
 !(import! &self utilities/pair)
@@ -151,13 +151,14 @@
 ;; (py-call (csv_helper.X …)) resolves at call time.
 !(callPredicate (Predicate (py_add_lib_dir "scripts" first)))
 
-;; ---- Apply any --name=value flags the user passed on the command line ----
-;; This is a no-op when no flags are passed; with flags, it overwrites the
-;; matching defaults in &params before (moses) is called.
+
+;; ---- Apply command-line configuration ----
 !(apply-cli-overrides)
 
+;; ---- Load external domain ----
+;; The domain file is imported into the same MeTTa environment, so all
+;; domain-defined actions, perceptions, fitness functions other definitions become available to generic MOSES.
+!(load-domain-file)
+
 ;; ---- Run ----
-;; If no --problem was set on the CLI (and no in-script set-param),
-;; (moses) routes to no-problem-help-and-exit, which prints --help
-;; and halts. Otherwise the full pipeline runs.
 !(moses)
