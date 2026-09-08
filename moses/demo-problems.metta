@@ -208,14 +208,6 @@
        (let $sexpr (py-call (csv_helper.load_boolean_table (param inputFile) (param targetFeature)))
             (parse $sexpr))))
 
-;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
-;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;;                   smd      ;; the new arguments for feature selection algo
-;;                   (createTruthTableBScore 2 (xortable))
-;;                   hillClimbing
-;;                   100 10 20 2
-;;                   (xortable)
-;;                   10 0.004 1000))
 ;; ============================================================
 ;;  Top-level MOSES entry point.
 ;;
@@ -284,46 +276,76 @@
       )
       ()))
 
+;; problem-context: map the configured problem to the triple
+;;   (context  metaPop  bestPossibleScore)
+;; that the shared runMoses entry point requires.
+;;
+;; `context` is the domain-specific value threaded through expand-deme.metta's
+;; polymorphic dispatch (mkAntContext for action domains; the
+;; (False $fsAlgo $bscore $itable) tuple for Boolean/CSV domains).
+;; `metaPop` is the singleton ordered-set seed exemplar for this run.
+;; `bestPossibleScore` is the raw-score termination target.
+;;
+;; To add a new domain, add one clause here and three helpers to its
+;; *-domain.metta file following the ant pattern above.
+(= (problem-context)
+   (case (param problem)
+     ((ant
+        (let $ctx (ant-problem-context)
+          ($ctx (ant-initial-metapop $ctx) (ant-target-score))))
+      ($other
+        (let* (
+               ($cpxPen           (param complexityRatio))
+               ($itable           (resolve-itable))
+               ($truthTableBScore (createTruthTableBScore $cpxPen $itable))
+               (($ctor $worstB)   (worstPossibleScore $truthTableBScore))
+               ($worstScore       (List.sum $worstB))
+               ;; Termination target: (getBestPossibleScore)'s hardcoded 0 (a
+               ;; clean table classified perfectly) unless (param bestScore)
+               ;; carries an explicit NUMBER override -- the table-run half of
+               ;; the bestScore contract (the action runner treats the same
+               ;; param as a function symbol; see parameters/defaults.metta).
+               ($bsParam            (param bestScore))
+               ($bestPosssibleScore (if (== (get-type $bsParam) Number)
+                                        $bsParam
+                                        (getBestPossibleScore)))
+               ($metaPop
+                  ((mkExemplar (mkTree (mkNode true) ())
+                               (mkDemeId "1")
+                               (mkCscore $worstScore 0 $cpxPen 0 $worstScore)
+                               ($ctor $worstB))))
+              )
+          ((False (param fsAlgo) $truthTableBScore $itable)
+           $metaPop
+           $bestPosssibleScore))))))
+
+;; Single unified entry point for every domain family.
+;; Reads all hyperparameters from &params; all domain-specific logic is
+;; encapsulated in (problem-context) and the expand-deme.metta adapters.
 (= (moses-run)
    (let*
       (
-        ;; Pull every input from the registry up-front so the body
-        ;; reads like the historical runDemoProblem.
-        ($seed     (param seed))
-        ($maxGen   (param maxGen))
-        ($nDeme    (param nDeme))
-        ($fsAlgo   (param fsAlgo))
-        ($optAlgo  (param optAlgo))
-        ($problem  (param problem))
+        ($seed      (param seed))
+        ($maxGen    (param maxGen))
+        ($nDeme     (param nDeme))
+        ($optAlgo   (param optAlgo))
         ($optimizer (optimizer-for $optAlgo))
 
         ($srp (py-call (random.seed $seed)))
         ;; genCount feeds the cap-size formula inside resizeMetapop; it
         ;; is conceptually the initial $maxGen and stays constant across
-        ;; the recursion, so we seed it once here.
+;; the recursion, so we seed it once here before (problem-context)
+        ;; may invoke any scorer that depends on it.
         ($_  (set-param genCount $maxGen))
-        ($cpxPen (param complexityRatio))
-        ;; Resolve the input table once: a CSV the user passed via
-        ;; --inputFile, otherwise the demo problem named by `problem`.
-        ($itable (resolve-itable))
-        ($truthTableBScore (createTruthTableBScore $cpxPen $itable))
-        (($ctor $worstPossibleBScore) (worstPossibleScore $truthTableBScore))
-        ($worstPossibleScore (List.sum $worstPossibleBScore))
-        ;; Termination target: (getBestPossibleScore)'s hardcoded 0 (a
-        ;; clean table classified perfectly) unless (param bestScore)
-        ;; carries an explicit NUMBER override -- the table-run half of
-        ;; the bestScore contract (the action runner below treats the
-        ;; same param as a function symbol; see parameters/defaults.metta).
-        ($bsParam (param bestScore))
-        ($bestPosssibleScore (if (== (get-type $bsParam) Number)
-                                 $bsParam
-                                 (getBestPossibleScore)))
-        ($_ (println! (BestPossibleScore: $bestPosssibleScore)))
-        ($metaPop ((mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore))))
-        ($result (runMoses $maxGen $bestPosssibleScore $metaPop 0 $nDeme
-              (False $fsAlgo $truthTableBScore $itable)
-              $optimizer))
-        ;; ($_ (println! (Result: $result)))
+
+        (($context $metaPop $bestPossibleScore) (problem-context))
+        ($_ (println! (BestPossibleScore: $bestPossibleScore)))
+
+        ;; The scoring context is the only domain-specific input: selection,
+        ;; expansion, evaluation accounting, merge, termination, and
+        ;; finalization all pass through the same runMoses pipeline.
+        ($result (runMoses $maxGen $bestPossibleScore $metaPop 0 $nDeme
+                           $context $optimizer))
         ($newR (mapG cleanedExemplar $result))
         ($_ (cut)) ;; INFO: This gives few extra seconds performance gain. Do not remove.
       )
@@ -437,4 +459,3 @@
         ($_5 (set-param problem $problem))
       )
       (moses)))
-

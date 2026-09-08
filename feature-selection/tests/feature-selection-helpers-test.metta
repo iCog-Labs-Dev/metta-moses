@@ -25,11 +25,12 @@
 !(assertEqual (pairMax (1 x) (9 y)) (9 y))
 
 ;; Test
-!(test (takeN 0 (True False True)) ())
+!(assertEqual (takeN 0 (True False True)) ())
 !(assertEqual (takeN 2 (True False True)) (True False))
 !(assertEqual (takeN 5 (True False)) (True False))
 !(assertEqual (takeN 3 ()) ())
-; ;; Test
+
+;; Test
 !(assertEqual (List.uniqueValuesCount () ()) ()) ;; ?? is this really what I expect? if the list is empty
 !(assertEqual (List.uniqueValuesCount (cons True (cons False (cons True ()))) ()) ((True 2) (False 1)))
 !(assertEqual (List.uniqueValuesCount (cons False (cons False (cons True (cons True (cons True ()))))) ()) ((False 2) (True 3)))
@@ -38,18 +39,19 @@
 ;; Test
 (= (itable) 
     (cons (cons True (cons False (cons True ()))) 
-    (cons (cons False (cons True (cons False ()))) ())))
+    (cons (cons False (cons True (cons False ()))) 
+    (cons (cons False (cons False (cons True ()))) ()))))
 
 !(assertEqual (Table.getColumn 0 ()) ())
-!(assertEqual (Table.getColumn 0 (itable)) (cons True (cons False ())))
-!(assertEqual (Table.getColumn 1 (itable)) (cons False (cons True ())))
-!(assertEqual (Table.getColumn 2 (itable)) (cons True (cons False ())))
+!(assertEqual (Table.getColumn 0 (itable)) (cons True (cons False (cons True ()))))
+!(assertEqual (Table.getColumn 1 (itable)) (cons False (cons True (cons False ()))))
+!(assertEqual (Table.getColumn 2 (itable)) (cons False (cons False (cons True ()))))
 
 ;; Testcase for Table.getOutputColumn
 !(assertEqual
-    (Table.getOutputColumn (mkITable (cons (cons True (cons False (cons False ()))) 
-                                      (cons (cons False (cons True (cons False ()))) 
-                                      (cons (cons True (cons True (cons False ()))) 
+    (Table.getOutputColumn (mkITable (cons (cons True (cons False (cons True ()))) 
+                                      (cons (cons False (cons True (cons True ()))) 
+                                      (cons (cons False (cons False (cons False ()))) 
                                       ())))
                                       (cons A (cons B (cons O ())))))                              
     (cons False (cons False (cons False ()))))
@@ -57,8 +59,8 @@
 ;; Test
 !(assertEqual (Table.pop 0 ()) ())
 !(assertEqual (Table.pop 0 (itable)) 
-        (cons (cons False (cons True ())) 
-        (cons (cons True (cons False ())) ())))
+        (cons (cons False (cons True (cons False ())))
+        (cons (cons False (cons False (cons True ()))) ())))
 
 
 ;; Test lexicographic ordering of featureSets
@@ -113,22 +115,24 @@
 !(assertEqual (sortPairs pairMax ((0.7 (M)) (0.4 (N)) (0.9 (O)) (0.1 (P))) 3 ()) ((0.9 (O)) (0.7 (M)) (0.4 (N))))
 
 (= (table2) 
-            (cons (cons True (cons True (cons False (cons True (cons True ())))))
-            (cons (cons True (cons False (cons False (cons True (cons True ())))))
-            (cons (cons False (cons True (cons False (cons True (cons False ())))))
-            (cons (cons False (cons False (cons False (cons True (cons False ()))))) ())))))
+            (cons (cons True (cons True (cons False (cons False ()))))
+            (cons (cons True (cons False (cons True (cons False ()))))
+            (cons (cons False (cons False (cons False (cons False ()))))
+            (cons (cons True (cons True (cons True (cons True ()))))
+             (cons (cons True (cons True (cons False (cons False ())))) ()))))))
 
 !(assertEqual (zipColumn (1 3) (table2)) (cons (True True) (cons (False True) (cons (True True) (cons (False True) ())))))
 !(assertEqual (zipColumn (0 1 4) (table2)) (cons (True True True) (cons (True False True) (cons (False True False) (cons (False False False) ())))))
 !(assertEqual (zipColumn (2) (table2)) (cons (False) (cons (False) (cons (False) (cons (False) ()))))) 
 
-; !(assertEqual (let $r (logMath 2 8) (- $r 3))  0.0)
-; !(assertEqual (let $r (logMath 10 1000) (- $r 3))  0.0)
+!(assertEqual (let $r (logMath 2 8) (- $r 3)) 0.0)
+; !(assertEqual (let $r (logMath 10 1000) (- $r 3)) 0.0)
 
 (= (table1) 
     (mkITable
-        (cons (cons True (cons False (cons True ()))) 
-        (cons (cons False (cons True (cons False ()))) ()))
+        (cons (cons True (cons False ())) 
+        (cons (cons False (cons True  ())) 
+        (cons (cons True (cons False  ())) ())))
         (cons A (cons B (cons O ())))))
 
 !(assertEqual (filterTable (0) (table1)) 
@@ -138,13 +142,12 @@
                             (cons B (cons O ())))) 
 !(assertEqual (filterTable (1) (table1)) 
                     (mkITable 
-                            (cons (cons True (cons True ())) 
-                            (cons (cons False (cons False ())) ())) 
+                            (cons (cons True (cons False ())) 
+                            (cons (cons True (cons False ())) ())) 
                             (cons A (cons O ())))) 
 !(assertEqual (filterTable (0 1) (table1)) 
                     (mkITable 
-                            (cons (cons True ())
-                            (cons (cons False ()) ()))
+                            (cons (cons True (cons False  ())) ())
                             (cons O ())))
 
 ;; test for incremental selection Utility functions
@@ -182,19 +185,9 @@
 !(assertEqual (readjustIndices ((0.4 (1)) (0.5 (1 2))) (cons A (cons C (cons D ()))) (cons A (cons B (cons C (cons D ()))))) ((0.4 (2)) (0.5 (2 3))))
 
 
-; Test of CalculateConfidence
-!(assertEqual 
-   (let* (
-       ($conf1 (calculateConfidence 1 10 0.1))
-       ($conf2 (calculateConfidence 2 10 0.1))
-     )
-     (< $conf1 $conf2)) True)  ;; more features → higher confidence
-
-!(assertEqual
-   (let* (
-       ($conf2 (calculateConfidence 2 10 0.1))
-       ($conf3 (calculateConfidence 2 20 0.1))
-     )
-     (< $conf2 $conf3)) True)  ;; bigger dataset → higher confidence
-
+;; Test of CalculateConfidence
+!(assertEqual (< (calculateConfidence 1 10 0.1) (calculateConfidence 2 10 0.1)) True)  ;; more features → higher confidence
+!(assertEqual (< (calculateConfidence 2 10 0.1) (calculateConfidence 2 20 0.1)) True)  ;; bigger dataset → higher confidence
 !(assertEqual (calculateConfidence 1 0 0.1) 0.0)  ;; No features -> confidence 0
+
+
