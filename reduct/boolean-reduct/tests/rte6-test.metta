@@ -9,13 +9,13 @@
 !(import! &self ../reduce-to-elegance)
 
 ;; (AND (OR (NOT A) (AND A B C) (AND B C (NOT B)))) ==> (AND (OR (AND (NOT A)) (AND A B C)))
-!(assertEqual (reduceToElegance (AND (OR (AND (NOT A)) (AND A B C) (AND B C (NOT B)))) (OR (AND (NOT A)) (AND A B C) (AND B C (NOT B))) () ()) ((AND (OR (AND (NOT A)) (AND A B C))) (OR (AND (NOT A)) (AND A B C)) False))
+!(assertEqual (reduceToElegance (AND (OR (AND (NOT A)) (AND A B C) (AND B C (NOT B)))) (OR (AND (NOT A)) (AND A B C) (AND B C (NOT B))) () ()) ((AND (OR (AND (NOT A)) (AND B C))) (OR (AND (NOT A)) (AND B C)) False))
 ;; (AND (OR (NOT A) (AND A B C) (AND B C (NOT B)))) ==> (AND (OR (NOT A) (AND A B C)))
-!(assertEqual (reduceToElegance (AND (OR (NOT A) (AND A B C) (AND B C (NOT B)))) (OR (NOT A) (AND A B C) (AND B C (NOT B))) () ()) ((AND B C (OR (NOT A) (AND A) (AND (NOT B)))) (OR (NOT A) (AND A) (AND (NOT B))) True))
+!(assertEqual (reduceToElegance (AND (OR (NOT A) (AND A B C) (AND B C (NOT B)))) (OR (NOT A) (AND A B C) (AND B C (NOT B))) () ()) ((AND (OR (NOT A) (AND B C))) (OR (NOT A) (AND B C)) False))
 ;; (AND (OR (NOT A) (AND A B C) (AND C B (NOT B)))) ==> (AND (OR (NOT A ) (AND A B C)))
-!(assertEqual (reduceToElegance (AND (OR (NOT A) (AND A B C) (AND C B (NOT B)))) (OR (NOT A) (AND A B C) (AND C B (NOT B))) () ()) ((AND B C (OR (NOT A) (AND A) (AND (NOT B)))) (OR (NOT A) (AND A) (AND (NOT B))) True))
+!(assertEqual (reduceToElegance (AND (OR (NOT A) (AND A B C) (AND C B (NOT B)))) (OR (NOT A) (AND A B C) (AND C B (NOT B))) () ()) ((AND (OR (NOT A) (AND B C))) (OR (NOT A) (AND B C)) False))
 ;; (AND (OR (AND C A D) (AND C A) (AND C A E))) ==> (AND C A)
 !(assertEqual (reduceToElegance (AND (OR (AND C A D) (AND C A) (AND C A E))) (OR (AND C A D) (AND C A) (AND C A E)) () ()) ((AND C A) () true)) ;; INFO: classic reduces this POA to and($1 $3) -- the (AND C A) branch subsumes the other two
 ;; The old FIX note here read (AND (OR (AND D E) A) C), which is classic's answer for a different tree: or(and($3 $1) and($3 $4 $5))
 ;; (AND (OR (AND A B) (AND A C D) (AND A C E) (AND C A))) ==> (AND A (OR B (AND C D) (AND C E) C))
-!(assertEqual (reduceToElegance (AND (OR (AND A B) (AND A C D) (AND A C E) (AND C A))) (OR (AND A B) (AND A C D) (AND A C E) (AND C A)) () ()) ((AND A (OR (AND B) (AND C D) (AND C E) (AND C))) (OR (AND B) (AND C D) (AND C E) (AND C)) True))
+!(assertEqual (reduceToElegance (AND (OR (AND A B) (AND A C D) (AND A C E) (AND C A))) (OR (AND A B) (AND A C D) (AND A C E) (AND C A)) () ()) ((AND A (OR (AND B) (AND C))) (OR (AND B) (AND C)) True))

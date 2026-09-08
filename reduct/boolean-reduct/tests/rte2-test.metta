@@ -61,7 +61,7 @@
 
 
 ;; 1-Constraint Subsumption Test
-!(assertEqual (reduceToElegance (OR (AND C) (AND E D)) (AND E D) (A B) (C D)) ((OR (AND C) (AND E)) (AND E) True))
+!(assertEqual (reduceToElegance (OR (AND C) (AND E D)) (AND E D) (A B) (C D)) ((OR (AND C)) (AND C) True))
 
 ;; 1-Constraint Complement Subtraction Test
 !(assertEqual (reduceToElegance (OR (AND D) (AND B C)) (AND B C) (A B) (D (NOT B))) ((OR (AND D) (AND C)) (AND C) True))

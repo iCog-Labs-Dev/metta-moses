@@ -165,3 +165,45 @@
                 ($first (car-atom $nestedTuple))
                 ($tail (cdr-atom $nestedTuple)))
               (findCommonLiterals $first $tail)))))))
+
+;; Name:                        invertLiterals
+;; Description:                 A helper function that negates all literals in a literal only expression.
+;;                              Used when finding a negated literal of the POA in the guardset of the commanding AND node.
+;; Example:                     invertLiterals (A B) -> ((NOT A) (NOT B))
+;;                              invertLiterals (A (NOT B)) -> ((NOT A) B)
+
+(= (invertLiterals $guardSet) (map-atom $guardSet $literal (invertLiteral $literal)))
+
+;; Negates a single literal.
+;; LIVE-HEAD HAZARD: a structural head check, NOT (unify $literal (NOT $x) $x (NOT $literal)).
+;; Once scoring/boolean-ops is loaded NOT is a DEFINED head, so both the unify pattern
+;; and a bare (NOT $literal) become live calls: they yield the wrong number of solutions
+;; (two for a non-match, none for a match) and silently take the whole reduction with them.
+;; quote substitutes the binding and strips once, yielding (NOT A) as plain data.
+(= (invertLiteral $literal)
+   (if (== (get-metatype $literal) Symbol)
+       (quote (NOT $literal))
+       (if (== (car-atom $literal) NOT)
+           (car-atom (cdr-atom $literal))
+           (quote (NOT $literal)))))
+
+;; Name:                        dedupSiblings
+;; Description:                 Erases repeated conjuncts/disjuncts everywhere in a tree.
+;;                              Classic MOSES does this at the top of reduce() with an
+;;                              equal_subtree erase loop (logical_rules.cc:600). Duplicates are
+;;                              logically idempotent, but they inflate treeComplexity and they
+;;                              hide terminal AND nodes from filterTerminalAndNode, which
+;;                              suppresses the absorptions 1-Subsume would otherwise perform.
+;; Example:                     dedupSiblings (AND B A B (NOT C)) -> (AND B A (NOT C))
+;;                              dedupSiblings (OR (AND C C) A)    -> (OR (AND C) A)
+(= (dedupSiblings $expr)
+   (if (== (get-metatype $expr) Expression)
+       (if (== $expr ())
+           $expr
+           (let ($head $rest) (decons-atom $expr)
+             ;; (NOT x) is a literal, not a junctor -- leave its single child alone.
+             (if (== $head NOT)
+                 $expr
+                 (let $deduped (map-atom $rest $child (dedupSiblings $child))
+                      (cons-atom $head (unique-atom $deduped))))))
+       $expr))

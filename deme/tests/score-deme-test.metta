@@ -106,7 +106,7 @@
       (cons (mkInst (cons 0 (cons 0 (cons 2 ())))) (cons (mkInst (cons 0 (cons 0 (cons 1 ())))) (cons (mkInst (cons 0 (cons 2 (cons 2 ())))) ())))
       (ttable2)
       2.0)
-   (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 2 ())))) (mkCscore -2 4 2.0 0.0 -4.0))) ()))))
+   (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 2 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) ()))))
 
 
 !(assertEqual

@@ -45,7 +45,13 @@
                       ;; TODO: Replace the setDifference function with non deterministic functions
                       ($updatedGuardSet (setDifference $guardSet $dominantSet)) ;; Apply Redundant to current
                       ;; TODO: Replace this 1CCS application with the correct logic in it's own function.
-                      ($updatedGuardSet' (setDifference $updatedGuardSet $commandSet)) ;; Apply 1-Constraint-Complement-Subtraction
+                      ;; 1-Constraint-Complement-Subtraction erases the literals whose NEGATION is
+                      ;; commanded (X is dropped when a commanding terminal AND asserts (NOT X)).
+                      ;; Subtracting the raw command set instead erases the literals that are
+                      ;; commanded directly, which is 1-Subsume's job -- and leaves the guard set
+                      ;; disjoint from the command set, so oneConstraintSubsume below could never
+                      ;; fire. Classic MOSES negates here too (logical_rules.cc:642).
+                      ($updatedGuardSet' (setDifference $updatedGuardSet (invertLiterals $commandSet))) ;; Apply 1-Constraint-Complement-Subtraction
                       ($appliedRedundantOr1CC (or (not (== $updatedGuardSet $guardSet)) (not (== $updatedGuardSet' $updatedGuardSet)))) ;; Storing this state to return boolean indicating RTE is applied or not.
 
                       
@@ -223,7 +229,14 @@
         ($rest (if (not (== $remainingChildren ())) (cdr-atom $remainingChildren) ()))
 
 
-        (($updatedCurrent $updatedChild $appliedRTE) (reduceToElegance $prevCurrent $firstChild $dominantSet $commandSet))
+        ;; Every OTHER single-constraint alternative of this OR commands $firstChild, so it
+        ;; joins the command set for this child only. Bare literal alternatives live in the OR's
+        ;; literals, terminal AND alternatives in its children; localCommandSet drops $firstChild
+        ;; from both. Classic MOSES builds the same per-child set in reduce_or
+        ;; (logical_rules.cc:806).
+        ($localCommandSet (localCommandSet $firstChild (getChildrenExp $prevCurrent) (getLiterals $prevCurrent) $commandSet))
+
+        (($updatedCurrent $updatedChild $appliedRTE) (reduceToElegance $prevCurrent $firstChild $dominantSet $localCommandSet))
         ($updatedParent (findAndReplace $prevCurrent $updatedCurrent $parent))
 
         ($updatedChildren (getChildrenExp $updatedCurrent))
@@ -305,7 +318,12 @@
              ;; ($_ (println! (Parameters ==> CommandSet: $commandSet DominantSet: $dominantSet Parent: $parent PrevCurrent: $prevCurrent Bool: $bool CurrentChild: $currentChild RemainingChildren: $remainingChildren)))
              ;; ($_ (println! ""))
 
-              ($localCommandSet (localCommandSet $currentChild (getChildrenExp $prevCurrent) (getGuardSet $prevCurrent) $commandSet)) ;; Compute local command set
+              ;; An AND node's own guard set DOMINATES its children, it does not command them,
+              ;; so it must not enter the command set: it is already in $dominantSet, and with the
+              ;; subtraction above now negated, feeding dominant literals through it would erase a
+              ;; contradiction instead of letting deleteInconsistentHandle delete the branch.
+              ;; Classic MOSES passes the command set down unchanged here (logical_rules.cc:715).
+              ($localCommandSet (localCommandSet $currentChild (getChildrenExp $prevCurrent) () $commandSet)) ;; Compute local command set
               ($nextChild (if (not (== $remainingChildren ())) (car-atom $remainingChildren) ()))
               ($restChildren (if (not (== $nextChild ())) (cdr-atom $remainingChildren) ()))
 
@@ -448,7 +466,12 @@
             ($propNotExpr (propagateNot $current))
             ($gatherJunctorExpr (gatherJunctors $propNotExpr))
             ($initAdd (addAND $gatherJunctorExpr))
-            ($finalAdd (addAND $initAdd True))
+            ($wrappedAdd (addAND $initAdd True))
+            ;; dedupSiblings mirrors classic's equal_subtree erase loop at the top of reduce().
+            ;; It has to follow addAND, because addAND's wrapping is what creates most
+            ;; duplicates: (OR (AND B) B ...) normalises to (OR (AND B) (AND B) ...), and that
+            ;; duplicate alternative desynchronises the OR walker.
+            ($finalAdd (dedupSiblings $wrappedAdd))
             ($finalParent (findAndReplace $current $finalAdd $parent))
 
            ;; ($_ (println! (==== ApplyReduce Log ====)))
