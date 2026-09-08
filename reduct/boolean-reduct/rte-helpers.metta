@@ -207,39 +207,3 @@
                  (let $deduped (map-atom $rest $child (dedupSiblings $child))
                       (cons-atom $head (unique-atom $deduped))))))
        $expr))
-
-;; Name:                        applyConstantLaws
-;; Description:                 The identity/annihilator laws for the two constants the ENF
-;;                              pass creates. (AND) is TRUE and (OR) is FALSE -- unambiguous
-;;                              here because reduce-to's pre-pass already deleted the dangling
-;;                              placeholders that share those shapes. Applied bottom-up:
-;;
-;;                                (AND ... (OR)  ...)  ->  (OR)    false annihilates a conjunction
-;;                                (OR  ... (AND) ...)  ->  (AND)   true  annihilates a disjunction
-;;                                (AND ... (AND) ...)  ->  drop it  true  is the identity of AND
-;;                                (OR  ... (OR)  ...)  ->  drop it  false is the identity of OR
-;;
-;;                              This is classic's Delete/Disconnect propagation
-;;                              (logical_rules.cc:715 and :817) stated once as a law, rather
-;;                              than as special cases scattered over the transformations --
-;;                              where three of the four rows were missing and a dropped
-;;                              constant was lost for good.
-;; Example:                     applyConstantLaws (AND X (OR))        -> (OR)
-;;                              applyConstantLaws (OR X (AND))        -> (AND)
-;;                              applyConstantLaws (AND X (AND) Y)     -> (AND X Y)
-;;                              applyConstantLaws (OR X (OR) Y)       -> (OR X Y)
-(= (applyConstantLaws $expr)
-   (if (== (get-metatype $expr) Expression)
-       (if (== $expr ())
-           $expr
-           (let ($head $rest) (decons-atom $expr)
-             ;; (NOT x) is a literal; a bare (AND)/(OR) is already a constant.
-             (if (or (== $head NOT) (== $rest ()))
-                 $expr
-                 (let* (($kids (map-atom $rest $child (applyConstantLaws $child)))
-                        ($identity    (if (== $head AND) (AND) (OR)))
-                        ($annihilator (if (== $head AND) (OR) (AND))))
-                   (if (== (filter-atom $kids $k (== $k $annihilator)) ())
-                       (cons-atom $head (filter-atom $kids $k (not (== $k $identity))))
-                       $annihilator)))))
-       $expr))

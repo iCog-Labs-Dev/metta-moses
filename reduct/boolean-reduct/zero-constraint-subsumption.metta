@@ -18,15 +18,26 @@
       ((Expression (NOT $x)) ($parent $current False))
       ((Symbol $current) ($parent $current False))
       ((Expression $current)
-        ;; 0-Subsumption is exactly the constant laws: an alternative that reduced to the
-        ;; empty AND is TRUE and collapses its whole disjunction, and an empty OR is FALSE
-        ;; and collapses its whole conjunction. The previous version FILTERED every empty
-        ;; junctor out of an OR's children, which threw a TRUE alternative away instead of
-        ;; propagating it -- and once dropped it could never be recovered.
-        (let $updatedCurrent (applyConstantLaws $current)
-          (if (== $updatedCurrent $current)
-              ($parent $current False)
-              ((findAndReplace $current $updatedCurrent $parent) $updatedCurrent True))))
+        (let*
+          (
+            (($head $children) (decons-atom $current))
+            ($updatedChildren (filter-atom $children $child (nodeHasChildOrGuard $child)))
+            ($updatedCurrent (cons-atom $head $updatedChildren))
+          )
+          ;; quote: a bare ($head ...) tuple would be a runtime meta-call into
+          ;; scoring/boolean-ops' eval clauses. CAVEAT: `case` normalizes its
+          ;; scrutinee past the quote (see cut-unnecessary-and.metta); behavior
+          ;; with the clauses registered is validated end-to-end, not by this
+          ;; guard alone.
+          (case (quote ($head $children))
+            (
+              ((AND $_) ($parent $current False))
+              ((OR ()) ($parent $current False))
+              ((OR $children) ((findAndReplace $current $updatedCurrent $parent) $updatedCurrent (!= $children $updatedChildren)))
+            )
+          )
+        )
+      )
     )
   )
 )
@@ -46,53 +57,25 @@
       ((Expression (NOT $x)) ($parent $current False))
       ((Symbol $current) ($parent $current False))
       ((Expression $current)
-        ;; An empty junctor reaching here is a CONSTANT the reducer created: reduce-to's
-        ;; pre-pass has already deleted the dangling placeholders that share those shapes.
-        ;; (AND) is TRUE and (OR) is FALSE, so each is either the identity or the annihilator
-        ;; of the junctor it sits in:
-        ;;
-        ;;   parent  child   role in the parent    handled
-        ;;   OR      (AND)   annihilator (true)    here -- collapse the OR to (AND)
-        ;;   AND     (OR)    annihilator (false)   left in place, see below
-        ;;   AND     (AND)   identity    (true)    here -- drop the child
-        ;;   OR      (OR)    identity    (false)   here -- drop the child
-        ;;
-        ;; This is classic's Delete/Disconnect propagation (logical_rules.cc:715 and :817),
-        ;; with Delete == (OR) and Disconnect == (AND). Only row 1 existed before, so a
-        ;; contradiction that emptied an OR was dropped from its AND parent as though it were
-        ;; the identity -- silently turning an unsatisfiable tree into TRUE.
-        ;;
-        ;; The two annihilator rows are handled DIFFERENTLY, and the asymmetry is forced --
-        ;; both symmetric alternatives were tried and measured worse:
-        ;;
-        ;;  - Row 2 must NOT be collapsed here. This function only ever sees ($parent $current),
-        ;;    so rewriting $parent to (OR) discards whatever $parent was nested inside, and the
-        ;;    RTE walkers do not always pass a genuine parent/child pair. Collapsing it turned
-        ;;    (OR !C B (AND (OR !C B) (OR B !C))) into false instead of !C v B. Leaving the (OR)
-        ;;    in place is enough: applyConstantLaws falsifies the conjunction at the end of the
-        ;;    round, walking the whole tree so the enclosing context survives.
-        ;;  - Row 1 must NOT be deferred the same way. Leaving an (AND) sitting inside an OR for
-        ;;    applyConstantLaws to collect breaks the transformations that run before it -- a
-        ;;    Nothing from removeEmptyAND leaks into the guard set. Measured over the 808-tree
-        ;;    differential: 508/508 -> 506/508 harvested and 300/300 -> 279/300 adversarial.
-        ;;
-        ;; So: propagate the TRUE here, preserve the FALSE for the end-of-round laws. What
-        ;; matters in both cases is that the constant is never DESTROYED.
         (if (and (== (car-atom $parent) OR) (== $current (AND)))
-            ((findAndReplace $parent (AND) $parent) (AND) True)
+            ((findAndReplace $parent (AND) $parent) (AND) True) ;; Removes the entire OR if it has an empty AND as child
             (let*
               (
+                ;  (() (println! (===Inside ZeroConstraintSubsume'===)))
+                ;  (() (println! (Current: $current : Parent: $parent)))
                 ($children (getChildrenExp $current))
                 ($literals (getLiterals $current))
               )
-              ;; POA is an AND or OR with no children and no guard set
+              ;; POA is AND & OR and has no children and guardSet
               (if (and (not (== $current $parent)) (not (== $parent AND)))
-                  (if (and (== $literals ()) (== $children ()))
-                      (if (and (== (car-atom $parent) AND) (== $current (OR)))
-                          ($parent $current False)                        ;; row 2: keep the FALSE
-                          ((removeElement ($current) $parent) () True))   ;; rows 3 and 4: identity
-                      ($parent $current False))
-                  ($parent $current False))))
+                (if (and (== $literals ()) (== $children ()))
+                    ((removeElement ($current) $parent) () True)
+                    ($parent $current False)
+                )
+                ($parent $current False)
+              )
+            )
+        )
       )
     )
   )

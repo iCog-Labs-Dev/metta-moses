@@ -40,7 +40,7 @@
 ;; (AND (OR A (AND B C D C))) ==> (AND (OR A (AND B C D C)))
 !(assertEqual (reduceToElegance (AND (OR A (AND B C D C))) (OR A (AND B C D C)) () ()) ((AND (OR A (AND B C D C))) (OR A (AND B C D C)) False))
 ;; (AND (OR (NOT C) (NOT D) (AND (NOT A) B))) ==> (AND (OR (NOT C) (NOT D) (AND (NOT A) B)))
-!(assertEqual (reduceToElegance (AND (OR (NOT C) (NOT D) (AND (NOT A) B))) (OR (NOT C) (NOT D) (AND (NOT A) B)) () ()) ((AND (OR (NOT C) (NOT D) (AND (NOT A) B))) (OR (NOT C) (NOT D) (AND (NOT A) B)) false))
+!(assertEqual (reduceToElegance (AND (OR (NOT C) (NOT D) (AND (NOT A) B))) (OR (NOT C) (NOT D) (AND (NOT A) B)) () ()) ((AND (OR (NOT C) (NOT D) (AND (NOT A) B))) (OR (NOT C) (NOT D) (AND (NOT A) B)) False))
 ;; (AND (OR A B C D (NOT C))) ==> (AND (OR A B C D (NOT C)))
 !(assertEqual (reduceToElegance (AND (OR A B C D (NOT C))) (OR A B C D (NOT C)) () ()) ((AND (OR A B C D (NOT C))) (OR A B C D (NOT C)) False))
 ;; (AND (OR (AND A B) (AND A C) (AND A D))) ==> (AND A (OR B C D))

@@ -61,7 +61,7 @@
 
 !(assertEqual (applyOrTransformations (() () ((AND N O P (OR R X (NOT C)) V (OR Q S (AND T U)) W (OR Y)) (OR Y) False))) (() () ((AND N O P V W Y (OR R X (NOT C)) (OR Q S (AND T U))) () True)))
 
-!(assertEqual (applyOrTransformations (() () ((AND A B (OR C D) (OR E F (AND G H) (AND I J (OR K L)))) (OR E F (AND G H) (AND I J (OR K L))) False))) (() () ((AND A B (OR C D) (OR E F (AND G H) (AND I J (OR K L)))) (OR E F (AND G H) (AND I J (OR K L))) False)))
+!(assertEqual (applyOrTransformations (() () ((AND A B (OR C D) (OR E F (AND G H) (AND I J (OR K L)) (AND))) (OR E F (AND G H) (AND I J (OR K L)) (AND)) False))) (() () ((AND A B (OR C D) (OR E F (AND G H) (AND I J (OR K L)))) (OR E F (AND G H) (AND I J (OR K L))) True))) ;; FIXED
 
 !(assertEqual (applyOrTransformations (() () ((AND A B (OR C D) (OR E F (AND G H) (AND I J (OR K L)) (OR))) (OR E F (AND G H) (AND I J (OR K L)) (OR)) False))) (() () ((AND A B (OR C D) (OR E F (AND G H) (AND I J (OR K L)))) (OR E F (AND G H) (AND I J (OR K L))) True))) ;; FIXED
 

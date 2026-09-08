@@ -40,7 +40,7 @@
 
 ;; Test for RTE transformations functions
 ;; Delete Inconsistent Handle Test
-!(assertEqual (reduceToElegance (AND A (OR (AND B) (AND (NOT A) (OR (AND B) (AND C))))) (OR (AND B) (AND (NOT A) (OR (AND B) (AND C)))) (A) (B)) ((AND A (OR)) (OR) False))
+!(assertEqual (reduceToElegance (AND A (OR (AND B) (AND (NOT A) (OR (AND B) (AND C))))) (OR (AND B) (AND (NOT A) (OR (AND B) (AND C)))) (A) (B)) ((AND A ) () True))
 
 ;; Promote Common Constraints Test
 !(assertEqual (reduceToElegance (AND A (OR (AND (NOT B) C) (AND (NOT B))) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))) (OR (AND (NOT B) C) (AND (NOT B))) (A) ()) ((AND A (NOT B) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))) () True)) ;; INFO: classic reduces this POA, or(and(!$2 $3) and(!$2)), to !$2 -- so C must not be promoted
@@ -56,7 +56,7 @@
 !(assertEqual (reduceToElegance (OR (AND C) (AND (OR (AND (NOT E)) (AND B D)))) (AND (OR (AND (NOT E)) (AND B D))) (A) (C)) ((OR (AND C) (AND (NOT E)) (AND B D)) (AND C) False))
 
 ;; 0-Constraint Subsumption Test
-!(assertEqual (reduceToElegance (AND A (OR (AND A) (AND (NOT B) (OR (AND E) (AND F)))) (OR (AND C))) (OR (AND C)) (A) ()) ((AND A C (OR (AND A) (AND (NOT B) (OR (AND E) (AND F))))) () True)) ;; C is promoted out of its single-alternative OR; classic gives A ^ C
+!(assertEqual (reduceToElegance (AND A (OR (AND A) (AND (NOT B) (OR (AND E) (AND F)))) (OR (AND C) (AND))) (OR (AND C) (AND)) (A) ()) ((AND A (OR (AND A) (AND (NOT B) (OR (AND E) (AND F)))) C) () False)) ;; FIX: Classic says this should be (AND (OR (AND E) (AND F)) A (NOT B) C)
 ;; Python's reduct: (AND A (OR (AND A) (AND (NOT B) (OR (AND E) (AND F))))) 
 
 

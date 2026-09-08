@@ -481,13 +481,7 @@
            ;; ($_ (println! (FinalAdd Result: $finalAdd)))
            ;; ($_ (println! (FinalParent: $finalParent)))
         )
-         ;; Propagate the (AND)=true / (OR)=false constants this round created, at the end of
-         ;; the round that created them. Doing it here rather than at the start of the next one
-         ;; is what keeps the two readings of an empty junctor apart WITHOUT a separate pass:
-         ;; every constant is consumed before the tree goes round again, so gatherJunctors'
-         ;; dangling-junctor deletion only ever sees genuine placeholders from the input.
-         (let ($rteParent $rteCurrent $rteApplied) (reduceToElegance $finalParent $finalAdd () ())
-              ((applyConstantLaws $rteParent) (applyConstantLaws $rteCurrent) $rteApplied))
+         (reduceToElegance $finalParent $finalAdd () ())
          )))
 
 (= (removeAndNodesFromGuards $expr)
