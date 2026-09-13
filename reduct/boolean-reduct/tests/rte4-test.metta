@@ -10,7 +10,7 @@
 
 
 ;; (AND A B C D (NOT B)) ==> (OR)
-!(assertEqual (reduceToElegance (AND (AND A B C D (NOT B))) (AND A B C D (NOT B)) () ()) ((OR) (AND) False))
+!(assertEqual (reduceToElegance (AND (AND A B C D (NOT B))) (AND A B C D (NOT B)) () ()) (FALSE (AND) False))
 ;; (AND B (NOT C) (NOT A) (OR B (NOT A))) ==> (AND B (NOT C) (NOT A))
 !(assertEqual (reduceToElegance (AND (AND B (NOT C) (NOT A) (OR B (NOT A)))) (AND B (NOT C) (NOT A) (OR B (NOT A))) () ()) ((AND (AND B (NOT C) (NOT A) (OR B (NOT A)))) (AND B (NOT C) (NOT A) (OR B (NOT A))) False))
 ;; (AND B (NOT C) (NOT A) (OR B (AND (NOT K) (NOT X)))) ==> (AND B (NOT C) (NOT A))
@@ -20,7 +20,7 @@
 ;; (AND B (NOT C) (NOT A) (OR (NOT B) (NOT C) (NOT D) (NOT A))) ==> (AND B (NOT C) (NOT A))
 !(assertEqual (reduceToElegance (AND (AND B (NOT C) (NOT A) (OR (NOT B) (NOT C) (NOT D) (NOT A)))) (AND B (NOT C) (NOT A) (OR (NOT B) (NOT C) (NOT D) (NOT A))) () ()) ((AND (AND B (NOT C) (NOT A) (OR (NOT B) (NOT C) (NOT D) (NOT A)))) (AND B (NOT C) (NOT A) (OR (NOT B) (NOT C) (NOT D) (NOT A))) False))
 ;; (AND A B C B A A (NOT A) (OR A B C A)) ==> (OR)
-!(assertEqual (reduceToElegance (AND (AND A B C B A A (NOT A) (OR A B C A))) (AND A B C B A A (NOT A) (OR A B C A)) () ()) ((OR) (AND) False))
+!(assertEqual (reduceToElegance (AND (AND A B C B A A (NOT A) (OR A B C A))) (AND A B C B A A (NOT A) (OR A B C A)) () ()) (FALSE (AND) False))
 ;; (AND (OR A B)) ==> (AND (OR A B))
 !(assertEqual (reduceToElegance (AND (OR A B)) (OR A B) () ()) ((AND (OR A B)) (OR A B) False))
 ;; (AND (OR A A)) ==> (AND A)

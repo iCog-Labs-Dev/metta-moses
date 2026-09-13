@@ -8,9 +8,9 @@
 !(assertEqual (deleteInconsistentHandle (AND) () ()) ((AND) () False))
 !(assertEqual (deleteInconsistentHandle (AND (A)) (A) (B C)) ((AND (A)) (A) False))
 !(assertEqual (deleteInconsistentHandle (AND (A)) (A) (B C)) ((AND (A)) (A) False))
-;; false under an AND parent annihilates it, so the parent becomes the empty OR
-!(assertEqual (deleteInconsistentHandle (AND (A)) (A) ((NOT A) B C)) ((OR) () True))
-!(assertEqual (deleteInconsistentHandle (AND (A)) (A) (B C (NOT A))) ((OR) () True))
+;; false under an AND parent annihilates it, so the parent becomes FALSE
+!(assertEqual (deleteInconsistentHandle (AND (A)) (A) ((NOT A) B C)) (FALSE () True))
+!(assertEqual (deleteInconsistentHandle (AND (A)) (A) (B C (NOT A))) (FALSE () True))
 !(assertEqual (deleteInconsistentHandle (AND A) A (B C)) ((AND A) A False))
 
 ;; Test 02 - for OR and NOT expressions
@@ -22,25 +22,25 @@
 ;; Test 03 - for different AND expressions
 !(assertEqual (deleteInconsistentHandle (OR (AND)) (AND) ()) ((OR (AND)) (AND) False))
 !(assertEqual (deleteInconsistentHandle (OR (AND (OR A B) (AND A B) A B)) (AND (OR A B) (AND A B) A B) ()) ((OR (AND (OR A B) (AND A B) A B)) (AND (OR A B) (AND A B) A B) False))
-!(assertEqual (deleteInconsistentHandle (OR (AND (OR A B) (AND A B) A B)) (AND (OR A B) (AND A B) A B) ((NOT B) A C)) ((OR) () True)) ;; replaces the entire child of the OR to (AND) 
-!(assertEqual (deleteInconsistentHandle (OR (AND (NOT A) (NOT B) A)) (AND (NOT A) (NOT B) A) ()) ((OR) () True)) ;; same with the above
+!(assertEqual (deleteInconsistentHandle (OR (AND (OR A B) (AND A B) A B)) (AND (OR A B) (AND A B) A B) ((NOT B) A C)) (FALSE () True)) ;; the whole POA is the constant FALSE 
+!(assertEqual (deleteInconsistentHandle (OR (AND (NOT A) (NOT B) A)) (AND (NOT A) (NOT B) A) ()) (FALSE () True)) ;; same with the above
 !(assertEqual (deleteInconsistentHandle (OR A B (AND E A) (AND (NOT A) (NOT B) C)) (AND (NOT A) (NOT B) C) ()) ((OR A B (AND E A) (AND (NOT A) (NOT B) C)) (AND (NOT A) (NOT B) C) False))
 !(assertEqual (deleteInconsistentHandle (OR A B (AND E A) (AND (NOT A) (NOT B) C)) (AND (NOT A) (NOT B) C) (F B G)) ((OR A B (AND E A)) () True)) ;;
 !(assertEqual (deleteInconsistentHandle (OR A B (AND A (AND A B) (OR A B) (NOT B))) (AND A (AND A B) (OR A B) (NOT B)) ()) ((OR A B (AND A (AND A B) (OR A B) (NOT B))) (AND A (AND A B) (OR A B) (NOT B)) False))
 !(assertEqual (deleteInconsistentHandle (OR A B (AND A (AND A B) (OR A B) (NOT B))) (AND A (AND A B) (OR A B) (NOT B)) (B C E)) ((OR A B) () True))
-!(assertEqual (deleteInconsistentHandle (OR (AND A (AND A B) (NOT E) (OR A B) (NOT B))) (AND A (AND A B) (NOT E) (OR A B) (NOT B)) (C E)) ((OR) () True))
+!(assertEqual (deleteInconsistentHandle (OR (AND A (AND A B) (NOT E) (OR A B) (NOT B))) (AND A (AND A B) (NOT E) (OR A B) (NOT B)) (C E)) (FALSE () True))
 !(assertEqual (deleteInconsistentHandle (OR (AND (AND A B) A)) (AND (AND A B) A) ()) ((OR (AND (AND A B) A)) (AND (AND A B) A) False))
 !(assertEqual (deleteInconsistentHandle (OR (AND (AND A B) A)) (AND (AND A B) A) ((NOT B))) ((OR (AND (AND A B) A)) (AND (AND A B) A) False))
-!(assertEqual (deleteInconsistentHandle (OR (AND A B (NOT B))) (AND A B (NOT B)) ()) ((OR) () True))
-!(assertEqual (deleteInconsistentHandle (OR (AND A (NOT B))) (AND A (NOT B)) (B)) ((OR) () True))
+!(assertEqual (deleteInconsistentHandle (OR (AND A B (NOT B))) (AND A B (NOT B)) ()) (FALSE () True))
+!(assertEqual (deleteInconsistentHandle (OR (AND A (NOT B))) (AND A (NOT B)) (B)) (FALSE () True))
 !(assertEqual (deleteInconsistentHandle (OR (AND A (NOT B))) (AND A (NOT B)) (A)) ((OR (AND A (NOT B))) (AND A (NOT B)) False))
 !(assertEqual (deleteInconsistentHandle (OR (AND A (NOT B))) (AND A (NOT B)) (D F G)) ((OR (AND A (NOT B))) (AND A (NOT B)) False))
-!(assertEqual (deleteInconsistentHandle (OR (AND A (NOT A) (NOT B))) (AND A (NOT A) (NOT B)) ()) ((OR) () True))
-!(assertEqual (deleteInconsistentHandle (OR (AND (NOT A) (NOT B))) (AND (NOT A) (NOT B)) (C F A G)) ((OR) () True))
-!(assertEqual (deleteInconsistentHandle (OR (AND (NOT A) (NOT B))) (AND (NOT A) (NOT B)) (C B F G)) ((OR) () True))
-!(assertEqual (deleteInconsistentHandle (OR (AND (NOT A) (NOT B))) (AND (NOT A) (NOT B)) (C B A G)) ((OR) () True))
-!(assertEqual (deleteInconsistentHandle (OR (AND (NOT A) (NOT B) C G)) (AND (NOT A) (NOT B) C G) (C B A G)) ((OR) () True))
+!(assertEqual (deleteInconsistentHandle (OR (AND A (NOT A) (NOT B))) (AND A (NOT A) (NOT B)) ()) (FALSE () True))
+!(assertEqual (deleteInconsistentHandle (OR (AND (NOT A) (NOT B))) (AND (NOT A) (NOT B)) (C F A G)) (FALSE () True))
+!(assertEqual (deleteInconsistentHandle (OR (AND (NOT A) (NOT B))) (AND (NOT A) (NOT B)) (C B F G)) (FALSE () True))
+!(assertEqual (deleteInconsistentHandle (OR (AND (NOT A) (NOT B))) (AND (NOT A) (NOT B)) (C B A G)) (FALSE () True))
+!(assertEqual (deleteInconsistentHandle (OR (AND (NOT A) (NOT B) C G)) (AND (NOT A) (NOT B) C G) (C B A G)) (FALSE () True))
 
 
-!(assertEqual (applyDeleteIncons (OR (AND A B (NOT A) B)) (AND A B (NOT A) B) (A)) ((OR) () True))
-!(assertEqual (applyDeleteIncons (AND (OR (AND A B (NOT A) B))) (OR (AND A B (NOT A) B)) (A)) ((AND (OR)) (OR) True))
+!(assertEqual (applyDeleteIncons (OR (AND A B (NOT A) B)) (AND A B (NOT A) B) (A)) (FALSE () True))
+!(assertEqual (applyDeleteIncons (AND (OR (AND A B (NOT A) B))) (OR (AND A B (NOT A) B)) (A)) ((AND FALSE) FALSE True))
