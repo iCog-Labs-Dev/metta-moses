@@ -109,6 +109,21 @@
 ;; It handles the replacement of a single atom.
 (= (replace $old $new $current) (if (== $old $current) $new $current))
 
+;; Name:                        isConstant
+;; Description:                 TRUE and FALSE are the reducer's own boolean constants.
+;;                              A rule that detects a contradiction emits FALSE and one that
+;;                              detects a tautology emits TRUE, at the point of detection --
+;;                              rather than signalling it by emptying a junctor, which is
+;;                              indistinguishable from the dangling (AND)/(OR) placeholders
+;;                              that arrive from knob building.
+;;                              They must be SYMBOLS, not the grounded Bools true/false:
+;;                              (get-metatype true) is Grounded, and a grounded leaf is
+;;                              filtered straight back out of a tree by getLiterals.
+;;                              They are classified as CHILDREN, never as literals, so they
+;;                              never reach a guard set, a dominant set or a command set, and
+;;                              invertLiterals never negates one.
+(= (isConstant $exp) (or (== $exp TRUE) (== $exp FALSE)))
+
 ;; A function to replace a specific atom
 ;;    with a new one from a list of atoms.
 ;; INFO: This function needs to change so that it can preserve the

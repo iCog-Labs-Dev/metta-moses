@@ -19,6 +19,8 @@
 :- retractall('getLiterals'(_, _)).
 
 'getLiterals'([], []) :- !.
+'getLiterals'('TRUE', []) :- !.     %% a constant is a CHILD, never a literal
+'getLiterals'('FALSE', []) :- !.
 'getLiterals'(['NOT'|X], ['NOT'|X]) :- !.
 'getLiterals'(Exp, Lits) :-
     is_list(Exp), !,
@@ -29,7 +31,7 @@ collect_lits([], []).
 collect_lits([H|T], Lits) :-
     collect_lits(T, RLits),
     ( atom(H)
-      -> ( (H == 'AND' ; H == 'OR') -> Lits = RLits
+      -> ( (H == 'AND' ; H == 'OR' ; H == 'TRUE' ; H == 'FALSE') -> Lits = RLits
                                      ; Lits = [H|RLits] )
        ; is_list(H), H = ['NOT'|_]
          -> Lits = [H|RLits]
@@ -51,7 +53,10 @@ collect_lits([H|T], Lits) :-
 collect_kids([], []).
 collect_kids([H|T], Kids) :-
     collect_kids(T, RKids),
-    ( atom(H) -> Kids = RKids
+    %% TRUE/FALSE are the reducer's constants and are classified as CHILDREN, so
+    %% they ride through concatTuple untouched instead of entering a guard set.
+    ( atom(H) -> ( (H == 'TRUE' ; H == 'FALSE') -> Kids = [H|RKids]
+                                                 ; Kids = RKids )
        ; is_list(H), H = ['NOT'|_]
          -> Kids = RKids
           ; Kids = [H|RKids]
@@ -154,6 +159,8 @@ is_neg_pair(['NOT', Y], X) :- Y == X, !.
 :- retractall('getGuardSet'(_, _)).
 
 'getGuardSet'([], []) :- !.
+'getGuardSet'('TRUE', []) :- !.
+'getGuardSet'('FALSE', []) :- !.
 'getGuardSet'(['OR'|_], []) :- !.
 'getGuardSet'(Exp, Lits) :-
     is_list(Exp), !,

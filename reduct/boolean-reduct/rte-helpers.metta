@@ -3,14 +3,14 @@
 ;; 'AND' and 'OR' are not considered as a literal.
 (= (filterLiterals $exp)
         (if (== (get-metatype $exp) Symbol)
-            (if (or (== $exp AND) (== $exp OR)) (empty) $exp)
+            (if (or (or (== $exp AND) (== $exp OR)) (isConstant $exp)) (empty) $exp)
             (if (== (car-atom $exp) NOT)
                 $exp
                 (empty))))
 
 (= (isLiterals $exp)
    (if (== (get-metatype $exp) Symbol)
-       (not (or (== $exp AND) (== $exp OR)))
+       (not (or (or (== $exp AND) (== $exp OR)) (isConstant $exp)))
        (== (car-atom $exp) NOT)))
 
 ;; A function that takes an expression and returns it's guard sets
@@ -21,13 +21,15 @@
 ;; deep-normalizes the returned guard set, firing scoring/boolean-ops'
 ;; AND/OR/NOT clauses on the (NOT x) literals inside it.
 (= (getGuardSet $exp)
+   (if (isConstant $exp)
+       ()
    (if (== (get-metatype $exp) Expression)
        (if (== $exp ())
            $exp
            (if (== (car-atom $exp) OR)
                ()
                (getLiterals $exp)))
-       $exp)
+       $exp))
 )
 
 
@@ -66,14 +68,14 @@
 ;; An expression (NOT A) is considered as a symbol in the case of boolean expression.
 (= (filterChildren $exp)
         (if (== (get-metatype $exp) Symbol)
-            (empty)
+            (if (isConstant $exp) $exp (empty))
             (if (== (car-atom $exp) NOT)
                 (empty)
                 $exp)))
 
 (= (isChildren $exp)
         (if (== (get-metatype $exp) Symbol)
-            False
+            (isConstant $exp)
             (not (== (car-atom $exp) NOT))))
 
 ;; A function to return children of a given expression.
@@ -121,7 +123,9 @@
        (
          (() $exp)
          ((NOT $x) $exp)
-         ($else (if (== (get-metatype $exp) Expression) (filter-atom $exp isLiterals) $exp)))))
+         ($else (if (isConstant $exp)
+                    ()
+                    (if (== (get-metatype $exp) Expression) (filter-atom $exp isLiterals) $exp))))))
 
 ;; A function similar to getLiterals function but returns a
 ;;    non deterministic list instead of a collapsed atom.
@@ -133,7 +137,9 @@
        (
          (() $exp)
          ((NOT $x) $exp)
-         ($else (if (== (get-metatype $exp) Expression) (filterLiterals (superpose $exp)) $exp)))))
+         ($else (if (isConstant $exp)
+                    (empty)
+                    (if (== (get-metatype $exp) Expression) (filterLiterals (superpose $exp)) $exp))))))
 
 ;;A function that will return both literals (Also called guard sets for AND nodes)
 ;;  and the children as a tuple ((...literals...), (...children...))
