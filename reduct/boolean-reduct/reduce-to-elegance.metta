@@ -82,8 +82,20 @@
                       ;; ($_ (println! (FinalResult ==> UpdatedParent': $updatedParent' UpdatedCurrent: $updatedCurrent' AppliedRTE: (any ($appliedRedundantOr1CC $appliedOneSubsume $bool)))))
                       ;; ($_ (cut))
                       ;; ($_ (println! (calling 0-Subsume Variation on Parent: $updatedParent' Current: $updatedCurrent')))
-                      ($childFromParent (if (== $updatedCurrent' ()) (cdr-atom $updatedParent') $updatedCurrent'))
-                      ($zeroCurrent (let $h (if (!= $childFromParent ()) (car-atom $childFromParent) ()) (if (== (get-metatype $h) Expression) $h $childFromParent)))
+                      ;; When the POA was deleted this fishes a replacement "current" out of
+                      ;; the parent's tail. A parent that is now a CONSTANT has no tail --
+                      ;; cdr-atom on a Symbol yields no solution, and that silently takes the
+                      ;; whole reduction with it -- and there is nothing left to walk anyway.
+                      ($childFromParent (if (isConstant $updatedParent')
+                                            ()
+                                            (if (== $updatedCurrent' ()) (cdr-atom $updatedParent') $updatedCurrent')))
+                      ;; car-atom over a Symbol yields NO SOLUTION, and $childFromParent is a
+                      ;; Symbol whenever the POA reduced to a constant. Pass it straight through:
+                      ;; there is no child list to pick a head off.
+                      ($zeroCurrent (if (or (== $childFromParent ()) (not (== (get-metatype $childFromParent) Expression)))
+                                        $childFromParent
+                                        (let $h (car-atom $childFromParent)
+                                             (if (== (get-metatype $h) Expression) $h $childFromParent))))
                       ;; ($_ (println! (zeroCurrent: $current --> $zeroCurrent)))
                       (($finalParent $finalCurrent $finalBool) (zeroConstraintSubsume' $updatedParent' $zeroCurrent)) ;; Apply 0-Subsume variation.
                       ($finalCurrent' (if (== $finalCurrent ()) (AND) $finalCurrent))
@@ -453,9 +465,10 @@
 ;; (= (reduce $expr) (let ($parent $__ $applied) (reduceToElegance $expr $expr () ()) (trace! (Result: ($parent $__ $applied)) (if $applied (reduce $parent) $parent))))
 ; (: applyReduce (-> (Expression Expression Bool) (Expression Expression Bool)))
 (= (applyReduce ($parent $current $applied))
-   ;; The empty OR is false and already elegant. Re-normalising it lets addAND
-   ;; rebuild (AND (OR)), where the dangling-junctor cleanup deletes the false as
-   ;; if it were one of the empty placeholders that arrive from knob building.
+   ;; A constant is already elegant. Re-normalising it would let addAND wrap it as
+   ;; (AND FALSE) and send it round the transformations again for no gain.
+   (if (isConstant $current)
+       ($current $current False)
    (if (== $current (OR))
        ((OR) (OR) False)
    (let*

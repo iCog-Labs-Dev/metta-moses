@@ -57,7 +57,13 @@
       ((Expression (NOT $x)) ($parent $current False))
       ((Symbol $current) ($parent $current False))
       ((Expression $current)
-        (if (and (== (car-atom $parent) OR) (== $current (AND)))
+        ;; car-atom over a Symbol yields no solution, and $parent is a Symbol whenever an
+        ;; enclosing node has already reduced to a constant. `and` is not short-circuit in
+        ;; MeTTa, so the head has to be computed behind an `if`, not guarded inside one.
+        (let $parentHead (if (== (get-metatype $parent) Expression)
+                             (if (== $parent ()) () (car-atom $parent))
+                             ())
+        (if (and (== $parentHead OR) (== $current (AND)))
             ((findAndReplace $parent (AND) $parent) (AND) True) ;; Removes the entire OR if it has an empty AND as child
             (let*
               (
@@ -75,7 +81,7 @@
                 ($parent $current False)
               )
             )
-        )
+        ))
       )
     )
   )
@@ -83,4 +89,9 @@
 
 
 ;; a helper function which checks if an expression has a child (subexpression) or a literal or not
-(= (nodeHasChildOrGuard $node) (or (not (== (getLiterals $node) ())) (not (== (getChildrenExp $node) ()))))
+;; A constant carries information and must survive this filter: TRUE and FALSE have no
+;; literals and no children, so without the isConstant arm they would look exactly like the
+;; childless junctors this predicate exists to delete.
+(= (nodeHasChildOrGuard $node)
+   (or (isConstant $node)
+       (or (not (== (getLiterals $node) ())) (not (== (getChildrenExp $node) ())))))

@@ -131,7 +131,15 @@
 ;; Direct recursion avoids the per-element `replace` dispatch that map-atom
 ;; introduces. A/B confirmed (mux6): within noise of a native Prolog stub.
 (= (findAndReplace $old $new $list)
-   (if (== () (subtraction-atom $old $list))
+   ;; The wholesale-replacement short-circuit needs subtraction-atom, which requires an
+   ;; Expression: with a Symbol $old it yields NO SOLUTION, and that propagates silently.
+   ;; A Symbol can only ever be replaced element-wise, so send it straight to the walk.
+   ;; (Reachable since the reduct gained the TRUE/FALSE constants, which are Symbols.)
+   ;; EQUALITY, not subset. subtraction-atom only tells you every element of $old also
+   ;; occurs in $list, so replacing (AND B) inside (AND (OR (AND B)) B) used to satisfy the
+   ;; test and REPLACE THE WHOLE PARENT. Harmless while $new was an empty junctor that the
+   ;; placeholder cleanup swallowed; with a real constant it silently destroys a subtree.
+   (if (== $old $list)
        $new
        (farReplaceWalk $list $old $new)))
 
