@@ -20,7 +20,17 @@
 (= (preOrderExp (mkTree (mkNode $r) ()))
    (if (once (is-member $r (quote (AND OR))))
        (quote ($r ()))
-       $r))
+       ;; The reduct's constants: a TRUE/FALSE leaf is not a column label, so emit
+       ;; the matching junctor identity instead of looking it up. (AND ()) is
+       ;; (all ()) = True and (OR ()) is (any ()) = False, so the operator clauses
+       ;; above already evaluate them -- no new evaluation logic is needed.
+       ;; One clause, not three: a separate (mkNode TRUE) clause would OVERLAP this
+       ;; one and yield two solutions for the same leaf.
+       (if (== $r TRUE)
+           (quote (AND ()))
+           (if (== $r FALSE)
+               (quote (OR ()))
+               $r))))
 (= (preOrderExp (mkKnob (mkNullVex $tree) $lsk $i)) ())
 (= (preOrderExp (mkKnob (mkTree $node $children) $lsk $i))
    (preOrderExp (mkTree $node $children)))
