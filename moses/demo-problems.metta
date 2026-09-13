@@ -281,18 +281,39 @@
 ;; that the shared runMoses entry point requires.
 ;;
 ;; `context` is the domain-specific value threaded through expand-deme.metta's
-;; polymorphic dispatch (mkAntContext for action domains; the
+;; polymorphic dispatch (mkActionCtx for action domains; the
 ;; (False $fsAlgo $bscore $itable) tuple for Boolean/CSV domains).
 ;; `metaPop` is the singleton ordered-set seed exemplar for this run.
 ;; `bestPossibleScore` is the raw-score termination target.
 ;;
-;; To add a new domain, add one clause here and three helpers to its
-;; *-domain.metta file following the ant pattern above.
+;; An action demo binds the classic `--problem=ant` here, but that is the ONLY
+;; ant-specific seam: it configures the general fitness-params contract and
+;; lets the shared action arms do the work. New action experiments instead
+;; follow the fitness-package interface (ttt-action-registration / domain
+;; files) and run via --fitness=<fn> or --domainFile=.
+(= (configure-ant-action-params)
+   (let* (
+          ($_1 (set-param fitness antFitness))
+          ($_2 (set-param bestScore antBestScore))
+          ($_3 (set-param actions (quote (antMoveForward antTurnLeft antTurnRight))))
+          ($_4 (set-param perceptions (quote (antFoodAhead))))
+          ($_5 (set-param nTrials 4))
+         )
+     True))
+
 (= (problem-context)
    (case (param problem)
      ((ant
-        (let $ctx (ant-problem-context)
-          ($ctx (ant-initial-metapop $ctx) (ant-target-score))))
+        (let* (
+               ($_        (configure-ant-action-params))
+               ($nTrials  (param nTrials))
+               ($cpxPen   (param complexityRatio))
+               ($ctx      (mkActionCtx $nTrials $cpxPen (antBestScore $nTrials)))
+               ($tree     (ant-exemplar))
+               ($seedCscore (getActionCscore $tree (mkActionCtx $nTrials) $cpxPen &actionScoreCache))
+               ($seedBscore (scoreActionTree $tree $nTrials &actionScoreCache))
+               ($metaPop  ((mkExemplar $tree (mkDemeId "1") $seedCscore $seedBscore))))
+          ($ctx $metaPop (antBestScore $nTrials))))
       ($other
         (let* (
                ($cpxPen           (param complexityRatio))
@@ -402,7 +423,7 @@
         ($worst (* -1.0 $nTrials))
         ($metaPop ((mkExemplar (mkTree (mkNode and_seq) ()) (mkDemeId "1") (mkCscore $worst 0 $cpxPen 0 $worst) (mkBScore (List.repeat $nTrials -1.0)))))
         ($result (runMoses $maxGen $bestPossibleScore $metaPop 0 $nDeme
-              (mkActionCtx $nTrials $cpxPen)
+              (mkActionCtx $nTrials $cpxPen $bestPossibleScore)
               $optimizer))
         ($newR (mapG cleanedExemplar $result))
         ($_ (cut)) ;; INFO: Mirrors moses-run; commits choice points before returning.

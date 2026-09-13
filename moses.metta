@@ -133,7 +133,7 @@
 !(import! &self examples/tic-tac-toe/ttt-action-registration)
 
 ;; ---- Ant action-domain example ----
-!(import! &self examples/ant/ant-domain)
+!(import! &self examples/ant/ant-action-domain)
 
 ;; ---- Optimization (hill climbing is the only production-ready algorithm) ----
 !(import! &self optimization/hillclimbing/crossover-helpers)
