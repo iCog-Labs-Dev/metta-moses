@@ -300,7 +300,13 @@
 
 (= (isArgument (mkNullVex $x)) False)
 (= (isArgument (mkTree (mkNode $x) $children))
-   (and (not (once (is-member $x (quote (AND OR NOT PRIORITIZED-OR))))) (== $children ())))
+   ;; TRUE/FALSE are the reduct's constants, not data columns. They must carry NO
+   ;; complexity, exactly as the childless (AND)/(OR) that used to encode them did:
+   ;; treeComplexity feeds the penalised score, the cScoreExpr< tie-break, removeDominated
+   ;; and resizeMetapop, so counting a constant as an argument silently steers the search.
+   ;; Measured: it cost parity3 two of three seeds (score 0 -> -1).
+   (and (not (once (is-member $x (quote (AND OR NOT PRIORITIZED-OR TRUE FALSE)))))
+        (== $children ())))
 
 ;; A function to calculate the complexity of a tree.
 ;;  The complexity of a tree is the number of arguments it contains.

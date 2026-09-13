@@ -13,6 +13,9 @@
 
 ;; quote: bare (AND OR NOT) would compile as an AND call once
 ;; scoring/boolean-ops' eval clauses are registered
-(= (isAnArgument $it) (and (not (once (is-member $it (quote (AND OR NOT))))) (== (get-metatype $it) Symbol)))
+(= (isAnArgument $it) (and (not (once (is-member $it (quote (AND OR NOT TRUE FALSE))))) (== (get-metatype $it) Symbol)))
 
-(= (isBoolean $it) (once (is-member $it (True False))))
+;; TRUE/FALSE join the booleans rather than the arguments: a reduced exemplar can now BE a
+;; constant (demeToTrees already emits one), and canonizing it as an argument would build
+;; knobs over it as though it were a data column.
+(= (isBoolean $it) (once (is-member $it (True False TRUE FALSE))))
