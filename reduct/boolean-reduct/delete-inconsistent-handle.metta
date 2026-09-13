@@ -15,7 +15,13 @@
 ;; Example: input: POA ==> (AND (NOT A) (OR B C)), dominantSet ==> (A), parent ==> (OR B (AND (NOT A) (OR B C)))
 ;;        : output: ((OR B) () True)
 ;; (: deleteInconsistentHandle (-> Expression Expression Expression (Expression Expression Bool)))
+;; A constant has no structure to transform, and the walks below assume an Expression
+;; -- map-atom over a Symbol yields NO SOLUTION AT ALL, which then propagates as a
+;; silent zero-solution failure out through reduce-to. Constants are inert in every
+;; transformation; the constant laws are what act on them.
 (= (deleteInconsistentHandle $parent $current $dominantSet)
+    (if (or (isConstant $parent) (isConstant $current))
+        ($parent $current False)
     (let*
         (
           ($guardSet     (getGuardSet $current))
@@ -26,17 +32,27 @@
           ;; the applyDeleteIncons* walkers can pass a sibling as $parent, where
           ;; removing the POA is a no-op -- only a real conjunct can be annihilated
           ($isConjunct   (and (== $parentHead AND) (!= $withoutPOA $parent)))
+          ;; A FALSE alternative is the OR-identity and simply leaves -- but if it was the
+          ;; LAST alternative the OR itself is FALSE, and this is the only place that knows
+          ;; it. Emitting the constant here is what stops it being read further up as a
+          ;; dangling knob placeholder and deleted.
+          ($withoutPOA'  (if (and (== $parentHead OR) (== $withoutPOA (OR)))
+                             FALSE
+                             $withoutPOA))
           ; ($_ (println! (===Inside DeleteInconsistentHandle===)))
           ; ($_ (println! (Parameters ==> Parent: $parent Current: $current DominantSet: $dominantSet)))
           ; ($_ (println! (GuardSet : $guardSet : HandleSet : $handleSet : IsConsistent : $isConsistent)))
         )
         (if $isConsistent
               ($parent $current False)
+              ;; The POA's handle set is inconsistent, so the POA is FALSE. If the POA is a
+              ;; genuine conjunct of an AND parent, or is the root, false annihilates the whole
+              ;; node -- so the constant IS the answer, emitted at the point of detection.
               (if (or (== $parent $current) $isConjunct)
-                  ((OR) () True)
-                  ($withoutPOA () True)
+                  (FALSE () True)
+                  ($withoutPOA' () True)
               ))
-    )
+    ))
 )
 
 

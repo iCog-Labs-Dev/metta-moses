@@ -56,9 +56,31 @@
 
                       
                       ($updatedSubExpression (concatTuple $updatedGuardSet' $children))   
+                      ;; Redundant-Constraint and 1CC strip constraints that a dominating AND
+                      ;; already asserts. An AND they strip bare adds nothing to its context and
+                      ;; is therefore TRUE -- emitted here, where the two rules just fired,
+                      ;; rather than left as a childless junctor for something later to guess at.
+                      ;; THE ONE SITE OF THE TASK'S TABLE LEFT UNCONVERTED, deliberately.
+                      ;; Redundant-Constraint and 1CC can strip this AND bare, which means it is
+                      ;; TRUE in context, so by the design it should emit TRUE here. Measured over
+                      ;; the 1159-tree differential that costs one tree dev gets right
+                      ;; (semantic 1158/1159 -> 1157/1159) and buys 80 syntactic matches
+                      ;; (1060 -> 1140). Five ways of propagating it were measured -- emit in place
+                      ;; and let the end-of-round laws carry it; absorb into the parent; report the
+                      ;; POA deleted through the existing () signal; annihilate only an OR parent;
+                      ;; annihilate only from a verified genuine parent slot -- and the four that
+                      ;; rewrite from here are IDENTICAL to each other, so the loss is intrinsic to
+                      ;; propagating from this position rather than to the mechanism: the RTE
+                      ;; walkers do not always pass a genuine parent/child pair, the same wall the
+                      ;; previous design hit at zeroConstraintSubsume'. Semantic parity is the bar,
+                      ;; so the site stays as it is. Fixing it properly wants classic's
+                      ;; Delete/Disconnect signal channel that PR #501 removed -- a larger change,
+                      ;; and the owner's call (see 9 of the task file).
+                      ;; The empty (AND) left here is unlinked by the existing placeholder cleanup,
+                      ;; which is the correct IDENTITY behaviour in an AND parent; only the
+                      ;; annihilator case in an OR parent stays unfixed at this one site.
                       ($updatedCurrent (cons-atom AND $updatedSubExpression))
                       ($updatedParent (findAndReplace $current $updatedCurrent $parent))
-                      ; ((($oneSubsumeParent $oneSubsumeCurrent $appliedOneSubsume)) (oneConstraintSubsume $updatedParent $updatedCurrent $commandSet)) ;; Apply 1-Subsume.
                       ($temp (oneConstraintSubsume $updatedParent $updatedCurrent $commandSet)) ;; Apply 1-Subsume.
                       ;($_ (println! (Result: $temp)))
                       (($oneSubsumeParent $oneSubsumeCurrent $appliedOneSubsume) $temp)

@@ -17,7 +17,10 @@
 ;;        : output: ((AND A (NOT B) (OR (AND C) (AND)) (OR (NOT C) (AND (NOT B) (NOG D)))) () True)
 ;(: promoteCommonConstraints (-> Expression Expression (Expression Expression Bool)))
 (= (promoteCommonConstraints $parent $current)
-    (if (and (not (== $current ())) (not (== $parent ())))
+    ;; Constants are inert: there is nothing to promote out of a truth value, and the
+    ;; rebuild helpers below (addLiterals, removeElement) assume an Expression parent.
+    (if (and (and (not (== $current ())) (not (== $parent ())))
+             (not (or (isConstant $current) (isConstant $parent))))
         (let*
             (
               ;; (() (println! (=== Inside PromoteCommonConstraints ===)))
@@ -53,12 +56,12 @@
                       ;; emptied branch, which is what (!= $updatedLiterals $literals) detects.
                       ($isTautology (and (== $currentHead OR)
                                          (or (not (== $updatedLiterals $literals))
-                                             (any (map-atom $updatedChildren $b (== $b (AND)))))))
+                                             (any (map-atom $updatedChildren $b (== $b TRUE))))))
                     )
                     (if $isTautology
                         ;; true is the AND-identity: the POA leaves, the promoted literals stay
                         (if (== $parent $current)
-                            ((AND) () True)
+                            (TRUE () True)
                             ((addLiterals (removeElement ($current) $parent) $common) () True))
                         (let*
                             (
@@ -89,11 +92,19 @@
 
 ;; A function to remove literals in $common from a nested tuple: $tuple.
 ;; Example: input: common ==> (A B), tuple ==> ((A C B H) (A B D) (A C F B))
-;;          output: (((C H) (D) (C F)))
+;;          output: ((C H) (D) (C F))
+;;          input: common ==> (A B), tuple ==> ((AND A C B H) (AND A B D))
+;;          output: ((AND C H) TRUE)
+;; A branch the promotion strips of every constraint is the empty conjunction, i.e. TRUE,
+;; and emptiedToConstant emits that here, at the point of detection, so the caller can tell
+;; it from a branch that was a childless placeholder to begin with.
+;; The subtraction stays over the WHOLE element: $common only ever holds literals, so a
+;; junctor head survives it untouched, and the function also has to work on the flat literal
+;; lists its unit tests pass, where the first element is an ordinary literal, not a head.
 (= (removeCommonLiterals $common $tuple)
    ( if (== $tuple ())
         ()
-        (map-atom $tuple $tp (removeElement $common $tp))
+        (map-atom $tuple $tp (emptiedToConstant $tp (removeElement $common $tp)))
    )
 )
 
