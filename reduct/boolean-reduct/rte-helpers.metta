@@ -213,3 +213,68 @@
                  (let $deduped (map-atom $rest $child (dedupSiblings $child))
                       (cons-atom $head (unique-atom $deduped))))))
        $expr))
+
+;; Name:                        emptiedToConstant
+;; Description:                 Reads a junctor that a rule just EMPTIED as the constant it
+;;                              is: an empty conjunction is TRUE, an empty disjunction is
+;;                              FALSE.
+;;                              $before is what the node was on the way in. A junctor that
+;;                              was ALREADY childless is a dangling placeholder from knob
+;;                              building, not a truth value, and is returned untouched --
+;;                              that guard is what makes this a DETECTION rather than a
+;;                              reading, and it is the whole reason the constants are their
+;;                              own symbols.
+;;                              It takes WHOLE NODES, never a head and a tail: some callers
+;;                              pass flat literal lists, where the first element is an
+;;                              ordinary literal and rebuilding around it would both keep a
+;;                              literal that should have been stripped and read its polarity
+;;                              off a non-junctor head.
+;; Example:                     emptiedToConstant (AND A B) (AND)  -> TRUE
+;;                              emptiedToConstant (OR X)    (OR)   -> FALSE
+;;                              emptiedToConstant (AND)     (AND)  -> (AND)  ;; placeholder
+;;                              emptiedToConstant (A B D)   (D)    -> (D)
+(= (emptiedToConstant $before $after)
+   (if (== $after (AND))
+       (if (== $before (AND)) $after TRUE)
+       (if (== $after (OR))
+           (if (== $before (OR)) $after FALSE)
+           $after)))
+
+;; Name:                        applyConstantLaws
+;; Description:                 The identity and annihilator laws for TRUE / FALSE, stated once
+;;                              instead of scattered over the transformations -- which is where
+;;                              three of the four rows were missing, and a dropped constant was
+;;                              lost for good.
+;;
+;;                                (AND ... FALSE ...) -> FALSE    false annihilates a conjunction
+;;                                (OR  ... TRUE  ...) -> TRUE     true  annihilates a disjunction
+;;                                (AND ... TRUE  ...) -> drop it  true  is the identity of AND
+;;                                (OR  ... FALSE ...) -> drop it  false is the identity of OR
+;;
+;;                              This is classic's Delete/Disconnect propagation
+;;                              (logical_rules.cc:715 and :817) with Delete == FALSE and
+;;                              Disconnect == TRUE. Applied bottom-up, one pass, no fixpoint.
+;; Example:                     applyConstantLaws (AND X FALSE)  -> FALSE
+;;                              applyConstantLaws (OR X TRUE)    -> TRUE
+;;                              applyConstantLaws (AND X TRUE Y) -> (AND X Y)
+;;                              applyConstantLaws (AND TRUE)     -> TRUE
+(= (applyConstantLaws $expr)
+   (if (== (get-metatype $expr) Expression)
+       (if (== $expr ())
+           $expr
+           (let ($head $rest) (decons-atom $expr)
+             ;; (NOT x) is a literal -- do not descend into it. A childless (AND)/(OR) is a
+             ;; dangling placeholder and is NOT a constant, so it is returned untouched.
+             (if (or (== $head NOT) (== $rest ()))
+                 $expr
+                 (let* (($kids (map-atom $rest $child (applyConstantLaws $child)))
+                        ($identity    (if (== $head AND) TRUE FALSE))
+                        ($annihilator (if (== $head AND) FALSE TRUE))
+                        ($kept (filter-atom $kids $k (not (== $k $identity)))))
+                   (if (== (filter-atom $kids $k (== $k $annihilator)) ())
+                       ;; Every child was the identity => the junctor IS the identity. With
+                       ;; distinct constants this has to be said; under the old encoding
+                       ;; (cons-atom AND ()) happened to already be the right answer.
+                       (if (== $kept ()) $identity (cons-atom $head $kept))
+                       $annihilator)))))
+       $expr))

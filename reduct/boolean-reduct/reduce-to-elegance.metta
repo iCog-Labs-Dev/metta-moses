@@ -481,8 +481,16 @@
            ;; ($_ (println! (FinalAdd Result: $finalAdd)))
            ;; ($_ (println! (FinalParent: $finalParent)))
         )
-         (reduceToElegance $finalParent $finalAdd () ())
-         )))
+         ;; Propagate the constants this round created. A rule that detects a
+         ;; contradiction or a tautology emits FALSE/TRUE where it stands; some of those
+         ;; positions cannot collapse upward on their own, because a transformation only
+         ;; ever sees ($parent $current) and rewriting $parent would discard whatever it
+         ;; was nested inside. The laws walk the whole tree, so the enclosing context
+         ;; survives. $rteApplied is passed through untouched: the laws are cleanup, not a
+         ;; transformation that should force another round.
+         (let ($rteParent $rteCurrent $rteApplied) (reduceToElegance $finalParent $finalAdd () ())
+              ((applyConstantLaws $rteParent) (applyConstantLaws $rteCurrent) $rteApplied))
+         ))))
 
 (= (removeAndNodesFromGuards $expr)
    (if (== (get-metatype $expr) Symbol)
