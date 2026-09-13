@@ -33,24 +33,6 @@
 ; )   
 ; (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
 ; ))
-;; Game representation constructor with execution guard
-;; Params: Tree (Exemplar), Number of demes
-;; Returns: List of Representations
-;;(: representation (-> (Tree $a) Number (List Representation)))
-(= (representation $exemplar $nDeme)
-   (let* (
-          ;; Representation construction already depends on the general
-          ;; helpers, so enumerate demes without feature-selection's `range`.
-          ($demeCount (genList 0 (- $nDeme 1)))
-        
-          ($result (map-atom $demeCount $x 
-                      (let*
-                        (
-                          (($updatedTree $dscMp) (buildKnobs $exemplar () ()))
-                          ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
-                          ($rep (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))   
-                          $rep))))
-         $result))
 ;; (: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol Expression))
 (= (representation
 ;; Boolean representation constructor with feature selection
@@ -131,37 +113,10 @@
 	                                    ($dscKbMp (mkDscMp $dscMp)))        ;; MULITPLE args selected using the feature selection
 	                                 (mkRep (mkKbMap $dscKbMp) $updatedTree)))))
 
-(= (representation
-            $nDeme
-            $exemplar
-            (mkITable $table $labels)
-            $ft-selection-algo
-            $prune-exemplar
-            $enforced-fts
-            $scorerType
-            $actions
-            $perceptions
-         )
-         (representation $nDeme $exemplar (mkITable $table $labels) $ft-selection-algo $prune-exemplar $enforced-fts $scorerType True $actions $perceptions))
-
-(= (representation
-            $nDeme
-            $exemplar
-            (mkITable $table $labels)
-            $ft-selection-algo
-            $prune-exemplar
-            $enforced-fts
-            $scorerType
-            $disable-discprobe
-            $actions
-            $perceptions
-         )
-         (representation $exemplar $actions $perceptions))
-
-;; Lean action overload (3-ary; the game clause is 2-ary, boolean 8-ary):
+;; Lean action overload (3-ary; the boolean overloads are 8-ary):
 ;; an episodic representation needs exactly the exemplar and the two
 ;; vocabularies. The table/feature-selection/discprobe slots of the wider
-;; overloads above exist only for signature compatibility -- buildKnobs'
+;; overloads exist only for signature compatibility -- buildKnobs'
 ;; action path never consults them -- so they are not parameters here at
 ;; all rather than hardcoded placeholders.
 (= (representation $exemplar $actions $perceptions)
@@ -185,13 +140,11 @@
           $rootValue)))
 
 (= (finalizeCandidateTree $rootSymbol $candidate)
-   (if (== $rootSymbol PRIORITIZED-OR)
-       $candidate
-       (if (isActionOperator $rootSymbol)
-           (cleanActionTree $candidate)
-           (cleanTree $candidate))))
+   (if (isActionOperator $rootSymbol)
+       (cleanActionTree $candidate)
+       (cleanTree $candidate)))
 
-;; Universal getCandidate that works for boolean, action, and legacy strategy trees.
+;; Universal getCandidate that works for boolean and action trees.
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
 ;; TODO: This should be removed when the game tree has been fixed to match the boolean.
 (= (getCandidate $srcid $repObj $id $inst)

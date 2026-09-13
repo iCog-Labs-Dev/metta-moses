@@ -90,6 +90,16 @@
 
 ;; (:getScore (-> Cscore Number))
 (= (getScore (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $scor)
+;; Allow a score getter to consume an exemplar getter expression directly.
+;; PeTTa does not always reduce nested getter calls before dispatching the
+;; outer function, which otherwise makes assertions silently stop.
+(= (getScore
+      (getExemplarCscore
+        (mkExemplar $tree $demeId
+                    (mkCscore $scor $cpxy $complexityPenalty
+                              $uniformityPenalty $penalizedScore)
+                    $bscore)))
+   (let $_ (cut) $scor))
 
 ; (: getComp (-> Cscore Number))
 (= (getComp (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $cpxy)

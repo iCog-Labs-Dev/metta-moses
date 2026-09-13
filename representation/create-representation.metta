@@ -44,5 +44,4 @@
 (= (createRepresentation $nDeme $tree $actions $perceptions)
    (let $demeNumbers (range 0 1 $nDeme)
      (map-atom $demeNumbers $x
-       (let ($rep) (representation $tree $actions $perceptions)
-         $rep))))
+       (representation $tree $actions $perceptions))))

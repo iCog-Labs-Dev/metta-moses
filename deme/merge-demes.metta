@@ -145,20 +145,19 @@
                     (((mkITable $rows $labels) (scoreTree $scoringContext $tree &bscoreCache))
 ;; Action arm: tagged (mkActionCtx ...) context, disjoint from
                      ;; the boolean (mkITable ...) arm above.
-                     ((mkActionCtx $nTrials) (scoreActionTree $tree $nTrials &actionScoreCache))
-                     ((mkAntContext $steps $complexityRatio $actions $perceptions)
-                      ;; Ant instances have already been simulated by the deme scorer.
-                      ;; Re-running the mutable trail simulation here would spend an
-                      ;; uncounted evaluation during every merge. The stored raw Cscore
-                      ;; is exactly `-ant-food-count + pellets-eaten`, so reconstruct
-                      ;; the single-component behavioral score without executing the
-                      ;; candidate a second time.
-                      (mkBScore ((getScore $cscore)))))))
+                     ((mkActionCtx $nTrials $complexityRatio $targetScore) (scoreActionTree $tree $nTrials &actionScoreCache)))))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
     )
+
     (cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) $demeId) $scoringContext))
     )
 )
+
+(= (demeToTrees (mkDeme $rep (mkSInstSet ()) $demeId) (mkActionCtx $nTrials))
+   ())
+(= (demeToTrees (mkDeme $rep (mkSInstSet (cons $si $sil)) $demeId) (mkActionCtx $nTrials))
+   (demeToTrees (mkDeme $rep (mkSInstSet (cons $si $sil)) $demeId)
+      (mkActionCtx $nTrials 0 0)))
 ;; Filters a list of Exemplars, keeping only those not already in the metaPop (ordered set).
 ;; Params:
 ;;   (List (Exemplar $a)): List of exemplars to filter.

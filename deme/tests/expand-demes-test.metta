@@ -101,8 +101,8 @@
 ;; them to the inputs required by the shared optimizer and merge lifecycle.
 (= (booleanAdapterContext)
    (False sim (table1) (ttable1)))
-(= (strategyAdapterContext)
-   (10 probeOpponent 3.5))
+(= (actionAdapterContext)
+   (mkActionCtx 10 3.5))
 
 (= (ortable) (eval (createTruthTableBScore 2 (mkITable
                          (cons (cons False (cons False (cons False ()))) 
@@ -204,16 +204,17 @@
       $deme $target $inst (mkParams $scorer $payload))
    (AdapterCall scored $target $scorer $payload))
 
-;; Boolean and strategy contexts must each produce one deterministic adapter
+;; Boolean and action contexts must each produce one deterministic adapter
 ;; result while preserving their historical optimizer calling convention.
 !(assertEqual
   ((optimizerContextFor (booleanAdapterContext) 7)
    (mergeContextFor (booleanAdapterContext))
    (initialEvaluationCount (booleanAdapterContext))
-   (optimizerContextFor (strategyAdapterContext) 7)
-   (mergeContextFor (strategyAdapterContext))
-   (initialEvaluationCount (strategyAdapterContext)))
-  ((table1) (ttable1) 0 (10 3.5 7) 10 0))
+   (optimizerContextFor (actionAdapterContext) 7)
+   (mergeContextFor (actionAdapterContext))
+   (initialEvaluationCount (actionAdapterContext)))
+  ((table1) (ttable1) 0
+   (mkOptimizerContext (mkActionCtx 10 3.5 7) 7) (mkActionCtx 10 3.5 0) 0))
 
 !(assertEqual
   ((optimizeDeme
@@ -223,11 +224,11 @@
      adapterOptimizerProbe)
    (optimizeDeme
      probeDeme
-     (optimizerContextFor (strategyAdapterContext) 7)
+     (optimizerContextFor (actionAdapterContext) 7)
      (mkInst ())
      adapterOptimizerProbe))
   ((AdapterCall plain (table1))
-   (AdapterCall scored 7 applyStrategyBasedScore (10 3.5))))
+   (AdapterCall scored 7 applyActionBasedScore (10 3.5))))
 
 ;; Keep the direct optimizer test compact. The production 25,000-call default
 ;; is intended for full searches, not a focused unit test.

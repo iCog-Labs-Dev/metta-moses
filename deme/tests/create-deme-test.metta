@@ -77,23 +77,6 @@
                          (cons (cons True (cons True (cons True ()))) ()))))
                          (cons A (cons B (cons O ())))))
 
-;; Strategy deme enumeration uses the general helper directly and therefore
-;; produces exactly the requested number of independently built, expandable
-;; representations without importing feature-selection's `range`.
-(= (strategyTreeForDemeTest)
-   (mkTree
-     (mkNode PRIORITIZED-OR)
-     ((mkTree (mkNode playcenter) ())
-      (mkTree (mkNode playcorner) ()))))
-
-!(assertEqual
-  (List.length
-    (createDeme
-      2
-      ((mkDemeId "strategy-1") (mkDemeId "strategy-2"))
-      (strategyTreeForDemeTest)))
-  2)
-
 ;; INFO: This test case passes but hangs after finishing. No idea why. The function it self doesn't hang but the execution does.
 ;; !(assertEqual (createDeme 1 (cons (mkDemeId "1") ()) (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) ())) 
 ;;               (table1)

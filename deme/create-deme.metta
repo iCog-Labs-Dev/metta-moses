@@ -37,18 +37,6 @@
       (let $reps (createRepresentation $nDeme $exemplar $actions $perceptions)
             (loopCreateDeme $demeIds $reps ())))
 
-; (: createDeme (-> Number (List DemeId) (Tree $a) Expression))
-(= (createDeme $nDeme $demeIds $exemplar)
-      (let* 
-            (
-                  ($candidateReps
-                    (createRepresentation $nDeme $exemplar))
-                  ($reps (expandableRepresentations $candidateReps))
-            )  
-            (loopCreateDeme $demeIds $reps ())
-      ) 
-)
-
 ;; Classic C++ MOSES discards every representation whose field set is empty,
 ;; regardless of the scoring domain. An empty MeTTa disc map is equivalent:
 ;; there is no coordinate that an optimizer can vary.
@@ -65,31 +53,6 @@
 (= (expandableRepresentations $representations)
    (filter-atom $representations $rep
      (representationExpandable $rep)))
-
-;; Action-domain construction differs only in how it builds a representation:
-;; the shared field filter and deme assembly are identical to other domains.
-(= (createDeme $nDeme $demeIds $exemplar (mkAntContext $steps $complexityRatio $actions $perceptions))
-      (let*
-            (
-                  ($demeCount (genList 0 (- $nDeme 1)))
-                  ($candidateReps (map-atom $demeCount $x
-                        (representation
-                              1
-                              $exemplar
-                              (mkITable () ())
-                              None
-                              False
-                              ()
-                              mi
-                              True
-                              $actions
-                              $perceptions)))
-                  ($reps (expandableRepresentations $candidateReps))
-            )
-            (loopCreateDeme $demeIds $reps ())
-      )
-)
-
 
 (= (loopCreateDeme $demeIds $reps $acc)
 (if (== $reps ()) 

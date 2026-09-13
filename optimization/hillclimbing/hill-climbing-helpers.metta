@@ -252,34 +252,33 @@
        $cachedScore
        (cachedScoreForTree $tree $rest)))
 
-;; Strategy representations still require the legacy source-node-aware
-;; materializer. Boolean and action representations use the normal three-
-;; argument form. Keeping this choice at one boundary prevents the shared
-;; incremental scorer from subtly changing strategy candidate construction.
+;; Action candidate reconstruction uses the representation helper directly.
+;; The public getCandidate wrapper also consults treeSpace, which is cleared
+;; between lifecycle stages and can leave this counted path unresolved.
+(= (materializeCandidateForContext $rep $id $inst
+                                 (mkActionScoreContext $complexityRatio $nTrials))
+   (getCandidateHelper $inst (getRepTree $rep)))
+(= (materializeCandidateForContext $rep $id $inst
+                                   (mkActionCtx $nTrials $complexityRatio $targetScore))
+   (getCandidateHelper $inst (getRepTree $rep)))
 (= (materializeCandidateForContext $rep $id $inst $context)
    (case $context
-     (((mkStrategyScoreContext $nGames $complexityRatio)
-       (getCandidate (mkNodeId (0)) $rep $id $inst))
-      ($other (getCandidate $rep $id $inst)))))
+     (($other (getCandidate $rep $id $inst)))))
 
 ;; Score a materialized program without reconstructing it through the
 ;; representation-specific scorer.
-(= (scoreMaterializedTree
-      $tree
-      (mkAntContext $steps $complexityRatio $actions $perceptions))
-   (getAntCscore $tree $complexityRatio $steps))
 (= (scoreMaterializedTree $tree
                           ((mkITable $rows $labels) $complexityRatio))
    (getCscore (mkITable $rows $labels) $tree
               $complexityRatio &bscoreCache))
-;; The action arm's slot packing reconstructs ($complexityRatio $nTrials)
-;; positionally; the tagged mkActionCtx is re-wrapped for the action scorer.
-(= (scoreMaterializedTree $tree ($complexityRatio $nTrials))
+;; The action arm receives a tagged packed payload from the optimizer. A
+;; numeric-headed tuple is interpreted as a partial application by PeTTa.
+(= (scoreMaterializedTree $tree (mkActionScoreContext $complexityRatio $nTrials))
    (getActionCscore $tree (mkActionCtx $nTrials)
                     $complexityRatio &actionScoreCache))
-(= (scoreMaterializedTree
-      $tree (mkStrategyScoreContext $nGames $complexityRatio))
-   (getCscore $tree $nGames $complexityRatio &strategyScoreCache))
+(= (scoreMaterializedTree $tree (mkActionCtx $nTrials $complexityRatio $targetScore))
+   (getActionCscore $tree (mkActionCtx $nTrials)
+                    $complexityRatio &actionScoreCache))
 
 ;; New rows are marked explicitly with worstCscore. Structural comparison
 ;; states that invariant directly and cannot misclassify a legitimate, very
@@ -521,39 +520,17 @@
             ;; $tTableBscorer is the scalar target score for this action arm.
             ($targetPenScore $tTableBscorer)
 )
-          ;; Slot-packing: $rowOCoeff <- $nTrials, $size <- mkActionCtx (bare
-          ;; symbol), $iTable <- $complexityRatio, so the recursive engine's
-          ;; $incrementalContext `($iTable $rowOCoeff)` reconstructs the
-          ;; `($complexityRatio $nTrials)` action tuple positionally --
-          ;; scoreMaterializedTree's action clause matches it exactly.
-          (hillClimbing ((param maxDist) (param minXoverNeighbors) $targetPenScore)
-                        (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
-                        $POASet
-                        ($disc $nTrials mkActionCtx $complexityRatio)
-                        $centerInst
-                        ()
-                        estimateNeighborhood crossover
-                        sampleNewInstances transform)))
-      ((mkParams applyAntBasedScore)
-        ;; Action scoring changes the context, not the shared search controls.
-        (let*
-          (
-            ($disc (getDisk $POASet))
-            ((mkAntContext $steps $complexityRatio $actions $perceptions) $FsScorer)
-            ($targetPenScore $tTableBscorer)
-            ($_seedAttached
-              (seedAttachedCandidateScores $POASet $FsScorer))
-          )
-          (hillClimbing ((param maxDist) (param minXoverNeighbors) $targetPenScore)
-                        (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
-                        $POASet
-                        ;; `action` is a neutral optimizer mode; Santa Fe
-                        ;; details remain entirely inside the scoring context.
-                        ($disc action action $FsScorer)
-                        $centerInst
-                        ()
-                        estimateNeighborhood crossover
-                        sampleNewInstances transform)))
+          ;; Slot-packing: $rowOCoeff <- $nTrials and $iTable <-
+          ;; $complexityRatio. The recursive engine wraps those values in a
+          ;; tagged payload before candidate scoring.
+(hillClimbing ((param maxDist) (param minXoverNeighbors) $targetPenScore)
+                                    (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
+                                    $POASet
+                                    ($disc $nTrials mkActionCtx $complexityRatio)
+                                    $centerInst
+                                    ()
+                                    estimateNeighborhood crossover
+                                    sampleNewInstances transform)))
     )))
 
 (= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
@@ -644,12 +621,9 @@
         ;; deconstruct the hyper params for fs function
         (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType) (if (== () $hyperparamsfs) (() () () () () ()) $hyperparamsfs))
 
-        ($incrementalContext
-          (case $size
-            ((action $iTable)
-             (strategy
-               (mkStrategyScoreContext $rowOCoeff $iTable))
-             ($other ($iTable $rowOCoeff)))))
+        ;; Keep the action optimizer's internal scorer payload distinct from
+        ;; the canonical lifecycle context used by runMoses.
+        ($incrementalContext (mkActionScoreContext $iTable $rowOCoeff))
         ($scoreBatch
           (if (or (== $rep ()) (== $id ()))
               (transformAppendedFeatureSelection

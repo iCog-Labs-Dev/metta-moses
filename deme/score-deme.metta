@@ -49,12 +49,10 @@
           ($scored (case $scoringContext
                         (
 ;; Two disjoint tagged contexts: (mkActionCtx ...) drives
-                          ;; the action path, (mkITable ...) the boolean path,
-                          ;; (mkAntContext ...) the ant path.
-                          ((mkActionCtx $nTrials) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
-                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio))
-                          ((mkAntContext $steps $complexityRatio $actions $perceptions)
-                           (applyAntBasedScore $rep $id $instList $scoringContext)))))
+                          ;; the action path, (mkITable ...) the boolean path.
+                          ((mkActionCtx $nTrials $complexityRatio $targetScore) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
+                          (($complexityRatio $nTrials) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
+                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio)))))
           )
   (mkSInstSet $scored)))
 

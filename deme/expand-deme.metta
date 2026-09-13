@@ -65,14 +65,14 @@
    ))
 
 ;; Overloaded version for ACTION runs - 6 parameters, keyed by the tagged
-;; (mkActionCtx $nTrials $complexityRatio) context runMoses passes, so it is
+;; (mkActionCtx $nTrials $complexityRatio $targetScore) context runMoses passes, so it is
 ;; arity-correct end to end with its runMoses call site. This deme
 ;; boundary is where the knob vocabulary crosses from global params to
 ;; plain arguments: the ONE (param actions)/(param perceptions) read
 ;; happens here (already validated by moses-run-action's loud guard), and
 ;; createDeme/createRepresentation below receive the tuples as ordinary
 ;; parameters -- the representation layer never touches the params registry.
-(= (expandDeme $metaPop $nExpansion $nDeme (mkActionCtx $nTrials $complexityRatio) $maxScore $optimize)
+(= (expandDeme $metaPop $nExpansion $nDeme (mkActionCtx $nTrials $complexityRatio $targetScore) $maxScore $optimize)
    (let* (($exemplar (selectExemplar $metaPop))
           ($tree (getExemplarTree $exemplar))
           ($_ (println! (SelectedTree: (preOrder $tree))))
@@ -80,8 +80,14 @@
           ($actions (param actions))
           ($perceptions (param perceptions))
           ($demes (createDeme $nDeme $demeIds $tree $actions $perceptions))
-          ($ctx (mkActionCtx $nTrials $complexityRatio $maxScore)))
+          ($ctx (mkActionCtx $nTrials $complexityRatio $targetScore)))
      (map-atom $demes $deme (expandDemeHelper $deme $ctx $optimize))))
+
+;; Compatibility for direct action callers that predate the canonical target
+;; field. The shared run path always uses the three-field form above.
+(= (expandDeme $metaPop $nExpansion $nDeme (mkActionCtx $nTrials $complexityRatio) $maxScore $optimize)
+   (expandDeme $metaPop $nExpansion $nDeme
+      (mkActionCtx $nTrials $complexityRatio $maxScore) $maxScore $optimize))
 
 ;; Invoke the shared optimizer with the argument shape required by the
 ;; domain scorer. Action scoring carries its raw target separately because
@@ -89,12 +95,8 @@
 (= (optimizeDeme $deme $context $inst $optimize)
    (case $context
       (
-        ((mkOptimizerContext (mkAntContext $steps $complexityRatio $actions $perceptions) $targetScore)
-         ($optimize $deme $targetScore $inst (mkParams applyAntBasedScore (mkAntContext $steps $complexityRatio $actions $perceptions))))
-        ((mkOptimizerContext (mkActionCtx $nTrials $complexityRatio) $targetScore)
+        ((mkOptimizerContext (mkActionCtx $nTrials $complexityRatio $actionTarget) $targetScore)
          ($optimize $deme $targetScore $inst (mkParams applyActionBasedScore ($nTrials $complexityRatio))))
-        (($nGames $complexityRatio $targetCScore)
-         ($optimize $deme $targetCScore $inst (mkParams applyStrategyBasedScore ($nGames $complexityRatio))))
         ($other ($optimize $deme $context $inst))
       )))
 
@@ -106,43 +108,43 @@
           ($demeIds (createDemeIds $nExpansion $nDeme))
          )
      (case $context
-       (((mkAntContext $steps $ratio $actions $perceptions) (createDeme $nDeme $demeIds $tree $context))
-        ((mkActionCtx $nTrials $cpxRatio) (createDeme $nDeme $demeIds $tree (param actions) (param perceptions)))
-        (($prune $fsAlgo $truthTableBScore $itable) (createDeme $nDeme $demeIds $tree $itable $fsAlgo $prune () mi))
-        (($nGames $opponentPolicy $ratio) (createDeme $nDeme $demeIds $tree))))))
+       (((mkActionCtx $nTrials $cpxRatio $targetScore) (createDeme $nDeme $demeIds $tree (param actions) (param perceptions)))
+        (($prune $fsAlgo $truthTableBScore $itable) (createDeme $nDeme $demeIds $tree $itable $fsAlgo $prune () mi))))))
+
+(= (createSelectedDemes $exemplar $nExpansion $nDeme (mkActionCtx $nTrials $cpxRatio))
+   (createSelectedDemes $exemplar $nExpansion $nDeme
+      (mkActionCtx $nTrials $cpxRatio 0)))
 
 ;; Adapt the public problem context to the optimizer's existing input shape.
 (= (optimizerContextFor $context $maxScore)
    (case $context
-     (((mkAntContext $steps $ratio $actions $perceptions) (mkOptimizerContext $context $maxScore))
-      ((mkActionCtx $nTrials $cpxRatio) (mkOptimizerContext $context $maxScore))
-      (($prune $fsAlgo $truthTableBScore $itable) $truthTableBScore)
-      (($nGames $opponentPolicy $ratio) ($nGames $ratio $maxScore)))) )
+     (((mkActionCtx $nTrials $cpxRatio $targetScore) (mkOptimizerContext $context $maxScore))
+      (($prune $fsAlgo $truthTableBScore $itable) $truthTableBScore))))
+
+(= (optimizerContextFor (mkActionCtx $nTrials $cpxRatio) $maxScore)
+   (optimizerContextFor (mkActionCtx $nTrials $cpxRatio $maxScore) $maxScore))
 
 ;; Adapt the public problem context to the candidate materializer used by
 ;; `demeToTrees` during the shared merge.
 (= (mergeContextFor $context)
    (case $context
-     (((mkAntContext $steps $ratio $actions $perceptions) $context)
-      ((mkActionCtx $nTrials $cpxRatio) (mkActionCtx $nTrials))
-      (($prune $fsAlgo $truthTableBScore $itable) $itable)
-      (($nGames $opponentPolicy $ratio) $nGames))))
+     (((mkActionCtx $nTrials $cpxRatio $targetScore) (mkActionCtx $nTrials $cpxRatio $targetScore))
+      (($prune $fsAlgo $truthTableBScore $itable) $itable))))
 
-;; Stateful action setup evaluates its seed once. Boolean and strategy setup
-;; use synthetic known-worst scores and therefore spend no scorer call.
+(= (mergeContextFor (mkActionCtx $nTrials $cpxRatio))
+   (mkActionCtx $nTrials $cpxRatio 0))
+
+;; Stateful action setup evaluates its seed once. Boolean setup uses a
+;; synthetic known-worst score and therefore spends no scorer call.
 (= (initialEvaluationCount $context)
    (case $context
-     (((mkAntContext $steps $ratio $actions $perceptions) 1)
-      ($other 0))))
+     (($other 0))))
 
 ;; Only a seed that was genuinely evaluated belongs in the run-wide candidate
 ;; cache. Other domains will cache their first materialized candidate normally.
 (= (seedInitialCandidateCache $context $metaPop)
    (case $context
-     (((mkAntContext $steps $ratio $actions $perceptions)
-       (map-atom $metaPop $exemplar
-         (cacheCandidateScore $context (getExemplarTree $exemplar) (getExemplarCscore $exemplar))))
-      ($other ()))))
+     (($other ()))))
 
 ;; Tree materialization is keyed by deme ID and instance. Boolean subtree
 ;; scores are additionally keyed only by expression, so a new table run must
