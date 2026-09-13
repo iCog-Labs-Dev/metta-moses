@@ -40,7 +40,7 @@
 
 ;; Test for RTE transformations functions
 ;; Delete Inconsistent Handle Test
-!(assertEqual (reduceToElegance (AND A (OR (AND B) (AND (NOT A) (OR (AND B) (AND C))))) (OR (AND B) (AND (NOT A) (OR (AND B) (AND C)))) (A) (B)) ((AND A ) () True))
+!(assertEqual (reduceToElegance (AND A (OR (AND B) (AND (NOT A) (OR (AND B) (AND C))))) (OR (AND B) (AND (NOT A) (OR (AND B) (AND C)))) (A) (B)) ((AND A FALSE) FALSE False))
 
 ;; Promote Common Constraints Test
 !(assertEqual (reduceToElegance (AND A (OR (AND (NOT B) C) (AND (NOT B))) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))) (OR (AND (NOT B) C) (AND (NOT B))) (A) ()) ((AND A (NOT B) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))) () True)) ;; INFO: classic reduces this POA, or(and(!$2 $3) and(!$2)), to !$2 -- so C must not be promoted
