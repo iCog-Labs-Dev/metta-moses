@@ -20,14 +20,10 @@
 (= (preOrderExp (mkTree (mkNode $r) ()))
    (if (once (is-member $r (quote (AND OR))))
        (quote ($r ()))
-       ;; The reduct's constants: a TRUE/FALSE leaf is not a column label, so emit
-       ;; the Bool itself rather than looking it up. evalSubtree short-circuits a
-       ;; Grounded leaf to a constant column (fitness.metta:175), skipping the
-       ;; &subtreeCache match and add-atom that the (AND ())/(OR ()) spelling of
-       ;; the same constant would pay per node. No quote guard is needed either:
-       ;; a Bool cannot compile as a call the way a bare (AND ...) tuple can.
-       ;; One clause, not three: a separate (mkNode TRUE) clause would OVERLAP this
-       ;; one and yield two solutions for the same leaf.
+       ;; A TRUE/FALSE leaf is not a column label: emit the Bool, which evalSubtree
+       ;; short-circuits to a constant column (fitness.metta:175) with no &subtreeCache
+       ;; traffic, and which needs no quote guard. One clause, not three: a separate
+       ;; (mkNode TRUE) clause would OVERLAP this one and give two solutions per leaf.
        (if (== $r TRUE)
            True
            (if (== $r FALSE)

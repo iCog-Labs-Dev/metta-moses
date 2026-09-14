@@ -15,7 +15,6 @@
 ;; scoring/boolean-ops' eval clauses are registered
 (= (isAnArgument $it) (and (not (once (is-member $it (quote (AND OR NOT TRUE FALSE))))) (== (get-metatype $it) Symbol)))
 
-;; TRUE/FALSE join the booleans rather than the arguments: a reduced exemplar can now BE a
-;; constant (demeToTrees already emits one), and canonizing it as an argument would build
-;; knobs over it as though it were a data column.
+;; TRUE/FALSE are booleans, not arguments: a reduced exemplar can now BE a constant, and
+;; canonizing one as an argument would build knobs over it like a data column.
 (= (isBoolean $it) (once (is-member $it (True False TRUE FALSE))))

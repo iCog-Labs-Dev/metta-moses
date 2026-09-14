@@ -45,40 +45,20 @@
                       ;; TODO: Replace the setDifference function with non deterministic functions
                       ($updatedGuardSet (setDifference $guardSet $dominantSet)) ;; Apply Redundant to current
                       ;; TODO: Replace this 1CCS application with the correct logic in it's own function.
-                      ;; 1-Constraint-Complement-Subtraction erases the literals whose NEGATION is
-                      ;; commanded (X is dropped when a commanding terminal AND asserts (NOT X)).
-                      ;; Subtracting the raw command set instead erases the literals that are
-                      ;; commanded directly, which is 1-Subsume's job -- and leaves the guard set
-                      ;; disjoint from the command set, so oneConstraintSubsume below could never
-                      ;; fire. Classic MOSES negates here too (logical_rules.cc:642).
+                      ;; Subtract the NEGATED command set: 1CC erases literals whose negation is commanded.
+                      ;; Raw subtraction does 1-Subsume's job instead, and leaves the guard set disjoint
+                      ;; from the command set so oneConstraintSubsume can never fire. (logical_rules.cc:642)
                       ($updatedGuardSet' (setDifference $updatedGuardSet (invertLiterals $commandSet))) ;; Apply 1-Constraint-Complement-Subtraction
                       ($appliedRedundantOr1CC (or (not (== $updatedGuardSet $guardSet)) (not (== $updatedGuardSet' $updatedGuardSet)))) ;; Storing this state to return boolean indicating RTE is applied or not.
 
                       
                       ($updatedSubExpression (concatTuple $updatedGuardSet' $children))   
-                      ;; Redundant-Constraint and 1CC strip constraints that a dominating AND
-                      ;; already asserts. An AND they strip bare adds nothing to its context and
-                      ;; is therefore TRUE -- emitted here, where the two rules just fired,
-                      ;; rather than left as a childless junctor for something later to guess at.
-                      ;; THE ONE SITE OF THE TASK'S TABLE LEFT UNCONVERTED, deliberately.
-                      ;; Redundant-Constraint and 1CC can strip this AND bare, which means it is
-                      ;; TRUE in context, so by the design it should emit TRUE here. Measured over
-                      ;; the 1159-tree differential that costs one tree dev gets right
-                      ;; (semantic 1158/1159 -> 1157/1159) and buys 80 syntactic matches
-                      ;; (1060 -> 1140). Five ways of propagating it were measured -- emit in place
-                      ;; and let the end-of-round laws carry it; absorb into the parent; report the
-                      ;; POA deleted through the existing () signal; annihilate only an OR parent;
-                      ;; annihilate only from a verified genuine parent slot -- and the four that
-                      ;; rewrite from here are IDENTICAL to each other, so the loss is intrinsic to
-                      ;; propagating from this position rather than to the mechanism: the RTE
-                      ;; walkers do not always pass a genuine parent/child pair, the same wall the
-                      ;; previous design hit at zeroConstraintSubsume'. Semantic parity is the bar,
-                      ;; so the site stays as it is. Fixing it properly wants classic's
-                      ;; Delete/Disconnect signal channel that PR #501 removed -- a larger change,
-                      ;; and the owner's call (see 9 of the task file).
-                      ;; The empty (AND) left here is unlinked by the existing placeholder cleanup,
-                      ;; which is the correct IDENTITY behaviour in an AND parent; only the
-                      ;; annihilator case in an OR parent stays unfixed at this one site.
+                      ;; DELIBERATELY still an empty (AND) rather than TRUE. Measured over the 1159-tree
+                      ;; differential, emitting TRUE here costs a semantic tree (1158 -> 1157) to buy 80
+                      ;; syntactic matches, and four ways of propagating it measure IDENTICAL -- the loss
+                      ;; is intrinsic to this position (the RTE walkers do not always pass a genuine
+                      ;; parent/child pair), not to the mechanism. The placeholder cleanup unlinks the
+                      ;; empty (AND), which is the correct identity behaviour in an AND parent. See PR #509.
                       ($updatedCurrent (cons-atom AND $updatedSubExpression))
                       ($updatedParent (findAndReplace $current $updatedCurrent $parent))
                       ($temp (oneConstraintSubsume $updatedParent $updatedCurrent $commandSet)) ;; Apply 1-Subsume.
@@ -104,16 +84,13 @@
                       ;; ($_ (println! (FinalResult ==> UpdatedParent': $updatedParent' UpdatedCurrent: $updatedCurrent' AppliedRTE: (any ($appliedRedundantOr1CC $appliedOneSubsume $bool)))))
                       ;; ($_ (cut))
                       ;; ($_ (println! (calling 0-Subsume Variation on Parent: $updatedParent' Current: $updatedCurrent')))
-                      ;; When the POA was deleted this fishes a replacement "current" out of
-                      ;; the parent's tail. A parent that is now a CONSTANT has no tail --
-                      ;; cdr-atom on a Symbol yields no solution, and that silently takes the
-                      ;; whole reduction with it -- and there is nothing left to walk anyway.
+                      ;; Fishes a replacement "current" out of the parent's tail when the POA was deleted.
+                      ;; A constant parent has no tail: cdr-atom on a Symbol yields no solution, which
+                      ;; would silently take the whole reduction with it.
                       ($childFromParent (if (isConstant $updatedParent')
                                             ()
                                             (if (== $updatedCurrent' ()) (cdr-atom $updatedParent') $updatedCurrent')))
-                      ;; car-atom over a Symbol yields NO SOLUTION, and $childFromParent is a
-                      ;; Symbol whenever the POA reduced to a constant. Pass it straight through:
-                      ;; there is no child list to pick a head off.
+                      ;; car-atom on a Symbol yields no solution: pass a constant straight through.
                       ($zeroCurrent (if (or (== $childFromParent ()) (not (== (get-metatype $childFromParent) Expression)))
                                         $childFromParent
                                         (let $h (car-atom $childFromParent)
@@ -263,11 +240,9 @@
         ($rest (if (not (== $remainingChildren ())) (cdr-atom $remainingChildren) ()))
 
 
-        ;; Every OTHER single-constraint alternative of this OR commands $firstChild, so it
-        ;; joins the command set for this child only. Bare literal alternatives live in the OR's
-        ;; literals, terminal AND alternatives in its children; localCommandSet drops $firstChild
-        ;; from both. Classic MOSES builds the same per-child set in reduce_or
-        ;; (logical_rules.cc:806).
+        ;; Every OTHER single-constraint alternative of this OR commands $firstChild, for this
+        ;; child only -- bare ones in the OR's literals, terminal ANDs in its children.
+        ;; Classic builds the same per-child set in reduce_or (logical_rules.cc:806).
         ($localCommandSet (localCommandSet $firstChild (getChildrenExp $prevCurrent) (getLiterals $prevCurrent) $commandSet))
 
         (($updatedCurrent $updatedChild $appliedRTE) (reduceToElegance $prevCurrent $firstChild $dominantSet $localCommandSet))
@@ -352,11 +327,9 @@
              ;; ($_ (println! (Parameters ==> CommandSet: $commandSet DominantSet: $dominantSet Parent: $parent PrevCurrent: $prevCurrent Bool: $bool CurrentChild: $currentChild RemainingChildren: $remainingChildren)))
              ;; ($_ (println! ""))
 
-              ;; An AND node's own guard set DOMINATES its children, it does not command them,
-              ;; so it must not enter the command set: it is already in $dominantSet, and with the
-              ;; subtraction above now negated, feeding dominant literals through it would erase a
-              ;; contradiction instead of letting deleteInconsistentHandle delete the branch.
-              ;; Classic MOSES passes the command set down unchanged here (logical_rules.cc:715).
+              ;; An AND's guard set DOMINATES its children, it does not command them: it is already
+              ;; in $dominantSet, and feeding it here would erase a contradiction instead of letting
+              ;; deleteInconsistentHandle delete the branch. (logical_rules.cc:715)
               ($localCommandSet (localCommandSet $currentChild (getChildrenExp $prevCurrent) () $commandSet)) ;; Compute local command set
               ($nextChild (if (not (== $remainingChildren ())) (car-atom $remainingChildren) ()))
               ($restChildren (if (not (== $nextChild ())) (cdr-atom $remainingChildren) ()))
@@ -487,8 +460,7 @@
 ;; (= (reduce $expr) (let ($parent $__ $applied) (reduceToElegance $expr $expr () ()) (trace! (Result: ($parent $__ $applied)) (if $applied (reduce $parent) $parent))))
 ; (: applyReduce (-> (Expression Expression Bool) (Expression Expression Bool)))
 (= (applyReduce ($parent $current $applied))
-   ;; A constant is already elegant. Re-normalising it would let addAND wrap it as
-   ;; (AND FALSE) and send it round the transformations again for no gain.
+   ;; A constant is already elegant; re-normalising would wrap it as (AND FALSE) for nothing.
    (if (isConstant $current)
        ($current $current False)
    (if (== $current (OR))
@@ -502,10 +474,8 @@
             ($gatherJunctorExpr (gatherJunctors $propNotExpr))
             ($initAdd (addAND $gatherJunctorExpr))
             ($wrappedAdd (addAND $initAdd True))
-            ;; dedupSiblings mirrors classic's equal_subtree erase loop at the top of reduce().
-            ;; It has to follow addAND, because addAND's wrapping is what creates most
-            ;; duplicates: (OR (AND B) B ...) normalises to (OR (AND B) (AND B) ...), and that
-            ;; duplicate alternative desynchronises the OR walker.
+            ;; Must follow addAND: its wrapping is what creates most duplicates, and
+            ;; (OR (AND B) B) -> (OR (AND B) (AND B)) desynchronises the OR walker.
             ($finalAdd (dedupSiblings $wrappedAdd))
             ($finalParent (findAndReplace $current $finalAdd $parent))
 
@@ -516,13 +486,9 @@
            ;; ($_ (println! (FinalAdd Result: $finalAdd)))
            ;; ($_ (println! (FinalParent: $finalParent)))
         )
-         ;; Propagate the constants this round created. A rule that detects a
-         ;; contradiction or a tautology emits FALSE/TRUE where it stands; some of those
-         ;; positions cannot collapse upward on their own, because a transformation only
-         ;; ever sees ($parent $current) and rewriting $parent would discard whatever it
-         ;; was nested inside. The laws walk the whole tree, so the enclosing context
-         ;; survives. $rteApplied is passed through untouched: the laws are cleanup, not a
-         ;; transformation that should force another round.
+         ;; Propagate the constants this round created. A transformation only ever sees
+         ;; ($parent $current), so a constant that cannot collapse upward from where it was
+         ;; emitted needs this whole-tree pass. $rteApplied passes through: this is cleanup.
          (let ($rteParent $rteCurrent $rteApplied) (reduceToElegance $finalParent $finalAdd () ())
               ((applyConstantLaws $rteParent) (applyConstantLaws $rteCurrent) $rteApplied))
          ))))

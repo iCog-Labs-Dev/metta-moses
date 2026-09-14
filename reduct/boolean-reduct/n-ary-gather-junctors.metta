@@ -36,11 +36,9 @@
 (= (addAND $expr $parent $prev)
     (case (get-metatype $expr)
         (
-            ;; isConstant joins the junctor heads in the "already a complete node" set.
-            ;; Wrapping a constant as (AND TRUE) buries it: the constant laws' annihilator
-            ;; test looks for a TRUE *child*, so a wrapped one reads as an ordinary AND
-            ;; branch and a TRUE alternative gets dropped from its OR as if it were the
-            ;; identity -- which is precisely the defect this representation exists to fix.
+            ;; A constant is already a complete node. Wrapping it as (AND TRUE) buries it:
+            ;; the annihilator test looks for a TRUE *child*, so a wrapped one reads as an
+            ;; ordinary AND branch and the alternative gets dropped as the identity.
             (Symbol (if (or (or (or (or (== AND $expr) (== OR $expr)) (== NOT $expr)) (isConstant $expr))
                             (or (== $parent AND) (== $prev AND)))
                           $expr

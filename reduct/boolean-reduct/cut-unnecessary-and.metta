@@ -14,10 +14,8 @@
 ;; Example: input: POA ==> (AND (OR (AND B D) (NOT E))), parent ==> (OR C (AND (OR (AND B D) (NOT E))))
 ;;          output: ((OR C (AND B D) (NOT E)) () True)
 ; (: andCut (-> Expression Expression (Expression Expression Bool)))
-;; A constant has no structure to transform, and the walks below assume an Expression
-;; -- map-atom over a Symbol yields NO SOLUTION AT ALL, which then propagates as a
-;; silent zero-solution failure out through reduce-to. Constants are inert in every
-;; transformation; the constant laws are what act on them.
+;; Constants are inert here: map-atom over a Symbol yields NO SOLUTION, a silent failure
+;; out through reduce-to. The constant laws are what act on them.
 (= (andCut $parent $current)
         (if (or (isConstant $parent) (isConstant $current))
             ($parent $current False)

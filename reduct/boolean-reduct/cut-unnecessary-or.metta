@@ -16,12 +16,10 @@
         (
           ((OR (NOT $x)) ((addLiterals (removeElement ($current) $parent) ((NOT $x))) () True))
           ((OR $x) (if (isConstant $x)
-                       ;; (OR TRUE) IS TRUE and (OR FALSE) IS FALSE -- a single-alternative OR is
-                       ;; its alternative -- so emit the constant in place. Falling through to the
-                       ;; Symbol arm below would splice it into the parent's LITERALS, i.e. into a
-                       ;; guard set, where invertLiterals turns it into (NOT TRUE) and
-                       ;; deleteInconsistentHandle reads that pair as a contradiction: a TRUE
-                       ;; alternative silently reduced the whole tree to false.
+                       ;; A single-alternative OR is its alternative, so emit the constant in
+                       ;; place. The Symbol arm below would splice it into a GUARD SET, where
+                       ;; invertLiterals makes (NOT TRUE) and deleteInconsistentHandle reads
+                       ;; the pair as a contradiction -- silently reducing the tree to false.
                        ((findAndReplace $current $x $parent) $x True)
                    (if (== (get-metatype $x) Symbol)
                         ((addLiterals (removeElement ($current) $parent) ($x)) () True)

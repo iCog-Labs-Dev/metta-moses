@@ -180,12 +180,10 @@
 
 (= (invertLiterals $guardSet) (map-atom $guardSet $literal (invertLiteral $literal)))
 
-;; Negates a single literal.
-;; LIVE-HEAD HAZARD: a structural head check, NOT (unify $literal (NOT $x) $x (NOT $literal)).
-;; Once scoring/boolean-ops is loaded NOT is a DEFINED head, so both the unify pattern
-;; and a bare (NOT $literal) become live calls: they yield the wrong number of solutions
-;; (two for a non-match, none for a match) and silently take the whole reduction with them.
-;; quote substitutes the binding and strips once, yielding (NOT A) as plain data.
+;; Negates a single literal. LIVE-HEAD HAZARD: a structural head check, NOT
+;; (unify $literal (NOT $x) ...) -- once boolean-ops loads, NOT is a defined head and both
+;; that and a bare (NOT $literal) become live calls with the wrong solution count.
+;; quote substitutes the binding and strips once, yielding (NOT A) as data.
 (= (invertLiteral $literal)
    (if (== (get-metatype $literal) Symbol)
        (quote (NOT $literal))
@@ -194,14 +192,11 @@
            (quote (NOT $literal)))))
 
 ;; Name:                        dedupSiblings
-;; Description:                 Erases repeated conjuncts/disjuncts everywhere in a tree.
-;;                              Classic MOSES does this at the top of reduce() with an
-;;                              equal_subtree erase loop (logical_rules.cc:600). Duplicates are
-;;                              logically idempotent, but they inflate treeComplexity and they
-;;                              hide terminal AND nodes from filterTerminalAndNode, which
-;;                              suppresses the absorptions 1-Subsume would otherwise perform.
-;; Example:                     dedupSiblings (AND B A B (NOT C)) -> (AND B A (NOT C))
-;;                              dedupSiblings (OR (AND C C) A)    -> (OR (AND C) A)
+;; Description:                 Erases repeated conjuncts/disjuncts everywhere in a tree, as
+;;                              classic does at the top of reduce() (logical_rules.cc:600).
+;;                              Duplicates inflate treeComplexity and hide terminal ANDs from
+;;                              filterTerminalAndNode, suppressing absorptions.
+;; Example:                     (AND B A B (NOT C)) -> (AND B A (NOT C))
 (= (dedupSiblings $expr)
    (if (== (get-metatype $expr) Expression)
        (if (== $expr ())
@@ -215,24 +210,14 @@
        $expr))
 
 ;; Name:                        emptiedToConstant
-;; Description:                 Reads a junctor that a rule just EMPTIED as the constant it
-;;                              is: an empty conjunction is TRUE, an empty disjunction is
-;;                              FALSE.
-;;                              $before is what the node was on the way in. A junctor that
-;;                              was ALREADY childless is a dangling placeholder from knob
-;;                              building, not a truth value, and is returned untouched --
-;;                              that guard is what makes this a DETECTION rather than a
-;;                              reading, and it is the whole reason the constants are their
-;;                              own symbols.
-;;                              It takes WHOLE NODES, never a head and a tail: some callers
-;;                              pass flat literal lists, where the first element is an
-;;                              ordinary literal and rebuilding around it would both keep a
-;;                              literal that should have been stripped and read its polarity
-;;                              off a non-junctor head.
-;; Example:                     emptiedToConstant (AND A B) (AND)  -> TRUE
-;;                              emptiedToConstant (OR X)    (OR)   -> FALSE
-;;                              emptiedToConstant (AND)     (AND)  -> (AND)  ;; placeholder
-;;                              emptiedToConstant (A B D)   (D)    -> (D)
+;; Description:                 Reads a junctor a rule just EMPTIED as its constant: an empty
+;;                              conjunction is TRUE, an empty disjunction FALSE. A junctor that was
+;;                              ALREADY childless is a dangling knob placeholder, not a truth value,
+;;                              so $before is what makes this a DETECTION rather than a reading.
+;;                              Takes WHOLE NODES, never head+tail: some callers pass flat literal
+;;                              lists whose first element is an ordinary literal.
+;; Example:                     (AND A B) (AND) -> TRUE    (AND) (AND) -> (AND)  ;; placeholder
+;;                              (OR X)    (OR)  -> FALSE   (A B D) (D) -> (D)
 (= (emptiedToConstant $before $after)
    (if (== $after (AND))
        (if (== $before (AND)) $after TRUE)
@@ -241,30 +226,22 @@
            $after)))
 
 ;; Name:                        applyConstantLaws
-;; Description:                 The identity and annihilator laws for TRUE / FALSE, stated once
-;;                              instead of scattered over the transformations -- which is where
-;;                              three of the four rows were missing, and a dropped constant was
-;;                              lost for good.
+;; Description:                 The identity and annihilator laws for TRUE/FALSE, stated once
+;;                              instead of scattered over the transformations. Classic's
+;;                              Delete/Disconnect propagation (logical_rules.cc:715, :817) with
+;;                              Delete == FALSE and Disconnect == TRUE. Bottom-up, one pass.
 ;;
-;;                                (AND ... FALSE ...) -> FALSE    false annihilates a conjunction
-;;                                (OR  ... TRUE  ...) -> TRUE     true  annihilates a disjunction
-;;                                (AND ... TRUE  ...) -> drop it  true  is the identity of AND
-;;                                (OR  ... FALSE ...) -> drop it  false is the identity of OR
+;;                                (AND ... FALSE ...) -> FALSE     (OR ... TRUE ...)  -> TRUE
+;;                                (AND ... TRUE ...)  -> drop it   (OR ... FALSE ...) -> drop it
 ;;
-;;                              This is classic's Delete/Disconnect propagation
-;;                              (logical_rules.cc:715 and :817) with Delete == FALSE and
-;;                              Disconnect == TRUE. Applied bottom-up, one pass, no fixpoint.
-;; Example:                     applyConstantLaws (AND X FALSE)  -> FALSE
-;;                              applyConstantLaws (OR X TRUE)    -> TRUE
-;;                              applyConstantLaws (AND X TRUE Y) -> (AND X Y)
-;;                              applyConstantLaws (AND TRUE)     -> TRUE
+;; Example:                     (AND X FALSE) -> FALSE   (AND X TRUE Y) -> (AND X Y)
+;;                              (OR X TRUE)   -> TRUE    (AND TRUE)     -> TRUE
 (= (applyConstantLaws $expr)
    (if (== (get-metatype $expr) Expression)
        (if (== $expr ())
            $expr
            (let ($head $rest) (decons-atom $expr)
-             ;; (NOT x) is a literal -- do not descend into it. A childless (AND)/(OR) is a
-             ;; dangling placeholder and is NOT a constant, so it is returned untouched.
+             ;; (NOT x) is a literal; a childless (AND)/(OR) is a placeholder, not a constant.
              (if (or (== $head NOT) (== $rest ()))
                  $expr
                  (let* (($kids (map-atom $rest $child (applyConstantLaws $child)))
@@ -272,9 +249,7 @@
                         ($annihilator (if (== $head AND) FALSE TRUE))
                         ($kept (filter-atom $kids $k (not (== $k $identity)))))
                    (if (== (filter-atom $kids $k (== $k $annihilator)) ())
-                       ;; Every child was the identity => the junctor IS the identity. With
-                       ;; distinct constants this has to be said; under the old encoding
-                       ;; (cons-atom AND ()) happened to already be the right answer.
+                       ;; Every child was the identity => the junctor IS the identity.
                        (if (== $kept ()) $identity (cons-atom $head $kept))
                        $annihilator)))))
        $expr))

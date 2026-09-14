@@ -84,13 +84,10 @@
             )
             (mkTree (mkNode $head) $children)
             )
-            ;; A natural True/False in the input IS a boolean constant, but as a Grounded
-            ;; atom it matches neither the Symbol nor the Expression arm of the reduct's
-            ;; classifiers: getLiterals and getChildrenExp both drop it, so it vanishes and
-            ;; (AND A False) reduces to A instead of FALSE. Normalise it to the reducer's
-            ;; own symbol here, at the one place an expression becomes a Tree. Inlined
-            ;; rather than calling isConstant: tree.metta imports nothing, so a call to
-            ;; general-helpers would compile as data whenever it is loaded first.
+            ;; A natural True/False is a constant, but as a Grounded atom it matches neither
+            ;; arm of the reduct's classifiers and gets dropped -- (AND A False) reduced to A.
+            ;; Normalise here, the one place an expression becomes a Tree. Inlined because
+            ;; tree.metta imports nothing: a call to general-helpers would compile as data.
             (mkTree (mkNode (if (== $expr True) TRUE (if (== $expr False) FALSE $expr))) ())
         )
             )
@@ -307,11 +304,9 @@
 
 (= (isArgument (mkNullVex $x)) False)
 (= (isArgument (mkTree (mkNode $x) $children))
-   ;; TRUE/FALSE are the reduct's constants, not data columns. They must carry NO
-   ;; complexity, exactly as the childless (AND)/(OR) that used to encode them did:
-   ;; treeComplexity feeds the penalised score, the cScoreExpr< tie-break, removeDominated
-   ;; and resizeMetapop, so counting a constant as an argument silently steers the search.
-   ;; Measured: it cost parity3 two of three seeds (score 0 -> -1).
+   ;; TRUE/FALSE are constants, not data columns, and must carry NO complexity: it feeds
+   ;; the penalised score, the cScoreExpr< tie-break, removeDominated and resizeMetapop, so
+   ;; counting one silently steers the search. Measured: parity3 lost two of three seeds.
    (and (not (once (is-member $x (quote (AND OR NOT PRIORITIZED-OR TRUE FALSE)))))
         (== $children ())))
 

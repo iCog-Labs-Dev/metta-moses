@@ -29,14 +29,10 @@
               ($currentHead (if (== (get-metatype $current) Expression) (car-atom $current) ()))
               (($literals $children) (getLiteralChildren $current))
               ($childrenLiteral (if (not (== $children ())) (map-atom $children $ch (getLiterals $ch)) ()))
-              ;; ONLY for an OR POA, where the literals really are alternatives: a BARE LITERAL
-              ;; alternative is an alternative like any other and its guard set is just itself.
-              ;; Intersecting only the sub-expression branches made the promotion unsound --
-              ;; (OR (AND A B) C D) promoted A and B, which do not appear in the C or D branches
-              ;; at all, rewriting (A^B) v C v D as A ^ B ^ (C v D).
-              ;; In an AND POA the same literals are CONJUNCTS, not alternatives, so they must
-              ;; stay out of the intersection: treating (AND F)'s guard set as an alternative
-              ;; set makes F "common to every branch" and promotes the node into an empty OR.
+              ;; ONLY for an OR POA, where a bare literal IS an alternative and its guard set is
+              ;; itself. Intersecting only the sub-expression branches was unsound:
+              ;; (OR (AND A B) C D) promoted A and B, absent from C and D. In an AND POA the
+              ;; same literals are CONJUNCTS and must stay out, or (AND F) makes F "common".
               ;; quote: ($lit) is a live-head tuple ((NOT B)) once boolean-ops is loaded.
               ($bareGuardSets (if (== $currentHead OR) (map-atom $literals $lit (quote ($lit))) ()))
               ($allGuardSets (concatTuple $bareGuardSets $childrenLiteral))
@@ -49,11 +45,9 @@
                       ;; (() (println! (Removing Common Literals: $common)))
                       ($updatedChildren (removeCommonLiterals $common $children))
                       ($updatedLiterals (removeElement $common $literals))
-                      ;; A branch the promotion empties is the empty conjunction, i.e. true,
-                      ;; and true in a disjunction makes the whole POA true. Now that the
-                      ;; intersection covers every alternative this needs no bare-literal
-                      ;; guard: a bare literal consumed by the promotion is itself such an
-                      ;; emptied branch, which is what (!= $updatedLiterals $literals) detects.
+                      ;; A branch the promotion empties is the empty conjunction = TRUE, which
+                      ;; makes the whole disjunction true. A consumed bare literal is one such
+                      ;; branch, which is what (!= $updatedLiterals $literals) detects.
                       ($isTautology (and (== $currentHead OR)
                                          (or (not (== $updatedLiterals $literals))
                                              (any (map-atom $updatedChildren $b (== $b TRUE))))))
@@ -95,12 +89,9 @@
 ;;          output: ((C H) (D) (C F))
 ;;          input: common ==> (A B), tuple ==> ((AND A C B H) (AND A B D))
 ;;          output: ((AND C H) TRUE)
-;; A branch the promotion strips of every constraint is the empty conjunction, i.e. TRUE,
-;; and emptiedToConstant emits that here, at the point of detection, so the caller can tell
-;; it from a branch that was a childless placeholder to begin with.
-;; The subtraction stays over the WHOLE element: $common only ever holds literals, so a
-;; junctor head survives it untouched, and the function also has to work on the flat literal
-;; lists its unit tests pass, where the first element is an ordinary literal, not a head.
+;; A branch stripped of every constraint is the empty conjunction = TRUE; emptiedToConstant
+;; emits it here so the caller can tell it from a childless placeholder. The subtraction
+;; stays over the WHOLE element: $common holds only literals, so a junctor head survives.
 (= (removeCommonLiterals $common $tuple)
    ( if (== $tuple ())
         ()

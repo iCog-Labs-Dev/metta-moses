@@ -110,18 +110,11 @@
 (= (replace $old $new $current) (if (== $old $current) $new $current))
 
 ;; Name:                        isConstant
-;; Description:                 TRUE and FALSE are the reducer's own boolean constants.
-;;                              A rule that detects a contradiction emits FALSE and one that
-;;                              detects a tautology emits TRUE, at the point of detection --
-;;                              rather than signalling it by emptying a junctor, which is
-;;                              indistinguishable from the dangling (AND)/(OR) placeholders
-;;                              that arrive from knob building.
-;;                              They must be SYMBOLS, not the grounded Bools true/false:
-;;                              (get-metatype true) is Grounded, and a grounded leaf is
-;;                              filtered straight back out of a tree by getLiterals.
-;;                              They are classified as CHILDREN, never as literals, so they
-;;                              never reach a guard set, a dominant set or a command set, and
-;;                              invertLiterals never negates one.
+;; Description:                 The reducer's boolean constants, emitted at the point a rule
+;;                              detects a contradiction or a tautology. SYMBOLS, not the grounded
+;;                              Bools: (get-metatype true) is Grounded, and getLiterals filters a
+;;                              grounded leaf straight back out. Classified as CHILDREN, never
+;;                              literals, so they never reach a guard, dominant or command set.
 (= (isConstant $exp) (or (== $exp TRUE) (== $exp FALSE)))
 
 ;; A function to replace a specific atom
@@ -131,14 +124,10 @@
 ;; Direct recursion avoids the per-element `replace` dispatch that map-atom
 ;; introduces. A/B confirmed (mux6): within noise of a native Prolog stub.
 (= (findAndReplace $old $new $list)
-   ;; The wholesale-replacement short-circuit needs subtraction-atom, which requires an
-   ;; Expression: with a Symbol $old it yields NO SOLUTION, and that propagates silently.
-   ;; A Symbol can only ever be replaced element-wise, so send it straight to the walk.
-   ;; (Reachable since the reduct gained the TRUE/FALSE constants, which are Symbols.)
-   ;; EQUALITY, not subset. subtraction-atom only tells you every element of $old also
-   ;; occurs in $list, so replacing (AND B) inside (AND (OR (AND B)) B) used to satisfy the
-   ;; test and REPLACE THE WHOLE PARENT. Harmless while $new was an empty junctor that the
-   ;; placeholder cleanup swallowed; with a real constant it silently destroys a subtree.
+   ;; EQUALITY, not subset. The old subtraction-atom test only said every element of $old
+   ;; also occurs in $list, so replacing (AND B) inside (AND (OR (AND B)) B) replaced THE
+   ;; WHOLE PARENT -- harmless while $new was a placeholder, fatal with a real constant.
+   ;; It also needs an Expression, yielding NO SOLUTION on a Symbol $old.
    (if (== $old $list)
        $new
        (farReplaceWalk $list $old $new)))
