@@ -30,7 +30,7 @@
 ; (: applyActionBasedScore (-> Representation DemeId (List Instance) Number Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
 (= (applyActionBasedScore $rep $id $instances $nTrials $complexityRatio $listOfScoredInst)
    (map-atom $instances $i
-    (let* (($actionTree (getCandidate $rep $id $i))
+    (let* (($actionTree (getCandidateHelper $i (getRepTree $rep)))
            ($cscore (getActionCscore $actionTree (mkActionCtx $nTrials) $complexityRatio &actionScoreCache)))
     (mkSInst (mkPair $i $cscore)))))
 
@@ -51,6 +51,7 @@
 ;; Two disjoint tagged contexts: (mkActionCtx ...) drives
                           ;; the action path, (mkITable ...) the boolean path.
                           ((mkActionCtx $nTrials $complexityRatio $targetScore) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
+                          ((mkActionCtx $nTrials) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
                           (($complexityRatio $nTrials) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
                           ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio)))))
           )

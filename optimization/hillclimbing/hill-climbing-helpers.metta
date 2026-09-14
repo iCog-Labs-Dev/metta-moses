@@ -622,8 +622,11 @@
         (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType) (if (== () $hyperparamsfs) (() () () () () ()) $hyperparamsfs))
 
         ;; Keep the action optimizer's internal scorer payload distinct from
-        ;; the canonical lifecycle context used by runMoses.
-        ($incrementalContext (mkActionScoreContext $iTable $rowOCoeff))
+        ;; the canonical lifecycle context used by Boolean runs.
+        ($incrementalContext
+          (case $iTable
+            (((mkITable $rows $labels) ($iTable $rowOCoeff))
+             ($other (mkActionScoreContext $iTable $rowOCoeff)))))
         ($scoreBatch
           (if (or (== $rep ()) (== $id ()))
               (transformAppendedFeatureSelection
