@@ -129,11 +129,11 @@
 ;(: getActionCscore (-> (Tree $a) ActionCtx Number $space Cscore))
 (= (getActionCscore (mkTree (mkNode and_seq) ())
                      (mkActionCtx $nTrials) $complexityRatio $scoreSpace)
-   (mkCscore (-4)
+   (mkCscore -4
              0
              $complexityRatio
              0
-             (-4)))
+             -4))
 
 (= (getActionCscore $tree (mkActionCtx $nTrials) $complexityRatio $scoreSpace)
    (let $bs (scoreActionTree $tree $nTrials $scoreSpace)

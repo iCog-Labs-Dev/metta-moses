@@ -14,7 +14,7 @@
                        ;; ($_ (println! (Complexity: $cpxy)))
                        ($cCoef (getComplexityCoef $complexityRatio))
                        ($res (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False))
-                        ;; ($_ (println! (updatePenalizedScore: $res)))
+                         ($_ (println! (updatePenalizedScore: $res)))
                     )
                     $res ))
 )
@@ -99,7 +99,9 @@
                     (mkCscore $scor $cpxy $complexityPenalty
                               $uniformityPenalty $penalizedScore)
                     $bscore)))
-   (let $_ (cut) $scor))
+   $scor)
+
+
 
 ; (: getComp (-> Cscore Number))
 (= (getComp (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $cpxy)
