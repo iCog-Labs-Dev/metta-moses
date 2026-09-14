@@ -68,7 +68,7 @@
 ;; An expression (NOT A) is considered as a symbol in the case of boolean expression.
 (= (filterChildren $exp)
         (if (== (get-metatype $exp) Symbol)
-            (if (isConstant $exp) $exp (empty))
+            (empty)
             (if (== (car-atom $exp) NOT)
                 (empty)
                 $exp)))
