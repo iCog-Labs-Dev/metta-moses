@@ -84,7 +84,14 @@
             )
             (mkTree (mkNode $head) $children)
             )
-            (mkTree (mkNode $expr) ())
+            ;; A natural True/False in the input IS a boolean constant, but as a Grounded
+            ;; atom it matches neither the Symbol nor the Expression arm of the reduct's
+            ;; classifiers: getLiterals and getChildrenExp both drop it, so it vanishes and
+            ;; (AND A False) reduces to A instead of FALSE. Normalise it to the reducer's
+            ;; own symbol here, at the one place an expression becomes a Tree. Inlined
+            ;; rather than calling isConstant: tree.metta imports nothing, so a call to
+            ;; general-helpers would compile as data whenever it is loaded first.
+            (mkTree (mkNode (if (== $expr True) TRUE (if (== $expr False) FALSE $expr))) ())
         )
             )
 
