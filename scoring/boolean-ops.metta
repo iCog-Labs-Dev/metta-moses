@@ -21,15 +21,17 @@
    (if (once (is-member $r (quote (AND OR))))
        (quote ($r ()))
        ;; The reduct's constants: a TRUE/FALSE leaf is not a column label, so emit
-       ;; the matching junctor identity instead of looking it up. (AND ()) is
-       ;; (all ()) = True and (OR ()) is (any ()) = False, so the operator clauses
-       ;; above already evaluate them -- no new evaluation logic is needed.
+       ;; the Bool itself rather than looking it up. evalSubtree short-circuits a
+       ;; Grounded leaf to a constant column (fitness.metta:175), skipping the
+       ;; &subtreeCache match and add-atom that the (AND ())/(OR ()) spelling of
+       ;; the same constant would pay per node. No quote guard is needed either:
+       ;; a Bool cannot compile as a call the way a bare (AND ...) tuple can.
        ;; One clause, not three: a separate (mkNode TRUE) clause would OVERLAP this
        ;; one and yield two solutions for the same leaf.
        (if (== $r TRUE)
-           (quote (AND ()))
+           True
            (if (== $r FALSE)
-               (quote (OR ()))
+               False
                $r))))
 (= (preOrderExp (mkKnob (mkNullVex $tree) $lsk $i)) ())
 (= (preOrderExp (mkKnob (mkTree $node $children) $lsk $i))
