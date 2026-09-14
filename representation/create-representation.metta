@@ -41,7 +41,20 @@
 ;; representations. Each element is (mkRep (mkKbMap (mkDscMp $mmp)) $tree)
 ;; -- the 1-field KnobMap shape loopCreateDeme / expandDemeHelper
 ;; destructure.
+;; A single action knob leaves hill climbing with only one replacement
+;; coordinate. Prefer a representation with at least two coordinates when
+;; randomized construction can provide one; the bounded fallback preserves
+;; valid one-knob domains.
+(= (actionRepresentationHasSearchDepth (mkRep (mkKbMap (mkDscMp $mmp)) $tree))
+   (> (MultiMap.length $mmp) 1))
+
+(= (actionRepresentationWithKnobs $tree $actions $perceptions $attempt)
+   (let  $rep (representation $tree $actions $perceptions)
+     (if (or  (actionRepresentationHasSearchDepth $rep) (>= $attempt 7))
+         $rep
+         (actionRepresentationWithKnobs $tree $actions $perceptions (+ $attempt 1)))))
+
 (= (createRepresentation $nDeme $tree $actions $perceptions)
    (let $demeNumbers (range 0 1 $nDeme)
      (map-atom $demeNumbers $x
-       (representation $tree $actions $perceptions))))
+       (actionRepresentationWithKnobs $tree $actions $perceptions 0))))
