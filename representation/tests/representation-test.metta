@@ -469,7 +469,6 @@
 ;; create-representation-action-test.metta:57-64.
 ;; Each piece is pre-bound (let*) so the multimap is walked exactly once --
 ;; using $m in two tuple slots would re-enter its lookup and multiply solutions.
-!(println! "++++======++++")
 !(assertEqual
   (let (mkRep (mkKbMap (mkDscMp $m)) (mkTree (mkNode $rootOp) $t))
        (representation (actionGameTree) (playwin playblock playcenter playcorner playside) ())
