@@ -63,5 +63,8 @@
          (let* (
                  ($demeId (List.head $demeIds))
                  ($deme (mkDeme $h (mkSInstSet ()) $demeId))
-                 ($new-acc (union-atom $acc ($deme))))
+                 ($new-acc
+                   (if (representationExpandable $h)
+                       (union-atom $acc ($deme))
+                       $acc)))
                (loopCreateDeme (List.tail $demeIds) $t $new-acc)))))
