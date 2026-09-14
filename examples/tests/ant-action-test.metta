@@ -141,7 +141,8 @@
 !(set-param hcMaxEvals 60)
 !(set-param genCount 2)
 !(assertEqual
-  (let $m (runMoses 2 89.0 (antClassicMetaPop) 0 1
-                     (mkActionCtx 1 3.5 89.0) hillClimbing)
+  (let* (( $m (runMoses 6 89.0 (antClassicMetaPop) 0 1
+                     (mkActionCtx 1 3.5 89.0) hillClimbing))
+        ($_ (println! (Final Exemplar with (getExemplarTree (OS.getByIdx 0 $m))))))
     (getScore (getExemplarCscore (OS.getByIdx 0 $m))))
   89)

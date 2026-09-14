@@ -77,11 +77,11 @@
    (mkExemplar
      (ant-exemplar)
      (mkDemeId "ant-generic")
-     (mkCscore (-4)
+     (mkCscore -4
                0
                (param complexityRatio)
                0
-               (-4))
+               -4)
      (mkBScore (List.repeat (param nTrials) -1.0))))
 
 !(assertEqual
@@ -105,7 +105,7 @@
 !(assertEqual
   (let $seed (antSeed)
     (getScore (getExemplarCscore $seed)))
-  (-4))
+  -4)
 
 !(assertEqual
   (scoreActionTree (ant-exemplar) (param nTrials) &actionScoreCache)
