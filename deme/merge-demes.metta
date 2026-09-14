@@ -140,7 +140,11 @@
     (
         ($cscore (getSInstScore $si))
         ($inst (getInst $si))
-        ($tree (getCandidate $rep $demeId $inst))
+        ($tree
+          (case $scoringContext
+            (((mkActionCtx $nTrials $complexityRatio $targetScore)
+              (getCandidateHelper $inst (getRepTree $rep)))
+             ($other (getCandidate $rep $demeId $inst)))))
         ($bscore (case $scoringContext
                     (((mkITable $rows $labels) (scoreTree $scoringContext $tree &bscoreCache))
 ;; Action arm: tagged (mkActionCtx ...) context, disjoint from
