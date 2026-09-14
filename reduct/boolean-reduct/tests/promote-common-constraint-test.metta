@@ -5,7 +5,7 @@
 
 ;; Test 01
 !(assertEqual
-    (promoteCommonConstraints (AND (OR A C (AND A B) (AND A C))) (OR A C (AND A B) (AND A C))) ((AND A (OR C (AND B) (AND C))) (OR C (AND B) (AND C)) True)
+    (promoteCommonConstraints (AND (OR A C (AND A B) (AND A C))) (OR A C (AND A B) (AND A C))) ((AND (OR A C (AND A B) (AND A C))) (OR A C (AND A B) (AND A C)) False)
 )
 
 ;; Test 02
@@ -23,7 +23,7 @@
 ;; Test 04
 !(assertEqual
     (promoteCommonConstraints (AND (OR J (AND J K) (AND J L) (AND J M))) (OR J (AND J K) (AND J L) (AND J M)))
-    ((AND J (OR (AND K) (AND L) (AND M))) (OR (AND K) (AND L) (AND M)) True)
+    ((AND J) () True)
 )
 
 ;; Test 05
@@ -35,7 +35,7 @@
 ;; Test 06
 !(assertEqual
     (promoteCommonConstraints (AND (OR (NOT N) (AND (NOT N) O) (AND (NOT N) P) (AND (NOT N) Q))) (OR (NOT N) (AND (NOT N) O) (AND (NOT N) P) (AND (NOT N) Q)))
-    ((AND (NOT N) (OR (AND O) (AND P) (AND Q))) (OR (AND O) (AND P) (AND Q)) True)
+    ((AND (NOT N)) () True)
 )
 
 ;; Test 07: Test case from Holman paper page #39

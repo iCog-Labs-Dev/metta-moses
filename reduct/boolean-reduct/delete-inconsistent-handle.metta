@@ -15,7 +15,11 @@
 ;; Example: input: POA ==> (AND (NOT A) (OR B C)), dominantSet ==> (A), parent ==> (OR B (AND (NOT A) (OR B C)))
 ;;        : output: ((OR B) () True)
 ;; (: deleteInconsistentHandle (-> Expression Expression Expression (Expression Expression Bool)))
+;; Constants are inert here: map-atom over a Symbol yields NO SOLUTION, a silent failure
+;; out through reduce-to. The constant laws are what act on them.
 (= (deleteInconsistentHandle $parent $current $dominantSet)
+    (if (or (isConstant $parent) (isConstant $current))
+        ($parent $current False)
     (let*
         (
           ($guardSet     (getGuardSet $current))
@@ -26,17 +30,25 @@
           ;; the applyDeleteIncons* walkers can pass a sibling as $parent, where
           ;; removing the POA is a no-op -- only a real conjunct can be annihilated
           ($isConjunct   (and (== $parentHead AND) (!= $withoutPOA $parent)))
+          ;; A FALSE alternative just leaves, but if it was the LAST one the OR itself is
+          ;; FALSE and this is the only place that knows it -- emit here, or it reads as a
+          ;; dangling placeholder further up and gets deleted.
+          ($withoutPOA'  (if (and (== $parentHead OR) (== $withoutPOA (OR)))
+                             FALSE
+                             $withoutPOA))
           ; ($_ (println! (===Inside DeleteInconsistentHandle===)))
           ; ($_ (println! (Parameters ==> Parent: $parent Current: $current DominantSet: $dominantSet)))
           ; ($_ (println! (GuardSet : $guardSet : HandleSet : $handleSet : IsConsistent : $isConsistent)))
         )
         (if $isConsistent
               ($parent $current False)
+              ;; The POA's handle set is inconsistent, so the POA is FALSE -- and as a genuine
+              ;; conjunct, or at the root, that annihilates the whole node.
               (if (or (== $parent $current) $isConjunct)
-                  ((OR) () True)
-                  ($withoutPOA () True)
+                  (FALSE () True)
+                  ($withoutPOA' () True)
               ))
-    )
+    ))
 )
 
 

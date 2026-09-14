@@ -20,7 +20,15 @@
 (= (preOrderExp (mkTree (mkNode $r) ()))
    (if (once (is-member $r (quote (AND OR))))
        (quote ($r ()))
-       $r))
+       ;; A TRUE/FALSE leaf is not a column label: emit the Bool, which evalSubtree
+       ;; short-circuits to a constant column (fitness.metta:175) with no &subtreeCache
+       ;; traffic, and which needs no quote guard. One clause, not three: a separate
+       ;; (mkNode TRUE) clause would OVERLAP this one and give two solutions per leaf.
+       (if (== $r TRUE)
+           True
+           (if (== $r FALSE)
+               False
+               $r))))
 (= (preOrderExp (mkKnob (mkNullVex $tree) $lsk $i)) ())
 (= (preOrderExp (mkKnob (mkTree $node $children) $lsk $i))
    (preOrderExp (mkTree $node $children)))

@@ -83,9 +83,9 @@
                    (mkTree (mkNode AND)
                       (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ()))
                       (cons (mkTree (mkNode B) ()) ()))))
-!(assertEqual (cleanTree (buildTree (AND (OR A B) (NOT A) (NOT B)))) (buildTree (AND (NOT A) (NOT B))))
-!(assertEqual (cleanTree (buildTree (AND A B (NOT A)))) (buildTree (OR))) ;; a contradiction is false, i.e. the empty OR
-!(assertEqual (cleanTree (buildTree (OR (AND A B (NOT A) B)))) (buildTree (AND)))
+!(assertEqual (cleanTree (buildTree (AND (OR A B) (NOT A) (NOT B)))) (buildTree FALSE))
+!(assertEqual (cleanTree (buildTree (AND A B (NOT A)))) (buildTree FALSE)) ;; a contradiction is false
+!(assertEqual (cleanTree (buildTree (OR (AND A B (NOT A) B)))) (buildTree FALSE))
 !(assertEqual (cleanTree (buildTree (OR A (AND B C)))) (buildTree (AND (OR A (AND B C)))))
 !(assertEqual (cleanTree (buildTree (OR A B C D))) (buildTree (AND (OR A B C D))))
 

@@ -3,14 +3,14 @@
 ;; 'AND' and 'OR' are not considered as a literal.
 (= (filterLiterals $exp)
         (if (== (get-metatype $exp) Symbol)
-            (if (or (== $exp AND) (== $exp OR)) (empty) $exp)
+            (if (or (or (== $exp AND) (== $exp OR)) (isConstant $exp)) (empty) $exp)
             (if (== (car-atom $exp) NOT)
                 $exp
                 (empty))))
 
 (= (isLiterals $exp)
    (if (== (get-metatype $exp) Symbol)
-       (not (or (== $exp AND) (== $exp OR)))
+       (not (or (or (== $exp AND) (== $exp OR)) (isConstant $exp)))
        (== (car-atom $exp) NOT)))
 
 ;; A function that takes an expression and returns it's guard sets
@@ -21,13 +21,15 @@
 ;; deep-normalizes the returned guard set, firing scoring/boolean-ops'
 ;; AND/OR/NOT clauses on the (NOT x) literals inside it.
 (= (getGuardSet $exp)
+   (if (isConstant $exp)
+       ()
    (if (== (get-metatype $exp) Expression)
        (if (== $exp ())
            $exp
            (if (== (car-atom $exp) OR)
                ()
                (getLiterals $exp)))
-       $exp)
+       $exp))
 )
 
 
@@ -73,7 +75,7 @@
 
 (= (isChildren $exp)
         (if (== (get-metatype $exp) Symbol)
-            False
+            (isConstant $exp)
             (not (== (car-atom $exp) NOT))))
 
 ;; A function to return children of a given expression.
@@ -121,7 +123,9 @@
        (
          (() $exp)
          ((NOT $x) $exp)
-         ($else (if (== (get-metatype $exp) Expression) (filter-atom $exp isLiterals) $exp)))))
+         ($else (if (isConstant $exp)
+                    ()
+                    (if (== (get-metatype $exp) Expression) (filter-atom $exp isLiterals) $exp))))))
 
 ;; A function similar to getLiterals function but returns a
 ;;    non deterministic list instead of a collapsed atom.
@@ -133,7 +137,9 @@
        (
          (() $exp)
          ((NOT $x) $exp)
-         ($else (if (== (get-metatype $exp) Expression) (filterLiterals (superpose $exp)) $exp)))))
+         ($else (if (isConstant $exp)
+                    (empty)
+                    (if (== (get-metatype $exp) Expression) (filterLiterals (superpose $exp)) $exp))))))
 
 ;;A function that will return both literals (Also called guard sets for AND nodes)
 ;;  and the children as a tuple ((...literals...), (...children...))
@@ -165,3 +171,85 @@
                 ($first (car-atom $nestedTuple))
                 ($tail (cdr-atom $nestedTuple)))
               (findCommonLiterals $first $tail)))))))
+
+;; Name:                        invertLiterals
+;; Description:                 A helper function that negates all literals in a literal only expression.
+;;                              Used when finding a negated literal of the POA in the guardset of the commanding AND node.
+;; Example:                     invertLiterals (A B) -> ((NOT A) (NOT B))
+;;                              invertLiterals (A (NOT B)) -> ((NOT A) B)
+
+(= (invertLiterals $guardSet) (map-atom $guardSet $literal (invertLiteral $literal)))
+
+;; Negates a single literal. LIVE-HEAD HAZARD: a structural head check, NOT
+;; (unify $literal (NOT $x) ...) -- once boolean-ops loads, NOT is a defined head and both
+;; that and a bare (NOT $literal) become live calls with the wrong solution count.
+;; quote substitutes the binding and strips once, yielding (NOT A) as data.
+(= (invertLiteral $literal)
+   (if (== (get-metatype $literal) Symbol)
+       (quote (NOT $literal))
+       (if (== (car-atom $literal) NOT)
+           (car-atom (cdr-atom $literal))
+           (quote (NOT $literal)))))
+
+;; Name:                        dedupSiblings
+;; Description:                 Erases repeated conjuncts/disjuncts everywhere in a tree, as
+;;                              classic does at the top of reduce() (logical_rules.cc:600).
+;;                              Duplicates inflate treeComplexity and hide terminal ANDs from
+;;                              filterTerminalAndNode, suppressing absorptions.
+;; Example:                     (AND B A B (NOT C)) -> (AND B A (NOT C))
+(= (dedupSiblings $expr)
+   (if (== (get-metatype $expr) Expression)
+       (if (== $expr ())
+           $expr
+           (let ($head $rest) (decons-atom $expr)
+             ;; (NOT x) is a literal, not a junctor -- leave its single child alone.
+             (if (== $head NOT)
+                 $expr
+                 (let $deduped (map-atom $rest $child (dedupSiblings $child))
+                      (cons-atom $head (unique-atom $deduped))))))
+       $expr))
+
+;; Name:                        emptiedToConstant
+;; Description:                 Reads a junctor a rule just EMPTIED as its constant: an empty
+;;                              conjunction is TRUE, an empty disjunction FALSE. A junctor that was
+;;                              ALREADY childless is a dangling knob placeholder, not a truth value,
+;;                              so $before is what makes this a DETECTION rather than a reading.
+;;                              Takes WHOLE NODES, never head+tail: some callers pass flat literal
+;;                              lists whose first element is an ordinary literal.
+;; Example:                     (AND A B) (AND) -> TRUE    (AND) (AND) -> (AND)  ;; placeholder
+;;                              (OR X)    (OR)  -> FALSE   (A B D) (D) -> (D)
+(= (emptiedToConstant $before $after)
+   (if (== $after (AND))
+       (if (== $before (AND)) $after TRUE)
+       (if (== $after (OR))
+           (if (== $before (OR)) $after FALSE)
+           $after)))
+
+;; Name:                        applyConstantLaws
+;; Description:                 The identity and annihilator laws for TRUE/FALSE, stated once
+;;                              instead of scattered over the transformations. Classic's
+;;                              Delete/Disconnect propagation (logical_rules.cc:715, :817) with
+;;                              Delete == FALSE and Disconnect == TRUE. Bottom-up, one pass.
+;;
+;;                                (AND ... FALSE ...) -> FALSE     (OR ... TRUE ...)  -> TRUE
+;;                                (AND ... TRUE ...)  -> drop it   (OR ... FALSE ...) -> drop it
+;;
+;; Example:                     (AND X FALSE) -> FALSE   (AND X TRUE Y) -> (AND X Y)
+;;                              (OR X TRUE)   -> TRUE    (AND TRUE)     -> TRUE
+(= (applyConstantLaws $expr)
+   (if (== (get-metatype $expr) Expression)
+       (if (== $expr ())
+           $expr
+           (let ($head $rest) (decons-atom $expr)
+             ;; (NOT x) is a literal; a childless (AND)/(OR) is a placeholder, not a constant.
+             (if (or (== $head NOT) (== $rest ()))
+                 $expr
+                 (let* (($kids (map-atom $rest $child (applyConstantLaws $child)))
+                        ($identity    (if (== $head AND) TRUE FALSE))
+                        ($annihilator (if (== $head AND) FALSE TRUE))
+                        ($kept (filter-atom $kids $k (not (== $k $identity)))))
+                   (if (== (filter-atom $kids $k (== $k $annihilator)) ())
+                       ;; Every child was the identity => the junctor IS the identity.
+                       (if (== $kept ()) $identity (cons-atom $head $kept))
+                       $annihilator)))))
+       $expr))

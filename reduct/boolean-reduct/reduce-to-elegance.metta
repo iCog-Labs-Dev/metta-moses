@@ -45,14 +45,22 @@
                       ;; TODO: Replace the setDifference function with non deterministic functions
                       ($updatedGuardSet (setDifference $guardSet $dominantSet)) ;; Apply Redundant to current
                       ;; TODO: Replace this 1CCS application with the correct logic in it's own function.
-                      ($updatedGuardSet' (setDifference $updatedGuardSet $commandSet)) ;; Apply 1-Constraint-Complement-Subtraction
+                      ;; Subtract the NEGATED command set: 1CC erases literals whose negation is commanded.
+                      ;; Raw subtraction does 1-Subsume's job instead, and leaves the guard set disjoint
+                      ;; from the command set so oneConstraintSubsume can never fire. (logical_rules.cc:642)
+                      ($updatedGuardSet' (setDifference $updatedGuardSet (invertLiterals $commandSet))) ;; Apply 1-Constraint-Complement-Subtraction
                       ($appliedRedundantOr1CC (or (not (== $updatedGuardSet $guardSet)) (not (== $updatedGuardSet' $updatedGuardSet)))) ;; Storing this state to return boolean indicating RTE is applied or not.
 
                       
                       ($updatedSubExpression (concatTuple $updatedGuardSet' $children))   
+                      ;; DELIBERATELY still an empty (AND) rather than TRUE. Measured over the 1159-tree
+                      ;; differential, emitting TRUE here costs a semantic tree (1158 -> 1157) to buy 80
+                      ;; syntactic matches, and four ways of propagating it measure IDENTICAL -- the loss
+                      ;; is intrinsic to this position (the RTE walkers do not always pass a genuine
+                      ;; parent/child pair), not to the mechanism. The placeholder cleanup unlinks the
+                      ;; empty (AND), which is the correct identity behaviour in an AND parent. See PR #509.
                       ($updatedCurrent (cons-atom AND $updatedSubExpression))
                       ($updatedParent (findAndReplace $current $updatedCurrent $parent))
-                      ; ((($oneSubsumeParent $oneSubsumeCurrent $appliedOneSubsume)) (oneConstraintSubsume $updatedParent $updatedCurrent $commandSet)) ;; Apply 1-Subsume.
                       ($temp (oneConstraintSubsume $updatedParent $updatedCurrent $commandSet)) ;; Apply 1-Subsume.
                       ;($_ (println! (Result: $temp)))
                       (($oneSubsumeParent $oneSubsumeCurrent $appliedOneSubsume) $temp)
@@ -76,8 +84,17 @@
                       ;; ($_ (println! (FinalResult ==> UpdatedParent': $updatedParent' UpdatedCurrent: $updatedCurrent' AppliedRTE: (any ($appliedRedundantOr1CC $appliedOneSubsume $bool)))))
                       ;; ($_ (cut))
                       ;; ($_ (println! (calling 0-Subsume Variation on Parent: $updatedParent' Current: $updatedCurrent')))
-                      ($childFromParent (if (== $updatedCurrent' ()) (cdr-atom $updatedParent') $updatedCurrent'))
-                      ($zeroCurrent (let $h (if (!= $childFromParent ()) (car-atom $childFromParent) ()) (if (== (get-metatype $h) Expression) $h $childFromParent)))
+                      ;; Fishes a replacement "current" out of the parent's tail when the POA was deleted.
+                      ;; A constant parent has no tail: cdr-atom on a Symbol yields no solution, which
+                      ;; would silently take the whole reduction with it.
+                      ($childFromParent (if (isConstant $updatedParent')
+                                            ()
+                                            (if (== $updatedCurrent' ()) (cdr-atom $updatedParent') $updatedCurrent')))
+                      ;; car-atom on a Symbol yields no solution: pass a constant straight through.
+                      ($zeroCurrent (if (or (== $childFromParent ()) (not (== (get-metatype $childFromParent) Expression)))
+                                        $childFromParent
+                                        (let $h (car-atom $childFromParent)
+                                             (if (== (get-metatype $h) Expression) $h $childFromParent))))
                       ;; ($_ (println! (zeroCurrent: $current --> $zeroCurrent)))
                       (($finalParent $finalCurrent $finalBool) (zeroConstraintSubsume' $updatedParent' $zeroCurrent)) ;; Apply 0-Subsume variation.
                       ($finalCurrent' (if (== $finalCurrent ()) (AND) $finalCurrent))
@@ -223,7 +240,12 @@
         ($rest (if (not (== $remainingChildren ())) (cdr-atom $remainingChildren) ()))
 
 
-        (($updatedCurrent $updatedChild $appliedRTE) (reduceToElegance $prevCurrent $firstChild $dominantSet $commandSet))
+        ;; Every OTHER single-constraint alternative of this OR commands $firstChild, for this
+        ;; child only -- bare ones in the OR's literals, terminal ANDs in its children.
+        ;; Classic builds the same per-child set in reduce_or (logical_rules.cc:806).
+        ($localCommandSet (localCommandSet $firstChild (getChildrenExp $prevCurrent) (getLiterals $prevCurrent) $commandSet))
+
+        (($updatedCurrent $updatedChild $appliedRTE) (reduceToElegance $prevCurrent $firstChild $dominantSet $localCommandSet))
         ($updatedParent (findAndReplace $prevCurrent $updatedCurrent $parent))
 
         ($updatedChildren (getChildrenExp $updatedCurrent))
@@ -305,7 +327,10 @@
              ;; ($_ (println! (Parameters ==> CommandSet: $commandSet DominantSet: $dominantSet Parent: $parent PrevCurrent: $prevCurrent Bool: $bool CurrentChild: $currentChild RemainingChildren: $remainingChildren)))
              ;; ($_ (println! ""))
 
-              ($localCommandSet (localCommandSet $currentChild (getChildrenExp $prevCurrent) (getGuardSet $prevCurrent) $commandSet)) ;; Compute local command set
+              ;; An AND's guard set DOMINATES its children, it does not command them: it is already
+              ;; in $dominantSet, and feeding it here would erase a contradiction instead of letting
+              ;; deleteInconsistentHandle delete the branch. (logical_rules.cc:715)
+              ($localCommandSet (localCommandSet $currentChild (getChildrenExp $prevCurrent) () $commandSet)) ;; Compute local command set
               ($nextChild (if (not (== $remainingChildren ())) (car-atom $remainingChildren) ()))
               ($restChildren (if (not (== $nextChild ())) (cdr-atom $remainingChildren) ()))
 
@@ -435,9 +460,9 @@
 ;; (= (reduce $expr) (let ($parent $__ $applied) (reduceToElegance $expr $expr () ()) (trace! (Result: ($parent $__ $applied)) (if $applied (reduce $parent) $parent))))
 ; (: applyReduce (-> (Expression Expression Bool) (Expression Expression Bool)))
 (= (applyReduce ($parent $current $applied))
-   ;; The empty OR is false and already elegant. Re-normalising it lets addAND
-   ;; rebuild (AND (OR)), where the dangling-junctor cleanup deletes the false as
-   ;; if it were one of the empty placeholders that arrive from knob building.
+   ;; A constant is already elegant; re-normalising would wrap it as (AND FALSE) for nothing.
+   (if (isConstant $current)
+       ($current $current False)
    (if (== $current (OR))
        ((OR) (OR) False)
    (let*
@@ -448,7 +473,10 @@
             ($propNotExpr (propagateNot $current))
             ($gatherJunctorExpr (gatherJunctors $propNotExpr))
             ($initAdd (addAND $gatherJunctorExpr))
-            ($finalAdd (addAND $initAdd True))
+            ($wrappedAdd (addAND $initAdd True))
+            ;; Must follow addAND: its wrapping is what creates most duplicates, and
+            ;; (OR (AND B) B) -> (OR (AND B) (AND B)) desynchronises the OR walker.
+            ($finalAdd (dedupSiblings $wrappedAdd))
             ($finalParent (findAndReplace $current $finalAdd $parent))
 
            ;; ($_ (println! (==== ApplyReduce Log ====)))
@@ -458,8 +486,12 @@
            ;; ($_ (println! (FinalAdd Result: $finalAdd)))
            ;; ($_ (println! (FinalParent: $finalParent)))
         )
-         (reduceToElegance $finalParent $finalAdd () ())
-         )))
+         ;; Propagate the constants this round created. A transformation only ever sees
+         ;; ($parent $current), so a constant that cannot collapse upward from where it was
+         ;; emitted needs this whole-tree pass. $rteApplied passes through: this is cleanup.
+         (let ($rteParent $rteCurrent $rteApplied) (reduceToElegance $finalParent $finalAdd () ())
+              ((applyConstantLaws $rteParent) (applyConstantLaws $rteCurrent) $rteApplied))
+         ))))
 
 (= (removeAndNodesFromGuards $expr)
    (if (== (get-metatype $expr) Symbol)

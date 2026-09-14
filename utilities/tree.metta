@@ -84,7 +84,11 @@
             )
             (mkTree (mkNode $head) $children)
             )
-            (mkTree (mkNode $expr) ())
+            ;; A natural True/False is a constant, but as a Grounded atom it matches neither
+            ;; arm of the reduct's classifiers and gets dropped -- (AND A False) reduced to A.
+            ;; Normalise here, the one place an expression becomes a Tree. Inlined because
+            ;; tree.metta imports nothing: a call to general-helpers would compile as data.
+            (mkTree (mkNode (if (== $expr True) TRUE (if (== $expr False) FALSE $expr))) ())
         )
             )
 
@@ -300,7 +304,11 @@
 
 (= (isArgument (mkNullVex $x)) False)
 (= (isArgument (mkTree (mkNode $x) $children))
-   (and (not (once (is-member $x (quote (AND OR NOT PRIORITIZED-OR))))) (== $children ())))
+   ;; TRUE/FALSE are constants, not data columns, and must carry NO complexity: it feeds
+   ;; the penalised score, the cScoreExpr< tie-break, removeDominated and resizeMetapop, so
+   ;; counting one silently steers the search. Measured: parity3 lost two of three seeds.
+   (and (not (once (is-member $x (quote (AND OR NOT PRIORITIZED-OR TRUE FALSE)))))
+        (== $children ())))
 
 ;; A function to calculate the complexity of a tree.
 ;;  The complexity of a tree is the number of arguments it contains.

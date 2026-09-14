@@ -36,7 +36,10 @@
 (= (addAND $expr $parent $prev)
     (case (get-metatype $expr)
         (
-            (Symbol (if (or (or (or (== AND $expr) (== OR $expr)) (== NOT $expr))
+            ;; A constant is already a complete node. Wrapping it as (AND TRUE) buries it:
+            ;; the annihilator test looks for a TRUE *child*, so a wrapped one reads as an
+            ;; ordinary AND branch and the alternative gets dropped as the identity.
+            (Symbol (if (or (or (or (or (== AND $expr) (== OR $expr)) (== NOT $expr)) (isConstant $expr))
                             (or (== $parent AND) (== $prev AND)))
                           $expr
                           (AND $expr)
