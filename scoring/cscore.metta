@@ -14,7 +14,7 @@
                        ;; ($_ (println! (Complexity: $cpxy)))
                        ($cCoef (getComplexityCoef $complexityRatio))
                        ($res (updatePenalizedScore (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))  False))
-                         ($_ (println! (updatePenalizedScore: $res)))
+                       ;; ($_ (println! (updatePenalizedScore: $res)))
                     )
                     $res ))
 )
