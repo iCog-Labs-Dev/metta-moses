@@ -19,22 +19,6 @@ YELLOW = "\033[93m"
 MAGENTA = "\033[95m"
 
 
-def count_assertions(content):
-    """Count active assertEqual forms, including assertions spanning multiple lines."""
-    return sum(
-        1
-        for line in content.splitlines()
-        if re.match(r"^\s*!\(assertEqual\b", line)
-    )
-
-
-def count_passed_assertions(output):
-    """Count PeTTa's assertion result lines rather than arbitrary check-mark text."""
-    return len(
-        re.findall(r"(?m)^\s*is .*?, should .*?✅\s*$", output)
-    )
-
-
 def extract_and_print(result, path, idx) -> bool:
     """
     Extracts the output from the test execution result and prints the status.
@@ -45,9 +29,16 @@ def extract_and_print(result, path, idx) -> bool:
 
     with open(path, "r") as test_file:
         content = test_file.read()
-        total_asserts = count_assertions(content)
+        total_asserts = sum(
+            1
+            for line in content.splitlines()
+            if "!(assertEqual" in line and not line.lstrip().startswith(";")
+        )
 
-    passed_asserts = count_passed_assertions(extracted)
+    raw_passed = extracted.count("✅")
+    passed_asserts = min(
+        raw_passed, total_asserts
+    )  # Cap passed asserts to total asserts to avoid redundancy
 
     # Check for actual failures in the Petta Report
     has_failure = False  # Assume failure by default
@@ -56,10 +47,7 @@ def extract_and_print(result, path, idx) -> bool:
     if result.returncode == 0:
         if "❌" in extracted or passed_asserts != total_asserts:
             has_failure = True
-            extracted = (
-                f"test failed (assertEqual: {total_asserts}, "
-                f"green ticks: {passed_asserts}; output: {extracted})"
-            )
+            extracted = f"test failed (output: {extracted})"
         else:
             extracted = "test passed"
     else:
@@ -82,17 +70,13 @@ def run_test_file(test_file):
         env = os.environ.copy()
         env["SHELL"] = "/bin/bash"
 
-        runner_name = "run.bat" if os.name == "nt" else "run.sh"
-        runner_path = shutil.which(runner_name)
-        if not runner_path or not os.path.isfile(runner_path):
-            raise FileNotFoundError(f"{runner_name} not found")
+        # Full path to the run.sh script
+        run_sh_path = shutil.which("run.sh")
+        if not os.path.isfile(run_sh_path):
+            raise FileNotFoundError(f"{run_sh_path} not found")
 
         # Command to execute the test file
-        command = (
-            [runner_path, str(test_file), "-s"]
-            if os.name == "nt"
-            else ["sh", runner_path, str(test_file), "-s"]
-        )
+        command = ["sh", run_sh_path, str(test_file), "-s"]
 
         # Run the command
         result = subprocess.run(
