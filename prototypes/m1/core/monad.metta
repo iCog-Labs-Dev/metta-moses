@@ -49,7 +49,7 @@
 ;; PeTTa's state is a global variable (metta.pl:232 -- nb_setval/nb_getval).
 ;; The initial value is never read: evalProgram sets the cell before anything
 ;; looks at it.
-!(bind! &ctx (new-state ()))
+!(bind! &ctx (new-state ())) ;; TODO: This one place definition of context might have an issue for scoreing. We need to constantly reset it to make sure multiple scoring being done doesn't influence it. If we are planning to do a parallel execution of action candidates in parallel, that might make this kind of a problem because we need to have a lot of context's we need to keep in mind?
 
 ;; MonadState:  get :: m s   /   put :: s -> m ()
 (= (getCtx)      (get-state &ctx))

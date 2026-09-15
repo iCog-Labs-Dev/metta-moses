@@ -90,7 +90,7 @@
 (= (evalNode $op $children)
    (if (isPrimitive $op)
        (let* (($world   (getCtx))
-              ($call    (quote ($op $children $world)))
+              ($call    (quote ($op $children $world))) ;; TODO: Check ctx type of the operator before passing a ctx.
               ($results (collapse (once (let (mkRes $value $after) (reduce $call)
                                              (mkRes $value $after))))))
          (if (== $results ())
