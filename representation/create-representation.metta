@@ -17,7 +17,13 @@
 ;; The eighth arg to `representation` is `$disable-discprobe`, so we negate
 ;; the user-facing `discProbe` knob (True == enabled) when forwarding.
 (= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
-    (let ((mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree)) (representation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType (not (param discProbe))) ((mkRep (mkKbMap (mkDscMp $dscKbMp)) $updatedTree))))
+   ;; `representation` already returns the complete list selected for this
+   ;; expansion. Pattern-binding one `mkRep` here turned that list into a
+   ;; superposition of singleton lists, causing the outer search to execute one
+   ;; branch per representation instead of sharing one budget across all demes.
+   (representation $nDeme $tree (mkITable $table $labels) $algo
+                   $prune-exemplar $enforced-fts $scorerType
+                   (not (param discProbe))))
 
 ;; Action representation (4 parameters): the experiment's action/perception
 ;; vocabularies arrive as ARGUMENTS -- arity alone routes here (the boolean
@@ -35,8 +41,20 @@
 ;; representations. Each element is (mkRep (mkKbMap (mkDscMp $mmp)) $tree)
 ;; -- the 1-field KnobMap shape loopCreateDeme / expandDemeHelper
 ;; destructure.
+;; A single action knob leaves hill climbing with only one replacement
+;; coordinate. Prefer a representation with at least two coordinates when
+;; randomized construction can provide one; the bounded fallback preserves
+;; valid one-knob domains.
+(= (actionRepresentationHasSearchDepth (mkRep (mkKbMap (mkDscMp $mmp)) $tree))
+   (> (MultiMap.length $mmp) 1))
+
+(= (actionRepresentationWithKnobs $tree $actions $perceptions $attempt)
+   (let  $rep (representation $tree $actions $perceptions)
+     (if (or  (actionRepresentationHasSearchDepth $rep) (>= $attempt 7))
+         $rep
+         (actionRepresentationWithKnobs $tree $actions $perceptions (+ $attempt 1)))))
+
 (= (createRepresentation $nDeme $tree $actions $perceptions)
    (let $demeNumbers (range 0 1 $nDeme)
      (map-atom $demeNumbers $x
-       (let ($rep) (representation $tree $actions $perceptions)
-         $rep))))
+       (actionRepresentationWithKnobs $tree $actions $perceptions 0))))

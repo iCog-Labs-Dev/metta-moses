@@ -18,6 +18,19 @@
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 
+!(import! &self ../../reduct/action-reduct/action-vocab)
+!(import! &self ../../reduct/action-reduct/action-helpers)
+!(import! &self ../../reduct/action-reduct/action-properties)
+!(import! &self ../../reduct/action-reduct/reduce-action-if)
+!(import! &self ../../reduct/action-reduct/reduce-action-action-if)
+!(import! &self ../../reduct/action-reduct/reduce-const-action-seq)
+!(import! &self ../../reduct/action-reduct/reduce-action-not)
+!(import! &self ../../reduct/action-reduct/reduce-action-while)
+!(import! &self ../../reduct/action-reduct/reduce-seq-result)
+!(import! &self ../../reduct/action-reduct/reduce-null-vertices)
+!(import! &self ../../reduct/action-reduct/reduce-action-properties)
+!(import! &self ../../reduct/action-reduct/action-reduction)
+
 !(import! &self ../../utilities/tree) 
 
 !(import! &self ../../scoring/action-registry)
@@ -51,6 +64,64 @@
 !(import! &self ../../feature-selection/feature-selection-main)
 
 !(import! &self ../../representation/representation)
+
+;; Embedded LSK and ASK candidate reconstruction is the canonical path for
+;; discrete-knob materialization.
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (0))
+      (mkKnob (mkTree (mkNode A) ())
+              (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
+              0))
+  ())
+
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (1))
+      (mkKnob (mkTree (mkNode A) ())
+              (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
+              0))
+  (mkTree (mkNode A) ()))
+
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (2))
+      (mkKnob (mkTree (mkNode A) ())
+              (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
+              0))
+  (mkTree (mkNode NOT) ((mkTree (mkNode A) ()))))
+
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (1))
+      (mkKnob (mkNullVex ((mkTree (mkNode D) ())))
+              (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ((mkDiscSpec 1))))
+              0))
+  (mkTree (mkNode NOT) ((mkTree (mkNode D) ()))))
+
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (1))
+      (mkTree (mkNode and_seq)
+        ((mkKnob (mkNullVex ((mkTree (mkNode move_forward) ()) (mkTree (mkNode turn_left) ())))
+                 (mkASK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
+                        ((mkTree (mkNode move_forward) ()) (mkTree (mkNode turn_left) ())))
+                 0))))
+  (mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ()))))
+
+!(assertEqual
+  (let*
+    (
+      (($actionControlled $actionAsk) (actionSubtreeKnob ((mkTree (mkNode turn_left) ()))))
+      (($simpleControlled $simpleAsk)
+        (simpleActionSubtreeKnob
+          (mkTree (mkNode and_seq)
+            ((mkKnob $actionControlled $actionAsk 1)))))
+    )
+    (getCandidateHelper
+      (mkInst (1 1))
+      (mkKnob $simpleControlled $simpleAsk 0)))
+  (mkTree (mkNode and_seq) ((mkTree (mkNode turn_left) ()))))
 
 
 (= (tree1)
@@ -399,12 +470,10 @@
 ;; Each piece is pre-bound (let*) so the multimap is walked exactly once --
 ;; using $m in two tuple slots would re-enter its lookup and multiply solutions.
 !(assertEqual
-  (let ($rep) (representation (actionGameTree) (playwin playblock playcenter playcorner playside) ())
-    (let* (
-        ((mkRep (mkKbMap (mkDscMp $m)) $t) $rep)
-        ((mkTree (mkNode $rootOp) $rootChildren) $t)
-        ($len (MultiMap.length $m))
-        ($allAsk (all (map-atom (MultiMap.values $m) $v (isMkASK $v))))
-      )
-      ((> $len 0) $rootOp (not (== $t (actionGameTree))) $allAsk)))
-  (True and_seq True True))
+  (let (mkRep (mkKbMap (mkDscMp $m)) (mkTree (mkNode $rootOp) $t))
+       (representation (actionGameTree) (playwin playblock playcenter playcorner playside) ())
+    (and (> (MultiMap.length $m) 0)
+         (and (== $rootOp and_seq)
+              (and (not (== $t (actionGameTree)))
+                   (all (map-atom (MultiMap.values $m) $v (isMkASK $v)))))))
+  True)

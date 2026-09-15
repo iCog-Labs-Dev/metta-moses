@@ -13,7 +13,9 @@
 
 (= (randint $max) (py-call (random.randint 0 $max)))
 
-(= (isDomainAction $op $actions) (is-member $op $actions))
+;; Domain-membership predicates must return one Boolean, not is-member's
+;; comparison-by-comparison alternatives.
+(= (isDomainAction $op $actions) (once (is-member $op $actions)))
 
 (= (sampleActionPerms $actions $perceptions)
    (if (== $perceptions ())

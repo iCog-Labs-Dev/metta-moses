@@ -33,7 +33,7 @@ the command line, and runs MOSES. You just point PeTTa at it:
 ```
 
 That's a complete run — solve the 3-bit parity problem with default
-settings (20 generations, 1 deme, hill-climbing optimizer, no feature
+settings (50 generations, 1 deme, hill-climbing optimizer, no feature
 selection).
 
 ### hyperparameters
@@ -57,10 +57,14 @@ A few common ones:
     --optAlgo=hc \             # optimizer (currently only hc; sa / univariate are stubs)
     --capCoef=80 \             # metapopulation cap coefficient
     --complexityRatio=2.5 \    # complexity/fitness trade-off
-    --hcMaxEvals=20000         # per-iteration hill-climbing eval budget
+    --maxEvals=20000           # total actual new scorer-call budget
 ```
 
 Flags can appear in any order; unrecognized ones are ignored.
+The neutral `maxDist`, `minXoverNeighbors`, `revisit`,
+`discardDominated`, and `diagnostics` settings configure the same search
+pipeline for Boolean and action problems. `steps` is an evaluator horizon for
+stateful action domains and is harmlessly unused by Boolean scorers.
 
 If you run `./PeTTa/run.sh moses.metta -s` with **no** `--problem` (or
 without an in-script `(set-param problem …)`), MOSES prints the help and

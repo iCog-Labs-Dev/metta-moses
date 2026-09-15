@@ -113,37 +113,10 @@
 	                                    ($dscKbMp (mkDscMp $dscMp)))        ;; MULITPLE args selected using the feature selection
 	                                 (mkRep (mkKbMap $dscKbMp) $updatedTree)))))
 
-(= (representation
-            $nDeme
-            $exemplar
-            (mkITable $table $labels)
-            $ft-selection-algo
-            $prune-exemplar
-            $enforced-fts
-            $scorerType
-            $actions
-            $perceptions
-         )
-         (representation $nDeme $exemplar (mkITable $table $labels) $ft-selection-algo $prune-exemplar $enforced-fts $scorerType True $actions $perceptions))
-
-(= (representation
-            $nDeme
-            $exemplar
-            (mkITable $table $labels)
-            $ft-selection-algo
-            $prune-exemplar
-            $enforced-fts
-            $scorerType
-            $disable-discprobe
-            $actions
-            $perceptions
-         )
-         (representation $exemplar $actions $perceptions))
-
-;; Lean action overload (3-ary; the game clause is 2-ary, boolean 8-ary):
+;; Lean action overload (3-ary; the boolean overloads are 8-ary):
 ;; an episodic representation needs exactly the exemplar and the two
 ;; vocabularies. The table/feature-selection/discprobe slots of the wider
-;; overloads above exist only for signature compatibility -- buildKnobs'
+;; overloads exist only for signature compatibility -- buildKnobs'
 ;; action path never consults them -- so they are not parameters here at
 ;; all rather than hardcoded placeholders.
 (= (representation $exemplar $actions $perceptions)
@@ -152,13 +125,26 @@
                   ($_ (resetState &knobCount))
                   ($dscKbMp (mkDscMp $dscMp))
                )
-               ((mkRep (mkKbMap $dscKbMp) $updatedTree))))
+               (mkRep (mkKbMap $dscKbMp) $updatedTree)))
 
 ;; Helper function to extract tree from representation
 (= (getRepTree (mkRep $knobMapObj $tree)) $tree)
 
-;; Universal getCandidate that works for both boolean and action domains
-;; Uses preOrder+buildTree to unwrap mkNullVex for actions, cleanTree for boolean
+;; Universal getCandidate that works for both boolean and action domains.
+;; Candidate finalization keeps strategy trees untouched. Action programs use
+;; static action reduction; all other candidates use boolean reduction.
+(= (candidateRootSymbol $tree)
+   (let $rootValue (getNodeValue $tree)
+      (if (== (get-metatype $rootValue) Expression)
+          (car-atom (cdr-atom $rootValue))
+          $rootValue)))
+
+(= (finalizeCandidateTree $rootSymbol $candidate)
+   (if (isActionOperator $rootSymbol)
+       (cleanActionTree $candidate)
+       (cleanTree $candidate)))
+
+;; Universal getCandidate that works for boolean and action trees.
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
 ;; TODO: This should be removed when the game tree has been fixed to match the boolean.
 (= (getCandidate $srcid $repObj $id $inst)
@@ -176,17 +162,8 @@
                       ($candidate (getCandidateRec $repObj $inst $parentid $srcid $parentid (mkNullVex ())))
                       ;; ($_ (println! (Found candidate: (preOrder $candidate))))
                       ($rootNode (getNodeById (getRepTree $repObj) $srcid))
-                      ($rootValue (getNodeValue $rootNode))
-	                      ($rootSymbol (if (== (get-metatype $rootValue) Expression)
-		                              (car-atom (cdr-atom $rootValue))
-		                              $rootValue))
-		                      ($isActionDomain (isActionOperator $rootSymbol))
-		                      ($finalTree (if $isActionDomain
-		                                      (let* (
-		                                              ($expr (preOrder $candidate))
-	                                              ($cleanTree (buildTree $expr)))
-                                            $cleanTree)
-                                      (cleanTree $candidate)))
+                      ($rootSymbol (candidateRootSymbol $rootNode))
+                      ($finalTree (finalizeCandidateTree $rootSymbol $candidate))
 
                       ($_ (add-atom &treeSpace ($id $inst $finalTree)))
                       ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
@@ -211,17 +188,8 @@
                       ($candidate (getCandidateHelper $inst $tr))
                       ;; ($_ (println! (Found candidate: (preOrder $candidate))))
                       ($rootNode (getRepTree $repObj))
-                      ($rootValue (getNodeValue $rootNode))
-	                      ($rootSymbol (if (== (get-metatype $rootValue) Expression)
-		                              (car-atom (cdr-atom $rootValue))
-		                              $rootValue))
-		                      ($isActionDomain (isActionOperator $rootSymbol))
-		                      ($finalTree (if $isActionDomain
-		                                      (let* (
-		                                              ($expr (preOrder $candidate))
-	                                              ($cleanTree (buildTree $expr)))
-                                            $cleanTree)
-                                      (cleanTree $candidate)))
+                      ($rootSymbol (candidateRootSymbol $rootNode))
+                      ($finalTree (finalizeCandidateTree $rootSymbol $candidate))
 
                       ($_ (add-atom &treeSpace ($id $inst $finalTree)))
                       ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
