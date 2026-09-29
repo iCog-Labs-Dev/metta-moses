@@ -40,7 +40,7 @@
 
 ;; 4-arity entry point should keep the same logical behavior with explicit disc-probe control.
 !(assertEqual (let* (
-    (($updatedTree $MMap) (buildKnobs (tree1) () (A B) True))
+    (($updatedTree $MMap) (buildKnobs (tree1) () (A B) True (quote (AND))))
     ($treeChanged (not (== $updatedTree (tree1))))
     ($hasKnobs (> (MultiMap.length $MMap) 0))
 )
@@ -60,26 +60,26 @@
 (= (cwTree) (mkTree (mkNode canwin) ()))
 (= (tttActs) (playwin playblock playcenter playcorner playside))
 
-;; (a) A non-and_seq structural root (or_seq) is canonized: the root becomes
+; (a) A non-and_seq structural root (or_seq) is canonized: the root becomes
 ;; and_seq and the original or_seq subtree is preserved as child (1). Only the
 ;; structure is pinned -- or_seq children are not recursed and the root-knob
 ;; insertion is probabilistic, so the knob count is left unpinned.
 !(assertEqual
-  (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode or_seq) ((pwTree))) () () (tttActs) ())
+  (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode or_seq) ((pwTree))) () () (tttActs) () ())
     ((getNodeValue (getNodeById $updatedTree (mkNodeId (0))))
      (getNodeById $updatedTree (mkNodeId (1)))))
   ((mkNode and_seq) (mkTree (mkNode or_seq) ((pwTree)))))
 
 ;; (b) Multi-child twin: the original or_seq subtree is still child (1).
 !(assertEqual
-  (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode or_seq) ((pcTree) (pcrTree))) () () (tttActs) ())
+  (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode or_seq) ((pcTree) (pcrTree))) () () (tttActs) () ())
     (getNodeById $updatedTree (mkNodeId (1))))
   (mkTree (mkNode or_seq) ((pcTree) (pcrTree))))
 
 ;; (c) A bare domain-action root is canonized to and_seq and registers knobs
 ;; (branch-robust: every branch adds at least one knob).
 !(assertEqual
-  (let ($updatedTree $mmp) (buildKnobs (pwTree) () () (tttActs) ())
+  (let ($updatedTree $mmp) (buildKnobs (pwTree) () () (tttActs) () ())
     (and (== (getNodeValue (getNodeById $updatedTree (mkNodeId (0)))) (mkNode and_seq))
          (> (MultiMap.length $mmp) 0)))
   True)
@@ -89,7 +89,7 @@
 ;; branch knobs and the outer and_seq contributes at least one more.
 !(assertEqual
   (let ($updatedTree $mmp)
-       (buildKnobs (mkTree (mkNode and_seq) ((pcTree) (mkTree (mkNode action_bool_if) ((cwTree) (pwTree) (pbTree))))) () () (tttActs) ())
+       (buildKnobs (mkTree (mkNode and_seq) ((pcTree) (mkTree (mkNode action_bool_if) ((cwTree) (pwTree) (pbTree))))) () () (tttActs) () ())
     (>= (MultiMap.length $mmp) 3))
   True)
 
@@ -104,7 +104,7 @@
 
 ;; 5-arity entry point should dispatch action operators to buildAction.
 !(assertEqual (let* (
-    (($updatedTree $MMap) (buildKnobs (simpleActionTree) () () (move_forward turn_left) (A B)))
+    (($updatedTree $MMap) (buildKnobs (simpleActionTree) () () (move_forward turn_left) (A B) ()))
     ($hasKnobs (> (MultiMap.length $MMap) 0))
 )
 $hasKnobs
@@ -118,7 +118,7 @@ $hasKnobs
 
 ;; action_bool_if should still create action-selection knobs.
 !(assertEqual (let* (
-    (($updatedTree $MMap) (buildKnobs (actionIfTree) () () (move_forward turn_left) (ahead_blocked A B)))
+    (($updatedTree $MMap) (buildKnobs (actionIfTree) () () (move_forward turn_left) (ahead_blocked A B) ()))
     ($hasKnobs (> (MultiMap.length $MMap) 0))
 )
 $hasKnobs
@@ -126,7 +126,7 @@ $hasKnobs
 
 ;; Degenerate one-action domains should still get simple action knobs.
 !(assertEqual (let* (
-    (($updatedTree $MMap) (buildKnobs (simpleActionTree) () () (move_forward) (ahead_blocked A B)))
+    (($updatedTree $MMap) (buildKnobs (simpleActionTree) () () (move_forward) (ahead_blocked A B) ()))
     ($hasKnobs (> (MultiMap.length $MMap) 0))
 )
 $hasKnobs
@@ -152,7 +152,7 @@ $hasKnobs
 
 ;; Multiple custom action leaves should register at least one action knob.
 !(assertEqual (let* (
-    (($updatedTree $MMap) (buildKnobs (customLeafActionTree) () () (actions) (perceptions)))
+    (($updatedTree $MMap) (buildKnobs (customLeafActionTree) () () (actions) (perceptions) ()))
     ($hasKnobs (> (MultiMap.length $MMap) 0))
 )
 $hasKnobs
@@ -169,8 +169,10 @@ $hasKnobs
 
 ;; Custom action trees with conditionals should go through the full action path.
 !(assertEqual (let* (
-    (($updatedTree $MMap) (buildKnobs (myActionTree) () () (actions) (perceptions)))
+    (($updatedTree $MMap) (buildKnobs (myActionTree) () () (actions) (perceptions) ()))
     ($hasKnobs (> (MultiMap.length $MMap) 0))
 )
 $hasKnobs
 ) True)
+
+; ;  run-test build-knobs-test.metta -s

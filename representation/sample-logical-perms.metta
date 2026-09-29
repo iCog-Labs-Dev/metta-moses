@@ -53,22 +53,41 @@
                 (cons-atom ($x $y $z) (tripletWith $x $rest $tail))
                 (tripletWith $x $rest $tail)))))
 
+
+;; Generate a logical candidate unless its operator is ignored.
+(= (makeLogicalCandidate $op $a $b $ignoreOps)
+      (if (operatorAllowed $op $ignoreOps)
+          (cons-atom $op (cons-atom $a (cons-atom $b ())))
+          ()))
+
+
+(= (makeLogicalNotCandidate $op $a $b $ignoreOps)
+      (if (and
+             (operatorAllowed $op $ignoreOps)
+             (operatorAllowed NOT $ignoreOps))
+          (cons-atom $op (cons-atom (cons-atom NOT (cons-atom $a ())) (cons-atom $b ())))
+          ()))
+
 ;; getArgs -> generate logical expressions for the picked permutation indices
 ;; Parameters:
 ;;          $swapedOp -> swaped operator
 ;;          $n -> number of argument labels (index space {0 .. $n-1})
 ;;          $picked -> list of picked idxs
 ;; (: getArgs (-> Atom Number Expression Expression Expression))
-(= (getArgs $swapedOp $n $picked $argLabels)
-    (map-atom $picked $i
-        (let* ((($a $b) (pairAt $n $i))
-               ($1 (index-atom $argLabels $a))
-               ($2 (index-atom $argLabels $b)))
-            ;; quote: these perms are data; var-headed ($swapedOp ...) would
-            ;; meta-call and the literal (NOT $1) would fire boolean-ops' NOT
-            (if (< $b $a)
-                (quote ($swapedOp $2 $1))
-                (quote ($swapedOp (NOT $1) $2))))))
+(= (getArgs $op $n $picked $argLabels $ignoreOps)
+    (filter-atom
+        (map-atom $picked $i
+            (let*
+                (
+                    (($a $b) (pairAt $n $i))
+                    ($1 (index-atom $argLabels $a))
+                    ($2 (index-atom $argLabels $b))
+                )
+                (if (< $b $a)
+                    (makeLogicalCandidate $op $2 $1 $ignoreOps)
+                    (makeLogicalNotCandidate $op $1 $2 $ignoreOps))))
+        $perm
+        (!= $perm ())))
 
 ;; sampleLogicalPerms -> generate logical permutations for boolean expressions
 ;; Parameters:
@@ -77,12 +96,15 @@
 ;; Returns:
 ;;          Union of $perms (the list of logical expressions generated) with args
 ;; (: sampleLogicalPerms (-> Atom Number Expression Expression))
-(= (sampleLogicalPerms $op $arity $argLabels)
+(= (sampleLogicalPerms $op $arity $argLabels $ignoreOps)
     (let* (($swapedOp (swapAndOr $op))
            ($nPairs $arity)) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
         (if (<= $nPairs 1)
-            (let $arg (car-atom $argLabels) (quote ($arg (NOT $arg))))  ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage; quote keeps (NOT ...) as data now that scoring/boolean-ops registers a NOT clause
+            (let $arg (car-atom $argLabels)
+                     (if (operatorAllowed NOT $ignoreOps)
+                         (quote ($arg (NOT $arg)))
+                         (cons-atom $arg ()))) ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage;; Preserve the argument even when NOT is ignored.
             (let* (($upperbound (- (* $arity (- $arity 1)) 1))
                    ($picked (lazyRandomSelector 0 $upperbound $nPairs))
-                   ($perms (getArgs $swapedOp $arity $picked $argLabels)))
+                   ($perms (getArgs $swapedOp $arity $picked $argLabels $ignoreOps)))
                (concatT $argLabels $perms)))))

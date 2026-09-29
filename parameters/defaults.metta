@@ -94,6 +94,9 @@
 
 !(add-atom &params (domainFile ""))
 
+;; Operators excluded from candidate generation.
+;; Existing exemplar operators are preserved.
+!(add-atom &params (ignoreOps ()))
 
 ;; ---- Algorithm selection ----
 ;; optAlgo: which deme-local optimizer to dispatch to inside runMoses.

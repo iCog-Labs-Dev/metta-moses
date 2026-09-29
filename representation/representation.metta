@@ -104,7 +104,7 @@
                            (let* (
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (" done buildknobs (:) ")))            ;; BUILD representations on 
-                                    (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels $disable-discprobe))            ;; BUILD representations on
+                                    (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels $disable-discprobe (param ignoreOps)))            ;; BUILD representations on
                                     ($_ (resetState &knobCount))
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
@@ -148,7 +148,7 @@
 ;; all rather than hardcoded placeholders.
 (= (representation $exemplar $actions $perceptions)
          (let* (
-                  (($updatedTree $dscMp) (buildKnobs $exemplar () () $actions $perceptions))
+                  (($updatedTree $dscMp) (buildKnobs $exemplar () () $actions $perceptions (param ignoreOps)))
                   ($_ (resetState &knobCount))
                   ($dscKbMp (mkDscMp $dscMp))
                )

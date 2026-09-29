@@ -111,9 +111,9 @@
     (let*
       (
         ($exemplar (mkTree (mkNode AND) ((mkTree (mkNode A) ()))))
-        (($unprobedTree $unprobedMap) (buildKnobs $exemplar () (A B) True))
+        (($unprobedTree $unprobedMap) (buildKnobs $exemplar () (A B) True ()))
         ($_ (resetState &knobCount))
-        (($probedTree $probedMap) (buildKnobs $exemplar () (A B) False))
+        (($probedTree $probedMap) (buildKnobs $exemplar () (A B) False ()))
       )
       (< (MultiMap.length $probedMap) (MultiMap.length $unprobedMap)))
     True)

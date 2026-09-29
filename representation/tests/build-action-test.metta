@@ -40,17 +40,17 @@
 
 ;; Action permutation sampling keeps the base action domain.
 !(assertEqual
-  (let $perms (sampleActionPerms (move_forward turn_left) (A B))
+  (let $perms (sampleActionPerms (move_forward turn_left) (A B) ())
     (and (is-member move_forward $perms)
          (is-member turn_left $perms)))
   True)
 
 !(assertEqual
-  (sampleActionPerms (move_forward) (A B))
+  (sampleActionPerms (move_forward) (A B) ())
   (move_forward))
 
 !(assertEqual
-  (sampleActionPerms (move_forward turn_left) ())
+  (sampleActionPerms (move_forward turn_left) () ())
   (move_forward turn_left))
 
 ;; Embedded ASK constructors retain their defaults.
@@ -126,7 +126,7 @@
 !(assertEqual
   (let*
     (
-      (($subtree $mmp) (addActionKnobs (mkTree (mkNode and_seq) ()) True () (move_forward turn_left) ()))
+      (($subtree $mmp) (addActionKnobs (mkTree (mkNode and_seq) ()) True () (move_forward turn_left) () ()))
       ($ask (car-atom (MultiMap.values $mmp)))
       ((mkASK $discKnob $perms) $ask)
       ($embedded (getNodeById $subtree (mkNodeId (1))))
@@ -162,7 +162,7 @@
 !(assertEqual
   (let*
     (
-      (($updatedSubtree $mmp) (addActionKnobs (mkTree (mkNode and_seq) ()) True () (move_forward turn_left) ()))
+      (($updatedSubtree $mmp) (addActionKnobs (mkTree (mkNode and_seq) ()) True () (move_forward turn_left) () ()))
       ($rep (mkRep (mkKbMap (mkDscMp $mmp)) $updatedSubtree))
       ($absent (getCandidate $rep ActionCandidateAbsent (mkInst (0))))
       ($move (getCandidate $rep ActionCandidateMove (mkInst (1))))
@@ -199,7 +199,7 @@
                      (cons (mkTree (mkNode A) ())
                      (cons (moveTree)
                      (cons (turnTree) ())))))
-         (($updatedSubtree $mmp) (buildAction $origSubtree () (move_forward turn_left) (A B)))
+         (($updatedSubtree $mmp) (buildAction $origSubtree () (move_forward turn_left) (A B) ()))
          ($perception (getNodeById $updatedSubtree (mkNodeId (1)))))
     (and (== $perception (mkTree (mkNode A) ()))
          (let*
@@ -222,14 +222,14 @@
 ;; and_seq follows the C++ probabilistic path and produces knobs with this seed.
 !(assertEqual
   (let* (($origTree (mkTree (mkNode and_seq) (cons (moveTree) ())))
-         (($updatedTree $mmp) (buildAction $origTree () (move_forward turn_left) (A B)))
+         (($updatedTree $mmp) (buildAction $origTree () (move_forward turn_left) (A B) ()))
         )
     (and (> (MultiMap.length $mmp) 0)
          (not (== $updatedTree $origTree))))
   True)
 
 !(assertEqual
-  (let ($updatedTree $mmp) (buildAction (mkTree (mkNode and_seq) ()) () (move_forward turn_left) (A B))
+  (let ($updatedTree $mmp) (buildAction (mkTree (mkNode and_seq) ()) () (move_forward turn_left) (A B) ())
     (> (MultiMap.length $mmp) 0))
   True)
   
@@ -237,7 +237,7 @@
 !(assertEqual
   (let*
     (
-      (($tree $mmp) (buildAction (mkTree (mkNode and_seq) (cons (mkTree (mkNode move_forward) ()) ())) () (move_forward turn_left) ()))
+      (($tree $mmp) (buildAction (mkTree (mkNode and_seq) (cons (mkTree (mkNode move_forward) ()) ())) () (move_forward turn_left) () ()))
     )
     (and
       (not (== $tree ()))
@@ -245,7 +245,7 @@
   True)
 ;; buildKnobs dispatches action roots (and_seq and other structural roots)
 !(assertEqual
-  (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) () () (move_forward turn_left) (A B))
+  (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) () () (move_forward turn_left) (A B) ())
     (> (MultiMap.length $mmp) 0))
   True)
 
@@ -257,7 +257,7 @@
                   (cons (mkTree (mkNode playcenter) ())
                   (cons (mkTree (mkNode playcorner) ())
                   (cons (mkTree (mkNode playblock) ()) ())))))
-         (($updatedTree $mmp) (buildKnobs $tree () () (playcenter playcorner playblock) ())))
+         (($updatedTree $mmp) (buildKnobs $tree () () (playcenter playcorner playblock) () ())))
     ((getNodeValue (getNodeById $updatedTree (mkNodeId (0))))
      (getNodeById $updatedTree (mkNodeId (1)))))
   ((mkNode and_seq)

@@ -1307,3 +1307,8 @@
 
 ;; Reset a state monad to zero.
 (= (resetState $state) (change-state! $state 0))
+
+;; Return True when an operator is not in ignoreOps.
+;; Existing operators are preserved.
+(= (operatorAllowed $op $ignoreOps)
+    (not (once (is-member $op $ignoreOps))))
