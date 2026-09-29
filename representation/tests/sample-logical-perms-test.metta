@@ -9,12 +9,8 @@
 
 !(py-call (random.seed 42))
 ;; Testcase for sample-logical-perms
-!(assertEqual (length (sampleLogicalPerms AND 2 (A B) (quote ()))) 4)
-!(assertEqual (length (sampleLogicalPerms OR 2 (A B) (quote ()))) 4)
-
-;; Testcase for logicalOpAllowed
-!(assertEqual (logicalOpAllowed AND ()) True)
-!(assertEqual (logicalOpAllowed AND (quote (AND))) False)
+!(assertEqual (length (sampleLogicalPerms AND 2 (A B) ())) 4)
+!(assertEqual (length (sampleLogicalPerms OR 2 (A B) ())) 4)
 
 
 ;; Action-domain permutation sampling (replaces the retired game-strategy

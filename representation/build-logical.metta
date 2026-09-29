@@ -109,7 +109,7 @@
             (($lastUpdatedTree $lastMp1) 
                    (if (operatorAllowed (swapAndOr $node) $ignoreOps)
                        (addLogicalKnobsFast (mkTree (mkNode (swapAndOr $node)) ()) True $updatedMMap $argLabels $disable-discprobe $globalTree $currentNodeId $ignoreOps)
-                       (() $updatedMMap)))
+                       ((mkTree (mkNode $node) (reverse $updatedChildren)) $updatedMMap)))
              ;; ($_ (println! (BulidLogical 4)))
            )
            ((mkTree (mkNode $node) (append (reverse $updatedChildren) ($lastUpdatedTree))) $lastMp1))
