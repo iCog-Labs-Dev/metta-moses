@@ -50,6 +50,9 @@
 !(assertEqual (flattenAssoc or_seq (A (or_seq B C) D)) (A B C D))
 !(assertEqual (flattenAssoc exec_seq (A (exec_seq B C) D)) (A B C D))
 !(assertEqual (flattenAssoc and_seq (A (and_seq B (and_seq C D)))) (A B C D))
+!(assertEqual (flattenAssoc and_seq (A (or_seq B C) (and_seq D E))) (A (or_seq B C) D E))
+!(assertEqual (flattenAssoc and_seq ((exec_seq X Y) A (and_seq B (and_seq C)))) ((exec_seq X Y) A B C))
+!(assertEqual (flattenAssoc and_seq (A (or_seq B C) (and_seq move_forward turn_right))) (A (or_seq B C) move_forward turn_right))
 
 ;; ============================================================================
 ;; pruneAndSeqArgs: remove action_success, truncate at action_failure

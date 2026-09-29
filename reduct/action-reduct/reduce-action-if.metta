@@ -17,13 +17,11 @@
 ;;   action_bool_if(C     A A) -> A       ; both branches equal: condition is irrelevant
 
 (= (reduceActionIf $expr)
-   (unify $expr (action_bool_if $cond $thenBranch $elseBranch)
-     (if (== $cond True)
-         $thenBranch
-         (if (== $cond False)
-             $elseBranch
-             (if (== $thenBranch $elseBranch) $thenBranch $expr)))
-     $expr))
+   (case $expr
+     (((action_bool_if True $thenBranch $elseBranch) $thenBranch)
+      ((action_bool_if False $thenBranch $elseBranch) $elseBranch)
+      ((action_bool_if $cond $thenBranch $thenBranch) $thenBranch)
+      ($else $expr))))
 ;; reduceConstCondActionIf (C++ reduce_const_cond_action_if, Rule 3):
 ;; Folds X_action_if expressions whose condition is a *constant action result*.
 ;; Applies to action_action_if, bool_action_if, and contin_action_if (all three
@@ -35,11 +33,10 @@
 ;; T in {action, bool, contin} — the output type of the conditional (not the condition).
 
 (= (reduceConstCondActionIf $expr)
-   (unify $expr ($ifOp action_failure $thenBranch $elseBranch)
-     (if (isActionResultIfOp $ifOp) $elseBranch $expr)
-      (unify $expr ($ifOp action_success $thenBranch $elseBranch)
-         (if (isActionResultIfOp $ifOp) $thenBranch $expr)
-         $expr)))
+   (case $expr
+     ((($ifOp action_success $thenBranch $elseBranch) (if (isActionResultIfOp $ifOp) $thenBranch $expr))
+      (($ifOp action_failure $thenBranch $elseBranch) (if (isActionResultIfOp $ifOp) $elseBranch $expr))
+      ($else $expr))))
 
 ;; reduceNotCondActionBoolIf (C++ reduce_not_cond_action_boolean_if):
 ;; Normalises the condition of action_bool_if by pushing a leading NOT inside:

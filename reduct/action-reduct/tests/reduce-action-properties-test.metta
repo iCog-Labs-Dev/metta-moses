@@ -15,8 +15,8 @@
 ;; ============================================================================
 
 !(assertEqual
-  (reduceIdempotent (exec_seq dummy_idempotent_action dummy_idempotent_action dummy_idempotent_action))
-  (exec_seq dummy_idempotent_action))
+  (reduceIdempotent (exec_seq move_forward dummy_idempotent_action dummy_idempotent_action dummy_idempotent_action))
+  (exec_seq move_forward dummy_idempotent_action))
 
 ;; ============================================================================
 ;; reduceAdditive: merge adjacent additive actions by summing arguments
@@ -30,6 +30,16 @@
 !(assertEqual
   (reduceAdditive (and_seq (dummy_additive_action 2 left) (dummy_additive_action 3 right)))
   (and_seq (dummy_additive_action 2 left) (dummy_additive_action 3 right)))
+
+;; An intervening action (move_forward) prevents merging across boundaries,
+!(assertEqual
+  (reduceAdditive (exec_seq (dummy_additive_action 2 same) move_forward (dummy_additive_action 3 same)))
+  (exec_seq (dummy_additive_action 2 same) move_forward (dummy_additive_action 3 same)))
+
+;; while preserving the exact order of surrounding prefix and suffix actions.
+!(assertEqual
+  (reduceAdditive (and_seq turn_left (dummy_additive_action 4 target) (dummy_additive_action 6 target) turn_right))
+  (and_seq turn_left (dummy_additive_action 10 target) turn_right))
 
 ;; ============================================================================
 ;; reduceZeroNeutral: zero-valued neutral argument → action_success
