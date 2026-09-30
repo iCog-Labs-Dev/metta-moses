@@ -31,23 +31,20 @@
            (let ($op $args) (decons $expr)
              (case $op
                ((action_not
-                 (let* (($child (car-atom $args))
-                        ($r (getActionResult $child)))
-                   (if (== $r True)
-                       False
-                       (if (== $r False) True Unknown))))
+                 (case (getActionResult (car-atom $args))
+                   ((True False)
+                    (False True)
+                    ($else Unknown))))
                 (and_seq (getActionResultAnd $args))
                 (or_seq  (getActionResultOr $args))
                 (exec_seq True)
                 (action_while False)
                 (action_action_if
-                 (let* (($cond (car-atom $args))
-                        ($br1 (car-atom (cdr-atom $args)))
-                        ($br2 (car-atom (cdr-atom (cdr-atom $args))))
-                        ($cRes (getActionResult $cond)))
-                   (if (== $cRes True)
-                        (getActionResult $br1)
-                        (if (== $cRes False) (getActionResult $br2) Unknown))))
+                 (let ($cond $br1 $br2) $args
+                   (case (getActionResult $cond)
+                     ((True  (getActionResult $br1))
+                      (False (getActionResult $br2))
+                      ($else Unknown)))))
                 ($else Unknown)))))
        (case $expr
          ((action_success True)
@@ -199,12 +196,11 @@
 ;;   branches unchanged because they occur after the condition has executed.
 ;; ---------------------------------------------------------------------------
 
-(= (substituteSeqInit $expr $op $args $cond $sub)
+(= (substituteSeqInit $op $args $cond $sub)
    (if (== $args ())
-       $expr
-       (let* ((($h $t) (decons $args))
-              ($newH (substituteCondInitInstant $h $cond $sub)))
-         (cons-atom $op (cons-atom $newH $t)))))
+       ($op)
+       (let ($h $t) (decons $args)
+         (cons-atom $op (cons-atom (substituteCondInitInstant $h $cond $sub) $t)))))
 
 (= (substituteCondInitInstant $expr $cond $sub)
    (if (== $expr $cond)
@@ -212,22 +208,18 @@
        (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
            (let ($op $args) (decons $expr)
              (case $op
-                ((and_seq (substituteSeqInit $expr and_seq $args $cond $sub))
-                 (or_seq (substituteSeqInit $expr or_seq $args $cond $sub))
-                 (exec_seq (substituteSeqInit $expr exec_seq $args $cond $sub))
+                ((and_seq (substituteSeqInit and_seq $args $cond $sub))
+                 (or_seq (substituteSeqInit or_seq $args $cond $sub))
+                 (exec_seq (substituteSeqInit exec_seq $args $cond $sub))
                  (action_bool_if
-                  (let* (($c (car-atom $args))
-                         ($b1 (car-atom (cdr-atom $args)))
-                         ($b2 (car-atom (cdr-atom (cdr-atom $args)))))
-                    (action_bool_if (substituteCondInitInstant $c $cond $sub)
-                                    (substituteCondInitInstant $b1 $cond $sub)
-                                    (substituteCondInitInstant $b2 $cond $sub))))
-                 (action_action_if
-                  (let* (($c (car-atom $args))
-                         ($b1 (car-atom (cdr-atom $args)))
-                         ($b2 (car-atom (cdr-atom (cdr-atom $args)))))
-                    (action_action_if (substituteCondInitInstant $c $cond $sub)
-                                      $b1
-                                      $b2)))
+                 (let ($c $b1 $b2) $args
+                   (action_bool_if (substituteCondInitInstant $c $cond $sub)
+                                   (substituteCondInitInstant $b1 $cond $sub)
+                                   (substituteCondInitInstant $b2 $cond $sub))))
+                (action_action_if
+                 (let ($c $b1 $b2) $args
+                   (action_action_if (substituteCondInitInstant $c $cond $sub)
+                                     $b1
+                                     $b2)))
                  ($else $expr))))
             $expr)))
