@@ -497,6 +497,7 @@
 
 ;; take first N elements of a list
 (: take (-> Number Atom Atom))
+;;(: take (-> Number Atom %Undefined%)) ; '%Undefined%' return type required: in PeTTa, 'Atom' output quotes/skips body reduction
 (= (take $n ()) ())
 (= (take $n (cons $h $t))
    (if (<= $n 0)
@@ -1196,6 +1197,7 @@
    (assert (=alpha $A $B)))
 
 (: unify (-> Expression Expression Expression Expression %Undefined%))
+;;(: unify (-> Atom Atom Atom Atom %Undefined%)) ; Mirrored from PeTTa(lattest version as of Aug 25 2026) lib_he: 'Atom' avoids failed type guards on non-expression arguments, but was not compatible with the docker image PeTTa used for workflow.
 (= (unify $space $pattern $then $else)
    (if (is-space $space)
        (let $temp (cut)
