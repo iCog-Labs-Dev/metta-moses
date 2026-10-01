@@ -44,7 +44,7 @@
 (= (resetCandidateScoreCache)
    (let $entries
         (collapse (match &candidateScoreCache $entry $entry))
-     (removeCandidateScoreEntries $entries)))
+     (map-atom $entries $e (remove-atom &subtreeCache $e))))
 
 ;; Empty the subtree cache. A run scores ONE fixed table, and every entry is
 ;; valid only for that table -- call this before scoring against a DIFFERENT
