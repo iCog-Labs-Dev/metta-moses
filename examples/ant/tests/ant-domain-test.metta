@@ -13,6 +13,7 @@
 !(import! &self ../../../scoring/cscore)
 !(import! &self ../../../scoring/action-registry)
 !(import! &self ../../../scoring/action-eval)
+!(import! &self ../../../scoring/action-ops)
 !(import! &self ../../../scoring/action-score)
 !(import! &self ../../../reduct/action-reduct/action-vocab)
 !(import! &self ../../../reduct/action-reduct/action-helpers)
@@ -52,7 +53,7 @@
 
 !(assertEqual
   (scoreActionTree (antFollowerTree) (param nTrials) &actionScoreCache)
-  (mkBScore (0 0 0 0)))
+  (mkBScore (5 5 5 5)))
 
 !(assertEqual
   (getScore
@@ -60,4 +61,4 @@
                      (mkActionCtx (param nTrials))
                      (param complexityRatio)
                      &actionScoreCache))
-  0)
+  20)

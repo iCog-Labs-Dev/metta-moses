@@ -138,7 +138,7 @@
                    ($cCoef (getComplexityCoef $complexityRatio)))
               (updatePenalizedScore
                 (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))
-                False)))))
+                False))))))
 
 ;; The public action context carries the raw termination target through the
 ;; lifecycle. Scoring consumes only trials and penalty.

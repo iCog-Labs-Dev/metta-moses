@@ -23,6 +23,7 @@
 !(import! &self ../../../scoring/cscore)
 !(import! &self ../../../scoring/action-registry)
 !(import! &self ../../../scoring/action-eval)
+!(import! &self ../../../scoring/action-ops)
 !(import! &self ../../../scoring/action-score)
 
 !(import! &self ../../../feature-selection/feature-selection-helpers)
