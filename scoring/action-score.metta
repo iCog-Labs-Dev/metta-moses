@@ -127,24 +127,18 @@
 ;; treeComplexity internally, and action candidates need
 ;; actionTreeComplexity, so it cannot be funneled through.
 ;(: getActionCscore (-> (Tree $a) ActionCtx Number $space Cscore))
-(= (getActionCscore (mkTree (mkNode and_seq) ())
-                     (mkActionCtx $nTrials) $complexityRatio $scoreSpace)
-   (mkCscore -4
-             0
-             $complexityRatio
-             0
-             -4))
-
 (= (getActionCscore $tree (mkActionCtx $nTrials) $complexityRatio $scoreSpace)
-   (let $bs (scoreActionTree $tree $nTrials $scoreSpace)
-     (if-error $bs   ;; parity with getCscore; scoreActionTree never errors
-        (worstCscore)
-        (let* (($bsum (sumBScore $bs))
-               ($cpxy (actionTreeComplexity $tree))
-               ($cCoef (getComplexityCoef $complexityRatio)))
-          (updatePenalizedScore
-            (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))
-            False)))))
+   (if (== $tree (mkTree (mkNode and_seq) ()))
+       (mkCscore -4 0 $complexityRatio 0 -4)
+       (let $bs (scoreActionTree $tree $nTrials $scoreSpace)
+         (if-error $bs   ;; parity with getCscore; scoreActionTree never errors
+            (worstCscore)
+            (let* (($bsum (sumBScore $bs))
+                   ($cpxy (actionTreeComplexity $tree))
+                   ($cCoef (getComplexityCoef $complexityRatio)))
+              (updatePenalizedScore
+                (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))
+                False)))))
 
 ;; The public action context carries the raw termination target through the
 ;; lifecycle. Scoring consumes only trials and penalty.
