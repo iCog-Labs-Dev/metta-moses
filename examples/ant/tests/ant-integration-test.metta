@@ -59,6 +59,7 @@
 !(import! &self ../../../deme/score-deme)
 !(import! &self ../../../deme/merge-demes)
 !(import! &self ../../../deme/expand-deme)
+!(import! &self ../../../metapopulation/metapopulation)
 !(import! &self ../../../optimization/hillclimbing/crossover-helpers)
 !(import! &self ../../../optimization/hillclimbing/crossover)
 !(import! &self ../../../optimization/hillclimbing/hill-climbing-helpers)
