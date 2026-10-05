@@ -24,6 +24,7 @@
 !(add-atom &actionRegistry (structuralActionOp and_seq))
 !(add-atom &actionRegistry (structuralActionOp or_seq))
 !(add-atom &actionRegistry (structuralActionOp seq_exec))
+!(add-atom &actionRegistry (structuralActionOp exec_seq))
 !(add-atom &actionRegistry (structuralActionOp action_not))
 !(add-atom &actionRegistry (structuralActionOp action_bool_if))
 !(add-atom &actionRegistry (structuralActionOp bool_action_if))
@@ -40,6 +41,7 @@
 !(add-atom &actionRegistry (cleanupActionOp and_seq))
 !(add-atom &actionRegistry (cleanupActionOp or_seq))
 !(add-atom &actionRegistry (cleanupActionOp seq_exec))
+!(add-atom &actionRegistry (cleanupActionOp exec_seq))
 
 ;; ---- Membership predicates ----
 ;; (Defined BEFORE the registration API: its idempotency guard calls these,

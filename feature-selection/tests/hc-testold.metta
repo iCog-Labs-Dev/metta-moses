@@ -29,6 +29,7 @@
 !(import! &self metta-moses:deme:create-deme)
 !(import! &self metta-moses:deme:deme-id-creation)
 !(import! &self metta-moses:deme:expand-deme)
+!(import! &self metta-moses:deme:expand-deme)
 
 !(import! &self metta-moses:scoring:cscore)
 !(import! &self metta-moses:scoring:boolean-ops)

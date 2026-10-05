@@ -156,6 +156,14 @@
               $default
               (nthAllowedActualSetting 0 $effectiveSetting $default $disAll)))))
 
+;; Validates an effective discrete setting and maps it to the actual setting
+;; represented by embedded knob metadata.
+(= (resolveDiscreteSetting $knob $effectiveSetting)
+   (let (mkMultip $effectiveMultip) (getKnobMultip $knob)
+      (if (>= $effectiveSetting $effectiveMultip)
+          (Error $effectiveSetting "Invalid effective disc specification.")
+          (mapEffectiveDiscSpec $knob $effectiveSetting))))
+
 ;; Extracts the location from a discrete, logical subtree, or action subtree knob.
 ;; Params:
 ;;  $knob: Either discrete, logical subtree, or action subtree knob

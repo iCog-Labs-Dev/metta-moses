@@ -50,6 +50,20 @@
 !(import! &self reduct/boolean-reduct/promote-common-constraints)
 !(import! &self reduct/boolean-reduct/reduce-to-elegance)
 
+;; ---- Action reduction rules ----
+!(import! &self reduct/action-reduct/action-vocab)
+!(import! &self reduct/action-reduct/action-helpers)
+!(import! &self reduct/action-reduct/action-properties)
+!(import! &self reduct/action-reduct/reduce-action-if)
+!(import! &self reduct/action-reduct/reduce-action-action-if)
+!(import! &self reduct/action-reduct/reduce-const-action-seq)
+!(import! &self reduct/action-reduct/reduce-action-not)
+!(import! &self reduct/action-reduct/reduce-action-while)
+!(import! &self reduct/action-reduct/reduce-seq-result)
+!(import! &self reduct/action-reduct/reduce-null-vertices)
+!(import! &self reduct/action-reduct/reduce-action-properties)
+!(import! &self reduct/action-reduct/action-reduction)
+
 ;; ---- Boolean reduction performance helpers ----
 ;; Keep the main entry aligned with the benchmark harness:
 ;; - native Prolog getLiteralChildren avoids a hot filter-atom path
@@ -118,6 +132,9 @@
 !(import! &self examples/tic-tac-toe/ttt-action-episode)
 !(import! &self examples/tic-tac-toe/ttt-action-registration)
 
+;; ---- Ant action-domain example ----
+!(import! &self examples/ant/ant-action-domain)
+
 ;; ---- Optimization (hill climbing is the only production-ready algorithm) ----
 !(import! &self optimization/hillclimbing/crossover-helpers)
 !(import! &self optimization/hillclimbing/crossover)
@@ -136,6 +153,8 @@
 !(import! &self deme/deme-id-creation)
 !(import! &self deme/score-deme)
 !(import! &self deme/merge-demes)
+;; Domain-specific representation and scorer dispatch is assembled here at
+;; the production entry point, before the shared expansion lifecycle uses it.
 !(import! &self deme/expand-deme)
 
 ;; ---- Top-level entry point: defines (moses), (optimizer-for ...) ----

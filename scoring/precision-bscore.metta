@@ -295,7 +295,7 @@
 ;; Output:
 ;;   Expression like (filtered_rows filtered_labels) containing only selected features + target
 ; (: extractTable (-> Expression (List (List $a)) (List Symbol) (Expression Expression)))
-(= (extractTable $featureIndices $rows $labels)
+(= (extractTable $featureIndices $columns $labels)
    (let* (
           ;; Target is always last column
           ($targetIndex (- (List.length $labels) 1))
@@ -303,10 +303,10 @@
           ($exprIndices (appendAtom $targetIndex $featureIndices))
 
           ;; Extract selected columns from each row
-          ($filteredRows (zipColumn $exprIndices $rows))
+          ($filteredColumns (zipColumn $exprIndices $columns))
           ;; Extract corresponding labels
           ($filteredLabels (map-atom $exprIndices $each (List.at $each $labels)))
-          ($filteredExpr (List.listToExpr $filteredRows))
+          ($filteredExpr (List.listToExpr $filteredColumns))
           )
      ($filteredExpr $filteredLabels)
    )
@@ -337,7 +337,7 @@
 ;; precision-based classification, accounting for both achievable precision
 ;; and the complexity cost of using multiple features.
 ; (: preScorer (-> Expression (ITable $a) Number Number Number Bool Number Number))
-(= (preScorer $featureIndices (mkITable $rows $labels) $penalty $minAct $maxAct $positive $confi)
+(= (preScorer $featureIndices (mkITable $columns $labels) $penalty $minAct $maxAct $positive $confi)
    (if (== $featureIndices ())
       0.0
       (let* (
@@ -345,11 +345,11 @@
                ($clampedMinAct (clamp $minAct 0.0 1.0))
                ($clampedMaxAct (clamp $maxAct 0.0 1.0))
                
-               (($filteredRows $filteredLabels)  (extractTable $featureIndices $rows $labels))
+               (($filteredColumns $filteredLabels)  (extractTable $featureIndices $columns $labels))
                
-               ($totalWeight (List.length $rows))
+               ($totalWeight (List.length (Table.getColumn 0 $columns)))
                
-               ($precision (precisionBScore $filteredRows $filteredLabels $penalty 
+               ($precision (precisionBScore $filteredColumns $filteredLabels $penalty 
                                           $clampedMinAct $clampedMaxAct $totalWeight))
                
                ;; Apply confidence weighting

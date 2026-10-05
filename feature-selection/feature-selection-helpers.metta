@@ -20,37 +20,36 @@
             (List.uniqueValuesCount $xs $new-tuple-added))))
 
 ; (: Table.getColumn (-> Number (List (List $a)) (List $a)))
-(= (Table.getColumn $i ()) ())
-(= (Table.getColumn $i (cons $row $rest))
-    (cons (List.at $i $row) (Table.getColumn $i $rest)))
-; ;; Table.pop        -- gets and removes a column from the current ttable structure
-; ;;                  -- returns the remaining table and the culumn asked for
-(= (Table.pop $i ()) ())
-(= (Table.pop $i (cons $row $rest))
-    (let (cons $d $ds) $row
-        (if (== $i 0)
-            (cons $ds (Table.pop $i $rest))
-            (cons (cons $d (List.pop (- $i 1) $ds)) (Table.pop $i $rest)))))
-; removes the first column from table
-; ; (: Table.pop (-> (List (List $a)) (List (List $a))))
-; (= (Table.pop $rows)
-;     (unify $rows () ()
-;         (unify $rows (cons (cons $d $ds) $rest)
-;             (cons $ds (Table.pop $rest)) ())))
+(= (Table.getColumn $i $table)
+    (if (== $table ())
+         ()
+       (List.at $i $table)))
 
-;; returns the last column of the table
+;; Table.pop        -- gets and removes a column from the current ttable structure
+;;                  -- returns the remaining table
+(= (Table.pop $i $table)
+    (if (== $table ())
+         ()
+         (List.pop $i $table)))
+
+;; Removes the first column from a column-major table.
+; (: Table.pop (-> (List (List $a)) (List (List $a))))
+(= (Table.pop $table)
+    (List.pop 0 $table))
+
+;;  returns the last column of the table
 ; (: Table.getOutputColumn (-> ITable (List $a)))
 (= (Table.getOutputColumn (mkITable $table $labels))
-    (chain (List.length $labels) $colNum 
-    (chain (Table.getColumn (- $colNum 1) $table) $oc   
-    $oc  ))
-)
+    (chain (List.length $labels) $colNum
+        (Table.getColumn (- $colNum 1) $table)))
+
 
 ;;;;;;;;;;;;;;
 ;; Transpose;;
 ;;;;;;;;;;;;;;
 ; (: Table._transposeHelper (-> (List Number) (List (List $a)) (List (List $a))))
 (= (Table._transposeHelper () $table) ())
+
 (= (Table._transposeHelper (cons $i $rest) $table)
     (cons (Table.getColumn $i $table)
           (Table._transposeHelper $rest $table)))
@@ -217,26 +216,35 @@
 
 
 (= (calculateMutualInformation (mkITable $rows $labels) $featureIndices)
-    (chain (- (List.length $labels) 1) $targetIndex
-        (chain (Table.getColumn $targetIndex $rows) $targetColumn
-                    ;; feature MI calculation
-            (chain (zipColumn $featureIndices $rows) $jointColumn
-                (chain (mutualInformation $jointColumn $targetColumn) $miScore
-                                                                                            ;; the default confidence scaling parameter
-                        (chain (calculateConfidence (size-atom $featureIndices) (List.length $rows) 50.0) $confidence
-                                (* $miScore $confidence)))))))
+    (let* (
+           ($targetIndex (- (List.length $labels) 1))
+           ($targetColumn (Table.getColumn $targetIndex $rows))
+           ($jointColumn (zipColumn $featureIndices $rows))
+           ($miScore (mutualInformation $jointColumn $targetColumn))
+           ($confidence (calculateConfidence (size-atom $featureIndices) (List.length $targetColumn) 50.0))
+          )
+          (* $miScore $confidence)))
 
 (= (cachedMutualInformation $itable $featureIndices)
     (lruCache (param defaultCacheSize) ((calculateMutualInformation) ($itable $featureIndices))))
-; (: zipColumn (-> Expression (List (List $a)) (List $a)))        
-(= (zipColumn $indices $datarows)
+
+;; Build row-wise tuples from selected columns in a column-major table.
+; (: zipColumn (-> Expression (List (List $a)) (List $a)))
+(= (zipColumn $indices $table)
     (if (== $indices ())
         ()
-        (unify $datarows () ()
-            (if (= $datarows (cons $row $rows))
-                (chain (map-atom $indices $i (List.at $i $row)) $dataTuple
-                    (cons $dataTuple (zipColumn $indices $rows)))
-                ()))))
+        (let* (
+               ($columns (map-atom $indices $i (Table.getColumn $i $table)))
+              )
+              (zipColumnHelper $columns (List.range 0 (List.length (List.at 0 $columns)))))))
+
+;; (: zipColumnHelper (-> (List (List $a)) (List Number) (List $a)))
+(= (zipColumnHelper $columns ()) ())
+
+(= (zipColumnHelper $columns (cons $rowIdx $rest))
+
+    (chain (map-atom $columns $column (List.at $rowIdx $column)) $dataTuple
+        (cons $dataTuple (zipColumnHelper $columns $rest))))
 
 ;; return marginal probabilities as tuple (p1 p2)
 ; (: marginalProbs (-> Number Expression Expression))

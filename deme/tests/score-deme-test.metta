@@ -80,11 +80,12 @@
 (= (ttable1) (mkITable (cons (cons True (cons False (cons True ())))
                         (cons (cons True (cons True  (cons True ()))) ())) 
                         (cons A (cons B (cons O ())))))
+
 (= (ttable2) (mkITable
-                    (cons (cons True (cons True (cons True (cons True ()))))
+                    (cons (cons True (cons True (cons False (cons False ()))))
+                    (cons (cons True (cons False (cons True (cons False ()))))
                     (cons (cons True (cons False (cons False (cons False ()))))
-                    (cons (cons False (cons True (cons False (cons False ()))))
-                    (cons (cons False (cons False (cons False (cons False ())))) ()))))
+                    (cons (cons True (cons False (cons False (cons False ())))) ()))))
                     (cons A (cons B (cons C (cons output ()))))))
 ;; NOTE: All the instances in the deme don't include lsk1 (or they all start with '0') because we are testing it using ttable2. 
 ;;       ttable2 is a truth table which doesn't have a 'D' column.
@@ -96,7 +97,8 @@
       (cons (mkInst (cons 0 (cons 0 (cons 2 ())))) (cons (mkInst (cons 0 (cons 0 (cons 1 ())))) (cons (mkInst (cons 0 (cons 2 (cons 2 ())))) ())))
       (ttable2)
       2.0)
-   (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 2 ())))) (mkCscore -2 4 2.0 0.0 -4.0))) ()))))
+   (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 2 ())))) (mkCscore 0 4 2.0 0.0 -2.0))) ()))))
+
 
 !(assertEqual
    (applyComplexityBasedScore 
@@ -115,7 +117,7 @@
    (mkDemeId "1")
    (ttable2)
    2.0)
-   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) ()))))
+   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) ()))))
 
 ; The these test cases are commented out because they behave non deterministically when running all the 3 representation together 
 ;; but runs correctly when running them separately !!
@@ -126,7 +128,7 @@
    (mkDemeId "1")
    (ttable2)
    1)
-   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore -4 0 0.0 0.0 -4.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 1 ())))) (mkCscore 0 3 3.0 0.0 -3.0))) ())))) 
+   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore -4 0 0.0 0.0 -4.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 1 ())))) (mkCscore -2 3 3.0 0.0 -5.0))) ())))) 
 
 ;; Testcase for the bitsToIndices
 !(assertEqual (bitsToIndices (cons 1 (cons 0 (cons 1 (cons 0 ())))) 0 ()) (0 2))
@@ -167,4 +169,5 @@
       )
    (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 0 ())))) 0.5)) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 1 ())))) 0.33333333333333337)) ())))
    )
+
 
