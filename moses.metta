@@ -105,6 +105,7 @@
 
 !(import! &self metapopulation/exemplar-type)
 !(import! &self metapopulation/exemplar-selection)
+!(import! &self metapopulation/diversity)
 !(import! &self metapopulation/metapopulation)
 
 !(import! &self representation/instance)

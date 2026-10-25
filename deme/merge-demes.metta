@@ -268,8 +268,10 @@
             ($_ (println! (Going to merge (List.length $removedDominated) Instances)))
             ($updatedMetaPop (mergeCandidates $removedDominated $metapop))  ;;merge candidates into metapop
             ;; ($_ (println! (merged Candidate: $updatedMetaPop)))
-            ($_ (println! (Metapop size before resize: (OS.length $updatedMetaPop))))
-            ($resizedMetapop (resizeMetapop $updatedMetaPop))  ;;resize the metapop
+            ($diversifiedMetaPop (setDiversity $updatedMetaPop))  ;;apply uniformity penalty diversification
+            ($_ (if (> (param diversityPressure) 0.0) (let* (($_1 (println! ("=== [Diversity Enabled] Pressure:" (param diversityPressure) "Candidates:" (OS.length $diversifiedMetaPop) "==="))) ($_2 (logTopDiversity $diversifiedMetaPop 3)) ($_3 (println! ("===========================================================")))) ()) ()))
+            ($_ (println! (Metapop size before resize: (OS.length $diversifiedMetaPop))))
+            ($resizedMetapop (resizeMetapop $diversifiedMetaPop))  ;;resize the metapop
             ($_ (println! (Metapop size after resize: (OS.length $resizedMetapop))))
             ; ($resizedMetapop (if (<= (param nToKeep) (OS.length $updatedMetaPop)) (OS.getTopN (param nToKeep) $updatedMetaPop) $updatedMetaPop)) ;; select top nToKeep candidates
             ;; ($_ (println! (Resized Metapop: $resizedMetapop)))

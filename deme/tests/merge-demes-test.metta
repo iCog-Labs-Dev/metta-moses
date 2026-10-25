@@ -51,6 +51,7 @@
 !(import! &self ../../scoring/strategy-score-cache)
 
 !(import! &self ../../metapopulation/exemplar-type)
+!(import! &self ../../metapopulation/diversity)
 !(import! &self ../../metapopulation/metapopulation)
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
 

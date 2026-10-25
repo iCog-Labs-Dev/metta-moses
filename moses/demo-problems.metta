@@ -173,6 +173,8 @@
         ($worstPossibleScore (List.sum $worstPossibleBScore))
         ($bestPosssibleScore (getBestPossibleScore))
         ($_ (println! (BestPossibleScore: $bestPosssibleScore)))
+        ;; Rescale diversity pressure to problem score range if diversityAutoscale is enabled
+        ($_ (autoscaleDiversity $bestPosssibleScore $worstPossibleScore))
         ($metaPop ((mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore))))
         ($result (runMoses $maxGen $bestPosssibleScore $metaPop 0 $nDeme
               (False $fsAlgo $truthTableBScore $itable)
