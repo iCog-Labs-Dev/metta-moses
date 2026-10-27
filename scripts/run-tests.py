@@ -72,8 +72,12 @@ def run_test_file(test_file):
 
         # Full path to the run.sh script
         run_sh_path = shutil.which("run.sh")
-        if not os.path.isfile(run_sh_path):
-            raise FileNotFoundError(f"{run_sh_path} not found")
+        if not run_sh_path or not os.path.isfile(run_sh_path):
+            petta_cand = "/home/nonplds/projects/metta-projects/PeTTa/run.sh"
+            if os.path.isfile(petta_cand):
+                run_sh_path = petta_cand
+            else:
+                raise FileNotFoundError("run.sh not found in PATH or PeTTa directory")
 
         # Command to execute the test file
         command = ["sh", run_sh_path, str(test_file), "-s"]
