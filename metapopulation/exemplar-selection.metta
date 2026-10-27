@@ -1,23 +1,34 @@
 ;; bind python functinalities in metta -- metta functions not working 
 ;; which, for now, is not clear what it is
 
+!(callPredicate (Predicate (py_add_lib_dir "scripts" first)))
+
 ;; removed python binding for compatibility with workflow -- XXX 
 ;; bind is not supported for constants (as of 13 NOV) in PeTTa -- thus using function style notation
 (= (NO_EXEMPLAR) "empty metapopulation")
 (= (INV_TEMP) (/ 100.0 (param compxyTemp)))
 
-;; exemplar  selection
-;; if the the metapopulation is empty - throw error and quit
-;; if only one exemplar in the metapopulation select that
-;; if more than one exemplar in mp - get the max penalized score and 
-;; make a roulette selection on those after converting scores into probability values
-; (: selectExemplar (-> (OS (Exemplar $a)) (Exemplar $a)))
-(= (selectExemplar $metaPop)
-    (case $metaPop
-        ((() (Error $metaPop (NO_EXEMPLAR)))
+;; Visited tracking helpers:
+;; An exemplar is eligible if its visit count satisfies C++ revisit semantics:
+;;   revisit < 0  => always eligible (unbounded)
+;;   revisit >= 0 => eligible iff count <= revisit
+;;   (so revisit=0 means exactly 1 visit total, matching C++ default)
+(= (isExemplarEligible (mkExemplar $tree $demeId $cscore $bscore))
+   (== (py-call (visited_tracker.is_eligible (preOrder $tree) (param revisit))) 1))
+
+(= (filterEligibleExemplars ()) ())
+(= (filterEligibleExemplars (cons $x $xs))
+   (if (isExemplarEligible $x)
+       (cons $x (filterEligibleExemplars $xs))
+       (filterEligibleExemplars $xs)))
+
+;; roulette selection on a pool of exemplars
+(= (rouletteSelectFromPool $pool)
+    (case $pool
+        ((() (Error $pool (NO_EXEMPLAR)))
         ((cons $x ()) $x)
         ($_ (let* (
-                    ($probs (getPnScore $metaPop))
+                    ($probs (getPnScore $pool))
                     ($hstScr (List.max $probs))
                     ;; get list of normalized ScoreT values
                     ($normalizedProbs (normalizeProbs (INV_TEMP) $hstScr $probs))
@@ -26,7 +37,34 @@
                     ($sum (List.sum $normalizedProbs))
                     ;; ($pr (println! (HstScr: $hstScr Sum: $sum)))
                   )
-                  (rouletteSelect $metaPop $normalizedProbs $sum) )))))
+                  (rouletteSelect $pool $normalizedProbs $sum) )))))
+
+(= (recordExemplarVisit (mkExemplar $tree $demeId $cscore $bscore))
+   (py-call (visited_tracker.record_visit (preOrder $tree))))
+
+;; exemplar selection (C++ parity)
+;; * Empty metapop              -> NO_EXEMPLAR error
+;; * Metapop (1 or N exemplars) -> filter eligible; if empty return NO_EXEMPLAR
+;;                                 (matches C++ select_exemplar returning end())
+; (: selectExemplar (-> (OS (Exemplar $a)) (Exemplar $a)))
+(= (selectExemplar $metaPop)
+    (case $metaPop
+        ((() (Error $metaPop (NO_EXEMPLAR)))
+        ($_ (let* (
+                    ($eligible (filterEligibleExemplars $metaPop))
+                    ($chosen (if (== $eligible ())
+                                 (let* (
+                                        ($_ (println! "[VISITED] All exemplars at revisit limit. No eligible exemplar (C++ parity: select_exemplar returns end())."))
+                                        ($_ex (py-call (visited_tracker.record_exhaustion)))
+                                       )
+                                       (Error $metaPop (NO_EXEMPLAR)))
+                                 (let* (
+                                        ($sel (rouletteSelectFromPool $eligible))
+                                        ($_ (recordExemplarVisit $sel))
+                                       )
+                                       $sel)))
+                  )
+                  $chosen)))))
 
 ;; get penalized scores of all the exemplars as a list of Numbers
 ;;      (cons $x $xs) -- pattern for the list of exemplars constructed by cons

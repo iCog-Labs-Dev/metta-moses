@@ -47,37 +47,32 @@
    ;;   $updatedMetaPop: Updated metapopulation with the new optimized deme merged in.
 ; (: expandDeme (-> (OS (Exemplar $a)) Number Number Bool Symbol (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)) $Scorer Number Number Number Number (ITable $a) Number Number Number (OS (Exemplar $a))))
 (= (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable $scorerType)
-(let*
-   (
-    ;; ($_ (println! ""))
-    ;; ($_ (println! (MetaPop: $metaPop)))
-    ;; ($_ (println! "Selecting Exemplar"))
-    ($exemplar (selectExemplar $metaPop))
-    ;; ($_ (println! $exemplar))
-    ;; ($_ (println! "getting exemplar tree"))
-    ($tree (getExemplarTree $exemplar)) 
-    ($_ (println! (SelectedTree: (preOrder $tree))))
-    ;; ($_ (println! "creating deme IDs"))
-    ($demeIds (createDemeIds $nExpansion $nDeme))
-    ;; ($_ (println! $demeIds))
-    ; ($argLabels (getArgLabels $itable))
-    ;; ($_ (println! "Creating Deme"))
-    ($demes (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar () $scorerType))
-    )
-    (map-atom $demes $deme (expandDemeHelper $deme $truthTableBScore $optimize))
-   ))
+   (let $exemplar (selectExemplar $metaPop)
+        (case $exemplar
+          (
+            ((Error $errPop (NO_EXEMPLAR)) (Error $errPop (NO_EXEMPLAR)))
+            ($_ (let* (
+                       ($tree (getExemplarTree $exemplar)) 
+                       ($_ (println! (SelectedTree: (preOrder $tree))))
+                       ($demeIds (createDemeIds $nExpansion $nDeme))
+                       ($demes (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar () $scorerType))
+                      )
+                      (map-atom $demes $deme (expandDemeHelper $deme $truthTableBScore $optimize))))))))
 
 ;; Overloaded version for game strategy domain - 8 parameters
 (= (expandDeme $metaPop $nExpansion $nDeme $nGames $complexityRatio $targetCScore $optimize)
-   (let*
-      (
-         ($exemplar (trace! "Selecting Exemplar" (selectExemplar $metaPop)))
-         ($tree (trace! "getting exemplar tree" (getExemplarTree $exemplar)))
-         ($demeIds (trace! "creating deme IDs" (createDemeIds $nExpansion $nDeme)))
-         ($demes (trace! "Creating Deme" (createDeme $nDeme $demeIds $tree)))
-         ($gameContext ($nGames $complexityRatio $targetCScore))
-      )
-      (map-atom $demes $deme (expandDemeHelper $deme $gameContext $optimize))))
+   (let $exemplar (trace! "Selecting Exemplar" (selectExemplar $metaPop))
+        (case $exemplar
+          (
+            ((Error $errPop (NO_EXEMPLAR)) (Error $errPop (NO_EXEMPLAR)))
+            ($_ (let* (
+                       ($tree (trace! "getting exemplar tree" (getExemplarTree $exemplar)))
+                       ($_ (println! (SelectedTree: (preOrder $tree))))
+                       ($demeIds (trace! "creating deme IDs" (createDemeIds $nExpansion $nDeme)))
+                       ($demes (trace! "Creating Deme" (createDeme $nDeme $demeIds $tree)))
+                       ($gameContext ($nGames $complexityRatio $targetCScore))
+                      )
+                      (map-atom $demes $deme (expandDemeHelper $deme $gameContext $optimize))))))))
 
 ;; Unified helper for both Boolean and Strategy domains
 ;; Optimizes each deme in the list using the provided optimizer and context
@@ -114,40 +109,71 @@ $optimDeme
 ;; To enable that, we may need to change our termination condition so that the generation is equivalent to the number of expansion as well.
 ;; The number of expansions in the open cog classic is equivalent to the number of deme expansions. That looks like the same thing we are doing here but not sure.
 (= (runMoses $maxGen $maxScore $metaPop $nExpansion $nDeme $context $optimize)
+(let* (
+       ;; Reset visited tracking on initial entry (nExpansion == 0) for all callers
+       ($_reset (if (== $nExpansion 0) (py-call (visited_tracker.reset)) ()))
+      )
 (if (== $maxGen 0)
-    (if (<= (param maxCandOutput) (OS.length $metaPop))
-        (let $topCandidates (OS.getTopN (param maxCandOutput) $metaPop) $topCandidates)
-        $metaPop
-  )
+    (let* (
+           ($top (OS.getByIdx 0 $metaPop))
+           ($topScore (getExemplarCscore $top))
+           ($raw (getScore $topScore))
+           ($_term (println! (Termination: MAX_GEN)))
+           ($_sum (py-call (visited_tracker.log_summary $raw)))
+          )
+        (if (<= (param maxCandOutput) (OS.length $metaPop))
+            (let $topCandidates (OS.getTopN (param maxCandOutput) $metaPop) $topCandidates)
+            $metaPop))
     (let*
      (
        ($_ (println! (Generation $maxGen)))
        ($optimizedDemes (case $context
                         ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "expand  deme returnn" (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable mi)))
                         (($nGames $opponentPolicy $complexityRatio) (trace! "expand deme return" (expandDeme $metaPop $nExpansion $nDeme $nGames $opponentPolicy $complexityRatio $maxScore $optimize))))))
-       (((mkDeme $rep $sInst $demeId)) $optimizedDemes)
-       ($_ (println! (OptimizedDeme: (List.length (second $sInst)))))
-       ($updatedMetaPop (case $context
-                        ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "Merging Deme" (mergeDemes $optimizedDemes $itable $metaPop)))
-                        (($nGames $opponentPolicy $complexityRatio) (trace! "Merging Deme" (mergeDemes $optimizedDemes ($nGames $opponentPolicy) $metaPop))))))
-       ;; ($_ (println! (Updated MetaPop: $updatedMetaPop)))
-       ($top (OS.getByIdx 0 $metaPop))
-       ;; ($_ (println! (Top Exemplar before expansion: $top)))
-       ($topScore (getExemplarCscore $top))
-       ;; ($_ (println! (topscore: $topScore)))
-       ;; ($_ (println! (Top: $topScore Max: $maxScore (cScore>= $topScore $maxScore))))
-       ($nothing (clearSpace &treeSpace))
-       ($_ (cut)) ;; INFO: This cut speeds things up. Don't remove it.
-       ($_ (println! ""))
-      )
- ;; Match classic semantics: compare the raw behavioural score against the
- ;; scalar `$maxScore`. The Cscore's complexity / penalty fields are
- ;; consulted elsewhere when ranking candidates but not at termination.
- (if (>= (getScore $topScore) $maxScore)
-         (if (<= (param maxCandOutput) (OS.length $updatedMetaPop))
-             (OS.getTopN (param maxCandOutput) $updatedMetaPop)
-             $updatedMetaPop)
-         (runMoses (- $maxGen 1) $maxScore $updatedMetaPop $nExpansion $nDeme $context $optimize)))))
+     )
+     (case $optimizedDemes
+       (
+         ((Error $errPop (NO_EXEMPLAR))
+          (let* (
+                 ($top (OS.getByIdx 0 $metaPop))
+                 ($topScore (getExemplarCscore $top))
+                 ($raw (getScore $topScore))
+                 ($_term (println! (Termination: EXHAUSTED)))
+                 ($_sum (py-call (visited_tracker.log_summary $raw)))
+                 ($out (if (<= (param maxCandOutput) (OS.length $metaPop))
+                           (OS.getTopN (param maxCandOutput) $metaPop)
+                           $metaPop))
+                )
+                $out))
+         ($_
+          (let*
+           (
+             (((mkDeme $rep $sInst $demeId)) $optimizedDemes)
+             ($_ (println! (OptimizedDeme: (List.length (second $sInst)))))
+             ($updatedMetaPop (case $context
+                              ((($prune-exemplar $fs-algo $truthTableBScore $itable) (trace! "Merging Deme" (mergeDemes $optimizedDemes $itable $metaPop)))
+                              (($nGames $opponentPolicy $complexityRatio) (trace! "Merging Deme" (mergeDemes $optimizedDemes ($nGames $opponentPolicy) $metaPop))))))
+             ($top (OS.getByIdx 0 $updatedMetaPop))
+             ($topScore (getExemplarCscore $top))
+             ($raw (getScore $topScore))
+             ($pen (getPenScore $topScore))
+             ($nothing (clearSpace &treeSpace))
+             ($_ (cut)) ;; INFO: This cut speeds things up. Don't remove it.
+             ($_ (println! ""))
+            )
+            ;; Match classic semantics: compare the raw behavioural score against the
+            ;; scalar `$maxScore`. The Cscore's complexity / penalty fields are
+            ;; consulted elsewhere when ranking candidates but not at termination.
+            (if (>= (getScore $topScore) $maxScore)
+                (let* (
+                       ($_term (println! (Termination: SOLVED)))
+                       ($_sum (py-call (visited_tracker.log_summary (getScore $topScore))))
+                       ($out (if (<= (param maxCandOutput) (OS.length $updatedMetaPop))
+                                 (OS.getTopN (param maxCandOutput) $updatedMetaPop)
+                                 $updatedMetaPop))
+                      )
+                      $out)
+                (runMoses (- $maxGen 1) $maxScore $updatedMetaPop (+ $nExpansion 1) $nDeme $context $optimize))))))))))
 
 
 ;; Some helpers specific to final testing

@@ -102,6 +102,11 @@
 
 ;; ---- Exemplar selection ----
 !(add-atom &params (compxyTemp 6))
+;; revisit: mirrors C++ metapop_parameters::revisit (default 0).
+;;   revisit < 0  => unbounded revisits (always eligible, guard disabled)
+;;   revisit == 0 => allow exactly 1 visit total (C++ default)
+;;   revisit == N => allow N+1 visits total (N additional revisits)
+!(add-atom &params (revisit 0))
 
 ;; ---- Caching ----
 !(add-atom &params (defaultCacheSize 60))
