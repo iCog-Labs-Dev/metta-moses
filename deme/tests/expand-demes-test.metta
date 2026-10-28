@@ -84,17 +84,15 @@
 
 (= (deme) (mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) (mkSInstSet ()) (mkDemeId "1")))
 (= (table1) (eval (createTruthTableBScore 2 (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons False ()))) 
-                         (cons (cons False (cons True (cons False ())))
-                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ()))))
+                         (cons (cons False (cons False (cons True (cons True ()))))
+                         (cons (cons False (cons False (cons False (cons True ())))) ())))
                          (cons A (cons B (cons O ())))))))
 
 (= (ttable1) (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons False ()))) 
-                         (cons (cons False (cons True (cons False ())))
-                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ()))))
+                         (cons (cons False (cons False (cons True (cons True ()))))
+                         (cons (cons False (cons False (cons False (cons True ())))) ())))
                          (cons A (cons B (cons O ())))))                         
 
 ;; Public contexts retain their existing shapes, while the adapter converts
@@ -105,24 +103,21 @@
    (mkActionCtx 10 3.5))
 
 (= (ortable) (eval (createTruthTableBScore 2 (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons True ()))) 
-                         (cons (cons False (cons True (cons True ())))
-                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ()))))
+                         (cons (cons False (cons False (cons True (cons True ()))))
+                         (cons (cons False (cons True (cons True (cons True ())))) ())))
                          (cons A (cons B (cons O ())))))))
 
 (= (orttable) (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons True ()))) 
-                         (cons (cons False (cons True (cons True ())))
-                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ()))))
+                         (cons (cons False (cons False (cons True (cons True ()))))
+                         (cons (cons False (cons True (cons True (cons True ())))) ())))
                          (cons A (cons B (cons O ()))))) 
 
 (= (xortable) (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons True ()))) 
-                         (cons (cons False (cons True (cons True ())))
-                         (cons (cons True (cons True (cons False ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ()))))
+                         (cons (cons False (cons False (cons True (cons True ()))))
+                         (cons (cons False (cons True (cons True (cons False ())))) ())))
                          (cons A (cons B (cons O ())))))
 
 ;; (= (metaPop2) (cons (mkExemplar (mkTree (mkNode AND) ()) (mkDemeId "1") (eval (worstCscore)) (mkBScore (cons -1 (cons -1 ())))) ()))
@@ -134,44 +129,24 @@
                  ())))
        
 (= (bigtable) (mkITable
-                        (cons (cons True  (cons False (cons True  (cons False (cons True  (cons True  ()))))))
-                        (cons (cons False (cons True  (cons True  (cons False (cons False (cons False ()))))))
-                        (cons (cons True  (cons True  (cons False (cons True  (cons True  (cons True  ()))))))
-                        (cons (cons False (cons False (cons True  (cons True  (cons False (cons False ()))))))
-                        (cons (cons True  (cons False (cons False (cons True  (cons True  (cons True  ()))))))
-                        (cons (cons False (cons True  (cons False (cons False (cons False (cons False ()))))))
-                        (cons (cons True  (cons True  (cons True  (cons False (cons True  (cons True  ()))))))
-                        (cons (cons False (cons False (cons False (cons True  (cons False (cons False ()))))))
-                        (cons (cons True  (cons True  (cons False (cons False (cons True  (cons True  ()))))))
-                        (cons (cons False (cons True  (cons True  (cons True  (cons False (cons False ()))))))
-                        (cons (cons True  (cons False (cons True  (cons True  (cons True  (cons True  ()))))))
-                        (cons (cons False (cons False (cons False (cons False (cons False (cons False ()))))))
-                        (cons (cons True  (cons True  (cons True  (cons True  (cons True  (cons True  ()))))))
-                        (cons (cons False (cons False (cons True  (cons False (cons False (cons False ()))))))
-                        (cons (cons True  (cons False (cons False (cons False (cons True  (cons True  ()))))))
-                        (cons (cons False (cons True  (cons False (cons True  (cons False (cons False ())))))) ()))))))))))))))))
+                        (cons (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False ()))))))))))))))))
+                        (cons (cons False (cons True (cons True (cons False (cons False (cons True (cons True (cons False (cons True (cons True (cons False (cons False (cons True (cons False (cons False (cons True ()))))))))))))))))
+                        (cons (cons True (cons True (cons False (cons True (cons False (cons False (cons True (cons False (cons False (cons True (cons True (cons False (cons True (cons True (cons False (cons False ()))))))))))))))))
+                        (cons (cons False (cons False (cons True (cons True (cons True (cons False (cons False (cons True (cons False (cons True (cons True (cons False (cons True (cons False (cons False (cons True ()))))))))))))))))
+                        (cons (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False ()))))))))))))))))
+                        (cons (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False ())))))))))))))))) ()))))))
                         
                         (cons A (cons B (cons C (cons D (cons E (cons T ()))))))))                     
 ;; truthTableBScore for  bigtable
 (= (bigtablet) (eval (createTruthTableBScore 2 (bigtable))))                        
 
 (= (bigtable2) (mkITable
-                        (cons (cons True  (cons False (cons True  (cons False (cons True  (cons True  ()))))))
-                        (cons (cons False (cons True  (cons False (cons True  (cons False (cons False ()))))))
-                        (cons (cons True  (cons True  (cons True  (cons False (cons False (cons True  ()))))))
-                        (cons (cons False (cons False (cons True  (cons True  (cons True  (cons True  ()))))))
-                        (cons (cons True  (cons False (cons False (cons True  (cons True  (cons False ()))))))
-                        (cons (cons False (cons True  (cons True  (cons True  (cons False (cons True  ()))))))
-                        (cons (cons True  (cons True  (cons False (cons False (cons True  (cons True  ()))))))
-                        (cons (cons False (cons False (cons False (cons True  (cons False (cons False ()))))))
-                        (cons (cons True  (cons True  (cons True  (cons True  (cons True  (cons True  ()))))))
-                        (cons (cons False (cons True  (cons False (cons False (cons True  (cons False ()))))))
-                        (cons (cons True  (cons False (cons True  (cons True  (cons False (cons True  ()))))))
-                        (cons (cons False (cons False (cons True  (cons False (cons True  (cons False ()))))))
-                        (cons (cons True  (cons True  (cons False (cons True  (cons False (cons True  ()))))))
-                        (cons (cons False (cons True  (cons True  (cons False (cons True  (cons True  ()))))))
-                        (cons (cons True  (cons False (cons False (cons False (cons False (cons False ()))))))
-                        (cons (cons False (cons False (cons False (cons True  (cons True  (cons True  ())))))) ()))))))))))))))))
+                        (cons (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False ()))))))))))))))))
+                        (cons (cons False (cons True (cons True (cons False (cons False (cons True (cons True (cons False (cons True (cons True (cons False (cons False (cons True (cons True (cons False (cons False ()))))))))))))))))
+                        (cons (cons True (cons False (cons True (cons True (cons False (cons True (cons False (cons False (cons True (cons False (cons True (cons True (cons False (cons True (cons False (cons False ()))))))))))))))))
+                        (cons (cons False (cons True (cons False (cons True (cons True (cons True (cons False (cons True (cons True (cons False (cons True (cons False (cons True (cons False (cons False (cons True ()))))))))))))))))
+                        (cons (cons True (cons False (cons False (cons True (cons True (cons False (cons True (cons False (cons True (cons True (cons False (cons True (cons False (cons True (cons False (cons True ()))))))))))))))))
+                        (cons (cons True (cons False (cons True (cons True (cons False (cons True (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons True (cons False (cons True ())))))))))))))))) ()))))))
 
                         (cons A (cons B (cons C (cons D (cons E (cons T ()))))))))
 

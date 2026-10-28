@@ -21,7 +21,8 @@
 
 
 (= (oneConstraintSubsume $parent $current $commandSet)
-    (if (== $current ())
+    ;; Constants are inert: car-atom over a Symbol yields no solution, a silent failure.
+    (if (or (== $current ()) (or (isConstant $current) (isConstant $parent)))
       ($parent $current False)
       
         
@@ -48,7 +49,12 @@
                         ;; (trace! (Parent: $parent : Current : $current)
                                 ($parent $current False)
                         ;; )
-                        ((removeElement ($current) $parent) () True)) ;; remove current from parent.
+                        ;; 1-Subsume is ABSORPTION, not a truth: classic returns Delete on a
+                        ;; non-empty intersection with the command set (logical_rules.cc:653).
+                        ;; Reading it as TRUE makes (OR (AND A B) A B) true where the answer
+                        ;; is A v B -- measured at -49 trees. The TRUE case is 0-Subsume, at
+                        ;; :652, where the guard set is EMPTIED.
+((removeElement ($current) $parent) () True)) ;; remove current from parent.
                   )
                 )
                 ($else ($parent $current False))

@@ -125,14 +125,15 @@
 ;; Probes: tmp/probe-sealed.metta, tmp/probe-mapvars.metta.
 ;; ---------------------------------------------------------------------------
 
-;; Extract a label's column from the row-major table. Unknown label -> loud
-;; Error (malformed input); index-atom skips List.getByIdx's per-cell re-scan.
+;; Extract a label's column from the column-major table: the payload is the list
+;; of columns, so the label's column is one index-atom away. Unknown label ->
+;; loud Error (malformed input).
 ;(: varColumn (-> (ITable $a) Symbol (List Bool)))
-(= (varColumn (mkITable $rows $labels) $label)
+(= (varColumn (mkITable $columns $labels) $label)
    (let $idx (List.index $labels $label)
         (if (== $idx -1)
             (Error $label "varColumn: label not found in table")
-            (map-atom $rows $r (index-atom $r $idx)))))
+            (index-atom $columns $idx))))
 
 ;; Node row-template, built once per cache miss: ($varsTerm $exprTerm) sharing
 ;; fresh vars, e.g. (($v1 $v2) (AND ($v1 $v2))). map-atom's per-element

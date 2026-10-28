@@ -47,18 +47,18 @@
 ;;;;;;;;;;;;;;
 ;; Transpose;;
 ;;;;;;;;;;;;;;
-; (: Table._transposeHelper (-> (List Number) (List (List $a)) (List (List $a))))
-(= (Table._transposeHelper () $table) ())
-
-(= (Table._transposeHelper (cons $i $rest) $table)
-    (cons (Table.getColumn $i $table)
-          (Table._transposeHelper $rest $table)))
-
+;; Swap the two axes of a list of equal-length lists (row-major <-> column-major),
+;; peeling one cell off the front of every sublist per step. Not expressible via
+;; Table.getColumn: that indexes the column-major payload directly, which would
+;; make this an identity.
 ; (: Table.transpose (-> (List (List $a)) (List (List $a))))
-(= (Table.transpose $table)
-    (let $numCols (List.length (List.head $table))
-        (let $indices (List.range 0 $numCols)
-            (Table._transposeHelper $indices $table))))
+(= (Table.transpose ()) ())
+(= (Table.transpose (cons $first $rest))
+    (if (== $first ())
+        ()
+        (let $table (cons $first $rest)
+             (cons (map-atom $table $sublist (List.head $sublist))
+                   (Table.transpose (map-atom $table $sublist (List.tail $sublist)))))))
 ;;;;;;;;;;;;;;
 ;; Transpose;;
 ;;;;;;;;;;;;;;
@@ -231,20 +231,7 @@
 ;; Build row-wise tuples from selected columns in a column-major table.
 ; (: zipColumn (-> Expression (List (List $a)) (List $a)))
 (= (zipColumn $indices $table)
-    (if (== $indices ())
-        ()
-        (let* (
-               ($columns (map-atom $indices $i (Table.getColumn $i $table)))
-              )
-              (zipColumnHelper $columns (List.range 0 (List.length (List.at 0 $columns)))))))
-
-;; (: zipColumnHelper (-> (List (List $a)) (List Number) (List $a)))
-(= (zipColumnHelper $columns ()) ())
-
-(= (zipColumnHelper $columns (cons $rowIdx $rest))
-
-    (chain (map-atom $columns $column (List.at $rowIdx $column)) $dataTuple
-        (cons $dataTuple (zipColumnHelper $columns $rest))))
+    (Table.transpose (map-atom $indices $i (Table.getColumn $i $table))))
 
 ;; return marginal probabilities as tuple (p1 p2)
 ; (: marginalProbs (-> Number Expression Expression))

@@ -18,13 +18,19 @@
 ;; Reference table: two rows, labels (A B O); O is the (ignored) output column.
 ;;   row0 = (True False False)   -> A=True,  B=False
 ;;   row1 = (True True  True )   -> A=True,  B=True
+;; The ITable payload is COLUMN-major -- one sublist per label -- so the same
+;; table is written ((True True) (False True) (False True)).
 
 ;; --- varColumn: extract a variable's column (one bool per row) ---
 !(assertEqual
-   (varColumn (mkITable ((True False False) (True True True)) (A B O)) A)
+   (varColumn (mkITable ((True True)
+                         (False True)
+                         (False True)) (A B O)) A)
    (True True))
 !(assertEqual
-   (varColumn (mkITable ((True False False) (True True True)) (A B O)) B)
+   (varColumn (mkITable ((True True)
+                         (False True)
+                         (False True)) (A B O)) B)
    (False True))
 
 ;; --- operator clauses: the single source of AND/OR/NOT semantics ---
@@ -43,30 +49,44 @@
 ;; --- evalSubtree end-to-end on WRAPPED shapes (column-level dispatch) ---
 ;; (AND (A B)) over the reference table: and((T T),(F T)) = (F T)
 !(assertEqual
-   (evalSubtree (quote (AND (A B))) (mkITable ((True False False) (True True True)) (A B O)) 2)
+   (evalSubtree (quote (AND (A B))) (mkITable ((True True)
+                                               (False True)
+                                               (False True)) (A B O)) 2)
    (False True))
 ;; (OR (A B)) = (T T)
 !(assertEqual
-   (evalSubtree (quote (OR (A B))) (mkITable ((True False False) (True True True)) (A B O)) 2)
+   (evalSubtree (quote (OR (A B))) (mkITable ((True True)
+                                              (False True)
+                                              (False True)) (A B O)) 2)
    (True True))
 ;; (NOT (B)) = (T F)
 !(assertEqual
-   (evalSubtree (quote (NOT (B))) (mkITable ((True False False) (True True True)) (A B O)) 2)
+   (evalSubtree (quote (NOT (B))) (mkITable ((True True)
+                                             (False True)
+                                             (False True)) (A B O)) 2)
    (True False))
 ;; bare leaf A = (T T)
 !(assertEqual
-   (evalSubtree A (mkITable ((True False False) (True True True)) (A B O)) 2)
+   (evalSubtree A (mkITable ((True True)
+                             (False True)
+                             (False True)) (A B O)) 2)
    (True True))
 ;; empty AND / OR -> identity column repeated over the n rows
 !(assertEqual
-   (evalSubtree (quote (AND ())) (mkITable ((True False False) (True True True)) (A B O)) 2)
+   (evalSubtree (quote (AND ())) (mkITable ((True True)
+                                            (False True)
+                                            (False True)) (A B O)) 2)
    (True True))
 !(assertEqual
-   (evalSubtree (quote (OR ())) (mkITable ((True False False) (True True True)) (A B O)) 2)
+   (evalSubtree (quote (OR ())) (mkITable ((True True)
+                                           (False True)
+                                           (False True)) (A B O)) 2)
    (False False))
 ;; nested: (AND ((OR (A B)) (NOT (B)))) = and((T T),(T F)) = (T F)
 !(assertEqual
-   (evalSubtree (quote (AND ((OR (A B)) (NOT (B))))) (mkITable ((True False False) (True True True)) (A B O)) 2)
+   (evalSubtree (quote (AND ((OR (A B)) (NOT (B))))) (mkITable ((True True)
+                                                                (False True)
+                                                                (False True)) (A B O)) 2)
    (True False))
 
 ;; --- memoization: after evaluating (AND (A B)) its column is cached in
@@ -75,7 +95,9 @@
 ;; written inline in the pattern would stay literal and never match the stored
 ;; plain key. ---
 !(assertEqual
-   (let* (($_ (evalSubtree (quote (AND (A B))) (mkITable ((True False False) (True True True)) (A B O)) 2))
+   (let* (($_ (evalSubtree (quote (AND (A B))) (mkITable ((True True)
+                                                          (False True)
+                                                          (False True)) (A B O)) 2))
           ($k (quote (AND (A B)))))
         (collapse (match &subtreeCache (subtree $k $v) $v)))
    ((False True)))
@@ -83,6 +105,8 @@
 ;; --- equivalence with the whole-tree scorer (same contract as bscore-test) ---
 ;; (OR A B): outputs (False True) -> compareAndScore -> (-1 0)
 !(assertEqual
-   (scoreTree (mkITable ((True False False) (True True True)) (A B O))
+   (scoreTree (mkITable ((True True)
+                         (False True)
+                         (False True)) (A B O))
               (buildTree (quote (OR A B))) &bscoreCache)
    (mkBScore (-1 0)))

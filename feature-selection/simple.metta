@@ -13,7 +13,7 @@
 
         (chain (py-call (random.randint 0 2147483647)) $seed                                        ;; random seed to break ties between equally-scored features
         (chain (List.length $labels) $colNum
-            (chain (List.length (Table.getColumn 0 $table)) $rowNum
+            (chain (ITable.rowCount $table) $rowNum
                 (chain (Table.getColumn (- $colNum 1) $table) $oc                                  ;; get the output column
                     (chain (selectorIterator $th $rowNum $oc $labels $table 0 $seed $acc) $selected-features  ;; the output format might need to change into sth like ((1) (2) (3) (4))
                         (chain (if $expDist                                                                        ;; this is the actual selection after the scoring

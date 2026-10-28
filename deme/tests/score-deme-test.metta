@@ -77,8 +77,9 @@
             ))
 
 (= (knobMapObj) (mkKbMap (mkDscMp (((mkDiscSpec 1) (lsk1)) ((mkDiscSpec 0) (lsk2)) ((mkDiscSpec 1) (lsk3))))))
-(= (ttable1) (mkITable (cons (cons True (cons False (cons True ())))
-                        (cons (cons True (cons True  (cons True ()))) ())) 
+(= (ttable1) (mkITable (cons (cons True (cons True ()))
+                       (cons (cons False (cons True ()))
+                       (cons (cons True (cons True ())) ())))
                         (cons A (cons B (cons O ())))))
 
 (= (ttable2) (mkITable
@@ -97,7 +98,7 @@
       (cons (mkInst (cons 0 (cons 0 (cons 2 ())))) (cons (mkInst (cons 0 (cons 0 (cons 1 ())))) (cons (mkInst (cons 0 (cons 2 (cons 2 ())))) ())))
       (ttable2)
       2.0)
-   (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 2 ())))) (mkCscore 0 4 2.0 0.0 -2.0))) ()))))
+   (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 2 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) ()))))
 
 
 !(assertEqual
@@ -107,7 +108,8 @@
       (cons (mkInst (cons 0 (cons 1 (cons 2 ())))) (cons (mkInst (cons 0 (cons 2 (cons 1 ())))) ()))
       (ttable2)
       2.0)
-      (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore -4 0 0.0 0.0 -4.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 1 ())))) (mkCscore -4 0 0.0 0.0 -4.0))) ())))
+      ;; both instances reduce to constant false, wrong on ttable2's first output row only
+      (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore -1 0 0.0 0.0 -1.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 1 ())))) (mkCscore -1 0 0.0 0.0 -1.0))) ())))
 
 ;; Testcases for transform
 !(assertEqual
@@ -117,7 +119,7 @@
    (mkDemeId "1")
    (ttable2)
    2.0)
-   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) ()))))
+   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) ()))))
 
 ; The these test cases are commented out because they behave non deterministically when running all the 3 representation together 
 ;; but runs correctly when running them separately !!
@@ -128,7 +130,8 @@
    (mkDemeId "1")
    (ttable2)
    1)
-   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore -4 0 0.0 0.0 -4.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 1 ())))) (mkCscore -2 3 3.0 0.0 -5.0))) ())))) 
+   ;; (0 1 2) is the same constant-false candidate scored above
+   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore -1 0 0.0 0.0 -1.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 1 ())))) (mkCscore 0 3 3.0 0.0 -3.0))) ()))))
 
 ;; Testcase for the bitsToIndices
 !(assertEqual (bitsToIndices (cons 1 (cons 0 (cons 1 (cons 0 ())))) 0 ()) (0 2))

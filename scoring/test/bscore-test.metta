@@ -23,8 +23,12 @@
 ;    (TruthTableBScore Number))
 
 !(assertEqual
-   (createTruthTableBScore 0.2 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ())))))
-   (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ()))))))
+   (createTruthTableBScore 0.2 (mkITable (cons (cons 1 ())
+                                         (cons (cons 0 ())
+                                         (cons (cons 2 ()) ()))) (cons A (cons B (cons C ())))))
+   (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 ())
+                                       (cons (cons 0 ())
+                                       (cons (cons 2 ()) ()))) (cons A (cons B (cons C ()))))))
 
 ;; Test Behavioral Score Helper functions
 ;; Test Sutract subtract behavioral scores pair wise
@@ -40,8 +44,12 @@
    (Error ((cons 1 (cons 0 (cons 2 ()))) (cons 1 (cons 0 ()))) "Incompatible behavioral scores"))
 ;; Test Retrieve the table from a truth table bscore
 !(assertEqual 
-   (getTable (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ()))))))
-   (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ())))))
+   (getTable (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 ())
+                                                 (cons (cons 0 ())
+                                                 (cons (cons 2 ()) ()))) (cons A (cons B (cons C ()))))))
+   (mkITable (cons (cons 1 ())
+             (cons (cons 0 ())
+             (cons (cons 2 ()) ()))) (cons A (cons B (cons C ())))))
 
 ;; Test Score Tree Helper Function test to replace all occurences of a given variable with a truth value
 ;; Boolean expressions ride under quote/let: this file loads boolean-ops'
@@ -61,16 +69,18 @@
 ;; Test Score Tree function, given a boolean expression and tree should return a behavioral score
 !(let $cand (quote (OR A B))
    (assertEqual
-     (scoreTree (mkITable (cons (cons True (cons False (cons False ())))
-                          (cons (cons True (cons True  (cons True ()))) ()))
+     (scoreTree (mkITable (cons (cons True (cons True ()))
+                          (cons (cons False (cons True ()))
+                          (cons (cons False (cons True ())) ())))
                           (cons A (cons B (cons O ()))))
                 (buildTree $cand) &bscoreCache)
      (mkBScore (cons -1 (cons 0 ())))))
 
 !(let $cand (quote (AND A B))
    (assertEqual
-     (scoreTree (mkITable (cons (cons True (cons False (cons False ())))
-                                     (cons (cons True (cons True  (cons True ()))) ()))
+     (scoreTree (mkITable (cons (cons True (cons True ()))
+                          (cons (cons False (cons True ()))
+                          (cons (cons False (cons True ())) ())))
                                      (cons A (cons B (cons O ()))))
                 (buildTree $cand) &bscoreCache)
      (mkBScore (cons 0 (cons 0 ())))))
@@ -81,27 +91,39 @@
 ;; Test Truth table bscore helper functions
 !(assertEqual 
    (bestPossibleScore 
-          (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ()))))))
+          (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 ())
+                                              (cons (cons 0 ())
+                                              (cons (cons 2 ()) ()))) (cons A (cons B (cons C ()))))))
    (mkBScore (cons 0 ())))
 !(assertEqual 
-   (worstPossibleScore (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ()))))))
+   (worstPossibleScore (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 ())
+                                                           (cons (cons 0 ())
+                                                           (cons (cons 2 ()) ()))) (cons A (cons B (cons C ()))))))
    (mkBScore (cons -1 ())))
 !(assertEqual 
-   (minImprove (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) ()) (cons A (cons B (cons C ()))))))
+   (minImprove (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 ())
+                                                   (cons (cons 0 ())
+                                                   (cons (cons 2 ()) ()))) (cons A (cons B (cons C ()))))))
    0.5
  )
 
 ;; Test Behavioral composite score helper functions
 !(assertEqual
-   (bestPossibleScore (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) (cons (cons 0 (cons 0 (cons 1 ()))) ())) (cons A (cons B (cons C ())))))))
+   (bestPossibleScore (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (cons (cons 1 (cons 0 ()))
+                                                                     (cons (cons 0 (cons 0 ()))
+                                                                     (cons (cons 2 (cons 1 ())) ()))) (cons A (cons B (cons C ())))))))
    0
  )
 !(assertEqual
-   (worstPossibleScore (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) (cons (cons 0 (cons 0 (cons 1 ()))) ())) (cons A (cons B (cons C ())))))))
+   (worstPossibleScore (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (cons (cons 1 (cons 0 ()))
+                                                                      (cons (cons 0 (cons 0 ()))
+                                                                      (cons (cons 2 (cons 1 ())) ()))) (cons A (cons B (cons C ())))))))
    -2
  )
 !(assertEqual
-   (minImprove (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (cons (cons 1 (cons 0 (cons 2 ()))) (cons (cons 0 (cons 0 (cons 1 ()))) ())) (cons A (cons B (cons C ())))))))
+   (minImprove (mkBCScore (mkTruthTableBScore 0.2 2 (mkITable (cons (cons 1 (cons 0 ()))
+                                                              (cons (cons 0 (cons 0 ()))
+                                                              (cons (cons 2 (cons 1 ())) ()))) (cons A (cons B (cons C ())))))))
    0.5
  )
 
@@ -118,14 +140,18 @@
 ;; Test getArgLabels function to extract argument labels from an ITable
 
 !(assertEqual (getArgLabels (mkITable
-  (cons (cons True (cons False (cons True ()))) ())
+  (cons (cons True ())
+  (cons (cons False ())
+  (cons (cons True ()) ())))
   (cons A (cons B (cons Y ())))
 ))
   (A B)
 )
 
 !(assertEqual (getArgLabels (mkITable
-  (cons (cons 1 (cons 2 (cons 3 ()))) ())
+  (cons (cons 1 ())
+  (cons (cons 2 ())
+  (cons (cons 3 ()) ())))
   (cons X (cons Y (cons Z ())))
 ))
   (X Y)

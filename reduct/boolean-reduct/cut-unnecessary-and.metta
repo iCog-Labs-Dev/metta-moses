@@ -14,7 +14,11 @@
 ;; Example: input: POA ==> (AND (OR (AND B D) (NOT E))), parent ==> (OR C (AND (OR (AND B D) (NOT E))))
 ;;          output: ((OR C (AND B D) (NOT E)) () True)
 ; (: andCut (-> Expression Expression (Expression Expression Bool)))
+;; Constants are inert here: map-atom over a Symbol yields NO SOLUTION, a silent failure
+;; out through reduce-to. The constant laws are what act on them.
 (= (andCut $parent $current)
+        (if (or (isConstant $parent) (isConstant $current))
+            ($parent $current False)
         (if (== $parent $current)
             ($parent $current False)
             (let*
@@ -53,7 +57,7 @@
                   )
                   ($parentSec $currentSec (!= $current $currentSec))
               )
-            ))
+            )))
 )
 
 ;; Function to find intersections between all literals in a nested tuple
