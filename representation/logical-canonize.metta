@@ -13,6 +13,8 @@
 
 ;; quote: bare (AND OR NOT) would compile as an AND call once
 ;; scoring/boolean-ops' eval clauses are registered
-(= (isAnArgument $it) (and (not (once (is-member $it (quote (AND OR NOT))))) (== (get-metatype $it) Symbol)))
+(= (isAnArgument $it) (and (not (once (is-member $it (quote (AND OR NOT TRUE FALSE))))) (== (get-metatype $it) Symbol)))
 
-(= (isBoolean $it) (once (is-member $it (True False))))
+;; TRUE/FALSE are booleans, not arguments: a reduced exemplar can now BE a constant, and
+;; canonizing one as an argument would build knobs over it like a data column.
+(= (isBoolean $it) (once (is-member $it (True False TRUE FALSE))))

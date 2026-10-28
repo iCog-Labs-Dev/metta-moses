@@ -12,6 +12,7 @@
 !(println! ("testing: parse-flag accepts --name=value"))
 !(assertEqual (parse-flag (atom_chars --capCoef=100)) (flag capCoef 100))
 !(assertEqual (parse-flag (atom_chars --maxDist=6))   (flag maxDist 6))
+!(assertEqual (parse-flag (atom_chars --maxEvals=-1)) (flag maxEvals -1))
 !(assertEqual (parse-flag (atom_chars --ratio=3.5))   (flag ratio 3.5))
 !(assertEqual (parse-flag (atom_chars --flag=True))   (flag flag true))
 !(assertEqual (parse-flag (atom_chars --name=smd))    (flag name smd))
@@ -32,6 +33,23 @@
 
 !(try-apply-flag --complexityRatio=1.5)
 !(assertEqual (param complexityRatio) 1.5)
+
+;; Every problem family consumes these neutral pipeline settings. Exercise the
+;; CLI path directly so action runs do not need ant-prefixed compatibility keys.
+!(try-apply-flag --maxEvals=30000)
+!(try-apply-flag --maxDist=5)
+!(try-apply-flag --minXoverNeighbors=250)
+!(try-apply-flag --steps=700)
+!(try-apply-flag --revisit=2)
+!(try-apply-flag --discardDominated=True)
+!(try-apply-flag --diagnostics=True)
+!(assertEqual (param maxEvals) 30000)
+!(assertEqual (param maxDist) 5)
+!(assertEqual (param minXoverNeighbors) 250)
+!(assertEqual (param steps) 700)
+!(assertEqual (param revisit) 2)
+!(assertEqual (param discardDominated) true)
+!(assertEqual (param diagnostics) true)
 
 ;; ---- try-apply-flag silently ignores non-flag input ----
 !(println! ("testing: try-apply-flag is a no-op for non-flag arguments"))

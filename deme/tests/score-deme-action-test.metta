@@ -163,10 +163,10 @@
 (= (lsk3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
 (= (knobMapObj) (mkKbMap (mkDscMp (((mkDiscSpec 1) (lsk1)) ((mkDiscSpec 0) (lsk2)) ((mkDiscSpec 1) (lsk3))))))
 (= (ttable2) (mkITable
-                    (cons (cons True (cons True (cons True (cons True ()))))
+                    (cons (cons True (cons True (cons False (cons False ()))))
+                    (cons (cons True (cons False (cons True (cons False ()))))
                     (cons (cons True (cons False (cons False (cons False ()))))
-                    (cons (cons False (cons True (cons False (cons False ()))))
-                    (cons (cons False (cons False (cons False (cons False ())))) ()))))
+                    (cons (cons True (cons False (cons False (cons False ())))) ()))))
                     (cons A (cons B (cons C (cons output ()))))))
 
 ;; (mkITable ...) context still hits the boolean arm (expected values are the
