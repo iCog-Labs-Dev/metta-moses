@@ -109,7 +109,7 @@
          )
      (case $context
        (((mkActionCtx $nTrials $cpxRatio $targetScore) (createDeme $nDeme $demeIds $tree (param actions) (param perceptions)))
-        (($prune $fsAlgo $truthTableBScore $itable) (createDeme $nDeme $demeIds $tree $itable $fsAlgo $prune () mi))))))
+        (($prune $fsAlgo $truthTableBScore $itable) (createDeme $nDeme $demeIds $tree $itable $fsAlgo $prune () (param fsScorerType)))))))
 
 (= (createSelectedDemes $exemplar $nExpansion $nDeme (mkActionCtx $nTrials $cpxRatio))
    (createSelectedDemes $exemplar $nExpansion $nDeme

@@ -447,6 +447,29 @@
     ($rows $labels)
 )
 
+;; The configured feature selection hyper parameters, in the order the scorers read them.
+(= (defaultFsHyperparams)
+   ((param fsMiConfi) (param fsPrePenalty) (param fsPreMinActivation) (param fsPreMaxActivation) (param fsPrePositive)))
+
+;; Appends the scorer name, which is what the scorers expect in the last slot.
+;; The name is quoted because `mi` is also a similarity scorer, so an unquoted
+;; ($scorerType) would be evaluated as a call to it.
+(= (withFsScorer $fsHyperparams $scorerType)
+   (union-atom $fsHyperparams (quote ($scorerType))))
+
+;; Shapes accepted for the second `mkParams` slot:
+;;   ()                              -- defaults, scored by mutual information
+;;   a scorer symbol, mi or pre      -- defaults, scored by that scorer
+;;   the full hyper parameter tuple  -- used as is
+;; A scorer name is matched on metatype rather than on Symbol: `mi` is also the
+;; name of a similarity scorer, which makes it Grounded instead of Symbol.
+(= (normalizeFsHyperparams $fsScorer)
+   (if (== (get-metatype $fsScorer) Expression)
+       (if (== $fsScorer ())
+           (withFsScorer (defaultFsHyperparams) mi)
+           $fsScorer)
+       (withFsScorer (defaultFsHyperparams) $fsScorer)))
+
 ;; Hillclimbing implementation
 ;;
 ;; Algorihtm:
@@ -473,7 +496,12 @@
     (hillClimbing $POASet $tTableBscorer $centerInst (mkParams applyComplexityBasedScore ())))
     
 ;; (: hillClimbing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
-;; $FsScorer should be passed using a `mkScorer` constructor other wise it will cause an error in PeTTa.
+;; The second slot of `mkParams` carries the arguments the chosen scorer needs:
+;;   applyComplexityBasedScore        -- ()
+;;   applyMutualInformationBasedScore -- ($miConfi $prePenalty $preMinActivation
+;;                                        $preMaxActivation $prePositive $scorerType),
+;;                                       or () to fall back to the defaults
+;;   applyActionBasedScore            -- ($nTrials $complexityRatio)
 ;; ($optimize $deme $targetScore $inst (mkParams applyActionBasedScore ($nTrials $complexityRatio)))
 (= (hillClimbing $POASet $tTableBscorer $centerInst (mkParams $scorer $FsScorer))
   (case (mkParams $scorer)
@@ -502,14 +530,17 @@
             ;; ($_ (println! (iTable: $tTableBscorer)))
             ;; ($_ (println! (Rows: $rows)))
             ;; ($_ (println! (Labels: $labels)))
-            ($FsScorerType (if (== $FsScorer ()) mi $FsScorer))
+            ;; ($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)
+            ($fsHyperparams (normalizeFsHyperparams $FsScorer))
           )
-(hillClimbing ((min (param maxDist) (List.length (second $centerInst))) (param minXoverNeighbors) 0) (False False False $centerInst 0 0 0 0 0 0 1)
-              $POASet 
+          ;; Mutual information and precision both peak at 1.0, unlike the deme
+          ;; scores which peak at 0.
+          (hillClimbing ((min (param maxDist) (List.length (second $centerInst))) (param minXoverNeighbors) 1.0) (False False False $centerInst 0 0 0 0 0 0 1)
+              $POASet
               ($labels $rows () ())
               $centerInst
-              (50.0 1.0 0.5 1.0 True $FsScorerType)
-              estimateNeighborhoodFs crossoverFs 
+              $fsHyperparams
+              estimateNeighborhoodFs crossoverFs
               sampleNewInstancesFs transformFs
           )))
       ((mkParams applyActionBasedScore)
@@ -568,11 +599,13 @@
         ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors))
 
         ;; Evaluation count and population index are different quantities.
+        ;; $rep and $id are bound only below, so dispatch on the shape of $POASet:
+        ;; a deme for Boolean and action searches, an instance set for feature selection.
         ($currentDemeSize
-          (if (and (not (== $rep ())) (not (== $id ())))
-              (let (mkDeme $_rep (mkSInstSet $currentInstances) $_id) $POASet
-                (List.length $currentInstances))
-              $currentNInstances))
+          (case $POASet
+            (((mkDeme $_rep (mkSInstSet $currentInstances) $_id)
+              (List.length $currentInstances))
+             ($_featureSelectionSet $currentNInstances))))
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
         ;; Honor the C++ crossover switch.
