@@ -26,7 +26,7 @@
 !(import! &self parameters/registry)
 !(import! &self parameters/defaults)
 !(import! &self parameters/cli)
-
+!(import! &self parameters/domain-loader)
 ;; ---- Utilities ----
 !(import! &self utilities/list-methods)
 !(import! &self utilities/pair)
@@ -50,21 +50,44 @@
 !(import! &self reduct/boolean-reduct/promote-common-constraints)
 !(import! &self reduct/boolean-reduct/reduce-to-elegance)
 
+;; ---- Action reduction rules ----
+!(import! &self reduct/action-reduct/action-vocab)
+!(import! &self reduct/action-reduct/action-helpers)
+!(import! &self reduct/action-reduct/action-properties)
+!(import! &self reduct/action-reduct/reduce-action-if)
+!(import! &self reduct/action-reduct/reduce-action-action-if)
+!(import! &self reduct/action-reduct/reduce-const-action-seq)
+!(import! &self reduct/action-reduct/reduce-action-not)
+!(import! &self reduct/action-reduct/reduce-action-while)
+!(import! &self reduct/action-reduct/reduce-seq-result)
+!(import! &self reduct/action-reduct/reduce-null-vertices)
+!(import! &self reduct/action-reduct/reduce-action-properties)
+!(import! &self reduct/action-reduct/action-reduction)
+
 ;; ---- Boolean reduction performance helpers ----
 ;; Keep the main entry aligned with the benchmark harness:
 ;; - native Prolog getLiteralChildren avoids a hot filter-atom path
-;; - SLG tabling memoizes the pure removeEmptyAND tree rewrite
+;; - native removeEmptyAND replaces the SLG-tabled MeTTa rewrite: the O(n)
+;;   walk beats table lookup + answer copy, and lib_tabling is no longer
+;;   needed at all
 !(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
-!(import! &self (library lib_tabling))
-!(tabled (removeEmptyAND $e))
 
 !(import! &self utilities/tree)
 
 ;; ---- Scoring ----
 !(import! &self scoring/cacheSpace)
 !(import! &self scoring/fitness)
+!(import! &self scoring/boolean-ops)
+;; Action engine: registry (structural/cleanup operator membership only;
+;; operator clauses are bare heads found by the evaluator's reduce
+;; dispatch) -> evaluator -> structural operators.
+!(import! &self scoring/action-registry)
+!(import! &self scoring/action-eval)
+!(import! &self scoring/action-ops)
 !(import! &self scoring/bscore)
 !(import! &self scoring/cscore)
+;; Action-domain behavioral + composite scoring (needs bscore/cscore above).
+!(import! &self scoring/action-score)
 
 ;; ---- Feature selection ----
 !(import! &self feature-selection/feature-selection-helpers)
@@ -85,12 +108,31 @@
 !(import! &self representation/logical-canonize)
 !(import! &self representation/add-logical-knobs)
 !(import! &self representation/build-logical)
+!(import! &self representation/build-action)
 !(import! &self representation/build-knobs)
 !(import! &self representation/knob-mapper)
 
+;; ---- Action fitness packages ----
+;; ttt-action-registration DEFINES the tic-tac-toe fitness functions
+;; (tttActionFitness / tttActionBestScore) but sets NO params -- loading it
+;; only makes the symbols available for --fitness=tttActionFitness /
+;; set-param binding. It needs the shared tic-tac-toe helpers/players
+;; (minimal set mirrored from examples/tic-tac-toe/tests).
+!(import! &self examples/tic-tac-toe/tic-tac-toe-helpers)
+!(import! &self examples/tic-tac-toe/moves)
+!(import! &self examples/tic-tac-toe/random-player)
+!(import! &self examples/tic-tac-toe/minimax-player)
+!(import! &self examples/tic-tac-toe/ttt-action-world)
+!(import! &self examples/tic-tac-toe/ttt-action-primitives)
+!(import! &self examples/tic-tac-toe/ttt-action-episode)
+!(import! &self examples/tic-tac-toe/ttt-action-registration)
+
+;; ---- Ant action-domain example ----
+!(import! &self examples/ant/ant-action-domain)
+
 ;; ---- Optimization (hill climbing is the only production-ready algorithm) ----
-!(import! &self optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self optimization/hillclimbing/cross-top-one)
+!(import! &self optimization/hillclimbing/crossover-helpers)
+!(import! &self optimization/hillclimbing/crossover)
 !(import! &self optimization/hillclimbing/hill-climbing-helpers)
 
 !(import! &self feature-selection/hc)
@@ -113,6 +155,8 @@
 !(import! &self deme/deme-id-creation)
 !(import! &self deme/score-deme)
 !(import! &self deme/merge-demes)
+;; Domain-specific representation and scorer dispatch is assembled here at
+;; the production entry point, before the shared expansion lifecycle uses it.
 !(import! &self deme/expand-deme)
 
 ;; ---- Top-level entry point: defines (moses), (optimizer-for ...) ----
@@ -128,13 +172,14 @@
 ;; (py-call (csv_helper.X …)) resolves at call time.
 !(callPredicate (Predicate (py_add_lib_dir "scripts" first)))
 
-;; ---- Apply any --name=value flags the user passed on the command line ----
-;; This is a no-op when no flags are passed; with flags, it overwrites the
-;; matching defaults in &params before (moses) is called.
+
+;; ---- Apply command-line configuration ----
 !(apply-cli-overrides)
 
+;; ---- Load external domain ----
+;; The domain file is imported into the same MeTTa environment, so all
+;; domain-defined actions, perceptions, fitness functions other definitions become available to generic MOSES.
+!(load-domain-file)
+
 ;; ---- Run ----
-;; If no --problem was set on the CLI (and no in-script set-param),
-;; (moses) routes to no-problem-help-and-exit, which prints --help
-;; and halts. Otherwise the full pipeline runs.
 !(moses)

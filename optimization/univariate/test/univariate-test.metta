@@ -8,6 +8,7 @@
 
 !(import! &self ../../../utilities/tree)
 
+!(import! &self ../../../scoring/action-registry)
 !(import! &self ../../../representation/knob-representation)
 !(import! &self ../../../representation/lsk)
 !(import! &self ../../../representation/logical-probe) 
@@ -21,6 +22,7 @@
 !(import! &self ../../../representation/create-representation)
 
 !(import! &self ../../../scoring/fitness)
+!(import! &self ../../../scoring/boolean-ops)
 !(import! &self ../../../scoring/bscore)
 !(import! &self ../../../scoring/cscore)
 !(import! &self ../../../scoring/complexity-based-scorer)
@@ -32,8 +34,8 @@
 !(import! &self ../../../deme/score-deme)
 !(import! &self ../../../deme/expand-deme)
 
-!(import! &self ../../../optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../../optimization/hillclimbing/cross-top-one)
+!(import! &self ../../../optimization/hillclimbing/crossover-helpers)
+!(import! &self ../../../optimization/hillclimbing/crossover)
 !(import! &self ../../../optimization/hillclimbing/hill-climbing-helpers)
 !(import! &self ../../../moses/neighborhood-sampling)
 
@@ -41,10 +43,9 @@
 
 (= (deme) (mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) (mkSInstSet ()) (mkDemeId "1")))
 (= (table1) (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons False ()))) 
-                         (cons (cons False (cons True (cons False ())))
-                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ()))))
+                         (cons (cons False (cons False (cons True (cons True ()))))
+                         (cons (cons False (cons False (cons False (cons True ())))) ())))
                          (cons A (cons B (cons O ())))))
 
 ;; Testcase -- tournamentSelection
@@ -65,18 +66,9 @@
 (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 ()))) (mkCscore -3 1 0.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 1 ()))) (mkCscore -2 2 1.0 0.0 -3.0))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 ()))) (mkCscore -3 1 0.5 0.0 -3.5))) ()))))
 ) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 1 ()))) (mkCscore -2 2 1.0 0.0 -3.0))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 ()))) (mkCscore -3 1 0.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 1 ()))) (mkCscore -2 2 1.0 0.0 -3.0))) (cons (mkSInst (mkPair (mkInst (cons 2 (cons 0 ()))) (mkCscore -3 1 0.5 0.0 -3.5))) ())))))
 
-;;Testcase -- univariate
-;; This test case is commented out because when the transform function is called more than once, it duplicates values exponentially.
-;; In this case, the transform function is called inside univariateMainLoop,
-;; which is recursive and is executed 6 times (until $genCount equals $MaxGensCount).
-;; Additionally, it is also called in the univariateOptimize function, which is also recursive.
-;; The test case works correctly (it returns is true, shoud true as expected), but it is being
-;; executed recursively multiple times.
-;; Therefore, until the transform function is fixed, this test case remains commented out.
-
+;; C++ information-theoretic sizing gives two three-way knobs a population of 4.
 !(assertEqual
-    (let (mkDeme $rep (mkSInstSet $instSet) $id) 
-         (univariate (deme) (table1) 2.0 1 0.5 0.5 (mkCscore -0.1 2 0.1 0.1 3))          
-         (== (List.length $instSet) 7)) True)
-
-
+    (let (mkDeme $rep (mkSInstSet $instSet) $id)
+         (univariate (deme) (table1) 2.0 1 0.5 0.5
+                     (mkCscore -0.1 2 0.1 0.1 3))
+         (== (List.length $instSet) 4)) True)

@@ -11,16 +11,50 @@
 
 ;; createRepresentation -- calls on the representation building procedure
 ;; (: createRepresentation (-> Number (Tree $a) (ITable $a) Symbol Bool Expression Symbol Representation))
-;; For games: createRepresentation($nDeme, $tree)
 ;; For boolean: createRepresentation($nDeme, $tree, $itable, $algo, $prune, $enforced, $scorer)
-
-;; Game strategy representation (2 parameters)
-;;(: createRepresentation (-> Number (Tree $a) (List Representation)))
-(= (createRepresentation $nDeme $tree)
-    (representation $tree $nDeme))
 
 ;; Boolean logic representation (7 parameters)
 ;; The eighth arg to `representation` is `$disable-discprobe`, so we negate
 ;; the user-facing `discProbe` knob (True == enabled) when forwarding.
 (= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
-    (representation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType (not (param discProbe))))
+   ;; `representation` already returns the complete list selected for this
+   ;; expansion. Pattern-binding one `mkRep` here turned that list into a
+   ;; superposition of singleton lists, causing the outer search to execute one
+   ;; branch per representation instead of sharing one budget across all demes.
+   (representation $nDeme $tree (mkITable $table $labels) $algo
+                   $prune-exemplar $enforced-fts $scorerType
+                   (not (param discProbe))))
+
+;; Action representation (4 parameters): the experiment's action/perception
+;; vocabularies arrive as ARGUMENTS -- arity alone routes here (the boolean
+;; clause is 7-ary, the game clause 2-ary), and this layer stays a pure
+;; function of its inputs: the one (param actions)/(param perceptions) read
+;; happens at the deme boundary (expand-deme.metta's action overload), where
+;; moses-run-action's loud missing-vocab guard has already validated them.
+;; Threads the vocabularies into the LEAN 3-ary `representation` overload
+;; (exemplar + the two vocabularies -- everything an episodic rep needs; the
+;; wider overloads' table/feature-selection/discprobe slots don't apply to
+;; the action path and are not passed at all). That overload builds exactly
+;; ONE rep per call, so the per-deme loop lives HERE -- the action analog of
+;; the loop the 2-arg game clause delegates to representation.metta:40-51.
+;; Knob sampling inside buildAction is randomized, so demes get distinct
+;; representations. Each element is (mkRep (mkKbMap (mkDscMp $mmp)) $tree)
+;; -- the 1-field KnobMap shape loopCreateDeme / expandDemeHelper
+;; destructure.
+;; A single action knob leaves hill climbing with only one replacement
+;; coordinate. Prefer a representation with at least two coordinates when
+;; randomized construction can provide one; the bounded fallback preserves
+;; valid one-knob domains.
+(= (actionRepresentationHasSearchDepth (mkRep (mkKbMap (mkDscMp $mmp)) $tree))
+   (> (MultiMap.length $mmp) 1))
+
+(= (actionRepresentationWithKnobs $tree $actions $perceptions $attempt)
+   (let  $rep (representation $tree $actions $perceptions)
+     (if (or  (actionRepresentationHasSearchDepth $rep) (>= $attempt 7))
+         $rep
+         (actionRepresentationWithKnobs $tree $actions $perceptions (+ $attempt 1)))))
+
+(= (createRepresentation $nDeme $tree $actions $perceptions)
+   (let $demeNumbers (range 0 1 $nDeme)
+     (map-atom $demeNumbers $x
+       (actionRepresentationWithKnobs $tree $actions $perceptions 0))))

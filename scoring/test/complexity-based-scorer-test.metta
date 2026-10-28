@@ -20,6 +20,7 @@
 !(import! &self reduct/boolean-reduct/reduce-to-elegance)
 !(import! &self utilities/tree) 
 
+!(import! &self scoring/action-registry)
 !(import! &self representation/knob-representation)
 !(import! &self representation/lsk)
 !(import! &self representation/logical-probe) 
@@ -33,6 +34,7 @@
 !(import! &self representation/instance)
 
 !(import! &self scoring/fitness)
+!(import! &self scoring/boolean-ops)
 !(import! &self scoring/bscore)
 !(import! &self scoring/cscore)
 
@@ -87,14 +89,18 @@
             ))
 
 (= (knobMapObj) (mkKbMap (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))))
-(= (ttable1) (mkITable (cons (cons True (cons False (cons False (cons True (cons True ())))))
-                        (cons (cons True (cons True (cons True (cons False (cons True ()))))) ()))
+(= (ttable1) (mkITable (cons (cons True (cons True ()))
+                       (cons (cons False (cons True ()))
+                       (cons (cons False (cons True ()))
+                       (cons (cons True (cons False ()))
+                       (cons (cons True (cons True ())) ())))))
                         (cons A (cons B (cons C (cons D (cons O ())) )))))
 (= (ttable2) (mkITable
-                    (cons (cons True (cons True (cons False (cons True (cons True ())))))
-                    (cons (cons True (cons False (cons False (cons True (cons True ())))))
-                    (cons (cons False (cons True (cons False (cons True (cons False ())))))
-                    (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
+                    (cons (cons True (cons True (cons False (cons False ()))))
+                    (cons (cons True (cons False (cons True (cons False ()))))
+                    (cons (cons False (cons False (cons False (cons False ()))))
+                    (cons (cons True (cons True (cons True (cons True ()))))
+                    (cons (cons True (cons True (cons False (cons False ())))) ())))))
                     (cons A (cons B (cons C (cons D (cons Output ())))))))
 
 ;; Testcases for the complexityBasedScorer
@@ -116,8 +122,13 @@
     )
  (mkTree (mkNode AND) ((mkTree (mkNode A) ()) (mkTree (mkNode OR) ((mkTree (mkNode B) ()) (mkTree (mkNode C) ()) (mkTree (mkNode NOT) ((mkTree (mkNode D) ()))))))))
 
+;; The scorer below evaluates against a DIFFERENT table (ttable2). Every
+;; &subtreeCache entry (subtree/leaf/outputs columns) is valid only for the
+;; table it was computed from, so reset the cache between the two runs.
+!(resetSubtreeCache)
+
 !(assertEqual
- (complexityBasedScorer 
+ (complexityBasedScorer
          (mkRep (knobMapObj) (tree1))
          (mkDemeId "1")
          (mkInst (cons 1 (cons 0 (cons 1 ()))))

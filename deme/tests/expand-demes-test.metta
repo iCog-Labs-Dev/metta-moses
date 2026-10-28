@@ -34,6 +34,7 @@
 !(import! &self ../../feature-selection/random-feature-selection)
 !(import! &self ../../feature-selection/feature-selection-main)
 
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/lsk)
 !(import! &self ../../representation/disc-probe)
@@ -48,23 +49,20 @@
 !(import! &self ../../representation/representation)
 !(import! &self ../../representation/create-representation)
 
-!(import! &self ../../scoring/strategy-score-cache)
 !(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
 !(import! &self ../../examples/tic-tac-toe/random-player)
 !(import! &self ../../examples/tic-tac-toe/minimax-player)
-!(import! &self ../../examples/tic-tac-toe/game-engine)
 !(import! &self ../../examples/tic-tac-toe/moves)
-!(import! &self ../../examples/tic-tac-toe/moses-player)
-!(import! &self ../../examples/tic-tac-toe/strategy-scoring)
 
 !(import! &self ../../scoring/cacheSpace)
 !(import! &self ../../scoring/fitness)
+!(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
 !(import! &self ../../scoring/complexity-based-scorer)
 
-!(import! &self ../../optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../optimization/hillclimbing/cross-top-one)
+!(import! &self ../../optimization/hillclimbing/crossover-helpers)
+!(import! &self ../../optimization/hillclimbing/crossover)
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
 
 !(import! &self ../create-deme)
@@ -86,38 +84,40 @@
 
 (= (deme) (mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) (mkSInstSet ()) (mkDemeId "1")))
 (= (table1) (eval (createTruthTableBScore 2 (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons False ()))) 
-                         (cons (cons False (cons True (cons False ())))
-                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ()))))
+                         (cons (cons False (cons False (cons True (cons True ()))))
+                         (cons (cons False (cons False (cons False (cons True ())))) ())))
                          (cons A (cons B (cons O ())))))))
 
 (= (ttable1) (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons False ()))) 
-                         (cons (cons False (cons True (cons False ())))
-                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ()))))
+                         (cons (cons False (cons False (cons True (cons True ()))))
+                         (cons (cons False (cons False (cons False (cons True ())))) ())))
                          (cons A (cons B (cons O ())))))                         
 
+;; Public contexts retain their existing shapes, while the adapter converts
+;; them to the inputs required by the shared optimizer and merge lifecycle.
+(= (booleanAdapterContext)
+   (False sim (table1) (ttable1)))
+(= (actionAdapterContext)
+   (mkActionCtx 10 3.5))
+
 (= (ortable) (eval (createTruthTableBScore 2 (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons True ()))) 
-                         (cons (cons False (cons True (cons True ())))
-                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ()))))
+                         (cons (cons False (cons False (cons True (cons True ()))))
+                         (cons (cons False (cons True (cons True (cons True ())))) ())))
                          (cons A (cons B (cons O ())))))))
 
 (= (orttable) (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons True ()))) 
-                         (cons (cons False (cons True (cons True ())))
-                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ()))))
+                         (cons (cons False (cons False (cons True (cons True ()))))
+                         (cons (cons False (cons True (cons True (cons True ())))) ())))
                          (cons A (cons B (cons O ()))))) 
 
 (= (xortable) (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons True ()))) 
-                         (cons (cons False (cons True (cons True ())))
-                         (cons (cons True (cons True (cons False ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ()))))
+                         (cons (cons False (cons False (cons True (cons True ()))))
+                         (cons (cons False (cons True (cons True (cons False ())))) ())))
                          (cons A (cons B (cons O ())))))
 
 ;; (= (metaPop2) (cons (mkExemplar (mkTree (mkNode AND) ()) (mkDemeId "1") (eval (worstCscore)) (mkBScore (cons -1 (cons -1 ())))) ()))
@@ -129,44 +129,24 @@
                  ())))
        
 (= (bigtable) (mkITable
-                        (cons (cons True  (cons False (cons True  (cons False (cons True  (cons True  ()))))))
-                        (cons (cons False (cons True  (cons True  (cons False (cons False (cons False ()))))))
-                        (cons (cons True  (cons True  (cons False (cons True  (cons True  (cons True  ()))))))
-                        (cons (cons False (cons False (cons True  (cons True  (cons False (cons False ()))))))
-                        (cons (cons True  (cons False (cons False (cons True  (cons True  (cons True  ()))))))
-                        (cons (cons False (cons True  (cons False (cons False (cons False (cons False ()))))))
-                        (cons (cons True  (cons True  (cons True  (cons False (cons True  (cons True  ()))))))
-                        (cons (cons False (cons False (cons False (cons True  (cons False (cons False ()))))))
-                        (cons (cons True  (cons True  (cons False (cons False (cons True  (cons True  ()))))))
-                        (cons (cons False (cons True  (cons True  (cons True  (cons False (cons False ()))))))
-                        (cons (cons True  (cons False (cons True  (cons True  (cons True  (cons True  ()))))))
-                        (cons (cons False (cons False (cons False (cons False (cons False (cons False ()))))))
-                        (cons (cons True  (cons True  (cons True  (cons True  (cons True  (cons True  ()))))))
-                        (cons (cons False (cons False (cons True  (cons False (cons False (cons False ()))))))
-                        (cons (cons True  (cons False (cons False (cons False (cons True  (cons True  ()))))))
-                        (cons (cons False (cons True  (cons False (cons True  (cons False (cons False ())))))) ()))))))))))))))))
+                        (cons (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False ()))))))))))))))))
+                        (cons (cons False (cons True (cons True (cons False (cons False (cons True (cons True (cons False (cons True (cons True (cons False (cons False (cons True (cons False (cons False (cons True ()))))))))))))))))
+                        (cons (cons True (cons True (cons False (cons True (cons False (cons False (cons True (cons False (cons False (cons True (cons True (cons False (cons True (cons True (cons False (cons False ()))))))))))))))))
+                        (cons (cons False (cons False (cons True (cons True (cons True (cons False (cons False (cons True (cons False (cons True (cons True (cons False (cons True (cons False (cons False (cons True ()))))))))))))))))
+                        (cons (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False ()))))))))))))))))
+                        (cons (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False ())))))))))))))))) ()))))))
                         
                         (cons A (cons B (cons C (cons D (cons E (cons T ()))))))))                     
 ;; truthTableBScore for  bigtable
 (= (bigtablet) (eval (createTruthTableBScore 2 (bigtable))))                        
 
 (= (bigtable2) (mkITable
-                        (cons (cons True  (cons False (cons True  (cons False (cons True  (cons True  ()))))))
-                        (cons (cons False (cons True  (cons False (cons True  (cons False (cons False ()))))))
-                        (cons (cons True  (cons True  (cons True  (cons False (cons False (cons True  ()))))))
-                        (cons (cons False (cons False (cons True  (cons True  (cons True  (cons True  ()))))))
-                        (cons (cons True  (cons False (cons False (cons True  (cons True  (cons False ()))))))
-                        (cons (cons False (cons True  (cons True  (cons True  (cons False (cons True  ()))))))
-                        (cons (cons True  (cons True  (cons False (cons False (cons True  (cons True  ()))))))
-                        (cons (cons False (cons False (cons False (cons True  (cons False (cons False ()))))))
-                        (cons (cons True  (cons True  (cons True  (cons True  (cons True  (cons True  ()))))))
-                        (cons (cons False (cons True  (cons False (cons False (cons True  (cons False ()))))))
-                        (cons (cons True  (cons False (cons True  (cons True  (cons False (cons True  ()))))))
-                        (cons (cons False (cons False (cons True  (cons False (cons True  (cons False ()))))))
-                        (cons (cons True  (cons True  (cons False (cons True  (cons False (cons True  ()))))))
-                        (cons (cons False (cons True  (cons True  (cons False (cons True  (cons True  ()))))))
-                        (cons (cons True  (cons False (cons False (cons False (cons False (cons False ()))))))
-                        (cons (cons False (cons False (cons False (cons True  (cons True  (cons True  ())))))) ()))))))))))))))))
+                        (cons (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons False ()))))))))))))))))
+                        (cons (cons False (cons True (cons True (cons False (cons False (cons True (cons True (cons False (cons True (cons True (cons False (cons False (cons True (cons True (cons False (cons False ()))))))))))))))))
+                        (cons (cons True (cons False (cons True (cons True (cons False (cons True (cons False (cons False (cons True (cons False (cons True (cons True (cons False (cons True (cons False (cons False ()))))))))))))))))
+                        (cons (cons False (cons True (cons False (cons True (cons True (cons True (cons False (cons True (cons True (cons False (cons True (cons False (cons True (cons False (cons False (cons True ()))))))))))))))))
+                        (cons (cons True (cons False (cons False (cons True (cons True (cons False (cons True (cons False (cons True (cons True (cons False (cons True (cons False (cons True (cons False (cons True ()))))))))))))))))
+                        (cons (cons True (cons False (cons True (cons True (cons False (cons True (cons True (cons False (cons True (cons False (cons True (cons False (cons True (cons True (cons False (cons True ())))))))))))))))) ()))))))
 
                         (cons A (cons B (cons C (cons D (cons E (cons T ()))))))))
 
@@ -175,35 +155,75 @@
 ; (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (eval (worstCscore))))
 
-;; Testcase for optimizeDemes               
+;; A deterministic optimizer probe exposes the fair local allowance in its
+;; returned deme ID and reports that allowance as its actual evaluation count.
+;; This tests the shared budget dispatcher without starting a stochastic
+;; feature-selection search.
+(= (budgetProbeOptimizer
+      (mkDeme $rep $scoredInstances $demeId) $context $initialInstance)
+   (let $localLimit (get-state &localEvalLimit)
+     ($initialInstance
+      (mkDeme $rep $scoredInstances (mkDemeId $localLimit))
+      (False False False $initialInstance 0 0
+       (worstCscore) -1 $localLimit 1 1))))
+
+;; Extract the numeric share encoded by budgetProbeOptimizer in a deme ID.
+(= (numericDemeId
+      (mkDeme $rep $scoredInstances (mkDemeId $id)))
+   $id)
+
+;; Probe both optimizer call conventions without performing a search.
+(= (adapterOptimizerProbe $deme $target $inst)
+   (AdapterCall plain $target))
+(= (adapterOptimizerProbe
+      $deme $target $inst (mkParams $scorer $payload))
+   (AdapterCall scored $target $scorer $payload))
+
+;; Boolean and action contexts must each produce one deterministic adapter
+;; result while preserving their historical optimizer calling convention.
+!(assertEqual
+  ((optimizerContextFor (booleanAdapterContext) 7)
+   (mergeContextFor (booleanAdapterContext))
+   (initialEvaluationCount (booleanAdapterContext))
+   (optimizerContextFor (actionAdapterContext) 7)
+   (mergeContextFor (actionAdapterContext))
+   (initialEvaluationCount (actionAdapterContext)))
+  ((table1) (ttable1) 0
+   (mkOptimizerContext (mkActionCtx 10 3.5 7) 7) (mkActionCtx 10 3.5 0) 0))
+
+!(assertEqual
+  ((optimizeDeme
+     probeDeme
+     (optimizerContextFor (booleanAdapterContext) 7)
+     (mkInst ())
+     adapterOptimizerProbe)
+   (optimizeDeme
+     probeDeme
+     (optimizerContextFor (actionAdapterContext) 7)
+     (mkInst ())
+     adapterOptimizerProbe))
+  ((AdapterCall plain (table1))
+   (AdapterCall scored 7 applyActionBasedScore (10 3.5))))
+
+;; Keep the direct optimizer test compact. The production 25,000-call default
+;; is intended for full searches, not a focused unit test.
+!(set-param maxEvals 10)
+
+;; Testcase for optimizeDeme
 !(assertEqual 
 (let* 
 (
-    ($optimizeDemesReturn (optimizeDemes (deme) 
+    ($optimizeDemeReturn (optimizeDeme (deme)
                 (table1) 
                 (mkInst (cons 0 (cons 0 ()))) 
                 hillClimbing
                 ))
-    ($_ (println! "optimizeDemes Returns"))
-    ($_ (println! $optimizeDemesReturn))
-    (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemesReturn)
+    (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemeReturn)
     ($instanceCount (List.length $instSet))
     ($scoredElems (List.map isScored $instSet))
 )
 ((>= $instanceCount 4) (List.any $scoredElems)))
 (True True))
-
-;; ;; Testcase for expandDeme INFO: For some reason this test case disturbs the next test case but is fine alone.
-;; !(assertEqual
-;; (let*
-;; (
-;;     ($updatedDeme (expandDeme (metaPop2) 0 1 False sim 
-;;                     (table1)
-;;                     hillClimbing 
-;;                     (ttable1)
-;;                     mi))
-;;     ($updatedDemeLength (size-atom $updatedDeme)))
-;; (>= $updatedDemeLength 1)) True)
 
 ;; The original tests passed `5 2 0 1 3 0.004 1000` (and
 ;; `maxCandOutput=3`). Test 4 nudges minPoolSize from 0 to 2 just before
@@ -217,73 +237,53 @@
 !(set-param capCoef 0.004)
 !(set-param genCount 1000)
 
-;; Testcase for runMoses
+;; The reusable counted expansion divides three remaining calls fairly across
+;; two Boolean demes. It also restores the temporary local allowance after
+;; both optimizations complete.
 !(assertEqual
-(let*
-(
-    ($_ (println! (running started)))
-    ($topCandidates (runMoses 2 0 (metaPop2) 0 2 (False sim
-    (table1)
-    (ttable1))
-    hillClimbing))
-    ($topCandidatesLength (OS.length $topCandidates))
-)
-(>= $topCandidatesLength 1)
-) True)
+  (let* (
+         (($optimizedDemes $actualEvaluations)
+           (expandDemesCounted
+             ((deme) (deme)) (table1) budgetProbeOptimizer 3))
+         ($localShares
+           (map-atom $optimizedDemes $optimizedDeme
+             (numericDemeId $optimizedDeme)))
+        )
+    ($localShares $actualEvaluations (get-state &localEvalLimit)))
+  ((2 1) 3 -1))
 
-;; Testcase for runMoses
+;; At zero budget the shared lifecycle guard reports exhaustion immediately,
+;; leaves no remaining allowance, and finalizes the existing Boolean archive.
+;; The end-to-end Boolean benchmark separately exercises `runMoses`; keeping
+;; this unit test at the guard boundary avoids enumerating PeTTa's stochastic
+;; feature-selection choices.
+!(set-param maxEvals 0)
 !(assertEqual
-(let*
-(
-    ($topCandidates (runMoses 1 0 (metaPop2) 0 2 (False rd
-    (table1)
-    (ttable1))
-    hillClimbing))
-    ($topCandidatesLength (OS.length $topCandidates))
-)
-(>= $topCandidatesLength 1)
-) True)
+  ((evaluationBudgetReached 0)
+   (remainingEvaluationBudget 0)
+   (OS.length (finishMetapop (metaPop2))))
+  (True 0 1))
+!(set-param maxEvals 10)
 
-;; Testcase for runMoses
-!(assertEqual
-(let*
-(
-    ($topCandidates (runMoses 1 0 (metaPop2) 0 2 (False inc
-    (table1)
-    (ttable1))
-    hillClimbing))
-    ($topCandidatesLength (OS.length $topCandidates))
-)
-(>= $topCandidatesLength 1)
-) True)
-
-;; Testcase 2 for runmoses.
-;; When maxGen become 10, test number of returned instances is not greater than maxCandOutput,
-;;              where maxCandOutput is 3 and minPoolSize is 2
+;; Finalization enforces maxCandOutput directly. Exercising this invariant on
+;; a fixed archive avoids conflating it with the many stochastic trajectories
+;; produced by a ten-generation feature-selection search.
 !(set-param minPoolSize 2)
 !(assertEqual
-(let $length
-((OS.length (runMoses 10 0 (metaPop2) 0 2
-    (False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-    inc      ;; the new arguments for feature selection algo
-    (eval (createTruthTableBScore 2 (mkITable
-                          (cons (cons False (cons False (cons False ())))
-                          (cons (cons True (cons False (cons False ())))
-                          (cons (cons False (cons True (cons False ())))
-                          (cons (cons True (cons True (cons True ()))) ()))))
-                          (cons A (cons B (cons O ()))))))
-    (mkITable
-                          (cons (cons False (cons False (cons False ())))
-                          (cons (cons True (cons False (cons False ())))
-                          (cons (cons False (cons True (cons False ())))
-                          (cons (cons True (cons True (cons True ()))) ()))))
-                          (cons A (cons B (cons O ())))))
-    hillClimbing)
-    ))
-        (> $length 3)
-)
-    False
-)
+  (let* (
+         ($archive
+           ((mkExemplar (mkTree (mkNode A) ()) (mkDemeId "a")
+                        (mkCscore -1 1 0 0 -1) (mkBScore (-1)))
+            (mkExemplar (mkTree (mkNode B) ()) (mkDemeId "b")
+                        (mkCscore -2 1 0 0 -2) (mkBScore (-2)))
+            (mkExemplar (mkTree (mkNode C) ()) (mkDemeId "c")
+                        (mkCscore -3 1 0 0 -3) (mkBScore (-3)))
+            (mkExemplar (mkTree (mkNode D) ()) (mkDemeId "d")
+                        (mkCscore -4 1 0 0 -4) (mkBScore (-4)))))
+         ($finalized (finishMetapop $archive))
+        )
+    (OS.length $finalized))
+  3)
 ;; ; ; with OR table and AND init exemplar     
 ;; ; !(runMoses 7 1 3 (metaPop) 0 2 
 ;; ;     False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
@@ -365,92 +365,3 @@
 ;; ;;    $newR
 ;; ;;  )
 ;; ;;
-;; ;; Empty strategy metapop -  empty PRIORITIZED-OR with worst CScore
-;; ;; this empty strategy can be used as a starting point to evolve better strategy 
-;; (= (emptyStrategyMetaPop)
-;;    (cons
-;;      (mkExemplar
-;;        (mkTree (mkNode PRIORITIZED-OR) ())  ;;  empty - no children
-;;        (mkDemeId "0")
-;;        (eval (worstCscore))  ;; Worst CScore
-;;        (mkBScore (cons -10000.0 ())))
-;;      ()))
-;;
-;; ;; by uncomment this test and also adjust the parameter settings we can check the full evolution process of runMosesStrategy, and see how the strategy evolves from empty strategy to better strategy.
-;; ; !(runMoses
-;; ;     2                              ;; maxGen - 3 generations 
-;; ;     (mkCscore 10.0 0 0 0.0 10)     ;; Target: 10/10 wins,
-;; ;     3                              ;; maxCandOutput - return top 3 strategies
-;; ;     (emptyStrategyMetaPop)         ;; metaPop - start with empty strategy
-;; ;     0                              ;; nExpansion - generation counter
-;; ;     2                              ;; nDeme - 3 demes (more diversity)
-;; ;     (10 3.5)                       ;; nGames - 10 games per evaluation
-;; ;     hillClimbing                   ;; optimize - optimizer function
-;; ;     30                             ;; nEval - not used
-;; ;     5                              ;; maxCandsPerDeme - top 5 per deme
-;; ;     2                              ;; minPoolSize - min deme size
-;; ;     1.0                            ;; complexityTemperature - for trimming
-;; ;     5                              ;; nToKeep - keep top 5
-;; ;     0.004                          ;; capCoef - capacity coefficient
-;; ;     1000)   
-;; ;; ;; metapop for testing ;; INFO: The following should be commented once the strategy tree has been fixed.
-;; ;; (= (strategyMetaPop)
-;; ;;    (cons
-;; ;;      (mkExemplar
-;; ;;        (mkTree (mkNode PRIORITIZED-OR)
-;; ;;          (cons (mkTree (mkNode playwin) ())
-;; ;;                (cons (mkTree (mkNode playblock) ()) ())))
-;; ;;        (mkDemeId "0")
-;; ;;        (mkCscore 2.0 2 0.57 0.0 1.43)
-;; ;;        (mkBScore (cons 2.0 ())))
-;; ;;      ()))
-;; ;;
-;; ;; ;; !(assertEqual ;; INFO: This test case is blocking the reset. But works fine on it's own.
-;; ;; ;;    (let* (
-;; ;; ;;      ($optimizedDemes (expandDeme
-;; ;; ;;                         (strategyMetaPop) 
-;; ;; ;;                         0 1 5 random-player 3.5 
-;; ;; ;;                         (mkCscore 5.0 5 1.43 0.0 3.57) 
-;; ;; ;;                         hillClimbing))
-;; ;; ;;      ($demeCount (size-atom $optimizedDemes))
-;; ;; ;;    )
-;; ;; ;;    (>= $demeCount 1))
-;; ;; ;;    True)
-;; ;; ;;
-;; ;; !(assertEqual
-;; ;;    (let* (
-;; ;;      ($result (runMoses
-;; ;;                 1                              ;; maxGen
-;; ;;                 (mkCscore 5.0 5 1.43 0.0 3.57) ;; target
-;; ;;                 3                              ;; maxCandOutput
-;; ;;                 (strategyMetaPop)              ;; metaPop
-;; ;;                 0 1                            ;; nExpansion, nDeme
-;; ;;                 (5 3.5)            ;; nGames, opponent, ratio
-;; ;;                 hillClimbing                   ;; optimizer
-;; ;;                 30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
-;; ;;                 5 0.004 1000))                 ;; nToKeep, capCoef, genCount
-;; ;;      ($resultSize (eval (OS.length $result)))
-;; ;;    )
-;; ;;    (>= $resultSize 1))
-;; ;;    True)
-;; ;;
-;; ;; !(assertEqual
-;; ;;    (let* (
-;; ;;      ($result (runMoses
-;; ;;                 1                              ;; maxGen
-;; ;;                 (mkCscore 5.0 5 1.43 0.0 3.57) ;; target
-;; ;;                 1                              ;; maxCandOutput
-;; ;;                 (strategyMetaPop)              ;; metaPop
-;; ;;                 0 1                            ;; nExpansion, nDeme
-;; ;;                 (5 3.5)            ;; nGames, opponent, ratio
-;; ;;                 hillClimbing                   ;; optimizer
-;; ;;                 30 5 2 1.0                     ;; nEval, maxCands, minPool, temp
-;; ;;                 5 0.004 1000))                 ;; nToKeep, capCoef, genCount
-;; ;;      ($topExemplar (eval (OS.getByIdx 0 $result)))
-;; ;;      ($topScore (eval (getExemplarCscore $topExemplar)))
-;; ;;      ($penScore (eval (getPenScore $topScore)))
-;; ;;      ;; Score should be better than worst possible
-;; ;;      ($isValid (> $penScore -1000.0))
-;; ;;    )
-;; ;;    $isValid)
-;; ;;    True)

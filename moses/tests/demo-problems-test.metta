@@ -24,6 +24,7 @@
 
 !(import! &self ../../../../scoring/cacheSpace)
 !(import! &self ../../../../scoring/fitness)
+!(import! &self ../../../../scoring/boolean-ops)
 !(import! &self ../../../../scoring/bscore)
 !(import! &self ../../../../scoring/cscore)
 
@@ -37,6 +38,7 @@
 !(import! &self ../../../../feature-selection/random-feature-selection)
 !(import! &self ../../../../feature-selection/feature-selection-main)
 
+!(import! &self ../../../../scoring/action-registry)
 !(import! &self ../../../../representation/knob-representation)
 !(import! &self ../../../../representation/lsk)
 !(import! &self ../../../../representation/logical-probe)
@@ -52,8 +54,8 @@
 
 !(import! &self ../../../../scoring/complexity-based-scorer)
 
-!(import! &self ../../../../optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self ../../../../optimization/hillclimbing/cross-top-one)
+!(import! &self ../../../../optimization/hillclimbing/crossover-helpers)
+!(import! &self ../../../../optimization/hillclimbing/crossover)
 !(import! &self ../../../../optimization/hillclimbing/hill-climbing-helpers)
 
 !(import! &self ../../../../deme/create-deme)

@@ -7,29 +7,48 @@
 ;;                and its negagtion.
 ;; Preconditions: The point of application (POA) is AND node and
 ;;                its handle set is inconsistent.
-;; Action: The function removes the POA and updates the parent.
+;; Action: The POA is false. An OR parent simply drops it, false being the
+;;            OR-identity; an AND parent (and the root) collapses to the empty
+;;            OR instead, since false annihilates a conjunction.
 ;;            It then returns the updated parent, an empty expression and
 ;;            a boolean value of True if applied.
 ;; Example: input: POA ==> (AND (NOT A) (OR B C)), dominantSet ==> (A), parent ==> (OR B (AND (NOT A) (OR B C)))
 ;;        : output: ((OR B) () True)
 ;; (: deleteInconsistentHandle (-> Expression Expression Expression (Expression Expression Bool)))
+;; Constants are inert here: map-atom over a Symbol yields NO SOLUTION, a silent failure
+;; out through reduce-to. The constant laws are what act on them.
 (= (deleteInconsistentHandle $parent $current $dominantSet)
+    (if (or (isConstant $parent) (isConstant $current))
+        ($parent $current False)
     (let*
         (
           ($guardSet     (getGuardSet $current))
           ($handleSet    (concatTuple $dominantSet $guardSet))
           ($isConsistent (isConsistentExp $handleSet))
+          ($parentHead   (if (and (!= $parent ()) (== (get-metatype $parent) Expression)) (car-atom $parent) ()))
+          ($withoutPOA   (subtraction-atom $parent ($current)))
+          ;; the applyDeleteIncons* walkers can pass a sibling as $parent, where
+          ;; removing the POA is a no-op -- only a real conjunct can be annihilated
+          ($isConjunct   (and (== $parentHead AND) (!= $withoutPOA $parent)))
+          ;; A FALSE alternative just leaves, but if it was the LAST one the OR itself is
+          ;; FALSE and this is the only place that knows it -- emit here, or it reads as a
+          ;; dangling placeholder further up and gets deleted.
+          ($withoutPOA'  (if (and (== $parentHead OR) (== $withoutPOA (OR)))
+                             FALSE
+                             $withoutPOA))
           ; ($_ (println! (===Inside DeleteInconsistentHandle===)))
           ; ($_ (println! (Parameters ==> Parent: $parent Current: $current DominantSet: $dominantSet)))
           ; ($_ (println! (GuardSet : $guardSet : HandleSet : $handleSet : IsConsistent : $isConsistent)))
         )
         (if $isConsistent
               ($parent $current False)
-              (if (== $parent $current) ;; If the initial parent itself is in consistent, we don't want to delete it entirely but instead keep a top level AND. This only happens when passing the expression for the first time as $parent and $current will never be equal after that.
-                  ((AND) () True)
-                  ((subtraction-atom $parent ($current)) () True)
-              )) ;; Remove current from parent and return an empty AND.
-    )
+              ;; The POA's handle set is inconsistent, so the POA is FALSE -- and as a genuine
+              ;; conjunct, or at the root, that annihilates the whole node.
+              (if (or (== $parent $current) $isConjunct)
+                  (FALSE () True)
+                  ($withoutPOA' () True)
+              ))
+    ))
 )
 
 

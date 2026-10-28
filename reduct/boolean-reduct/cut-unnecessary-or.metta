@@ -8,24 +8,27 @@
 ;; Example: input: POA ==> (OR (AND (NOT D))), parent => (AND B (OR (AND (NOT D))))
 ;;          output: ((AND B (NOT D)) () True)
 ; (: orCut (-> Expression Expression (Expression Expression Bool)))
+;; Constants are inert as a parent: removeElement and addLiterals below assume an Expression.
 (= (orCut $parent $current)
-   ;; (let*
-   ;;   (
-   ;;    ;; ($log (println! (==== Inside OrCut ====)))
-   ;;    ;; ($log' (println! (Parameters ==> Parent: $parent Current: $current)))
-   ;;   )
+   (if (isConstant $parent)
+       ($parent $current False)
      (case $current
         (
           ((OR (NOT $x)) ((addLiterals (removeElement ($current) $parent) ((NOT $x))) () True))
-          ((OR $x) (if (== (get-metatype $x) Symbol)
+          ((OR $x) (if (isConstant $x)
+                       ;; A single-alternative OR is its alternative, so emit the constant in
+                       ;; place. The Symbol arm below would splice it into a GUARD SET, where
+                       ;; invertLiterals makes (NOT TRUE) and deleteInconsistentHandle reads
+                       ;; the pair as a contradiction -- silently reducing the tree to false.
+                       ((findAndReplace $current $x $parent) $x True)
+                   (if (== (get-metatype $x) Symbol)
                         ((addLiterals (removeElement ($current) $parent) ($x)) () True)
                         ((addChildren (removeElement ($current) $parent) (getSubExpression $x)) () True)
-                    )
+                    ))
           )
           ($else ($parent $current False))
         )
-     )
-   ;; )
+     ))
 )
 
 ;; A function to return the literals and children of any given node.

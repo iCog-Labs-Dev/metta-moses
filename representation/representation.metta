@@ -33,22 +33,6 @@
 ; )   
 ; (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
 ; ))
-;; Game representation constructor with execution guard
-;; Params: Tree (Exemplar), Number of demes
-;; Returns: List of Representations
-;;(: representation (-> (Tree $a) Number (List Representation)))
-(= (representation $exemplar $nDeme)
-   (let* (
-          ($demeCount (range 0 1 $nDeme))
-        
-          ($result (map-atom $demeCount $x 
-                      (let*
-                        (
-                          (($updatedTree $dscMp) (buildKnobs $exemplar () ()))
-                          ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
-                          ($rep (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)))   
-                          $rep))))
-         $result))
 ;; (: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol Expression))
 (= (representation
 ;; Boolean representation constructor with feature selection
@@ -68,15 +52,18 @@
 ;; the rows the exemplar mispredicts, with the exemplar's own columns blanked out.
 ;; Falls back to the untouched table when it is already correct everywhere, or when
 ;; the wrong rows share one output (zero MI).
-(= (restrictToIncorrect $exemplar (mkITable $table $labels))
+;; The ITable is column-major, so the rows are read through Table.transpose and the
+;; restricted rows are transposed back into columns.
+(= (restrictToIncorrect $exemplar (mkITable $columns $labels))
    (let* (($expTree (preOrder $exemplar))
           ($len (List.length $labels))
-          ($wrongRows (filter-atom $table $row
+          ($rows (Table.transpose $columns))
+          ($wrongRows (filter-atom $rows $row
                         (not (== (scoreTreeHelper $labels $expTree $row)
                                  (index-atom $row (- $len 1)))))))
      (if (ric-constant-output $wrongRows $len)
-         (mkITable $table $labels)
-         (mkITable (ric-blank-xmplr-fts (treeFtsIndices $exemplar $labels) $wrongRows $len) $labels))))
+         (mkITable $columns $labels)
+         (mkITable (Table.transpose (ric-blank-xmplr-fts (treeFtsIndices $exemplar $labels) $wrongRows $len)) $labels))))
 
 ;; On the rows the exemplar gets wrong its own features still track the output, so
 ;; feature selection would just hand back the features the exemplar already uses and
@@ -161,43 +148,38 @@
 	                                    ($dscKbMp (mkDscMp $dscMp)))        ;; MULITPLE args selected using the feature selection
 	                                 (mkRep (mkKbMap $dscKbMp) $updatedTree)))))
 
-(= (representation
-            $nDeme
-            $exemplar
-            (mkITable $table $labels)
-            $ft-selection-algo
-            $prune-exemplar
-            $enforced-fts
-            $scorerType
-            $actions
-            $perceptions
-         )
-         (representation $nDeme $exemplar (mkITable $table $labels) $ft-selection-algo $prune-exemplar $enforced-fts $scorerType True $actions $perceptions))
-
-(= (representation
-            $nDeme
-            $exemplar
-            (mkITable $table $labels)
-            $ft-selection-algo
-            $prune-exemplar
-            $enforced-fts
-            $scorerType
-            $disable-discprobe
-            $actions
-            $perceptions
-         )
+;; Lean action overload (3-ary; the boolean overloads are 8-ary):
+;; an episodic representation needs exactly the exemplar and the two
+;; vocabularies. The table/feature-selection/discprobe slots of the wider
+;; overloads exist only for signature compatibility -- buildKnobs'
+;; action path never consults them -- so they are not parameters here at
+;; all rather than hardcoded placeholders.
+(= (representation $exemplar $actions $perceptions)
          (let* (
                   (($updatedTree $dscMp) (buildKnobs $exemplar () () $actions $perceptions))
                   ($_ (resetState &knobCount))
                   ($dscKbMp (mkDscMp $dscMp))
                )
-               ((mkRep (mkKbMap $dscKbMp) $updatedTree))))
+               (mkRep (mkKbMap $dscKbMp) $updatedTree)))
 
 ;; Helper function to extract tree from representation
 (= (getRepTree (mkRep $knobMapObj $tree)) $tree)
 
-;; Universal getCandidate that works for both boolean and game strategies
-;; Uses preOrder+buildTree to unwrap mkNullVex for games, cleanTree for boolean
+;; Universal getCandidate that works for both boolean and action domains.
+;; Candidate finalization keeps strategy trees untouched. Action programs use
+;; static action reduction; all other candidates use boolean reduction.
+(= (candidateRootSymbol $tree)
+   (let $rootValue (getNodeValue $tree)
+      (if (== (get-metatype $rootValue) Expression)
+          (car-atom (cdr-atom $rootValue))
+          $rootValue)))
+
+(= (finalizeCandidateTree $rootSymbol $candidate)
+   (if (isActionOperator $rootSymbol)
+       (cleanActionTree $candidate)
+       (cleanTree $candidate)))
+
+;; Universal getCandidate that works for boolean and action trees.
 ;; (: getCandidate (-> Representation Instance (Tree $a)))
 ;; TODO: This should be removed when the game tree has been fixed to match the boolean.
 (= (getCandidate $srcid $repObj $id $inst)
@@ -215,18 +197,8 @@
                       ($candidate (getCandidateRec $repObj $inst $parentid $srcid $parentid (mkNullVex ())))
                       ;; ($_ (println! (Found candidate: (preOrder $candidate))))
                       ($rootNode (getNodeById (getRepTree $repObj) $srcid))
-                      ($rootValue (getNodeValue $rootNode))
-	                      ($rootSymbol (if (== (get-metatype $rootValue) Expression)
-		                              (car-atom (cdr-atom $rootValue))
-		                              $rootValue))
-		                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
-		                      ($isActionDomain (isActionOperator $rootSymbol))
-		                      ($finalTree (if (or $isGameStrategy $isActionDomain)
-		                                      (let* (
-		                                              ($expr (preOrder $candidate))
-	                                              ($cleanTree (buildTree $expr)))
-                                            $cleanTree)
-                                      (cleanTree $candidate)))
+                      ($rootSymbol (candidateRootSymbol $rootNode))
+                      ($finalTree (finalizeCandidateTree $rootSymbol $candidate))
 
                       ($_ (add-atom &treeSpace ($id $inst $finalTree)))
                       ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
@@ -251,18 +223,8 @@
                       ($candidate (getCandidateHelper $inst $tr))
                       ;; ($_ (println! (Found candidate: (preOrder $candidate))))
                       ($rootNode (getRepTree $repObj))
-                      ($rootValue (getNodeValue $rootNode))
-	                      ($rootSymbol (if (== (get-metatype $rootValue) Expression)
-		                              (car-atom (cdr-atom $rootValue))
-		                              $rootValue))
-		                      ($isGameStrategy (== $rootSymbol PRIORITIZED-OR))
-		                      ($isActionDomain (isActionOperator $rootSymbol))
-		                      ($finalTree (if (or $isGameStrategy $isActionDomain)
-		                                      (let* (
-		                                              ($expr (preOrder $candidate))
-	                                              ($cleanTree (buildTree $expr)))
-                                            $cleanTree)
-                                      (cleanTree $candidate)))
+                      ($rootSymbol (candidateRootSymbol $rootNode))
+                      ($finalTree (finalizeCandidateTree $rootSymbol $candidate))
 
                       ($_ (add-atom &treeSpace ($id $inst $finalTree)))
                       ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
@@ -375,7 +337,7 @@
              (getCandidateHelper (mkInst $inst) (List.getByIdx $perms (- $setting 1)))
              (getCandidateHelper (mkInst $inst) $controlledSubtree)))))
 
-;; Null-vertex unwrapping for LSK and SSK knobs only.
+;; Null-vertex unwrapping for LSK knobs only.
 ;; mkASK knobs are handled exclusively by the ASK rule above,
 ;; which reads perms directly from the controlled NullVex.
 ;; Keeping this generic caused double evaluation whenever the
@@ -383,8 +345,6 @@
 ;; the same (mkKnob (mkNullVex ...) (mkASK ...) $i) expression.
 (= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) (mkLSK $discKnob) $i))
    (getCandidateHelper $inst (mkKnob $child (mkLSK $discKnob) $i)))
-(= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) (mkSSK $discKnob) $i))
-   (getCandidateHelper $inst (mkKnob $child (mkSSK $discKnob) $i)))
 
 ;; Specialized fast clause: empty disallowed list means effective settings map
 ;; one-to-one to actual settings, so we skip mapEffectiveDiscSpec entirely.

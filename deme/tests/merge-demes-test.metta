@@ -21,6 +21,9 @@
 
 !(import! &self ../../utilities/tree)
 
+!(import! &self ../../scoring/action-registry)
+!(import! &self ../../scoring/action-eval)
+!(import! &self ../../scoring/action-ops)
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/lsk)
 !(import! &self ../../representation/logical-probe) 
@@ -37,17 +40,19 @@
 
 !(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
 !(import! &self ../../examples/tic-tac-toe/random-player)
-!(import! &self ../../examples/tic-tac-toe/strategy-scoring)
 !(import! &self ../../examples/tic-tac-toe/minimax-player)
-!(import! &self ../../examples/tic-tac-toe/game-engine)
 !(import! &self ../../examples/tic-tac-toe/moves)
-!(import! &self ../../examples/tic-tac-toe/moses-player)
+!(import! &self ../../examples/tic-tac-toe/ttt-action-world)
+!(import! &self ../../examples/tic-tac-toe/ttt-action-primitives)
+!(import! &self ../../examples/tic-tac-toe/ttt-action-episode)
+!(import! &self ../../examples/tic-tac-toe/ttt-action-registration)
 
 !(import! &self ../../scoring/fitness)
-!(import! &self ../../scoring/bscore) 
+!(import! &self ../../scoring/boolean-ops)
+!(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
+!(import! &self ../../scoring/action-score)
 !(import! &self ../../scoring/complexity-based-scorer)
-!(import! &self ../../scoring/strategy-score-cache)
 
 !(import! &self ../../metapopulation/exemplar-type)
 !(import! &self ../../metapopulation/metapopulation)
@@ -104,14 +109,55 @@
            (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 0 ())))) (mkCscore -0.2 1 0.1 0.1 -0.4)))
                  (cons  (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 2 ())))) (mkCscore 0 2 1.0 0 -1.0))) ())))))
 
-(= (ttable1) (mkITable (cons (cons True (cons False (cons True ())))
-                        (cons (cons True (cons True  (cons True ()))) ())) 
+;; Raw-best tracking is independent of penalized ordering.  Lower complexity
+;; breaks a raw-score tie and an exact raw/complexity tie keeps the first row.
+(= (rawBestInstances)
+   (mkSInstSet
+     ((mkSInst (mkPair (mkInst (1)) (mkCscore -3 4 0 0 -1)))
+      (mkSInst (mkPair (mkInst (2)) (mkCscore -3 2 0 0 -20)))
+      (mkSInst (mkPair (mkInst (3)) (mkCscore -3 2 0 0 0)))
+      (mkSInst (mkPair (mkInst (4)) (mkCscore -4 0 0 0 0))))))
+
+!(assertEqual
+  (bestRawScoredInstance (rawBestInstances))
+  (mkSInst (mkPair (mkInst (2)) (mkCscore -3 2 0 0 -20))))
+
+!(assertEqual (bestRawScoredInstance (mkSInstSet ())) ())
+
+;; Dominance retention is shared by Boolean and action problems.  Every
+;; problem keeps the dominated C stepping stone by default; the opt-in policy
+;; applies the same dominance filter independently of scoring context.
+(= (dominanceCandidates)
+   ((mkExemplar (mkTree (mkNode A) ()) (mkDemeId "candidate-a")
+      (mkCscore -1 1 1 0 -2) (mkBScore (2 1)))
+    (mkExemplar (mkTree (mkNode B) ()) (mkDemeId "candidate-b")
+      (mkCscore -1 1 1 0 -2) (mkBScore (1 2)))
+    (mkExemplar (mkTree (mkNode C) ()) (mkDemeId "candidate-c")
+      (mkCscore -2 1 1 0 -3) (mkBScore (1 0)))))
+
+!(assertEqual
+  (let* (
+         ($_ (set-param discardDominated False))
+         ($kept (List.length
+                  (candidatesAfterDominance (dominanceCandidates))))
+         ($_ (set-param discardDominated True))
+         ($filtered (List.length
+                      (candidatesAfterDominance (dominanceCandidates))))
+         ($_ (set-param discardDominated False))
+        )
+    ($kept $filtered))
+  (3 2))
+
+(= (ttable1) (mkITable (cons (cons True (cons True ()))
+                       (cons (cons False (cons True ()))
+                       (cons (cons True (cons True ())) ()))) 
                         (cons A (cons B (cons O ())))))
 (= (ttable2) (mkITable
-                    (cons (cons True (cons True (cons True (cons True (cons True ())))))
-                    (cons (cons True (cons False (cons False (cons False (cons False ())))))
-                    (cons (cons False (cons True (cons False (cons False (cons False ())))))
-                    (cons (cons False (cons False (cons False (cons False (cons False ()))))) ()))))
+                    (cons (cons True (cons True (cons False (cons False ()))))
+                    (cons (cons True (cons False (cons True (cons False ()))))
+                    (cons (cons True (cons False (cons False (cons False ()))))
+                    (cons (cons True (cons False (cons False (cons False ()))))
+                    (cons (cons True (cons False (cons False (cons False ())))) ())))))
                     (cons A (cons B (cons C (cons D (cons output ())))))))
 
 (= (metaPop) (cons (mkExemplar (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode B) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) ())) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ()))) (mkDemeId "1") (mkCscore -0.2 1 0.1 0.1 -0.4) (mkBScore (cons 0 (cons 0 ()))))
@@ -305,6 +351,7 @@
 ;;  Testcase-1 for demeToTrees
 ;;  NOTE: All the instances in the deme don't include lsk1 (or they all start with '0') because we are testing it using ttable2. 
 ;;        ttable2 is a truth table which doesn't have a 'D' column.
+;;  Instance (0 1 2) reduces to a contradiction, so its tree is the constant FALSE.
 !(assertEqual
   (demeToTrees (mkDeme (mkRep (mkKbMap 
                                   (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ())))) 
@@ -318,7 +365,7 @@
                           (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1))) 
                                       (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore 0 2 0.5 0 0.8))) ()))) (mkDemeId "1")) (ttable2))
 
-  (cons (mkExemplar (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode C) ()) ()))) ()))) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (cons 0 (cons 0 (cons 0 (cons 0 ())))))) (cons (mkExemplar (mkTree (mkNode AND) ()) (mkDemeId "1") (mkCscore 0 2 0.5 0 0.8) (mkBScore (cons -1 (cons -1 (cons -1 (cons -1 ())))))) ())))
+  (cons (mkExemplar (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode C) ()) ()))) ()))) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (cons 0 (cons 0 (cons 0 (cons 0 ())))))) (cons (mkExemplar (mkTree (mkNode FALSE) ()) (mkDemeId "1") (mkCscore 0 2 0.5 0 0.8) (mkBScore (cons -1 (cons 0 (cons 0 (cons 0 ())))))) ())))
 
 ;; Testcase-2 for demeToTrees
 !(assertEqual 
@@ -547,43 +594,43 @@
                                     (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ())) 
                                      (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (cons 0 (cons 0 ())))) ()))
 )
-(= (testStrategyDeme)
-   (mkDeme 
-     (mkRep 
-       (mkKbMap 
-         (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ())))
-         (mkDscMp 
-           (cons ((mkDiscSpec 2) 
-             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
-           (cons ((mkDiscSpec 2) 
-             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
-           ()))))
-       (mkTree (mkNode PRIORITIZED-OR) 
-         (cons (mkTree (mkNode playwin) ()) 
-               (cons (mkTree (mkNode playblock) ()) ()))))
-     (mkSInstSet 
+;; Action-deme variants of the two strategy demes: plain knob-FREE action
+;; trees under an empty action knob map (mkDscMp ()), so getCandidate returns
+;; the base tree for any instance. cscores are carried over verbatim from the
+;; old testStrategyDeme/testStrategyDeme2. Under (mkActionCtx 1) the bscore is
+;; RECOMPUTED via tttActionFitness (ordinal 0 -> minimax): both trees make no
+;; useful opening -- (or_seq tttWin tttBlock) forfeits at once on the empty
+;; board -- so each recomputes to a flat (mkBScore (-1.0)).
+(= (testActionDeme)
+   (mkDeme
+     (mkRep
+       (mkKbMap (mkDscMp ()))
+       (mkTree (mkNode or_seq)
+         (cons (mkTree (mkNode tttWin) ())
+               (cons (mkTree (mkNode tttBlock) ()) ()))))
+     (mkSInstSet
        (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 5.0 2 0.571 0.0 4.429))) ()))
      (mkDemeId "1")))
 
-(= (testStrategyDeme2)
-   (mkDeme 
-     (mkRep 
-       (mkKbMap 
-         (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ())))
-         (mkDscMp 
-           (cons ((mkDiscSpec 2) 
-             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
-           (cons ((mkDiscSpec 2) 
-             (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
-           ()))))
-       (mkTree (mkNode PRIORITIZED-OR) 
-         (cons (mkTree (mkNode playcenter) ()) 
-               (cons (mkTree (mkNode playside) ()) ()))))
-     (mkSInstSet 
+(= (testActionDeme2)
+   (mkDeme
+     (mkRep
+       (mkKbMap (mkDscMp ()))
+       (mkTree (mkNode or_seq)
+         (cons (mkTree (mkNode tttCenter) ())
+               (cons (mkTree (mkNode tttSide) ()) ()))))
+     (mkSInstSet
        (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) (mkCscore 6.0 2 0.571 0.0 5.429))) ()))
      (mkDemeId "2")))
-!(assertEqual (demeToTrees (testStrategyDeme) 1) 
-              (cons (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playblock) ()) ()))) (mkDemeId "1") (mkCscore 5.0 2 0.571 0.0 4.429) (mkBScore (cons -1.0 ()))) ()))
+
+;; Bind the ttt experiment template so the action arm recomputes bscores.
+!(set-param fitness tttActionFitness)
+!(set-param bestScore tttActionBestScore)
+!(set-param actions (quote (tttWin tttBlock tttCenter tttCorner tttSide)))
+!(set-param perceptions (quote (tttCanWin tttCanBlock tttCenterFree)))
+
+!(assertEqual (demeToTrees (testActionDeme) (mkActionCtx 1))
+              (cons (mkExemplar (mkTree (mkNode or_seq) (cons (mkTree (mkNode tttWin) ()) (cons (mkTree (mkNode tttBlock) ()) ()))) (mkDemeId "1") (mkCscore 5.0 2 0.571 0.0 4.429) (mkBScore (cons -1.0 ()))) ()))
 
 ;; mergeDemes (strategy variant): original positional args
 ;;   5 2 0 1   1 ()   3 0.004 1000
@@ -596,5 +643,5 @@
 !(set-param nToKeep 3)
 !(set-param capCoef 0.004)
 !(set-param genCount 1000)
-!(assertEqual (mergeDemes ((testStrategyDeme) (testStrategyDeme2)) 1 ())
-                  (cons (mkExemplar (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playside) ()) ()))) (mkDemeId "2") (mkCscore 6.0 2 0.571 0.0 5.429) (mkBScore (cons -1.0 ()))) ()))
+!(assertEqual (mergeDemes ((testActionDeme) (testActionDeme2)) (mkActionCtx 1) ())
+                  (cons (mkExemplar (mkTree (mkNode or_seq) (cons (mkTree (mkNode tttCenter) ()) (cons (mkTree (mkNode tttSide) ()) ()))) (mkDemeId "2") (mkCscore 6.0 2 0.571 0.0 5.429) (mkBScore (cons -1.0 ()))) ()))

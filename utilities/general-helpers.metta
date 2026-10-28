@@ -79,18 +79,6 @@
         ((False False)  (foldr cons-atom $y $x)))))
 
 ; a helper function to the isConsistentExp function.
-; a function which simplifies nested logical negations by reducing them to their simplest form. 
-(= (Not $a)
-    (if (== (get-metatype $a) Symbol)
-        (NOT $a)
-        (if (== (get-metatype $a) Expression)
-            (case $a
-                (
-                    ( (NOT $b) (if (== (get-metatype $b) Symbol) $b (Not $b)))
-                ))
-    False )))
-
-; a helper function to the isConsistentExp function.
 ; a function which checks if an element is member of a tuple.
 ;; (: isMember (-> $a $aa Bool)) ;; this function can be replace by its exact same builtin petta function is-member
 ;; (= (isMember $x $list)
@@ -121,6 +109,14 @@
 ;; It handles the replacement of a single atom.
 (= (replace $old $new $current) (if (== $old $current) $new $current))
 
+;; Name:                        isConstant
+;; Description:                 The reducer's boolean constants, emitted at the point a rule
+;;                              detects a contradiction or a tautology. SYMBOLS, not the grounded
+;;                              Bools: (get-metatype true) is Grounded, and getLiterals filters a
+;;                              grounded leaf straight back out. Classified as CHILDREN, never
+;;                              literals, so they never reach a guard, dominant or command set.
+(= (isConstant $exp) (or (== $exp TRUE) (== $exp FALSE)))
+
 ;; A function to replace a specific atom
 ;;    with a new one from a list of atoms.
 ;; INFO: This function needs to change so that it can preserve the
@@ -128,7 +124,11 @@
 ;; Direct recursion avoids the per-element `replace` dispatch that map-atom
 ;; introduces. A/B confirmed (mux6): within noise of a native Prolog stub.
 (= (findAndReplace $old $new $list)
-   (if (== () (subtraction-atom $old $list))
+   ;; EQUALITY, not subset. The old subtraction-atom test only said every element of $old
+   ;; also occurs in $list, so replacing (AND B) inside (AND (OR (AND B)) B) replaced THE
+   ;; WHOLE PARENT -- harmless while $new was a placeholder, fatal with a real constant.
+   ;; It also needs an Expression, yielding NO SOLUTION on a Symbol $old.
+   (if (== $old $list)
        $new
        (farReplaceWalk $list $old $new)))
 
@@ -141,16 +141,11 @@
 ;; A function that behaves like a do while loop.
 ;; It executes the functions in the given list and returns the last result.
 ;; (: until (-> (-> $a Bool) (-> $a $a) $a $a))
-;; Disable in favor of PeTTa native `until` lowering/runtime implementation.
 (= (until $predicate $function $x)
-    (let* (
-        ($isTrue (eval ($predicate $x)))
-        ($x' (if (== $isTrue true) ("Predicate True Skipping Function Application") ($function $x)))
-    )
-    (if (== $isTrue true)
-        $x
-        (eval (until $predicate $function $x')))
-    ))
+    (let $isTrue ($predicate $x)
+        (if (== $isTrue true)
+            $x
+            (until $predicate $function ($function $x)))))
 
 ;; A foldleft function like the implementation in Haskell.
 ;; It takes a binary function that expects two atoms and
@@ -173,7 +168,12 @@
               ($ft (foldr $f $i $t)))
          ($f $h $ft))))
 
-;; Apply a given function to every element of a tuple
+;; Apply a given function to every element of a tuple.
+;; Clause-dispatched recursion (NOT map-atom): captured args are threaded
+;; as ordinary arguments through Prolog call/1, so a captured var keeps its
+;; identity across every element — map-atom's yall lambda copy_terms its
+;; captures per element, which severs shared-var identity (see substExp).
+;; Overloads thread 1 or 2 captured args before the tuple.
 ;; (: map (-> (-> $a $b) $c $d))
 (= (map $f $xs)
    (if (== $xs ())
@@ -183,6 +183,18 @@
               ($fh ($f $h))
               ($ft (map $f $t)))
          (cons-atom $fh $ft))))
+(= (map $f $a $xs)
+   (if (== $xs ())
+       ()
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs)))
+         (cons-atom ($f $a $h) (map $f $a $t)))))
+(= (map $f $a $b $xs)
+   (if (== $xs ())
+       ()
+       (let* (($h (car-atom $xs))
+              ($t (cdr-atom $xs)))
+         (cons-atom ($f $a $b $h) (map $f $a $b $t)))))
 
 ;; Function: wrapper
 ;; Description: This function applies a predicate to an atom and returns the atom if the predicate is true, otherwise returns an empty expression.
@@ -1140,6 +1152,14 @@
 ; it is used to deconstruct an expression into head and tail and then use them in the then expression
 ; if the expression is empty it will use the else expression
 ;;(: if-decons-expr-custom (-> Expression %Undefined% %Undefined% Expression Expression %Undefined%))
+;; NOTE: the (eval $then) below is load-bearing — $then arrives as an
+;; unevaluated expression referencing the caller's $h/$t logic vars, which
+;; this clause binds via car/cdr before eval runs it. BUT eval also
+;; deep-normalizes the RESULT term, which fires scoring/boolean-ops'
+;; AND/OR/NOT clauses on returned tree data. Reduct-path callers that
+;; return boolean tree data therefore must NOT use this helper — see the
+;; plain-if forms of getGuardSet/getGuardSetND in
+;; reduct/boolean-reduct/rte-helpers.metta.
 (= (if-decons-expr-custom $list $h $t $then $else)
       (if (or (== $list ()) (not (== (get-metatype $list) Expression)))
             $else
@@ -1187,7 +1207,7 @@
 (= (assertAlphaEqual $A $B)
    (assert (=alpha $A $B)))
 
-; (: unify (-> Expression Expression Expression Expression %Undefined%))
+(: unify (-> Expression Expression Expression Expression %Undefined%))
 (= (unify $space $pattern $then $else)
    (if (is-space $space)
        (let $temp (cut)

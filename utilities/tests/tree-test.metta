@@ -83,9 +83,9 @@
                    (mkTree (mkNode AND)
                       (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ()))
                       (cons (mkTree (mkNode B) ()) ()))))
-!(assertEqual (cleanTree (buildTree (AND (OR A B) (NOT A) (NOT B)))) (buildTree (AND (NOT A) (NOT B))))
-!(assertEqual (cleanTree (buildTree (AND A B (NOT A)))) (buildTree (AND)))
-!(assertEqual (cleanTree (buildTree (OR (AND A B (NOT A) B)))) (buildTree (AND)))
+!(assertEqual (cleanTree (buildTree (AND (OR A B) (NOT A) (NOT B)))) (buildTree FALSE))
+!(assertEqual (cleanTree (buildTree (AND A B (NOT A)))) (buildTree FALSE)) ;; a contradiction is false
+!(assertEqual (cleanTree (buildTree (OR (AND A B (NOT A) B)))) (buildTree FALSE))
 !(assertEqual (cleanTree (buildTree (OR A (AND B C)))) (buildTree (AND (OR A (AND B C)))))
 !(assertEqual (cleanTree (buildTree (OR A B C D))) (buildTree (AND (OR A B C D))))
 
@@ -465,16 +465,20 @@
 !(assertEqual (treeComplexity (buildTree (AND (NOT A) (OR A B)))) 3)
 !(assertEqual (treeComplexity (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) ())) ()))) 0)
 !(assertEqual (treeComplexity (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) ())) ()))) 1)
+;; A knob-embedded tree scores as its embedded tree: the mkKnob clause
+;; recurses into the inner tree ($lsk and $i carry no complexity).
+!(assertEqual (treeComplexity (mkKnob (buildTree (AND (NOT A) (OR A B))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())) 0)) 3)
+!(assertEqual (treeComplexity (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1)) 0)
 
 ;; Test case for alphabetSize
-!(bind! ttable1 (new-state (mkITable (cons (cons True (cons False (cons True ())))
-                        (cons (cons True (cons True  (cons True ()))) ())) 
+!(bind! ttable1 (new-state (mkITable (cons (cons True (cons True ()))
+                                     (cons (cons False (cons True ()))
+                                     (cons (cons True (cons True ())) ()))) 
                         (cons A (cons B (cons O ()))))))
 !(bind! ttable2 (new-state (mkITable
-                    (cons (cons True (cons True (cons True ())))
-                    (cons (cons True (cons False (cons False ())))
-                    (cons (cons False (cons True (cons False ())))
-                    (cons (cons False (cons False (cons False ()))) ()))))
+                    (cons (cons True (cons True (cons False (cons False ()))))
+                    (cons (cons True (cons False (cons True (cons False ()))))
+                    (cons (cons True (cons False (cons False (cons False ())))) ())))
                     (cons A (cons B (cons Output ()))))))
 
 !(println! ("testing: alphabetSize"))

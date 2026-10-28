@@ -25,7 +25,10 @@
 
 ; (: preOrder (-> (Tree $a) $a))
 
-(= (preOrder (mkTree (mkNode $r) ())) (if (once (is-member $r (AND OR))) ($r) $r))
+;; quote guards: with the AND/OR/NOT eval clauses registered
+;; (scoring/boolean-ops), bare (AND OR ...) tuples and var-headed ($r)
+;; emissions would compile as calls in any file loaded after them.
+(= (preOrder (mkTree (mkNode $r) ())) (if (once (is-member $r (quote (AND OR)))) (quote ($r)) $r))
 (= (preOrder (mkKnob (mkNullVex $tree) $lsk $i)) ())
 (= (preOrder (mkKnob (mkTree $node $children) $lsk $i)) (preOrder (mkTree $node $children)))
 (= (preOrder (mkTree (mkNode $r) (cons $x $xs)))
@@ -40,7 +43,7 @@
          $exp)
 )
 
-(= (preOrderDebug (mkTree (mkNode $r) ())) (if (once (is-member $r (AND OR))) ($r) $r))
+(= (preOrderDebug (mkTree (mkNode $r) ())) (if (once (is-member $r (quote (AND OR)))) (quote ($r)) $r))
 (= (preOrderDebug (mkNullVex $knobs))
    (let*
      (
@@ -81,7 +84,11 @@
             )
             (mkTree (mkNode $head) $children)
             )
-            (mkTree (mkNode $expr) ())
+            ;; A natural True/False is a constant, but as a Grounded atom it matches neither
+            ;; arm of the reduct's classifiers and gets dropped -- (AND A False) reduced to A.
+            ;; Normalise here, the one place an expression becomes a Tree. Inlined because
+            ;; tree.metta imports nothing: a call to general-helpers would compile as data.
+            (mkTree (mkNode (if (== $expr True) TRUE (if (== $expr False) FALSE $expr))) ())
         )
             )
 
@@ -297,7 +304,11 @@
 
 (= (isArgument (mkNullVex $x)) False)
 (= (isArgument (mkTree (mkNode $x) $children))
-   (and (not (once (is-member $x (AND OR NOT PRIORITIZED-OR)))) (== $children ())))
+   ;; TRUE/FALSE are constants, not data columns, and must carry NO complexity: it feeds
+   ;; the penalised score, the cScoreExpr< tie-break, removeDominated and resizeMetapop, so
+   ;; counting one silently steers the search. Measured: parity3 lost two of three seeds.
+   (and (not (once (is-member $x (quote (AND OR NOT TRUE FALSE)))))
+        (== $children ())))
 
 ;; A function to calculate the complexity of a tree.
 ;;  The complexity of a tree is the number of arguments it contains.
@@ -307,6 +318,9 @@
 ; (: treeComplexity (-> (Tree $a) Number))
 
 (= (treeComplexity (mkNullVex $x)) 0)
+;; A probed root can carry an embedded knob; without this clause the call
+;; fails silently and the representation build dies downstream.
+(= (treeComplexity (mkKnob $inner $lsk $i)) (treeComplexity $inner))
 (= (treeComplexity (mkTree (mkNode $a) $children)) ;; AND, OR and NOT have no complexity
    (if (isArgument (mkTree (mkNode $a) $children))
        1
@@ -325,7 +339,7 @@
 ; (: extractArgs (-> (Tree $a) (List Symbol)))
 
 (= (extractArgs (mkTree (mkNode $node) $children))
-    (if (once (is-member $node (AND OR NOT)))
+    (if (once (is-member $node (quote (AND OR NOT))))
         (extractArgsFromList $children)         ;; if it's an operator, collect args from children
         (cons $node ())))                       ;; else it's a literal, return it in a singleton list
     
@@ -354,7 +368,7 @@
 ; (: removeLiteral (-> (Tree $a) Symbol (Tree $a)))
 
 (= (removeLiteral (mkTree (mkNode $node) $children) $symbol)
-    (if (once (is-member $node (AND OR NOT)))
+    (if (once (is-member $node (quote (AND OR NOT))))
         (mkTree (mkNode $node) (List.mapOverArg removeLiteral $children $symbol))
         (if (== $node $symbol)
             ()

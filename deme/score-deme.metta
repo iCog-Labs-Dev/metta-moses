@@ -12,31 +12,29 @@
 (= (applyComplexityBasedScore $rep $id $instances $itable $complexityRatio)
     (map-atom $instances $i (mkSInst (mkPair $i (complexityBasedScorer $rep $id $i $itable $complexityRatio)))))
 
-;; Strategy-based scoring helper for game strategies 
+;; Action scoring helper: instance -> candidate tree -> episodes -> Cscore.
+;; Scores through the generic action evaluator (getActionCscore,
+;; scoring/action-score.metta) against the fitness configured in
+;; (param fitness). Uses the 3-arg getCandidate:
+;; action reps carry embedded mkASK knobs in a 1-field (mkKbMap (mkDscMp ...))
+;; -- the 4-arg findDiscKnob path requires the 2-field mkDscKbMp shape.
 ;; Params:
 ;;   $rep: The representation object
-;;   $instList: List of instances to score
-;;   $nGames: Number of games to play
-;;   $opponentPolicy: Opponent strategy
+;;   $id: The deme id
+;;   $instances: List of instances to score
+;;   $nTrials: Number of episodes per evaluation
 ;;   $complexityRatio: Complexity penalty ratio
 ;;   $listOfScoredInst: Accumulator for scored instances
 ;; Returns:
 ;;   List of scored instances with CScore
-; (: applyStrategyBasedScore (-> Representation (List Instance) Number $opponentPolicy Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
-(= (applyStrategyBasedScore $rep $id $instances $nGames $complexityRatio $listOfScoredInst)
+; (: applyActionBasedScore (-> Representation DemeId (List Instance) Number Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
+(= (applyActionBasedScore $rep $id $instances $nTrials $complexityRatio $listOfScoredInst)
    (map-atom $instances $i
-    (let*
-    (
-        ($strategyTree (getCandidate (mkNodeId (0)) $rep $id $i)) ;; TODO: Temporary fix for the scoring tree until it is edited.
-        ;; ($_ (println! "[applyStrategyBasedScore] Got tree:"))
-        ;; ($_ (println! $strategyTree))
-        ($cscore (getCscore $strategyTree $nGames $complexityRatio &strategyScoreCache))
-        ;; ($_ (println! "[applyStrategyBasedScore] Got cscore:"))
-        ;; ($_ (println! $cscore))
-    )
+    (let* (($actionTree (getCandidateHelper $i (getRepTree $rep)))
+           ($cscore (getActionCscore $actionTree (mkActionCtx $nTrials) $complexityRatio &actionScoreCache)))
     (mkSInst (mkPair $i $cscore)))))
 
-;; Scores each instance in an InstanceSet. 
+;; Scores each instance in an InstanceSet.
 ;; Params:
 ;;   instanceSet: The unscored InstanceSet(or that of with an initial worst score)
 ;;   $rep: The representation object
@@ -50,8 +48,12 @@
           ($instList (List.map removeInstScore $scoredInstList))
           ($scored (case $scoringContext
                         (
-                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio))
-                          (($nGames) (applyStrategyBasedScore $rep $id $instList $nGames $complexityRatio ())))))
+;; Two disjoint tagged contexts: (mkActionCtx ...) drives
+                          ;; the action path, (mkITable ...) the boolean path.
+                          ((mkActionCtx $nTrials $complexityRatio $targetScore) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
+                          ((mkActionCtx $nTrials) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
+                          (($complexityRatio $nTrials) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
+                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio)))))
           )
   (mkSInstSet $scored)))
 
@@ -59,32 +61,30 @@
 ;; Applies mutual information based scoring to a list of Instances.
 ;; Params:
 ;;   (cons (mkInst $i) $is): List of Instances.
-;;   (mkITable $rows $labels): Input table with rows and labels.
+;;   (mkITable $table $labels): Input table with rows and labels.
 ;;   $listOfScoredInst: Accumulator for Scored Instances.
 ;; Returns:
 ;;   List of Scored Instances with mutual information based scores.
 ; (: applyMutualInformationBasedScore (-> (List Instance) (ITable $a) (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
-(= (applyMutualInformationBasedScore () (mkITable $rows $labels) $miConfi $listOfScoredInst) 
-   ;; (trace! (Returning $listOfScoredInst)
-           $listOfScoredInst
-   ;; )
-)
-(= (applyMutualInformationBasedScore (cons (mkInst $i) $is) (mkITable $rows $labels) $miConf $listOfScoredInst)
+(= (applyMutualInformationBasedScore () (mkITable $table $labels) $miConfi $listOfScoredInst)
+   $listOfScoredInst)
+   
+(= (applyMutualInformationBasedScore (cons (mkInst $i) $is) (mkITable $table $labels) $miConf $listOfScoredInst)
 (let*
 (
-    ($targetColumn (Table.getOutputColumn (mkITable $rows $labels)))
+    ($targetColumn (Table.getOutputColumn (mkITable $table $labels)))
     ($indices (bitsToIndices $i 0 ()))
-    ($zippedCols (zipColumn $indices $rows))
+    ($zippedCols (zipColumn $indices $table))
+
     ($score (mutualInformation $zippedCols $targetColumn))
-    
-    ; in the c++ it also calculates the confidence too
-    ($confidence (calculateConfidence (size-atom $indices) (List.length $rows) $miConf))
+
+    ;; number of samples = length of any column
+    ($confidence (calculateConfidence (size-atom $indices) (ITable.rowCount $table) $miConf))
     ($scoreConfi (* $score $confidence))
     ($scoredInst (mkSInst (mkPair (mkInst $i) $scoreConfi)))
     ($uListofScoredInst (cons $scoredInst $listOfScoredInst))
 )
-(applyMutualInformationBasedScore $is (mkITable $rows $labels) $miConf $uListofScoredInst)))
-
+(applyMutualInformationBasedScore $is (mkITable $table $labels) $miConf $uListofScoredInst)))
 
 ;; similar to the above 'transform' but uses the mutualInformation based scoring for features selection
 ;; Scores each instance in an InstanceSet. 

@@ -27,20 +27,17 @@
 ;; (: LogicalSubtreeKnob Type)
 ;; (: mkLSK (-> DiscreteKnob LogicalSubtreeKnob))
 
-;; Strategy subtree knob representation (for game strategies)
-;; (: StrategySubtreeKnob Type)
-;; (: mkSSK (-> DiscreteKnob StrategySubtreeKnob))
-
 ;; Action subtree knob representation
 ;; (: ActionSubtreeKnob Type)
 ;; (: mkASK (-> DiscreteKnob (List (Tree $a)) ActionSubtreeKnob))
 
 ;; Structural action operators are never domain actions.
+;; The operator list now lives in scoring/action-registry.metta (seeded with
+;; the identical 14 symbols -- behavior-preserving); delegating to the
+;; registry lets later-loaded packages extend the set without editing this
+;; file. action-registry must load BEFORE this file.
 (= (isActionOperator $rootSymbol)
-   (is-member $rootSymbol (and_seq or_seq seq_exec action_not action_bool_if
-                           bool_action_if contin_action_if action_action_if
-                           action_success action_failure action_while
-                           bool_while return_success repeat_n)))
+   (isRegisteredActionOperator $rootSymbol))
 
 ;; Checks if a DiscreteKnob is considered part of the exemplar based on its default specifier.
 ;; Params:
@@ -52,15 +49,13 @@
 (= (inExemplar (mkDiscKnob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis)) 
    (not (== $def 0)))
 
-;; Extracts the DiscreteKnob component from a LogicalSubtreeKnob (mkLSK) or StrategySubtreeKnob (mkSSK).
+;; Extracts the DiscreteKnob component from a LogicalSubtreeKnob (mkLSK) or ActionSubtreeKnob (mkASK).
 ;; Params:
-;;   $lsk: LogicalSubtreeKnob or StrategySubtreeKnob
+;;   $lsk: LogicalSubtreeKnob or ActionSubtreeKnob
 ;; Return: The extracted DiscKnob
 ;; (: getDiscKnob (-> LogicalSubtreeKnob DiscreteKnob))
-;; (: getDiscKnob (-> StrategySubtreeKnob DiscreteKnob))
 ;; (: getDiscKnob (-> ActionSubtreeKnob DiscreteKnob))
 (= (getDiscKnob (mkLSK $DiscKnob )) $DiscKnob)
-(= (getDiscKnob (mkSSK $DiscKnob )) $DiscKnob)
 (= (getDiscKnob (mkASK $DiscKnob $perms)) $DiscKnob)
 
 ;; Extracts the Tree component from a LogicalSubtreeKnob (mkLSK).
@@ -68,41 +63,35 @@
 ;;   $lsk: LogicalSubtreeKnob
 
 
-;; Extracts the raw multiplicity stored on a discrete or logical/strategy knob.
+;; Extracts the raw multiplicity stored on a discrete, logical, or action subtree knob.
 ;; The effective multiplicity below subtracts disallowed non-default settings.
 ;; Params:
-;;  $knob: Either discrete, logical subtree, or strategy subtree knob
+;;  $knob: Either discrete, logical subtree, or action subtree knob
 ;; Returns: The unpruned multiplicity of the knob.
 ;; (: getRawKnobMultip (-> DiscreteKnob Multiplicity))
 ;; (: getRawKnobMultip (-> LogicalSubtreeKnob Multiplicity))
-;; (: getRawKnobMultip (-> StrategySubtreeKnob Multiplicity))
 ;; (: getRawKnobMultip (-> ActionSubtreeKnob Multiplicity))
 
 (= (getRawKnobMultip (mkDiscKnob $multiplicity $curr $def $disAll)) $multiplicity)
 (= (getRawKnobMultip (mkDiscKnob $knob $multiplicity $curr $def $disAll)) $multiplicity)
 (= (getRawKnobMultip (mkLSK $discKnob )) (getRawKnobMultip $discKnob))
-(= (getRawKnobMultip (mkSSK $discKnob )) (getRawKnobMultip $discKnob))
 (= (getRawKnobMultip (mkASK $discKnob $perms)) (getRawKnobMultip $discKnob))
 
 ;; Extracts the default setting and disallowed settings from a knob.
 ;; (: getKnobDefault (-> DiscreteKnob DiscSpec))
 ;; (: getKnobDefault (-> LogicalSubtreeKnob DiscSpec))
-;; (: getKnobDefault (-> StrategySubtreeKnob DiscSpec))
 ;; (: getKnobDefault (-> ActionSubtreeKnob DiscSpec))
 (= (getKnobDefault (mkDiscKnob $multiplicity $current $default $disAll)) $default)
 (= (getKnobDefault (mkDiscKnob $knob $multiplicity $current $default $disAll)) $default)
 (= (getKnobDefault (mkLSK $discKnob )) (getKnobDefault $discKnob))
-(= (getKnobDefault (mkSSK $discKnob )) (getKnobDefault $discKnob))
 (= (getKnobDefault (mkASK $discKnob $perms)) (getKnobDefault $discKnob))
 
 ;; (: getDisallowedSpecs (-> DiscreteKnob (List DiscSpec)))
 ;; (: getDisallowedSpecs (-> LogicalSubtreeKnob (List DiscSpec)))
-;; (: getDisallowedSpecs (-> StrategySubtreeKnob (List DiscSpec)))
 ;; (: getDisallowedSpecs (-> ActionSubtreeKnob (List DiscSpec)))
 (= (getDisallowedSpecs (mkDiscKnob $multiplicity $current $default $disAll)) $disAll)
 (= (getDisallowedSpecs (mkDiscKnob $knob $multiplicity $current $default $disAll)) $disAll)
 (= (getDisallowedSpecs (mkLSK $discKnob )) (getDisallowedSpecs $discKnob))
-(= (getDisallowedSpecs (mkSSK $discKnob )) (getDisallowedSpecs $discKnob))
 (= (getDisallowedSpecs (mkASK $discKnob $perms)) (getDisallowedSpecs $discKnob))
 
 (= (countNonDefaultDisallowed (mkDiscSpec $default) ()) 0)
@@ -110,30 +99,25 @@
    (+ (if (== $setting $default) 0 1)
       (countNonDefaultDisallowed (mkDiscSpec $default) $tail)))
 
-;; Extracts the effective multiplicity from a discrete or logical/strategy subtree knob.
+;; Extracts the effective multiplicity from a discrete, logical, or action subtree knob.
 ;; Params:
-;;  $knob: Either discrete, logical subtree, or strategy subtree knob
+;;  $knob: Either discrete, logical subtree, or action subtree knob
 ;; Returns: The multiplicity after removing disallowed non-default settings.
 ;; (: getKnobMultip (-> DiscreteKnob Multiplicity))
 ;; (: getKnobMultip (-> LogicalSubtreeKnob Multiplicity))
-;; (: getKnobMultip (-> StrategySubtreeKnob Multiplicity))
 ;; (: getKnobMultip (-> ActionSubtreeKnob Multiplicity))
 (= (getKnobMultip (mkDiscKnob (mkMultip $multiplicity) $current $default $disAll))
    (mkMultip (- $multiplicity (countNonDefaultDisallowed $default $disAll))))
 (= (getKnobMultip (mkDiscKnob $knob (mkMultip $multiplicity) $current $default $disAll))
    (mkMultip (- $multiplicity (countNonDefaultDisallowed $default $disAll))))
 (= (getKnobMultip (mkLSK $discKnob )) (getKnobMultip $discKnob))
-(= (getKnobMultip (mkSSK $discKnob )) (getKnobMultip $discKnob))
 (= (getKnobMultip (mkASK $discKnob $perms)) (getKnobMultip $discKnob))
 
-;; Calculates the knob Specification of an LSK, SSK, or ASK
+;; Calculates the knob Specification of an LSK or ASK
 ;; (: getKnobSpec (-> LogicalSubtreeKnob DiscSpec))
-;; (: getKnobSpec (-> StrategySubtreeKnob DiscSpec))
 ;; (: getKnobSpec (-> ActionSubtreeKnob DiscSpec))
 (= (getKnobSpec (mkLSK $discKnob))
    (let (mkMultip $multip) (getKnobMultip (mkLSK $discKnob)) (mkDiscSpec $multip)))
-(= (getKnobSpec (mkSSK $discKnob))
-   (let (mkMultip $multip) (getKnobMultip (mkSSK $discKnob)) (mkDiscSpec $multip)))
 (= (getKnobSpec (mkASK $discKnob $perms))
    (let (mkMultip $multip) (getKnobMultip (mkASK $discKnob $perms)) (mkDiscSpec $multip)))
 
@@ -172,17 +156,23 @@
               $default
               (nthAllowedActualSetting 0 $effectiveSetting $default $disAll)))))
 
-;; Extracts the location from a discrete, logical subtree, or strategy subtree knob.
+;; Validates an effective discrete setting and maps it to the actual setting
+;; represented by embedded knob metadata.
+(= (resolveDiscreteSetting $knob $effectiveSetting)
+   (let (mkMultip $effectiveMultip) (getKnobMultip $knob)
+      (if (>= $effectiveSetting $effectiveMultip)
+          (Error $effectiveSetting "Invalid effective disc specification.")
+          (mapEffectiveDiscSpec $knob $effectiveSetting))))
+
+;; Extracts the location from a discrete, logical subtree, or action subtree knob.
 ;; Params:
-;;  $knob: Either discrete, logical subtree, or strategy subtree knob
+;;  $knob: Either discrete, logical subtree, or action subtree knob
 ;; Returns: The location of the knob.
 ;; (: getKnobLoc (-> DiscreteKnob (NodeId)))
 ;; (: getKnobLoc (-> LogicalSubtreeKnob (NodeId)))
-;; (: getKnobLoc (-> StrategySubtreeKnob (NodeId)))
 ;; (: getKnobLoc (-> ActionSubtreeKnob (NodeId)))
 (= (getKnobLoc (mkDiscKnob (mkKnob $loc) $multip $curr $def $dis)) $loc)
 (= (getKnobLoc (mkLSK $discKnob )) (getKnobLoc $discKnob))
-(= (getKnobLoc (mkSSK $discKnob )) (getKnobLoc $discKnob))
 (= (getKnobLoc (mkASK $discKnob $perms)) (getKnobLoc $discKnob))
 
 ;; A comparison function for discSpec 

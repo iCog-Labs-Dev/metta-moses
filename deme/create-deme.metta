@@ -14,30 +14,45 @@
 (= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
       (let* 
             (
-                  ;; ($_ (println! "creating representations ...."))
-                  ($reps (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts  $scorerType))
-                  ;; ($_ (println! (done making representations ... $reps)))
+                  ($candidateReps
+                    (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType))
+                  ($reps (expandableRepresentations $candidateReps))
             ) 
             (loopCreateDeme $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
       ) 
 )
-;; Game strategy createDeme - creates demes with empty instance sets for game strategies
-;;             $nDeme --      number of demes to create
-;;             $demeIds --    list of deme ids (cons ...)
-;;             $exemplar --   the exemplar tree which the demes are going to be based on 
-;;             returns ↠ tuple of demes
-; (: createDeme (-> Number (List DemeId) (Tree $a) Expression))
-(= (createDeme $nDeme $demeIds $exemplar)
-      (let* 
-            (
-                  ;; ($_ (println! "creating game representations ...."))
-                  ($reps (createRepresentation $nDeme $exemplar))
-                  ;; ($_ (println! ("done making representations ..." $reps)))
-            )  
-            (loopCreateDeme $demeIds $reps ())
-      ) 
-)
 
+;; Action createDeme - the action/perception vocabularies ride as ARGUMENTS
+;; (5-ary: no collision with the 8-arg boolean clause above); same body
+;; shape. This layer just forwards them --
+;; the one params read happens at the deme boundary in expand-deme.metta.
+;;             $nDeme --       number of demes to create
+;;             $demeIds --     list of deme ids (cons ...)
+;;             $exemplar --    the exemplar tree which the demes are going to be based on
+;;             $actions --     tuple of domain action symbols (knob vocabulary)
+;;             $perceptions -- tuple of perception symbols (may be ())
+;;             returns ↠ tuple of demes
+; (: createDeme (-> Number (List DemeId) (Tree $a) Expression Expression Expression))
+(= (createDeme $nDeme $demeIds $exemplar $actions $perceptions)
+      (let $reps (createRepresentation $nDeme $exemplar $actions $perceptions)
+            (loopCreateDeme $demeIds $reps ())))
+
+;; Classic C++ MOSES discards every representation whose field set is empty,
+;; regardless of the scoring domain. An empty MeTTa disc map is equivalent:
+;; there is no coordinate that an optimizer can vary.
+(= (representationExpandable
+      (mkRep (mkKbMap (mkDscMp $mmp)) $tree))
+   (> (MultiMap.length $mmp) 0))
+(= (representationExpandable
+      (mkRep (mkKbMap $dscKbMp (mkDscMp $mmp)) $tree))
+   (> (MultiMap.length $mmp) 0))
+
+;; Filter each randomized representation independently.  Some random builds
+;; of the same exemplar can expose knobs while others expose none, so rejecting
+;; an exemplar by tree shape would incorrectly throw useful demes away.
+(= (expandableRepresentations $representations)
+   (filter-atom $representations $rep
+     (representationExpandable $rep)))
 
 (= (loopCreateDeme $demeIds $reps $acc)
 (if (== $reps ()) 
@@ -48,13 +63,8 @@
          (let* (
                  ($demeId (List.head $demeIds))
                  ($deme (mkDeme $h (mkSInstSet ()) $demeId))
-                 ($new-acc (union-atom $acc ($deme))))
+                 ($new-acc
+                   (if (representationExpandable $h)
+                       (union-atom $acc ($deme))
+                       $acc)))
                (loopCreateDeme (List.tail $demeIds) $t $new-acc)))))
-;; previous version of loopCreateDeme using if-decons-expr-custom
-;       (if-decons-expr-custom $reps $h $t
-;             (let* (($demeId (List.head $demeIds)) 
-;                    ($deme (mkDeme $h (mkSInstSet ()) $demeId))
-;                    ($new-acc (union-atom $acc ($deme))))
-                  
-;                   (loopCreateDeme (List.tail $demeIds) $t $new-acc))
-;                $acc))    
