@@ -53,21 +53,6 @@
                 (cons-atom ($x $y $z) (tripletWith $x $rest $tail))
                 (tripletWith $x $rest $tail)))))
 
-
-;; Generate a logical candidate unless its operator is ignored.
-(= (makeLogicalCandidate $op $a $b $ignoreOps)
-      (if (operatorAllowed $op $ignoreOps)
-          (cons-atom $op (cons-atom $a (cons-atom $b ())))
-          ()))
-
-
-(= (makeLogicalNotCandidate $op $a $b $ignoreOps)
-      (if (and
-             (operatorAllowed $op $ignoreOps)
-             (operatorAllowed NOT $ignoreOps))
-          (cons-atom $op (cons-atom (cons-atom NOT (cons-atom $a ())) (cons-atom $b ())))
-          ()))
-
 ;; getArgs -> generate logical expressions for the picked permutation indices
 ;; Parameters:
 ;;          $swapedOp -> swaped operator
@@ -84,8 +69,14 @@
                     ($2 (index-atom $argLabels $b))
                 )
                 (if (< $b $a)
-                    (makeLogicalCandidate $op $2 $1 $ignoreOps)
-                    (makeLogicalNotCandidate $op $1 $2 $ignoreOps))))
+                    (if (operatorAllowed $op $ignoreOps)
+                        (quote ($op $2 $1))
+                        ())
+                    (if (and (operatorAllowed $op $ignoreOps)
+                             (operatorAllowed NOT $ignoreOps))
+                        (quote ($op (NOT $1) $2))
+                        ())
+                    )))
         $perm
         (!= $perm ())))
 
@@ -103,7 +94,7 @@
             (let $arg (car-atom $argLabels)
                      (if (operatorAllowed NOT $ignoreOps)
                          (quote ($arg (NOT $arg)))
-                         (cons-atom $arg ()))) ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage;; Preserve the argument even when NOT is ignored.
+                         (quote ($arg)))) ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage;; Preserve the argument even when NOT is ignored.
             (let* (($upperbound (- (* $arity (- $arity 1)) 1))
                    ($picked (lazyRandomSelector 0 $upperbound $nPairs))
                    ($perms (getArgs $swapedOp $arity $picked $argLabels $ignoreOps)))

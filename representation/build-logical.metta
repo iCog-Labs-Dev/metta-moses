@@ -5,16 +5,16 @@
 ;;       $MMap: Multimap to store disc_pec and knobs.
 ;;       $argLabels: list of argument labels (input variables) from the ITable
 ;; Return: Updated tree and multimap.
-;; (: buildLogical (-> (Tree $a) NodeId (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v))))) 
+;; (: buildLogical (-> (Tree $a) NodeId (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v)))))
 ;; (= (buildLogical $tree (mkNodeId $nodeId) $MMap $argLabels)
 ;;   (let $subtree (getNodeById $tree (mkNodeId $nodeId))
 ;;     (if (== True (isNullVertex $subtree))
-;;         (let $x (println! ("reaching Null Vector ")) ($tree $MMap)) 
+;;         (let $x (println! ("reaching Null Vector ")) ($tree $MMap))
 ;;         (let*
 ;;         (
 ;;             ;; ($_ (println! (Started building at: (preOrder $subtree))))
 ;;             ;; ($_ (println! ("****************Building logical knobs for NodeId:**************** " $argLabels $nodeId)))
-;;             ((mkTree (mkNode $op) $childrens) $subtree) 
+;;             ((mkTree (mkNode $op) $childrens) $subtree)
 ;;             ($swapped (swapAndOr $op))
 ;;             ;; ($_ (println!("Operator: " $op " swapped to: " $swapped)))
 ;;             (($t1 $mp1) (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap $argLabels))
@@ -23,7 +23,7 @@
 ;;             ;; INFO: An attempt to replicate opencog's behavior but limits the quality drastically
 ;;             ;; (($sibToIterate $sibToConcat) (if (= $childrens ())
 ;;             ;;                                   (() ())
-;;             ;;                                   (let (mkTree (mkNode $x) $grandChildren) (List.head $childrens) 
+;;             ;;                                   (let (mkTree (mkNode $x) $grandChildren) (List.head $childrens)
 ;;             ;;                                        (if (and (isAnArgument $x) (= $grandChildren ()))
 ;;             ;;                                            ((cons (List.head $childrens) ()) (List.tail $childrens))
 ;;             ;;                                            ($childrens ())))))
@@ -105,14 +105,17 @@
                                                                 (($tree $map) (buildLogical $ch $node $prevMap $argLabels $disable-discprobe $globalTree $childNodeId $ignoreOps))
                                                               )
                                                               ((cons $tree $prevTrees) $map))))
-           
-            (($lastUpdatedTree $lastMp1) 
-                   (if (operatorAllowed (swapAndOr $node) $ignoreOps)
-                       (addLogicalKnobsFast (mkTree (mkNode (swapAndOr $node)) ()) True $updatedMMap $argLabels $disable-discprobe $globalTree $currentNodeId $ignoreOps)
-                       ((mkTree (mkNode $node) (reverse $updatedChildren)) $updatedMMap)))
+
+            (($childrenWithCandidate $lastMp1)
+                (if (operatorAllowed (swapAndOr $node) $ignoreOps)
+                    (let* ((($lastUpdatedTree $lastMp1) (addLogicalKnobsFast (mkTree (mkNode (swapAndOr $node)) ()) True $updatedMMap $argLabels $disable-discprobe $globalTree $currentNodeId $ignoreOps)))
+                         ((append (reverse $updatedChildren) ($lastUpdatedTree)) $lastMp1))
+                    ((reverse $updatedChildren) $updatedMMap)))
              ;; ($_ (println! (BulidLogical 4)))
            )
-           ((mkTree (mkNode $node) (append (reverse $updatedChildren) ($lastUpdatedTree))) $lastMp1))
+
+          ((mkTree (mkNode $node) $childrenWithCandidate) $lastMp1))
+
           (if (operatorAllowed (swapAndOr $parentOp) $ignoreOps)
               (addLogicalKnobsFast(mkTree (mkNode (swapAndOr $parentOp)) ((mkTree (mkNode $node) $children))) (not (isAnArgument $node)) $MMap $argLabels $disable-discprobe $globalTree $currentNodeId $ignoreOps)
              ((mkTree (mkNode $node) $children) $MMap))))
