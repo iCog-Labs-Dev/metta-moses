@@ -119,18 +119,19 @@
 
 (= (reduceRepeatInActionWhile $expr)
    (unify $expr (action_while $seq)
-     (if (== (car-atom $seq) and_seq)
-         (let* (($bodyArgs (cdr-atom $seq))
-                ($sz (size-atom $bodyArgs))
-                ($period (findRepeatingPeriod $bodyArgs)))
-           (if (< $period $sz)
-               (if (== $period 1)
-                   (action_while (car-atom $bodyArgs))
-                   (action_while (cons-atom and_seq (take $period $bodyArgs))))
-               $expr))
+     (if (and (== (get-metatype $seq) Expression) (!= $seq ()))
+         (if (== (car-atom $seq) and_seq)
+             (let* (($bodyArgs (cdr-atom $seq))
+                    ($sz (size-atom $bodyArgs))
+                    ($period (findRepeatingPeriod $bodyArgs)))
+               (if (< $period $sz)
+                   (if (== $period 1)
+                       (action_while (car-atom $bodyArgs))
+                       (action_while (cons-atom and_seq (take $period $bodyArgs))))
+                   $expr))
+             $expr)
          $expr)
      $expr))
-
 ;; reduceRepeatOutActionWhile (C++ reduce_repeat_out_action_while):
 ;; When an and_seq contains a prefix that duplicates the body of the immediately
 ;; following action_while, the prefix is redundant: the while loop will execute
