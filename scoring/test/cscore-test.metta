@@ -2,15 +2,7 @@
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/tree)
 
-!(import! &self ../../scoring/strategy-score-cache)
 !(import! &self ../../scoring/cacheSpace)
-!(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
-!(import! &self ../../examples/tic-tac-toe/random-player)
-!(import! &self ../../examples/tic-tac-toe/strategy-scoring)
-!(import! &self ../../examples/tic-tac-toe/minimax-player)
-!(import! &self ../../examples/tic-tac-toe/game-engine)
-!(import! &self ../../examples/tic-tac-toe/moves)
-!(import! &self ../../examples/tic-tac-toe/moses-player)
 
 
 !(import! &self ../fitness)
@@ -119,12 +111,3 @@
   ($objResult (apply < $score3 $score4))
 ) (== $exprResult $objResult)) True)
 
-(= (Strategy)
-   (mkTree (mkNode PRIORITIZED-OR)
-      (cons (mkTree (mkNode playcenter) ())
-            (cons (mkTree (mkNode playside) ())
-                  (cons (mkTree (mkNode playcorner) ()) ())))))
-
-; Strategy scoring now uses mixed opponents (random + minimax)
-!(assertEqual (getCscore (Strategy) 5 3.5 &strategyScoreCache)
-                (mkCscore 2.0 3 0.8571428571428571 0.0 1.1428571428571428))

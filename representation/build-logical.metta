@@ -1,50 +1,3 @@
-;; siblingit => Iterate over list of Tree children and build logical knobs for each node
-;; Extended to support PRIORITIZED-OR for game strategies
-;;params:
-;;       $tree: The tree being updated
-;;       $childrens: List of children to iterate over.
-;;       $parentId: ID of the parent node.
-;;       $childNum: Current child number.
-;;       $swapedOp: Swapped operator symbol.
-;;       $MMap: Multimap to store disc_pec and knobs.
-;;       $argLabels: list of argument labels (input variables) from the ITable
-;; Return: Updated tree and multimap.
-;; (: siblingit (-> (Tree $a) (List (Tree $a)) NodeId Number Symbol (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v)))))
-(= (siblingit $tree () (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels) ($tree $MMap))
-(= (siblingit $tree (cons $head $tail) (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels)
-(siblingitAt $tree (cons $head $tail) (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels (mkNodeId $parentId) True))
-
-(= (siblingitAt $tree () (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels $probeRootId $disable-discprobe) ($tree $MMap))
-(= (siblingitAt $tree (cons $head $tail) (mkNodeId $parentId) $childNum $swapedOp $MMap $argLabels $probeRootId $disable-discprobe)
-        (let*
-             (
-                ;; ($_ (println! "siblingit called"))
-                ($curId (if (== $parentId (0))
-                            ($childNum)
-                           (concatT $parentId ($childNum))))
-                ((mkTree (mkNode $node) $childern) $head)
-                ;; ($_ (println!( "curId: " $curId "node :" $node)))
-                ;; ($_ (println!( "head: " $head "tail :" $tail)))
-                ;; quote: bare (AND OR ...) would compile as an AND call once
-                ;; scoring/boolean-ops' eval clauses are registered
-                (($tNew  $mNew) (if (once (is-member $node (quote (AND OR PRIORITIZED-OR)))) ;; only build logical knobs for AND/OR nodes, creating sampleLogicalPerms
-                                    (if (== $node PRIORITIZED-OR)
-                                        (buildStrategy $tree (mkNodeId $curId) $MMap $argLabels)
-                                        (buildLogicalAt $tree $probeRootId (mkNodeId $curId) $MMap $argLabels $disable-discprobe))
-                                        (if (== $swapedOp PRIORITIZED-OR)
-                                            ;; Game move terminals - no transformation needed
-                                            ($tree $MMap)
-                                            ;; Boolean logic terminals - insert operator and add knobs
-                                           (let  $itree (insertNodeAtPosition $tree (mkNodeId $curId) (mkNode $swapedOp))
-                                                  (if (isAnArgument $node)
-                                                      (addLogicalKnobsAt $itree $probeRootId (mkNodeId $curId) False $MMap $argLabels $disable-discprobe) ;; INFO: Due to the structure of the pointer in the classic, after adding a knob here, the iteration terminates and goes to the parent node even though there are still other siblings. For now this seemed to be the correct approach so living it as it is, but needs an investigation for later.
-                                                      (addLogicalKnobsAt $itree $probeRootId (mkNodeId $curId) True $MMap $argLabels $disable-discprobe))))))
-                ;;($_ (println! $tNew))
-                (($tailT $tailM) (siblingitAt $tNew $tail (mkNodeId $parentId) (+ $childNum 1) $swapedOp $mNew $argLabels $probeRootId $disable-discprobe))
-                
-             )
-             ($tailT $tailM)))
-
 ;; buildLogical => Build logical knobs for a given NodeId and its children
 ;;params:
 ;;       $tree: The tree being updated
@@ -157,24 +110,3 @@
            )
            ((mkTree (mkNode $node) (append (reverse $updatedChildren) ($lastUpdatedTree))) $lastMp1))
        (addLogicalKnobsFast (mkTree (mkNode (swapAndOr $parentOp)) ((mkTree (mkNode $node) $children))) (not (isAnArgument $node)) $MMap $argLabels $disable-discprobe $globalTree $currentNodeId)))
-
-;; buildStrategy => Build strategy knobs for PRIORITIZED-OR nodes
-;; (: buildStrategy (-> (Tree $a) NodeId (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v))))) 
-(= (buildStrategy $tree (mkNodeId $nodeId) $MMap $argLabels)
-  (let $subtree (getNodeById $tree (mkNodeId $nodeId))
-    ;; Safety Check
-    (if (== True (isNullVertex $subtree))
-        ($tree $MMap) 
-        (let*
-        (
-            ($_ (println! ("****************Building strategy knobs for NodeId:**************** " $argLabels $nodeId)))
-            ;; Deconstruct the current node
-            ((mkTree (mkNode $op) $children) $subtree) 
-            ($_ (println! ("Operator: " $op " (no swapping for game strategies)")))
-            ;; Add game knobs to the current PRIORITIZED-OR node
-            (($t1 $mp1) (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap $argLabels))
-            ($_ (println! ("Building strategy knobs for NodeId: " $nodeId " with operator: " $op)))
-            ;; Process Children using unified sibling iterator with PRIORITIZED-OR (no swapping)
-            (($updatedTree $updatedMMap) (siblingit $t1 $children (mkNodeId $nodeId) 1 $op $mp1 $argLabels))
-        )
-            ($updatedTree $updatedMMap)))))

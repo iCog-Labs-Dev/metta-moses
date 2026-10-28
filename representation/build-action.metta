@@ -13,7 +13,9 @@
 
 (= (randint $max) (py-call (random.randint 0 $max)))
 
-(= (isDomainAction $op $actions) (is-member $op $actions))
+;; Domain-membership predicates must return one Boolean, not is-member's
+;; comparison-by-comparison alternatives.
+(= (isDomainAction $op $actions) (once (is-member $op $actions)))
 
 (= (sampleActionPerms $actions $perceptions)
    (if (== $perceptions ())
@@ -43,8 +45,15 @@
        ($perception (randElement $perceptions))
        ($actA (List.getByIdx $actions $aIdx))
        ($actB (List.getByIdx $actions $bIdx))
+       ;; quote: action_bool_if is a live bare-head clause
+       ;; (scoring/action-ops), so an unquoted (action_bool_if ...) literal
+       ;; in this tail position would be an arity-3 call of the arity-2
+       ;; head (a hard Prolog length/2 error in this imported-module
+       ;; context). quote substitutes the bound values and strips once,
+       ;; yielding the plain flat tuple.
+       ($perm (quote (action_bool_if $perception $actA $actB)))
      )
-     (action_bool_if $perception $actA $actB)))
+     $perm))
 
 (= (actionPairsFromIndexes () $perceptions $actions $actionCount) ())
 (= (actionPairsFromIndexes (cons $pairIdx $rest) $perceptions $actions $actionCount)
@@ -235,12 +244,15 @@
    (if (== $op and_seq)
        (buildActionAndSeq (mkTree (mkNode and_seq) $children) $MMap $actions $perceptions)
 
-       (if (== $op action_bool_if)
+       (if (== $op action_bool_if) ;; (action_bool_if ($cond $a $b))
            (buildActionBoolIf (mkTree (mkNode action_bool_if) $children) $MMap $actions $perceptions)
            ((mkTree (mkNode $op) $children) $MMap))))
 
+;; The cleanup-op list now lives in scoring/action-registry.metta (seeded
+;; identically with and_seq/or_seq/seq_exec -- behavior-preserving);
+;; action-registry must load BEFORE this file.
 (= (isCleanupActionOperator $op)
-   (is-member $op (and_seq or_seq seq_exec)))
+   (isRegisteredCleanupActionOp $op))
 
 (= (actionCleanup $tree)
    (let ($cleaned $keep) (actionCleanupNode $tree)

@@ -139,30 +139,3 @@
            )
            ($updatedKnobs $updatedTree))
          ($knobs $exemplar))))
-
-;; Game-specific probe that uses strategySubtreeKnob instead of logicalSubtreeKnob
-;; strategyProbe -> builds SSKs by processing game move permutations
-;; Params:
-;;      $exemplar: Reference tree containing the target node
-;;      $targetId: ID of the target node in the exemplar
-;;      $perms: Tuple of game strategy trees
-;;      $addIfInExemplar: If true, include knobs even if in exemplar
-;;      $knobs: the list of knobs at each iteration, () at the start
-;; Return: a tuple containing a tuple of SSKs and the final updated tree
-;; (: strategyProbe (-> (Tree $a) NodeId Expression Bool Expression Expression))
-(= (strategyProbe $exemplar (mkNodeId $targetId) () $addIfInExemplar $knobs) ($knobs $exemplar))
-(= (strategyProbe $exemplar (mkNodeId $targetId) $perms $addIfInExemplar $knobs)
-   (let*
-   (
-       (($headPerms $tailPerms) (decons-atom $perms))
-       ;; CHANGE: Call strategySubtreeKnob instead of logicalSubtreeKnob
-       (($updatedTree $ssk) (strategySubtreeKnob $exemplar (mkNodeId $targetId) $headPerms))
-       ($discKnob (getDiscKnob $ssk))
-   )
-   (if (or $addIfInExemplar (not (inExemplar $discKnob) ))
-       (let* (
-           ($updatedKnobs (concatT $knobs ($ssk)))
-       )
-       (strategyProbe $updatedTree (mkNodeId $targetId) $tailPerms $addIfInExemplar $updatedKnobs)
-       )
-       (strategyProbe $exemplar (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs))))

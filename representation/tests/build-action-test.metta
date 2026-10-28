@@ -9,6 +9,19 @@
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cacheSpace)
 
+!(import! &self ../../scoring/action-registry)
+!(import! &self ../../reduct/action-reduct/action-vocab)
+!(import! &self ../../reduct/action-reduct/action-helpers)
+!(import! &self ../../reduct/action-reduct/action-properties)
+!(import! &self ../../reduct/action-reduct/reduce-action-if)
+!(import! &self ../../reduct/action-reduct/reduce-action-action-if)
+!(import! &self ../../reduct/action-reduct/reduce-const-action-seq)
+!(import! &self ../../reduct/action-reduct/reduce-action-not)
+!(import! &self ../../reduct/action-reduct/reduce-action-while)
+!(import! &self ../../reduct/action-reduct/reduce-seq-result)
+!(import! &self ../../reduct/action-reduct/reduce-null-vertices)
+!(import! &self ../../reduct/action-reduct/reduce-action-properties)
+!(import! &self ../../reduct/action-reduct/action-reduction)
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/lsk)
 !(import! &self ../../representation/logical-probe)
@@ -30,6 +43,7 @@
 !(assertEqual (isActionOperator and_seq) True)
 !(assertEqual (isActionOperator action_bool_if) True)
 !(assertEqual (isActionOperator seq_exec) True)
+!(assertEqual (isActionOperator exec_seq) True)
 !(assertEqual (isActionOperator move_forward) False)
 
 !(assertEqual (isDomainAction move_forward (move_forward turn_left)) True)
@@ -168,9 +182,16 @@
       ($turn (getCandidate $rep ActionCandidateTurn (mkInst (2))))
     )
     ($absent $move $turn))
-  ((mkTree (mkNode and_seq) ())
+  ((mkTree (mkNode action_success) ())
    (mkTree (mkNode and_seq) ((moveTree)))
    (mkTree (mkNode and_seq) ((turnTree)))))
+
+!(assertEqual
+  (getCandidate
+    (mkRep (mkKbMap (mkDscMp ())) (mkTree (mkNode exec_seq) ()))
+    ExecSeqCandidateEmptyStatic
+    (mkInst ()))
+  (mkTree (mkNode action_success) ()))
 
 ;; Simple-action ASK present mode recurses into the embedded controlled subtree.
 !(assertEqual
@@ -242,20 +263,28 @@
       (not (== $tree ()))
       (> (MultiMap.length $mmp) 0)))
   True)
-;; buildKnobs dispatches action and strategy roots
+;; buildKnobs dispatches action roots (and_seq and other structural roots)
 !(assertEqual
   (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) () () (move_forward turn_left) (A B))
     (> (MultiMap.length $mmp) 0))
   True)
 
+;; A non-and_seq structural root (or_seq) is canonized: the root becomes
+;; and_seq and the original or_seq subtree is preserved as child (1). Structural
+;; pin only (the root-knob insertion is probabilistic).
 !(assertEqual
-  (let* (($tree (mkTree (mkNode PRIORITIZED-OR)
+  (let* (($tree (mkTree (mkNode or_seq)
                   (cons (mkTree (mkNode playcenter) ())
                   (cons (mkTree (mkNode playcorner) ())
                   (cons (mkTree (mkNode playblock) ()) ())))))
-         (($updatedTree $mmp) (buildKnobs $tree () (playcenter playcorner playblock) () ())))
-    (> (MultiMap.length $mmp) 0))
-  True)
+         (($updatedTree $mmp) (buildKnobs $tree () () (playcenter playcorner playblock) ())))
+    ((getNodeValue (getNodeById $updatedTree (mkNodeId (0))))
+     (getNodeById $updatedTree (mkNodeId (1)))))
+  ((mkNode and_seq)
+   (mkTree (mkNode or_seq)
+     (cons (mkTree (mkNode playcenter) ())
+     (cons (mkTree (mkNode playcorner) ())
+     (cons (mkTree (mkNode playblock) ()) ()))))))
 
 ;; Canonize and cleanup mirror the C++ action pre/post passes.
 !(assertEqual
@@ -276,6 +305,10 @@
 
 !(assertEqual
   (actionCleanup (mkTree (mkNode seq_exec) ()))
+  (mkNullVex ()))
+
+!(assertEqual
+  (actionCleanup (mkTree (mkNode exec_seq) ()))
   (mkNullVex ()))
 
 !(assertEqual

@@ -8,6 +8,7 @@ on:
       - feat/*
       - fix/*
       - ref/*
+      - merge/*
   pull_request:
     branches:
       - main

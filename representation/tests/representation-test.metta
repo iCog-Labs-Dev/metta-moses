@@ -18,8 +18,22 @@
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 
+!(import! &self ../../reduct/action-reduct/action-vocab)
+!(import! &self ../../reduct/action-reduct/action-helpers)
+!(import! &self ../../reduct/action-reduct/action-properties)
+!(import! &self ../../reduct/action-reduct/reduce-action-if)
+!(import! &self ../../reduct/action-reduct/reduce-action-action-if)
+!(import! &self ../../reduct/action-reduct/reduce-const-action-seq)
+!(import! &self ../../reduct/action-reduct/reduce-action-not)
+!(import! &self ../../reduct/action-reduct/reduce-action-while)
+!(import! &self ../../reduct/action-reduct/reduce-seq-result)
+!(import! &self ../../reduct/action-reduct/reduce-null-vertices)
+!(import! &self ../../reduct/action-reduct/reduce-action-properties)
+!(import! &self ../../reduct/action-reduct/action-reduction)
+
 !(import! &self ../../utilities/tree) 
 
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/disc-probe)
 !(import! &self ../../representation/lsk)
@@ -28,6 +42,7 @@
 !(import! &self ../../representation/sample-logical-perms) 
 !(import! &self ../../representation/add-logical-knobs)
 !(import! &self ../../representation/build-logical)
+!(import! &self ../../representation/build-action)
 !(import! &self ../../representation/build-knobs)
 !(import! &self ../../representation/knob-mapper)
 
@@ -49,6 +64,64 @@
 !(import! &self ../../feature-selection/feature-selection-main)
 
 !(import! &self ../../representation/representation)
+
+;; Embedded LSK and ASK candidate reconstruction is the canonical path for
+;; discrete-knob materialization.
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (0))
+      (mkKnob (mkTree (mkNode A) ())
+              (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
+              0))
+  ())
+
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (1))
+      (mkKnob (mkTree (mkNode A) ())
+              (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
+              0))
+  (mkTree (mkNode A) ()))
+
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (2))
+      (mkKnob (mkTree (mkNode A) ())
+              (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
+              0))
+  (mkTree (mkNode NOT) ((mkTree (mkNode A) ()))))
+
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (1))
+      (mkKnob (mkNullVex ((mkTree (mkNode D) ())))
+              (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ((mkDiscSpec 1))))
+              0))
+  (mkTree (mkNode NOT) ((mkTree (mkNode D) ()))))
+
+!(assertEqual
+  (getCandidateHelper
+      (mkInst (1))
+      (mkTree (mkNode and_seq)
+        ((mkKnob (mkNullVex ((mkTree (mkNode move_forward) ()) (mkTree (mkNode turn_left) ())))
+                 (mkASK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
+                        ((mkTree (mkNode move_forward) ()) (mkTree (mkNode turn_left) ())))
+                 0))))
+  (mkTree (mkNode and_seq) ((mkTree (mkNode move_forward) ()))))
+
+!(assertEqual
+  (let*
+    (
+      (($actionControlled $actionAsk) (actionSubtreeKnob ((mkTree (mkNode turn_left) ()))))
+      (($simpleControlled $simpleAsk)
+        (simpleActionSubtreeKnob
+          (mkTree (mkNode and_seq)
+            ((mkKnob $actionControlled $actionAsk 1)))))
+    )
+    (getCandidateHelper
+      (mkInst (1 1))
+      (mkKnob $simpleControlled $simpleAsk 0)))
+  (mkTree (mkNode and_seq) ((mkTree (mkNode turn_left) ()))))
 
 
 (= (tree1)
@@ -353,16 +426,28 @@
 ;; ;         )
 ;; ;         ((mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (1)) 7) (cons ((mkNodeId (1 1)) 3) (cons ((mkNodeId (1 2)) 2) (cons ((mkNodeId (1 3)) 1) (cons ((mkNodeId (1 4)) 0) (cons ((mkNodeId (2)) 6) (cons ((mkNodeId (3)) 5) (cons ((mkNodeId (4)) 4) ()))))))))) (mkDscMp (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) ())))))))))) (mkTree (mkNode AND) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkNullVex (cons (mkTree (mkNode D) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode D) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode D) ()) ()))) ())) ()))))) (cons (mkNullVex (cons (mkTree (mkNode D) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode D) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode D) ()) ()))) ())) ())))))))
 ;; ; )
-(= (gameTree) (mkTree (mkNode PRIORITIZED-OR) 
-            (cons (mkTree (mkNode playcenter) ()) 
-                  (cons (mkTree (mkNode playcorner) ()) ()))))
 
-;; FIX: This test cases are failing, not sure what changed but has to be fixed later on since strategy representation is also going to change.
-;; ;; Game strategy representation with nDeme=1
-;; !(assertEqual (representation (gameTree) 1) ((mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (3)) 0) (cons ((mkNodeId (4)) 1) (cons ((mkNodeId (5)) 2) (cons ((mkNodeId (6)) 3) (cons ((mkNodeId (7)) 4) ())))))) (mkDscMp (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (5))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (6))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (7))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ()))))))) (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playside) ()) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playcenter) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playblock) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playside) ()) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playblock) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playside) ()) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playcorner) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playside) ()) ())))) ())) ())))))))))))
-;; Game strategy representation with nDeme=2 
-;; !(assertEqual (representation (gameTree) 2)
-;;               ((mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (3)) 0) (cons ((mkNodeId (4)) 1) (cons ((mkNodeId (5)) 2) (cons ((mkNodeId (6)) 3) (cons ((mkNodeId (7)) 4) ())))))) (mkDscMp (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (5))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (6))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (7))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ()))))))) (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playblock) ()) (cons (mkTree (mkNode playside) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playblock) ()) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playcorner) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkTree (mkNode playside) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkTree (mkNode playblock) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playcorner) ()) ())))) ())) ()))))))))) (mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (3)) 0) (cons ((mkNodeId (4)) 1) (cons ((mkNodeId (5)) 2) (cons ((mkNodeId (6)) 3) (cons ((mkNodeId (7)) 4) ())))))) (mkDscMp (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (5))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (6))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (7))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ()))))))) (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playside) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkTree (mkNode playblock) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playside) ()) (cons (mkTree (mkNode playcenter) ()) (cons (mkTree (mkNode playcorner) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playside) ()) (cons (mkTree (mkNode playblock) ()) (cons (mkTree (mkNode playcorner) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playblock) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkTree (mkNode playwin) ()) ())))) ())) (cons (mkNullVex (cons (mkTree (mkNode PRIORITIZED-OR) (cons (mkTree (mkNode playwin) ()) (cons (mkTree (mkNode playcorner) ()) (cons (mkTree (mkNode playcenter) ()) ())))) ())) ())))))))))))
+;; =============================================================================
+;; Action-domain representation (replaces the retired game-strategy fixture and
+;; its commented nDeme asserts). The lean 3-ary overload takes the exemplar and
+;; the two vocabularies as ordinary arguments and returns the 1-tuple
+;; (mkRep (mkKbMap (mkDscMp $m)) $t). The 2-ary game constructor's nDeme-variant
+;; intent (multiple reps per exemplar) is pinned by
+;; create-representation-action-test.metta:57-64.
+;; =============================================================================
+(= (actionGameTree)
+   (mkTree (mkNode and_seq)
+     (cons (mkTree (mkNode playcenter) ())
+       (cons (mkTree (mkNode playcorner) ()) ()))))
+
+;; Shape guard: every registered knob in an action representation is an ASK.
+(= (isMkASK $v) (case $v (((mkASK $discKnob $perms) True) ($other False))))
+
+;; NOTE: the action-representation assert lives at the END of this file, AFTER
+;; the boolean `representation` assert below. That boolean assert pins exact
+;; randomly-sampled permutations, so nothing that draws from the RNG (a live
+;; `representation` call or a reseed) may precede it -- doing so shifts its
+;; sampled knobs and breaks the pin. Keep the action assert last.
 
 !(assertEqual (representation
         2
@@ -376,3 +461,20 @@
         )
         ((mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode OR) ((mkTree (mkNode AND) ((mkKnob (mkTree (mkNode OR) ((mkTree (mkNode A) ()) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 12) (mkKnob (mkNullVex ((mkTree (mkNode C) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 13) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode NOT) ((mkTree (mkNode B) ()))) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 14) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode A) ()) (mkTree (mkNode B) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 15) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode A) ()) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 16))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())) 6) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 7) (mkKnob (mkNullVex ((mkTree (mkNode C) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 8) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode A) ()) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 9) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode NOT) ((mkTree (mkNode B) ()))) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 10) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode A) ()) (mkTree (mkNode B) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 11) (mkTree (mkNode OR) ((mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 17) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 18) (mkKnob (mkNullVex ((mkTree (mkNode C) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 19) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode NOT) ((mkTree (mkNode A) ()))) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 20) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode A) ()) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 21) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode A) ()) (mkTree (mkNode B) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 22))))) (mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) (mkKnob (mkNullVex ((mkTree (mkNode C) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 2) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode NOT) ((mkTree (mkNode B) ()))) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 3) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode NOT) ((mkTree (mkNode A) ()))) (mkTree (mkNode B) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 4) (mkKnob (mkNullVex ((mkTree (mkNode AND) ((mkTree (mkNode A) ()) (mkTree (mkNode B) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 5) (mkTree (mkNode AND) ((mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 23) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 24) (mkKnob (mkNullVex ((mkTree (mkNode C) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 25) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode NOT) ((mkTree (mkNode A) ()))) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 26) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode NOT) ((mkTree (mkNode A) ()))) (mkTree (mkNode B) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 27) (mkKnob (mkNullVex ((mkTree (mkNode OR) ((mkTree (mkNode A) ()) (mkTree (mkNode C) ()))))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 28)))))))
 )
+
+;; Action-domain representation (pinned last -- see the NOTE above about RNG
+;; ordering). The lean 3-ary overload takes the exemplar and the two
+;; vocabularies as ordinary arguments and returns the 1-tuple
+;; (mkRep (mkKbMap (mkDscMp $m)) $t). The 2-ary game constructor's nDeme-variant
+;; intent (multiple reps per exemplar) is pinned by
+;; create-representation-action-test.metta:57-64.
+;; Each piece is pre-bound (let*) so the multimap is walked exactly once --
+;; using $m in two tuple slots would re-enter its lookup and multiply solutions.
+!(assertEqual
+  (let (mkRep (mkKbMap (mkDscMp $m)) (mkTree (mkNode $rootOp) $t))
+       (representation (actionGameTree) (playwin playblock playcenter playcorner playside) ())
+    (and (> (MultiMap.length $m) 0)
+         (and (== $rootOp and_seq)
+              (and (not (== $t (actionGameTree)))
+                   (all (map-atom (MultiMap.values $m) $v (isMkASK $v)))))))
+  True)

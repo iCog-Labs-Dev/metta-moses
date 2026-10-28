@@ -1207,7 +1207,7 @@
 (= (assertAlphaEqual $A $B)
    (assert (=alpha $A $B)))
 
-; (: unify (-> Expression Expression Expression Expression %Undefined%))
+(: unify (-> Expression Expression Expression Expression %Undefined%))
 (= (unify $space $pattern $then $else)
    (if (is-space $space)
        (let $temp (cut)

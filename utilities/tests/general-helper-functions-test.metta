@@ -2,6 +2,7 @@
 !(import! &self ../general-helpers)
 !(import! &self ../list-methods)
 !(import! &self ../map)
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../ordered-set)
 !(import! &self ../ordered-multiset)

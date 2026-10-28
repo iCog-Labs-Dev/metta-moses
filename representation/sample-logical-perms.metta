@@ -1,6 +1,6 @@
-;; Permutation sampling for logical / strategy knob building. Only ~arity random
-;; pairs/triplets are ever needed, so rather than enumerating the whole list we
-;; map each random index straight to its pair/triplet (pairAt / tripletAt),
+;; Permutation sampling for logical knob building. Only ~arity random
+;; pairs are ever needed, so rather than enumerating the whole list we
+;; map each random index straight to its pair (pairAt),
 ;; mirroring classic build_knobs::sample_logical_perms.
 
 (= (intDiv $a $b) (floor-math (/ $a $b)))
@@ -12,18 +12,6 @@
            ($j (% $i $d))
            ($b (if (< $j $a) $j (+ $j 1))))
         ($a $b)))
-
-;; $i-th ordered triplet of distinct ($x $y $z) over {0 .. $n-1}; each $x owns a
-;; block of (n-1)(n-2) triplets whose ($y $z) come from pairAt over the rest
-(= (tripletAt $n $i)
-    (let* (($m (- $n 1))
-           ($per (* $m (- $m 1)))
-           ($x (intDiv $i $per))
-           ($k (% $i $per))
-           (($p $q) (pairAt $m $k))
-           ($y (if (< $p $x) $p (+ $p 1)))
-           ($z (if (< $q $x) $q (+ $q 1))))
-        ($x $y $z)))
 
 ;; genPairs / genTriplet: deterministic full enumerations, kept as utilities
 ;; (: genPairs (-> Expression Expression))
@@ -98,36 +86,3 @@
                    ($picked (lazyRandomSelector 0 $upperbound $nPairs))
                    ($perms (getArgs $swapedOp $arity $picked $argLabels)))
                (concatT $argLabels $perms)))))
-
-;; getMoveArgs -> generate move expressions for the picked triplet indices
-;; Params:
-;;          $op: move operator (PRIORITIZED-OR)
-;;          $n: number of move labels (index space {0 .. $n-1})
-;;          $picked: list of picked triplet idxs
-;;          $moveLabels: list of move labels (playcenter, playcorner, etc.)
-;; (: getMoveArgs (-> Atom Number Expression Expression Expression))
-(= (getMoveArgs $op $n $picked $moveLabels)
-    (map-atom $picked $i
-        (let* ((($a $b $c) (tripletAt $n $i))
-               ($move1 (index-atom $moveLabels $a))
-               ($move2 (index-atom $moveLabels $b))
-               ($move3 (index-atom $moveLabels $c)))
-            ($op $move1 $move2 $move3))))
-
-;; sampleStrategyPerms -> generate strategy permutations for game strategy evolution
-;; Params:
-;;          $op: the strategy operator (PRIORITIZED-OR)
-;;          $arity: the number of moves in the strategy sequence
-;;          $moveLabels: list of move labels (playcenter, playblock, playcorner, etc.)
-;; Returns:
-;;          Union of original moves with alternative move strategy expressions
-;; (: sampleStrategyPerms (-> Atom Number Expression Expression))
-(= (sampleStrategyPerms $op $arity $moveLabels)
-    (let* (($n (length $moveLabels))
-           ($nPairs $arity))
-        (if (<= $nPairs 1)
-            ($op (car-atom $moveLabels))
-            (let* (($upperbound (- (* $n (* (- $n 1) (- $n 2))) 1))
-                   ($picked (lazyRandomSelector 0 $upperbound $nPairs))
-                   ($perms (getMoveArgs $op $n $picked $moveLabels)))
-               $perms))))

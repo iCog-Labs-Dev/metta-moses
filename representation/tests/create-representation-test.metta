@@ -35,6 +35,7 @@
 
 !(import! &self ../../feature-selection/feature-selection-main)
 
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../knob-representation)
 !(import! &self ../lsk)
 !(import! &self ../logical-probe) 
