@@ -13,6 +13,7 @@ Read this file when your task runs MeTTa, sets up PeTTa, debugs a silent failure
 - `setup.sh` clones stock `patham9/PeTTa` and adds it to `PATH` (it writes to `$GITHUB_ENV`, a CI variable). Its line `$gitHash = "..."` is not valid bash, so the pinned commit is not checked out (read from the script, not run). Do not use it as your local setup. Ask the lead which PeTTaV1 commit to use.
 - Do not edit the PeTTa checkout. If you need a changed runtime for an experiment, copy it to another folder and call it by its absolute path. Tell the lead.
 - `run.sh` usage: `run.sh [-p|--profile] [-s|--silent] <file.metta>`. The repo scripts pass `-s` after the file. Both orders work.
+- `moses.metta` takes `--name=value` for any name that `--help` prints (for example `--seed`, `--maxGen`, `--nDeme`, `--fsAlgo`, `--optAlgo`, `--inputFile`). Other scripts: `scripts/test_moses.py` (batch runner) and `scripts/csv_helper.py` (CSV input tables). Native Prolog stubs: `moses.metta` consults `moses/tests/rte-helpers-fast.pl` after the reduct imports.
 - `run.sh` starts `swipl --stack_limit=8g`. Do not raise the stack limit to make a run pass. A run that needs more is a bug.
 
 ## 2. Bound every run
