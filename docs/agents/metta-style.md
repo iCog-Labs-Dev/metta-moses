@@ -56,7 +56,8 @@ Most PeTTa errors give zero solutions, not an error message. Know these cases.
 | Defined head, too many arguments | A `partial` that counts as a solution | A test for "no such arity" must check that the result is unusable. |
 | No clause head matches the arguments | Zero solutions | Check shapes before you destructure. |
 | `car-atom`, `decons-atom`, `map-atom` on a symbol (for example `TRUE`) | Zero solutions | Guard constants with `isConstant` before you walk. |
-| `(unify $l (NOT $x) ...)` after `boolean-ops` loads | Wrong count or zero solutions. `quote` does not help. | Use a structural check: `(== (car-atom $l) NOT)`. |
+| `(unify $l (NOT $x) ...)`: a pattern with a defined head (`NOT` after `boolean-ops` loads) | Correct on `dev` since #518 (2026-10-28). Without the type declaration of `unify` in `utilities/general-helpers.metta`, PeTTa evaluates the arguments: a plain literal gives `SAFE` two times, and a negated literal goes to the else branch two times. | Keep `(: unify (-> Expression Expression Expression Expression %Undefined%))` active. It was a comment before #518. Do not `quote` the pattern: `(quote (NOT $x))` never matches. A negation test that is correct with or without the declaration: `(if (== (get-metatype $l) Expression) (== (car-atom $l) NOT) False)`. |
+| `(NOT $l)` built bare in an evaluated position after `boolean-ops` loads | Zero solutions | Build it with `(quote (NOT $l))` (section 3). |
 | `reduce` on a node with a child that is still symbolic | Zero solutions | Evaluate the children first. Let-bind the argument of `reduce`. |
 | `(reduce (quote X))` written inline | The quote is not stripped | Bind the quoted term to a variable first. |
 | `superpose` on a call | It superposes the call term, not its result | Let-bind the collection first. |
