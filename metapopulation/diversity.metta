@@ -56,26 +56,34 @@
 
 ;; -------- 1a. Lp Norm Distance --------
 
-;; Manhattan distance accumulator (p = 1)
+;; Manhattan distance accumulator (p = 1): L1 = sum(|u_i - v_i|)
+;; Inputs: Vectors $u, $v (List Number), Accumulator $acc (Number)
+;; Output: Number (L1 distance)
 (= (pNormManhattan () () $acc) $acc)
 (= (pNormManhattan (cons $u $us) (cons $v $vs) $acc)
    (let $diff (abs-math (- $u $v))
       (pNormManhattan $us $vs (+ $acc $diff))))
 
-;; Euclidean distance accumulator (p = 2)
+;; Euclidean distance accumulator (p = 2): L2 = sqrt(sum((u_i - v_i)^2))
+;; Inputs: Vectors $u, $v (List Number), Accumulator $acc (Number)
+;; Output: Number (L2 distance)
 (= (pNormEuclidean () () $acc) (sqrt-math $acc))
 (= (pNormEuclidean (cons $u $us) (cons $v $vs) $acc)
    (let* (($diff (- $u $v))
           ($sq (* $diff $diff)))
       (pNormEuclidean $us $vs (+ $acc $sq))))
 
-;; Chebyshev / maximum difference accumulator (p <= 0)
+;; Chebyshev / maximum difference accumulator (p <= 0): L_infinity = max(|u_i - v_i|)
+;; Inputs: Vectors $u, $v (List Number), Current max difference $maxDiff (Number)
+;; Output: Number (L_infinity distance)
 (= (pNormChebyshev () () $maxDiff) (+ 0.0 $maxDiff))
 (= (pNormChebyshev (cons $u $us) (cons $v $vs) $maxDiff)
    (let $diff (abs-math (- $u $v))
       (pNormChebyshev $us $vs (if (> $diff $maxDiff) $diff $maxDiff))))
 
-;; General Minkowski distance accumulator (general p > 0)
+;; General Minkowski distance accumulator (p > 0): Lp = (sum(|u_i - v_i|^p))^(1/p)
+;; Inputs: Vectors $u, $v (List Number), Degree $p (Number > 0), Accumulator $acc (Number)
+;; Output: Number (Lp distance)
 (= (pNormGeneral () () $p $acc)
    (if (== $acc 0.0)
        0.0
@@ -86,6 +94,8 @@
       (pNormGeneral $us $vs $p (+ $acc $term))))
 
 ;; Core Lp distance evaluation on raw coordinate lists
+;; Inputs: Coordinate lists $l1, $l2 (List Number), Degree $p (Number)
+;; Output: Number (distance) or Error
 (= (pNormDistanceList $l1 $l2 $p)
    (if (not (== (List.length $l1) (List.length $l2)))
        (Error ($l1 $l2) "Cannot compare unequal-sized behavioral score vectors")
@@ -98,6 +108,8 @@
               )))))
 
 ;; Lp distance overloads unwrapping behavioral score wrappers
+;; Inputs: Behavioral scores $bs1, $bs2 ((mkBScore $l) or (mkBscore $l)), Degree $p (Number)
+;; Output: Number (distance)
 (= (pNormDistance (mkBScore $l1) (mkBScore $l2) $p)
    (pNormDistanceList $l1 $l2 $p))
 (= (pNormDistance (mkBscore $l1) (mkBscore $l2) $p)
@@ -105,24 +117,37 @@
 
 ;; -------- 1b. Tanimoto Distance --------
 
-;; Single-pass accumulator computing dot product (ab) and norms (aa, bb)
+;; Single-pass accumulator computing dot product (ab) and squared norms (aa, bb)
+;; Inputs: Vectors $u, $v (List Number), Accumulators $ab, $aa, $bb (Number)
+;; Output: 3-element tuple ($ab $aa $bb) where ab = (u . v), aa = ||u||^2, bb = ||v||^2
 (= (vectorProducts () () $ab $aa $bb) ($ab $aa $bb))
 (= (vectorProducts (cons $u $us) (cons $v $vs) $ab $aa $bb)
    (vectorProducts $us $vs (+ $ab (* $u $v)) (+ $aa (* $u $u)) (+ $bb (* $v $v))))
 
 ;; Core Tanimoto distance evaluation on raw coordinate lists
+;; Inputs: Coordinate lists $l1, $l2 (List Number)
+;; Output: Number in [0.0, 1.0] (Tanimoto distance) or Error
+;; Formula:
+;;   Similarity: T(u, v) = (u . v) / (||u||^2 + ||v||^2 - (u . v)) = ab / (aa + bb - ab)
+;;   Distance:   D(u, v) = 1.0 - T(u, v) = 1.0 - (ab / denom)
 (= (tanimotoDistanceList $l1 $l2)
    (if (not (== (List.length $l1) (List.length $l2)))
        (Error ($l1 $l2) "Cannot compare unequal-sized behavioral score vectors")
        (if (== (List.length $l1) 0)
            0.0
            (let ($ab $aa $bb) (vectorProducts $l1 $l2 0.0 0.0 0.0)
+              ;; denom = ||u||^2 + ||v||^2 - (u . v) = aa + bb - ab
               (let $denom (- (+ $aa $bb) $ab)
+                 ;; Guard against division by zero when both vectors are zero vectors (denom ~ 0)
                  (case (>= $denom (pow-math 10 -32))
+                    ;; Distance = 1.0 - similarity = 1.0 - (ab / denom)
                     ((True (- 1.0 (/ $ab $denom)))
+                     ;; If both vectors have zero magnitude, distance is 0.0 (identical empty behavior)
                      (False 0.0))))))))
 
 ;; Tanimoto distance overloads unwrapping behavioral score wrappers
+;; Inputs: Behavioral scores $bs1, $bs2 ((mkBScore $l) or (mkBscore $l))
+;; Output: Number in [0.0, 1.0]
 (= (tanimotoDistance (mkBScore $l1) (mkBScore $l2))
    (tanimotoDistanceList $l1 $l2))
 (= (tanimotoDistance (mkBscore $l1) (mkBscore $l2))
@@ -130,9 +155,11 @@
 
 ;; -------- 1c. Angular Distance --------
 
-;; Numerical clamping to [-1.0, 1.0] guarding against floating-point rounding
+;; Clamps input to [-1.0, 1.0] guarding against domain errors in acos from float rounding
+;; Inputs: Number $x
+;; Output: Number clamped to [-1.0, 1.0]
 (= (clamp11 $x)
-   (if (> $x 1.0) 1.0 (if (< $x -1.0) -1.0 $x)))
+   (max-atom (-1.0 (min-atom (1.0 $x)))))
 
 ;; Core Angular distance evaluation on raw coordinate lists:
 ;;   cos_theta = (u . v) / (||u|| * ||v||)
@@ -149,6 +176,8 @@
 ;;     Dividing theta by pi would only reach 0.5 for orthogonal vectors.
 ;;     To normalize the maximum separation [pi/2] to 1.0, we multiply by alpha = 2.0:
 ;;     dist = 2.0 * (theta / pi) = theta / (pi / 2).
+;; Inputs: Coordinate lists $l1, $l2 (List Number), optional $posNNeg (Bool, default True)
+;; Output: Number in [0.0, 1.0] (Angular distance) or Error
 (= (angularDistanceList $l1 $l2)
    (angularDistanceList $l1 $l2 True))
 
@@ -158,13 +187,20 @@
        (if (== (List.length $l1) 0)
            0.0
            (let ($ab $aa $bb) (vectorProducts $l1 $l2 0.0 0.0 0.0)
+              ;; denom = ||u|| * ||v|| = sqrt(aa * bb)
               (let $denom (sqrt-math (* $aa $bb))
+                 ;; Guard against division by zero if either vector has zero magnitude (denom ~ 0)
                  (case (>= $denom (pow-math 10 -32))
+                    ;; cos_theta = clamp(ab / denom, -1.0, 1.0)
+                    ;; dist = alpha * (acos(cos_theta) / pi)
                     ((True (let $alpha (case $posNNeg ((True 1.0) (False 2.0)))
                               (* $alpha (/ (acos-math (clamp11 (/ $ab $denom))) 3.141592653589793))))
+                     ;; If either vector has zero magnitude, directional distance defaults to 0.0
                      (False 0.0))))))))
 
 ;; Angular distance overloads unwrapping behavioral score wrappers
+;; Inputs: Behavioral scores $bs1, $bs2 ((mkBScore $l) or (mkBscore $l)), optional $posNNeg (Bool)
+;; Output: Number in [0.0, 1.0]
 (= (angularDistance $bs1 $bs2)
    (angularDistance $bs1 $bs2 True))
 
@@ -176,6 +212,8 @@
 ;; -------- 1d. Behavioral Distance Dispatchers --------
 
 ;; Explicit dispatch by metric name (p_norm, tanimoto, angular)
+;; Inputs: Behavioral scores $bs1, $bs2, Metric symbol $metric, Degree $p (Number), optional $posNNeg (Bool)
+;; Output: Number (distance) or Error
 (= (calculateBScoreDistance $bs1 $bs2 $metric $p)
    (case $metric
       ((p_norm (pNormDistance $bs1 $bs2 $p))
@@ -191,7 +229,9 @@
        (angular (angularDistance $bs1 $bs2 $posNNeg))
        ($else (Error ($metric) "Unknown distance metric")))))
 
-;; Two-argument dispatcher looking up default metric and p-norm from registry
+;; Two-argument dispatcher querying default metric and p-norm from registry
+;; Inputs: Behavioral scores $bs1, $bs2
+;; Output: Number (distance)
 (= (calculateBScoreDistance $bs1 $bs2)
    (calculateBScoreDistance $bs1 $bs2 (param diversityDst) (param diversityPNorm)))
 
@@ -221,26 +261,38 @@
 ;;     rather than an additive subtraction.
 ;;
 ;;  Aggregation:
-;;     aggregatedDps aggregates penalties across the pool using the
-;;     generalized power-mean:
+;;     aggregatedDps applies generalized power-mean aggregation across the pool:
 ;;       aggregated_dp = ((1/N) * sum(dp_i^exponent))^(1/exponent)
-;;     When exponent <= 0, the maximum penalty is used instead:
-;;       aggregated_dp = max(dp_1, dp_2, ...)
+;;     (or max(dp_1, dp_2, ...) when exponent <= 0).
+;;     Optimization: To avoid allocating and re-traversing lists of historical
+;;     penalties, updateDiversityTmp maintains the sum incrementally ($accDp).
+;;     aggregatedDps then only evaluates the final outer scaling: (ddpSum / N)^(1/exponent).
 ;; ============================================================
 
-;; Inverse converter: pressure / (1.0 + dst)
+;; Inverse converter: dp = pressure / (1.0 + dst)
+;; Inputs: Distance $dist (Number >= 0), Pressure $pressure (Number)
+;; Output: Number (uniformity penalty)
+;; Behavior: Smoothly decays toward 0 as distance increases; equals full pressure at dist = 0.
 (= (dstToPenaltyInverse $dist $pressure)
    (/ $pressure (+ 1.0 $dist)))
 
-;; Complement converter: pressure * (1.0 - dst)
+;; Complement converter: dp = pressure * (1.0 - dst)
+;; Inputs: Distance $dist (Number in [0.0, 1.0]), Pressure $pressure (Number)
+;; Output: Number (uniformity penalty)
+;; Behavior: Linearly penalizes candidates closer than 1.0; reaches 0 penalty at dist = 1.0.
 (= (dstToPenaltyComplement $dist $pressure)
    (* $pressure (- 1.0 $dist)))
 
-;; Power converter: dist^pressure
+;; Power converter: dp = dist^pressure
+;; Inputs: Distance $dist (Number), Pressure $pressure (Number)
+;; Output: Number (penalty multiplier)
+;; Behavior: Exponential multiplier for multiplicative composite scoring.
 (= (dstToPenaltyPower $dist $pressure)
    (pow-math $dist $pressure))
 
-;; Dispatcher mapping converter symbol to the corresponding formula
+;; Dispatches distance to the selected converter (inverse, complement, power/pthpower)
+;; Inputs: Distance $dist (Number), Converter symbol $converter (Symbol), Pressure $pressure (Number)
+;; Output: Number (penalty) or Error
 (= (convertDstToPenalty $dist $converter $pressure)
    (case $converter
       ((inverse (dstToPenaltyInverse $dist $pressure))
@@ -249,17 +301,25 @@
        (pthpower (dstToPenaltyPower $dist $pressure))
        ($else (Error ($converter) "Unknown distance-to-penalty converter")))))
 
-;; Dispatcher using default converter and pressure from registry
+;; Dispatcher querying default converter and pressure from registry
+;; Inputs: Distance $dist (Number)
+;; Output: Number (penalty)
 (= (convertDstToPenalty $dist)
    (convertDstToPenalty $dist (param diversityDst2dp) (param diversityPressure)))
 
-;; Power-mean aggregation of penalties across pool size N:
-;; aggregated_dps(ddp_sum, N) = (ddp_sum / N)^(1 / exponent)
+;; Power-mean aggregation: aggregated_dp = (ddpSum / n)^(1 / exponent)
+;; Note: $ddpSum is streamed incrementally by updateDiversityTmp (sum of dp_i^exponent)
+;;       to avoid storing and re-summing historical penalty lists.
+;; Inputs: Incremental penalty sum $ddpSum (Number), Pool count $n (Number), Exponent $exponent (Number)
+;; Output: Number (aggregated uniformity penalty, 0.0 if ddpSum is 0.0)
 (= (aggregatedDps $ddpSum $n $exponent)
    (if (== $ddpSum 0.0)
        0.0
        (pow-math (/ $ddpSum $n) (/ 1.0 $exponent))))
 
+;; Power-mean aggregation using default exponent from registry
+;; Inputs: Transformed penalty sum $ddpSum (Number), Pool count $n (Number)
+;; Output: Number (aggregated uniformity penalty)
 (= (aggregatedDps $ddpSum $n)
    (aggregatedDps $ddpSum $n (param diversityExponent)))
 
@@ -276,6 +336,9 @@
 ;;  Executed once at run initialization before generational search.
 ;; ============================================================
 
+;; Rescales diversity pressure to problem score range: new_pressure = old_pressure * (bestScore - worstScore)
+;; Inputs: Best score $bestScore (Number), Worst score $worstScore (Number)
+;; Output: Number (effective diversity pressure)
 (= (autoscaleDiversity $bestScore $worstScore)
    (if (and (> (param diversityPressure) 0.0) (== (param diversityAutoscale) True))
        (let*
@@ -310,6 +373,8 @@
 ;; 1. Identical trees return distance 0.0 immediately without querying the cache.
 ;; 2. On cache hit, returns the memoized distance.
 ;; 3. On cache miss, computes distance, inserts symmetric pairs, and returns distance.
+;; Inputs: Tree structures $t1, $t2 (Tree), Behavioral score wrappers $bs1, $bs2
+;; Output: Number (pairwise distance)
 (= (getCachedDistance $t1 $t2 $bs1 $bs2)
    (if (== $t1 $t2)
        0.0
@@ -321,7 +386,9 @@
                  $dst)
               (car-atom $cached)))))
 
-;; Core cached distance with explicit metric and p-norm parameters
+;; Cached distance with explicit metric and p-norm parameters
+;; Inputs: Trees $t1, $t2 (Tree), Behavioral scores $bs1, $bs2, Metric $metric, Degree $p (Number)
+;; Output: Number (pairwise distance)
 (= (getCachedDistance $t1 $t2 $bs1 $bs2 $metric $p)
    (if (== $t1 $t2)
        0.0
@@ -333,57 +400,51 @@
                  $dst)
               (car-atom $cached)))))
 
-;; Polymorphic overloads accepting candidate structures (mkExemplar or mkXmplr)
+;; Unwraps candidate exemplar records to compute/retrieve cached distance
+;; Inputs: Candidates (mkExemplar $t $d $cs $bs), optional $metric, $p
+;; Output: Number (pairwise distance)
 (= (getCachedDistance (mkExemplar $t1 $d1 $cs1 $bs1) (mkExemplar $t2 $d2 $cs2 $bs2))
-   (getCachedDistance $t1 $t2 $bs1 $bs2))
-(= (getCachedDistance (mkXmplr $t1 $d1 $cs1 $bs1) (mkXmplr $t2 $d2 $cs2 $bs2))
-   (getCachedDistance $t1 $t2 $bs1 $bs2))
-(= (getCachedDistance (mkExemplar $t1 $d1 $cs1 $bs1) (mkXmplr $t2 $d2 $cs2 $bs2))
-   (getCachedDistance $t1 $t2 $bs1 $bs2))
-(= (getCachedDistance (mkXmplr $t1 $d1 $cs1 $bs1) (mkExemplar $t2 $d2 $cs2 $bs2))
    (getCachedDistance $t1 $t2 $bs1 $bs2))
 
 (= (getCachedDistance (mkExemplar $t1 $d1 $cs1 $bs1) (mkExemplar $t2 $d2 $cs2 $bs2) $metric $p)
-   (getCachedDistance $t1 $t2 $bs1 $bs2 $metric $p))
-(= (getCachedDistance (mkXmplr $t1 $d1 $cs1 $bs1) (mkXmplr $t2 $d2 $cs2 $bs2) $metric $p)
-   (getCachedDistance $t1 $t2 $bs1 $bs2 $metric $p))
-(= (getCachedDistance (mkExemplar $t1 $d1 $cs1 $bs1) (mkXmplr $t2 $d2 $cs2 $bs2) $metric $p)
-   (getCachedDistance $t1 $t2 $bs1 $bs2 $metric $p))
-(= (getCachedDistance (mkXmplr $t1 $d1 $cs1 $bs1) (mkExemplar $t2 $d2 $cs2 $bs2) $metric $p)
    (getCachedDistance $t1 $t2 $bs1 $bs2 $metric $p))
 
 ;; -------- Cache Eviction & Cleanup --------
 
 ;; Erases all cache pairs containing a specific tree: (dst $tree * *) and (dst * $tree *)
+;; Inputs: Tree structure $tree (Tree)
+;; Output: ()
 (= (eraseTreeFromDstCache $tree)
-   (let* (($entries1 (collapse (match &dstCache (dst $tree $t $d) (dst $tree $t $d))))
-          ($entries2 (collapse (match &dstCache (dst $t $tree $d) (dst $t $tree $d))))
-          ($_1 (map-atom $entries1 $e (remove-atom &dstCache $e)))
-          ($_2 (map-atom $entries2 $e (remove-atom &dstCache $e))))
+   (let* (($_1 (collapse (match &dstCache (dst $tree $t $d) (remove-atom &dstCache (dst $tree $t $d)))))
+          ($_2 (collapse (match &dstCache (dst $t $tree $d) (remove-atom &dstCache (dst $t $tree $d))))))
       ()))
 
 ;; Erases cache pairs for a sequence of trees
-(= (eraseTreeSeqFromDstCache ()) ())
-(= (eraseTreeSeqFromDstCache (cons $tree $rest))
-   (let () (eraseTreeFromDstCache $tree)
-      (eraseTreeSeqFromDstCache $rest)))
+;; Inputs: Sequence of trees (List Tree)
+;; Output: ()
+(= (eraseTreeSeqFromDstCache $trees)
+   (let $_ (map-atom $trees $tree (eraseTreeFromDstCache $tree))
+      ()))
 
-;; Erases cache pairs for candidate wrappers (mkExemplar / mkXmplr)
+;; Erases cache pairs for a candidate exemplar by unwrapping its tree
+;; Inputs: Candidate exemplar $cand (mkExemplar $tree $d $cs $bs)
+;; Output: ()
 (= (eraseCandidateFromDstCache (mkExemplar $tree $d $cs $bs))
-   (eraseTreeFromDstCache $tree))
-(= (eraseCandidateFromDstCache (mkXmplr $tree $d $cs $bs))
    (eraseTreeFromDstCache $tree))
 
 ;; Selective eviction: erases cache entries for a sequence of culled candidates
-(= (eraseCandidateSeqFromDstCache ()) ())
-(= (eraseCandidateSeqFromDstCache (cons $cand $rest))
-   (let () (eraseCandidateFromDstCache $cand)
-      (eraseCandidateSeqFromDstCache $rest)))
+;; Inputs: Sequence of culled candidates (List Candidate)
+;; Output: ()
+(= (eraseCandidateSeqFromDstCache $cands)
+   (let $_ (map-atom $cands $cand (eraseCandidateFromDstCache $cand))
+      ()))
 
-;; Total cache flush: clears all atoms in &dstCache (useful between independent runs or tests)
+;; Total cache flush: clears all atoms in &dstCache
+;; Inputs: None
+;; Output: ()
 (= (clearDstCache)
-   (let $entries (collapse (match &dstCache $e $e))
-     (map-atom $entries $e (remove-atom &dstCache $e))))
+   (let $_ (collapse (match &dstCache $e (remove-atom &dstCache $e)))
+      ()))
 
 ;; ============================================================
 ;;  5. Greedy Diversification Engine
@@ -398,8 +459,8 @@
 ;;    2. In the first step [$poolSize = 0], the candidate with
 ;;       the highest penalized score is chosen as the anchor
 ;;       exemplar [penalty remains 0.0].
-;;    3. In each subsequent step, remaining candidates in $tmp are
-;;       updated against the last selected exemplar:
+;;    3. In subsequent steps, the score of each remaining candidate
+;;       in $tmp is updated against the last selected exemplar:
 ;;         - Cached behavioral distance is retrieved.
 ;;         - Distance is converted to penalty [$lastDp].
 ;;         - Accumulated penalty [$newAccDp] is updated.
@@ -412,7 +473,7 @@
 ;;    $candidates: The merged metapopulation candidate pool [newly
 ;;       optimized candidates from demes merged with existing
 ;;       exemplars via mergeCandidates].
-;;    $cand: An individual candidate exemplar [mkExemplar or mkXmplr].
+;;    $cand: An individual candidate exemplar [mkExemplar].
 ;;    $tmp: Working list of [$cand, $accDp] pairs being diversified.
 ;;    $accDp: Accumulated raw diversity penalty for a candidate against
 ;;       all exemplars currently chosen into the pool.
@@ -434,67 +495,72 @@
 ;; ============================================================
 
 ;; -------- Candidate Accessors & Modifiers --------
-;; Polymorphic accessors extracting fields from mkExemplar and mkXmplr
+;; Accessor functions extracting individual fields from candidate exemplar records
+;; Inputs: Candidate exemplar (mkExemplar $tree $d $cs $bs)
+;; Output: Corresponding field ($tree, $d, $cs, or $bs)
 
 (= (candTree (mkExemplar $tree $d $cs $bs)) $tree)
-(= (candTree (mkXmplr $tree $d $cs $bs)) $tree)
 
 (= (candDemeId (mkExemplar $tree $d $cs $bs)) $d)
-(= (candDemeId (mkXmplr $tree $d $cs $bs)) $d)
 
 (= (candCscore (mkExemplar $tree $d $cs $bs)) $cs)
-(= (candCscore (mkXmplr $tree $d $cs $bs)) $cs)
 
 (= (candBscore (mkExemplar $tree $d $cs $bs)) $bs)
-(= (candBscore (mkXmplr $tree $d $cs $bs)) $bs)
 
+;; Reconstructs a candidate exemplar with an updated composite score
+;; Inputs: Candidate $cand (mkExemplar $tree $d $cs $bs), New composite score $newCs (CompositeScore)
+;; Output: Updated candidate exemplar
 (= (updateCandidateCscore (mkExemplar $tree $d $cs $bs) $newCs)
    (mkExemplar $tree $d $newCs $bs))
-(= (updateCandidateCscore (mkXmplr $tree $d $cs $bs) $newCs)
-   (mkXmplr $tree $d $newCs $bs))
 
 ;; -------- Initialization & Selection --------
 
-;; Initializes the working list ($tmp) with initial uniformity penalty 0.0
-(= (initDiversityTmp ()) ())
-(= (initDiversityTmp (cons $cand $rest))
-   (let* (($cs (candCscore $cand))
-          ($zeroUniPenCs (setUniPen $cs 0.0))
-          ($initCs (updatePenalizedScore $zeroUniPenCs False))
-          ($initCand (updateCandidateCscore $cand $initCs)))
-      (cons ($initCand 0.0) (initDiversityTmp $rest))))
+;; Initializes working list ($tmp) with zeroed uniformity penalties
+;; Inputs: Candidate list $cands (List Candidate)
+;; Output: Working list of pairs ($cand 0.0)
+(= (initDiversityTmp $cands)
+   (map-atom $cands $cand
+      (let* (($cs (candCscore $cand))
+             ($zeroUniPenCs (setUniPen $cs 0.0))
+             ($initCs (updatePenalizedScore $zeroUniPenCs False))
+             ($initCand (updateCandidateCscore $cand $initCs)))
+         ($initCand 0.0))))
 
-;; Selects the candidate with the highest penalized score from $tmp.
-;; Returns ($bestEntry $remainingTmp).
+;; Helper: folds forward across $rest with accumulator ($champion $remaining)
+;; Inputs: Remaining list $rest, Current champion ($bestCand $bestPen), Remaining accumulated list $rem
+;; Output: 2-tuple (($bestCand $bestPen) $remaining)
+(= (selectBestHelper () $champ $rem) ($champ $rem))
+(= (selectBestHelper (cons ($cand $pen) $rest) ($bestCand $bestPen) $rem)
+   (if (cScore>= (candCscore $bestCand) (candCscore $cand))
+       (selectBestHelper $rest ($bestCand $bestPen) (cons ($cand $pen) $rem))
+       (selectBestHelper $rest ($cand $pen) (cons ($bestCand $bestPen) $rem))))
+
+;; Selects candidate with highest penalized score from $tmp via forward fold
+;; Inputs: Working list $tmp (List of ($cand $accDp) pairs)
+;; Output: 2-tuple ($bestEntry $remainingTmp)
 (= (selectBestCandidate ()) (() ()))
-(= (selectBestCandidate (cons $entry ()))
-   ($entry ()))
 (= (selectBestCandidate (cons $entry $rest))
-   (let* ((($bestOther $remOther) (selectBestCandidate $rest))
-          (($cand1 $acc1) $entry)
-          (($cand2 $acc2) $bestOther)
-          ($cs1 (candCscore $cand1))
-          ($cs2 (candCscore $cand2))
-          ($isBetter (cScore>= $cs2 $cs1)))
-      (if $isBetter
-          ($bestOther (cons $entry $remOther))
-          ($entry $rest))))
+   (selectBestHelper $rest $entry ()))
 
-;; Updates uniformity penalties and composite scores of all candidates
-;; in $tmp relative to the newly added exemplar ($lastPtr).
+;; Updates uniformity penalties and composite scores of candidates in $tmp relative to $lastPtr:
+;;   1. Retrieves cached distance to $lastPtr and converts to penalty ($lastDp).
+;;   2. Updates accumulated penalty: max($accDp, $lastDp) if $dpMax, else $accDp + $lastDp^exponent.
+;;   3. Computes aggregated penalty $adp (power-mean over pool size N if $normalize).
+;;   4. Stores $adp in Cscore and updates penalized score.
+;; Inputs: Working list $tmp, Last added exemplar $lastPtr, Current pool size $poolSize, and diversity parameters
+;; Output: Updated working list $tmp
 (= (updateDiversityTmp () $lastPtr $poolSize $dpMax $dst2dp $pressure $exponent $normalize $metric $p $multiplyDiv)
    ())
 (= (updateDiversityTmp (cons ($cand $accDp) $rest) $lastPtr $poolSize $dpMax $dst2dp $pressure $exponent $normalize $metric $p $multiplyDiv)
    (let* (($lastDst (getCachedDistance $cand $lastPtr $metric $p))
           ($lastDp (convertDstToPenalty $lastDst $dst2dp $pressure))
-          ($lastDdp (if $dpMax $lastDp (pow-math $lastDp $exponent)))
-          ($newAccDp (if $dpMax
-                         (if (> $accDp $lastDdp) $accDp $lastDdp)
-                         (+ $accDp $lastDdp)))
-          ($adp (if $dpMax
-                    $newAccDp
-                    (let $n (if $normalize $poolSize 1)
-                       (aggregatedDps $newAccDp $n $exponent))))
+          (($newAccDp $adp)
+           (if $dpMax
+               (let $m (max-atom ($accDp $lastDp)) ($m $m))
+               (let* (($newSum (+ $accDp (pow-math $lastDp $exponent)))
+                      ($n (if $normalize $poolSize 1))
+                      ($agg (aggregatedDps $newSum $n $exponent)))
+                  ($newSum $agg))))
           ($cs (candCscore $cand))
           ($csWithUniPen (setUniPen $cs $adp))
           ($newCs (updatePenalizedScore $csWithUniPen $multiplyDiv))
@@ -502,8 +568,14 @@
           ($updatedRest (updateDiversityTmp $rest $lastPtr $poolSize $dpMax $dst2dp $pressure $exponent $normalize $metric $p $multiplyDiv)))
       (cons ($updatedCand $newAccDp) $updatedRest)))
 
-;; Main recursive greedy diversification loop.
-;; Iteratively pulls the best candidate from $tmp into the exemplar pool.
+;; Main greedy diversification loop: iteratively selects the best-scoring candidate from $tmp,
+;; re-ranks remaining candidates against it via updateDiversityTmp, and recurses until $tmp is empty.
+;; Inputs:
+;;   $tmp: Working list of candidate pairs ($cand $accDp)
+;;   $poolSize: Current count of exemplars selected into the surviving pool (starts at 0)
+;;   $lastPtr: Candidate exemplar most recently added to the pool, used as distance reference point
+;;   Remaining arguments: Diversity configuration flags ($dpMax, $dst2dp, $pressure, $exponent, $normalize, $metric, $p, $multiplyDiv)
+;; Output: Ordered list of diversified candidate exemplars (List (mkExemplar ...))
 (= (diversityGreedyLoop () $poolSize $lastPtr $dpMax $dst2dp $pressure $exponent $normalize $metric $p $multiplyDiv)
    ())
 (= (diversityGreedyLoop $tmp $poolSize $lastPtr $dpMax $dst2dp $pressure $exponent $normalize $metric $p $multiplyDiv)
@@ -516,7 +588,14 @@
 
 ;; -------- Public Diversification Entry Points --------
 
-;; Full-parameter entry point: executes diversification if pressure > 0.0
+;; Primary pipeline entry point: executes greedy diversification and uniformity penalty re-ranking
+;; on the candidate pool if diversity pressure > 0.0; returns original candidates unchanged if pressure <= 0.0.
+;; Inputs:
+;;   $candidates: Merged metapopulation candidate pool (List (mkExemplar ...))
+;;   $pressure: Diversity pressure scaling factor (Number)
+;;   Optional: $dst2dp (converter algorithm), $exponent (power-mean exponent), $normalize (pool size normalization flag),
+;;             $metric (distance metric: p_norm, tanimoto, angular), $p (Lp p-norm degree)
+;; Output: Ordered list of diversified candidate exemplars (List (mkExemplar ...))
 (= (setDiversity $candidates $pressure $dst2dp $exponent $normalize $metric $p)
    (if (or (<= $pressure 0.0) (== $candidates ()))
        $candidates
@@ -547,6 +626,9 @@
 ;;  penalty, and final penalized composite score.
 ;; ============================================================
 
+;; Formats and prints diagnostic metrics (tree, raw score, complexity, uniformity penalty, penalized score)
+;; Inputs: Candidate exemplar (mkExemplar $tree $demeId $cscore $bscore)
+;; Output: ()
 (= (logExemplarDiversity (mkExemplar $tree $demeId $cscore $bscore))
    (let* (($t (preOrder $tree))
           ($s (getScore $cscore))
@@ -555,6 +637,9 @@
           ($ps (getPenScore $cscore)))
       (println! ("   -> Tree:" $t "RawScore:" $s "Cpxy:" $c "UniPen:" $up "PenScore:" $ps))))
 
+;; Recursively logs diagnostic metrics for the top N exemplars in a candidate list
+;; Inputs: Candidate list $cands (List Candidate), Count $n (Number)
+;; Output: ()
 (= (logTopDiversity () $n) ())
 (= (logTopDiversity (cons $cand $rest) $n)
    (if (<= $n 0)
