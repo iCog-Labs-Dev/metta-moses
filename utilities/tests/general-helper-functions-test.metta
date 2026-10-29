@@ -595,3 +595,7 @@
 (hello world)
 !(assertEqual (unify &self (hello world) Yes No) Yes)
 !(assertEqual (unify &self (hello dream) Yes No) No)
+
+;; operatorAllowed
+!(assertEqual (operatorAllowed AND ()) True)
+!(assertEqual (operatorAllowed AND (quote (AND OR))) False)
