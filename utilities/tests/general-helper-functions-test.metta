@@ -595,3 +595,7 @@
 (hello world)
 !(assertEqual (unify &self (hello world) Yes No) Yes)
 !(assertEqual (unify &self (hello dream) Yes No) No)
+;; Live-head pattern: boolean-ops makes NOT a defined head. The unify type
+;; declaration keeps the pattern unevaluated; without it both asserts get (SAFE SAFE).
+!(assertEqual (collapse (unify A (NOT $x) $x SAFE)) (SAFE))
+!(assertEqual (collapse (unify (NOT B) (NOT $x) $x SAFE)) (B))
