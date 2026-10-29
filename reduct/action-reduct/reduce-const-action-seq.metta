@@ -43,20 +43,18 @@
 ;;     nil and their results are irrelevant inside exec_seq.
 
 (= (reduceConstActionSeq $expr)
-   (if (== (get-metatype $expr) Expression)
-       (if (== $expr ())
-           $expr
-           (let ($op $args) (decons $expr)
-             (case $op
-               ((and_seq (let $pruned (pruneAndSeqArgs $args)
-                           (if (== $pruned (action_failure))
-                               action_failure
-                               (cons-atom and_seq $pruned))))
-                (or_seq  (let $pruned (pruneOrSeqArgs $args)
-                           (if (== $pruned (action_success))
-                               action_success
-                               (cons-atom or_seq $pruned))))
-                (exec_seq (let $pruned (pruneExecSeqArgs $args)
-                            (cons-atom exec_seq $pruned)))
-                ($else $expr)))))
+   (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
+       (let ($op $args) (decons $expr)
+         (case $op
+           ((and_seq (let $pruned (pruneAndSeqArgs $args)
+                       (if (== $pruned (action_failure))
+                           action_failure
+                           (cons-atom and_seq $pruned))))
+            (or_seq  (let $pruned (pruneOrSeqArgs $args)
+                       (if (== $pruned (action_success))
+                           action_success
+                           (cons-atom or_seq $pruned))))
+            (exec_seq (let $pruned (pruneExecSeqArgs $args)
+                        (cons-atom exec_seq $pruned)))
+            ($else $expr))))
        $expr))
