@@ -86,6 +86,18 @@ Before you say "done", "fixed" or "passes", do all of these. Report the commands
 - Only the lead decides version bumps and releases (tags `v0.x.y`).
 - Details: `docs/agents/git-and-prs.md`. Review of other people's PRs: `docs/agents/reviewing-prs.md`.
 
+## Writing: ASD-STE100 (short form)
+
+Use it for every reply, report, document, commit message, PR, code comment, subagent prompt and memory file. Technical names, code, file names and numbers are permitted.
+
+- At most 20 words in an instruction and 25 words in a description. One topic in each sentence. At most 6 sentences in a paragraph.
+- Use the active voice. Use the imperative for an instruction: "Run the test."
+- Use simple tenses only: present, simple past, simple future. Avoid "-ing" forms.
+- Use simple words with one meaning: "use", not "utilize"; "start", not "commence".
+- Keep the articles ("the", "a").
+- Use a list or a table for steps and comparisons. Put one instruction in each step.
+- Do not use idioms, slang or rhetorical phrases.
+
 ## Read when
 
 | Read this file | When your task ... |
