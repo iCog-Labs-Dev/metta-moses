@@ -55,8 +55,10 @@
 ;;
 ;; Example: action_while(action_failure) -> action_failure
 
+;; Match with (if (= $expr PATTERN) ...), not unify: unify evaluates the branch it returns, and
+;; with scoring/action-ops loaded an evaluated action term runs as an action.
 (= (reduceActionWhileAlwaysFails $expr)
-   (unify $expr (action_while $body)
+   (if (= $expr (action_while $body))
      (if (== (getActionResult $body) False) $body $expr)
      $expr))
 
@@ -75,8 +77,10 @@
 ;; conservative structural behavior.
 
 (= (reduceBoolWhileDependCond $expr)
-   (unify $expr (bool_while True $body) $body
-     (unify $expr (bool_while False $body) action_success $expr)))
+   (case $expr
+     (((bool_while True $body) $body)
+      ((bool_while False $body) action_success)
+      ($else $expr))))
 
 ;; Helper: find the smallest valid repeating period of a tuple.
 ;; A period d is valid when d divides the tuple length and every element matches
@@ -118,7 +122,7 @@
 ;; the full body length, no reduction is applied.
 
 (= (reduceRepeatInActionWhile $expr)
-   (unify $expr (action_while $seq)
+   (if (= $expr (action_while $seq))
      (if (and (== (get-metatype $seq) Expression) (!= $seq ()))
          (if (== (car-atom $seq) and_seq)
              (let* (($bodyArgs (cdr-atom $seq))
@@ -150,7 +154,7 @@
 (= (reduceRepeatOutWhile $args $processed)
    (let ($h $t) (decons $args)
      (let $newProcessed
-          (unify $h (action_while $body)
+          (if (= $h (action_while $body))
             (if (and (== (get-metatype $body) Expression) (!= $body ()))
                 (if (== (car-atom $body) and_seq)
                     (let $bodyArgs (cdr-atom $body)
@@ -164,7 +168,7 @@
                     (removeEndSingle $processed)
                     $processed))
             $processed)
-       (reduceRepeatOutWhile $t (concatTuple $newProcessed ($h))))))
+       (reduceRepeatOutWhile $t (concatTuple $newProcessed (quote ($h)))))))
 
 (= (reduceRepeatOutActionWhile $expr)
    (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
@@ -188,6 +192,6 @@
 ;; sequencing node and leaves branches that are reached later unchanged.
 
 (= (reduceBoolWhileSubCond $expr)
-   (unify $expr (bool_while $cond $body)
+   (if (= $expr (bool_while $cond $body))
      (bool_while $cond (substituteCondInitInstant $body $cond True))
      $expr))

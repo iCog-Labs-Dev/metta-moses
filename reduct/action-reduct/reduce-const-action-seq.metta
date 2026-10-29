@@ -17,10 +17,13 @@
 ;; Triggered after constant-pruning (reduceConstActionSeq) may have removed all
 ;; children from a sequence, or when the combiner was constructed empty.
 
+;; Match with case: its branches compile inline, so action terms stay data.
 (= (reduceEmptyArgSeq $expr)
-   (unify $expr (and_seq) action_success
-     (unify $expr (or_seq) action_failure
-       (unify $expr (exec_seq) action_success $expr))))
+   (case $expr
+     (((and_seq) action_success)
+      ((or_seq) action_failure)
+      ((exec_seq) action_success)
+      ($else $expr))))
 
 ;; reduceConstActionSeq (C++ reduce_const_action_seq):
 ;; Propagates constant action results through sequential combiners by

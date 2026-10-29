@@ -198,7 +198,7 @@
 
 (= (substituteSeqInit $op $args $cond $sub)
    (if (== $args ())
-       ($op)
+       (quote ($op)) ;; quoted: ($op) with a defined action head would be a call
        (let ($h $t) (decons $args)
          (cons-atom $op (cons-atom (substituteCondInitInstant $h $cond $sub) $t)))))
 

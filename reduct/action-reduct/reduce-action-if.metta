@@ -51,8 +51,10 @@
 ;; pipeline (action_reduction.cc), which does not include
 ;; reduce_not_cond_action_boolean_if by default.
 
+;; Match with (if (= $expr PATTERN) ...), not unify: unify evaluates the branch it returns, and
+;; with scoring/action-ops loaded an evaluated action term runs as an action.
 (= (reduceNotCondActionBoolIf $expr)
-   (unify $expr (action_bool_if (NOT $cond) $thenBranch $elseBranch)
+   (if (= $expr (action_bool_if (NOT $cond) $thenBranch $elseBranch))
      (action_bool_if $cond $elseBranch $thenBranch)
      $expr))
 
@@ -73,7 +75,7 @@
 ;; action_reduction.cc pipeline.
 
 (= (reduceActionBoolIfSubCond $expr)
-   (unify $expr (action_bool_if $cond $thenBranch $elseBranch)
+   (if (= $expr (action_bool_if $cond $thenBranch $elseBranch))
      (action_bool_if $cond
                      (substituteCondInitInstant $thenBranch $cond True)
                      (substituteCondInitInstant $elseBranch $cond False))
