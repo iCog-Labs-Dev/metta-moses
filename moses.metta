@@ -111,6 +111,7 @@
 !(import! &self representation/build-action)
 !(import! &self representation/build-knobs)
 !(import! &self representation/knob-mapper)
+!(import! &self representation/candidate)
 
 ;; ---- Action fitness packages ----
 ;; ttt-action-registration DEFINES the tic-tac-toe fitness functions

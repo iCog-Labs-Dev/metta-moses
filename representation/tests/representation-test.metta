@@ -65,6 +65,7 @@
 
 !(import! &self ../../feature-selection/feature-selection-main)
 
+!(import! &self ../../representation/candidate)
 !(import! &self ../../representation/representation)
 
 ;; Embedded LSK and ASK candidate reconstruction is the canonical path for

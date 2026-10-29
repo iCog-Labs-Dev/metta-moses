@@ -32,6 +32,7 @@
 !(import! &self ../../../../metta-moses/representation/build-knobs)
 !(import! &self ../../../../metta-moses/representation/knob-mapper)
 !(import! &self ../../../../metta-moses/feature-selection/feature-selection-helpers)
+!(import! &self ../../../../metta-moses/representation/candidate)
 !(import! &self ../../../../metta-moses/representation/representation)
 !(import! &self ../../../../metta-moses/representation/create-representation)
 
