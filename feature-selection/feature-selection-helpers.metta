@@ -353,7 +353,7 @@
 
 ; (: inputLables (-> (List Symbol) (List Symbol)))    
 (= (inputLables $labels)
-    (unify $labels () (Error $labels NoLabelsSpecified)
+    (if (== $labels ()) (Error $labels NoLabelsSpecified)
         (if (= $labels (cons $a $as))
                 (if (== $as ())
                     ()

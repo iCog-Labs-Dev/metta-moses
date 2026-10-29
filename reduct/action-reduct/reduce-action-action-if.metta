@@ -17,8 +17,10 @@
 ;; exec_seq wraps A so that A's success/failure does not short-circuit the and_seq;
 ;; B is always reached regardless of A's result.
 
+;; Match with (if (= $expr PATTERN) ...), not unify: unify evaluates the branch it returns, and
+;; with scoring/action-ops loaded an evaluated action term runs as an action.
 (= (reduceActionActionIfSameBranch $expr)
-    (unify $expr (action_action_if $cond $br $br) (and_seq (exec_seq $cond) $br) $expr))
+    (if (= $expr (action_action_if $cond $br $br)) (and_seq (exec_seq $cond) $br) $expr))
 
 ;; reduceActionActionIf:
 ;; First tries the same-branch rule above. If that does not fire, checks the
@@ -38,7 +40,7 @@
    (let $sameBranch (reduceActionActionIfSameBranch $expr)
      (if (!= $expr $sameBranch)
          $sameBranch
-         (unify $expr (action_action_if $cond $br1 $br2)
+         (if (= $expr (action_action_if $cond $br1 $br2))
                 (case (getActionResult $cond)
                   ((True  (and_seq $cond $br1))
                    (False (exec_seq $cond $br2))
