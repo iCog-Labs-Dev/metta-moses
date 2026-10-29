@@ -38,6 +38,30 @@ The team conventions are in `.github/CONTRIBUTING.md` (naming, formatting, comme
 - At a **live-head hazard site** (a term whose head is a defined function, for example `(NOT $x)` after `boolean-ops` loads) use `quote`, not `cons-atom`. Evaluate the parts into `let*` bindings first, then quote the variables-only shape. **Comment every hazard site.** (A style tidy once removed an unmarked hazard, and a `partial` term leaked into the final result.)
 - Use `;;` for comments, never `;`.
 
+### Rewrite patterns (from PR 515)
+
+Write the form in the second column. The PR 515 rewrite of `reduct/action-reduct/` used these forms. The review measured it as about 25% faster, with the same results except one lost guard (rule 1 below).
+
+| Instead of | Write | Why |
+|---|---|---|
+| A `let` of a computed value, then an `if` chain of `==` tests on it | `(case (getActionResult $c) ((True $a) (False $b) ($else Unknown)))` | The value is computed once. The value-to-result table is visible. |
+| `car-atom`/`cdr-atom` chains for fixed positions | `(let ($cond $br1 $br2) $args ...)` | One step binds all parts. The match checks the arity. |
+| `unify` plus an `if` chain that tests literal parts of one shape | `case` with one pattern for each rule: `((action_bool_if True $t $e) $t)` | One pattern gives one result. |
+| `(== $x $y)` to test that two parts are equal | The same variable two times in one pattern: `(action_bool_if $c $t $t)`, `(($act $act) ...)` | The pattern tests the equality and binds the value. |
+| An is-expression guard, then `decons`, then a test of the head | `(unify $h (action_while $body) <match> <else>)` | One `unify` does the shape test, the head test and the binding. All fall-through paths become one else. |
+| The same recursive call at the end of each branch | Compute only the changing part in the branches, then make one call | A later change to the call cannot miss a branch. |
+| A parameter that the function can rebuild from its other parameters | Remove the parameter | Shorter call sites. The two values cannot disagree. |
+| Nested `if`s for "non-empty expression" | `(if (and (== (get-metatype $e) Expression) (!= $e ())) ... $e)` | One condition and one fallback. |
+
+Rules for a safe rewrite:
+
+1. **Keep every guard.** When you replace a guard ladder with `unify` or `case`, keep each metatype or emptiness check that protected a `car-atom`, `cdr-atom` or `decons`. `unify` proves only the outer shape: `(action_while $seq)` also matches `(action_while move_forward)`, and then `(car-atom $seq)` gives zero solutions. (PR 515 lost this guard. Commit `ef28ad4c` put it back.)
+2. **`case` only on a value with no unbound variables** (section 5, `case` row).
+3. **A `unify` pattern with a defined head** (`NOT`, `action_while`) is safe only while `utilities/general-helpers.metta` declares the type of `unify` (section 5, `unify` row).
+4. **In `and`, put no call that needs an earlier argument to be true.** `and` runs all its arguments. `(and (== (get-metatype $x) Expression) (== (car-atom $x) NOT))` gives zero solutions on a symbol. Nest the `if` there.
+5. **A tuple destructure fails in silence on the wrong arity.** Use it only where the shape is fixed.
+6. **Prove "same behaviour" with a differential run.** Run the base and the new code on the same inputs. Include a plain symbol, `()` and each guarded shape. Add a test for each guard that you keep. (CI stayed green on PR 515 because no test had a symbol body.)
+
 ## 4. Comments
 
 - Keep comments short. Explain design decisions, hazards and non-obvious function applications.
