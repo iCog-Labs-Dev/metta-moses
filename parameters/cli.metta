@@ -74,7 +74,7 @@
 ;;
 ;; parse-flag returns either:
 ;;     (flag NameAtom Value)   -- well-formed override
-;;     not-a-flag              -- anything else
+;;     ()                      -- anything else
 ;;
 ;; Implemented as a single equation with case dispatch so that the
 ;; happy-path pattern and the catch-all are mutually exclusive (avoids

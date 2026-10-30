@@ -102,7 +102,7 @@
 ;;   sa / univariate exist in the tree but are not integration-tested;
 ;;   passing them will halt with a clear error.
 ;; fsAlgo: which feature-selection algorithm runMoses pipes into expandDeme.
-;;   Recognized values include: None, smd, sim, inc, rd, mi, hc.
+;;   Recognized values include: None, smd, sim, inc, rd, hc.
 ;; fsScorerType: the score the hc feature selector maximizes: mi or pre.
 ;;   The other selectors score by mutual information directly and ignore it.
 !(add-atom &params (optAlgo hc))
@@ -111,8 +111,7 @@
 
 ;; ---- Representation building ----
 ;; discProbe: prune complexity-reducing knob settings during logical-probe
-;; pass. Default False mirrors the shipped behaviour after the test-suite
-;; adjustment in d4d8529; flip to True to opt in via --discProbe=True.
+;; pass. Default False; set --discProbe=True to turn it on.
 !(add-atom &params (discProbe False))
 
 ;; ---- Metapopulation management ----

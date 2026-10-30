@@ -3,7 +3,7 @@
 
 ;; Insert an element into an ordered set using comparator returning G/E/L.
 ;; TODO: comparison operators used in the original MOSES implementation works by finding the difference between the scores and 
-;;      two exemplars are deemed equal if this difference value is within a certain range which is a samll number
+;;      two exemplars are deemed equal if this difference value is within a certain range which is a small number
 (= (OS.insert $comparator $x ()) ($x))
 (= (OS.insert $comparator $new (cons $x $xs))
     (case ($comparator $new $x)
