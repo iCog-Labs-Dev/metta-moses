@@ -1,0 +1,166 @@
+;; ============================================================
+;;  The full MOSES module list, in load order.
+;;
+;;  moses.metta and the full-pipeline tests import this one file, so they
+;;  all load the modules in the same order. In PeTTa a call to a function
+;;  that is not loaded yet compiles as data, so the order decides behaviour.
+;;  Change the order here only, and run moses/tests/demo-problems-benchmark-test.metta.
+;;
+;;  import! paths below are relative to this file. The consult and
+;;  py_add_lib_dir paths are relative to the start directory, so run
+;;  from the repo root.
+;; ============================================================
+
+;; ---- Parameter registry must load BEFORE any consumer module ----
+;; defaults.metta populates &params; registry.metta defines (param ...)
+;; and (set-param ...); cli.metta parses --name=value flags from argv.
+!(import! &self utilities/general-helpers)
+!(import! &self parameters/registry)
+!(import! &self parameters/defaults)
+!(import! &self parameters/cli)
+!(import! &self parameters/domain-loader)
+;; ---- Utilities ----
+!(import! &self utilities/list-methods)
+!(import! &self utilities/pair)
+!(import! &self utilities/map)
+!(import! &self utilities/ordered-multimap)
+!(import! &self utilities/ordered-set)
+!(import! &self utilities/ordered-multiset)
+!(import! &self utilities/nodeId)
+!(import! &self utilities/lazy-random-selector)
+!(import! &self utilities/lru-cache)
+
+;; ---- Boolean reduction rules ----
+!(import! &self reduct/boolean-reduct/rte-helpers)
+!(import! &self reduct/boolean-reduct/cut-unnecessary-or)
+!(import! &self reduct/boolean-reduct/cut-unnecessary-and)
+!(import! &self reduct/boolean-reduct/n-ary-propagate-not)
+!(import! &self reduct/boolean-reduct/n-ary-gather-junctors)
+!(import! &self reduct/boolean-reduct/delete-inconsistent-handle)
+!(import! &self reduct/boolean-reduct/zero-constraint-subsumption)
+!(import! &self reduct/boolean-reduct/one-constraint-subsumption)
+!(import! &self reduct/boolean-reduct/promote-common-constraints)
+!(import! &self reduct/boolean-reduct/reduce-to-elegance)
+
+;; ---- Action reduction rules ----
+!(import! &self reduct/action-reduct/action-vocab)
+!(import! &self reduct/action-reduct/action-helpers)
+!(import! &self reduct/action-reduct/action-properties)
+!(import! &self reduct/action-reduct/reduce-action-if)
+!(import! &self reduct/action-reduct/reduce-action-action-if)
+!(import! &self reduct/action-reduct/reduce-const-action-seq)
+!(import! &self reduct/action-reduct/reduce-action-not)
+!(import! &self reduct/action-reduct/reduce-action-while)
+!(import! &self reduct/action-reduct/reduce-seq-result)
+!(import! &self reduct/action-reduct/reduce-null-vertices)
+!(import! &self reduct/action-reduct/reduce-action-properties)
+!(import! &self reduct/action-reduct/action-reduction)
+
+;; ---- Boolean reduction performance helpers ----
+;; Keep the main entry aligned with the benchmark harness:
+;; - native Prolog getLiteralChildren avoids a hot filter-atom path
+;; - native removeEmptyAND replaces the SLG-tabled MeTTa rewrite: the O(n)
+;;   walk beats table lookup + answer copy, and lib_tabling is no longer
+;;   needed at all
+!(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
+
+!(import! &self utilities/tree)
+
+;; ---- Scoring ----
+!(import! &self scoring/cacheSpace)
+!(import! &self scoring/fitness)
+!(import! &self scoring/boolean-ops)
+;; Action engine: registry (structural/cleanup operator membership only;
+;; operator clauses are bare heads found by the evaluator's reduce
+;; dispatch) -> evaluator -> structural operators.
+!(import! &self scoring/action-registry)
+!(import! &self scoring/action-eval)
+!(import! &self scoring/action-ops)
+!(import! &self scoring/bscore)
+!(import! &self scoring/cscore)
+;; Action-domain behavioral + composite scoring (needs bscore/cscore above).
+!(import! &self scoring/action-score)
+
+;; ---- Feature selection ----
+!(import! &self feature-selection/feature-selection-helpers)
+!(import! &self feature-selection/similarity-scorers)
+!(import! &self feature-selection/select-top-features)
+!(import! &self feature-selection/simple)
+!(import! &self feature-selection/smd)
+!(import! &self feature-selection/incremental)
+!(import! &self feature-selection/random-feature-selection)
+!(import! &self scoring/precision-bscore)
+
+;; ---- Representation ----
+!(import! &self representation/knob-representation)
+!(import! &self representation/lsk)
+!(import! &self representation/disc-probe)
+!(import! &self representation/logical-probe)
+!(import! &self representation/sample-logical-perms)
+!(import! &self representation/logical-canonize)
+!(import! &self representation/add-logical-knobs)
+!(import! &self representation/build-logical)
+!(import! &self representation/build-action)
+!(import! &self representation/build-knobs)
+!(import! &self representation/knob-mapper)
+!(import! &self representation/candidate)
+
+;; ---- Action fitness packages ----
+;; ttt-action-registration DEFINES the tic-tac-toe fitness functions
+;; (tttActionFitness / tttActionBestScore) but sets NO params -- loading it
+;; only makes the symbols available for --fitness=tttActionFitness /
+;; set-param binding. It needs the shared tic-tac-toe helpers/players
+;; (minimal set mirrored from examples/tic-tac-toe/tests).
+!(import! &self examples/tic-tac-toe/tic-tac-toe-helpers)
+!(import! &self examples/tic-tac-toe/moves)
+!(import! &self examples/tic-tac-toe/random-player)
+!(import! &self examples/tic-tac-toe/minimax-player)
+!(import! &self examples/tic-tac-toe/ttt-action-world)
+!(import! &self examples/tic-tac-toe/ttt-action-primitives)
+!(import! &self examples/tic-tac-toe/ttt-action-episode)
+!(import! &self examples/tic-tac-toe/ttt-action-registration)
+
+;; ---- Ant action-domain example ----
+!(import! &self examples/ant/ant-action-domain)
+
+;; ---- Optimization (hill climbing is the only production-ready algorithm) ----
+!(import! &self optimization/hillclimbing/crossover-helpers)
+!(import! &self optimization/hillclimbing/crossover)
+!(import! &self optimization/hillclimbing/hill-climbing-helpers)
+
+!(import! &self feature-selection/hc)
+!(import! &self feature-selection/feature-selection-main)
+!(import! &self representation/representation)
+!(import! &self representation/create-representation)
+
+!(import! &self scoring/complexity-based-scorer)
+
+;; ---- Deme + metapopulation pipeline ----
+!(import! &self deme/create-deme)
+!(import! &self moses/neighborhood-sampling)
+
+!(import! &self metapopulation/exemplar-type)
+!(import! &self metapopulation/exemplar-selection)
+!(import! &self metapopulation/metapopulation)
+
+!(import! &self representation/instance)
+
+!(import! &self deme/deme-id-creation)
+!(import! &self deme/score-deme)
+!(import! &self deme/merge-demes)
+;; Domain-specific representation and scorer dispatch is assembled here at
+;; the production entry point, before the shared expansion lifecycle uses it.
+!(import! &self deme/expand-deme)
+
+;; ---- Top-level entry point: defines (moses), (optimizer-for ...) ----
+!(import! &self moses/demo-problems)
+
+;; ---- Bootstrap the Python CSV helper used by the --inputFile path ----
+;; csv_helper.load_boolean_table(path, target) returns an (mkITable ...)
+;; S-expression as a string; the MeTTa side parses it back into a term.
+;;
+;; PeTTa's (py-call M.F …) form is limited to a single dot, so we can't
+;; reach `sys.path.append` directly. Use Janus's py_add_lib_dir/2 via the
+;; Predicate/callPredicate bridge to put scripts/ on sys.path, then a plain
+;; (py-call (csv_helper.X …)) resolves at call time.
+!(callPredicate (Predicate (py_add_lib_dir "scripts" first)))
