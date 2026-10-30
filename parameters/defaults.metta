@@ -17,9 +17,6 @@
 ;;    - Parameters describe algorithm behavior, not problem families.
 ;;      Boolean, strategy, feature-selection, and action problems therefore
 ;;      read the same keys and may override them for a particular run.
-;;    - The older metapopulation/metapopulation-params.metta also writes into
-;;      &params for its isolated compatibility tests, but this registry is the
-;;      source of truth for the production pipeline.
 ;; ============================================================
 
 !(bind! &params (new-space))
@@ -76,7 +73,7 @@
 ;;     the () default) leaves table behavior unchanged.
 ;; actions / perceptions: TUPLES of primitive symbols (the knob
 ;;   vocabulary read by representation building). actions is
-;;   MANDATORY for a run (moses-run-action refuses loudly when it is unset
+;;   MANDATORY for a run ((moses) refuses loudly when it is unset
 ;;   -- without it every deme is knobless and the run silently produces
 ;;   nothing); perceptions may legitimately be () (an experiment
 ;;   with no perceptions builds action-only knobs). Tuples cannot ride the
@@ -101,7 +98,7 @@
 ;;   Recognized values: hc (hill climbing).
 ;;   sa / univariate exist in the tree but are not integration-tested;
 ;;   passing them will halt with a clear error.
-;; fsAlgo: which feature-selection algorithm runMoses pipes into expandDeme.
+;; fsAlgo: which feature-selection algorithm the deme expansion uses.
 ;;   Recognized values include: None, smd, sim, inc, rd, hc.
 ;; fsScorerType: the score the hc feature selector maximizes: mi or pre.
 ;;   The other selectors score by mutual information directly and ignore it.

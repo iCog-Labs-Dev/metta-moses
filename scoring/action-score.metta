@@ -12,7 +12,7 @@
 ;;       start worlds, or nothing at all is PRIVATE to that function -- the
 ;;       framework only hands it the ordinal.
 ;;   bestScore -- a function SYMBOL, ($fn $n) -> Number, the raw-score
-;;       termination target for n episodes (consumed by moses-run-action).
+;;       termination target for n episodes (consumed by actionContext).
 ;;   actions / perceptions -- tuples of primitive symbols, the
 ;;       knob vocabulary (consumed by representation/create-representation).
 ;; Unset fitness, a fitness symbol with no matching clause, a failing
