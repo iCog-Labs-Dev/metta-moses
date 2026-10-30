@@ -6,9 +6,8 @@
 ;;  at distance 1 would be (0 0 0 0) or (0 0 1 1). The distance used is
 ;;  a hamming distance of bits.
 ;;
-;; This function is a wrapper for the varyNKnobs function. It makes the
-;;  output of varyNKnobs unique and removes the center instance from the
-;;  result. It also wraps each neighbor in mkInst.
+;; All knobs have the same multiplicity $m, so every position has the
+;;  spec list (1 .. m-1). See neighborsBySpecLists.
 ;;
 ;; Params:
 ;;    (mkMultip $m) - The multiplicity of the knobs
@@ -18,17 +17,9 @@
 ;;
 ;; Returns: List of instances.
 ;; (: generateAllInNeighborhood (-> Multiplicity Instance Number (List Instance)))
-(= (generateAllInNeighborhood (mkMultip $m) (mkInst ()) $dist) ())
-(= (generateAllInNeighborhood (mkMultip $m) (mkInst (cons $x $xs)) $dist)
-   (if (== $dist 0)
-       ((mkInst (cons $x $xs)))
-       (let $multips (genList 1 (- $m 1))
-          (let $instExp (cons $x $xs)
-          (let $listNeighbors (let $neighbors (varyNKnobs $multips $instExp $dist)
-                                      (map-atom $neighbors $neighbor (mkInst $neighbor)))
-          (let $uqListNeighbors (unique-atom $listNeighbors)
-          (let $uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (cons $x $xs))))
-            $uqListNeighbors')))))))
+(= (generateAllInNeighborhood (mkMultip $m) (mkInst $instExp) $dist)
+   (let $specLists (List.repeat (size-atom $instExp) (genList 1 (- $m 1)))
+     (neighborsBySpecLists $specLists (mkInst $instExp) $dist)))
 
 ;; Disc-aware exhaustive neighborhood generation. Each knob can expose a
 ;; different effective multiplicity after discprobe.
@@ -42,9 +33,10 @@
    (cons (effectiveSpecValues (getKnobMultip $knob))
          (discEffectiveSpecLists (mkDscMp $tail))))
 
-;; Corrected implementation matching C++ vary_n_knobs semantics for spec lists.
-;; Same fix as varyNKnobs: returns the instance at dist == 0, dead end at
-;; startI >= length, and omits single-position $changeIs from the output.
+;; varyNKnobsBySpecLists matches C++ vary_n_knobs: it generates instances at
+;; EXACTLY the target distance. It returns the instance at dist == 0, and the
+;; dead end (startI >= length) returns (). $specLists holds the allowed
+;; non-zero values of each position.
 (= (varyNKnobsBySpecLists $specLists $instExp $dist)
    (varyNKnobsBySpecLists $specLists $instExp $dist 0))
 (= (varyNKnobsBySpecLists $specLists $instExp $dist $startI)
@@ -65,7 +57,8 @@
           (filter-atom $final isNotUnit))))))
 
 ;; Fast path for dist=1: flat iteration over positions, no recursive
-;; list-of-lists construction. Matches varyNKnobsDist1 pattern.
+;; list-of-lists construction. Analogous to C++ UNROLL_TAIL_CALL /
+;; UNROLL_TAIL_CALL_DISC macros (neighborhood_sampling.h:359-389,417-434).
 (= (varyNKnobsBySpecListsDist1 $specLists $instExp $startI)
    (if (>= $startI (length $instExp))
        ()
@@ -78,63 +71,35 @@
          )
          (filter-atom $final isNotUnit))))
 
-(= (generateAllInNeighborhoodForDisc (mkDscMp $disc) (mkInst ()) $dist) ())
-(= (generateAllInNeighborhoodForDisc (mkDscMp $disc) (mkInst (cons $x $xs)) $dist)
+(= (generateAllInNeighborhoodForDisc (mkDscMp $disc) $inst $dist)
+   (let $specLists (discEffectiveSpecLists (mkDscMp $disc))
+     (neighborsBySpecLists $specLists $inst $dist)))
+
+;; The neighbors of a center instance at exactly $dist, as unique mkInst
+;; instances without the center. $specLists holds the allowed non-zero
+;; values of each position.
+(= (neighborsBySpecLists $specLists (mkInst ()) $dist) ())
+(= (neighborsBySpecLists $specLists (mkInst (cons $x $xs)) $dist)
    (if (== $dist 0)
        ((mkInst (cons $x $xs)))
        (let*
           (
-            ($specLists (discEffectiveSpecLists (mkDscMp $disc)))
             ($instExp (cons $x $xs))
-            ($listNeighbors (let $neighbors (varyNKnobsBySpecLists $specLists $instExp $dist)
-                                 (map-atom $neighbors $neighbor (mkInst $neighbor))))
-            ($uqListNeighbors (unique-atom $listNeighbors))
-            ($uqListNeighbors' (subtraction-atom $uqListNeighbors ((mkInst (cons $x $xs)))))
+            ($neighbors (varyNKnobsBySpecLists $specLists $instExp $dist))
+            ($listNeighbors (map-atom $neighbors $neighbor (mkInst $neighbor)))
+            ($uniqueNeighbors (unique-atom $listNeighbors))
           )
-          $uqListNeighbors')))
+          (subtraction-atom $uniqueNeighbors ((mkInst (cons $x $xs)))))))
 
 
-;; varyNKnobs returns the instances at the given distance from $instExp,
-;; as plain expressions. generateAllInNeighborhood post-processes them.
-;; It matches C++ vary_n_knobs: it generates instances at EXACTLY the target
-;; distance. It records an instance only when dist == 0 (all modifications
-;; used). The dead end (startI >= length) returns () for unresolvable paths.
-;;
-;; Params:
+;; varyNKnobs returns the instances at exactly the given distance from
+;; $instExp, as plain expressions, with the same values $multips at every
+;; position. See varyNKnobsBySpecLists.
 ;;   $multips: The possible values of each knob. For a discrete knob with 3
 ;;     values, $multips is (1 2). changeAt encodes the value 0, so it is not in the list.
-;;   $instExp: The center instance as an expression of numbers
-;;   $dist: The hamming distance
-(= (varyNKnobs $multips $instExp $dist) (varyNKnobs $multips $instExp $dist 0))
-(= (varyNKnobs $multips $instExp $dist $startI)
-   (case ($dist (>= $startI (length $instExp)))
-     (
-       ((0 $_) ($instExp))
-       ((1 $_) (varyNKnobsDist1 $multips $instExp $startI))
-       (($dist True) ())
-       (($dist False)
-        (let*
-          (
-            ($changeRest (varyNKnobs $multips $instExp $dist (+ $startI 1)))
-            ($changeDs (map-atom $multips $m (varyNKnobs $multips (changeAt $m $startI $instExp) (- $dist 1) (+ $startI 1))))
-            ($flatDs (foldl-atom $changeDs () $acc $changeD (append $changeD $acc)))
-            ($final (append $changeRest $flatDs))
-          )
-          (filter-atom $final isNotUnit))))))
-
-;; Fast path for dist=1: flat iteration over positions, no recursive
-;; list-of-lists construction. Analogous to C++ UNROLL_TAIL_CALL /
-;; UNROLL_TAIL_CALL_DISC macros (neighborhood_sampling.h:359-389,417-434).
-(= (varyNKnobsDist1 $multips $instExp $startI)
-   (if (>= $startI (length $instExp))
-       ()
-       (let*
-         (
-           ($currentVariations (map-atom $multips $m (changeAt $m $startI $instExp)))
-           ($restVariations (varyNKnobsDist1 $multips $instExp (+ $startI 1)))
-           ($final (append $currentVariations $restVariations))
-         )
-         (filter-atom $final isNotUnit))))
+(= (varyNKnobs $multips $instExp $dist)
+   (let $specLists (List.repeat (size-atom $instExp) $multips)
+     (varyNKnobsBySpecLists $specLists $instExp $dist)))
 
 (= (isNotUnit $x) (!= () $x))
 
@@ -156,8 +121,8 @@
 ;;      $dist: The distance from the central instance.
 ;;      $kbMp: The knob map used to get the multiplicity of the knob.
 ;;      $centralInst: The instance from which the new instance is generated.
-;; (: sampleFromNeighborhood` (-> Number Number KnobMap Instance Instance))
-(= (sampleFromNeighborhood` $n $dist (mkKbMap (mkDscMp $disc)) (mkInst $centralInst))
+;; (: sampleNeighbor (-> Number Number KnobMap Instance Instance))
+(= (sampleNeighbor $n $dist (mkKbMap (mkDscMp $disc)) (mkInst $centralInst))
         (let* 
             (
               ($knobLen (MultiMap.length $disc))
@@ -172,10 +137,10 @@
                   $inst) 
                   (Error ($knobLen $instLen) "Not Equal"))))
 
-;; Similar to sampleFromNeighborhood` above, but for feature selection.
+;; Similar to sampleNeighbor above, but for feature selection.
 ;; It caps the distance at the instance length, because lazyRandomSelector fails for a larger distance.
-;; (: sampleFromNeighborhoodFs` (-> Number Number (ITable Bool) Instance Instance))
-(= (sampleFromNeighborhoodFs` $n $dist (mkITable (cons $column $columns) $labels) (mkInst $centralInst))
+;; (: sampleNeighborFs (-> Number Number (ITable Bool) Instance Instance))
+(= (sampleNeighborFs $n $dist (mkITable (cons $column $columns) $labels) (mkInst $centralInst))
         (let* 
             (
               ($featureLen (- (List.length $labels) 1)) 
@@ -189,7 +154,7 @@
                   )
                   (mkInst $updatedInst)) 
                   (Error ($featureLen $instLen) "Not Equal"))))
-;; A helper of sampleFromNeighborhood` that updates the central instance.
+;; A helper of sampleNeighbor that updates the central instance.
 ;;
 ;; Parameters:
 ;;      $rand: A random index from lazyRandomSelector. The position to update in $newInst
@@ -227,7 +192,7 @@
                               (List.replaceAt $newInst $rand 0)
                               (List.replaceAt $newInst $rand $randomSpec))))
 
-;; Samples $sampleSize instances at the given distance with sampleFromNeighborhood`.
+;; Samples $sampleSize instances at the given distance with sampleNeighbor.
 ;; The samples are not necessarily unique.
 ;; Parameters:
 ;;      $sampleSize: Number of instances to generate
@@ -238,22 +203,18 @@
 
 ;; (: sampleFromNeighborhood (-> Number Number KnobMap Instance (List Instance)))
 (= (sampleFromNeighborhood $sampleSize $dist $kbMp $inst)
-   (let* (
-      ($list (genList (- $sampleSize 1)))
-
-      ($x (map-atom $list $i (sampleFromNeighborhood` $i $dist $kbMp $inst)))
-    )
-    $x))
+   (let $indices (genList (- $sampleSize 1))
+     (map-atom $indices $i (sampleNeighbor $i $dist $kbMp $inst))))
 
 ;; Similar to sampleFromNeighborhood above, but for feature selection.
-;; It uses sampleFromNeighborhoodFs` to sample from the neighborhood.
+;; It uses sampleNeighborFs to sample from the neighborhood.
 ;; (: sampleFromNeighborhoodFs (-> Number Number (ITable Bool) Instance (List Instance)))
 (= (sampleFromNeighborhoodFs $sampleSize $dist $itable $inst)
    (let* (
-      ($list (genList (- $sampleSize 1)))
-      ($x (map-atom $list $i (sampleFromNeighborhoodFs` $i $dist $itable $inst)))
-    )
-    (exprToList $x)))
+          ($indices (genList (- $sampleSize 1)))
+          ($samples (map-atom $indices $i (sampleNeighborFs $i $dist $itable $inst)))
+         )
+     (exprToList $samples)))
 
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1
