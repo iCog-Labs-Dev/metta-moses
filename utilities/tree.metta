@@ -36,9 +36,8 @@
          (
            ($lc  (List.map preOrder (cons $x $xs)))
            ($lc' (List.filter (compose not isUnit) $lc))
-           ($lcE (List.listToExpr $lc'))
-           ;; (()   (println! (Root: $r Children: $lc Children': $lc' Expression: $lcE)))
-           ($exp (cons-atom $r $lcE))
+           ;; (()   (println! (Root: $r Children: $lc Children': $lc')))
+           ($exp (cons-atom $r $lc'))
          )
          $exp)
 )
