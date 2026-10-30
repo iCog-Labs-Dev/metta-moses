@@ -1,25 +1,10 @@
-;; (: DiscKnobMap Type)
+;; (: DiscMap Type)
 ;; (: mkDscMp (-> (MultiMap (DiscSpec $knob)) DiscMap))
-;; (: mkDscKbMp (-> (Map (NodeId Number)) DiscKnobMap))
 ;; (: KnobMap Type)
-;; (: mkKbMap (-> DiscKnobMap DiscMap KnobMap))
+;; (: mkKbMap (-> DiscMap KnobMap))
 ;; (: Representation Type)
-;; (: mkRep (-> KnobMap (Tree $a) Representation)) 
+;; (: mkRep (-> KnobMap (Tree $a) Representation))
 
-;; helper function to representation
-;; Converts DiscMap (multimap of knobSpec & knob) to DiscKnobMap (map of location & index)
-;; Params: DiscMap
-;; Returns: DiscKnobMap
-;; (: crtDiscKnobMap (-> DiscMap DiscKnobMap Number DiscKnobMap))
-(= (crtDiscKnobMap (mkDscMp ()) (mkDscKbMp $dkm) $index) (mkDscKbMp $dkm))
-(= (crtDiscKnobMap (mkDscMp (cons ($kbSpec $kb) $tail)) (mkDscKbMp $dkm) $index)
-   (let*
-   (
-    ($loc (getKnobLoc $kb))
-    ($updatedDkm (Map.insert ($loc $index) $dkm == nodeId<))
-   ) 
-   (crtDiscKnobMap (mkDscMp $tail) (mkDscKbMp $updatedDkm) (+ $index 1))
-  ))
 ;; (: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol Expression))
 (= (representation
 ;; Boolean representation constructor with feature selection

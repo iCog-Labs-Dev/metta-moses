@@ -45,76 +45,9 @@
                     )
                     $finalTree)))))
 
-
-;; Assumes the reverseLookupTable's order never changes during this call.
-;; (: getCandidateRec (-> Representation Instance NodeId NodeId (Tree $a) (Tree $a)))
-(= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $dstId $candidate)
-   (let $knobIdxPair (findDiscKnob $knobMapObj $srcId) 
-      (if (not (== (second $knobIdxPair) -1))
-         (let*
-            (          
-               ;; ($_ (println! (KnobBuilding 1)))
-               ($d (List.getByIdx $inst (second $knobIdxPair)))
-               ;; ($_ (println! (KnobBuilding 2)))
-               ($result  (appendTo $tree (first $knobIdxPair) $candidate $dstId $d))
-               ;; ($_ (println! (KnobBuilding 3)))
-               ;; ($_ (println! (Result: $result)))
-               (($updatedCnd $newSrcId $newDstId) $result)
-               ;; ($_ (println! (Candidate 3: (preOrder $updatedCnd))))
-               ;; ($_ (println! (KnobBuilding 4: NothingChanged: (== $dstId $newDstId))))
-               ;; ($_ (println! ""))
-            )
-            (if (== $updatedCnd $candidate)
-                $updatedCnd
-                (let*
-                   (
-                      ($src1 (getNodeById $tree $newSrcId))
-                      ;; ($_ (println! (KnobBuilding 5)))
-
-                      ($srcchildren1 (getChildren $src1))
-                      ;; ($_ (println! (KnobBuilding 6: Cnd: (preOrder $updatedCnd) newSrcId: $newSrcId newDstId: $newDstId)))
-                      ($state1 (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) $newSrcId $newDstId $updatedCnd 1) $srcchildren1))
-                      ;; ($_ (println! (KnobBuilding 7)))
-                      (((mkRep $knobmapobj1 $tree1) (mkInst $inst1) $newparentid1 $newdstId1 $finalcnd1 $d1) $state1)
-                      ;; ($_ (println! (KnobBuilding 8: $newparentid1 $newdstId1)))
-                      ;; ($_ (println! ""))
-                   )
-                   $finalcnd1
-                )
-            )
-         )
-         (let*
-            (
-               ;; ($_ (println! (Inside getCandidateRec with parentId: $parentId , srcId: $srcId)))
-               ;; ($_ (println! ""))
-               ;; ($_ (println! (No Knob found just copy...)))
-               ;; ($_ (println! (Copying 1)))
-               ;; ($_ (println! (Getting: $srcId from (preOrderDebug $tree))))
-               ($src (getNodeById $tree $srcId))
-               ;; ($_ (println! (Copying 2)))
-               ($dstValue (getNodeById $candidate $dstId))
-               ;; ($_ (println! (Copying 3:  appending child: (getNodeValue $src) on (preOrder $candidate) at $dstId)))
-
-               ($cndchidpair (appendChild $candidate $dstId (mkTree (getNodeValue $src) ())))
-               ;; ($_ (println! (Copying 4)))
-               ($srcchildren (getChildren $src))
-               ;; ($_ (println! (Copying 5: Candidate5 (preOrder (first $cndchidpair)))))
-               ($state (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) $srcId (second $cndchidpair) (first $cndchidpair) 1) $srcchildren))
-               ;; ($_ (println! (Copying 6)))
-               (((mkRep $knobmapobj $tree) (mkInst $inst) $newparentid $newdstId $finalcnd $d) $state)
-               ;; ($_ (println! (Copying 7)))
-               ;; ($_ (println! (FinalCandidate: (preOrder $finalcnd))))
-               ;; ($_ (println! (FinalCandidate: $finalcnd)))
-               ;; ($_ (println! ""))
-            )
-              $finalcnd
-          )
-      )
-   )
-)
-
-;; getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst)
-
+;; getCandidateHelper builds the program tree of an instance from the knob tree.
+;; ASK knob: setting 0 drops it. Default 0 selects perm (setting - 1);
+;; default 1 keeps the controlled subtree.
 (= (getCandidateHelper (mkInst $inst) (mkKnob $controlledSubtree (mkASK $discKnob $perms) $i))
    (let*
       (
@@ -156,19 +89,3 @@
 (= (getCandidateHelper $inst (mkTree $node $children))
    (let $newChildren (map-atom $children $ch (getCandidateHelper $inst $ch))
         (mkTree $node (filter-atom $newChildren (!= ())))))
-
-(= (applyGetCandidateRec $tr ($repObj $inst (mkNodeId $parentId) (mkNodeId $dstId) $candidate $chIdx))
-   (let*
-      (
-         ;; ($_ (println! ("applyGetCandidateRec called with parentId:" $parentId , chIdx: $chIdx)))
-         ($srcId (if (== $parentId (0)) (mkNodeId ($chIdx)) (mkNodeId (concatT $parentId ($chIdx)))))
-         ;; ($_ (println! (srcId: $srcId)))
-         ;; ($_ (println! (dstId: $dstId)))
-         ($updatedCnd1 (getCandidateRec $repObj $inst (mkNodeId $parentId) $srcId (mkNodeId $dstId) $candidate))
-         ($finalResult ($repObj $inst (mkNodeId $parentId) (mkNodeId $dstId) $updatedCnd1 (+ 1 $chIdx)))
-         ;; ($_ (println! (FinalResult: (preOrder $updatedCnd1))))
-         ;; ($_ (println! ("applyGetCandidateRec returning finalResult:" $finalResult)))
-      )
-      $finalResult
-   )
-)

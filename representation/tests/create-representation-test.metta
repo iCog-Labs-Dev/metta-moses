@@ -44,7 +44,6 @@
 !(import! &self ../add-logical-knobs)
 !(import! &self ../build-logical)
 !(import! &self ../build-knobs)
-!(import! &self ../knob-mapper)
 !(import! &self ../representation)
 !(import! &self ../create-representation)
 

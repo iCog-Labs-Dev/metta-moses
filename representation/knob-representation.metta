@@ -33,6 +33,8 @@
 ;;   $discKnob: DiscreteKnob
 ;; Return: True if the default specifier is non-zero (the subtree is in the exemplar), False otherwise.
 ;; (: inExemplar (-> DiscreteKnob Bool))
+;; The 5-field (node-id) clauses of inExemplar and getKnobMultip stay for tests:
+;; knob-representation-test and moses/tests/neighborhood-sampling-test.
 (= (inExemplar (mkDiscKnob $knob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis)) 
    (not (== $def 0)))
 (= (inExemplar (mkDiscKnob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis)) 
@@ -58,7 +60,6 @@
 ;; (: getRawKnobMultip (-> ActionSubtreeKnob Multiplicity))
 
 (= (getRawKnobMultip (mkDiscKnob $multiplicity $curr $def $disAll)) $multiplicity)
-(= (getRawKnobMultip (mkDiscKnob $knob $multiplicity $curr $def $disAll)) $multiplicity)
 (= (getRawKnobMultip (mkLSK $discKnob )) (getRawKnobMultip $discKnob))
 (= (getRawKnobMultip (mkASK $discKnob $perms)) (getRawKnobMultip $discKnob))
 
@@ -67,7 +68,6 @@
 ;; (: getKnobDefault (-> LogicalSubtreeKnob DiscSpec))
 ;; (: getKnobDefault (-> ActionSubtreeKnob DiscSpec))
 (= (getKnobDefault (mkDiscKnob $multiplicity $current $default $disAll)) $default)
-(= (getKnobDefault (mkDiscKnob $knob $multiplicity $current $default $disAll)) $default)
 (= (getKnobDefault (mkLSK $discKnob )) (getKnobDefault $discKnob))
 (= (getKnobDefault (mkASK $discKnob $perms)) (getKnobDefault $discKnob))
 
@@ -75,7 +75,6 @@
 ;; (: getDisallowedSpecs (-> LogicalSubtreeKnob (List DiscSpec)))
 ;; (: getDisallowedSpecs (-> ActionSubtreeKnob (List DiscSpec)))
 (= (getDisallowedSpecs (mkDiscKnob $multiplicity $current $default $disAll)) $disAll)
-(= (getDisallowedSpecs (mkDiscKnob $knob $multiplicity $current $default $disAll)) $disAll)
 (= (getDisallowedSpecs (mkLSK $discKnob )) (getDisallowedSpecs $discKnob))
 (= (getDisallowedSpecs (mkASK $discKnob $perms)) (getDisallowedSpecs $discKnob))
 
@@ -148,17 +147,6 @@
       (if (>= $effectiveSetting $effectiveMultip)
           (Error $effectiveSetting "Invalid effective disc specification.")
           (mapEffectiveDiscSpec $knob $effectiveSetting))))
-
-;; Extracts the location from a discrete, logical subtree, or action subtree knob.
-;; Params:
-;;  $knob: Either discrete, logical subtree, or action subtree knob
-;; Returns: The location of the knob.
-;; (: getKnobLoc (-> DiscreteKnob (NodeId)))
-;; (: getKnobLoc (-> LogicalSubtreeKnob (NodeId)))
-;; (: getKnobLoc (-> ActionSubtreeKnob (NodeId)))
-(= (getKnobLoc (mkDiscKnob (mkKnob $loc) $multip $curr $def $dis)) $loc)
-(= (getKnobLoc (mkLSK $discKnob )) (getKnobLoc $discKnob))
-(= (getKnobLoc (mkASK $discKnob $perms)) (getKnobLoc $discKnob))
 
 ;; Comparator for inserting (knobSpec knob) pairs into a multimap.
 ;; It is always False, so an insert keeps the insertion order.
