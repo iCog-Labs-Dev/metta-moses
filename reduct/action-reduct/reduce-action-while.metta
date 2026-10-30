@@ -19,18 +19,6 @@
           ($len2 (size-atom $list2)))
      (take (- $len1 $len2) $list1)))
 
-;; Helper: check if list ends with a single element
-(= (endsWithSingle $list $elem)
-   (let $len (size-atom $list)
-     (if (== $len 0)
-         False
-         (== (index-atom $list (- $len 1)) $elem))))
-
-;; Helper: remove single element from end of list
-(= (removeEndSingle $list)
-   (let $len (size-atom $list)
-     (take (- $len 1) $list)))
-
 
 ;; reduceActionWhileAlwaysFails (C++ reduce_action_while_always_fails):
 ;; action_while runs its body repeatedly until the body fails. If the body
@@ -140,20 +128,17 @@
 (= (dropRepeatedPrefixes $args $processed)
    (let* ((($h $t) (decons-atom $args))
           ($newProcessed
-          (if (= $h (action_while $body))
-            (if (and (== (get-metatype $body) Expression) (!= $body ()))
-                (if (== (car-atom $body) and_seq)
-                    (let $bodyArgs (cdr-atom $body)
-                      (if (endsWith $processed $bodyArgs)
-                          (removeEnd $processed $bodyArgs)
-                          $processed))
-                    (if (endsWithSingle $processed $body)
-                        (removeEndSingle $processed)
-                        $processed))
-                (if (endsWithSingle $processed $body)
-                    (removeEndSingle $processed)
-                    $processed))
-            $processed)))
+            (if (= $h (action_while $body))
+                ;; An and_seq body is matched by its arguments, any other body as one element.
+                ;; quote: ($body) with an action head would be a call.
+                ;; The nested if guards car-atom against a Symbol body.
+                (let $bodyArgs (if (and (== (get-metatype $body) Expression) (!= $body ()))
+                                   (if (== (car-atom $body) and_seq) (cdr-atom $body) (quote ($body)))
+                                   (quote ($body)))
+                  (if (endsWith $processed $bodyArgs)
+                      (removeEnd $processed $bodyArgs)
+                      $processed))
+                $processed)))
      (dropRepeatedPrefixes $t (concatTuple $newProcessed (quote ($h))))))
 
 (= (reduceRepeatOutActionWhile $expr)
