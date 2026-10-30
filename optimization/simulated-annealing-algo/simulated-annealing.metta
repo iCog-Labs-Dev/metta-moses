@@ -1,32 +1,32 @@
-; ;; Simulated Annealing
-; ;; Params:
-; ;;   deme: The current population of instances
-; ;;   tTableBScorer: The truth table based bScore function
-; ;;   initCenter: The initial instance to start the search from
-; ;;   initial-temperature: Initial temperature for the algorithm
-; ;;   cooling-rate: Rate at which the temperature decreases
-; ;;   max-iterations: Maximum number of iterations to run the algorithm
-; ;;   total-state: Total number of instances in the state space
-; ;; Returns:
-; ;;   instance: The best instance found
-; ;;   deme: The final population of instances
-; ;;   state: The state of the algorithm
-; ;; Algorithm description:
-; ;;   1. Checks if the temp == final temp or max iterations is reached, it any of these is true break and return the best cadidate and best score.
-; ;;   2. If not, scores the current cadidate and generates a new candidate by using crossover.
-; ;;   3. Scores the new candidate and calculates the energy of the new candidate and current candidate.
-; ;;   4. Calculates the acceptance probability using the energy.
-; ;;   5. Generates a random float between 0 and 1.
-; ;;   6. Calculate the acceptance probability by comparing the energies of the two candidates (low energy==better cadidate), or by deviding the 
-; ;;      difference of the two energies by the temprature and taking the exp of that value. The actual accpetance probability is the product of 
-; ;;      the intensity and acceptance probability.
-; ;;   7. If the actual acceptance probability is greater than the random float, accept the new candidate as the current candidate.
-; ;;   8. Decrease the temperature by multiplying it with the cooling rate.
-; ;;   9. Decrement the max iterations by 1.
-; ;;   10. Repeat from step 1.   
-; ;;
+;; Simulated Annealing
+;; Params:
+;;   deme: The current population of instances
+;;   tTableBScorer: The truth table based bScore function
+;;   initCenter: The initial instance to start the search from
+;;   initial-temperature: Initial temperature for the algorithm
+;;   cooling-rate: Rate at which the temperature decreases
+;;   max-iterations: Maximum number of iterations to run the algorithm
+;;   total-state: Total number of instances in the state space
+;; Returns:
+;;   instance: The best instance found
+;;   deme: The final population of instances
+;;   state: The state of the algorithm
+;; Algorithm description:
+;;   1. Checks if the temp == final temp or max iterations is reached, it any of these is true break and return the best cadidate and best score.
+;;   2. If not, scores the current cadidate and generates a new candidate by using crossover.
+;;   3. Scores the new candidate and calculates the energy of the new candidate and current candidate.
+;;   4. Calculates the acceptance probability using the energy.
+;;   5. Generates a random float between 0 and 1.
+;;   6. Calculate the acceptance probability by comparing the energies of the two candidates (low energy==better cadidate), or by deviding the 
+;;      difference of the two energies by the temprature and taking the exp of that value. The actual accpetance probability is the product of 
+;;      the intensity and acceptance probability.
+;;   7. If the actual acceptance probability is greater than the random float, accept the new candidate as the current candidate.
+;;   8. Decrease the temperature by multiplying it with the cooling rate.
+;;   9. Decrement the max iterations by 1.
+;;   10. Repeat from step 1.   
+;;
 
-; ;;(: getEnergy (-> Cscore Number))
+;;(: getEnergy (-> Cscore Number))
 (= (getEnergy $score)
   (* -1 $score)
 )
@@ -97,8 +97,8 @@
               ;; Estimate Neighborhood
               ($_ (println! (Iteration: $i , Temperature: $Temp)))
               ;; ($_ (println! ""))
-              ; ($_ (println! $hyper))
-              ; ($_ (println! ($rows $labels)))
+              ;; ($_ (println! $hyper))
+              ;; ($_ (println! ($rows $labels)))
               ($totalNNeighbors ($estimateFunction $d $neighborhood))
 
               ($_ (println! (Estimated neighbors: $totalNNeighbors)))
@@ -158,13 +158,13 @@
               ;; ($_ (println! (Has Improved: $hasImproved)))
               ;; ($_ (println! ""))
 
-              ; ;; Calculate the energy of the current and new instance, and the acceptanceProb
+              ;; Calculate the energy of the current and new instance, and the acceptanceProb
               ($pScore (if (== $rep ()) $bestSscore (getPenScore $bestSscore)))
               ($energy (getEnergy $pScore))
               ($newEnergy (getEnergy $newBestScore))
               ($acceptanceProb (acceptanceProb $energy $newEnergy $Temp))
               ($randomFloat (rand-random)) ;; using random.random instead of numpy.random.rand
-              ; ;; Actual acceptance probabitlity which is the product of the intensity and acceptance probability.
+              ;; Actual acceptance probabitlity which is the product of the intensity and acceptance probability.
               ($actualAcceptanceProb (* $acceptanceProb 0.85))
 
               ;; ($_ (println! (Energy: $energy)))
@@ -174,7 +174,7 @@
               ;; ($_ (println! (Actual acceptance probability: $actualAcceptanceProb)))
               ;; ($_ (println! ""))
 
-              ; ;; Check for acceptance
+              ;; Check for acceptance
               ($isAccepted (> $actualAcceptanceProb $randomFloat))
               
               ;; ($_ (println! (Is accepted: $isAccepted)))

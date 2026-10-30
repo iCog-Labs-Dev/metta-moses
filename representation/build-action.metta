@@ -257,9 +257,7 @@
            (buildActionBoolIf (mkTree (mkNode action_bool_if) $children) $MMap $actions $perceptions $ignoreOps)
            ((mkTree (mkNode $op) $children) $MMap))))
 
-;; The cleanup-op list now lives in scoring/action-registry.metta (seeded
-;; identically with and_seq/or_seq/seq_exec -- behavior-preserving);
-;; action-registry must load BEFORE this file.
+;; The cleanup-op list is in scoring/action-registry.metta, which must load before this file.
 (= (isCleanupActionOperator $op)
    (isRegisteredCleanupActionOp $op))
 

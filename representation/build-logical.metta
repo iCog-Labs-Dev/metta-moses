@@ -1,11 +1,11 @@
-;; buildLogical => Build logical knobs for a given NodeId and its children
-;;params:
-;;       $tree: The tree being updated
-;;       $nodeId: ID of the node to build logical knobs for.
-;;       $MMap: Multimap to store disc_pec and knobs.
+;; buildLogical => Build logical knobs for a tree and its children
+;; Params:
+;;       $tree: The tree being updated (a tree or a knob wrapper)
+;;       $parentOp: The operator of the parent node
+;;       $MMap: Multimap to store disc_spec and knobs.
 ;;       $argLabels: list of argument labels (input variables) from the ITable
+;;       $globalTree, $currentNodeId: the exemplar and the absolute id of $tree in it
 ;; Return: Updated tree and multimap.
-;; (: buildLogical (-> (Tree $a) NodeId (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v)))))
 ;; (= (buildLogical $tree (mkNodeId $nodeId) $MMap $argLabels)
 ;;   (let $subtree (getNodeById $tree (mkNodeId $nodeId))
 ;;     (if (== True (isNullVertex $subtree))

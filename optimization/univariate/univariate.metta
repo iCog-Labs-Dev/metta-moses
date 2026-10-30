@@ -19,26 +19,26 @@
 ;;
 ;; =====================================================================
 
-; Generates an initial population (list of scored instances).
-; Each instance has a random structure and is assigned the worst initial score.
-; Params:
-;   $instLength — length of each instance.
-;   $nGenerate — number of instances to generate.
-; Returns: List of mkSInst objects representing the population.
-; (: generateInitialSample (-> Number Number List))
+;; Generates an initial population (list of scored instances).
+;; Each instance has a random structure and is assigned the worst initial score.
+;; Params:
+;;   $instLength — length of each instance.
+;;   $nGenerate — number of instances to generate.
+;; Returns: List of mkSInst objects representing the population.
+;; (: generateInitialSample (-> Number Number List))
 (= (generateInitialSample $instLength $nGenerate)
    (if (== $nGenerate 0)
        ()
        (cons (mkSInst (mkPair (mkInst (generateRandomInstance $instLength)) (worstCscore))) (generateInitialSample $instLength (- $nGenerate 1)))))
 
-; Recursively performs tournament comparison to pick the best instance.
-; Randomly selects another instance and keeps the better one based on score.
-; Params:
-;   $instSet — full set of instances.
-;   $res — current best candidate.
-;   $tSize — remaining number of comparisons to perform.
-; Returns: The best mkSInst found after all comparisons.
-; (: tournamentCompare (-> (InstanceSet $score) (ScoredInstance $score) Number (ScoredInstance $score)))
+;; Recursively performs tournament comparison to pick the best instance.
+;; Randomly selects another instance and keeps the better one based on score.
+;; Params:
+;;   $instSet — full set of instances.
+;;   $res — current best candidate.
+;;   $tSize — remaining number of comparisons to perform.
+;; Returns: The best mkSInst found after all comparisons.
+;; (: tournamentCompare (-> (InstanceSet $score) (ScoredInstance $score) Number (ScoredInstance $score)))
 (= (tournamentCompare (mkSInstSet $instSet) $res $tSize)
 (if (== $tSize 0) $res
 (let*
@@ -49,15 +49,15 @@
   )
   (tournamentCompare (mkSInstSet $instSet) $updatedRes (- $tSize 1)))))
 
-; Selects the best individuals from a set using tournament selection.
-; Randomly samples $tSize individuals and keeps the best one, repeating $nSelect times.
-; Params:
-;   $instSet — the full set of scored instances.
-;   $tSize — tournament size (number of competitors per selection).
-;   $nSelect — number of individuals to select.
-;   $selectedList — accumulator list for results (initially ()).
-; Returns: List of selected mkSInst objects.
-; (: tournamentSelection (-> (InstanceSet $score) Number Number List List))
+;; Selects the best individuals from a set using tournament selection.
+;; Randomly samples $tSize individuals and keeps the best one, repeating $nSelect times.
+;; Params:
+;;   $instSet — the full set of scored instances.
+;;   $tSize — tournament size (number of competitors per selection).
+;;   $nSelect — number of individuals to select.
+;;   $selectedList — accumulator list for results (initially ()).
+;; Returns: List of selected mkSInst objects.
+;; (: tournamentSelection (-> (InstanceSet $score) Number Number List List))
 (= (tournamentSelection (mkSInstSet $instSet) $tSize $nSelect $selectedList)
 (if (== $nSelect 0) $selectedList
 (let*
@@ -69,16 +69,16 @@
   )
   (tournamentSelection (mkSInstSet $instSet) $tSize (- $nSelect 1) (cons $updatedRes $selectedList)))))
 
-; Extracts the value of the nth knob (field) from each instance expression.
-; Builds a list of the values at the same index position across all instances.
-; Params:
-;   $instsExp — list of instance expressions ((inst score) ...).
-;   $noInsts — total number of instances.
-;   $nthInstCtr — current instance index (loop counter).
-;   $nthKnobCtr — index of the knob/field to extract.
-;   $acc — accumulator for collected field values.
-; Returns: List of field values for the specified knob position.
-; (: getNthInstFields (-> Expression Number Number Number Expression Expression))
+;; Extracts the value of the nth knob (field) from each instance expression.
+;; Builds a list of the values at the same index position across all instances.
+;; Params:
+;;   $instsExp — list of instance expressions ((inst score) ...).
+;;   $noInsts — total number of instances.
+;;   $nthInstCtr — current instance index (loop counter).
+;;   $nthKnobCtr — index of the knob/field to extract.
+;;   $acc — accumulator for collected field values.
+;; Returns: List of field values for the specified knob position.
+;; (: getNthInstFields (-> Expression Number Number Number Expression Expression))
 (= (getNthInstFields $instsExp $noInsts $nthInstCtr $nthKnobCtr $acc)
    (if (== $nthInstCtr $noInsts)
        $acc
@@ -93,16 +93,16 @@
    )
 )
 
-; Collects field values for all knob indices across all instances.
-; Calls getNthInstFields for each knob position and accumulates the results.
-; Params:
-;   $instsExp — list of instance expressions ((inst score) ...).
-;   $instLength — number of knobs (fields) per instance.
-;   $noInsts — total number of instances.
-;   $n — current knob index (loop counter).
-;   $acc — accumulator for tuples of field values.
-; Returns: List of lists, where each sublist contains all values for one knob position.
-; (: instsToFieldValues (-> Expression Number Number Number Expression Expression))
+;; Collects field values for all knob indices across all instances.
+;; Calls getNthInstFields for each knob position and accumulates the results.
+;; Params:
+;;   $instsExp — list of instance expressions ((inst score) ...).
+;;   $instLength — number of knobs (fields) per instance.
+;;   $noInsts — total number of instances.
+;;   $n — current knob index (loop counter).
+;;   $acc — accumulator for tuples of field values.
+;; Returns: List of lists, where each sublist contains all values for one knob position.
+;; (: instsToFieldValues (-> Expression Number Number Number Expression Expression))
 (= (instsToFieldValues $instsExp $instLength $noInsts $n $acc)
      (if (== $n $instLength)
          $acc
@@ -115,13 +115,13 @@
      )
 )
 
-; Learns the frequency of each possible field value (0, 1, 2) for every knob (field) across all instances.
-; Used later to derive probability-based sampling distributions.
-; Params:
-;   $fieldVals — list of tuples; each tuple contains all field values for one knob index across all instances.
-;   $acc — accumulator for probability counts.
-; Returns: List of tuples (count0, count1, count2) for each field position.
-; (: learnProbability (-> Expression Expression Expression))
+;; Learns the frequency of each possible field value (0, 1, 2) for every knob (field) across all instances.
+;; Used later to derive probability-based sampling distributions.
+;; Params:
+;;   $fieldVals — list of tuples; each tuple contains all field values for one knob index across all instances.
+;;   $acc — accumulator for probability counts.
+;; Returns: List of tuples (count0, count1, count2) for each field position.
+;; (: learnProbability (-> Expression Expression Expression))
 (= (learnProbability $fieldVals $acc)
    (if (== $fieldVals ())
        $acc
@@ -143,20 +143,20 @@
 ;;   $ctr — index counter (initially 0).
 ;;   $ajstdSum — adjusted random sum for selection.
 ;; Returns: The selected field index (0, 1, or 2).
-; (: roulette_helper (-> Expression Number Number Number))
+;; (: roulette_helper (-> Expression Number Number Number))
 (= (roulette_helper $fieldCount $ctr $ajstdSum)
 (if (== $fieldCount ()) (- $ctr 1)
 (if (<= (- $ajstdSum (car-atom $fieldCount)) 0) $ctr
       (roulette_helper (cdr-atom $fieldCount) (+ $ctr 1) (- $ajstdSum (car-atom $fieldCount))))))
 
-; Selects one field value (0, 1, or 2) using roulette-wheel selection.
-; The selection is proportional to the frequency of each field value.
-; Params:
-;   $fieldCount — tuple of counts (count0, count1, count2) for one knob.
-;   $tot — total sum of all counts (used to scale random selection).
-;   $ctr — index counter (initially 0).
-; Returns: The selected field index (0, 1, or 2).
-; (: roulette_select (-> Expression Number Number Number))
+;; Selects one field value (0, 1, or 2) using roulette-wheel selection.
+;; The selection is proportional to the frequency of each field value.
+;; Params:
+;;   $fieldCount — tuple of counts (count0, count1, count2) for one knob.
+;;   $tot — total sum of all counts (used to scale random selection).
+;;   $ctr — index counter (initially 0).
+;; Returns: The selected field index (0, 1, or 2).
+;; (: roulette_select (-> Expression Number Number Number))
 (= (roulette_select $fieldCount $tot $ctr)
 (let*
   (
@@ -165,15 +165,15 @@
   (roulette_helper $fieldCount $ctr $ajstdSum)
 ))
 
-; Samples a single instance based on the learned probability model.
-; For each knob, selects one value using roulette selection.
-; Params:
-;   $probabilityModel — list of tuples [(count0, count1, count2), ...]
-;                            representing each knob’s distribution.
-;   $tot — total count sum for normalization in roulette selection.
-;   $acc — accumulator for the selected field values.
-; Returns: A list representing one sampled instance (e.g., (2 0 1)).
-; (: sample (-> Expression Number Expression Expression))
+;; Samples a single instance based on the learned probability model.
+;; For each knob, selects one value using roulette selection.
+;; Params:
+;;   $probabilityModel — list of tuples [(count0, count1, count2), ...]
+;;                            representing each knob’s distribution.
+;;   $tot — total count sum for normalization in roulette selection.
+;;   $acc — accumulator for the selected field values.
+;; Returns: A list representing one sampled instance (e.g., (2 0 1)).
+;; (: sample (-> Expression Number Expression Expression))
 (= (sample $probabilityModel $tot $acc)
    (if (== $probabilityModel ())
        $acc
@@ -187,15 +187,15 @@
    )
 )
 
-; Generates multiple sampled instances using the probability model.
-; Each instance is generated by 'sample' and given a default (worst) score.
-; Params: 
-;   $probabilityModel — learned probability model for all knobs.
-;   $nGenerate — number of instances to generate.
-;   $tot — total count sum used in selection.
-;   $acc — accumulator for the generated scored instances.
-; Returns: List of scored instances: [((inst) (worstCscore)), ...].
-; (: sampleInsts (-> Expression Number Number Expression Expression))
+;; Generates multiple sampled instances using the probability model.
+;; Each instance is generated by 'sample' and given a default (worst) score.
+;; Params: 
+;;   $probabilityModel — learned probability model for all knobs.
+;;   $nGenerate — number of instances to generate.
+;;   $tot — total count sum used in selection.
+;;   $acc — accumulator for the generated scored instances.
+;; Returns: List of scored instances: [((inst) (worstCscore)), ...].
+;; (: sampleInsts (-> Expression Number Number Expression Expression))
 (= (sampleInsts $probabilityModel $nGenerate $tot $acc)
 (if (== $nGenerate 0) $acc
     (let $sampledInst (sample $probabilityModel $tot ())
@@ -203,13 +203,13 @@
 )))
 
 
-; Replaces the worst-performing instances in the old population with newly generated ones.
-; Keeps the top (oldLength - newLength) individuals from the old set and appends the new set.
-; Params:
-;   $oldInstSet – the current sorted population (best to worst)
-;   $newInstSet – the newly generated and scored instances
-; Returns: A combined instance set where the worst individuals are replaced by the new ones.
-; (: replaceTheWorst (-> (InstanceSet $score) (InstanceSet $score) Expression))
+;; Replaces the worst-performing instances in the old population with newly generated ones.
+;; Keeps the top (oldLength - newLength) individuals from the old set and appends the new set.
+;; Params:
+;;   $oldInstSet – the current sorted population (best to worst)
+;;   $newInstSet – the newly generated and scored instances
+;; Returns: A combined instance set where the worst individuals are replaced by the new ones.
+;; (: replaceTheWorst (-> (InstanceSet $score) (InstanceSet $score) Expression))
 (= (replaceTheWorst (mkSInstSet $oldInstSet) (mkSInstSet $newInstSet))
 (let* (
   ($newLength (List.length $newInstSet))
@@ -222,22 +222,22 @@
 )
 
 
-; The main optimization loop for univariate evolutionary search.
-; Performs selection, probability model learning, sampling, scoring, and replacement per generation.
-; Recursively iterates until the generation limit or best score is reached.
-; Params:
-;   $sortedSInstSet – current sorted population (best first)
-;   $genCount – current generation number
-;   $maxGensTotal – maximum number of generations allowed
-;   $nSelect – number of individuals to select for model learning
-;   $nGenerate – number of new instances to generate each generation
-;   $bestPossibleCscore – ideal (target) best possible score
-;   $bestCscore  – current best score in the population
-;   $rep – representation object 
-;   $itable – input table
-;   $complexityRatio – complexity ratio
-; Returns: The final optimized and sorted instance set after completing all generations.
-; (: univariateMainLoop (-> (InstanceSet $score) Number Number Number Number Cscore Cscore Representation (ITable $a) Number (InstanceSet $score)))
+;; The main optimization loop for univariate evolutionary search.
+;; Performs selection, probability model learning, sampling, scoring, and replacement per generation.
+;; Recursively iterates until the generation limit or best score is reached.
+;; Params:
+;;   $sortedSInstSet – current sorted population (best first)
+;;   $genCount – current generation number
+;;   $maxGensTotal – maximum number of generations allowed
+;;   $nSelect – number of individuals to select for model learning
+;;   $nGenerate – number of new instances to generate each generation
+;;   $bestPossibleCscore – ideal (target) best possible score
+;;   $bestCscore  – current best score in the population
+;;   $rep – representation object 
+;;   $itable – input table
+;;   $complexityRatio – complexity ratio
+;; Returns: The final optimized and sorted instance set after completing all generations.
+;; (: univariateMainLoop (-> (InstanceSet $score) Number Number Number Number Cscore Cscore Representation (ITable $a) Number (InstanceSet $score)))
 (= (univariateMainLoop $sortedSInstSet $genCount $maxGensTotal $nSelect $nGenerate $bestPossibleCscore $bestCscore $rep $id $itable $complexityRatio)
 (if (and (< $genCount $maxGensTotal) (apply < $bestCscore $bestPossibleCscore))
 (let*
@@ -273,18 +273,18 @@
 $sortedSInstSet
 ))
 
-; Performs the optimization phase for a given deme (population).
-; Params:
-;   (mkDeme $rep $instSet $id) – the deme to optimize
-;   $itable – input table
-;   $complexityRatio – complexity ratio
-;   $nSelect – number of individuals to select per generation
-;   $nGenerate – number of new instances to generate per generation
-;   $maxGensTotal – maximum number of generations to run
-;   $bestPossibleCscore – ideal (target) best score
-;   $bestCscore – current best score (initially worst)
-; Returns: A new deme containing the optimized and sorted instance set.
-; (: univariateOptimize (-> Deme (ITable $a) Number Number Number Number Cscore Cscore Deme))
+;; Performs the optimization phase for a given deme (population).
+;; Params:
+;;   (mkDeme $rep $instSet $id) – the deme to optimize
+;;   $itable – input table
+;;   $complexityRatio – complexity ratio
+;;   $nSelect – number of individuals to select per generation
+;;   $nGenerate – number of new instances to generate per generation
+;;   $maxGensTotal – maximum number of generations to run
+;;   $bestPossibleCscore – ideal (target) best score
+;;   $bestCscore – current best score (initially worst)
+;; Returns: A new deme containing the optimized and sorted instance set.
+;; (: univariateOptimize (-> Deme (ITable $a) Number Number Number Number Cscore Cscore Deme))
 (= (univariateOptimize (mkDeme $rep $instSet $id) $itable $complexityRatio $nSelect $nGenerate $maxGensTotal $bestPossibleCscore $bestCscore)
 (let*
    (
@@ -307,7 +307,7 @@ $sortedSInstSet
 ;;   $bestPossibleCscore  – target best possible score
 ;; Returns:
 ;;   A deme evolved through univariate optimization with the best-found instances.
-; (: univariate (-> Deme (ITable $a) Number Number Number Number Cscore Deme))
+;; (: univariate (-> Deme (ITable $a) Number Number Number Number Cscore Deme))
 (= (univariate (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) (mkSInstSet $instSet) $id) $itable $complexityRatio $popSizeRatio $selectionRatio $replacementRatio $bestPossibleCscore)
 (let* (
         ($maxGensTotal (informationTheoreticBits $disc))

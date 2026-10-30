@@ -6,7 +6,7 @@
 
 ;; --- Tests for conversion helpers ---
 
-;Test instToExpr and exprToInst
+;; Test instToExpr and exprToInst
 !(assertEqual (instToExpr (mkInst ())) ())
 !(assertEqual (instToExpr (mkInst (cons 1 (cons 2 (cons 3 ()))))) (1 2 3))
 !(assertEqual (exprToInst ()) (mkInst ()))
@@ -16,7 +16,7 @@
 !(assertEqual (exprToInst (instToExpr (mkInst ()))) (mkInst ()))
 !(assertEqual (exprToInst (instToExpr (mkInst (cons 1 (cons 2 ()))))) (mkInst (cons 1 (cons 2 ()))))
 
-; Test sInstToExpr and exprToSInst
+;; Test sInstToExpr and exprToSInst
 !(assertEqual (sInstToExpr (mkSInst (mkPair (mkInst ()) (mkCscore 0.0 0.0 0.0 0.0 0.0)))) (() (0.0 0.0 0.0 0.0 0.0)))
 !(assertEqual (sInstToExpr (mkSInst (mkPair (mkInst (cons 1 (cons 2 ()))) (mkCscore 100.0 5.0 10.0 2.0 88.0)))) ((1 2) (100.0 5.0 10.0 2.0 88.0)))
 

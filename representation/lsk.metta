@@ -1,14 +1,11 @@
 ;;;;;;;;;;;;;;;;; LSK Constructor ;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Creates a Logical Subtree Knob (LSK) for a given tree, target node, and subtree.
+;; Creates a Logical Subtree Knob (LSK) for a subtree under a parent tree.
 ;; Params:
-;;  $tree: The tree structure where the logical subtree knob will be applied.
-;;  $target: The parent node to which the LSK's place holder (null vertex) 
-;;           will be added is pointed by the target node.
-;;  $subtree: The subtree to be appended.
-;; Returns:
-;;  $tree 
-;;  A LogicalSubtreeKnob (LSK) configured based on the subtree's presence or its appended state.
+;;  (mkTree $node $children): The parent tree that gets the knob.
+;;  $subtree: The subtree that the knob controls.
+;; Returns: ($controlledSubtree $lsk). The default setting is 1 when the
+;;  subtree (or its negation) is already a child, else 0 and a null vertex.
 ;; (:logicalSubtreeKnob (-> (Tree $a) NodeId (Tree $a) (Tree $a LogicalSubtreeKnob)))
 ;; (= (logicalSubtreeKnob $tree (mkNodeId $target) $subtree)
 ;;    (let*
@@ -54,7 +51,6 @@
              ((mkNullVex ($subtree)) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))))
 
 ;; Action subtree knobs store all selectable action permutations in the knob.
-;; The two-argument form follows the current embedded-knob representation.
 (= (actionSubtreeKnob $perms)
    ((mkNullVex $perms)
     (mkASK (mkDiscKnob (mkMultip (+ (length $perms) 1))
@@ -130,11 +126,11 @@
 ;;            reference and it may also contain knobs if $d is 0
 ;;  $parentId: The location where the new node will be added.
 ;;  $d: The current setting of the knob.
-; (: appendToLSK (-> (Tree $a) LogicalSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
+;; (: appendToLSK (-> (Tree $a) LogicalSubtreeKnob (Tree $a) NodeId Number (Tree $a)))
 (= (appendToLSK $updatedTree $lsk $tree $parentId $d)
     (let*
        (
-        ; ($_ (println! (lsk: $lsk)))
+        ;; ($_ (println! (lsk: $lsk)))
         ;; ($_ (println! (ParentId: $parentId)))
         ;; ($_ (println! (D: $d)))
         ((mkNodeId $targetId) (getNodeId $lsk))

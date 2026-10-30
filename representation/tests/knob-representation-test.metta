@@ -40,7 +40,7 @@
   (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))
 
 
-; getKnobSpec Tests
+;; getKnobSpec Tests
 !(assertEqual (getKnobSpec (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) (cons (mkDiscSpec 1) ())))) (mkDiscSpec 2))
 
 ;; Shared effective-setting validation and mapping.

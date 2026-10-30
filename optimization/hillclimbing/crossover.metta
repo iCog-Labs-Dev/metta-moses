@@ -5,7 +5,7 @@
 ;;                      which will be a cross of the highest-scoring instance with the
 ;;                      next-highest scoring instances.
 
-; (: crossTopOne (-> Deme Number Number Number Instance Deme))
+;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
  (= (crossTopOne $deme $nToMake $sampleStart $sampleSize $baseInstance)
    (let*
       (
@@ -32,8 +32,8 @@
              $newInstances
           ))))
 
-;; similar to the above 'crossTopOne' but with slight changes on the comparison function that is passed to the Lost.partialSort to compare the mutualInformation based scores
-; (: crossTopOneFs (-> (InstanceSet $a) Number Number Number Instance (InstanceSet $a)))
+;; similar to the above 'crossTopOne' but with slight changes on the comparison function that is passed to List.partialSort to compare the mutualInformation based scores
+;; (: crossTopOneFs (-> (InstanceSet $a) Number Number Number Instance (InstanceSet $a)))
 (= (crossTopOneFs (mkSInstSet $instSet) $nToMake $sampleStart $sampleSize $baseInstance)
    (let* (
            ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
@@ -108,7 +108,7 @@
 
 ;; cbrt-math -- Approximate cube root.
 ;;              Used to estimate how many top-ranked instances should be
-;;              selected so enough triple combinations can be generated.n
+;;              selected so enough triple combinations can be generated.
 (= (cbrt-math $n)
    (pow-math $n (/ 1 3)))
 
@@ -122,7 +122,7 @@
 ;; Returns only the generated offspring instances as a list.
 ;; Does not modify or append to the original deme.
 ;; Intended for use by a higher-level crossover routine that combines
-;; insatances from multiple crossover operators and merges them back into
+;; instances from multiple crossover operators and merges them back into
 ;; the population.
 (= (crossTopThree $deme $nToMake $sampleStart $sampleSize $baseInstance)
   (let*

@@ -49,8 +49,8 @@
                       ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
                     )
                     $finalTree)))))
-   ; (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex ())) $candidate
-   ;  (cleanTree $candidate)))
+   ;; (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex ())) $candidate
+   ;;  (cleanTree $candidate)))
     
     
      ;;((( (trace! (Done converting instance to tree $candidate) $candidate))))
@@ -79,26 +79,26 @@
 
 ;; Assumes the reverseLookupTable's order never changes during this call.
 ;; (: getCandidateRec (-> Representation Instance NodeId NodeId (Tree $a) (Tree $a)))
-; (= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $candidate)
-;    ;; Find the knob associated with src (if any)
-;    (chain (findDiscKnob $knobMapObj $srcId) $knobIdxPair
-;       (if (~= (second $knobIdxPair) -1)
-;           (chain (List.getByIdx $inst (second $knobIdxPair)) $d
-;           (chain (appendTo $tree (first $knobIdxPair) $candidate $parentId $d) $updatedCnd
+;; (= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $candidate)
+;;    ;; Find the knob associated with src (if any)
+;;    (chain (findDiscKnob $knobMapObj $srcId) $knobIdxPair
+;;       (if (~= (second $knobIdxPair) -1)
+;;           (chain (List.getByIdx $inst (second $knobIdxPair)) $d
+;;           (chain (appendTo $tree (first $knobIdxPair) $candidate $parentId $d) $updatedCnd
 
-;           ;; The C++ version needs to call the getCandidateRec 
-;           ;;  on the newly added node of the candidate but we 
-;           ;;  already took care of that addition using the appendTo
-;           ;;  function. Therefore that part is ommited here.
-;           $updatedCnd))
+;;           ;; The C++ version needs to call the getCandidateRec 
+;;           ;;  on the newly added node of the candidate but we 
+;;           ;;  already took care of that addition using the appendTo
+;;           ;;  function. Therefore that part is ommited here.
+;;           $updatedCnd))
 
-;          ;; No knob found. Just copy.
-;          (chain (getNodeById $tree $srcId) $src ;; Get node value using id
-;          (chain (appendChild $candidate $parentId (mkTree (getNodeValue $src) ())) $cndChIdPair ;; AppendChild returns a pair of tree and appended child Id
-;          (chain (getChildren $src) $srcChildren
-;          (chain (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (second $cndChIdPair) (first $cndChIdPair) 1) $srcChildren) $state
-;             (let ((mkRep $knobMapObj $tree) (mkInst $inst) $newParentId $finalCnd $_) $state $finalCnd)))))))
-; )
+;;          ;; No knob found. Just copy.
+;;          (chain (getNodeById $tree $srcId) $src ;; Get node value using id
+;;          (chain (appendChild $candidate $parentId (mkTree (getNodeValue $src) ())) $cndChIdPair ;; AppendChild returns a pair of tree and appended child Id
+;;          (chain (getChildren $src) $srcChildren
+;;          (chain (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (second $cndChIdPair) (first $cndChIdPair) 1) $srcChildren) $state
+;;             (let ((mkRep $knobMapObj $tree) (mkInst $inst) $newParentId $finalCnd $_) $state $finalCnd)))))))
+;; )
 
 (= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $dstId $candidate)
    (let $knobIdxPair (findDiscKnob $knobMapObj $srcId) 
@@ -183,20 +183,13 @@
              (getCandidateHelper (mkInst $inst) $controlledSubtree)))))
 
 ;; Null-vertex unwrapping for LSK knobs only.
-;; mkASK knobs are handled exclusively by the ASK rule above,
-;; which reads perms directly from the controlled NullVex.
-;; Keeping this generic caused double evaluation whenever the
-;; ASK rule (Rule A) and this unwrapping rule both fired on
-;; the same (mkKnob (mkNullVex ...) (mkASK ...) $i) expression.
+;; mkASK knobs go only to the ASK clause above. A generic pattern here
+;; gave two solutions for (mkKnob (mkNullVex ...) (mkASK ...) $i).
 (= (getCandidateHelper $inst (mkKnob (mkNullVex ($child)) (mkLSK $discKnob) $i))
    (getCandidateHelper $inst (mkKnob $child (mkLSK $discKnob) $i)))
 
-;; Specialized fast clause: empty disallowed list means effective settings map
-;; one-to-one to actual settings, so we skip mapEffectiveDiscSpec entirely.
-;; This is byte-for-byte the pre-merge ref/RepresentationBuilding body.
-;; NOTE: This clause assumes MeTTa dispatches the literal-empty `()` disAll
-;; pattern in preference to the generic `$lsk` clause below — the same
-;; literal-driven dispatch we relied on for $disable-discprobe True/False.
+;; LSK knob: setting 0 drops the subtree, 1 keeps it, 2 negates it.
+;; With an empty disallowed list the effective setting is the actual setting.
 (= (getCandidateHelper (mkInst $inst) (mkKnob (mkTree $node $children) (mkLSK (mkDiscKnob $m $c $d $disAllowed)) $i))
    (let*
      (

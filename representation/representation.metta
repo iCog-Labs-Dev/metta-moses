@@ -24,15 +24,15 @@
 ;; Params: Tree (Exemplar)
 ;;         $argLabels: list of argument labels (input variables) from the ITable
 ;; Returns: Representation
-; (: representation (-> (Tree $a) Expression Representation))
-; (= (representation $exemplar $argLabels)
-; (let*
-; (
-;     (($updatedTree $dscMp) (buildKnobs $exemplar () $argLabels))
-;     ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
-; )   
-; (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
-; ))
+;; (: representation (-> (Tree $a) Expression Representation))
+;; (= (representation $exemplar $argLabels)
+;; (let*
+;; (
+;;     (($updatedTree $dscMp) (buildKnobs $exemplar () $argLabels))
+;;     ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
+;; )   
+;; (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
+;; ))
 ;; (: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol Expression))
 (= (representation
 ;; Boolean representation constructor with feature selection
@@ -138,22 +138,18 @@
                      (map-atom $filter-empty-args ($xmplr $argLabels) 
                            (let* (
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
-                                    ;; ($_ (println! (" done buildknobs (:) ")))            ;; BUILD representations on 
-                                    (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels $disable-discprobe (param ignoreOps)))            ;; BUILD representations on
+                                    ;; ($_ (println! (" done buildknobs (:) ")))
+                                    (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels $disable-discprobe (param ignoreOps)))
                                     ($_ (resetState &knobCount))
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
-                                    ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
+                                    ;; ($_ (println! (updated tree and disc map ($updatedTree $dscMp))))
                                     ;; ($_ (println! ""))
                                     ;; ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0)))        ;; MULITPLE args selected using the feature selection
-	                                    ($dscKbMp (mkDscMp $dscMp)))        ;; MULITPLE args selected using the feature selection
+	                                    ($dscKbMp (mkDscMp $dscMp)))
 	                                 (mkRep (mkKbMap $dscKbMp) $updatedTree)))))
 
-;; Lean action overload (3-ary; the boolean overloads are 8-ary):
-;; an episodic representation needs exactly the exemplar and the two
-;; vocabularies. The table/feature-selection/discprobe slots of the wider
-;; overloads exist only for signature compatibility -- buildKnobs'
-;; action path never consults them -- so they are not parameters here at
-;; all rather than hardcoded placeholders.
+;; Action representation: the exemplar and the two vocabularies.
+;; It builds one representation per call.
 (= (representation $exemplar $actions $perceptions)
          (let* (
                   (($updatedTree $dscMp) (buildKnobs $exemplar () () $actions $perceptions (param ignoreOps)))

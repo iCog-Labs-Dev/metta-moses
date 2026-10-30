@@ -1,13 +1,5 @@
-;; In our simplified approach, we're not using dynamic feature selection
-;; or ignore operators. This significantly streamlines the representation
-;; creation process compared to the original implementation.
-;;
-;; The original code handles several complex scenarios:
-;; 1. Dynamic feature selection to reduce the number of features used
-;; 2. Creating multiple representations with different feature sets
-;; 3. Pruning exemplars based on selected features
-;; 4. Enforcing specific features
-;; 5. Creating ignore_ops sets for non-selected features ↠ not implemented as a separate container for ignored args rather if exemplar features are ignored, they are subtracted from args list in representation building
+;; Ignored exemplar features are not kept in a separate ignore_ops set (classic
+;; does that). Representation building subtracts them from the argument list.
 
 ;; createRepresentation -- calls on the representation building procedure
 ;; (: createRepresentation (-> Number (Tree $a) (ITable $a) Symbol Bool Expression Symbol Representation))
@@ -17,30 +9,16 @@
 ;; The eighth arg to `representation` is `$disable-discprobe`, so we negate
 ;; the user-facing `discProbe` knob (True == enabled) when forwarding.
 (= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
-   ;; `representation` already returns the complete list selected for this
-   ;; expansion. Pattern-binding one `mkRep` here turned that list into a
-   ;; superposition of singleton lists, causing the outer search to execute one
-   ;; branch per representation instead of sharing one budget across all demes.
+   ;; Return the whole list. Binding one mkRep here makes one branch per
+   ;; representation instead of one shared budget for all demes.
    (representation $nDeme $tree (mkITable $table $labels) $algo
                    $prune-exemplar $enforced-fts $scorerType
                    (not (param discProbe))))
 
-;; Action representation (4 parameters): the experiment's action/perception
-;; vocabularies arrive as ARGUMENTS -- arity alone routes here (the boolean
-;; clause is 7-ary, the game clause 2-ary), and this layer stays a pure
-;; function of its inputs: the one (param actions)/(param perceptions) read
-;; happens at the deme boundary (expand-deme.metta's action overload), where
-;; moses-run-action's loud missing-vocab guard has already validated them.
-;; Threads the vocabularies into the LEAN 3-ary `representation` overload
-;; (exemplar + the two vocabularies -- everything an episodic rep needs; the
-;; wider overloads' table/feature-selection/discprobe slots don't apply to
-;; the action path and are not passed at all). That overload builds exactly
-;; ONE rep per call, so the per-deme loop lives HERE -- the action analog of
-;; the loop the 2-arg game clause delegates to representation.metta:40-51.
-;; Knob sampling inside buildAction is randomized, so demes get distinct
-;; representations. Each element is (mkRep (mkKbMap (mkDscMp $mmp)) $tree)
-;; -- the 1-field KnobMap shape loopCreateDeme / expandDemeHelper
-;; destructure.
+;; Action representation (4 parameters): the action and perception vocabularies
+;; are arguments; expand-deme.metta reads them from the parameters.
+;; The 3-ary `representation` builds one rep per call, so the per-deme loop is here.
+;; Knob sampling in buildAction is random, so the demes get different representations.
 ;; A single action knob leaves hill climbing with only one replacement
 ;; coordinate. Prefer a representation with at least two coordinates when
 ;; randomized construction can provide one; the bounded fallback preserves

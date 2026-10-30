@@ -1,10 +1,10 @@
-;;;; buildKnobs constructor that is directly called by the representaion constructor
+;;;; buildKnobs constructor that is directly called by the representation constructor
 ;; Params: Tree (Exemplar)
 ;;         $mmp: multimap to store knobs
 ;;         $argLabels: list of argument labels (input variables) from the ITable
+;;         $ignoreOps: operators that knob building must not add
 ;; Returns: a tuple containing the updatedTree and a multimap of $kbSpec $kb pairs
- ;; (: buildKnobs (-> (Tree Bool) (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v)))))
-;; Excludes operators from candidate generation.
+;; (: buildKnobs (-> (Tree Bool) (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v)))))
 (= (buildKnobs $exemplar $mmp $argLabels)
     (buildKnobs $exemplar $mmp $argLabels True (param ignoreOps)))
 

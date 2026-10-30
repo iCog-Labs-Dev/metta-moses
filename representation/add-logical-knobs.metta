@@ -16,10 +16,8 @@
       ;; ($_ (println! (addLogicalKnobs 3)))
       ($treePerms (map-atom $perms $perm (buildTree $perm)))
       ;; ($_ (println! (addLogicalKnobs 4)))
-      ;; logicalProbe now receives: $localTree (current subtree) + $globalTree
-      ;; (static exemplar context) + $probeRootId (stays (mkNodeId (0)),
-      ;; reserved for future tighter scopes) + $targetId (absolute path to
-      ;; current subtree's root in the global tree).
+      ;; logicalProbe gets the local subtree, the global exemplar and the
+      ;; absolute id of the local subtree in the global tree.
       (($knobs $updatedTree) (logicalProbe (mkTree (mkNode $op) $children) $globalTree (mkNodeId (0)) $currentNodeId $treePerms $addIfInExemplar $disable-discprobe))
       ;; ($_ (println! (addLogicalKnobs 5)))
       ($pairs (pairKnobWithSpec $knobs))

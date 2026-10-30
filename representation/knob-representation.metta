@@ -1,14 +1,10 @@
-;;;knob base representation
-;;    <- TODO ->
-;; knob representation only contains nodeid
-;; we don't need this constractor since we are passing the updated tree as state
+;; Knob representation.
+;; A knob sits inside the tree as (mkKnob $controlledSubtree $knob $idx):
+;; $knob is an mkLSK or mkASK, $idx is the knob's position in the instance.
 
-;; (: Knob Type)
-;; (: mkKnob (-> NodeId Knob)) 
-;;
-;;; Discrete knob representation
-;      Multiplicity: number of possible distinct states/settings a knob can have
-;      DiscSpec: Disc specification containing the states
+;; Discrete knob representation
+;;      Multiplicity: number of possible distinct states/settings a knob can have
+;;      DiscSpec: Disc specification containing the states
 ;; (: DiscreteKnob Type)
 ;; (: Multiplicity Type)
 ;; (: mkMultip (-> Number Multiplicity))
@@ -16,14 +12,10 @@
 ;; (: DiscSpec Type)
 ;; (: mkDiscSpec (-> Number DiscSpec))
 
-;; (: mkDiscKnob (-> Knob Multiplicity DiscreteKnob))  
-;; (: mkDiscKnob (-> Knob Multiplicity DiscSpec DiscSpec (List DiscSpec) DiscreteKnob))
-;; (= (mkDiscKnob $knob $multiplicity)
-;;    (mkDiscKnob $knob $multiplicity (mkDiscSpec 0) (mkDiscSpec 0) ())
-;; )
+;; Fields: multiplicity, current setting, default setting, disallowed settings.
+;; (: mkDiscKnob (-> Multiplicity DiscSpec DiscSpec (List DiscSpec) DiscreteKnob))
 
 ;; Logical subtree knob representation
-       ;Subtree: represents a portion of the tree that will be controlled by the knob
 ;; (: LogicalSubtreeKnob Type)
 ;; (: mkLSK (-> DiscreteKnob LogicalSubtreeKnob))
 
@@ -32,17 +24,14 @@
 ;; (: mkASK (-> DiscreteKnob (List (Tree $a)) ActionSubtreeKnob))
 
 ;; Structural action operators are never domain actions.
-;; The operator list now lives in scoring/action-registry.metta (seeded with
-;; the identical 14 symbols -- behavior-preserving); delegating to the
-;; registry lets later-loaded packages extend the set without editing this
-;; file. action-registry must load BEFORE this file.
+;; The operator list is in scoring/action-registry.metta, which must load before this file.
 (= (isActionOperator $rootSymbol)
    (isRegisteredActionOperator $rootSymbol))
 
 ;; Checks if a DiscreteKnob is considered part of the exemplar based on its default specifier.
 ;; Params:
 ;;   $discKnob: DiscreteKnob
-;; Return: True if the default specifier is non-zero (not in exemplar), False otherwise.
+;; Return: True if the default specifier is non-zero (the subtree is in the exemplar), False otherwise.
 ;; (: inExemplar (-> DiscreteKnob Bool))
 (= (inExemplar (mkDiscKnob $knob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis)) 
    (not (== $def 0)))
@@ -57,10 +46,6 @@
 ;; (: getDiscKnob (-> ActionSubtreeKnob DiscreteKnob))
 (= (getDiscKnob (mkLSK $DiscKnob )) $DiscKnob)
 (= (getDiscKnob (mkASK $DiscKnob $perms)) $DiscKnob)
-
-;; Extracts the Tree component from a LogicalSubtreeKnob (mkLSK).
-;; Params:
-;;   $lsk: LogicalSubtreeKnob
 
 
 ;; Extracts the raw multiplicity stored on a discrete, logical, or action subtree knob.
@@ -175,9 +160,9 @@
 (= (getKnobLoc (mkLSK $discKnob )) (getKnobLoc $discKnob))
 (= (getKnobLoc (mkASK $discKnob $perms)) (getKnobLoc $discKnob))
 
-;; A comparison function for discSpec 
-;; (used as a $compFunc to insert knobSpec and knob pairs into a multimap ) 
-;; (: discSpec<= (-> DiscSpec DiscSpec Bool))
+;; Comparator for inserting (knobSpec knob) pairs into a multimap.
+;; It is always False, so an insert keeps the insertion order.
+;; (: discSpec< (-> DiscSpec DiscSpec Bool))
 (= (discSpec< (mkDiscSpec $newKey) (mkDiscSpec $currKey)) False)
 ;; (= (discSpec< (mkDiscSpec $newKey) (mkDiscSpec $currKey))
 ;; (< $newKey $currKey))
@@ -186,7 +171,7 @@
 ;; Params: $id1 & $id2
 ;; Returns: True/False
 ;; (: nodeId< (-> NodeId NodeId Bool))
-;; FIX: Non-determinsitic logic if nodeId is both () or either is empty.
+;; FIX: Non-deterministic logic if nodeId is both () or either is empty.
 (= (nodeId< (mkNodeId ()) (mkNodeId $id2)) True)
 (= (nodeId< (mkNodeId $id1) (mkNodeId ())) False)
 (= (nodeId< (mkNodeId $id1) (mkNodeId $id2)) 

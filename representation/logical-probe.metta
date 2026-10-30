@@ -1,14 +1,16 @@
 !(bind! &knobCount (new-state 0))
 
 ;;;;;;;;;; Logical Probe ;;;;;;;;;;;
-;; logicalProbe builds LSKs by processing the sampleLogicalPerms 
+;; logicalProbe builds LSKs for the trees from sampleLogicalPerms.
 ;; Params:
-;;      $exemplar: Reference tree containing the target node.
-;;      (mkNodeId $targetId): ID of the target node in the exemplar.
+;;      (mkTree $node $children): The local tree that gets the knobs.
+;;      $globalTree: The exemplar tree, read-only context for disc probing.
+;;      $probeRootId: Root of the disc-probe scope (callers pass (mkNodeId (0))).
+;;      $targetId: Absolute id of the local tree in $globalTree.
 ;;      $perms: Tuple of trees
 ;;      $addIfInExemplar: If true, include knobs even if in exemplar.
-;;      $knobs: the list of knobs at each iteration, () at the start
-;; Return: a tuple containing a tuple of LSKs and the final updated tree
+;;      $discProbeDisabled: If true, skip disc probing.
+;; Return: (lsks updatedTree); the new knobs are embedded in updatedTree.
 
 ;; logicalProbe
 ;; (: logicalProbe (-> (Tree $a) NodeId Expression Bool Expression Expression))
@@ -56,10 +58,8 @@
         ((mkKnob (mkTree $node $children) $lsk $i) (mkTree $node $children))
         ($other $other))))
 
-;; $tree is now the global exemplar tree (read-only). $probeRootId stays as
-;; the disc-probe scope's root (kept (mkNodeId (0)) by callers; reserved for
-;; future tighter scopes), $targetId is the absolute path to the current node
-;; where the knob is being appended.
+;; $tree is the global exemplar tree (read-only). $targetId is the absolute
+;; id of the node that gets the knob.
 (= (probeLogicalPair $tree $probeRootId $targetId $children $disable-discprobe ($controlledSubtree $lsk))
    (let*
       (
@@ -71,13 +71,11 @@
 (= (logicalProbe (mkTree $node $children) $perms $addIfInExemplar)
    (logicalProbe (mkTree $node $children) $perms $addIfInExemplar True))
 
-;; 4-arg wrapper: defaults $globalTree to the local tree and both NodeId
-;; positions to root. Used by tests that don't care about the global context.
+;; Test entry: $globalTree is the local tree and both NodeIds are the root.
 (= (logicalProbe (mkTree $node $children) $perms $addIfInExemplar $disable-discprobe)
    (logicalProbe (mkTree $node $children) (mkTree $node $children) (mkNodeId (0)) (mkNodeId (0)) $perms $addIfInExemplar $disable-discprobe))
 
-;; 6-arg wrapper: defaults $globalTree to the local tree. Used by direct test
-;; invocations that supply NodeIds but not a separate global tree.
+;; Test entry: $globalTree is the local tree.
 (= (logicalProbe $tree $probeRootId $targetId $perms $addIfInExemplar $disable-discprobe)
    (logicalProbe $tree $tree $probeRootId $targetId $perms $addIfInExemplar $disable-discprobe))
 
@@ -94,7 +92,6 @@
       ($newLskPair (map-atom $filteredChildrenLskPair $ch (second $ch)))
       ($index (map-atom (genList (- (size-atom $updatedChildren) 1)) $i (+ $i (get-state &knobCount))))
       ($temp (incrementState &knobCount (size-atom $index)))
-      ;; Same embed-LSK design as the fast clause above.
       ($updatedKnobChildren (zipWith3 knobId $updatedChildren $newLskPair $index))
 	     )
 	     ($newLskPair (mkTree $node (append (subtraction-atom $children $updatedChildren) $updatedKnobChildren)))))

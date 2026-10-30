@@ -44,7 +44,7 @@
 
 
 
-; Testcase 2: When the subtree is found in the target's children list
+;; Testcase 2: When the subtree is found in the target's children list
 !(assertEqual
   (logicalSubtreeKnob
     (mkTree (mkNode OR)
@@ -140,8 +140,8 @@
     1)
     ((mkTree (mkNode AND) ()) (mkNodeId (0)) (mkNodeId (1))))
 
-; ;; Test case for insertion at a node
-; ;; KnobSetting 2: (OR A) => (OR A (NOT (OR B)))
+;; Test case for insertion at a node
+;; KnobSetting 2: (OR A) => (OR A (NOT (OR B)))
 !(assertEqual
   (appendTo
     (tree2)
@@ -184,7 +184,7 @@
 )
 
 
-; KnobSetting 0: (OR A) => (OR A)
+;; KnobSetting 0: (OR A) => (OR A)
 !(assertEqual
   (appendTo
     (tree2)

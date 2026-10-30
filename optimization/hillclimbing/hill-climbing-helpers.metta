@@ -6,7 +6,7 @@
 ;; Verbatim port of the Information theoretic bits function from C++.
 ;; Params: $knobMap: A map of knobs with their multiplicities
 ;; Returns: Sum of log2(multiplicity) for the knobs in the map.
-; (: informationTheoreticBits (-> (MultiMap (DiscSpec $knob)) Number))
+;; (: informationTheoreticBits (-> (MultiMap (DiscSpec $knob)) Number))
 ;; C++ measures the information carried by a discrete field, rather than the
 ;; number of values in that field.  A seven-way ant action knob therefore adds
 ;; log2(7) bits, not seven bits.
@@ -14,15 +14,13 @@
    (let (mkMultip $multiplicity) (getKnobMultip $knob)
      (log-math 2 $multiplicity)))
 
-;; A native fold remains compositional when the estimator consumes the result
-;; as a nested expression under PeTTa.
 (= (informationTheoreticBits $knobMap)
    (floor-math (foldl-atom (MultiMap.values $knobMap) 0 $bits $knob
      (+ $bits (knobInformationBits $knob)))))
 
 ;; feature selection version of the informationTheoreticBits function
 ;; In the case of feature selection, the information theoretic bits is simply the number of features we have
-; (: informationTheoreticBitsFs (-> (List Symbol) Number))
+;; (: informationTheoreticBitsFs (-> (List Symbol) Number))
 (= (informationTheoreticBitsFs $labels)
    (- (List.length $labels) 1))
 
@@ -31,7 +29,7 @@
 ;;         $knobMap: A map of knobs with their multiplicities
 ;; Returns: twice the truncated information-bit estimate at distance one, or
 ;;          its binomial coefficient at greater distances.
-; (: estimateNeighborhood (-> Number (MultiMap (DiscSpec $knob)) Number))
+;; (: estimateNeighborhood (-> Number (MultiMap (DiscSpec $knob)) Number))
 (= (estimateNeighborhood $distance $knobMap)
    (if (== $distance 0)
        1
@@ -45,17 +43,17 @@
          (let $clampedDistance (min $distance $nnEstimate)
           (if (== $clampedDistance 1)
               (* 2 $nnEstimate)
-              (binomial $nnEstimate $clampedDistance)))))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
+              (binomial $nnEstimate $clampedDistance)))))) ;; INFO: Could use a safe binomial coefficient here if the estimate starts becoming very large.
 
 ;; similar to the above 'estimateNeighborhood' but this one uses the informationTheoreticBitsFs which is for feature selection
-; (: estimateNeighborhoodFs (-> Number (List Symbol) Number))
+;; (: estimateNeighborhoodFs (-> Number (List Symbol) Number))
 (= (estimateNeighborhoodFs $distance $labels)
    (if (== $distance 0)
        1
        (let $nnEstimate (informationTheoreticBitsFs $labels)
         (if (== $distance 1)
              (* 2 $nnEstimate)
-             (binomial $nnEstimate $distance))))) ;; INFO: Could use a safe binomial coefficient here if the estiamte starts becoming very large.
+             (binomial $nnEstimate $distance))))) ;; INFO: Could use a safe binomial coefficient here if the estimate starts becoming very large.
 
 ;; Return an estimate of the number of new instances to search
 (= (nNewInstances $distance $maxEvals $currentEvals $totalNeighbors)
@@ -63,7 +61,7 @@
        1
        (let*
            (
-             ;; TODO: Most of the clamping logic here depens on the usage of number of evals and max number of evals. So best to do it after those are integrated into the system. For now we will be returning the total neighborhood clamped to the max_evals only.
+             ;; TODO: Most of the clamping logic here depends on the usage of number of evals and max number of evals. So best to do it after those are integrated into the system. For now we will be returning the total neighborhood clamped to the max_evals only.
              ;; ($_ (println! (Inside newInstances: $distance $maxEvals $currentEvals $totalNeighbors)))
              ($hc_params_fraction_of_nn (param hcFractionOfNN))
              ($numberOfNewInstaces (int (* $totalNeighbors (pow-math $hc_params_fraction_of_nn $distance))))
@@ -78,7 +76,7 @@
 
 ;; Counts the number of instances at a specific distance from a given instance.
 ;; Params:
-;;   $kbMap: Contains DiscKnobMap and DiscMap
+;;   $kbMap: (mkKbMap (mkDscMp $dscMp))
 ;;   $inst: Reference instance
 ;;   $dist: Distance to measure
 ;;   $startIdx: Starting index
@@ -129,7 +127,8 @@
                                (mkKbMap (mkDscMp $dscMp)) $inst
                                (- $dist 1) (+ $startIdx 1) $maxCount))))))))))
 
-;; Helper: check if all knobs from $startIdx onward have multiplicity 2 (boolean).
+;; True when every knob in the map has multiplicity 2 (boolean).
+;; It walks the whole map; $startIdx does not limit the walk.
 (= (allBooleanKnobs (mkKbMap (mkDscMp ())) $startIdx) True)
 (= (allBooleanKnobs (mkKbMap (mkDscMp (cons ($spec $knob) $tail))) $startIdx)
    (let (mkMultip $multip) (getKnobMultip $knob)
@@ -137,18 +136,17 @@
          (allBooleanKnobs (mkKbMap (mkDscMp $tail)) (+ $startIdx 1))
          False)))
 
-; countNeighborhood
 ;; (: countNeighborhood (-> KnobMap Instance Number Number Number))
 (= (countNeighborhood $kbMap $inst $dist $maxCount)
 (countNeighborhoodFromIdx $kbMap $inst $dist 0 $maxCount))
 
 ;; factorial
-; (: factorial (-> Number Number))
+;; (: factorial (-> Number Number))
 (= (factorial $n)
    (if (<= $n 1) 1 (* $n (factorial (- $n 1)))))
 
 ;; binomial coefficient
-; (: binomial (-> Number Number Number))
+;; (: binomial (-> Number Number Number))
 (= (binomial $n $k)
    (if (or (< $k 0) (> $k $n))
        0
@@ -156,7 +154,7 @@
 
 ;; Feature selection version of countNeighborhoodFromIdx
 ;; uses the BInomial coefficient to count the number of instances at a specific distance from a given instance.
-; (: countNeighborhoodFromIdxFs (-> Instance Number Number Number Number))
+;; (: countNeighborhoodFromIdxFs (-> Instance Number Number Number Number))
 (= (countNeighborhoodFromIdxFs (mkInst $instance) $dist $startIdx $maxCount)
 (if (== $dist 0) 1 
 (let*
@@ -170,7 +168,7 @@
 
 ;; Feature selection version of countNeighborhood
 ;; uses the countNeighborhoodFromIdxFs
-; (: countNeighborhoodFs (-> Instance Number Number Number))
+;; (: countNeighborhoodFs (-> Instance Number Number Number))
 (= (countNeighborhoodFs $instance $dist $maxCount)
    (countNeighborhoodFromIdxFs $instance $dist 0 $maxCount))
   
@@ -416,7 +414,7 @@
       (mkDeme $rep (mkSInstSet $instances) $id) $context)
    (seedTreeScoreCache $instances $rep $id $context ()))
 ;; crossover for feature selection
-; (: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
+;; (: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
 (= (crossoverFs $size $nNewInstances $sampleStart $sampleSize $centerInst $scoredInstSet)
    (let* (
           ((mkSInstSet $before) $scoredInstSet)
@@ -472,12 +470,12 @@
 
 ;; Hillclimbing implementation
 ;;
-;; Algorihtm:
+;; Algorithm:
 ;; Takes the maximum distance and best possible scores.
 ;; Takes the number of iteration under consideration.
 ;; Tracks the best score found so far as well.
 ;; Start with center instance and previous center as the same instance
-;; Iterates until a certain critera is met.
+;; Iterates until a certain criterion is met.
 ;;    Criteria: If either the best possible score is found or the maximum distance has reached.
 ;;    Steps:
 ;;      Estimate neighborhood
@@ -624,7 +622,7 @@
               (println! ($totalNNeighbors : $nNewNeighbors : $d))
               ()))
         ( 
-          ; $newPOA
+          ;; $newPOA
           ((mkDeme $rep $updatedInstSet $id) $newInstances)
                                                             (case ($xOver $size)
                                                               (
@@ -642,9 +640,9 @@
                                                                         ))
                                                               )
                                                           ))
-        ; ($_ (println! (New POASet: $newPOA)))
-        ; (((mkDeme $rep $upInstSet $id) $newInstances) $newPOA)
-        ; ($_ (println! (New rep: $rep)))
+        ;; ($_ (println! (New POASet: $newPOA)))
+        ;; (((mkDeme $rep $upInstSet $id) $newInstances) $newPOA)
+        ;; ($_ (println! (New rep: $rep)))
         ;; ($_ (println! (New Inst: $newInstances at Distance: $d)))
         ;; ($exprList (let (mkSInstSet $list) $updatedInstSet (List.listToExpr $list)))
         ;; ($bmr (map-atom $exprList $inst (let (mkSInst $x) $inst (println! (Inst: (List.listToExpr (second (Pair.first $x))) Tree: (preOrder (getCandidate $rep (Pair.first $x))))))))
@@ -740,7 +738,7 @@
               ()))
         ;; ($_ (println! (Found newBestSscore After (+ 1 $i) iteration is: $newBestSscore $scoreToCompareBelow)))
         ;; ($_ (println! ""))
-        ($_ (cut)) ;; Commit choice points before tail-recursing — mirrors runMoses pattern. This gives few extra seconds of speed
+        ($_ (cut)) ;; Commit choice points before the tail call, as in runMoses.
     )
     (if (<= (- $maxEvals $newCurrentNInstance) 0)
         (trace! (Terminating because of maxEval ending) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
@@ -774,7 +772,7 @@
               (if (< $maxDist $finalDistance)
                   (trace! (Terminating because of maximum distance reached)
                   ($finalCenter $finalDeme ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
-                  ) ;; I don't know why I didn't do this earlier but incrementing is needed here.
+                  )
                   ;; With widening disabled, stop at the local optimum exactly
                   ;; as C++ does.  When enabled, continue at the wider distance.
                   (if (and (not $finalHasImproved) (not (param hcWidenSearch)))

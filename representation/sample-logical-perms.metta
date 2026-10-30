@@ -55,7 +55,7 @@
 
 ;; getArgs -> generate logical expressions for the picked permutation indices
 ;; Parameters:
-;;          $swapedOp -> swaped operator
+;;          $op -> the operator (callers pass the swapped operator)
 ;;          $n -> number of argument labels (index space {0 .. $n-1})
 ;;          $picked -> list of picked idxs
 ;; (: getArgs (-> Atom Number Expression Expression Expression))
