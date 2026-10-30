@@ -63,18 +63,17 @@
 ;; getActionResultOr: or_seq succeeds at the first statically True child.
 ;; If every child is False, the whole sequence is False. If no child is True
 ;; but at least one child is Unknown, the sequence remains Unknown.
-(= (getActionResultOr $args) (getActionResultOrHelper $args False))
-
 ;; `$sawUnknown` records whether an earlier child was Unknown while
 ;; scanning for a True child. That lets the base case distinguish "all False"
 ;; from "no True, but at least one Unknown".
-(= (getActionResultOrHelper () $sawUnknown)
+(= (getActionResultOr () $sawUnknown)
    (if $sawUnknown Unknown False))
-(= (getActionResultOrHelper (cons $h $t) $sawUnknown)
+(= (getActionResultOr (cons $h $t) $sawUnknown)
    (let $r (getActionResult $h)
      (if (== $r True)
          True
-         (getActionResultOrHelper $t (or $sawUnknown (== $r Unknown))))))
+         (getActionResultOr $t (or $sawUnknown (== $r Unknown))))))
+(= (getActionResultOr $args) (getActionResultOr $args False))
 
 ;; ---------------------------------------------------------------------------
 ;; List/Tuple Simplification Helpers
@@ -137,12 +136,7 @@
 ;; so both action_success and action_failure are no-op constants here. Other
 ;; actions are preserved in their original order.
 (= (pruneExecSeqArgs $args)
-   (if (== $args ())
-       ()
-       (let ($h $t) (decons-atom $args)
-         (if (or (== $h action_success) (== $h action_failure))
-             (pruneExecSeqArgs $t)
-             (cons-atom $h (pruneExecSeqArgs $t))))))
+   (filter-atom $args $arg (not (or (== $arg action_success) (== $arg action_failure)))))
 
 ;; truncateAtAlwaysFails: keep arguments up to and including the first child
 ;; whose static action result is False. This is useful for reductions where
