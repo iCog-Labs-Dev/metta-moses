@@ -575,7 +575,7 @@
 
         ($totalNNeighbors ($estimateFunction $d $neighborhood))
         ($_neighborhoodEstimate
-          (if (param diagnostics)
+          (if $progressEnabled
               (println! (HillClimbingNeighborhoodEstimate
                            (distance $d) (neighbors $totalNNeighbors)))
               ()))
@@ -643,6 +643,8 @@
         ;; ($_ (println! ""))
         ;; ($_ (println! (Newinstances: $updatedInstSet)))
         ;; ($_ (println! ""))
+        ;; Feature selection runs on an instance set: it has no rep and no id.
+        ($isFeatureSelection (or (== $rep ()) (== $id ())))
         ;; deconstruct the hyper params for fs function
         (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType) (if (== () $fsHyperparams) (() () () () () ()) $fsHyperparams))
 
@@ -653,7 +655,7 @@
             (((mkITable $rows $labels) ($iTable $rowOCoeff))
              ($other (mkActionScoreContext $iTable $rowOCoeff)))))
         ($scoreBatch
-          (if (or (== $rep ()) (== $id ()))
+          (if $isFeatureSelection
               (transformAppendedFeatureSelection
                 $updatedInstSet $currentDemeSize $transformFunction
                 (mkITable $rowOCoeff $neighborhood)
@@ -666,13 +668,13 @@
         ((mkSInstSet $scoredInstances) $scoredSet)
         ($updatedEvalCount (+ $currentNInstances $actualNewEvals))
         ($_evalDiagnostics
-          (if (param diagnostics)
+          (if $progressEnabled
               (println! (HillClimbingEvaluations
                            (actualNew $actualNewEvals)
                            (cumulativeLocal $updatedEvalCount)))
               ()))
 
-        ($updatedDeme (if (or (== $rep ()) (== $id ())) 
+        ($updatedDeme (if $isFeatureSelection 
                           (mkSInstSet $scoredInstances) 
                           (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
         
@@ -684,7 +686,7 @@
         ;; ($_ (println! ""))
 
         ((mkSInst $newBestInstPair) (List.foldl hillScoreHelper (mkSInst (mkPair $centerInst $bestSscore)) $scoredInstances))
-        ($newBestScore (if (or (== $rep ()) (== $id ())) 
+        ($newBestScore (if $isFeatureSelection 
                           (Pair.second $newBestInstPair)
                           (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
         ($hasImproved (> $newBestScore (+ $bestScore (param hcScoreImprovedThreshold))))
@@ -721,11 +723,11 @@
         ;; not the penalty-adjusted one -- comparing penScore against a raw
         ;; target would mix the complexity penalty into the threshold.
         ($scoreToCompareBelow
-          (if (or (== $rep ()) (== $id ()))
+          (if $isFeatureSelection
               $newBestSscore
               (bestRawDeme $newDeme)))
         ($_bestDiagnostics
-          (if (param diagnostics)
+          (if $progressEnabled
               (println! (HillClimbingBest
                            (bestRaw $scoreToCompareBelow)
                            (bestPenalized $newBestScore)))
@@ -736,10 +738,10 @@
     )
     (if (<= (- $maxEvals $newCurrentNInstance) 0)
         ;; (trace! (Terminating because of maxEval ending) ...)
-        ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
+        $hillStepResult
         (if (<= $bestPossibleScore $scoreToCompareBelow)
             ;; (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow) ...)
-            ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
+            $hillStepResult
             (let ($finalCenter $finalDeme ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
               ;; Match the C++ "last chance" rule: simplex crossover is tried
               ;; after a stalled nearest-neighbor scan when widening is off,
@@ -759,7 +761,7 @@
                                 $fsHyperparams
                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
                   ;; (trace! (Continue to next iteration because of no more last chance)
-                          ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
+                          $hillStepResult
                   ;; )
                   )
   
