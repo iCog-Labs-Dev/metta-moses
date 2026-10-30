@@ -49,7 +49,8 @@
 ;; existing callers but is no longer used.
 (= (scoreTree (mkITable $columns $labels) $tree $cacheSpace)
    (if (== $tree (mkTree (mkNode AND) ()))
-       (worstPossibleScore (createTruthTableBScore $compCoeff (mkITable $columns $labels)))
+       ;; the empty AND tree scores worst (-1) on every row
+       (mkBScore (List.repeat (ITable.rowCount $columns) -1))
        (let* (
            ($expTree (preOrderExp $tree))
            ($rowCount (ITable.rowCount $columns))
