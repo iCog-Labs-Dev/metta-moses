@@ -78,10 +78,9 @@
 (= (getDisallowedSpecs (mkLSK $discKnob )) (getDisallowedSpecs $discKnob))
 (= (getDisallowedSpecs (mkASK $discKnob $perms)) (getDisallowedSpecs $discKnob))
 
-(= (countNonDefaultDisallowed (mkDiscSpec $default) ()) 0)
-(= (countNonDefaultDisallowed (mkDiscSpec $default) (cons (mkDiscSpec $setting) $tail))
-   (+ (if (== $setting $default) 0 1)
-      (countNonDefaultDisallowed (mkDiscSpec $default) $tail)))
+;; Number of disallowed settings that are not the default setting.
+(= (countNonDefaultDisallowed (mkDiscSpec $default) $disAll)
+   (size-atom (filter-atom $disAll $spec (!= $spec (mkDiscSpec $default)))))
 
 ;; Extracts the effective multiplicity from a discrete, logical, or action subtree knob.
 ;; Params:

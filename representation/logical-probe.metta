@@ -27,11 +27,11 @@
 
 ;; $tree is the global exemplar tree (read-only). $targetId is the absolute
 ;; id of the node that gets the knob.
-(= (probeLogicalPair $tree $probeRootId $targetId $children $discProbeDisabled ($controlledSubtree $lsk))
+(= (probeLogicalPair $tree $probeRootId $targetId $children ($controlledSubtree $lsk))
    (let*
       (
         (($probeTree $probeTargetId) (probeTreeForControlledSubtree $tree $targetId $children $controlledSubtree))
-        ($probedLsk (if $discProbeDisabled $lsk (discProbe $probeTree $probeRootId $probeTargetId $lsk)))
+        ($probedLsk (discProbe $probeTree $probeRootId $probeTargetId $lsk))
       )
       ($controlledSubtree $probedLsk)))
 
@@ -53,7 +53,7 @@
       ($updatedChildLskPairs (map-atom $perms $perm (logicalSubtreeKnob $exemplar $perm)))
       ($probedChildLskPairs (if $discProbeDisabled
                               $updatedChildLskPairs 
-                              (map-atom $updatedChildLskPairs $pair (probeLogicalPair $globalTree $probeRootId $targetId $children False $pair))))
+                              (map-atom $updatedChildLskPairs $pair (probeLogicalPair $globalTree $probeRootId $targetId $children $pair))))
       ($filteredChildrenLskPair (filter-atom $probedChildLskPairs $pair (and (not (allDisallowed (second $pair))) (or $addIfInExemplar (not (inExemplar (getDiscKnob (second $pair))))))))
       ($updatedChildren (map-atom $filteredChildrenLskPair $ch (first $ch)))
       ($newLskPair (map-atom $filteredChildrenLskPair $ch (second $ch)))
