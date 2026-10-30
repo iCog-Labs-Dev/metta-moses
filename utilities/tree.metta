@@ -349,11 +349,8 @@
 
 ;; treeFtsIndices -- extract integer indices of literals used in a tree
 (= (treeFtsIndices $exemplar $labels)
-    (let* (
-            ($exemplar-labels (extractArgs $exemplar))
-            ($arg-set (List.tFoldl $exemplar-labels concatT toExp ()))
-          )
-            (map-atom $arg-set $arg (List.index $labels $arg))))     
+    (let $exemplarLabels (extractArgs $exemplar)
+        (map-atom $exemplarLabels $arg (List.index $labels $arg))))
 
 
 (= (pruneExemplar $exemplar $argSet)
