@@ -121,7 +121,14 @@
 ;; CSV `inputFile` was supplied. Exactly one of the two must hold:
 ;;   both    -> loud error + help (no silent precedence)
 ;;   neither -> help
-;;   action  -> (mosesRunAction)   table -> (moses-run)
+;;   action  -> (mosesRunWith actionContext)   table -> (moses-run)
+;; The action route first refuses loudly when the knob vocabulary is
+;; missing: with an empty actions every deme is knobless, so the run would
+;; print its generations and silently produce no result. perceptions MAY
+;; legitimately be (): an experiment with no perceptions builds
+;; action-only knobs (sampleActionPerms returns the bare action list,
+;; representation/build-action.metta), so only actions is mandatory. The
+;; error path halts the process.
 (= (moses)
    (let* (($actionConfigured (!= (param fitness) ()))
           ($tableConfigured  (not (and (== (param problem)   ())
@@ -129,7 +136,10 @@
      (if (and $actionConfigured $tableConfigured)
          (bothConfiguredErrorAndExit)
          (if $actionConfigured
-             (mosesRunAction)
+             (let $_vocabGuard (if (== (param actions) ())
+                                   (missingActionVocabErrorAndExit)
+                                   ())
+               (mosesRunWith actionContext))
              (if $tableConfigured
                  (moses-run)
                  (noProblemHelpAndExit))))))
@@ -230,10 +240,45 @@
            $metaPop
            $bestPossibleScore))))))
 
-;; Single unified entry point for every domain family.
-;; Reads all hyperparameters from &params; all domain-specific logic is
-;; encapsulated in (problemContext) and the expand-deme.metta adapters.
-(= (moses-run)
+;; actionContext: the (context metaPop bestPossibleScore) triple for an
+;; action run. The experiment's fitness arrives through the global params
+;; ((param fitness) is consumed inside scoring/action-score; (param
+;; bestScore) is consumed here). The metapop seed is the empty and_seq
+;; exemplar (the action analog of the Boolean `true` tree) at the
+;; defined-worst score: every one of the $nTrials episodes forfeits at -1.0
+;; (see the empty-exemplar loophole note in the episode runner), so raw
+;; score = complexity-penalized score = -1.0*nTrials.
+(= (actionContext)
+   (let* (
+          ($cpxPen  (param complexityRatio))
+          ($nTrials (param nTrials))
+          ;; Best reachable raw score is experiment knowledge: the fitness
+          ;; package declares it as (param bestScore), a function symbol
+          ;; called ($bsFn $nTrials). Collapse-guarded: unset ((), a symbol
+          ;; with no clause, a failing call, or a non-Number result -- the
+          ;; termination compare needs arithmetic, and e.g. True is Grounded
+          ;; but not a Number, so the test is (get-type ...) == Number) ->
+          ;; a never-reached target ((pow-math 10 308)), so the run
+          ;; terminates via maxGen instead.
+          ($bsFn (param bestScore))
+          ($bsRs (collapse ($bsFn $nTrials)))
+          ($bestPossibleScore
+             (if (== $bsRs ())
+                 (pow-math 10 308)
+                 (let $bsV (car-atom $bsRs)
+                   (if (== (get-type $bsV) Number) $bsV (pow-math 10 308)))))
+          ($ctx (mkActionCtx $nTrials $cpxPen $bestPossibleScore))
+          ($worst (* -1.0 $nTrials))
+          ($metaPop ((mkExemplar (mkTree (mkNode and_seq) ()) (mkDemeId "1") (mkCscore $worst 0 $cpxPen 0 $worst) (mkBScore (List.repeat $nTrials -1.0)))))
+         )
+     ($ctx $metaPop $bestPossibleScore)))
+
+;; Single run entry point for every domain family. $problemContext is a
+;; zero-argument function (problemContext or actionContext) that returns
+;; the (context metaPop bestPossibleScore) triple. It runs after the seed
+;; and genCount are set, because it may call a scorer. All other
+;; hyperparameters come from &params.
+(= (mosesRunWith $problemContext)
    (let*
       (
         ($seed      (param seed))
@@ -245,11 +290,11 @@
         ($srp (py-call (random.seed $seed)))
         ;; genCount feeds the cap-size formula inside resizeMetapop; it
         ;; is conceptually the initial $maxGen and stays constant across
-        ;; the recursion, so we seed it once here before (problemContext)
+        ;; the recursion, so we seed it once here before $problemContext
         ;; may invoke any scorer that depends on it.
         ($_  (set-param genCount $maxGen))
 
-        (($context $metaPop $bestPossibleScore) (problemContext))
+        (($context $metaPop $bestPossibleScore) ($problemContext))
         ($_ (println! (BestPossibleScore: $bestPossibleScore)))
 
         ;; The scoring context is the only domain-specific input: selection,
@@ -262,63 +307,8 @@
       )
       (FinalResult $newR)))
 
-;; Action runner, modeled on moses-run above. The experiment's fitness
-;; arrives through the global params ((param fitness) consumed inside
-;; scoring/action-score; (param bestScore) consumed here). The metapop
-;; seed is the empty and_seq exemplar (the action analog of moses-run's
-;; `true` tree) at the defined-worst score: every one of the $nTrials
-;; episodes forfeits at -1.0 (see the empty-exemplar loophole note in the
-;; episode runner), so raw score = complexity-penalized score = -1.0*nTrials.
-(= (mosesRunAction)
-   (let*
-      (
-        ;; Refuse loudly when the knob vocabulary is missing: with an empty
-        ;; actions every deme is knobless, so the run would print its
-        ;; generations and silently produce no result. perceptions MAY
-        ;; legitimately be (): an experiment with no perceptions builds
-        ;; action-only knobs (sampleActionPerms returns the bare action
-        ;; list, representation/build-action.metta:18-21), so only
-        ;; actions is mandatory. The error path halts the process.
-        ($_vocabGuard (if (== (param actions) ())
-                          (missingActionVocabErrorAndExit)
-                          ()))
-        ($seed     (param seed))
-        ($maxGen   (param maxGen))
-        ($nDeme    (param nDeme))
-        ($optAlgo  (param optAlgo))
-        ($optimizer (optimizerFor $optAlgo))
-
-        ($srp (py-call (random.seed $seed)))
-        ;; genCount feeds the cap-size formula inside resizeMetapop (same
-        ;; seeding as moses-run).
-        ($_  (set-param genCount $maxGen))
-        ($cpxPen (param complexityRatio))
-        ($nTrials (param nTrials))
-        ;; Best reachable raw score is experiment knowledge: the fitness
-        ;; package declares it as (param bestScore), a function symbol
-        ;; called ($bsFn $nTrials). Collapse-guarded: unset ((), a symbol
-        ;; with no clause, a failing call, or a non-Number result -- the
-        ;; termination compare needs arithmetic, and e.g. True is Grounded
-        ;; but not a Number, so the test is (get-type ...) == Number) ->
-        ;; a never-reached target ((pow-math 10 308)), so the run
-        ;; terminates via maxGen instead.
-        ($bsFn (param bestScore))
-        ($bsRs (collapse ($bsFn $nTrials)))
-        ($bestPossibleScore
-           (if (== $bsRs ())
-               (pow-math 10 308)
-               (let $bsV (car-atom $bsRs)
-                 (if (== (get-type $bsV) Number) $bsV (pow-math 10 308)))))
-        ($_ (println! (BestPossibleScore: $bestPossibleScore)))
-        ($worst (* -1.0 $nTrials))
-        ($metaPop ((mkExemplar (mkTree (mkNode and_seq) ()) (mkDemeId "1") (mkCscore $worst 0 $cpxPen 0 $worst) (mkBScore (List.repeat $nTrials -1.0)))))
-        ($result (runMoses $maxGen $bestPossibleScore $metaPop 0 $nDeme
-              (mkActionCtx $nTrials $cpxPen $bestPossibleScore)
-              $optimizer))
-        ($newR (mapG cleanedExemplar $result))
-        ($_ (cut)) ;; INFO: Mirrors moses-run; commits choice points before returning.
-      )
-      (FinalResult $newR)))
+;; The table route (and --problem=ant).
+(= (moses-run) (mosesRunWith problemContext))
 
 ;; Shown when an action run is configured (fitness set) but the knob
 ;; vocabulary is not: same loud-refusal style as
