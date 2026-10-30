@@ -4,12 +4,12 @@
 
 ;; applyActionRuleDownwards mirrors C++ `downwards(rule)`: apply one rule to
 ;; the current expression node, then recursively apply the same rule to the
-;; reduced node's children. Action programs are reduced as MeTTa expressions;
+;; reduced node's children. Action programs are reduced as MeTTa expressions.
 
 (= (applyActionRuleDownwards $rule $expr)
    (let $reducedNode ($rule $expr)
      (if (and (== (get-metatype $reducedNode) Expression) (!= $reducedNode ()))
-         (let* ((($op $args) (decons $reducedNode))
+         (let* ((($op $args) (decons-atom $reducedNode))
                 ($reducedArgs (map-atom $args $arg (applyActionRuleDownwards $rule $arg))))
            (cons-atom $op $reducedArgs))
          $reducedNode)))
@@ -55,6 +55,9 @@
 (= (actionTreeToExpression (mkNullVex $children)) ())
 (= (actionTreeToExpression (mkTree (mkNode $rootOp) $children))
    (if (== $children ())
+       ;; Hazard: keep this literal list. Its heads are live after action-ops and
+       ;; boolean-ops load, and a rewrite with isActionSeqOp or == gives another
+       ;; result for a childless AND/OR root.
        (if (once (is-member $rootOp (and_seq or_seq exec_seq AND OR)))
            (quote ($rootOp)) ;; quoted: ($rootOp) with a defined action head would be a call
            $rootOp)
@@ -64,7 +67,7 @@
 
 (= (actionExpressionToTree $expr)
    (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
-       (let* ((($rootOp $args) (decons $expr))
+       (let* ((($rootOp $args) (decons-atom $expr))
               ($children (map-atom $args $arg (actionExpressionToTree $arg))))
          (mkTree (mkNode $rootOp) $children))
        (mkTree (mkNode $expr) ())))

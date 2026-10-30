@@ -11,7 +11,7 @@
 ;;      params, reusing the tic-tac-toe action primitives -- exactly what a
 ;;      user adding an experiment would do.
 ;;
-;; The run assembly mirrors moses-run-action (moses/demo-problems.metta)
+;; The run assembly mirrors actionContext and mosesRunWith (moses/demo-problems.metta)
 ;; directly: same empty-exemplar metapop seed, same tagged
 ;; (mkActionCtx $nTrials $cpxPen) context, same runMoses call.
 ;; Tests never import moses.metta, so runMoses is called here by hand.
@@ -79,7 +79,6 @@
 !(import! &self ../../representation/build-logical)
 !(import! &self ../../representation/build-action)
 !(import! &self ../../representation/build-knobs)
-!(import! &self ../../representation/knob-mapper)
 !(import! &self ../../representation/candidate)
 !(import! &self ../../representation/representation)
 !(import! &self ../../representation/create-representation)
@@ -156,17 +155,17 @@
 !(assertEqual (let $fn (param bestScore) ($fn 4)) 4.0)
 
 ;; ============================================================
-;; Small-run parameters (the moses-run-action assembly, shrunk):
+;; Small-run parameters (the actionContext assembly, shrunk):
 ;; 2 generations, 1 deme, 4 episodes/candidate, 60 hillclimbing evals.
 ;; ============================================================
 !(set-param maxCandOutput 3)
 !(set-param hcMaxEvals 60)
-;; genCount feeds the cap-size formula inside resizeMetapop; moses-run-action
+;; genCount feeds the cap-size formula inside resizeMetapop; mosesRunWith
 ;; seeds it with the run's maxGen.
 !(set-param genCount 2)
 
 ;; Metapop seed: the empty and_seq exemplar at the defined-worst score,
-;; exactly as moses-run-action builds it -- every one of the 4 episodes
+;; exactly as actionContext builds it -- every one of the 4 episodes
 ;; forfeits at -1.0 (empty-exemplar loophole), so raw = penalized = -4.0.
 (= (smokeMetaPop)
    ((mkExemplar (mkTree (mkNode and_seq) ())
@@ -201,7 +200,6 @@
                          hillClimbing))
       ($_ (println! ""))
       ($_ (println! "==== Smoke-run result (tree preorder + bscore sum) ===="))
-      ($_ (mapG printExemplar $result))
       ($len (OS.length $result))
       ($top (OS.getByIdx 0 $result))
       ($topRaw (getScore (getExemplarCscore $top)))

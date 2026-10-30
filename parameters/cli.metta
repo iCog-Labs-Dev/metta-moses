@@ -22,7 +22,7 @@
 (= (apply-cli-overrides)
    (let* (
           ($args (collapse (argv $_)))
-          ($_ (map-atom $args $arg (try-apply-flag $arg)))
+          ($_applied (map-atom $args $arg (try-apply-flag $arg)))
          )
         ()))
 
@@ -55,14 +55,14 @@
 ;; --help short-circuits the rest of the script (no MOSES run is started).
 (= (print-help-and-exit)
    (let* (
-          ($_ (println! ""))
-          ($_ (println! "MOSES MeTTa hyperparameters (override with --name=value):"))
-          ($_ (println! ""))
+          ($_blank1 (println! ""))
+          ($_title (println! "MOSES MeTTa hyperparameters (override with --name=value):"))
+          ($_blank2 (println! ""))
           ;; collapse so the match's println! side effects fire for every
           ;; atom; the resulting list of `true`s is discarded.
           ($__ (collapse (match &params ($name $val)
                              (println! (-- $name = $val)))))
-          ($_ (println! ""))
+          ($_blank3 (println! ""))
           ;; halt(0) is a Prolog builtin; build the goal via Predicate and
           ;; invoke it through callPredicate to terminate the process.
           ($___ (callPredicate (Predicate (halt 0)))))
@@ -74,7 +74,7 @@
 ;;
 ;; parse-flag returns either:
 ;;     (flag NameAtom Value)   -- well-formed override
-;;     not-a-flag              -- anything else
+;;     ()                      -- anything else
 ;;
 ;; Implemented as a single equation with case dispatch so that the
 ;; happy-path pattern and the catch-all are mutually exclusive (avoids

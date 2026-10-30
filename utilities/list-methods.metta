@@ -5,12 +5,12 @@
 (: List (-> $a Type))
 
 ;; Fold a tuple from left to right.
-; (: List.foldl (-> (-> $a $b $b) $b (List $a) $b))
+;; (: List.foldl (-> (-> $a $b $b) $b (List $a) $b))
 (= (List.foldl $f $i $xs)
    (foldl-atom $xs $i $acc $x ($f $x $acc)))
 
 ;; Fold a tuple from right to left.
-; (: List.foldr (-> (-> $a $b $b) $b (List $a) $b))
+;; (: List.foldr (-> (-> $a $b $b) $b (List $a) $b))
 (= (List.foldr $f $i $xs)
    (foldl-atom (reverse $xs) $i $acc $x ($f $x $acc)))
 
@@ -25,23 +25,23 @@
 (= (List.tFoldr $xs $f $t $acc)
    (foldl-atom (reverse $xs) $acc $acc0 $x ($f ($t $x) $acc0)))
 
-; (: List.sum (-> (List Number) Number))
+;; (: List.sum (-> (List Number) Number))
 (= (List.sum $xs) (List.foldl + 0 $xs))
 
-; (: List.append (-> $a (List $a) (List $a)))
+;; (: List.append (-> $a (List $a) (List $a)))
 (= (List.append $val ()) ($val))
 (= (List.append $val (cons $head $tail))
    (cons-atom $head (List.append $val $tail)))
 
-; (: List.getByIdx (-> (List $a) Number $a))
-;; FIX: Non-deterministic execution when both are empty.
+;; (: List.getByIdx (-> (List $a) Number $a))
+;; FIX: both clauses match (), so (List.getByIdx () $i) gives two solutions.
 (= (List.getByIdx () $idx) (Error () (Index out of range)))
 (= (List.getByIdx $xs $idx)
    (if (or (< $idx 0) (>= $idx (size-atom $xs)))
        (Error () (Index out of range))
        (index-atom $xs $idx)))
 
-; (: List.insert (-> $a (List $a) (List $a)))
+;; (: List.insert (-> $a (List $a) (List $a)))
 (= (List.insert $x ()) ($x))
 (= (List.insert $x (cons $head $tail))
    (if (< $x $head)
@@ -54,35 +54,35 @@
 (= (List.sort $xs $op)
    (selectionSort $xs (size-atom $xs) $op))
 
-; (: List.length (-> (List $a) Number))
+;; (: List.length (-> (List $a) Number))
 (= (List.length $xs) (size-atom $xs))
 
 ;; Row count of a column-major ITable payload: every column holds one cell per
 ;; row, so the first column's length is the row count. Defined here rather than
 ;; beside the Table.* helpers because scoring loads long before
 ;; feature-selection, and every consumer already imports list-methods.
-; (: ITable.rowCount (-> (List (List $a)) Number))
+;; (: ITable.rowCount (-> (List (List $a)) Number))
 (= (ITable.rowCount ()) 0)
 (= (ITable.rowCount (cons $column $rest)) (List.length $column))
 
-; (: List.map (-> (-> $a $b) (List $a) (List $b)))
+;; (: List.map (-> (-> $a $b) (List $a) (List $b)))
 (= (List.map $f $xs) (map-atom $xs $x ($f $x)))
 
-; (: List.mapOverArg (-> (-> $a $b $a) $b $arg (List $a)))
+;; (: List.mapOverArg (-> (-> $a $b $a) $b $arg (List $a)))
 (= (List.mapOverArg $f () $arg) ())
 (= (List.mapOverArg $f (cons $head $tail) $arg)
-   (let $new-head ($f $head $arg)
-     (if (== $new-head ())
+   (let $newHead ($f $head $arg)
+     (if (== $newHead ())
          (List.mapOverArg $f $tail $arg)
-         (cons $new-head (List.mapOverArg $f $tail $arg)))))
+         (cons $newHead (List.mapOverArg $f $tail $arg)))))
 
-; (: List.filter (-> (-> $a Bool) (List $a) (List $a)))
+;; (: List.filter (-> (-> $a Bool) (List $a) (List $a)))
 (= (List.filter $p $xs) (filter-atom $xs $x ($p $x)))
 
-; (: List.listToExpr (-> (List $a) Expression))
+;; (: List.listToExpr (-> (List $a) Expression))
 (= (List.listToExpr $xs) $xs)
 
-; (: List.max (-> (-> $a $a Bool) (List $a) $a))
+;; (: List.max (-> (-> $a $a Bool) (List $a) $a))
 (= (List.max $comparator ()) ())
 (= (List.max $comparator (cons $x $xs))
    (if (== $xs ())
@@ -92,20 +92,20 @@
              (List.max $comparator (cons $x $u))
              (List.max $comparator $xs)))))
 
-; (: List.max (-> (List $a) $a))
+;; (: List.max (-> (List $a) $a))
 (= (List.max $xs) (max-atom $xs))
 
-; (: List.contains (-> $a (List $a) Bool))
+;; (: List.contains (-> $a (List $a) Bool))
 (= (List.contains $a $list) (once (is-member $a $list)) )
 
-; (: List.replaceAt (-> (List $a) Number $a (List $a)))
+;; (: List.replaceAt (-> (List $a) Number $a (List $a)))
 (= (List.replaceAt () $n $elem) ())
 (= (List.replaceAt (cons $head $tail) $n $elem)
    (if (== $n 0)
        (cons $elem $tail)
        (cons $head (List.replaceAt $tail (- $n 1) $elem))))
 
-; (: List.prepend (-> $a (List $a) (List $a)))
+;; (: List.prepend (-> $a (List $a) (List $a)))
 (= (List.prepend $a $list) (cons $a $list))
 
 ;; Find an element in a list
@@ -115,7 +115,7 @@
 ;; Returns: 
 ;;  The index of the first found element or
 ;;  -1 If the element can't be found
-; (: List.index (-> (List $a) $a Number))
+;; (: List.index (-> (List $a) $a Number))
 (= (List.index () $target) -1)
 (= (List.index (cons $x $xs) $target)
    (if (== $x $target)
@@ -123,16 +123,16 @@
        (chain (List.index $xs $target) $idx
          (if (< $idx 0) $idx (+ 1 $idx)))))
 
-; (: List.head (-> (List $a) $a))
+;; (: List.head (-> (List $a) $a))
 (= (List.head ()) (Error () EmptyList))
 (= (List.head (cons $x $xs)) $x)
 
-; (: List.tail (-> (List $a) (List $a)))
+;; (: List.tail (-> (List $a) (List $a)))
 (= (List.tail ()) ())
 (= (List.tail (cons $x $xs)) $xs)
 
 ;; INFO: The previous overloaded version doesn't work here after changing to expression.
-; (: List.sub (-> (List Number) (List Number) (List Number)))
+;; (: List.sub (-> (List Number) (List Number) (List Number)))
 (= (List.sub $xs $ys)
    (if (== $xs ())
        (if (== $ys ())
@@ -140,30 +140,29 @@
            (Error $ys LenghtOfListNotEqual))
        (if (== $ys ())
            (Error $xs LenghtOfListsNotEqual)
-           (let* (($x (List.head $xs))
-                  ($xt (List.tail $xs))
-                  ($y (List.head $ys))
-                  ($yt (List.tail $ys))
+           (let* ((($x $xt) (decons-atom $xs))
+                  (($y $yt) (decons-atom $ys))
                   ($res (List.sub $xt $yt)))
+             ;; Keep the (== $res ()) test: if-error on () gives zero solutions.
              (if (== $res ())
                  (cons-atom (- $x $y) ())
                  (if-error $res $res (cons-atom (- $x $y) $res)))))))
 
-; (: List.zip (-> (List $a) (List $b) (List ($a $b))))
+;; (: List.zip (-> (List $a) (List $b) (List ($a $b))))
 (= (List.zip () ()) ())
 (= (List.zip () (cons $y $ys)) ())
 (= (List.zip (cons $x $xs) ()) ())
 (= (List.zip (cons $x $xs) (cons $y $ys))
    (cons ($x $y) (List.zip $xs $ys)))
 
-; (: List.zipWith (-> (-> $a $b $c) (List $a) (List $b) (List $c)))
+;; (: List.zipWith (-> (-> $a $b $c) (List $a) (List $b) (List $c)))
 (= (List.zipWith $f () ()) ())
 (= (List.zipWith $f () (cons $y $ys)) ())
 (= (List.zipWith $f (cons $x $xs) ()) ())
 (= (List.zipWith $f (cons $x $xs) (cons $y $ys))
    (cons ($f $x $y) (List.zipWith $f $xs $ys)))
 
-; (: List.drop (-> Number (List $a) (List $a)))
+;; (: List.drop (-> Number (List $a) (List $a)))
 (= (List.drop $n ()) ())
 (= (List.drop $n (cons $x $xs))
    (if (== $n 0)
@@ -171,23 +170,23 @@
        (List.drop (- $n 1) $xs)))
 
 ;; INFO: Behavior has changed from previous List.flatten. Investigation needed if causes an error.
-; (: List.flatten (-> (List (List $a)) (List $a)))
+;; (: List.flatten (-> (List (List $a)) (List $a)))
 (= (List.flatten ()) ())
 (= (List.flatten (cons $x $xs))
    (if (== (get-metatype $x) Expression)
        (List.concat $x (List.flatten $xs))
        (Error $x "Can't be flattened")))
 
-; (: List.repeat (-> Number $a (List $a)))
+;; (: List.repeat (-> Number $a (List $a)))
 (= (List.repeat $n $a)
    (if (== $n 0)
        ()
        (cons $a (List.repeat (- $n 1) $a))))
 
-; (: List.concat (-> (List $a) (List $a) (List $a)))
+;; (: List.concat (-> (List $a) (List $a) (List $a)))
 (= (List.concat $list1 $list2) (append $list1 $list2))
 
-; (: List.removeAtIdx (-> (List $a) Number (List $a)))
+;; (: List.removeAtIdx (-> (List $a) Number (List $a)))
 (= (List.removeAtIdx () $idx) ())
 (= (List.removeAtIdx (cons $head $tail) $idx)
    (if (< $idx 0)
@@ -196,7 +195,7 @@
            $tail
            (cons $head (List.removeAtIdx $tail (- $idx 1))))))
 
-; (: List.isMember (-> $a (List $a) Bool))
+;; (: List.isMember (-> $a (List $a) Bool))
 (= (List.isMember $elem $list) (List.contains $elem $list))
 
 
@@ -212,38 +211,35 @@
 (= (List.partialSort $list $n $acc) (List.partialSort >= $list $n $acc))
 
 
-; (: List.partialSort (-> (-> $a $a Bool) (List $a) Number (List $a) (List $a)))
-; (: List.partialSort (-> (List Number) Number (List Number) (List Number)))
-;; (= (List.partialSort $comparator () $n) ())
-;; (= (List.partialSort $list $n) (List.partialSort >= $list $n))
-;; (= (List.partialSort $comparator (cons $x $xs) $n) (selectionSort (cons $x $xs) $n $comparator))
+;; (: List.partialSort (-> (-> $a $a Bool) (List $a) Number (List $a) (List $a)))
+;; (: List.partialSort (-> (List Number) Number (List Number) (List Number)))
 
 
-; (: List.appendList (-> (List $a) (List $a) (List $a)))
+;; (: List.appendList (-> (List $a) (List $a) (List $a)))
 (= (List.appendList $a $list) (append $list $a))
 
-; (: (List.delete (-> $a (List $a) (List $a))))
+;; (: List.delete (-> $a (List $a) (List $a)))
 (= (List.delete $a ()) (Error () "empty list"))
 (= (List.delete $a (cons $x $xs))
    (if (== $x $a)
        $xs
        (cons $x (List.delete $a $xs))))
 
-; (: List.takeN (-> Number (List $a) (List $a)))
+;; (: List.takeN (-> Number (List $a) (List $a)))
 (= (List.takeN $n ()) ())
 (= (List.takeN $n (cons $x $xs))
    (if (== $n 0)
        ()
        (cons-atom $x (List.takeN (- $n 1) $xs))))
 
-; (: List.takeNFrom (-> Number Number (List $a) (List $a)))
+;; (: List.takeNFrom (-> Number Number (List $a) (List $a)))
 (= (List.takeNFrom $start $n $xs)
    (List.takeN $n (List.drop $start $xs)))
 
-; (: List.any (-> (List Bool) Bool))
+;; (: List.any (-> (List Bool) Bool))
 (= (List.any $xs) (once (is-member True $xs)) )
 
-; (: List.generate (-> Number Number (List Number)))
+;; (: List.generate (-> Number Number (List Number)))
 (= (List.generate $length $element)
    (if (> $length 0)
        (cons $element (List.generate (- $length 1) $element))

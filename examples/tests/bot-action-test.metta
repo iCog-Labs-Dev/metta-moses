@@ -18,7 +18,7 @@
 ;;
 ;; Import order mirrors moses.metta top to bottom (registry+defaults FIRST;
 ;; PeTTa gates reduction on load order). Tests never import moses.metta, so
-;; PART 4 calls runMoses by hand exactly as moses-run-action assembles it.
+;; PART 4 calls runMoses by hand exactly as actionContext and mosesRunWith assemble it.
 ;; ============================================================================
 
 !(import! &self utilities/general-helpers)
@@ -80,7 +80,6 @@
 !(import! &self representation/build-logical)
 !(import! &self representation/build-action)
 !(import! &self representation/build-knobs)
-!(import! &self representation/knob-mapper)
 !(import! &self representation/candidate)
 !(import! &self representation/representation)
 !(import! &self representation/create-representation)
@@ -250,7 +249,7 @@
 ;; PARTS 1-3 defined a domain and a fitness; MOSES now searches the program
 ;; space and returns an optimal policy, with ZERO edits to the pipeline (only
 ;; the four set-param bindings below). The run assembly mirrors
-;; moses-run-action (moses/demo-problems.metta): empty-and_seq metapop seed at
+;; actionContext and mosesRunWith (moses/demo-problems.metta): empty-and_seq metapop seed at
 ;; the defined-worst score, tagged (mkActionCtx nTrials cpxPen) context, one
 ;; runMoses call. Tests never import moses.metta, so we call it by hand.
 ;;

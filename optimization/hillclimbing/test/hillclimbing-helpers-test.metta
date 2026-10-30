@@ -18,7 +18,6 @@
 !(import! &self ../../../representation/add-logical-knobs)
 !(import! &self ../../../representation/build-logical)
 !(import! &self ../../../representation/build-knobs)
-!(import! &self ../../../representation/knob-mapper)
 !(import! &self ../../../feature-selection/feature-selection-helpers)
 !(import! &self ../../../representation/candidate)
 !(import! &self ../../../representation/representation)
@@ -116,13 +115,13 @@
 !(assertEqual
  (estimateNeighborhoodFs 2 (cons A (cons B (cons O ())))) 1)
 
-; Testcase for countNeighborhoodFs
+;; Testcase for countNeighborhoodFs
 !(assertEqual (countNeighborhoodFs (mkInst (cons 1 (cons 0 (cons 1 ())))) 2 20) 3)
 
-; Testcase for factorial
+;; Testcase for factorial
 !(assertEqual (factorial 3) 6)
 
-; Testcase for binomial
+;; Testcase for binomial
 !(assertEqual (binomial 5 2) 10)
 
 ;; Shared crossover merging appends unique offspring after the scored
@@ -187,7 +186,7 @@
 ;; Folding an empty deme retains the previous raw-score sentinel.
 !(assertEqual (bestRawScore ()) ())
 
-; Testcase 1 for countNeighborhood
+;; Testcase 1 for countNeighborhood
 !(assertEqual 
  (countNeighborhood
   (knobmap3)  ;knobmap
@@ -196,7 +195,7 @@
   20) ; maximum count
   12)
 
-;Testcase 2 for countNeighborhood
+;; Testcase 2 for countNeighborhood
 !(assertEqual 
  (countNeighborhood
   (knobmap3) ;knobmap
@@ -205,7 +204,7 @@
   20) ;maxCount
   8) 
 
-;Testcase 3 for countNeighborhood
+;; Testcase 3 for countNeighborhood
 !(assertEqual 
  (let*
     (
@@ -214,7 +213,7 @@
     )
     (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
-;Testcase 4 for countNeighborhood
+;; Testcase 4 for countNeighborhood
 !(assertEqual 
  (let*
     (
@@ -223,7 +222,7 @@
     )
     (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
-;Testcase 5 for countNeighborhood
+;; Testcase 5 for countNeighborhood
 !(assertEqual
  (let*
     (
@@ -248,7 +247,7 @@
                          (cons (cons False (cons False (cons False (cons True ())))) ())))
                          (cons A (cons B (cons O ())))))
 
-; (: isScored (-> (ScoredInstance Cscore) Bool))
+;; (: isScored (-> (ScoredInstance Cscore) Bool))
 (= (isScored (mkSInst (mkPair $instance $score))) (~= $score (worstCscore)))
 
 ;; Incremental scoring is shared with Boolean evolution: an existing score is

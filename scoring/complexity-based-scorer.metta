@@ -2,12 +2,13 @@
 ;; Gives an instance a composite score. 
 ;; Params:
 ;;   $rep: The representation object
+;;   $id: The deme id (the key of the candidate tree cache)
 ;;   $inst: The instance we want to evaluate
 ;;   $itable: The input table
-;;   $complexityRatio: probability parameter
+;;   $complexityRatio: The complexity ratio (see getComplexityCoef)
 ;; Returns:
 ;;   cScore: Composite score of the instance                      
-; (: complexityBasedScorer (-> Representation Instance (ITable $a) Number Cscore))
+;; (: complexityBasedScorer (-> Representation DemeId Instance (ITable $a) Number Cscore))
 (= (complexityBasedScorer $rep $id $inst $itable $complexityRatio)
   (let*
       (

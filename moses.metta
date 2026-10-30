@@ -3,14 +3,14 @@
 ;;
 ;;  This single file wires together every module the MOSES pipeline
 ;;  needs and installs all default hyperparameters into &params.
-;;  Invocation:
+;;  Invocation ($PETTA is the path to PeTTa's run.sh):
 ;;
-;;      sh /home/yab/PeTTaV1/run.sh moses.metta -s --problem=parity3
-;;      sh /home/yab/PeTTaV1/run.sh moses.metta -s \
+;;      sh "$PETTA" moses.metta -s --problem=parity3
+;;      sh "$PETTA" moses.metta -s \
 ;;          --problem=mux3 --maxGen=10 --nDeme=2 \
 ;;          --fsAlgo=smd --optAlgo=hc --capCoef=80
-;;      sh /home/yab/PeTTaV1/run.sh moses.metta -s --help
-;;      sh /home/yab/PeTTaV1/run.sh moses.metta -s
+;;      sh "$PETTA" moses.metta -s --help
+;;      sh "$PETTA" moses.metta -s
 ;;          # no --problem given: prints --help and exits
 ;;
 ;;  The module list and its load order are in moses-imports.metta.
@@ -23,8 +23,9 @@
 !(apply-cli-overrides)
 
 ;; ---- Load external domain ----
-;; The domain file is imported into the same MeTTa environment, so all
-;; domain-defined actions, perceptions, fitness functions other definitions become available to generic MOSES.
+;; The domain file is imported into the same MeTTa environment, so its
+;; actions, perceptions, fitness functions and other definitions become
+;; available to generic MOSES.
 !(load-domain-file)
 
 ;; ---- Run ----

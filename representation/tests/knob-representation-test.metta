@@ -40,7 +40,7 @@
   (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))
 
 
-; getKnobSpec Tests
+;; getKnobSpec Tests
 !(assertEqual (getKnobSpec (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) (cons (mkDiscSpec 1) ())))) (mkDiscSpec 2))
 
 ;; Shared effective-setting validation and mapping.
@@ -62,9 +62,6 @@
 !(assertEqual (getKnobMultip (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (mkMultip 2))
 !(assertEqual (getKnobSpec (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (mkDiscSpec 3))
 
-;; Test for getKnobLoc
-!(assertEqual (getKnobLoc (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (mkNodeId (1)))
-!(assertEqual (getKnobLoc (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (mkNodeId (1)))
 
 ;; Test for discSpec<
 !(assertEqual (discSpec< (mkDiscSpec 2) (mkDiscSpec 3)) False)

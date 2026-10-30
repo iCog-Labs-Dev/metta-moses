@@ -12,7 +12,7 @@
 ;;       start worlds, or nothing at all is PRIVATE to that function -- the
 ;;       framework only hands it the ordinal.
 ;;   bestScore -- a function SYMBOL, ($fn $n) -> Number, the raw-score
-;;       termination target for n episodes (consumed by moses-run-action).
+;;       termination target for n episodes (consumed by actionContext).
 ;;   actions / perceptions -- tuples of primitive symbols, the
 ;;       knob vocabulary (consumed by representation/create-representation).
 ;; Unset fitness, a fitness symbol with no matching clause, a failing
@@ -70,7 +70,7 @@
 ;; the fitness symbol and compiled expression riding as captured args
 ;; (the clause-dispatched general-helpers map overload -- in-order,
 ;; probe-verified). Scores come back listed -- exactly the
-;; (mkBScore (list of Numbers)) contents sumBScore / BScore.sub consume
+;; (mkBScore (list of Numbers)) contents sumBScore consumes
 ;; (scoring/bscore.metta) -- the same mkBScore-of-Numbers shape every
 ;; behavioral scorer builds.
 (= (runActionEpisodes $fn $exp $n)
@@ -88,7 +88,7 @@
 ;; AFTERWARDS the new symbol keys fresh entries, but re-binding the SAME
 ;; symbol to new behavior needs (resetActionScoreCache) or the stale scores
 ;; keep being served.
-;(: scoreActionTree (-> (Tree $a) Number $space BehavioralScore))
+;; (: scoreActionTree (-> (Tree $a) Number $space BehavioralScore))
 (= (scoreActionTree $tree $nEpisodes $scoreSpace)
    (let* (($exp (actionExp $tree))
           ($fn (param fitness))
@@ -103,30 +103,28 @@
 ;; actionTreeComplexity: number of action/perception leaves in a candidate
 ;; Tree; registered structural combinators cost 0 (they are the action
 ;; analog of AND/OR/NOT). Deliberately SEPARATE from treeComplexity in
-;; utilities/tree.metta:312-319 -- that one hard-codes the boolean operator
+;; utilities/tree.metta -- that one hard-codes the boolean operator
 ;; list (AND OR NOT) and loads before the scoring layer, so it
 ;; cannot consult &actionRegistry; keeping this here leaves boolean complexity
 ;; behavior untouched.
-;(: actionTreeComplexity (-> (Tree $a) Number))
+;; (: actionTreeComplexity (-> (Tree $a) Number))
 (= (actionTreeComplexity (mkNullVex $x)) 0)
 (= (actionTreeComplexity (mkKnob $inner $lsk $i)) (actionTreeComplexity $inner))
 (= (actionTreeComplexity (mkTree (mkNode $a) $children))
    (if (isRegisteredActionOperator $a)
        (List.sum (List.map actionTreeComplexity $children))
-       (if (== $children ())
-           1     ;; actions/perceptions ARE the alphabet
-           (+ 1 (List.sum (List.map actionTreeComplexity $children))))))
+       ;; actions/perceptions ARE the alphabet; (List.sum ()) is 0 for a leaf
+       (+ 1 (List.sum (List.map actionTreeComplexity $children)))))
 
 ;; ---- Composite score ----
 ;; getActionCscore: behavioral score + complexity penalty -> mkCscore.
 ;; DISTINCT name (not a getCscore overload): the existing 4-arg getCscore
-;; boolean clauses (scoring/cscore.metta:23-28) already overlap
+;; boolean clauses (scoring/cscore.metta) already overlap
 ;; ambiguously, and (mkActionCtx $nTrials) keys the dispatch anyway.
-;; The penalty math duplicates ~6 lines of getCscore's 3-arg core
-;; (scoring/cscore.metta:6-20) -- ACCEPTED duplication: that core calls
-;; treeComplexity internally, and action candidates need
-;; actionTreeComplexity, so it cannot be funneled through.
-;(: getActionCscore (-> (Tree $a) ActionCtx Number $space Cscore))
+;; The penalty math is penalizedCscore (scoring/cscore.metta), shared with
+;; getCscore; action candidates pass actionTreeComplexity instead of
+;; treeComplexity.
+;; (: getActionCscore (-> (Tree $a) ActionCtx Number $space Cscore))
 (= (getActionCscore $tree (mkActionCtx $nTrials) $complexityRatio $scoreSpace)
    (if (== $tree (mkTree (mkNode and_seq) ()))
        (mkCscore -4 0 $complexityRatio 0 -4)
@@ -134,11 +132,8 @@
          (if-error $bs   ;; parity with getCscore; scoreActionTree never errors
             (worstCscore)
             (let* (($bsum (sumBScore $bs))
-                   ($cpxy (actionTreeComplexity $tree))
-                   ($cCoef (getComplexityCoef $complexityRatio)))
-              (updatePenalizedScore
-                (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))
-                False))))))
+                   ($cpxy (actionTreeComplexity $tree)))
+              (penalizedCscore $bsum $cpxy $complexityRatio))))))
 
 ;; The public action context carries the raw termination target through the
 ;; lifecycle. Scoring consumes only trials and penalty.

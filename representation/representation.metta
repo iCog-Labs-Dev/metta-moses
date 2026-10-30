@@ -1,38 +1,10 @@
-;; (: DiscKnobMap Type)
+;; (: DiscMap Type)
 ;; (: mkDscMp (-> (MultiMap (DiscSpec $knob)) DiscMap))
-;; (: mkDscKbMp (-> (Map (NodeId Number)) DiscKnobMap))
 ;; (: KnobMap Type)
-;; (: mkKbMap (-> DiscKnobMap DiscMap KnobMap))
+;; (: mkKbMap (-> DiscMap KnobMap))
 ;; (: Representation Type)
-;; (: mkRep (-> KnobMap (Tree $a) Representation)) 
+;; (: mkRep (-> KnobMap (Tree $a) Representation))
 
-;; helper function to representation
-;; Converts DiscMap (multimap of knobSpec & knob) to DiscKnobMap (map of location & index)
-;; Params: DiscMap
-;; Returns: DiscKnobMap
-;; (: crtDiscKnobMap (-> DiscMap DiscKnobMap Number DiscKnobMap))
-(= (crtDiscKnobMap (mkDscMp ()) (mkDscKbMp $dkm) $index) (mkDscKbMp $dkm))
-(= (crtDiscKnobMap (mkDscMp (cons ($kbSpec $kb) $tail)) (mkDscKbMp $dkm) $index)
-   (let*
-   (
-    ($loc (getKnobLoc $kb))
-    ($updatedDkm (Map.insert ($loc $index) $dkm == nodeId<))
-   ) 
-   (crtDiscKnobMap (mkDscMp $tail) (mkDscKbMp $updatedDkm) (+ $index 1))
-  ))
-;; representation constructor
-;; Params: Tree (Exemplar)
-;;         $argLabels: list of argument labels (input variables) from the ITable
-;; Returns: Representation
-; (: representation (-> (Tree $a) Expression Representation))
-; (= (representation $exemplar $argLabels)
-; (let*
-; (
-;     (($updatedTree $dscMp) (buildKnobs $exemplar () $argLabels))
-;     ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
-; )   
-; (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
-; ))
 ;; (: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol Expression))
 (= (representation
 ;; Boolean representation constructor with feature selection
@@ -41,12 +13,12 @@
             $nDeme                      ;; number of demes to spawn (number of distinct feature sets)
             $exemplar                   ;; tree around which multiple representations are to be built
             (mkITable $table $labels)   ;; table from which to select features and base the representations with
-            $ft-selection-algo          ;; feature selection algorithm to be used -- symbol 
-            $prune-exemplar             ;; bool to decide to prune the exemplar or keep the exemplar as is
-            $enforced-fts               ;; set of features to be enforced in to selected features
+            $ftSelectionAlgo          ;; feature selection algorithm to be used -- symbol 
+            $pruneExemplar             ;; bool to decide to prune the exemplar or keep the exemplar as is
+            $enforcedFts               ;; set of features to be enforced in to selected features
             $scorerType                 ;; can MI or precision_bscore
         )
-        (representation $nDeme $exemplar (mkITable $table $labels) $ft-selection-algo $prune-exemplar $enforced-fts $scorerType True))
+        (representation $nDeme $exemplar (mkITable $table $labels) $ftSelectionAlgo $pruneExemplar $enforcedFts $scorerType True))
 
 ;; restrictToIncorrect -- classic restrict_incorrect: feed feature selection only
 ;; the rows the exemplar mispredicts, with the exemplar's own columns blanked out.
@@ -59,28 +31,25 @@
           ($len (List.length $labels))
           ($rows (Table.transpose $columns))
           ($wrongRows (filter-atom $rows $row
-                        (not (== (scoreTreeHelper $labels $expTree $row)
-                                 (index-atom $row (- $len 1)))))))
-     (if (ric-constant-output $wrongRows $len)
+                        (!= (scoreTreeHelper $labels $expTree $row)
+                            (index-atom $row (- $len 1))))))
+     (if (isConstantOutput $wrongRows $len)
          (mkITable $columns $labels)
-         (mkITable (Table.transpose (ric-blank-xmplr-fts (treeFtsIndices $exemplar $labels) $wrongRows $len)) $labels))))
+         (mkITable (Table.transpose (blankExemplarFeatures (treeFtsIndices $exemplar $labels) $wrongRows $len)) $labels))))
 
 ;; On the rows the exemplar gets wrong its own features still track the output, so
 ;; feature selection would just hand back the features the exemplar already uses and
 ;; the search would never gain a new one. Classic blanks those columns rather than
 ;; dropping them: a constant column carries no mutual information so it is never
 ;; selected, and every remaining column keeps its index.
-(= (ric-blank-xmplr-fts $fts $rows $len)
+(= (blankExemplarFeatures $fts $rows $len)
    (map-atom $rows $row
       (map-atom (genList 0 (- $len 1)) $i
          (if (once (is-member $i $fts)) False (index-atom $row $i)))))
 
-(= (ric-is-xmplr-ft $i $fts)
-   (> (size-atom (filter-atom $fts $f (== $f $i))) 0))
-
 ;; True when the output column (last column) holds at most one distinct value.
 ;; The empty row set counts as constant, which covers the correct-everywhere case.
-(= (ric-constant-output $rows $len)
+(= (isConstantOutput $rows $len)
    (<= (size-atom (unique-atom (map-atom $rows $r (index-atom $r (- $len 1))))) 1))
 
 (= (representation
@@ -88,77 +57,72 @@
             $nDeme
             $exemplar
             (mkITable $table $labels)
-            $ft-selection-algo
-            $prune-exemplar
-            $enforced-fts
+            $ftSelectionAlgo
+            $pruneExemplar
+            $enforcedFts
             $scorerType
-            $disable-discprobe
+            $discProbeDisabled
         )
         
         (let* (
                   ;; ($_ (println! (Inside Representation)))
-                  ($exemplar-fts  (filter-atom (treeFtsIndices $exemplar $labels) $x (not (== $x -1))))
-                  ;; ($_ (println! (exemplar features $exemplar-fts)))          ;; exemplarFtsIndices function in deme/expand-deme.metta
-                 ($all-labels (getInputLabels $labels))                       ;; getInputLabels in deme/expand-deme.metta
+                  ($exemplarFts  (filter-atom (treeFtsIndices $exemplar $labels) $x (!= $x -1)))
+                  ;; ($_ (println! (exemplar features $exemplarFts)))          ;; exemplarFtsIndices function in deme/expand-deme.metta
+                 ($allLabels (getInputLabels $labels))                       ;; getInputLabels in deme/expand-deme.metta
                  ;; ($_ (println! "before featureSelector"))
-                 ($ft-set-pop (if (== $ft-selection-algo None)
+                 ($ftSetPop (if (== $ftSelectionAlgo None)
                                   ((genList 0 (- (List.length $labels) 2))) ;; Applying all labels as features
-                                  (featureSelector $ft-selection-algo (restrictToIncorrect $exemplar (mkITable $table $labels)) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme $scorerType)) ;; FS on the exemplar's mispredicted rows (classic restrict_incorrect, with full-table fallback)
+                                  (featureSelector $ftSelectionAlgo (restrictToIncorrect $exemplar (mkITable $table $labels)) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme $scorerType)) ;; FS on the exemplar's mispredicted rows (classic restrict_incorrect, with full-table fallback)
                  )
-                 ;; ($_ (println! (Selected Features after feature Selection $ft-set-pop)))
-                 ($exemplar-arg-seq                                           ;; apply exemplar feature pruning
-                     (if $prune-exemplar
-                           (map-atom $ft-set-pop $ft-set 
-                              (let* (($diff-ft (subtraction-atom $exemplar-fts $ft-set))
-                                    ;; ($_ (println! (diffffffff $diff-ft)))
-                                     ($ft-names (fsToNames $labels $diff-ft))
-                                     ($pruned-xmplr (pruneExemplar $exemplar $ft-names))
-                                     ($final-args (subtraction-atom $ft-set $exemplar-fts)))  
+                 ;; ($_ (println! (Selected Features after feature Selection $ftSetPop)))
+                 ($exemplarArgSeq                                           ;; apply exemplar feature pruning
+                     (if $pruneExemplar
+                           (map-atom $ftSetPop $ftSet 
+                              (let* (($diffFt (subtraction-atom $exemplarFts $ftSet))
+                                    ;; ($_ (println! (diffffffff $diffFt)))
+                                     ($ftNames (fsToNames $labels $diffFt))
+                                     ($prunedXmplr (pruneExemplar $exemplar $ftNames))
+                                     ($finalArgs (subtraction-atom $ftSet $exemplarFts)))  
 
-                                 ($pruned-xmplr (fsToNames $labels $final-args))))
+                                 ($prunedXmplr (fsToNames $labels $finalArgs))))
 
-                           (map-atom $ft-set-pop $ft-set 
-                                 (let* (($agg (union-atom-set $ft-set $exemplar-fts))
-                                        ($final-args (fsToNames $labels $agg))
+                           (map-atom $ftSetPop $ftSet 
+                                 (let* (($agg (union-atom-set $ftSet $exemplarFts))
+                                        ($finalArgs (fsToNames $labels $agg))
                                         )  
 
-                                    ($exemplar $final-args)))))
-                  ;; ($_ (println! (Exemplar arg sets after pruning: $exemplar-arg-seq))) 
-                  ($with-enforced-fts                                         ;; enforce features
-                     (if (== $enforced-fts ())
-                           $exemplar-arg-seq
-                           (let $sampled-enforced-fts (sampleEnforcedFts $enforced-fts)           ;; from feature-selection/select-top-features.metta
-                                    (map-atom $exemplar-arg-seq ($xmplr $args)
-                                             (let $acc (concatT $args $sampled-enforced-fts) ($xmplr $acc))))))  
-                  ;; ($_ (println! (With enforced features: $with-enforced-fts)))
-                  ($filter-empty-args (filter-atom $with-enforced-fts ($xmplr $args) (not (== $args ()))))
-                  ;; ($_ (println! (After filtering empty args: $filter-empty-args)))
+                                    ($exemplar $finalArgs)))))
+                  ;; ($_ (println! (Exemplar arg sets after pruning: $exemplarArgSeq))) 
+                  ($withEnforcedFts                                         ;; enforce features
+                     (if (== $enforcedFts ())
+                           $exemplarArgSeq
+                           (let $sampledEnforcedFts (sampleEnforcedFts $enforcedFts)           ;; from feature-selection/select-top-features.metta
+                                    (map-atom $exemplarArgSeq ($xmplr $args)
+                                             (let $acc (append $args $sampledEnforcedFts) ($xmplr $acc))))))  
+                  ;; ($_ (println! (With enforced features: $withEnforcedFts)))
+                  ($filterEmptyArgs (filter-atom $withEnforcedFts ($xmplr $args) (!= $args ())))
+                  ;; ($_ (println! (After filtering empty args: $filterEmptyArgs)))
               )      ;; filter out exemplar arg pairs that have empty arg list
 
-                     (map-atom $filter-empty-args ($xmplr $argLabels) 
+                     (map-atom $filterEmptyArgs ($xmplr $argLabels) 
                            (let* (
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
-                                    ;; ($_ (println! (" done buildknobs (:) ")))            ;; BUILD representations on 
-                                    (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels $disable-discprobe (param ignoreOps)))            ;; BUILD representations on
+                                    ;; ($_ (println! (" done buildknobs (:) ")))
+                                    (($updatedTree $dscMp) (buildKnobs $xmplr () $argLabels $discProbeDisabled (param ignoreOps)))
                                     ($_ (resetState &knobCount))
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
-                                    ;; ($_ (println! (updated tereeeeee dddddddddddd disc mappppp ($updatedTree $dscMp))))
+                                    ;; ($_ (println! (updated tree and disc map ($updatedTree $dscMp))))
                                     ;; ($_ (println! ""))
-                                    ;; ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0)))        ;; MULITPLE args selected using the feature selection
-	                                    ($dscKbMp (mkDscMp $dscMp)))        ;; MULITPLE args selected using the feature selection
-	                                 (mkRep (mkKbMap $dscKbMp) $updatedTree)))))
+                                    ($discMap (mkDscMp $dscMp)))
+                                 (mkRep (mkKbMap $discMap) $updatedTree)))))
 
-;; Lean action overload (3-ary; the boolean overloads are 8-ary):
-;; an episodic representation needs exactly the exemplar and the two
-;; vocabularies. The table/feature-selection/discprobe slots of the wider
-;; overloads exist only for signature compatibility -- buildKnobs'
-;; action path never consults them -- so they are not parameters here at
-;; all rather than hardcoded placeholders.
+;; Action representation: the exemplar and the two vocabularies.
+;; It builds one representation per call.
 (= (representation $exemplar $actions $perceptions)
          (let* (
                   (($updatedTree $dscMp) (buildKnobs $exemplar () () $actions $perceptions (param ignoreOps)))
                   ($_ (resetState &knobCount))
-                  ($dscKbMp (mkDscMp $dscMp))
+                  ($discMap (mkDscMp $dscMp))
                )
-               (mkRep (mkKbMap $dscKbMp) $updatedTree)))
+               (mkRep (mkKbMap $discMap) $updatedTree)))
 

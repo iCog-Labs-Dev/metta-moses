@@ -42,7 +42,7 @@
 ;;  Instance  -->  Expression
 ;;  Converts an Instance into an Expression form.
 ;; (: instToExpr (-> Instance Expression))
-(= (instToExpr (mkInst $lst)) (List.listToExpr $lst))
+(= (instToExpr (mkInst $lst)) $lst)
 
 ;;------------------------------------------------------------
 ;; exprToInst
@@ -71,7 +71,7 @@
 ;;------------------------------------------------------------
 ;;  Expression  -->  ScoredInstance<Score>
 ;;  Parses an Expression into a scored instance.
-; (: exprToSInst (-> Expression ScoredInstance))
+;; (: exprToSInst (-> Expression ScoredInstance))
 (= (exprToSInst $expr)
     (let* (
       (($instExpr $scoreExpr) (decons-atom $expr))
@@ -86,12 +86,7 @@
 ;;  InstanceSet<Score>  -->  Expression
 ;;  Converts a scored instance set into Expression form.
 ;;
-;;  How it works:
-;;    - Input: An InstanceSet<Score>
-;;    - The function sInstSetToExpr calls sInstSetListToExpr on the list inside the set.
-;;    - sInstSetListToExpr maps sInstToExpr over each element (scored instance) in the list.
-;;    - sInstToExpr turns each scored instance into an Expression by combining the instance and its score.
-;;    - Finally, List.listToExpr collects all these expressions into a single Expression list.
+;;  It maps sInstToExpr over the scored instances of the set.
 ;;
 ;;  Example input:
 ;;    (cons (mkSInst (mkPair (mkInst (cons 1 (cons 2 ()))) (mkCscore 100.0 5.0 10.0 2.0 88.0))) ())
@@ -100,16 +95,7 @@
 ;;    ((1 2) (100.0 5.0 10.0 2.0 88.0))
 ;;
 ;; (: sInstSetToExpr (-> (InstanceSet $score) Expression))
-(= (sInstSetToExpr (mkSInstSet $lst)) (sInstSetListToExpr $lst))
-
-;;------------------------------------------------------------
-;; sInstSetListToExpr
-;;------------------------------------------------------------
-;;  List<ScoredInstance<Score>>  -->  Expression
-;;  Converts a list of scored instances to Expression.
-; (: sInstSetListToExpr (-> (List (ScoredInstance $score)) Expression))
-(= (sInstSetListToExpr $lst)
-    (List.listToExpr (List.map sInstToExpr $lst)))
+(= (sInstSetToExpr (mkSInstSet $lst)) (List.map sInstToExpr $lst))
 
 ;;------------------------------------------------------------
 ;; exprToSInstSet
@@ -154,9 +140,8 @@
     (let* (
       (($instA $scoreA) (decons-atom $a))
       (($instB $scoreB) (decons-atom $b))
-      ($result (cScoreExpr< $scoreB $scoreA))
     )
-      $result))
+      (cScoreExpr< $scoreB $scoreA)))
 
 ;;------------------------------------------------------------
 ;; getSInstScore
@@ -175,11 +160,11 @@
 (= (getInst (mkSInst (mkPair $inst $score))) $inst)
 
 ;;------------------------------------------------------------
-;; instance>=
+;; instance>
 ;;------------------------------------------------------------
 ;;  ScoredInstance<Score>, ScoredInstance<Score>  -->  Bool
-;;  True if first scored instance has a score >= second.
-;; (: instance>= (-> (ScoredInstance $score) (ScoredInstance $score) Bool))
+;;  True if first scored instance has a score > second.
+;; (: instance> (-> (ScoredInstance $score) (ScoredInstance $score) Bool))
 (= (instance> (mkSInst (mkPair $inst1 $score1))
                (mkSInst (mkPair $inst2 $score2)))
     (apply > $score1 $score2))
@@ -189,24 +174,24 @@
                (mkSInst (mkPair $inst2 $score2)))
     (=> $score1 $score2))
 
-; Generates a single random instance of the given length.
-; Each element is produced by biasedRandomInt.
-; Params:
-;   $instLength — number of elements in the instance.
-; Returns: List of integers (0–2) representing one instance.
+;; Generates a single random instance of the given length.
+;; Each element is produced by biasedRandomInt.
+;; Params:
+;;   $instLength — number of elements in the instance.
+;; Returns: List of integers (0–2) representing one instance.
 ;; (: generateRandomInstance (-> Number List))
 (= (generateRandomInstance $instLength)
    (if (== $instLength 0)
        ()
        (cons (biasedRandomInt) (generateRandomInstance (- $instLength 1)))))
 
-; Converts a list of scored instances (mkSInst) into a list of expressions.
-; Each scored instance is transformed using sInstToExpr and accumulated.
-; Params:
-;   $sInsts — list of scored instances.
-;   $acc — accumulator (initially ()).
-; Returns: List of instance expressions ((inst score) ...).
-; (: sInstsToExp (-> (List $a) Expression Expression))
+;; Converts a list of scored instances (mkSInst) into a list of expressions.
+;; Each scored instance is transformed using sInstToExpr and accumulated.
+;; Params:
+;;   $sInsts — list of scored instances.
+;;   $acc — accumulator (initially ()).
+;; Returns: List of instance expressions ((inst score) ...).
+;; (: sInstsToExp (-> (List $a) Expression Expression))
 (= (sInstsToExp () $acc) $acc)
 (= (sInstsToExp (cons $scoredInst $rest) $acc)
 (let $instExp (sInstToExpr $scoredInst)
