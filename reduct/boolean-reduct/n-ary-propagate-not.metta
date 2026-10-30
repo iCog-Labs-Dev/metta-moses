@@ -8,7 +8,7 @@
            (let*
              (
                (($op $t) (decons-atom $expr))
-               ($result (map-atom $t $ts (propagateNotHelper $ts $op $negate)))
+               ($result (map-atom $t $ts (propagateNot $ts (xor (== $op NOT) $negate))))
              )
              (case $op
                    (
@@ -22,5 +22,3 @@
        (if (== (get-metatype $expr) Symbol)
            (if $negate (NOT $expr) $expr)
            $expr)))
-
-(= (propagateNotHelper $childExpr $op $negate) (propagateNot $childExpr (xor (== $op NOT) $negate)))
