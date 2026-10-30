@@ -1,11 +1,11 @@
 ;; A function to identify and return literals common
-;;  to all cildren of a point of application(POA) and
+;;  to all children of a point of application (POA) and
 ;;  the updated POA after the promotion.
 ;; Definitions: Guard set of a POA is the set of literals in the POA.
 ;; Preconditions: The POA is an OR node and the intersection of the
 ;;                  guard sets of the children of the POA is not empty.
 ;; Action: Let S be the intersection of the guard sets of the children
-;;            of the POA. The literals in S are subtraced from the
+;;            of the POA. The literals in S are subtracted from the
 ;;            guard set of each of the children of the POA.
 ;;            Then S, the updated POA replaces the previous POA in the
 ;;              parent of the POA and the updated parent, the updated
@@ -14,7 +14,7 @@
 ;;            A branch the subtraction empties is the empty conjunction, i.e.
 ;;              true, so the POA is a tautology and is dropped from the parent.
 ;; Example: input: POA ==> (OR (AND (NOT B) C) (NOT B)), parent ==> (AND A (OR (AND (NOT B) C) (NOT B)) (OR (NOT C) (AND (NOT B) (NOT D))))
-;;        : output: ((AND A (NOT B) (OR (AND C) (AND)) (OR (NOT C) (AND (NOT B) (NOG D)))) () True)
+;;        : output: ((AND A (NOT B) (OR (AND C) (AND)) (OR (NOT C) (AND (NOT B) (NOT D)))) () True)
 ;(: promoteCommonConstraints (-> Expression Expression (Expression Expression Bool)))
 (= (promoteCommonConstraints $parent $current)
     ;; Constants are inert: there is nothing to promote out of a truth value, and the

@@ -4,7 +4,7 @@
 
 ;; applyActionRuleDownwards mirrors C++ `downwards(rule)`: apply one rule to
 ;; the current expression node, then recursively apply the same rule to the
-;; reduced node's children. Action programs are reduced as MeTTa expressions;
+;; reduced node's children. Action programs are reduced as MeTTa expressions.
 
 (= (applyActionRuleDownwards $rule $expr)
    (let $reducedNode ($rule $expr)

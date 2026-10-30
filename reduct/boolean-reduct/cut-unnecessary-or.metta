@@ -33,7 +33,7 @@
 
 ;; A function to return the literals and children of any given node.
 ;; It is used for cases where we need all the subExpressions of AND & OR nodes.
-;;    Expressions like (NOT A) doesn't have any subExpression and are treated as a literal.
+;;    An expression like (NOT A) has no subExpression and is a literal.
 ; (: getSubExpression (-> Expression Expression))
 (= (getSubExpression $exp)
    (case $exp

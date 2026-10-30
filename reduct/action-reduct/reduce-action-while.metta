@@ -2,7 +2,7 @@
 ;; Action while and boolean while reduction rules
 ;; ---------------------------------------------------------------------------
 ;;
-;; This file covers four rewrite rules that simplify while-loop and loop-body
+;; This file covers six rewrite rules that simplify while-loop and loop-body
 ;; redundancy in action programs.
 
 ;; Helper: take first N elements of a tuple
@@ -72,7 +72,7 @@
 ;;                                      ;   if A always fails, consistent with C++)
 ;;   bool_while(False A) -> action_success  ; condition never holds: body never runs
 ;;
-;; NOTE: ;; The C++ comment describes this in terms of eval(C), but the implementation
+;; NOTE: The C++ comment describes this in terms of eval(C), but the implementation
 ;; only checks literal logical_true/logical_false. This MeTTa port mirrors that
 ;; conservative structural behavior.
 

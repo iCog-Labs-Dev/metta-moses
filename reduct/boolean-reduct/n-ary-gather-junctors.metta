@@ -17,6 +17,9 @@
 )
 
 
+;; addAND wraps each literal and OR node that is not under an AND node in an AND node.
+;; The bare (AND ...) builds in this file are data only because
+;; this file loads before scoring/boolean-ops.
 ; (: addAND (-> Expression Bool Expression))
 (= (addAND $expr $isFinal)
     (if (and $isFinal (or (== (car-atom $expr) OR) (== (car-atom $expr) NOT)))
@@ -74,6 +77,8 @@
 )
 
 
+;; gatherJunctors flattens nested junctors with the same operator:
+;; (OR A (OR B C)) -> (OR A B C).
 (= (nary-gather-junctors $expr $prev)
     (
         if (== (get-metatype $expr) Expression)

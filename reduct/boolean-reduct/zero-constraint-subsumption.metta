@@ -1,10 +1,10 @@
-;; A function to identify triviall-tautological subexpressions and
-;;    removes the point of application(POA).
+;; A function to identify trivially tautological subexpressions and
+;;    remove the point of application (POA).
 ;; Definitions: Guard set of a POA is the set of literals in the POA.
 ;; Preconditions: The POA is OR node, has a child which has an empty
 ;;                  guard set and no children.
-;; Action: It will remove the POA from it's parent and return an empty
-;;            expression instead of current if transformtion applied.
+;; Action: It will remove the POA from its parent and return an empty
+;;            expression instead of current if the transformation is applied.
 ;;         It will additionally return a boolean value indicating
 ;;          whether the transformation is applied or not.
 ;;         
@@ -66,8 +66,8 @@
             ((findAndReplace $parent (AND) $parent) (AND) True) ;; Removes the entire OR if it has an empty AND as child
             (let*
               (
-                ;  (() (println! (===Inside ZeroConstraintSubsume'===)))
-                ;  (() (println! (Current: $current : Parent: $parent)))
+                ;; (() (println! (===Inside ZeroConstraintSubsume'===)))
+                ;; (() (println! (Current: $current : Parent: $parent)))
                 ($children (getChildrenExp $current))
                 ($literals (getLiterals $current))
               )
@@ -87,7 +87,7 @@
 )
 
 
-;; a helper function which checks if an expression has a child (subexpression) or a literal or not
+;; A helper function which checks if an expression has a child (subexpression) or a literal.
 ;; A constant must survive this filter: TRUE/FALSE have no literals and no children, so
 ;; without the isConstant arm they look exactly like the placeholders it exists to delete.
 (= (nodeHasChildOrGuard $node)

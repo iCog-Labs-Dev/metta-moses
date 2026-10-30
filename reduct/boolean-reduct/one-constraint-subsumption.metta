@@ -5,12 +5,12 @@
 ;;              The command set of a node N is the union of the
 ;;                guard sets of the AND nodes in the tree which
 ;;                command N and which have guard sets containing
-;;                only one constraint each,
+;;                only one constraint each.
 ;; Preconditions: The point of application (POA) is a non root AND node,
 ;;                 the POA's guard set contains constraint X and
 ;;                 the POA is commanded by a terminal AND node COM
 ;;                 whose guard set consists of the constraint X.
-;; Action: The function removes the POA from it's parent if applied, else it returns the POA.
+;; Action: The function removes the POA from its parent if applied, else it returns the POA.
 ;;            In addition to the POA, this function also returns the updated parent.
 ;;            It also returns a boolean value corresponding to whether the transformation function
 ;;            is applied or not.
@@ -29,10 +29,10 @@
           (let*
             (
               ;; ($_ (println! (===Inside OneConstraintSubsume===)))
-              ; ($_ (println! (Parent: $parent Current: $current CommandSet: $commandSet)))
+              ;; ($_ (println! (Parent: $parent Current: $current CommandSet: $commandSet)))
               ($head (car-atom $current))
               ($tail (cdr-atom $current))
-              ; ($_ (println! (Head : $head : Tail : $tail)))  
+              ;; ($_ (println! (Head : $head : Tail : $tail)))
             )
             (case $head
           

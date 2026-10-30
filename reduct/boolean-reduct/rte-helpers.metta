@@ -13,7 +13,7 @@
        (not (or (or (== $exp AND) (== $exp OR)) (isConstant $exp)))
        (== (car-atom $exp) NOT)))
 
-;; A function that takes an expression and returns it's guard sets
+;; A function that takes an expression and returns its guard set.
 ;; Definition: Guard set of a node is the set of literals in the node. 
 ;;                Only AND nodes have guard sets.
 ;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
@@ -103,18 +103,16 @@
         ($updatedSubExpression (concatTuple (getLiterals $exp) $newChildren))
         ($newExp (cons-atom $op $updatedSubExpression))
         
-        ; (() (println! (OldChildren: $oldChildren)))
-        ; (() (println! (ChildrenToAdd: $children)))
-        ; (() (println! (NewChildren: $newChildren)))
-        ; (() (println! (SubExprs: $updatedSubExpression)))
+        ;; (() (println! (OldChildren: $oldChildren)))
+        ;; (() (println! (ChildrenToAdd: $children)))
+        ;; (() (println! (NewChildren: $newChildren)))
+        ;; (() (println! (SubExprs: $updatedSubExpression)))
      )
      $newExp
    )
 )
 
-;; A function to find return the literals of an expression
-;;  the function performs returns the literals if the
-;;  expression is either an AND or an OR.
+;; A function that returns the literals of an AND or an OR expression.
 ;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 ;;          (OR (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 ;;          (NOT A) -> (NOT A)
@@ -145,7 +143,7 @@
 ;;  and the children as a tuple ((...literals...), (...children...))
 (= (getLiteralChildren $expr) ((getLiterals $expr) (getChildrenExp $expr)))
 
-;; Function to find common literals between a tuple and a nested tuple 
+;; Function to find the literals common to a tuple and every tuple of a nested tuple.
 (= (findCommonLiterals $tuple $nestedTuple)
     (if (or (== $nestedTuple ()) (== $tuple ()))
         ()

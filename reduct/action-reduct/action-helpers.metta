@@ -170,8 +170,8 @@
 
 ;; ---------------------------------------------------------------------------
 ;; smallestDivisor: returns the smallest divisor greater than 1.
-;; Prime numbers return themselves. The modular-argument reducer uses this for
-;; simple factor-style normalization of numeric action parameters.
+;; Prime numbers return themselves. It mirrors C++ smallest_divisor. No reducer
+;; calls it: reduceRepeatInActionWhile uses findRepeatingPeriod instead.
 ;; ---------------------------------------------------------------------------
 (= (smallestDivisor $n) (smallestDivisorFrom $n 2))
 

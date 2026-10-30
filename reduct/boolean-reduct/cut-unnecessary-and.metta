@@ -1,6 +1,6 @@
 ;; A function to remove an unnecessary AND and its child.
 ;; Definitions: A guard set of a POA is the set of literals in the POA.
-;; Preconditions: The point of application (POA) is and AND node,
+;; Preconditions: The point of application (POA) is an AND node,
 ;;                has an empty guard set, one child and
 ;;                for each child C of the POA, the intersection
 ;;                of the guard sets of the children of C is empty.
@@ -8,9 +8,8 @@
 ;;            grandChildren of the POA to the POA's parent and returns
 ;;            the updated parent, empty atom and a boolean value of
 ;;            true.
-;;         If conditions are not met, the function returns the unchanged state.
-;;            updated POA and also a boolean value corresponding to
-;;            whether the transformation function is applied or not.
+;;         If the conditions are not met, the function returns the parent, the
+;;            POA and a boolean value that tells if the POA changed.
 ;; Example: input: POA ==> (AND (OR (AND B D) (NOT E))), parent ==> (OR C (AND (OR (AND B D) (NOT E))))
 ;;          output: ((OR C (AND B D) (NOT E)) () True)
 ; (: andCut (-> Expression Expression (Expression Expression Bool)))
@@ -89,7 +88,8 @@
       )
 )
 
-(= (removeEmptyAND $expr) ;; the function is removing the expression containing empty AND node, but it should return the parent.
+;; Removes the empty (AND) nodes from an expression.
+(= (removeEmptyAND $expr)
     (case (get-metatype $expr)
         (
             (Symbol $expr)
@@ -104,7 +104,7 @@
                     ;; AND/OR/NOT clauses are registered (reduct-only contexts). In the
                     ;; full pipeline (boolean-ops loaded) this MeTTa clause misdispatches
                     ;; and correctness relies on the native Prolog removeEmptyAND
-                    ;; override (rte-helpers-fast.pl, consulted in moses.metta)
+                    ;; override (rte-helpers-fast.pl, consulted in moses-imports.metta)
                     ;; superseding it — validated end-to-end (CI + mux6 differential).
                     (case (quote ($h $t))
                         (

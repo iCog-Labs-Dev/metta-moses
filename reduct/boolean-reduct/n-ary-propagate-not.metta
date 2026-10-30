@@ -1,3 +1,5 @@
+;; Pushes every NOT down to the literals (negation normal form), with De Morgan's laws.
+;; $negate is True when an odd number of NOTs is above $expr.
 (= (propagateNot $expr) (propagateNot $expr False))
 (= (propagateNot $expr $negate)
    (if (== (get-metatype $expr) Expression)
@@ -15,6 +17,7 @@
                      (NOT (car-atom $result))
                      ($_ (trace! (Returning Error for operator $op) ERROR))
                    ))))
+       ;; The bare (NOT $expr) build is data only because this file loads before scoring/boolean-ops.
        (if (== (get-metatype $expr) Symbol)
            (if $negate (NOT $expr) $expr)
            $expr)))
