@@ -1,22 +1,3 @@
-(= (fold $f $acc $tuple)
-    (if (== $tuple ()) $acc
-        (fold $f ($f $acc (car-atom $tuple)) (cdr-atom $tuple))
-    )
-)
-
-
-(= (concat-tuple $xs $ys)
-    (if (== $xs ()) $ys
-        (let* (($head (car-atom $xs))  
-               ($tail (cdr-atom $xs)) 
-               ($tail-new (concat-tuple $tail $ys))  
-              )
-          (cons-atom $head $tail-new)  
-        )
-    )
-)
-
-
 ;; addAND wraps each literal and OR node that is not under an AND node in an AND node.
 ;; The bare (AND ...) builds in this file are data only because
 ;; this file loads before scoring/boolean-ops.
@@ -83,7 +64,8 @@
             let* (
                 ($op (car-atom $expr)) 
                 ($tuple (cdr-atom $expr))
-                ($newTuple (fold concat-tuple () (map-atom $tuple $tp (gatherJunctors $tp $op))))
+                ($gathered (map-atom $tuple $tp (gatherJunctors $tp $op)))
+                ($newTuple (foldl-atom $gathered () $acc $x (concatTuple $acc $x)))
                 ($tupleWithOp (cons-atom $op $newTuple))
             )
             (
