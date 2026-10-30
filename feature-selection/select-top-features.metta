@@ -14,8 +14,8 @@
        )
        (if (> $divPres 0)
                 (let $rankedSet (rankFtSet $seed (mkITable $table $labels) $divPres $divInteraction $multiDiversity $simScorer $ftSets ())
-                    (takeN $resSize $rankedSet))
-                (let $ftSetsLessScore (map-atom $ftSets $ftSet (second $ftSet)) (takeN $resSize $ftSetsLessScore))))   ;; strip the scores off the feature sets
+                    (List.takeN $resSize $rankedSet))
+                (let $ftSetsLessScore (map-atom $ftSets $ftSet (second $ftSet)) (List.takeN $resSize $ftSetsLessScore))))   ;; strip the scores off the feature sets
 )
 
 ;;  rankFtSet -- applies diversity pressure to rank feature sets 
@@ -31,7 +31,10 @@
 (= (rankFtSet $seed (mkITable $table $labels) $divPres $divInteraction $multiDiversity $simScorer $ftSets $acc)
     ;; convert each feature set into a composite scored set
     (let $cscFtSet 
-        (map-atom $ftSets $ftSet ((mkCscore (first-from-pair $ftSet) (let $set (second-from-pair $ftSet) (size-atom $set)) 0.0 0.0 (first-from-pair $ftSet)) (second-from-pair $ftSet)))
+        (map-atom $ftSets $ftSet
+                  (let* ((($score $set) $ftSet)
+                         ($size (size-atom $set)))
+                    ((mkCscore $score $size 0.0 0.0 $score) $set)))
             (rankIterator $seed (mkITable $table $labels) $divPres $divInteraction $multiDiversity $simScorer $cscFtSet $acc)))
 
 (= (rankIterator $seed (mkITable $table $labels) $divPres $divInteraction $multiDiversity $simScorer $cscFtSet $acc)
@@ -41,10 +44,10 @@
             (map-atom $acc $a (second $a))                                       ;; return only the indices -- drop the score values
             (let* ( 
                     ($currentFtSet (car-atom $cscFtSet))                             ;; current feature set under consideration (score set) pair
-                    ($currentCscore (first-from-pair $currentFtSet))                 ;; the score
-                    ($currentFt (second-from-pair $currentFtSet))                    ;; the feature set, tuple of indices
+                    ($currentCscore (first $currentFtSet))                 ;; the score
+                    ($currentFt (second $currentFtSet))                    ;; the feature set, tuple of indices
                     ($lastFtSet (car-atom $acc))                                      ;; last added feature set -- ordered by score so the first one in the accumulator
-                    ($lastCscore (first-from-pair $lastFtSet))                       ;; score of the last
+                    ($lastCscore (first $lastFtSet))                       ;; score of the last
                     ($lastFt (second $lastFtSet))                             ;; the feature set
                     ($sim (if (== $simScorer ja)                                       ;; assumes either of two similarity scorers jaccard or mi
                                 (jaccardIndex $lastFt $currentFt)         
@@ -76,4 +79,4 @@
 (= (sampleEnforcedFts $enforcedFts)
     (collapse (let* (($enforcedFt (superpose $enforcedFts))
                      ($p (second $enforcedFt)))
-                (if (biasedRandBool $p) (first-from-pair $enforcedFt) (Empty)))))
+                (if (biasedRandBool $p) (first $enforcedFt) (Empty)))))

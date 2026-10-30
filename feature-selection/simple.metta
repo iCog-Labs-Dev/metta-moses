@@ -9,7 +9,7 @@
 
 (= (simpleFeatureSelector $th $numDesired $expDist (mkITable $table $labels) $acc)
     (if (== $numDesired 0)
-        ((0 (List.listToExpr (inputLabels $labels))))                                                  ;; return all features by default
+        (let $allFeatures (inputLabels $labels) ((0 $allFeatures)))                                    ;; return all features by default
 
         (chain (py-call (random.randint 0 2147483647)) $seed                                        ;; random seed to break ties between equally-scored features
         (chain (List.length $labels) $colNum
@@ -19,7 +19,7 @@
                         (chain (if $expDist                                                                        ;; this is the actual selection after the scoring
                                     (chain (- 1 (/ 1 (+ $numDesired 1))) $mean                                      ;; if exponential distn is preferred 
                                         (exponentialSelection $mean $numDesired $selectedFeatures 1 ()))
-                                    (takeN $numDesired $selectedFeatures)) $final ((0 (map-atom $final ($miScore ($feature)) $feature)))))))))))
+                                    (List.takeN $numDesired $selectedFeatures)) $final ((0 (map-atom $final ($miScore ($feature)) $feature)))))))))))
 
 
 ;; selectorIterator

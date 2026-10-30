@@ -23,10 +23,9 @@
          ($fsParams (withFsScorer $fsHyperparams $scorerType))
          (((mkInst $inst1) (mkSInstSet $list) $state) (hillClimbing (mkSInstSet ()) $iTable (mkInst $centerInst) (mkParams applyMutualInformationBasedScore $fsParams))) ;; runs the hillclimbing feature selector
          ($listOfScoresetPairs (getHcFtPop $list ()))                                                    ;; separates the scores from the previous output and puts them in a score feature-set pair tuple -- as list of
-         ($uniquePairs (List.tFoldl $listOfScoresetPairs union-atom toExp ()))                          ;; union-atom concatenates, so this fold keeps duplicates
-         ($size (size-atom $uniquePairs))
+         ($size (size-atom $listOfScoresetPairs))
         )
-
-         (sortPairs pairMax $uniquePairs $size ())
+         ;; sortPairs removes equal pairs (isPairEqual)
+         (sortPairs pairMax $listOfScoresetPairs $size ())
   )
 )                                                       ;; sort using score

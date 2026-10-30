@@ -24,7 +24,7 @@
    (if (== $row ())
       ()
       (let* (
-            ($inputPart (takeN $targetIndex $row)) ;; Extract input features (all columns except target)
+            ($inputPart (List.takeN $targetIndex $row)) ;; Extract input features (all columns except target)
             ($targetVal (index-atom $row $targetIndex)) ;; Get target value (True/False)
             
             (($pos $neg) (if (Map.contains $inputPart $acc)
@@ -128,13 +128,9 @@
 (= (createPrecisionRows $groupedData)
    (let* (
             ($items (Map.items $groupedData))
-            ($itemsExpr (List.listToExpr $items))
-            ($precisionRows (foldl-atom $itemsExpr () $acc $item (makePrecisionRow $item $acc)))
-            ($precisionItems (MultiMap.items $precisionRows))
+            ($precisionRows (foldl-atom $items () $acc $item (makePrecisionRow $item $acc)))
          )
-        (List.listToExpr $precisionItems)
-   )
-)
+        (MultiMap.items $precisionRows)))
 
 ;; Calculate activation penalty using logarithmic penalty function
 ;; Mathematical explanation:
@@ -276,15 +272,14 @@
           ;; Target is always last column
           ($targetIndex (- (List.length $labels) 1))
           ;; Combine selected features with target index
-          ($exprIndices (appendAtom $targetIndex $featureIndices))
+          ($exprIndices (List.append $targetIndex $featureIndices))
 
           ;; Rows of the selected columns
           ($filteredRows (zipColumn $exprIndices $columns))
           ;; Extract corresponding labels
           ($filteredLabels (map-atom $exprIndices $each (List.at $each $labels)))
-          ($filteredExpr (List.listToExpr $filteredRows))
           )
-     ($filteredExpr $filteredLabels)
+     ($filteredRows $filteredLabels)
    )
 )
 

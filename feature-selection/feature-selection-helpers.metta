@@ -105,7 +105,7 @@
 (= (sortPairs $op $pairTuple $count $acc)
     (if (or (<= $count 0) (== $pairTuple ()))
         $acc                                                                                    ;; only the top $count pairs are returned
-        (chain (foldl-l $op ((-inf) (1 0)) $pairTuple) $maxPair    ;; find max pair from the tuple of pairs    
+        (chain (List.foldl $op ((-inf) (1 0)) $pairTuple) $maxPair    ;; find max pair from the tuple of pairs    
         (chain (union-atom $acc ($maxPair)) $newAcc                                          ;; use of union assumes the pairs are non repeating -- same score is possible but always different label (due to ordering of tuple elem)
         (chain (collapse 
                 (chain (superpose $pairTuple) $el 

@@ -52,7 +52,7 @@
 
                 ($ftSetPopSize (size-atom $ftSetPop))                     
                 ($cappedFtSetPop (if (and (> $diversityCap 0) (< $diversityCap $ftSetPopSize))                  ;; limit the size of feature set pop to diversity cap value
-                                        (takeN $diversityCap $ftSetPop)
+                                        (List.takeN $diversityCap $ftSetPop)
                                         $ftSetPop))
                 ;; ($_ (println! (Selected features set pop $cappedFtSetPop)))
                 ;; ($_ (println! (quote (selectTopFts (mkITable $table $labels) $divPres -1 $multiDiversity $simScorer $cappedFtSetPop $nDeme))))
