@@ -96,7 +96,6 @@
          (OS.difference $tail $set2 $newResult))))
 
 ;; Convert OrderedSet to Expression
-;; (= (osToExpression $os $acc) (append $os $acc))
 (= (osToExpression $os $acc) $os)
 
 ;; Convert Expression to OrderedSet

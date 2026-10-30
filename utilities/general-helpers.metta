@@ -76,13 +76,6 @@
         ((False True) (appendAtom $y $x))
         ((False False)  (foldr cons-atom $y $x)))))
 
-;; a helper function to the isConsistentExp function.
-;; a function which checks if an element is member of a tuple.
-;; (: isMember (-> $a $aa Bool)) ;; this function can be replace by its exact same builtin petta function is-member
-;; (= (isMember $x $list)
-;;     (not (== (collapse (intersection (superpose ($x)) (superpose $list))) ()))
-;; )
-
 ;; Return the elements of $set1 that are not in $set2.
 ;; moses/tests/rte-helpers-fast.pl overrides this function with native Prolog clauses.
 ;; (: setDifference (-> Expression Expression Expression))
@@ -263,9 +256,6 @@
 ;; (: appendAtom (-> Atom Expression Expression))
 (= (appendAtom $a $atom) (foldr cons-atom ($a) $atom))
 
-;; Return the maximum of two numbers.; this may raise a conflict with petta's builtin max function
-;; (= (max $x $y) (if (< $x $y) $y $x))
-
 ;; A function to return a tuple of numbers from natural to a given number.
 ;; $x is the upperbound
 ;; $acc is the lowerbound wrapped with as a tuple.
@@ -274,12 +264,6 @@
    (if (== (car-atom $acc) $x)
        $acc
        (let $lastInserted (car-atom $acc) (gen $x (cons-atom (+ 1 $lastInserted) $acc)))))
-
-;; A function to return head and tail of an atom in a tuple. ; this also raise error for petta also has builtin decons function
-;; (= (decons $atom)
-;;    (if (not (or (isSymbol $atom) (isUnit $atom)))
-;;        ((car-atom $atom) (cdr-atom $atom))
-;;        (Error Unit Or Symbol cannot be deconstructed)))
 
 ;; Create a tuple of pairs from two lists of equal length.
 (= (zip $a $b)
@@ -517,9 +501,6 @@
               ($r (drop (- $n 1) $t)))
             $r)))))
 
-;; (= (length $expr)
-;;     (sum (collapse (let $a (superpose $expr) 1)))
-;; )
 ;; isLiteral -- determines if the given atom is a literal or not
 
 (= (isLiteral $a)
@@ -548,47 +529,6 @@
 ;; The name is not flatten because Prolog has a flatten predicate.
  (= (flatten-list $exp) (collapse (unNest $exp))) 
 
-
-;; (= (min $x $y) (if (<= $x $y) $x $y))
-
-;; maxOfTuple -- finds maximum of tuple of numbers
-
-;; ; (= (maxOfTuple $expr)
-;; ;     (let*
-;; ;         (
-;; ;             ($f (car-atom $expr))
-;; ;             ($t (cdr-atom $expr)))
-
-;; ;         (if (== $t ())
-;; ;             $f
-;; ;             (max $f (maxOfTuple $t)))))
-
-
-;; Add numbers in an atom list
-;; (= (sum $list) (foldr + 0 $list))
-;; (= (sum $list)
-;;     (if (== $list ())
-;; ;         0
-;;         (let*
-;;             (
-;;                 ($f (car-atom $list))
-;;                 ($t (cdr-atom $list))
-;;             )
-;;             (if (== $t ())
-;;                 $f
-;;                 (+ $f (sum $t)) ))))
-
-;; (= (getmaxWithKey $tuple)
-;;     (let $max 
-;;         (collapse 
-;;             (let*
-;;                 (
-;;                     ($t (superpose $tuple))
-;;                     ($maxKey (let $keys (collapse (let $el (superpose $tuple) (car-atom $el))) (maxOfTuple $keys)))
-;;                     ; (() (println! (maxxx $maxKey)))
-;;                 ) 
-;;                 (unify $t ($maxKey $genId $iId $i) ($maxKey $genId $iId $i) (empty))))
-;;         (car-atom $max)))
 
 ;; map` -- a map with a two-argument function: ($f $element $x).
 
@@ -658,19 +598,6 @@
 ;; ($ctor $x) ($ctor $y) -- (constructor value) pair                
 ;; (: >>= (-> $a $a Bool))
 (= (>>= ($ctor $x) ($ctor $y))(>= $x $y))
-;;
-;; the following is defined in list-methods.metta as well
-;; (: List.sum (-> (-> $a $a $a) (List $a) $a))
-;; (= (List.sum $adder ()) ())
-;; (= (List.sum $adder (cons $x $xs))
-;;     (if (== $xs ())
-;;         $x
-;;         (let $c (List.sum $adder $xs)
-;;             ($adder $x $c))))
-
-;; overloading the above function to work with list of numbers
-;; ; (: List.sum (-> (List $a) $a))
-;; (= (List.sum $list) (List.sum + $list))
 
 ;; A function to take any two types which have the same constructor and add them.
 ;;   params: ($ctor $a): The first argument with a constructor $ctor
@@ -683,18 +610,6 @@
             ($ctor (+ $a $b))
             (Error ($a or $b) "One of the argument is not a number")))
 
-;; wrapping the built-in ininf-math with custom function because the return type is not bool, it is number
-;; using the type-cast function 
-;; obsolete in mettalong for now
-;; (: isInf (-> Number Bool))
-;; (= (isInf $x) (type-cast (isinf-math $x) Bool &self))
-
-;; A trick to define composition function.
-;; Takes a function and returns another function
-;; applying the two functions in sequence.
-;; (: . (-> (-> $b $c) (-> $a $b) (-> $a $c)))
-;; (= ((. $g $f) $x) ($g ($f $x)));in petta . is internally used by Prolog for building lists and dicts and what it does is the same for compose function.
-
 ;; Convert an expression to a list: (A B C) -> (cons A (cons B (cons C ()))).
 ;; PeTTa lists are expressions, so the result is equal to the input.
 (= (exprToList $expr)
@@ -703,10 +618,6 @@
         (let ($head $tail) (decons-atom $expr)  (cons $head (exprToList $tail)))
     )
 )
-
-;; From a tuple (Pair) return the first element
-;; (: first (-> ($a $b) $a))
-;; (= (first ($a $b)) $a)
 
 ;; From a tuple (Pair) return the second element
 ;; (: second (-> ($a $b) $b))
@@ -719,19 +630,6 @@
 ;; which always returns False, so each insert lands at the tail.
 ;; So the function is an append (union-atom), and $compFunc is not used.
 (= (expToMMap $pairs $map $compFunc) (union-atom $map $pairs))
-
-;; A trick function to make chain reduce when using union-atom
-;; This is causing infinite loop in some cases. use the direct union-atom instead.
-;; (: (-> unionAtom (-> Expression Expression Expression)))
-;; (= (unionAtom $x $y) (union-atom $x $y))
-;; (= (unionAtom $a $b)
-;;     (if-decons-expr-custom $a $head $tail
-;;         ; (trace! ("Done With chain") 
-;;         (chain (unionAtom $tail $b) $rest
-;;             (cons-atom $head $rest))
-;;             ; )
-;;         $b)
-;; )
 
 ;; helper function to generate list of numbers ranging from 0 to n
 ;; (: genList (-> Number Expression))
@@ -1182,11 +1080,7 @@
           ($bodyreduced (eval $body)))
          (add-atom $space (= $head $bodyreduced))))
 
-;;Error Handling
-;; (= (if-error $X $A $B)
-;;    (if (== (car-atom $X) Error) 
-;;        $A $B))
-
+;; Error handling
 (= (if-error $X $A $B)
     (if (or (== (get-metatype $X) Grounded) (== (get-metatype $X) Symbol))
         $B

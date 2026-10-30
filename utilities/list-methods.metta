@@ -212,9 +212,6 @@
 
 ;; (: List.partialSort (-> (-> $a $a Bool) (List $a) Number (List $a) (List $a)))
 ;; (: List.partialSort (-> (List Number) Number (List Number) (List Number)))
-;; (= (List.partialSort $comparator () $n) ())
-;; (= (List.partialSort $list $n) (List.partialSort >= $list $n))
-;; (= (List.partialSort $comparator (cons $x $xs) $n) (selectionSort (cons $x $xs) $n $comparator))
 
 
 ;; (: List.appendList (-> (List $a) (List $a) (List $a)))

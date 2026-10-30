@@ -71,9 +71,6 @@
 
 (= (buildTree $expr)
         (if (== (get-metatype $expr) Expression)
-            ;; (let ($head $tail) (decons-atom $expr)
-            ;;     (mkTree (mkNode $head) (exprToList (map buildTree $tail))))
-            ;; (mkTree (mkNode $expr) ())
             (let* (
               ;; ($_ (println! (-----------------------)))
               ;; ($_ (println! (Inside buildTree with expr: $expr)))
