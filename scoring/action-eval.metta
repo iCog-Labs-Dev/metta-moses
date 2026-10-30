@@ -75,10 +75,9 @@
            (let ($op $children) $exp
                 (evalActionNode $op $children $world))
            (mkARes False $world))
-       (if (== (get-metatype $exp) Grounded)
-           (if (isActionGroundLiteral $exp)
-               (mkARes $exp $world)
-               (evalActionNode $exp () $world))
+       ;; isActionGroundLiteral is get-type, safe on any atom, so `and` is safe
+       (if (and (== (get-metatype $exp) Grounded) (isActionGroundLiteral $exp))
+           (mkARes $exp $world)
            (evalActionNode $exp () $world))))
 
 ;; actionExp: Tree -> wrapped executable shape; the action analog of
@@ -90,8 +89,8 @@
 ;; heads a bare clause (scoring/action-ops), so an unquoted ($r $children)
 ;; emission in this evaluated body position would fire it.
 (= (actionExp (mkTree (mkNode $r) ()))
-   (if (== (get-metatype $r) Grounded)
-       (if (isActionGroundLiteral $r) $r (quote ($r ())))
+   (if (and (== (get-metatype $r) Grounded) (isActionGroundLiteral $r))
+       $r
        (quote ($r ()))))
 (= (actionExp (mkKnob (mkNullVex $tree) $lsk $i)) ())
 (= (actionExp (mkKnob (mkTree $node $children) $lsk $i))
