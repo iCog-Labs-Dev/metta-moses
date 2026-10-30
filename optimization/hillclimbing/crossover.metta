@@ -1,3 +1,8 @@
+;; sampleWindow -- the rows [sampleStart, sampleStart + sampleSize) of an instance list.
+(= (sampleWindow $instSet $sampleStart $sampleSize)
+   (let ($prevInst $newInst) (List.splitAt $sampleStart $instSet)
+      (List.takeN $sampleSize $newInst)))
+
 ;; crossTopOne --       Cross the single top-scoring instance against the next-highest scorers.
 ;;                      As arguments, accepts a range of scored instances ("the sample"),
 ;;                      and a single instance from which these were all derived ("the base"
@@ -12,10 +17,9 @@
        ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
 
        ($nToMakeNew (min (- $sampleSize 1) $nToMake))
-       (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
        ;; Restrict partial_sort to the recorded sample window and request one
        ;; reference plus nToMake targets.
-       ($sample (List.takeN $sampleSize $newInst))
+       ($sample (sampleWindow $instSet $sampleStart $sampleSize))
        ($list (List.partialSort instance> $sample (+ $nToMakeNew 1) ()))
       )
       (if (== $list ())
@@ -37,8 +41,7 @@
 (= (crossTopOneFs (mkSInstSet $instSet) $nToMake $sampleStart $sampleSize $baseInstance)
    (let* (
            ($nToMakeNew (min (- $sampleSize 1) $nToMake))
-           (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
-           ($sample (List.takeN $sampleSize $newInst))
+           ($sample (sampleWindow $instSet $sampleStart $sampleSize))
            ($list (List.partialSort instanceFs>= $sample $nToMakeNew ()))
          )
          (if (== $list ())
@@ -47,10 +50,8 @@
                (
                  ((cons $reference $rest) $list)
                  ($targetInstances (List.takeN (- $nToMake 1) $rest))
-                 ($targetExpr (List.listToExpr $targetInstances))
-
                  ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
-                 ($newInstances (mergerFs $targetExpr $baseInstance $referenceInst))
+                 ($newInstances (merger $targetInstances $baseInstance $referenceInst 0))
                  ($uniqueNewInstances (unique-atom (exprToList $newInstances)))
                  ;; The unified incremental scorer relies on an append-only
                  ;; population: preserve every existing scored row and add
@@ -84,10 +85,9 @@
    (let*
      (
       ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
-      (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
       ;; Match the half-open [sampleStart, sampleStart + sampleSize) range
       ;; passed to std::partial_sort in C++.
-      ($sample (List.takeN $sampleSize $newInst))
+      ($sample (sampleWindow $instSet $sampleStart $sampleSize))
 
       ($pairCount (/ (* $sampleSize (- $sampleSize 1)) 2))
       ($nToMakeNew (min $pairCount $nToMake))
@@ -129,9 +129,8 @@
      (
       ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
 
-        (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
         ;; Restrict ranking to the recorded C++ sample window.
-        ($sample (List.takeN $sampleSize $newInst))
+        ($sample (sampleWindow $instSet $sampleStart $sampleSize))
 
         ;; sample_size choose 3
         ($tripleFactor (* (- $sampleSize 1) (- $sampleSize 2)))

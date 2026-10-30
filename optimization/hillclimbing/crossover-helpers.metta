@@ -34,19 +34,17 @@
 ;;                    $targetInstances -- an expression of scored instances
 ;;                    $baseInst         -- a based instance without its score
 ;;                    $referenceInst    -- a reference (best instance) instance without its score
-;; ;; returns an expression of Scored instances with the new instances receiving the worst composite possible score 
+;; Returns an expression of scored instances. A new instance gets
+;; $initScore: the worst composite score, or 0 for feature selection.
 ;;  (: merger (-> Expression Instance Instance Expression))
- (= (merger $targetInstances $baseInst $referenceInst)
-     (map-atom $targetInstances $tI 
-        (let (mkSInst (mkPair $targetInst $score)) $tI 
-             (let $mergedInstance (mergeInstance $targetInst $baseInst $referenceInst)
-                  (mkSInst (mkPair $mergedInstance (worstCscore)))))))
+(= (merger $targetInstances $baseInst $referenceInst)
+   (merger $targetInstances $baseInst $referenceInst (worstCscore)))
 
-;; similar to the above 'merger' but with slight modification on the initial score to be 0 in case of feature selection
-;; (: mergerFs (-> Expression Instance Instance Expression))
- (= (mergerFs $targetInstances $baseInst $referenceInst)
-     (map-atom $targetInstances $tI 
-         (let (mkSInst (mkPair $targetInst $score)) $tI (mkSInst (mkPair (mergeInstance $targetInst $baseInst $referenceInst) 0)))))
+(= (merger $targetInstances $baseInst $referenceInst $initScore)
+   (map-atom $targetInstances $tI
+      (let* (((mkSInst (mkPair $targetInst $score)) $tI)
+             ($mergedInstance (mergeInstance $targetInst $baseInst $referenceInst)))
+         (mkSInst (mkPair $mergedInstance $initScore)))))
 
 
 ;;   -------crossTopTwo Helpers----;;
