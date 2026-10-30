@@ -35,10 +35,10 @@
 ;; (: inExemplar (-> DiscreteKnob Bool))
 ;; The 5-field (node-id) clauses of inExemplar and getKnobMultip stay for tests:
 ;; knob-representation-test and moses/tests/neighborhood-sampling-test.
-(= (inExemplar (mkDiscKnob $knob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis)) 
-   (not (== $def 0)))
-(= (inExemplar (mkDiscKnob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis)) 
-   (not (== $def 0)))
+(= (inExemplar (mkDiscKnob $knob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis))
+   (!= $def 0))
+(= (inExemplar (mkDiscKnob $multiplicity (mkDiscSpec $curr) (mkDiscSpec $def) $dis))
+   (!= $def 0))
 
 ;; Extracts the DiscreteKnob component from a LogicalSubtreeKnob (mkLSK) or ActionSubtreeKnob (mkASK).
 ;; Params:
@@ -46,8 +46,8 @@
 ;; Return: The extracted DiscKnob
 ;; (: getDiscKnob (-> LogicalSubtreeKnob DiscreteKnob))
 ;; (: getDiscKnob (-> ActionSubtreeKnob DiscreteKnob))
-(= (getDiscKnob (mkLSK $DiscKnob )) $DiscKnob)
-(= (getDiscKnob (mkASK $DiscKnob $perms)) $DiscKnob)
+(= (getDiscKnob (mkLSK $discKnob)) $discKnob)
+(= (getDiscKnob (mkASK $discKnob $perms)) $discKnob)
 
 
 ;; Extracts the raw multiplicity stored on a discrete, logical, or action subtree knob.
@@ -113,7 +113,7 @@
    (List.contains (mkDiscSpec $setting) $disAll))
 
 (= (allowedNonDefaultSetting $setting $default $disAll)
-   (and (not (== $setting $default))
+   (and (!= $setting $default)
         (not (settingDisallowed $setting $disAll))))
 
 (= (nthAllowedActualSetting $candidate $remaining $default $disAll)

@@ -6,13 +6,13 @@
 ;; For boolean: createRepresentation($nDeme, $tree, $itable, $algo, $prune, $enforced, $scorer)
 
 ;; Boolean logic representation (7 parameters)
-;; The eighth arg to `representation` is `$disable-discprobe`, so we negate
+;; The eighth arg to `representation` is `$discProbeDisabled`, so we negate
 ;; the user-facing `discProbe` knob (True == enabled) when forwarding.
-(= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
+(= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $pruneExemplar $enforcedFts $scorerType)
    ;; Return the whole list. Binding one mkRep here makes one branch per
    ;; representation instead of one shared budget for all demes.
    (representation $nDeme $tree (mkITable $table $labels) $algo
-                   $prune-exemplar $enforced-fts $scorerType
+                   $pruneExemplar $enforcedFts $scorerType
                    (not (param discProbe))))
 
 ;; Action representation (4 parameters): the action and perception vocabularies

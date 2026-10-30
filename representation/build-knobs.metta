@@ -8,16 +8,16 @@
 (= (buildKnobs $exemplar $mmp $argLabels)
     (buildKnobs $exemplar $mmp $argLabels True (param ignoreOps)))
 
-(= (buildKnobs $exemplar $mmp $argLabels $disable-discprobe $ignoreOps)
+(= (buildKnobs $exemplar $mmp $argLabels $discProbeDisabled $ignoreOps)
     (let (mkTree (mkNode $rootOp) $children) $exemplar
         (if (isActionOperator $rootOp)
             (Error "buildKnobs 5-arity cannot be called with action operator root")
             (let $canonized (logicalCanonize $exemplar)
                 (let (mkTree (mkNode $canonRootOp) $canonChildren) $canonized
-                    (buildLogical $canonized $canonRootOp $mmp $argLabels $disable-discprobe $canonized (mkNodeId (0)) $ignoreOps))))))    
+                    (buildLogical $canonized $canonRootOp $mmp $argLabels $discProbeDisabled $canonized (mkNodeId (0)) $ignoreOps))))))    
                            
 (= (buildKnobs (mkTree (mkNode $rootOp) $children) $mmp $argLabels $actions $perceptions $ignoreOps)
-    (if (or (isActionOperator $rootOp) (once (is-member $rootOp $actions)))
+    (if (or (isActionOperator $rootOp) (isDomainAction $rootOp $actions))
         (let*
           (
             ($canonized (actionCanonize (mkTree (mkNode $rootOp) $children)))

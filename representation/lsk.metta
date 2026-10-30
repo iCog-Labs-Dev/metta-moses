@@ -36,4 +36,4 @@
                        (mkDiscSpec 1)
                        (mkDiscSpec 1)
                        ())
-           (cons $subtree ()))))
+           ($subtree))))

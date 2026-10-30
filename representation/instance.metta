@@ -154,9 +154,8 @@
     (let* (
       (($instA $scoreA) (decons-atom $a))
       (($instB $scoreB) (decons-atom $b))
-      ($result (cScoreExpr< $scoreB $scoreA))
     )
-      $result))
+      (cScoreExpr< $scoreB $scoreA)))
 
 ;;------------------------------------------------------------
 ;; getSInstScore

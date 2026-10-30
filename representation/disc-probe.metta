@@ -13,7 +13,7 @@
 
 ;; Applies a logical setting to a controlled subtree.
 ;; 0 - absent/null, 1 - present, 2 - negated.
-(= (applyLogicalSettingToSubtree $subtree 0) (mkNullVex (cons $subtree ())))
+(= (applyLogicalSettingToSubtree $subtree 0) (mkNullVex ($subtree)))
 (= (applyLogicalSettingToSubtree $subtree 1) $subtree)
 (= (applyLogicalSettingToSubtree $subtree 2) (insertAbove $subtree (mkNode NOT)))
 

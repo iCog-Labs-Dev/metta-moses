@@ -11,7 +11,7 @@
       (
        ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
 
-       ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
+       ($nToMakeNew (min (- $sampleSize 1) $nToMake))
        (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
        ;; Restrict partial_sort to the recorded sample window and request one
        ;; reference plus nToMake targets.
@@ -36,7 +36,7 @@
 ;; (: crossTopOneFs (-> (InstanceSet $a) Number Number Number Instance (InstanceSet $a)))
 (= (crossTopOneFs (mkSInstSet $instSet) $nToMake $sampleStart $sampleSize $baseInstance)
    (let* (
-           ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
+           ($nToMakeNew (min (- $sampleSize 1) $nToMake))
            (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
            ($sample (List.takeN $sampleSize $newInst))
            ($list (List.partialSort instanceFs>= $sample $nToMakeNew ()))
@@ -90,11 +90,11 @@
       ($sample (List.takeN $sampleSize $newInst))
 
       ($pairCount (/ (* $sampleSize (- $sampleSize 1)) 2))
-      ($nToMakeNew (if (< $pairCount $nToMake) $pairCount $nToMake))
+      ($nToMakeNew (min $pairCount $nToMake))
 
        ;; C++ assigns sqrt(2*n)+3 to unsigned, truncating the estimate.
        ($nToSortRaw (int (+ (sqrt-math (* 2 $nToMakeNew)) 3)))
-       ($nToSort (if (< $sampleSize $nToSortRaw) $sampleSize $nToSortRaw))
+       ($nToSort (min $sampleSize $nToSortRaw))
 
        ($sortedList (List.partialSort instance> $sample $nToSort ()))
 
@@ -136,11 +136,11 @@
         ;; sample_size choose 3
         ($tripleFactor (* (- $sampleSize 1) (- $sampleSize 2)))
         ($maxTriples (/ (* $sampleSize $tripleFactor) 6))
-        ($nToMakeNew (if (< $maxTriples $nToMake) $maxTriples $nToMake))
+        ($nToMakeNew (min $maxTriples $nToMake))
 
        ;; C++ stores cbrt(6*n)+3 in unsigned before using it as an index.
        ($nToSortRaw (int (+ (cbrt-math (* 6 $nToMakeNew)) 3)))
-       ($nToSort (if (< $sampleSize $nToSortRaw) $sampleSize $nToSortRaw))
+       ($nToSort (min $sampleSize $nToSortRaw))
        ($sortedList (List.partialSort instance> $sample $nToSort ()))
 
         ;; The C++ i-loop traverses the full sample after partially sorting its

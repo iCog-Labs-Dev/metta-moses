@@ -36,14 +36,14 @@
        ;; C++ stores the floating-point information sum in size_t before using
        ;; it as a neighborhood dimension. `floor-math` is the exact
        ;; nonnegative truncation and remains grounded inside this `let`.
-       (let $nnEstimate (floor-math (informationTheoreticBits $knobMap))
-         ;; Match hill_climbing::estimate_neighborhood: an approximate field
-         ;; dimension smaller than the requested Hamming distance still has
-         ;; one maximally distant combination; it is not an empty neighborhood.
-         (let $clampedDistance (min $distance $nnEstimate)
+       ;; Match hill_climbing::estimate_neighborhood: an approximate field
+       ;; dimension smaller than the requested Hamming distance still has
+       ;; one maximally distant combination; it is not an empty neighborhood.
+       (let* (($nnEstimate (informationTheoreticBits $knobMap))
+              ($clampedDistance (min $distance $nnEstimate)))
           (if (== $clampedDistance 1)
               (* 2 $nnEstimate)
-              (binomial $nnEstimate $clampedDistance)))))) ;; INFO: Could use a safe binomial coefficient here if the estimate starts becoming very large.
+              (binomial $nnEstimate $clampedDistance))))) ;; INFO: Could use a safe binomial coefficient here if the estimate starts becoming very large.
 
 ;; similar to the above 'estimateNeighborhood' but this one uses the informationTheoreticBitsFs which is for feature selection
 ;; (: estimateNeighborhoodFs (-> Number (List Symbol) Number))
@@ -63,16 +63,14 @@
            (
              ;; TODO: Most of the clamping logic here depends on the usage of number of evals and max number of evals. So best to do it after those are integrated into the system. For now we will be returning the total neighborhood clamped to the max_evals only.
              ;; ($_ (println! (Inside newInstances: $distance $maxEvals $currentEvals $totalNeighbors)))
-             ($hc_params_fraction_of_nn (param hcFractionOfNN))
-             ($numberOfNewInstaces (int (* $totalNeighbors (pow-math $hc_params_fraction_of_nn $distance))))
+             ($fractionOfNN (param hcFractionOfNN))
+             ($numberOfNewInstances (int (* $totalNeighbors (pow-math $fractionOfNN $distance))))
              ($nLeft (- $maxEvals $currentEvals))
              ($minDemeSize (param hcMinDemeSize))
            )
-           (if (< $numberOfNewInstaces $minDemeSize)
+           (if (< $numberOfNewInstances $minDemeSize)
                (min $nLeft $minDemeSize)
-               (if (< $nLeft $numberOfNewInstaces)
-                   $nLeft
-                   $numberOfNewInstaces)))))
+               (min $nLeft $numberOfNewInstances)))))
 
 ;; Counts the number of instances at a specific distance from a given instance.
 ;; Params:
@@ -105,7 +103,7 @@
                         (mkKbMap (mkDscMp $dscMp)) (+ $startIdx 1))))
              )
              (if $isBoolTail
-                 (let* (($n (- (MultiMap.length $dscMp) $startIdx)))
+                 (let $n (- (MultiMap.length $dscMp) $startIdx)
                    ;; Distances beyond the remaining Boolean dimensions are
                    ;; impossible; otherwise cap the count for callers that
                    ;; only need a bounded neighborhood estimate.
@@ -138,7 +136,7 @@
 
 ;; (: countNeighborhood (-> KnobMap Instance Number Number Number))
 (= (countNeighborhood $kbMap $inst $dist $maxCount)
-(countNeighborhoodFromIdx $kbMap $inst $dist 0 $maxCount))
+   (countNeighborhoodFromIdx $kbMap $inst $dist 0 $maxCount))
 
 ;; factorial
 ;; (: factorial (-> Number Number))
@@ -233,9 +231,9 @@
 ;; Raw fitness is tracked independently from the penalized center score.
 (= (bestRawScore $scoredInstances)
    (foldl-atom $scoredInstances () $bestRaw $scoredInst
-     (let (mkSInst (mkPair $inst $score)) $scoredInst
-       (let $raw (getScore $score)
-         (if (== $bestRaw ()) $raw (max $bestRaw $raw))))))
+     (let* (((mkSInst (mkPair $inst $score)) $scoredInst)
+            ($raw (getScore $score)))
+       (if (== $bestRaw ()) $raw (max $bestRaw $raw)))))
 
 ;; Project the raw-best score directly from a deme's attached scored rows.
 (= (bestRawDeme (mkDeme $rep (mkSInstSet $scoredInstances) $id))
@@ -292,18 +290,16 @@
    (let $nextCache
         (if (scoreNeedsEvaluation $score)
             $cache
-            (let $tree
-                 (materializeCandidateForContext
-                   $rep $id $inst $context)
-              (let* (
-                     ($_global
-                       (cacheCandidateScore $context $tree $score))
-                     ($updated
-                       (if (== (cachedScoreForTree $tree $cache) ())
-                           (cons (mkTreeScore $tree $score) $cache)
-                           $cache))
-                    )
-                $updated)))
+            (let* (
+                   ($tree
+                     (materializeCandidateForContext
+                       $rep $id $inst $context))
+                   ($_global
+                     (cacheCandidateScore $context $tree $score))
+                  )
+              (if (== (cachedScoreForTree $tree $cache) ())
+                  (cons (mkTreeScore $tree $score) $cache)
+                  $cache)))
      (seedTreeScoreCache
        $rest $rep $id $context $nextCache)))
 
@@ -327,13 +323,13 @@
                     $batchScore))
               (($resolvedScore $didEvaluate $updatedCache)
                 (if (== $runScore ())
-                    (let $newScore (scoreMaterializedTree $tree $context)
-                      (let $_cached
-                           (cacheCandidateScore $context $tree $newScore)
-                        ($newScore
-                         1
-                         (cons (mkTreeScore $tree $newScore)
-                               $treeScoreCache))))
+                    (let* (($newScore (scoreMaterializedTree $tree $context))
+                           ($_cached
+                             (cacheCandidateScore $context $tree $newScore)))
+                      ($newScore
+                       1
+                       (cons (mkTreeScore $tree $newScore)
+                             $treeScoreCache)))
                     ($runScore
                      0
                      (if (== $batchScore ())
@@ -435,7 +431,7 @@
        (mkSInst $inst2)
        (mkSInst $inst1)))
 
-(= (getDisk (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) $instSet $id)) $disc)
+(= (getDiscMap (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) $instSet $id)) $disc)
 
 (= (getTTableParams (mkTruthTableBScore $cpxCoeff $size $iTable))
     ($cpxCoeff $size $iTable)
@@ -489,8 +485,8 @@
 ;;      If it is the first time through the loop, we should not exit but we should set the distance to 1 and retry the iteration.
 
 ;; (: hillClimbing (-> Deme (TruthTableBScore $a) Instance (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state))))
-(= (hillClimbing $POASet $tTableBscorer $centerInst) 
-    (hillClimbing $POASet $tTableBscorer $centerInst (mkParams applyComplexityBasedScore ())))
+(= (hillClimbing $deme $tTableBscorer $centerInst) 
+    (hillClimbing $deme $tTableBscorer $centerInst (mkParams applyComplexityBasedScore ())))
     
 ;; (: hillClimbing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
 ;; The second slot of `mkParams` carries the arguments the chosen scorer needs:
@@ -500,20 +496,21 @@
 ;;                                       or () to fall back to the defaults
 ;;   applyActionBasedScore            -- ($nTrials $complexityRatio)
 ;; ($optimize $deme $targetScore $inst (mkParams applyActionBasedScore ($nTrials $complexityRatio)))
-(= (hillClimbing $POASet $tTableBscorer $centerInst (mkParams $scorer $FsScorer))
+(= (hillClimbing $deme $tTableBscorer $centerInst (mkParams $scorer $scorerArgs))
   (case (mkParams $scorer)
     (
       ((mkParams applyComplexityBasedScore)
         (let*
           (
-            ($disc (getDisk $POASet))
+            ($disc (getDiscMap $deme))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer))
             ($_seedAttached
               (seedAttachedCandidateScores
-                $POASet ($iTable $cpxCoeff)))
+                $deme ($iTable $cpxCoeff)))
           )
-(hillClimbing ((min (param maxDist) (List.length (second $centerInst))) (param minXoverNeighbors) 0) (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
-                        $POASet
+          (hillClimbing ((min (param maxDist) (List.length (second $centerInst))) (param minXoverNeighbors) 0)
+                        (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
+                        $deme
                         ($disc $cpxCoeff $size $iTable)
                         $centerInst
                         ()
@@ -528,12 +525,12 @@
             ;; ($_ (println! (Rows: $rows)))
             ;; ($_ (println! (Labels: $labels)))
             ;; ($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)
-            ($fsHyperparams (normalizeFsHyperparams $FsScorer))
+            ($fsHyperparams (normalizeFsHyperparams $scorerArgs))
           )
           ;; Mutual information and precision both peak at 1.0, unlike the deme
           ;; scores which peak at 0.
           (hillClimbing ((min (param maxDist) (List.length (second $centerInst))) (param minXoverNeighbors) 1.0) (False False False $centerInst 0 0 0 0 0 0 1)
-              $POASet
+              $deme
               ($labels $rows () ())
               $centerInst
               $fsHyperparams
@@ -543,30 +540,30 @@
       ((mkParams applyActionBasedScore)
         (let*
           (
-            ($disc (getDisk $POASet))
-            (($nTrials $complexityRatio) $FsScorer)
+            ($disc (getDiscMap $deme))
+            (($nTrials $complexityRatio) $scorerArgs)
             ;; $tTableBscorer is the scalar target score for this action arm.
             ($targetPenScore $tTableBscorer)
-)
+          )
           ;; Slot-packing: $rowOCoeff <- $nTrials and $iTable <-
           ;; $complexityRatio. The recursive engine wraps those values in a
           ;; tagged payload before candidate scoring.
-(hillClimbing ((param maxDist) (param minXoverNeighbors) $targetPenScore)
-                                    (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
-                                    $POASet
-                                    ($disc $nTrials mkActionCtx $complexityRatio)
-                                    $centerInst
-                                    ()
-                                    estimateNeighborhood crossover
-                                    sampleNewInstances transform)))
+          (hillClimbing ((param maxDist) (param minXoverNeighbors) $targetPenScore)
+                        (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
+                        $deme
+                        ($disc $nTrials mkActionCtx $complexityRatio)
+                        $centerInst
+                        ()
+                        estimateNeighborhood crossover
+                        sampleNewInstances transform)))
     )))
 
 (= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
-                 ($alreadyXover $lastChance $__ $prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i)
-                 $POASet
+                 ($alreadyXover $lastChance $prevHasImproved $prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i)
+                 $deme
                  ($neighborhood $rowOCoeff $size $iTable)
                  $centerInst
-                 $hyperparamsfs
+                 $fsHyperparams
                  $estimateFunction $crossoverFunction $samplingFunction $transformFunction) ;; Helper functions
    (let*
       (
@@ -596,10 +593,10 @@
         ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors))
 
         ;; Evaluation count and population index are different quantities.
-        ;; $rep and $id are bound only below, so dispatch on the shape of $POASet:
+        ;; $rep and $id are bound only below, so dispatch on the shape of $deme:
         ;; a deme for Boolean and action searches, an instance set for feature selection.
         ($currentDemeSize
-          (case $POASet
+          (case $deme
             (((mkDeme $_rep (mkSInstSet $currentInstances) $_id)
               (List.length $currentInstances))
              ($_featureSelectionSet $currentNInstances))))
@@ -624,14 +621,14 @@
           ((mkDeme $rep $updatedInstSet $id) $newInstances)
                                                             (case ($xOver $size)
                                                               (
-                                                                ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $prevCenter $POASet)
+                                                                ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $prevCenter $deme)
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
                                                                 ;; Cross the previous sample relative to the center from which it was generated.
-                                                                ((True $notEmpty)  ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $prevCenter $POASet))
-                                                                ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst (mkITable $rowOCoeff $neighborhood) $POASet $d)
+                                                                ((True $notEmpty)  ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $prevCenter $deme))
+                                                                ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst (mkITable $rowOCoeff $neighborhood) $deme $d)
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
                                                                 ((False $notEmpty)
-                                                                        (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst $POASet $d)
+                                                                        (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst $deme $d)
                                                                         ;; (trace! ("Result: " $result)
                                                                                 $result
                                                                         ;; )
@@ -647,7 +644,7 @@
         ;; ($_ (println! (Newinstances: $updatedInstSet)))
         ;; ($_ (println! ""))
         ;; deconstruct the hyper params for fs function
-        (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType) (if (== () $hyperparamsfs) (() () () () () ()) $hyperparamsfs))
+        (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType) (if (== () $fsHyperparams) (() () () () () ()) $fsHyperparams))
 
         ;; Keep the action optimizer's internal scorer payload distinct from
         ;; the canonical lifecycle context used by Boolean runs.
@@ -713,7 +710,7 @@
                                                 $updatedDeme
                                                 ($neighborhood $rowOCoeff $size $iTable)
                                                 $nextCenterInst
-                                                $hyperparamsfs
+                                                $fsHyperparams
                                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
                                   ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentDemeSize $newInstances $nextBestSscore $nextBestScore $updatedEvalCount $nextDistance $i))))
         (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)) $hillStepResult)
@@ -759,7 +756,7 @@
                                 $newDeme
                                 ($neighborhood $rowOCoeff $size $iTable)
                                 $newCenter
-                                $hyperparamsfs
+                                $fsHyperparams
                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
                   ;; (trace! (Continue to next iteration because of no more last chance)
                           ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
@@ -779,7 +776,7 @@
                                 $finalDeme
                                 ($neighborhood $rowOCoeff $size $iTable)
                                 $finalCenter
-                                $hyperparamsfs
+                                $fsHyperparams
                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
                     )
                   )

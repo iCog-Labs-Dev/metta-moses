@@ -126,11 +126,11 @@
    (if (== $fieldVals ())
        $acc
        (let* (
-           ($fieldVal (car-atom $fieldVals))
+           (($fieldVal $restVals) (decons-atom $fieldVals))
            ($count0 (count 0 $fieldVal))
            ($count1 (count 1 $fieldVal))
            ($count2 (count 2 $fieldVal))
-           ($rest (learnProbability (cdr-atom $fieldVals) $acc))
+           ($rest (learnProbability $restVals $acc))
          )
          (cons-atom ($count0 $count1 $count2) $rest)
        )
@@ -178,9 +178,9 @@
    (if (== $probabilityModel ())
        $acc
        (let* (
-           ($fieldCount (car-atom $probabilityModel))
+           (($fieldCount $restModel) (decons-atom $probabilityModel))
            ($selectedFieldVal (roulette_select $fieldCount $tot 0))
-           ($rest (sample (cdr-atom $probabilityModel) $tot $acc))
+           ($rest (sample $restModel $tot $acc))
          )
          (cons-atom $selectedFieldVal $rest)
        )

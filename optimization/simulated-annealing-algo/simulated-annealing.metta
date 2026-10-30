@@ -34,30 +34,30 @@
 (= (rand-random) (py-call (random.random)))
 
 ;;(: acceptanceProb (-> Number Number Number Number))
-(= (acceptanceProb $energy1 $energy2 $Temp)
+(= (acceptanceProb $energy1 $energy2 $temp)
   (if (< $energy2 $energy1)
     1.0
-    (exp (/ (- $energy1 $energy2) $Temp))
+    (exp (/ (- $energy1 $energy2) $temp))
   )
 )
 
 ;;(: simulated-annealing (-> Deme (TruthTableBScore $a) Instance (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state))))
-(= (simulated-annealing $POASet $tTableBscorer $initCenter)
-    (simulated-annealing $POASet $tTableBscorer $initCenter (mkParams applyComplexityBasedScore ())))
+(= (simulated-annealing $deme $tTableBscorer $initCenter)
+    (simulated-annealing $deme $tTableBscorer $initCenter (mkParams applyComplexityBasedScore ())))
 
 ;;(: simulated-annealing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
-(= (simulated-annealing $POASet $tTableBscorer $initCenter (mkParams $scorer $FsScorer))
+(= (simulated-annealing $deme $tTableBscorer $initCenter (mkParams $scorer $scorerArgs))
   (case (mkParams $scorer)
     (((mkParams applyComplexityBasedScore)
         (let*
-          (($disc (getDisk $POASet))
+          (($disc (getDiscMap $deme))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer)))
-          (simulated-annealing $POASet
+          (simulated-annealing $deme
                         ($disc $cpxCoeff $size $iTable)
                         $initCenter
                         (1 3 0) 
                         (20 0.01 0.1 True 5) ;; $hyperParams
-                        ($FsScorer ()) ;; $FsParams
+                        ($scorerArgs ()) ;; $FsParams
                         (False False $initCenter 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
                         estimateNeighborhood crossover 
                         sampleNewInstances transform)))
@@ -70,32 +70,32 @@
             ;; ($_ (println! (Rows: $rows)))
             ;; ($_ (println! (Labels: $labels)))
           )
-          (simulated-annealing $POASet
+          (simulated-annealing $deme
               ($labels $rows () ())
               $initCenter
               (3 3 1) 
               (20 0.01 0.1 True 5) ;; $hyperParams 
-              ($FsScorer (50.0 1.0 0.5 1.0 True)) ;; $FsParams
+              ($scorerArgs (50.0 1.0 0.5 1.0 True)) ;; $FsParams
               (False False $initCenter 0 0 0 0 0 0 1) 
               estimateNeighborhoodFs crossoverFs 
               sampleNewInstancesFs transformFs
           ))))))
 
-(= (simulated-annealing $POASet 
+(= (simulated-annealing $deme 
                          ($neighborhood $rowOCoeff $size $iTable)
                          $initCenter
                          ($maxDist $minXoverNeighbors $bestPossibleScore) ;; $constParams
-                         ($Temp $finalTemp $coolRate $isInit $maxIter) ;; $hyperParams
-                         ($FsScorerType $FsHyperParams) ;; Fs ScorerType and Fs hyperparams
+                         ($temp $finalTemp $coolRate $isInit $maxIter) ;; $hyperParams
+                         ($fsScorerType $fsHyperParamsTuple) ;; Fs ScorerType and Fs hyperparams
                          ($alreadyXover $lastChance $prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i) ;; $params
                          $estimateFunction $crossoverFunction $samplingFunction $transformFunction
                          )
-    (if (or (<= $Temp $finalTemp) (<= $maxIter 0))
-          ($prevCenter $POASet ($prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i))
+    (if (or (<= $temp $finalTemp) (<= $maxIter 0))
+          ($prevCenter $deme ($prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i))
           (let*
             (
               ;; Estimate Neighborhood
-              ;; ($_ (println! (Iteration: $i , Temperature: $Temp)))
+              ;; ($_ (println! (Iteration: $i , Temperature: $temp)))
               ;; ($_ (println! ""))
               ;; ($_ (println! $hyper))
               ;; ($_ (println! ($rows $labels)))
@@ -113,13 +113,13 @@
               
               (((mkDeme $rep $updatedInstSet $id) $newInstances) (case ($xOver $size)
                                                                    (
-                                                                ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet)
+                                                                ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $deme)
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
-                                                                ((True $notEmpty)  ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $POASet))
-                                                                ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $POASet $d)
+                                                                ((True $notEmpty)  ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $deme))
+                                                                ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $deme $d)
                                                                               ((mkDeme () $updatedInstSet ()) $newInstances)))
                                                                 ((False $notEmpty) 
-                                                                        (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $POASet $d)
+                                                                        (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $deme $d)
                                                                         ;; (trace! ("Result: " $result) )))
                                                                         $result))
                                                               )
@@ -127,8 +127,8 @@
               ;; ($_ (println! (Newinstances: $updatedInstSet)))
               ;; ($_ (println! ""))
               
-              ($scorerType (if (== () $FsScorerType) mi $FsScorerType))
-              (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive) (if (== () $FsHyperParams) (() () () () ()) $FsHyperParams))
+              ($scorerType (if (== () $fsScorerType) mi $fsScorerType))
+              (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive) (if (== () $fsHyperParamsTuple) (() () () () ()) $fsHyperParamsTuple))
               ;; Score the new instance
               ((mkSInstSet $scoredInstances) (if (or (== $rep ()) (== $id ())) 
                                                 ($transformFunction $updatedInstSet 
@@ -162,7 +162,7 @@
               ($pScore (if (== $rep ()) $bestSscore (getPenScore $bestSscore)))
               ($energy (getEnergy $pScore))
               ($newEnergy (getEnergy $newBestScore))
-              ($acceptanceProb (acceptanceProb $energy $newEnergy $Temp))
+              ($acceptanceProb (acceptanceProb $energy $newEnergy $temp))
               ($randomFloat (rand-random)) ;; using random.random instead of numpy.random.rand
               ;; Actual acceptance probabitlity which is the product of the intensity and acceptance probability.
               ($actualAcceptanceProb (* $acceptanceProb 0.85))
@@ -181,13 +181,13 @@
               ;; ($_ (println! (New instances: $newInstances)))
               ;; ($_ (println! ""))
               
-              ($newPOASet (if $isAccepted $updatedPOASet $POASet))
+              ($newPOASet (if $isAccepted $updatedPOASet $deme))
               ($newCenter (if $isAccepted (Pair.first $newBestInstPair) $prevCenter))
               ($newDistance (if $hasImproved 1 (if (not $xOver) (+ 1 $d) $d)))
               ($newBestSscore (if $isAccepted (Pair.second $newBestInstPair) $bestSscore))
               ($newBestScoreUpdated (if $isAccepted $newBestScore $bestScore))
               ($updatedNumInstances (+ $currentNInstances $newInstances))
-              ($newTemp (- $Temp (* $coolRate $Temp)))
+              ($newTemp (- $temp (* $coolRate $temp)))
               ($newIterCount (- $maxIter 1))
               ($_ (cut))
 
@@ -198,7 +198,7 @@
                                 $initCenter
                                 ($maxDist $minXoverNeighbors $bestPossibleScore) ;; $constParams
                                 ($newTemp $finalTemp $coolRate False $newIterCount) ;; $hyperParams
-                                ($FsScorerType $FsHyperParams) ;; Fs ScorerType and Fs hyperparams
+                                ($fsScorerType $fsHyperParamsTuple) ;; Fs ScorerType and Fs hyperparams
                                 ((and $xOver (not $hasImproved)) $lastChance $newCenter $currentNInstances $newInstances $newBestSscore $newBestScoreUpdated $updatedNumInstances $newDistance (+ 1 $i)) ;; $params
                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
           

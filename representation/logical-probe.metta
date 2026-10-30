@@ -27,11 +27,11 @@
 
 ;; $tree is the global exemplar tree (read-only). $targetId is the absolute
 ;; id of the node that gets the knob.
-(= (probeLogicalPair $tree $probeRootId $targetId $children $disable-discprobe ($controlledSubtree $lsk))
+(= (probeLogicalPair $tree $probeRootId $targetId $children $discProbeDisabled ($controlledSubtree $lsk))
    (let*
       (
         (($probeTree $probeTargetId) (probeTreeForControlledSubtree $tree $targetId $children $controlledSubtree))
-        ($probedLsk (if $disable-discprobe $lsk (discProbe $probeTree $probeRootId $probeTargetId $lsk)))
+        ($probedLsk (if $discProbeDisabled $lsk (discProbe $probeTree $probeRootId $probeTargetId $lsk)))
       )
       ($controlledSubtree $probedLsk)))
 
@@ -39,29 +39,29 @@
    (logicalProbe (mkTree $node $children) $perms $addIfInExemplar True))
 
 ;; Test entry: $globalTree is the local tree and both NodeIds are the root.
-(= (logicalProbe (mkTree $node $children) $perms $addIfInExemplar $disable-discprobe)
-   (logicalProbe (mkTree $node $children) (mkTree $node $children) (mkNodeId (0)) (mkNodeId (0)) $perms $addIfInExemplar $disable-discprobe))
+(= (logicalProbe (mkTree $node $children) $perms $addIfInExemplar $discProbeDisabled)
+   (logicalProbe (mkTree $node $children) (mkTree $node $children) (mkNodeId (0)) (mkNodeId (0)) $perms $addIfInExemplar $discProbeDisabled))
 
 ;; Test entry: $globalTree is the local tree.
-(= (logicalProbe $tree $probeRootId $targetId $perms $addIfInExemplar $disable-discprobe)
-   (logicalProbe $tree $tree $probeRootId $targetId $perms $addIfInExemplar $disable-discprobe))
+(= (logicalProbe $tree $probeRootId $targetId $perms $addIfInExemplar $discProbeDisabled)
+   (logicalProbe $tree $tree $probeRootId $targetId $perms $addIfInExemplar $discProbeDisabled))
 
 (= (logicalProbe (mkTree $node $children) $globalTree $probeRootId $targetId $perms $addIfInExemplar $discProbeDisabled)
    (let*
      (
       ($exemplar (mkTree $node $children))
-      ($updatedChldLskPair (map-atom $perms $perm (logicalSubtreeKnob $exemplar $perm)))
-      ($probedChldLskPair (if $discProbeDisabled
-                              $updatedChldLskPair 
-                              (map-atom $updatedChldLskPair $pair (probeLogicalPair $globalTree $probeRootId $targetId $children False $pair))))
-      ($filteredChildrenLskPair (filter-atom $probedChldLskPair $pair (and (not (allDisallowed (second $pair))) (or $addIfInExemplar (not (inExemplar (getDiscKnob (second $pair))))))))
+      ($updatedChildLskPairs (map-atom $perms $perm (logicalSubtreeKnob $exemplar $perm)))
+      ($probedChildLskPairs (if $discProbeDisabled
+                              $updatedChildLskPairs 
+                              (map-atom $updatedChildLskPairs $pair (probeLogicalPair $globalTree $probeRootId $targetId $children False $pair))))
+      ($filteredChildrenLskPair (filter-atom $probedChildLskPairs $pair (and (not (allDisallowed (second $pair))) (or $addIfInExemplar (not (inExemplar (getDiscKnob (second $pair))))))))
       ($updatedChildren (map-atom $filteredChildrenLskPair $ch (first $ch)))
       ($newLskPair (map-atom $filteredChildrenLskPair $ch (second $ch)))
       ($index (map-atom (genList (- (size-atom $updatedChildren) 1)) $i (+ $i (get-state &knobCount))))
-      ($temp (incrementState &knobCount (size-atom $index)))
+      ($_knobCountUpdated (incrementState &knobCount (size-atom $index)))
       ($updatedKnobChildren (zipWith3 knobId $updatedChildren $newLskPair $index))
-	     )
-	     ($newLskPair (mkTree $node (append (subtraction-atom $children $updatedChildren) $updatedKnobChildren)))))
+     )
+     ($newLskPair (mkTree $node (append (subtraction-atom $children $updatedChildren) $updatedKnobChildren)))))
 
 ;; Action probe builds one ASK containing all supplied action permutations.
 ;; It intentionally skips disc probing, matching the original action path.

@@ -48,7 +48,7 @@
 ;;          Union of $perms (the list of logical expressions generated) with args
 ;; (: sampleLogicalPerms (-> Atom Number Expression Expression))
 (= (sampleLogicalPerms $op $arity $argLabels $ignoreOps)
-    (let* (($swapedOp (swapAndOr $op))
+    (let* (($swappedOp (swapAndOr $op))
            ($nPairs $arity)) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
         (if (<= $nPairs 1)
             (let $arg (car-atom $argLabels)
@@ -57,5 +57,5 @@
                          (quote ($arg)))) ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage;; Preserve the argument even when NOT is ignored.
             (let* (($upperbound (- (* $arity (- $arity 1)) 1))
                    ($picked (lazyRandomSelector 0 $upperbound $nPairs))
-                   ($perms (getArgs $swapedOp $arity $picked $argLabels $ignoreOps)))
+                   ($perms (getArgs $swappedOp $arity $picked $argLabels $ignoreOps)))
                (concatT $argLabels $perms)))))
