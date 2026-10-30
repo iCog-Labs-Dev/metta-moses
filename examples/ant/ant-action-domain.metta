@@ -21,12 +21,10 @@
      (List.replaceAt $grid $y $newRow)))
 
 ;; position ahead of the ant, toroidal wrap (classic: (x+1) % ANT_X etc.)
-(= (antAheadPos $grid $pos $dir)
+(= (antAheadPos $grid (mkPair $x $y) $dir)
    (let* (
           ($w (size-atom (index-atom $grid 0)))
-          ($h (size-atom $grid))
-          ($x (Pair.first $pos))
-          ($y (Pair.second $pos)))
+          ($h (size-atom $grid)))
      (case $dir
        ((E (mkPair (antWrap (+ $x 1) $w) $y))
         (W (mkPair (antWrap (- $x 1) $w) $y))
@@ -47,10 +45,9 @@
        (mkARes False (mkAntWorld $grid $pos $dir $eaten $fuel))
        (let* (($ahead (antAheadPos $grid $pos $dir))
               ($target (antCellAt $grid $ahead))
-              ($moved (antSetCell (antSetCell $grid $pos E) $ahead A)))
-         (if (== $target F)
-             (mkARes True (mkAntWorld $moved $ahead $dir (+ $eaten 1) (- $fuel 1)))
-             (mkARes True (mkAntWorld $moved $ahead $dir $eaten (- $fuel 1)))))))
+              ($moved (antSetCell (antSetCell $grid $pos E) $ahead A))
+              ($newEaten (if (== $target F) (+ $eaten 1) $eaten)))
+         (mkARes True (mkAntWorld $moved $ahead $dir $newEaten (- $fuel 1))))))
 
 (= (antTurnLeft $params (mkAntWorld $grid $pos $dir $eaten $fuel))
    (if (<= $fuel 0)

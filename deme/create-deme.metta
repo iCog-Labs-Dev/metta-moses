@@ -55,17 +55,16 @@
    (filter-atom $representations $rep
      (representationExpandable $rep)))
 
-(= (loopCreateDeme $demeIds $reps $acc)
-(if (== $reps ()) 
-    $acc
-    (let* (
-            ($h (car-atom $reps))
-            ($t (cdr-atom $reps)))
-         (let* (
-                 ($demeId (List.head $demeIds))
-                 ($deme (mkDeme $h (mkSInstSet ()) $demeId))
-                 ($newAcc
-                   (if (representationExpandable $h)
-                       (union-atom $acc ($deme))
-                       $acc)))
-               (loopCreateDeme (List.tail $demeIds) $t $newAcc)))))
+;; Pair each representation with the next deme id. A rep that is not
+;; expandable still uses up its id (the action path does not pre-filter).
+(= (loopCreateDeme $demeIds () $acc) $acc)
+(= (loopCreateDeme $demeIds (cons $rep $reps) $acc)
+   (let* (
+          ($demeId (List.head $demeIds))
+          ($deme (mkDeme $rep (mkSInstSet ()) $demeId))
+          ($newAcc
+            (if (representationExpandable $rep)
+                (union-atom $acc ($deme))
+                $acc))
+         )
+     (loopCreateDeme (List.tail $demeIds) $reps $newAcc)))

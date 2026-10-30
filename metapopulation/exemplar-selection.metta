@@ -1,5 +1,4 @@
 ;; Constants are zero-argument functions: PeTTa does not support bind! for constants.
-(= (NO_EXEMPLAR) "empty metapopulation")
 ;; C++ uses metapop_parameters::complexity_temperature for both Boltzmann
 ;; exemplar selection and merge trimming. This reads the same registry key.
 (= (INV_TEMP) (/ 100.0 (param complexityTemperature)))
@@ -12,10 +11,10 @@
 ;; (: selectExemplar (-> (OS (Exemplar $a)) (Exemplar $a)))
 (= (selectExemplar $metaPop)
     (case $metaPop
-        ((() (Error $metaPop (NO_EXEMPLAR)))
+        ((() (Error $metaPop "empty metapopulation"))
         ((cons $x ()) $x)
         ($_ (let* (
-                    ($probs (getPnScore $metaPop))
+                    ($probs (map-atom $metaPop getExemplarPenScore))
                     ($highestScore (List.max $probs))
                     ;; get list of normalized ScoreT values
                     ($normalizedProbs (normalizeProbs (INV_TEMP) $highestScore $probs))
@@ -88,11 +87,6 @@
                (if (< $candidateComplexity $bestComplexity)
                    $candidate
                    $best))))))
-
-;; Get the penalized scores of all the exemplars as a list of Numbers.
-
-;; (: getPnScore (-> (OS (Exemplar $a)) (List Number)))
-(= (getPnScore $xs) (map-atom $xs getExemplarPenScore))
 
 ;; Normalize the scores into Boltzmann weights. An infinite score gets weight 0.
 ;; (: normalizeProbs (-> Number Number (List Number) (List Number)))

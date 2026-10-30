@@ -202,14 +202,6 @@
        ()
        (finishMetapop $metaPop (bestRawExemplar $metaPop))))
 
-;; Advance generation and expansion counters after an exemplar produces no
-;; optimizable representation, without charging an evaluation.
-(= (emptyRepresentationRetryState $maxGen $nExpansion $updatedVisits $cumulativeEvaluations)
-   ;; A failed representation consumes one bounded expansion attempt. Without
-   ;; this transition, `revisit < 0` could select an intrinsically unexpandable
-   ;; tree forever without spending either generation or evaluation budget.
-   ((- $maxGen 1) (+ $nExpansion 1) $updatedVisits $cumulativeEvaluations))
-
 ;; Test whether the complete-run scorer-call allowance has been exhausted.
 ;; A negative configured allowance is unlimited.
 (= (evaluationBudgetReached $actualEvaluations)
@@ -286,9 +278,10 @@
                 ($_clear (clearSpace &treeSpace))
                 ($_cut (cut))
                 )
-            (let ($retryGen $retryExpansion $retryVisits $retryEvaluations)
-                    (emptyRepresentationRetryState $maxGen $nExpansion $updatedVisits $cumulativeEvaluations)
-              (runMosesCounted $retryGen $maxScore $metaPop $retryExpansion $nDeme $context $optimize $retryVisits $retryEvaluations)))
+            ;; A failed representation consumes one generation and one
+            ;; expansion, but no evaluation. Without this, `revisit < 0` could
+            ;; select an unexpandable tree forever without spending budget.
+            (runMosesCounted (- $maxGen 1) $maxScore $metaPop (+ $nExpansion 1) $nDeme $context $optimize $updatedVisits $cumulativeEvaluations))
           (let* (
                 ($updatedEvaluations (+ $cumulativeEvaluations $actualEvaluations))
                 ($mergeContext (mergeContextFor $context))

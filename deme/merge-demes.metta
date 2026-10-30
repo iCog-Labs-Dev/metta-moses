@@ -173,7 +173,7 @@
 ;; (: getNewCandidates (-> (List (Exemplar $a)) (OS (Exemplar $a)) (List (Exemplar $a))))
 (= (getNewCandidates () $metaPop) ())
 (= (getNewCandidates (cons $xmp $xmpl) $metaPop)
-     (if (OS.isMember $xmp $metaPop)
+     (if (OS.contains $metaPop $xmp)
         (getNewCandidates $xmpl $metaPop)
         (let $updatedMetaPop (OS.insert compareExemplar $xmp $metaPop) (cons $xmp (getNewCandidates $xmpl $updatedMetaPop))))
 )

@@ -76,10 +76,6 @@
 (= (sort-moves $indices)
     (intersect-order (4 0 2 6 8 1 3 5 7) $indices))
 
+;; The elements of $priorityList that are in $available, in priority order.
 (= (intersect-order $priorityList $available)
-    (if (== $priorityList ())
-        ()
-        (let ($h $t) (decons-atom $priorityList)
-            (if (once (is-member $h $available))
-                (cons-atom $h (intersect-order $t $available))
-                (intersect-order $t $available)))))
+    (filter-atom $priorityList $h (once (is-member $h $available))))

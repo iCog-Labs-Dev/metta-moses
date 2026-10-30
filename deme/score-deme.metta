@@ -149,19 +149,9 @@
 ;; (: featureSetScorer (-> ITable Symbol Number Number Number Number Bool (List Instance) (List (ScoredInstance Number))))
 (= (featureSetScorer $itable $scorerType $miConf  $prePenalty $preMinActivation $preMaxActivation $prePositive $instList)
         ;; (trace! (Scoring with $scorerType for featureSelection $instList)
-            (case $scorerType
-                (
-                    (mi
-                        (applyMutualInformationBasedScore $instList $itable $miConf ())
-                    )
-                    (pre
-                        (applyPrecisionBasedScore $instList $itable $miConf $prePenalty $preMinActivation $preMaxActivation $prePositive ())
-                    )
-                    ($else 
-                        (applyMutualInformationBasedScore $instList $itable $miConf ())
-                    ) 
-                )
-            )
+            (if (== $scorerType pre)
+                (applyPrecisionBasedScore $instList $itable $miConf $prePenalty $preMinActivation $preMaxActivation $prePositive ())
+                (applyMutualInformationBasedScore $instList $itable $miConf ()))
         ;; )
     
 )

@@ -44,13 +44,10 @@
 ;; The input is sorted, so the recursion stops at the first worse member.
 ;; (: getBetterCandidates (-> (OS (Exemplar $a)) Number (OS (Exemplar $a))))
 (= (getBetterCandidates () $score) ())
-(= (getBetterCandidates (cons $exemplar $rest) $worstScore)
-    (let (mkExemplar $tree $demeId $cScore $bScore) $exemplar
-            (chain (getPenScore $cScore) $penScore
-        
-                (if (>= $penScore $worstScore)
-                    (cons $exemplar (getBetterCandidates $rest $worstScore))
-                    ()))))
+(= (getBetterCandidates (cons (mkExemplar $tree $demeId $cScore $bScore) $rest) $worstScore)
+    (if (>= (getPenScore $cScore) $worstScore)
+        (cons (mkExemplar $tree $demeId $cScore $bScore) (getBetterCandidates $rest $worstScore))
+        ()))
 
 ;; cullAtRandom -- keeps the top $offset exemplars and removes $nToRemove of the others at random.
 ;; This gives poor candidates a chance to survive.

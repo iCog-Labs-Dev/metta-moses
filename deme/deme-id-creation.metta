@@ -12,19 +12,9 @@
 ;; (: createDemeIds (-> Number Number (List DemeId)))
 (= (createDemeIds $nExpansion $nDeme)
     (if (> $nDeme 1)
-        (demeIdList (+ $nExpansion 1) (- $nDeme 1) ())
-        (chain (+ $nExpansion 1) $n 
-            (chain (numStr $n) $str 
-                (chain (mkDemeId $str ) $demeId (cons $demeId ())))))
-            )
+        (demeIdList (+ $nExpansion 1) (- $nDeme 1))
+        (let $demeId (mkDemeId (numStr (+ $nExpansion 1))) ($demeId))))
 
 ;; demeIdList -- creates the deme ids ($nExpansion . 0) .. ($nExpansion . $nDeme)
-(= (demeIdList $nExpansion $nDeme $list)
-    (if (< $nDeme 0)
-        $list
-        (let* (
-                (($str1 $str2) ($nExpansion $nDeme))
-                ($demeId (mkDemeId ($str1 . $str2)))
-                ($newList (cons $demeId $list)))
-
-                (demeIdList $nExpansion (- $nDeme 1) $newList))))
+(= (demeIdList $nExpansion $nDeme)
+    (map-atom (genList 0 $nDeme) $i (mkDemeId ($nExpansion . $i))))
