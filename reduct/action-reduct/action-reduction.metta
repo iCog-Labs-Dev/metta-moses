@@ -56,7 +56,7 @@
 (= (actionTreeToExpression (mkTree (mkNode $rootOp) $children))
    (if (== $children ())
        (if (once (is-member $rootOp (and_seq or_seq exec_seq AND OR)))
-           ($rootOp)
+           (quote ($rootOp)) ;; quoted: ($rootOp) with a defined action head would be a call
            $rootOp)
        (let* (($exprChildren (map-atom $children $child (actionTreeToExpression $child)))
               ($filteredChildren (filter-atom $exprChildren (!= ()))))
