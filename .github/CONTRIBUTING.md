@@ -1,6 +1,6 @@
 # Contributing Guidelines 
 ## Branching
-You always create a branch from an existing branch. Typically, you might create a new branch from the default branch of your repository. You can then work on this new branch in isolation from changes that other people are making to the repository.
+You always create a branch from an existing branch. In this repository, create feature and fix branches from `dev`, or from the integration branch that your task names. Do not branch from `main` and do not open a feature pull request against `main`. See [Git flow](#git-flow) below. You can then work on this new branch in isolation from changes that other people are making to the repository.
 
 Once you're satisfied with your work, you can open a pull request to merge the changes in the current branch (the head branch) into another branch (the base branch). After a pull request has been merged, or closed, the head branch can be deleted as it is no longer needed.
 
@@ -18,6 +18,8 @@ You can link a pull request to an issue to show that a fix is in progress and to
 When creating a pull request, follow a few best practices for a smoother review process. 
 ##### Write small PRs
 Aim to create small, focused pull requests that fulfill a single purpose. Smaller pull requests are easier and faster to review and merge, leave less room to introduce bugs, and provide a clearer history of changes.
+##### Choose the right base branch
+Open your pull request against `dev` or against the integration branch of your task. Before you open it, update your branch (or your fork) from that base, so that the diff shows only your work.
 ##### Review your own pull request first
 Test your own pull request before submitting it. This will allow you to catch errors or typos that you may have missed, before others start reviewing. Make sure there are no merge conflicts with the branch your are sending the pull request to.
 ##### Provide context and guidance
@@ -25,6 +27,10 @@ Write clear titles and descriptions for your pull requests so that reviewers can
 - the purpose of the pull request
 - an overview of what changed
 - links to any additional context such as tracking issues or previous conversations
+- how you tested it: the exact commands, the PeTTa runtime and its commit, and the result of each test file you touched
+- every test you changed, and the reason
+
+Keep the description short enough for a reviewer to read in two minutes. Describe the whole branch from its base, not only the last commit.
 
 You can follow the template that is provided in our repo.
 
@@ -68,6 +74,8 @@ For the first line of the commit message use a short summary of all the changes 
 
 Sometimes it makes sense to do 1 bullet point for multiple files (you changed a variable in 10 places, you abstracted code to a function and replaced its usage across the project, etc…). The key to the bullet points is to start with “CRUD”-based language: “- added ...,” “- revised ...,” “- removed ...” to indicate the action taken and then add the **WHY** in the explanation: “- added an aria-label attribute to the icon tag since a label wasn’t previously provided and we need to pass accessibility standards.” The why provides every person looking at the code from that moment on all the info they need to choose to refactor it, delete it, etc… in the future.
 
+Commit as yourself only. Do not add AI co-author lines (for example `Co-Authored-By: Claude ...`) or "Generated with" lines to commits or pull requests.
+
 For more information on writing commit message, see “[Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)”
 ## Issues Tracking
 
@@ -86,24 +94,37 @@ For more information on writing commit message, see “[Conventional Commits](ht
 
 ### Organization of files and directories
 The project is organized into different folders based on functionality and reusability:
-- Files specific to the boolean reduction process that cannot be reused outside of this context are located in the `boolean-reduct` folder.
-- Utility functions that are boolean reduction specific but can be reused within this context are found in the `boolean-reduct/rte-helpers.metta`.
-- Utility functions that are specific to a certain file and aren't necessarily needed by any other file yet should be put within the same file. For example, helper functions that are specific to the `boolean-reduct/promote-common-constraints.metta` file are found in this same file. Whenever the functions defined here are needed by any other files in the `boolean-reduct`, they will be moved to the `boolean-reduct/rte-helpers.metta`.
-- Corresponding tests for each folder are placed in a `tests` subdirectory within that same folder. For example, tests for boolean reduction are found in `boolean-reduct/tests`, while utility tests are in `utilities/tests`. 
+- Files specific to the boolean reduction process that cannot be reused outside of this context are located in the `reduct/boolean-reduct` folder.
+- Utility functions that are boolean reduction specific but can be reused within this context are found in the `reduct/boolean-reduct/rte-helpers.metta`.
+- Utility functions that are specific to a certain file and aren't necessarily needed by any other file yet should be put within the same file. For example, helper functions that are specific to the `reduct/boolean-reduct/promote-common-constraints.metta` file are found in this same file. Whenever the functions defined here are needed by any other files in the `reduct/boolean-reduct`, they will be moved to the `reduct/boolean-reduct/rte-helpers.metta`.
+- Corresponding tests for each folder are placed in a `tests` subdirectory within that same folder (a few older folders use `test`; keep the name that the folder already uses). For example, tests for boolean reduction are found in `reduct/boolean-reduct/tests`, while utility tests are in `utilities/tests`. 
 - When creating a new file, its test should be defined in the appropriate folder. The name of the test file should start with the same name as the file it's testing and has an extension of `-test.metta`.
 - Reusable code that can be applied across multiple use cases is placed in the `utilities` folder. These helpers mainly include `utilities/general-helpers.metta`.
 ### Creating new files
 Whenever a new file is defined, it should follow our current project structure. Please adhere to the following rules:
 - **Self-contained Functions**: The file should include all the unique functions it needs to operate. These functions should be specific to the code within that file.
-- **Location for Boolean Reduction Files**: If the file contains Metta code that is specific to the boolean reduction process, place it in the `boolean-reduct` folder. For example: `boolean-reduct/<new-file>.metta`.
+- **Location for Boolean Reduction Files**: If the file contains Metta code that is specific to the boolean reduction process, place it in the `reduct/boolean-reduct` folder. For example: `reduct/boolean-reduct/<new-file>.metta`.
 - **Reusable Functions** : If the file contains functions that can be reused:
-	- **Within the context of boolean reduction**, move those functions to the `boolean-reduct/rte-helpers.metta` file.
+	- **Within the context of boolean reduction**, move those functions to the `reduct/boolean-reduct/rte-helpers.metta` file.
 	- **Regardless of the use case**, such functions should be placed in `utilities/general-helpers.metta`.
 
 In short:
-- Boolean reduction-specific files go in `boolean-reduct/`.
-- Reusable functions should go in either `boolean-reduct/rte-helpers.metta` or `utilities/general-helpers.metta`, depending on the context.
-- Any executable code should be found in the `*-test.metta` files only. The rest of the files should contain the definitions of functions.
+- Boolean reduction-specific files go in `reduct/boolean-reduct/`.
+- Reusable functions should go in either `reduct/boolean-reduct/rte-helpers.metta` or `utilities/general-helpers.metta`, depending on the context.
+- Any executable code should be found in the `*-test.metta` files and in the entry point `moses.metta` only. The rest of the files should contain the definitions of functions.
+- Global settings (hyperparameters) belong in `parameters/defaults.metta`. Read them with `param` and change them with `set-param`. Do not hard-code them in other files.
+
+## Running and testing
+
+- The code runs on PeTTa. The team's production runtime is PeTTaV1 (ask the lead for the exact commit). CI runs `python3 scripts/run-tests.py` in the `indominyus/petta:latest` image.
+- Always run MeTTa with a memory cap and a time limit. An unbounded run can use all RAM and stop the whole machine:
+  ```sh
+  ( ulimit -v 8000000; timeout 600 sh /path/to/PeTTa/run.sh deme/tests/score-deme-test.metta -s )
+  ```
+- Run each test file that you touch on its own, then the full suite with `python3 scripts/run-tests.py` (it needs `run.sh` on your `PATH`).
+- Never remove a test, and never change its meaning (for example its expected value), without the lead's approval. A new seed or a changed result order needs a reason in the pull request.
+- A refactor must not change any expected value. If one changes, the code is wrong, not the test.
+- Expected values come from classic OpenCog MOSES or from a measurement. Say where each number comes from.
 
 ## Code conventions
 ### Naming Conventions
@@ -192,7 +213,7 @@ Example:
 - Every new function should be documented using comments right before its definition.
 - Comments should be sufficient to describe the function's purpose and how it works at a high level. _A comment for a function should be enough to give a high level description of what the function purpose is or what it tries to achieve without looking into the code._
 - Include examples in the comments if necessary.
-- It is recommended to comment every function, no matter how small it seems.
+- Keep comments short. Explain the purpose, the design decisions and any hazard (for example a `quote` that stops a live function head from evaluating). Do not narrate the code line by line, and do not keep long essays or change logs in comments.
 
 ## Git flow
 
@@ -229,14 +250,14 @@ This branch is used to develop new features for the upcoming or a distant future
 
 When incorporating feature branches to `dev` using CLI, you can use the following:
 ```bash
-$ git checkout develop
-Switched to branch 'develop'
+$ git checkout dev
+Switched to branch 'dev'
 $ git merge --no-ff myfeature
 Updating ea1b82a..05e9557
 (Summary of changes)
 $ git branch -d myfeature
 Deleted branch myfeature (was 05e9557).
-$ git push origin develop
+$ git push origin dev
 ```
 
 The `--no-ff` flag causes the merge to always create a new commit object. This avoids losing information about the historical existence of a feature branch and groups together all commits that together added the feature. 
@@ -269,12 +290,12 @@ When finished working on this release and it's ready to be rolled out:
 
 The above steps in git commands:
 ```bash
-$ git checkout master
-Switched to branch 'master'
-$ git merge --no-ff release-1.2
+$ git checkout main
+Switched to branch 'main'
+$ git merge --no-ff release-0.7.0
 Merge made by recursive.
 (Summary of changes)
-$ git tag -a 1.2
+$ git tag -a v0.7.0
 ```
 
 You can add tags using the GitHub CLI. Instructions are found [here](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
