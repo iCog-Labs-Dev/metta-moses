@@ -33,16 +33,17 @@
                  (candidateScore $context $tree $score))
        True))
 
-;; Empty the candidate-score cache. Collapse the matches first, then remove:
-;; never change the space while match iterates it. Callers ignore the result.
-(= (resetCandidateScoreCache)
-   (let $entries
-        (collapse (match &candidateScoreCache $entry $entry))
-     (map-atom $entries $e (remove-atom &candidateScoreCache $e))))
+;; Remove every atom from a cache space. Collapse the matches first, then
+;; remove: never change the space while match iterates it. (clearSpace in
+;; general-helpers removes inside get-atoms, so it is not used here.)
+(= (emptySpace $space)
+   (let $entries (collapse (match $space $e $e))
+     (map-atom $entries $e (remove-atom $space $e))))
+
+;; Empty the candidate-score cache. Callers ignore the result.
+(= (resetCandidateScoreCache) (emptySpace &candidateScoreCache))
 
 ;; Empty the subtree cache. A run scores ONE fixed table, and every entry is
 ;; valid only for that table -- call this before scoring against a DIFFERENT
 ;; table in the same process (e.g. a test file exercising two tables).
-(= (resetSubtreeCache)
-   (let $entries (collapse (match &subtreeCache $e $e))
-     (map-atom $entries $e (remove-atom &subtreeCache $e))))
+(= (resetSubtreeCache) (emptySpace &subtreeCache))
