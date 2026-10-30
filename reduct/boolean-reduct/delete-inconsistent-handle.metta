@@ -103,7 +103,7 @@
                                         (if (== $grandChild ())
                                           ($child () False)
                                           (let ($h $t) (decons-atom $grandChild)
-                                               (applyDeleteIncons6 $child $h $dominantSet $t $applied True)
+                                               (deleteInconsInGrandchildren $child $h $dominantSet $t)
                                           )
                                         )
                     )
@@ -112,13 +112,14 @@
                     ($updatedParent (findAndReplace $newCurrent $updatedCurrent $newParent))
                     ;; ($_ (println! (Updated Parent: $updatedParent : UpdatedCurrent: $updatedCurrent Bool: (any $appliedOnCurrent $appliedOnChild $applied) )))
                 )
-                (applyDeleteIncons5 $updatedParent $updatedCurrent $dominantSet $appliedOnCurrent $rest)
+                (deleteInconsInSiblings $updatedParent $updatedCurrent $dominantSet $appliedOnCurrent $rest)
             )    
         )
     )
 )
 
-(= (applyDeleteIncons5 $parent $current $dominantSet $applied $children)   
+;; Applies deleteInconsistentHandle to each node of $children, with $current as the parent.
+(= (deleteInconsInSiblings $parent $current $dominantSet $applied $children)   
     (if (== $children ())
         ($parent $current $applied)
         (let*
@@ -131,12 +132,13 @@
               ($updatedParent (findAndReplace $current $updatedCurrent $parent))
               ;; ($_ (println! (UpdatedParent: $updatedParent : UpdatedCurrent: $updatedCurrent Bool: $bool)))
           )
-          (applyDeleteIncons5 $updatedParent $updatedCurrent $dominantSet $applied $rest)
+          (deleteInconsInSiblings $updatedParent $updatedCurrent $dominantSet $applied $rest)
       )
     )
 )
 
-(= (applyDeleteIncons6 $parent $current $dominantSet $children $appliedToParent $checkingChild)
+;; Applies deleteInconsistentHandle to the grandchild $current and then to the rest of the grandchildren.
+(= (deleteInconsInGrandchildren $parent $current $dominantSet $children)
     (if (== $children ())
         (deleteInconsistentHandle $parent $current $dominantSet)
         (let*
@@ -148,6 +150,6 @@
                   ($updatedParent (findAndReplace $current $updatedCurrent $parent))
                 ;; ($_ (println! (UpdatedParent: $updatedParent : UpdatedCurrent: $updatedCurrent Bool: $bool)))
               )
-              (applyDeleteIncons5 $updatedParent $updatedCurrent $dominantSet $bool $rest)
+              (deleteInconsInSiblings $updatedParent $updatedCurrent $dominantSet $bool $rest)
         ))
 )

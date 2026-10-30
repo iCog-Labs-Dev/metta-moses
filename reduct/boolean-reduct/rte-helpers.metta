@@ -73,7 +73,7 @@
                 (empty)
                 $exp)))
 
-(= (isChildren $exp)
+(= (isChild $exp)
         (if (== (get-metatype $exp) Symbol)
             (isConstant $exp)
             (!= (car-atom $exp) NOT)))
@@ -88,7 +88,7 @@
          (() $exp)
          ((NOT $x) ())
          ($else (if (== (get-metatype $exp) Expression)
-                          (filter-atom $exp isChildren)
+                          (filter-atom $exp isChild)
                           ())))))
 
 ;; A function to add a list of children to a given expression.

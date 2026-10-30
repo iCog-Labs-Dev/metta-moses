@@ -136,8 +136,8 @@
 ;; (for and_seq bodies) or with the single body action (for leaf bodies).
 ;; If so, that suffix of the prefix is removed.
 
-(= (reduceRepeatOutWhile () $processed) $processed)
-(= (reduceRepeatOutWhile $args $processed)
+(= (dropRepeatedPrefixes () $processed) $processed)
+(= (dropRepeatedPrefixes $args $processed)
    (let* ((($h $t) (decons-atom $args))
           ($newProcessed
           (if (= $h (action_while $body))
@@ -154,13 +154,13 @@
                     (removeEndSingle $processed)
                     $processed))
             $processed)))
-     (reduceRepeatOutWhile $t (concatTuple $newProcessed (quote ($h))))))
+     (dropRepeatedPrefixes $t (concatTuple $newProcessed (quote ($h))))))
 
 (= (reduceRepeatOutActionWhile $expr)
    (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
        (let ($op $args) (decons-atom $expr)
          (if (== $op and_seq)
-             (let $newArgs (reduceRepeatOutWhile $args ())
+             (let $newArgs (dropRepeatedPrefixes $args ())
                (cons-atom and_seq $newArgs))
              $expr))
        $expr))

@@ -48,7 +48,7 @@
 ;;         Otherwise, it will just return the unchanged state.
 ;; Example: input: POA ==> (AND), parent ==> (OR A C (AND) (OR A B))
 ;;          output: ((OR A C (OR A B)) () True)
-(= (zeroConstraintSubsume' $parent $current)
+(= (zeroConstraintSubsumeEmptyNode $parent $current)
   (case ((get-metatype $current) $current)
     (
       ((Expression ()) ($parent $current False))

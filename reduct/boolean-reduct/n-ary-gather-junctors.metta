@@ -76,14 +76,14 @@
 
 ;; gatherJunctors flattens nested junctors with the same operator:
 ;; (OR A (OR B C)) -> (OR A B C).
-(= (nary-gather-junctors $expr $prev)
+(= (gatherJunctors $expr $prev)
     (
         if (== (get-metatype $expr) Expression)
                 (
             let* (
                 ($op (car-atom $expr)) 
                 ($tuple (cdr-atom $expr))
-                ($newTuple (fold concat-tuple () (map-atom $tuple $tp (nary-gather-junctors $tp $op))))
+                ($newTuple (fold concat-tuple () (map-atom $tuple $tp (gatherJunctors $tp $op))))
                 ($tupleWithOp (cons-atom $op $newTuple))
             )
             (
@@ -104,4 +104,4 @@
 
 
  
-(= (gatherJunctors $expr) (nary-gather-junctors $expr ()))
+(= (gatherJunctors $expr) (gatherJunctors $expr ()))

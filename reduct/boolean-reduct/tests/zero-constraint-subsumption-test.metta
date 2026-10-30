@@ -34,16 +34,16 @@
 
 ;; Test case for AND node variation of 0Subsume 
 ;; Test 01
-!(assertEqual (zeroConstraintSubsume' (OR A B (AND) (OR A B) F) (AND)) ((AND) (AND) True))
+!(assertEqual (zeroConstraintSubsumeEmptyNode (OR A B (AND) (OR A B) F) (AND)) ((AND) (AND) True))
 
 ;; Test 02
-!(assertEqual (zeroConstraintSubsume' (AND A B (OR) (AND A B) F) (OR)) ((AND A B (AND A B) F) () True))
+!(assertEqual (zeroConstraintSubsumeEmptyNode (AND A B (OR) (AND A B) F) (OR)) ((AND A B (AND A B) F) () True))
 
 ;; Test 03
-!(assertEqual (zeroConstraintSubsume' (OR A B (AND A) (OR A B) F) (AND A)) ((OR A B (AND A) (OR A B) F) (AND A) False))
+!(assertEqual (zeroConstraintSubsumeEmptyNode (OR A B (AND A) (OR A B) F) (AND A)) ((OR A B (AND A) (OR A B) F) (AND A) False))
 
 ;; Test 04
-!(assertEqual (zeroConstraintSubsume' (OR A B (AND (OR)) (OR A B) F) (AND (OR))) ((OR A B (AND (OR)) (OR A B) F) (AND (OR)) False))
+!(assertEqual (zeroConstraintSubsumeEmptyNode (OR A B (AND (OR)) (OR A B) F) (AND (OR))) ((OR A B (AND (OR)) (OR A B) F) (AND (OR)) False))
 
 ;; Test 05
-!(assertEqual (zeroConstraintSubsume' (OR A B (AND A (OR)) (OR A B) F) (AND A (OR))) ((OR A B (AND A (OR)) (OR A B) F) (AND A (OR)) False))
+!(assertEqual (zeroConstraintSubsumeEmptyNode (OR A B (AND A (OR)) (OR A B) F) (AND A (OR))) ((OR A B (AND A (OR)) (OR A B) F) (AND A (OR)) False))

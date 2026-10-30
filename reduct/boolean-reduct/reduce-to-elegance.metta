@@ -94,7 +94,7 @@
                                         (let $h (car-atom $childFromParent)
                                              (if (== (get-metatype $h) Expression) $h $childFromParent))))
                       ;; ($_ (println! (zeroCurrent: $current --> $zeroCurrent)))
-                      (($finalParent $finalCurrent $finalBool) (zeroConstraintSubsume' $updatedParent' $zeroCurrent)) ;; Apply 0-Subsume variation.
+                      (($finalParent $finalCurrent $finalBool) (zeroConstraintSubsumeEmptyNode $updatedParent' $zeroCurrent)) ;; Apply 0-Subsume variation.
                       ;; Bare (AND) is data only because this file loads before scoring/boolean-ops.
                       ($finalCurrent' (if (== $finalCurrent ()) (AND) $finalCurrent))
                       ;; ($_ (println! (Final Result ==> FinalParent: $parent --> $finalParent FinalCurrent: $current --> $finalCurrent' AppliedRTE: (any ($appliedRedundantOr1CC $appliedOneSubsume $bool $finalBool)))))
@@ -120,7 +120,7 @@
                       ;;    orCut
                       ;;    apply RTE on children.
                      (($_orCommandSet $_orDominantSet ($updatedParent $updatedCurrent $bool)) (until transformationsNotApplied applyOrTransformations ($commandSet $dominantSet ($promoteParent $promoteCurrent True))))
-                     (($finalUpdatedParent $finalUpdatedCurrent $finalBool) (zeroConstraintSubsume' $updatedParent $updatedCurrent))
+                     (($finalUpdatedParent $finalUpdatedCurrent $finalBool) (zeroConstraintSubsumeEmptyNode $updatedParent $updatedCurrent))
 
                     ;; ($_ (println! (===RTE OR CASE Log===)))
                     ;; ($_ (println! (Promote ==> Parent: $promoteParent Current: $promoteCurrent Applied: $appliedPromote)))
