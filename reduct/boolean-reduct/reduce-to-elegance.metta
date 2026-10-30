@@ -44,6 +44,7 @@
 
                       ;; TODO: Replace the setDifference function with non deterministic functions
                       ($updatedGuardSet (setDifference $guardSet $dominantSet)) ;; Apply Redundant to current
+                      ;; TODO: Replace this 1CCS application with the correct logic in it's own function.
                       ;; Subtract the NEGATED command set: 1CC erases literals whose negation is commanded.
                       ;; Raw subtraction does 1-Subsume's job instead, and leaves the guard set disjoint
                       ;; from the command set so oneConstraintSubsume can never fire. (logical_rules.cc:642)
