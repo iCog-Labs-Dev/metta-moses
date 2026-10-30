@@ -20,6 +20,7 @@
 !(import! &self ../../../representation/build-knobs)
 !(import! &self ../../../representation/knob-mapper)
 !(import! &self ../../../feature-selection/feature-selection-helpers)
+!(import! &self ../../../representation/candidate)
 !(import! &self ../../../representation/representation)
 !(import! &self ../../../representation/create-representation)
 

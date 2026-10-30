@@ -48,6 +48,7 @@
 !(import! &self ../../representation/knob-mapper)
 !(import! &self ../../optimization/hillclimbing/crossover-helpers)
 !(import! &self ../../optimization/hillclimbing/crossover)
+!(import! &self ../../representation/candidate)
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
 !(import! &self ../../feature-selection/hc)
 !(import! &self ../../feature-selection/feature-selection-main)
