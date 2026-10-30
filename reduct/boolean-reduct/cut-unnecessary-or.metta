@@ -57,8 +57,7 @@
       (let*
         (
           (($updatedParent $updatedChild $appliedOrCut) (orCut $parent $child))
-          ($nextChild (if (!= $remainingChildren ()) (car-atom $remainingChildren) ()))
-          ($restChildren (if (!= $remainingChildren ()) (cdr-atom $remainingChildren) ()))
+          (($nextChild $restChildren) (if (== $remainingChildren ()) (() ()) (decons-atom $remainingChildren)))
         )
         ($updatedParent (or $appliedOrCut $bool) ($nextChild $restChildren))
       )

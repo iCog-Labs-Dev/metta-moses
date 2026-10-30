@@ -156,8 +156,7 @@
         ;; ($_ (println! (GuardSet of Current: $guardSet)))
         ;; ($_ (println! (Children of Current: $children)))
 
-        ($firstChild (if (!= $children ()) (car-atom $children) ()))
-        ($remainingChildren (if (!= $firstChild ()) (cdr-atom $children) ()))
+        (($firstChild $remainingChildren) (if (== $children ()) (() ()) (decons-atom $children)))
 
         ($handleSet (unique-atom (union-atom $guardSet $dominantSet))) ;; Compute new dominantSet
         
@@ -191,8 +190,7 @@
                             ;; ($_ (println! ("Applyed reduceToElegance ==> FinalUpdatedParent:" $finalUpdatedParent "FinalUpdatedCurrent: " $finalUpdatedCurrent "AppliedRTE: " $bool)))
 
                             ($grandChildren (getChildrenExp $finalUpdatedCurrent))
-                            ($firstGrandChild (if (!= $grandChildren ()) (car-atom $grandChildren) ()))
-                            ($remainingGChildren (if (!= $firstGrandChild ()) (cdr-atom $grandChildren) ()))
+                            (($firstGrandChild $remainingGChildren) (if (== $grandChildren ()) (() ()) (decons-atom $grandChildren)))
 
                             ;; ($_ (println! (Applying OrCut to GrandChildren: $grandChildren)))
 
@@ -230,8 +228,7 @@
         ;; ($_ (println! (Parameters ==> CommandSet: $commandSet DominantSet: $dominantSet Parent: $parent PrevCurrent: $prevCurrent Bool: $bool FirstChild: $firstChild RemainingChildren: $remainingChildren)))
         ;; ($_ (println! ""))
 
-        ($nextChild (if (!= $remainingChildren ()) (car-atom $remainingChildren) ()))
-        ($rest (if (!= $remainingChildren ()) (cdr-atom $remainingChildren) ()))
+        (($nextChild $rest) (if (== $remainingChildren ()) (() ()) (decons-atom $remainingChildren)))
 
 
         ;; Every OTHER single-constraint alternative of this OR commands $firstChild, for this
@@ -243,8 +240,7 @@
         ($updatedParent (findAndReplace $prevCurrent $updatedCurrent $parent))
 
         ($updatedChildren (getChildrenExp $updatedCurrent))
-        ($resetNextChild (if (!= $updatedChildren ()) (car-atom $updatedChildren) ()))
-        ($resetRemainingChildren (if (!= $resetNextChild ()) (cdr-atom $updatedChildren) ()))
+        (($resetNextChild $resetRemainingChildren) (if (== $updatedChildren ()) (() ()) (decons-atom $updatedChildren)))
 
         ;; ($_ (println! (===ApplyReduceToEleganceToAND Log===)))
         ;; ($_ (println! (UpdatedParent: $updatedParent UpdatedCurrent: $updatedCurrent UpdatedChild: $updatedChild AppliedRTE: $appliedRTE)))
@@ -254,10 +250,8 @@
 
      ;; Resetting is needed only when a transformation is applied in this state.
      ;; It shouldn't be influenced by previous iteration.
-     (if $appliedRTE
-         ($commandSet $dominantSet ($updatedParent $updatedCurrent (or $appliedRTE $bool)) ($resetNextChild $resetRemainingChildren))
-         ($commandSet $dominantSet ($updatedParent $updatedCurrent (or $appliedRTE $bool)) ($nextChild $rest))
-     )
+     (let $next (if $appliedRTE ($resetNextChild $resetRemainingChildren) ($nextChild $rest))
+       ($commandSet $dominantSet ($updatedParent $updatedCurrent (or $appliedRTE $bool)) $next))
    )
 )
 
@@ -277,8 +271,7 @@
 
 
         ($children (getChildrenExp $current))
-        ($firstChild (if (!= $children ()) (car-atom $children) ()))
-        ($remainingChildren (if (!= $firstChild ()) (cdr-atom $children) ()))
+        (($firstChild $remainingChildren) (if (== $children ()) (() ()) (decons-atom $children)))
 
         ;; ($_ (println! (===ApplyOrTransformations Log===)))
         ;; ($_ (println! (0Subsume ==> Parent: $zeroSubsumeParent Current: $zeroSubsumeCurrent Applied: $appliedZeroSubsume)))
@@ -321,8 +314,7 @@
               ;; in $dominantSet, and feeding it here would erase a contradiction instead of letting
               ;; deleteInconsistentHandle delete the branch. (logical_rules.cc:715)
               ($localCommandSet (localCommandSet $currentChild (getChildrenExp $prevCurrent) () $commandSet)) ;; Compute local command set
-              ($nextChild (if (!= $remainingChildren ()) (car-atom $remainingChildren) ()))
-              ($restChildren (if (!= $nextChild ()) (cdr-atom $remainingChildren) ()))
+              (($nextChild $restChildren) (if (== $remainingChildren ()) (() ()) (decons-atom $remainingChildren)))
 
               (($updatedCurrent $updatedChild $appliedRTE) (reduceToElegance $prevCurrent $currentChild $dominantSet $localCommandSet))
               (($promoteCurrent $promoteChild $appliedPromote) (promoteCommonConstraints $updatedCurrent $updatedChild))
@@ -330,8 +322,7 @@
               ;; ($_ (println! (Applied Promote ==> Current: $promoteCurrent Child: $promoteChild Applied: $appliedPromote)))
 
               ($grandChildren (getChildrenExp $promoteCurrent))
-              ($firstGChild (if (!= $grandChildren ()) (car-atom $grandChildren) ()))
-              ($remainingGChildren (if (!= $firstGChild ()) (cdr-atom $grandChildren) ()))
+              (($firstGChild $remainingGChildren) (if (== $grandChildren ()) (() ()) (decons-atom $grandChildren)))
 
               (($finalUpdatedCurrent $appliedAndCut ($lastChild $rest)) (until hasNoNextChild applyAndCut ($promoteCurrent False ($firstGChild $remainingGChildren))))
               ($finalUpdatedParent (findAndReplace $prevCurrent $finalUpdatedCurrent $parent))
@@ -339,11 +330,10 @@
               ;; ($_ (println! (Applied AndCut==> FinalupdatedCurrent: $finalUpdatedCurrent FinalUpdatedParent: $finalUpdatedParent AppliedAndCut: $appliedAndCut)))
 
               ($updatedChildren (getChildrenExp $finalUpdatedCurrent))
-              ($updatedFirstChild (if (!= $updatedChildren ()) (car-atom $updatedChildren) ()))
-              ($updatedRestChildren (if (!= $updatedFirstChild ()) (cdr-atom $updatedChildren) ()))
+              (($updatedFirstChild $updatedRestChildren) (if (== $updatedChildren ()) (() ()) (decons-atom $updatedChildren)))
 
-              ;; The $bool here is useful to determine whether an RTE is applied or not through out the entire iteration.
-              ($returnValue ($commandSet $dominantSet ($finalUpdatedParent $finalUpdatedCurrent (any ($appliedRTE $bool $appliedAndCut))) ($nextChild $restChildren)))
+              ;; $bool tells whether an RTE was applied anywhere in the whole iteration.
+              ($applied (any ($appliedRTE $bool $appliedAndCut)))
 
               ;; ($_ (println! (===ApplyReduceToEleganceToOr Log===)))
               ;; ($_ (println! (Children: (getChildrenExp $prevCurrent) GuardSet: (getGuardSet $prevCurrent))))
@@ -355,11 +345,10 @@
           )
           ;; Resetting is needed only when a transformation is applied in this state.
           ;; It shouldn't be influenced by previous iteration.
-          (if (any ($appliedRTE $appliedAndCut))
-              ;; Resetting iteration if promote or RTE is applied.
-              ($commandSet $dominantSet ($finalUpdatedParent $finalUpdatedCurrent (any ($appliedRTE $bool $appliedAndCut))) ($updatedFirstChild $updatedRestChildren))
-              $returnValue
-          )
+          (let $next (if (any ($appliedRTE $appliedAndCut))
+                         ($updatedFirstChild $updatedRestChildren)
+                         ($nextChild $restChildren))
+            ($commandSet $dominantSet ($finalUpdatedParent $finalUpdatedCurrent $applied) $next))
        )
        ($commandSet $dominantSet ($parent $prevCurrent False) (() ()))
    )
