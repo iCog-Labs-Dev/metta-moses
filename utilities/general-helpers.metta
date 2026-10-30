@@ -79,17 +79,15 @@
 ;; Return the elements of $set1 that are not in $set2.
 ;; moses/tests/rte-helpers-fast.pl overrides this function with native Prolog clauses.
 ;; (: setDifference (-> Expression Expression Expression))
-(= (setDifference $set1 $set2) 
-    (if (== $set1 ()) ()
-        (let* (
-            ($head (car-atom $set1))
-            ($tail (cdr-atom $set1))
-            ($newtail (setDifference $tail $set2))
-        )
-            (if (once (is-member $head $set2))
-                $newtail 
-                (if (== (get-metatype $newtail) Expression) (cons-atom $head $newtail) $head)
-            ))))
+;; The tail is processed before the head test, so variable elements bind in that order.
+;; Do not use filter-atom here: it copies $set2 for each element, and a variable
+;; element then no longer binds (probe: (setDifference (a b) ($v)) gives () not (a)).
+(= (setDifference () $set2) ())
+(= (setDifference (cons $head $tail) $set2)
+   (let $newTail (setDifference $tail $set2)
+     (if (once (is-member $head $set2))
+         $newTail
+         (cons-atom $head $newTail))))
 
 ;; A helper function for the findAndReplace function.
 ;; It handles the replacement of a single atom.
