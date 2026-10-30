@@ -6,35 +6,6 @@
 ;;  $subtree: The subtree that the knob controls.
 ;; Returns: ($controlledSubtree $lsk). The default setting is 1 when the
 ;;  subtree (or its negation) is already a child, else 0 and a null vertex.
-;; (:logicalSubtreeKnob (-> (Tree $a) NodeId (Tree $a) (Tree $a LogicalSubtreeKnob)))
-;; (= (logicalSubtreeKnob $tree (mkNodeId $target) $subtree)
-;;    (let*
-;;    (
-;;     ($negatedSubtree (insertAbove $subtree (mkNode NOT)))
-;;     ;; ($_ (println! (NegatedSubtree----------------- : $negatedSubtree)))
-;;     ($reducedSubtree (cleanTree $negatedSubtree)  )
-;;     ;; ($_ (println! (ReducedSubtree---------------: $reducedSubtree))) 
-;;     ($childrenOfTarget (getChildrenById $tree (mkNodeId $target)))
-;;    )
-;;    (if (== True (List.contains $subtree $childrenOfTarget))
-;;        (let $idOfSubtree (getSubtreeId $tree (mkNodeId $target) $subtree 0)
-;;            ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())))
-;;        )
-;;        (if (== True (List.contains $reducedSubtree $childrenOfTarget))
-;;            (let $idOfReducedSubtree (getSubtreeId $tree (mkNodeId $target) $reducedSubtree 0)
-;;                 ($tree (mkLSK (mkDiscKnob (mkKnob (updateID $idOfReducedSubtree)) (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ()))))
-;;            (let*
-;;            (
-;;             (($nullVexAppendedTree $nullVexId) (appendChild $tree (mkNodeId $target) (mkNullVex ())))
-;;             (($subtreeAppendedTree $subtreeId) (appendChild $nullVexAppendedTree $nullVexId $subtree))
-;;            )
-;;            ($subtreeAppendedTree (mkLSK (mkDiscKnob (mkKnob (updateID $nullVexId)) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))
-;;            )
-;;        )
-;;    )
-;;    )
-;; )
-
 (= (logicalSubtreeKnob (mkTree $node $children ) $subtree)
    (let*
      (

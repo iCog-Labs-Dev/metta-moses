@@ -12,28 +12,6 @@
 ;;      $discProbeDisabled: If true, skip disc probing.
 ;; Return: (lsks updatedTree); the new knobs are embedded in updatedTree.
 
-;; logicalProbe
-;; (: logicalProbe (-> (Tree $a) NodeId Expression Bool Expression Expression))
-;; (= (logicalProbe $exemplar (mkNodeId $targetId) () $addIfInExemplar $knobs) ($knobs $exemplar))
-;; (= (logicalProbe $exemplar (mkNodeId $targetId) $perms $addIfInExemplar $knobs)
-;; (let*
-;; (
-;;     (($headPerms $tailPerms) (decons-atom $perms))
-;;     (($updatedTree $lsk) (logicalSubtreeKnob $exemplar (mkNodeId $targetId) $headPerms))
-;;     ($discKnob (getDiscKnob $lsk))
-;;     ;; ((mkDiscKnob (mkKnob $posId) $multipKnob $spec1 $spec2 $something) $discKnob)
-;;     ;; ($_ (println! (Adding: (getNodeById $updatedTree $posId) isInexemplar: (inExemplar $discKnob))))
-;; )
-;; (if (or $addIfInExemplar (not (inExemplar $discKnob) )) 
-;;     (let* 
-;;     (
-;;         ($updatedKnobs (concatT $knobs ($lsk)))
-;;     )
-;;     (logicalProbe $updatedTree (mkNodeId $targetId) $tailPerms $addIfInExemplar $updatedKnobs)
-;;     )
-;;     (logicalProbe $exemplar (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs))))
-    ;; (trace! (skipping $discKnob because addInExemplar: $addIfInExemplar inExemplar: (inExemplar $discKnob)) (logicalProbe $exemplar (mkNodeId $targetId) $tailPerms $addIfInExemplar $knobs)))))
-
 (= (knobId $subtree $lsk $id) (mkKnob $subtree $lsk $id))
 
 (= (childNodeId (mkNodeId $parentId) $childIndex)
@@ -46,17 +24,6 @@
       (if (== $idx -1)
           (appendChild $tree $targetId $controlledSubtree)
           ($tree (childNodeId $targetId (+ $idx 1))))))
-
-;; Extracts the controlled subtree from a possibly-knob-wrapped child for
-;; membership testing against the original $children list. The case dispatches
-;; in declaration order, with the catch-all $other handling non-knob children
-;; (which are already controlled subtrees themselves).
-(= (findControlledSubtree $ch)
-   (case $ch
-      (
-        ((mkKnob (mkNullVex ($s)) $lsk $i) $s)
-        ((mkKnob (mkTree $node $children) $lsk $i) (mkTree $node $children))
-        ($other $other))))
 
 ;; $tree is the global exemplar tree (read-only). $targetId is the absolute
 ;; id of the node that gets the knob.

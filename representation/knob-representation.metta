@@ -164,8 +164,6 @@
 ;; It is always False, so an insert keeps the insertion order.
 ;; (: discSpec< (-> DiscSpec DiscSpec Bool))
 (= (discSpec< (mkDiscSpec $newKey) (mkDiscSpec $currKey)) False)
-;; (= (discSpec< (mkDiscSpec $newKey) (mkDiscSpec $currKey))
-;; (< $newKey $currKey))
 
 ;; Checks of nodeId1 is lessthan nodeId2.
 ;; Params: $id1 & $id2

@@ -6,39 +6,6 @@
 ;;       $argLabels: list of argument labels (input variables) from the ITable
 ;;       $globalTree, $currentNodeId: the exemplar and the absolute id of $tree in it
 ;; Return: Updated tree and multimap.
-;; (= (buildLogical $tree (mkNodeId $nodeId) $MMap $argLabels)
-;;   (let $subtree (getNodeById $tree (mkNodeId $nodeId))
-;;     (if (== True (isNullVertex $subtree))
-;;         (let $x (println! ("reaching Null Vector ")) ($tree $MMap))
-;;         (let*
-;;         (
-;;             ;; ($_ (println! (Started building at: (preOrder $subtree))))
-;;             ;; ($_ (println! ("****************Building logical knobs for NodeId:**************** " $argLabels $nodeId)))
-;;             ((mkTree (mkNode $op) $childrens) $subtree)
-;;             ($swapped (swapAndOr $op))
-;;             ;; ($_ (println!("Operator: " $op " swapped to: " $swapped)))
-;;             (($t1 $mp1) (addLogicalKnobs $tree (mkNodeId $nodeId) True $MMap $argLabels))
-;;             ;; ($_ (println! ("Building logical knobs for NodeId: " $nodeId " with operator: " $op " swapped to: " $swapped)))
-;;             ;; ($_ (println! (Adding knobs to (List.length $childrens) childs)))
-;;             ;; INFO: An attempt to replicate opencog's behavior but limits the quality drastically
-;;             ;; (($sibToIterate $sibToConcat) (if (= $childrens ())
-;;             ;;                                   (() ())
-;;             ;;                                   (let (mkTree (mkNode $x) $grandChildren) (List.head $childrens)
-;;             ;;                                        (if (and (isAnArgument $x) (= $grandChildren ()))
-;;             ;;                                            ((cons (List.head $childrens) ()) (List.tail $childrens))
-;;             ;;                                            ($childrens ())))))
-;;             ;; ($_ (println! (SibToIterate: $sibToIterate SibToConcat: $sibToConcat)))
-;;
-;;             (($updatedTree $updatedMMap) (siblingit $t1 $childrens (mkNodeId $nodeId) 1 $swapped $mp1 $argLabels))
-;;             ;; (($updatedTree $updatedMMap) (siblingit $t1 $sibToIterate (mkNodeId $nodeId) 1 $swapped $mp1 $argLabels))
-;;             ;; (($childrenUpdatedTree $lastNewId) (eval (List.foldl (|-> ($childToAppend ($treeAcc $newId)) (appendChild $treeAcc (mkNodeId $nodeId) $childToAppend)) ($updatedTree (mkNodeId $nodeId))  $sibToConcat)))
-;;             ;;$append (appendChild $updatedTree $nodeId (mkNode $filp)))                                 ;; this part will add much complexity to the tree, not worth the cost
-;;
-;;             (($appendedTree $newId) (appendChild $updatedTree (mkNodeId $nodeId) (mkTree (mkNode $swapped) ())))
-;;             ;; (($appendedTree $newId) (appendChild $childrenUpdatedTree (mkNodeId $nodeId) (mkTree (mkNode $swapped) ())))
-;;             (($lastUpdatedTree $lastMp1) (addLogicalKnobs $appendedTree $newId True $updatedMMap $argLabels))
-;;         )
-;;             ($lastUpdatedTree $lastMp1)))))
 
 ;; Compute the absolute NodeId for a child during the buildLogical foldl-atom
 ;; recursion. Per the design: knob wrappers don't advance the path (they're

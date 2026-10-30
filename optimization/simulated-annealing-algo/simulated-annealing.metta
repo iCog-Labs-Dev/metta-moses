@@ -95,20 +95,20 @@
           (let*
             (
               ;; Estimate Neighborhood
-              ($_ (println! (Iteration: $i , Temperature: $Temp)))
+              ;; ($_ (println! (Iteration: $i , Temperature: $Temp)))
               ;; ($_ (println! ""))
               ;; ($_ (println! $hyper))
               ;; ($_ (println! ($rows $labels)))
               ($totalNNeighbors ($estimateFunction $d $neighborhood))
 
-              ($_ (println! (Estimated neighbors: $totalNNeighbors)))
-              ($_ (println! ""))
+              ;; ($_ (println! (Estimated neighbors: $totalNNeighbors)))
+              ;; ($_ (println! ""))
               ($nNewNeighbors (min $totalNNeighbors 2))
 
               ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
 
               ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance))))
-              ($_ (println! (Crossover: $xOver)))
+              ;; ($_ (println! (Crossover: $xOver)))
               ;; Generate a new instance using crossover
               
               (((mkDeme $rep $updatedInstSet $id) $newInstances) (case ($xOver $size)
@@ -124,7 +124,7 @@
                                                                         $result))
                                                               )
                                                                     ))
-              ($_ (println! (Newinstances: $updatedInstSet)))
+              ;; ($_ (println! (Newinstances: $updatedInstSet)))
               ;; ($_ (println! ""))
               
               ($scorerType (if (== () $FsScorerType) mi $FsScorerType))
@@ -144,7 +144,7 @@
                           (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
         
 
-              ($_ (println! (Scored instances: $scoredInstances)))
+              ;; ($_ (println! (Scored instances: $scoredInstances)))
               ;; ($_ (println! ""))
 
               ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $prevCenter  $bestSscore)) $scoredInstances))

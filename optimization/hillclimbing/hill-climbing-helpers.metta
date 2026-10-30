@@ -622,7 +622,6 @@
               (println! ($totalNNeighbors : $nNewNeighbors : $d))
               ()))
         ( 
-          ;; $newPOA
           ((mkDeme $rep $updatedInstSet $id) $newInstances)
                                                             (case ($xOver $size)
                                                               (
@@ -641,7 +640,6 @@
                                                               )
                                                           ))
         ;; ($_ (println! (New POASet: $newPOA)))
-        ;; (((mkDeme $rep $upInstSet $id) $newInstances) $newPOA)
         ;; ($_ (println! (New rep: $rep)))
         ;; ($_ (println! (New Inst: $newInstances at Distance: $d)))
         ;; ($exprList (let (mkSInstSet $list) $updatedInstSet (List.listToExpr $list)))
@@ -741,11 +739,11 @@
         ($_ (cut)) ;; Commit choice points before the tail call, as in runMoses.
     )
     (if (<= (- $maxEvals $newCurrentNInstance) 0)
-        (trace! (Terminating because of maxEval ending) ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)))
+        ;; (trace! (Terminating because of maxEval ending) ...)
+        ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
         (if (<= $bestPossibleScore $scoreToCompareBelow)
-                  (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow)
+            ;; (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow) ...)
             ($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI))
-                  )
             (let ($finalCenter $finalDeme ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
               ;; Match the C++ "last chance" rule: simplex crossover is tried
               ;; after a stalled nearest-neighbor scan when widening is off,
@@ -770,13 +768,13 @@
                   )
   
               (if (< $maxDist $finalDistance)
-                  (trace! (Terminating because of maximum distance reached)
+                  ;; (trace! (Terminating because of maximum distance reached) ...)
                   ($finalCenter $finalDeme ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
-                  )
                   ;; With widening disabled, stop at the local optimum exactly
                   ;; as C++ does.  When enabled, continue at the wider distance.
                   (if (and (not $finalHasImproved) (not (param hcWidenSearch)))
-                      (trace! (Terminating because score hasn't improved) ($finalCenter $finalDeme ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI)))
+                      ;; (trace! (Terminating because score hasn't improved) ...)
+                      ($finalCenter $finalDeme ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
                       (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
                                 ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
                                 $finalDeme
@@ -796,14 +794,3 @@
 )
 
 (= (hillScoreHelper $inst1 $inst2) (returnBest < $inst1 $inst2))
-
-;; Helper to get initial disc spec from a knob
-(= (getInitDiscSpec (mkLSK (mkDiscKnob $k $m (mkDiscSpec $init) $cur $opts)))
-   (if (== $opts ()) $init 0))
-
-;; Helper to initialize center instance from deme
-;; Creates an instance with knobs set to their initial disc specs
-(= (initCenterInst (mkDeme (mkRep (mkKbMap $kbMp (mkDscMp $disc)) $tree) $instSet $id))
-   (let $knobList (MultiMap.values $disc)
-     (let $initSpecs (List.map getInitDiscSpec $knobList)
-       (mkInst $initSpecs))))

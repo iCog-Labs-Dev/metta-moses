@@ -20,19 +20,6 @@
    ) 
    (crtDiscKnobMap (mkDscMp $tail) (mkDscKbMp $updatedDkm) (+ $index 1))
   ))
-;; representation constructor
-;; Params: Tree (Exemplar)
-;;         $argLabels: list of argument labels (input variables) from the ITable
-;; Returns: Representation
-;; (: representation (-> (Tree $a) Expression Representation))
-;; (= (representation $exemplar $argLabels)
-;; (let*
-;; (
-;;     (($updatedTree $dscMp) (buildKnobs $exemplar () $argLabels))
-;;     ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0))
-;; )   
-;; (mkRep (mkKbMap $dscKbMp (mkDscMp $dscMp)) $updatedTree)
-;; ))
 ;; (: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol Expression))
 (= (representation
 ;; Boolean representation constructor with feature selection
@@ -74,9 +61,6 @@
    (map-atom $rows $row
       (map-atom (genList 0 (- $len 1)) $i
          (if (once (is-member $i $fts)) False (index-atom $row $i)))))
-
-(= (ric-is-xmplr-ft $i $fts)
-   (> (size-atom (filter-atom $fts $f (== $f $i))) 0))
 
 ;; True when the output column (last column) holds at most one distinct value.
 ;; The empty row set counts as constant, which covers the correct-everywhere case.
@@ -144,7 +128,6 @@
                                     ;; ($_ (println! (Building representation for arg labels: $argLabels)))
                                     ;; ($_ (println! (updated tree and disc map ($updatedTree $dscMp))))
                                     ;; ($_ (println! ""))
-                                    ;; ($dscKbMp (crtDiscKnobMap (mkDscMp $dscMp) (mkDscKbMp ()) 0)))        ;; MULITPLE args selected using the feature selection
 	                                    ($dscKbMp (mkDscMp $dscMp)))
 	                                 (mkRep (mkKbMap $dscKbMp) $updatedTree)))))
 

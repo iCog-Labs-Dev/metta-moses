@@ -24,38 +24,7 @@
        (cleanActionTree $candidate)
        (cleanTree $candidate)))
 
-;; Universal getCandidate that works for boolean and action trees.
-;; (: getCandidate (-> Representation Instance (Tree $a)))
-;; TODO: This should be removed when the game tree has been fixed to match the boolean.
-(= (getCandidate $srcid $repObj $id $inst)
-   (case (match &treeSpace ($id $inst $tree) $tree)
-             (($tree $tree)
-             (Empty 
-                (let*
-                    (
-                      ;; ($_ (println! (Here)))
-                      ($parentid (mkNodeId (0)))
-                      ($srcid (mkNodeId (0)))
-                      ;; ($_ (println! ($parentid   $srcid)))
-                      ((mkRep $kmo $tr) $repObj)
-                      ;; ($_ (println! (Tree: (preOrder $tr))))
-                      ($candidate (getCandidateRec $repObj $inst $parentid $srcid $parentid (mkNullVex ())))
-                      ;; ($_ (println! (Found candidate: (preOrder $candidate))))
-                      ($rootNode (getNodeById (getRepTree $repObj) $srcid))
-                      ($rootSymbol (candidateRootSymbol $rootNode))
-                      ($finalTree (finalizeCandidateTree $rootSymbol $candidate))
-
-                      ($_ (add-atom &treeSpace ($id $inst $finalTree)))
-                      ;; ($_ (println! (Cleaned Tree: $cleanedTree)))
-                    )
-                    $finalTree)))))
-   ;; (trace! (Converting instance: $inst to tree) (chain (getCandidateRec $repObj $inst (mkNodeId (0)) (mkNodeId (0)) (mkNullVex ())) $candidate
-   ;;  (cleanTree $candidate)))
-    
-    
-     ;;((( (trace! (Done converting instance to tree $candidate) $candidate))))
-
-
+;; Builds the program tree for one instance and caches it in &treeSpace by ($id $inst).
 (= (getCandidate $repObj $id $inst)
    (case (match &treeSpace ($id $inst $tree) $tree)
              (($tree $tree)
@@ -79,27 +48,6 @@
 
 ;; Assumes the reverseLookupTable's order never changes during this call.
 ;; (: getCandidateRec (-> Representation Instance NodeId NodeId (Tree $a) (Tree $a)))
-;; (= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $candidate)
-;;    ;; Find the knob associated with src (if any)
-;;    (chain (findDiscKnob $knobMapObj $srcId) $knobIdxPair
-;;       (if (~= (second $knobIdxPair) -1)
-;;           (chain (List.getByIdx $inst (second $knobIdxPair)) $d
-;;           (chain (appendTo $tree (first $knobIdxPair) $candidate $parentId $d) $updatedCnd
-
-;;           ;; The C++ version needs to call the getCandidateRec 
-;;           ;;  on the newly added node of the candidate but we 
-;;           ;;  already took care of that addition using the appendTo
-;;           ;;  function. Therefore that part is ommited here.
-;;           $updatedCnd))
-
-;;          ;; No knob found. Just copy.
-;;          (chain (getNodeById $tree $srcId) $src ;; Get node value using id
-;;          (chain (appendChild $candidate $parentId (mkTree (getNodeValue $src) ())) $cndChIdPair ;; AppendChild returns a pair of tree and appended child Id
-;;          (chain (getChildren $src) $srcChildren
-;;          (chain (List.foldl applyGetCandidateRec ((mkRep $knobMapObj $tree) (mkInst $inst) (second $cndChIdPair) (first $cndChIdPair) 1) $srcChildren) $state
-;;             (let ((mkRep $knobMapObj $tree) (mkInst $inst) $newParentId $finalCnd $_) $state $finalCnd)))))))
-;; )
-
 (= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $dstId $candidate)
    (let $knobIdxPair (findDiscKnob $knobMapObj $srcId) 
       (if (not (== (second $knobIdxPair) -1))
