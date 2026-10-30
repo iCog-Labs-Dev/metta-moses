@@ -94,6 +94,23 @@
      )
      ($updatedSubtree $mmp)))
 
+;; Wrap a domain action in an and_seq subtree that gets action ASK knobs.
+;; Returns (rebuiltChild updatedMMap); unchanged when and_seq is ignored.
+(= (wrapInAndSeqKnob $child $knobMap $actions $perceptions $ignoreOps)
+   (if (operatorAllowed and_seq $ignoreOps)
+       (addActionKnobs (mkTree (mkNode and_seq) ($child)) False $knobMap $actions $perceptions $ignoreOps)
+       ($child $knobMap)))
+
+;; Builds the and_seq node from its rebuilt children. With the C++ p=80
+;; policy, it appends an empty and_seq with action knobs. `and` draws
+;; (randint 99) every time, as before.
+(= (appendExtraAndSeqKnob $children $knobMap $actions $perceptions $p $ignoreOps)
+   (if (and (>= (randint 99) $p)
+            (operatorAllowed and_seq $ignoreOps))
+       (let ($extraWrapped $m) (addActionKnobs (mkTree (mkNode and_seq) ()) False $knobMap $actions $perceptions $ignoreOps)
+          ((mkTree (mkNode and_seq) (append $children ($extraWrapped))) $m))
+       ((mkTree (mkNode and_seq) $children) $knobMap)))
+
 ;; Process a single child of an and_seq subtree.
 ;; Applies the C++ p=80 action-knob insertion policy.
 ;; Returns:(rebuiltChild updatedMMap)
@@ -102,10 +119,7 @@
       (if (isDomainAction $childOp $actions)
           (if (> (randint 99) $p)
               (addSimpleActionKnobs $child True $knobMap)
-
-             (if (operatorAllowed and_seq $ignoreOps)
-                (addActionKnobs (mkTree (mkNode and_seq) ($child)) False $knobMap $actions $perceptions $ignoreOps)
-                ($child $knobMap)))
+              (wrapInAndSeqKnob $child $knobMap $actions $perceptions $ignoreOps))
 
           (if (== $childOp action_bool_if)
               (if (>= (randint 99) $p)
@@ -137,10 +151,7 @@
 (= (processActionBoolIfChild $child $knobMap $actions $perceptions $ignoreOps)
    (let (mkTree (mkNode $childOp) $_) $child
       (if (isDomainAction $childOp $actions)
-         (if (operatorAllowed and_seq $ignoreOps)
-             (addActionKnobs (mkTree (mkNode and_seq) ($child)) False $knobMap $actions $perceptions $ignoreOps)
-             ($child $knobMap))
-
+          (wrapInAndSeqKnob $child $knobMap $actions $perceptions $ignoreOps)
           (if (== $childOp and_seq)
               (buildAction $child $knobMap $actions $perceptions $ignoreOps)
               ($child $knobMap)))))
@@ -173,38 +184,18 @@
 ;; Mirrors the C++ action-knob construction using the
 ;; internal p=80 insertion policy.
 (= (buildActionAndSeq (mkTree (mkNode and_seq) $children) $knobMap $actions $perceptions $ignoreOps)
-   (let $p 80
-      (if (or (== $children ()) (< (randint 99) $p))
-
-          ;; Insert the knob, then recursively rebuild the returned tree.
-          (let*
-             (
-                (((mkTree (mkNode and_seq) $updatedChildren) $m1) (addActionKnobs (mkTree (mkNode and_seq) $children) True $knobMap $actions $perceptions $ignoreOps))
-                (($rebuiltChildren $m2) (processActionChildren $updatedChildren $m1 $actions $perceptions $p $ignoreOps))
-             )
-             (if (and (>= (randint 99) $p)
-                      (operatorAllowed and_seq $ignoreOps))
-                 (let* (
-                        ($extraChild (mkTree (mkNode and_seq) ()))
-                        (($extraWrapped $m3) (addActionKnobs $extraChild False $m2 $actions $perceptions $ignoreOps))
-                     )
-                     ((mkTree (mkNode and_seq) (append $rebuiltChildren ($extraWrapped))) $m3))
-
-                ((mkTree (mkNode and_seq) $rebuiltChildren) $m2)))
-          ;; No knob added at this node.
-          (let*
-             (
-                (($rebuiltChildren $m1) (processActionChildren $children $knobMap $actions $perceptions $p $ignoreOps))
-             )
-             (if (and (>= (randint 99) $p)
-                      (operatorAllowed and_seq $ignoreOps))
-                        (let*
-                           (
-                           ($extraChild (mkTree (mkNode and_seq) ()))
-                           (($extraWrapped $m2) (addActionKnobs $extraChild False $m1 $actions $perceptions $ignoreOps)) )
-                           ((mkTree (mkNode and_seq) (append $rebuiltChildren ($extraWrapped))) $m2))
-
-                         ((mkTree (mkNode and_seq) $rebuiltChildren) $m1))))))
+   (let* (
+          ($p 80)
+          (($rebuiltChildren $m1)
+            (if (or (== $children ()) (< (randint 99) $p))
+                ;; Insert the knob, then recursively rebuild the returned tree.
+                (let ((mkTree (mkNode and_seq) $updatedChildren) $m0)
+                     (addActionKnobs (mkTree (mkNode and_seq) $children) True $knobMap $actions $perceptions $ignoreOps)
+                   (processActionChildren $updatedChildren $m0 $actions $perceptions $p $ignoreOps))
+                ;; No knob added at this node.
+                (processActionChildren $children $knobMap $actions $perceptions $p $ignoreOps)))
+         )
+     (appendExtraAndSeqKnob $rebuiltChildren $m1 $actions $perceptions $p $ignoreOps)))
 
 ;; Build the representation of an action_bool_if subtree.
 (= (buildActionBoolIf (mkTree (mkNode action_bool_if) $children) $knobMap $actions $perceptions $ignoreOps)
