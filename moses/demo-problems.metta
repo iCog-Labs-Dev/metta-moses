@@ -121,23 +121,23 @@
 ;; CSV `inputFile` was supplied. Exactly one of the two must hold:
 ;;   both    -> loud error + help (no silent precedence)
 ;;   neither -> help
-;;   action  -> (moses-run-action)   table -> (moses-run)
+;;   action  -> (mosesRunAction)   table -> (moses-run)
 (= (moses)
    (let* (($actionConfigured (!= (param fitness) ()))
           ($tableConfigured  (not (and (== (param problem)   ())
                                        (== (param inputFile) "")))))
      (if (and $actionConfigured $tableConfigured)
-         (both-configured-error-and-exit)
+         (bothConfiguredErrorAndExit)
          (if $actionConfigured
-             (moses-run-action)
+             (mosesRunAction)
              (if $tableConfigured
                  (moses-run)
-                 (no-problem-help-and-exit))))))
+                 (noProblemHelpAndExit))))))
 
 ;; Shown when BOTH an action fitness and a table problem are configured:
 ;; there is no meaningful precedence between them, so the run refuses loudly
 ;; instead of silently picking one.
-(= (both-configured-error-and-exit)
+(= (bothConfiguredErrorAndExit)
    (let*
       (
         ($_ (println! ""))
@@ -151,7 +151,7 @@
 ;; Shown when (moses) is invoked with neither a table problem (--problem= /
 ;; --inputFile=) nor an action fitness (--fitness=). Falls through to
 ;; the standard --help dump so the user sees every knob and value.
-(= (no-problem-help-and-exit)
+(= (noProblemHelpAndExit)
    (let*
       (
         ($_ (println! ""))
@@ -166,7 +166,7 @@
       )
       ()))
 
-;; problem-context: map the configured problem to the triple
+;; problemContext: map the configured problem to the triple
 ;;   (context  metaPop  bestPossibleScore)
 ;; that the shared runMoses entry point requires.
 ;;
@@ -181,7 +181,7 @@
 ;; lets the shared action arms do the work. New action experiments instead
 ;; follow the fitness-package interface (ttt-action-registration / domain
 ;; files) and run via --fitness=<fn> or --domainFile=.
-(= (configure-ant-action-params)
+(= (configureAntActionParams)
    (let* (
           ($_1 (set-param fitness antFitness))
           ($_2 (set-param bestScore antBestScore))
@@ -191,11 +191,11 @@
          )
      True))
 
-(= (problem-context)
+(= (problemContext)
    (case (param problem)
      ((ant
         (let* (
-               ($_        (configure-ant-action-params))
+               ($_        (configureAntActionParams))
                ($nTrials  (param nTrials))
                ($cpxPen   (param complexityRatio))
                ($ctx      (mkActionCtx $nTrials $cpxPen (antBestScore $nTrials)))
@@ -232,7 +232,7 @@
 
 ;; Single unified entry point for every domain family.
 ;; Reads all hyperparameters from &params; all domain-specific logic is
-;; encapsulated in (problem-context) and the expand-deme.metta adapters.
+;; encapsulated in (problemContext) and the expand-deme.metta adapters.
 (= (moses-run)
    (let*
       (
@@ -240,16 +240,16 @@
         ($maxGen    (param maxGen))
         ($nDeme     (param nDeme))
         ($optAlgo   (param optAlgo))
-        ($optimizer (optimizer-for $optAlgo))
+        ($optimizer (optimizerFor $optAlgo))
 
         ($srp (py-call (random.seed $seed)))
         ;; genCount feeds the cap-size formula inside resizeMetapop; it
         ;; is conceptually the initial $maxGen and stays constant across
-        ;; the recursion, so we seed it once here before (problem-context)
+        ;; the recursion, so we seed it once here before (problemContext)
         ;; may invoke any scorer that depends on it.
         ($_  (set-param genCount $maxGen))
 
-        (($context $metaPop $bestPossibleScore) (problem-context))
+        (($context $metaPop $bestPossibleScore) (problemContext))
         ($_ (println! (BestPossibleScore: $bestPossibleScore)))
 
         ;; The scoring context is the only domain-specific input: selection,
@@ -269,7 +269,7 @@
 ;; `true` tree) at the defined-worst score: every one of the $nTrials
 ;; episodes forfeits at -1.0 (see the empty-exemplar loophole note in the
 ;; episode runner), so raw score = complexity-penalized score = -1.0*nTrials.
-(= (moses-run-action)
+(= (mosesRunAction)
    (let*
       (
         ;; Refuse loudly when the knob vocabulary is missing: with an empty
@@ -280,13 +280,13 @@
         ;; list, representation/build-action.metta:18-21), so only
         ;; actions is mandatory. The error path halts the process.
         ($_vocabGuard (if (== (param actions) ())
-                          (missing-action-vocab-error-and-exit)
+                          (missingActionVocabErrorAndExit)
                           ()))
         ($seed     (param seed))
         ($maxGen   (param maxGen))
         ($nDeme    (param nDeme))
         ($optAlgo  (param optAlgo))
-        ($optimizer (optimizer-for $optAlgo))
+        ($optimizer (optimizerFor $optAlgo))
 
         ($srp (py-call (random.seed $seed)))
         ;; genCount feeds the cap-size formula inside resizeMetapop (same
@@ -322,8 +322,8 @@
 
 ;; Shown when an action run is configured (fitness set) but the knob
 ;; vocabulary is not: same loud-refusal style as
-;; both-configured-error-and-exit -- no silent knobless run.
-(= (missing-action-vocab-error-and-exit)
+;; bothConfiguredErrorAndExit -- no silent knobless run.
+(= (missingActionVocabErrorAndExit)
    (let*
       (
         ($_ (println! ""))
@@ -341,7 +341,7 @@
 ;; univariate implementations under optimization/ exist but have never
 ;; been wired into the deme-expansion path. Add a clause here when a new
 ;; algorithm becomes ready.
-(= (optimizer-for hc)
+(= (optimizerFor hc)
      (case $optimizer
           (
             (hc hillClimbing)
