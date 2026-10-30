@@ -434,8 +434,7 @@
     (if (or (== $n 0) (== $list ()))
         $list
      (let* (
-        ($initial (car-atom $list))
-        ($cur (selector $list $initial $op))
+        ($cur (selector $list $op))
         ($newList (subtraction-atom $list ($cur)))
         ($rest (selectionSort $newList (- $n 1) $op))
     )
@@ -451,16 +450,7 @@
 (= (selector $expr $op) (selector $expr (car-atom $expr) $op) )
 ;; (: selector (-> Expression $a (-> $a $a Bool) $a))
 (= (selector $expr $i $op)
-(if (== $expr ())
-     $i
-     (let*  (
-             ($head (car-atom $expr))
-             ($tail (cdr-atom $expr))
-             ($result (comparator $head $i $op))
-            )
-          (selector $tail $result $op))
-)
-)
+   (foldl-atom $expr $i $acc $x (comparator $x $acc $op)))
 
 ;; A function to take an atom and repeat it n times.
 ;; (: repeat (-> Atom Number Atom))
