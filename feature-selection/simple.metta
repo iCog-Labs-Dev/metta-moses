@@ -9,17 +9,17 @@
 
 (= (simpleFeatureSelector $th $numDesired $expDist (mkITable $table $labels) $acc)
     (if (== $numDesired 0)
-        ((0 (List.listToExpr (inputLables $labels))))                                                  ;; return all features by default
+        ((0 (List.listToExpr (inputLabels $labels))))                                                  ;; return all features by default
 
         (chain (py-call (random.randint 0 2147483647)) $seed                                        ;; random seed to break ties between equally-scored features
         (chain (List.length $labels) $colNum
             (chain (ITable.rowCount $table) $rowNum
                 (chain (Table.getColumn (- $colNum 1) $table) $oc                                  ;; get the output column
-                    (chain (selectorIterator $th $rowNum $oc $labels $table 0 $seed $acc) $selected-features
+                    (chain (selectorIterator $th $rowNum $oc $labels $table 0 $seed $acc) $selectedFeatures
                         (chain (if $expDist                                                                        ;; this is the actual selection after the scoring
                                     (chain (- 1 (/ 1 (+ $numDesired 1))) $mean                                      ;; if exponential distn is preferred 
-                                        (exponentialSelection $mean $numDesired $selected-features 1 ()))
-                                    (takeN $numDesired $selected-features)) $final ((0 (map-atom $final ($mi-score ($feature)) $feature)))))))))))
+                                        (exponentialSelection $mean $numDesired $selectedFeatures 1 ()))
+                                    (takeN $numDesired $selectedFeatures)) $final ((0 (map-atom $final ($miScore ($feature)) $feature)))))))))))
 
 
 ;; selectorIterator
@@ -33,13 +33,13 @@
 (= (selectorIterator $th $rowNum $oc (cons $label $labels) $dataRows $counter $seed $acc)
     (if (= (cons $label $labels) (cons $label ()))                                     ;; this means we are at the output label
         $acc                                                                        ;; result -- pair of score and column index for consistent formatting across different feature selection algorithms
-        (chain (Table.getColumn 0 $dataRows) $if
-        (chain (Table.pop 0 $dataRows) $rem-table                            ;; remove the first column -- better than carrying around the whole table
-        (chain (mutualInformation $if $oc) $mi
-            (chain (calculateConfidence (size-atom $if) $rowNum 50.0) $confidence
+        (chain (Table.getColumn 0 $dataRows) $inputColumn
+        (chain (Table.pop 0 $dataRows) $remTable                            ;; remove the first column -- better than carrying around the whole table
+        (chain (mutualInformation $inputColumn $oc) $mi
+            (chain (calculateConfidence (size-atom $inputColumn) $rowNum 50.0) $confidence
                 (chain (* $mi $confidence) $actualScore
                     (if (>= $actualScore $th)
-                        (chain (eval (insertPair > (featureSet< $seed) ($actualScore ($counter)) $acc)) $new-acc   ;; seeded tie-break for equal scores (matches selectTopFts / OpenCog)
-                            (selectorIterator $th $rowNum $oc $labels $rem-table (+ $counter 1) $seed $new-acc))
-                        (selectorIterator $th $rowNum $oc $labels $rem-table (+ $counter 1) $seed $acc)
+                        (chain (eval (insertPair > (featureSet< $seed) ($actualScore ($counter)) $acc)) $newAcc   ;; seeded tie-break for equal scores (matches selectTopFts / OpenCog)
+                            (selectorIterator $th $rowNum $oc $labels $remTable (+ $counter 1) $seed $newAcc))
+                        (selectorIterator $th $rowNum $oc $labels $remTable (+ $counter 1) $seed $acc)
                         ))))))))

@@ -43,35 +43,35 @@
                                 )
                     )
                 )
-             ) $index-mi-pair
-                        (if (== $index-mi-pair ())
-                            (Error $index-mi-pair "No relevant feature found ... Exiting")              ;; No feature selected -- low MI values
+             ) $indexMiPair
+                        (if (== $indexMiPair ())
+                            (Error $indexMiPair "No relevant feature found ... Exiting")              ;; No feature selected -- low MI values
                             ;; get each feature and and calculate MI against output feature
-                            (chain (sortPairs pairMax $index-mi-pair $topsCount ()) $topNSeed 
+                            (chain (sortPairs pairMax $indexMiPair $topsCount ()) $topNSeed 
                                 (smdIterator $th $numFeatures $topsCount $len $oc $indices (mkITable $table $labels) $scorer $topNSeed))))        
-        (chain (second (car-atom $acc)) $sample-tuple 
-            (if (== (size-atom $sample-tuple) $numFeatures)
+        (chain (second (car-atom $acc)) $sampleTuple 
+            (if (== (size-atom $sampleTuple) $numFeatures)
                 $acc                                 ;; return the score and feature indices pair
-                (chain (first-from-pair (car-atom $acc)) $prev-highest-score
+                (chain (first-from-pair (car-atom $acc)) $prevHighestScore
                 (chain 
                     (inputPairMiCalculator $table $oc $indices $acc) $res                                                       ;; collapsed result of pairing scoring
-                    (chain (shuffle $res ()) $shuffled-pairs 
-                    (chain (sortPairs pairMax $shuffled-pairs $topsCount ()) $topN
+                    (chain (shuffle $res ()) $shuffledPairs 
+                    (chain (sortPairs pairMax $shuffledPairs $topsCount ()) $topN
                     (chain (first-from-pair (car-atom $topN)) $topScore                               ;; $topScore                  ;; shuffling to give pairs with equal scores better chance of being selected for variety
-                    (if (< (- $topScore $prev-highest-score) $th)                           ;; terminate the loop if there is no significant improvement
+                    (if (< (- $topScore $prevHighestScore) $th)                           ;; terminate the loop if there is no significant improvement
                         $acc
                         (smdIterator $th $numFeatures $topsCount $len $oc $indices (mkITable $table $labels) $scorer $topN)))))))))))
 
 (= (inputPairMiCalculator $table $oc $indices $acc) ;; adds a feature to the previous pair thus growing the index size and calculates the mutual information for that pair, triplet ... of input features
     (collapse 
         (chain (superpose $acc) $pair
-            (chain (second $pair) $used-indices
-                    (chain (subtraction-atom $indices $used-indices) $candidate-indices                   ;; removed used indices from index list
-                        (chain (union-atom $used-indices ((superpose $candidate-indices))) $new-indices   ;; form a union of used indices tuple and one unused index for each such an index
-                            (chain (zipColumn $new-indices $table) $zipped-input-feature                  ;; form a zipped pair, triplet .. of input feature values from the table
-                                (chain (mutualInformation $zipped-input-feature $oc) $mi
-                                    (chain (calculateConfidence (size-atom $new-indices) (ITable.rowCount $table) 50.0) $confi
-                                        ((* $mi $confi) $new-indices)    
+            (chain (second $pair) $usedIndices
+                    (chain (subtraction-atom $indices $usedIndices) $candidateIndices                   ;; removed used indices from index list
+                        (chain (union-atom $usedIndices ((superpose $candidateIndices))) $newIndices   ;; form a union of used indices tuple and one unused index for each such an index
+                            (chain (zipColumn $newIndices $table) $zippedInputFeature                  ;; form a zipped pair, triplet .. of input feature values from the table
+                                (chain (mutualInformation $zippedInputFeature $oc) $mi
+                                    (chain (calculateConfidence (size-atom $newIndices) (ITable.rowCount $table) 50.0) $confi
+                                        ((* $mi $confi) $newIndices)    
                                     )
                                 )
                             )

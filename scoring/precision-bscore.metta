@@ -56,14 +56,9 @@
 ;;    (cons ((False False) (2 2)) (cons ((True False) (0 3)) (cons ((False True) (3 0)) ())))
 ;; (: cTable (-> Expression Expression (Map Expression (Number Number))))
 (= (cTable $rows $labels)
-   (let* (
-          ($targetIndex (- (size-atom $labels) 1))
-         
-          ($grouped (foldl-atom $rows () $acc $row
-                              (countTable $row $targetIndex $acc)))
-         )
-     $grouped)
-)
+   (let $targetIndex (- (size-atom $labels) 1)
+     (foldl-atom $rows () $acc $row
+                 (countTable $row $targetIndex $acc))))
 
 ;; sum_outputs = 0.5 * (pos - neg)
 ;;
@@ -160,13 +155,11 @@
 (= (getActivationPenalty $activation $minActivation $maxActivation $activationPressure)
    (if (<= $activationPressure 0)
        0.0
-       (let* (
-             ($dst (if (< $activation $minActivation) ;; Calculate distance from acceptable range
+       (let $dst (if (< $activation $minActivation) ;; Calculate distance from acceptable range
                        (- 1.0 (/ $activation $minActivation))
                        (if (> $activation $maxActivation)
                            (/ (- $activation $maxActivation) (- 1.0 $maxActivation))
-                           0.0)))
-               )
+                           0.0))
          (if (== $dst 0.0)
              0.0
              (* $activationPressure (log-math 2.718 (- 1.0 $dst))))))) ;; Apply logarithmic penalty
@@ -265,13 +258,9 @@
             ($groupedData (cTable $rows $labels))
             
             ($precisionRows (createPrecisionRows $groupedData))
-            
-            ($bestPreScore (bestPossibleBScore $precisionRows 0.0 0.0 $totalWeight $minActivation $maxActivation 
-                                         $activationPressure -1.0000000000000001e308))
          )
-     $bestPreScore
-   )
-)
+     (bestPossibleBScore $precisionRows 0.0 0.0 $totalWeight $minActivation $maxActivation
+                         $activationPressure -1.0000000000000001e308)))
 
 ;; Extract selected features plus target column from full dataset
 ;; Input:
@@ -289,11 +278,11 @@
           ;; Combine selected features with target index
           ($exprIndices (appendAtom $targetIndex $featureIndices))
 
-          ;; Extract selected columns from each row
-          ($filteredColumns (zipColumn $exprIndices $columns))
+          ;; Rows of the selected columns
+          ($filteredRows (zipColumn $exprIndices $columns))
           ;; Extract corresponding labels
           ($filteredLabels (map-atom $exprIndices $each (List.at $each $labels)))
-          ($filteredExpr (List.listToExpr $filteredColumns))
+          ($filteredExpr (List.listToExpr $filteredRows))
           )
      ($filteredExpr $filteredLabels)
    )
@@ -332,20 +321,15 @@
                ($clampedMinAct (clamp $minAct 0.0 1.0))
                ($clampedMaxAct (clamp $maxAct 0.0 1.0))
                
-               (($filteredColumns $filteredLabels)  (extractTable $featureIndices $columns $labels))
+               (($filteredRows $filteredLabels)  (extractTable $featureIndices $columns $labels))
                
                ($totalWeight (ITable.rowCount $columns))
                
-               ($precision (precisionBScore $filteredColumns $filteredLabels $penalty 
+               ($precision (precisionBScore $filteredRows $filteredLabels $penalty 
                                           $clampedMinAct $clampedMaxAct $totalWeight))
                
                ;; Apply confidence weighting
                ($confidence (calculateConfidence (size-atom $featureIndices) $totalWeight $confi))
-               
-               ;; Final score for hill climbing feature selection
-               ($finalScore (* $precision $confidence))
             )
-      $finalScore
-      )
-   )
-)
+      ;; Final score for hill climbing feature selection
+      (* $precision $confidence))))

@@ -62,7 +62,7 @@
        (mkBScore $bScore))))
 
 ;; Evaluate an expression on one row: put the row's truth values in place of the labels, then evaluate.
-(= (scoreTreeHelper $labels $expTree $table) (let $a (replaceVarsWithTruth ($labels $expTree) $table) (evaluate $a)))
+(= (scoreTreeHelper $labels $expTree $row) (let $a (replaceVarsWithTruth ($labels $expTree) $row) (evaluate $a)))
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Although the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.

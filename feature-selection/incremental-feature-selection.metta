@@ -95,10 +95,10 @@
    (unique-atom (union-atom $head (flatten-unique $tail))))
 
 (= (get-rel $table $tf $i $threshold)
-   (let $fss (collapse (comb $i $tf))
-        (let $relevantSubsets (collapse (let $fs (superpose $fss)
-                                               (if (> (cached-mi-score $table $fs) $threshold) $fs (empty))))
-             (flatten-unique $relevantSubsets))))
+   (let* (($fss (collapse (comb $i $tf)))
+          ($relevantSubsets (collapse (let $fs (superpose $fss)
+                                           (if (> (cached-mi-score $table $fs) $threshold) $fs (empty))))))
+     (flatten-unique $relevantSubsets)))
 
 (= (max-score-subset $table ()) (empty))
 (= (max-score-subset $table (cons $head ())) $head)
@@ -111,20 +111,20 @@
 (= (redundant-features $features $table $redThreshold $k)
    (if (== $k (List.length $features))
        ()
-       (let $sfs (collapse (comb $k $features))
-            (let $mit (max-score-subset $table $sfs)
-                 (if (< (- (mi-score $table $features) (mi-score $table $mit)) $redThreshold)
-                     (subtraction-atom $features $mit)
-                     (redundant-features $features $table $redThreshold (+ $k 1)))))))
+       (let* (($sfs (collapse (comb $k $features)))
+              ($mit (max-score-subset $table $sfs)))
+         (if (< (- (mi-score $table $features) (mi-score $table $mit)) $redThreshold)
+             (subtraction-atom $features $mit)
+             (redundant-features $features $table $redThreshold (+ $k 1))))))
 
 (= (get-redundant-features $features $table $redThreshold)
    (redundant-features $features $table $redThreshold 1))
 
 (= (get-red $table $rel $i $redThreshold)
-   (let $nrfss (collapse (comb (+ $i 1) $rel))
-        (let $redSubsets (collapse (let $fs (superpose $nrfss)
-                                         (get-redundant-features $fs $table $redThreshold)))
-             (flatten-unique $redSubsets))))
+   (let* (($nrfss (collapse (comb (+ $i 1) $rel)))
+          ($redSubsets (collapse (let $fs (superpose $nrfss)
+                                      (get-redundant-features $fs $table $redThreshold)))))
+     (flatten-unique $redSubsets)))
 
 ;; --- LRU Cache for mi-score ---
 ;; State atoms stored in &self:
