@@ -70,7 +70,7 @@
 (= (biasedRandBool $b)
     (let $rnd (py-call (random.random))  (> $b $rnd)))
 
-;; sampleEnforcedFts -- sample_enforced_features in classic MOSES
+;; sample_enforced_features -- hence the name XXX for future use
 ;; takes tuple of pairs containing features and probability values of being included in deme creation 
 ;; sth like this ((A 0.4) (B 0.3) (C 0.73) ...)
 
