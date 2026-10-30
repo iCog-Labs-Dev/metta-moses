@@ -1,8 +1,3 @@
-;; Disc maps are ordered multimaps whose action comparator deliberately appends
-;; equal/unordered specs. Reading them through the matching MultiMap API makes
-;; that coordinate-order guarantee explicit instead of relying on the generic
-;; Map implementation having the same list representation.
-
 ;; Recursively optimizes each deme in a list using the provided optimizer function.
 ;; Params:
 ;;   (List Deme): The list of demes to optimize.
@@ -10,7 +5,7 @@
 ;;   $inst: The initial instance for optimization.
 ;;   $optimize: The optimizer function to apply to each deme.
 ;;  Returns: (List Deme): A new list where each deme has been optimized.
-; (: optimizeDemes (-> (List Deme) $context Instance $optimize (Instance Deme $state)))
+;; (: optimizeDemes (-> (List Deme) $context Instance $optimize (Instance Deme $state)))
 ;; Action version - tagged context, dispatched BEFORE the all-variable
 ;; catch-all below. Packs the episode count and complexity ratio for
 ;; the hillClimbing applyActionBasedScore arm (the fitness itself binds
@@ -22,7 +17,7 @@
    ($optimize $deme $context $inst))
 
 ;; Extracts default specification from a knob
-; (: getKnobDefault (-> $knob Number))
+;; (: getKnobDefault (-> $knob Number))
 ;; (= (getKnobDefault (mkLSK (mkDiscKnob $multip $curr (mkDiscSpec $def) $dis))) $def)
 
 ;; Runs one deme-creation and optimization step, then merges the optimized deme into the metapopulation.
@@ -42,7 +37,7 @@
 ;;   $genCount: Generation count for resizing.
 ;; Returns:
    ;;   $updatedMetaPop: Updated metapopulation with the new optimized deme merged in.
-; (: expandDeme (-> (OS (Exemplar $a)) Number Number Bool Symbol (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)) $Scorer Number Number Number Number (ITable $a) Number Number Number (OS (Exemplar $a))))
+;; (: expandDeme (-> (OS (Exemplar $a)) Number Number Bool Symbol (TruthTableBScore $a) (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)) $Scorer Number Number Number Number (ITable $a) Number Number Number (OS (Exemplar $a))))
 (= (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $itable $scorerType)
 (let*
    (
@@ -57,7 +52,7 @@
     ;; ($_ (println! "creating deme IDs"))
     ($demeIds (createDemeIds $nExpansion $nDeme))
     ;; ($_ (println! $demeIds))
-    ; ($argLabels (getArgLabels $itable))
+    ;; ($argLabels (getArgLabels $itable))
     ;; ($_ (println! "Creating Deme"))
     ($demes (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar () $scorerType))
     )

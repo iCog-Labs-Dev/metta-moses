@@ -55,7 +55,7 @@
 ;;                    - Input 3 is Data 1 (D1)
 ;;                  If Addr is False, Output is D0. If Addr is True, Output is D1.
 ;; Example: (OR (AND (NOT Addr) D0)  ;; The "Else" case (Address is 0)
-;;              (AND Addr D1))        ; The "Then" case (Address is 1)
+;;              (AND Addr D1))        ;; The "Then" case (Address is 1)
 (= (mux3) (mkITable
            ((False False False False True True True True)
             (False False True True False False True True)
@@ -245,7 +245,7 @@
         ($srp (py-call (random.seed $seed)))
         ;; genCount feeds the cap-size formula inside resizeMetapop; it
         ;; is conceptually the initial $maxGen and stays constant across
-;; the recursion, so we seed it once here before (problem-context)
+        ;; the recursion, so we seed it once here before (problem-context)
         ;; may invoke any scorer that depends on it.
         ($_  (set-param genCount $maxGen))
 

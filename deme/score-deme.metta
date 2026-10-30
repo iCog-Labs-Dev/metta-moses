@@ -1,14 +1,14 @@
-;; a helper to the transform method
+;; A helper of transform.
 ;; Converts a list of Instances into a list of Scored Instances using the complexityBasedScorer
 ;; Params:
 ;;   $rep: The representation object
-;;   (cons $i $is): A list containing Instances
+;;   $id: The deme id
+;;   $instances: A list of Instances
 ;;   $itable: The input table
-;;   $complexityRatio: probability parameter
-;;   $listOfScoredInst: accumulator containing the scoredInstances at each call
+;;   $complexityRatio: The complexity penalty ratio
 ;; Returns:
-;;   $listOfScoredInst: the final list containing scoredInstances
-; (: applyComplexityBasedScore (-> Representation (List Instance) (ITable $a) Number (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
+;;   The list of scored instances, in input order
+;; (: applyComplexityBasedScore (-> Representation DemeId (List Instance) (ITable $a) Number (List (ScoredInstance Cscore))))
 (= (applyComplexityBasedScore $rep $id $instances $itable $complexityRatio)
     (map-atom $instances $i (mkSInst (mkPair $i (complexityBasedScorer $rep $id $i $itable $complexityRatio)))))
 
@@ -24,10 +24,10 @@
 ;;   $instances: List of instances to score
 ;;   $nTrials: Number of episodes per evaluation
 ;;   $complexityRatio: Complexity penalty ratio
-;;   $listOfScoredInst: Accumulator for scored instances
+;;   $listOfScoredInst: Not used
 ;; Returns:
 ;;   List of scored instances with CScore
-; (: applyActionBasedScore (-> Representation DemeId (List Instance) Number Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
+;; (: applyActionBasedScore (-> Representation DemeId (List Instance) Number Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
 (= (applyActionBasedScore $rep $id $instances $nTrials $complexityRatio $listOfScoredInst)
    (map-atom $instances $i
     (let* (($actionTree (getCandidateHelper $i (getRepTree $rep)))
@@ -36,19 +36,20 @@
 
 ;; Scores each instance in an InstanceSet.
 ;; Params:
-;;   instanceSet: The unscored InstanceSet(or that of with an initial worst score)
+;;   instanceSet: The unscored InstanceSet (or one with an initial worst score)
 ;;   $rep: The representation object
-;;   $itable: The input table
-;;   $complexityRatio: probability parameter
+;;   $id: The deme id
+;;   $scoringContext: The input table (mkITable ...) or an action context
+;;   $complexityRatio: The complexity penalty ratio
 ;; Returns:
 ;;   instanceSet: Scored InstanceSet
-; (: transform (-> (InstanceSet $a) Representation (ITable Bool) Number (InstanceSet Cscore)))
+;; (: transform (-> (InstanceSet $a) Representation DemeId $scoringContext Number (InstanceSet Cscore)))
 (= (transform (mkSInstSet $scoredInstList) $rep $id $scoringContext $complexityRatio)
    (let* (
           ($instList (List.map removeInstScore $scoredInstList))
           ($scored (case $scoringContext
                         (
-;; Two disjoint tagged contexts: (mkActionCtx ...) drives
+                          ;; Two disjoint tagged contexts: (mkActionCtx ...) drives
                           ;; the action path, (mkITable ...) the boolean path.
                           ((mkActionCtx $nTrials $complexityRatio $targetScore) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
                           ((mkActionCtx $nTrials) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
@@ -57,15 +58,15 @@
           )
   (mkSInstSet $scored)))
 
-;; similar to the above 'applyComplexityBasedScore' but uses the mutualInformation based scoring for features selection
-;; Applies mutual information based scoring to a list of Instances.
+;; Similar to applyComplexityBasedScore, but uses mutual information scoring for feature selection.
 ;; Params:
 ;;   (cons (mkInst $i) $is): List of Instances.
-;;   (mkITable $table $labels): Input table with rows and labels.
+;;   (mkITable $table $labels): Input table with columns and labels.
+;;   $miConf: Confidence intensity.
 ;;   $listOfScoredInst: Accumulator for Scored Instances.
 ;; Returns:
-;;   List of Scored Instances with mutual information based scores.
-; (: applyMutualInformationBasedScore (-> (List Instance) (ITable $a) (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
+;;   List of Scored Instances with mutual information based scores, in reverse input order.
+;; (: applyMutualInformationBasedScore (-> (List Instance) (ITable $a) Number (List (ScoredInstance Number)) (List (ScoredInstance Number))))
 (= (applyMutualInformationBasedScore () (mkITable $table $labels) $miConfi $listOfScoredInst)
    $listOfScoredInst)
    
@@ -86,20 +87,20 @@
 )
 (applyMutualInformationBasedScore $is (mkITable $table $labels) $miConf $uListofScoredInst)))
 
-;; similar to the above 'transform' but uses the mutualInformation based scoring for features selection
-;; Scores each instance in an InstanceSet. 
+;; Similar to transform, but uses the feature-set scorer for feature selection.
+;; Scores each instance in an InstanceSet.
 ;; Params:
-;;   (mkSInstSet $scoredInstList): The unscored InstanceSet(or that of with an initial worst score)
+;;   (mkSInstSet $scoredInstList): The unscored InstanceSet (or one with an initial worst score)
 ;;   $itable: The input table
+;;   the other parameters: see featureSetScorer
 ;; Returns: Scored InstanceSet
-; (: transformFs (-> (InstanceSet $a) (ITable Bool) Number Number Number Number Bool Symbol (InstanceSet Cscore)))
+;; (: transformFs (-> (InstanceSet $a) (ITable Bool) Number Number Number Number Bool Symbol (InstanceSet Cscore)))
 (= (transformFs (mkSInstSet $scoredInstList) $itable $miConf $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)
 (let*
 (
     ;; ($_ (println! "inside transformFs"))
     ($instList (List.map removeInstScore $scoredInstList))
 
-    ;;**done call featureSetScorer
     ($cbsInstList (featureSetScorer $itable $scorerType $miConf  $prePenalty $preMinActivation $preMaxActivation $prePositive $instList))
     ;; ($_ (println! $cbsInstList))
 )
@@ -107,20 +108,19 @@
 
 
 
-;; Purpose: Apply precision-based scoring to a list of instances recursively
-;; This mirrors applyMutualInformationBasedScore but uses precision scoring
+;; Applies precision-based scoring to a list of instances.
+;; This mirrors applyMutualInformationBasedScore but uses precision scoring.
 ;; Parameters:
-;;   $instList (List Instance) → List of instances to score
-;;   $itable (ITable) → Input table with data and labels  
-    ; $confi            ;; confidence intensity
-    ; $prePenalty          ;; activation Penalty: Penalizes “over-activation” — selecting too many rows from the compressed table.
-    ; $preMinActivation   ;; ensures we always select enough rows to have a meaningful precision estimate.
-    ; $preMaxActivation   ;; limits how many rows can be selected.
-    ; $prePositive        ;; determines which output value is considered the “positive class” in precision_bscore.
-    ; $scorerType         ;; can MI or precision_bscore
-;;   $acc (List ScoredInstance) → Accumulator for results
-;; Returns: (List ScoredInstance) → List of instances with precision scores
-; (: applyPrecisionBasedScore (-> (List Instance) ITable Number Number Number Number Bool (List (ScoredInstance Number)) (List (ScoredInstance Number))))
+;;   $instList (List Instance): List of instances to score
+;;   $itable (ITable): Input table with data and labels
+;;   $confi: Confidence intensity
+;;   $prePenalty: Activation penalty. Penalizes over-activation (too many rows selected from the compressed table).
+;;   $preMinActivation: The minimum activation, so that the precision estimate is meaningful.
+;;   $preMaxActivation: The maximum number of rows that can be selected.
+;;   $prePositive: The output value that is the positive class in precision_bscore.
+;;   $acc (List ScoredInstance): Accumulator for results
+;; Returns: (List ScoredInstance): Instances with precision scores, in reverse input order
+;; (: applyPrecisionBasedScore (-> (List Instance) ITable Number Number Number Number Bool (List (ScoredInstance Number)) (List (ScoredInstance Number))))
 (= (applyPrecisionBasedScore () $itable $confi $prePenalty $preMinActivation $preMaxActivation $prePositive $acc) $acc)
 (= (applyPrecisionBasedScore (cons (mkInst $bits) $rest) $itable $confi $prePenalty $preMinActivation $preMaxActivation $prePositive $acc)
     (let* (
@@ -138,18 +138,15 @@
 )
 
 
-;; Purpose: Score a feature set using the specified scorer type
+;; Scores a feature set with the specified scorer type.
 ;; Parameters:
-    ; iTable        - our table reperesenation
-    ; $miConfi            ;; confidence intensity
-    ; $prePenalty          ;; activation Penalty: Penalizes “over-activation” — selecting too many rows from the compressed table.
-    ; $preMinActivation   ;; ensures we always select enough rows to have a meaningful precision estimate.
-    ; $preMaxActivation   ;; limits how many rows can be selected.
-    ; $prePositive        ;; determines which output value is considered the “positive class” in precision_bscore.
-    ; $scorerType         ;; can MI or precision_bscore
-    ; $instList        - List of Instances
+;;   $itable: The input table
+;;   $scorerType: mi (mutual information) or pre (precision_bscore); any other value uses mi
+;;   $miConf: Confidence intensity
+;;   $prePenalty, $preMinActivation, $preMaxActivation, $prePositive: see applyPrecisionBasedScore
+;;   $instList: List of Instances
 ;; Returns: List of Scored Instances
-; (: featureSetScorer (-> ITable Symbol Number Number Number Number Bool (List Instance) (List (ScoredInstance Number))))
+;; (: featureSetScorer (-> ITable Symbol Number Number Number Number Bool (List Instance) (List (ScoredInstance Number))))
 (= (featureSetScorer $itable $scorerType $miConf  $prePenalty $preMinActivation $preMaxActivation $prePositive $instList)
         ;; (trace! (Scoring with $scorerType for featureSelection $instList)
             (case $scorerType

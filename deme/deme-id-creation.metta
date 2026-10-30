@@ -1,18 +1,15 @@
-;; unless dynamic feature selection is enabled only one deme is created
-;; feature selection is not used so just one deme will be created in our case or is it?
-;; n_demes of the feature selector params is set to 1 by default
-;; the number of expansion is set to zero (0) in moses_params.h in the moses_statistics struct
+;; Classic MOSES creates one deme per expansion unless dynamic feature
+;; selection is enabled (n_demes defaults to 1). The expansion count starts
+;; at 0 (moses_statistics in moses_params.h).
 
-;; for number to string conversion
+;; Number to string conversion
 (= (numStr $n) (py-call (str $n)))
-;; DemeId Type
-; (: DemeId Type)
-; (: mkDemeId (-> String DemeId)) ;; this deviates from earlier type definition for the type constructor. It was defined like (: mkDemeId (-> Number DemeId))
+;; A DemeId wraps a string such as "1" or a pair expression ($nExpansion . $i).
 
-;; createDemeIDs -- creates demeIDs for deme expansion
-;;          $nExpansion -- total number of deme expansions (generations) set to 0 -- a constant number or a generation demes
-;;          $nDemes     -- Number of feature sets to select out of feature selection and demes to spawn
-; (: createDemeIds (-> Number Number (List DemeId)))
+;; createDemeIds -- creates the deme ids for one deme expansion
+;;          $nExpansion -- the number of expansions done so far
+;;          $nDeme      -- the number of demes to spawn
+;; (: createDemeIds (-> Number Number (List DemeId)))
 (= (createDemeIds $nExpansion $nDeme)
     (if (> $nDeme 1)
         (demeIdList (+ $nExpansion 1) (- $nDeme 1) ())
@@ -21,7 +18,7 @@
                 (chain (mkDemeId $str ) $demeId (cons $demeId ())))))
             )
 
-;; demeIdList -- recursive function for creating list of demeId's           
+;; demeIdList -- creates the deme ids ($nExpansion . 0) .. ($nExpansion . $nDeme)
 (= (demeIdList $nExpansion $nDeme $list)
     (if (< $nDeme 0)
         $list

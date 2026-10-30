@@ -20,16 +20,16 @@
 (: Xmplr Type)
 (: mkXmplr (-> (Tree $a) DemeId CompositeScore BehavioralScore Xmplr))
 
-; ! (mkXmplr (mkTree (mk)))
+;; ! (mkXmplr (mkTree (mk)))
 ;; Initialize an exemplar with the following values
-;;  Raw Score: very_worst_score (e.g., -1e37)??
-;;  Complexity: least_complexity (e.g., 0) ??
-;;  Complexity Penalty: 0.0.
-;;  Uniformity Penalty: 0.0.
-;;  Penalized Score: very_worst_score (e.g., -1e37) ??
+;;  Raw Score: (pow-math 10 -37)
+;;  Complexity: 0
+;;  Complexity Penalty: 0
+;;  Uniformity Penalty: (pow-math 10 -37)
 ;;  Behavioral Score: empty set -- ()
+;; Note: (pow-math 10 -37) is +1e-37. Classic uses very_worst_score (-1e37).
 
-; (: xmplrInit (-> (Tree $a) DemeId Xmplr))
+;; (: xmplrInit (-> (Tree $a) DemeId Xmplr))
 (= (xmplrInit $tree  (mkDemeId $id))
     (let ($iScore $iComplexity $iComplexityPen $iUinformityPen $iBehavioralScore) ((pow-math 10 -37) 0 0 (pow-math 10 -37) ())
         (mkXmplr 
@@ -42,16 +42,16 @@
                     (mkScoreT $iUinformityPen))
             (mkBscore $iBehavioralScore))))
 
-;; Type for list of ScoreT's for roullete selection
+;; Type for the list of ScoreT values for roulette selection
 (: probs (List ScoreT))
 
 ;; compareXmplr -- Exemplar comparator
 ;; compares two exemplars using series of scores
 ;;      penalized, $p1 and $p2, of the two exemplars are used first -- the higher the penalized score the better
 ;;      if the two scores are equal then complexity scores are used as tie breaker -- the smaller complexity score the better
-;;TODO XXX : original implemntaion of examplar comparison takes the difference between scores and 
-;;          allows the difference to be a small non-zero number for equality
-; (: compareXmplr (-> Xmplr Xmplr Atom))
+;; TODO: the classic exemplar comparison accepts a small non-zero score
+;;       difference as equality.
+;; (: compareXmplr (-> Xmplr Xmplr Atom))
 (= (compareXmplr 
         (mkXmplr $tree1 (mkDemeId $id1) (mkCscore (mkScoreT $s1) (mkComplexity $cs1) (mkScoreT $cp1) (mkScoreT $up1)) (mkBscore $bs1))
         (mkXmplr $tree2 (mkDemeId $id2) (mkCscore (mkScoreT $s2) (mkComplexity $cs2) (mkScoreT $cp2) (mkScoreT $up2)) (mkBscore $bs2)))

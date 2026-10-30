@@ -1,4 +1,4 @@
-;; a procedure that makes a winning move after
+;; Returns the index of a winning move for $player, or False.
 (= (play-win $board $player)
    (let $candidates (get-empty-cells $board () 0) 
         (find-winning-move $board $player $candidates)))
@@ -18,7 +18,7 @@
                     False
                     (car-atom $result)))))
 
-; We reuse the play-win function. If play-win returns an index for the opponent, that is the index we must block.
+;; Reuse play-win. If play-win returns an index for the opponent, that is the index we must block.
 (= (play-block $board $player)
    (let $opponent (get-opponent $player)
         (play-win $board $opponent)))                       
