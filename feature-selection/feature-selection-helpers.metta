@@ -354,8 +354,7 @@
 
 ;; (: fsToNames (-> (List Symbol) Expression Expression))
 (= (fsToNames $labels $ftIndices)
-	(collapse (chain (superpose $ftIndices) $ft 
-		(List.at $ft $labels))))                
+   (map-atom $ftIndices $ft (List.at $ft $labels)))                
 
 ;; readjustIndices  -- when a table is filtered based on requirements in filter selection when, for example, exemplar features are required to be ignored,
 ;;                  -- the returned index values no longer refer to the original table which is kept for reference in subsequent steps
