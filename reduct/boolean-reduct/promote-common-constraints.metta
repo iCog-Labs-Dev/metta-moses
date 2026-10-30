@@ -18,7 +18,7 @@
 (= (promoteCommonConstraints $parent $current)
     ;; Constants are inert: there is nothing to promote out of a truth value, and the
     ;; rebuild helpers below (addLiterals, removeElement) assume an Expression parent.
-    (if (and (and (not (== $current ())) (not (== $parent ())))
+    (if (and (and (!= $current ()) (!= $parent ()))
              (not (or (isConstant $current) (isConstant $parent))))
         (let*
             (
@@ -27,7 +27,7 @@
 
               ($currentHead (if (== (get-metatype $current) Expression) (car-atom $current) ()))
               (($literals $children) (getLiteralChildren $current))
-              ($childrenLiteral (if (not (== $children ())) (map-atom $children $ch (getLiterals $ch)) ()))
+              ($childrenLiteral (if (!= $children ()) (map-atom $children $ch (getLiterals $ch)) ()))
               ;; ONLY for an OR POA, where a bare literal IS an alternative and its guard set is
               ;; itself. Intersecting only the sub-expression branches was unsound:
               ;; (OR (AND A B) C D) promoted A and B, absent from C and D. In an AND POA the
@@ -35,7 +35,7 @@
               ;; quote: ($lit) is a live-head tuple ((NOT B)) once boolean-ops is loaded.
               ($bareGuardSets (if (== $currentHead OR) (map-atom $literals $lit (quote ($lit))) ()))
               ($allGuardSets (concatTuple $bareGuardSets $childrenLiteral))
-              ($common (if (not (== $allGuardSets ())) (findCommon $allGuardSets) ()))
+              ($common (if (!= $allGuardSets ()) (findCommon $allGuardSets) ()))
             )
             (if (== $common ())
                 ($parent $current False)
@@ -48,7 +48,7 @@
                       ;; makes the whole disjunction true. A consumed bare literal is one such
                       ;; branch, which is what (!= $updatedLiterals $literals) detects.
                       ($isTautology (and (== $currentHead OR)
-                                         (or (not (== $updatedLiterals $literals))
+                                         (or (!= $updatedLiterals $literals)
                                              (any (map-atom $updatedChildren $b (== $b TRUE))))))
                     )
                     (if $isTautology

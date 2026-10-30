@@ -138,8 +138,8 @@
 
 (= (reduceRepeatOutWhile () $processed) $processed)
 (= (reduceRepeatOutWhile $args $processed)
-   (let ($h $t) (decons $args)
-     (let $newProcessed
+   (let* ((($h $t) (decons-atom $args))
+          ($newProcessed
           (if (= $h (action_while $body))
             (if (and (== (get-metatype $body) Expression) (!= $body ()))
                 (if (== (car-atom $body) and_seq)
@@ -153,12 +153,12 @@
                 (if (endsWithSingle $processed $body)
                     (removeEndSingle $processed)
                     $processed))
-            $processed)
-       (reduceRepeatOutWhile $t (concatTuple $newProcessed (quote ($h)))))))
+            $processed)))
+     (reduceRepeatOutWhile $t (concatTuple $newProcessed (quote ($h))))))
 
 (= (reduceRepeatOutActionWhile $expr)
    (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
-       (let ($op $args) (decons $expr)
+       (let ($op $args) (decons-atom $expr)
          (if (== $op and_seq)
              (let $newArgs (reduceRepeatOutWhile $args ())
                (cons-atom and_seq $newArgs))

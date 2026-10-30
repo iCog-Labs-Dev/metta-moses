@@ -9,7 +9,7 @@
 (= (applyActionRuleDownwards $rule $expr)
    (let $reducedNode ($rule $expr)
      (if (and (== (get-metatype $reducedNode) Expression) (!= $reducedNode ()))
-         (let* ((($op $args) (decons $reducedNode))
+         (let* ((($op $args) (decons-atom $reducedNode))
                 ($reducedArgs (map-atom $args $arg (applyActionRuleDownwards $rule $arg))))
            (cons-atom $op $reducedArgs))
          $reducedNode)))
@@ -64,7 +64,7 @@
 
 (= (actionExpressionToTree $expr)
    (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
-       (let* ((($rootOp $args) (decons $expr))
+       (let* ((($rootOp $args) (decons-atom $expr))
               ($children (map-atom $args $arg (actionExpressionToTree $arg))))
          (mkTree (mkNode $rootOp) $children))
        (mkTree (mkNode $expr) ())))

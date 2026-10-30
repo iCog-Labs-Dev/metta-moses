@@ -77,11 +77,11 @@
 (= (applyAndCut ($parent $bool ($child $remainingChildren)))
       (let*
         (
-          (($updatedParent $updatedChild $appliedOrCut) (andCut $parent $child))
-          ($nextChild (if (~= $remainingChildren ()) (car-atom $remainingChildren) ()))
-          ($restChildren (if (~= $remainingChildren ()) (cdr-atom $remainingChildren) ()))
+          (($updatedParent $updatedChild $appliedAndCut) (andCut $parent $child))
+          ($nextChild (if (!= $remainingChildren ()) (car-atom $remainingChildren) ()))
+          ($restChildren (if (!= $remainingChildren ()) (cdr-atom $remainingChildren) ()))
         )
-        ($updatedParent (or $appliedOrCut $bool) ($nextChild $restChildren))
+        ($updatedParent (or $appliedAndCut $bool) ($nextChild $restChildren))
       )
 )
 

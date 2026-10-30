@@ -76,7 +76,7 @@
 (= (isChildren $exp)
         (if (== (get-metatype $exp) Symbol)
             (isConstant $exp)
-            (not (== (car-atom $exp) NOT))))
+            (!= (car-atom $exp) NOT)))
 
 ;; A function to return children of a given expression.
 ;; A child of a given expression is any subExpression.
@@ -242,11 +242,11 @@
              ;; (NOT x) is a literal; a childless (AND)/(OR) is a placeholder, not a constant.
              (if (or (== $head NOT) (== $rest ()))
                  $expr
-                 (let* (($kids (map-atom $rest $child (applyConstantLaws $child)))
+                 (let* (($children (map-atom $rest $child (applyConstantLaws $child)))
                         ($identity    (if (== $head AND) TRUE FALSE))
                         ($annihilator (if (== $head AND) FALSE TRUE))
-                        ($kept (filter-atom $kids $k (not (== $k $identity)))))
-                   (if (== (filter-atom $kids $k (== $k $annihilator)) ())
+                        ($kept (filter-atom $children $k (!= $k $identity))))
+                   (if (== (filter-atom $children $k (== $k $annihilator)) ())
                        ;; Every child was the identity => the junctor IS the identity.
                        (if (== $kept ()) $identity (cons-atom $head $kept))
                        $annihilator)))))

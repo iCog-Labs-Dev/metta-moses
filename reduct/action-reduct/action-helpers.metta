@@ -28,7 +28,7 @@
    (if (== (get-metatype $expr) Expression)
        (if (== $expr ())
            Unknown
-           (let ($op $args) (decons $expr)
+           (let ($op $args) (decons-atom $expr)
              (case $op
                ((action_not
                  (case (getActionResult (car-atom $args))
@@ -65,16 +65,16 @@
 ;; but at least one child is Unknown, the sequence remains Unknown.
 (= (getActionResultOr $args) (getActionResultOrHelper $args False))
 
-;; `$exists_indeterminate` records whether an earlier child was Unknown while
+;; `$sawUnknown` records whether an earlier child was Unknown while
 ;; scanning for a True child. That lets the base case distinguish "all False"
 ;; from "no True, but at least one Unknown".
-(= (getActionResultOrHelper () $exists_indeterminate)
-   (if $exists_indeterminate Unknown False))
-(= (getActionResultOrHelper (cons $h $t) $exists_indeterminate)
+(= (getActionResultOrHelper () $sawUnknown)
+   (if $sawUnknown Unknown False))
+(= (getActionResultOrHelper (cons $h $t) $sawUnknown)
    (let $r (getActionResult $h)
      (if (== $r True)
          True
-         (getActionResultOrHelper $t (or $exists_indeterminate (== $r Unknown))))))
+         (getActionResultOrHelper $t (or $sawUnknown (== $r Unknown))))))
 
 ;; ---------------------------------------------------------------------------
 ;; List/Tuple Simplification Helpers
@@ -93,10 +93,10 @@
 (= (flattenAssoc $op $args)
    (if (== $args ())
        ()
-       (let* ((($h $t) (decons $args))
+       (let* ((($h $t) (decons-atom $args))
               ($flatTail (flattenAssoc $op $t)))
          (if (and (== (get-metatype $h) Expression) (!= $h ()))
-             (let ($childOp $childArgs) (decons $h)
+             (let ($childOp $childArgs) (decons-atom $h)
                (if (== $childOp $op)
                    (concatTuple (flattenAssoc $op $childArgs) $flatTail)
                    (cons-atom $h $flatTail)))
@@ -110,7 +110,7 @@
 (= (pruneAndSeqArgs $args)
    (if (== $args ())
        ()
-       (let ($h $t) (decons $args)
+       (let ($h $t) (decons-atom $args)
          (if (== $h action_failure)
              (cons-atom action_failure ())
              (if (== $h action_success)
@@ -199,14 +199,14 @@
 (= (substituteSeqInit $op $args $cond $sub)
    (if (== $args ())
        (quote ($op)) ;; quoted: ($op) with a defined action head would be a call
-       (let ($h $t) (decons $args)
+       (let ($h $t) (decons-atom $args)
          (cons-atom $op (cons-atom (substituteCondInitInstant $h $cond $sub) $t)))))
 
 (= (substituteCondInitInstant $expr $cond $sub)
    (if (== $expr $cond)
        $sub
        (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
-           (let ($op $args) (decons $expr)
+           (let ($op $args) (decons-atom $expr)
              (case $op
                 ((and_seq (substituteSeqInit and_seq $args $cond $sub))
                  (or_seq (substituteSeqInit or_seq $args $cond $sub))

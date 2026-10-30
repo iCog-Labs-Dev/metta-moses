@@ -70,7 +70,7 @@
                 ($literals (getLiterals $current))
               )
               ;; POA is AND & OR and has no children and guardSet
-              (if (and (not (== $current $parent)) (not (== $parent AND)))
+              (if (and (!= $current $parent) (!= $parent AND))
                 (if (and (== $literals ()) (== $children ()))
                     ((removeElement ($current) $parent) () True)
                     ($parent $current False)
@@ -90,4 +90,4 @@
 ;; without the isConstant arm they look exactly like the placeholders it exists to delete.
 (= (nodeHasChildOrGuard $node)
    (or (isConstant $node)
-       (or (not (== (getLiterals $node) ())) (not (== (getChildrenExp $node) ())))))
+       (or (!= (getLiterals $node) ()) (!= (getChildrenExp $node) ()))))
