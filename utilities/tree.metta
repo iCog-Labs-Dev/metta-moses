@@ -211,8 +211,7 @@
    ;; If no more id or targetTree is root.
    (if (or (== $id ()) (== (mkNodeId $id) (mkNodeId (0)))) ;; Without the mkNodeId constructor the interpreter treats the () and (0) as different types.
        $newSubtree
-       (let* (($headId (car-atom $id))
-              ($tailId (cdr-atom $id))
+       (let* ((($headId $tailId) (decons-atom $id))
               ($children (getChildren $tree))
               ($childToUpdate (List.getByIdx $children (- $headId 1)) )
               ($updatedChild
@@ -357,8 +356,8 @@
             (map-atom $arg-set $arg (List.index $labels $arg))))     
 
 
-(= (pruneExemplar $exemplar $arg-set)
-    (foldl-atom $arg-set $exemplar $acc $arg (removeLiteral $acc $arg)))   
+(= (pruneExemplar $exemplar $argSet)
+    (foldl-atom $argSet $exemplar $acc $arg (removeLiteral $acc $arg)))   
     
 
 ;; (: removeLiteral (-> (Tree $a) Symbol (Tree $a)))

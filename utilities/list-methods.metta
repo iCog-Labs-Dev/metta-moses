@@ -71,10 +71,10 @@
 ;; (: List.mapOverArg (-> (-> $a $b $a) $b $arg (List $a)))
 (= (List.mapOverArg $f () $arg) ())
 (= (List.mapOverArg $f (cons $head $tail) $arg)
-   (let $new-head ($f $head $arg)
-     (if (== $new-head ())
+   (let $newHead ($f $head $arg)
+     (if (== $newHead ())
          (List.mapOverArg $f $tail $arg)
-         (cons $new-head (List.mapOverArg $f $tail $arg)))))
+         (cons $newHead (List.mapOverArg $f $tail $arg)))))
 
 ;; (: List.filter (-> (-> $a Bool) (List $a) (List $a)))
 (= (List.filter $p $xs) (filter-atom $xs $x ($p $x)))

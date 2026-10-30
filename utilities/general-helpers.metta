@@ -39,8 +39,8 @@
           (
             ($pair (profilen $expr))
             ($time (car-atom $pair))
-            ($new-acc (cons-atom $time $acc))
-            ($next (profile-helper $expr (- $n 1) $new-acc))
+            ($newAcc (cons-atom $time $acc))
+            ($next (profile-helper $expr (- $n 1) $newAcc))
           )
           $next
       )))
@@ -62,7 +62,7 @@
 
 
 ;; Not-equal test on two atoms.
-(= (~= $a $b) (not (== $a $b)))
+(= (~= $a $b) (!= $a $b))
 ;; Concatenate two tuples: (A B) (C D) ==> (A B C D)
 ;; (: concatTuple (-> Expression Expression Expression))
 (= (concatTuple $x $y) (union-atom $x $y))
@@ -148,8 +148,7 @@
 (= (foldr $f $i $xs)
    (if (== $xs ())
        $i
-       (let* (($h (car-atom $xs))
-              ($t (cdr-atom $xs))
+       (let* ((($h $t) (decons-atom $xs))
               ($ft (foldr $f $i $t)))
          ($f $h $ft))))
 
@@ -271,8 +270,8 @@
        (((car-atom $a) (car-atom $b)))
        (let*
           (
-            (($x $xs) (decons $a))
-            (($y $ys) (decons $b))
+            (($x $xs) (decons-atom $a))
+            (($y $ys) (decons-atom $b))
             ($rest (zip $xs $ys))
           )
           (cons-atom ($x $y) $rest)))
@@ -284,10 +283,10 @@
 (= (zipWith $f $xs $ys)
    (if (== $xs ())                      ;; We assume (arity $xs) == (arity $ys)
        ()
-       (let* ((($xs-hd $xs-tl) (decons $xs))
-              (($ys-hd $ys-tl) (decons $ys))
-              ($head ($f $xs-hd $ys-hd))
-              ($tail (zipWith $f $xs-tl $ys-tl)))
+       (let* ((($xsHead $xsTail) (decons-atom $xs))
+              (($ysHead $ysTail) (decons-atom $ys))
+              ($head ($f $xsHead $ysHead))
+              ($tail (zipWith $f $xsTail $ysTail)))
          (cons-atom $head $tail))))
 
 ;; Three-list variant of zipWith. Applies $f to corresponding head triples and
@@ -296,11 +295,11 @@
 (= (zipWith3 $f $xs $ys $zs)
    (if (== $xs ())
        ()
-       (let* ((($xs-hd $xs-tl) (decons $xs))
-              (($ys-hd $ys-tl) (decons $ys))
-              (($zs-hd $zs-tl) (decons $zs))
-              ($head ($f $xs-hd $ys-hd $zs-hd))
-              ($tail (zipWith3 $f $xs-tl $ys-tl $zs-tl)))
+       (let* ((($xsHead $xsTail) (decons-atom $xs))
+              (($ysHead $ysTail) (decons-atom $ys))
+              (($zsHead $zsTail) (decons-atom $zs))
+              ($head ($f $xsHead $ysHead $zsHead))
+              ($tail (zipWith3 $f $xsTail $ysTail $zsTail)))
          (cons-atom $head $tail))))
 
 ;; Find the length of a tuple.
@@ -316,11 +315,7 @@
 (= (replaceByIndex $expr $index $new)
     (if (== $expr ())
         $expr
-        (let*
-            (
-                ($first (car-atom $expr))
-                ($tail (cdr-atom $expr))
-            )
+        (let ($first $tail) (decons-atom $expr)
             (if (== $index 0)
                 (if (== $tail ())
                     ($new)
@@ -389,8 +384,8 @@
             (($xs $ys)
               (let*
                   (
-                    (($x $xss) (decons $xs))
-                    (($y $yss) (decons $ys))
+                    (($x $xss) (decons-atom $xs))
+                    (($y $yss) (decons-atom $ys))
                   )
                   (if ($key $x $y)
                       (let $t (merge $xss $ys $key) (cons-atom $x $t))
@@ -409,7 +404,7 @@
           (let*
              (
                ;; (() (println! (Splitting $list at: $n)))
-               (($x $xs) (decons $list))
+               (($x $xs) (decons-atom $list))
                (($left $right) (splitAt (- $n 1) $xs))
                ;; (() (println! (From splitAt Left: $left Right: $right)))
              )
@@ -483,8 +478,8 @@
 (= (take $n (cons $h $t))
    (if (<= $n 0)
        ()
-       (let $next-n (- $n 1)
-            (cons $h (take $next-n $t)))))
+       (let $nextN (- $n 1)
+            (cons $h (take $nextN $t)))))
 
 ;; A function to remove the first n elements of a tuple
 ;;   and returns the rest.
@@ -495,25 +490,20 @@
         (($n ()) ())
         ((0 $a) $a)
         (($n $a)
-          (let*
-            (
-              (($h $t) (decons $a))
-              ($r (drop (- $n 1) $t)))
-            $r)))))
+          (let ($h $t) (decons-atom $a)
+            (drop (- $n 1) $t))))))
 
 ;; isLiteral -- determines if the given atom is a literal or not
 
 (= (isLiteral $a)
     (if (or (== (get-metatype $a) Grounded) (== (get-metatype $a) Symbol))
         True
-        (if (== (car-atom $a) NOT)
-            True
-            False )))
+        (== (car-atom $a) NOT)))
 
 ;; minOfTuple -- minimum of tuple of numeric expressions
 
 (= (minOfTuple $expr)
-    (let ($f $t) (decons $expr)
+    (let ($f $t) (decons-atom $expr)
         (if (== $t ())
             $f
             (min $f (minOfTuple $t))
@@ -536,8 +526,7 @@
 (= (map` $f $x $xs)
    (if (== $xs ())
        ()
-       (let* (($h (car-atom $xs))
-              ($t (cdr-atom $xs))
+       (let* ((($h $t) (decons-atom $xs))
               ($fh ($f $h $x))
               ($ft (map` $f $x $t)))
          (cons-atom $fh $ft))))
@@ -567,7 +556,7 @@
 
 ;; a function that checks that all of the expressions are true.
 ;; (: all (-> Expression Bool))
-(= (all $expressions) (if (once (is-member False $expressions)) False True))
+(= (all $expressions) (not (once (is-member False $expressions))))
 
 
 ;; Name:                        ===
@@ -672,17 +661,9 @@
 (= (concatT $expr1 $expr2)
     (if (== $expr1 ())
         $expr2
-        (let*
-            (
-            ($head (car-atom $expr1))
-            ($tail (concatT (cdr-atom $expr1) $expr2))
-            )
-            (cons-atom $head $tail)
-        )
-        
-
-    )
-)
+        (let* ((($head $rest) (decons-atom $expr1))
+               ($tail (concatT $rest $expr2)))
+            (cons-atom $head $tail))))
 
 ;; isnan -- to check if a value is NaN
 ;; MeTTaLog represents NaN as 1.5NaN (the value of Python float('nan')).
@@ -1011,7 +992,7 @@
 ;; plain-if forms of getGuardSet/getGuardSetND in
 ;; reduct/boolean-reduct/rte-helpers.metta.
 (= (if-decons-expr-custom $list $h $t $then $else)
-      (if (or (== $list ()) (not (== (get-metatype $list) Expression)))
+      (if (or (== $list ()) (!= (get-metatype $list) Expression))
             $else
             (let* (
                   ($h (car-atom $list))

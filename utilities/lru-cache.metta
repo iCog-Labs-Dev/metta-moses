@@ -14,9 +14,9 @@
 ;; Function: cacheExists
 ;; Purpose: Check if a function call with given arguments exists in cache
 ;; (: cacheExists (-> Symbol $a Bool))
-(= (cacheExists $fn-name $args)
-    (let $queryResult (collapse (match &cache (cacheEntry $fn-name $args $result $counter) $result))
-        (not (== $queryResult ()))))
+(= (cacheExists $fnName $args)
+    (let $queryResult (collapse (match &cache (cacheEntry $fnName $args $result $counter) $result))
+        (!= $queryResult ())))
 
 ;; Function: accCounter  
 ;; Purpose: Generate next sequential number for cache ordering
@@ -55,10 +55,10 @@
 (: ltByLastAtom (-> Expression Expression Bool))
 (= (ltByLastAtom $x $y) 
     (let* (
-        ($last-index (- (size-atom $x) 1))
-        (($x-end $y-end) (map-atom ($x $y) $a (index-atom $a $last-index))))
+        ($lastIndex (- (size-atom $x) 1))
+        (($xEnd $yEnd) (map-atom ($x $y) $a (index-atom $a $lastIndex))))
         
-        (< $x-end $y-end)))
+        (< $xEnd $yEnd)))
 
 ;; Function: removeLeastRecentlyUsed
 ;; Purpose: Evict the least recently used cache entry to make room for new entry
@@ -115,12 +115,12 @@
 ;; Function: lruCache
 ;; Purpose: Main LRU cache interface - checks cache first, computes if needed
 ;;      $maxSize -- maximum size of the lru cache 
-;;      (($fn-name) $args) -- the function call being cached in; as tuple ((function-name) (arguments)) 
+;;      (($fnName) $args) -- the function call being cached in; as tuple ((function-name) (arguments)) 
 ;;      
 (: lruCache (-> Number Expression $a))
-(= (lruCache $maxSize (($fn-name) $args)) 
+(= (lruCache $maxSize (($fnName) $args)) 
     (let $_ (change-state! &maxCacheSize $maxSize)                         ;; Set cache size for this operation
-        (if (reduce (cacheExists $fn-name $args))                           ;; Check cache first
-            (getCached $fn-name $args)                                    ;; Cache miss - compute and cache result
-            (let $computedResult (reduce (cons-atom $fn-name $args))        ;; Execute the function call
-                (cachePut $fn-name $args (reduce $computedResult))))))      ;; Cache the result
+        (if (reduce (cacheExists $fnName $args))                           ;; Check cache first
+            (getCached $fnName $args)                                    ;; Cache miss - compute and cache result
+            (let $computedResult (reduce (cons-atom $fnName $args))        ;; Execute the function call
+                (cachePut $fnName $args (reduce $computedResult))))))      ;; Cache the result
