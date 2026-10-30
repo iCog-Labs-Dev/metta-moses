@@ -143,7 +143,7 @@
             (if (== $idx (-1))
                 ($targetTree (mkNodeId $parentIdx) $nodeId (+ 1 $iter))
                 ($targetTree $nodeId $newId (+ 1 $iter))))))
-        ($targetTree (mkNodeId $pareantIdx) $accId (+ 1 $iter))))
+        ($targetTree (mkNodeId $parentIdx) $accId (+ 1 $iter))))
 
 ;; Finds the NodeId of a subtree within the children of a target node.
 ;; Params:
