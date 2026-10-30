@@ -35,7 +35,7 @@
               ;; quote: ($lit) is a live-head tuple ((NOT B)) once boolean-ops is loaded.
               ($bareGuardSets (if (== $currentHead OR) (map-atom $literals $lit (quote ($lit))) ()))
               ($allGuardSets (concatTuple $bareGuardSets $childrenLiteral))
-              ($common (if (!= $allGuardSets ()) (findCommon $allGuardSets) ()))
+              ($common (intersectAll $allGuardSets))
             )
             (if (== $common ())
                 ($parent $current False)

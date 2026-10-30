@@ -143,32 +143,13 @@
 ;;  and the children as a tuple ((...literals...), (...children...))
 (= (getLiteralChildren $expr) ((getLiterals $expr) (getChildrenExp $expr)))
 
-;; Function to find the literals common to a tuple and every tuple of a nested tuple.
-(= (findCommonLiterals $tuple $nestedTuple)
-    (if (or (== $nestedTuple ()) (== $tuple ()))
-        ()
-        (let*
-            (
-                ($first (car-atom $nestedTuple))
-                ($tail (cdr-atom $nestedTuple))
-                ($common (intersection-atom $tuple $first)))
-
-        (if (== $tail ())
-            $common
-            (findCommonLiterals $common $tail)))))
-
-;; Function to find common literals in a nested tuple
-(= (findCommon $nestedTuple)
-   (case $nestedTuple 
-     ((() $nestedTuple)
-      ($else
-        (if (== (cdr-atom $nestedTuple) ())
-            (car-atom $nestedTuple)
-            (let*
-              (
-                ($first (car-atom $nestedTuple))
-                ($tail (cdr-atom $nestedTuple)))
-              (findCommonLiterals $first $tail)))))))
+;; The intersection of a list of sets: a foldl1 of intersection-atom. () gives ().
+;; Example: ((A B C) (B C D) (C B)) -> (B C)
+(= (intersectAll $sets)
+   (if (== $sets ())
+       ()
+       (let ($first $rest) (decons-atom $sets)
+         (foldl-atom $rest $first $acc $set (intersection-atom $acc $set)))))
 
 ;; Name:                        invertLiterals
 ;; Description:                 A helper function that negates all literals in a literal only expression.

@@ -58,18 +58,14 @@
             )))
 )
 
-;; Function to find intersections between all literals in a nested tuple
+;; Like intersectAll, but a single set has nothing in common with other sets: it gives ().
 (= (intersections $nestedTuple)
-   (case $nestedTuple 
+   (case $nestedTuple
      ((() $nestedTuple)
       ($else
         (if (== (cdr-atom $nestedTuple) ())
             ()
-            (let*
-              (
-                ($first (car-atom $nestedTuple))
-                ($tail (cdr-atom $nestedTuple)))
-              (findCommonLiterals $first $tail)))))))
+            (intersectAll $nestedTuple))))))
 
 
 ;; A helper function used to apply andCut in the until function.
