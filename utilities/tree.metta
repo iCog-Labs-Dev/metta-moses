@@ -74,7 +74,7 @@
               ;; ($_ (println! (-----------------------)))
               ;; ($_ (println! (Inside buildTree with expr: $expr)))
               (($head $tail) (decons-atom $expr))
-              ($children (exprToList (map buildTree $tail)))
+              ($children (map buildTree $tail))
               ;; ($_ (println! (Building tree with head: $head And children: $children)))
               ;; ($_ (println! (FinalAnswer: (mkTree (mkNode $head) $children))))
             )
