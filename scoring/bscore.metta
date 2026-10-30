@@ -7,13 +7,6 @@
 ;; (: BehavioralScore Type)
 ;; (: mkBScore (-> (List Number) BehavioralScore))
 
-;; Subtract two behavioral scores
-;; (: BScore.sub (-> BehavioralScore BehavioralScore BehavioralScore))
-(= (BScore.sub (mkBScore $bs1) (mkBScore $bs2))
-   (if (not (== (List.length $bs1) (List.length $bs2)))
-       (Error ($bs1 $bs2) "Incompatible behavioral scores")
-       (mkBScore (List.sub $bs1 $bs2))))
-
 ;; Sums the behavioral score to get a single number.
 ;; (: sumBScore (-> BehavioralScore Number))
 (= (sumBScore (mkBScore $bs)) (List.sum $bs))
@@ -38,9 +31,6 @@
 ;; (: createTruthTableBScore (-> Number (ITable $a) (TruthTableBScore $a)))
 (= (createTruthTableBScore $complexityCoeff (mkITable $itable $labels)) (mkTruthTableBScore $complexityCoeff (ITable.rowCount $itable) (mkITable $itable $labels)))
 
-;; Return the table from truth table bscore
-;; (: getTable (-> (TruthTableBScore $a) (ITable $a)))
-(= (getTable (mkTruthTableBScore $compCoeff $size $table)) $table)
 
 ;; Function to give a behavioral score for a given tree.
 ;; It takes the Input table and the tree then scores the input table on each row. After which it builds the behavioral score.
@@ -96,9 +86,6 @@
 ;; (: compareAndScore (-> $a $a Number))
 (= (compareAndScore $a $b) (if (== $a $b) 0 -1))
 
-;; A wrapper function to return the complexity a tree.
-;; (: getComplexity (-> (Tree $a) Number))
-(= (getComplexity $tree) (treeComplexity $tree))
 
 ;; Replace every occurrence of a label inside an expression with a truth value.
 ;;
@@ -148,45 +135,3 @@
 ;;  from the same function that works on BehavioralScore, it only needs the size of the table.
 ;; (: worstPossibleScore (-> (BehavioralCScore $a) Number))
 (= (worstPossibleScore (mkBCScore $truthTableBScore)) (let (mkBScore $bscore) (worstPossibleScore $truthTableBScore) (List.sum $bscore)))
-
-
-
-;;------------------------------------------------------------
-;; getArgLabels
-;;------------------------------------------------------------
-;;  Extracts argument labels (all but the last) from an ITable.
-;;
-;;  The ITable structure is:
-;;    (mkITable $columns $labels)
-;;      where $columns = list of data columns (each a list of values, one per row)
-;;            $labels  = list of column labels (symbols)
-;;
-;;  This function returns an expression of all column labels except the last one,
-;;  which is typically the output label in a truth table.
-;;
-;;  Example (columns A=(T F), B=(F T), Y=(T F)):
-;;    (mkITable ((True False) (False True) (True False)) ('A 'B 'Y))
-;;
-;;    Labels:   +---+---+---+
-;;              | A | B | Y |
-;;              +---+---+---+
-;;    Output:   ('A 'B)
-;;
-;;   
-;;      +---+---+---+
-;;      | A | B | Y |
-;;      +---+---+---+
-;;      | T | F | T |
-;;      | F | T | F |
-;;      +---+---+---+
-;;      ^^^^^^^^^^^^
-;;      getArgLabels returns only the input labels: [A, B]
-;;
-;;  Usage:
-;;    (getArgLabels $itable)  ; returns (cons 'A (cons 'B ()))
-;;
-;; (: getArgLabels (-> (ITable $a) (List Symbol)))
-(= (getArgLabels (mkITable $columns $labels))
-   (let $args
-        (List.takeN (- (List.length $labels) 1) $labels )
-        (List.listToExpr $args)))

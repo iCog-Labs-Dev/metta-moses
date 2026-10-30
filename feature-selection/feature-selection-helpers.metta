@@ -118,7 +118,6 @@
 ;; $list -- tuple of item value-label pairs 
 ;; Use a strict comparator (for example >) as $op.
 ;; (: insertPair (-> (-> ($a $b) ($a $b) Bool) ($a $b) Expression Expression))
-(= (insertPair $op ($mi $new-i) $list) (insertPair $op <= ($mi $new-i) $list))
 (= (insertPair $op $lexOp ($mi $new-i) $list)
     (if (== $list ())
         (($mi $new-i))

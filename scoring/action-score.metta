@@ -70,7 +70,7 @@
 ;; the fitness symbol and compiled expression riding as captured args
 ;; (the clause-dispatched general-helpers map overload -- in-order,
 ;; probe-verified). Scores come back listed -- exactly the
-;; (mkBScore (list of Numbers)) contents sumBScore / BScore.sub consume
+;; (mkBScore (list of Numbers)) contents sumBScore consumes
 ;; (scoring/bscore.metta) -- the same mkBScore-of-Numbers shape every
 ;; behavioral scorer builds.
 (= (runActionEpisodes $fn $exp $n)

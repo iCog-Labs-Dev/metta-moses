@@ -30,27 +30,6 @@
                                        (cons (cons 0 ())
                                        (cons (cons 2 ()) ()))) (cons A (cons B (cons C ()))))))
 
-;; Test Behavioral Score Helper functions
-;; Test Sutract subtract behavioral scores pair wise
-!(assertEqual
-   (BScore.sub 
-      (mkBScore (cons 1 (cons 0 (cons 2 ()))))
-      (mkBScore (cons 1 (cons 0 (cons 2 ()))))) 
-   (mkBScore (cons 0 (cons 0 (cons 0 ())))))
-!(assertEqual
-   (BScore.sub 
-      (mkBScore (cons 1 (cons 0 (cons 2 ()))))
-      (mkBScore (cons 1 (cons 0 ()))))
-   (Error ((cons 1 (cons 0 (cons 2 ()))) (cons 1 (cons 0 ()))) "Incompatible behavioral scores"))
-;; Test Retrieve the table from a truth table bscore
-!(assertEqual 
-   (getTable (mkTruthTableBScore 0.2 1 (mkITable (cons (cons 1 ())
-                                                 (cons (cons 0 ())
-                                                 (cons (cons 2 ()) ()))) (cons A (cons B (cons C ()))))))
-   (mkITable (cons (cons 1 ())
-             (cons (cons 0 ())
-             (cons (cons 2 ()) ()))) (cons A (cons B (cons C ())))))
-
 ;; Test Score Tree Helper Function test to replace all occurences of a given variable with a truth value
 ;; Boolean expressions ride under quote/let: this file loads boolean-ops'
 ;; AND/OR/NOT eval clauses, so a bare tuple at a call site would compile
@@ -130,29 +109,3 @@
 ;; Test Helper function to compare two elements and return a score
 !(assertEqual (compareAndScore A B) -1)
 !(assertEqual (compareAndScore A A) 0)
-
-;; Test Wrapper function to get the complexity of a tree
-!(assertEqual
-   (getComplexity (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) ())) ())))
-   1
- )
-
-;; Test getArgLabels function to extract argument labels from an ITable
-
-!(assertEqual (getArgLabels (mkITable
-  (cons (cons True ())
-  (cons (cons False ())
-  (cons (cons True ()) ())))
-  (cons A (cons B (cons Y ())))
-))
-  (A B)
-)
-
-!(assertEqual (getArgLabels (mkITable
-  (cons (cons 1 ())
-  (cons (cons 2 ())
-  (cons (cons 3 ()) ())))
-  (cons X (cons Y (cons Z ())))
-))
-  (X Y)
-)

@@ -33,19 +33,6 @@
 ;; Loads after scoring/action-registry and before scoring/action-ops and any
 ;; domain package.
 
-;; isARes: is $r a well-formed (mkARes $v $w) result? Guarded if-chain, NOT
-;; `and` -- size-atom/car-atom on a non-expression would error. No longer on
-;; the engine's dispatch path (evalActionNode filters result shapes via the
-;; in-collapse unification instead: passing a runtime `partial` term as an
-;; argument would RESUME the application and silently fail); retained as the
-;; public result-shape predicate, pinned by scoring/test/action-eval-test.
-(= (isARes $r)
-   (if (== (get-metatype $r) Expression)
-       (if (== (size-atom $r) 3)
-           (if (== (car-atom $r) mkARes) True False)
-           False)
-       False))
-
 ;; evalActionNode: dispatch ONE node to its operator clause -- reduce on a
 ;; quote-built term (quote substitutes the bound $op/$children/$world and
 ;; strips once, handing reduce the raw application; an unquoted
