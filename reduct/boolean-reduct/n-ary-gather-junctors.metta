@@ -20,7 +20,6 @@
 ;; addAND wraps each literal and OR node that is not under an AND node in an AND node.
 ;; The bare (AND ...) builds in this file are data only because
 ;; this file loads before scoring/boolean-ops.
-; (: addAND (-> Expression Bool Expression))
 (= (addAND $expr $isFinal)
     (if (and $isFinal (or (== (car-atom $expr) OR) (== (car-atom $expr) NOT)))
         (AND $expr)
@@ -28,14 +27,12 @@
     )
 )
 
-; (: addAND (-> Expression Expression))
 (= (addAND $expr)
   (if (== (get-metatype $expr) Expression)
       (addAND $expr (car-atom $expr) ())
       (addAND $expr () ())
   ))
 
-; (: addAND (-> Expression Symbol Symbol Expression))
 (= (addAND $expr $parent $prev)
     (case (get-metatype $expr)
         (

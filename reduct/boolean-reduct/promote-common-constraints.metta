@@ -15,7 +15,6 @@
 ;;              true, so the POA is a tautology and is dropped from the parent.
 ;; Example: input: POA ==> (OR (AND (NOT B) C) (NOT B)), parent ==> (AND A (OR (AND (NOT B) C) (NOT B)) (OR (NOT C) (AND (NOT B) (NOT D))))
 ;;        : output: ((AND A (NOT B) (OR (AND C) (AND)) (OR (NOT C) (AND (NOT B) (NOT D)))) () True)
-;(: promoteCommonConstraints (-> Expression Expression (Expression Expression Bool)))
 (= (promoteCommonConstraints $parent $current)
     ;; Constants are inert: there is nothing to promote out of a truth value, and the
     ;; rebuild helpers below (addLiterals, removeElement) assume an Expression parent.
@@ -72,15 +71,6 @@
             )
         )
         ($parent $current False)
-    )
-)
-
-
-;;A function to find the intersection between two tuples
-(= (atomIntersection $lit $common)
-    (if (== $lit ())
-        $common
-        (intersection-atom $lit $common)
     )
 )
 

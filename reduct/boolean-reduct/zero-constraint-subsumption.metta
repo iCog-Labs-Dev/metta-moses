@@ -10,7 +10,6 @@
 ;;         
 ;; Example: input: POA ==> (OR C), parent ==> (AND A (OR A (NOT B)) (OR C AND))
 ;;        : output: ((AND A (OR A (NOT B))) () True)
-;; (: zeroConstraintSubsume (-> Expression Expression (Expression Expression Bool)))
 (= (zeroConstraintSubsume $parent $current)
   (case ((get-metatype $current) $current)
     (
@@ -49,7 +48,6 @@
 ;;         Otherwise, it will just return the unchanged state.
 ;; Example: input: POA ==> (AND), parent ==> (OR A C (AND) (OR A B))
 ;;          output: ((OR A C (OR A B)) () True)
-;; (: zeroConstraintSubsume' (-> Expression Expression (Expression Expression Bool)))
 (= (zeroConstraintSubsume' $parent $current)
   (case ((get-metatype $current) $current)
     (

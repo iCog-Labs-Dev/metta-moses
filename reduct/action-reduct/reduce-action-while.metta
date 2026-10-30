@@ -5,20 +5,6 @@
 ;; This file covers six rewrite rules that simplify while-loop and loop-body
 ;; redundancy in action programs.
 
-;; Helper: take first N elements of a tuple
-; (= (take-n $n $tuple)
-;    (if (or (<= $n 0) (== $tuple ()))
-;        ()
-;        (let ($h $t) (decons-atom $tuple)
-;          (cons-atom $h (take-n (- $n 1) $t)))))
-
-;; Helper: drop first N elements of a tuple
-; (= (drop-n $n $tuple)
-;    (if (or (<= $n 0) (== $tuple ()))
-;        $tuple
-;        (let ($h $t) (decons-atom $tuple)
-;          (drop-n (- $n 1) $t))))
-
 ;; Helper: check if list1 ends with list2
 (= (endsWith $list1 $list2)
    (let* (($len1 (size-atom $list1))

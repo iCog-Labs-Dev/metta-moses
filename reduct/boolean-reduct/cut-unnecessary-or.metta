@@ -7,7 +7,6 @@
 ;;            are not met, it returns the state unchanged.
 ;; Example: input: POA ==> (OR (AND (NOT D))), parent => (AND B (OR (AND (NOT D))))
 ;;          output: ((AND B (NOT D)) () True)
-; (: orCut (-> Expression Expression (Expression Expression Bool)))
 ;; Constants are inert as a parent: removeElement and addLiterals below assume an Expression.
 (= (orCut $parent $current)
    (if (isConstant $parent)
@@ -34,7 +33,6 @@
 ;; A function to return the literals and children of any given node.
 ;; It is used for cases where we need all the subExpressions of AND & OR nodes.
 ;;    An expression like (NOT A) has no subExpression and is a literal.
-; (: getSubExpression (-> Expression Expression))
 (= (getSubExpression $exp)
    (case $exp
      (
@@ -55,7 +53,6 @@
 
 ;; A helper function used to apply orCut function in the until function.
 ;; This function keeps the state of the until function updated for a single function application.
-; (: applyOrCut (-> (Expression Bool (Expression Expression)) (Expression Bool (Expression Expression))))
 (= (applyOrCut ($parent $bool ($child $remainingChildren)))
       (let*
         (

@@ -16,7 +16,6 @@
 ;;            is applied or not.
 ;; Example: input: POA ==> (AND E D), commandSet ==> (C D), parent ==> (OR (AND E D) C)
 ;;        : output: ((OR C) () True)
-;;(: oneConstraintSubsume (-> Expression Expression Expression (Expression Expression Bool)))
 
 
 

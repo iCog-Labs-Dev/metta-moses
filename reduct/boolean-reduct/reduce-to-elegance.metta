@@ -20,7 +20,6 @@
 ;;                 dominantSet ==> (A)
 ;;                 commandSet ==> ()
 ;;        : output: ((AND A (NOT B) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))) () True)
-; (: reduceToElegance (-> Expression Expression Expression Expression (Expression Expression Bool)))
 (= (reduceToElegance $parent $current $dominantSet $commandSet)
    (case ((get-metatype $current) $current)
         (
@@ -82,7 +81,6 @@
                              (until transformationsNotApplied applyAndTransformations ($commandSet $dominantSet ($updatedParent $updatedCurrent True)))))
 
                       ;; ($_ (println! (FinalResult ==> UpdatedParent': $updatedParent' UpdatedCurrent: $updatedCurrent' AppliedRTE: (any ($appliedRedundantOr1CC $appliedOneSubsume $bool)))))
-                      ;; ($_ (cut))
                       ;; ($_ (println! (calling 0-Subsume Variation on Parent: $updatedParent' Current: $updatedCurrent')))
                       ;; Fishes a replacement "current" out of the parent's tail when the POA was deleted.
                       ;; A constant parent has no tail: cdr-atom on a Symbol yields no solution, which
@@ -142,12 +140,10 @@
 )
 
 ;; The stop predicate of the `until` loops over applyAndTransformations and applyOrTransformations.
-; (: transformationsNotApplied (-> (Expression Expression (Expression Expression Bool)) Bool))
 (= (transformationsNotApplied ($dummy $dummy2 ($parent $current $bool))) (not $bool))
 
 ;; A helper function to apply delInconHandle and andCut transformation functions.
 ;; It will also apply reduce to elegance algorithm on each of the children of the POA.
-; (: applyAndTransformations (-> (Expression Expression (Expression Expression Bool)) (Expression Expression Bool)))
 (= (applyAndTransformations ($commandSet $dominantSet ($parent $current $unwt)))
    (let*
      (
@@ -217,7 +213,6 @@
               ;; ($_ (println! ($commandSet'')))
               ;; ($_ (println! ""))
               ;; ($_ (println! ("commandSet: " $commandSet "DomainSet: " $dominantSet)))
-              ;
            )
            ($commandSet $dominantSet ($updatedParent $updatedCurrent $appliedRTE))
          )
@@ -228,7 +223,6 @@
 ;; The `until` step that applies reduceToElegance to each child of an OR node in turn.
 ;; The children are AND nodes, hence the name.
 ;;($commandSet $dominantSet ($parent $current False) ($firstChild $remainingChildren))
-; (: applyReduceToEleganceToAnd (-> (Expression Expression (Expression Expression Bool) (Expression Expression)) (Expression Expression (Expression Expression Bool) (Expression Expression))))
 (= (applyReduceToEleganceToAnd ($commandSet $dominantSet ($parent $prevCurrent $bool) ($firstChild $remainingChildren)))
    (let*
      (
@@ -271,7 +265,6 @@
 
 ;; A helper function to apply 0Subsume and orCut transformation functions.
 ;; It will also apply reduce to elegance algorithm on each of the children of the POA.
-; (: applyOrTransformations (-> (Expression Expression (Expression Expression Bool)) (Expression Expression (Expression Expression Bool))))
 (= (applyOrTransformations ($commandSet $dominantSet ($parent $current $bl)))
    (let*
      (
@@ -293,7 +286,6 @@
         ;; ($_ (println! (Children: $children)))
         ;; ($_ (println! ""))
      )
-    ;  (if (any ($appliedZeroSubsume $appliedZeroSubsume' $appliedOrCut)))
      (if (any ($appliedZeroSubsume $appliedOrCut))
          ($commandSet $dominantSet ($orCutParent $orCutCurrent True)) ;; Returning the most up to date state.
 
@@ -317,7 +309,6 @@
 
 ;; The `until` step that applies reduceToElegance to each child of an AND node in turn.
 ;; It returns the state and the next child. The children are OR nodes, hence the name.
-; (: applyReduceToEleganceToOr (-> (Expression Expression (Expression Expression Bool) (Expression Expression)) (Expression Expression (Expression Expression Bool))))
 (= (applyReduceToEleganceToOr ($commandSet $dominantSet ($parent $prevCurrent $bool) ($currentChild $remainingChildren)))
    (if (not (== $currentChild ()))
        (let*
@@ -385,7 +376,6 @@
 ;;                   parentGuardSet: (E F G)
 ;;                   commandSet: (E F)
 ;;         output ==> (D E F)
-; (: localCommandSet (-> Expression Expression Expression Expression Expression))
 (= (localCommandSet $child $parentChildren $parentGuardSet $commandSet)
    (case ($parentChildren $parentGuardSet)
      (
@@ -402,7 +392,6 @@
               ($filteredSiblings (if (not (== $siblings ())) (filter-atom $siblings filterTerminalAndNode) ()))
               ($siblingsGuardSet (if (not (== $filteredSiblings ())) (map-atom $filteredSiblings $fSib (getGuardSetND $fSib)) ()))
               ($totalGuardSet (concatTuple $filteredGuardSet $siblingsGuardSet))
-              ; ($localCommandSet (collapse (unique (union (superpose $totalGuardSet) (superpose $commandSet)))))
               ($localCommandSet (unique-atom (union-atom $totalGuardSet $commandSet)))
               
 
@@ -440,25 +429,17 @@
 ;; The stop predicate of the child loops: True when no next child is left.
 ;; The 3-tuple clause serves the applyOrCut and applyAndCut loops. The 4-tuple clause
 ;; serves the applyReduceToEleganceToOr and applyReduceToEleganceToAnd loops.
-; (: hasNoNextChild (-> (Expression Bool (Expression Expression)) Bool))
-; (: hasNoNextChild (-> (Expression Expression (Expression Expression Bool) (Expression Expression))))
 (= (hasNoNextChild ($parent $bool ($child $remainingChildren))) (== $child ()))
 (= (hasNoNextChild ($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($nextChild $remainingChildren))) (== $nextChild ()))
 
-; (: reduceNotApplied (-> (Expression Expression Bool) Bool))
 (= (reduceNotApplied ($parent $current $applied)) 
 
-  ; (let* (
   ;; ($_ (println! (=== Inside ReduceNotApplied ===)))
   ;; ($_ (println! (Parameters ==> Parent: $parent Current: $current Applied: $applied)))
-  ; ) (not $applied))
 
   (not $applied)
   )
 
-;; (= (reduce $expr) (trace! (Running reduce with $expr) (let ($parent $__ $applied) (reduceToElegance $expr $expr () ()) (trace! (Result: ($parent $__ $applied)) (if $applied (reduce $parent) $parent)))))
-;; (= (reduce $expr) (let ($parent $__ $applied) (reduceToElegance $expr $expr () ()) (trace! (Result: ($parent $__ $applied)) (if $applied (reduce $parent) $parent))))
-; (: applyReduce (-> (Expression Expression Bool) (Expression Expression Bool)))
 (= (applyReduce ($parent $current $applied))
    ;; A constant is already elegant; re-normalising would wrap it as (AND FALSE) for nothing.
    ;; Bare (OR) is data only because this file loads before scoring/boolean-ops.
@@ -517,10 +498,8 @@
      (
       (($parent $uwnt $uwnt2) (until reduceNotApplied applyReduce ($expr $expr True)))
       (($newParent $__ $___) (applyReduce ($parent $parent True))) ;; Try one more time incase it is still reduceable
-      ;; ($_ (cut)) ;; Tried, no measurable win
      )
      (if (== $newParent $parent)
          (removeAndNodesFromGuards $parent)
          (reduce-to $newParent))))
 
-;; !(removeAndNodesFromGuards (AND D0 (NOT Addr))) ;; Test 1

@@ -15,7 +15,8 @@
                      (AND (if $negate (cons-atom OR $result) (cons-atom AND $result)))
                      (OR (if $negate (cons-atom AND $result) (cons-atom OR $result)))
                      (NOT (car-atom $result))
-                     ($_ (trace! (Returning Error for operator $op) ERROR))
+                     ;; ($_ (trace! (Returning Error for operator $op) ERROR))
+                     ($_ ERROR)
                    ))))
        ;; The bare (NOT $expr) build is data only because this file loads before scoring/boolean-ops.
        (if (== (get-metatype $expr) Symbol)

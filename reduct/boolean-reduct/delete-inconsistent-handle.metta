@@ -14,7 +14,6 @@
 ;;            a boolean value of True if applied.
 ;; Example: input: POA ==> (AND (NOT A) (OR B C)), dominantSet ==> (A), parent ==> (OR B (AND (NOT A) (OR B C)))
 ;;        : output: ((OR B) () True)
-;; (: deleteInconsistentHandle (-> Expression Expression Expression (Expression Expression Bool)))
 ;; Constants are inert here: map-atom over a Symbol yields NO SOLUTION, a silent failure
 ;; out through reduce-to. The constant laws are what act on them.
 (= (deleteInconsistentHandle $parent $current $dominantSet)
@@ -82,7 +81,6 @@
 )
 
 ;; Applies deleteInconsistentHandle to the POA, then to its children and grandchildren.
-; (: applyDeleteIncons (-> Expression Expression Expression (Expression Expression Bool)))
 (= (applyDeleteIncons $parent $current $dominantSet)
     (let*
         (
@@ -114,14 +112,12 @@
                     ($updatedParent (findAndReplace $newCurrent $updatedCurrent $newParent))
                     ;; ($_ (println! (Updated Parent: $updatedParent : UpdatedCurrent: $updatedCurrent Bool: (any $appliedOnCurrent $appliedOnChild $applied) )))
                 )
-                ; (applyDeleteIncons $updatedParent $updatedCurrent $dominantSet (any ($appliedOnCurrent $appliedOnChild $applied)) $rest)
                 (applyDeleteIncons5 $updatedParent $updatedCurrent $dominantSet $appliedOnCurrent $rest)
             )    
         )
     )
 )
 
-; (: applyDeleteIncons (-> Expression Expression Expression Bool Expression (Expression Expression Bool)))
 (= (applyDeleteIncons5 $parent $current $dominantSet $applied $children)   
     (if (== $children ())
         ($parent $current $applied)
@@ -140,7 +136,6 @@
     )
 )
 
-; (: applyDeleteIncons (-> Expression Expression Expression Expression Bool Bool (Expression Expression Bool)))
 (= (applyDeleteIncons6 $parent $current $dominantSet $children $appliedToParent $checkingChild)
     (if (== $children ())
         (deleteInconsistentHandle $parent $current $dominantSet)

@@ -12,7 +12,6 @@
 ;;            POA and a boolean value that tells if the POA changed.
 ;; Example: input: POA ==> (AND (OR (AND B D) (NOT E))), parent ==> (OR C (AND (OR (AND B D) (NOT E))))
 ;;          output: ((OR C (AND B D) (NOT E)) () True)
-; (: andCut (-> Expression Expression (Expression Expression Bool)))
 ;; Constants are inert here: map-atom over a Symbol yields NO SOLUTION, a silent failure
 ;; out through reduce-to. The constant laws are what act on them.
 (= (andCut $parent $current)
@@ -60,7 +59,6 @@
 )
 
 ;; Function to find intersections between all literals in a nested tuple
-; (: intersections (-> Expression Expression))
 (= (intersections $nestedTuple)
    (case $nestedTuple 
      ((() $nestedTuple)
@@ -76,7 +74,6 @@
 
 ;; A helper function used to apply andCut in the until function.
 ;; This function keeps the state of the until function updated for a single function application.
-; (: applyAndCut (-> (Expression Bool (Expression Expression)) (Expression Bool (Expression Expression))))
 (= (applyAndCut ($parent $bool ($child $remainingChildren)))
       (let*
         (
