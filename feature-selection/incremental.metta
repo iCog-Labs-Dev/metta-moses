@@ -38,19 +38,6 @@
      )
    )
 )
-    ;; (let*
-    ;;     (
-    ;;         ($comboOs (expressionToOS $combo ()))
-    ;;         (() (println! (Combo $comboOs)))
-    ;;         ($mutualInfo (cachedMutualInformation $itable $comboOs))
-    ;;         (() (println! (MutualInfo $mutualInfo)))
-    ;;         ($newResultSet (if (> $mutualInfo $threshold) (let $oldResultSet (OS.union $resultSet $comboOs) 
-    ;;                                                             (filterRelevantCombinations $itable $rest $threshold $oldResultSet)) 
-    ;;                                                         (filterRelevantCombinations $itable $rest $threshold $resultSet)))
-    ;;         (() (println! (Final result: $newResultSet)))
-    ;;     )
-    ;;     $newResultSet
-    ;; )
  
 ;; Purpose: Find best subset with highest MI score
 ;; Parameters:
@@ -200,7 +187,7 @@
            ($numFeatures (- (List.length $labels) 1))
            ($allIndices (range 0 1 $numFeatures))
            ($score (cachedMutualInformation (mkITable $rows $labels) $allIndices))
-           ($_ (println! (Score: $score)))
+           ;; ($_ (println! (Score: $score)))
           )
           (($score $allIndices))
        )

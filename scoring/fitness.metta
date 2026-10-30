@@ -1,24 +1,6 @@
 
 !(bind! &space (new-space))
 
-(= (removeFromSpace $row $space) (remove-atom $space $row))
-
-;;  This function counts the total occurrences of variable $X in an expression non-deterministically.
-;; (= (findX $expr $x)
-;;     (if (== $expr ())
-;;         (empty)
-;;         (let $a (superpose $expr)
-;;             (if (or (== (get-metatype $a) Grounded) (== (get-metatype $a) Symbol))
-;;                 (if (== $a $x)
-;;                     1
-;;                     (empty)
-;;                 )
-;;                 (findX $a $x)
-;;             )
-;;         )
-;;     )
-;; )
-
 (= (findX $expr $x)
    (if (once (is-member $x $expr))
        True

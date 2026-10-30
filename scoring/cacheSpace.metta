@@ -33,12 +33,6 @@
                  (candidateScore $context $tree $score))
        True))
 
-;; Remove every candidate-cache entry supplied by the reset traversal.
-(= (removeCandidateScoreEntries ()) True)
-(= (removeCandidateScoreEntries (cons $entry $rest))
-   (let $_removed (remove-atom &candidateScoreCache $entry)
-     (removeCandidateScoreEntries $rest)))
-
 ;; Empty the candidate-score cache. Collapse the matches first, then remove:
 ;; never change the space while match iterates it. Callers ignore the result.
 (= (resetCandidateScoreCache)

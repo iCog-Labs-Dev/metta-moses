@@ -18,16 +18,6 @@
 ;; (: sumBScore (-> BehavioralScore Number))
 (= (sumBScore (mkBScore $bs)) (List.sum $bs))
 
-;; Count wins in a BehavioralScore for game-playing candidates
-;; For game-playing candidates: 1.0 = win, -1.0 = loss, 0.0 = draw
-;; Returns the total number of wins
-;; (: countWins (-> BehavioralScore Number))
-(= (countWins (mkBScore ())) 0)
-(= (countWins (mkBScore (cons $head $tail)))
-   (if (== $head 1.0)
-       (+ 1 (countWins (mkBScore $tail)))
-       (countWins (mkBScore $tail))))
-
 ;; Input table with rows, columns and labels of the columns.
 ;; An Input Table is just a list of lists, stored COLUMN-major: the payload is
 ;; the list of columns and its i-th element is the column labelled by the i-th
@@ -159,10 +149,6 @@
 ;; (: worstPossibleScore (-> (BehavioralCScore $a) Number))
 (= (worstPossibleScore (mkBCScore $truthTableBScore)) (let (mkBScore $bscore) (worstPossibleScore $truthTableBScore) (List.sum $bscore)))
 
-;; When we have a compressed tree, the min improvement
-;;  will be calculated. For now it's fixed.
-;; (: minImprove (-> (BehavioralCScore $a) Number))
-(= (minImprove (mkBCScore $truthTableBScore) (minImprove $truthTableBScore)))
 
 
 ;;------------------------------------------------------------

@@ -117,19 +117,6 @@
          )
       )
 )
-;;       (if-decons-expr $item $inputPattern $rest
-;;          (let* (
-;;             (($pos $neg) $count)  ;; Extract positive and negative counts
-            
-;;             ($total (+ $pos $neg)) ;; Calculate totals and precision metrics
-;;             ($sumo (sumOutputs $pos $neg))
-;;             ($precision (if (== $total 0) 0.0 (/ $sumo $total)))
-;;             )
-;;          (MultiMap.insert ($precision ($sumo $total)) $acc >) ;; for descending sort
-;;          ) 
-;;          ()
-;;       )
-;; )
 
 ;; Convert Map of compressed data to precision-sorted MultiMap
 ;; This prepares data for the greedy best_possible_bscore algorithm

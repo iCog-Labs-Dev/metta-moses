@@ -56,11 +56,6 @@
          ()
          (List.pop $i $table)))
 
-;; Removes the first column from a column-major table.
-;; (: Table.pop (-> (List (List $a)) (List (List $a))))
-(= (Table.pop $table)
-    (List.pop 0 $table))
-
 ;;  returns the last column of the table
 ;; (: Table.getOutputColumn (-> ITable (List $a)))
 (= (Table.getOutputColumn (mkITable $table $labels))
@@ -87,18 +82,6 @@
 ;; Transpose;;
 ;;;;;;;;;;;;;;
 
-;; (: List.head (-> (List $a) $a))
-;; (= (List.head $list)
-;;    (unify $list 
-;;        () (Error "Empty list has no head")
-;;        (unify $list (cons $h $t) $h ())))
-
-;; (: List.range (-> Number Number (List Number))) ;; inclusive start, exclusive end
-(= (List.range $start $end)
-    (if (>= $start $end)
-        ()
-        (chain (List.range (+ 1 $start) $end) $res (cons $start $res))))
-
 ;; check for a pattern in tuple of tuples                
 ;; (: patternExists (-> Expression Expression Bool))
 (= (patternExists $pat $collection)
@@ -115,24 +98,13 @@
 ;; $op -- comparator $pairTuple -- tuple of pairs
 ;; $count -- sort count -- partial sort
 ;; $acc -- the accumulator
-;; (= (sortPairs $op $pairTuple $count $acc)
-;;     (if (or (<= $count 0) (== $pairTuple ()))
-;;         (union-atom $acc $pairTuple)
-;;         ;; find max pair from the tuple of pairs
-;;         ;; use of union assumes the pairs are non repeating -- same score is possible but always different label
-;;         (chain (foldl-atom $pairTuple (-inf $label) $ac $pair ($op $ac $pair)) $max-pair
-;;         (chain (union-atom $acc ($max-pair)) $new-acc
-;;         (chain (collapse (chain (superpose $pairTuple) $el (if (== $el $max-pair) (Empty) $el))) $rest
-;;         (sortPairs $op $rest (- $count 1) $new-acc))))))  ;; recursive call
-
-;; a slight tweak to the above sorting function removes duplicate expressions in the form of differently ordered tuples
+;; sortPairs also removes duplicate pairs whose feature sets differ only in order
 ;; assumes pairs having numerical values as second part
 
 ;; (: sortPairs (-> (-> $a $a $a) Expression Number Expression Expression))
 (= (sortPairs $op $pairTuple $count $acc)
     (if (or (<= $count 0) (== $pairTuple ()))
-        ;; (union-atom $acc $pairTuple)                                                          ;; started as a partial sort
-        $acc                                                                                    ;; but later turned out that we do not need the unsorted part -just sort the top N and return that
+        $acc                                                                                    ;; only the top $count pairs are returned
         (chain (foldl-l $op ((-inf) (1 0)) $pairTuple) $max-pair    ;; find max pair from the tuple of pairs    
         (chain (union-atom $acc ($max-pair)) $new-acc                                          ;; use of union assumes the pairs are non repeating -- same score is possible but always different label (due to ordering of tuple elem)
         (chain (collapse 
@@ -359,14 +331,6 @@
                         ()))))
 
 ;; filterTable -- filters table by removing features in $ft-to-remove
-
-;; (= (filterTable $ft-to-remove (mkITable $table $labels))
-;;     (if-decons-expr-custom $ft-to-remove $h $t
-;;         (let* (($filtered-data (Table.pop $h $table))
-;;                 ($filtered-label (List.pop $h $labels)))
-            
-;;             (filterTable (map-atom $t $x (- $x 1)) (mkITable $filtered-data $filtered-label)))
-;;         (mkITable $table $labels)))          
 
 (= (filterTable $ft-to-remove (mkITable $table $labels))
     (if (== $ft-to-remove ())

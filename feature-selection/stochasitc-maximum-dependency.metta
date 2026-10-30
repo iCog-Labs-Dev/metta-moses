@@ -29,7 +29,6 @@
 
 (= (shuffle-with-weights ()) ())
 (= (shuffle-with-weights (cons $h $t))
-   ;; (insert-weight (random-float &rng 0.0 1.0) $h (shuffle-with-weights $t)))
    (insert-weight (py-call (random.random)) $h (shuffle-with-weights $t)))
 
 (= (strip-weights ()) ())

@@ -94,9 +94,6 @@
 ;; (: getComp (-> Cscore Number))
 (= (getComp (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $cpxy)
 
-;; (: getCompPen (-> Cscore Number))
-(= (getCompPen (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $complexityPenalty)
-
 ;; (: getUniPen (-> Cscore Number))
 (= (getUniPen (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) $uniformityPenalty)
 
@@ -111,18 +108,6 @@
             (not (isnan-math $penalizedScore2))
             (or (< $penalizedScore $penalizedScore2) (and (== $penalizedScore $penalizedScore2) (> $cpxy $cpxy2)))))
             
-;; Check for equality, to within floating-point error, EPSILON
-;; (: cScore== (-> Cscore Cscore Bool))
-(= (cScore== $cs1 $cs2)
-    (let ($sL $cL $cpL $upL $pL $sR $cR $cpR $upR $pR) 
-            ((getScore $cs1) (getComp $cs1) (getCompPen $cs1) (getUniPen $cs1) (getPenScore $cs1)
-            (getScore $cs2) (getComp $cs2) (getCompPen $cs2) (getUniPen $cs2) (getPenScore $cs2)) 
-        
-            (and (isApproxEq $sL $sR) 
-                (and (isApproxEq $cL $cR) 
-                    (and (isApproxEq $cpL $cpR) 
-                        (and (isApproxEq $upL $upR) (isApproxEq $pL $pR)))))))
-
 ;; (: cScore>= (-> Cscore Cscore Bool)) 
 (= (cScore>= $cs1 $cs2)
     (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))

@@ -55,7 +55,6 @@
                     ($agg-dp (max-atom ($last-dp $current-unipen-score)))
                     ($updated-uniPen-score (setUniPen $current-cscore $agg-dp))
                     ($updatd-pen-score (updatePenalizedScore $updated-uniPen-score $multi-diversity))
-                    ;; ($new-acc (insertPair cScore>= <= ($updatd-pen-score $current-ft) $acc))
                     ($new-acc (eval (insertPair cScore>= (featureSet< $seed) ($updatd-pen-score $current-ft) $acc)))
                     ) ;; ordered insertion using the composite score. The featureSet< function is curried with $seed
 
