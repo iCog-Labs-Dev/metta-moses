@@ -17,7 +17,6 @@
 ;;    $dist - The hamming distance from the center instance to search for neighbors
 ;;
 ;; Returns: List of instances.
-(= (rand-int $x $y) (py-call (random.randint $x $y)))
 ;; (: generateAllInNeighborhood (-> Multiplicity Instance Number (List Instance)))
 (= (generateAllInNeighborhood (mkMultip $m) (mkInst ()) $dist) ())
 (= (generateAllInNeighborhood (mkMultip $m) (mkInst (cons $x $xs)) $dist)
@@ -42,25 +41,6 @@
 (= (discEffectiveSpecLists (mkDscMp (cons ($spec $knob) $tail)))
    (cons (effectiveSpecValues (getKnobMultip $knob))
          (discEffectiveSpecLists (mkDscMp $tail))))
-
-;; Previous implementation: generated instances at all distances 1..dist.
-;; Preserved for reference; renamed to avoid confusion with the corrected version.
-(= (varyNKnobsBySpecListsAllDistances $specLists $instExp $dist)
-   (varyNKnobsBySpecListsAllDistances $specLists $instExp $dist 0))
-(= (varyNKnobsBySpecListsAllDistances $specLists $instExp $dist $startI)
-   (if (or (== $dist 0) (== $startI (length $instExp)))
-       ()
-       (let*
-         (
-           ($specs (List.getByIdx $specLists $startI))
-           ($changeIs (map-atom $specs $m (changeAt $m $startI $instExp)))
-           ($changeRest (varyNKnobsBySpecListsAllDistances $specLists $instExp $dist (+ $startI 1)))
-           ($changeDs (map-atom $changeIs $changeI (varyNKnobsBySpecListsAllDistances $specLists $changeI (- $dist 1) (+ $startI 1))))
-           ($flatDs (foldl-atom $changeDs () $acc $changeD (append $changeD $acc)))
-           ($acc (append $changeIs $changeRest))
-           ($final (append $acc $flatDs))
-         )
-         (filter-atom $final isNotUnit))))
 
 ;; Corrected implementation matching C++ vary_n_knobs semantics for spec lists.
 ;; Same fix as varyNKnobs: returns the instance at dist == 0, dead end at
@@ -113,23 +93,6 @@
           )
           $uqListNeighbors')))
 
-
-;; Previous implementation: generated instances at all distances 1..dist.
-;; Preserved for reference; renamed to avoid confusion with the corrected version.
-(= (varyNKnobsAllDistances $multips $instExp $dist) (varyNKnobsAllDistances $multips $instExp $dist 0))
-(= (varyNKnobsAllDistances $multips $instExp $dist $startI)
-   (if (or (== $dist 0) (== $startI (length $instExp)))
-       ()
-       (let*
-         (
-           ($changeIs (map-atom $multips $m (changeAt $m $startI $instExp)))
-           ($changeRest (varyNKnobsAllDistances $multips $instExp $dist (+ $startI 1)))
-           ($changeDs (map-atom $changeIs $changeI (varyNKnobsAllDistances $multips $changeI (- $dist 1) (+ $startI 1))))
-           ($flatDs (foldl-atom $changeDs () $acc $changeD (append $changeD $acc)))
-           ($acc (append $changeIs $changeRest))
-           ($final (append $acc $flatDs))
-         )
-         (filter-atom $final isNotUnit))))
 
 ;; varyNKnobs returns the instances at the given distance from $instExp,
 ;; as plain expressions. generateAllInNeighborhood post-processes them.
@@ -246,7 +209,7 @@
               (let*
                 (
                   ($upper (- $multi 1))
-                  ($randomSpec (+ (rand-int 0 (- $upper 1)) 1))
+                  ($randomSpec (+ (py-call (random.randint 0 (- $upper 1))) 1))
                 )
                 (if (== $randomSpec $curSpec)
                     (List.replaceAt $newInst $rand 0)
@@ -281,20 +244,6 @@
       ($x (map-atom $list $i (sampleFromNeighborhood` $i $dist $kbMp $inst)))
     )
     $x))
-
-;; this function helps the 'sampleFromNeighborhood' function in which Recursively collects unique instances with identical Hamming distance.
-;;  and Terminates when sample size reaches zero, returning the final filtered list.
-
-;; (= selectunique (-> (List Expression) Number Number KnobMap Instance (List Instance)))
-(= (selectUnique $expr $sampleSize $dist $kbMp $inst)
-   (if (== $sampleSize 0)
-      (exprToList $expr)
-       (if (== $expr ())
-           (let $generatedFirst (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)
-                (selectUnique ($generatedFirst) (- $sampleSize 1) $dist $kbMp $inst))
-           (let $generatedInstance (sampleFromNeighborhood` $sampleSize $dist $kbMp $inst)
-                (selectUnique (concatT ($generatedInstance) $expr ) (- $sampleSize 1) $dist $kbMp $inst)
-           ))))
 
 ;; Similar to sampleFromNeighborhood above, but for feature selection.
 ;; It uses sampleFromNeighborhoodFs` to sample from the neighborhood.

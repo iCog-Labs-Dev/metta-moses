@@ -345,7 +345,6 @@
      (case $optimizer
           (
             (hc hillClimbing)
-            ;; (sa simulated-annealing)
             ($other (let*
                       (
                         ($_ (println! ""))

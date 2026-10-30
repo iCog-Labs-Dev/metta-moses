@@ -1,8 +1,3 @@
-;; importing constants -- a suitable value for each of these has to be determined based on experiment
-;; !(bind! MIN-POOL-SIZE 250) ;; this is copied from the c++ implementation -- XXX a values that works best for the current implementation should be found by experrimentation??
-;; !(bind! COMP-TEMP 6.0)
-;; !(bind! CAP-COEF 50)
-
 ;; Exemplar type
 (: Exemplar (-> $a Type))
 (: mkExemplar (-> (Tree $a) DemeId Cscore BehavioralScore (Exemplar $a)))

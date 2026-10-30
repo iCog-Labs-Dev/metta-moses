@@ -20,7 +20,6 @@
 (: Xmplr Type)
 (: mkXmplr (-> (Tree $a) DemeId CompositeScore BehavioralScore Xmplr))
 
-;; ! (mkXmplr (mkTree (mk)))
 ;; Initialize an exemplar with the following values
 ;;  Raw Score: (pow-math 10 -37)
 ;;  Complexity: 0
