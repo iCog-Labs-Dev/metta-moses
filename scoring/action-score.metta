@@ -122,10 +122,9 @@
 ;; DISTINCT name (not a getCscore overload): the existing 4-arg getCscore
 ;; boolean clauses (scoring/cscore.metta) already overlap
 ;; ambiguously, and (mkActionCtx $nTrials) keys the dispatch anyway.
-;; The penalty math duplicates ~6 lines of getCscore's 3-arg core
-;; (scoring/cscore.metta) -- ACCEPTED duplication: that core calls
-;; treeComplexity internally, and action candidates need
-;; actionTreeComplexity, so it cannot be funneled through.
+;; The penalty math is penalizedCscore (scoring/cscore.metta), shared with
+;; getCscore; action candidates pass actionTreeComplexity instead of
+;; treeComplexity.
 ;; (: getActionCscore (-> (Tree $a) ActionCtx Number $space Cscore))
 (= (getActionCscore $tree (mkActionCtx $nTrials) $complexityRatio $scoreSpace)
    (if (== $tree (mkTree (mkNode and_seq) ()))
@@ -134,11 +133,8 @@
          (if-error $bs   ;; parity with getCscore; scoreActionTree never errors
             (worstCscore)
             (let* (($bsum (sumBScore $bs))
-                   ($cpxy (actionTreeComplexity $tree))
-                   ($cCoef (getComplexityCoef $complexityRatio)))
-              (updatePenalizedScore
-                (mkCscore $bsum $cpxy (* $cpxy $cCoef) 0.0 (* -1 (pow-math 10 308)))
-                False))))))
+                   ($cpxy (actionTreeComplexity $tree)))
+              (penalizedCscore $bsum $cpxy $complexityRatio))))))
 
 ;; The public action context carries the raw termination target through the
 ;; lifecycle. Scoring consumes only trials and penalty.
