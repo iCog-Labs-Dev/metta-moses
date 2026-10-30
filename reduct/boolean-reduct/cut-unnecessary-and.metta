@@ -26,16 +26,17 @@
                                    $parentSec
                                    (map-atom $current $c (removeEmptyAND $c))))
                   (($guardSet $child) (getLiteralChildren $currentSec))
-                  (($h $t) (if (and (== (get-metatype $child) Expression) (!= $child ())) (decons-atom $child) (() ())))
                   ;; plain if, NOT if-decons-expr-custom: its (eval $then)
                   ;; deep-normalizes the returned tree data, firing
-                  ;; scoring/boolean-ops' AND/OR/NOT clauses
-                  ($tail (if (or (== $child ()) (!= (get-metatype $child) Expression)) "No child" $t))
+                  ;; scoring/boolean-ops' AND/OR/NOT clauses.
+                  ;; "No child" keeps (== $tail ()) False when there is no child.
+                  (($childFirst $tail) (if (and (== (get-metatype $child) Expression) (!= $child ()))
+                                           (decons-atom $child)
+                                           (() "No child")))
               )
               (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
                   (let*
                       (
-                          ($childFirst (if (or (== $child ()) (!= (get-metatype $child) Expression)) () $h))
                           (($grandLiterals $grandChildren) (getLiteralChildren $childFirst))
                           ($allLiterals (map-atom $grandChildren $gC (getGuardSet $gC)))
                           ($common (intersections $allLiterals))

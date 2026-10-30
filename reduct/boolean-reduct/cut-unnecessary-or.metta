@@ -38,15 +38,8 @@
      (
         ;; (NOT $a) is considered as a literal hence has no subExpression.
         ((NOT $a) ())
-        ($else
-          (let*
-            (
-              ($literals (getLiterals $exp))
-              ($children (getChildrenExp $exp))
-            )
-            (concatTuple $literals $children)
-          )
-        )
+        ($else (let ($literals $children) (getLiteralChildren $exp)
+                 (concatTuple $literals $children)))
      )
    )
 )

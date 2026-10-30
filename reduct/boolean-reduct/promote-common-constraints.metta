@@ -27,7 +27,7 @@
 
               ($currentHead (if (== (get-metatype $current) Expression) (car-atom $current) ()))
               (($literals $children) (getLiteralChildren $current))
-              ($childrenLiteral (if (!= $children ()) (map-atom $children $ch (getLiterals $ch)) ()))
+              ($childrenLiteral (map-atom $children $ch (getLiterals $ch)))
               ;; ONLY for an OR POA, where a bare literal IS an alternative and its guard set is
               ;; itself. Intersecting only the sub-expression branches was unsound:
               ;; (OR (AND A B) C D) promoted A and B, absent from C and D. In an AND POA the
@@ -83,9 +83,5 @@
 ;; emits it here so the caller can tell it from a childless placeholder. The subtraction
 ;; stays over the WHOLE element: $common holds only literals, so a junctor head survives.
 (= (removeCommonLiterals $common $tuple)
-   ( if (== $tuple ())
-        ()
-        (map-atom $tuple $tp (emptiedToConstant $tp (removeElement $common $tp)))
-   )
-)
+   (map-atom $tuple $tp (emptiedToConstant $tp (removeElement $common $tp))))
 

@@ -22,45 +22,20 @@
 (= (oneConstraintSubsume $parent $current $commandSet)
     ;; Constants are inert: car-atom over a Symbol yields no solution, a silent failure.
     (if (or (== $current ()) (or (isConstant $current) (isConstant $parent)))
-      ($parent $current False)
-      
-        
-          (let*
-            (
-              ;; ($_ (println! (===Inside OneConstraintSubsume===)))
-              ;; ($_ (println! (Parent: $parent Current: $current CommandSet: $commandSet)))
-              ($head (car-atom $current))
-              ($tail (cdr-atom $current))
-              ;; ($_ (println! (Head : $head : Tail : $tail)))
-            )
-            (case $head
-          
-              (
-                (OR ($parent $current False))
-                (NOT ($parent $current False))
-                (AND
-                  (let*
-                    (
-                      ($guardSet (getGuardSet $current))
-                      ($common (intersection-atom $guardSet $commandSet))
-                    )
-                    (if (== $common ())
-                        ;; (trace! (Parent: $parent : Current : $current)
-                                ($parent $current False)
-                        ;; )
-                        ;; 1-Subsume is ABSORPTION, not a truth: classic returns Delete on a
-                        ;; non-empty intersection with the command set (logical_rules.cc:653).
-                        ;; Reading it as TRUE makes (OR (AND A B) A B) true where the answer
-                        ;; is A v B -- measured at -49 trees. The TRUE case is 0-Subsume, at
-                        ;; :652, where the guard set is EMPTIED.
-((removeElement ($current) $parent) () True)) ;; remove current from parent.
-                  )
-                )
-                ($else ($parent $current False))
-              )
-            )
-        )
-
-      
-))
+        ($parent $current False)
+        ;; ($_ (println! (===Inside OneConstraintSubsume===)))
+        ;; ($_ (println! (Parent: $parent Current: $current CommandSet: $commandSet)))
+        ;; car-atom on a non-constant Symbol gives zero solutions.
+        (if (== (car-atom $current) AND)
+            (if (== (intersection-atom (getGuardSet $current) $commandSet) ())
+                ;; (trace! (Parent: $parent : Current : $current)
+                ($parent $current False)
+                ;; )
+                ;; 1-Subsume is ABSORPTION, not a truth: classic returns Delete on a
+                ;; non-empty intersection with the command set (logical_rules.cc:653).
+                ;; Reading it as TRUE makes (OR (AND A B) A B) true where the answer
+                ;; is A v B -- measured at -49 trees. The TRUE case is 0-Subsume, at
+                ;; :652, where the guard set is EMPTIED.
+                ((removeElement ($current) $parent) () True))
+            ($parent $current False))))
 

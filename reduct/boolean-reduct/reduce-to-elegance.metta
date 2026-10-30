@@ -376,10 +376,11 @@
               ;; ($_ (println! (Parameters ==> Child: $child ParentChildren: $parentChildren ParentGuardSet: $parentGuardSet CommandSet: $commandSet)))
               ;; ($_ (println! ""))
 
-              ($siblings (if (!= $parentChildren ())  (removeElement ($child) $parentChildren) ()))
-              ($filteredGuardSet (if (!= $parentGuardSet ()) (removeElement ($child) $parentGuardSet) ()))
-              ($filteredSiblings (if (!= $siblings ()) (filter-atom $siblings filterTerminalAndNode) ()))
-              ($siblingsGuardSet (if (!= $filteredSiblings ()) (map-atom $filteredSiblings $fSib (getGuardSetND $fSib)) ()))
+              ;; removeElement, filter-atom and map-atom map () to ().
+              ($siblings (removeElement ($child) $parentChildren))
+              ($filteredGuardSet (removeElement ($child) $parentGuardSet))
+              ($filteredSiblings (filter-atom $siblings filterTerminalAndNode))
+              ($siblingsGuardSet (map-atom $filteredSiblings $fSib (getGuardSetND $fSib)))
               ($totalGuardSet (concatTuple $filteredGuardSet $siblingsGuardSet))
               ($localCommandSet (unique-atom (union-atom $totalGuardSet $commandSet)))
               

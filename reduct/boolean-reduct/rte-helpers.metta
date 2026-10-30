@@ -1,12 +1,7 @@
 ;; Partial function used to filter and keep only literals of an expression.
 ;; An expression (NOT A) is also considered as a literal in the case of boolean expression.
 ;; 'AND' and 'OR' are not considered as a literal.
-(= (filterLiterals $exp)
-        (if (== (get-metatype $exp) Symbol)
-            (if (or (or (== $exp AND) (== $exp OR)) (isConstant $exp)) (empty) $exp)
-            (if (== (car-atom $exp) NOT)
-                $exp
-                (empty))))
+(= (filterLiterals $exp) (if (isLiterals $exp) $exp (empty)))
 
 (= (isLiterals $exp)
    (if (== (get-metatype $exp) Symbol)
@@ -40,14 +35,12 @@
 ;; preserved: decons-atom on () still yields no solution, and OR nodes
 ;; yield (empty) — zero ND solutions.
 (= (getGuardSetND $exp)
-   (if (or (and (!= $exp ()) (!= (get-metatype $exp) Symbol)) (== (get-metatype $exp) Expression))
-      (let ($h $t) (decons-atom $exp)
-        (if (== $h OR)
-            (empty)
-            (getLiteralsND $exp)))
-      $exp
-    )
-)  
+   (if (== (get-metatype $exp) Symbol)
+       $exp
+       (let ($h $t) (decons-atom $exp)
+         (if (== $h OR)
+             (empty)
+             (getLiteralsND $exp)))))
 
 (= (addLiterals $exp $elements)
    (let*
