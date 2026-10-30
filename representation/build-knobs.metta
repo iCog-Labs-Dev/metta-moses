@@ -17,7 +17,9 @@
                 (buildLogical $canonized $canonRootOp $mmp $argLabels $discProbeDisabled $canonized (mkNodeId (0)) $ignoreOps)))))
 
 (= (buildKnobs (mkTree (mkNode $rootOp) $children) $mmp $argLabels $actions $perceptions $ignoreOps)
-    (if (or (isActionOperator $rootOp) (isDomainAction $rootOp $actions))
+    ;; Inline membership test: isDomainAction is in build-action, which some
+    ;; contexts load after this file.
+    (if (or (isActionOperator $rootOp) (once (is-member $rootOp $actions)))
         (let*
           (
             ($canonized (actionCanonize (mkTree (mkNode $rootOp) $children)))

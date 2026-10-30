@@ -55,7 +55,10 @@
 (= (actionTreeToExpression (mkNullVex $children)) ())
 (= (actionTreeToExpression (mkTree (mkNode $rootOp) $children))
    (if (== $children ())
-       (if (or (isActionSeqOp $rootOp) (or (== $rootOp AND) (== $rootOp OR)))
+       ;; Hazard: keep this literal list. Its heads are live after action-ops and
+       ;; boolean-ops load, and a rewrite with isActionSeqOp or == gives another
+       ;; result for a childless AND/OR root.
+       (if (once (is-member $rootOp (and_seq or_seq exec_seq AND OR)))
            (quote ($rootOp)) ;; quoted: ($rootOp) with a defined action head would be a call
            $rootOp)
        (let* (($exprChildren (map-atom $children $child (actionTreeToExpression $child)))
