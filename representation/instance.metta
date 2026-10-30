@@ -42,7 +42,7 @@
 ;;  Instance  -->  Expression
 ;;  Converts an Instance into an Expression form.
 ;; (: instToExpr (-> Instance Expression))
-(= (instToExpr (mkInst $lst)) (List.listToExpr $lst))
+(= (instToExpr (mkInst $lst)) $lst)
 
 ;;------------------------------------------------------------
 ;; exprToInst
@@ -86,12 +86,7 @@
 ;;  InstanceSet<Score>  -->  Expression
 ;;  Converts a scored instance set into Expression form.
 ;;
-;;  How it works:
-;;    - Input: An InstanceSet<Score>
-;;    - The function sInstSetToExpr calls sInstSetListToExpr on the list inside the set.
-;;    - sInstSetListToExpr maps sInstToExpr over each element (scored instance) in the list.
-;;    - sInstToExpr turns each scored instance into an Expression by combining the instance and its score.
-;;    - Finally, List.listToExpr collects all these expressions into a single Expression list.
+;;  It maps sInstToExpr over the scored instances of the set.
 ;;
 ;;  Example input:
 ;;    (cons (mkSInst (mkPair (mkInst (cons 1 (cons 2 ()))) (mkCscore 100.0 5.0 10.0 2.0 88.0))) ())
@@ -100,16 +95,7 @@
 ;;    ((1 2) (100.0 5.0 10.0 2.0 88.0))
 ;;
 ;; (: sInstSetToExpr (-> (InstanceSet $score) Expression))
-(= (sInstSetToExpr (mkSInstSet $lst)) (sInstSetListToExpr $lst))
-
-;;------------------------------------------------------------
-;; sInstSetListToExpr
-;;------------------------------------------------------------
-;;  List<ScoredInstance<Score>>  -->  Expression
-;;  Converts a list of scored instances to Expression.
-;; (: sInstSetListToExpr (-> (List (ScoredInstance $score)) Expression))
-(= (sInstSetListToExpr $lst)
-    (List.listToExpr (List.map sInstToExpr $lst)))
+(= (sInstSetToExpr (mkSInstSet $lst)) (List.map sInstToExpr $lst))
 
 ;;------------------------------------------------------------
 ;; exprToSInstSet

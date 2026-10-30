@@ -22,7 +22,7 @@
       ;; ($_ (println! (addLogicalKnobs 5)))
       ($pairs (pairKnobWithSpec $knobs))
       ;; ($_ (println! (addLogicalKnobs 6)))
-      ($mmp (expToMMap $pairs $map discSpec<))
+      ($mmp (append $map $pairs))
       ;; ($_ (println! (addLogicalKnobs 7)))
      )
      ($updatedTree $mmp)

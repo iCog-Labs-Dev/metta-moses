@@ -58,4 +58,4 @@
             (let* (($upperbound (- (* $arity (- $arity 1)) 1))
                    ($picked (lazyRandomSelector 0 $upperbound $nPairs))
                    ($perms (getArgs $swappedOp $arity $picked $argLabels $ignoreOps)))
-               (concatT $argLabels $perms)))))
+               (append $argLabels $perms)))))

@@ -17,7 +17,7 @@
 (= (childNodeId (mkNodeId $parentId) $childIndex)
    (mkNodeId (if (== $parentId (0))
                  ($childIndex)
-                 (concatT $parentId ($childIndex)))))
+                 (append $parentId ($childIndex)))))
 
 (= (probeTreeForControlledSubtree $tree $targetId $children $controlledSubtree)
    (let $idx (List.index $children $controlledSubtree)
@@ -80,7 +80,7 @@
              (let*
                (
                  (($updatedTree $_) (appendChild $exemplar (mkNodeId $targetId) (mkKnob $controlledSubtree $ask $idx)))
-                 ($updatedKnobs (concatT $knobs ($ask)))
+                 ($updatedKnobs (append $knobs ($ask)))
                )
                ($updatedKnobs $updatedTree))
              ($knobs $exemplar)))))
@@ -99,7 +99,7 @@
          (let*
            (
              ($updatedTree (replaceNodeById $exemplar (mkNodeId $targetId) (mkKnob $controlledSubtree $ask $idx)))
-             ($updatedKnobs (concatT $knobs ($ask)))
+             ($updatedKnobs (append $knobs ($ask)))
            )
            ($updatedKnobs $updatedTree))
          ($knobs $exemplar))))

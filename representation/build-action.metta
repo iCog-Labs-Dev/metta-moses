@@ -33,7 +33,7 @@
              ($pairIdxs (lazyRandomSelector 0 (- $pairCount 1) $sampleCount))
              ($pairs (actionPairsFromIndexes $pairIdxs $perceptions $actions $actionCount $ignoreOps))
            )
-           (concatT $actions $pairs)))))
+           (append $actions $pairs)))))
 
 (= (actionPairFromIndex $perceptions $actions $actionCount $pairIdx $ignoreOps)
    (let*
@@ -78,7 +78,7 @@
        ($idx (MultiMap.length $knobMap))
        (($knobs $updatedSubtree) (actionProbe $subtree (mkNodeId (0)) $treePerms $addIfInExemplar () $idx))
        ($pairs (pairKnobWithSpec $knobs))
-       ($mmp (expToMMap $pairs $knobMap discSpec<))
+       ($mmp (append $knobMap $pairs))
      )
      ($updatedSubtree $mmp)))
 
@@ -91,7 +91,7 @@
        ($idx (MultiMap.length $knobMap))
        (($knobs $updatedSubtree) (simpleActionProbe $subtree (mkNodeId (0)) $addIfInExemplar () $idx))
        ($pairs (pairKnobWithSpec $knobs))
-       ($mmp (expToMMap $pairs $knobMap discSpec<))
+       ($mmp (append $knobMap $pairs))
      )
      ($updatedSubtree $mmp)))
 

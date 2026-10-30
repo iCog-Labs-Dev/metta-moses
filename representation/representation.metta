@@ -98,7 +98,7 @@
                            $exemplarArgSeq
                            (let $sampledEnforcedFts (sampleEnforcedFts $enforcedFts)           ;; from feature-selection/select-top-features.metta
                                     (map-atom $exemplarArgSeq ($xmplr $args)
-                                             (let $acc (concatT $args $sampledEnforcedFts) ($xmplr $acc))))))  
+                                             (let $acc (append $args $sampledEnforcedFts) ($xmplr $acc))))))  
                   ;; ($_ (println! (With enforced features: $withEnforcedFts)))
                   ($filterEmptyArgs (filter-atom $withEnforcedFts ($xmplr $args) (!= $args ())))
                   ;; ($_ (println! (After filtering empty args: $filterEmptyArgs)))
