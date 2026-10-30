@@ -8,16 +8,16 @@
 ;;             $exemplar --   the exemplar tree which the demes are going to be based on
 ;;             $table    --   table of input data
 ;;             $algo     --   the chosen feature selection algo
-;;             $prune-exemplar     --   prune the exemplar or not
-;;             $enforced-fts  --   tuple of enforced features to sample during feature selection, if any, as (arg selection-probability) pairs
+;;             $pruneExemplar     --   prune the exemplar or not
+;;             $enforcedFts  --   tuple of enforced features to sample during feature selection, if any, as (arg selection-probability) pairs
 ;;             $scorerType --  the feature-set scorer type
 ;;             returns ↠ tuple of demes
 ;; (: createDeme (-> Number (List DemeId) (Tree $a) (ITable $a) Symbol Bool Expression Symbol Expression)) 
-(= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
+(= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $pruneExemplar $enforcedFts $scorerType)
       (let* 
             (
                   ($candidateReps
-                    (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType))
+                    (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $pruneExemplar $enforcedFts $scorerType))
                   ($reps (expandableRepresentations $candidateReps))
             ) 
             (loopCreateDeme $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
@@ -64,8 +64,8 @@
          (let* (
                  ($demeId (List.head $demeIds))
                  ($deme (mkDeme $h (mkSInstSet ()) $demeId))
-                 ($new-acc
+                 ($newAcc
                    (if (representationExpandable $h)
                        (union-atom $acc ($deme))
                        $acc)))
-               (loopCreateDeme (List.tail $demeIds) $t $new-acc)))))
+               (loopCreateDeme (List.tail $demeIds) $t $newAcc)))))

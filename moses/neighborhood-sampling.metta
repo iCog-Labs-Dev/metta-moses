@@ -264,9 +264,9 @@
        (Error (Inst: $inst1 and Inst: $inst2) (Instances are not equal length))
    (if (== $inst1 ())
        0
-       (let ($h1 $t1) (decons-atom $inst1)
-       (let ($h2 $t2) (decons-atom $inst2)
-          (+ (if (== $h1 $h2) 0 1) (distance $t1 $t2)))))))
+       (let* ((($h1 $t1) (decons-atom $inst1))
+              (($h2 $t2) (decons-atom $inst2)))
+          (+ (if (== $h1 $h2) 0 1) (distance $t1 $t2))))))
 
 ;; The hamming distance between two mkInst instances of equal length.
 ;; (: distance` (-> Instance Instance Number) )

@@ -123,7 +123,7 @@
 ;;   neither -> help
 ;;   action  -> (moses-run-action)   table -> (moses-run)
 (= (moses)
-   (let* (($actionConfigured (not (== (param fitness) ())))
+   (let* (($actionConfigured (!= (param fitness) ()))
           ($tableConfigured  (not (and (== (param problem)   ())
                                        (== (param inputFile) "")))))
      (if (and $actionConfigured $tableConfigured)
@@ -217,7 +217,7 @@
                ;; the bestScore contract (the action runner treats the same
                ;; param as a function symbol; see parameters/defaults.metta).
                ($bsParam            (param bestScore))
-               ($bestPosssibleScore (if (== (get-type $bsParam) Number)
+               ($bestPossibleScore (if (== (get-type $bsParam) Number)
                                         $bsParam
                                         (getBestPossibleScore)))
                ($metaPop
@@ -228,7 +228,7 @@
               )
           ((False (param fsAlgo) $truthTableBScore $itable)
            $metaPop
-           $bestPosssibleScore))))))
+           $bestPossibleScore))))))
 
 ;; Single unified entry point for every domain family.
 ;; Reads all hyperparameters from &params; all domain-specific logic is

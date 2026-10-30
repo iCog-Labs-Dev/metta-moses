@@ -9,8 +9,8 @@
          (let $result 
                 (collapse 
                     (let* (($index (superpose $indices))
-                            ($new-board (replace-by-index $board $player $index))
-                            ($winner (get-winner $new-board)))
+                            ($newBoard (replace-by-index $board $player $index))
+                            ($winner (get-winner $newBoard)))
                                 (if (= $winner $player)
                                     $index
                                     (empty))))

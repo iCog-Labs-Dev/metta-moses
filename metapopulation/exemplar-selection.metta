@@ -16,13 +16,13 @@
         ((cons $x ()) $x)
         ($_ (let* (
                     ($probs (getPnScore $metaPop))
-                    ($hstScr (List.max $probs))
+                    ($highestScore (List.max $probs))
                     ;; get list of normalized ScoreT values
-                    ($normalizedProbs (normalizeProbs (INV_TEMP) $hstScr $probs))
+                    ($normalizedProbs (normalizeProbs (INV_TEMP) $highestScore $probs))
                     ;; ($pr (println! (NotNormalized: $probs)))
                     ;; ($pr (println! (Normalized Probs: $normalizedProbs)))
                     ($sum (List.sum $normalizedProbs))
-                    ;; ($pr (println! (HstScr: $hstScr Sum: $sum)))
+                    ;; ($pr (println! (HstScr: $highestScore Sum: $sum)))
                   )
                   (rouletteSelect $metaPop $normalizedProbs $sum) )))))
 
@@ -107,10 +107,10 @@
 (= (rouletteSelect $metaPop $probs $sum)
     (let* (
 
-           ($rndfloat (py-call (random.random)))
-           ($ajstdSum (* $sum $rndfloat))
-           ($index (roulette $probs 0 $ajstdSum))
-           ;; ($_ (println! (Sum: $sum RandFloat: $rndfloat AjstdSum: $ajstdSum)))
+           ($randomFloat (py-call (random.random)))
+           ($adjustedSum (* $sum $randomFloat))
+           ($index (roulette $probs 0 $adjustedSum))
+           ;; ($_ (println! (Sum: $sum RandFloat: $randomFloat AjstdSum: $adjustedSum)))
            ;; ($_ (println! (Index: $index)))
           )
         (OS.getByIdx $index $metaPop)))
@@ -118,13 +118,13 @@
 ;; Spin the roulette wheel and return the selected index
 ;;      $probs -- (List Number) -- list of weights
 ;;      $sIdx -- start index -- 0
-;;      $ajstdsum -- the sum of the weights multiplied by a random value in (0 .. 1)
+;;      $adjustedSum -- the sum of the weights multiplied by a random value in (0 .. 1)
 ;; (: roulette (-> (List Number) Number Number Number))
-(= (roulette () $sIdx $ajstdsum) (- $sIdx 1))
-(= (roulette (cons $p $xs) $sIdx $ajstdsum)
-    ;; (trace! (AdjustdSum: (- $ajstdsum $p))
-            (if (<= (- $ajstdsum $p) 0)
+(= (roulette () $sIdx $adjustedSum) (- $sIdx 1))
+(= (roulette (cons $p $xs) $sIdx $adjustedSum)
+    ;; (trace! (AdjustdSum: (- $adjustedSum $p))
+            (if (<= (- $adjustedSum $p) 0)
             $sIdx
-            (roulette $xs (+ 1 $sIdx) (- $ajstdsum $p)))
+            (roulette $xs (+ 1 $sIdx) (- $adjustedSum $p)))
             ;; )
     )

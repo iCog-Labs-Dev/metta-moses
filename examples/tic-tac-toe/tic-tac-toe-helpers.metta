@@ -28,11 +28,11 @@
                 )) 
 
 (= (get-winner $board) 
-    (let $states (winning-states) 
-        (let $result (collapse (let $state (superpose $states) (if (= $state ($board $x)) (if (= $x E) (empty) $x) (empty))))
-            (if (= $result ())
-                E
-                (car-atom $result)))))  
+    (let* (($states (winning-states))
+           ($result (collapse (let $state (superpose $states) (if (= $state ($board $x)) (if (= $x E) (empty) $x) (empty))))))
+        (if (= $result ())
+            E
+            (car-atom $result))))
 
 ;; Returns 10 if player wins, -10 if opponent wins, 0 otherwise
 (= (evaluate-board $bs $player $opponent)
@@ -76,10 +76,10 @@
 (= (sort-moves $indices)
     (intersect-order (4 0 2 6 8 1 3 5 7) $indices))
 
-(= (intersect-order $priority-list $available)
-    (if (== $priority-list ())
+(= (intersect-order $priorityList $available)
+    (if (== $priorityList ())
         ()
-        (let ($h $t) (decons-atom $priority-list)
+        (let ($h $t) (decons-atom $priorityList)
             (if (once (is-member $h $available))
                 (cons-atom $h (intersect-order $t $available))
                 (intersect-order $t $available)))))
