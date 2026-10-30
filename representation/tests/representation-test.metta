@@ -47,6 +47,8 @@
 !(import! &self ../../representation/knob-mapper)
 
 !(import! &self ../../scoring/boolean-ops)
+;; restrictToIncorrect runs the exemplar over each row, so `evaluate` must be defined
+!(import! &self ../../scoring/fitness)
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
 
@@ -63,6 +65,7 @@
 
 !(import! &self ../../feature-selection/feature-selection-main)
 
+!(import! &self ../../representation/candidate)
 !(import! &self ../../representation/representation)
 
 ;; Embedded LSK and ASK candidate reconstruction is the canonical path for
@@ -385,6 +388,51 @@
         (cons (cons True (cons True (cons True (cons True ()))))
         (cons (cons True (cons True (cons False (cons False ())))) ())))))
         (cons A (cons B (cons C (cons D (cons Output ())))))))
+
+;; restrictToIncorrect -- the three cases classic MOSES describes in feature_selector.cc
+
+;; Out = XOR(A B)
+(= (xorTable)
+    (mkITable
+        (cons (cons False (cons False (cons True (cons True ()))))
+        (cons (cons False (cons True (cons False (cons True ()))))
+        (cons (cons False (cons True (cons True (cons False ())))) ())))
+        (cons A (cons B (cons Out ())))))
+
+;; Out = A
+(= (idTable)
+    (mkITable
+        (cons (cons False (cons False (cons True (cons True ()))))
+        (cons (cons False (cons True (cons False (cons True ()))))
+        (cons (cons False (cons False (cons True (cons True ())))) ())))
+        (cons A (cons B (cons Out ())))))
+
+;; Out = OR(A B)
+(= (orTable)
+    (mkITable
+        (cons (cons False (cons False (cons True (cons True ()))))
+        (cons (cons False (cons True (cons False (cons True ()))))
+        (cons (cons False (cons True (cons True (cons True ())))) ())))
+        (cons A (cons B (cons Out ())))))
+
+(= (xmplrA) (mkTree (mkNode A) ()))
+(= (xmplrAndAB) (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))))
+
+;; A mispredicts rows 2 and 4, which carry different outputs, so only those rows
+;; reach feature selection. Column A is blanked out because the exemplar owns it.
+!(assertEqual (restrictToIncorrect (xmplrA) (xorTable))
+    (mkITable
+        (cons (cons False (cons False ()))
+        (cons (cons True (cons True ()))
+        (cons (cons True (cons False ())) ())))
+        (cons A (cons B (cons Out ())))))
+
+;; A is right on every row, so there is nothing to restrict to.
+!(assertEqual (restrictToIncorrect (xmplrA) (idTable)) (idTable))
+
+;; (AND A B) is only ever wrong on rows whose output is True. Those rows carry no
+;; mutual information with the output, so the full table is kept.
+!(assertEqual (restrictToIncorrect (xmplrAndAB) (orTable)) (orTable))
 
 
 ;; !(assertEqual (representation 
