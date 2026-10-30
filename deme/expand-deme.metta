@@ -1,21 +1,3 @@
-;; Recursively optimizes each deme in a list using the provided optimizer function.
-;; Params:
-;;   (List Deme): The list of demes to optimize.
-;;   $context: The scoring context - either TruthTableBScore or tuple ($nGames $opponentPolicy)
-;;   $inst: The initial instance for optimization.
-;;   $optimize: The optimizer function to apply to each deme.
-;;  Returns: (List Deme): A new list where each deme has been optimized.
-;; (: optimizeDemes (-> (List Deme) $context Instance $optimize (Instance Deme $state)))
-;; Action version - tagged context, dispatched BEFORE the all-variable
-;; catch-all below. Packs the episode count and complexity ratio for
-;; the hillClimbing applyActionBasedScore arm (the fitness itself binds
-;; globally through (param fitness) -- nothing to thread here).
-(= (optimizeDemes $deme (mkActionCtx $nTrials $complexityRatio $targetScore) $inst $optimize)
-   ($optimize $deme $targetScore $inst (mkParams applyActionBasedScore ($nTrials $complexityRatio))))
-;; Boolean version - passes context as-is
-(= (optimizeDemes $deme $context $inst $optimize)
-   ($optimize $deme $context $inst))
-
 ;; Invoke the shared optimizer with the argument shape required by the
 ;; domain scorer. Action scoring carries its raw target separately because
 ;; hill climbing optimizes the penalized score while terminating on raw score.
@@ -338,8 +320,6 @@
                 (runMosesCounted (- $maxGen 1) $maxScore $updatedMetaPop (+ $nExpansion 1) $nDeme $context $optimize $updatedVisits $updatedEvaluations))))))
 ;; Final-result conversion helpers.
 (= (mapG $f $xs) (map-atom $xs $f))
-
-(= (printExemplar (mkExemplar $tree $demeId $cscore $bscore)) (println! (Tree: (preOrder $tree) CScore: $cscore Bscore: $bscore)))
 ;; The (tree score) pair is quote-built: preOrder of a childless exemplar
 ;; is a bare operator symbol (e.g. and_seq), and an unquoted ($p $s) pair
 ;; headed by it would curry into a partial term now that action operators

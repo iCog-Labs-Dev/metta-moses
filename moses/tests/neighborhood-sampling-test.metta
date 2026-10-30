@@ -253,10 +253,6 @@
 
 
 
-;;testcase for isPossibleSize function
-;; Formula: n! / ((n - d)! * d!) * (m-1)^d  (n = instance length, d = distance, m = knob multiplicity)
-!(assertEqual (isPossibleSize 13 2 (mkInst (cons 1 (cons 2 (cons 0 ()))))) False)
-!(assertEqual (isPossibleSize 10 2 (mkInst (cons 1 (cons 2 (cons 0 ()))))) True)
 
 ;; Disc-probed knobs use effective multiplicity, so fully pruned knobs do not
 ;; contribute neighbors and partially pruned knobs only expose allowed specs.

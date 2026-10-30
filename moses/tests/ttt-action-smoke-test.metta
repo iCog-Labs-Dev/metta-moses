@@ -200,7 +200,6 @@
                          hillClimbing))
       ($_ (println! ""))
       ($_ (println! "==== Smoke-run result (tree preorder + bscore sum) ===="))
-      ($_ (mapG printExemplar $result))
       ($len (OS.length $result))
       ($top (OS.getByIdx 0 $result))
       ($topRaw (getScore (getExemplarCscore $top)))

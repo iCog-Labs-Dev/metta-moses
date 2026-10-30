@@ -255,33 +255,6 @@
     )
     (exprToList $x)))
 
-;;  isPossibleSize: Calculates if the requested number of neighbors can be generated at a given distance from a center instance.
-;; Uses combinatorics: chooses $dist positions from instance length and counts variations based on knob multiplicity.
-;; Parameters:
-;;      $sampleSize: Number of instances to generate
-;;      $dist: Distance from the center
-;;      $inst: Center instance
-;;      $multip: Knob multiplicity
-;; Returns: true if total neighbors ≥ $sampleSize, else false
-;; Formula: n! / ((n - d)! * d!) * (m-1)^d  ( where n = instance length, d = hamming distance, m = knob multiplicity)
-
-;; (: isPossibleSize (-> Instance Number Number Bool))
-(= (isPossibleSize $sampleSize $dist (mkInst $centralInst)) 
-    
-           (let* (
-               ($instLen (List.length $centralInst))
-               ($n (factorial $instLen))
-               ($r (factorial (- $instLen $dist)))
-               ($d (factorial $dist))
-               ($m (pow-math 2 $dist)) ; assuming knob multiplicty is 3, so m-1 = 1, hence m = 2 that is why (pow-math 2 $dist)
-               ($maxNeighbors (/ $n (* $r $d)))
-               ($totalNeighbors (* $maxNeighbors $m))
-             ) 
-               (>= $totalNeighbors $sampleSize)
-
-            )
-)
-
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1
 ;;          inst1: (0 1 0 1), inst2: (0 0 0 0) => distance: 2

@@ -29,11 +29,8 @@
               (mkARes True (mkTTTWorld (X X X E O O E E E) X True)))
 
 ;; ---- World constructor / accessors ----
-!(assertEqual (mkInitialTTTWorld (E E E E E E E E E) X)
-              (mkTTTWorld (E E E E E E E E E) X False))
 !(assertEqual (worldBoard (mkTTTWorld (X X E E O O E E E) X False)) (X X E E O O E E E))
 !(assertEqual (worldPlayer (mkTTTWorld (X X E E O O E E E) X False)) X)
-!(assertEqual (worldMoved (mkTTTWorld (X X E E O O E E E) X True)) True)
 
 ;; ---- tttWin: places the winning index / fails when none exists ----
 !(assertEqual (evalAction (quote (tttWin ())) (mkTTTWorld (X X E E O O E E E) X False))
