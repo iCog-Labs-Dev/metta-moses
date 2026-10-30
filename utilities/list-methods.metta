@@ -131,6 +131,7 @@
 (= (List.tail ()) ())
 (= (List.tail (cons $x $xs)) $xs)
 
+;; INFO: The previous overloaded version doesn't work here after changing to expression.
 ;; (: List.sub (-> (List Number) (List Number) (List Number)))
 (= (List.sub $xs $ys)
    (if (== $xs ())
@@ -168,6 +169,7 @@
        (cons $x $xs)
        (List.drop (- $n 1) $xs)))
 
+;; INFO: Behavior has changed from previous List.flatten. Investigation needed if causes an error.
 ;; (: List.flatten (-> (List (List $a)) (List $a)))
 (= (List.flatten ()) ())
 (= (List.flatten (cons $x $xs))

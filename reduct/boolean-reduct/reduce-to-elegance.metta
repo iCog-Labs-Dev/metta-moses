@@ -487,6 +487,7 @@
 (= (reduce-to $expr)
    (let*
      (
+      ;; TODO: Add a simple function to remove one child and nodes.
       (($parent $_current $_applied) (until reduceNotApplied applyReduce ($expr $expr True)))
       (($newParent $_newCurrent $_newApplied) (applyReduce ($parent $parent True))) ;; Try one more time in case it is still reducible
      )

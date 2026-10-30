@@ -10,7 +10,7 @@
             (let* (($sss (+ $divInteraction 1))
                     (($ps1 $ps2) (map-atom ($set1 $set2) $set (powerSet $set $sss True)))        ;; powersets of the two feature sets
                     (($ps1Size $ps2Size) ((size-atom $ps1) (size-atom $ps2)))                         ;; size of the power sets
-                    ($allCombMi (map-atom $ps1 $psA (map-atom $ps2 $psB (mutualInformationBtwSets $psA $psB (mkITable $table $labels)))))                  ;; calculation of mutual information between all features sets in the powersets -- all combinations
+                    ($allCombMi (map-atom $ps1 $psA (map-atom $ps2 $psB (mutualInformationBtwSets $psA $psB (mkITable $table $labels)))))                  ;; calculation of mutual information between all features sets in the powersets -- all combinations XXX -- i think the labels are not needed in the calculation
                     ($innerSum (map-atom $allCombMi $mi (foldl + $mi 0)))                            ;; folding the resulting tuple of tuples of MI values into one tuple
                     ($totalMi (foldl-atom $innerSum 0 $acc $x (+ $acc $x))))                          ;; final fold to get the sum MI
                     

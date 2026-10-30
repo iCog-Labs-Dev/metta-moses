@@ -59,7 +59,7 @@
         True
         (let*
           (
-            ($pairs (collapse ((superpose $handleSet) (superpose $handleSet))))
+            ($pairs (collapse ((superpose $handleSet) (superpose $handleSet)))) ;; TODO: Replace this with recursive logic.
             ($result (map-atom $pairs $ps (areNegations $ps)))
             ;; once: is-member gives one solution for each match.
             ($isMember (once (is-member True $result)))
