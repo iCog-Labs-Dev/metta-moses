@@ -25,39 +25,19 @@
 
  ;;  Evaluate OR subexpression
  ;;  Returns True if any argument evaluates to True, otherwise False.
-(= (evaluateOr $args)
-    (if (== $args ())
-        False
-        (let* 
-          (
-            ($first (car-atom $args))
-            ($rest (cdr-atom $args))
-          )
-          (if (== (evaluate $first) True)
-              True
-              (evaluateOr $rest)
-          )
-        )
-    )
-)
+(= (evaluateOr ()) False)
+(= (evaluateOr (cons $first $rest))
+   (if (== (evaluate $first) True)
+       True
+       (evaluateOr $rest)))
 
  ;;  Evaluate AND subexpression
  ;;  Returns False if any argument evaluates to False, otherwise True.
-(= (evaluateAnd $args)
-    (if (== $args ())
-        True
-        (let* 
-          (
-            ($first (car-atom $args))
-            ($rest (cdr-atom $args))
-          )
-          (if (== (evaluate $first) False)
-              False
-              (evaluateAnd $rest)
-          )
-        )
-    )
-)
+(= (evaluateAnd ()) True)
+(= (evaluateAnd (cons $first $rest))
+   (if (== (evaluate $first) False)
+       False
+       (evaluateAnd $rest)))
 
 
 ;; ---------------------------------------------------------------------------
