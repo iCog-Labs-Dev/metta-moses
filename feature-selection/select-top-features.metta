@@ -43,12 +43,10 @@
         (if (== $cscFtSet ())
             (map-atom $acc $a (second $a))                                       ;; return only the indices -- drop the score values
             (let* ( 
-                    ($currentFtSet (car-atom $cscFtSet))                             ;; current feature set under consideration (score set) pair
-                    ($currentCscore (first $currentFtSet))                 ;; the score
-                    ($currentFt (second $currentFtSet))                    ;; the feature set, tuple of indices
-                    ($lastFtSet (car-atom $acc))                                      ;; last added feature set -- ordered by score so the first one in the accumulator
-                    ($lastCscore (first $lastFtSet))                       ;; score of the last
-                    ($lastFt (second $lastFtSet))                             ;; the feature set
+                    ;; current (score feature-set) pair under consideration
+                    (($currentCscore $currentFt) (car-atom $cscFtSet))
+                    ;; last added pair -- ordered by score so the first one in the accumulator
+                    (($lastCscore $lastFt) (car-atom $acc))
                     ($sim (if (== $simScorer ja)                                       ;; assumes either of two similarity scorers jaccard or mi
                                 (jaccardIndex $lastFt $currentFt)         
                                 (mi $currentFt $lastFt $divInteraction (mkITable $table $labels))))      ;; feature set similarity using mutual information between sets                             

@@ -194,13 +194,10 @@
 ;; where the precision formula 0.5*(TP-FP)/(TP+FP) equals precision - 0.5
 ;;
 ;; (: bestPossibleBScore (-> Expression Number Number Number Number Number Number Number))
-(= (bestPossibleBScore $rows $sao $active $totalWeight $minAct $maxAct $actPressure $bestScore)
-   (if (== $rows ())
-      $bestScore
+(= (bestPossibleBScore () $sao $active $totalWeight $minAct $maxAct $actPressure $bestScore)
+   $bestScore)
+(= (bestPossibleBScore (cons ($precKey ($sumo $total)) $rest) $sao $active $totalWeight $minAct $maxAct $actPressure $bestScore)
       (let* (
-               (($row $rest) (decons-atom $rows)) ;; Extract current row data
-               (($precKey ($sumo $total)) $row)
-               
                ($newSao (+ $sao $sumo))
                ($newActive (+ $active $total))
                
@@ -222,9 +219,7 @@
                $updatedBest
                (bestPossibleBScore $rest $newSao $newActive $totalWeight $minAct $maxAct $actPressure $updatedBest)
              )
-         )
-   )
-)
+         ))
 
 ;; Main precision scoring orchestration function
 ;;

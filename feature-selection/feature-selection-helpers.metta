@@ -365,7 +365,7 @@
 ;;                  $originalLabels    -- original table labels
 (= (readjustIndices $ftSetPop $filteredLabels $originalLabels)
     (map-atom $ftSetPop $ftSet
-                            (let* ((($score $indices) ((first $ftSet) (second $ftSet)))
+                            (let* ((($score $indices) $ftSet)
                                     ($shiftedLabels (map-atom $indices $index (List.at $index $filteredLabels)))
                                     ($adjustedIndices (map-atom $shiftedLabels $label (List.index $originalLabels $label))))
                                     
