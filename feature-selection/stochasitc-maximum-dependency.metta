@@ -19,7 +19,7 @@
 ;;                The algorithm returns a population of ranked feature sets (the final beam). The first element is the highest-scoring set found, but the other sets in the population provide diverse alternatives that also have high dependency with the target.
 
 ;; --- Random Shuffling ---
-;; random shuffling using random weight -- assign random weights to features and by sorting these random weights efffectively shuffling feature order
+;; random shuffling using random weight -- assign random weights to features and by sorting these random weights effectively shuffling feature order
 (= (insert-weight $w $h ()) (cons (cons $w (cons $h ())) ()))
 (= (insert-weight $w $h (cons $hw-head $t))
    (let (cons $hw $rest) $hw-head
@@ -29,7 +29,7 @@
 
 (= (shuffle-with-weights ()) ())
 (= (shuffle-with-weights (cons $h $t))
-   ; (insert-weight (random-float &rng 0.0 1.0) $h (shuffle-with-weights $t)))
+   ;; (insert-weight (random-float &rng 0.0 1.0) $h (shuffle-with-weights $t)))
    (insert-weight (py-call (random.random)) $h (shuffle-with-weights $t)))
 
 (= (strip-weights ()) ())

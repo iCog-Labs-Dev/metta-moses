@@ -1,4 +1,4 @@
-;; randomFeatureSelection (safe optimized version)
+;; randomFeatureSelection
 ;; Purpose:
 ;;   Selects a random subset of feature indices from a table.
 ;;   Ensures exactly $targetSize features are selected (when possible).
@@ -22,7 +22,7 @@
                      ())))))))
 
 
-;; randomSelectHelper (safe optimized version)
+;; randomSelectHelper
 ;; Purpose:
 ;;   Recursively builds a list of unique random feature indices.
 ;;   Ensures no duplicates are included in the final selection.
@@ -49,9 +49,9 @@
                    $numFeatures
                    $count
                    $selected)
-        ;;  this implementation actually slightly changes the the c++ implementation 
+        ;;  this implementation actually slightly changes the C++ implementation 
         ;; In the C++ Implementation if a duplicate feature is selected, the function ignores it but still decrements the $count. 
-        ;; In our Implementation inorder to match the target size we will recursively call it with the same count
+        ;; In our implementation, in order to match the target size we will recursively call it with the same count
                ;; Unique case
                (randomSelectHelper
                    $numFeatures

@@ -3,7 +3,7 @@
 
 (= (removeFromSpace $row $space) (remove-atom $space $row))
 
-;  This function counts the total occurrences of variable $X in an expression non-deterministically.
+;;  This function counts the total occurrences of variable $X in an expression non-deterministically.
 ;; (= (findX $expr $x)
 ;;     (if (== $expr ())
 ;;         (empty)
@@ -49,7 +49,7 @@
 )
 
 
- ;; A function to evaluateuate the boolean expression
+ ;; A function to evaluate the boolean expression
  ;;     - If the input expression is a grounded value (True or False), it returns the value directly.
  ;;     - Otherwise, it extracts the operator from the expression and applies the corresponding evaluation function:
  ;;         - evaluateAnd for AND expressions
@@ -122,13 +122,12 @@
 ;; sealed freshens the vars, a positional let binds the row's child values,
 ;; and one let-bound `reduce` dispatches the clause. A head with no clause
 ;; stays unreduced and scores worst (-1), like the old ERROR column.
-;; Probes: tmp/probe-sealed.metta, tmp/probe-mapvars.metta.
 ;; ---------------------------------------------------------------------------
 
 ;; Extract a label's column from the column-major table: the payload is the list
 ;; of columns, so the label's column is one index-atom away. Unknown label ->
 ;; loud Error (malformed input).
-;(: varColumn (-> (ITable $a) Symbol (List Bool)))
+;; (: varColumn (-> (ITable $a) Symbol (List Bool)))
 (= (varColumn (mkITable $columns $labels) $label)
    (let $idx (List.index $labels $label)
         (if (== $idx -1)
@@ -170,7 +169,7 @@
 ;; Wrapped (sub)expression -> boolean column. Nodes AND label leaves are
 ;; memoized, so a label's table walk happens once per run. The map-atom over
 ;; the destructured children is the engine's only tree recursion.
-;(: evalSubtree (-> Expression (ITable $a) Number (List Bool)))
+;; (: evalSubtree (-> Expression (ITable $a) Number (List Bool)))
 (= (evalSubtree $exp $itable $n)
    (if (== (get-metatype $exp) Grounded)
        ;; grounded literal (True/False): constant column, not worth caching
@@ -237,8 +236,8 @@
     )
 )
 
-;  ;; Computes the penalized fitness of an expression by balancing accuracy and complexity.
-;  ;; The penalty factor $lambda(just like learning rate) controls the trade-off between correctness and simplicity.
+;;  ;; Computes the penalized fitness of an expression by balancing accuracy and complexity.
+;;  ;; The penalty factor $lambda(just like learning rate) controls the trade-off between correctness and simplicity.
 
 (= (penalizedFitness $expr $data $lambda)
     (let*

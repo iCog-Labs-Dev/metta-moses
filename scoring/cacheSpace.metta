@@ -39,8 +39,8 @@
    (let $_removed (remove-atom &candidateScoreCache $entry)
      (removeCandidateScoreEntries $rest)))
 
-;; Always return a Boolean, including when the cache is already empty, so this
-;; reset can be safely sequenced at the beginning of every shared MOSES run.
+;; Empty the candidate-score cache. Collapse the matches first, then remove:
+;; never change the space while match iterates it. Callers ignore the result.
 (= (resetCandidateScoreCache)
    (let $entries
         (collapse (match &candidateScoreCache $entry $entry))

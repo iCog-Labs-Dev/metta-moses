@@ -10,8 +10,8 @@
 ;; CountTable: It counts True Positives (pos) and False Positives (neg) for each unique input pattern
 ;; 
 ;; Input:
-;;   $rows: List of data rows, each containing feature values + target
-;;          Example: ((True True True) (True False False) (False True False))
+;;   $row: One data row: feature values + target
+;;          Example: (True False False)
 ;;   $targetIndex: Index of the target column (usually last column)
 ;;                Example: If we have 3 columns [A, B, Output], targetIndex = 2
 ;;   $acc: Accumulator Map storing results from previous rows
@@ -19,7 +19,7 @@
 ;; Output:
 ;;   Map from input pattern -> (pos_count neg_count)
 ;;   Example: (cons ((False False) (2 2)) (cons ((True False) (0 3)) (cons ((False True) (3 0)) ())))
-; (: countTable (-> Expression Number (Map $k $v) (Map Expression (Number Number))))
+;; (: countTable (-> Expression Number (Map $k $v) (Map Expression (Number Number))))
 (= (countTable $row $targetIndex $acc)
    (if (== $row ())
       ()
@@ -42,8 +42,8 @@
 )
 
 ;; Build compressed table (CTable) by grouping identical input patterns
-; The structure of the CTable is referred from the below test file 
-; Reference: https://github.com/opencog/moses/blob/master/tests/moses/precision2.ctable
+;; The structure of the CTable is referred from the below test file 
+;; Reference: https://github.com/opencog/moses/blob/master/tests/moses/precision2.ctable
 ;;
 ;; Input:
 ;;   $rows: All data rows
@@ -54,7 +54,7 @@
 ;;
 ;; Example:
 ;;    (cons ((False False) (2 2)) (cons ((True False) (0 3)) (cons ((False True) (3 0)) ())))
-; (: cTable (-> Expression Expression (Map Expression (Number Number))))
+;; (: cTable (-> Expression Expression (Map Expression (Number Number))))
 (= (cTable $rows $labels)
    (let* (
           ($targetIndex (- (size-atom $labels) 1))
@@ -71,7 +71,7 @@
 ;; - For True Positives: contributes +0.5 per instance
 ;; - For False Positives: contributes -0.5 per instance  
 ;; - Net effect: sum_outputs = 0.5 * (TP - FP)
-; (: sumOutputs (-> Number Number Number))
+;; (: sumOutputs (-> Number Number Number))
 (= (sumOutputs $pos $neg)
    (* 0.5 (- $pos $neg)))
 
@@ -102,7 +102,7 @@
 ;; The MultiMap automatically sorts by precision key (using > for descending order)
 ;; This ordering is crucial for the best possible score implementation which processes highest
 ;; precision patterns first.
-; (: makePrecisionRow (-> Expression Expression (Map Expression (Number Number))))
+;; (: makePrecisionRow (-> Expression Expression (Map Expression (Number Number))))
 (= (makePrecisionRow $item $acc)
    (if (== $item ())
       ()
@@ -117,19 +117,19 @@
          )
       )
 )
-;       (if-decons-expr $item $inputPattern $rest
-;          (let* (
-;             (($pos $neg) $count)  ;; Extract positive and negative counts
+;;       (if-decons-expr $item $inputPattern $rest
+;;          (let* (
+;;             (($pos $neg) $count)  ;; Extract positive and negative counts
             
-;             ($total (+ $pos $neg)) ;; Calculate totals and precision metrics
-;             ($sumo (sumOutputs $pos $neg))
-;             ($precision (if (== $total 0) 0.0 (/ $sumo $total)))
-;             )
-;          (MultiMap.insert ($precision ($sumo $total)) $acc >) ;; for descending sort
-;          ) 
-;          ()
-;       )
-; )
+;;             ($total (+ $pos $neg)) ;; Calculate totals and precision metrics
+;;             ($sumo (sumOutputs $pos $neg))
+;;             ($precision (if (== $total 0) 0.0 (/ $sumo $total)))
+;;             )
+;;          (MultiMap.insert ($precision ($sumo $total)) $acc >) ;; for descending sort
+;;          ) 
+;;          ()
+;;       )
+;; )
 
 ;; Convert Map of compressed data to precision-sorted MultiMap
 ;; This prepares data for the greedy best_possible_bscore algorithm
@@ -142,7 +142,7 @@
 ;;
 ;; The sorting by precision (descending) is crucial for the best_possible_bscore
 ;; which processes rows from highest to lowest individual precision
-; (: createPrecisionRows (-> (MultiMap (Number (Number Number))) Expression))
+;; (: createPrecisionRows (-> (MultiMap (Number (Number Number))) Expression))
 (= (createPrecisionRows $groupedData)
    (let* (
             ($items (Map.items $groupedData))
@@ -169,7 +169,7 @@
 ;;   $minActivation : Minimum acceptable activation (e.g., 0.5)
 ;;   $maxActivation : Maximum acceptable activation (e.g., 1.0)  
 ;;   $activationPressure : Penalty scaling factor (e.g., 1.0)
-; (: getActivationPenalty (-> Number Number Number Number Number))
+;; (: getActivationPenalty (-> Number Number Number Number Number))
 (= (getActivationPenalty $activation $minActivation $maxActivation $activationPressure)
    (if (<= $activationPressure 0)
        0.0
@@ -217,7 +217,7 @@
 ;; The +0.5 offset correction accounts for MOSES behavioral score representation
 ;; where the precision formula 0.5*(TP-FP)/(TP+FP) equals precision - 0.5
 ;;
-; (: bestPossibleBScore (-> Expression Number Number Number Number Number Number Number))
+;; (: bestPossibleBScore (-> Expression Number Number Number Number Number Number Number))
 (= (bestPossibleBScore $rows $sao $active $totalWeight $minAct $maxAct $actPressure $bestScore)
    (if (== $rows ())
       $bestScore
@@ -271,7 +271,7 @@
 ;; This represents the theoretical upper bound on precision that any classifier
 ;; could achieve using only the selected features while respecting activation
 ;; constraints. It's used by hill climbing to evaluate feature set quality.
-; (: precisionBScore (-> Expression Expression Number Number Number Number Number Number Number))
+;; (: precisionBScore (-> Expression Expression Number Number Number Number Number Number Number))
 (= (precisionBScore $rows $labels $activationPressure $minActivation $maxActivation $totalWeight)
    (let* (
             ;; ($_ (println! (debug Inside Precision scoring)))
@@ -294,7 +294,7 @@
 ;;
 ;; Output:
 ;;   Expression like (filtered_rows filtered_labels) containing only selected features + target
-; (: extractTable (-> Expression (List (List $a)) (List Symbol) (Expression Expression)))
+;; (: extractTable (-> Expression (List (List $a)) (List Symbol) (Expression Expression)))
 (= (extractTable $featureIndices $columns $labels)
    (let* (
           ;; Target is always last column
@@ -336,7 +336,7 @@
 ;; The returned score represents how good this feature combination is for
 ;; precision-based classification, accounting for both achievable precision
 ;; and the complexity cost of using multiple features.
-; (: preScorer (-> Expression (ITable $a) Number Number Number Bool Number Number))
+;; (: preScorer (-> Expression (ITable $a) Number Number Number Bool Number Number))
 (= (preScorer $featureIndices (mkITable $columns $labels) $penalty $minAct $maxAct $positive $confi)
    (if (== $featureIndices ())
       0.0

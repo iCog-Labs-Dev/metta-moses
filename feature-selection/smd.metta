@@ -1,18 +1,17 @@
 ;; this is implementation of stochastic max dependency feature selection algorithm
 ;; How it works
-;  0 --> vector<feature_set> tops = empty set
-;  1 --> For each feature_set fs in tops:
-;  2 -->     Add one feature, compute new score. Repeat 1
-;  3 --> Discard all but top_size of highest scorers
-;  4 --> tops = the highest scorers.
-;  5 --> If score hasn't improved by threshold,
-;    --> then skip next step.
-;  6 --> Repeat, until tops holds feature_sets of at most
-;    --> 'num_features' features.
-;  7 --> return highest scorer from tops.
-;; it appears as though this is built on top of the simple algorithm? .... doesnt it? 
+;;  0 --> vector<feature_set> tops = empty set
+;;  1 --> For each feature_set fs in tops:
+;;  2 -->     Add one feature, compute new score. Repeat 1
+;;  3 --> Discard all but top_size of highest scorers
+;;  4 --> tops = the highest scorers.
+;;  5 --> If score hasn't improved by threshold,
+;;    --> then skip next step.
+;;  6 --> Repeat, until tops holds feature_sets of at most
+;;    --> 'num_features' features.
+;;  7 --> return highest scorer from tops.
 
-;;  Prametres           
+;;  Parameters           
 ;;                  --   $th    minimum values improvement (in this case MI)                                                  
 ;;                  --   $numFeatures    desired number of features in the featuresets                                             
 ;;                  --   $scorer    scorer of importance, MI, Correlation ...?                                            

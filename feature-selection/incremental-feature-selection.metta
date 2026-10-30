@@ -144,7 +144,7 @@
 (= (lru-next-tick)
    (let $ticks (collapse (match &self (lru-tick $t) $t))
         (if (== $ticks ())
-            (let $_ (add-atom &self (lru-tick 1)) 1) ; This branch is simple, can stay as let
+            (let $_ (add-atom &self (lru-tick 1)) 1)
             (let* (((cons $t $rest) $ticks)
                    ($nextT (+ $t 1))
                    ($_ (remove-atom &self (lru-tick $t)))

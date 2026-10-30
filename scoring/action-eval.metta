@@ -17,10 +17,10 @@
 ;; one protocol. $world is opaque to the engine and to all structural ops --
 ;; only domain clauses inspect it. Dispatch is a `reduce` on a cons-built
 ;; ($op $children $world) term, exactly the boolean engine's mechanism
-;; (fitness.metta:141-167 dispatching AND/OR/NOT) -- clauses loaded at ANY
+;; (evalRow in scoring/fitness dispatching AND/OR/NOT) -- clauses loaded at ANY
 ;; later time are found, no sentinel needed. Three failure paths, all mapped
 ;; to the defined-worst (mkARes False $world), the analog of boolean's
-;; unreduced -> -1 at fitness.metta:124:
+;; unreduced -> -1 in evalSubtree (scoring/fitness):
 ;;   * unknown operator -> reduce returns the term UNREDUCED;
 ;;   * known operator whose head destructure rejects the children (wrong
 ;;     child-count for a fixed-arity op) -> silent failure;
@@ -95,7 +95,7 @@
            (evalActionNode $exp () $world))))
 
 ;; actionExp: Tree -> wrapped executable shape; the action analog of
-;; preOrderExp (scoring/boolean-ops.metta:20-33), same clause structure
+;; preOrderExp (scoring/boolean-ops), same clause structure
 ;; including the mkKnob/mkNullVex passthroughs. Every node and every symbol
 ;; leaf becomes (op (children)) -- uniform dispatch; only grounded literals
 ;; (True/False, numbers such as repeat_n's count) stay bare. Emissions are

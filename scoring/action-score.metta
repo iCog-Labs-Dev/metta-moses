@@ -88,7 +88,7 @@
 ;; AFTERWARDS the new symbol keys fresh entries, but re-binding the SAME
 ;; symbol to new behavior needs (resetActionScoreCache) or the stale scores
 ;; keep being served.
-;(: scoreActionTree (-> (Tree $a) Number $space BehavioralScore))
+;; (: scoreActionTree (-> (Tree $a) Number $space BehavioralScore))
 (= (scoreActionTree $tree $nEpisodes $scoreSpace)
    (let* (($exp (actionExp $tree))
           ($fn (param fitness))
@@ -103,11 +103,11 @@
 ;; actionTreeComplexity: number of action/perception leaves in a candidate
 ;; Tree; registered structural combinators cost 0 (they are the action
 ;; analog of AND/OR/NOT). Deliberately SEPARATE from treeComplexity in
-;; utilities/tree.metta:312-319 -- that one hard-codes the boolean operator
+;; utilities/tree.metta -- that one hard-codes the boolean operator
 ;; list (AND OR NOT) and loads before the scoring layer, so it
 ;; cannot consult &actionRegistry; keeping this here leaves boolean complexity
 ;; behavior untouched.
-;(: actionTreeComplexity (-> (Tree $a) Number))
+;; (: actionTreeComplexity (-> (Tree $a) Number))
 (= (actionTreeComplexity (mkNullVex $x)) 0)
 (= (actionTreeComplexity (mkKnob $inner $lsk $i)) (actionTreeComplexity $inner))
 (= (actionTreeComplexity (mkTree (mkNode $a) $children))
@@ -120,13 +120,13 @@
 ;; ---- Composite score ----
 ;; getActionCscore: behavioral score + complexity penalty -> mkCscore.
 ;; DISTINCT name (not a getCscore overload): the existing 4-arg getCscore
-;; boolean clauses (scoring/cscore.metta:23-28) already overlap
+;; boolean clauses (scoring/cscore.metta) already overlap
 ;; ambiguously, and (mkActionCtx $nTrials) keys the dispatch anyway.
 ;; The penalty math duplicates ~6 lines of getCscore's 3-arg core
-;; (scoring/cscore.metta:6-20) -- ACCEPTED duplication: that core calls
+;; (scoring/cscore.metta) -- ACCEPTED duplication: that core calls
 ;; treeComplexity internally, and action candidates need
 ;; actionTreeComplexity, so it cannot be funneled through.
-;(: getActionCscore (-> (Tree $a) ActionCtx Number $space Cscore))
+;; (: getActionCscore (-> (Tree $a) ActionCtx Number $space Cscore))
 (= (getActionCscore $tree (mkActionCtx $nTrials) $complexityRatio $scoreSpace)
    (if (== $tree (mkTree (mkNode and_seq) ()))
        (mkCscore -4 0 $complexityRatio 0 -4)
