@@ -318,8 +318,8 @@
             (if (or (>= $bestRaw $maxScore) (evaluationBudgetReached $updatedEvaluations))
                 (finishMetapop $updatedMetaPop $updatedRawBest)
                 (runMosesCounted (- $maxGen 1) $maxScore $updatedMetaPop (+ $nExpansion 1) $nDeme $context $optimize $updatedVisits $updatedEvaluations))))))
-;; Final-result conversion helpers.
-(= (mapG $f $xs) (map-atom $xs $f))
+
+;; Final-result conversion helper.
 ;; The (tree score) pair is quote-built: preOrder of a childless exemplar
 ;; is a bare operator symbol (e.g. and_seq), and an unquoted ($p $s) pair
 ;; headed by it would curry into a partial term now that action operators

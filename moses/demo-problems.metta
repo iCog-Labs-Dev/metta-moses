@@ -302,7 +302,7 @@
         ;; finalization all pass through the same runMoses pipeline.
         ($result (runMoses $maxGen $bestPossibleScore $metaPop 0 $nDeme
                            $context $optimizer))
-        ($newR (mapG cleanedExemplar $result))
+        ($newR (List.map cleanedExemplar $result))
         ($_ (cut)) ;; INFO: This gives few extra seconds performance gain. Do not remove.
       )
       (FinalResult $newR)))
