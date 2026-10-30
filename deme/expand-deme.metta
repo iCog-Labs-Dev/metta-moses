@@ -234,25 +234,17 @@
 (= (expansionEnabled $nDeme) (> $nDeme 0))
 
 ;; One shared loop handles visits, budgets, expansion, merging, raw-target
-;; termination, and finalization for every problem family. The main public entry
-;; keeps the init state inline and avoids any extra helper layer.
+;; termination, and finalization for every problem family. The entry resets
+;; the run caches, then starts the counted loop with no visits and the
+;; initial evaluation count.
 (= (runMoses $maxGen $maxScore $metaPop $nExpansion $nDeme $context $optimize)
-(let* (
+   (let* (
           ($_reset (resetCandidateScoreCache))
           ($_domainReset (resetDomainRunCaches $context))
           ($initialEvaluations (initialEvaluationCount $context))
-          ($rawChampion (if (== $metaPop ()) () (bestRawExemplar $metaPop)))
-          ($initialVisits ())
          )
-     (if (or (<= $maxGen 0)
-           (or (rawTargetReached $rawChampion $maxScore)
-             (or (not (expansionEnabled $nDeme))
-               (evaluationBudgetReached $initialEvaluations))))
-         (finishMetapop $metaPop $rawChampion)
-         (let $eligible (eligibleExemplars $metaPop $initialVisits (param revisit))
-           (if (== $eligible ())
-               (finishMetapop $metaPop $rawChampion)
-               (runMosesCountedWithBestSelected $maxGen $maxScore $metaPop $nExpansion $nDeme $context $optimize $initialVisits $initialEvaluations $rawChampion $eligible))))))
+     (runMosesCounted $maxGen $maxScore $metaPop $nExpansion $nDeme $context $optimize
+                      () $initialEvaluations)))
 
 (= (runMosesCounted $maxGen $maxScore $metaPop $nExpansion $nDeme $context $optimize $visits $cumulativeEvaluations)
    (let $rawChampion (if (== $metaPop ()) () (bestRawExemplar $metaPop))
