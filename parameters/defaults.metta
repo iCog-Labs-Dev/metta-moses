@@ -142,18 +142,12 @@
 !(add-atom &params (genCount 1000))
 
 ;; ---- Hill climbing ----
-;; hcMaxDist: maximum Hamming distance from the center instance the
+;; maxDist: maximum Hamming distance from the center instance the
 ;; neighborhood search explores (classic optim_parameters::max_dist).
-;; hcMinXoverNeighbors: neighborhood-size threshold above which the
+;; minXoverNeighbors: neighborhood-size threshold above which the
 ;; crossover path engages (classic hc_params::crossover_min_neighbors,
-;; classic default 400). ONE value each, regardless of problem kind --
-;; the per-domain tiers (Boolean/Fs/Strategy/Action) that used to live
-;; here redefined the same concept four times with untuned copies; tune
-;; per RUN instead via --hcMaxDist=N / --hcMinXoverNeighbors=N or
-;; in-script set-param.
-!(add-atom &params (hcMaxDist 4))
-!(add-atom &params (hcMinXoverNeighbors 400))
-;; These shared geometry controls reach every hill-climbing specialization.
+;; classic default 400). One value each for every problem kind; tune
+;; per run with --maxDist=N / --minXoverNeighbors=N or in-script set-param.
 !(add-atom &params (maxDist 4))
 !(add-atom &params (minXoverNeighbors 400))
 ;; These switches mirror hc_parameters.  Keeping widening off and crossover on
@@ -178,9 +172,6 @@
 ;; nTrials: episodes per candidate evaluation in ACTION domains (the
 ;; per-episode trial count). Override via --nTrials=N.
 !(add-atom &params (nTrials 12))
-;; Evaluator horizon for domains with stateful execution, such as Santa Fe.
-;; Boolean scorers do not consume this setting.
-!(add-atom &params (steps 600))
 
 ;; ---- Caching ----
 !(add-atom &params (defaultCacheSize 60))
