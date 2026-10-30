@@ -342,9 +342,9 @@
 
 ;; (: extractArgsFromList (-> (List (Tree $a)) (List Symbol)))
 
-(= (extractArgsFromList ()) ())
-(= (extractArgsFromList (cons $head $tail))
-    (List.appendList (extractArgsFromList $tail) (extractArgs $head)))   
+(= (extractArgsFromList $children)
+    (let $argLists (List.map extractArgs $children)
+        (List.flatten $argLists)))
 
 ;; treeFtsIndices -- extract integer indices of literals used in a tree
 (= (treeFtsIndices $exemplar $labels)
