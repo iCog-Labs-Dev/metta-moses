@@ -36,8 +36,7 @@
                       ;; ($_ (println! (GetCandidateHelper: $inst $tr)))
                       ($candidate (getCandidateHelper $inst $tr))
                       ;; ($_ (println! (Found candidate: (preOrder $candidate))))
-                      ($rootNode (getRepTree $repObj))
-                      ($rootSymbol (candidateRootSymbol $rootNode))
+                      ($rootSymbol (candidateRootSymbol $tr))
                       ($finalTree (finalizeCandidateTree $rootSymbol $candidate))
 
                       ($_ (add-atom &treeSpace ($id $inst $finalTree)))

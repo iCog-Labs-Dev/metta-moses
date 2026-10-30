@@ -12,10 +12,10 @@
     (let (mkTree (mkNode $rootOp) $children) $exemplar
         (if (isActionOperator $rootOp)
             (Error "buildKnobs 5-arity cannot be called with action operator root")
-            (let $canonized (logicalCanonize $exemplar)
-                (let (mkTree (mkNode $canonRootOp) $canonChildren) $canonized
-                    (buildLogical $canonized $canonRootOp $mmp $argLabels $discProbeDisabled $canonized (mkNodeId (0)) $ignoreOps))))))    
-                           
+            (let* (($canonized (logicalCanonize $exemplar))
+                   ((mkTree (mkNode $canonRootOp) $canonChildren) $canonized))
+                (buildLogical $canonized $canonRootOp $mmp $argLabels $discProbeDisabled $canonized (mkNodeId (0)) $ignoreOps)))))
+
 (= (buildKnobs (mkTree (mkNode $rootOp) $children) $mmp $argLabels $actions $perceptions $ignoreOps)
     (if (or (isActionOperator $rootOp) (isDomainAction $rootOp $actions))
         (let*
@@ -26,6 +26,5 @@
             ($finalTree (if (isNullVertex $cleanedTree) (mkTree (mkNode and_seq) ()) $cleanedTree))
           )
           ($finalTree $updatedMMap))
-        (let $canonized (logicalCanonize (mkTree (mkNode $rootOp) $children))
-          (let (mkTree (mkNode $canonRootOp) $canonChildren) $canonized
-            (buildLogical $canonized $canonRootOp $mmp $argLabels True $canonized (mkNodeId (0)) $ignoreOps)))))
+        ;; Not an action root, so the 5-arity action guard does not fire.
+        (buildKnobs (mkTree (mkNode $rootOp) $children) $mmp $argLabels True $ignoreOps)))
