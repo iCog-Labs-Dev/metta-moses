@@ -11,9 +11,8 @@ The team conventions are in `.github/CONTRIBUTING.md` (naming, formatting, comme
 - Use descriptive names. `$c` and `$c2` say nothing. Short names are fine for short-lived variables.
 - Use the Haskell name for an algebraic or higher-order idea: `mempty`, `foldr1`, `fmap`, `zipWith`, `allM`, `anyM`. Do not invent names such as `foldUntil`.
 - Use the classic MOSES name when the function does the same thing.
-- Use general names in general code. Do not put a domain word (for example `action`) on an engine function or parameter. A shared concept has one parameter name (`hcMaxDist`, not a second copy per domain).
+- Use general names in general code. Do not put a domain word (for example `action`) on an engine function or parameter. A shared concept has one parameter name (`maxDist`, not a second copy per domain).
 - When two functions differ only in the number of arguments, give them one name with different arities. Do not add `Fast`, `New` or `2` suffixes.
-- Write `children` and `child`, never `kids`.
 - The boolean operators are `AND`, `OR`, `NOT`. The reduct constants are the symbols `TRUE` and `FALSE` (on `dev`). Do not use `And`/`Or`/`Not`.
 - Comments and code are public. Do not write personal or interpersonal references in them.
 
@@ -38,7 +37,7 @@ The team conventions are in `.github/CONTRIBUTING.md` (naming, formatting, comme
 - At a **live-head hazard site** (a term whose head is a defined function, for example `(NOT $x)` after `boolean-ops` loads) use `quote`, not `cons-atom`. Evaluate the parts into `let*` bindings first, then quote the variables-only shape. **Comment every hazard site.** (A style tidy once removed an unmarked hazard, and a `partial` term leaked into the final result.)
 - Use `;;` for comments, never `;`.
 
-### Rewrite patterns (from PR 515)
+### Additional Best Practices
 
 Write the form in the second column. The PR 515 rewrite of `reduct/action-reduct/` used these forms. The review measured it as about 25% faster, with the same results except one lost guard (rule 1 below).
 
@@ -85,7 +84,7 @@ Most PeTTa errors give zero solutions, not an error message. Know these cases.
 | `reduce` on a node with a child that is still symbolic | Zero solutions | Evaluate the children first. Let-bind the argument of `reduce`. |
 | `(reduce (quote X))` written inline | The quote is not stripped | Bind the quoted term to a variable first. |
 | `superpose` on a call | It superposes the call term, not its result | Let-bind the collection first. |
-| `and` used as a guard | Not short-circuit: all arguments run | Nest `if`s. |
+| `and` used as a guard | Not short-circuit: all arguments run | Nest `if`s. But only if the guards of `and` are very compute heavy. Other wise readability comes first and prefer the `and` guards. |
 | `is-member` | One solution per match | Wrap in `once`. |
 | `union-atom` | Concatenates, keeps duplicates | Add an explicit membership guard for a set. |
 | `get-metatype` of a symbol that has a clause anywhere | `Grounded`, not `Symbol` | Test `(or (== $x True) (== $x False))`, or test the Expression case positively. |
