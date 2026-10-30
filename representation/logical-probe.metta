@@ -39,11 +39,23 @@
                  ($childIndex)
                  (concatT $parentId ($childIndex)))))
 
-(= (probeTreeForControlledSubtree $tree $targetId $children $controlledSubtree)
+(= (probeTreeForControlledSubtree $tree $targetId $targetNode $children $controlledSubtree)
    (let $idx (List.index $children $controlledSubtree)
       (if (== $idx -1)
-          (appendChild $tree $targetId $controlledSubtree)
+          (appendChildTo $tree $targetId $targetNode $controlledSubtree)
           ($tree (childNodeId $targetId (+ $idx 1))))))
+
+;; appendChild with the target node already resolved. Every permutation appends
+;; to the same node, so the walk down to it is done once by the caller.
+(= (appendChildTo $tree (mkNodeId $target) $targetNode $child)
+   (let*
+      (
+        ($updatedChildren (List.append $child (getChildren $targetNode)))
+        ($childIndex (List.length $updatedChildren))
+        ($idOfChild (if (== (mkNodeId $target) (mkNodeId (0))) ($childIndex) (concatT $target ($childIndex))))
+        ($updatedTree (replaceNodeById $tree (mkNodeId $target) (updateChildren $targetNode $updatedChildren)))
+      )
+      ($updatedTree (mkNodeId $idOfChild))))
 
 ;; Extracts the controlled subtree from a possibly-knob-wrapped child for
 ;; membership testing against the original $children list. The case dispatches
@@ -60,10 +72,10 @@
 ;; the disc-probe scope's root (kept (mkNodeId (0)) by callers; reserved for
 ;; future tighter scopes), $targetId is the absolute path to the current node
 ;; where the knob is being appended.
-(= (probeLogicalPair $tree $probeRootId $targetId $children $disable-discprobe ($controlledSubtree $lsk))
+(= (probeLogicalPair $tree $probeRootId $targetId $targetNode $children $disable-discprobe ($controlledSubtree $lsk))
    (let*
       (
-        (($probeTree $probeTargetId) (probeTreeForControlledSubtree $tree $targetId $children $controlledSubtree))
+        (($probeTree $probeTargetId) (probeTreeForControlledSubtree $tree $targetId $targetNode $children $controlledSubtree))
         ($probedLsk (if $disable-discprobe $lsk (discProbe $probeTree $probeRootId $probeTargetId $lsk)))
       )
       ($controlledSubtree $probedLsk)))
@@ -88,7 +100,8 @@
       ($updatedChldLskPair (map-atom $perms $perm (logicalSubtreeKnob $exemplar $perm)))
       ($probedChldLskPair (if $discProbeDisabled
                               $updatedChldLskPair 
-                              (map-atom $updatedChldLskPair $pair (probeLogicalPair $globalTree $probeRootId $targetId $children False $pair))))
+                              (let $targetNode (getNodeById $globalTree $targetId)
+                                 (map-atom $updatedChldLskPair $pair (probeLogicalPair $globalTree $probeRootId $targetId $targetNode $children False $pair)))))
       ($filteredChildrenLskPair (filter-atom $probedChldLskPair $pair (and (not (allDisallowed (second $pair))) (or $addIfInExemplar (not (inExemplar (getDiscKnob (second $pair))))))))
       ($updatedChildren (map-atom $filteredChildrenLskPair $ch (first $ch)))
       ($newLskPair (map-atom $filteredChildrenLskPair $ch (second $ch)))
