@@ -58,13 +58,14 @@
      )
      $perm))
 
-(= (actionPairsFromIndexes () $perceptions $actions $actionCount $ignoreOps) ())
-
-(= (actionPairsFromIndexes (cons $pairIdx $rest) $perceptions $actions $actionCount $ignoreOps)
-   (let $pair (actionPairFromIndex $perceptions $actions $actionCount $pairIdx $ignoreOps)
-      (if (== $pair ())
-          (actionPairsFromIndexes $rest $perceptions $actions $actionCount $ignoreOps)
-          (cons $pair (actionPairsFromIndexes $rest $perceptions $actions $actionCount $ignoreOps)))))
+;; One action_bool_if perm per index, in index order; () (action_bool_if
+;; ignored) is dropped. map-atom runs left to right, so randElement draws
+;; in index order.
+(= (actionPairsFromIndexes $pairIdxs $perceptions $actions $actionCount $ignoreOps)
+   (filter-atom
+     (map-atom $pairIdxs $pairIdx (actionPairFromIndex $perceptions $actions $actionCount $pairIdx $ignoreOps))
+     $pair
+     (!= $pair ())))
 
 ;; Add action-subtree ASK knobs to a subtree.
 ;; Input: subtree
@@ -136,15 +137,15 @@
 ;; Each child is rebuilt recursively while preserving the C++ p=80
 ;; action-knob insertion policy. Returns:
 ;;   (rebuiltChildren updatedMMap)
-(= (processActionChildren () $knobMap $actions $perceptions $p $ignoreOps) (() $knobMap))
-
-(= (processActionChildren (cons $child $rest) $knobMap $actions $perceptions $p $ignoreOps)
-   (let*
-     (
-       (($newChild $m1) (processActionChild $child $knobMap $actions $perceptions $p $ignoreOps))
-       (($newRest $m2) (processActionChildren $rest $m1 $actions $perceptions $p $ignoreOps))
-     )
-     ((cons $newChild $newRest) $m2)))
+;; foldl-atom runs left to right, so the random draws keep their order.
+(= (processActionChildren $children $knobMap $actions $perceptions $p $ignoreOps)
+   (let* ((($reversedChildren $finalMap)
+            (foldl-atom $children (() $knobMap) $acc $child
+              (let* ((($prevChildren $prevMap) $acc)
+                     (($newChild $newMap) (processActionChild $child $prevMap $actions $perceptions $p $ignoreOps)))
+                ((cons $newChild $prevChildren) $newMap))))
+          ($rebuiltChildren (reverse $reversedChildren)))
+     ($rebuiltChildren $finalMap)))
 
 ;; Process one action branch of an action_bool_if subtree.
 ;; The perception child is handled separately.
@@ -170,15 +171,14 @@
 
 ;; Rebuild the action branches of an action_bool_if subtree.
 ;; Returns:  (rebuiltBranches updatedMMap)
-(= (processActionBoolIfBranches () $knobMap $actions $perceptions $ignoreOps) (() $knobMap))
-
-(= (processActionBoolIfBranches (cons $child $rest) $knobMap $actions $perceptions $ignoreOps)
-   (let*
-     (
-       (($rebuiltChild $m1) (processActionBoolIfChild $child $knobMap $actions $perceptions $ignoreOps))
-       (($rebuiltRest $m2) (processActionBoolIfBranches $rest $m1 $actions $perceptions $ignoreOps))
-     )
-     ((cons $rebuiltChild $rebuiltRest) $m2)))
+(= (processActionBoolIfBranches $branches $knobMap $actions $perceptions $ignoreOps)
+   (let* ((($reversedBranches $finalMap)
+            (foldl-atom $branches (() $knobMap) $acc $child
+              (let* ((($prevBranches $prevMap) $acc)
+                     (($rebuiltChild $newMap) (processActionBoolIfChild $child $prevMap $actions $perceptions $ignoreOps)))
+                ((cons $rebuiltChild $prevBranches) $newMap))))
+          ($rebuiltBranches (reverse $reversedBranches)))
+     ($rebuiltBranches $finalMap)))
 
 ;; Build the representation of an and_seq subtree.
 ;; Mirrors the C++ action-knob construction using the
@@ -247,16 +247,12 @@
          ((mkNullVex ()) False)
          ((mkTree (mkNode $rootOp) $cleanedChildren) True))))
 
-(= (actionCleanupChildren ()) ())
-(= (actionCleanupChildren (cons $child $rest))
-   (let*
-     (
-       (($cleanedChild $keep) (actionCleanupNode $child))
-       ($cleanedRest (actionCleanupChildren $rest))
-     )
-     (if $keep
-         (cons $cleanedChild $cleanedRest)
-         $cleanedRest)))
+;; Cleans each child and keeps the ones that actionCleanupNode marks True.
+(= (actionCleanupChildren $children)
+   (let $cleanedPairs (map-atom $children $child (actionCleanupNode $child))
+      (map-atom (filter-atom $cleanedPairs ($cleaned $keep) $keep)
+                ($cleaned $keep)
+                $cleaned)))
 
 (= (actionCanonize $tree)
    (let (mkTree (mkNode $rootOp) $children) $tree
