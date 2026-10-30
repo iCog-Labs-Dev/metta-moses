@@ -113,9 +113,8 @@
 (= (actionTreeComplexity (mkTree (mkNode $a) $children))
    (if (isRegisteredActionOperator $a)
        (List.sum (List.map actionTreeComplexity $children))
-       (if (== $children ())
-           1     ;; actions/perceptions ARE the alphabet
-           (+ 1 (List.sum (List.map actionTreeComplexity $children))))))
+       ;; actions/perceptions ARE the alphabet; (List.sum ()) is 0 for a leaf
+       (+ 1 (List.sum (List.map actionTreeComplexity $children)))))
 
 ;; ---- Composite score ----
 ;; getActionCscore: behavioral score + complexity penalty -> mkCscore.
