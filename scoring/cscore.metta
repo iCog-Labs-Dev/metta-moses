@@ -134,5 +134,19 @@
             False
             (or (> $pl $pr) (and (== $pl $pr) (< $cl $cr))))))
 
+;; Overloaded version accepting tree structures to break further ties via tree size
+; (: cScore>= (-> Cscore Cscore (Tree $a) (Tree $a) Bool))
+(= (cScore>= $cs1 $cs2 $tree1 $tree2)
+    (let ($pl $pr $cl $cr $sl $sr $sz1 $sz2)
+         ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2) (getScore $cs1) (getScore $cs2) (treeSize $tree1) (treeSize $tree2))
+        (if (isnan-math $pl)
+            False
+            (or (> $pl $pr)
+                (and (== $pl $pr)
+                     (or (< $cl $cr)
+                         (and (== $cl $cr)
+                              (or (> $sl $sr)
+                                  (and (== $sl $sr) (< $sz1 $sz2))))))))))
+
 (= (setUniPen (mkCscore $scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore) $newUniPen)
     (mkCscore $scor $cpxy $complexityPenalty $newUniPen $penalizedScore))

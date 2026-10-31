@@ -531,9 +531,9 @@
 ;; Output: 2-tuple (($bestCand $bestPen) $remaining)
 (= (selectBestHelper () $champ $rem) ($champ $rem))
 (= (selectBestHelper (cons ($cand $pen) $rest) ($bestCand $bestPen) $rem)
-   (if (cScore>= (candCscore $bestCand) (candCscore $cand))
-       (selectBestHelper $rest ($bestCand $bestPen) (cons ($cand $pen) $rem))
-       (selectBestHelper $rest ($cand $pen) (cons ($bestCand $bestPen) $rem))))
+   (if (cScore>= (candCscore $cand) (candCscore $bestCand) (candTree $cand) (candTree $bestCand))
+       (selectBestHelper $rest ($cand $pen) (cons ($bestCand $bestPen) $rem))
+       (selectBestHelper $rest ($bestCand $bestPen) (cons ($cand $pen) $rem))))
 
 ;; Selects candidate with highest penalized score from $tmp via forward fold
 ;; Inputs: Working list $tmp (List of ($cand $accDp) pairs)
