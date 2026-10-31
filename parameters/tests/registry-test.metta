@@ -26,6 +26,13 @@
 !(assertEqual (param hcCrossoverPopSize)    120)
 !(assertEqual (param hcFractionOfNN)        2.0)
 !(assertEqual (param defaultCacheSize)      60)
+!(assertEqual (param diversityPressure)     0.0)
+!(assertEqual (param diversityAutoscale)    False)
+!(assertEqual (param diversityDst)          p_norm)
+!(assertEqual (param diversityPNorm)        2.0)
+!(assertEqual (param diversityDst2dp)       inverse)
+!(assertEqual (param diversityExponent)     -1.0)
+!(assertEqual (param diversityNormalize)    True)
 
 ;; ---- Unknown key returns () ----
 !(println! ("testing: param lookup of unknown key returns ()"))

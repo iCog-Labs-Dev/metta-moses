@@ -185,3 +185,15 @@
 
 ;; ---- Caching ----
 !(add-atom &params (defaultCacheSize 60))
+
+;; ---- Diversity & Uniformity Penalty ----
+;; Behavioral diversity re-ranking across the metapopulation.
+;; When diversityPressure > 0.0, candidates are penalized for behavioral redundancy.
+;; Defaults use Lp-norm (p=2 Euclidean) distance with inverse penalty conversion.
+!(add-atom &params (diversityPressure 0.0))
+!(add-atom &params (diversityAutoscale False))
+!(add-atom &params (diversityDst p_norm))
+!(add-atom &params (diversityPNorm 2.0))
+!(add-atom &params (diversityDst2dp inverse))
+!(add-atom &params (diversityExponent -1.0))
+!(add-atom &params (diversityNormalize True))

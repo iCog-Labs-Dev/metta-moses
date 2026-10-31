@@ -307,13 +307,20 @@
                                (List.length $retainedCandidates) Instances))
                    ()))
             ($updatedMetaPop (mergeCandidates $retainedCandidates $metapop))  ;;merge candidates into metapop
+            ($diversifiedMetaPop (setDiversity $updatedMetaPop))  ;;apply uniformity penalty diversification
+            ($_ (if (and (> (param diversityPressure) 0.0) (param diagnostics)) 
+                   (let* (($_1 (println! ("=== [Diversity Enabled] Pressure:" (param diversityPressure) "Candidates:" (OS.length $diversifiedMetaPop) "==="))) 
+                          ($_2 (logTopDiversity $diversifiedMetaPop 3)) 
+                          ($_3 (println! ("===========================================================")))) 
+                         ()) 
+                   ()))
             ($_ (if (param diagnostics)
                    (println! (Metapop size before resize:
-                               (OS.length $updatedMetaPop)))
+                               (OS.length $diversifiedMetaPop)))
                    ()))
             ;; The all-time raw champion is tracked outside the selectable
             ;; archive, so normal resize semantics apply to every domain.
-            ($resizedMetapop (resizeMetapop $updatedMetaPop))
+            ($resizedMetapop (resizeMetapop $diversifiedMetaPop))
             ($_ (if (param diagnostics)
                    (println! (Metapop size after resize:
                                (OS.length $resizedMetapop)))
