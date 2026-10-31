@@ -17,6 +17,7 @@
 
 !(import! &self ../../utilities/tree)
 
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/lsk)
 !(import! &self ../../representation/disc-probe)
@@ -110,9 +111,9 @@
     (let*
       (
         ($exemplar (mkTree (mkNode AND) ((mkTree (mkNode A) ()))))
-        (($unprobedTree $unprobedMap) (buildKnobs $exemplar () (A B) True))
+        (($unprobedTree $unprobedMap) (buildKnobs $exemplar () (A B) True ()))
         ($_ (resetState &knobCount))
-        (($probedTree $probedMap) (buildKnobs $exemplar () (A B) False))
+        (($probedTree $probedMap) (buildKnobs $exemplar () (A B) False ()))
       )
       (< (MultiMap.length $probedMap) (MultiMap.length $unprobedMap)))
     True)

@@ -20,6 +20,7 @@
 !(import! &self reduct/boolean-reduct/reduce-to-elegance)
 !(import! &self utilities/tree) 
 
+!(import! &self scoring/action-registry)
 !(import! &self representation/knob-representation)
 !(import! &self representation/lsk)
 !(import! &self representation/logical-probe) 
@@ -29,6 +30,7 @@
 !(import! &self representation/build-logical)
 !(import! &self representation/build-knobs)
 !(import! &self representation/knob-mapper)
+!(import! &self representation/candidate)
 !(import! &self representation/representation)
 !(import! &self representation/instance)
 

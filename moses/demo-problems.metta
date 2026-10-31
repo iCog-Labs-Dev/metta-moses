@@ -98,14 +98,6 @@
        (let $sexpr (py-call (csv_helper.load_boolean_table (param inputFile) (param targetFeature)))
             (parse $sexpr))))
 
-;;     ($result (runMoses 20 (mkCscore -0.1 2 0.1 0.1 3) 10 (metaPop2) 0 2
-;;                   False    ;; the new arguments for prune-exemplar -- we are saying dont prune the exemplar
-;;                   smd      ;; the new arguments for feature selection algo
-;;                   (createTruthTableBScore 2 (xortable))
-;;                   hillClimbing
-;;                   100 10 20 2
-;;                   (xortable)
-;;                   10 0.004 1000))
 ;; ============================================================
 ;;  Top-level MOSES entry point.
 ;;
@@ -123,67 +115,227 @@
 ;;
 ;;      sh run.sh moses.metta -s --help
 ;; ============================================================
-;; Run unless the user supplied neither a demo `problem` symbol nor a CSV
-;; `inputFile`. Either is enough to know what to evolve against.
+;; Route by CONFIGURATION: an ACTION run is configured iff (param
+;; fitness) is non-empty (set via --fitness=<fn> or an in-script
+;; set-param); a TABLE run is configured iff a demo `problem` symbol or a
+;; CSV `inputFile` was supplied. Exactly one of the two must hold:
+;;   both    -> loud error + help (no silent precedence)
+;;   neither -> help
+;;   action  -> (moses-run-action)   table -> (moses-run)
 (= (moses)
-   (if (and (== (param problem)   ())
-            (== (param inputFile) ""))
-       (no-problem-help-and-exit)
-       (moses-run)))
+   (let* (($actionConfigured (not (== (param fitness) ())))
+          ($tableConfigured  (not (and (== (param problem)   ())
+                                       (== (param inputFile) "")))))
+     (if (and $actionConfigured $tableConfigured)
+         (both-configured-error-and-exit)
+         (if $actionConfigured
+             (moses-run-action)
+             (if $tableConfigured
+                 (moses-run)
+                 (no-problem-help-and-exit))))))
 
-;; Shown when (moses) is invoked without --problem= on the command line
-;; and without an in-script (set-param problem ...). Falls through to the
-;; standard --help dump so the user sees every knob and value.
+;; Shown when BOTH an action fitness and a table problem are configured:
+;; there is no meaningful precedence between them, so the run refuses loudly
+;; instead of silently picking one.
+(= (both-configured-error-and-exit)
+   (let*
+      (
+        ($_ (println! ""))
+        ($_ (println! "Error: both an action fitness and a table problem are configured; unset one."))
+        ($_ (println! "  action route: --fitness=<fn>   (or !(set-param fitness <fn>))"))
+        ($_ (println! "  table route:  --problem=<name> / --inputFile=<csv>"))
+        ($_ (print-help-and-exit))
+      )
+      ()))
+
+;; Shown when (moses) is invoked with neither a table problem (--problem= /
+;; --inputFile=) nor an action fitness (--fitness=). Falls through to
+;; the standard --help dump so the user sees every knob and value.
 (= (no-problem-help-and-exit)
    (let*
       (
         ($_ (println! ""))
         ($_ (println! "No problem specified."))
-        ($_ (println! "Pass --problem=<name> on the command line, e.g.:"))
+        ($_ (println! "For a boolean table run, pass --problem=<name>, e.g.:"))
         ($_ (println! "    sh run.sh moses.metta -s --problem=parity3"))
         ($_ (println! "or programmatically:  !(set-param problem parity3)"))
+        ($_ (println! "For an action run, bind a fitness function instead:"))
+        ($_ (println! "    --fitness=tttActionFitness  (or !(set-param fitness <fn>))"))
+        ($_ (println! "plus the vocabulary params -- see parameters/defaults.metta."))
         ($_ (print-help-and-exit))
       )
       ()))
 
+;; problem-context: map the configured problem to the triple
+;;   (context  metaPop  bestPossibleScore)
+;; that the shared runMoses entry point requires.
+;;
+;; `context` is the domain-specific value threaded through expand-deme.metta's
+;; polymorphic dispatch (mkActionCtx for action domains; the
+;; (False $fsAlgo $bscore $itable) tuple for Boolean/CSV domains).
+;; `metaPop` is the singleton ordered-set seed exemplar for this run.
+;; `bestPossibleScore` is the raw-score termination target.
+;;
+;; An action demo binds the classic `--problem=ant` here, but that is the ONLY
+;; ant-specific seam: it configures the general fitness-params contract and
+;; lets the shared action arms do the work. New action experiments instead
+;; follow the fitness-package interface (ttt-action-registration / domain
+;; files) and run via --fitness=<fn> or --domainFile=.
+(= (configure-ant-action-params)
+   (let* (
+          ($_1 (set-param fitness antFitness))
+          ($_2 (set-param bestScore antBestScore))
+          ($_3 (set-param actions (quote (antMoveForward antTurnLeft antTurnRight))))
+          ($_4 (set-param perceptions (quote (antFoodAhead))))
+          ($_5 (set-param nTrials 4))
+         )
+     True))
+
+(= (problem-context)
+   (case (param problem)
+     ((ant
+        (let* (
+               ($_        (configure-ant-action-params))
+               ($nTrials  (param nTrials))
+               ($cpxPen   (param complexityRatio))
+               ($ctx      (mkActionCtx $nTrials $cpxPen (antBestScore $nTrials)))
+               ($tree     (ant-exemplar))
+               ($seedCscore (getActionCscore $tree (mkActionCtx $nTrials) $cpxPen &actionScoreCache))
+               ($seedBscore (scoreActionTree $tree $nTrials &actionScoreCache))
+               ($metaPop  ((mkExemplar $tree (mkDemeId "1") $seedCscore $seedBscore))))
+          ($ctx $metaPop (antBestScore $nTrials))))
+      ($other
+        (let* (
+               ($cpxPen           (param complexityRatio))
+               ($itable           (resolve-itable))
+               ($truthTableBScore (createTruthTableBScore $cpxPen $itable))
+               (($ctor $worstB)   (worstPossibleScore $truthTableBScore))
+               ($worstScore       (List.sum $worstB))
+               ;; Termination target: (getBestPossibleScore)'s hardcoded 0 (a
+               ;; clean table classified perfectly) unless (param bestScore)
+               ;; carries an explicit NUMBER override -- the table-run half of
+               ;; the bestScore contract (the action runner treats the same
+               ;; param as a function symbol; see parameters/defaults.metta).
+               ($bsParam            (param bestScore))
+               ($bestPosssibleScore (if (== (get-type $bsParam) Number)
+                                        $bsParam
+                                        (getBestPossibleScore)))
+               ;; Rescale diversity pressure to problem score range if diversityAutoscale is enabled
+               ($_ (autoscaleDiversity $bestPosssibleScore $worstScore))
+               ($metaPop
+                  ((mkExemplar (mkTree (mkNode true) ())
+                               (mkDemeId "1")
+                               (mkCscore $worstScore 0 $cpxPen 0 $worstScore)
+                               ($ctor $worstB))))
+              )
+          ((False (param fsAlgo) $truthTableBScore $itable)
+           $metaPop
+           $bestPosssibleScore))))))
+
+;; Single unified entry point for every domain family.
+;; Reads all hyperparameters from &params; all domain-specific logic is
+;; encapsulated in (problem-context) and the expand-deme.metta adapters.
 (= (moses-run)
    (let*
       (
-        ;; Pull every input from the registry up-front so the body
-        ;; reads like the historical runDemoProblem.
-        ($seed     (param seed))
-        ($maxGen   (param maxGen))
-        ($nDeme    (param nDeme))
-        ($fsAlgo   (param fsAlgo))
-        ($optAlgo  (param optAlgo))
-        ($problem  (param problem))
+        ($seed      (param seed))
+        ($maxGen    (param maxGen))
+        ($nDeme     (param nDeme))
+        ($optAlgo   (param optAlgo))
         ($optimizer (optimizer-for $optAlgo))
 
         ($srp (py-call (random.seed $seed)))
         ;; genCount feeds the cap-size formula inside resizeMetapop; it
         ;; is conceptually the initial $maxGen and stays constant across
-        ;; the recursion, so we seed it once here.
+;; the recursion, so we seed it once here before (problem-context)
+        ;; may invoke any scorer that depends on it.
         ($_  (set-param genCount $maxGen))
-        ($cpxPen (param complexityRatio))
-        ;; Resolve the input table once: a CSV the user passed via
-        ;; --inputFile, otherwise the demo problem named by `problem`.
-        ($itable (resolve-itable))
-        ($truthTableBScore (createTruthTableBScore $cpxPen $itable))
-        (($ctor $worstPossibleBScore) (worstPossibleScore $truthTableBScore))
-        ($worstPossibleScore (List.sum $worstPossibleBScore))
-        ($bestPosssibleScore (getBestPossibleScore))
-        ($_ (println! (BestPossibleScore: $bestPosssibleScore)))
-        ;; Rescale diversity pressure to problem score range if diversityAutoscale is enabled
-        ($_ (autoscaleDiversity $bestPosssibleScore $worstPossibleScore))
-        ($metaPop ((mkExemplar (mkTree (mkNode true) ()) (mkDemeId "1") (mkCscore $worstPossibleScore 0 $cpxPen 0 $worstPossibleScore) ($ctor $worstPossibleBScore))))
-        ($result (runMoses $maxGen $bestPosssibleScore $metaPop 0 $nDeme
-              (False $fsAlgo $truthTableBScore $itable)
-              $optimizer))
-        ;; ($_ (println! (Result: $result)))
+        (($context $metaPop $bestPossibleScore) (problem-context))
+        ($_ (println! (BestPossibleScore: $bestPossibleScore)))
+
+        ;; The scoring context is the only domain-specific input: selection,
+        ;; expansion, evaluation accounting, merge, termination, and
+        ;; finalization all pass through the same runMoses pipeline.
+        ($result (runMoses $maxGen $bestPossibleScore $metaPop 0 $nDeme
+                           $context $optimizer))
         ($newR (mapG cleanedExemplar $result))
         ($_ (cut)) ;; INFO: This gives few extra seconds performance gain. Do not remove.
       )
       (FinalResult $newR)))
+
+;; Action runner, modeled on moses-run above. The experiment's fitness
+;; arrives through the global params ((param fitness) consumed inside
+;; scoring/action-score; (param bestScore) consumed here). The metapop
+;; seed is the empty and_seq exemplar (the action analog of moses-run's
+;; `true` tree) at the defined-worst score: every one of the $nTrials
+;; episodes forfeits at -1.0 (see the empty-exemplar loophole note in the
+;; episode runner), so raw score = complexity-penalized score = -1.0*nTrials.
+(= (moses-run-action)
+   (let*
+      (
+        ;; Refuse loudly when the knob vocabulary is missing: with an empty
+        ;; actions every deme is knobless, so the run would print its
+        ;; generations and silently produce no result. perceptions MAY
+        ;; legitimately be (): an experiment with no perceptions builds
+        ;; action-only knobs (sampleActionPerms returns the bare action
+        ;; list, representation/build-action.metta:18-21), so only
+        ;; actions is mandatory. The error path halts the process.
+        ($_vocabGuard (if (== (param actions) ())
+                          (missing-action-vocab-error-and-exit)
+                          ()))
+        ($seed     (param seed))
+        ($maxGen   (param maxGen))
+        ($nDeme    (param nDeme))
+        ($optAlgo  (param optAlgo))
+        ($optimizer (optimizer-for $optAlgo))
+
+        ($srp (py-call (random.seed $seed)))
+        ;; genCount feeds the cap-size formula inside resizeMetapop (same
+        ;; seeding as moses-run).
+        ($_  (set-param genCount $maxGen))
+        ($cpxPen (param complexityRatio))
+        ($nTrials (param nTrials))
+        ;; Best reachable raw score is experiment knowledge: the fitness
+        ;; package declares it as (param bestScore), a function symbol
+        ;; called ($bsFn $nTrials). Collapse-guarded: unset ((), a symbol
+        ;; with no clause, a failing call, or a non-Number result -- the
+        ;; termination compare needs arithmetic, and e.g. True is Grounded
+        ;; but not a Number, so the test is (get-type ...) == Number) ->
+        ;; a never-reached target ((pow-math 10 308)), so the run
+        ;; terminates via maxGen instead.
+        ($bsFn (param bestScore))
+        ($bsRs (collapse ($bsFn $nTrials)))
+        ($bestPossibleScore
+           (if (== $bsRs ())
+               (pow-math 10 308)
+               (let $bsV (car-atom $bsRs)
+                 (if (== (get-type $bsV) Number) $bsV (pow-math 10 308)))))
+        ($_ (println! (BestPossibleScore: $bestPossibleScore)))
+        ($worst (* -1.0 $nTrials))
+        ($metaPop ((mkExemplar (mkTree (mkNode and_seq) ()) (mkDemeId "1") (mkCscore $worst 0 $cpxPen 0 $worst) (mkBScore (List.repeat $nTrials -1.0)))))
+        ($result (runMoses $maxGen $bestPossibleScore $metaPop 0 $nDeme
+              (mkActionCtx $nTrials $cpxPen $bestPossibleScore)
+              $optimizer))
+        ($newR (mapG cleanedExemplar $result))
+        ($_ (cut)) ;; INFO: Mirrors moses-run; commits choice points before returning.
+      )
+      (FinalResult $newR)))
+
+;; Shown when an action run is configured (fitness set) but the knob
+;; vocabulary is not: same loud-refusal style as
+;; both-configured-error-and-exit -- no silent knobless run.
+(= (missing-action-vocab-error-and-exit)
+   (let*
+      (
+        ($_ (println! ""))
+        ($_ (println! "Error: fitness is configured but actions is unset."))
+        ($_ (println! "Without an action vocabulary every deme is knobless and the run produces nothing."))
+        ($_ (println! "Bind it in-script before !(moses), quote-wrapped:"))
+        ($_ (println! "    !(set-param actions (quote (act1 act2 ...)))"))
+        ($_ (println! "(perceptions may stay () -- that builds action-only knobs.)"))
+        ($_ (print-help-and-exit))
+      )
+      ()))
 
 ;; Maps the optAlgo symbol to the concrete optimizer function used by
 ;; runMoses. Only hill climbing is integration-tested today; the SA and
@@ -219,4 +371,3 @@
         ($_5 (set-param problem $problem))
       )
       (moses)))
-

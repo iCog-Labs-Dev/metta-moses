@@ -9,6 +9,19 @@
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cacheSpace)
 
+!(import! &self ../../scoring/action-registry)
+!(import! &self ../../reduct/action-reduct/action-vocab)
+!(import! &self ../../reduct/action-reduct/action-helpers)
+!(import! &self ../../reduct/action-reduct/action-properties)
+!(import! &self ../../reduct/action-reduct/reduce-action-if)
+!(import! &self ../../reduct/action-reduct/reduce-action-action-if)
+!(import! &self ../../reduct/action-reduct/reduce-const-action-seq)
+!(import! &self ../../reduct/action-reduct/reduce-action-not)
+!(import! &self ../../reduct/action-reduct/reduce-action-while)
+!(import! &self ../../reduct/action-reduct/reduce-seq-result)
+!(import! &self ../../reduct/action-reduct/reduce-null-vertices)
+!(import! &self ../../reduct/action-reduct/reduce-action-properties)
+!(import! &self ../../reduct/action-reduct/action-reduction)
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../../representation/lsk)
 !(import! &self ../../representation/logical-probe)
@@ -18,6 +31,7 @@
 !(import! &self ../../representation/logical-canonize)
 !(import! &self ../../representation/build-action)
 !(import! &self ../../representation/build-knobs)
+!(import! &self ../../representation/candidate)
 !(import! &self ../../representation/representation)
 
 !(py-call (random.seed 12))
@@ -30,6 +44,7 @@
 !(assertEqual (isActionOperator and_seq) True)
 !(assertEqual (isActionOperator action_bool_if) True)
 !(assertEqual (isActionOperator seq_exec) True)
+!(assertEqual (isActionOperator exec_seq) True)
 !(assertEqual (isActionOperator move_forward) False)
 
 !(assertEqual (isDomainAction move_forward (move_forward turn_left)) True)
@@ -39,17 +54,17 @@
 
 ;; Action permutation sampling keeps the base action domain.
 !(assertEqual
-  (let $perms (sampleActionPerms (move_forward turn_left) (A B))
+  (let $perms (sampleActionPerms (move_forward turn_left) (A B) ())
     (and (is-member move_forward $perms)
          (is-member turn_left $perms)))
   True)
 
 !(assertEqual
-  (sampleActionPerms (move_forward) (A B))
+  (sampleActionPerms (move_forward) (A B) ())
   (move_forward))
 
 !(assertEqual
-  (sampleActionPerms (move_forward turn_left) ())
+  (sampleActionPerms (move_forward turn_left) () ())
   (move_forward turn_left))
 
 ;; Embedded ASK constructors retain their defaults.
@@ -125,7 +140,7 @@
 !(assertEqual
   (let*
     (
-      (($subtree $mmp) (addActionKnobs (mkTree (mkNode and_seq) ()) True () (move_forward turn_left) ()))
+      (($subtree $mmp) (addActionKnobs (mkTree (mkNode and_seq) ()) True () (move_forward turn_left) () ()))
       ($ask (car-atom (MultiMap.values $mmp)))
       ((mkASK $discKnob $perms) $ask)
       ($embedded (getNodeById $subtree (mkNodeId (1))))
@@ -161,16 +176,23 @@
 !(assertEqual
   (let*
     (
-      (($updatedSubtree $mmp) (addActionKnobs (mkTree (mkNode and_seq) ()) True () (move_forward turn_left) ()))
+      (($updatedSubtree $mmp) (addActionKnobs (mkTree (mkNode and_seq) ()) True () (move_forward turn_left) () ()))
       ($rep (mkRep (mkKbMap (mkDscMp $mmp)) $updatedSubtree))
       ($absent (getCandidate $rep ActionCandidateAbsent (mkInst (0))))
       ($move (getCandidate $rep ActionCandidateMove (mkInst (1))))
       ($turn (getCandidate $rep ActionCandidateTurn (mkInst (2))))
     )
     ($absent $move $turn))
-  ((mkTree (mkNode and_seq) ())
+  ((mkTree (mkNode action_success) ())
    (mkTree (mkNode and_seq) ((moveTree)))
    (mkTree (mkNode and_seq) ((turnTree)))))
+
+!(assertEqual
+  (getCandidate
+    (mkRep (mkKbMap (mkDscMp ())) (mkTree (mkNode exec_seq) ()))
+    ExecSeqCandidateEmptyStatic
+    (mkInst ()))
+  (mkTree (mkNode action_success) ()))
 
 ;; Simple-action ASK present mode recurses into the embedded controlled subtree.
 !(assertEqual
@@ -198,7 +220,7 @@
                      (cons (mkTree (mkNode A) ())
                      (cons (moveTree)
                      (cons (turnTree) ())))))
-         (($updatedSubtree $mmp) (buildAction $origSubtree () (move_forward turn_left) (A B)))
+         (($updatedSubtree $mmp) (buildAction $origSubtree () (move_forward turn_left) (A B) ()))
          ($perception (getNodeById $updatedSubtree (mkNodeId (1)))))
     (and (== $perception (mkTree (mkNode A) ()))
          (let*
@@ -221,14 +243,14 @@
 ;; and_seq follows the C++ probabilistic path and produces knobs with this seed.
 !(assertEqual
   (let* (($origTree (mkTree (mkNode and_seq) (cons (moveTree) ())))
-         (($updatedTree $mmp) (buildAction $origTree () (move_forward turn_left) (A B)))
+         (($updatedTree $mmp) (buildAction $origTree () (move_forward turn_left) (A B) ()))
         )
     (and (> (MultiMap.length $mmp) 0)
          (not (== $updatedTree $origTree))))
   True)
 
 !(assertEqual
-  (let ($updatedTree $mmp) (buildAction (mkTree (mkNode and_seq) ()) () (move_forward turn_left) (A B))
+  (let ($updatedTree $mmp) (buildAction (mkTree (mkNode and_seq) ()) () (move_forward turn_left) (A B) ())
     (> (MultiMap.length $mmp) 0))
   True)
   
@@ -236,26 +258,34 @@
 !(assertEqual
   (let*
     (
-      (($tree $mmp) (buildAction (mkTree (mkNode and_seq) (cons (mkTree (mkNode move_forward) ()) ())) () (move_forward turn_left) ()))
+      (($tree $mmp) (buildAction (mkTree (mkNode and_seq) (cons (mkTree (mkNode move_forward) ()) ())) () (move_forward turn_left) () ()))
     )
     (and
       (not (== $tree ()))
       (> (MultiMap.length $mmp) 0)))
   True)
-;; buildKnobs dispatches action and strategy roots
+;; buildKnobs dispatches action roots (and_seq and other structural roots)
 !(assertEqual
-  (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) () () (move_forward turn_left) (A B))
+  (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) () () (move_forward turn_left) (A B) ())
     (> (MultiMap.length $mmp) 0))
   True)
 
+;; A non-and_seq structural root (or_seq) is canonized: the root becomes
+;; and_seq and the original or_seq subtree is preserved as child (1). Structural
+;; pin only (the root-knob insertion is probabilistic).
 !(assertEqual
-  (let* (($tree (mkTree (mkNode PRIORITIZED-OR)
+  (let* (($tree (mkTree (mkNode or_seq)
                   (cons (mkTree (mkNode playcenter) ())
                   (cons (mkTree (mkNode playcorner) ())
                   (cons (mkTree (mkNode playblock) ()) ())))))
-         (($updatedTree $mmp) (buildKnobs $tree () (playcenter playcorner playblock) () ())))
-    (> (MultiMap.length $mmp) 0))
-  True)
+         (($updatedTree $mmp) (buildKnobs $tree () () (playcenter playcorner playblock) () ())))
+    ((getNodeValue (getNodeById $updatedTree (mkNodeId (0))))
+     (getNodeById $updatedTree (mkNodeId (1)))))
+  ((mkNode and_seq)
+   (mkTree (mkNode or_seq)
+     (cons (mkTree (mkNode playcenter) ())
+     (cons (mkTree (mkNode playcorner) ())
+     (cons (mkTree (mkNode playblock) ()) ()))))))
 
 ;; Canonize and cleanup mirror the C++ action pre/post passes.
 !(assertEqual
@@ -276,6 +306,10 @@
 
 !(assertEqual
   (actionCleanup (mkTree (mkNode seq_exec) ()))
+  (mkNullVex ()))
+
+!(assertEqual
+  (actionCleanup (mkTree (mkNode exec_seq) ()))
   (mkNullVex ()))
 
 !(assertEqual

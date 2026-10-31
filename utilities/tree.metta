@@ -307,7 +307,7 @@
    ;; TRUE/FALSE are constants, not data columns, and must carry NO complexity: it feeds
    ;; the penalised score, the cScoreExpr< tie-break, removeDominated and resizeMetapop, so
    ;; counting one silently steers the search. Measured: parity3 lost two of three seeds.
-   (and (not (once (is-member $x (quote (AND OR NOT PRIORITIZED-OR TRUE FALSE)))))
+   (and (not (once (is-member $x (quote (AND OR NOT TRUE FALSE)))))
         (== $children ())))
 
 ;; A function to calculate the complexity of a tree.

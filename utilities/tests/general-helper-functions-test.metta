@@ -2,6 +2,7 @@
 !(import! &self ../general-helpers)
 !(import! &self ../list-methods)
 !(import! &self ../map)
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../../representation/knob-representation)
 !(import! &self ../ordered-set)
 !(import! &self ../ordered-multiset)
@@ -594,3 +595,12 @@
 (hello world)
 !(assertEqual (unify &self (hello world) Yes No) Yes)
 !(assertEqual (unify &self (hello dream) Yes No) No)
+
+;; operatorAllowed
+!(assertEqual (operatorAllowed AND ()) True)
+!(assertEqual (operatorAllowed AND (quote (AND OR))) False)
+
+;; Live-head pattern: boolean-ops makes NOT a defined head. The unify type
+;; declaration keeps the pattern unevaluated; without it both asserts get (SAFE SAFE).
+!(assertEqual (collapse (unify A (NOT $x) $x SAFE)) (SAFE))
+!(assertEqual (collapse (unify (NOT B) (NOT $x) $x SAFE)) (B))

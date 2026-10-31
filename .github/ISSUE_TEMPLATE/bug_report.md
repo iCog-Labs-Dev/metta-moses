@@ -13,17 +13,17 @@ assignees: ''
 <!--- Provide a more detailed introduction to the issue itself, and why you consider it to be a bug -->
 
 **Expected Behavior**
-<!--- Tell us what should happen -->
+<!--- Tell us what should happen. If classic MOSES gives a different result, show it and the command you used. -->
 
 **Actual Behavior**
-<!--- Tell us what happens instead -->
+<!--- Tell us what happens instead. Paste the output. Say if the run stopped at a ❌, gave fewer ✅ than asserts, timed out, or ran out of memory. -->
 
 **Possible Fix**
 <!--- Not obligatory, but suggest a fix or reason for the bug -->
 
 **Steps to Reproduce**
-<!--- Provide a link to a live example, or an unambiguous set of steps to -->
-<!--- reproduce this bug. Include code to reproduce, if relevant -->
+<!--- Provide an unambiguous set of steps to reproduce this bug. -->
+<!--- Give the exact command, with `ulimit -v` and `timeout`, and the input (file, problem, flags, seed). -->
 1.
 2.
 
@@ -32,6 +32,7 @@ assignees: ''
 
 **Your Environment**
 <!--- Include as many relevant details about the environment you experienced the bug in -->
-* Version used:
-* MeTTa version (e.g. 0.1.11):
+* Branch and commit of metta-moses:
+* PeTTa runtime (PeTTaV1 or other) and its commit:
+* SWI-Prolog version (`swipl --version`):
 * Operating System and version:

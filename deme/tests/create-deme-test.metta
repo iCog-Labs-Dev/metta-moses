@@ -32,6 +32,7 @@
 
 !(import! &self utilities/tree)
 
+!(import! &self scoring/action-registry)
 !(import! &self representation/knob-representation)
 !(import! &self representation/lsk)
 !(import! &self representation/logical-probe)
@@ -41,6 +42,7 @@
 !(import! &self representation/build-logical)
 !(import! &self representation/build-knobs)
 !(import! &self representation/knob-mapper)
+!(import! &self representation/candidate)
 !(import! &self representation/representation)
 !(import! &self representation/create-representation)
 
@@ -68,13 +70,6 @@
 !(import! &self ../score-deme)
 !(import! &self ../merge-demes)
 !(import! &self ../expand-deme)
-
-;; (= (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
-    ;; ($updatedDeme (expandDeme metaPop2 0 1 False sim table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
-    ;; ($demes (trace! "Creating Deme" (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar ())))                   ;;createRepresentation and createDemeId are under this
-;; (= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts))
-;; (= (createDeme 1 (cons (mkDemeId "1") $tree ) $exemplar ttable1 $algo $prune-exemplar $enforced-fts))
-;;
 
 (= (table1) (mkITable
                          (cons (cons False (cons True (cons False (cons True ()))))

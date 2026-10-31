@@ -12,31 +12,29 @@
 (= (applyComplexityBasedScore $rep $id $instances $itable $complexityRatio)
     (map-atom $instances $i (mkSInst (mkPair $i (complexityBasedScorer $rep $id $i $itable $complexityRatio)))))
 
-;; Strategy-based scoring helper for game strategies 
+;; Action scoring helper: instance -> candidate tree -> episodes -> Cscore.
+;; Scores through the generic action evaluator (getActionCscore,
+;; scoring/action-score.metta) against the fitness configured in
+;; (param fitness). Uses the 3-arg getCandidate:
+;; action reps carry embedded mkASK knobs in a 1-field (mkKbMap (mkDscMp ...))
+;; -- the 4-arg findDiscKnob path requires the 2-field mkDscKbMp shape.
 ;; Params:
 ;;   $rep: The representation object
-;;   $instList: List of instances to score
-;;   $nGames: Number of games to play
-;;   $opponentPolicy: Opponent strategy
+;;   $id: The deme id
+;;   $instances: List of instances to score
+;;   $nTrials: Number of episodes per evaluation
 ;;   $complexityRatio: Complexity penalty ratio
 ;;   $listOfScoredInst: Accumulator for scored instances
 ;; Returns:
 ;;   List of scored instances with CScore
-; (: applyStrategyBasedScore (-> Representation (List Instance) Number $opponentPolicy Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
-(= (applyStrategyBasedScore $rep $id $instances $nGames $complexityRatio $listOfScoredInst)
+; (: applyActionBasedScore (-> Representation DemeId (List Instance) Number Number (List (ScoredInstance CScore)) (List (ScoredInstance CScore))))
+(= (applyActionBasedScore $rep $id $instances $nTrials $complexityRatio $listOfScoredInst)
    (map-atom $instances $i
-    (let*
-    (
-        ($strategyTree (getCandidate (mkNodeId (0)) $rep $id $i)) ;; TODO: Temporary fix for the scoring tree until it is edited.
-        ;; ($_ (println! "[applyStrategyBasedScore] Got tree:"))
-        ;; ($_ (println! $strategyTree))
-        ($cscore (getCscore $strategyTree $nGames $complexityRatio &strategyScoreCache))
-        ;; ($_ (println! "[applyStrategyBasedScore] Got cscore:"))
-        ;; ($_ (println! $cscore))
-    )
+    (let* (($actionTree (getCandidateHelper $i (getRepTree $rep)))
+           ($cscore (getActionCscore $actionTree (mkActionCtx $nTrials) $complexityRatio &actionScoreCache)))
     (mkSInst (mkPair $i $cscore)))))
 
-;; Scores each instance in an InstanceSet. 
+;; Scores each instance in an InstanceSet.
 ;; Params:
 ;;   instanceSet: The unscored InstanceSet(or that of with an initial worst score)
 ;;   $rep: The representation object
@@ -50,24 +48,14 @@
           ($instList (List.map removeInstScore $scoredInstList))
           ($scored (case $scoringContext
                         (
-                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio))
-                          (($nGames) (applyStrategyBasedScore $rep $id $instList $nGames $complexityRatio ())))))
+;; Two disjoint tagged contexts: (mkActionCtx ...) drives
+                          ;; the action path, (mkITable ...) the boolean path.
+                          ((mkActionCtx $nTrials $complexityRatio $targetScore) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
+                          ((mkActionCtx $nTrials) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
+                          (($complexityRatio $nTrials) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
+                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio)))))
           )
   (mkSInstSet $scored)))
-
-;; Converts a list of bits (0s and 1s) to a tuple of indices where the bit is 1.
-;; Params:
-;;   $bits: List of bits (0 or 1).
-;;   $index: Current index (starts at 0).
-;;   $acc: Accumulator for indices where bit is 1.
-;; Return: Indices as a tuple.
-; (: bitsToIndices (-> (List Number) Number Tuple Tuple))
-(= (bitsToIndices () $index $acc) $acc)
-(= (bitsToIndices (cons $bit $rest) $index $acc)
-   (chain (bitsToIndices $rest (+ $index 1) $acc) $nextAcc     
-         (if (== $bit 1)
-             (cons-atom $index $nextAcc)
-             $nextAcc)))
 
 ;; similar to the above 'applyComplexityBasedScore' but uses the mutualInformation based scoring for features selection
 ;; Applies mutual information based scoring to a list of Instances.

@@ -53,6 +53,24 @@
 
 ;; crossPairsForRef
 ;; Cross one reference instance with all higher-ranked instances to generate offspring.
+(= (crossPairsForRef () $referenceInst $base $acc $limit) $acc)
+(= (crossPairsForRef (cons $target $rest) $referenceInst $base $acc $limit)
+   (if (>= (List.length $acc) $limit)
+       $acc
+       (let*
+         (
+           ((mkSInst (mkPair $targetInst $targetScore)) $target)
+           ($offspring
+             (mkSInst
+               (mkPair
+                 (mergeInstance $targetInst $base $referenceInst)
+                 (worstCscore))))
+           ($newAcc (List.append $offspring $acc))
+         )
+         (crossPairsForRef
+           $rest $referenceInst $base $newAcc $limit))))
+
+;; Count-threading compatibility overload retained for existing Boolean tests.
 (= (crossPairsForRef () $referenceInst $base $acc $count $limit)
    ($acc $count))
 (= (crossPairsForRef (cons $target $rest) $referenceInst $base $acc $count $limit)
@@ -76,6 +94,21 @@
 ;; crossPairs
 ;; Generate all pairwise crossover offspring using simplex ordering.
 ;; Uses processed (better) and remaining instances.
+(= (crossPairs $processed () $base $acc $limit) $acc)
+(= (crossPairs $processed (cons $reference $rest) $base $acc $limit)
+   (if (>= (List.length $acc) $limit)
+       $acc
+       (let*
+         (
+           ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
+           ($updatedAcc
+             (crossPairsForRef
+               $processed $referenceInst $base $acc $limit))
+           ($newProcessed (List.append $reference $processed))
+         )
+         (crossPairs $newProcessed $rest $base $updatedAcc $limit))))
+
+;; Count-threading compatibility overload retained for existing Boolean tests.
 (= (crossPairs $processed () $base $acc $count $limit)
    ($acc $count))
 
@@ -96,63 +129,75 @@
          )
           (crossPairs $newProcessed $rest $base $updatedAcc $updatedCount $limit))))
 
-;; crossTripleTargets
-;; Create offspring by merging a target with two reference instances.
-;; Implements 3-way crossover step.
-(= (crossTripleTargets () $jRef $iRef $base $acc $count $limit)
-   ($acc $count))
+;; makeCrossoverSlots -- Model the C++ resize(num_to_make) destination array.
+;; Every reachable slot is populated before it is returned; the sentinel atoms
+;; make an accidental hole visible in a regression instead of hiding it.
+(= (makeCrossoverSlots $count)
+   (if (<= $count 0)
+       ()
+       (cons UnfilledCrossoverSlot (makeCrossoverSlots (- $count 1)))))
 
-(= (crossTripleTargets (cons $target $rest) $jRef $iRef $base $acc $count $limit)
+;; crossTripleTargets -- Execute the C++ k-loop for one (i,j) pair.  The
+;; Boolean result tells the enclosing loops to return immediately once the
+;; requested destination index has been reached.
+(= (crossTripleTargets () $k $j $i $jRef $iRef $base $slots $limit)
+   ($slots False))
+(= (crossTripleTargets (cons $target $rest) $k $j $i $jRef $iRef $base $slots $limit)
+   (let*
+     (
+       ($iOffset (/ (* (* $i (- $i 1)) (- $i 2)) 6))
+       ($jOffset (/ (* $j (- $j 1)) 2))
+       ($slot (+ (+ $iOffset $jOffset) $k))
+     )
+     (if (>= $slot $limit)
+         ($slots True)
+         (let*
+           (
+             ((mkSInst (mkPair $targetInst $score)) $target)
+             ($merged
+               (mkSInst
+                 (mkPair
+                   (mergeInstance
+                     (mergeInstance $targetInst $base $iRef)
+                     $base $jRef)
+                   (worstCscore))))
+             ($updatedSlots (List.replaceAt $slots $slot $merged))
+           )
+           (crossTripleTargets $rest (+ $k 1) $j $i
+             $jRef $iRef $base $updatedSlots $limit)))))
 
-   (if (>= $count $limit)
-       ($acc $count)
-       (let*
-         (
-           ((mkSInst (mkPair $targetInst $score)) $target)
-           ($merged (mkSInst (mkPair (mergeInstance (mergeInstance $targetInst $base $iRef) $base $jRef) (worstCscore))))
+;; crossTripleRefs -- Execute j=1..i-1. The target list stays fixed at the i
+;; already-processed instances throughout the k-loop.
+(= (crossTripleRefs () $j $targets $i $iRef $base $slots $limit)
+   ($slots False))
+(= (crossTripleRefs (cons $jScored $jRest) $j $targets $i $iRef $base $slots $limit)
+   (let*
+     (
+       ((mkSInst (mkPair $jInst $jScore)) $jScored)
+       (($updatedSlots $done)
+         (crossTripleTargets $targets 0 $j $i
+           $jInst $iRef $base $slots $limit))
+     )
+     (if $done
+         ($updatedSlots True)
+         (crossTripleRefs $jRest (+ $j 1) $targets $i
+           $iRef $base $updatedSlots $limit))))
 
-           ($newAcc (cons $merged $acc))
-            ($newCount (+ $count 1))
-         )
-       (crossTripleTargets $rest $jRef $iRef $base $newAcc $newCount $limit))))
-
-;; crossTripleRefs
-;; Iterate over j references and generate triple crossover combinations.
-;; Builds on processed + remaining structure.
-(= (crossTripleRefs () $processed $iRef $base $acc $count $limit) 
-  ($acc $count))
-
-(= (crossTripleRefs (cons $j $jRest) $processed $iRef $base $acc $count $limit)
-
-    (if (>= $count $limit)
-       ($acc $count)
-
-       (let*
-         (
-           ((mkSInst (mkPair $jInst $jScore)) $j)
-
-           (($updatedAcc $updatedCount) (crossTripleTargets $processed $jInst $iRef $base $acc $count $limit))
-         )
-         (crossTripleRefs $jRest (cons $j $processed) $iRef $base $updatedAcc $updatedCount $limit))))
-
-;; crossTriples
-;; Top-level 3-simplex crossover generator.
-;; Traverses i → j → k structure to create offspring.
-(= (crossTriples $processed () $base $acc $count $limit)
-   ($acc $count))
-
-(= (crossTriples $processed (cons $i $iRest) $base $acc $count  $limit)
-
-   (if (>= $count $limit)
-       ($acc $count)
-     
-     (let*
-         ( 
-          ((mkSInst (mkPair $iInst $iScore)) $i)
-
-           (($updatedAcc $updatedCount) (crossTripleRefs $processed $processed $iInst $base $acc $count $limit))
-           ($newProcessed (List.append $i $processed))
-
-         )
-         (crossTriples $newProcessed $iRest $base $updatedAcc $updatedCount $limit))))
-
+;; crossTriples -- Execute i=2..sample_size-1 over the partially sorted sample.
+;; List.append preserves rank order in $processed, matching indexed C++ access.
+(= (crossTriples $processed () $i $base $slots $limit) $slots)
+(= (crossTriples $processed (cons $iScored $iRest) $i $base $slots $limit)
+   (let*
+     (
+       ((mkSInst (mkPair $iInst $iScore)) $iScored)
+       (($updatedSlots $done)
+         (if (< $i 2)
+             ($slots False)
+             (crossTripleRefs (List.drop 1 $processed) 1 $processed $i
+               $iInst $base $slots $limit)))
+       ($newProcessed (List.append $iScored $processed))
+     )
+     (if $done
+         $updatedSlots
+         (crossTriples $newProcessed $iRest (+ $i 1)
+           $base $updatedSlots $limit))))
