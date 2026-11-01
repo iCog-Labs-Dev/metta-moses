@@ -559,7 +559,7 @@
 
         ($totalNNeighbors ($estimateFunction $d $neighborhood))
         ($_neighborhoodEstimate
-          (if $progressEnabled
+          (if (param diagnostics)
               (println! (HillClimbingNeighborhoodEstimate
                            (distance $d) (neighbors $totalNNeighbors)))
               ()))
@@ -657,7 +657,7 @@
         ((mkSInstSet $scoredInstances) $scoredSet)
         ($updatedEvalCount (+ $currentNInstances $actualNewEvals))
         ($_evalDiagnostics
-          (if $progressEnabled
+          (if (param diagnostics)
               (println! (HillClimbingEvaluations
                            (actualNew $actualNewEvals)
                            (cumulativeLocal $updatedEvalCount)))

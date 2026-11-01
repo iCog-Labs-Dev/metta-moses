@@ -221,7 +221,7 @@
 ; )
 
 (= (getCandidateRec (mkRep $knobMapObj $tree) (mkInst $inst) $parentId $srcId $dstId $candidate)
-   (let $knobIdxPair (findDiscKnob $knobMapObj $srcId)
+   (let $knobIdxPair (findDiscKnob $knobMapObj $srcId) 
       (if (not (== (second $knobIdxPair) -1))
          (let*
             (          

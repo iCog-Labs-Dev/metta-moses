@@ -353,7 +353,7 @@
 ;;        ttable2 is a truth table which doesn't have a 'D' column.
 ;;  Instance (0 1 2) reduces to a contradiction, so its tree is the constant FALSE.
 !(assertEqual
-  (demeToTrees (mkRep (mkKbMap 
+  (demeToTrees (mkRep (mkKbMap
                                   (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ())))) 
                                   (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))) 
                               (mkTree (mkNode AND) (cons (mkKnob (mkTree (mkNode A) ()) (lsk3) 2)
@@ -362,21 +362,21 @@
                                                           (cons (mkTree (mkNode C) ()) 
                                                       (cons (mkKnob (mkNullVex (cons (mkTree (mkNode D) ()) ())) (lsk1) 0) ()))))
                                                       (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) (lsk2) 1) ())))))
-                (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1))) 
-                                      (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore 0 2 0.5 0 0.8))) ()))) 
-                (mkDemeId "1")                                     
+                (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1)))
+                                      (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore 0 2 0.5 0 0.8))) ())))
+                (mkDemeId "1")
                 (ttable2))
 
   (cons (mkExemplar (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode C) ()) ()))) ()))) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (cons 0 (cons 0 (cons 0 (cons 0 ())))))) (cons (mkExemplar (mkTree (mkNode FALSE) ()) (mkDemeId "1") (mkCscore 0 2 0.5 0 0.8) (mkBScore (cons -1 (cons 0 (cons 0 (cons 0 ())))))) ())))
 
-;;(Testcase-2 for demeToTrees)
+;; Testcase-2 for demeToTrees
 !(assertEqual
-      (demeToTrees (mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ())))) (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))) 
+      (demeToTrees (mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ())))) (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ())))))
                   (mkTree (mkNode AND) (cons (mkKnob (mkTree (mkNode A) ()) (lsk3) 2) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode C) ())
                           (cons (mkKnob (mkNullVex (cons (mkTree (mkNode D) ()) ())) (lsk1) 0) ())))) ()))))
-                   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 2 ())))) (mkCscore -1 2 1 0 1))) 
-                  (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 0 ())))) (mkCscore 0 2 0.5 0 0.8))) ())))       
-                  (mkDemeId "1") 
+                   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 2 ())))) (mkCscore -1 2 1 0 1)))
+                  (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 0 ())))) (mkCscore 0 2 0.5 0 0.8))) ())))
+                  (mkDemeId "1")
                   (ttable2))
 
       (cons (mkExemplar (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode C) ()) ()))) ()))) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (cons -1 (cons 0 (cons -1 (cons 0 ())))))) (cons (mkExemplar (mkTree (mkNode AND) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode C) ()) ()))) ())) (mkDemeId "1") (mkCscore 0 2 0.5 0 0.8) (mkBScore (cons 0 (cons 0 (cons -1 (cons 0 ())))))) ())))
@@ -611,6 +611,13 @@
                                     (cons (mkTree (mkNode AND) (cons (mkTree (mkNode D) ()) ())) ())))) ())) 
                                      (mkDemeId "1") (mkCscore -0.1 2 0.2 0.3 -0.6) (mkBScore (cons 0 (cons 0 ())))) ()))
 )
+;; Action-deme variants of the two strategy demes: plain knob-FREE action
+;; trees under an empty action knob map (mkDscMp ()), so getCandidate returns
+;; the base tree for any instance. cscores are carried over verbatim from the
+;; old testStrategyDeme/testStrategyDeme2. Under (mkActionCtx 1) the bscore is
+;; RECOMPUTED via tttActionFitness (ordinal 0 -> minimax): both trees make no
+;; useful opening -- (or_seq tttWin tttBlock) forfeits at once on the empty
+;; board -- so each recomputes to a flat (mkBScore (-1.0)).
 !(bind! &deme1 (new-space))
 !(bind! &deme2 (new-space))
 

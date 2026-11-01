@@ -16,14 +16,14 @@
 
 (= (wScore) (* -1 (pow-math 10 100))) ;; bind worst score value 
 
-(= (demeSize $demespace) 
+(= (demeSize $demespace)
    (List.length (match $demespace (mkSInstSet $list) $list)))
 
 !(bind! &deme1 (new-space))
 
-(= (rep1) (mkRep 
+(= (rep1) (mkRep
             (mkKbMap (mkDscMp ())) (mkTree (mkNode A) ())))
-(= (instSet1) (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1))) 
+(= (instSet1) (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 5 ())) (mkCscore 1 2 3 4 1)))
                         (cons (mkSInst (mkPair (mkInst (cons 3 ())) (mkCscore 1 2 3 4 3))) 
                             (cons (mkSInst (mkPair (mkInst (cons 2 ())) (mkCscore 1 2 3 4 4)))
                                 (cons (mkSInst (mkPair (mkInst (cons 4 ())) (mkCscore 1 2 3 4 2))) 
@@ -192,7 +192,7 @@
     !(let $y (instSet4) (add-atom &deme4 $y))
     !(let $z (demeId1) (add-atom &deme4 $z))
 
-;; full crossover test                                      
+;; full crossover test
 !(assertEqual
     (crossTopTwo &deme4 3 0 4 (mkInst (cons 2 ())))
 

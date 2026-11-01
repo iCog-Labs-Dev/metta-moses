@@ -128,6 +128,7 @@
                                                                               ($updatedInstSet $newInstances)))
                                                                 ((False $notEmpty) 
                                                                         (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $POASet $d)
+                                                                        ;; (trace! ("Result: " $result) )))
                                                                         $result))
                                                               )
                                                                     ))
@@ -150,13 +151,19 @@
               ($_ (add-atom $POASet (mkSInstSet $scoredInstances)))
 
               ($_ (println! (Scored instances: $scoredInstances)))
+              ;; ($_ (println! ""))
 
               ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $prevCenter  $bestSscore)) $scoredInstances))
               ($newBestScore (if (or (== $rep ()) (== $id ())) 
                                 (Pair.second $newBestInstPair)
                                 (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
               ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
-        
+
+              ;; ($_ (println! (Best instance: $newBestInstPair)))
+              ;; ($_ (println! (New best score: $newBestScore)))
+              ;; ($_ (println! (Has Improved: $hasImproved)))
+              ;; ($_ (println! ""))
+
               ; ;; Calculate the energy of the current and new instance, and the acceptanceProb
               ($pScore (if (== $rep ()) $bestSscore (getPenScore $bestSscore)))
               ($energy (getEnergy $pScore))
@@ -166,8 +173,19 @@
               ; ;; Actual acceptance probabitlity which is the product of the intensity and acceptance probability.
               ($actualAcceptanceProb (* $acceptanceProb 0.85))
 
+              ;; ($_ (println! (Energy: $energy)))
+              ;; ($_ (println! (New energy: $newEnergy)))
+              ;; ($_ (println! (Acceptance probability: $acceptanceProb)))
+              ;; ($_ (println! (Random float: $randomFloat)))
+              ;; ($_ (println! (Actual acceptance probability: $actualAcceptanceProb)))
+              ;; ($_ (println! ""))
+
               ; ;; Check for acceptance
               ($isAccepted (> $actualAcceptanceProb $randomFloat))
+
+              ;; ($_ (println! (Is accepted: $isAccepted)))
+              ;; ($_ (println! (New instances: $newInstances)))
+              ;; ($_ (println! ""))
               ($_ (if $isAccepted
                       ()
                       (let* (
@@ -187,7 +205,7 @@
 
                           
             )
-            (simulated-annealing $POASet 
+            (simulated-annealing $POASet
                                 ($neighborhood $rowOCoeff $size $iTable)
                                 $initCenter
                                 ($maxDist $minXoverNeighbors $bestPossibleScore) ;; $constParams

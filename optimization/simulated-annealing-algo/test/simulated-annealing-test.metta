@@ -70,7 +70,7 @@
 
 (= (rep1) (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))))
 (= (instSet1) (mkSInstSet ()))
-(= (demeId1) (mkDemeId "1")) 
+(= (demeId1) (mkDemeId "1"))
 
 !(let $x (rep1) (add-atom &deme1 $x))
 !(let $y (instSet1) (add-atom &deme1 $y))
@@ -135,7 +135,7 @@
 !(assertEqual 
     (let*
         (
-            (($instance $representation $state) 
+            (($instance $representation $state)
                (simulated-annealing &deme3 (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
            (($prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i) $state)
         )

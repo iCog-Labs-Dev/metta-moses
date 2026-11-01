@@ -138,7 +138,7 @@
                       (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))))
 
 !(bind! &deme1 (new-space))
-(= (rep) (mkRep (mkKbMap 
+(= (rep) (mkRep (mkKbMap
     (mkDscMp 
       (cons 
         ((mkDiscSpec 3)
@@ -161,7 +161,7 @@
             ()))))) (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 2) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 3) ())))))) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 4) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 5) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 6) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 7) ()))))))))
 
 (= (instSet) (mkSInstSet ()))
-(= (demeId) (mkDemeId "1"))                        
+(= (demeId) (mkDemeId "1"))
 !(let $x (rep) (add-atom &deme1 $x))
 !(let $y (instSet) (add-atom &deme1 $y))
 !(let $z (demeId) (add-atom &deme1 $z))
@@ -207,10 +207,10 @@
 
 !(assertEqual 
    (let* (
-       (($returnedSet $num) (sampleNewInstances 
-                                     20 
-                                     3 
-                                     (mkInst (cons 0 (cons 0 (cons 0 ())))) 
+       (($returnedSet $num) (sampleNewInstances
+                                     20
+                                     3
+                                     (mkInst (cons 0 (cons 0 (cons 0 ()))))
                                      &demeTC1
                                      2))
        ((mkSInstSet $updatedInstList) $returnedSet)
@@ -272,10 +272,10 @@
 
 !(assertEqual 
    (let* (
-       (($returnedSet $num) (sampleNewInstances 
+       (($returnedSet $num) (sampleNewInstances
                                      20
                                      0
-                                     (mkInst (cons 0 (cons 0 (cons 0 ())))) 
+                                     (mkInst (cons 0 (cons 0 (cons 0 ()))))
                                      &demeTC4
                                      2))
        ((mkSInstSet $updatedInstList) $returnedSet)

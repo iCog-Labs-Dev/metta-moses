@@ -9,8 +9,6 @@
 ;; Return: (List (ScoredInstance Cscore)): List with adjacent duplicates removed, limited by $topCnd.
 ; (: removeDupInsts (-> (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
 (= (removeDupInsts $rep $id () $topCnd) ())
-; (= (removeDupInsts $rep $id (cons $x ()) $topCnd)
-;    (if (> $topCnd 0) (cons $x ()) ()))
 (= (removeDupInsts $rep $id (cons (mkSInst $x) $tail) $topCnd)
    (if (== $tail ())
        (if (> $topCnd 0) (cons (mkSInst $x) ()) ())

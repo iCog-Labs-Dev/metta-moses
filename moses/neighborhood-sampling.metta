@@ -416,6 +416,9 @@
              (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
              (generateAllInNeighborhoodForDisc (mkDscMp $disc) $centerInst $dist)))
        ($scoredNewInstances (List.map initInstScore $newInstances))
+       ;; A sampled vector can be repeated or can already be present in the deme.
+       ;; Preserve sampling order, append only genuinely new vectors, and return
+       ;; the number of rows that can require a scorer call.
        ($freshInstances
          (uniqueUnseenScoredInstances $scoredNewInstances $instList))
        ($updatedInstList (List.concat $instList $freshInstances))
@@ -455,6 +458,9 @@
              (sampleFromNeighborhoodFs $numNewInstances $dist $itable $centerInst)
              (generateAllInNeighborhood (mkMultip 2) $centerInst $dist)))
        ($scoredNewInstances (List.map initInstScoreFs $newInstances))
+       ;; Feature-selection populations obey the same append-only contract:
+       ;; retain old rows, discard duplicate vectors, and count only fresh suffix
+       ;; rows that the mutual-information scorer will actually receive.
        ($freshInstances
          (uniqueUnseenScoredInstances $scoredNewInstances $instList))
        ($updatedInstList (List.concat $instList $freshInstances))
