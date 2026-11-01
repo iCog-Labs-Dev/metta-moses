@@ -103,6 +103,9 @@
               ; ($_ (println! ($rows $labels)))
               ($rep (let $return (match $POASet (mkRep $knmp $tree) (mkRep $knmp $tree)) (if (== $return (mkRep () ())) () $return)))
               ($id (let $returnn (match $POASet (mkDemeId $dmid) (mkDemeId $dmid)) (if (== $returnn (mkDemeId ())) () $returnn)))
+              ($originalInstSet
+                (match $POASet (mkSInstSet $instances)
+                               (mkSInstSet $instances)))
 
               ($totalNNeighbors ($estimateFunction $d $neighborhood))
 
@@ -165,6 +168,13 @@
 
               ; ;; Check for acceptance
               ($isAccepted (> $actualAcceptanceProb $randomFloat))
+              ($_ (if $isAccepted
+                      ()
+                      (let* (
+                             ($_ (remove-atom $POASet (mkSInstSet $scoredInstances)))
+                             ($_ (add-atom $POASet $originalInstSet))
+                            )
+                        ())))
               
               ($newCenter (if $isAccepted (Pair.first $newBestInstPair) $prevCenter))
               ($newDistance (if $hasImproved 1 (if (not $xOver) (+ 1 $d) $d)))

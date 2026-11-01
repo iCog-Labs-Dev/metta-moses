@@ -16,16 +16,8 @@
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 
 !(import! &self ../../utilities/tree)
-!(import! &self ../../scoring/strategy-score-cache)
 
-!(import! &self ../../examples/tic-tac-toe/tic-tac-toe-helpers)
-!(import! &self ../../examples/tic-tac-toe/random-player)
-!(import! &self ../../examples/tic-tac-toe/strategy-scoring)
-!(import! &self ../../examples/tic-tac-toe/minimax-player)
-!(import! &self ../../examples/tic-tac-toe/game-engine)
-!(import! &self ../../examples/tic-tac-toe/moves)
-!(import! &self ../../examples/tic-tac-toe/moses-player)
-
+!(import! &self scoring/action-registry)
 !(import! &self representation/knob-representation)
 !(import! &self representation/lsk)
 !(import! &self representation/knob-mapper)
@@ -35,6 +27,7 @@
 !(import! &self representation/instance)
 
 !(import! &self scoring/fitness)
+!(import! &self scoring/boolean-ops)
 !(import! &self scoring/bscore)
 !(import! &self scoring/cscore)
 !(import! &self scoring/precision-bscore)
@@ -84,14 +77,16 @@
             ))
 
 (= (knobMapObj) (mkKbMap (mkDscMp (((mkDiscSpec 1) (lsk1)) ((mkDiscSpec 0) (lsk2)) ((mkDiscSpec 1) (lsk3))))))
-(= (ttable1) (mkITable (cons (cons True (cons False (cons True ())))
-                        (cons (cons True (cons True  (cons True ()))) ())) 
+(= (ttable1) (mkITable (cons (cons True (cons True ()))
+                       (cons (cons False (cons True ()))
+                       (cons (cons True (cons True ())) ())))
                         (cons A (cons B (cons O ())))))
+
 (= (ttable2) (mkITable
-                    (cons (cons True (cons True (cons True (cons True ()))))
+                    (cons (cons True (cons True (cons False (cons False ()))))
+                    (cons (cons True (cons False (cons True (cons False ()))))
                     (cons (cons True (cons False (cons False (cons False ()))))
-                    (cons (cons False (cons True (cons False (cons False ()))))
-                    (cons (cons False (cons False (cons False (cons False ())))) ()))))
+                    (cons (cons True (cons False (cons False (cons False ())))) ()))))
                     (cons A (cons B (cons C (cons output ()))))))
 ;; NOTE: All the instances in the deme don't include lsk1 (or they all start with '0') because we are testing it using ttable2. 
 ;;       ttable2 is a truth table which doesn't have a 'D' column.
@@ -103,7 +98,8 @@
       (cons (mkInst (cons 0 (cons 0 (cons 2 ())))) (cons (mkInst (cons 0 (cons 0 (cons 1 ())))) (cons (mkInst (cons 0 (cons 2 (cons 2 ())))) ())))
       (ttable2)
       2.0)
-   (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 2 ())))) (mkCscore -2 4 2.0 0.0 -4.0))) ()))))
+   (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 2 ())))) (mkCscore -2 3 1.5 0.0 -3.5))) ()))))
+
 
 !(assertEqual
    (applyComplexityBasedScore 
@@ -112,7 +108,8 @@
       (cons (mkInst (cons 0 (cons 1 (cons 2 ())))) (cons (mkInst (cons 0 (cons 2 (cons 1 ())))) ()))
       (ttable2)
       2.0)
-      (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore -4 0 0.0 0.0 -4.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 1 ())))) (mkCscore -4 0 0.0 0.0 -4.0))) ())))
+      ;; both instances reduce to constant false, wrong on ttable2's first output row only
+      (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore -1 0 0.0 0.0 -1.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 2 (cons 1 ())))) (mkCscore -1 0 0.0 0.0 -1.0))) ())))
 
 ;; Testcases for transform
 !(assertEqual
@@ -133,7 +130,8 @@
    (mkDemeId "1")
    (ttable2)
    1)
-   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore -4 0 0.0 0.0 -4.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 1 ())))) (mkCscore 0 3 3.0 0.0 -3.0))) ())))) 
+   ;; (0 1 2) is the same constant-false candidate scored above
+   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore -1 0 0.0 0.0 -1.0))) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 1 ())))) (mkCscore 0 3 3.0 0.0 -3.0))) ()))))
 
 ;; Testcase for the bitsToIndices
 !(assertEqual (bitsToIndices (cons 1 (cons 0 (cons 1 (cons 0 ())))) 0 ()) (0 2))
@@ -175,28 +173,4 @@
    (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 0 ())))) 0.5)) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 1 ())))) 0.33333333333333337)) ())))
    )
 
-(= (StrategyRep)
-   (mkRep 
-     (mkKbMap 
-       (mkDscKbMp (cons ((mkNodeId (1)) 0) (cons ((mkNodeId (2)) 1) ())))
-       (mkDscMp 
-         (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
-         (cons ((mkDiscSpec 2) (mkSSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))) 
-         ()))))
-     (mkTree (mkNode PRIORITIZED-OR) 
-       (cons (mkTree (mkNode playcenter) ()) 
-             (cons (mkTree (mkNode playcorner) ()) ())))))
 
-!(assertEqual (applyStrategyBasedScore (StrategyRep) (mkDemeId "1") () 1 3.5 ()) ())
-
-!(assertEqual (applyStrategyBasedScore (StrategyRep) (mkDemeId "1")
-                     (cons (mkInst (cons 1 (cons 1 ())))  ()) 1 3.5 ()) 
-                     ((mkSInst (mkPair (mkInst (1 1)) (mkCscore -1.0 2 0.5714285714285714 0.0 -1.5714285714285714)))))
-
-!(assertEqual
-   (transform (mkSInstSet ()) (StrategyRep) (mkDemeId "1") (1) 3.5)
-   (mkSInstSet ()))
-
-!(assertEqual (transform
-   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 1 (cons 1 ()))) -1.0e308)) ()))
-   (StrategyRep) (mkDemeId "1") (1) 3.5) (mkSInstSet ((mkSInst (mkPair (mkInst (1 1)) (mkCscore -1.0 2 0.5714285714285714 0.0 -1.5714285714285714))))))

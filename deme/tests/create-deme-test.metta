@@ -32,6 +32,7 @@
 
 !(import! &self utilities/tree)
 
+!(import! &self scoring/action-registry)
 !(import! &self representation/knob-representation)
 !(import! &self representation/lsk)
 !(import! &self representation/logical-probe)
@@ -48,8 +49,8 @@
 
 !(import! &self moses/neighborhood-sampling)
 
-!(import! &self optimization/hillclimbing/cross-top-one-helpers)
-!(import! &self optimization/hillclimbing/cross-top-one)
+!(import! &self optimization/hillclimbing/crossover-helpers)
+!(import! &self optimization/hillclimbing/crossover)
 !(import! &self optimization/hillclimbing/hill-climbing-helpers)
 
 !(import! &self metapopulation/exemplar-type)
@@ -58,6 +59,7 @@
 
 !(import! &self scoring/cacheSpace)
 !(import! &self scoring/fitness)
+!(import! &self scoring/boolean-ops)
 !(import! &self scoring/bscore)
 !(import! &self scoring/cscore)
 !(import! &self scoring/complexity-based-scorer)
@@ -68,18 +70,10 @@
 !(import! &self ../merge-demes)
 !(import! &self ../expand-deme)
 
-;; (= (expandDeme $metaPop $nExpansion $nDeme $prune-exemplar $fs-algo $truthTableBScore $optimize $nEval $maxCandsPerDeme $minPoolSize $complexityTemperature $itable $nToKeep $capCoef $genCount)
-    ;; ($updatedDeme (expandDeme metaPop2 0 1 False sim table hillClimbing 5 2 0 1 ttable1 3 0.004 1000))
-    ;; ($demes (trace! "Creating Deme" (createDeme $nDeme $demeIds $tree $itable $fs-algo $prune-exemplar ())))                   ;;createRepresentation and createDemeId are under this
-;; (= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts))
-;; (= (createDeme 1 (cons (mkDemeId "1") $tree ) $exemplar ttable1 $algo $prune-exemplar $enforced-fts))
-;;
-
 (= (table1) (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons False ()))) 
-                         (cons (cons False (cons True (cons False ())))
-                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ()))))
+                         (cons (cons False (cons False (cons True (cons True ()))))
+                         (cons (cons False (cons False (cons False (cons True ())))) ())))
                          (cons A (cons B (cons O ())))))
 
 ;; INFO: This test case passes but hangs after finishing. No idea why. The function it self doesn't hang but the execution does.

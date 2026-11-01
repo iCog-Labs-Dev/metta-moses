@@ -57,6 +57,14 @@
 ; (: List.length (-> (List $a) Number))
 (= (List.length $xs) (size-atom $xs))
 
+;; Row count of a column-major ITable payload: every column holds one cell per
+;; row, so the first column's length is the row count. Defined here rather than
+;; beside the Table.* helpers because scoring loads long before
+;; feature-selection, and every consumer already imports list-methods.
+; (: ITable.rowCount (-> (List (List $a)) Number))
+(= (ITable.rowCount ()) 0)
+(= (ITable.rowCount (cons $column $rest)) (List.length $column))
+
 ; (: List.map (-> (-> $a $b) (List $a) (List $b)))
 (= (List.map $f $xs) (map-atom $xs $x ($f $x)))
 

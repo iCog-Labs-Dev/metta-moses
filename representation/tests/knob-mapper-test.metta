@@ -7,6 +7,7 @@
 
 !(import! &self ../lsk)
 !(import! &self ../knob-mapper)
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../knob-representation)
 !(import! &self ../representation)
 

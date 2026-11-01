@@ -31,19 +31,14 @@
 ;; Incremental Feature Selection Algorithm
 
 
-(= (get-column $n ()) ())
-(= (get-column $n (cons $row $rows))
-   (cons (List.getByIdx $row $n) (get-column $n $rows)))
+;; The payload is COLUMN-major, so column $n is its $n-th element.
+(= (get-column $n $columns) (List.getByIdx $columns $n))
 
-(= (extract-features $indices $row)
-   (if (== $indices ())
-       ()
-       (let (cons $idx $restIndices) $indices
-            (cons (List.getByIdx $row $idx) (extract-features $restIndices $row)))))
-
-(= (get-columns $indices ()) ())
-(= (get-columns $indices (cons $row $rows))
-   (cons (extract-features $indices $row) (get-columns $indices $rows)))
+;; Row-wise tuples over the selected columns, one observation per row: that is
+;; Table.transpose, from feature-selection-helpers, which every importer of this
+;; file must load first.
+(= (get-columns $indices $columns)
+   (Table.transpose (map-atom $indices $i (get-column $i $columns))))
 
 (= (unique-list ()) ())
 (= (unique-list (cons $h $t))
@@ -71,17 +66,17 @@
               ($probs (map-prob $uniqueZ $z $n)))
                 (- 0.0 (List.sum (map-entropy-term $probs))))))
 
-(= (get-target-col (mkITable $rows $features))
+(= (get-target-col (mkITable $columns $features))
       (- (List.length $features) 1))
 
-(= (get-rows (mkITable $rows $features)) $rows)
+(= (get-table-columns (mkITable $columns $features)) $columns)
 
 (= (mi-score $table $indices)
    (if (== $indices ()) 0.0
-       (let* (($rows (get-rows $table))
+       (let* (($columns (get-table-columns $table))
               ($targetCol (get-target-col $table))
-              ($y (get-column $targetCol $rows))
-              ($x (get-columns $indices $rows))
+              ($y (get-column $targetCol $columns))
+              ($x (get-columns $indices $columns))
               ($xy (List.zip $x $y)))
              (- (+ (entropy $x) (entropy $y)) (entropy $xy)))))
 

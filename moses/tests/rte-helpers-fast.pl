@@ -19,6 +19,8 @@
 :- retractall('getLiterals'(_, _)).
 
 'getLiterals'([], []) :- !.
+'getLiterals'('TRUE', []) :- !.     %% a constant is a CHILD, never a literal
+'getLiterals'('FALSE', []) :- !.
 'getLiterals'(['NOT'|X], ['NOT'|X]) :- !.
 'getLiterals'(Exp, Lits) :-
     is_list(Exp), !,
@@ -29,7 +31,7 @@ collect_lits([], []).
 collect_lits([H|T], Lits) :-
     collect_lits(T, RLits),
     ( atom(H)
-      -> ( (H == 'AND' ; H == 'OR') -> Lits = RLits
+      -> ( (H == 'AND' ; H == 'OR' ; H == 'TRUE' ; H == 'FALSE') -> Lits = RLits
                                      ; Lits = [H|RLits] )
        ; is_list(H), H = ['NOT'|_]
          -> Lits = [H|RLits]
@@ -51,7 +53,10 @@ collect_lits([H|T], Lits) :-
 collect_kids([], []).
 collect_kids([H|T], Kids) :-
     collect_kids(T, RKids),
-    ( atom(H) -> Kids = RKids
+    %% TRUE/FALSE are the reducer's constants and are classified as CHILDREN, so
+    %% they ride through concatTuple untouched instead of entering a guard set.
+    ( atom(H) -> ( (H == 'TRUE' ; H == 'FALSE') -> Kids = [H|RKids]
+                                                 ; Kids = RKids )
        ; is_list(H), H = ['NOT'|_]
          -> Kids = RKids
           ; Kids = [H|RKids]
@@ -76,7 +81,7 @@ collect_kids([H|T], Kids) :-
 'replaceVarsWithTruth'([LList, BoolExpr], BList, Out) :-
     pairs_keys_values(Pairs, LList, BList),
     list_to_assoc(Pairs, Env),
-    rvw_full(Env, BoolExpr, Out).
+    rvw_full(Env, BoolExpr, Out), !.
 
 rvw_full(Env, [Single], Out) :- !,
     rvw_full(Env, Single, Out).
@@ -154,6 +159,8 @@ is_neg_pair(['NOT', Y], X) :- Y == X, !.
 :- retractall('getGuardSet'(_, _)).
 
 'getGuardSet'([], []) :- !.
+'getGuardSet'('TRUE', []) :- !.
+'getGuardSet'('FALSE', []) :- !.
 'getGuardSet'(['OR'|_], []) :- !.
 'getGuardSet'(Exp, Lits) :-
     is_list(Exp), !,
@@ -204,6 +211,32 @@ sort_key_of_(_, Cpxy, k(1.0Inf, Cpxy)). %% NaN -> sort last
 'any'(Bools, true) :- is_list(Bools), memberchk(true, Bools), !.
 'any'(_, false).
 
+%% --- removeEmptyAND/2 (reduct/boolean-reduct/cut-unnecessary-and.metta) ---
+%% Prunes empty (AND) nodes bottom-up: a bare ['AND'] reduces to 'Nothing',
+%% Nothing-valued kids are dropped from their parent, leaves pass through.
+%% Mirrors the MeTTa case dispatch exactly, including its silent failure on
+%% [] input (decons-atom on () yields no solution). ==-only dispatch; ground
+%% placeholder-label data throughout. Replaces the SLG tabling of the MeTTa
+%% version (moses.metta) — the O(n) walk beats table lookup + answer copy
+%% (827K calls on mux6).
+:- dynamic('removeEmptyAND'/2).
+:- retractall('removeEmptyAND'(_, _)).
+
+'removeEmptyAND'(Exp, Exp) :- \+ is_list(Exp), !.   %% Symbol / Grounded leaf
+'removeEmptyAND'([], _) :- !, fail.                 %% mirror MeTTa: no solution on ()
+'removeEmptyAND'([H|T], Out) :- !,
+    (  H == 'AND'
+    -> ( T == [] -> Out = 'Nothing'
+       ; rea_kids_(T, Kids), Out = ['AND'|Kids] )
+    ;  rea_kids_([H|T], Out)
+    ).
+
+rea_kids_([], []).
+rea_kids_([X|Xs], Out) :-
+    'removeEmptyAND'(X, X1),
+    rea_kids_(Xs, R),
+    ( X1 == 'Nothing' -> Out = R ; Out = [X1|R] ).
+
 %% Register the stubs as MeTTa funs (idempotent).
 :- register_fun('getLiterals').
 :- register_fun('getChildrenExp').
@@ -213,3 +246,4 @@ sort_key_of_(_, Cpxy, k(1.0Inf, Cpxy)). %% NaN -> sort last
 :- register_fun('getGuardSet').
 :- register_fun('sortDeme').
 :- register_fun('any').
+:- register_fun('removeEmptyAND').

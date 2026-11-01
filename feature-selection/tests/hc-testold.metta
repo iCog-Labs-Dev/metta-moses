@@ -29,8 +29,10 @@
 !(import! &self metta-moses:deme:create-deme)
 !(import! &self metta-moses:deme:deme-id-creation)
 !(import! &self metta-moses:deme:expand-deme)
+!(import! &self metta-moses:deme:expand-deme)
 
 !(import! &self metta-moses:scoring:cscore)
+!(import! &self metta-moses:scoring:boolean-ops)
 !(import! &self metta-moses:scoring:bscore)
 !(import! &self metta-moses:scoring:fitness)
 !(import! &self metta-moses:scoring:complexity-based-scorer)
@@ -47,10 +49,11 @@
 
 ! (bind! ttable2 
     (mkITable 
-        (cons (cons False (cons False (cons True (cons True (cons True ())))))
-        (cons (cons True (cons False (cons False (cons True (cons True ())))))
-        (cons (cons False (cons True (cons False (cons True (cons False ())))))
-        (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
+        (cons (cons False (cons True (cons False (cons False ()))))
+        (cons (cons False (cons False (cons True (cons False ()))))
+        (cons (cons True (cons False (cons False (cons False ()))))
+        (cons (cons True (cons True (cons True (cons True ()))))
+        (cons (cons True (cons True (cons False (cons False ())))) ())))))
         (cons A (cons B (cons C (cons D (cons Output ())))))))
             
                                                               ;;miConf PrePenalty  PreMInActivation   PreMaxActivation  PrePositive   ScorerType

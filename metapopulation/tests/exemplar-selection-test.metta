@@ -1,13 +1,21 @@
-!(import! &self ../../../metta-moses/utilities/general-helpers)
-!(import! &self ../../../metta-moses/parameters/registry)
-!(import! &self ../../../metta-moses/parameters/defaults)
-!(import! &self ../../../metta-moses/utilities/list-methods)
-!(import! &self ../../../metta-moses/utilities/ordered-set)
-!(import! &self ../../../metta-moses/scoring/cscore.metta)
-!(import! &self ../../../metta-moses/utilities/tree)
-!(import! &self ../../../metta-moses/metapopulation/exemplar-selection)
-!(import! &self ../../../metta-moses/metapopulation/metapopulation)
+!(import! &self ../../utilities/general-helpers)
+!(import! &self ../../parameters/registry)
+!(import! &self ../../parameters/defaults)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/ordered-set)
+!(import! &self ../../scoring/cscore.metta)
+!(import! &self ../../utilities/tree)
+!(import! &self ../../metapopulation/exemplar-selection)
+!(import! &self ../../metapopulation/metapopulation)
 (: A Bool)
+
+;; Exemplar selection and metapopulation trimming must share the same C++
+;; complexity temperature.  This guards against reintroducing compxyTemp as an
+;; independent, silently colder selector setting.
+!(set-param complexityTemperature 2000)
+!(assertEqual (INV_TEMP) 0.05)
+!(set-param complexityTemperature 6)
+
 ;; Get penalized scores
 ; !(assertEqual (getPnScore ()) ())
 ; !(assertEqual 
@@ -86,6 +94,81 @@
 (= (treeA-x) (mkExemplar treeA (mkDemeId "7") (mkCscore 0.95 0.3 0.2 0.1 0.4) (mkBscore (cons 1 (cons 1 ())))))
 
 !(assertEqual (selectExemplar (cons (treeA-x) ())) (treeA-x))
+
+;; Eligibility is an order-preserving structural-tree filter.  Deme IDs
+;; and scores do not create separate visit allowances for the same tree.
+(= (visitExemplarA $id $penalty)
+   (mkExemplar (treeA) (mkDemeId $id)
+     (mkCscore 0 0 0 0 $penalty) (mkBScore (0))))
+(= (visitExemplarB $id)
+   (mkExemplar (treeB) (mkDemeId $id)
+     (mkCscore 0 0 0 0 0) (mkBScore (0))))
+(= (visitExemplarC $id)
+   (mkExemplar (treeC) (mkDemeId $id)
+     (mkCscore 0 0 0 0 0) (mkBScore (0))))
+(= (visitExemplarY $id)
+   (mkExemplar (treeY) (mkDemeId $id)
+     (mkCscore 0 0 0 0 0) (mkBScore (0))))
+
+!(assertEqual (eligibleExemplars () () 0) ())
+
+;; Exhausted candidates are removed without disturbing the relative order of
+;; the candidates that remain.
+!(assertEqual
+  (eligibleExemplars
+    ((visitExemplarA "a" 0)
+     (visitExemplarB "b")
+     (visitExemplarC "c")
+     (visitExemplarY "y"))
+    ((mkVisit (treeA) 1) (mkVisit (treeC) 2))
+    0)
+  ((visitExemplarB "b") (visitExemplarY "y")))
+
+;; Both exemplars containing treeA share one count even though their deme IDs
+;; and penalized scores differ.
+!(assertEqual
+  (eligibleExemplars
+    ((visitExemplarA "a-1" 0)
+     (visitExemplarB "b")
+     (visitExemplarA "a-2" -1))
+    ((mkVisit (treeA) 1))
+    0)
+  ((visitExemplarB "b")))
+
+;; revisit=0 permits only the initial visit; positive N permits N additional
+;; visits, and any negative value leaves even heavily visited trees eligible.
+!(assertEqual
+  (let* (
+         ($exemplar (visitExemplarA "visit" 0))
+         ($visits1 (recordVisit (treeA) ()))
+         ($visits2 (recordVisit (treeA) $visits1))
+        )
+    ((visitCount (treeA) $visits2)
+     (eligibleExemplars ($exemplar) () 0)
+     (List.length (eligibleExemplars ($exemplar) $visits1 0))
+     (List.length (eligibleExemplars ($exemplar) $visits1 1))
+     (List.length (eligibleExemplars ($exemplar) $visits2 1))
+     (eligibleExemplars ($exemplar) $visits2 -1)
+     (selectEligibleExemplar ($exemplar) $visits2 1)))
+  (2 ((visitExemplarA "visit" 0)) 0 1 0
+     ((visitExemplarA "visit" 0))
+     (Error () "empty metapopulation")))
+
+;; Raw-best selection follows C++: lower complexity wins a raw-score tie, while
+;; the earlier exemplar survives an exact raw/complexity tie. Penalized order
+;; is deliberately irrelevant to this all-time candidate record.
+(= (rawTestExemplar $tree $id $raw $complexity $penalized)
+   (mkExemplar $tree (mkDemeId $id)
+     (mkCscore $raw $complexity 0 0 $penalized) (mkBScore ($raw))))
+!(assertEqual
+  (bestRawExemplar
+    ((rawTestExemplar (treeA) "first" -3 4 -1)
+     (rawTestExemplar (treeB) "simpler-tie" -3 2 -20)
+     (rawTestExemplar (treeC) "exact-tie" -3 2 0)
+     (rawTestExemplar (treeY) "worse" -4 0 0)))
+  (rawTestExemplar (treeB) "simpler-tie" -3 2 -20))
+
+!(assertEqual (bestRawExemplar ()) ())
 
 (= (test1-exemplars)
   (cons (mkExemplar (treeA) (mkDemeId "1") (mkCscore 0.8 0.3 0.1 0.01 0.4) (mkBscore (cons 1 (cons 1 ()))))  

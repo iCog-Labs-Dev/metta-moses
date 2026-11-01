@@ -1,0 +1,115 @@
+;; End-to-end generic action-domain regression using Ant as the fixture.
+;;
+;; This test deliberately imports the framework definitions instead of
+;; moses.metta: that file invokes !(moses) at import time.  Calling runMoses
+;; directly keeps the test's generic action configuration in effect.
+
+!(import! &self ../../../utilities/general-helpers)
+!(import! &self ../../../parameters/registry)
+!(import! &self ../../../parameters/defaults)
+
+!(import! &self ../../../utilities/list-methods)
+!(import! &self ../../../utilities/pair)
+!(import! &self ../../../utilities/map)
+!(import! &self ../../../utilities/ordered-multimap)
+!(import! &self ../../../utilities/ordered-set)
+!(import! &self ../../../utilities/ordered-multiset)
+!(import! &self ../../../utilities/nodeId)
+!(import! &self ../../../utilities/lazy-random-selector)
+!(import! &self ../../../utilities/lru-cache)
+
+!(import! &self ../../../reduct/boolean-reduct/rte-helpers)
+!(import! &self ../../../reduct/boolean-reduct/cut-unnecessary-or)
+!(import! &self ../../../reduct/boolean-reduct/cut-unnecessary-and)
+!(import! &self ../../../reduct/boolean-reduct/n-ary-propagate-not)
+!(import! &self ../../../reduct/boolean-reduct/n-ary-gather-junctors)
+!(import! &self ../../../reduct/boolean-reduct/delete-inconsistent-handle)
+!(import! &self ../../../reduct/boolean-reduct/zero-constraint-subsumption)
+!(import! &self ../../../reduct/boolean-reduct/one-constraint-subsumption)
+!(import! &self ../../../reduct/boolean-reduct/promote-common-constraints)
+!(import! &self ../../../reduct/boolean-reduct/reduce-to-elegance)
+
+!(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
+
+!(import! &self ../../../utilities/tree)
+
+!(import! &self ../../../scoring/cacheSpace)
+!(import! &self ../../../scoring/fitness)
+!(import! &self ../../../scoring/boolean-ops)
+!(import! &self ../../../scoring/action-registry)
+!(import! &self ../../../scoring/action-eval)
+!(import! &self ../../../scoring/action-ops)
+!(import! &self ../../../scoring/bscore)
+!(import! &self ../../../scoring/cscore)
+!(import! &self ../../../scoring/action-score)
+
+!(import! &self ../../../feature-selection/feature-selection-helpers)
+!(import! &self ../../../feature-selection/similarity-scorers)
+!(import! &self ../../../feature-selection/select-top-features)
+!(import! &self ../../../feature-selection/simple)
+!(import! &self ../../../feature-selection/smd)
+!(import! &self ../../../feature-selection/incremental)
+!(import! &self ../../../feature-selection/hc)
+!(import! &self ../../../feature-selection/random-feature-selection)
+!(import! &self ../../../feature-selection/feature-selection-main)
+
+!(import! &self ../../../representation/knob-representation)
+!(import! &self ../../../representation/lsk)
+!(import! &self ../../../representation/disc-probe)
+!(import! &self ../../../representation/logical-probe)
+!(import! &self ../../../representation/sample-logical-perms)
+!(import! &self ../../../representation/logical-canonize)
+!(import! &self ../../../representation/add-logical-knobs)
+!(import! &self ../../../representation/build-logical)
+!(import! &self ../../../representation/build-action)
+!(import! &self ../../../representation/build-knobs)
+!(import! &self ../../../representation/knob-mapper)
+!(import! &self ../../../representation/representation)
+!(import! &self ../../../representation/create-representation)
+
+!(import! &self ../../../scoring/complexity-based-scorer)
+!(import! &self ../../../optimization/hillclimbing/crossover-helpers)
+!(import! &self ../../../optimization/hillclimbing/crossover)
+!(import! &self ../../../optimization/hillclimbing/hill-climbing-helpers)
+
+!(import! &self ../../../deme/create-deme)
+!(import! &self ../../../moses/neighborhood-sampling)
+!(import! &self ../../../metapopulation/exemplar-type)
+!(import! &self ../../../metapopulation/exemplar-selection)
+!(import! &self ../../../metapopulation/metapopulation)
+!(import! &self ../../../representation/instance)
+!(import! &self ../../../deme/deme-id-creation)
+!(import! &self ../../../deme/score-deme)
+!(import! &self ../../../deme/merge-demes)
+!(import! &self ../../../deme/expand-deme)
+
+!(import! &self ../ant-action-domain)
+
+!(set-param fitness antFitness)
+!(set-param bestScore antBestScore)
+!(set-param actions (quote (antMoveForward antTurnLeft antTurnRight)))
+!(set-param perceptions (quote (antFoodAhead)))
+!(set-param nTrials 4)
+!(set-param seed 0)
+!(set-param maxGen 2)
+!(set-param nDeme 1)
+!(set-param maxCandOutput 3)
+!(set-param hcMaxEvals 60)
+!(set-param maxEvals 60)
+!(set-param diagnostics False)
+
+(= (antPipelineMetaPop)
+   ((mkExemplar
+      (ant-exemplar)
+      (mkDemeId "1")
+      (mkCscore -4.0 0 3.5 0 -4.0)
+      (mkBScore (List.repeat 4 -1.0)))))
+
+!(py-call (random.seed 0))
+!(set-param genCount 0)
+!(assertEqual
+  (let $result (runMoses 0 20.0 (antPipelineMetaPop) 0 1
+                         (mkActionCtx 4 3.5 20.0)
+                         hillClimbing)
+    (> (OS.length $result) 0))
+  True)
