@@ -17,6 +17,7 @@
                   ((mkDemeId $firstDemeId) (List.head $demeIds))
                   ($featureSelectionDeme
                     (py-call (demeSpaceName.featureSelectionDemeSpaceName $firstDemeId)))
+                  ($_ (clearSpace $featureSelectionDeme))
                   ($_ (add-atom $featureSelectionDeme (mkRep () ())))
                   ($_ (add-atom $featureSelectionDeme (mkSInstSet ())))
                   ($_ (add-atom $featureSelectionDeme (mkDemeId ())))
@@ -75,6 +76,7 @@
              (let*
                (
                  ($demeSpace (py-call (demeSpaceName.demeSpaceName $id)))
+                 ($_ (clearSpace $demeSpace))
                  ($_ (add-atom $demeSpace $h))
                  ($_ (add-atom $demeSpace (mkSInstSet ())))
                  ($_ (add-atom $demeSpace (mkDemeId $id)))
