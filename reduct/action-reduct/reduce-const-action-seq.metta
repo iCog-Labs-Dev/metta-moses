@@ -17,10 +17,13 @@
 ;; Triggered after constant-pruning (reduceConstActionSeq) may have removed all
 ;; children from a sequence, or when the combiner was constructed empty.
 
+;; Match with case: its branches compile inline, so action terms stay data.
 (= (reduceEmptyArgSeq $expr)
-   (unify $expr (and_seq) action_success
-     (unify $expr (or_seq) action_failure
-       (unify $expr (exec_seq) action_success $expr))))
+   (case $expr
+     (((and_seq) action_success)
+      ((or_seq) action_failure)
+      ((exec_seq) action_success)
+      ($else $expr))))
 
 ;; reduceConstActionSeq (C++ reduce_const_action_seq):
 ;; Propagates constant action results through sequential combiners by
@@ -43,20 +46,18 @@
 ;;     nil and their results are irrelevant inside exec_seq.
 
 (= (reduceConstActionSeq $expr)
-   (if (== (get-metatype $expr) Expression)
-       (if (== $expr ())
-           $expr
-           (let ($op $args) (decons $expr)
-             (case $op
-               ((and_seq (let $pruned (pruneAndSeqArgs $args)
-                           (if (== $pruned (action_failure))
-                               action_failure
-                               (cons-atom and_seq $pruned))))
-                (or_seq  (let $pruned (pruneOrSeqArgs $args)
-                           (if (== $pruned (action_success))
-                               action_success
-                               (cons-atom or_seq $pruned))))
-                (exec_seq (let $pruned (pruneExecSeqArgs $args)
-                            (cons-atom exec_seq $pruned)))
-                ($else $expr)))))
+   (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
+       (let ($op $args) (decons $expr)
+         (case $op
+           ((and_seq (let $pruned (pruneAndSeqArgs $args)
+                       (if (== $pruned (action_failure))
+                           action_failure
+                           (cons-atom and_seq $pruned))))
+            (or_seq  (let $pruned (pruneOrSeqArgs $args)
+                       (if (== $pruned (action_success))
+                           action_success
+                           (cons-atom or_seq $pruned))))
+            (exec_seq (let $pruned (pruneExecSeqArgs $args)
+                        (cons-atom exec_seq $pruned)))
+            ($else $expr))))
        $expr))

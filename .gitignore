@@ -1,5 +1,4 @@
 Descriptions
-GEMINI.md
 .vscode/
 venv
 .venv
@@ -15,3 +14,9 @@ run_python_tests.py
 *.html
 
 notes/
+
+# Local review records and agent scratch output (see docs/agents/)
+reviews/
+sandbox/
+*__unmask.metta
+opencog.log

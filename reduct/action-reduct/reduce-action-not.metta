@@ -12,5 +12,7 @@
 ;; it does not recurse deeper to look for deeper cancellations (the iterative
 ;; outer loop handles multi-step convergence).
 
+;; Match with (if (= $expr PATTERN) ...), not unify: unify evaluates the branch it returns, and
+;; with scoring/action-ops loaded an evaluated action term runs as an action.
 (= (reduceDoubleActionNot $expr)
-   (unify $expr (action_not (action_not $action)) $action $expr))
+   (if (= $expr (action_not (action_not $action))) $action $expr))

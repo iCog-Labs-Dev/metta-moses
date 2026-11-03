@@ -55,8 +55,10 @@
 ;;
 ;; Example: action_while(action_failure) -> action_failure
 
+;; Match with (if (= $expr PATTERN) ...), not unify: unify evaluates the branch it returns, and
+;; with scoring/action-ops loaded an evaluated action term runs as an action.
 (= (reduceActionWhileAlwaysFails $expr)
-   (unify $expr (action_while $body)
+   (if (= $expr (action_while $body))
      (if (== (getActionResult $body) False) $body $expr)
      $expr))
 
@@ -75,8 +77,10 @@
 ;; conservative structural behavior.
 
 (= (reduceBoolWhileDependCond $expr)
-   (unify $expr (bool_while True $body) $body
-     (unify $expr (bool_while False $body) action_success $expr)))
+   (case $expr
+     (((bool_while True $body) $body)
+      ((bool_while False $body) action_success)
+      ($else $expr))))
 
 ;; Helper: find the smallest valid repeating period of a tuple.
 ;; A period d is valid when d divides the tuple length and every element matches
@@ -118,25 +122,20 @@
 ;; the full body length, no reduction is applied.
 
 (= (reduceRepeatInActionWhile $expr)
-   (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
-       (let ($op $args) (decons $expr)
-         (if (== $op action_while)
-             (let $body (car-atom $args)
-               (if (and (== (get-metatype $body) Expression) (!= $body ()))
-                   (let ($bodyOp $bodyArgs) (decons $body)
-                     (if (== $bodyOp and_seq)
-                         (let* (($sz (size-atom $bodyArgs))
-                                ($period (findRepeatingPeriod $bodyArgs)))
-                           (if (< $period $sz)
-                               (if (== $period 1)
-                                   (action_while (car-atom $bodyArgs))
-                                   (action_while (cons-atom and_seq (take $period $bodyArgs))))
-                               $expr))
-                         $expr))
+   (if (= $expr (action_while $seq))
+     (if (and (== (get-metatype $seq) Expression) (!= $seq ()))
+         (if (== (car-atom $seq) and_seq)
+             (let* (($bodyArgs (cdr-atom $seq))
+                    ($sz (size-atom $bodyArgs))
+                    ($period (findRepeatingPeriod $bodyArgs)))
+               (if (< $period $sz)
+                   (if (== $period 1)
+                       (action_while (car-atom $bodyArgs))
+                       (action_while (cons-atom and_seq (take $period $bodyArgs))))
                    $expr))
-             $expr))
-       $expr))
-
+             $expr)
+         $expr)
+     $expr))
 ;; reduceRepeatOutActionWhile (C++ reduce_repeat_out_action_while):
 ;; When an and_seq contains a prefix that duplicates the body of the immediately
 ;; following action_while, the prefix is redundant: the while loop will execute
@@ -154,24 +153,22 @@
 (= (reduceRepeatOutWhile () $processed) $processed)
 (= (reduceRepeatOutWhile $args $processed)
    (let ($h $t) (decons $args)
-     (if (and (== (get-metatype $h) Expression) (!= $h ()))
-         (let ($childOp $childArgs) (decons $h)
-           (if (== $childOp action_while)
-               (let $body (car-atom $childArgs)
-                 (if (and (== (get-metatype $body) Expression) (!= $body ()))
-                     (let ($bodyOp $bodyArgs) (decons $body)
-                       (if (== $bodyOp and_seq)
-                           (if (endsWith $processed $bodyArgs)
-                               (reduceRepeatOutWhile $t (concatTuple (removeEnd $processed $bodyArgs) ($h)))
-                               (reduceRepeatOutWhile $t (concatTuple $processed ($h))))
-                           (if (endsWithSingle $processed $body)
-                               (reduceRepeatOutWhile $t (concatTuple (removeEndSingle $processed) ($h)))
-                               (reduceRepeatOutWhile $t (concatTuple $processed ($h))))))
-                     (if (endsWithSingle $processed $body)
-                         (reduceRepeatOutWhile $t (concatTuple (removeEndSingle $processed) ($h)))
-                         (reduceRepeatOutWhile $t (concatTuple $processed ($h))))))
-               (reduceRepeatOutWhile $t (concatTuple $processed ($h)))))
-         (reduceRepeatOutWhile $t (concatTuple $processed ($h))))))
+     (let $newProcessed
+          (if (= $h (action_while $body))
+            (if (and (== (get-metatype $body) Expression) (!= $body ()))
+                (if (== (car-atom $body) and_seq)
+                    (let $bodyArgs (cdr-atom $body)
+                      (if (endsWith $processed $bodyArgs)
+                          (removeEnd $processed $bodyArgs)
+                          $processed))
+                    (if (endsWithSingle $processed $body)
+                        (removeEndSingle $processed)
+                        $processed))
+                (if (endsWithSingle $processed $body)
+                    (removeEndSingle $processed)
+                    $processed))
+            $processed)
+       (reduceRepeatOutWhile $t (concatTuple $newProcessed (quote ($h)))))))
 
 (= (reduceRepeatOutActionWhile $expr)
    (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
@@ -195,6 +192,6 @@
 ;; sequencing node and leaves branches that are reached later unchanged.
 
 (= (reduceBoolWhileSubCond $expr)
-   (unify $expr (bool_while $cond $body)
+   (if (= $expr (bool_while $cond $body))
      (bool_while $cond (substituteCondInitInstant $body $cond True))
      $expr))

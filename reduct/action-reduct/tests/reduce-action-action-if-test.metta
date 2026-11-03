@@ -18,3 +18,7 @@
 !(assertEqual
   (reduceActionActionIf (action_action_if turn_left (goto_obj stick) move_forward))
   (and_seq turn_left (goto_obj stick)))
+
+!(assertEqual
+  (reduceActionActionIf (action_action_if (action_while (move_forward)) (goto_obj stick) move_forward))
+  (exec_seq (action_while (move_forward)) move_forward))

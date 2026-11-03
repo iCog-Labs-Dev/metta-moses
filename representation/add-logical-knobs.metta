@@ -4,15 +4,15 @@
 (= (pairKnobWithSpec $tuple) (map-atom $tuple $knob ((getKnobSpec $knob) $knob) ))
 
 (= (addLogicalKnobs (mkTree (mkNode $op) $children) $addIfInExemplar $map $argLabels)
-   (addLogicalKnobsFast (mkTree (mkNode $op) $children) $addIfInExemplar $map $argLabels True (mkTree (mkNode $op) $children) (mkNodeId (0))))
+   (addLogicalKnobsFast (mkTree (mkNode $op) $children) $addIfInExemplar $map $argLabels True (mkTree (mkNode $op) $children) (mkNodeId (0)) (param ignoreOps)))
 
-(= (addLogicalKnobsFast (mkTree (mkNode $op) $children) $addIfInExemplar $map $argLabels $disable-discprobe $globalTree $currentNodeId)
+(= (addLogicalKnobsFast (mkTree (mkNode $op) $children) $addIfInExemplar $map $argLabels $disable-discprobe $globalTree $currentNodeId $ignoreOps)
    (let*
      (
       ;; ($_ (println! (addLogicalKnobs 1)))
       ($lengthOfLabels (size-atom $argLabels))
       ;; ($_ (println! (addLogicalKnobs 2)))
-      ($perms (sampleLogicalPerms $op $lengthOfLabels $argLabels))
+      ($perms (sampleLogicalPerms $op $lengthOfLabels $argLabels $ignoreOps))
       ;; ($_ (println! (addLogicalKnobs 3)))
       ($treePerms (map-atom $perms $perm (buildTree $perm)))
       ;; ($_ (println! (addLogicalKnobs 4)))

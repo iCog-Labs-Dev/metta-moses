@@ -7,7 +7,7 @@
 ;;                          $targetSize -- the number of features sets to be returned
 ;;                          $increaseTargetSize -- bool -- to increase number of features in a feature set by the number of features already in the exemplar
 
-; (: featureSelector (->  Symbol (ITable $a) Number (Tree $a) Number Number Bool Expression Bool Number Bool Symbol Number Number Number Number Number Bool Symbol Expression))
+;; (: featureSelector (->  Symbol (ITable $a) Number (Tree $a) Number Number Bool Expression Bool Number Bool Symbol Number Symbol Expression))
 (= (featureSelector 
             $algo               ;; feature selection algo one of the following symbols hc, rnd, sim, inc, smd for hillclimbing, random, simple, incremental and stochasticMaxDependency selection algos
             (mkITable $table $labels)   ;; the table
@@ -22,14 +22,6 @@
             $multi-diversity    ;; multiply diversity -- used when updating the penalized score
             $sim-scorer         ;; feature set similarity scorer either mi or ja for jaccard
             $nDeme              ;; number of demes to spawn
-            ; MI Scorer Parameters
-            $miConfi            ;; confidence intensity
-
-            ;; precision scorer parameters
-            $prePenalty          ;; activation Penalty: Penalizes “over-activation” — selecting too many rows from the compressed table.
-            $preMinActivation   ;; ensures we always select enough rows to have a meaningful precision estimate.
-            $preMaxActivation   ;; limits how many rows can be selected.
-            $prePositive        ;; determines which output value is considered the “positive class” in precision_bscore.
             $scorerType         ;; Type of score needed for hillClimbing feature selection it might be mutualInformation or precision_bscore
 )
         (let* (
@@ -46,17 +38,17 @@
                                         ($updated-init-fts (union-atom $init-ft-indices $exemplar-fts))
                                       )
 
-                                      (featureSelection $algo (mkITable $table $labels) $th $updated-target-size $updated-init-fts $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType)
+                                      (featureSelection $algo (mkITable $table $labels) $th $updated-target-size $updated-init-fts $scorerType)
                                 )     ;; do the feature selection using the new target-size
 
                                 (if $ignore-xmplr-fts                                                        ;; on the other hand, if we elect to ignore exemplar features 
                                     (let* (
                                             ((mkITable $filtered-rows $filtered-labels) (filterTable $exemplar-fts (mkITable $table $labels)))   ;; filter the table and pass only labels that don't include exemplar features
-                                            ($selected-ft-set (featureSelection $algo (mkITable $filtered-rows $filtered-labels) $th $target-size $init-ft-indices $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType))
+                                            ($selected-ft-set (featureSelection $algo (mkITable $filtered-rows $filtered-labels) $th $target-size $init-ft-indices $scorerType))
                                           )
                                           (readjustIndices $selected-ft-set $filtered-labels $labels)
                                     ) ;; here the returned index values refere to column indices in the filtetered table so some adjstment is needed to make up for any removed columns
-                                    (featureSelection $algo (mkITable $table $labels) $th $target-size $init-ft-indices $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType))))
+                                    (featureSelection $algo (mkITable $table $labels) $th $target-size $init-ft-indices $scorerType))))
 
                 ($ft-set-pop-size (size-atom $ft-set-pop))                     
                 ($capped-ft-set-pop (if (and (> $diversity-cap 0) (< $diversity-cap $ft-set-pop-size))                  ;; limmit the size of feature set pop to diversity cap value
@@ -75,20 +67,11 @@
             $th                 ;; threshold for simle, smd ..
             $target-size        ;; desired number of features in a set   
             $init-fts           ;; indices of initial features -- ne
-            
-            $miConfi            ;; confidence intensity
-
-            ;; precision scorer parameters
-            $prePenalty          ;; activation Penalty: Penalizes “over-activation” — selecting too many rows from the compressed table.
-            $preMinActivation   ;; ensures we always select enough rows to have a meaningful precision estimate.
-            $preMaxActivation   ;; limits how many rows can be selected.
-            $prePositive        ;; determines which output value is considered the “positive class” in precision_bscore.
             $scorerType         ;; can MI or precision_bscore
             ) 
 	(case $algo
-		((hc (let $init-instance (List.generate (- (List.length $labels) 1) 0)
-		                      (hcFtSetPop (mkITable $table $labels) $init-instance $scorerType)))
-		                      ;; (hcFtSetPop (mkITable $table $labels) $init-instance $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType))) ;; INFO: This used to get all of the following params but the function can't handle those so removed for now: $miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive
+		((hc (let $init-instance (indicesToBits $init-fts (- (List.length $labels) 1))     ;; seed the search with the initial features, all zeros when none are given
+		                      (hcFtSetPop (mkITable $table $labels) $init-instance $scorerType (defaultFsHyperparams))))
 
 		 (rd (randomFeatureSelection (mkITable $table $labels) $target-size))                                       
 		 (sim (simpleFeatureSelector $th $target-size False (mkITable $table $labels) ()))                           ;; False -- default value for using exp distribution for selection of top N features -- and start with empty feature list as initial features -- th here refers to the minimum score required for feature set to be selected

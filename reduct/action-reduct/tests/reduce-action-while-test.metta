@@ -32,6 +32,12 @@
 !(assertEqual (reduceRepeatInActionWhile (action_while (and_seq A A))) (action_while A))
 !(assertEqual (reduceRepeatInActionWhile (action_while (and_seq A B A B))) (action_while (and_seq A B)))
 !(assertEqual (reduceRepeatInActionWhile (action_while (and_seq A B C A B C))) (action_while (and_seq A B C)))
+;; Leaf symbol body (non-expression) is safely preserved without errors
+!(assertEqual (reduceRepeatInActionWhile (action_while move_forward)) (action_while move_forward))
+;; Empty expression body is safely preserved without errors
+!(assertEqual (reduceRepeatInActionWhile (action_while ())) (action_while ()))
+;; Non-and_seq expression body is also safely preserved without modification
+!(assertEqual (reduceRepeatInActionWhile (action_while (or_seq move_forward turn_left))) (action_while (or_seq move_forward turn_left)))
 
 ;; ============================================================================
 ;; reduceRepeatOutActionWhile: remove prefix that duplicates while body

@@ -40,7 +40,13 @@
         ($_     (let $chars (atom_chars $arg)
                      (case (parse-flag $chars)
                        (
-                         ((flag $name $val) (set-param $name $val))
+                         ((flag $name $val)
+                          (if (== $name ignoreOps)
+                              (set-param $name (if (isExpression $val) 
+                                                    $val 
+                                                    (quote ($val))))
+                                                    
+                              (set-param $name $val)))
                          ($_                ignored))))))))
 
 ;; -------- Help output --------

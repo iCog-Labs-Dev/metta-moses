@@ -3,6 +3,7 @@
 !(import! &self ../../../../metta-moses/utilities/tree)
 
 !(import! &self ../../../../metta-moses/representation/instance)
+!(import! &self ../../../../metta-moses/representation/candidate)
 !(import! &self ../../../../metta-moses/representation/representation)
 !(import! &self ../../../../metta-moses/representation/create-representation)
 

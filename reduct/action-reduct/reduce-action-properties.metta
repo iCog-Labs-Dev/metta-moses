@@ -139,11 +139,9 @@
                      False))))))
 
 (= (canMergeAdditiveActions $a $b)
-   (let* (($action (actionName $a))
-          ($argsA (actionArgs $a))
-          ($argsB (actionArgs $b)))
-     (and (== $action (actionName $b))
-          (canMergeAdditiveArgs $action $argsA $argsB 0 False))))
+   (case ((actionName $a) (actionName $b))
+     ((($act $act) (canMergeAdditiveArgs $act (actionArgs $a) (actionArgs $b) 0 False))
+      ($else False))))
 
 (= (mergeAdditiveArgs $action () () $idx) ())
 (= (mergeAdditiveArgs $action $argsA $argsB $idx)
