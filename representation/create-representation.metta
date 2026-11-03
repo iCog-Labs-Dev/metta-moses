@@ -10,19 +10,19 @@
 ;; 5. Creating ignore_ops sets for non-selected features ↠ not implemented as a separate container for ignored args rather if exemplar features are ignored, they are subtracted from args list in representation building
 
 ;; createRepresentation -- calls on the representation building procedure
-;; (: createRepresentation (-> Number (Tree $a) (ITable $a) Symbol Bool Expression Symbol Representation))
-;; For boolean: createRepresentation($nDeme, $tree, $itable, $algo, $prune, $enforced, $scorer)
+;; (: createRepresentation (-> Number (Tree $a) (ITable $a) Symbol Bool Expression Symbol DemeSpace Representation))
+;; For boolean: createRepresentation($nDeme, $tree, $itable, $algo, $prune, $enforced, $scorer, $featureSelectionDeme)
 
-;; Boolean logic representation (7 parameters)
-;; The eighth arg to `representation` is `$disable-discprobe`, so we negate
+;; Boolean logic representation (8 parameters)
+;; The ninth arg to `representation` is `$disable-discprobe`, so we negate
 ;; the user-facing `discProbe` knob (True == enabled) when forwarding.
-(= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
+(= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType $featureSelectionDeme)
    ;; `representation` already returns the complete list selected for this
    ;; expansion. Pattern-binding one `mkRep` here turned that list into a
    ;; superposition of singleton lists, causing the outer search to execute one
    ;; branch per representation instead of sharing one budget across all demes.
    (representation $nDeme $tree (mkITable $table $labels) $algo
-                   $prune-exemplar $enforced-fts $scorerType
+                   $prune-exemplar $enforced-fts $scorerType $featureSelectionDeme
                    (not (param discProbe))))
 
 ;; Action representation (4 parameters): the experiment's action/perception

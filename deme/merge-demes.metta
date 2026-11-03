@@ -9,8 +9,6 @@
 ;; Return: (List (ScoredInstance Cscore)): List with adjacent duplicates removed, limited by $topCnd.
 ; (: removeDupInsts (-> (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
 (= (removeDupInsts $rep $id () $topCnd) ())
-(= (removeDupInsts $rep $id (cons $x ()) $topCnd)
-   (if (> $topCnd 0) (cons $x ()) ()))
 (= (removeDupInsts $rep $id (cons (mkSInst $x) $tail) $topCnd)
    (if (== $tail ())
        (if (> $topCnd 0) (cons (mkSInst $x) ()) ())
@@ -134,8 +132,8 @@
 ;;   $itable: The input table.
 ;; Return: (List (Exemplar $a)) - List of exemplars with scored trees.
 ; (: demeToTrees (-> Deme (ITable $a) (List (Exemplar $a))))
-(= (demeToTrees (mkDeme $rep (mkSInstSet ()) $demeId) $scoringContext) ())
-(= (demeToTrees (mkDeme $rep (mkSInstSet (cons $si $sil)) $demeId) $scoringContext)
+(= (demeToTrees $rep (mkSInstSet ()) $demeId $scoringContext) ())
+(= (demeToTrees $rep (mkSInstSet (cons $si $sil)) $demeId $scoringContext)
 (let*
     (
         ($cscore (getSInstScore $si))
@@ -153,14 +151,14 @@
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
     )
 
-    (cons $scoredTree (demeToTrees (mkDeme $rep (mkSInstSet $sil) $demeId) $scoringContext))
+    (cons $scoredTree (demeToTrees $rep (mkSInstSet $sil) $demeId $scoringContext))
     )
 )
 
-(= (demeToTrees (mkDeme $rep (mkSInstSet ()) $demeId) (mkActionCtx $nTrials))
+(= (demeToTrees $rep (mkSInstSet ()) $demeId (mkActionCtx $nTrials))
    ())
-(= (demeToTrees (mkDeme $rep (mkSInstSet (cons $si $sil)) $demeId) (mkActionCtx $nTrials))
-   (demeToTrees (mkDeme $rep (mkSInstSet (cons $si $sil)) $demeId)
+(= (demeToTrees $rep (mkSInstSet (cons $si $sil)) $demeId (mkActionCtx $nTrials))
+   (demeToTrees $rep (mkSInstSet (cons $si $sil)) $demeId
       (mkActionCtx $nTrials 0 0)))
 ;; Filters a list of Exemplars, keeping only those not already in the metaPop (ordered set).
 ;; Params:
@@ -274,7 +272,9 @@
         (let*
         (
             (($headDeme $tailDeme) (decons-atom $demes))
-            ((mkDeme $rep $sInstList $demeId) $headDeme)
+            ($rep (match $headDeme (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
+            ($sInstList (match $headDeme (mkSInstSet $instances) (mkSInstSet $instances)))
+            ($demeId (match $headDeme (mkDemeId $id) (mkDemeId $id)))
             ($sortedSInstList (sortDeme $sInstList)) ;; sorting the instances inside the deme by decreasing order
             ($_ (if (param diagnostics)
                    (println! (Demesize:
@@ -290,9 +290,10 @@
                    (println! (TrimmedDownDeme:
                                (List.length $trimmedDeme)))
                    ()))
+            ($_ (remove-atom $headDeme $sInstList))
+            ($_ (add-atom $headDeme (mkSInstSet $trimmedDeme)))
             ($potCandidates
-              (demeToTrees
-                (mkDeme $rep (mkSInstSet $trimmedDeme) $demeId)
+              (demeToTrees $rep (mkSInstSet $trimmedDeme) $demeId
                 $scoringContext)) ;;convert instances to trees
             ($_ (if (param diagnostics)
                    (println! (Before getNewCandidates:

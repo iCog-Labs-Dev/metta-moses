@@ -14,11 +14,18 @@
 (= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
       (let* 
             (
+                  ((mkDemeId $firstDemeId) (List.head $demeIds))
+                  ($featureSelectionDeme
+                    (py-call (demeSpaceName.featureSelectionDemeSpaceName $firstDemeId)))
+                  ($_ (clearSpace $featureSelectionDeme))
+                  ($_ (add-atom $featureSelectionDeme (mkRep () ())))
+                  ($_ (add-atom $featureSelectionDeme (mkSInstSet ())))
+                  ($_ (add-atom $featureSelectionDeme (mkDemeId ())))
                   ($candidateReps
-                    (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType))
+                    (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType $featureSelectionDeme))
                   ($reps (expandableRepresentations $candidateReps))
             ) 
-            (loopCreateDeme $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
+            (loopCreateDemeSpace $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
       ) 
 )
 
@@ -35,7 +42,7 @@
 ; (: createDeme (-> Number (List DemeId) (Tree $a) Expression Expression Expression))
 (= (createDeme $nDeme $demeIds $exemplar $actions $perceptions)
       (let $reps (createRepresentation $nDeme $exemplar $actions $perceptions)
-            (loopCreateDeme $demeIds $reps ())))
+            (loopCreateDemeSpace $demeIds $reps ())))
 
 ;; Classic C++ MOSES discards every representation whose field set is empty,
 ;; regardless of the scoring domain. An empty MeTTa disc map is equivalent:
@@ -54,17 +61,26 @@
    (filter-atom $representations $rep
      (representationExpandable $rep)))
 
-(= (loopCreateDeme $demeIds $reps $acc)
-(if (== $reps ()) 
-    $acc
-    (let* (
-            ($h (car-atom $reps))
-            ($t (cdr-atom $reps)))
-         (let* (
-                 ($demeId (List.head $demeIds))
-                 ($deme (mkDeme $h (mkSInstSet ()) $demeId))
-                 ($new-acc
-                   (if (representationExpandable $h)
-                       (union-atom $acc ($deme))
-                       $acc)))
-               (loopCreateDeme (List.tail $demeIds) $t $new-acc)))))
+;; Store each expandable representation and its initial state in a DemeSpace.
+(= (loopCreateDemeSpace $demeIds $reps $acc)
+   (if (== $reps ())
+       $acc
+       (let*
+         (
+           ($h (car-atom $reps))
+           ($t (cdr-atom $reps))
+           ($demeId (List.head $demeIds))
+           ((mkDemeId $id) $demeId)
+         )
+         (if (representationExpandable $h)
+             (let*
+               (
+                 ($demeSpace (py-call (demeSpaceName.demeSpaceName $id)))
+                 ($_ (clearSpace $demeSpace))
+                 ($_ (add-atom $demeSpace $h))
+                 ($_ (add-atom $demeSpace (mkSInstSet ())))
+                 ($_ (add-atom $demeSpace (mkDemeId $id)))
+                 ($new-acc (union-atom $acc ($demeSpace)))
+               )
+               (loopCreateDemeSpace (List.tail $demeIds) $t $new-acc))
+             (loopCreateDemeSpace (List.tail $demeIds) $t $acc)))))

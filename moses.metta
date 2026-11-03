@@ -17,6 +17,7 @@
 ;;  The full-pipeline tests import the same file.
 ;; ============================================================
 
+!(import! &self deme/demeSpaceName.py)
 !(import! &self moses-imports)
 
 ;; ---- Apply command-line configuration ----

@@ -81,9 +81,19 @@
 !(import! &self ../merge-demes)
 !(import! &self ../expand-deme)
 
- !(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
+!(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
 
-(= (deme) (mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) (mkSInstSet ()) (mkDemeId "1")))
+!(bind! &deme1 (new-space))
+!(bind! &budgetDeme1 (new-space))
+!(bind! &budgetDeme2 (new-space))
+
+!(let $x (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) (add-atom &deme1 $x))
+!(let $y (mkSInstSet ()) (add-atom &deme1 $y))
+!(let $z (mkDemeId "1") (add-atom &deme1 $z))
+
+!(match &deme1 $atom (add-atom &budgetDeme1 $atom))
+!(match &deme1 $atom (add-atom &budgetDeme2 $atom))
+
 (= (table1) (eval (createTruthTableBScore 2 (mkITable
                          (cons (cons False (cons True (cons False (cons True ()))))
                          (cons (cons False (cons False (cons True (cons True ()))))
@@ -161,17 +171,23 @@
 ;; This tests the shared budget dispatcher without starting a stochastic
 ;; feature-selection search.
 (= (budgetProbeOptimizer
-      (mkDeme $rep $scoredInstances $demeId) $context $initialInstance)
-   (let $localLimit (get-state &localEvalLimit)
+      $demeSpace $context $initialInstance)
+   (let* (
+          ($localLimit (get-state &localEvalLimit))
+          ((mkDemeId $id)
+            (match $demeSpace (mkDemeId $matchedId) (mkDemeId $matchedId)))
+          ($_ (remove-atom $demeSpace (mkDemeId $id)))
+          ($_ (add-atom $demeSpace (mkDemeId $localLimit)))
+         )
      ($initialInstance
-      (mkDeme $rep $scoredInstances (mkDemeId $localLimit))
+      $demeSpace
       (False False False $initialInstance 0 0
        (worstCscore) -1 $localLimit 1 1))))
 
 ;; Extract the numeric share encoded by budgetProbeOptimizer in a deme ID.
 (= (numericDemeId
-      (mkDeme $rep $scoredInstances (mkDemeId $id)))
-   $id)
+      $demeSpace)
+   (match $demeSpace (mkDemeId $id) $id))
 
 ;; Probe both optimizer call conventions without performing a search.
 (= (adapterOptimizerProbe $deme $target $inst)
@@ -214,12 +230,13 @@
 !(assertEqual 
 (let* 
 (
-    ($optimizeDemeReturn (optimizeDeme (deme)
+    ($optimizeDemeReturn (optimizeDeme &deme1
                 (table1) 
                 (mkInst (cons 0 (cons 0 ()))) 
                 hillClimbing
                 ))
-    (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) $optimizeDemeReturn)
+    (($instance $returnedDemeSpace $state) $optimizeDemeReturn)
+    ($instSet (match $returnedDemeSpace (mkSInstSet $set) $set))
     ($instanceCount (List.length $instSet))
     ($scoredElems (List.map isScored $instSet))
 )
@@ -245,7 +262,7 @@
   (let* (
          (($optimizedDemes $actualEvaluations)
            (expandDemesCounted
-             ((deme) (deme)) (table1) budgetProbeOptimizer 3))
+             (&budgetDeme1 &budgetDeme2) (table1) budgetProbeOptimizer 3))
          ($localShares
            (map-atom $optimizedDemes $optimizedDeme
              (numericDemeId $optimizedDeme)))

@@ -7,7 +7,7 @@
 ;;                          $targetSize -- the number of features sets to be returned
 ;;                          $increaseTargetSize -- bool -- to increase number of features in a feature set by the number of features already in the exemplar
 
-;; (: featureSelector (->  Symbol (ITable $a) Number (Tree $a) Number Number Bool Expression Bool Number Bool Symbol Number Symbol Expression))
+;; (: featureSelector (-> Symbol (ITable $a) Number (Tree $a) Number Number Bool Expression Bool Number Bool Symbol Number Symbol DemeSpace Expression))
 (= (featureSelector 
             $algo               ;; feature selection algo one of the following symbols hc, rnd, sim, inc, smd for hillclimbing, random, simple, incremental and stochasticMaxDependency selection algos
             (mkITable $table $labels)   ;; the table
@@ -23,6 +23,7 @@
             $sim-scorer         ;; feature set similarity scorer either mi or ja for jaccard
             $nDeme              ;; number of demes to spawn
             $scorerType         ;; Type of score needed for hillClimbing feature selection it might be mutualInformation or precision_bscore
+            $featureSelectionDeme ;; working DemeSpace used by hill-climbing feature selection
 )
         (let* (
                 ;; ($_ (println! (debug Inside Feature Selection Main)))
@@ -38,17 +39,17 @@
                                         ($updated-init-fts (union-atom $init-ft-indices $exemplar-fts))
                                       )
 
-                                      (featureSelection $algo (mkITable $table $labels) $th $updated-target-size $updated-init-fts $scorerType)
+                                      (featureSelection $algo (mkITable $table $labels) $th $updated-target-size $updated-init-fts $scorerType $featureSelectionDeme)
                                 )     ;; do the feature selection using the new target-size
 
                                 (if $ignore-xmplr-fts                                                        ;; on the other hand, if we elect to ignore exemplar features 
                                     (let* (
                                             ((mkITable $filtered-rows $filtered-labels) (filterTable $exemplar-fts (mkITable $table $labels)))   ;; filter the table and pass only labels that don't include exemplar features
-                                            ($selected-ft-set (featureSelection $algo (mkITable $filtered-rows $filtered-labels) $th $target-size $init-ft-indices $scorerType))
+                                            ($selected-ft-set (featureSelection $algo (mkITable $filtered-rows $filtered-labels) $th $target-size $init-ft-indices $scorerType $featureSelectionDeme))
                                           )
                                           (readjustIndices $selected-ft-set $filtered-labels $labels)
                                     ) ;; here the returned index values refere to column indices in the filtetered table so some adjstment is needed to make up for any removed columns
-                                    (featureSelection $algo (mkITable $table $labels) $th $target-size $init-ft-indices $scorerType))))
+                                    (featureSelection $algo (mkITable $table $labels) $th $target-size $init-ft-indices $scorerType $featureSelectionDeme))))
 
                 ($ft-set-pop-size (size-atom $ft-set-pop))                     
                 ($capped-ft-set-pop (if (and (> $diversity-cap 0) (< $diversity-cap $ft-set-pop-size))                  ;; limmit the size of feature set pop to diversity cap value
@@ -68,10 +69,11 @@
             $target-size        ;; desired number of features in a set   
             $init-fts           ;; indices of initial features -- ne
             $scorerType         ;; can MI or precision_bscore
+            $featureSelectionDeme ;; working DemeSpace used by hill-climbing feature selection
             ) 
 	(case $algo
 		((hc (let $init-instance (indicesToBits $init-fts (- (List.length $labels) 1))     ;; seed the search with the initial features, all zeros when none are given
-		                      (hcFtSetPop (mkITable $table $labels) $init-instance $scorerType (defaultFsHyperparams))))
+		                      (hcFtSetPop (mkITable $table $labels) $init-instance $scorerType (defaultFsHyperparams) $featureSelectionDeme)))
 
 		 (rd (randomFeatureSelection (mkITable $table $labels) $target-size))                                       
 		 (sim (simpleFeatureSelector $th $target-size False (mkITable $table $labels) ()))                           ;; False -- default value for using exp distribution for selection of top N features -- and start with empty feature list as initial features -- th here refers to the minimum score required for feature set to be selected

@@ -9,8 +9,7 @@
  (= (crossTopOne $deme $nToMake $sampleStart $sampleSize $baseInstance)
    (let*
       (
-       ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
-
+       ($instSet (match $deme (mkSInstSet $instS) $instS))
        ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
        (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
        ;; Restrict partial_sort to the recorded sample window and request one
@@ -34,8 +33,9 @@
 
 ;; similar to the above 'crossTopOne' but with slight changes on the comparison function that is passed to the Lost.partialSort to compare the mutualInformation based scores
 ; (: crossTopOneFs (-> (InstanceSet $a) Number Number Number Instance (InstanceSet $a)))
-(= (crossTopOneFs (mkSInstSet $instSet) $nToMake $sampleStart $sampleSize $baseInstance)
+(= (crossTopOneFs $demeSpace $nToMake $sampleStart $sampleSize $baseInstance)
    (let* (
+           ($instSet (match $demeSpace (mkSInstSet $instS) $instS))
            ($nToMakeNew (if (< (- $sampleSize 1) $nToMake) (- $sampleSize 1) $nToMake))
            (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
            ($sample (List.takeN $sampleSize $newInst))
@@ -83,7 +83,7 @@
 
    (let*
      (
-      ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
+      ($instSet (match $deme (mkSInstSet $instS) $instS))
       (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
       ;; Match the half-open [sampleStart, sampleStart + sampleSize) range
       ;; passed to std::partial_sort in C++.
@@ -127,7 +127,7 @@
 (= (crossTopThree $deme $nToMake $sampleStart $sampleSize $baseInstance)
   (let*
      (
-      ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
+      ($instSet (match $deme (mkSInstSet $instS) $instS))
 
         (($prevInst $newInst) (List.splitAt $sampleStart $instSet))
         ;; Restrict ranking to the recorded C++ sample window.
