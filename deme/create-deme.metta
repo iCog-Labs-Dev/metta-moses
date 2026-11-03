@@ -14,8 +14,14 @@
 (= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
       (let* 
             (
+                  ((mkDemeId $firstDemeId) (List.head $demeIds))
+                  ($featureSelectionDeme
+                    (py-call (demeSpaceName.featureSelectionDemeSpaceName $firstDemeId)))
+                  ($_ (add-atom $featureSelectionDeme (mkRep () ())))
+                  ($_ (add-atom $featureSelectionDeme (mkSInstSet ())))
+                  ($_ (add-atom $featureSelectionDeme (mkDemeId ())))
                   ($candidateReps
-                    (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType))
+                    (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType $featureSelectionDeme))
                   ($reps (expandableRepresentations $candidateReps))
             ) 
             (loopCreateDemeSpace $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.

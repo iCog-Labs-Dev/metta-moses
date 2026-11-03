@@ -20,7 +20,6 @@
 !(import! &self parameters/cli)
 !(import! &self parameters/domain-loader)
 ;; ---- Utilities ----
-!(import! &self deme/demeSpaceName.py)
 !(import! &self utilities/list-methods)
 !(import! &self utilities/pair)
 !(import! &self utilities/map)
