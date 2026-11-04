@@ -68,9 +68,7 @@
 (= (optimizeDemeCounted $demeSpace $optimizerContext $optimize $localLimit)
    (let* (
           ((mkRep (mkKbMap (mkDscMp $dscKbMp)) $tree)
-            (match $demeSpace
-              (mkRep (mkKbMap (mkDscMp $matchedDscMp)) $matchedTree)
-              (mkRep (mkKbMap (mkDscMp $matchedDscMp)) $matchedTree)))
+            (getDemeRep $demeSpace))
           ($generatedList (createInitialInstance $dscKbMp))
           ($_generated
             (if (param diagnostics)
@@ -134,9 +132,9 @@
    (List.flatten
      (map-atom $demes $demeSpace
        (let* (
-              ($rep (match $demeSpace (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
-              ($demeId (match $demeSpace (mkDemeId $id) (mkDemeId $id)))
-              ($instances (match $demeSpace (mkSInstSet $rows) $rows))
+              ($rep (getDemeRep $demeSpace))
+              ($demeId (getDemeId $demeSpace))
+              ($instances (getDemeInstances $demeSpace))
              )
          (map-atom $instances $scoredInst
            (getCandidate $rep $demeId (getInst $scoredInst)))))))
@@ -151,9 +149,9 @@
 ;; attached score and does not invoke the problem scorer during diagnostics.
 (= (rawBestExemplarFromDeme $demeSpace $mergeContext)
    (let* (
-          ($rep (match $demeSpace (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
-          ($demeId (match $demeSpace (mkDemeId $id) (mkDemeId $id)))
-          ($scoredInstances (match $demeSpace (mkSInstSet $rows) (mkSInstSet $rows)))
+          ($rep (getDemeRep $demeSpace))
+          ($demeId (getDemeId $demeSpace))
+          ($scoredInstances (getDemeInstSet $demeSpace))
           ($rawBest (bestRawScoredInstance $scoredInstances))
          )
      (if (== $rawBest ())

@@ -21,7 +21,7 @@
          ;; ($_ (println! (debug inside hcFtSetPop)))
          ($fsParams (withFsScorer $fsHyperparams $scorerType))
          (((mkInst $inst1) $updatedDeme $state) (hillClimbing $featureSelectionDeme $iTable (mkInst $centerInst) (mkParams applyMutualInformationBasedScore $fsParams))) ;; runs the hillclimbing feature selector
-         ($list (match $updatedDeme (mkSInstSet $instances) $instances))
+         ($list (getDemeInstances $updatedDeme))
          ($listOfScoresetPairs (getHcFtPop $list))                                                    ;; separates the scores from the previous output and puts them in a score feature-set pair tuple -- as list of
          ($size (size-atom $listOfScoresetPairs))
         )

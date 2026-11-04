@@ -162,7 +162,7 @@
 (= (mergeOffspring $origDeme $newInstances1 $newInstances2 $newInstances3)
    (let*
       (
-       ($origSet (match $origDeme (mkSInstSet $instances) $instances))
+       ($origSet (getDemeInstances $origDeme))
        ;; List.appendList(a, b) is implemented as append(b, a). Reverse the
        ;; helper arguments so first-occurrence deduplication sees
        ;; the same one-, two-, then three-simplex order as the C++ driver.
@@ -221,7 +221,7 @@
 ;; Project the raw-best score directly from a deme's attached scored rows.
 (= (bestRawDeme $demeSpace)
    (bestRawScore
-     (match $demeSpace (mkSInstSet $scoredInstances) $scoredInstances)))
+     (getDemeInstances $demeSpace)))
 
 ;; `()` is a safe cache-miss marker because real scores are constructed values.
 (= (cachedScoreForTree $tree ()) ())
@@ -392,16 +392,16 @@
 ;; then use the run cache and the suffix-only path above.
 (= (seedAttachedCandidateScores $demeSpace $context)
    (let* (
-          ($rep (match $demeSpace (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
-          ($id (match $demeSpace (mkDemeId $demeId) (mkDemeId $demeId)))
-          ($instances (match $demeSpace (mkSInstSet $rows) $rows))
+          ($rep (getDemeRep $demeSpace))
+          ($id (getDemeId $demeSpace))
+          ($instances (getDemeInstances $demeSpace))
          )
      (seedTreeScoreCache $instances $rep $id $context ())))
 ;; crossover for feature selection
 ;; (: crossoverFs (-> Number Number Number Number Instance DemeSpace ((InstanceSet $a) Number)))
 (= (crossoverFs $size $nNewInstances $sampleStart $sampleSize $centerInst $demeSpace)
    (let* (
-          ($before (match $demeSpace (mkSInstSet $instances) $instances))
+          ($before (getDemeInstances $demeSpace))
           ($updated
             (crossTopOneFs
               $demeSpace $nNewInstances
@@ -490,7 +490,7 @@
       ((mkParams applyComplexityBasedScore)
         (let*
           (
-            ($representation (match $deme (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
+            ($representation (getDemeRep $deme))
             ($disc (getDiscMap $representation))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer))
             ($_seedAttached
@@ -528,7 +528,7 @@
       ((mkParams applyActionBasedScore)
         (let*
           (
-            ($representation (match $deme (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
+            ($representation (getDemeRep $deme))
             ($disc (getDiscMap $representation))
             (($nTrials $complexityRatio) $scorerArgs)
             ;; $tTableBscorer is the scalar target score for this action arm.
@@ -570,10 +570,10 @@
               ()))
 
         ($rep
-          (let (mkRep $kbMapValue $treeValue) (match $deme (mkRep $kbMap $tree) (mkRep $kbMap $tree))
+          (let (mkRep $kbMapValue $treeValue) (getDemeRep $deme)
             (if (and (== $kbMapValue ()) (== $treeValue ())) () (mkRep $kbMapValue $treeValue))))
         ($id
-          (let (mkDemeId $demeIdValue) (match $deme (mkDemeId $demeId) (mkDemeId $demeId))
+          (let (mkDemeId $demeIdValue) (getDemeId $deme)
             (if (== $demeIdValue ()) () (mkDemeId $demeIdValue))))
         ;; A feature-selection DemeSpace holds an empty rep and an empty id.
         ($isFeatureSelection (or (== $rep ()) (== $id ())))
@@ -595,7 +595,7 @@
           (if $isFeatureSelection
               $currentNInstances
               (List.length
-                (match $deme (mkSInstSet $currentInstances) $currentInstances))))
+                (getDemeInstances $deme))))
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
         ;; Honor the C++ crossover switch.

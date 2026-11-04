@@ -275,7 +275,7 @@
      (
        ($kbMp (match $demeSpace (mkRep $matchedKbMp $tree) $matchedKbMp))
        ((mkKbMap (mkDscMp $disc)) $kbMp)
-       ($instList (match $demeSpace (mkSInstSet $list) $list))
+       ($instList (getDemeInstances $demeSpace))
        ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (countNeighborhood $kbMp $centerInst $dist $numNewInstances)
@@ -318,7 +318,7 @@
 (= (sampleNewInstancesFs $totalNeighbors $numNewInstances $centerInst $itable $demeSpace $dist)
    (let*
      (
-       ($instList (match $demeSpace (mkSInstSet $list) $list))
+       ($instList (getDemeInstances $demeSpace))
        ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (countNeighborhoodFs $centerInst $dist $numNewInstances)

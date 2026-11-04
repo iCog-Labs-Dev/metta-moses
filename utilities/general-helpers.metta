@@ -360,6 +360,13 @@
 )
 
 ;; Function to empty a space with contents.
+;; DemeSpace accessors. A DemeSpace holds one (mkRep ...), one (mkSInstSet ...)
+;; and one (mkDemeId ...).
+(= (getDemeRep $demeSpace) (match $demeSpace (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
+(= (getDemeId $demeSpace) (match $demeSpace (mkDemeId $id) (mkDemeId $id)))
+(= (getDemeInstSet $demeSpace) (match $demeSpace (mkSInstSet $rows) (mkSInstSet $rows)))
+(= (getDemeInstances $demeSpace) (match $demeSpace (mkSInstSet $rows) $rows))
+
 (= (clearSpace $space)
    (collapse (let $content (get-atoms $space) (remove-atom $space $content))))
    

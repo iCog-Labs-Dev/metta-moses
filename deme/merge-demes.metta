@@ -267,9 +267,9 @@
         (let*
         (
             (($headDeme $tailDeme) (decons-atom $demes))
-            ($rep (match $headDeme (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
-            ($sInstList (match $headDeme (mkSInstSet $instances) (mkSInstSet $instances)))
-            ($demeId (match $headDeme (mkDemeId $id) (mkDemeId $id)))
+            ($rep (getDemeRep $headDeme))
+            ($sInstList (getDemeInstSet $headDeme))
+            ($demeId (getDemeId $headDeme))
             ($sortedSInstList (sortDeme $sInstList)) ;; sorting the instances inside the deme by decreasing order
             ($_ (if (param diagnostics)
                    (println! (Demesize:

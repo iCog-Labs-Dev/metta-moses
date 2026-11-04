@@ -51,7 +51,7 @@
     (((mkParams applyComplexityBasedScore)
         (let*
           (
-            ($representation (match $deme (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
+            ($representation (getDemeRep $deme))
             ($disc (getDiscMap $representation))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer)))
           (simulated-annealing $deme
@@ -101,11 +101,10 @@
               ;; ($_ (println! ""))
               ;; ($_ (println! $hyper))
               ;; ($_ (println! ($rows $labels)))
-              ($rep (let $return (match $deme (mkRep $knmp $tree) (mkRep $knmp $tree)) (if (== $return (mkRep () ())) () $return)))
-              ($id (let $returnn (match $deme (mkDemeId $dmid) (mkDemeId $dmid)) (if (== $returnn (mkDemeId ())) () $returnn)))
+              ($rep (let $return (getDemeRep $deme) (if (== $return (mkRep () ())) () $return)))
+              ($id (let $returnn (getDemeId $deme) (if (== $returnn (mkDemeId ())) () $returnn)))
               ($originalInstSet
-                (match $deme (mkSInstSet $instances)
-                             (mkSInstSet $instances)))
+                (getDemeInstSet $deme))
 
               ($totalNNeighbors ($estimateFunction $d $neighborhood))
 
