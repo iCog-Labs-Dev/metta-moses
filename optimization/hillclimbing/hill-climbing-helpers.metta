@@ -159,10 +159,10 @@
 ;; Combines offspring produced by the three crossover operators, removes
 ;; duplicates, appends new instances after the original deme, and returns the
 ;; updated deme together with the number of newly added instances.
-(= (mergeOffspring $origDeme $newInstances1 $newInstances2 $newInstances3)
+(= (mergeOffspring $demeSpace $newInstances1 $newInstances2 $newInstances3)
    (let*
       (
-       ($origSet (getDemeInstances $origDeme))
+       ($origSet (getDemeInstances $demeSpace))
        ;; List.appendList(a, b) is implemented as append(b, a). Reverse the
        ;; helper arguments so first-occurrence deduplication sees
        ;; the same one-, two-, then three-simplex order as the C++ driver.
@@ -184,8 +184,8 @@
              (not (once (is-member $inst $origInstances))))))
        ($finalSet (List.appendList $freshNewInstances $origSet))
        ($nNewAdded (List.length $freshNewInstances))
-       ($_ (remove-atom $origDeme (mkSInstSet $origSet)))
-       ($_ (add-atom $origDeme (mkSInstSet $finalSet)))
+       ($_ (remove-atom $demeSpace (mkSInstSet $origSet)))
+       ($_ (add-atom $demeSpace (mkSInstSet $finalSet)))
       )
      ((mkSInstSet $finalSet) $nNewAdded)
 ))
@@ -195,19 +195,19 @@
 ;; Distributes the crossover budget across 1-, 2-, and 3-simplex operators,
 ;; collects their offspring, merges the results, removes duplicates,
 ;; and returns the updated deme and count of newly added instances.
-;; (: crossover (-> Number Number Instance Deme (Deme Number)))
-(= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $deme)
+;; (: crossover (-> Number Number Instance DemeSpace (DemeSpace Number)))
+(= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $demeSpace)
 
    ;; Keep the crossover population configurable; 120 is the C++ default.
     (let*
       (
        ($nToMake (min $nNewInstances (param hcCrossoverPopSize)))
 
-       ($newInstances1 (crossTopOne $deme (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst))
-       ($newInstances2 (crossTopTwo $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
-       ($newInstances3 (crossTopThree $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
+       ($newInstances1 (crossTopOne $demeSpace (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst))
+       ($newInstances2 (crossTopTwo $demeSpace (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
+       ($newInstances3 (crossTopThree $demeSpace (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
       )
-      (mergeOffspring $deme $newInstances1 $newInstances2 $newInstances3)
+      (mergeOffspring $demeSpace $newInstances1 $newInstances2 $newInstances3)
 )
  )
 
@@ -472,33 +472,33 @@
 ;;      If not, check if no crossover was made and if so increase the distance by 1.
 ;;      If it is the first time through the loop, we should not exit but we should set the distance to 1 and retry the iteration.
 
-;; (: hillClimbing (-> Deme (TruthTableBScore $a) Instance (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state))))
-(= (hillClimbing $deme $tTableBscorer $centerInst) 
-    (hillClimbing $deme $tTableBscorer $centerInst (mkParams applyComplexityBasedScore ())))
+;; (: hillClimbing (-> DemeSpace (TruthTableBScore $a) Instance (-> DemeSpace (TruthTableBScore $a) Instance $Scorer (Instance DemeSpace $state))))
+(= (hillClimbing $demeSpace $tTableBscorer $centerInst) 
+    (hillClimbing $demeSpace $tTableBscorer $centerInst (mkParams applyComplexityBasedScore ())))
     
-;; (: hillClimbing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
+;; (: hillClimbing (-> DemeSpace (TruthTableBScore $a) Instance $Scorer (Instance DemeSpace $state)))
 ;; The second slot of `mkParams` carries the arguments the chosen scorer needs:
 ;;   applyComplexityBasedScore        -- ()
 ;;   applyMutualInformationBasedScore -- ($miConfi $prePenalty $preMinActivation
 ;;                                        $preMaxActivation $prePositive $scorerType),
 ;;                                       or () to fall back to the defaults
 ;;   applyActionBasedScore            -- ($nTrials $complexityRatio)
-;; ($optimize $deme $targetScore $inst (mkParams applyActionBasedScore ($nTrials $complexityRatio)))
-(= (hillClimbing $deme $tTableBscorer $centerInst (mkParams $scorer $scorerArgs))
+;; ($optimize $demeSpace $targetScore $inst (mkParams applyActionBasedScore ($nTrials $complexityRatio)))
+(= (hillClimbing $demeSpace $tTableBscorer $centerInst (mkParams $scorer $scorerArgs))
   (case (mkParams $scorer)
     (
       ((mkParams applyComplexityBasedScore)
         (let*
           (
-            ($representation (getDemeRep $deme))
+            ($representation (getDemeRep $demeSpace))
             ($disc (getDiscMap $representation))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer))
             ($_seedAttached
-              (seedAttachedCandidateScores $deme ($iTable $cpxCoeff)))
+              (seedAttachedCandidateScores $demeSpace ($iTable $cpxCoeff)))
           )
           (hillClimbing ((min (param maxDist) (List.length (second $centerInst))) (param minXoverNeighbors) 0)
                         (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
-                        $deme
+                        $demeSpace
                         ($disc $cpxCoeff $size $iTable)
                         $centerInst
                         ()
@@ -518,7 +518,7 @@
           ;; Mutual information and precision both peak at 1.0, unlike the deme
           ;; scores which peak at 0.
           (hillClimbing ((min (param maxDist) (List.length (second $centerInst))) (param minXoverNeighbors) 1.0) (False False False $centerInst 0 0 0 0 0 0 1)
-              $deme
+              $demeSpace
               ($labels $rows () ())
               $centerInst
               $fsHyperparams
@@ -528,7 +528,7 @@
       ((mkParams applyActionBasedScore)
         (let*
           (
-            ($representation (getDemeRep $deme))
+            ($representation (getDemeRep $demeSpace))
             ($disc (getDiscMap $representation))
             (($nTrials $complexityRatio) $scorerArgs)
             ;; $tTableBscorer is the scalar target score for this action arm.
@@ -539,7 +539,7 @@
           ;; tagged payload before candidate scoring.
           (hillClimbing ((param maxDist) (param minXoverNeighbors) $targetPenScore)
                         (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
-                        $deme
+                        $demeSpace
                         ($disc $nTrials mkActionCtx $complexityRatio)
                         $centerInst
                         ()
@@ -549,7 +549,7 @@
 
 (= (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore) ;; Constant parameters
                  ($alreadyXover $lastChance $prevHasImproved $prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i)
-                 $deme
+                 $demeSpace
                  ($neighborhood $rowOCoeff $size $iTable)
                  $centerInst
                  $fsHyperparams
@@ -569,8 +569,8 @@
                            (distance $d) (neighbors $totalNNeighbors)))
               ()))
 
-        ($rep (getDemeRep $deme))
-        ($id (getDemeId $deme))
+        ($rep (getDemeRep $demeSpace))
+        ($id (getDemeId $demeSpace))
         ;; A feature-selection DemeSpace holds an empty rep and an empty id.
         ($isFeatureSelection (or (== $rep (mkRep () ())) (== $id (mkDemeId ()))))
 
@@ -591,7 +591,7 @@
           (if $isFeatureSelection
               $currentNInstances
               (List.length
-                (getDemeInstances $deme))))
+                (getDemeInstances $demeSpace))))
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
         ;; Honor the C++ crossover switch.
@@ -612,11 +612,11 @@
         (($updatedInstSet $newInstances)
           (if $xOver
               ;; Cross the previous sample relative to the center from which it was generated.
-              ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $prevCenter $deme)
+              ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $prevCenter $demeSpace)
               ;; Only the feature-selection arm has an empty $size.
               (if (== $size ())
-                  ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst (mkITable $rowOCoeff $neighborhood) $deme $d)
-                  (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst $deme $d)
+                  ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst (mkITable $rowOCoeff $neighborhood) $demeSpace $d)
+                  (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst $demeSpace $d)
                     ;; (trace! ("Result: " $result)
                     $result
                     ;; )
@@ -658,9 +658,11 @@
                            (cumulativeLocal $updatedEvalCount)))
               ()))
 
-        ($_ (remove-atom $deme (mkSInstSet $oldinstset)))
-        ($_ (add-atom $deme (mkSInstSet $scoredInstances)))
-        ($updatedDeme $deme)
+        ;; The unbound pattern removes whichever set is stored: crossoverFs returns
+        ;; a new set without storing it, so the stored set can differ from the old one.
+        ($_ (remove-atom $demeSpace (mkSInstSet $storedInstances)))
+        ($_ (add-atom $demeSpace (mkSInstSet $scoredInstances)))
+        
         
         ;; ($sExprList (List.listToExpr $scoredInstances))
         ;; ($amr (map-atom $sExprList $inst (let (mkSInst $x) $inst (println! (Inst: (List.listToExpr (second (Pair.first $x))) Tree: (preOrder (getCandidate $rep $id (Pair.first $x))) Score: (getPenScore (Pair.second $x)))))))
@@ -693,12 +695,12 @@
         ($hillStepResult (if (and (== $totalNNeighbors 1) (== $nextDistance 1))
                                   (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
                                                 ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $prevStart $prevSize $nextBestSscore $nextBestScore $updatedEvalCount $nextDistance (+ 1 $i)) ;; Updated state
-                                                $updatedDeme
+                                                $demeSpace
                                                 ($neighborhood $rowOCoeff $size $iTable)
                                                 $nextCenterInst
                                                 $fsHyperparams
                                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
-                                  ($nextCenterInst $updatedDeme ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentDemeSize $newInstances $nextBestSscore $nextBestScore $updatedEvalCount $nextDistance $i))))
+                                  ($nextCenterInst $demeSpace ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentDemeSize $newInstances $nextBestSscore $nextBestScore $updatedEvalCount $nextDistance $i))))
         (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)) $hillStepResult)
         
         ;; Termination check compares against the scalar `$bestPossibleScore`,

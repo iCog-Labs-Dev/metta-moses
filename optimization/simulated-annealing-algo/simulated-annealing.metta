@@ -41,20 +41,20 @@
   )
 )
 
-;;(: simulated-annealing (-> Deme (TruthTableBScore $a) Instance (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state))))
-(= (simulated-annealing $deme $tTableBscorer $initCenter)
-    (simulated-annealing $deme $tTableBscorer $initCenter (mkParams applyComplexityBasedScore ())))
+;;(: simulated-annealing (-> DemeSpace (TruthTableBScore $a) Instance (-> DemeSpace (TruthTableBScore $a) Instance $Scorer (Instance DemeSpace $state))))
+(= (simulated-annealing $demeSpace $tTableBscorer $initCenter)
+    (simulated-annealing $demeSpace $tTableBscorer $initCenter (mkParams applyComplexityBasedScore ())))
 
-;;(: simulated-annealing (-> Deme (TruthTableBScore $a) Instance $Scorer (Instance Deme $state)))
-(= (simulated-annealing $deme $tTableBscorer $initCenter (mkParams $scorer $scorerArgs))
+;;(: simulated-annealing (-> DemeSpace (TruthTableBScore $a) Instance $Scorer (Instance DemeSpace $state)))
+(= (simulated-annealing $demeSpace $tTableBscorer $initCenter (mkParams $scorer $scorerArgs))
   (case (mkParams $scorer)
     (((mkParams applyComplexityBasedScore)
         (let*
           (
-            ($representation (getDemeRep $deme))
+            ($representation (getDemeRep $demeSpace))
             ($disc (getDiscMap $representation))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer)))
-          (simulated-annealing $deme
+          (simulated-annealing $demeSpace
                         ($disc $cpxCoeff $size $iTable)
                         $initCenter
                         (1 3 0) 
@@ -72,7 +72,7 @@
             ;; ($_ (println! (Rows: $rows)))
             ;; ($_ (println! (Labels: $labels)))
           )
-          (simulated-annealing $deme
+          (simulated-annealing $demeSpace
               ($labels $rows () ())
               $initCenter
               (3 3 1) 
@@ -83,7 +83,7 @@
               sampleNewInstancesFs transformFs
           ))))))
 
-(= (simulated-annealing $deme 
+(= (simulated-annealing $demeSpace 
                          ($neighborhood $rowOCoeff $size $iTable)
                          $initCenter
                          ($maxDist $minXoverNeighbors $bestPossibleScore) ;; $constParams
@@ -93,7 +93,7 @@
                          $estimateFunction $crossoverFunction $samplingFunction $transformFunction
                          )
     (if (or (<= $temp $finalTemp) (<= $maxIter 0))
-          ($prevCenter $deme ($prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i))
+          ($prevCenter $demeSpace ($prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i))
           (let*
             (
               ;; Estimate Neighborhood
@@ -101,12 +101,12 @@
               ;; ($_ (println! ""))
               ;; ($_ (println! $hyper))
               ;; ($_ (println! ($rows $labels)))
-              ($rep (getDemeRep $deme))
-              ($id (getDemeId $deme))
+              ($rep (getDemeRep $demeSpace))
+              ($id (getDemeId $demeSpace))
               ;; A feature-selection DemeSpace holds an empty rep and an empty id.
               ($isFeatureSelection (or (== $rep (mkRep () ())) (== $id (mkDemeId ()))))
               ($originalInstSet
-                (getDemeInstSet $deme))
+                (getDemeInstSet $demeSpace))
 
               ($totalNNeighbors ($estimateFunction $d $neighborhood))
 
@@ -122,11 +122,11 @@
               
               (($updatedInstSet $newInstances)
                 (if $xOver
-                    ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $deme)
+                    ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $demeSpace)
                     ;; Only the feature-selection arm has an empty $size.
                     (if (== $size ())
-                        ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $deme $d)
-                        (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $deme $d)
+                        ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $demeSpace $d)
+                        (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $demeSpace $d)
                           ;; (trace! ("Result: " $result) )))
                           $result))))
               ;; ($_ (println! (Newinstances: $updatedInstSet)))
@@ -144,8 +144,10 @@
                                                                   )
                                                 ($transformFunction $updatedInstSet $rep $id $iTable $rowOCoeff)))
               ;; Remove old instance set and update with new scored instances
-              ($_ (remove-atom $deme (mkSInstSet $s)))
-              ($_ (add-atom $deme (mkSInstSet $scoredInstances)))
+              ;; The unbound pattern removes whichever set is stored: crossoverFs returns
+              ;; a new set without storing it, so the stored set can differ from the old one.
+              ($_ (remove-atom $demeSpace (mkSInstSet $storedInstances)))
+              ($_ (add-atom $demeSpace (mkSInstSet $scoredInstances)))
 
               ;; ($_ (println! (Scored instances: $scoredInstances)))
               ;; ($_ (println! ""))
@@ -186,8 +188,8 @@
               ($_ (if $isAccepted
                       ()
                       (let* (
-                             ($_ (remove-atom $deme (mkSInstSet $scoredInstances)))
-                             ($_ (add-atom $deme $originalInstSet))
+                             ($_ (remove-atom $demeSpace (mkSInstSet $scoredInstances)))
+                             ($_ (add-atom $demeSpace $originalInstSet))
                             )
                         ())))
               
@@ -202,7 +204,7 @@
 
                           
             )
-            (simulated-annealing $deme
+            (simulated-annealing $demeSpace
                                 ($neighborhood $rowOCoeff $size $iTable)
                                 $initCenter
                                 ($maxDist $minXoverNeighbors $bestPossibleScore) ;; $constParams

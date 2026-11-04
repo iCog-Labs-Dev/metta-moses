@@ -10,11 +10,11 @@
 ;;                      which will be a cross of the highest-scoring instance with the
 ;;                      next-highest scoring instances.
 
-;; (: crossTopOne (-> Deme Number Number Number Instance Deme))
- (= (crossTopOne $deme $nToMake $sampleStart $sampleSize $baseInstance)
+;; (: crossTopOne (-> DemeSpace Number Number Number Instance DemeSpace))
+ (= (crossTopOne $demeSpace $nToMake $sampleStart $sampleSize $baseInstance)
    (let*
       (
-       ($instSet (getDemeInstances $deme))
+       ($instSet (getDemeInstances $demeSpace))
        ($nToMakeNew (min (- $sampleSize 1) $nToMake))
        ;; Restrict partial_sort to the recorded sample window and request one
        ;; reference plus nToMake targets.
@@ -80,11 +80,11 @@
 ;; Intended for use by a higher-level crossover routine that combines
 ;; offspring instances from multiple crossover operators and merges them back into
 ;; the population
-(= (crossTopTwo $deme $nToMake $sampleStart $sampleSize $baseInstance)
+(= (crossTopTwo $demeSpace $nToMake $sampleStart $sampleSize $baseInstance)
 
    (let*
      (
-      ($instSet (getDemeInstances $deme))
+      ($instSet (getDemeInstances $demeSpace))
       ;; Match the half-open [sampleStart, sampleStart + sampleSize) range
       ;; passed to std::partial_sort in C++.
       ($sample (sampleWindow $instSet $sampleStart $sampleSize))
@@ -124,10 +124,10 @@
 ;; Intended for use by a higher-level crossover routine that combines
 ;; instances from multiple crossover operators and merges them back into
 ;; the population.
-(= (crossTopThree $deme $nToMake $sampleStart $sampleSize $baseInstance)
+(= (crossTopThree $demeSpace $nToMake $sampleStart $sampleSize $baseInstance)
   (let*
      (
-      ($instSet (getDemeInstances $deme))
+      ($instSet (getDemeInstances $demeSpace))
 
         ;; Restrict ranking to the recorded C++ sample window.
         ($sample (sampleWindow $instSet $sampleStart $sampleSize))
