@@ -10,43 +10,38 @@
 ;; CountTable: It counts True Positives (pos) and False Positives (neg) for each unique input pattern
 ;; 
 ;; Input:
-;;   $rows: List of data rows, each containing feature values + target
-;;          Example: ((True True True) (True False False) (False True False))
-;;   $targetIndex: Index of the target column (usually last column)
-;;                Example: If we have 3 columns [A, B, Output], targetIndex = 2
+;;   $rowIndex: Current row index (0 .. rowCount-1)
+;;   $inputCols: List of input feature columns
+;;   $targetCol: Target column
 ;;   $acc: Accumulator Map storing results from previous rows
 ;; 
 ;; Output:
 ;;   Map from input pattern -> (pos_count neg_count)
 ;;   Example: (cons ((False False) (2 2)) (cons ((True False) (0 3)) (cons ((False True) (3 0)) ())))
-; (: countTable (-> Expression Number (Map $k $v) (Map Expression (Number Number))))
-(= (countTable $row $targetIndex $acc)
-   (if (== $row ())
-      ()
-      (let* (
-            ($inputPart (takeN $targetIndex $row)) ;; Extract input features (all columns except target)
-            ($targetVal (index-atom $row $targetIndex)) ;; Get target value (True/False)
-            
-            (($pos $neg) (if (Map.contains $inputPart $acc)
-                           (Map.getByKey $inputPart $acc)
-                           (0 0))) ;; Get existing counts for this input pattern, or initialize to (0,0)
+; (: countTable (-> Number (List (List $a)) (List $a) (Map $k $v) (Map Expression (Number Number))))
+(= (countTable $rowIndex $inputCols $targetCol $acc)
+   (let* (
+         ($inputPattern (map-atom $inputCols $col (index-atom $col $rowIndex)))
+         ($targetVal (index-atom $targetCol $rowIndex))
 
-            ($newCounts (if $targetVal ;; Update counts based on target value
-                           ((+ $pos 1) $neg)       ;; True target: increment positive count
-                           ($pos (+ $neg 1))))    ;; False target: increment negative count
+         (($pos $neg) (if (Map.contains $inputPattern $acc)
+                        (Map.getByKey $inputPattern $acc)
+                        (0 0)))
 
-            )   
-      (Map.insert ($inputPart $newCounts) $acc == ==) ;; used == comparator since the ordering doesn't matter we just need unorderedMap not orderedMap
-      )
+         ($newCounts (if $targetVal
+                        ((+ $pos 1) $neg)
+                        ($pos (+ $neg 1))))
+         )
+      (Map.insert ($inputPattern $newCounts) $acc == ==)
    )
 )
 
-;; Build compressed table (CTable) by grouping identical input patterns
+;; Build compressed table (cTable) directly from the column-major ITable
 ; The structure of the CTable is referred from the below test file 
 ; Reference: https://github.com/opencog/moses/blob/master/tests/moses/precision2.ctable
 ;;
 ;; Input:
-;;   $rows: All data rows
+;;   $columns: Column-major payload ((col0...) (col1...) ... (targetCol...))
 ;;   $labels: Column labels (features + target)
 ;; 
 ;; Output:
@@ -54,13 +49,17 @@
 ;;
 ;; Example:
 ;;    (cons ((False False) (2 2)) (cons ((True False) (0 3)) (cons ((False True) (3 0)) ())))
-; (: cTable (-> Expression Expression (Map Expression (Number Number))))
-(= (cTable $rows $labels)
+; (: cTable (-> (List (List $a)) Expression (Map Expression (Number Number))))
+(= (cTable $columns $labels)
    (let* (
           ($targetIndex (- (size-atom $labels) 1))
+          ($inputCols (takeN $targetIndex $columns))
+          ($targetCol (index-atom $columns $targetIndex))
+          ($rowCount (ITable.rowCount $columns))
+          ($rowIndices (List.range 0 $rowCount))
          
-          ($grouped (foldl-atom $rows () $acc $row
-                              (countTable $row $targetIndex $acc)))
+          ($grouped (foldl-atom $rowIndices () $acc $rowIndex
+                              (countTable $rowIndex $inputCols $targetCol $acc)))
          )
      $grouped)
 )
@@ -259,7 +258,7 @@
 ;; 4. Run greedy best_possible_bscore algorithm to find optimal score
 ;;
 ;; Parameters:
-;;   $rows (Expression): Raw data rows from filtered table
+;;   $columns (Expression): Column-major payload from the filtered ITable
 ;;   $labels (Expression): Column labels for the filtered table
 ;;   $activationPressure (Number): Penalty scaling for activation constraints
 ;;   $minActivation (Number): Minimum acceptable activation ratio (early stopping condition)
@@ -272,10 +271,10 @@
 ;; could achieve using only the selected features while respecting activation
 ;; constraints. It's used by hill climbing to evaluate feature set quality.
 ; (: precisionBScore (-> Expression Expression Number Number Number Number Number Number Number))
-(= (precisionBScore $rows $labels $activationPressure $minActivation $maxActivation $totalWeight)
+(= (precisionBScore $columns $labels $activationPressure $minActivation $maxActivation $totalWeight)
    (let* (
             ;; ($_ (println! (debug Inside Precision scoring)))
-            ($groupedData (cTable $rows $labels))
+            ($groupedData (cTable $columns $labels))
             
             ($precisionRows (createPrecisionRows $groupedData))
             
@@ -289,11 +288,11 @@
 ;; Extract selected features plus target column from full dataset
 ;; Input:
 ;;   $featureIndices:  selected feature column indices
-;;   $rows: Original table data
+;;   $columns: Original column-major table data
 ;;   $labels: Column labels
 ;;
 ;; Output:
-;;   Expression like (filtered_rows filtered_labels) containing only selected features + target
+;;   Expression like (filtered_columns filtered_labels) containing only selected features + target
 ; (: extractTable (-> Expression (List (List $a)) (List Symbol) (Expression Expression)))
 (= (extractTable $featureIndices $columns $labels)
    (let* (
@@ -302,8 +301,8 @@
           ;; Combine selected features with target index
           ($exprIndices (appendAtom $targetIndex $featureIndices))
 
-          ;; Extract selected columns from each row
-          ($filteredColumns (zipColumn $exprIndices $columns))
+          ;; Extract selected columns while preserving column-major layout
+          ($filteredColumns (map-atom $exprIndices $i (index-atom $columns $i)))
           ;; Extract corresponding labels
           ($filteredLabels (map-atom $exprIndices $each (List.at $each $labels)))
           ($filteredExpr (List.listToExpr $filteredColumns))

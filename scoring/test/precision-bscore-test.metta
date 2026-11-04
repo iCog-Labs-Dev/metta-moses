@@ -1,9 +1,9 @@
-!(import! &self ../../../metta-moses/utilities/general-helpers)
-!(import! &self ../../../metta-moses/utilities/list-methods)
-!(import! &self ../../../metta-moses/utilities/map)
-!(import! &self ../../../metta-moses/utilities/ordered-multimap)
-!(import! &self ../../../metta-moses/feature-selection/feature-selection-helpers)
-!(import! &self ../../../metta-moses/scoring/precision-bscore)
+!(import! &self ../../utilities/general-helpers)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/map)
+!(import! &self ../../utilities/ordered-multimap)
+!(import! &self ../../feature-selection/feature-selection-helpers)
+!(import! &self ../../scoring/precision-bscore)
 
 (= (andTable) 
    (mkITable
@@ -31,11 +31,11 @@
 
 
 ;; Test of cTable
-!(assertEqual (cTable ((True True True) (True False False) (False True False) (False False False)) (A B Output)) 
+!(assertEqual (cTable ((True True False False) (True False True False) (True False False False)) (A B Output)) 
             (cons ((True True) (1 0)) (cons ((True False) (0 1)) (cons ((False True) (0 1)) (cons ((False False) (0 1)) ()))))
   )
 
-!(assertEqual (cTable ((False False False) (True False False) (False False False) (True False False) (True False False) (False False True) (False False True) (False True True) (False True True) (False True True)) (v1 v2 target))
+!(assertEqual (cTable ((False True False True True False False False False False) (False False False False False False False True True True) (False False False False False True True True True True)) (v1 v2 target))
             (cons ((False False) (2 2)) (cons ((True False) (0 3)) (cons ((False True) (3 0)) ())))
   )
 
@@ -78,12 +78,12 @@
 (= (testLabels) (cons A (cons B (cons C (cons D (cons Output ()))))))
 
 !(assertEqual (extractTable (0) (testRows) (testLabels))
-                 (((True True) (True True) (False False) (False False)) (A Output))) ;; single feature extraction
+                 (((True True False False) (True True False False)) (A Output))) ;; single feature extraction
 !(assertEqual (extractTable (0 1) (testRows) (testLabels)) 
-                (((True True True) (True False True) (False True False) (False False False)) (A B Output))) ;; two feature extraction
+                (((True True False False) (True False True False) (True True False False)) (A B Output))) ;; two feature extraction
 
 !(assertEqual (extractTable () (testRows) (testLabels))
-            (((True) (True) (False) (False)) (Output))  ;; only extracts the labels
+            (((True True False False)) (Output))  ;; only extracts the labels
 )
 
 
@@ -97,11 +97,11 @@
 !(assertEqual (bestPossibleBScore ((1.0 (1.0 2)) (0.5 (0.5 2))) 0.0 0.0 4 0.5 1.0 1.0 0.0) 1.0)
 
 ; Test of PrecisionBScore
-!(assertEqual (precisionBScore ((True True True) (False False False)) (A B Output) 1.0 0.5 1.0 2) 1.0)
+!(assertEqual (precisionBScore ((True False) (True False) (True False)) (A B Output) 1.0 0.5 1.0 2) 1.0)
 
                                                                                                                                                                                                                                                     ;; this is the actual result in the moses test file too for precisionTable which is 5/7 = 0.7142857142857143
                                                                                                                                                                                                                                                     ;; reference: https://github.com/opencog/moses/blob/master/tests/moses/scoringUTest.cxxtest#L55
-!(assertEqual (precisionBScore ((False False False) (True False False) (False False False) (True False False) (True False False) (False False True) (False False True) (False True True) (False True True) (False True True)) (v1 v2 target) 1.0 0.5 1.0 10) 0.7142857142857143)
+!(assertEqual (precisionBScore ((False True False True True False False False False False) (False False False False False False False True True True) (False False False False False True True True True True)) (v1 v2 target) 1.0 0.5 1.0 10) 0.7142857142857143)
 
 ;; Test of prescorer
 !(assertEqual (preScorer (1) (andTable) 1.0 0.5 1.0 True 0.001) 0.4000799677107699)
