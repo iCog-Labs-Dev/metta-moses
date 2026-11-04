@@ -569,14 +569,10 @@
                            (distance $d) (neighbors $totalNNeighbors)))
               ()))
 
-        ($rep
-          (let (mkRep $kbMapValue $treeValue) (getDemeRep $deme)
-            (if (and (== $kbMapValue ()) (== $treeValue ())) () (mkRep $kbMapValue $treeValue))))
-        ($id
-          (let (mkDemeId $demeIdValue) (getDemeId $deme)
-            (if (== $demeIdValue ()) () (mkDemeId $demeIdValue))))
+        ($rep (getDemeRep $deme))
+        ($id (getDemeId $deme))
         ;; A feature-selection DemeSpace holds an empty rep and an empty id.
-        ($isFeatureSelection (or (== $rep ()) (== $id ())))
+        ($isFeatureSelection (or (== $rep (mkRep () ())) (== $id (mkDemeId ()))))
 
         ;; Counted expansion installs this deme's fair share of the remaining
         ;; complete-run budget. Direct calls fall back to maxEvals. A large

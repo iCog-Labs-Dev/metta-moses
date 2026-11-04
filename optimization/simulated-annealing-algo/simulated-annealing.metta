@@ -101,8 +101,10 @@
               ;; ($_ (println! ""))
               ;; ($_ (println! $hyper))
               ;; ($_ (println! ($rows $labels)))
-              ($rep (let $return (getDemeRep $deme) (if (== $return (mkRep () ())) () $return)))
-              ($id (let $returnn (getDemeId $deme) (if (== $returnn (mkDemeId ())) () $returnn)))
+              ($rep (getDemeRep $deme))
+              ($id (getDemeId $deme))
+              ;; A feature-selection DemeSpace holds an empty rep and an empty id.
+              ($isFeatureSelection (or (== $rep (mkRep () ())) (== $id (mkDemeId ()))))
               ($originalInstSet
                 (getDemeInstSet $deme))
 
@@ -137,7 +139,7 @@
               ($scorerType (if (== () $fsScorerType) mi $fsScorerType))
               (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive) (if (== () $fsHyperParamsTuple) (() () () () ()) $fsHyperParamsTuple))
               ;; Score the new instance
-              ((mkSInstSet $scoredInstances) (if (or (== $rep ()) (== $id ())) 
+              ((mkSInstSet $scoredInstances) (if $isFeatureSelection 
                                                 ($transformFunction $updatedInstSet 
                                                                   (mkITable $rowOCoeff $neighborhood)
                                                                   $miConfi $prePenalty
@@ -153,7 +155,7 @@
               ;; ($_ (println! ""))
 
               ((mkSInst $newBestInstPair) (List.foldl ((curry2 returnBest) <) (mkSInst (mkPair $prevCenter  $bestSscore)) $scoredInstances))
-              ($newBestScore (if (or (== $rep ()) (== $id ())) 
+              ($newBestScore (if $isFeatureSelection 
                                 (Pair.second $newBestInstPair)
                                 (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
               ($hasImproved (> $newBestScore (+ $bestScore 0.5))) ;; Hard coded the score_improved function for now. This is automated in the C++ version.
@@ -164,7 +166,7 @@
               ;; ($_ (println! ""))
 
               ;; Calculate the energy of the current and new instance, and the acceptanceProb
-              ($pScore (if (== $rep ()) $bestSscore (getPenScore $bestSscore)))
+              ($pScore (if $isFeatureSelection $bestSscore (getPenScore $bestSscore)))
               ($energy (getEnergy $pScore))
               ($newEnergy (getEnergy $newBestScore))
               ($acceptanceProb (acceptanceProb $energy $newEnergy $temp))
