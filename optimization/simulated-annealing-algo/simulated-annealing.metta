@@ -120,19 +120,15 @@
               ;; ($_ (println! (Crossover: $xOver)))
               ;; Generate a new instance using crossover
               
-              (($updatedInstSet $newInstances) (case ($xOver $size)
-                                                                   (
-                                                                ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $deme)
-                                                                              ($updatedInstSet $newInstances)))
-                                                                ((True $notEmpty)  ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $deme))
-                                                                ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $deme $d)
-                                                                              ($updatedInstSet $newInstances)))
-                                                                ((False $notEmpty) 
-                                                                        (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $deme $d)
-                                                                        ;; (trace! ("Result: " $result) )))
-                                                                        $result))
-                                                              )
-                                                                    ))
+              (($updatedInstSet $newInstances)
+                (if $xOver
+                    ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $deme)
+                    ;; Only the feature-selection arm has an empty $size.
+                    (if (== $size ())
+                        ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter (mkITable $rowOCoeff $neighborhood) $deme $d)
+                        (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $prevCenter $deme $d)
+                          ;; (trace! ("Result: " $result) )))
+                          $result))))
               ;; ($_ (println! (Newinstances: $updatedInstSet)))
               ;; ($_ (println! ""))
               

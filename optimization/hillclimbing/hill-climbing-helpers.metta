@@ -609,24 +609,18 @@
           (if $progressEnabled
               (println! ($totalNNeighbors : $nNewNeighbors : $d))
               ()))
-        ( 
-          ($updatedInstSet $newInstances)
-                                                            (case ($xOver $size)
-                                                              (
-                                                                ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $prevCenter $deme)
-                                                                              ($updatedInstSet $newInstances)))
-                                                                ;; Cross the previous sample relative to the center from which it was generated.
-                                                                ((True $notEmpty)  ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $prevCenter $deme))
-                                                                ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst (mkITable $rowOCoeff $neighborhood) $deme $d)
-                                                                              ($updatedInstSet $newInstances)))
-                                                                ((False $notEmpty)
-                                                                        (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst $deme $d)
-                                                                        ;; (trace! ("Result: " $result)
-                                                                                $result
-                                                                        ;; )
-                                                                        ))
-                                                              )
-                                                          ))
+        (($updatedInstSet $newInstances)
+          (if $xOver
+              ;; Cross the previous sample relative to the center from which it was generated.
+              ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $prevCenter $deme)
+              ;; Only the feature-selection arm has an empty $size.
+              (if (== $size ())
+                  ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst (mkITable $rowOCoeff $neighborhood) $deme $d)
+                  (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst $deme $d)
+                    ;; (trace! ("Result: " $result)
+                    $result
+                    ;; )
+                    ))))
         ;; ($_ (println! (New POASet: $newPOA)))
         ;; ($_ (println! (New rep: $rep)))
         ;; ($_ (println! (New Inst: $newInstances at Distance: $d)))
