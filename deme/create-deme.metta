@@ -1,8 +1,16 @@
-;; Represents a population of program instances with the same representation 
-;; but different knob settings, along with their scores
-;; (: Deme Type)
-;; (: mkDeme (-> Representation (InstanceSet $score) DemeId Deme))
-;; createDeme creates demes with an empty instance set and gives each one a deme id.
+;; A DemeSpace is an atomspace for one deme. It holds a population of program
+;; instances with the same representation but different knob settings, along with
+;; their scores: one (mkRep ...), one (mkSInstSet ...) and one (mkDemeId ...).
+
+;; Reset a DemeSpace to its initial state, with an empty instance set.
+(= (initDemeSpace $demeSpace $rep $id)
+   (let* (($_clear (clearSpace $demeSpace))
+          ($_rep (add-atom $demeSpace $rep))
+          ($_set (add-atom $demeSpace (mkSInstSet ())))
+          ($_id (add-atom $demeSpace $id)))
+     $demeSpace))
+
+;; createDeme creates a DemeSpace with an empty instance set for each deme id.
 ;;             $nDeme --      number of demes to create
 ;;             $demeIds --    list of deme ids (cons ...)
 ;;             $exemplar --   the exemplar tree which the demes are going to be based on
@@ -11,7 +19,7 @@
 ;;             $pruneExemplar     --   prune the exemplar or not
 ;;             $enforcedFts  --   tuple of enforced features to sample during feature selection, if any, as (arg selection-probability) pairs
 ;;             $scorerType --  the feature-set scorer type
-;;             returns ↠ tuple of demes
+;;             returns ↠ tuple of DemeSpaces
 ;; (: createDeme (-> Number (List DemeId) (Tree $a) (ITable $a) Symbol Bool Expression Symbol Expression)) 
 (= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $pruneExemplar $enforcedFts $scorerType)
       (let* 
@@ -19,10 +27,7 @@
                   ((mkDemeId $firstDemeId) (List.head $demeIds))
                   ($featureSelectionDeme
                     (py-call (demeSpaceName.featureSelectionDemeSpaceName $firstDemeId)))
-                  ($_ (clearSpace $featureSelectionDeme))
-                  ($_ (add-atom $featureSelectionDeme (mkRep () ())))
-                  ($_ (add-atom $featureSelectionDeme (mkSInstSet ())))
-                  ($_ (add-atom $featureSelectionDeme (mkDemeId ())))
+                  ($_init (initDemeSpace $featureSelectionDeme (mkRep () ()) (mkDemeId ())))
                   ($candidateReps
                     (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $pruneExemplar $enforcedFts $scorerType $featureSelectionDeme))
                   ($reps (expandableRepresentations $candidateReps))
@@ -39,7 +44,7 @@
 ;;             $exemplar --    the exemplar tree which the demes are going to be based on
 ;;             $actions --     tuple of domain action symbols (knob vocabulary)
 ;;             $perceptions -- tuple of perception symbols (may be ())
-;;             returns ↠ tuple of demes
+;;             returns ↠ tuple of DemeSpaces
 ;; (: createDeme (-> Number (List DemeId) (Tree $a) Expression Expression Expression))
 (= (createDeme $nDeme $demeIds $exemplar $actions $perceptions)
       (let $reps (createRepresentation $nDeme $exemplar $actions $perceptions)
@@ -73,10 +78,7 @@
             (if (representationExpandable $rep)
                 (let* (
                        ($demeSpace (py-call (demeSpaceName.demeSpaceName $id)))
-                       ($_clear (clearSpace $demeSpace))
-                       ($_rep (add-atom $demeSpace $rep))
-                       ($_set (add-atom $demeSpace (mkSInstSet ())))
-                       ($_id (add-atom $demeSpace (mkDemeId $id)))
+                       ($_init (initDemeSpace $demeSpace $rep (mkDemeId $id)))
                       )
                   (union-atom $acc ($demeSpace)))
                 $acc))
