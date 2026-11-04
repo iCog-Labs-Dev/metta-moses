@@ -220,6 +220,8 @@
                ($bestPosssibleScore (if (== (get-type $bsParam) Number)
                                         $bsParam
                                         (getBestPossibleScore)))
+               ;; Rescale diversity pressure to problem score range if diversityAutoscale is enabled
+               ($_ (autoscaleDiversity $bestPosssibleScore $worstScore))
                ($metaPop
                   ((mkExemplar (mkTree (mkNode true) ())
                                (mkDemeId "1")
@@ -248,7 +250,6 @@
 ;; the recursion, so we seed it once here before (problem-context)
         ;; may invoke any scorer that depends on it.
         ($_  (set-param genCount $maxGen))
-
         (($context $metaPop $bestPossibleScore) (problem-context))
         ($_ (println! (BestPossibleScore: $bestPossibleScore)))
 

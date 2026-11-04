@@ -18,6 +18,14 @@
 ; (: usefulScoreRange (-> Number Number))
 (= (usefulScoreRange $compTemp) (/ (* $compTemp 30.0) 100.0))
 
+;; Identifies culled candidates by filtering out surviving individuals
+;; from the pre-resize metapopulation.
+(= (findCulledCandidates () $surviving) ())
+(= (findCulledCandidates (cons $cand $rest) $surviving)
+   (if (once (is-member $cand $surviving))
+       (findCulledCandidates $rest $surviving)
+       (cons $cand (findCulledCandidates $rest $surviving))))
+
 ; (: resizeMetapop (-> (OS (Exemplar $a)) (OS (Exemplar $a))))
 (= (resizeMetapop (cons $exemplar $rest))
     (let ($size $capSize) ((OS.length (cons $exemplar $rest)) (int (capSize (param capCoef) (param genCount)))) ;; bind two variables with two function calls
@@ -34,10 +42,15 @@
 
                ($reducedMetapop (getBetterCandidates (cons $exemplar $rest) $worstScore))
                ($popSize (OS.length $reducedMetapop))
+               ($surviving (if (<= $popSize $capSize)
+                               $reducedMetapop
+                               (cullAtRandom $reducedMetapop (param nToKeep) (- $popSize $capSize))))
+               ;; Identify culled candidates and evict their pairwise distance entries
+               ;; from &dstCache to prevent unbounded cache growth across generations.
+               ($culled (findCulledCandidates (cons $exemplar $rest) $surviving))
+               ($_ (eraseCandidateSeqFromDstCache $culled))
               )
-              (if (<= $popSize $capSize)
-                  $reducedMetapop
-                  (cullAtRandom $reducedMetapop (param nToKeep) (- $popSize $capSize)))
+              $surviving
            ))))
 ;;TODO: for large minPoolSize if the returned resizedMetapop size is less than minPoolSize we may still need to add random candidates to reach minPoolSize
 
@@ -80,7 +93,7 @@
 ;;   (Exemplar $a): First exemplar 
 ;;   (Exemplar $a): Second exemplar 
 ;; Return: L (less), E (equal), or G (greater)
-; (: compareExemplar (-> (Exemplar $a) (Exemplar $a) Atom))
+;; (: compareExemplar (-> (Exemplar $a) (Exemplar $a) Atom))
 (= (compareExemplar 
         (mkExemplar $tree1 $demeId1 $cscore1 $bscr1)
         (mkExemplar $tree2 $demeId2 $cscore2 $bscr2))

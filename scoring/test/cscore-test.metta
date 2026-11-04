@@ -111,3 +111,36 @@
   ($objResult (apply < $score3 $score4))
 ) (== $exprResult $objResult)) True)
 
+;; ============================================================
+;; Tests for cScore>= (standard 2-arg and overloaded 4-arg)
+;; ============================================================
+
+;; 1. Standard 2-arg: Penalized score strictly greater
+!(assertEqual (cScore>= (mkCscore 0.0 2 0.1 0.0 -0.5) (mkCscore 0.0 2 0.1 0.0 -0.8)) True)
+!(assertEqual (cScore>= (mkCscore 0.0 2 0.1 0.0 -0.8) (mkCscore 0.0 2 0.1 0.0 -0.5)) False)
+
+;; 2. Standard 2-arg: Penalized score tied -> lower complexity wins
+!(assertEqual (cScore>= (mkCscore 0.0 2 0.1 0.0 -0.5) (mkCscore 0.0 3 0.1 0.0 -0.5)) True)
+!(assertEqual (cScore>= (mkCscore 0.0 3 0.1 0.0 -0.5) (mkCscore 0.0 2 0.1 0.0 -0.5)) False)
+
+;; 3. Overloaded 4-arg: Penalized score and complexity tied -> higher raw score wins
+!(assertEqual (cScore>= (mkCscore -2.0 3 0.1 0.0 -3.0) 
+                        (mkCscore -3.0 3 0.1 0.0 -3.0) 
+                        (buildTree (quote (AND A B C))) 
+                        (buildTree (quote (AND A B C)))) True)
+!(assertEqual (cScore>= (mkCscore -3.0 3 0.1 0.0 -3.0) 
+                        (mkCscore -2.0 3 0.1 0.0 -3.0) 
+                        (buildTree (quote (AND A B C))) 
+                        (buildTree (quote (AND A B C)))) False)
+
+;; 4. Overloaded 4-arg: Penalized score, complexity, AND raw score tied -> smaller tree size wins
+;; Tree 1: (AND A B C) -> complexity 3, treeSize 4
+;; Tree 2: (AND A (OR (NOT B) (NOT C))) -> complexity 3, treeSize 7
+!(assertEqual (cScore>= (mkCscore -3.0 3 0.1 0.0 -3.0) 
+                        (mkCscore -3.0 3 0.1 0.0 -3.0) 
+                        (buildTree (quote (AND A B C))) 
+                        (buildTree (quote (AND A (OR (NOT B) (NOT C)))))) True)
+!(assertEqual (cScore>= (mkCscore -3.0 3 0.1 0.0 -3.0) 
+                        (mkCscore -3.0 3 0.1 0.0 -3.0) 
+                        (buildTree (quote (AND A (OR (NOT B) (NOT C))))) 
+                        (buildTree (quote (AND A B C)))) False)
