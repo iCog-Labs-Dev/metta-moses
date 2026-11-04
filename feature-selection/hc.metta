@@ -15,12 +15,13 @@
 ;;      $fsHyperparams  -- the scorer hyper parameters as one list, in the order
 ;;                         defaultFsHyperparams builds them
 ;; Commented out: ITable has no type definition, so every call reduces to Empty.
-;; (: hcFtSetPop (-> (ITable $a) Instance Symbol Expression Expression))
-(= (hcFtSetPop $iTable $centerInst $scorerType $fsHyperparams)
+;; (: hcFtSetPop (-> (ITable $a) Instance Symbol Expression DemeSpace Expression))
+(= (hcFtSetPop $iTable $centerInst $scorerType $fsHyperparams $featureSelectionDeme)
   (let* (
          ;; ($_ (println! (debug inside hcFtSetPop)))
          ($fsParams (withFsScorer $fsHyperparams $scorerType))
-         (((mkInst $inst1) (mkSInstSet $list) $state) (hillClimbing (mkSInstSet ()) $iTable (mkInst $centerInst) (mkParams applyMutualInformationBasedScore $fsParams))) ;; runs the hillclimbing feature selector
+         (((mkInst $inst1) $updatedDeme $state) (hillClimbing $featureSelectionDeme $iTable (mkInst $centerInst) (mkParams applyMutualInformationBasedScore $fsParams))) ;; runs the hillclimbing feature selector
+         ($list (match $updatedDeme (mkSInstSet $instances) $instances))
          ($listOfScoresetPairs (getHcFtPop $list))                                                    ;; separates the scores from the previous output and puts them in a score feature-set pair tuple -- as list of
          ($size (size-atom $listOfScoresetPairs))
         )

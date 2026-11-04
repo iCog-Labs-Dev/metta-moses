@@ -16,11 +16,18 @@
 (= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $pruneExemplar $enforcedFts $scorerType)
       (let* 
             (
+                  ((mkDemeId $firstDemeId) (List.head $demeIds))
+                  ($featureSelectionDeme
+                    (py-call (demeSpaceName.featureSelectionDemeSpaceName $firstDemeId)))
+                  ($_ (clearSpace $featureSelectionDeme))
+                  ($_ (add-atom $featureSelectionDeme (mkRep () ())))
+                  ($_ (add-atom $featureSelectionDeme (mkSInstSet ())))
+                  ($_ (add-atom $featureSelectionDeme (mkDemeId ())))
                   ($candidateReps
-                    (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $pruneExemplar $enforcedFts $scorerType))
+                    (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $pruneExemplar $enforcedFts $scorerType $featureSelectionDeme))
                   ($reps (expandableRepresentations $candidateReps))
             ) 
-            (loopCreateDeme $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
+            (loopCreateDemeSpace $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
       ) 
 )
 
@@ -36,7 +43,7 @@
 ;; (: createDeme (-> Number (List DemeId) (Tree $a) Expression Expression Expression))
 (= (createDeme $nDeme $demeIds $exemplar $actions $perceptions)
       (let $reps (createRepresentation $nDeme $exemplar $actions $perceptions)
-            (loopCreateDeme $demeIds $reps ())))
+            (loopCreateDemeSpace $demeIds $reps ())))
 
 ;; Classic C++ MOSES discards every representation whose field set is empty,
 ;; regardless of the scoring domain. An empty MeTTa disc map is equivalent:
@@ -55,16 +62,23 @@
    (filter-atom $representations $rep
      (representationExpandable $rep)))
 
-;; Pair each representation with the next deme id. A rep that is not
-;; expandable still uses up its id (the action path does not pre-filter).
-(= (loopCreateDeme $demeIds () $acc) $acc)
-(= (loopCreateDeme $demeIds (cons $rep $reps) $acc)
+;; Store each expandable representation and its initial state in a DemeSpace.
+;; A rep that is not expandable still uses up its id (the action path does not
+;; pre-filter).
+(= (loopCreateDemeSpace $demeIds () $acc) $acc)
+(= (loopCreateDemeSpace $demeIds (cons $rep $reps) $acc)
    (let* (
-          ($demeId (List.head $demeIds))
-          ($deme (mkDeme $rep (mkSInstSet ()) $demeId))
+          ((mkDemeId $id) (List.head $demeIds))
           ($newAcc
             (if (representationExpandable $rep)
-                (union-atom $acc ($deme))
+                (let* (
+                       ($demeSpace (py-call (demeSpaceName.demeSpaceName $id)))
+                       ($_clear (clearSpace $demeSpace))
+                       ($_rep (add-atom $demeSpace $rep))
+                       ($_set (add-atom $demeSpace (mkSInstSet ())))
+                       ($_id (add-atom $demeSpace (mkDemeId $id)))
+                      )
+                  (union-atom $acc ($demeSpace)))
                 $acc))
          )
-     (loopCreateDeme (List.tail $demeIds) $reps $newAcc)))
+     (loopCreateDemeSpace (List.tail $demeIds) $reps $newAcc)))

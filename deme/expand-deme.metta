@@ -65,16 +65,19 @@
 
 ;; Optimize one deme under its fair share of the remaining complete-run
 ;; allowance. The temporary state is restored for direct optimizer callers.
-(= (optimizeDemeCounted (mkDeme (mkRep (mkKbMap (mkDscMp $dscKbMp)) $tree) $scoredInstances $demeId) $optimizerContext $optimize $localLimit)
+(= (optimizeDemeCounted $demeSpace $optimizerContext $optimize $localLimit)
    (let* (
+          ((mkRep (mkKbMap (mkDscMp $dscKbMp)) $tree)
+            (match $demeSpace
+              (mkRep (mkKbMap (mkDscMp $matchedDscMp)) $matchedTree)
+              (mkRep (mkKbMap (mkDscMp $matchedDscMp)) $matchedTree)))
           ($generatedList (createInitialInstance $dscKbMp))
           ($_generated
             (if (param diagnostics)
                 (println! (GeneratedList: $generatedList))
                 ()))
-          ($deme (mkDeme (mkRep (mkKbMap (mkDscMp $dscKbMp)) $tree) $scoredInstances $demeId))
           ($_setLocalLimit (change-state! &localEvalLimit $localLimit))
-          (($inst $optimizedDeme $state) (optimizeDeme $deme $optimizerContext (mkInst $generatedList) $optimize))
+          (($inst $optimizedDeme $state) (optimizeDeme $demeSpace $optimizerContext (mkInst $generatedList) $optimize))
           ($_restoreLocalLimit (change-state! &localEvalLimit -1))
          )
      ($optimizedDeme (hillStateEvaluationCount $state))))
@@ -129,9 +132,14 @@
 ;; Diagnostics materialize each candidate once before treeSpace is cleared.
 (= (diagnosticDemeTrees $demes)
    (List.flatten
-     (map-atom $demes (mkDeme $rep (mkSInstSet $instances) $demeId)
+     (map-atom $demes $demeSpace
+       (let* (
+              ($rep (match $demeSpace (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
+              ($demeId (match $demeSpace (mkDemeId $id) (mkDemeId $id)))
+              ($instances (match $demeSpace (mkSInstSet $rows) $rows))
+             )
          (map-atom $instances $scoredInst
-           (getCandidate $rep $demeId (getInst $scoredInst))))))
+           (getCandidate $rep $demeId (getInst $scoredInst)))))))
 
 ;; Breaks raw-score ties by lower complexity; an exact tie retains the earlier candidate.
 (= (betterRawExemplar () $candidate) $candidate)
@@ -141,11 +149,17 @@
 
 ;; Convert only a deme's raw-best scored row into an exemplar. This reuses its
 ;; attached score and does not invoke the problem scorer during diagnostics.
-(= (rawBestExemplarFromDeme (mkDeme $rep $scoredInstances $demeId) $mergeContext)
-   (let $rawBest (bestRawScoredInstance $scoredInstances)
+(= (rawBestExemplarFromDeme $demeSpace $mergeContext)
+   (let* (
+          ($rep (match $demeSpace (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
+          ($demeId (match $demeSpace (mkDemeId $id) (mkDemeId $id)))
+          ($scoredInstances (match $demeSpace (mkSInstSet $rows) (mkSInstSet $rows)))
+          ($rawBest (bestRawScoredInstance $scoredInstances))
+         )
      (if (== $rawBest ())
          ()
-         (List.head (demeToTrees (mkDeme $rep (mkSInstSet ($rawBest)) $demeId) $mergeContext)))))
+         (List.head
+           (demeToTrees $rep (mkSInstSet ($rawBest)) $demeId $mergeContext)))))
 
 ;; Fold the per-deme raw champions into one expansion-wide raw champion.
 (= (bestRawExemplarFromDemes $demes $mergeContext)

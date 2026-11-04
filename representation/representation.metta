@@ -5,7 +5,7 @@
 ;; (: Representation Type)
 ;; (: mkRep (-> KnobMap (Tree $a) Representation))
 
-;; (: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol Expression))
+;; (: representation (-> Number (Tree $a) (ITable $a) Symbol bool Expression Symbol DemeSpace Expression))
 (= (representation
 ;; Boolean representation constructor with feature selection
 ;; Params: Number of demes, Tree (Exemplar), ITable, feature selection params
@@ -17,8 +17,9 @@
             $pruneExemplar             ;; bool to decide to prune the exemplar or keep the exemplar as is
             $enforcedFts               ;; set of features to be enforced in to selected features
             $scorerType                 ;; can MI or precision_bscore
+            $featureSelectionDeme       ;; working DemeSpace used by hill-climbing feature selection
         )
-        (representation $nDeme $exemplar (mkITable $table $labels) $ftSelectionAlgo $pruneExemplar $enforcedFts $scorerType True))
+        (representation $nDeme $exemplar (mkITable $table $labels) $ftSelectionAlgo $pruneExemplar $enforcedFts $scorerType $featureSelectionDeme True))
 
 ;; restrictToIncorrect -- classic restrict_incorrect: feed feature selection only
 ;; the rows the exemplar mispredicts, with the exemplar's own columns blanked out.
@@ -61,6 +62,7 @@
             $pruneExemplar
             $enforcedFts
             $scorerType
+            $featureSelectionDeme
             $discProbeDisabled
         )
         
@@ -72,7 +74,7 @@
                  ;; ($_ (println! "before featureSelector"))
                  ($ftSetPop (if (== $ftSelectionAlgo None)
                                   ((genList 0 (- (List.length $labels) 2))) ;; Applying all labels as features
-                                  (featureSelector $ftSelectionAlgo (restrictToIncorrect $exemplar (mkITable $table $labels)) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme $scorerType)) ;; FS on the exemplar's mispredicted rows (classic restrict_incorrect, with full-table fallback)
+                                  (featureSelector $ftSelectionAlgo (restrictToIncorrect $exemplar (mkITable $table $labels)) 0.0 $exemplar 2 2 False () False 2 False ja $nDeme $scorerType $featureSelectionDeme)) ;; FS on the exemplar's mispredicted rows (classic restrict_incorrect, with full-table fallback)
                  )
                  ;; ($_ (println! (Selected Features after feature Selection $ftSetPop)))
                  ($exemplarArgSeq                                           ;; apply exemplar feature pruning
@@ -125,4 +127,3 @@
                   ($discMap (mkDscMp $dscMp))
                )
                (mkRep (mkKbMap $discMap) $updatedTree)))
-

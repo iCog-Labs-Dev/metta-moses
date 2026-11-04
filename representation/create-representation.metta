@@ -2,17 +2,17 @@
 ;; does that). Representation building subtracts them from the argument list.
 
 ;; createRepresentation -- calls on the representation building procedure
-;; (: createRepresentation (-> Number (Tree $a) (ITable $a) Symbol Bool Expression Symbol Representation))
-;; For boolean: createRepresentation($nDeme, $tree, $itable, $algo, $prune, $enforced, $scorer)
+;; (: createRepresentation (-> Number (Tree $a) (ITable $a) Symbol Bool Expression Symbol DemeSpace Representation))
+;; For boolean: createRepresentation($nDeme, $tree, $itable, $algo, $prune, $enforced, $scorer, $featureSelectionDeme)
 
-;; Boolean logic representation (7 parameters)
-;; The eighth arg to `representation` is `$discProbeDisabled`, so we negate
+;; Boolean logic representation (8 parameters)
+;; The ninth arg to `representation` is `$discProbeDisabled`, so we negate
 ;; the user-facing `discProbe` knob (True == enabled) when forwarding.
-(= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $pruneExemplar $enforcedFts $scorerType)
+(= (createRepresentation $nDeme $tree (mkITable $table $labels) $algo $pruneExemplar $enforcedFts $scorerType $featureSelectionDeme)
    ;; Return the whole list. Binding one mkRep here makes one branch per
    ;; representation instead of one shared budget for all demes.
    (representation $nDeme $tree (mkITable $table $labels) $algo
-                   $pruneExemplar $enforcedFts $scorerType
+                   $pruneExemplar $enforcedFts $scorerType $featureSelectionDeme
                    (not (param discProbe))))
 
 ;; Action representation (4 parameters): the action and perception vocabularies

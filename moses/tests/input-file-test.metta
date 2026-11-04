@@ -82,6 +82,7 @@
 !(import! &self ../demo-problems)
 
 !(callPredicate (Predicate (py_add_lib_dir "scripts" first)))
+!(callPredicate (Predicate (py_add_lib_dir "deme" first)))
 
 (= (inputCsvTable)
    (mkITable

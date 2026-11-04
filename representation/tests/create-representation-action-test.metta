@@ -1,3 +1,4 @@
+!(import! &self ../../deme/demeSpaceName.py)
 !(import! &self ../../utilities/general-helpers)
 ;; parameters load FIRST (mirrors moses.metta): create-representation's
 ;; action clause reads (param actions)/(param perceptions), and
@@ -63,7 +64,7 @@
          (> (MultiMap.length $m) 0)))))
   (2 (True True)))
 
-;; createDeme wraps each rep in an empty-instance-set mkDeme, ids in order
+;; createDeme stores each rep with an empty instance set and its id, in order
 !(assertEqual
   (let $demes (createDeme 2
                 (cons (mkDemeId "act1") (cons (mkDemeId "act2") ()))
@@ -71,7 +72,14 @@
                 (crtGo crtTurn crtWait) (crtBlocked))
     ((size-atom $demes)
      (map-atom $demes $d
-       (let (mkDeme (mkRep (mkKbMap (mkDscMp $m)) $t) $instSet $id) $d
+       (let* (
+              ((mkRep (mkKbMap (mkDscMp $m)) $t)
+                (match $d (mkRep (mkKbMap (mkDscMp $map)) $tree)
+                          (mkRep (mkKbMap (mkDscMp $map)) $tree)))
+              ($instSet (match $d (mkSInstSet $instances)
+                                  (mkSInstSet $instances)))
+              ($id (match $d (mkDemeId $demeId) (mkDemeId $demeId)))
+             )
          ($id $instSet (> (MultiMap.length $m) 0))))))
   (2 (((mkDemeId "act1") (mkSInstSet ()) True)
       ((mkDemeId "act2") (mkSInstSet ()) True))))

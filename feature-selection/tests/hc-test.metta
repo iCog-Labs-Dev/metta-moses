@@ -82,29 +82,59 @@
 
 (= (centerInst) (cons 1 (cons 0 (cons 0 (cons 0 ())))))
 
+!(bind! &hcMiDeme (new-space))
+!(add-atom &hcMiDeme (mkRep () ()))
+!(add-atom &hcMiDeme (mkSInstSet ()))
+!(add-atom &hcMiDeme (mkDemeId ()))
+
+!(bind! &hcPreDeme (new-space))
+!(add-atom &hcPreDeme (mkRep () ()))
+!(add-atom &hcPreDeme (mkSInstSet ()))
+!(add-atom &hcPreDeme (mkDemeId ()))
+
+!(bind! &hcLowConfidenceDeme (new-space))
+!(add-atom &hcLowConfidenceDeme (mkRep () ()))
+!(add-atom &hcLowConfidenceDeme (mkSInstSet ()))
+!(add-atom &hcLowConfidenceDeme (mkDemeId ()))
+
+!(bind! &hcSeededFeatureSelectionDeme (new-space))
+!(add-atom &hcSeededFeatureSelectionDeme (mkRep () ()))
+!(add-atom &hcSeededFeatureSelectionDeme (mkSInstSet ()))
+!(add-atom &hcSeededFeatureSelectionDeme (mkDemeId ()))
+
+!(bind! &hcSeededDirectDeme (new-space))
+!(add-atom &hcSeededDirectDeme (mkRep () ()))
+!(add-atom &hcSeededDirectDeme (mkSInstSet ()))
+!(add-atom &hcSeededDirectDeme (mkDemeId ()))
+
+!(bind! &hcEmptySeedDeme (new-space))
+!(add-atom &hcEmptySeedDeme (mkRep () ()))
+!(add-atom &hcEmptySeedDeme (mkSInstSet ()))
+!(add-atom &hcEmptySeedDeme (mkDemeId ()))
+
 ;;                                            miConfi prePenalty preMinAct preMaxAct prePositive
-!(assertEqual (hcFtSetPop (ttable2) (centerInst) mi (50.0 1.0 0.5 1.0 True))
+!(assertEqual (hcFtSetPop (ttable2) (centerInst) mi (50.0 1.0 0.5 1.0 True) &hcMiDeme)
     ((1.0 (0 2)) (0.5 (0 1)) (0.311 (0 3)) (0.311 (0)) (0.0 ())))
 
 ;; Same search scored by precision. The runners-up score differently, which is what
 ;; catches a silent fall back to mutual information.
-!(assertEqual (hcFtSetPop (ttable2) (centerInst) pre (50.0 1.0 0.5 1.0 True))
+!(assertEqual (hcFtSetPop (ttable2) (centerInst) pre (50.0 1.0 0.5 1.0 True) &hcPreDeme)
     ((1.0 (0 2)) (0.6666666666666666 (0 1)) (0.5 (0 3)) (0.5 (0)) (0.0 ())))
 
 ;; miConfi reaches the scorer: at low confidence the same feature sets score lower.
-!(assertEqual (hcFtSetPop (ttable2) (centerInst) mi (0.001 1.0 0.5 1.0 True))
+!(assertEqual (hcFtSetPop (ttable2) (centerInst) mi (0.001 1.0 0.5 1.0 True) &hcLowConfidenceDeme)
     ((0.8003197748694354 (0 2)) (0.4001598874347177 (0 1)) (0.2488994499843944 (0 3))
      (0.24884973991609888 (1)) (0.24884973991609888 (2)) (0.24884973991609888 (0))
      (0.0 (3)) (0.0 ())))
 
 ;; Initial features reach the search: going through featureSelection with A as the
 ;; initial feature has to seed the same instance the calls above hand-build.
-!(assertEqual (featureSelection hc (ttable2) 0 0 (0) mi)
-    (hcFtSetPop (ttable2) (centerInst) mi (50.0 1.0 0.5 1.0 True)))
+!(assertEqual (featureSelection hc (ttable2) 0 0 (0) mi &hcSeededFeatureSelectionDeme)
+    (hcFtSetPop (ttable2) (centerInst) mi (50.0 1.0 0.5 1.0 True) &hcSeededDirectDeme))
 
 ;; and the seed matters: from an all-zero instance the search starts farther away. It
 ;; still reaches (0 2), but it also scores the superset (0 1 2), which ties at 1.0 because
 ;; A and C already decide the output, and it returns a different population.
-!(assertEqual (featureSelection hc (ttable2) 0 0 () mi)
+!(assertEqual (featureSelection hc (ttable2) 0 0 () mi &hcEmptySeedDeme)
     ((1.0 (0 1 2)) (1.0 (0 2)) (0.5 (0 1 3)) (0.5 (0 1)) (0.311 (0 3)) (0.311 (0))
      (0.311 (1)) (0.311 (2)) (0.0 (3)) (0.0 ())))

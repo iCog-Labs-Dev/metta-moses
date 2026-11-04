@@ -12,6 +12,7 @@
 ;; into calls, and this run returned no FinalResult with no error. Only a run with
 ;; the production imports shows that.
 
+!(import! &self ../../deme/demeSpaceName.py)
 !(import! &self ../../moses-imports)
 
 ;; The CLI flags of the command above, set the way apply-cli-overrides sets them.

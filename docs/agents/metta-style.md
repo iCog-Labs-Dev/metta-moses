@@ -31,6 +31,7 @@ The team conventions are in `.github/CONTRIBUTING.md` (naming, formatting, comme
 ## 3. Constructs
 
 - `let` for one binding step, also one destructuring pattern: `(let ($op $children) $exp ...)`. `let*` for several steps. Never nest `let`s.
+- Do not use `chain` in new code. It serves no purpose in this repo, because it has the same behavior as `let`. PeTTaV1 compiles both forms in one translator branch. You can refactor existing code: `(chain VALUE $x BODY)` becomes `(let $x VALUE BODY)`, and nested `chain`s become one `let*`. The first two arguments change position.
 - Destructure in the clause head or with `let`. Prefer `(cons $head $tail)` or `($op $children)` over `car-atom` and `cdr-atom` chains.
 - Make clauses mutually exclusive. If one clause matches `()`, the other matches `(cons $x $xs)`. Overlapping clauses give extra solutions or an infinite loop.
 - Write data as literals: `(1 2 (3))`, not `cons` chains. Use `cons`/`cons-atom` only to build a list from runtime values.

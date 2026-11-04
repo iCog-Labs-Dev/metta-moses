@@ -14,8 +14,7 @@
  (= (crossTopOne $deme $nToMake $sampleStart $sampleSize $baseInstance)
    (let*
       (
-       ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
-
+       ($instSet (match $deme (mkSInstSet $instS) $instS))
        ($nToMakeNew (min (- $sampleSize 1) $nToMake))
        ;; Restrict partial_sort to the recorded sample window and request one
        ;; reference plus nToMake targets.
@@ -37,9 +36,10 @@
           ))))
 
 ;; similar to the above 'crossTopOne' but with slight changes on the comparison function that is passed to List.partialSort to compare the mutualInformation based scores
-;; (: crossTopOneFs (-> (InstanceSet $a) Number Number Number Instance (InstanceSet $a)))
-(= (crossTopOneFs (mkSInstSet $instSet) $nToMake $sampleStart $sampleSize $baseInstance)
+;; (: crossTopOneFs (-> DemeSpace Number Number Number Instance (InstanceSet $a)))
+(= (crossTopOneFs $demeSpace $nToMake $sampleStart $sampleSize $baseInstance)
    (let* (
+           ($instSet (match $demeSpace (mkSInstSet $instS) $instS))
            ($nToMakeNew (min (- $sampleSize 1) $nToMake))
            ($sample (sampleWindow $instSet $sampleStart $sampleSize))
            ($list (List.partialSort instanceFs>= $sample $nToMakeNew ()))
@@ -84,7 +84,7 @@
 
    (let*
      (
-      ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
+      ($instSet (match $deme (mkSInstSet $instS) $instS))
       ;; Match the half-open [sampleStart, sampleStart + sampleSize) range
       ;; passed to std::partial_sort in C++.
       ($sample (sampleWindow $instSet $sampleStart $sampleSize))
@@ -127,7 +127,7 @@
 (= (crossTopThree $deme $nToMake $sampleStart $sampleSize $baseInstance)
   (let*
      (
-      ((mkDeme $rep (mkSInstSet $instSet) $demeId) $deme)
+      ($instSet (match $deme (mkSInstSet $instS) $instS))
 
         ;; Restrict ranking to the recorded C++ sample window.
         ($sample (sampleWindow $instSet $sampleStart $sampleSize))

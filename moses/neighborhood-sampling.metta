@@ -261,48 +261,50 @@
 (= (removeInstScore (mkSInst (mkPair $inst $score))) $inst)
 
 ;; Samples or generates new instances at a specified distance from a center instance,
-;; gives them the worst score, and updates the Deme by appending the new scored instances.
+;; gives them the worst score, and updates the DemeSpace by appending the new scored instances.
 ;; Params:
 ;;   $totalNeighbors: Estimated number of neighbors at distance $dist.
 ;;   $numNewInstances: Desired number of new instances to add.
 ;;   $centerInst: Reference instance for distance calculations.
-;;   $deme: Deme
+;;   $demeSpace: DemeSpace containing the representation and instance set.
 ;;   $dist: Distance from $centerInst for sampling/generating instances.
 ;; Returns:
-;;   (Deme Number) - Tuple of updated Deme with new scored instances appended and number of new instances added.
-;; (: sampleNewInstances (-> Number Number Instance Deme Number (Deme Number)))
-(= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) (mkSInstSet $instList) $demeId) $dist)
- (let*
-  (
-    ;; No first-knob lookup is needed here. Avoiding that unused access also
-    ;; keeps an empty knob map on the normal representation-skip path.
-    ($kbMp (mkKbMap (mkDscMp $disc)))
-    ($updatedTotalNeighbors
+;;   (InstanceSet Number) - Updated instance set and the number of genuinely new instances added.
+(= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst $demeSpace $dist)
+   (let*
+     (
+       ($kbMp (match $demeSpace (mkRep $matchedKbMp $tree) $matchedKbMp))
+       ((mkKbMap (mkDscMp $disc)) $kbMp)
+       ($instList (match $demeSpace (mkSInstSet $list) $list))
+       ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (countNeighborhood $kbMp $centerInst $dist $numNewInstances)
              $totalNeighbors))
-    ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
-                       (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
-                       (generateAllInNeighborhoodForDisc (mkDscMp $disc) $centerInst $dist)))
-    ($scoredNewInstances (List.map initInstScore $newInstances))
-    ;; A sampled vector can be repeated or can already be present in the deme.
-    ;; Preserve sampling order, append only genuinely new vectors, and return
-    ;; the number of rows that can require a scorer call.
-    ($freshInstances
-      (uniqueUnseenScoredInstances $scoredNewInstances $instList))
-    ($updatedInstList (List.concat $instList $freshInstances))
-    ($actualNewInstances (List.length $freshInstances))
- )
- ((mkDeme (mkRep $kbMp $tree) (mkSInstSet $updatedInstList) $demeId)
-  $actualNewInstances)))
+       ($newInstances
+         (if (< $numNewInstances $updatedTotalNeighbors)
+             (sampleFromNeighborhood $numNewInstances $dist $kbMp $centerInst)
+             (generateAllInNeighborhoodForDisc (mkDscMp $disc) $centerInst $dist)))
+       ($scoredNewInstances (List.map initInstScore $newInstances))
+       ;; A sampled vector can be repeated or can already be present in the deme.
+       ;; Preserve sampling order, append only genuinely new vectors, and return
+       ;; the number of rows that can require a scorer call.
+       ($freshInstances
+         (uniqueUnseenScoredInstances $scoredNewInstances $instList))
+       ($updatedInstList (List.concat $instList $freshInstances))
+       ($actualNewInstances (List.length $freshInstances))
+       ($_ (remove-atom $demeSpace (mkSInstSet $instList)))
+       ($_ (add-atom $demeSpace (mkSInstSet $updatedInstList)))
+     )
+     ((mkSInstSet $updatedInstList) $actualNewInstances)))
 
 ;; Remove duplicate sampled rows and rows whose instances are already present
 ;; in the deme, preserving the first occurrence and its sample order.
 (= (uniqueUnseenScoredInstances $sampledRows $existingRows)
-   (let* (
-          ($existingInstances (map-atom $existingRows $row (removeInstScore $row)))
-          ($uniqueSampledRows (unique-atom $sampledRows))
-         )
+   (let*
+     (
+       ($existingInstances (map-atom $existingRows $row (removeInstScore $row)))
+       ($uniqueSampledRows (unique-atom $sampledRows))
+     )
      (filter-atom $uniqueSampledRows $row
        (not
          (once
@@ -310,26 +312,30 @@
 
 ;; Similar to sampleNewInstances above, but for feature selection.
 ;; It uses countNeighborhoodFs, sampleFromNeighborhoodFs and initInstScoreFs.
-;; The multiplicity is 2 (the values 0 and 1).
+;; The multiplicity is 2 (the values 0 and 1). The DemeSpace update is the same.
 
-;; (: sampleNewInstancesFs (-> Number Number Instance (ITable Bool) (InstanceSet $a) Number ((InstanceSet $a) Number)))
-(= (sampleNewInstancesFs $totalNeighbors $numNewInstances $centerInst $itable (mkSInstSet $instList) $dist)
- (let*
-  (
-    ($updatedTotalNeighbors
+;; (: sampleNewInstancesFs (-> Number Number Instance (ITable Bool) DemeSpace Number ((InstanceSet $a) Number)))
+(= (sampleNewInstancesFs $totalNeighbors $numNewInstances $centerInst $itable $demeSpace $dist)
+   (let*
+     (
+       ($instList (match $demeSpace (mkSInstSet $list) $list))
+       ($updatedTotalNeighbors
          (if (> (* 2 $numNewInstances) $totalNeighbors)
              (countNeighborhoodFs $centerInst $dist $numNewInstances)
              $totalNeighbors))
-    ($newInstances (if (< $numNewInstances $updatedTotalNeighbors)
-                       (sampleFromNeighborhoodFs $numNewInstances $dist $itable $centerInst)
-                       (generateAllInNeighborhood (mkMultip 2) $centerInst $dist)))
-    ($scoredNewInstances (List.map initInstScoreFs $newInstances))
-    ;; Feature-selection populations obey the same append-only contract:
-    ;; retain old rows, discard duplicate vectors, and count only fresh suffix
-    ;; rows that the mutual-information scorer will actually receive.
-    ($freshInstances
-      (uniqueUnseenScoredInstances $scoredNewInstances $instList))
-    ($updatedInstList (List.concat $instList $freshInstances))
-    ($actualNewInstances (List.length $freshInstances))
- )
- ((mkSInstSet $updatedInstList) $actualNewInstances)))
+       ($newInstances
+         (if (< $numNewInstances $updatedTotalNeighbors)
+             (sampleFromNeighborhoodFs $numNewInstances $dist $itable $centerInst)
+             (generateAllInNeighborhood (mkMultip 2) $centerInst $dist)))
+       ($scoredNewInstances (List.map initInstScoreFs $newInstances))
+       ;; Feature-selection populations obey the same append-only contract:
+       ;; retain old rows, discard duplicate vectors, and count only fresh suffix
+       ;; rows that the mutual-information scorer will actually receive.
+       ($freshInstances
+         (uniqueUnseenScoredInstances $scoredNewInstances $instList))
+       ($updatedInstList (List.concat $instList $freshInstances))
+       ($actualNewInstances (List.length $freshInstances))
+       ($_ (remove-atom $demeSpace (mkSInstSet $instList)))
+       ($_ (add-atom $demeSpace (mkSInstSet $updatedInstList)))
+     )
+     ((mkSInstSet $updatedInstList) $actualNewInstances)))

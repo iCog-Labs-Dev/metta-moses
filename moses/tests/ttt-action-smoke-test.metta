@@ -20,6 +20,7 @@
 ;; PeTTa gates reduction on load order, so the stack must match).
 ;; ============================================================
 
+!(import! &self ../../deme/demeSpaceName.py)
 !(import! &self ../../utilities/general-helpers)
 !(import! &self ../../parameters/registry)
 !(import! &self ../../parameters/defaults)

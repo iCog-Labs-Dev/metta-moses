@@ -38,6 +38,7 @@ Demo problems: `parity3`, `parity4`, `disjunction3`, `majority3`, `majority5`, `
 7. **Commit as the human author only.** No AI co-author or "Generated with" line. No home paths, local tools, scratch files or debug `println!` in commits.
 8. **Match the mode.** A question gets an answer. "Find the cause" gets the cause and the evidence, not a fix. Plan first for large or risky work.
 9. **Done means evidence.** Run each touched test file and compare the ✅ count with the assert count. Then run the full suite in a standalone `metta-moses` worktree. Report the commands and the output.
+10. **Review your own work before a PR or "done".** Use `docs/agents/reviewing-prs.md`, section 7. The agent that talks to the human runs it, not a worker. Give all the findings unchanged to the human who will create the PR or mark the work done. Skip it only for a typo or a comment change. [A second look catches what the author missed.]
 
 ## Shared work
 
@@ -61,4 +62,4 @@ Write in ASD-STE100: at most 20 words in an instruction and 25 in a description,
 | `docs/agents/benchmarks.md` | makes or checks a performance claim |
 | `docs/agents/parallel-agents.md` | runs several agents, uses worktrees, or hands work over |
 | `docs/agents/git-and-prs.md` | commits, names a branch, writes a PR or prepares a release |
-| `docs/agents/reviewing-prs.md` | reviews a PR or writes an issue |
+| `docs/agents/reviewing-prs.md` | reviews a PR, reviews your own work before a PR or "done", or writes an issue |

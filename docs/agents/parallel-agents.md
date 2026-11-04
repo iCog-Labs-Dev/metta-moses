@@ -67,6 +67,7 @@ Reply only when the work is ready for review. Give:
 - A separate reviewer agent checks each worker's result against the success criteria. The reviewer did not write the code.
 - The reviewer checks correctness first: behaviour, tests (no removed or weakened test), classic alignment. Style comes last.
 - A neutral agent applies the fixes, then the reviewer checks again.
+- This loop does not replace the self-review before a PR or "done" (`reviewing-prs.md`, section 7). The orchestrator runs that review after the workers finish, not a worker. The findings of that review go to the human.
 - At most 3 rounds. Stop when no blocking finding remains. Put the nits in `notes/BACKLOG.md`.
 - Treat findings of a review agent as leads. Verify each one before you act on it.
 - For an uncertain cause, run two agents: one argues for the cause, one argues against it. The orchestrator decides with the evidence.

@@ -21,6 +21,7 @@
 ;; PART 4 calls runMoses by hand exactly as actionContext and mosesRunWith assemble it.
 ;; ============================================================================
 
+!(import! &self ../../deme/demeSpaceName.py)
 !(import! &self utilities/general-helpers)
 !(import! &self parameters/registry)
 !(import! &self parameters/defaults)

@@ -160,11 +160,9 @@
 ;; duplicates, appends new instances after the original deme, and returns the
 ;; updated deme together with the number of newly added instances.
 (= (mergeOffspring $origDeme $newInstances1 $newInstances2 $newInstances3)
-
    (let*
       (
-       ((mkDeme $rep (mkSInstSet $origSet) $demeId) $origDeme)
-
+       ($origSet (match $origDeme (mkSInstSet $instances) $instances))
        ;; List.appendList(a, b) is implemented as append(b, a). Reverse the
        ;; helper arguments so first-occurrence deduplication sees
        ;; the same one-, two-, then three-simplex order as the C++ driver.
@@ -184,12 +182,12 @@
          (filter-atom $uniqueNewInstances $row
            (let (mkSInst (mkPair $inst $_score)) $row
              (not (once (is-member $inst $origInstances))))))
-
        ($finalSet (List.appendList $freshNewInstances $origSet))
-
        ($nNewAdded (List.length $freshNewInstances))
+       ($_ (remove-atom $origDeme (mkSInstSet $origSet)))
+       ($_ (add-atom $origDeme (mkSInstSet $finalSet)))
       )
-     ((mkDeme $rep (mkSInstSet $finalSet) $demeId) $nNewAdded)
+     ((mkSInstSet $finalSet) $nNewAdded)
 ))
 
 ;; crossover
@@ -204,7 +202,7 @@
     (let*
       (
        ($nToMake (min $nNewInstances (param hcCrossoverPopSize)))
-   
+
        ($newInstances1 (crossTopOne $deme (+ (/ $nToMake 3) (% $nToMake 3)) $sampleStart $sampleSize $centerInst))
        ($newInstances2 (crossTopTwo $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
        ($newInstances3 (crossTopThree $deme (/ $nToMake 3) $sampleStart $sampleSize $centerInst))
@@ -221,8 +219,9 @@
        (if (== $bestRaw ()) $raw (max $bestRaw $raw)))))
 
 ;; Project the raw-best score directly from a deme's attached scored rows.
-(= (bestRawDeme (mkDeme $rep (mkSInstSet $scoredInstances) $id))
-   (bestRawScore $scoredInstances))
+(= (bestRawDeme $demeSpace)
+   (bestRawScore
+     (match $demeSpace (mkSInstSet $scoredInstances) $scoredInstances)))
 
 ;; `()` is a safe cache-miss marker because real scores are constructed values.
 (= (cachedScoreForTree $tree ()) ())
@@ -391,17 +390,21 @@
 ;; Direct hill-climbing callers may provide an already-scored initial deme.
 ;; Seed those attached scores once at the public boundary; recursive iterations
 ;; then use the run cache and the suffix-only path above.
-(= (seedAttachedCandidateScores
-      (mkDeme $rep (mkSInstSet $instances) $id) $context)
-   (seedTreeScoreCache $instances $rep $id $context ()))
-;; crossover for feature selection
-;; (: crossoverFs (-> Number Number Instance (InstanceSet $a) ((InstanceSet $a) Number)))
-(= (crossoverFs $size $nNewInstances $sampleStart $sampleSize $centerInst $scoredInstSet)
+(= (seedAttachedCandidateScores $demeSpace $context)
    (let* (
-          ((mkSInstSet $before) $scoredInstSet)
+          ($rep (match $demeSpace (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
+          ($id (match $demeSpace (mkDemeId $demeId) (mkDemeId $demeId)))
+          ($instances (match $demeSpace (mkSInstSet $rows) $rows))
+         )
+     (seedTreeScoreCache $instances $rep $id $context ())))
+;; crossover for feature selection
+;; (: crossoverFs (-> Number Number Number Number Instance DemeSpace ((InstanceSet $a) Number)))
+(= (crossoverFs $size $nNewInstances $sampleStart $sampleSize $centerInst $demeSpace)
+   (let* (
+          ($before (match $demeSpace (mkSInstSet $instances) $instances))
           ($updated
             (crossTopOneFs
-              $scoredInstSet $nNewInstances
+              $demeSpace $nNewInstances
               $sampleStart $sampleSize $centerInst))
           ((mkSInstSet $after) $updated)
          )
@@ -416,7 +419,7 @@
        (mkSInst $inst2)
        (mkSInst $inst1)))
 
-(= (getDiscMap (mkDeme (mkRep (mkKbMap (mkDscMp $disc)) $tree) $instSet $id)) $disc)
+(= (getDiscMap (mkRep (mkKbMap (mkDscMp $disc)) $tree)) $disc)
 
 (= (getTTableParams (mkTruthTableBScore $cpxCoeff $size $iTable))
     ($cpxCoeff $size $iTable)
@@ -487,11 +490,11 @@
       ((mkParams applyComplexityBasedScore)
         (let*
           (
-            ($disc (getDiscMap $deme))
+            ($representation (match $deme (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
+            ($disc (getDiscMap $representation))
             (($cpxCoeff $size $iTable) (getTTableParams $tTableBscorer))
             ($_seedAttached
-              (seedAttachedCandidateScores
-                $deme ($iTable $cpxCoeff)))
+              (seedAttachedCandidateScores $deme ($iTable $cpxCoeff)))
           )
           (hillClimbing ((min (param maxDist) (List.length (second $centerInst))) (param minXoverNeighbors) 0)
                         (False False False $centerInst 0 0 (worstCscore) (* -1 (pow-math 10 308)) 0 0 1)
@@ -525,7 +528,8 @@
       ((mkParams applyActionBasedScore)
         (let*
           (
-            ($disc (getDiscMap $deme))
+            ($representation (match $deme (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
+            ($disc (getDiscMap $representation))
             (($nTrials $complexityRatio) $scorerArgs)
             ;; $tTableBscorer is the scalar target score for this action arm.
             ($targetPenScore $tTableBscorer)
@@ -565,6 +569,15 @@
                            (distance $d) (neighbors $totalNNeighbors)))
               ()))
 
+        ($rep
+          (let (mkRep $kbMapValue $treeValue) (match $deme (mkRep $kbMap $tree) (mkRep $kbMap $tree))
+            (if (and (== $kbMapValue ()) (== $treeValue ())) () (mkRep $kbMapValue $treeValue))))
+        ($id
+          (let (mkDemeId $demeIdValue) (match $deme (mkDemeId $demeId) (mkDemeId $demeId))
+            (if (== $demeIdValue ()) () (mkDemeId $demeIdValue))))
+        ;; A feature-selection DemeSpace holds an empty rep and an empty id.
+        ($isFeatureSelection (or (== $rep ()) (== $id ())))
+
         ;; Counted expansion installs this deme's fair share of the remaining
         ;; complete-run budget. Direct calls fall back to maxEvals. A large
         ;; numeric allowance represents the documented negative/unlimited mode.
@@ -578,13 +591,11 @@
         ($nNewNeighbors (nNewInstances $d $maxEvals $currentNInstances $totalNNeighbors))
 
         ;; Evaluation count and population index are different quantities.
-        ;; $rep and $id are bound only below, so dispatch on the shape of $deme:
-        ;; a deme for Boolean and action searches, an instance set for feature selection.
         ($currentDemeSize
-          (case $deme
-            (((mkDeme $_rep (mkSInstSet $currentInstances) $_id)
-              (List.length $currentInstances))
-             ($_featureSelectionSet $currentNInstances))))
+          (if $isFeatureSelection
+              $currentNInstances
+              (List.length
+                (match $deme (mkSInstSet $currentInstances) $currentInstances))))
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
         ;; Honor the C++ crossover switch.
@@ -603,15 +614,15 @@
               (println! ($totalNNeighbors : $nNewNeighbors : $d))
               ()))
         ( 
-          ((mkDeme $rep $updatedInstSet $id) $newInstances)
+          ($updatedInstSet $newInstances)
                                                             (case ($xOver $size)
                                                               (
                                                                 ((True ()) (let ($updatedInstSet $newInstances) ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $prevCenter $deme)
-                                                                              ((mkDeme () $updatedInstSet ()) $newInstances)))
+                                                                              ($updatedInstSet $newInstances)))
                                                                 ;; Cross the previous sample relative to the center from which it was generated.
                                                                 ((True $notEmpty)  ($crossoverFunction $currentDemeSize $nNewNeighbors $prevStart $prevSize $prevCenter $deme))
                                                                 ((False ()) (let ($updatedInstSet $newInstances) ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst (mkITable $rowOCoeff $neighborhood) $deme $d)
-                                                                              ((mkDeme () $updatedInstSet ()) $newInstances)))
+                                                                              ($updatedInstSet $newInstances)))
                                                                 ((False $notEmpty)
                                                                         (let $result ($samplingFunction $totalNNeighbors $nNewNeighbors $centerInst $deme $d)
                                                                         ;; (trace! ("Result: " $result)
@@ -628,8 +639,6 @@
         ;; ($_ (println! ""))
         ;; ($_ (println! (Newinstances: $updatedInstSet)))
         ;; ($_ (println! ""))
-        ;; Feature selection runs on an instance set: it has no rep and no id.
-        ($isFeatureSelection (or (== $rep ()) (== $id ())))
         ;; deconstruct the hyper params for fs function
         (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive $scorerType) (if (== () $fsHyperparams) (() () () () () ()) $fsHyperparams))
 
@@ -659,9 +668,9 @@
                            (cumulativeLocal $updatedEvalCount)))
               ()))
 
-        ($updatedDeme (if $isFeatureSelection 
-                          (mkSInstSet $scoredInstances) 
-                          (mkDeme $rep (mkSInstSet $scoredInstances) $id)))
+        ($_ (remove-atom $deme (mkSInstSet $oldinstset)))
+        ($_ (add-atom $deme (mkSInstSet $scoredInstances)))
+        ($updatedDeme $deme)
         
         ;; ($sExprList (List.listToExpr $scoredInstances))
         ;; ($amr (map-atom $sExprList $inst (let (mkSInst $x) $inst (println! (Inst: (List.listToExpr (second (Pair.first $x))) Tree: (preOrder (getCandidate $rep $id (Pair.first $x))) Score: (getPenScore (Pair.second $x)))))))

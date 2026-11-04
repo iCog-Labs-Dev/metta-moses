@@ -1,3 +1,4 @@
+!(import! &self ../../../deme/demeSpaceName.py)
 !(import! &self ../../../utilities/general-helpers)
 !(import! &self ../../../parameters/registry)
 !(import! &self ../../../parameters/defaults)
@@ -137,12 +138,15 @@
          ;; This has the same instance as $old1 but a placeholder score.  A
          ;; whole-row comparison used to append it and rescore vector (0).
          ($rediscoveredOld1 (mkSInst (mkPair (mkInst (0)) (worstCscore))))
-         (($mergedDeme $added)
+         ($_addRep (add-atom &mergeOffspringDeme (mkRep test-rep ())))
+         ($_addSet (add-atom &mergeOffspringDeme (mkSInstSet ($old1 $old2))))
+         ($_addId (add-atom &mergeOffspringDeme (mkDemeId "deme-x")))
+         (($updatedSet $added)
            (mergeOffspring
-             (mkDeme test-rep (mkSInstSet ($old1 $old2)) (mkDemeId "deme-x"))
+             &mergeOffspringDeme
              ($new1) ($new2 $new1 $rediscoveredOld1) ($new3)))
-         ((mkDeme $rep (mkSInstSet (cons $prefix1 (cons $prefix2 $offspring))) $id)
-          $mergedDeme)
+         ((mkSInstSet (cons $prefix1 (cons $prefix2 $offspring)))
+          $updatedSet)
         )
     ($prefix1 $prefix2 $added $offspring
       (is-member $rediscoveredOld1 $offspring)))
@@ -161,10 +165,13 @@
          ($old1 (mkSInst (mkPair (mkInst (0 0 0)) 0.9)))
          ($old2 (mkSInst (mkPair (mkInst (1 0 0)) 0.8)))
          ($old3 (mkSInst (mkPair (mkInst (0 1 0)) 0.7)))
+         ($_addSet
+           (add-atom &featureSelectionCrossoverDeme
+             (mkSInstSet ($old1 $old2 $old3))))
          (($updated $added)
            (crossoverFs
              3 3 0 3 (mkInst (0 0 0))
-             (mkSInstSet ($old1 $old2 $old3))))
+             &featureSelectionCrossoverDeme))
          ((mkSInstSet (cons $prefix1 (cons $prefix2 (cons $prefix3 $suffix))))
           $updated)
         )
@@ -231,9 +238,9 @@
     )
 (<= (* 3 $totalSize) (* 4 $generatedSize))) True)
 
-(= (deme) (mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) ( (mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1)))) (mkSInstSet ()) (mkDemeId "1")))
-
-(= (demes) ((mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) ))))) (mkTree (mkNode AND) ((mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1)))) (mkSInstSet ()) (mkDemeId "1"))))
+!(add-atom &deme1 (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) ( (mkKnob (mkNullVex ((mkTree (mkNode A) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (mkKnob (mkNullVex ((mkTree (mkNode B) ()))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1)))))
+!(add-atom &deme1 (mkSInstSet ()))
+!(add-atom &deme1 (mkDemeId "1"))
 
 (= (table1) (createTruthTableBScore 2 (mkITable
                          (cons (cons False (cons True (cons False (cons True ()))))
@@ -256,7 +263,8 @@
 !(assertEqual
   (let* (
          ($_reset (resetCandidateScoreCache))
-         ((mkDeme $rep $unusedSet $id) (deme))
+         ($rep (match &deme1 (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
+         ($id (match &deme1 (mkDemeId $demeId) (mkDemeId $demeId)))
          ($retainedScore (mkCscore -7 3 1.5 0.0 -8.5))
          (($scoredSet $actualEvaluations)
            (transformIncremental
@@ -279,7 +287,8 @@
 !(assertEqual
   (let* (
          ($_reset (resetCandidateScoreCache))
-         ((mkDeme $rep $unusedSet $id) (deme))
+         ($rep (match &deme1 (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
+         ($id (match &deme1 (mkDemeId $demeId) (mkDemeId $demeId)))
          ($old1
            (mkSInst
              (mkPair (mkInst (0 0))
@@ -349,4 +358,3 @@
 ;; assertEqual under PeTTa. End-to-end Boolean hill-climbing behavior is
 ;; covered by demo-problems-benchmark-test; the shared incremental scorer is
 ;; exercised above without crossing that cut boundary.
-
