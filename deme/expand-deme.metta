@@ -1,12 +1,12 @@
 ;; Invoke the shared optimizer with the argument shape required by the
 ;; domain scorer. Action scoring carries its raw target separately because
 ;; hill climbing optimizes the penalized score while terminating on raw score.
-(= (optimizeDeme $deme $context $inst $optimize)
+(= (optimizeDeme $demeSpace $context $inst $optimize)
    (case $context
       (
         ((mkOptimizerContext (mkActionCtx $nTrials $complexityRatio $actionTarget) $targetScore)
-         ($optimize $deme $targetScore $inst (mkParams applyActionBasedScore ($nTrials $complexityRatio))))
-        ($other ($optimize $deme $context $inst))
+         ($optimize $demeSpace $targetScore $inst (mkParams applyActionBasedScore ($nTrials $complexityRatio))))
+        ($other ($optimize $demeSpace $context $inst))
       )))
 
 ;; Representation construction is the principal domain-specific expansion
@@ -83,7 +83,7 @@
 ;; Divide a finite allowance evenly, assigning remainder calls to the earliest
 ;; demes. The sum of local shares never exceeds the remaining global budget.
 (= (expandDemesWithShares () $optimizerContext $optimize $baseLimit $extraSlots) (() 0))
-(= (expandDemesWithShares (cons $deme $rest) $optimizerContext $optimize $baseLimit $extraSlots)
+(= (expandDemesWithShares (cons $demeSpace $rest) $optimizerContext $optimize $baseLimit $extraSlots)
    (let* (
           ($hasExtra (> $extraSlots 0))
           ($localLimit (+ $baseLimit (if $hasExtra 1 0)))
@@ -92,7 +92,7 @@
      (if (<= $localLimit 0)
          (() 0)
          (let* (
-                (($optimizedDeme $used) (optimizeDemeCounted $deme $optimizerContext $optimize $localLimit))
+                (($optimizedDeme $used) (optimizeDemeCounted $demeSpace $optimizerContext $optimize $localLimit))
                 (($optimizedRest $restUsed) (expandDemesWithShares $rest $optimizerContext $optimize $baseLimit $nextExtra))
                )
            ((cons $optimizedDeme $optimizedRest) (+ $used $restUsed))))))
@@ -161,8 +161,8 @@
 
 ;; Fold the per-deme raw champions into one expansion-wide raw champion.
 (= (bestRawExemplarFromDemes $demes $mergeContext)
-   (foldl-atom $demes () $best $deme
-     (betterRawExemplar $best (rawBestExemplarFromDeme $deme $mergeContext))))
+   (foldl-atom $demes () $best $demeSpace
+     (betterRawExemplar $best (rawBestExemplarFromDeme $demeSpace $mergeContext))))
 
 ;; Emit one generation record using already-computed selection, evaluation,
 ;; archive, raw-score, and penalized-score information.

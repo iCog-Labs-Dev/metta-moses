@@ -273,7 +273,7 @@
 (= (sampleNewInstances $totalNeighbors $numNewInstances $centerInst $demeSpace $dist)
    (let*
      (
-       ($kbMp (match $demeSpace (mkRep $matchedKbMp $tree) $matchedKbMp))
+       ((mkRep $kbMp $tree) (getDemeRep $demeSpace))
        ((mkKbMap (mkDscMp $disc)) $kbMp)
        ($instList (getDemeInstances $demeSpace))
        ($updatedTotalNeighbors

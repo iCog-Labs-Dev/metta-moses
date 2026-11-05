@@ -697,7 +697,7 @@
                                                 $fsHyperparams
                                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
                                   ($nextCenterInst $demeSpace ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentDemeSize $newInstances $nextBestSscore $nextBestScore $updatedEvalCount $nextDistance $i))))
-        (($newCenter $newDeme ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)) $hillStepResult)
+        (($newCenter $demeSpace ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)) $hillStepResult)
         
         ;; Termination check compares against the scalar `$bestPossibleScore`,
         ;; which carries the *raw* best score (matching classic MOSES). So we
@@ -707,7 +707,7 @@
         ($scoreToCompareBelow
           (if $isFeatureSelection
               $newBestSscore
-              (bestRawDeme $newDeme)))
+              (bestRawDeme $demeSpace)))
         ($_bestDiagnostics
           (if $progressEnabled
               (println! (HillClimbingBest
@@ -724,7 +724,7 @@
         (if (<= $bestPossibleScore $scoreToCompareBelow)
             ;; (trace! (Terminating because of best possible score: $bestPossibleScore found $scoreToCompareBelow) ...)
             $hillStepResult
-            (let ($finalCenter $finalDeme ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
+            (let ($finalCenter $demeSpace ($finalXover $finalLastChance $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
               ;; Match the C++ "last chance" rule: simplex crossover is tried
               ;; after a stalled nearest-neighbor scan when widening is off,
               ;; or only after widened search has exhausted maxDist.
@@ -737,7 +737,7 @@
                   ;;  then try again one last time, we may get lucky.
                   (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
                                 ($newXover True $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance (+ 1 $newI)) ;; Updated state
-                                $newDeme
+                                $demeSpace
                                 ($neighborhood $rowOCoeff $size $iTable)
                                 $newCenter
                                 $fsHyperparams
@@ -749,15 +749,15 @@
   
               (if (< $maxDist $finalDistance)
                   ;; (trace! (Terminating because of maximum distance reached) ...)
-                  ($finalCenter $finalDeme ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
+                  ($finalCenter $demeSpace ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
                   ;; With widening disabled, stop at the local optimum exactly
                   ;; as C++ does.  When enabled, continue at the wider distance.
                   (if (and (not $finalHasImproved) (not (param hcWidenSearch)))
                       ;; (trace! (Terminating because score hasn't improved) ...)
-                      ($finalCenter $finalDeme ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
+                      ($finalCenter $demeSpace ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
                       (hillClimbing ($maxDist $minXoverNeighbors $bestPossibleScore)
                                 ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance (+ 1 $finalI)) ;; Updated state
-                                $finalDeme
+                                $demeSpace
                                 ($neighborhood $rowOCoeff $size $iTable)
                                 $finalCenter
                                 $fsHyperparams

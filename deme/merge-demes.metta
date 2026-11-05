@@ -266,10 +266,10 @@
     (if (== $demes ()) $metapop
         (let*
         (
-            (($headDeme $tailDeme) (decons-atom $demes))
-            ($rep (getDemeRep $headDeme))
-            ($sInstList (getDemeInstSet $headDeme))
-            ($demeId (getDemeId $headDeme))
+            (($demeSpace $restDemes) (decons-atom $demes))
+            ($rep (getDemeRep $demeSpace))
+            ($sInstList (getDemeInstSet $demeSpace))
+            ($demeId (getDemeId $demeSpace))
             ($sortedSInstList (sortDeme $sInstList)) ;; sorting the instances inside the deme by decreasing order
             ($_ (if (param diagnostics)
                    (println! (Demesize:
@@ -285,7 +285,7 @@
                    (println! (TrimmedDownDeme:
                                (List.length $trimmedDeme)))
                    ()))
-            ($_stored (setDemeInstances $headDeme $trimmedDeme))
+            ($_stored (setDemeInstances $demeSpace $trimmedDeme))
             ($potCandidates
               (demeToTrees $rep (mkSInstSet $trimmedDeme) $demeId
                 $scoringContext)) ;;convert instances to trees
@@ -314,8 +314,8 @@
                                (OS.length $resizedMetapop)))
                    ()))
         )
-            (if (== $tailDeme ()) $resizedMetapop
-                (mergeDemes $tailDeme $scoringContext $resizedMetapop)
+            (if (== $restDemes ()) $resizedMetapop
+                (mergeDemes $restDemes $scoringContext $resizedMetapop)
             )
         )
     )
