@@ -32,7 +32,7 @@
                     (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $pruneExemplar $enforcedFts $scorerType $featureSelectionDeme))
                   ($reps (expandableRepresentations $candidateReps))
             ) 
-            (loopCreateDemeSpace $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
+            (createDemeSpaces $demeIds $reps)
       ) 
 )
 
@@ -48,7 +48,7 @@
 ;; (: createDeme (-> Number (List DemeId) (Tree $a) Expression Expression Expression))
 (= (createDeme $nDeme $demeIds $exemplar $actions $perceptions)
       (let $reps (createRepresentation $nDeme $exemplar $actions $perceptions)
-            (loopCreateDemeSpace $demeIds $reps ())))
+            (createDemeSpaces $demeIds $reps)))
 
 ;; Classic C++ MOSES discards every representation whose field set is empty,
 ;; regardless of the scoring domain. An empty MeTTa disc map is equivalent:
@@ -69,18 +69,14 @@
 
 ;; Store each expandable representation and its initial state in a DemeSpace.
 ;; A rep that is not expandable still uses up its id (the action path does not
-;; pre-filter).
-(= (loopCreateDemeSpace $demeIds () $acc) $acc)
-(= (loopCreateDemeSpace $demeIds (cons $rep $reps) $acc)
+;; pre-filter), so pair the ids with the reps before the filter.
+(= (createDemeSpaces $demeIds $reps)
    (let* (
-          ((mkDemeId $id) (List.head $demeIds))
-          ($newAcc
-            (if (representationExpandable $rep)
-                (let* (
-                       ($demeSpace (py-call (demeSpaceName.demeSpaceName $id)))
-                       ($_init (initDemeSpace $demeSpace $rep (mkDemeId $id)))
-                      )
-                  (union-atom $acc ($demeSpace)))
-                $acc))
+          ($pairs (List.zip $reps $demeIds))
+          ($expandable (filter-atom $pairs ($rep $demeId) (representationExpandable $rep)))
          )
-     (loopCreateDemeSpace (List.tail $demeIds) $reps $newAcc)))
+     (map-atom $expandable ($rep $demeId) (createDemeSpace $rep $demeId))))
+
+(= (createDemeSpace $rep (mkDemeId $id))
+   (let $demeSpace (py-call (demeSpaceName.demeSpaceName $id))
+     (initDemeSpace $demeSpace $rep (mkDemeId $id))))
