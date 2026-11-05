@@ -285,8 +285,7 @@
                    (println! (TrimmedDownDeme:
                                (List.length $trimmedDeme)))
                    ()))
-            ($_ (remove-atom $headDeme $sInstList))
-            ($_ (add-atom $headDeme (mkSInstSet $trimmedDeme)))
+            ($_stored (setDemeInstances $headDeme $trimmedDeme))
             ($potCandidates
               (demeToTrees $rep (mkSInstSet $trimmedDeme) $demeId
                 $scoringContext)) ;;convert instances to trees

@@ -359,7 +359,6 @@
    (zipWith == $first $second)
 )
 
-;; Function to empty a space with contents.
 ;; DemeSpace accessors. A DemeSpace holds one (mkRep ...), one (mkSInstSet ...)
 ;; and one (mkDemeId ...).
 (= (getDemeRep $demeSpace) (match $demeSpace (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
@@ -367,6 +366,15 @@
 (= (getDemeInstSet $demeSpace) (match $demeSpace (mkSInstSet $rows) (mkSInstSet $rows)))
 (= (getDemeInstances $demeSpace) (match $demeSpace (mkSInstSet $rows) $rows))
 
+;; Replace the stored instance set and return the new rows. The unbound pattern
+;; removes whichever set is stored: crossoverFs returns a new set without storing
+;; it, so the stored set can differ from the set that the caller holds.
+(= (setDemeInstances $demeSpace $rows)
+   (let* (($_remove (remove-atom $demeSpace (mkSInstSet $storedRows)))
+          ($_add (add-atom $demeSpace (mkSInstSet $rows))))
+     $rows))
+
+;; Function to empty a space with contents.
 (= (clearSpace $space)
    (collapse (let $content (get-atoms $space) (remove-atom $space $content))))
    

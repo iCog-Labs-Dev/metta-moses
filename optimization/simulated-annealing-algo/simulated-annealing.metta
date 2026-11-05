@@ -105,8 +105,7 @@
               ($id (getDemeId $demeSpace))
               ;; A feature-selection DemeSpace holds an empty rep and an empty id.
               ($isFeatureSelection (or (== $rep (mkRep () ())) (== $id (mkDemeId ()))))
-              ($originalInstSet
-                (getDemeInstSet $demeSpace))
+              ($originalInstances (getDemeInstances $demeSpace))
 
               ($totalNNeighbors ($estimateFunction $d $neighborhood))
 
@@ -144,10 +143,7 @@
                                                                   )
                                                 ($transformFunction $updatedInstSet $rep $id $iTable $rowOCoeff)))
               ;; Remove old instance set and update with new scored instances
-              ;; The unbound pattern removes whichever set is stored: crossoverFs returns
-              ;; a new set without storing it, so the stored set can differ from the old one.
-              ($_ (remove-atom $demeSpace (mkSInstSet $storedInstances)))
-              ($_ (add-atom $demeSpace (mkSInstSet $scoredInstances)))
+              ($_stored (setDemeInstances $demeSpace $scoredInstances))
 
               ;; ($_ (println! (Scored instances: $scoredInstances)))
               ;; ($_ (println! ""))
@@ -185,13 +181,10 @@
               ;; ($_ (println! (Is accepted: $isAccepted)))
               ;; ($_ (println! (New instances: $newInstances)))
               ;; ($_ (println! ""))
-              ($_ (if $isAccepted
-                      ()
-                      (let* (
-                             ($_ (remove-atom $demeSpace (mkSInstSet $scoredInstances)))
-                             ($_ (add-atom $demeSpace $originalInstSet))
-                            )
-                        ())))
+              ($_restored
+                (if $isAccepted
+                    ()
+                    (setDemeInstances $demeSpace $originalInstances)))
               
               ($newCenter (if $isAccepted (Pair.first $newBestInstPair) $prevCenter))
               ($newDistance (if $hasImproved 1 (if (not $xOver) (+ 1 $d) $d)))

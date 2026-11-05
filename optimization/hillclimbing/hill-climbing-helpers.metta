@@ -184,8 +184,7 @@
              (not (once (is-member $inst $origInstances))))))
        ($finalSet (List.appendList $freshNewInstances $origSet))
        ($nNewAdded (List.length $freshNewInstances))
-       ($_ (remove-atom $demeSpace (mkSInstSet $origSet)))
-       ($_ (add-atom $demeSpace (mkSInstSet $finalSet)))
+       ($_stored (setDemeInstances $demeSpace $finalSet))
       )
      ((mkSInstSet $finalSet) $nNewAdded)
 ))
@@ -658,10 +657,7 @@
                            (cumulativeLocal $updatedEvalCount)))
               ()))
 
-        ;; The unbound pattern removes whichever set is stored: crossoverFs returns
-        ;; a new set without storing it, so the stored set can differ from the old one.
-        ($_ (remove-atom $demeSpace (mkSInstSet $storedInstances)))
-        ($_ (add-atom $demeSpace (mkSInstSet $scoredInstances)))
+        ($_stored (setDemeInstances $demeSpace $scoredInstances))
         
         
         ;; ($sExprList (List.listToExpr $scoredInstances))

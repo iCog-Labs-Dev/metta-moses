@@ -292,8 +292,7 @@
          (uniqueUnseenScoredInstances $scoredNewInstances $instList))
        ($updatedInstList (List.concat $instList $freshInstances))
        ($actualNewInstances (List.length $freshInstances))
-       ($_ (remove-atom $demeSpace (mkSInstSet $instList)))
-       ($_ (add-atom $demeSpace (mkSInstSet $updatedInstList)))
+       ($_stored (setDemeInstances $demeSpace $updatedInstList))
      )
      ((mkSInstSet $updatedInstList) $actualNewInstances)))
 
@@ -335,7 +334,6 @@
          (uniqueUnseenScoredInstances $scoredNewInstances $instList))
        ($updatedInstList (List.concat $instList $freshInstances))
        ($actualNewInstances (List.length $freshInstances))
-       ($_ (remove-atom $demeSpace (mkSInstSet $instList)))
-       ($_ (add-atom $demeSpace (mkSInstSet $updatedInstList)))
+       ($_stored (setDemeInstances $demeSpace $updatedInstList))
      )
      ((mkSInstSet $updatedInstList) $actualNewInstances)))
