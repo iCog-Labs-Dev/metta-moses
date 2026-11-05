@@ -1,14 +1,26 @@
-<!--- Title: Conventional Commits, for example "fix(reduct): ...". Add "!" for a breaking change. -->
-<!--- Base branch: `dev` or the integration branch of your task. Never `main` for a feature or a fix. -->
+<!--- Provide a general summary of your changes in the Title above -->
 
-## Summary
-<!--- Say what changed and why. Cover the whole branch from its base, not only the last commit. -->
-<!--- Link the issue: Fixes #123. In a large PR, say which files to read first. -->
+## Description
+<!--- Describe your changes in detail -->
 
-## Testing
-<!--- Give the PeTTa runtime commit, the exact commands, the result per touched test file (✅ / asserts) and the full-suite summary. -->
-<!--- If an agent helped: only a person writes "I read all the self-review findings" (`docs/agents/reviewing-prs.md`, section 7). -->
+## Motivation and Context
+<!--- Why is this change required? What problem does it solve? -->
+<!--- If it fixes an open issue, please link to the issue here. -->
 
-## Test changes
-<!--- List each changed, moved or removed assertion and its reason, or write "None". -->
-<!--- A removed or weakened test, or a changed expected value, needs the lead's approval before review. -->
+## How Has This Been Tested?
+<!--- Please describe in detail how you tested your changes. -->
+<!--- Include details of your testing environment, and the tests you ran to -->
+<!--- see how your change affects other areas of the code, etc. -->
+
+## Types of changes
+<!--- What types of changes does your code introduce? Put an `x` in all the boxes that apply: -->
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to change)
+
+## Checklist:
+<!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
+<!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
+- [ ] My code follows the code style of this project.
+- [ ] I have added tests to cover my changes.
+- [ ] All new and existing tests passed.
