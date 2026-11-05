@@ -9,7 +9,7 @@ Every statement in a review is backed by something that you ran, diffed or measu
 1. **Verify before you deliver.** Do not repeat a claim from the PR unless you reproduced it. If you could not verify it, say so.
 2. **Record each review** in `reviews/PR-<n>-<YYYY-MM-DD>.md` (untracked). One file per review pass.
 3. **Never post to GitHub** (comment, review, approve, request changes) without the lead's approval for that PR and that text. A draft for approval is fine.
-4. **Comments are friendly, short and specific.** No blame. Put the finding and the evidence. Mark each comment "blocking" or "Nit:".
+4. **Comments are friendly, short and specific.** No blame. Put the finding and the evidence. Mark each comment "blocking" or "Nit:". Word limits: `git-and-prs.md`, section 7.
 
 ## 2. What the review covers
 
@@ -45,14 +45,14 @@ Order of attention: design and behaviour, then tests, then complexity, then name
 
 - Check the base branch. Interns have opened PRs against `main` by mistake.
 - Check for files that do not belong: scratch files, local tools, logs, home paths, `.vscode/`.
-- Check that the description follows the template and that "How has this been tested" holds real commands and results.
+- Check that the description follows the template and that "Testing" holds real commands and results.
 - Ask for the change to be split when it mixes several purposes.
 - Explain the reason for each blocking comment in one or two sentences, so the author learns the rule.
 
 ## 6. Writing an issue
 
 - An issue for interns is an exercise. State the symptom and the exact reproduction (command, input, expected and actual output, base commit). Do not give the cause or the fix.
-- Use the issue templates in `.github/ISSUE_TEMPLATE/`.
+- Use the issue templates in `.github/ISSUE_TEMPLATE/`. Word limit: `git-and-prs.md`, section 7.
 - Show the draft to the lead. Create the issue only after approval.
 
 ## 7. Self-review before a PR or "done"

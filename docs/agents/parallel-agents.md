@@ -54,7 +54,7 @@ When the work is for another agent later, write a hand-off plan in `notes/WORK-<
 
 ## 6. Hand-off from a worker
 
-Reply only when the work is ready for review. Give:
+Reply only when the work is ready for review. Word limit: `git-and-prs.md`, section 7. Give:
 
 - the absolute worktree path, the branch, and the first and last commit hash
 - each commit subject

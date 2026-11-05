@@ -1,6 +1,6 @@
 # Git, branches, PRs and releases
 
-Read this file when you commit, name a branch, write a PR, or prepare a release.
+Read this file when you commit, name a branch, write a PR, or prepare a release. Section 7 also covers issues, comments and hand-over reports.
 
 ## 1. Branch model (git flow, see `.github/CONTRIBUTING.md`)
 
@@ -28,13 +28,14 @@ Read this file when you commit, name a branch, write a PR, or prepare a release.
 ## 3. Pull requests
 
 - Before you create a PR, do the self-review (`reviewing-prs.md`, section 7). Give the findings to the human who will create the PR.
-- Use `.github/pull_request_template.md`. Fill every section ("Review order" is optional for a small PR). Do not invent new sections.
-- Keep the description short enough for a person to read in two minutes, without loss of important detail. Put long drafts in an untracked file (`notes/`).
+- Use `.github/pull_request_template.md`. Fill all three sections: Summary, Testing, Test changes. Do not add sections.
+- Keep the description within the limit in section 7.
 - Describe the **whole branch** from its base (`git log --format=%B <base>..HEAD`, full bodies, not `--oneline`), not only the last commit.
-- Small PRs. One purpose per PR. A large PR needs a review order: say which files to read first.
-- "How has this been tested" holds evidence: the exact commands (with `ulimit` and `timeout`), the runtime commit, and the result per file (✅ against asserts). For a performance claim, give the benchmark table (`benchmarks.md`). For a behaviour claim, give the classic comparison (`classic-oracle.md`).
+- Small PRs. One purpose per PR. In a large PR, the Summary says which files to read first.
+- Testing holds evidence: the exact commands (with `ulimit` and `timeout`), the runtime commit, the result per file (✅ against asserts), and the full-suite summary. For a performance claim, give the benchmark table (`benchmarks.md`). For a behaviour claim, give the classic comparison (`classic-oracle.md`).
+- Add tests that cover the change. A new regression test fails without the fix (`testing.md`, section 3).
 - List every test change, each with its reason. A removed or weakened test needs the lead's approval before the PR.
-- Link the issue: `Fixes #123`.
+- Link the issue in the Summary: `Fixes #123`.
 - Open the PR as a draft while CI or review is not ready.
 - When an agent writes a PR, commit message or comment for a person, it writes as that person, in the first person. It does not refer to that person in the third person, and it does not describe the collaboration with the agent.
 
@@ -56,3 +57,20 @@ Read this file when you commit, name a branch, write a PR, or prepare a release.
 - Versions are tags `v0.MINOR.PATCH`. The release PR goes from `dev` to `main` (for example #467 for `v0.6.0`). The lead tags the release.
 - Only the lead decides a release and a version bump.
 - Release notes list the highlights and every breaking change (`ref!`). Draft them in an untracked file first.
+
+## 7. Word limits for text that an agent writes
+
+This section is the only place that states these limits.
+
+| Text | Limit (words) | Not counted |
+|---|---|---|
+| PR description | 200 | commands, result tables |
+| Issue body | 150 | commands, expected and actual output |
+| PR comment or review body | 100 | commands, quoted code |
+| One line comment in a review | 50 | quoted code |
+| Hand-over report or review summary | 200 | commands, result tables, commit and file lists |
+
+- **Evidence:** give the commands and a summary result. Put long logs and drafts in an untracked file (`notes/`). Do not paste them in the PR.
+- **Text that does not fit:** split the PR or summarize. Do not drop a test change, a failure, or an item that you did not verify.
+- **A required item that alone passes the limit:** keep the item. Tell the human that the text is over the limit.
+- **No limit:** the full self-review report (`reviewing-prs.md`, section 7), and untracked records and drafts.

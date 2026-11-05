@@ -23,16 +23,14 @@ Open your pull request against `dev` or against the integration branch of your t
 ##### Review your own pull request first
 Test your own pull request before submitting it. This will allow you to catch errors or typos that you may have missed, before others start reviewing. Make sure there are no merge conflicts with the branch your are sending the pull request to. If you use an agent, ask it to review your branch with `docs/agents/reviewing-prs.md`, section 7. Read all the findings yourself.
 ##### Provide context and guidance
-Write clear titles and descriptions for your pull requests so that reviewers can quickly understand what the pull request does. In the pull request body, include:
-- the purpose of the pull request
-- an overview of what changed
-- links to any additional context such as tracking issues or previous conversations
-- how you tested it: the exact commands, the PeTTa runtime and its commit, and the result of each test file you touched
-- every test you changed, and the reason
+Write clear titles and descriptions for your pull requests so that reviewers can quickly understand what the pull request does. Use the three sections of the template:
+- **Summary**: what changed and why, with links to the issue or to earlier conversations.
+- **Testing**: the exact commands, the PeTTa runtime and its commit, the result of each test file you touched, and the full-suite summary.
+- **Test changes**: every test you changed and the reason, or "None".
 
-Keep the description short enough for a reviewer to read in two minutes. Describe the whole branch from its base, not only the last commit.
+Keep the description short. Describe the whole branch from its base, not only the last commit. An agent follows the word limits in `docs/agents/git-and-prs.md`, section 7.
 
-You can follow the template that is provided in our repo.
+Add tests that cover your change. A new regression test must fail without your fix. Do not include scratch files, logs, local tools or machine-specific paths.
 
 ### Draft pull requests
 When you create a pull request, you can choose to create a pull request that is ready for review or a draft pull request. Draft pull requests cannot be merged, and code owners are not automatically requested to review draft pull requests.

@@ -51,6 +51,8 @@ Demo problems: `parity3`, `parity4`, `disjunction3`, `majority3`, `majority5`, `
 
 Write in ASD-STE100: at most 20 words in an instruction and 25 in a description, active voice, simple tenses, simple words with one meaning, articles kept, lists for steps, no idioms. Technical names are permitted.
 
+Keep text that a person reads short. `docs/agents/git-and-prs.md`, section 7 gives the word limits.
+
 ## Read when
 
 | Read this file | When your task ... |
