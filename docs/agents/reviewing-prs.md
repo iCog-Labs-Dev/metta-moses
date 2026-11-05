@@ -45,7 +45,7 @@ Order of attention: design and behaviour, then tests, then complexity, then name
 
 - Check the base branch. Interns have opened PRs against `main` by mistake.
 - Check for files that do not belong: scratch files, local tools, logs, home paths, `.vscode/`.
-- Check that the description follows the template and that "Testing" holds real commands and results.
+- Check that the description follows the template and that "How Has This Been Tested?" holds real commands and results.
 - Ask for the change to be split when it mixes several purposes.
 - Explain the reason for each blocking comment in one or two sentences, so the author learns the rule.
 

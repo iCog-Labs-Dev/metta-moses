@@ -28,14 +28,14 @@ Read this file when you commit, name a branch, write a PR, or prepare a release.
 ## 3. Pull requests
 
 - Before you create a PR, do the self-review (`reviewing-prs.md`, section 7). Give the findings to the human who will create the PR.
-- Use `.github/pull_request_template.md`. Fill all three sections: Summary, Testing, Test changes. Do not add sections.
+- Use `.github/pull_request_template.md`. Fill every section. Do not add sections.
 - Keep the description within the limit in section 7.
 - Describe the **whole branch** from its base (`git log --format=%B <base>..HEAD`, full bodies, not `--oneline`), not only the last commit.
-- Small PRs. One purpose per PR. In a large PR, the Summary says which files to read first.
-- Testing holds evidence: the exact commands (with `ulimit` and `timeout`), the runtime commit, the result per file (✅ against asserts), and the full-suite summary. For a performance claim, give the benchmark table (`benchmarks.md`). For a behaviour claim, give the classic comparison (`classic-oracle.md`).
+- Small PRs. One purpose per PR. In a large PR, the Description says which files to read first.
+- "How Has This Been Tested?" holds evidence: the exact commands (with `ulimit` and `timeout`), the runtime commit, the result per file (✅ against asserts), and the full-suite summary. For a performance claim, give the benchmark table (`benchmarks.md`). For a behaviour claim, give the classic comparison (`classic-oracle.md`).
 - Add tests that cover the change. A new regression test fails without the fix (`testing.md`, section 3).
-- List every test change, each with its reason. A removed or weakened test needs the lead's approval before the PR.
-- Link the issue in the Summary: `Fixes #123`.
+- List every test change in that section, each with its reason. A removed or weakened test needs the lead's approval before the PR.
+- Link the issue in "Motivation and Context": `Fixes #123`.
 - Open the PR as a draft while CI or review is not ready.
 - When an agent writes a PR, commit message or comment for a person, it writes as that person, in the first person. It does not refer to that person in the third person, and it does not describe the collaboration with the agent.
 
