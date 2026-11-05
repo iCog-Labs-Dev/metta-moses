@@ -1,10 +1,10 @@
 ;; A function to remove a point of application (POA) if its handle set is inconsistent.
-;; Definitions: A handle set of a POA is the union of it's dominant set and guard set.
+;; Definitions: A handle set of a POA is the union of its dominant set and guard set.
 ;;              A dominant set of a POA is the set of guardSets of AND nodes found 
 ;;                on the path from the root to the POA (POA not included).
 ;;              A guard set of a POA is the set of literals in the POA.
 ;;              An inconsistent handle is one which contains both a literal
-;;                and its negagtion.
+;;                and its negation.
 ;; Preconditions: The point of application (POA) is AND node and
 ;;                its handle set is inconsistent.
 ;; Action: The POA is false. An OR parent simply drops it, false being the
@@ -14,7 +14,6 @@
 ;;            a boolean value of True if applied.
 ;; Example: input: POA ==> (AND (NOT A) (OR B C)), dominantSet ==> (A), parent ==> (OR B (AND (NOT A) (OR B C)))
 ;;        : output: ((OR B) () True)
-;; (: deleteInconsistentHandle (-> Expression Expression Expression (Expression Expression Bool)))
 ;; Constants are inert here: map-atom over a Symbol yields NO SOLUTION, a silent failure
 ;; out through reduce-to. The constant laws are what act on them.
 (= (deleteInconsistentHandle $parent $current $dominantSet)
@@ -36,9 +35,9 @@
           ($withoutPOA'  (if (and (== $parentHead OR) (== $withoutPOA (OR)))
                              FALSE
                              $withoutPOA))
-          ; ($_ (println! (===Inside DeleteInconsistentHandle===)))
-          ; ($_ (println! (Parameters ==> Parent: $parent Current: $current DominantSet: $dominantSet)))
-          ; ($_ (println! (GuardSet : $guardSet : HandleSet : $handleSet : IsConsistent : $isConsistent)))
+          ;; ($_ (println! (===Inside DeleteInconsistentHandle===)))
+          ;; ($_ (println! (Parameters ==> Parent: $parent Current: $current DominantSet: $dominantSet)))
+          ;; ($_ (println! (GuardSet : $guardSet : HandleSet : $handleSet : IsConsistent : $isConsistent)))
         )
         (if $isConsistent
               ($parent $current False)
@@ -54,8 +53,7 @@
 
 ;; A function to check if a given set of literals is consistent or not.
 ;; Example: input: (A B C), output: True
-;;          input: (A B C (NOT A)), output: True
-;; (isConsistentExp (AND (NOT A) (NOT B) A))
+;;          input: (A B C (NOT A)), output: False
 (= (isConsistentExp $handleSet)
     (if (== $handleSet ())
         True
@@ -63,7 +61,8 @@
           (
             ($pairs (collapse ((superpose $handleSet) (superpose $handleSet)))) ;; TODO: Replace this with recursive logic.
             ($result (map-atom $pairs $ps (areNegations $ps)))
-            ($isMember (once (is-member True $result))) ;; is-member resolves to more than one output when checking membership, we need to pass it to once to limit it to only single output. This prevents unnecessary branch creation for our logic.
+            ;; once: is-member gives one solution for each match.
+            ($isMember (once (is-member True $result)))
           )
           (not $isMember)
         )
@@ -76,82 +75,81 @@
 ;; Example: input: (A (NOT B)), output: False
 ;;          input: (A (NOT A)), output: True
 ;;          input: ((NOT B) B), output: True
+;; The bare (NOT ...) builds are data only because this file loads before scoring/boolean-ops.
 (= (areNegations ($a $b))
      (or (== $a (NOT $b)) (== $b (NOT $a)))
 )
 
-;; This function is used to handle nested current expressions 
-; (: applyDeleteIncons (-> Expression Expression Expression (Expression Expression Bool)))
+;; Applies deleteInconsistentHandle to the POA, then to its children and grandchildren.
 (= (applyDeleteIncons $parent $current $dominantSet)
     (let*
         (
-            ; ($_ (println! (==== Inside applyDeleteIncons ====)))
-            ; ($_ (println! (Parameters ==> Parent: $parent Current: $current DominantSet: $dominantSet)))
+            ;; ($_ (println! (==== Inside applyDeleteIncons ====)))
+            ;; ($_ (println! (Parameters ==> Parent: $parent Current: $current DominantSet: $dominantSet)))
             (($newParent $newCurrent $applied) (deleteInconsistentHandle $parent $current $dominantSet))
             ($children (getChildrenExp $newCurrent))
-            ; ($_ (println! (Children: $children)))            
+            ;; ($_ (println! (Children: $children)))
         )
         (if (== $children ())
             ($newParent $newCurrent $applied)
             (let*
                 (
-                    ; ($_ (println! ("Applying DeleteIncons on children...")))
+                    ;; ($_ (println! ("Applying DeleteIncons on children...")))
                     (($child $rest) (decons-atom $children))
-                    ; ($_ (println! (Child: $child Rest: $rest)))
+                    ;; ($_ (println! (Child: $child Rest: $rest)))
                     ($grandChild (getChildrenExp $child))
-                    ; ($_ (println! (GrandChild: $grandChild)))
-                    (($UpdatedChildren $unwt $appliedOnChild)
+                    ;; ($_ (println! (GrandChild: $grandChild)))
+                    (($updatedChildren $_childCurrent $appliedOnChild)
                                         (if (== $grandChild ())
                                           ($child () False)
                                           (let ($h $t) (decons-atom $grandChild)
-                                               (applyDeleteIncons6 $child $h $dominantSet $t $applied True)
+                                               (deleteInconsInGrandchildren $child $h $dominantSet $t)
                                           )
                                         )
                     )
-                    ; ($_ (println! (UpdatedChildren: $UpdatedChildren)))
-                    (($updatedCurrent $updatedchild $appliedOnCurrent) (if (=== $child $UpdatedChildren) (deleteInconsistentHandle $newCurrent $child $dominantSet) ((findAndReplace $child $UpdatedChildren $newCurrent) $UpdatedChildren $appliedOnChild)))
+                    ;; ($_ (println! (UpdatedChildren: $updatedChildren)))
+                    (($updatedCurrent $_updatedChild $appliedOnCurrent) (if (=== $child $updatedChildren) (deleteInconsistentHandle $newCurrent $child $dominantSet) ((findAndReplace $child $updatedChildren $newCurrent) $updatedChildren $appliedOnChild)))
                     ($updatedParent (findAndReplace $newCurrent $updatedCurrent $newParent))
-                    ; ($_ (println! (Updated Parent: $updatedParent : UpdatedCurrent: $updatedCurrent Bool: (any $appliedOnCurrent $appliedOnChild $applied) )))
+                    ;; ($_ (println! (Updated Parent: $updatedParent : UpdatedCurrent: $updatedCurrent Bool: (any $appliedOnCurrent $appliedOnChild $applied) )))
                 )
-                ; (applyDeleteIncons $updatedParent $updatedCurrent $dominantSet (any ($appliedOnCurrent $appliedOnChild $applied)) $rest)
-                (applyDeleteIncons5 $updatedParent $updatedCurrent $dominantSet $appliedOnCurrent $rest)
+                (deleteInconsInSiblings $updatedParent $updatedCurrent $dominantSet $appliedOnCurrent $rest)
             )    
         )
     )
 )
 
-; (: applyDeleteIncons (-> Expression Expression Expression Bool Expression (Expression Expression Bool)))
-(= (applyDeleteIncons5 $parent $current $dominantSet $applied $children)   
+;; Applies deleteInconsistentHandle to each node of $children, with $current as the parent.
+(= (deleteInconsInSiblings $parent $current $dominantSet $applied $children)   
     (if (== $children ())
         ($parent $current $applied)
         (let*
           (
-              ; ($_ (println! (Applying DeleteIncons on children...)))
-              ; ($_ (println! (Parameters: Parent: $parent : Current: $current : DominantSet: $dominantSet)))
-              ; ($_ (println! (Children: $children)))
+              ;; ($_ (println! (Applying DeleteIncons on children...)))
+              ;; ($_ (println! (Parameters: Parent: $parent : Current: $current : DominantSet: $dominantSet)))
+              ;; ($_ (println! (Children: $children)))
               (($child $rest) (decons-atom $children))
-              (($updatedCurrent $_ $bool) (deleteInconsistentHandle $current $child $dominantSet))
+              (($updatedCurrent $_removed $bool) (deleteInconsistentHandle $current $child $dominantSet))
               ($updatedParent (findAndReplace $current $updatedCurrent $parent))
-              ; ($_ (println! (UpdatedParent: $updatedParent : UpdatedCurrent: $updatedCurrent Bool: $bool)))
+              ;; ($_ (println! (UpdatedParent: $updatedParent : UpdatedCurrent: $updatedCurrent Bool: $bool)))
           )
-          (applyDeleteIncons5 $updatedParent $updatedCurrent $dominantSet $applied $rest)
+          (deleteInconsInSiblings $updatedParent $updatedCurrent $dominantSet $applied $rest)
       )
     )
 )
 
-; (: applyDeleteIncons (-> Expression Expression Expression Expression Bool Bool (Expression Expression Bool)))
-(= (applyDeleteIncons6 $parent $current $dominantSet $children $appliedToParent $checkingChild)
+;; Applies deleteInconsistentHandle to the grandchild $current and then to the rest of the grandchildren.
+(= (deleteInconsInGrandchildren $parent $current $dominantSet $children)
     (if (== $children ())
         (deleteInconsistentHandle $parent $current $dominantSet)
         (let*
               (
-                  ; ($_ (println! (Applying DeleteIncons on nested children...)))
-                ;   ($_ (println! (Parameters: Parent: $parent : Current: $current : DominantSet: $dominantSet)))
+                  ;; ($_ (println! (Applying DeleteIncons on nested children...)))
+                ;; ($_ (println! (Parameters: Parent: $parent : Current: $current : DominantSet: $dominantSet)))
                   (($child $rest) (decons-atom $children))
-                  (($updatedCurrent $_ $bool) (deleteInconsistentHandle $current $child $dominantSet))
+                  (($updatedCurrent $_removed $bool) (deleteInconsistentHandle $current $child $dominantSet))
                   ($updatedParent (findAndReplace $current $updatedCurrent $parent))
-                ; ($_ (println! (UpdatedParent: $updatedParent : UpdatedCurrent: $updatedCurrent Bool: $bool)))
+                ;; ($_ (println! (UpdatedParent: $updatedParent : UpdatedCurrent: $updatedCurrent Bool: $bool)))
               )
-              (applyDeleteIncons5 $updatedParent $updatedCurrent $dominantSet $bool $rest)
+              (deleteInconsInSiblings $updatedParent $updatedCurrent $dominantSet $bool $rest)
         ))
 )

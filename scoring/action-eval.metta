@@ -17,10 +17,10 @@
 ;; one protocol. $world is opaque to the engine and to all structural ops --
 ;; only domain clauses inspect it. Dispatch is a `reduce` on a cons-built
 ;; ($op $children $world) term, exactly the boolean engine's mechanism
-;; (fitness.metta:141-167 dispatching AND/OR/NOT) -- clauses loaded at ANY
+;; (evalRow in scoring/fitness dispatching AND/OR/NOT) -- clauses loaded at ANY
 ;; later time are found, no sentinel needed. Three failure paths, all mapped
 ;; to the defined-worst (mkARes False $world), the analog of boolean's
-;; unreduced -> -1 at fitness.metta:124:
+;; unreduced -> -1 in evalSubtree (scoring/fitness):
 ;;   * unknown operator -> reduce returns the term UNREDUCED;
 ;;   * known operator whose head destructure rejects the children (wrong
 ;;     child-count for a fixed-arity op) -> silent failure;
@@ -32,19 +32,6 @@
 ;;
 ;; Loads after scoring/action-registry and before scoring/action-ops and any
 ;; domain package.
-
-;; isARes: is $r a well-formed (mkARes $v $w) result? Guarded if-chain, NOT
-;; `and` -- size-atom/car-atom on a non-expression would error. No longer on
-;; the engine's dispatch path (evalActionNode filters result shapes via the
-;; in-collapse unification instead: passing a runtime `partial` term as an
-;; argument would RESUME the application and silently fail); retained as the
-;; public result-shape predicate, pinned by scoring/test/action-eval-test.
-(= (isARes $r)
-   (if (== (get-metatype $r) Expression)
-       (if (== (size-atom $r) 3)
-           (if (== (car-atom $r) mkARes) True False)
-           False)
-       False))
 
 ;; evalActionNode: dispatch ONE node to its operator clause -- reduce on a
 ;; quote-built term (quote substitutes the bound $op/$children/$world and
@@ -88,6 +75,8 @@
            (let ($op $children) $exp
                 (evalActionNode $op $children $world))
            (mkARes False $world))
+       ;; Nested if, not `and`: `and` runs both arguments, so the get-type
+       ;; lookup would run on every symbol leaf of the hot episode loop.
        (if (== (get-metatype $exp) Grounded)
            (if (isActionGroundLiteral $exp)
                (mkARes $exp $world)
@@ -95,7 +84,7 @@
            (evalActionNode $exp () $world))))
 
 ;; actionExp: Tree -> wrapped executable shape; the action analog of
-;; preOrderExp (scoring/boolean-ops.metta:20-33), same clause structure
+;; preOrderExp (scoring/boolean-ops), same clause structure
 ;; including the mkKnob/mkNullVex passthroughs. Every node and every symbol
 ;; leaf becomes (op (children)) -- uniform dispatch; only grounded literals
 ;; (True/False, numbers such as repeat_n's count) stay bare. Emissions are

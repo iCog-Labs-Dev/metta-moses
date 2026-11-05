@@ -128,7 +128,7 @@ has_neg_with(X, [_|T]) :- has_neg_with(X, T).
 is_neg_pair(X, ['NOT', Y]) :- Y == X, !.
 is_neg_pair(['NOT', Y], X) :- Y == X, !.
 
-%% --- setDifference/3 (utilities/general-helpers.metta:105) ---
+%% --- setDifference/3 (utilities/general-helpers.metta) ---
 %% MeTTa version walks Set1 and per element calls (once (is-member $h $set2))
 %% which expands via collapse/superpose — each membership check is itself a
 %% reduce/2 dispatched walk. Native subtract preserves element order (so call

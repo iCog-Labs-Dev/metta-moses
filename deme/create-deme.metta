@@ -1,48 +1,54 @@
-;; Represents a population of program instances with the same representation 
-;; but different knob settings, along with their scores
-; (: Deme Type)
-; (: mkDeme (-> Representation (InstanceSet $score) DemeId Deme))
-;; createDeme create demes with empty instance set -- appends deme ID's to them as well
+;; A DemeSpace is an atomspace for one deme. It holds a population of program
+;; instances with the same representation but different knob settings, along with
+;; their scores: one (mkRep ...), one (mkSInstSet ...) and one (mkDemeId ...).
+
+;; Reset a DemeSpace to its initial state, with an empty instance set.
+(= (initDemeSpace $demeSpace $rep $id)
+   (let* (($_clear (clearSpace $demeSpace))
+          ($_rep (add-atom $demeSpace $rep))
+          ($_set (add-atom $demeSpace (mkSInstSet ())))
+          ($_id (add-atom $demeSpace $id)))
+     $demeSpace))
+
+;; createDeme creates a DemeSpace with an empty instance set for each deme id.
+;;             $nDeme --      number of demes to create
 ;;             $demeIds --    list of deme ids (cons ...)
-;;             $exemplar --   the exemplar tree which the demes are going to be based on 
-;;             $table    --   table of input data 
+;;             $exemplar --   the exemplar tree which the demes are going to be based on
+;;             $table    --   table of input data
 ;;             $algo     --   the chosen feature selection algo
-;;             $prune-exemplar     --   bool shall we prune the exemplar or not?
-;;             $enforced-features  --   tuple of enorced features to be sample during feature selection, if any, in the form of arg selection-probabality pair
-;;             returns ↠ tuple of demes
-; (: createDeme (-> Number (List DemeId) (Tree $a) (ITable $a) Symbol Bool Expression Symbol Expression)) 
-(= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType)
+;;             $pruneExemplar     --   prune the exemplar or not
+;;             $enforcedFts  --   tuple of enforced features to sample during feature selection, if any, as (arg selection-probability) pairs
+;;             $scorerType --  the feature-set scorer type
+;;             returns ↠ tuple of DemeSpaces
+;; (: createDeme (-> Number (List DemeId) (Tree $a) (ITable $a) Symbol Bool Expression Symbol Expression)) 
+(= (createDeme $nDeme $demeIds $exemplar (mkITable $table $labels) $algo $pruneExemplar $enforcedFts $scorerType)
       (let* 
             (
                   ((mkDemeId $firstDemeId) (List.head $demeIds))
                   ($featureSelectionDeme
                     (py-call (demeSpaceName.featureSelectionDemeSpaceName $firstDemeId)))
-                  ($_ (clearSpace $featureSelectionDeme))
-                  ($_ (add-atom $featureSelectionDeme (mkRep () ())))
-                  ($_ (add-atom $featureSelectionDeme (mkSInstSet ())))
-                  ($_ (add-atom $featureSelectionDeme (mkDemeId ())))
+                  ($_init (initDemeSpace $featureSelectionDeme (mkRep () ()) (mkDemeId ())))
                   ($candidateReps
-                    (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $prune-exemplar $enforced-fts $scorerType $featureSelectionDeme))
+                    (createRepresentation $nDeme $exemplar (mkITable $table $labels) $algo $pruneExemplar $enforcedFts $scorerType $featureSelectionDeme))
                   ($reps (expandableRepresentations $candidateReps))
             ) 
-            (loopCreateDemeSpace $demeIds $reps ()) ;; FIX: Optimize this using zip implementation in PeTTa. It can be faster.
+            (createDemeSpaces $demeIds $reps)
       ) 
 )
 
-;; Action createDeme - the action/perception vocabularies ride as ARGUMENTS
-;; (5-ary: no collision with the 8-arg boolean clause above); same body
-;; shape. This layer just forwards them --
-;; the one params read happens at the deme boundary in expand-deme.metta.
+;; Action createDeme: the action/perception vocabularies come as arguments
+;; (5-ary: no collision with the 8-arg boolean clause above). The params
+;; are read once, at the deme boundary in expand-deme.metta.
 ;;             $nDeme --       number of demes to create
 ;;             $demeIds --     list of deme ids (cons ...)
 ;;             $exemplar --    the exemplar tree which the demes are going to be based on
 ;;             $actions --     tuple of domain action symbols (knob vocabulary)
 ;;             $perceptions -- tuple of perception symbols (may be ())
-;;             returns ↠ tuple of demes
-; (: createDeme (-> Number (List DemeId) (Tree $a) Expression Expression Expression))
+;;             returns ↠ tuple of DemeSpaces
+;; (: createDeme (-> Number (List DemeId) (Tree $a) Expression Expression Expression))
 (= (createDeme $nDeme $demeIds $exemplar $actions $perceptions)
       (let $reps (createRepresentation $nDeme $exemplar $actions $perceptions)
-            (loopCreateDemeSpace $demeIds $reps ())))
+            (createDemeSpaces $demeIds $reps)))
 
 ;; Classic C++ MOSES discards every representation whose field set is empty,
 ;; regardless of the scoring domain. An empty MeTTa disc map is equivalent:
@@ -62,25 +68,15 @@
      (representationExpandable $rep)))
 
 ;; Store each expandable representation and its initial state in a DemeSpace.
-(= (loopCreateDemeSpace $demeIds $reps $acc)
-   (if (== $reps ())
-       $acc
-       (let*
-         (
-           ($h (car-atom $reps))
-           ($t (cdr-atom $reps))
-           ($demeId (List.head $demeIds))
-           ((mkDemeId $id) $demeId)
+;; A rep that is not expandable still uses up its id (the action path does not
+;; pre-filter), so pair the ids with the reps before the filter.
+(= (createDemeSpaces $demeIds $reps)
+   (let* (
+          ($pairs (List.zip $reps $demeIds))
+          ($expandable (filter-atom $pairs ($rep $demeId) (representationExpandable $rep)))
          )
-         (if (representationExpandable $h)
-             (let*
-               (
-                 ($demeSpace (py-call (demeSpaceName.demeSpaceName $id)))
-                 ($_ (clearSpace $demeSpace))
-                 ($_ (add-atom $demeSpace $h))
-                 ($_ (add-atom $demeSpace (mkSInstSet ())))
-                 ($_ (add-atom $demeSpace (mkDemeId $id)))
-                 ($new-acc (union-atom $acc ($demeSpace)))
-               )
-               (loopCreateDemeSpace (List.tail $demeIds) $t $new-acc))
-             (loopCreateDemeSpace (List.tail $demeIds) $t $acc)))))
+     (map-atom $expandable ($rep $demeId) (createDemeSpace $rep $demeId))))
+
+(= (createDemeSpace $rep (mkDemeId $id))
+   (let $demeSpace (py-call (demeSpaceName.demeSpaceName $id))
+     (initDemeSpace $demeSpace $rep (mkDemeId $id))))

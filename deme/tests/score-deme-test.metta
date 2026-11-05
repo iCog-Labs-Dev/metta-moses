@@ -20,7 +20,6 @@
 !(import! &self scoring/action-registry)
 !(import! &self representation/knob-representation)
 !(import! &self representation/lsk)
-!(import! &self representation/knob-mapper)
 !(import! &self feature-selection/feature-selection-helpers)
 !(import! &self representation/candidate)
 !(import! &self representation/representation)

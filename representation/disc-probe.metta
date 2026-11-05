@@ -13,7 +13,7 @@
 
 ;; Applies a logical setting to a controlled subtree.
 ;; 0 - absent/null, 1 - present, 2 - negated.
-(= (applyLogicalSettingToSubtree $subtree 0) (mkNullVex (cons $subtree ())))
+(= (applyLogicalSettingToSubtree $subtree 0) (mkNullVex ($subtree)))
 (= (applyLogicalSettingToSubtree $subtree 1) $subtree)
 (= (applyLogicalSettingToSubtree $subtree 2) (insertAbove $subtree (mkNode NOT)))
 
@@ -41,14 +41,14 @@
 
 ;; Tests all effective non-default settings and accumulates disallowed actual
 ;; settings for a knob.
+;; It tests the effective settings $setting .. multiplicity-1 in order.
 (= (probeEffectiveSettings $tree $probeRootId $targetId $lsk $setting $acc)
    (let (mkMultip $m) (getKnobMultip $lsk)
-      (if (>= $setting $m)
-          $acc
-          (let $actualSetting (mapEffectiveDiscSpec $lsk $setting)
-             (if (settingReducesComplexity $tree $probeRootId $targetId $actualSetting)
-                 (probeEffectiveSettings $tree $probeRootId $targetId $lsk (+ $setting 1) (cons-atom (mkDiscSpec $actualSetting) $acc))
-                 (probeEffectiveSettings $tree $probeRootId $targetId $lsk (+ $setting 1) $acc))))))
+      (foldl-atom (genList $setting (- $m 1)) $acc $disallowed $effectiveSetting
+         (let $actualSetting (mapEffectiveDiscSpec $lsk $effectiveSetting)
+            (if (settingReducesComplexity $tree $probeRootId $targetId $actualSetting)
+                (cons-atom (mkDiscSpec $actualSetting) $disallowed)
+                $disallowed)))))
 
 ;; Updates an id-free LSK with settings disallowed in the supplied context.
 (= (discProbe $tree $probeRootId $targetId $lsk)

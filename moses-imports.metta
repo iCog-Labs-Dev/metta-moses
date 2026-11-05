@@ -58,7 +58,7 @@
 
 ;; ---- Boolean reduction performance helpers ----
 ;; Keep the main entry aligned with the benchmark harness:
-;; - native Prolog getLiteralChildren avoids a hot filter-atom path
+;; - native getLiterals / getChildrenExp avoid a hot filter-atom path
 ;; - native removeEmptyAND replaces the SLG-tabled MeTTa rewrite: the O(n)
 ;;   walk beats table lookup + answer copy, and lib_tabling is no longer
 ;;   needed at all
@@ -102,7 +102,6 @@
 !(import! &self representation/build-logical)
 !(import! &self representation/build-action)
 !(import! &self representation/build-knobs)
-!(import! &self representation/knob-mapper)
 !(import! &self representation/candidate)
 
 ;; ---- Action fitness packages ----
@@ -152,7 +151,7 @@
 ;; the production entry point, before the shared expansion lifecycle uses it.
 !(import! &self deme/expand-deme)
 
-;; ---- Top-level entry point: defines (moses), (optimizer-for ...) ----
+;; ---- Top-level entry point: defines (moses), (optimizerFor ...) ----
 !(import! &self moses/demo-problems)
 
 ;; ---- Bootstrap the Python CSV helper used by the --inputFile path ----

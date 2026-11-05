@@ -3,11 +3,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Removes adjacent duplicate ScoredInstances from a sorted list, keeping up to $topCnd unique instances.
+;; Two neighbours are duplicates when their penalized scores are equal and
+;; their materialized trees are equal.
 ;; Params:
+;;    $rep, $id: Representation and deme id, used to materialize trees.
 ;;    (List (ScoredInstance Cscore)): Sorted list of scored instances.
 ;;    $topCnd: Maximum number of instances to keep.
 ;; Return: (List (ScoredInstance Cscore)): List with adjacent duplicates removed, limited by $topCnd.
-; (: removeDupInsts (-> (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
+;; (: removeDupInsts (-> Representation DemeId (List (ScoredInstance Cscore)) Number (List (ScoredInstance Cscore))))
 (= (removeDupInsts $rep $id () $topCnd) ())
 (= (removeDupInsts $rep $id (cons (mkSInst $x) $tail) $topCnd)
    (if (== $tail ())
@@ -35,13 +38,13 @@
                  (cons (mkSInst $x) (removeDupInsts $rep $id (cons (mkSInst $y) $rest) (- $topCnd 1))))
              ()))) )
 
-;; Extracts up to $maxCandsPerDeme unique ScoredInstances from a sorted InstanceSet, limited by $nEval.
+;; Extracts up to (param maxCandPerDeme) unique ScoredInstances from a sorted
+;; InstanceSet, limited by (param nEval).
 ;; Params:
+;;   $rep, $id: Representation and deme id, used to materialize trees.
 ;;   (InstanceSet Cscore): Sorted set of scored instances.
-;;   $nEval: Maximum evaluations.
-;;   $maxCandsPerDeme: Maximum candidates per deme.
 ;; Return: (List (ScoredInstance Cscore)): List of unique top-scoring instances.
-; (: keepTopUniqueCandidates (-> (InstanceSet Cscore) (List (ScoredInstance Cscore))))
+;; (: keepTopUniqueCandidates (-> Representation DemeId (InstanceSet Cscore) (List (ScoredInstance Cscore))))
 (= (keepTopUniqueCandidates $rep $id (mkSInstSet $sortedSInstList))
  (let*
  (
@@ -69,7 +72,7 @@
 ;;   $lastIndex: Index to start checking from (end of list).
 ;;   $botSc: Minimum penalized score threshold.
 ;; Return: (List (ScoredInstance Cscore)): Filtered list with low-scoring instances removed.
-; (: filterDemeByScore (-> (List (ScoredInstance Cscore)) Number Number (List (ScoredInstance Cscore))))
+;; (: filterDemeByScore (-> (List (ScoredInstance Cscore)) Number Number (List (ScoredInstance Cscore))))
 (= (filterDemeByScore () $lastIndex $botSc) ())
 (= (filterDemeByScore (cons $x $xs) $lastIndex $botSc)
 (if (== $lastIndex 0) (cons $x $xs) (let*
@@ -85,13 +88,13 @@
     )
 )))
 
-;; Trims a sorted list of ScoredInstances to remove low-scoring instances based on a score range derived from $complexityTemperature, unless size ≤ $minPoolSize or 1.
+;; Trims a sorted list of ScoredInstances: removes the instances below a score
+;; range derived from (param complexityTemperature), unless the size is at most
+;; (param minPoolSize) or 1.
 ;; Params:
 ;;   (List (ScoredInstance Cscore)): Sorted list of scored instances.
-;;   $minPoolSize: Minimum number of instances to retain.
-;;   $complexityTemperature: Parameter for computing score range.
-;;Return: (List (ScoredInstance Cscore)): Trimmed list of instances.
-; (: trimDownDeme (-> (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
+;; Return: (List (ScoredInstance Cscore)): Trimmed list of instances.
+;; (: trimDownDeme (-> (List (ScoredInstance Cscore)) (List (ScoredInstance Cscore))))
 (= (trimDownDeme $sInstList)
 (let $demeSize (List.length $sInstList)
 (if (or (>= (param minPoolSize) $demeSize) (<= $demeSize 1))
@@ -126,12 +129,14 @@
                    $candidate
                    $best))))))
 
-;; Converts a Deme into a list of Exemplars by transforming each ScoredInstance into a scored tree.
+;; Converts the parts of a deme into a list of Exemplars by transforming each ScoredInstance into a scored tree.
 ;; Params:
-;;   $deme: A deme containing a representation, scored instance set, and demeId.
-;;   $itable: The input table.
+;;   $rep: The representation of the deme.
+;;   (mkSInstSet ...): The scored instance set.
+;;   $demeId: The id of the deme.
+;;   $scoringContext: The input table (mkITable ...) or the action context (mkActionCtx ...).
 ;; Return: (List (Exemplar $a)) - List of exemplars with scored trees.
-; (: demeToTrees (-> Deme (ITable $a) (List (Exemplar $a))))
+;; (: demeToTrees (-> Representation (InstanceSet $a) DemeId $scoringContext (List (Exemplar $a))))
 (= (demeToTrees $rep (mkSInstSet ()) $demeId $scoringContext) ())
 (= (demeToTrees $rep (mkSInstSet (cons $si $sil)) $demeId $scoringContext)
 (let*
@@ -145,7 +150,7 @@
              ($other (getCandidate $rep $demeId $inst)))))
         ($bscore (case $scoringContext
                     (((mkITable $rows $labels) (scoreTree $scoringContext $tree &bscoreCache))
-;; Action arm: tagged (mkActionCtx ...) context, disjoint from
+                     ;; Action arm: tagged (mkActionCtx ...) context, disjoint from
                      ;; the boolean (mkITable ...) arm above.
                      ((mkActionCtx $nTrials $complexityRatio $targetScore) (scoreActionTree $tree $nTrials &actionScoreCache)))))
         ($scoredTree (mkExemplar $tree $demeId $cscore $bscore))
@@ -165,10 +170,10 @@
 ;;   (List (Exemplar $a)): List of exemplars to filter.
 ;;   $metaPop: Ordered set of existing exemplars.
 ;; Return: (List (Exemplar $a)): List of new exemplars not in metaPop.
-; (: getNewCandidates (-> (List (Exemplar $a)) (OS (Exemplar $a)) (List (Exemplar $a))))
+;; (: getNewCandidates (-> (List (Exemplar $a)) (OS (Exemplar $a)) (List (Exemplar $a))))
 (= (getNewCandidates () $metaPop) ())
 (= (getNewCandidates (cons $xmp $xmpl) $metaPop)
-     (if (OS.isMember $xmp $metaPop)
+     (if (OS.contains $metaPop $xmp)
         (getNewCandidates $xmpl $metaPop)
         (let $updatedMetaPop (OS.insert compareExemplar $xmp $metaPop) (cons $xmp (getNewCandidates $xmpl $updatedMetaPop))))
 )
@@ -182,7 +187,7 @@
 ;;         Indeterminate otherwise.
 ;; x dominates y if:
 ;; for all i x_i >= y_i and there exists i such that x_i > y_i
-; (: dominates (-> BehavioralScore BehavioralScore Atom))
+;; (: dominates (-> BehavioralScore BehavioralScore Atom))
 (= (dominates (mkBScore ()) (mkBScore ())) Indeterminate)
 (= (dominates (mkBScore ()) (mkBScore (cons $by $bys))) False)
 (= (dominates (mkBScore (cons $bx $bxs)) (mkBScore ())) True)
@@ -190,7 +195,7 @@
    (dominatesRec (mkBScore (cons $bx $bxs)) (mkBScore (cons $by $bys)) Indeterminate))
 
 ;; helper function for dominates
-; (: dominatesRec (-> BehavioralScore BehavioralScore Atom Atom))
+;; (: dominatesRec (-> BehavioralScore BehavioralScore Atom Atom))
 (= (dominatesRec (mkBScore ()) (mkBScore ()) $res) $res)
 (= (dominatesRec (mkBScore (cons $bx $bxs)) (mkBScore (cons $by $bys)) $res)
    (if (> $bx $by)
@@ -207,7 +212,7 @@
 ;; Params:
 ;;   (List (Exemplar $a)): List of exemplars to filter.
 ;; Return: (List (Exemplar $a)): List of non-dominated exemplars.
-; (: removeDominated (-> (List (Exemplar $a)) (List (Exemplar $a))))
+;; (: removeDominated (-> (List (Exemplar $a)) (List (Exemplar $a))))
 (= (removeDominated ()) ())
 (= (removeDominated (cons $exemplar ())) (cons $exemplar ()))
 (= (removeDominated (cons $exemplar (cons $next $rest)))
@@ -227,7 +232,7 @@
 ;;   (List (Exemplar $a)): Remaining exemplars to process.
 ;;   $acc: Accumulator for non-dominated exemplars.
 ;; Return: List including $exemplar and non-dominated others.
-; (: removeDominatedRec (-> (Exemplar $a) (List (Exemplar $a)) (List (Exemplar $a)) (List (Exemplar $a))))
+;; (: removeDominatedRec (-> (Exemplar $a) (List (Exemplar $a)) (List (Exemplar $a)) (List (Exemplar $a))))
 (= (removeDominatedRec $exemplar () $acc)
    (cons $exemplar $acc))
 (= (removeDominatedRec $exemplar (cons $other $rest) $acc)
@@ -245,36 +250,28 @@
 ;;   (List (Exemplar $a)): List of exemplars to merge 
 ;;   $metapop: Ordered set to merge into.
 ;; Return: $updatedMetaPop: Updated ordered set with merged exemplars.
-; (: mergeCandidates (-> (List (Exemplar $a)) (OS (Exemplar $a)) (OS (Exemplar $a))))
+;; (: mergeCandidates (-> (List (Exemplar $a)) (OS (Exemplar $a)) (OS (Exemplar $a))))
 (= (mergeCandidates () $metapop) $metapop)
 (= (mergeCandidates (cons $x $xs) $metapop)
    (let $updatedMetaPop (OS.insert compareExemplar $x $metapop)
       (mergeCandidates $xs $updatedMetaPop)))
 
 ;; Merges a deme's candidates into a metapopulation, processing through sorting, deduplication, trimming, tree conversion, filtering, dominance removal, merging, and resizing.
+;; The hyperparameters come from &params.
 ;; Params:
 ;;   $demes: List of demes to process.
-;;   $nEval: Number of evaluations for candidate selection.
-;;   $maxCandsPerDeme: Maximum candidates per deme.
-;;   $minPoolSize: Minimum deme size to retain.
-;;   $complexityTemperature: Parameter for score range in trimming.
-;;   $scoringContext: Either (mkITable $rows $labels) for Boolean or ($nGames $opponentPolicy) for Strategy
+;;   $scoringContext: (mkITable $columns $labels) for a Boolean run, (mkActionCtx ...) for an action run.
 ;;   $metapop: Ordered set of existing exemplars.
-;;   $nToKeep: Target size for resized metapopulation.
-;;   $capCoef: Capacity coefficient for resizing.
-;;   $genCount: Generation count for resizing.
 ;; Return: Updated and resized metapopulation.
-;; Hyperparameters now flow via &params; the only positional args are
-;; the data being merged (demes, scoring context, metapop).
-; (: mergeDemes (-> Expression (ITable $a) (OS (Exemplar $a)) (OS (Exemplar $a))))
+;; (: mergeDemes (-> Expression $scoringContext (OS (Exemplar $a)) (OS (Exemplar $a))))
 (= (mergeDemes $demes $scoringContext $metapop)
     (if (== $demes ()) $metapop
         (let*
         (
-            (($headDeme $tailDeme) (decons-atom $demes))
-            ($rep (match $headDeme (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
-            ($sInstList (match $headDeme (mkSInstSet $instances) (mkSInstSet $instances)))
-            ($demeId (match $headDeme (mkDemeId $id) (mkDemeId $id)))
+            (($demeSpace $restDemes) (decons-atom $demes))
+            ($rep (getDemeRep $demeSpace))
+            ($sInstList (getDemeInstSet $demeSpace))
+            ($demeId (getDemeId $demeSpace))
             ($sortedSInstList (sortDeme $sInstList)) ;; sorting the instances inside the deme by decreasing order
             ($_ (if (param diagnostics)
                    (println! (Demesize:
@@ -290,8 +287,7 @@
                    (println! (TrimmedDownDeme:
                                (List.length $trimmedDeme)))
                    ()))
-            ($_ (remove-atom $headDeme $sInstList))
-            ($_ (add-atom $headDeme (mkSInstSet $trimmedDeme)))
+            ($_stored (setDemeInstances $demeSpace $trimmedDeme))
             ($potCandidates
               (demeToTrees $rep (mkSInstSet $trimmedDeme) $demeId
                 $scoringContext)) ;;convert instances to trees
@@ -320,8 +316,8 @@
                                (OS.length $resizedMetapop)))
                    ()))
         )
-            (if (== $tailDeme ()) $resizedMetapop
-                (mergeDemes $tailDeme $scoringContext $resizedMetapop)
+            (if (== $restDemes ()) $resizedMetapop
+                (mergeDemes $restDemes $scoringContext $resizedMetapop)
             )
         )
     )

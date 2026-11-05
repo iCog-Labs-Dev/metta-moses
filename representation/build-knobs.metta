@@ -1,22 +1,24 @@
-;;;; buildKnobs constructor that is directly called by the representaion constructor
+;;;; buildKnobs constructor that is directly called by the representation constructor
 ;; Params: Tree (Exemplar)
 ;;         $mmp: multimap to store knobs
 ;;         $argLabels: list of argument labels (input variables) from the ITable
+;;         $ignoreOps: operators that knob building must not add
 ;; Returns: a tuple containing the updatedTree and a multimap of $kbSpec $kb pairs
- ;; (: buildKnobs (-> (Tree Bool) (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v)))))
-;; Excludes operators from candidate generation.
+;; (: buildKnobs (-> (Tree Bool) (MultiMap ($k $v)) Expression ((Tree $a) (MultiMap ($k $v)))))
 (= (buildKnobs $exemplar $mmp $argLabels)
     (buildKnobs $exemplar $mmp $argLabels True (param ignoreOps)))
 
-(= (buildKnobs $exemplar $mmp $argLabels $disable-discprobe $ignoreOps)
+(= (buildKnobs $exemplar $mmp $argLabels $discProbeDisabled $ignoreOps)
     (let (mkTree (mkNode $rootOp) $children) $exemplar
         (if (isActionOperator $rootOp)
             (Error "buildKnobs 5-arity cannot be called with action operator root")
-            (let $canonized (logicalCanonize $exemplar)
-                (let (mkTree (mkNode $canonRootOp) $canonChildren) $canonized
-                    (buildLogical $canonized $canonRootOp $mmp $argLabels $disable-discprobe $canonized (mkNodeId (0)) $ignoreOps))))))    
-                           
+            (let* (($canonized (logicalCanonize $exemplar))
+                   ((mkTree (mkNode $canonRootOp) $canonChildren) $canonized))
+                (buildLogical $canonized $canonRootOp $mmp $argLabels $discProbeDisabled $canonized (mkNodeId (0)) $ignoreOps)))))
+
 (= (buildKnobs (mkTree (mkNode $rootOp) $children) $mmp $argLabels $actions $perceptions $ignoreOps)
+    ;; Inline membership test: isDomainAction is in build-action, which some
+    ;; contexts load after this file.
     (if (or (isActionOperator $rootOp) (once (is-member $rootOp $actions)))
         (let*
           (
@@ -26,6 +28,5 @@
             ($finalTree (if (isNullVertex $cleanedTree) (mkTree (mkNode and_seq) ()) $cleanedTree))
           )
           ($finalTree $updatedMMap))
-        (let $canonized (logicalCanonize (mkTree (mkNode $rootOp) $children))
-          (let (mkTree (mkNode $canonRootOp) $canonChildren) $canonized
-            (buildLogical $canonized $canonRootOp $mmp $argLabels True $canonized (mkNodeId (0)) $ignoreOps)))))
+        ;; Not an action root, so the 5-arity action guard does not fire.
+        (buildKnobs (mkTree (mkNode $rootOp) $children) $mmp $argLabels True $ignoreOps)))
