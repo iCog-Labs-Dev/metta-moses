@@ -52,11 +52,11 @@ Each item gives each result two or more times. A `(cut)` or a `once` hides most 
 
 | Function | Where | Overlap |
 |---|---|---|
-| `demeToTrees` | `deme/merge-demes.metta:138,161` | Both match an empty deme with a 1-field `mkActionCtx`. |
+| `demeToTrees` | `deme/merge-demes.metta:140,163` | Both match an empty deme with a 1-field `mkActionCtx`. |
 | `List.getByIdx` | `utilities/list-methods.metta:38-39` | Both match `()`. Probe: two `(Error () (Index out of range))`. |
 | `getNodeById` | `utilities/nodeId.metta:38-40` | Clauses 2 and 3 overlap. `(getNodeById () (mkNodeId (1 2 3)))` gives 3 solutions. |
-| `coll.length` and other `coll.*` | `utilities/general-helpers.metta:742-765` | `(coll.length ())` has 4 clauses. |
-| `materializeCandidateForContext` | `optimization/hillclimbing/hill-climbing-helpers.metta:238-244` | Clause 3 also matches action contexts, so they get 2 solutions. `seedTreeScoreCache` runs before the `cut`. |
+| `coll.length` and other `coll.*` | `utilities/general-helpers.metta:750-773` | `(coll.length ())` has 4 clauses. |
+| `materializeCandidateForContext` | `optimization/hillclimbing/hill-climbing-helpers.metta:236-242` | Clause 3 also matches action contexts, so they get 2 solutions. `seedTreeScoreCache` runs before the `cut`. |
 
 ### B7. `reduceToElegance` matches only the literal `(NOT A)`
 
@@ -74,7 +74,7 @@ Each item gives each result two or more times. A `(cut)` or a `once` hides most 
 | B11 | `replaceVarWithTruth` builds `(AND OR)` bare. After `boolean-ops` loads, that is a call. Production uses the native override, so only test contexts can see it. | `scoring/bscore.metta:108` |
 | B12 | `xmplrInit` uses `(pow-math 10 -37)` (+1e-37) as the worst score. Classic uses `very_worst_score` (-1e37). | `metapopulation/exemplar-type.metta:33` |
 | B13 | `mkDemeId` is declared `(-> Number DemeId)`, but production passes strings and expressions. Probe before any edit: type declarations can make static calls fail in silence. | `metapopulation/exemplar-type.metta:4` |
-| B14 | `decrementState` computes `int - state`, not `state - int`. No caller. | `utilities/general-helpers.metta:1133` |
+| B14 | `decrementState` computes `int - state`, not `state - int`. No caller. | `utilities/general-helpers.metta:1141` |
 | B15 | `profile` calls `(round $avg 3)`, but `round` has only a 1-argument clause. | `utilities/general-helpers.metta:19` |
 | B16 | The univariate optimizer still takes `(mkDeme ...)`. #527 moved hill climbing and SA to DemeSpace, so `expandDemesCounted` cannot use univariate. `optimizerFor` does not reach it today. | `optimization/univariate/univariate.metta:288,311` |
 | B17 | Each expansion makes a DemeSpace with a new name, and no code clears the old ones after the merge. Measured: `parity4`, 30 generations, peak RSS 1729 MB before #527 and 1718 MB after it. A longer run can differ. | `deme/create-deme.metta:30,81` |
