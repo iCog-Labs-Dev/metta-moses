@@ -11,7 +11,7 @@
 ;;                      next-highest scoring instances.
 
 ;; (: crossTopOne (-> DemeSpace Number Number Number Instance DemeSpace))
- (= (crossTopOne $demeSpace $nToMake $sampleStart $sampleSize $baseInstance)
+(= (crossTopOne $demeSpace $nToMake $sampleStart $sampleSize $baseInstance)
    (let*
       (
        ($instSet (getDemeInstances $demeSpace))
@@ -29,10 +29,8 @@
 
               ($targetExpr (List.takeN $nToMakeNew $rest))
               ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
-
-              ($newInstances (merger $targetExpr $baseInstance $referenceInst))
               )
-             $newInstances
+             (merger $targetExpr $baseInstance $referenceInst)
           ))))
 
 ;; similar to the above 'crossTopOne' but with slight changes on the comparison function that is passed to List.partialSort to compare the mutualInformation based scores
@@ -97,13 +95,11 @@
        ($nToSort (min $sampleSize $nToSortRaw))
 
        ($sortedList (List.partialSort instance> $sample $nToSort ()))
-
-       ;; C++ traverses the complete sample; only its top nToSort prefix is
-       ;; ordered. The result limit stops traversal before the unsorted tail
-       ;; can affect the intended simplex prefix.
-       ($newInstances (crossPairs () $sortedList $baseInstance () $nToMakeNew))
        )
-      $newInstances
+      ;; C++ traverses the complete sample; only its top nToSort prefix is
+      ;; ordered. The result limit stops traversal before the unsorted tail
+      ;; can affect the intended simplex prefix.
+      (crossPairs () $sortedList $baseInstance () $nToMakeNew)
       ))
 
 ;; cbrt-math -- Approximate cube root.
@@ -141,13 +137,9 @@
        ($nToSortRaw (int (+ (cbrt-math (* 6 $nToMakeNew)) 3)))
        ($nToSort (min $sampleSize $nToSortRaw))
        ($sortedList (List.partialSort instance> $sample $nToSort ()))
-
-        ;; The C++ i-loop traverses the full sample after partially sorting its
-        ;; prefix.
-        ($newInstances
-          (crossTriples () $sortedList 0 $baseInstance
-            (makeCrossoverSlots $nToMakeNew) $nToMakeNew))
         )
-
-       $newInstances
+       ;; The C++ i-loop traverses the full sample after partially sorting its
+       ;; prefix.
+       (crossTriples () $sortedList 0 $baseInstance
+         (makeCrossoverSlots $nToMakeNew) $nToMakeNew)
     ))

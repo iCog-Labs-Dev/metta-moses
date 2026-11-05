@@ -129,9 +129,11 @@
                    $candidate
                    $best))))))
 
-;; Converts a Deme into a list of Exemplars by transforming each ScoredInstance into a scored tree.
+;; Converts the parts of a deme into a list of Exemplars by transforming each ScoredInstance into a scored tree.
 ;; Params:
-;;   $deme: A deme containing a representation, scored instance set, and demeId.
+;;   $rep: The representation of the deme.
+;;   (mkSInstSet ...): The scored instance set.
+;;   $demeId: The id of the deme.
 ;;   $scoringContext: The input table (mkITable ...) or the action context (mkActionCtx ...).
 ;; Return: (List (Exemplar $a)) - List of exemplars with scored trees.
 ;; (: demeToTrees (-> Representation (InstanceSet $a) DemeId $scoringContext (List (Exemplar $a))))

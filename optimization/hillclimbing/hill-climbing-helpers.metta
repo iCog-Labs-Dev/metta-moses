@@ -154,11 +154,11 @@
 ;; (: countNeighborhoodFs (-> Instance Number Number Number))
 (= (countNeighborhoodFs $instance $dist $maxCount)
    (countNeighborhoodFromIdxFs $instance $dist 0 $maxCount))
-  
+
 ;; mergeOffspring
 ;; Combines offspring produced by the three crossover operators, removes
-;; duplicates, appends new instances after the original deme, and returns the
-;; updated deme together with the number of newly added instances.
+;; duplicates, appends new instances after the original instances, stores the
+;; result, and returns the new set together with the number of added instances.
 (= (mergeOffspring $demeSpace $newInstances1 $newInstances2 $newInstances3)
    (let*
       (
@@ -166,8 +166,8 @@
        ;; List.appendList(a, b) is implemented as append(b, a). Reverse the
        ;; helper arguments so first-occurrence deduplication sees
        ;; the same one-, two-, then three-simplex order as the C++ driver.
-       ($temp (List.appendList $newInstances2 $newInstances1))
-       ($allNewInstances (List.appendList $newInstances3 $temp))
+       ($oneAndTwoSimplex (List.appendList $newInstances2 $newInstances1))
+       ($allNewInstances (List.appendList $newInstances3 $oneAndTwoSimplex))
 
        ($uniqueNewInstances (unique-atom $allNewInstances))
        ;; Crossover can rediscover a vector that is already in the scored
@@ -193,8 +193,8 @@
 ;; Main crossover driver.
 ;; Distributes the crossover budget across 1-, 2-, and 3-simplex operators,
 ;; collects their offspring, merges the results, removes duplicates,
-;; and returns the updated deme and count of newly added instances.
-;; (: crossover (-> Number Number Instance DemeSpace (DemeSpace Number)))
+;; and returns the updated instance set and count of newly added instances.
+;; (: crossover (-> Number Number Number Number Instance DemeSpace ((InstanceSet $a) Number)))
 (= (crossover $demeSize $nNewInstances $sampleStart $sampleSize $centerInst $demeSpace)
 
    ;; Keep the crossover population configurable; 120 is the C++ default.
@@ -219,8 +219,7 @@
 
 ;; Project the raw-best score directly from a deme's attached scored rows.
 (= (bestRawDeme $demeSpace)
-   (bestRawScore
-     (getDemeInstances $demeSpace)))
+   (bestRawScore (getDemeInstances $demeSpace)))
 
 ;; `()` is a safe cache-miss marker because real scores are constructed values.
 (= (cachedScoreForTree $tree ()) ())
@@ -474,7 +473,7 @@
 ;; (: hillClimbing (-> DemeSpace (TruthTableBScore $a) Instance (-> DemeSpace (TruthTableBScore $a) Instance $Scorer (Instance DemeSpace $state))))
 (= (hillClimbing $demeSpace $tTableBscorer $centerInst) 
     (hillClimbing $demeSpace $tTableBscorer $centerInst (mkParams applyComplexityBasedScore ())))
-    
+
 ;; (: hillClimbing (-> DemeSpace (TruthTableBScore $a) Instance $Scorer (Instance DemeSpace $state)))
 ;; The second slot of `mkParams` carries the arguments the chosen scorer needs:
 ;;   applyComplexityBasedScore        -- ()
@@ -589,8 +588,7 @@
         ($currentDemeSize
           (if $isFeatureSelection
               $currentNInstances
-              (List.length
-                (getDemeInstances $demeSpace))))
+              (List.length (getDemeInstances $demeSpace))))
 
         ($largeNbh (>= $totalNNeighbors $minXoverNeighbors))
         ;; Honor the C++ crossover switch.
@@ -658,8 +656,8 @@
               ()))
 
         ($_stored (setDemeInstances $demeSpace $scoredInstances))
-        
-        
+
+
         ;; ($sExprList (List.listToExpr $scoredInstances))
         ;; ($amr (map-atom $sExprList $inst (let (mkSInst $x) $inst (println! (Inst: (List.listToExpr (second (Pair.first $x))) Tree: (preOrder (getCandidate $rep $id (Pair.first $x))) Score: (getPenScore (Pair.second $x)))))))
         ;; ($_ (println! ""))
@@ -672,7 +670,7 @@
                           (Pair.second $newBestInstPair)
                           (getPenScore (Pair.second $newBestInstPair)))) ;; This could be the original best candidate or a new one.
         ($hasImproved (> $newBestScore (+ $bestScore (param hcScoreImprovedThreshold))))
-        
+
         ;; ($_ (println! (Best instance: (Pair.first $newBestInstPair))))
         ;; ($_ (println! (Best candidate: (preOrder (getCandidate $rep (Pair.first $newBestInstPair))))))
         ($_best
@@ -685,7 +683,7 @@
         ($nextBestScore (if $hasImproved $newBestScore $bestScore))
         ($nextBestSscore (if $hasImproved (Pair.second $newBestInstPair) $bestSscore))
         ($nextDistance (if $hasImproved 1 (if (not $xOver) (+ 1 $d) $d)))
-        
+
         ;; ($_ (println! (NextDistance: $nextDistance)))
 
         ($hillStepResult (if (and (== $totalNNeighbors 1) (== $nextDistance 1))
@@ -698,7 +696,7 @@
                                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
                                   ($nextCenterInst $demeSpace ((and $xOver (not $hasImproved)) $lastChance $hasImproved $centerInst $currentDemeSize $newInstances $nextBestSscore $nextBestScore $updatedEvalCount $nextDistance $i))))
         (($newCenter $demeSpace ($newXover $newLastChance $newHasImproved $newPrevCenter $newPrevStart $newPrevSize $newBestSscore $nextNewBestScore $newCurrentNInstance $newDistance $newI)) $hillStepResult)
-        
+
         ;; Termination check compares against the scalar `$bestPossibleScore`,
         ;; which carries the *raw* best score (matching classic MOSES). So we
         ;; must extract the raw-score field from the candidate's Cscore here,
@@ -746,7 +744,7 @@
                           $hillStepResult
                   ;; )
                   )
-  
+
               (if (< $maxDist $finalDistance)
                   ;; (trace! (Terminating because of maximum distance reached) ...)
                   ($finalCenter $demeSpace ($finalXover False $finalHasImproved $finalPrevCenter $finalPrevStart $finalPrevSize $finalBestCscore $finalNewBestScore $finalCurrentNInstance $finalDistance $finalI))
@@ -766,10 +764,10 @@
                   )
             )
             )
-    
+
                     )
 
-     
+
     )          
 )
 

@@ -1,6 +1,6 @@
 ;; Simulated Annealing
 ;; Params:
-;;   deme: The current population of instances
+;;   demeSpace: The DemeSpace that holds the current population of instances
 ;;   tTableBScorer: The truth table based bScore function
 ;;   initCenter: The initial instance to start the search from
 ;;   initial-temperature: Initial temperature for the algorithm
@@ -9,7 +9,7 @@
 ;;   total-state: Total number of instances in the state space
 ;; Returns:
 ;;   instance: The best instance found
-;;   deme: The final population of instances
+;;   demeSpace: The DemeSpace that holds the final population of instances
 ;;   state: The state of the algorithm
 ;; Algorithm description:
 ;;   1. Checks if the temp == final temp or max iterations is reached, it any of these is true break and return the best cadidate and best score.
@@ -118,7 +118,7 @@
               ($xOver (and (> $i 2) (and (not $alreadyXover) (or $largeNbh $lastChance))))
               ;; ($_ (println! (Crossover: $xOver)))
               ;; Generate a new instance using crossover
-              
+
               (($updatedInstSet $newInstances)
                 (if $xOver
                     ($crossoverFunction $currentNInstances $nNewNeighbors $prevStart $prevSize $prevCenter $demeSpace)
@@ -130,7 +130,7 @@
                           $result))))
               ;; ($_ (println! (Newinstances: $updatedInstSet)))
               ;; ($_ (println! ""))
-              
+
               ($scorerType (if (== () $fsScorerType) mi $fsScorerType))
               (($miConfi $prePenalty $preMinActivation $preMaxActivation $prePositive) (if (== () $fsHyperParamsTuple) (() () () () ()) $fsHyperParamsTuple))
               ;; Score the new instance
@@ -185,7 +185,7 @@
                 (if $isAccepted
                     ()
                     (setDemeInstances $demeSpace $originalInstances)))
-              
+
               ($newCenter (if $isAccepted (Pair.first $newBestInstPair) $prevCenter))
               ($newDistance (if $hasImproved 1 (if (not $xOver) (+ 1 $d) $d)))
               ($newBestSscore (if $isAccepted (Pair.second $newBestInstPair) $bestSscore))
@@ -195,7 +195,7 @@
               ($newIterCount (- $maxIter 1))
               ($_ (cut))
 
-                          
+
             )
             (simulated-annealing $demeSpace
                                 ($neighborhood $rowOCoeff $size $iTable)
@@ -205,7 +205,7 @@
                                 ($fsScorerType $fsHyperParamsTuple) ;; Fs ScorerType and Fs hyperparams
                                 ((and $xOver (not $hasImproved)) $lastChance $newCenter $currentNInstances $newInstances $newBestSscore $newBestScoreUpdated $updatedNumInstances $newDistance (+ 1 $i)) ;; $params
                                 $estimateFunction $crossoverFunction $samplingFunction $transformFunction)
-          
+
           )
           )
 )
