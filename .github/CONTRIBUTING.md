@@ -114,7 +114,7 @@ In short:
 
 ## Running and testing
 
-- The code runs on PeTTa. The team's production runtime is PeTTaV1 (ask the lead for the exact commit). CI runs `python3 scripts/run-tests.py` in the `indominyus/petta:latest` image.
+- The code runs on PeTTa. The team's production runtime is PeTTaV2 (`github.com/Yagth/PeTTa`, branch `sync/upstream-ee5cacb`, commit `5cc0a15`). CI checks out that commit and runs `python3 scripts/run-tests.py`.
 - Always run MeTTa with a memory cap and a time limit. An unbounded run can use all RAM and stop the whole machine:
   ```sh
   ( ulimit -v 8000000; timeout 600 sh /path/to/PeTTa/run.sh deme/tests/score-deme-test.metta -s )

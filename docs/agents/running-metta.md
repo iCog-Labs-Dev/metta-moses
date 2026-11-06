@@ -6,11 +6,12 @@ Read this file when your task runs MeTTa, sets up PeTTa, debugs a silent failure
 
 | Runtime | Use | Notes |
 |---|---|---|
-| PeTTaV1 (`github.com/Yagth/PeTTa`, branch `main`) | The runtime that counts. Tests must pass here. Benchmarks run here. | Ask the lead for the exact commit. It has native `until`, `argv`, `--profile` and `(library ...)` imports. |
-| CI image `indominyus/petta:latest` | CI (`.github/workflows/MeTTa-CI.yml`) runs `python3 scripts/run-tests.py` in it. | CI must stay green. A CI-only failure is a real bug to report. |
+| PeTTaV2 (`github.com/Yagth/PeTTa`, branch `sync/upstream-ee5cacb`, commit `5cc0a15`) | The runtime that counts. Tests must pass here. Benchmarks run here. | Upstream `trueagi-io/PeTTa` `ee5cacb` plus a fix for a type-inference loop and the `--profile` flag. It has a static type checker that you cannot turn off. Each process pays about 2 to 4 s more at load than PeTTaV1. |
+| PeTTaV1 (`github.com/Yagth/PeTTa`, branch `main`) | The old runtime. Diagnostic only. | `Atom` and `Expression` have the opposite meanings there, so the `unify` test fails on it. |
+| CI | CI (`.github/workflows/MeTTa-CI.yml`) checks out the PeTTaV2 commit and runs `python3 scripts/run-tests.py`. | CI must stay green. A CI-only failure is a real bug to report. |
 | Other PeTTa builds | Diagnostic only. | A result there is never a reason to merge. |
 
-- `setup.sh` clones stock `patham9/PeTTa` and adds it to `PATH` (it writes to `$GITHUB_ENV`, a CI variable). Its line `$gitHash = "..."` is not valid bash, so the pinned commit is not checked out (read from the script, not run). Do not use it as your local setup. Ask the lead which PeTTaV1 commit to use.
+- `setup.sh` clones PeTTaV2 at the pinned commit and adds it to `PATH` (it writes to `$GITHUB_ENV` when that CI variable is set).
 - Do not edit the PeTTa checkout. If you need a changed runtime for an experiment, copy it to another folder and call it by its absolute path. Tell the lead.
 - `run.sh` usage: `run.sh [-p|--profile] [-s|--silent] <file.metta>`. The repo scripts pass `-s` after the file. Both orders work.
 - `moses.metta` takes `--name=value` for any name that `--help` prints (for example `--seed`, `--maxGen`, `--nDeme`, `--fsAlgo`, `--optAlgo`, `--inputFile`). Other scripts: `scripts/test_moses.py` (batch runner) and `scripts/csv_helper.py` (CSV input tables). Native Prolog stubs: `moses.metta` consults `moses/tests/rte-helpers-fast.pl` after the reduct imports.
@@ -33,9 +34,9 @@ Wrap every call to `run.sh`, also a one-line probe, in a memory cap and a time l
 
 ## 3. A clean test environment
 
-PeTTaV1 resolves a relative import against the **current directory first**, then against the file. This has two effects.
+PeTTaV2 resolves a relative import against the importing file only. PeTTaV1 tried the **current directory first**. Two effects remain.
 
-1. A run from inside `<main checkout>/.claude/worktrees/<name>` can load files from the main checkout, not from your worktree. A test then passes with old code. (This hid a real regression on 2026-07-29.)
+1. On PeTTaV1, a run from inside `<main checkout>/.claude/worktrees/<name>` can load files from the main checkout, not from your worktree. A test then passes with old code. (This hid a real regression on 2026-07-29.)
 2. Eight legacy tests (for example `metapopulation/tests/*`) import `../../../metta-moses/...`. They load only when the checkout folder is named `metta-moses`.
 
 So, for any result that you report (full suite, regression gate, benchmark):
@@ -53,7 +54,8 @@ cd ../wt-<task>/metta-moses
 ## 4. Import order
 
 - `import!` order changes behaviour. A call to a function that is not imported yet compiles as plain data. It never reduces.
-- `import!` does not remove duplicates. A module imported twice gives every call two solutions.
+- PeTTaV2 loads each file only once. A second `import!` of the same file does nothing. (PeTTaV1 loaded it again, and every call then gave two solutions.)
+- An `import!` inside a function body does nothing on PeTTaV2. Write `(eval (import! &self $file))`.
 - A probe or test that must show production behaviour copies the import block of `moses.metta`, in the same order. A helper that passes in a small test context proves nothing about the pipeline.
 - After `scoring/boolean-ops` loads, `AND`, `OR` and `NOT` are live heads. Pass boolean trees through `quote` in that context.
 - Do not add `!(import! ...)` lines to source modules. Only entry files and tests import.

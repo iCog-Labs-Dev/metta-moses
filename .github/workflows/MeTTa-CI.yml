@@ -27,6 +27,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # The image gives SWI-Prolog and Python. The tests use PeTTaV2 at a pinned commit.
+      - name: Checkout PeTTaV2
+        uses: actions/checkout@v4
+        with:
+          repository: Yagth/PeTTa
+          ref: 5cc0a154f8526ac568c52f41531a4359f8e1277a
+          path: .petta
+
+      # Move it out of the workspace: run-tests.py collects every *test.metta below
+      # the current folder, and PeTTa has its own example files with that name.
+      - name: Put PeTTaV2 first in PATH
+        run: |
+          mv "$GITHUB_WORKSPACE/.petta" /opt/petta
+          echo "/opt/petta" >> "$GITHUB_PATH"
+
       - name: Run PeTTa test
         run: |
           python3 scripts/run-tests.py

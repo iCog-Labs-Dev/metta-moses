@@ -3,10 +3,14 @@
 ;; 'AND' and 'OR' are not considered as a literal.
 (= (filterLiterals $exp) (if (isLiterals $exp) $exp (empty)))
 
+;; isLiterals, filterChildren and isChild test the Expression case first.
+;; A defined head such as AND has the metatype Grounded, not Symbol, so a
+;; Symbol test sent it to car-atom. PeTTaV1 gave no result there; PeTTaV2
+;; gives (), and car-atom of () throws. So () is also tested first.
 (= (isLiterals $exp)
-   (if (== (get-metatype $exp) Symbol)
-       (not (or (or (== $exp AND) (== $exp OR)) (isConstant $exp)))
-       (== (car-atom $exp) NOT)))
+   (if (== (get-metatype $exp) Expression)
+       (if (== $exp ()) False (== (car-atom $exp) NOT))
+       (not (or (or (== $exp AND) (== $exp OR)) (isConstant $exp)))))
 
 ;; A function that takes an expression and returns its guard set.
 ;; Definition: Guard set of a node is the set of literals in the node. 
@@ -60,16 +64,17 @@
 ;; A child of an expression is a subexpression that isn't a Symbol.
 ;; An expression (NOT A) is considered as a symbol in the case of boolean expression.
 (= (filterChildren $exp)
-        (if (== (get-metatype $exp) Symbol)
-            (empty)
-            (if (== (car-atom $exp) NOT)
-                (empty)
-                $exp)))
+   (if (== (get-metatype $exp) Expression)
+       (if (== $exp ())
+           (empty)
+           (if (== (car-atom $exp) NOT) (empty) $exp))
+       (empty)))
 
+;; A child is a non-empty expression that is not (NOT x), or a constant.
 (= (isChild $exp)
-        (if (== (get-metatype $exp) Symbol)
-            (isConstant $exp)
-            (!= (car-atom $exp) NOT)))
+   (if (== (get-metatype $exp) Expression)
+       (if (== $exp ()) False (!= (car-atom $exp) NOT))
+       (isConstant $exp)))
 
 ;; A function to return children of a given expression.
 ;; A child of a given expression is any subExpression.

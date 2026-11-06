@@ -367,9 +367,11 @@
 ;;                   commandSet: (E F)
 ;;         output ==> (D E F)
 (= (localCommandSet $child $parentChildren $parentGuardSet $commandSet)
-   (case ($parentChildren $parentGuardSet)
+   ;; Hazard: the constant head Args keeps the scrutinee data. A tuple with a
+   ;; variable head, ($parentChildren ...), compiles as a call on PeTTaV2.
+   (case (Args $parentChildren $parentGuardSet)
      (
-        ((() ()) $commandSet)
+        ((Args () ()) $commandSet)
         ($else
           (let*
             (
@@ -423,7 +425,10 @@
 (= (hasNoNextChild ($parent $bool ($child $remainingChildren))) (== $child ()))
 (= (hasNoNextChild ($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($nextChild $remainingChildren))) (== $nextChild ()))
 
-(= (reduceNotApplied ($parent $current $applied)) 
+;; The state of the reduce-to loop is (ReduceState $parent $current $applied).
+;; Hazard: the constant head ReduceState keeps the state data. A state with a
+;; variable head, ($parent ...), compiles as a call of $parent on PeTTaV2.
+(= (reduceNotApplied (ReduceState $parent $current $applied))
 
   ;; ($_ (println! (=== Inside ReduceNotApplied ===)))
   ;; ($_ (println! (Parameters ==> Parent: $parent Current: $current Applied: $applied)))
@@ -431,13 +436,13 @@
   (not $applied)
   )
 
-(= (applyReduce ($parent $current $applied))
+(= (applyReduce (ReduceState $parent $current $applied))
    ;; A constant is already elegant; re-normalising would wrap it as (AND FALSE) for nothing.
    ;; Bare (OR) is data only because this file loads before scoring/boolean-ops.
    (if (isConstant $current)
-       ($current $current False)
+       (ReduceState $current $current False)
    (if (== $current (OR))
-       ((OR) (OR) False)
+       (ReduceState (OR) (OR) False)
    (let*
          (
             ;; ($_ (println! (==== Inside ApplyReduce ====)))
@@ -463,7 +468,7 @@
          ;; ($parent $current), so a constant that cannot collapse upward from where it was
          ;; emitted needs this whole-tree pass. $rteApplied passes through: this is cleanup.
          (let ($rteParent $rteCurrent $rteApplied) (reduceToElegance $finalParent $finalAdd () ())
-              ((applyConstantLaws $rteParent) (applyConstantLaws $rteCurrent) $rteApplied))
+              (ReduceState (applyConstantLaws $rteParent) (applyConstantLaws $rteCurrent) $rteApplied))
          ))))
 
 ;; Unwraps the single-literal AND nodes that addAND made: (AND A) -> A, (AND (NOT A)) -> (NOT A).
@@ -488,8 +493,8 @@
    (let*
      (
       ;; TODO: Add a simple function to remove one child and nodes.
-      (($parent $_current $_applied) (until reduceNotApplied applyReduce ($expr $expr True)))
-      (($newParent $_newCurrent $_newApplied) (applyReduce ($parent $parent True))) ;; Try one more time in case it is still reducible
+      ((ReduceState $parent $_current $_applied) (until reduceNotApplied applyReduce (ReduceState $expr $expr True)))
+      ((ReduceState $newParent $_newCurrent $_newApplied) (applyReduce (ReduceState $parent $parent True))) ;; Try one more time in case it is still reducible
      )
      (if (== $newParent $parent)
          (removeAndNodesFromGuards $parent)

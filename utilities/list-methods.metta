@@ -34,8 +34,8 @@
    (cons-atom $head (List.append $val $tail)))
 
 ;; (: List.getByIdx (-> (List $a) Number $a))
-;; FIX: both clauses match (), so (List.getByIdx () $i) gives two solutions.
-(= (List.getByIdx () $idx) (Error () (Index out of range)))
+;; One clause only: the range guard also covers (), which has size 0.
+;; A separate () clause gave a second solution for (List.getByIdx () $i).
 (= (List.getByIdx $xs $idx)
    (if (or (< $idx 0) (>= $idx (size-atom $xs)))
        (Error () (Index out of range))

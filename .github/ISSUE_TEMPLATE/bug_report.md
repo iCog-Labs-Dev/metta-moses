@@ -33,6 +33,6 @@ assignees: ''
 **Your Environment**
 <!--- Include as many relevant details about the environment you experienced the bug in -->
 * Branch and commit of metta-moses:
-* PeTTa runtime (PeTTaV1 or other) and its commit:
+* PeTTa runtime (PeTTaV2 or other) and its commit:
 * SWI-Prolog version (`swipl --version`):
 * Operating System and version:

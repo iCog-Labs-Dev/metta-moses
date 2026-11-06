@@ -15,10 +15,14 @@
 
 ;; behavioral_score
 (: BehavioralScore Type)
-(: mkBscore (-> (List Number) BehavioralScore))
+;; The slot is %Undefined%: the values are NilNum, () or cons chains, and
+;; no one type covers them. A (List Number) slot throws on the new runtime.
+(: mkBscore (-> %Undefined% BehavioralScore))
 
 (: Xmplr Type)
-(: mkXmplr (-> (Tree $a) DemeId CompositeScore BehavioralScore Xmplr))
+;; The tree slot is %Undefined%: mkTree has no type declaration, and a
+;; (Tree $a) slot throws on an untyped tree on the new runtime.
+(: mkXmplr (-> %Undefined% DemeId CompositeScore BehavioralScore Xmplr))
 
 ;; Initialize an exemplar with the following values
 ;;  Raw Score: (pow-math 10 -37)
