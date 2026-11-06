@@ -114,11 +114,12 @@
 
 ;; Function: lruCache
 ;; Purpose: Main LRU cache interface - checks cache first, computes if needed
-;;      $maxSize -- maximum size of the lru cache 
-;;      (($fnName) $args) -- the function call being cached in; as tuple ((function-name) (arguments)) 
-;;      
-(: lruCache (-> Number Expression $a))
-(= (lruCache $maxSize (($fnName) $args)) 
+;;      $maxSize -- maximum size of the lru cache
+;;      $fnName  -- name of the function being cached
+;;      $args    -- its arguments as one tuple, for example (2 3 4)
+;; No argument must stay unevaluated, so the declaration is the same on PeTTaV1 and PeTTaV2.
+(: lruCache (-> Number %Undefined% %Undefined% %Undefined%))
+(= (lruCache $maxSize $fnName $args)
     (let $_ (change-state! &maxCacheSize $maxSize)                         ;; Set cache size for this operation
         (if (reduce (cacheExists $fnName $args))                           ;; Check cache first
             (getCached $fnName $args)                                    ;; Cache miss - compute and cache result

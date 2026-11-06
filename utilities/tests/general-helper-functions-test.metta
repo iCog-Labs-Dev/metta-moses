@@ -286,17 +286,32 @@
 !(assertEqual (index-atom (1 2 3 4) 3) 4)
 !(assertEqual (index-atom (1 2 3 4) 0) 1)
 
-;;!(println! ("testig: removeAtom "))  ; here the removeAtmom is not working because of if-decons-expre-custom it will be fixed soon
-;;!(assertEqual (removeAtom 1 ()) ()) 
-;;!(assertEqual (removeAtom 1 (1)) ()) 
-;;!(assertEqual (removeAtom 1 (1 2)) (2)) 
-;;!(assertEqual (removeAtom 1 (1 2 3)) (2 3))
-;;!(assertEqual (removeAtom 1 (1 2 3 1 1)) (2 3 1 1)) 
+!(println! ("testig: removeAtom "))
+!(assertEqual (removeAtom 1 ()) ())
+!(assertEqual (removeAtom 1 (1)) ())
+!(assertEqual (removeAtom 1 (1 2)) (2))
+!(assertEqual (removeAtom 1 (1 2 3)) (2 3))
+!(assertEqual (removeAtom 1 (1 2 3 1 1)) (2 3 1 1))
+;; Exactly one result, also when the atom is absent.
+!(assertEqual (collapse (removeAtom 5 (1 2))) ((1 2)))
 
 !(println! ("testig: subtraction-atom "))
 !(assertEqual (subtraction-atom (1 2 3) (4)) (1 2 3))
 !(assertEqual (subtraction-atom (1 2 3) (1)) (2 3))
 !(assertEqual (subtraction-atom (1 2 1 3 1) (1 2)) (1 3 1))
+
+;; collapse makes each check exact: a missing or a duplicate solution fails.
+!(println! ("testing: indexAtom "))
+!(assertEqual (collapse (indexAtom (a b c) 0)) (a))
+!(assertEqual (collapse (indexAtom (a b c) 2)) (c))
+!(assertEqual (collapse (indexAtom (a b c) 3)) ((Error description: IndexOutOfRange)))
+!(assertEqual (collapse (indexAtom () 0)) ((Error description: IndexOutOfRange)))
+
+!(println! ("testing: subtractionAtom "))
+!(assertEqual (collapse (subtractionAtom (1 2 1 3 1) (1 2))) ((1 3 1)))
+!(assertEqual (collapse (subtractionAtom (1 2 3) (4))) ((1 2 3)))
+!(assertEqual (collapse (subtractionAtom (1 2) ())) ((1 2)))
+!(assertEqual (collapse (subtractionAtom () (1))) (()))
 
 !(println! ("testig: compareElements "))
 !(assertEqual (compareElements (A B C) (1 2 3)) (False False False))
@@ -532,6 +547,34 @@
 ;; ;; --------------------------------
 !(println! ("testing coll.getByIdx"))
 !(assertEqual (coll.getByIdx (cons 10 (cons 20 (cons 30 ()))) 1) 20)
+
+;; coll.* exact results: collapse fails on a missing or a duplicate solution.
+!(println! ("testing coll.* exact results"))
+!(assertEqual (collapse (coll.length (1 2 3))) (3))
+!(assertEqual (collapse (coll.length (mkInst (1 2)))) (2))
+!(assertEqual (collapse (coll.length (ConsOMS 1 (ConsOMS 2 NilOMS)))) (2))
+!(assertEqual (collapse (coll.length NilOMS)) (0))
+!(assertEqual (collapse (coll.append () 3)) ((3)))
+!(assertEqual (collapse (coll.append (1 2) 3)) ((1 2 3)))
+!(assertEqual (collapse (coll.insert (1 2) 3)) ((1 2 3)))
+!(assertEqual (collapse (coll.append (mkInst (1 2)) 3)) ((mkInst (1 2 3))))
+!(assertEqual (collapse (coll.append (ConsOMS 1 (ConsOMS 3 NilOMS)) 2)) ((ConsOMS 1 (ConsOMS 2 (ConsOMS 3 NilOMS)))))
+!(assertEqual (collapse (coll.remove (1 2 1) 1)) ((2 1)))
+!(assertEqual (collapse (coll.remove (1 2) 5)) ((1 2)))
+!(assertEqual (collapse (coll.remove () 5)) (()))
+!(assertEqual (collapse (coll.remove (mkInst (1 2 1)) 1)) ((mkInst (2 1))))
+!(assertEqual (collapse (coll.remove (mkDeme R (mkSInstSet (a b a)) D) a)) ((mkDeme R (mkSInstSet (b a)) D)))
+!(assertEqual (collapse (coll.remove (ConsOMS 1 (ConsOMS 1 (ConsOMS 2 NilOMS))) 1)) ((ConsOMS 2 NilOMS)))
+!(assertEqual (collapse (coll.contains (1 2 3) 2)) (True))
+!(assertEqual (collapse (coll.contains () 2)) (False))
+!(assertEqual (collapse (coll.contains (mkInst (1 2)) 2)) (True))
+!(assertEqual (collapse (coll.contains (ConsOMS 1 NilOMS) 1)) (True))
+!(assertEqual (collapse (coll.getByIdx (10 20 30) 1)) (20))
+!(assertEqual (collapse (coll.getByIdx (mkInst (10 20)) 1)) (20))
+!(assertEqual (collapse (coll.getByIdx (ConsOMS 7 NilOMS) 0)) (7))
+!(assertEqual (collapse (coll.removeByIdx (10 20 30) 1)) ((10 30)))
+!(assertEqual (collapse (coll.removeByIdx (mkBScore (1 2 3)) 0)) ((mkBScore (2 3))))
+!(assertEqual (collapse (coll.removeByIdx (mkDeme R (mkSInstSet (a b)) D) 0)) ((mkDeme R (mkSInstSet (b)) D)))
 
 
 ;; Cscore comparisons via apply (inline mkCscore)

@@ -16,15 +16,15 @@
 
 ; (: cachedFactorial (-> Number Number))
 (= (cachedFactorial $n)
-   (lruCache (param defaultCacheSize) ((factorial) ($n))))
+   (lruCache (param defaultCacheSize) factorial ($n)))
 
 ; (: cachedMultiply (-> Number Number Number Number))
 (= (cachedMultiply $a $b $c)
-   (lruCache 3 ((multiply) ($a $b $c))))
+   (lruCache 3 multiply ($a $b $c)))
 
 ; (: cachedMutualInformation (-> Expression Expression Number))
 (= (cachedMutualInformation $inputColumn $outputColumn)
-    (lruCache 3 ((mutualInformation) ($inputColumn $outputColumn))))
+    (lruCache 3 mutualInformation ($inputColumn $outputColumn)))
 
 ;; ---- Factorial Tests ----
 !(assertEqual (cachedFactorial 5) 120)       ;; first call (cache miss, compute and store)

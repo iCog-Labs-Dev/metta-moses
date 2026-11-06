@@ -14,4 +14,4 @@
    (let $file (param domainFile)
       (if (== $file "")
           ()
-          (import! &self $file))))
+          (eval (import! &self $file)))))

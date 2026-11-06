@@ -67,6 +67,7 @@
 ;; (: concatTuple (-> Expression Expression Expression))
 (= (concatTuple $x $y) (union-atom $x $y))
 
+;; Atom arguments: the two tuples stay unevaluated data.
 (: ++ (-> Expression Expression Expression))
 (= (++ $x $y)
    (case ((isSymbol $x) (isSymbol $y))
@@ -188,7 +189,8 @@
 ;; (:wrapperB (-> (-> $a $b Bool) $a $b $b))
 (= (wrapperB $predicate $x $y) (if ($predicate $x $y) $y (empty)))
 
-(: filterB (-> (-> $a $b Bool) $a $bb $bb))
+;; Type for documentation only. Active, it stops the PeTTaV2 load: superpose makes $list concrete.
+;; (: filterB (-> (-> $a $b Bool) $a (List $b) $b))
 (= (filterB $predicate $x $list)
    (wrapperB $predicate $x (superpose $list)))
 
@@ -324,35 +326,30 @@
                 (selectByIndex $tail (- $index 1))
             ))))
  
-;; Select an atom by index (old MeTTaLog style).
-(: indexAtom (-> Expression Number Atom))
+;; Select an atom by index, 0-based. An index out of range gives an Error.
+;; The guard is necessary: index-atom alone gives zero solutions out of range.
+(: indexAtom (-> Expression Number %Undefined%))
 (= (indexAtom $expr $index)
-    (function 
-        (eval (if-equal $expr ()
-            (return (Error description: IndexOutOfRange))
-            (eval (if-decons-expr-custom $expr $h $t
-                (eval (if-equal $index 0
-                    (return $h)
-                    (return (indexAtom $t (- $index 1)))))
-                (return Empty)))))))   
-            
+    (if (and (>= $index 0) (< $index (size-atom $expr)))
+        (index-atom $expr $index)
+        (Error description: IndexOutOfRange)))
+
 ;; removeAtom -- removes a single atom (the first occurrence) from a tuple
 ;; (: removeAtom (-> Atom Expression Expression))    
 
+;; Hazard: car-atom on () throws on PeTTaV2, so test for () first.
 (= (removeAtom $atom $expr)
-        (eval (if-decons-expr-custom $expr $head $tail
-            (eval (if-equal $head $atom
-                    $tail  ;; Stop at first match
-                (chain (removeAtom $atom $tail) $rest
-                    (cons-atom $head $rest))))
-        ())))
-;; subtractionAtom -- replicates behaviour of MeTTa's subtraction-atom in mettalog
-(: subtractionAtom (-> Expression Expression Expression))
-(= (subtractionAtom $expr $b)
-    (if-decons-expr-custom $b $head $tail
-        (chain (removeAtom $head $expr) $newexpr
-            (subtractionAtom $newexpr $tail))
-        $expr))
+    (if (or (== $expr ()) (!= (get-metatype $expr) Expression))
+        ()
+        (let* (($head (car-atom $expr))
+               ($tail (cdr-atom $expr)))
+            (if (== $head $atom)
+                $tail  ;; Stop at the first match
+                (cons-atom $head (removeAtom $atom $tail))))))
+;; subtractionAtom -- multiset subtraction: each element of $b removes one
+;; occurrence from $expr. The PeTTa built-in subtraction-atom does the same.
+(: subtractionAtom (-> Expression Expression %Undefined%))
+(= (subtractionAtom $expr $b) (subtraction-atom $expr $b))
 
 ;; A function that compares tuples element by element.
 (= (compareElements $first $second)
@@ -381,11 +378,13 @@
 ;; Function that merges two sorted lists while keeping them sorted.
 (= (merge $xs $ys) (merge $xs $ys <=))
 (= (merge $xs $ys $key)
-    (case ($xs $ys)
+    ;; Hazard: the constant head Args keeps the scrutinee data. A tuple with a
+    ;; variable head, ($xs $ys), compiles as a call of $xs on PeTTaV2.
+    (case (Args $xs $ys)
           (
-            ((() $ys) $ys)
-            (($xs ()) $xs)
-            (($xs $ys)
+            ((Args () $ys) $ys)
+            ((Args $xs ()) $xs)
+            ((Args $xs $ys)
               (let*
                   (
                     (($x $xss) (decons-atom $xs))
@@ -400,11 +399,13 @@
 ;;    the rest as the second.
 ;; (: splitAt (-> Number Expression (Atom Atom)))
 (= (splitAt $n $list)
-   (case ($n $list)
+   ;; Hazard: the constant head Args keeps the scrutinee data. With ($n $list),
+   ;; PeTTaV2 types $n as a function and the pattern 0 throws a type mismatch.
+   (case (Args $n $list)
      (
-       ((0 $list) (() $list))
-       (($_ ()) (() ()))
-       (($n $list)
+       ((Args 0 $list) (() $list))
+       ((Args $_ ()) (() ()))
+       ((Args $n $list)
           (let*
              (
                ;; (() (println! (Splitting $list at: $n)))
@@ -466,8 +467,8 @@
 )
 
 ;; take first N elements of a list
-(: take (-> Number Atom Atom))
-;;(: take (-> Number Atom %Undefined%)) ;; '%Undefined%' return type required: in PeTTa, 'Atom' output quotes/skips body reduction
+;; %Undefined% output: on PeTTaV2 an Atom output returns the body unevaluated.
+(: take (-> Number %Undefined% %Undefined%))
 (= (take $n ()) ())
 (= (take $n (cons $h $t))
    (if (<= $n 0)
@@ -479,11 +480,13 @@
 ;;   and returns the rest.
 ;; (: drop (-> Number Atom Atom))
 (= (drop $n $a)
-    (case ($n $a)
+    ;; Hazard: the constant head Args keeps the scrutinee data. With ($n $a),
+    ;; PeTTaV2 types $n as a function and the pattern 0 throws a type mismatch.
+    (case (Args $n $a)
       (
-        (($n ()) ())
-        ((0 $a) $a)
-        (($n $a)
+        ((Args $n ()) ())
+        ((Args 0 $a) $a)
+        ((Args $n $a)
           (let ($h $t) (decons-atom $a)
             (drop (- $n 1) $t))))))
 
@@ -660,10 +663,11 @@
             (cons-atom $head $tail))))
 
 ;; isnan -- to check if a value is NaN
-;; MeTTaLog represents NaN as 1.5NaN (the value of Python float('nan')).
-;; A direct Python binding caused problems in the CI workflow.
+;; Scores use the symbol nan for NaN. The symbol is not a Number, and
+;; isnan-math (-> Number Bool) throws on it on the new PeTTa runtime.
+;; Hazard: test nan first in a nested if. `or` is not short-circuit.
 ;; (: isnan (-> $a Bool))
-(= (isnan $x) (== $x 1.5NaN))
+(= (isnan $x) (if (== $x nan) True (isnan-math $x)))
 
 ;; isInf -- check if a number is Inf
 ;; MeTTaLog represents Inf as 1.0Inf (the value of Python float('inf')).
@@ -704,7 +708,7 @@
      (
        ;; 5-field Cscore (scoring/cscore.metta)
        ((mkCscore $scor $cpxy $cpxyPen $uniPen $penScore)
-        (let $p (if (isnan-math $penScore) (* -1 (pow-math 10 308)) $penScore)
+        (let $p (if (isnan $penScore) (* -1 (pow-math 10 308)) $penScore)
              (KPair $p (* -1 $cpxy))))
        ((mkSInst (mkPair $inst $score))
          (key-of $score))
@@ -741,168 +745,109 @@
 ;; `eval` on a call to a function of another file makes PeTTa resolve it.
 ;; ============================================================
 
+;; Each coll.* operation below is ONE clause with a case. Separate clauses
+;; overlap: a (cons $h $t) head also matches a wrapper such as (mkInst ...),
+;; and the List, Map, MultiMap and OS views of a plain list all match it.
+;; Each match gave one more solution, and the results did not agree.
+;; A plain list uses the List view. Use the Map.* and MultiMap.* functions
+;; directly for key-based operations.
+
 ;;
 ;; coll.length — length of supported collections and wrappers
 ;;
 (: coll.length (-> $a Number))
-
-;; List ADT — constructor-specific to avoid ambiguous matches
-(= (coll.length ()) 0)
-(= (coll.length (cons $h $t)) (eval (List.length (cons $h $t))))
-
-;; Map — constructor-specific
-(= (coll.length ()) 0)
-(= (coll.length (cons $pair $tail)) (eval (Map.length (cons $pair $tail))))
-
-;; MultiMap — constructor-specific
-(= (coll.length ()) 0)
-(= (coll.length (cons $pair $tail)) (eval (MultiMap.length (cons $pair $tail))))
-
-;; Ordered Set — constructor-specific
-(= (coll.length ()) 0)
-(= (coll.length (cons $x $xs)) (eval (OS.length (cons $x $xs))))
-
-;; Ordered Multiset — constructor-specific
-(= (coll.length NilOMS) 0)
-(= (coll.length (ConsOMS $x $xs)) (eval (OMS.length (ConsOMS $x $xs))))
-
-;; Wrappers -> delegate to inner lists
-(= (coll.length (mkInst $list)) (coll.length $list))
-(= (coll.length (mkSInstSet $list)) (coll.length $list))
-(= (coll.length (mkBScore $list)) (coll.length $list))
-(= (coll.length (mkDeme $rep (mkSInstSet $instList) $demeId)) (coll.length $instList))
+(= (coll.length $coll)
+   (case $coll
+     ((NilOMS 0)
+      ((ConsOMS $x $xs) (+ 1 (coll.length $xs)))
+      ((mkInst $list) (coll.length $list))
+      ((mkSInstSet $list) (coll.length $list))
+      ((mkBScore $list) (coll.length $list))
+      ((mkDeme $rep (mkSInstSet $list) $demeId) (coll.length $list))
+      ($else (size-atom $coll)))))
 
 ;;
 ;; coll.append — append/insert one element into supported collections
+;; A list gets the element at its tail. An OMS inserts it in order.
 ;;
 ;; (: coll.append (-> $coll $el $coll))
-
-;; List ADT (append to tail)
-(= (coll.append () $el) (cons $el ()))
-(= (coll.append (cons $h $t) $el) (cons $h (coll.append $t $el)))
-
-;; Instance — append Number to underlying list
-(= (coll.append (mkInst $list) $el)
-   (if (== (get-type $el) Number)
-       (mkInst (coll.append $list $el))
-       (Error $el "Instance.append expects Number")))
-
-;; InstanceSet — append ScoredInstance to underlying list
-(= (coll.append (mkSInstSet $list) $el)
-   (mkSInstSet (coll.append $list $el)))
-
-;; BehavioralScore — append Number
-(= (coll.append (mkBScore $list) $el)
-   (if (== (get-type $el) Number)
-       (mkBScore (coll.append $list $el))
-       (Error $el "BScore.append expects Number")))
-
-;; Ordered Multiset — insert element
-(= (coll.append NilOMS $el) (eval (OMS.insert $el NilOMS)))
-(= (coll.append (ConsOMS $x $xs) $el) (eval (OMS.insert $el (ConsOMS $x $xs))))
-
-;; Deme — append ScoredInstance to its InstanceSet
-(= (coll.append (mkDeme $rep (mkSInstSet $list) $demeId) $el)
-   (mkDeme $rep (mkSInstSet (coll.append $list $el)) $demeId))
+(= (coll.append $coll $el)
+   (case $coll
+     ((NilOMS (eval (OMS.insert $el NilOMS)))
+      ((ConsOMS $x $xs) (eval (OMS.insert $el $coll)))
+      ((mkInst $list)
+       (if (== (get-type $el) Number)
+           (mkInst (coll.append $list $el))
+           (Error $el "Instance.append expects Number")))
+      ((mkSInstSet $list) (mkSInstSet (coll.append $list $el)))
+      ((mkBScore $list)
+       (if (== (get-type $el) Number)
+           (mkBScore (coll.append $list $el))
+           (Error $el "BScore.append expects Number")))
+      ((mkDeme $rep (mkSInstSet $list) $demeId)
+       (mkDeme $rep (mkSInstSet (coll.append $list $el)) $demeId))
+      ;; cons-atom, not ($el): a variable-headed tuple can be a call.
+      ($else (union-atom $coll (cons-atom $el ()))))))
 
 ;; coll.insert — alias to coll.append
-(: coll.insert (-> $coll $el $coll))
+;; Types for documentation only. Active, they give zero results on PeTTaV1
+;; when the length changes: $coll then binds two different tuple types.
+;; (: coll.insert (-> $coll $el $coll))
 (= (coll.insert $c $el) (coll.append $c $el))
 
 ;;
-;; coll.remove — remove one occurrence (by equality) or by key where applicable
+;; coll.remove — remove the first occurrence (by equality)
+;; An OMS removes every occurrence (OMS.remove).
 ;;
-(: coll.remove (-> $coll $el $coll))
-
-;; List ADT — remove first occurrence
-(= (coll.remove () $el) ())
-(= (coll.remove (cons $h $t) $el)
-   (if (== $h $el) $t (cons $h (coll.remove $t $el))))
-
-;; Instance — remove first occurrence of Number
-(= (coll.remove (mkInst $list) $el)
-   (if (== (get-type $el) Number)
-       (mkInst (coll.remove $list $el))
-       (Error $el "Instance.remove expects Number")))
-
-;; InstanceSet — remove first occurrence of element
-(= (coll.remove (mkSInstSet $list) $el)
-   (mkSInstSet (coll.remove $list $el)))
-
-;; BehavioralScore — remove first occurrence of Number
-(= (coll.remove (mkBScore $list) $el)
-   (if (== (get-type $el) Number)
-       (mkBScore (coll.remove $list $el))
-       (Error $el "BScore.remove expects Number")))
-
-;; Map — remove by key; if pair given, use its key (constructor-specific)
-(= (coll.remove () ($k $v)) ())
-(= (coll.remove (cons $pair $tail) ($k $v)) (eval (Map.remove $k (cons $pair $tail))))
-(= (coll.remove () $k) ())
-(= (coll.remove (cons $pair $tail) $k) (eval (Map.remove $k (cons $pair $tail))))
-
-;; MultiMap — remove by key; if pair given, remove one; if key given, remove all
-(= (coll.remove () ($k $v)) ())
-(= (coll.remove (cons $pair $tail) ($k $v)) (eval (MultiMap.removeOne $k (cons $pair $tail))))
-(= (coll.remove () $k) ())
-(= (coll.remove (cons $pair $tail) $k) (eval (MultiMap.removeAll $k (cons $pair $tail))))
-
-;; Ordered Multiset — remove one occurrence (constructor-specific)
-(= (coll.remove NilOMS $el) NilOMS)
-(= (coll.remove (ConsOMS $x $xs) $el) (eval (OMS.remove $el (ConsOMS $x $xs))))
-
-;; Ordered Set — remove first matching element
-(= (coll.remove () $el) ())
-(= (coll.remove (cons $x $xs) $el)
-   (if (== $x $el) $xs (cons $x (coll.remove $xs $el))))
-
-;; Deme — remove one ScoredInstance from its InstanceSet
-(= (coll.remove (mkDeme $rep (mkSInstSet $list) $demeId) $el)
-   (mkDeme $rep (mkSInstSet (coll.remove $list $el)) $demeId))
+;; (: coll.remove (-> $coll $el $coll))
+(= (coll.remove $coll $el)
+   (case $coll
+     ((NilOMS NilOMS)
+      ((ConsOMS $x $xs) (eval (OMS.remove $el $coll)))
+      ((mkInst $list)
+       (if (== (get-type $el) Number)
+           (mkInst (coll.remove $list $el))
+           (Error $el "Instance.remove expects Number")))
+      ((mkSInstSet $list) (mkSInstSet (coll.remove $list $el)))
+      ((mkBScore $list)
+       (if (== (get-type $el) Number)
+           (mkBScore (coll.remove $list $el))
+           (Error $el "BScore.remove expects Number")))
+      ((mkDeme $rep (mkSInstSet $list) $demeId)
+       (mkDeme $rep (mkSInstSet (coll.remove $list $el)) $demeId))
+      ;; List.index gives -1 for a missing element; List.removeAtIdx then keeps the list.
+      ($else (let $idx (eval (List.index $coll $el))
+                  (eval (List.removeAtIdx $coll $idx)))))))
 
 ;;
-;; coll.contains — membership/lookup presence
+;; coll.contains — membership by equality
 ;;
 ;; (: coll.contains (-> $coll $key Bool))
-
-;; List — linear search
-(= (coll.contains () $el) False)
-(= (coll.contains (cons $h $t) $el) (if (== $h $el) True (coll.contains $t $el)))
-
-;; Map / MultiMap / OS / OMS — delegate
-(= (coll.contains () $key) False)
-(= (coll.contains (cons $pair $tail) $key) (eval (Map.contains $key (cons $pair $tail))))
-(= (coll.contains () $key) False)
-(= (coll.contains (cons $pair $tail) $key) (eval (MultiMap.contains $key (cons $pair $tail))))
-(= (coll.contains () $el) False)
-(= (coll.contains (cons $x $xs) $el) (eval (OS.contains (cons $x $xs) $el)))
-(= (coll.contains NilOMS $el) False)
-(= (coll.contains (ConsOMS $x $xs) $el) (OMS.contains $el (ConsOMS $x $xs)))
-
-;; Wrappers — delegate to inner lists
-(= (coll.contains (mkInst $list) $el) (coll.contains $list $el))
-(= (coll.contains (mkSInstSet $list) $el) (coll.contains $list $el))
-(= (coll.contains (mkBScore $list) $el) (coll.contains $list $el))
-(= (coll.contains (mkDeme $rep (mkSInstSet $instList) $demeId) $el) (coll.contains $instList $el))
+(= (coll.contains $coll $el)
+   (case $coll
+     ((NilOMS False)
+      ((ConsOMS $x $xs) (eval (OMS.contains $el $coll)))
+      ((mkInst $list) (coll.contains $list $el))
+      ((mkSInstSet $list) (coll.contains $list $el))
+      ((mkBScore $list) (coll.contains $list $el))
+      ((mkDeme $rep (mkSInstSet $list) $demeId) (coll.contains $list $el))
+      ;; is-member gives one solution for each match, so once.
+      ($else (once (is-member $el $coll))))))
 
 ;;
 ;; coll.getByIdx — index-based access where supported
 ;;
 ;; (: coll.getByIdx (-> $coll Number $el))
-
-;; List — from List methods
-(= (coll.getByIdx (cons $h $t) $i) (eval (List.getByIdx (cons $h $t) $i)))
-(= (coll.getByIdx () $i) (Error $i "Index out of range"))
-
-;; OMS — delegate
-(= (coll.getByIdx (ConsOMS $x $xs) $i) (OMS.getByIdx $i (ConsOMS $x $xs)))
-(= (coll.getByIdx NilOMS $i) (Error $i "Index out of range"))
-
-;; Wrappers — delegate to inner lists
-(= (coll.getByIdx (mkInst $list) $i) (coll.getByIdx $list $i))
-(= (coll.getByIdx (mkSInstSet $list) $i) (coll.getByIdx $list $i))
-(= (coll.getByIdx (mkBScore $list) $i) (coll.getByIdx $list $i))
-(= (coll.getByIdx (mkDeme $rep (mkSInstSet $instList) $demeId) $i) (coll.getByIdx $instList $i))
+(= (coll.getByIdx $coll $i)
+   (case $coll
+     ((() (Error $i "Index out of range"))
+      (NilOMS (Error $i "Index out of range"))
+      ((ConsOMS $x $xs) (eval (OMS.getByIdx $i $coll)))
+      ((mkInst $list) (coll.getByIdx $list $i))
+      ((mkSInstSet $list) (coll.getByIdx $list $i))
+      ((mkBScore $list) (coll.getByIdx $list $i))
+      ((mkDeme $rep (mkSInstSet $list) $demeId) (coll.getByIdx $list $i))
+      ($else (eval (List.getByIdx $coll $i))))))
 
 ;;
 ;; Map/MultiMap key-centric APIs
@@ -937,21 +882,17 @@
 ;;
 ;; Index-based removal (where supported)
 ;;
-(: coll.removeByIdx (-> $coll Number $coll))
-
-;; List — via List.removeAtIdx
-(= (coll.removeByIdx (cons $h $t) $i) (eval (List.removeAtIdx (cons $h $t) $i)))
-(= (coll.removeByIdx () $i) (Error "empty/idx out of range"))
-
-;; OS — direct
-(= (coll.removeByIdx (cons $x $xs) $i) (eval (OS.removeByIdx (cons $x $xs) $i)))
-(= (coll.removeByIdx () $i) (Error "empty/idx out of range"))
-
-;; Deme/InstanceSet/BehavioralScore/Instance — delegate to inner lists
-(= (coll.removeByIdx (mkInst $list) $i) (mkInst (coll.removeByIdx $list $i)))
-(= (coll.removeByIdx (mkSInstSet $list) $i) (mkSInstSet (coll.removeByIdx $list $i)))
-(= (coll.removeByIdx (mkBScore $list) $i) (mkBScore (coll.removeByIdx $list $i)))
-(= (coll.removeByIdx (mkDeme $rep (mkSInstSet $list) $demeId) $i) (mkDeme $rep (mkSInstSet (coll.removeByIdx $list $i)) $demeId))
+;; Type for documentation only (see coll.insert).
+;; (: coll.removeByIdx (-> $coll Number $coll))
+(= (coll.removeByIdx $coll $i)
+   (case $coll
+     ((() (Error "empty/idx out of range"))
+      ((mkInst $list) (mkInst (coll.removeByIdx $list $i)))
+      ((mkSInstSet $list) (mkSInstSet (coll.removeByIdx $list $i)))
+      ((mkBScore $list) (mkBScore (coll.removeByIdx $list $i)))
+      ((mkDeme $rep (mkSInstSet $list) $demeId)
+       (mkDeme $rep (mkSInstSet (coll.removeByIdx $list $i)) $demeId))
+      ($else (eval (List.removeAtIdx $coll $i))))))
 
 ;;
 ;; OS-specific helpers
@@ -1013,7 +954,7 @@
 (= (increment $x) (+ $x 1))
 
 ;; A function that turns every atom to unit
-(: transformToUnit (-> Atom Atom))
+(: transformToUnit (-> %Undefined% %Undefined%))
 (= (transformToUnit $x) ())
 
 ;; %%%% Hyperon-Experimental compatibility library. %%%%
@@ -1056,11 +997,14 @@
          (add-atom $space (= $head $bodyreduced))))
 
 ;; Error handling
+;; Hazard: car-atom on () throws on PeTTaV2 and gives no result on PeTTaV1.
+;; So test for a non-empty expression first. () is not an error.
 (= (if-error $X $A $B)
-    (if (or (== (get-metatype $X) Grounded) (== (get-metatype $X) Symbol))
-        $B
-        (if (== (car-atom $X) Error) 
-            $A $B)))       
+    (if (== (get-metatype $X) Expression)
+        (if (== $X ())
+            $B
+            (if (== (car-atom $X) Error) $A $B))
+        $B))
 
 (= (return-on-error $result $B)
    (if-error $result
@@ -1105,7 +1049,9 @@
                 (($h $t) (decons-atom $obj))
                 ($constructor (car-atom (reverse (get-type $h))))
                 ($hc (car-atom $constructor))
-                ($t2 (collapse (get-type (superpose $t))))
+                ;; Hazard: (superpose $t) needs a one-type List on the new
+                ;; runtime and throws on a mixed tuple such as ("Hello" 2).
+                ($t2 (map-atom $t $x (get-type $x)))
             )
             (cons $hc $t2)
         )
