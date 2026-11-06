@@ -52,7 +52,7 @@
 ;; Function: ltByLastAtom
 ;; Purpose: Comparison function for sorting cacheEntry atoms by counter (ascending) which is last element of function call cache space entries
 ;; it can also be used for general purpose less than comparison using last element (has to be numeric) of two equal length expressions
-(: ltByLastAtom (-> Expression Expression Bool))
+(: ltByLastAtom (-> Atom Atom Bool))
 (= (ltByLastAtom $x $y) 
     (let* (
         ($lastIndex (- (size-atom $x) 1))

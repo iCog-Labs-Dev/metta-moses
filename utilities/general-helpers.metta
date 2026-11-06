@@ -68,7 +68,7 @@
 (= (concatTuple $x $y) (union-atom $x $y))
 
 ;; Atom arguments: the two tuples stay unevaluated data.
-(: ++ (-> Expression Expression Expression))
+(: ++ (-> Atom Atom %Undefined%))
 (= (++ $x $y)
    (case ((isSymbol $x) (isSymbol $y))
       (
@@ -328,7 +328,7 @@
  
 ;; Select an atom by index, 0-based. An index out of range gives an Error.
 ;; The guard is necessary: index-atom alone gives zero solutions out of range.
-(: indexAtom (-> Expression Number %Undefined%))
+(: indexAtom (-> Atom Number %Undefined%))
 (= (indexAtom $expr $index)
     (if (and (>= $index 0) (< $index (size-atom $expr)))
         (index-atom $expr $index)
@@ -348,7 +348,7 @@
                 (cons-atom $head (removeAtom $atom $tail))))))
 ;; subtractionAtom -- multiset subtraction: each element of $b removes one
 ;; occurrence from $expr. The PeTTa built-in subtraction-atom does the same.
-(: subtractionAtom (-> Expression Expression %Undefined%))
+(: subtractionAtom (-> Atom Atom %Undefined%))
 (= (subtractionAtom $expr $b) (subtraction-atom $expr $b))
 
 ;; A function that compares tuples element by element.
@@ -974,8 +974,10 @@
 (= (assertAlphaEqual $A $B)
    (assert (=alpha $A $B)))
 
-(: unify (-> Expression Expression Expression Expression %Undefined%))
-;;(: unify (-> Atom Atom Atom Atom %Undefined%)) ;; Mirrored from PeTTa (latest version as of Aug 25 2026) lib_he: 'Atom' avoids failed type guards on non-expression arguments, but was not compatible with the docker image PeTTa used for workflow.
+;; Atom arguments stay unevaluated. Keep this declaration: without it a pattern
+;; with a defined head, for example (NOT $x), is evaluated as a call.
+;; Same as unify in PeTTa lib_he. On PeTTaV1 the unevaluated type was Expression.
+(: unify (-> Atom Atom Atom Atom %Undefined%))
 (= (unify $space $pattern $then $else)
    (if (is-space $space)
        (let $temp (cut)
@@ -988,7 +990,7 @@
        (eval $then)
        (eval $else)))
 
-(: add-reduct (-> %Undefined% Expression Bool))
+(: add-reduct (-> %Undefined% Atom Bool))
 (= (add-reduct $space $f)
    (let* (($headbody (cdr-atom $f))
           ($head (car-atom $headbody))
@@ -1015,16 +1017,16 @@
 (= (for-each-in-atom $L $f)
    (map-atom $L $f))
 
-(: evalc (-> Expression %Undefined% %Undefined%))
+(: evalc (-> Atom %Undefined% %Undefined%))
 (= (evalc $expression &self)
    (eval $expression))
 
 ;;Quoting
-(: unquote (-> Expression %Undefined%))
+(: unquote (-> Atom %Undefined%))
 (= (unquote (quote $A))
    (eval $A))
 
-(: noreduce-eq (-> Expression Expression Bool))
+(: noreduce-eq (-> Atom Atom Bool))
 (= (noreduce-eq $A $B)
    (== $A $B))
 

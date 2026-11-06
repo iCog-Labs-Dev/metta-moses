@@ -12,7 +12,7 @@ A benchmark compares like with like. Before you run, write down:
 | Arm under test | branch and commit hash |
 | Command and parameters | `moses.metta -s --problem=mux6 --nEval=1000 --maxGen=10` |
 | Seeds | the same seeds for both arms |
-| Runtime | PeTTaV1 at `<sha>`, the same build for both arms |
+| Runtime | PeTTaV2 at `<sha>`, the same build for both arms |
 | Machine state | on AC power, CPU governor `performance`, no other heavy job |
 
 - Check power and governor first. On battery the same run was about 40% slower. A laptop in quiet mode once made a false 55 s to 81 s "regression". After a change of power or mode, run again before you believe a result.
@@ -34,7 +34,8 @@ A benchmark compares like with like. Before you run, write down:
 ## 3. Report
 
 - Give a table: arm, commit, runs, mean, min to max, output identical yes or no.
-- State the verdict plainly: faster, parity or slower, on PeTTaV1.
+- State the verdict plainly: faster, parity or slower, on PeTTaV2.
+- PeTTaV2 adds a fixed load cost of about 2 to 4 s to each process. Measure `moses.metta -s --help` to see it. Do not compare a PeTTaV2 time with a PeTTaV1 time as a code change.
 - State the conditions where a gain holds (for example "only for large tables"). Do not round a scale-dependent result up to a general claim.
 - Every number in a report has a source: a run that you did, with its command. Never repeat a number from a PR or from memory as your own result. ("So where did you get the number on the 1.85x faster?")
 - Add new arms as new columns to the earlier table. Keep one format for one comparison.

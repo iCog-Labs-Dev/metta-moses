@@ -221,7 +221,7 @@
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1
 ;;          inst1: (0 1 0 1), inst2: (0 0 0 0) => distance: 2
-(: distance (-> Expression Expression Number) )
+(: distance (-> Atom Atom Number))
 (= (distance $inst1 $inst2)
    (if (~= (size-atom $inst1) (size-atom $inst2))
        (Error (Inst: $inst1 and Inst: $inst2) (Instances are not equal length))
