@@ -375,39 +375,43 @@
 ;; 3. On cache miss, computes distance, inserts symmetric pairs, and returns distance.
 ;; Inputs: Tree structures $t1, $t2 (Tree), Behavioral score wrappers $bs1, $bs2
 ;; Output: Number (pairwise distance)
-(= (getCachedDistance $t1 $t2 $bs1 $bs2)
+(= (getCachedTreeDistance $t1 $t2 $bs1 $bs2)
    (if (== $t1 $t2)
        0.0
-       (let $cached (collapse (match &dstCache (dst $t1 $t2 $d) $d))
-          (if (== $cached ())
-              (let* (($dst (calculateBScoreDistance $bs1 $bs2))
-                     ($_1 (add-atom &dstCache (dst $t1 $t2 $dst)))
-                     ($_2 (add-atom &dstCache (dst $t2 $t1 $dst))))
-                 $dst)
-              (car-atom $cached)))))
+       (if (== (param diversityCache) True)
+           (let $cached (collapse (match &dstCache (dst $t1 $t2 $d) $d))
+              (if (== $cached ())
+                  (let* (($dst (calculateBScoreDistance $bs1 $bs2))
+                         ($_1 (add-atom &dstCache (dst $t1 $t2 $dst)))
+                         ($_2 (add-atom &dstCache (dst $t2 $t1 $dst))))
+                     $dst)
+                  (car-atom $cached)))
+           (calculateBScoreDistance $bs1 $bs2))))
 
 ;; Cached distance with explicit metric and p-norm parameters
 ;; Inputs: Trees $t1, $t2 (Tree), Behavioral scores $bs1, $bs2, Metric $metric, Degree $p (Number)
 ;; Output: Number (pairwise distance)
-(= (getCachedDistance $t1 $t2 $bs1 $bs2 $metric $p)
+(= (getCachedTreeDistance $t1 $t2 $bs1 $bs2 $metric $p)
    (if (== $t1 $t2)
        0.0
-       (let $cached (collapse (match &dstCache (dst $t1 $t2 $d) $d))
-          (if (== $cached ())
-              (let* (($dst (calculateBScoreDistance $bs1 $bs2 $metric $p))
-                     ($_1 (add-atom &dstCache (dst $t1 $t2 $dst)))
-                     ($_2 (add-atom &dstCache (dst $t2 $t1 $dst))))
-                 $dst)
-              (car-atom $cached)))))
+       (if (== (param diversityCache) True)
+           (let $cached (collapse (match &dstCache (dst $t1 $t2 $d) $d))
+              (if (== $cached ())
+                  (let* (($dst (calculateBScoreDistance $bs1 $bs2 $metric $p))
+                         ($_1 (add-atom &dstCache (dst $t1 $t2 $dst)))
+                         ($_2 (add-atom &dstCache (dst $t2 $t1 $dst))))
+                     $dst)
+                  (car-atom $cached)))
+           (calculateBScoreDistance $bs1 $bs2 $metric $p))))
 
 ;; Unwraps candidate exemplar records to compute/retrieve cached distance
 ;; Inputs: Candidates (mkExemplar $t $d $cs $bs), optional $metric, $p
 ;; Output: Number (pairwise distance)
 (= (getCachedDistance (mkExemplar $t1 $d1 $cs1 $bs1) (mkExemplar $t2 $d2 $cs2 $bs2))
-   (getCachedDistance $t1 $t2 $bs1 $bs2))
+   (getCachedTreeDistance $t1 $t2 $bs1 $bs2))
 
 (= (getCachedDistance (mkExemplar $t1 $d1 $cs1 $bs1) (mkExemplar $t2 $d2 $cs2 $bs2) $metric $p)
-   (getCachedDistance $t1 $t2 $bs1 $bs2 $metric $p))
+   (getCachedTreeDistance $t1 $t2 $bs1 $bs2 $metric $p))
 
 ;; -------- Cache Eviction & Cleanup --------
 
@@ -507,6 +511,10 @@
 
 (= (candBscore (mkExemplar $tree $d $cs $bs)) $bs)
 
+(= (bScoreSize (mkBScore ())) 0)
+(= (bScoreSize (mkBScore (cons $h $t))) (List.length (cons $h $t)))
+(= (bScoreSize ()) 0)
+
 ;; Reconstructs a candidate exemplar with an updated composite score
 ;; Inputs: Candidate $cand (mkExemplar $tree $d $cs $bs), New composite score $newCs (CompositeScore)
 ;; Output: Updated candidate exemplar
@@ -552,21 +560,25 @@
 (= (updateDiversityTmp () $lastPtr $poolSize $dpMax $dst2dp $pressure $exponent $normalize $metric $p $multiplyDiv)
    ())
 (= (updateDiversityTmp (cons ($cand $accDp) $rest) $lastPtr $poolSize $dpMax $dst2dp $pressure $exponent $normalize $metric $p $multiplyDiv)
-   (let* (($lastDst (getCachedDistance $cand $lastPtr $metric $p))
-          ($lastDp (convertDstToPenalty $lastDst $dst2dp $pressure))
-          (($newAccDp $adp)
-           (if $dpMax
-               (let $m (max-atom ($accDp $lastDp)) ($m $m))
-               (let* (($newSum (+ $accDp (pow-math $lastDp $exponent)))
-                      ($n (if $normalize $poolSize 1))
-                      ($agg (aggregatedDps $newSum $n $exponent)))
-                  ($newSum $agg))))
-          ($cs (candCscore $cand))
-          ($csWithUniPen (setUniPen $cs $adp))
-          ($newCs (updatePenalizedScore $csWithUniPen $multiplyDiv))
-          ($updatedCand (updateCandidateCscore $cand $newCs))
-          ($updatedRest (updateDiversityTmp $rest $lastPtr $poolSize $dpMax $dst2dp $pressure $exponent $normalize $metric $p $multiplyDiv)))
-      (cons ($updatedCand $newAccDp) $updatedRest)))
+   (if (== (bScoreSize (candBscore $cand)) 0)
+       (Error ($cand) "Behavioral score is needed for diversity!")
+       (let $lastDst (getCachedDistance $cand $lastPtr $metric $p)
+          (if (< $lastDst 0.0)
+              (Error ($lastDst) "The distance cannot be negative. There could be a bug or you are not using a true distance. For instance the Tanimoto distance may be negative when some of its components are negative. If that is the case you might want to switch to the angular distance.")
+              (let* (($lastDp (convertDstToPenalty $lastDst $dst2dp $pressure))
+                     (($newAccDp $adp)
+                      (if $dpMax
+                          (let $m (max-atom ($accDp $lastDp)) ($m $m))
+                          (let* (($newSum (+ $accDp (pow-math $lastDp $exponent)))
+                                 ($n (if $normalize $poolSize 1))
+                                 ($agg (aggregatedDps $newSum $n $exponent)))
+                             ($newSum $agg))))
+                     ($cs (candCscore $cand))
+                     ($csWithUniPen (setUniPen $cs $adp))
+                     ($newCs (updatePenalizedScore $csWithUniPen $multiplyDiv))
+                     ($updatedCand (updateCandidateCscore $cand $newCs))
+                     ($updatedRest (updateDiversityTmp $rest $lastPtr $poolSize $dpMax $dst2dp $pressure $exponent $normalize $metric $p $multiplyDiv)))
+                 (cons ($updatedCand $newAccDp) $updatedRest))))))
 
 ;; Main greedy diversification loop: iteratively selects the best-scoring candidate from $tmp,
 ;; re-ranks remaining candidates against it via updateDiversityTmp, and recurses until $tmp is empty.

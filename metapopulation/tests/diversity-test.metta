@@ -195,6 +195,7 @@
                (mkBScore (cons 1 (cons 2 ())))))
 
 ;; Clean cache before testing
+!(set-param diversityCache True)
 !(clearDstCache)
 
 ;; Distance to self returns 0.0 without querying cache
@@ -216,8 +217,24 @@
 ;; Reverse query uses cached value directly
 !(assertEqual (getCachedDistance (cacheCandB) (cacheCandA)) 5.0)
 
+;; Test caching toggle: with diversityCache False, distance is computed directly without populating &dstCache
+!(clearDstCache)
+!(set-param diversityCache False)
+!(assertEqual (getCachedDistance (cacheCandA) (cacheCandB)) 5.0)
+!(assertEqual
+    (let* (($tA (cacheTreeA)) ($tB (cacheTreeB)))
+       (collapse (match &dstCache (dst $tA $tB $d) $d)))
+    ())
+!(set-param diversityCache True)
+
 ;; Compute distance between B and C (Manhattan: |4-1| + |6-2| = 7.0)
 !(assertEqual (getCachedDistance (cacheCandB) (cacheCandC) p_norm 1) 7.0)
+
+;; Verify mutual exclusivity: 4-arg candidate call yields exactly ONE result (no duplicate clause match)
+!(clearDstCache)
+!(let* (($eB (cacheCandB))
+        ($eC (cacheCandC)))
+   (assertEqual (collapse (getCachedDistance $eB $eC p_norm 1)) (7.0)))
 
 ;; Selective eviction: evicting candidate B removes all pairs involving B,
 ;; while preserving pairs that do not involve B
@@ -296,10 +313,6 @@
 ;; With pressure = 2.0, diversity re-ranks to [A, C, D, B]
 !(clearDstCache)
 !(set-param diversityPressure 2.0)
-!(set-param diversityDst2dp inverse)
-!(set-param diversityExponent -1.0)
-!(set-param diversityNormalize True)
-!(set-param diversityDst p_norm)
 !(set-param diversityPNorm 1.0)
 
 !(assertEqual
@@ -309,6 +322,22 @@
        (cons (getExemplarTree (car-atom (cdr-atom (cdr-atom $res))))
        (cons (getExemplarTree (car-atom (cdr-atom (cdr-atom (cdr-atom $res))))) ())))))
     (cons (pipeTreeA) (cons (pipeTreeC) (cons (pipeTreeD) (cons (pipeTreeB) ())))))
+
+;; ---- 4c. Integrity Checks (Empty Behavioral Score & Negative Distance) ----
+(= (emptyBScoreCand)
+   (mkExemplar (pipeTreeA) (mkDemeId "1") (mkCscore 10.0 1.0 0.0 0.0 10.0) (mkBScore ())))
+
+!(assertEqual
+    (updateDiversityTmp (cons ((emptyBScoreCand) 0.0) ()) (pipeCandB) 1 True inverse 0.5 -1.0 True p_norm 1.0 False)
+    (Error ((emptyBScoreCand)) "Behavioral score is needed for diversity!"))
+
+!(let* (($tB (pipeTreeB))
+        ($tA (pipeTreeA))
+        ($_ (eraseCandidateSeqFromDstCache (cons (pipeCandB) ())))
+        ($_ (add-atom &dstCache (dst $tB $tA -1.5)))
+        ($res (updateDiversityTmp (cons ((pipeCandB) 0.0) ()) (pipeCandA) 1 True inverse 0.5 -1.0 True p_norm 1.0 False))
+        ($_ (remove-atom &dstCache (dst $tB $tA -1.5))))
+    (assertEqual $res (Error (-1.5) "The distance cannot be negative. There could be a bug or you are not using a true distance. For instance the Tanimoto distance may be negative when some of its components are negative. If that is the case you might want to switch to the angular distance.")))
 
 ;; ---- 4c. Integration with Metapopulation Resizing & Cache Eviction ----
 ;; resizeMetapop prunes candidates falling below topScore - usefulScoreRange.
@@ -370,7 +399,6 @@
 ;; best = 0.0, worst = -8.0 -> magnitude = 0.0 - (-8.0) = 8.0
 ;; Hand calculation: pressure = 0.5 * 8.0 = 4.0
 !(set-param diversityPressure 0.5)
-!(set-param diversityAutoscale True)
 !(assertEqual (autoscaleDiversity 0.0 -8.0) 4.0)
 !(assertEqual (param diversityPressure) 4.0)
 
@@ -378,10 +406,5 @@
 ;; best = 0.0, worst = -32.0 -> magnitude = 32.0
 ;; Hand calculation: pressure = 0.01 * 32.0 = 0.32
 !(set-param diversityPressure 0.01)
-!(set-param diversityAutoscale True)
 !(assertEqual (autoscaleDiversity 0.0 -32.0) 0.32)
 !(assertEqual (param diversityPressure) 0.32)
-
-;; Restore default parameters at end of test
-!(set-param diversityPressure 0.0)
-!(set-param diversityAutoscale False)
