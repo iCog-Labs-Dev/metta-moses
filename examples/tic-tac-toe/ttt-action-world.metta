@@ -18,13 +18,9 @@
 ;; Loads after examples/tic-tac-toe/tic-tac-toe-helpers (replace-by-index
 ;; must have clauses when applyTTTMove compiles).
 
-;; Fresh per-turn world: no move made yet this turn.
-(= (mkInitialTTTWorld $board $player) (mkTTTWorld $board $player False))
-
 ;; ---- Accessors ----
 (= (worldBoard (mkTTTWorld $b $p $m)) $b)
 (= (worldPlayer (mkTTTWorld $b $p $m)) $p)
-(= (worldMoved (mkTTTWorld $b $p $m)) $m)
 
 ;; applyTTTMove: shared placement kernel for every domain action.
 ;;   $idx is the output of a moves.metta finder: a cell index 0-8, or False

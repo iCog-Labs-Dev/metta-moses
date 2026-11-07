@@ -47,7 +47,7 @@
 
 (= (reduceConstActionSeq $expr)
    (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
-       (let ($op $args) (decons $expr)
+       (let ($op $args) (decons-atom $expr)
          (case $op
            ((and_seq (let $pruned (pruneAndSeqArgs $args)
                        (if (== $pruned (action_failure))
@@ -57,7 +57,6 @@
                        (if (== $pruned (action_success))
                            action_success
                            (cons-atom or_seq $pruned))))
-            (exec_seq (let $pruned (pruneExecSeqArgs $args)
-                        (cons-atom exec_seq $pruned)))
+            (exec_seq (cons-atom exec_seq (pruneExecSeqArgs $args)))
             ($else $expr))))
        $expr))

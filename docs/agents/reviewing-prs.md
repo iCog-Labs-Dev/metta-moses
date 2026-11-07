@@ -1,6 +1,6 @@
 # Reviewing PRs and writing issues
 
-Read this file when you review a PR (mostly a PR from an intern or another contributor) or write an issue.
+Read this file to review a PR, to review your own work (section 7), or to write an issue. Most PRs come from interns or other contributors.
 
 Every statement in a review is backed by something that you ran, diffed or measured. A PR description, a benchmark number, and "all tests pass" are claims to check, not facts. Treat every explanation the same way, from an intern, a senior or an agent.
 
@@ -54,3 +54,23 @@ Order of attention: design and behaviour, then tests, then complexity, then name
 - An issue for interns is an exercise. State the symptom and the exact reproduction (command, input, expected and actual output, base commit). Do not give the cause or the fix.
 - Use the issue templates in `.github/ISSUE_TEMPLATE/`.
 - Show the draft to the lead. Create the issue only after approval.
+
+## 7. Self-review before a PR or "done"
+
+Do this before you create a PR for your own work, and before you call a change done. It gives the human a second look at errors that the author missed. Skip it only for a typo or a comment change.
+
+1. **Owner:** the agent that talks to the human runs this review, after the work ends. A worker does not run it.
+2. **Reviewer:** use a reviewer that did not write the change (a subagent or a new session), when possible. If the author reviews, say so in the report.
+3. **Scope:** the whole branch from `git merge-base <base> HEAD`, plus uncommitted changes.
+4. **Method:** use sections 2, 3 and 5.
+   - The claims are the draft PR description or the hand-over text.
+   - No PR exists yet, so use `git log` and `git diff`, not `gh pr`.
+   - For a docs-only change, read the diff and check each claim. Skip the test and benchmark arms.
+5. **Record:** write `reviews/self-<branch>-<YYYY-MM-DD>.md` (untracked). Replace each `/` in the branch name with `-`.
+6. **Deliver to the human** who is about to create the PR or mark the change done. Give the full report, not a short summary: the verdict, all findings (blocking or Nit) with their evidence, what you did not verify, and the record path.
+7. **Do not give the findings to an agent.** No agent fixes, filters, softens or closes a finding before the human sees it. A reviewer subagent returns its report only for delivery, and the main agent gives the report to the human unchanged.
+8. **Wait for the human.** No PR and no "done" for that change before the human decides. Fix only what the human asks you to fix. Then re-review (section 4).
+   - If the human asked for the PR before the review, show the findings first and ask again.
+   - If the human is away, notify. Continue only the work that does not depend on the change.
+
+The review loop for workers during the work (`parallel-agents.md`, section 7) stays as it is. It does not replace this review.

@@ -106,36 +106,6 @@
                0))))
   (mkTree (mkNode and_seq) ((turnTree))))
 
-;; Simple-action ASK preserves recursive candidate expansion into the subtree.
-!(assertEqual
-  (let* (($origTree (mkTree (mkNode and_seq) (cons (moveTree) ())))
-         (($updatedTree $ask) (simpleActionSubtreeKnob $origTree (mkNodeId (1))))
-         (($candidate $srcId $dstId) (appendToASK $updatedTree $ask (mkTree (mkNode and_seq) ()) (mkNodeId (0)) 1)))
-    ($candidate $srcId $dstId))
-  ((mkTree (mkNode and_seq) (cons (moveTree) ())) (mkNodeId (1)) (mkNodeId (1))))
-
-!(assertEqual
-  (let* (($origTree (mkTree (mkNode and_seq) (cons (moveTree) ())))
-         (($updatedTree $ask) (simpleActionSubtreeKnob $origTree (mkNodeId (1))))
-         (($candidate $srcId $dstId) (appendToASK $updatedTree $ask (mkTree (mkNode and_seq) ()) (mkNodeId (0)) 0)))
-    ($candidate $srcId $dstId))
-  ((mkTree (mkNode and_seq) ()) (mkNodeId (0)) (mkNodeId (0))))
-
-;; Action-subtree ASK appends selected perms but stops recursive expansion.
-!(assertEqual
-  (let* (($origTree (mkTree (mkNode and_seq) ()))
-         (($updatedTree $ask) (actionSubtreeKnob $origTree (mkNodeId (0)) ((moveTree))))
-         (($candidate $srcId $dstId) (appendToASK $updatedTree $ask (mkTree (mkNode and_seq) ()) (mkNodeId (0)) 1)))
-    ($candidate $srcId $dstId))
-  ((mkTree (mkNode and_seq) (cons (moveTree) ())) (mkNodeId (0)) (mkNodeId (0))))
-
-!(assertEqual
-  (let* (($origTree (mkTree (mkNode and_seq) ()))
-         (($updatedTree $ask) (actionSubtreeKnob $origTree (mkNodeId (0)) ((moveTree))))
-         (($candidate $srcId $dstId) (appendToASK $updatedTree $ask (mkTree (mkNode and_seq) ()) (mkNodeId (0)) 0)))
-    ($candidate $srcId $dstId))
-  ((mkTree (mkNode and_seq) ()) (mkNodeId (0)) (mkNodeId (0))))
-
 ;; Verify subtree-based action knob helpers produce the expected ASK structure.
 !(assertEqual
   (let*

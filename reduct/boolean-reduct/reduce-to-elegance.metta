@@ -1,16 +1,18 @@
-;; A function to apply all the 8 transformation functions depending on. The function filters out and applies transformation functions that are only applicable to the POA(Point of application).
-;;    The function returns the most up-to-date parent and current nodes while not changing the dominantSet and commandSet as inputs. It will additionally output a boolean to indicate whether at least one transformation has been applied. If this boolean is true, the RTE (reduceToElegance) function may need to be called again until the boolean is false. This is because changes made by some transformation functions can alter the state in such a way that a transformation function, which has already been applied, can be applied again.
-;;    The reduceToElegance function can start with an empty dominantSet and commandSet as long as it has a parent with no guardSets, usually an AND node, as an input. This is needed so that the function can compute the dominantSet and commandSet correctly. Otherwise, initial dominantSet and commandSet should be provided.
+;; reduceToElegance applies the RTE transformations at one point of application (POA).
+;; It returns (parent current applied): the updated parent, the updated current node and
+;; True when at least one transformation was applied. The caller repeats the call until
+;; it returns False, because one transformation can make another one applicable again.
+;; The dominantSet and commandSet can start empty when the parent has no guard set
+;; (usually an AND root). Otherwise, give the initial sets.
 
-;; Definitions: Guard set of a POA is the set of literals in the POA.
-;;              An AND node N commands every node which is a descendent of N's
-;;                parent but which is neither N nor a descendent of N.
-;;              A guard set of a POA is the set of literals in the POA.
+;; Definitions: The guard set of a POA is the set of literals in the POA.
+;;              An AND node N commands every node which is a descendant of N's
+;;                parent but which is neither N nor a descendant of N.
 ;;              The command set of a node N is the union of the
 ;;                guard sets of the AND nodes in the tree which
 ;;                command N and which have guard sets containing
-;;                only one constraint each,
-;;               A dominant set of a POA is the set of guardSets of AND nodes found 
+;;                only one constraint each.
+;;              The dominant set of a POA is the set of guard sets of AND nodes found
 ;;                on the path from the root to the POA (POA not included).
 
 ;; Example: input: parent ==> (AND A (OR (AND (NOT B) C) (AND (NOT B))) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))), 
@@ -18,8 +20,6 @@
 ;;                 dominantSet ==> (A)
 ;;                 commandSet ==> ()
 ;;        : output: ((AND A (NOT B) (OR (AND (NOT C)) (AND (NOT B) (NOT D)))) () True)
-;; TODO: You need to call the RTE until it's no longer applied in the entry point. 
-; (: reduceToElegance (-> Expression Expression Expression Expression (Expression Expression Bool)))
 (= (reduceToElegance $parent $current $dominantSet $commandSet)
    (case ((get-metatype $current) $current)
         (
@@ -49,7 +49,7 @@
                       ;; Raw subtraction does 1-Subsume's job instead, and leaves the guard set disjoint
                       ;; from the command set so oneConstraintSubsume can never fire. (logical_rules.cc:642)
                       ($updatedGuardSet' (setDifference $updatedGuardSet (invertLiterals $commandSet))) ;; Apply 1-Constraint-Complement-Subtraction
-                      ($appliedRedundantOr1CC (or (not (== $updatedGuardSet $guardSet)) (not (== $updatedGuardSet' $updatedGuardSet)))) ;; Storing this state to return boolean indicating RTE is applied or not.
+                      ($appliedRedundantOr1CC (or (!= $updatedGuardSet $guardSet) (!= $updatedGuardSet' $updatedGuardSet))) ;; Storing this state to return boolean indicating RTE is applied or not.
 
                       
                       ($updatedSubExpression (concatTuple $updatedGuardSet' $children))   
@@ -62,12 +62,12 @@
                       ($updatedCurrent (cons-atom AND $updatedSubExpression))
                       ($updatedParent (findAndReplace $current $updatedCurrent $parent))
                       ($temp (oneConstraintSubsume $updatedParent $updatedCurrent $commandSet)) ;; Apply 1-Subsume.
-                      ;($_ (println! (Result: $temp)))
+                      ;; ($_ (println! (Result: $temp)))
                       (($oneSubsumeParent $oneSubsumeCurrent $appliedOneSubsume) $temp)
-                      ; ($_ (println! (===RTE AND CASE Log===)))
-                      ; ($_ (println! (GuardSet: $guardSet Children: $children UpdatedGuardSet: $updatedGuardSet UpdatedGuardSetPrime: $updatedGuardSet')))
+                      ;; ($_ (println! (===RTE AND CASE Log===)))
+                      ;; ($_ (println! (GuardSet: $guardSet Children: $children UpdatedGuardSet: $updatedGuardSet UpdatedGuardSetPrime: $updatedGuardSet')))
                       ;; ($_ (println! (appliedRedundantOr1CC: $appliedRedundantOr1CC appliedOneSubsume: $appliedOneSubsume)))
-                      ; ($_ (println! ""))
+                      ;; ($_ (println! ""))
 
                       ;; until no transformation is applied
                       ;;    compute dominantSet
@@ -76,13 +76,12 @@
                       ;;    apply RTE on children.
                       ;; 0-Subsume Variation
                       ;; ($_ (println! (UpdatedParent: $updatedParent UpdatedCurrent: $updatedCurrent)))
-                      (($unwt3 $unwt2 ($updatedParent' $updatedCurrent' $bool))
+                      (($_commandSet $_dominantSet ($updatedParent' $updatedCurrent' $bool))
                          (if $appliedOneSubsume ;; If 1-Subsume is applied Current will be deleted so no need to iterate.
                              ($dominantSet $commandSet ($oneSubsumeParent $oneSubsumeCurrent True))
                              (until transformationsNotApplied applyAndTransformations ($commandSet $dominantSet ($updatedParent $updatedCurrent True)))))
 
                       ;; ($_ (println! (FinalResult ==> UpdatedParent': $updatedParent' UpdatedCurrent: $updatedCurrent' AppliedRTE: (any ($appliedRedundantOr1CC $appliedOneSubsume $bool)))))
-                      ;; ($_ (cut))
                       ;; ($_ (println! (calling 0-Subsume Variation on Parent: $updatedParent' Current: $updatedCurrent')))
                       ;; Fishes a replacement "current" out of the parent's tail when the POA was deleted.
                       ;; A constant parent has no tail: cdr-atom on a Symbol yields no solution, which
@@ -91,12 +90,13 @@
                                             ()
                                             (if (== $updatedCurrent' ()) (cdr-atom $updatedParent') $updatedCurrent')))
                       ;; car-atom on a Symbol yields no solution: pass a constant straight through.
-                      ($zeroCurrent (if (or (== $childFromParent ()) (not (== (get-metatype $childFromParent) Expression)))
+                      ($zeroCurrent (if (or (== $childFromParent ()) (!= (get-metatype $childFromParent) Expression))
                                         $childFromParent
                                         (let $h (car-atom $childFromParent)
                                              (if (== (get-metatype $h) Expression) $h $childFromParent))))
                       ;; ($_ (println! (zeroCurrent: $current --> $zeroCurrent)))
-                      (($finalParent $finalCurrent $finalBool) (zeroConstraintSubsume' $updatedParent' $zeroCurrent)) ;; Apply 0-Subsume variation.
+                      (($finalParent $finalCurrent $finalBool) (zeroConstraintSubsumeEmptyNode $updatedParent' $zeroCurrent)) ;; Apply 0-Subsume variation.
+                      ;; Bare (AND) is data only because this file loads before scoring/boolean-ops.
                       ($finalCurrent' (if (== $finalCurrent ()) (AND) $finalCurrent))
                       ;; ($_ (println! (Final Result ==> FinalParent: $parent --> $finalParent FinalCurrent: $current --> $finalCurrent' AppliedRTE: (any ($appliedRedundantOr1CC $appliedOneSubsume $bool $finalBool)))))
                       ;; ($_ (println! ""))
@@ -120,12 +120,12 @@
                       ;;    0-Subsume
                       ;;    orCut
                       ;;    apply RTE on children.
-                     (($x $xs ($updatedParent $updatedCurrent $bool)) (until transformationsNotApplied applyOrTransformations ($commandSet $dominantSet ($promoteParent $promoteCurrent True))))
-                     (($finalUpdatedParent $finalUpdatedCurrent $finalBool) (zeroConstraintSubsume' $updatedParent $updatedCurrent))
+                     (($_orCommandSet $_orDominantSet ($updatedParent $updatedCurrent $bool)) (until transformationsNotApplied applyOrTransformations ($commandSet $dominantSet ($promoteParent $promoteCurrent True))))
+                     (($finalUpdatedParent $finalUpdatedCurrent $finalBool) (zeroConstraintSubsumeEmptyNode $updatedParent $updatedCurrent))
 
-                    ; ($_ (println! (===RTE OR CASE Log===)))
-                    ; ($_ (println! (Promote ==> Parent: $promoteParent Current: $promoteCurrent Applied: $appliedPromote)))
-                    ; ($_ (println! (RTE Result ==> UpdatedParent: $updatedParent UpdatedCurrent: $updatedCurrent AppliedRTE: (any ($bool $appliedPromote)))))
+                    ;; ($_ (println! (===RTE OR CASE Log===)))
+                    ;; ($_ (println! (Promote ==> Parent: $promoteParent Current: $promoteCurrent Applied: $appliedPromote)))
+                    ;; ($_ (println! (RTE Result ==> UpdatedParent: $updatedParent UpdatedCurrent: $updatedCurrent AppliedRTE: (any ($bool $appliedPromote)))))
                     ;; ($_ (println! (Final Result ==> FinalUpdatedParent: $finalUpdatedParent FinalUpdatedCurrent: $finalUpdatedCurrent AppliedRTE: (any ($bool $finalBool $appliedPromote)))))
                     ;; ($_ (println! ""))
 
@@ -140,13 +140,11 @@
    )
 )
 
-;; A helper function to check if a transformation is applied or not given the state of the OR node transformations.
-; (: transformationsNotApplied (-> (Expression Expression (Expression Expression Bool)) Bool))
-(= (transformationsNotApplied ($dummy $dummy2 ($parent $current $bool))) (not $bool))
+;; The stop predicate of the `until` loops over applyAndTransformations and applyOrTransformations.
+(= (transformationsNotApplied ($_commandSet $_dominantSet ($_parent $_current $bool))) (not $bool))
 
 ;; A helper function to apply delInconHandle and andCut transformation functions.
 ;; It will also apply reduce to elegance algorithm on each of the children of the POA.
-; (: applyAndTransformations (-> (Expression Expression (Expression Expression Bool)) (Expression Expression Bool)))
 (= (applyAndTransformations ($commandSet $dominantSet ($parent $current $unwt)))
    (let*
      (
@@ -156,11 +154,10 @@
 
         ($guardSet (getGuardSet $current))
         ($children (getChildrenExp $current))
-        ; ($_ (println! (GuardSet of Current: $guardSet)))
+        ;; ($_ (println! (GuardSet of Current: $guardSet)))
         ;; ($_ (println! (Children of Current: $children)))
 
-        ($firstChild (if (not (== $children ())) (car-atom $children) ()))
-        ($remainingChildren (if (not (== $firstChild ())) (cdr-atom $children) ()))
+        (($firstChild $remainingChildren) (if (== $children ()) (() ()) (decons-atom $children)))
 
         ($handleSet (unique-atom (union-atom $guardSet $dominantSet))) ;; Compute new dominantSet
         
@@ -168,7 +165,6 @@
         (($delInconHandleParent $delInconHandleCurrent $appliedDelInconHandle)  (applyDeleteIncons $parent $current $handleSet)) ;; This handles multi layer nested expressions.
         ;; ($_ (println! ("Parent after Delete:" $delInconHandleParent Current: $delInconHandleCurrent)))
 
-        ;; INFO: Applying andCut here may be a redundant operation. And could be potentially omitted.
         (($andCutParent $andCutCurrent $appliedAndCut) (andCut $delInconHandleParent $delInconHandleCurrent)) ;; Apply andCut
 
         ;; ($_ (println! (===ApplyAndTransformations Log===)))
@@ -186,38 +182,36 @@
          (let*
            (
               (($commandSet'' $dominantSet'' ($updatedParent $updatedCurrent $appliedRTE))
-                (if (not (== $children ()))
+                (if (!= $children ())
                     (let*
                           (
                             ;; ($_ (println! (===== Inside ApplyAndTransformations Before Until function ======)))
                             (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $lastRemainingChild)) (until hasNoNextChild applyReduceToEleganceToOr ($commandSet $handleSet ($parent $current False) ($firstChild $remainingChildren))))
 
-                            ; ($_ (println! ("Applyed reduceToElegance ==> FinalUpdatedParent:" $finalUpdatedParent "FinalUpdatedCurrent: " $finalUpdatedCurrent "AppliedRTE: " $bool)))
+                            ;; ($_ (println! ("Applyed reduceToElegance ==> FinalUpdatedParent:" $finalUpdatedParent "FinalUpdatedCurrent: " $finalUpdatedCurrent "AppliedRTE: " $bool)))
 
                             ($grandChildren (getChildrenExp $finalUpdatedCurrent))
-                            ($firstGrandChild (if (not (== $grandChildren ())) (car-atom $grandChildren) ()))
-                            ($remainingGChildren (if (not (== $firstGrandChild ())) (cdr-atom $grandChildren) ()))
+                            (($firstGrandChild $remainingGChildren) (if (== $grandChildren ()) (() ()) (decons-atom $grandChildren)))
 
-                            ; ($_ (println! (Applying OrCut to GrandChildren: $grandChildren)))
+                            ;; ($_ (println! (Applying OrCut to GrandChildren: $grandChildren)))
 
                             ;; Apply OrCut to children of the updatedCurrent here.
                             (($finalUpdatedCurrent' $appliedOrCut ($lastGChild $restGChildren)) (until hasNoNextChild applyOrCut ($finalUpdatedCurrent False ($firstGrandChild $remainingGChildren))))
                             ($finalUpdatedParent' (findAndReplace $finalUpdatedCurrent $finalUpdatedCurrent' $finalUpdatedParent))
 
-                            ; ($_ (println! (AppliedOrCut: $appliedOrCut FinalUpdatedCurrent': $finalUpdatedCurrent' FinalUpdatedParent': $finalUpdatedParent')))
-                            ; ($_ (println! (LastChild: $lastChild LastRemainingChild: $lastRemainingChild)))
+                            ;; ($_ (println! (AppliedOrCut: $appliedOrCut FinalUpdatedCurrent': $finalUpdatedCurrent' FinalUpdatedParent': $finalUpdatedParent')))
+                            ;; ($_ (println! (LastChild: $lastChild LastRemainingChild: $lastRemainingChild)))
                           )
                         ($commandSet' $dominantSet' ($finalUpdatedParent' $finalUpdatedCurrent' (or $bool $appliedOrCut)))
                     )
                     ($commandSet $dominantSet ($parent $current False))
                 )
               )
-              ; ($_ (println! (Outside of the If block)))
-              ; ($_ (println! (UpdatedParent: $updatedParent UpdatedCurrent: $updatedCurrent AppliedRTE: $appliedRTE)))
-              ; ($_ (println! ($commandSet'')))
-              ; ; ($_ (println! ""))
-              ; ($_ (println! ("commandSet: " $commandSet "DomainSet: " $dominantSet)))
-              ;
+              ;; ($_ (println! (Outside of the If block)))
+              ;; ($_ (println! (UpdatedParent: $updatedParent UpdatedCurrent: $updatedCurrent AppliedRTE: $appliedRTE)))
+              ;; ($_ (println! ($commandSet'')))
+              ;; ($_ (println! ""))
+              ;; ($_ (println! ("commandSet: " $commandSet "DomainSet: " $dominantSet)))
            )
            ($commandSet $dominantSet ($updatedParent $updatedCurrent $appliedRTE))
          )
@@ -225,19 +219,17 @@
    )
 )
 
-;; A helper function to apply reduceToElegance using foldl. It behaves like a lambda function.
-;; This function is specific for the AND node case of the reduce to elegance function.
+;; The `until` step that applies reduceToElegance to each child of an OR node in turn.
+;; The children are AND nodes, hence the name.
 ;;($commandSet $dominantSet ($parent $current False) ($firstChild $remainingChildren))
-; (: applyReduceToEleganceToAnd (-> (Expression Expression (Expression Expression Bool) (Expression Expression)) (Expression Expression (Expression Expression Bool) (Expression Expression))))
 (= (applyReduceToEleganceToAnd ($commandSet $dominantSet ($parent $prevCurrent $bool) ($firstChild $remainingChildren)))
    (let*
      (
-        ; ($_ (println! (===Inside ApplyReduceToEleganceToAND===)))
-        ; ($_ (println! (Parameters ==> CommandSet: $commandSet DominantSet: $dominantSet Parent: $parent PrevCurrent: $prevCurrent Bool: $bool FirstChild: $firstChild RemainingChildren: $remainingChildren)))
-        ; ($_ (println! ""))
+        ;; ($_ (println! (===Inside ApplyReduceToEleganceToAND===)))
+        ;; ($_ (println! (Parameters ==> CommandSet: $commandSet DominantSet: $dominantSet Parent: $parent PrevCurrent: $prevCurrent Bool: $bool FirstChild: $firstChild RemainingChildren: $remainingChildren)))
+        ;; ($_ (println! ""))
 
-        ($nextChild (if (not (== $remainingChildren ())) (car-atom $remainingChildren) ()))
-        ($rest (if (not (== $remainingChildren ())) (cdr-atom $remainingChildren) ()))
+        (($nextChild $rest) (if (== $remainingChildren ()) (() ()) (decons-atom $remainingChildren)))
 
 
         ;; Every OTHER single-constraint alternative of this OR commands $firstChild, for this
@@ -249,21 +241,18 @@
         ($updatedParent (findAndReplace $prevCurrent $updatedCurrent $parent))
 
         ($updatedChildren (getChildrenExp $updatedCurrent))
-        ($resetNextChild (if (not (== $updatedChildren ())) (car-atom $updatedChildren) ()))
-        ($resetRemainingChildren (if (not (== $resetNextChild ())) (cdr-atom $updatedChildren) ()))
+        (($resetNextChild $resetRemainingChildren) (if (== $updatedChildren ()) (() ()) (decons-atom $updatedChildren)))
 
-        ; ($_ (println! (===ApplyReduceToEleganceToAND Log===)))
-        ; ($_ (println! (UpdatedParent: $updatedParent UpdatedCurrent: $updatedCurrent UpdatedChild: $updatedChild AppliedRTE: $appliedRTE)))
-        ; ($_ (println! (Reset iteration: $appliedRTE)))
+        ;; ($_ (println! (===ApplyReduceToEleganceToAND Log===)))
+        ;; ($_ (println! (UpdatedParent: $updatedParent UpdatedCurrent: $updatedCurrent UpdatedChild: $updatedChild AppliedRTE: $appliedRTE)))
+        ;; ($_ (println! (Reset iteration: $appliedRTE)))
         ;; ($_ (println! ""))
      )
 
-     ;; Resetting is needed only when a transforamtion is applied in this state.
+     ;; Resetting is needed only when a transformation is applied in this state.
      ;; It shouldn't be influenced by previous iteration.
-     (if $appliedRTE
-         ($commandSet $dominantSet ($updatedParent $updatedCurrent (or $appliedRTE $bool)) ($resetNextChild $resetRemainingChildren))
-         ($commandSet $dominantSet ($updatedParent $updatedCurrent (or $appliedRTE $bool)) ($nextChild $rest))
-     )
+     (let $next (if $appliedRTE ($resetNextChild $resetRemainingChildren) ($nextChild $rest))
+       ($commandSet $dominantSet ($updatedParent $updatedCurrent (or $appliedRTE $bool)) $next))
    )
 )
 
@@ -271,7 +260,6 @@
 
 ;; A helper function to apply 0Subsume and orCut transformation functions.
 ;; It will also apply reduce to elegance algorithm on each of the children of the POA.
-; (: applyOrTransformations (-> (Expression Expression (Expression Expression Bool)) (Expression Expression (Expression Expression Bool))))
 (= (applyOrTransformations ($commandSet $dominantSet ($parent $current $bl)))
    (let*
      (
@@ -284,8 +272,7 @@
 
 
         ($children (getChildrenExp $current))
-        ($firstChild (if (not (== $children ())) (car-atom $children) ()))
-        ($remainingChildren (if (not (== $firstChild ())) (cdr-atom $children) ()))
+        (($firstChild $remainingChildren) (if (== $children ()) (() ()) (decons-atom $children)))
 
         ;; ($_ (println! (===ApplyOrTransformations Log===)))
         ;; ($_ (println! (0Subsume ==> Parent: $zeroSubsumeParent Current: $zeroSubsumeCurrent Applied: $appliedZeroSubsume)))
@@ -293,7 +280,6 @@
         ;; ($_ (println! (Children: $children)))
         ;; ($_ (println! ""))
      )
-    ;  (if (any ($appliedZeroSubsume $appliedZeroSubsume' $appliedOrCut)))
      (if (any ($appliedZeroSubsume $appliedOrCut))
          ($commandSet $dominantSet ($orCutParent $orCutCurrent True)) ;; Returning the most up to date state.
 
@@ -301,12 +287,12 @@
         (let*
            (
 
-            ;  ($_ (println! (===== Inside ApplyOrTransformations Before Until function ======)))
+            ;; ($_ (println! (===== Inside ApplyOrTransformations Before Until function ======)))
 
              (($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($lastChild $rest)) (until hasNoNextChild applyReduceToEleganceToAnd ($commandSet $dominantSet ($parent $current False) ($firstChild $remainingChildren))))
                 
-            ;  ($_ (println! ("Inside ApplyOrTransformations After Until function")))
-            ;  ($_ (println! ("FinalResult ==> FinalUpdatedParent:" $finalUpdatedParent "FinalUpdatedCurrent:" $finalUpdatedCurrent "Applied:" $bool)))
+            ;; ($_ (println! ("Inside ApplyOrTransformations After Until function")))
+            ;; ($_ (println! ("FinalResult ==> FinalUpdatedParent:" $finalUpdatedParent "FinalUpdatedCurrent:" $finalUpdatedCurrent "Applied:" $bool)))
            )
            ($commandSet $dominantSet ($finalUpdatedParent $finalUpdatedCurrent $bool))
         )
@@ -315,12 +301,10 @@
 )
 
 
-;; A helper function to apply reduceToElegance to the currentChild and return the nextChild in addtion to the state. It behaves like a lambda function.
-;; The implementation of this function has many paramters to make it suitable to use with the already implemented until function.
-;; This function is specific for the OR node case of the reduce to elegance function.
-; (: applyReduceToEleganceToOr (-> (Expression Expression (Expression Expression Bool) (Expression Expression)) (Expression Expression (Expression Expression Bool))))
+;; The `until` step that applies reduceToElegance to each child of an AND node in turn.
+;; It returns the state and the next child. The children are OR nodes, hence the name.
 (= (applyReduceToEleganceToOr ($commandSet $dominantSet ($parent $prevCurrent $bool) ($currentChild $remainingChildren)))
-   (if (not (== $currentChild ()))
+   (if (!= $currentChild ())
        (let*
           (
              ;; ($_ (println! (===Inside ApplyReduceToEleganceToOr===)))
@@ -331,8 +315,7 @@
               ;; in $dominantSet, and feeding it here would erase a contradiction instead of letting
               ;; deleteInconsistentHandle delete the branch. (logical_rules.cc:715)
               ($localCommandSet (localCommandSet $currentChild (getChildrenExp $prevCurrent) () $commandSet)) ;; Compute local command set
-              ($nextChild (if (not (== $remainingChildren ())) (car-atom $remainingChildren) ()))
-              ($restChildren (if (not (== $nextChild ())) (cdr-atom $remainingChildren) ()))
+              (($nextChild $restChildren) (if (== $remainingChildren ()) (() ()) (decons-atom $remainingChildren)))
 
               (($updatedCurrent $updatedChild $appliedRTE) (reduceToElegance $prevCurrent $currentChild $dominantSet $localCommandSet))
               (($promoteCurrent $promoteChild $appliedPromote) (promoteCommonConstraints $updatedCurrent $updatedChild))
@@ -340,36 +323,33 @@
               ;; ($_ (println! (Applied Promote ==> Current: $promoteCurrent Child: $promoteChild Applied: $appliedPromote)))
 
               ($grandChildren (getChildrenExp $promoteCurrent))
-              ($firstGChild (if (not (== $grandChildren ())) (car-atom $grandChildren) ()))
-              ($remainingGChildren (if (not (== $firstGChild ())) (cdr-atom $grandChildren) ()))
+              (($firstGChild $remainingGChildren) (if (== $grandChildren ()) (() ()) (decons-atom $grandChildren)))
 
               (($finalUpdatedCurrent $appliedAndCut ($lastChild $rest)) (until hasNoNextChild applyAndCut ($promoteCurrent False ($firstGChild $remainingGChildren))))
               ($finalUpdatedParent (findAndReplace $prevCurrent $finalUpdatedCurrent $parent))
 
-              ; ($_ (println! (Applied AndCut==> FinalupdatedCurrent: $finalUpdatedCurrent FinalUpdatedParent: $finalUpdatedParent AppliedAndCut: $appliedAndCut)))
+              ;; ($_ (println! (Applied AndCut==> FinalupdatedCurrent: $finalUpdatedCurrent FinalUpdatedParent: $finalUpdatedParent AppliedAndCut: $appliedAndCut)))
 
               ($updatedChildren (getChildrenExp $finalUpdatedCurrent))
-              ($updatedFirstChild (if (not (== $updatedChildren ())) (car-atom $updatedChildren) ()))
-              ($updatedRestChildren (if (not (== $updatedFirstChild ())) (cdr-atom $updatedChildren) ()))
+              (($updatedFirstChild $updatedRestChildren) (if (== $updatedChildren ()) (() ()) (decons-atom $updatedChildren)))
 
-              ;; The $bool here is useful to determine whether an RTE is applied or not through out the entire iteration.
-              ($returnValue ($commandSet $dominantSet ($finalUpdatedParent $finalUpdatedCurrent (any ($appliedRTE $bool $appliedAndCut))) ($nextChild $restChildren)))
+              ;; $bool tells whether an RTE was applied anywhere in the whole iteration.
+              ($applied (any ($appliedRTE $bool $appliedAndCut)))
 
-              ; ($_ (println! (===ApplyReduceToEleganceToOr Log===)))
-              ; ($_ (println! (Children: (getChildrenExp $prevCurrent) GuardSet: (getGuardSet $prevCurrent))))
-              ; ($_ (println! (NextChild: $nextChild RestChildren: $restChildren)))
-              ; ($_ (println! (UpdatedCurrent: $updatedCurrent UpdatedChild: $updatedChild AppliedRTE: $appliedRTE)))
-              ; ($_ (println! (ReturnValue: $returnValue)))
-              ; ($_ (println! ""))
+              ;; ($_ (println! (===ApplyReduceToEleganceToOr Log===)))
+              ;; ($_ (println! (Children: (getChildrenExp $prevCurrent) GuardSet: (getGuardSet $prevCurrent))))
+              ;; ($_ (println! (NextChild: $nextChild RestChildren: $restChildren)))
+              ;; ($_ (println! (UpdatedCurrent: $updatedCurrent UpdatedChild: $updatedChild AppliedRTE: $appliedRTE)))
+              ;; ($_ (println! (ReturnValue: $returnValue)))
+              ;; ($_ (println! ""))
 
           )
-          ;; Resetting is needed only when a transforamtion is applied in this state.
+          ;; Resetting is needed only when a transformation is applied in this state.
           ;; It shouldn't be influenced by previous iteration.
-          (if (any ($appliedRTE $appliedAndCut))
-              ;; Resetting iteration if promote or RTE is applied.
-              ($commandSet $dominantSet ($finalUpdatedParent $finalUpdatedCurrent (any ($appliedRTE $bool $appliedAndCut))) ($updatedFirstChild $updatedRestChildren))
-              $returnValue
-          )
+          (let $next (if (any ($appliedRTE $appliedAndCut))
+                         ($updatedFirstChild $updatedRestChildren)
+                         ($nextChild $restChildren))
+            ($commandSet $dominantSet ($finalUpdatedParent $finalUpdatedCurrent $applied) $next))
        )
        ($commandSet $dominantSet ($parent $prevCurrent False) (() ()))
    )
@@ -386,7 +366,6 @@
 ;;                   parentGuardSet: (E F G)
 ;;                   commandSet: (E F)
 ;;         output ==> (D E F)
-; (: localCommandSet (-> Expression Expression Expression Expression Expression))
 (= (localCommandSet $child $parentChildren $parentGuardSet $commandSet)
    (case ($parentChildren $parentGuardSet)
      (
@@ -394,16 +373,16 @@
         ($else
           (let*
             (
-              ; ($_ (println! (===Inside LocalCommandSet===)))
-              ; ($_ (println! (Parameters ==> Child: $child ParentChildren: $parentChildren ParentGuardSet: $parentGuardSet CommandSet: $commandSet)))
+              ;; ($_ (println! (===Inside LocalCommandSet===)))
+              ;; ($_ (println! (Parameters ==> Child: $child ParentChildren: $parentChildren ParentGuardSet: $parentGuardSet CommandSet: $commandSet)))
               ;; ($_ (println! ""))
 
-              ($siblings (if (not (== $parentChildren ()))  (removeElement ($child) $parentChildren) ()))
-              ($filteredGuardSet (if (not (== $parentGuardSet ())) (removeElement ($child) $parentGuardSet) ()))
-              ($filteredSiblings (if (not (== $siblings ())) (filter-atom $siblings filterTerminalAndNode) ()))
-              ($siblingsGuardSet (if (not (== $filteredSiblings ())) (map-atom $filteredSiblings $fSib (getGuardSetND $fSib)) ()))
+              ;; removeElement, filter-atom and map-atom map () to ().
+              ($siblings (removeElement ($child) $parentChildren))
+              ($filteredGuardSet (removeElement ($child) $parentGuardSet))
+              ($filteredSiblings (filter-atom $siblings filterTerminalAndNode))
+              ($siblingsGuardSet (map-atom $filteredSiblings $fSib (getGuardSetND $fSib)))
               ($totalGuardSet (concatTuple $filteredGuardSet $siblingsGuardSet))
-              ; ($localCommandSet (collapse (unique (union (superpose $totalGuardSet) (superpose $commandSet)))))
               ($localCommandSet (unique-atom (union-atom $totalGuardSet $commandSet)))
               
 
@@ -431,36 +410,30 @@
    (case $node
      (
         ((AND (NOT $x)) True)
-        ((AND $x) (if (== (get-metatype $x) Symbol) True False))
+        ((AND $x) (== (get-metatype $x) Symbol))
         ($else False)
      )
    )
 )
 
 
-;; A helper predicate function to be used in the until function. It checks if there is no next child.
-;; It could be replace using a lambda function, if it exists.
-; (: hasNoNextChild (-> (Expression Bool (Expression Expression)) Bool))
-; (: hasNoNextChild (-> (Expression Expression (Expression Expression Bool) (Expression Expression))))
+;; The stop predicate of the child loops: True when no next child is left.
+;; The 3-tuple clause serves the applyOrCut and applyAndCut loops. The 4-tuple clause
+;; serves the applyReduceToEleganceToOr and applyReduceToEleganceToAnd loops.
 (= (hasNoNextChild ($parent $bool ($child $remainingChildren))) (== $child ()))
 (= (hasNoNextChild ($dominantSet' $commandSet' ($finalUpdatedParent $finalUpdatedCurrent $bool) ($nextChild $remainingChildren))) (== $nextChild ()))
 
-; (: reduceNotApplied (-> (Expression Expression Bool) Bool))
 (= (reduceNotApplied ($parent $current $applied)) 
 
-  ; (let* (
-  ;     ; ($_ (println! (=== Inside ReduceNotApplied ===)))
-  ;     ; ($_ (println! (Parameters ==> Parent: $parent Current: $current Applied: $applied)))
-  ; ) (not $applied))
+  ;; ($_ (println! (=== Inside ReduceNotApplied ===)))
+  ;; ($_ (println! (Parameters ==> Parent: $parent Current: $current Applied: $applied)))
 
   (not $applied)
   )
 
-;; (= (reduce $expr) (trace! (Running reduce with $expr) (let ($parent $__ $applied) (reduceToElegance $expr $expr () ()) (trace! (Result: ($parent $__ $applied)) (if $applied (reduce $parent) $parent)))))
-;; (= (reduce $expr) (let ($parent $__ $applied) (reduceToElegance $expr $expr () ()) (trace! (Result: ($parent $__ $applied)) (if $applied (reduce $parent) $parent))))
-; (: applyReduce (-> (Expression Expression Bool) (Expression Expression Bool)))
 (= (applyReduce ($parent $current $applied))
    ;; A constant is already elegant; re-normalising would wrap it as (AND FALSE) for nothing.
+   ;; Bare (OR) is data only because this file loads before scoring/boolean-ops.
    (if (isConstant $current)
        ($current $current False)
    (if (== $current (OR))
@@ -493,6 +466,9 @@
               ((applyConstantLaws $rteParent) (applyConstantLaws $rteCurrent) $rteApplied))
          ))))
 
+;; Unwraps the single-literal AND nodes that addAND made: (AND A) -> A, (AND (NOT A)) -> (NOT A).
+;; The (AND $x)/(NOT $y) patterns and the bare (AND $rest) build are data only because
+;; this file loads before scoring/boolean-ops.
 (= (removeAndNodesFromGuards $expr)
    (if (== (get-metatype $expr) Symbol)
        $expr
@@ -501,9 +477,9 @@
                $x
                (let $rest (removeAndNodesFromGuards $x) (AND $rest))
            )
-           (let ($head $rest) (decons-atom $expr)
-           (let $updatedRest (map-atom $rest $exp (removeAndNodesFromGuards $exp)) (cons-atom $head $updatedRest))
-           )
+           (let* ((($head $rest) (decons-atom $expr))
+                  ($updatedRest (map-atom $rest $exp (removeAndNodesFromGuards $exp))))
+             (cons-atom $head $updatedRest))
          )
      )
 )
@@ -512,12 +488,10 @@
    (let*
      (
       ;; TODO: Add a simple function to remove one child and nodes.
-      (($parent $uwnt $uwnt2) (until reduceNotApplied applyReduce ($expr $expr True)))
-      (($newParent $__ $___) (applyReduce ($parent $parent True))) ;; Try one more time incase it is still reduceable
-      ;; ($_ (cut)) ;; Tried, no measurable win
+      (($parent $_current $_applied) (until reduceNotApplied applyReduce ($expr $expr True)))
+      (($newParent $_newCurrent $_newApplied) (applyReduce ($parent $parent True))) ;; Try one more time in case it is still reducible
      )
      (if (== $newParent $parent)
          (removeAndNodesFromGuards $parent)
          (reduce-to $newParent))))
 
-;; !(removeAndNodesFromGuards (AND D0 (NOT Addr))) ;; Test 1

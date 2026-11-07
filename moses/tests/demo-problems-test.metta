@@ -47,7 +47,6 @@
 !(import! &self ../../../../representation/add-logical-knobs)
 !(import! &self ../../../../representation/build-logical)
 !(import! &self ../../../../representation/build-knobs)
-!(import! &self ../../../../representation/knob-mapper)
 
 !(import! &self ../../../../representation/candidate)
 !(import! &self ../../../../representation/representation)

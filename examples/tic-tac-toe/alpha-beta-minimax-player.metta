@@ -4,30 +4,30 @@
 
 (= (ab-minimax-player $bs $player)
    (let* (($opponent (get-opponent $player)) 
-          ($empty-indices (get-empty-cells $bs () 0)) 
+          ($emptyIndices (get-empty-cells $bs () 0)) 
           ;; OPTIMIZATION: Sort moves (Center > Corners > Edges)
-          ($sorted-indices (sort-moves $empty-indices)) 
-          ($best-idx (find-best-move-loop $bs $sorted-indices -1000 -1 -1000 1000 $player $opponent)))
+          ($sortedIndices (sort-moves $emptyIndices)) 
+          ($bestIdx (find-best-move-loop $bs $sortedIndices -1000 -1 -1000 1000 $player $opponent)))
      
-     (replace-by-index $bs $player $best-idx)))
+     (replace-by-index $bs $player $bestIdx)))
 
 ;; Root Loop with EARLY EXIT
-(= (find-best-move-loop $bs $candidates $best-score $best-move $alpha $beta $player $opponent)
+(= (find-best-move-loop $bs $candidates $bestScore $bestMove $alpha $beta $player $opponent)
    (if (== $candidates ())
-       $best-move
-       (let* ((($curr-idx $rest-candidates) (decons-atom $candidates))
-              ($new-bs (replace-by-index $bs $player $curr-idx))
-              ($immediate-score (evaluate-board $new-bs $player $opponent)))
+       $bestMove
+       (let* ((($currIdx $restCandidates) (decons-atom $candidates))
+              ($newBs (replace-by-index $bs $player $currIdx))
+              ($immediateScore (evaluate-board $newBs $player $opponent)))
          
          ;; EARLY EXIT: If we found a winning move (10), take it and STOP.
-         (if (== $immediate-score 10)
-             $curr-idx
+         (if (== $immediateScore 10)
+             $currIdx
              ;; Standard Update
-	     (let $score (minimax $new-bs False $alpha $beta $player $opponent)
-             (if (> $score $best-score)
-                 (let $new-alpha (max $alpha $score)
-                      (find-best-move-loop $bs $rest-candidates $score $curr-idx $new-alpha $beta $player $opponent))
-                 (find-best-move-loop $bs $rest-candidates $best-score $best-move $alpha $beta $player $opponent)))))))
+	     (let $score (minimax $newBs False $alpha $beta $player $opponent)
+             (if (> $score $bestScore)
+                 (let $newAlpha (max $alpha $score)
+                      (find-best-move-loop $bs $restCandidates $score $currIdx $newAlpha $beta $player $opponent))
+                 (find-best-move-loop $bs $restCandidates $bestScore $bestMove $alpha $beta $player $opponent)))))))
 
 ;; ---------------------------------------------------------
 ;; CORE MINIMAX (Alpha-Beta)
@@ -35,39 +35,39 @@
 
 (= (minimax $bs $isMax $alpha $beta $player $opponent)
    (let $score (evaluate-board $bs $player $opponent)
-     (if (not (== $score 0))
+     (if (!= $score 0)
          $score
-         (let $empty-cells (get-empty-cells $bs () 0)
-            (if (== $empty-cells ())
+         (let $emptyCells (get-empty-cells $bs () 0)
+            (if (== $emptyCells ())
                 0
                 (if $isMax
-                    (run-max-loop $bs $empty-cells -1000 $alpha $beta $player $opponent)
-                    (run-min-loop $bs $empty-cells 1000 $alpha $beta $player $opponent)))))))
+                    (run-max-loop $bs $emptyCells -1000 $alpha $beta $player $opponent)
+                    (run-min-loop $bs $emptyCells 1000 $alpha $beta $player $opponent)))))))
 
 ;; Maximizer Loop
-(= (run-max-loop $bs $candidates $best-val $alpha $beta $player $opponent)
+(= (run-max-loop $bs $candidates $bestVal $alpha $beta $player $opponent)
    (if (== $candidates ())
-       $best-val
+       $bestVal
        (let* ((($idx $rest) (decons-atom $candidates))
-              ($new-bs (replace-by-index $bs $player $idx))
-              ($val (minimax $new-bs False $alpha $beta $player $opponent))
-              ($new-best (max $best-val $val))
-              ($new-alpha (max $alpha $new-best)))
+              ($newBs (replace-by-index $bs $player $idx))
+              ($val (minimax $newBs False $alpha $beta $player $opponent))
+              ($newBest (max $bestVal $val))
+              ($newAlpha (max $alpha $newBest)))
          
-         (if (<= $beta $new-alpha)
-             $new-best ;; Prune
-             (run-max-loop $bs $rest $new-best $new-alpha $beta $player $opponent)))))
+         (if (<= $beta $newAlpha)
+             $newBest ;; Prune
+             (run-max-loop $bs $rest $newBest $newAlpha $beta $player $opponent)))))
 
 ;; Minimizer Loop
-(= (run-min-loop $bs $candidates $best-val $alpha $beta $player $opponent)
+(= (run-min-loop $bs $candidates $bestVal $alpha $beta $player $opponent)
    (if (== $candidates ())
-       $best-val
+       $bestVal
        (let* ((($idx $rest) (decons-atom $candidates))
-              ($new-bs (replace-by-index $bs $opponent $idx))
-              ($val (minimax $new-bs True $alpha $beta $player $opponent))
-              ($new-best (min $best-val $val))
-              ($new-beta (min $beta $new-best)))
+              ($newBs (replace-by-index $bs $opponent $idx))
+              ($val (minimax $newBs True $alpha $beta $player $opponent))
+              ($newBest (min $bestVal $val))
+              ($newBeta (min $beta $newBest)))
          
-         (if (<= $new-beta $alpha)
-             $new-best ;; Prune
-             (run-min-loop $bs $rest $new-best $alpha $new-beta $player $opponent)))))
+         (if (<= $newBeta $alpha)
+             $newBest ;; Prune
+             (run-min-loop $bs $rest $newBest $alpha $newBeta $player $opponent)))))

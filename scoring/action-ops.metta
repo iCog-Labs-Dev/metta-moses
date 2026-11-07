@@ -9,9 +9,9 @@
 ;; PRIMITIVES receive their parameters in the same slot and name it $params
 ;; -- see scoring/action-eval.metta's contract header.)
 ;; dispatched by the engine's `reduce` (evalActionNode) exactly like the
-;; boolean clauses at fitness.metta:141-167 -- no sentinel needed.
+;; boolean clauses in evalRow (scoring/fitness) -- no sentinel needed.
 ;;
-;; Quote rule (mirrors scoring/boolean-ops.metta:5-8): these clause names
+;; Quote rule (mirrors scoring/boolean-ops): these clause names
 ;; double as data constructors. A hand-written wrapped node (op (children))
 ;; or any matching-arity tuple headed by one of them, placed in an evaluated
 ;; position of a module loaded after this one, compiles as a CALL (wrong

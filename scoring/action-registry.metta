@@ -1,7 +1,6 @@
 ;; Action-operator registry. Holds exactly two things:
-;;   (a) structural operator membership (structuralActionOp atoms) -- the
-;;       pluggable analog of the hard-coded isActionOperator list in
-;;       representation/knob-representation.metta;
+;;   (a) structural operator membership (structuralActionOp atoms), read by
+;;       isActionOperator in representation/knob-representation.metta;
 ;;   (b) cleanup-relevant operator membership (cleanupActionOp atoms) --
 ;;       the flattenable / identity-reducible sequence combinators.
 ;; That is ALL the framework registers about actions. Everything an
@@ -19,8 +18,7 @@
 
 !(bind! &actionRegistry (new-space))
 
-;; ---- Structural action operators (mirrors the legacy list at
-;;      representation/knob-representation.metta:39-43) ----
+;; ---- Structural action operators ----
 !(add-atom &actionRegistry (structuralActionOp and_seq))
 !(add-atom &actionRegistry (structuralActionOp or_seq))
 !(add-atom &actionRegistry (structuralActionOp seq_exec))

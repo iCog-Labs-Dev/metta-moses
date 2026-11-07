@@ -33,22 +33,17 @@
                  (candidateScore $context $tree $score))
        True))
 
-;; Remove every candidate-cache entry supplied by the reset traversal.
-(= (removeCandidateScoreEntries ()) True)
-(= (removeCandidateScoreEntries (cons $entry $rest))
-   (let $_removed (remove-atom &candidateScoreCache $entry)
-     (removeCandidateScoreEntries $rest)))
+;; Remove every atom from a cache space. Collapse the matches first, then
+;; remove: never change the space while match iterates it. (clearSpace in
+;; general-helpers removes inside get-atoms, so it is not used here.)
+(= (emptySpace $space)
+   (let $entries (collapse (match $space $e $e))
+     (map-atom $entries $e (remove-atom $space $e))))
 
-;; Always return a Boolean, including when the cache is already empty, so this
-;; reset can be safely sequenced at the beginning of every shared MOSES run.
-(= (resetCandidateScoreCache)
-   (let $entries
-        (collapse (match &candidateScoreCache $entry $entry))
-     (map-atom $entries $e (remove-atom &candidateScoreCache $e))))
+;; Empty the candidate-score cache. Callers ignore the result.
+(= (resetCandidateScoreCache) (emptySpace &candidateScoreCache))
 
 ;; Empty the subtree cache. A run scores ONE fixed table, and every entry is
 ;; valid only for that table -- call this before scoring against a DIFFERENT
 ;; table in the same process (e.g. a test file exercising two tables).
-(= (resetSubtreeCache)
-   (let $entries (collapse (match &subtreeCache $e $e))
-     (map-atom $entries $e (remove-atom &subtreeCache $e))))
+(= (resetSubtreeCache) (emptySpace &subtreeCache))

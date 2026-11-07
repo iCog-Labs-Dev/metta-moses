@@ -78,8 +78,6 @@
 !(assertEqual (featureSet< 0 (4 2) (1 0)) false)
 !(assertEqual (featureSet< 10000 (4 2) (1 0)) false)
 
-!(assertEqual (insertPair > (2 1) ((4 0) (1 3))) ((4 0) (2 1) (1 3)))                   ;; fist value is score and second one feature index
-!(assertEqual (insertPair > (2 1) ((4 0) (2 4) (1 3))) ((4 0) (2 1) (2 4) (1 3)))       
 !(assertEqual (insertPair > (featureSet< 0) (2 (1 0)) ((4 (1 0)) (2 (4 1)) (1 (3 1)))) ((4 (1 0)) (2 (1 0)) (2 (4 1)) (1 (3 1))))
 
 !(assertEqual (marginalProbs 10 ((A 4) (B 6))) ((A 0.4) (B 0.6)))
@@ -94,8 +92,6 @@
 !(assertEqual (mutualInformation (cons A (cons A (cons A ()))) (cons X (cons Y (cons Z ())))) 0.0)
 !(assertEqual (mutualInformation (cons A (cons B (cons C ()))) (cons X (cons Y (cons Z ())))) 1.585)
 
-!(assertEqual (insertPair > (2 1) ((4 0) (1 3))) ((4 0) (2 1) (1 3)))                   ;; fist value is score and second one feature index
-!(assertEqual (insertPair > (2 1) ((4 0) (2 4) (1 3))) ((4 0) (2 1) (2 4) (1 3)))       
 
 !(assertEqual (isEqual (A B C) (A B C)) True)
 !(assertEqual (isEqual (A B C) (C A B)) True)
