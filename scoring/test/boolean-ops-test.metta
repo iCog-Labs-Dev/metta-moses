@@ -61,33 +61,34 @@
 ;; ---- rewriteTree: Tree -> column term (was preOrderExp / childrenExp) ----
 ;; A leaf label becomes its column reference; a nullary AND/OR becomes its
 ;; identity constant (mempty), which evalSubtree broadcasts over the rows.
-;; Expected terms are quoted: col/mapOp/zipOp are live heads here.
+;; Expected terms are quoted: col/zipWithN are live heads here.
 !(let $exp (quote (col A)) (assertEqual (rewriteTree (mkTree (mkNode A) ())) $exp))
 !(assertEqual (rewriteTree (mkTree (mkNode AND) ())) True)
 !(assertEqual (rewriteTree (mkTree (mkNode OR)  ())) False)
-!(let* (($cand (quote (AND A B))) ($exp (quote (zipOp AND (col A) (col B)))))
+!(let* (($cand (quote (AND A B))) ($exp (quote (zipWithN AND ((col A) (col B))))))
    (assertEqual (rewriteTree (buildTree $cand)) $exp))
-!(let* (($cand (quote (NOT A))) ($exp (quote (mapOp NOT (col A)))))
+!(let* (($cand (quote (NOT A))) ($exp (quote (zipWithN NOT ((col A))))))
    (assertEqual (rewriteTree (buildTree $cand)) $exp))
 !(let* (($cand (quote (OR (AND A B) C)))
-        ($exp (quote (zipOp OR (zipOp AND (col A) (col B)) (col C)))))
+        ($exp (quote (zipWithN OR ((zipWithN AND ((col A) (col B))) (col C))))))
    (assertEqual (rewriteTree (buildTree $cand)) $exp))
 ;; Child mapping (was childrenExp): the operator clause maps rewriteTree over
-;; the child Trees in order and drops a null knob, so the SURVIVING count (2)
-;; selects the binary zipOp form. Raw ADT: buildTree makes no knobs.
+;; the child Trees in order and drops a null knob, so only the 2 SURVIVING
+;; children go into the zipWithN term. Raw ADT: buildTree makes no knobs.
 !(let* (($children (cons (mkTree (mkNode A) ())
                          (cons (mkKnob (mkNullVex (cons (mkTree (mkNode C) ()) ())) lsk 0)
                                (cons (mkTree (mkNode B) ()) ()))))
-        ($exp (quote (zipOp AND (col A) (col B)))))
+        ($exp (quote (zipWithN AND ((col A) (col B))))))
    (assertEqual (rewriteTree (mkTree (mkNode AND) $children)) $exp))
 
-;; ---- Row application: zipOp/mapOp/zipWithN call the WRAPPED clause per row ----
-!(assertEqual (zipOp AND (True True False) (True False False)) (True False False))
-!(assertEqual (zipOp OR (False False True) (False True True))  (False True True))
-!(assertEqual (mapOp NOT (True False)) (False True))
+;; ---- Row application: zipWithN calls the WRAPPED clause once per row ----
+!(assertEqual (zipWithN AND ((True True False) (True False False))) (True False False))
+!(assertEqual (zipWithN OR ((False False True) (False True True)))  (False True True))
+;; One column gives the rows ((True) (False)), the (NOT (a)) shape.
+!(assertEqual (zipWithN NOT ((True False))) (False True))
 ;; One wrapped clause per op, so each row gives ONE solution.
-!(assertEqual (collapse (mapOp NOT (True False))) ((False True)))
-;; zipWithN applies the wrapped clause to one row tuple.
+!(assertEqual (collapse (zipWithN NOT ((True False)))) ((False True)))
+;; Three columns: one row tuple of three values.
 !(assertEqual (zipWithN AND ((True False) (True True) (True True))) (True False))
 
 ;; transposeCols: list of equal-length columns -> per-row value tuples.

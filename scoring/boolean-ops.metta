@@ -8,7 +8,7 @@
 ;; this one compiles as a CALL -- quote such data sites.
 
 ;; Wrapped form: one arity-1 clause each = n-ary; NOT takes the same wrapped
-;; argument list. zipOp, mapOp and zipWithN (scoring/fitness) call these
+;; argument list. zipWithN (scoring/fitness) calls these
 ;; clauses with one row tuple, so an op needs only this one clause.
 (= (AND $args) (all $args))
 (= (OR  $args) (any $args))

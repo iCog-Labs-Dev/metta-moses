@@ -43,11 +43,11 @@
 ;; ---------------------------------------------------------------------------
 ;; Columnar scoring engine: compile the candidate once, then one memoized walk.
 ;; rewriteTree compiles a candidate Tree into a column term, for example
-;;   (AND x (OR y z)) -> (zipOp AND (col x) (zipOp OR (col y) (col z)))
+;;   (AND x (OR y z)) -> (zipWithN AND ((col x) (zipWithN OR ((col y) (col z)))))
 ;; evalSubtree walks that term. lib_memo caches each sub-term, so a sub-formula
-;; that many candidates share computes its column one time. zipOp, mapOp and
-;; zipWithN apply the op to each row through its WRAPPED clause, (AND (a b)) or
-;; (NOT (a)) in scoring/boolean-ops, so each op has one clause. A head with no
+;; that many candidates share computes its column one time. zipWithN applies
+;; the op to each row through its WRAPPED clause, (AND (a b)) or (NOT (a)) in
+;; scoring/boolean-ops, so each op has one clause. A head with no
 ;; clause stays unreduced in its rows, AND/OR treat it as not False, and the
 ;; candidate scores as the old per-row engine scored it.
 ;;
@@ -55,7 +55,7 @@
 ;; of a memo key. An entry file that scores must bind &params and import
 ;; parameters/registry before this file. If not, evalTree gives zero solutions.
 ;;
-;; HAZARD: col, mapOp, zipOp, zipWithN and the op symbols are live heads.
+;; HAZARD: col, zipWithN and the op symbols are live heads.
 ;; Every term that this file emits as data is quoted.
 ;; ---------------------------------------------------------------------------
 
@@ -99,13 +99,13 @@
             (index-atom $columns $idx))))
 
 ;; --- The column vocabulary of a compiled term -------------------------------
-;; col reads the published table. zipOp (binary), mapOp (unary) and zipWithN
-;; (n-ary) give the op one row tuple per row, the argument shape of its wrapped
-;; clause. The op is a variable head, so a clause added later is found too.
+;; col reads the published table. zipWithN gives the op one row tuple per row,
+;; the argument shape of its wrapped clause. This is the same for 1, 2 or n
+;; columns: one column gives the rows ((x1) (x2) ...). The op is a variable
+;; head, so a clause added later is found too.
 (= (col $label) (varColumn (param scoringTable) $label))
-(= (zipOp $op $xs $ys) (map-atom (zip $xs $ys) $row ($op $row)))
-(= (mapOp $op $xs) (map-atom $xs $x ($op ($x))))
-(= (zipWithN $op $columns) (map-atom (transposeCols $columns) $row ($op $row)))
+(= (fmap $f $xs) (map-atom $xs $x ($f $x)))
+(= (zipWithN $op $columns) (fmap $op (transposeCols $columns)))
 
 ;; Non-empty equal-length columns -> per-row value tuples (ground data only).
 (= (transposeCols $cols)
@@ -116,13 +116,13 @@
 
 ;; --- Monoids ----------------------------------------------------------------
 ;; mempty: the identity of a monoid op, or () for any other op. A monoid node
-;; folds into nested binary zipOp terms. Each level is a memo key, and
+;; folds into nested binary zipWithN terms. Each level is a memo key, and
 ;; candidates share these keys. To add a monoid, add one case line here.
 (= (mempty $op) (case $op ((AND True) (OR False) ($_ ()))))
 (= (isMonoid $op) (!= (mempty $op) ()))
 
-;; One binary zipOp term. Quoted: zipOp is a live head.
-(= (zipNode $op $left $right) (quote (zipOp $op $left $right)))
+;; One binary zipWithN term. Quoted: zipWithN is a live head.
+(= (zipNode $op $left $right) (quote (zipWithN $op ($left $right))))
 
 ;; --- rewriteTree: candidate Tree -> column term ------------------------------
 ;; A compiler, not an evaluator: it never reads the table.
@@ -144,8 +144,8 @@
 (= (rewriteTree (mkKnob (mkTree $node $children) $lsk $i))
    (rewriteTree (mkTree $node $children)))
 
-;; Operator node. The count of children that SURVIVE the null-knob filter
-;; selects the form, so 0 is possible. A non-monoid op with 0 children gives
+;; Operator node. Only the children that SURVIVE the null-knob filter count,
+;; so 0 is possible. A non-monoid op with 0 children gives
 ;; zero solutions, as the old engine did.
 (= (rewriteTree (mkTree (mkNode $r) (cons $x $xs)))
    (let $cols (filter-atom (map-atom (cons $x $xs) $c (rewriteTree $c)) $y (!= $y ()))
@@ -153,11 +153,9 @@
          (if (== $cols ())
              (mempty $r)
              (List.foldr1 (zipNode $r) $cols))
-         (case (size-atom $cols)
-           ((0 (empty))
-            (1 (let ($c1) $cols (quote (mapOp $r $c1))))
-            (2 (let ($left $right) $cols (zipNode $r $left $right)))
-            ($_ (quote (zipWithN $r $cols))))))))
+         (if (== $cols ())
+             (empty)
+             (quote (zipWithN $r $cols))))))
 
 ;; Memoized compile of the root only. The compile does not read the table.
 (= (rewriteTreeCached $tree) (rewriteTree $tree))
@@ -171,8 +169,8 @@
        (evalSubtree $term)))
 
 ;; A Bool constant becomes a full column. An Expression evaluates its children
-;; first (through evalTerm), then reduces the rebuilt node: col, mapOp, zipOp
-;; or zipWithN fires. Any other atom passes.
+;; first (through evalTerm), then reduces the rebuilt node: col or zipWithN
+;; fires. Any other atom passes.
 (= (evalSubtree $term)
    (if (or (== $term True) (== $term False))
        (List.repeat (param scoringRowCount) $term)

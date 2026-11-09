@@ -95,13 +95,13 @@
 ;; --- memoization: after evalTree scores AND[A B], the memo holds its column
 ;; under the compiled sub-term. A later evalSubtree of that term is ONE memo hit
 ;; and no miss: a hit returns the stored column and does not walk the children.
-;; The quoted key MUST be let-bound: col/zipOp are live heads here. ---
+;; The quoted key MUST be let-bound: col/zipWithN are live heads here. ---
 !(assertEqual
    (let* (($_ (evalTree (buildTree (quote (AND A B)))
                         (mkITable ((True True)
                                    (False True)
                                    (False True)) (A B O))))
-          ($k (quote (zipOp AND (col A) (col B))))
+          ($k (quote (zipWithN AND ((col A) (col B)))))
           ($_2 (clear-memoize-stats))
           ($v (evalSubtree $k)))
         ($v (get-memoize-stats)))
@@ -129,9 +129,9 @@
 ;; --- compile shape, single solutions, memo reset on a table change ---
 ;; An n-ary monoid folds into nested binary terms; TRUE compiles to its Bool.
 !(let* (($cand (quote (AND A B C D)))
-        ($exp (quote (zipOp AND (col A) (zipOp AND (col B) (zipOp AND (col C) (col D)))))))
+        ($exp (quote (zipWithN AND ((col A) (zipWithN AND ((col B) (zipWithN AND ((col C) (col D))))))))))
    (assertEqual (rewriteTree (buildTree $cand)) $exp))
-!(let* (($cand (quote (OR A TRUE))) ($exp (quote (zipOp OR (col A) True))))
+!(let* (($cand (quote (OR A TRUE))) ($exp (quote (zipWithN OR ((col A) True)))))
    (assertEqual (rewriteTree (buildTree $cand)) $exp))
 ;; A constant broadcasts over the rows: OR[A TRUE] is True on every row.
 !(assertEqual

@@ -17,10 +17,10 @@
 ;; one protocol. $world is opaque to the engine and to all structural ops --
 ;; only domain clauses inspect it. Dispatch is a `reduce` on a cons-built
 ;; ($op $children $world) term, as the boolean engine reduces each node
-;; (zipOp/mapOp in scoring/fitness call the AND/OR/NOT clauses) -- clauses loaded at ANY
+;; (zipWithN in scoring/fitness calls the AND/OR/NOT clauses) -- clauses loaded at ANY
 ;; later time are found, no sentinel needed. Three failure paths, all mapped
 ;; to the defined-worst (mkARes False $world), the analog of boolean's
-;; unreduced cell in zipOp/mapOp (scoring/fitness):
+;; unreduced cell in zipWithN (scoring/fitness):
 ;;   * unknown operator -> reduce returns the term UNREDUCED;
 ;;   * known operator whose head destructure rejects the children (wrong
 ;;     child-count for a fixed-arity op) -> silent failure;
