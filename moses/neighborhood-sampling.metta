@@ -40,12 +40,14 @@
 (= (varyNKnobsBySpecLists $specLists $instExp $dist)
    (varyNKnobsBySpecLists $specLists $instExp $dist 0))
 (= (varyNKnobsBySpecLists $specLists $instExp $dist $startI)
-   (case ($dist (>= $startI (length $instExp)))
+   ;; Hazard: the constant head Args keeps the scrutinee data. With ($dist ...),
+   ;; PeTTaV2 types $dist as a function and the pattern 0 throws a type mismatch.
+   (case (Args $dist (>= $startI (length $instExp)))
      (
-       ((0 $_) ($instExp))
-       ((1 $_) (varyNKnobsBySpecListsDist1 $specLists $instExp $startI))
-       (($dist True) ())
-       (($dist False)
+       ((Args 0 $_) ($instExp))
+       ((Args 1 $_) (varyNKnobsBySpecListsDist1 $specLists $instExp $startI))
+       ((Args $dist True) ())
+       ((Args $dist False)
         (let*
           (
             ($specs (List.getByIdx $specLists $startI))
@@ -219,7 +221,7 @@
 ;; Computes the hamming distance between two instances.
 ;; Example: inst1: (0 0 0 1), inst2: (0 0 0 0) => distance: 1
 ;;          inst1: (0 1 0 1), inst2: (0 0 0 0) => distance: 2
-(: distance (-> Expression Expression Number) )
+(: distance (-> Atom Atom Number))
 (= (distance $inst1 $inst2)
    (if (~= (size-atom $inst1) (size-atom $inst2))
        (Error (Inst: $inst1 and Inst: $inst2) (Instances are not equal length))

@@ -109,14 +109,20 @@
 (= (cScoreExpr< (($scor $cpxy $complexityPenalty $uniformityPenalty $penalizedScore)) 
                     (($scor2 $cpxy2 $complexityPenalty2 $uniformityPenalty2 $penalizedScore2)))
     
-        (if (isnan-math $penalizedScore)
-            (not (isnan-math $penalizedScore2))
-            (or (< $penalizedScore $penalizedScore2) (and (== $penalizedScore $penalizedScore2) (> $cpxy $cpxy2)))))
+        ;; NaN is lower than every number, as in classic. Hazard: test NaN
+        ;; before `<`. On the new runtime `<` throws on the symbol nan.
+        (if (isnan $penalizedScore)
+            (not (isnan $penalizedScore2))
+            (if (isnan $penalizedScore2)
+                False
+                (or (< $penalizedScore $penalizedScore2) (and (== $penalizedScore $penalizedScore2) (> $cpxy $cpxy2))))))
             
 ;; (: cScore>= (-> Cscore Cscore Bool)) 
 (= (cScore>= $cs1 $cs2)
     (let ($pl $pr $cl $cr) ((getPenScore $cs1) (getPenScore $cs2) (getComp $cs1) (getComp $cs2))
-        (if (isnan-math $pl)
+        ;; Hazard: test NaN before `>`. On the new runtime `>` throws on the
+        ;; symbol nan. Both isnan calls are safe, so `or` is correct here.
+        (if (or (isnan $pl) (isnan $pr))
             False
             (or (> $pl $pr) (and (== $pl $pr) (< $cl $cr))))))
 

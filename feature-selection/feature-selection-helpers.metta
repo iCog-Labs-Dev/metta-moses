@@ -227,7 +227,7 @@
           (* $miScore $confidence)))
 
 (= (cachedMutualInformation $itable $featureIndices)
-    (lruCache (param defaultCacheSize) ((calculateMutualInformation) ($itable $featureIndices))))
+    (lruCache (param defaultCacheSize) calculateMutualInformation ($itable $featureIndices)))
 
 ;; Build row-wise tuples from selected columns in a column-major table.
 ;; (: zipColumn (-> Expression (List (List $a)) (List $a)))

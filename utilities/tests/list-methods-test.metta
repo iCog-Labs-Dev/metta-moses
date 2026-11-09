@@ -32,6 +32,8 @@
 !(assertEqual (List.getByIdx (cons 1 (cons 2 (cons 3 ()))) 0) 1)
 !(assertEqual (List.getByIdx (cons 10 (cons 20 (cons 30 ()))) 1) 20)
 !(assertEqual (List.getByIdx (cons 100 (cons 200 (cons 300 ()))) 0) 100)
+;; An empty list gives exactly one Error.
+!(assertEqual (collapse (List.getByIdx () 0)) ((Error () (Index out of range))))
 !(assertEqual (List.getByIdx (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 (cons 6 (cons 7 (cons 8 (cons 9 (cons 10 (cons 11 (cons 12 (cons 13 (cons 14 (cons 15 (cons 16 (cons 17 (cons 18 (cons 19 (cons 20 ())))))))))))))))))))) 0) 1)
 
 ;; Test cases for List.insert

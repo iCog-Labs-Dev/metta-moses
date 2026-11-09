@@ -17,21 +17,21 @@
 
 !(import! &self ../../utilities/tree)
 
-!(import! &self scoring/action-registry)
-!(import! &self representation/knob-representation)
-!(import! &self representation/lsk)
-!(import! &self feature-selection/feature-selection-helpers)
-!(import! &self representation/candidate)
-!(import! &self representation/representation)
+!(import! &self ../../scoring/action-registry)
+!(import! &self ../../representation/knob-representation)
+!(import! &self ../../representation/lsk)
+!(import! &self ../../feature-selection/feature-selection-helpers)
+!(import! &self ../../representation/candidate)
+!(import! &self ../../representation/representation)
 
-!(import! &self representation/instance)
+!(import! &self ../../representation/instance)
 
-!(import! &self scoring/fitness)
-!(import! &self scoring/boolean-ops)
-!(import! &self scoring/bscore)
-!(import! &self scoring/cscore)
-!(import! &self scoring/precision-bscore)
-!(import! &self scoring/complexity-based-scorer)
+!(import! &self ../../scoring/fitness)
+!(import! &self ../../scoring/boolean-ops)
+!(import! &self ../../scoring/bscore)
+!(import! &self ../../scoring/cscore)
+!(import! &self ../../scoring/precision-bscore)
+!(import! &self ../../scoring/complexity-based-scorer)
 
 !(import! &self ../../moses/neighborhood-sampling)
 

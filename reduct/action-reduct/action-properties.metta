@@ -34,40 +34,44 @@
       (turn_right turn_left)
       ($else $action))))
 
+;; Hazard: the property tables below key on (Args $action $index). The constant
+;; head Args keeps the key data. A key ($action $index) compiles as a call of
+;; $action on PeTTaV2, and an action name with a definition then fails in silence.
+
 ;; Checks if sequential actions can sum their argument. Real-world example:
 ;; two sequential moves "step(1)" and "step(2)" can sum to "step(3)".
 (= (isAdditive $action $index)
    (once
-     (is-member ($action $index)
-                ((dummy_additive_action 0)))))
+     (is-member (Args $action $index)
+                ((Args dummy_additive_action 0)))))
 
 ;; Checks if an argument of 0 makes the action a no-op. Real-world
 ;; example: "step(0)" immediately succeeds without moving the agent.
 (= (isZeroNeutral $action $index)
    (once
-     (is-member ($action $index)
-                ((dummy_zero_neutral_action 0)))))
+     (is-member (Args $action $index)
+                ((Args dummy_zero_neutral_action 0)))))
 
 ;; Checks if an argument is periodic/modular. Real-world example:
 ;; rotation angles that wrap around every 360 degrees or 2pi radians.
 (= (isModulo $action $index)
    (once
-     (is-member ($action $index)
-                ((dummy_modular_action 0)
-                 (dummy_modular_action 1)))))
+     (is-member (Args $action $index)
+                ((Args dummy_modular_action 0)
+                 (Args dummy_modular_action 1)))))
 
 ;; Returns the lower bound of a periodic argument (e.g. -3.14 for radians
 ;; or -180 for degrees).
 (= (moduloMin $action $index)
-   (case ($action $index)
-     (((dummy_modular_action 0) -3.14)
-      ((dummy_modular_action 1) -30)
+   (case (Args $action $index)
+     (((Args dummy_modular_action 0) -3.14)
+      ((Args dummy_modular_action 1) -30)
       ($else 0))))
 
 ;; Returns the upper bound of a periodic argument (e.g. 3.14 for radians
 ;; or 180 for degrees).
 (= (moduloMax $action $index)
-   (case ($action $index)
-     (((dummy_modular_action 0) 3.14)
-      ((dummy_modular_action 1) 30)
+   (case (Args $action $index)
+     (((Args dummy_modular_action 0) 3.14)
+      ((Args dummy_modular_action 1) 30)
       ($else 0))))

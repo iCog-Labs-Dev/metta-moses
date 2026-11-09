@@ -4,11 +4,11 @@ For every agent and every person in this repo. This file is complete for this re
 
 ## What this is
 
-A port of classic OpenCog MOSES (C++) to MeTTa. It runs on PeTTa (MeTTa to Prolog, on SWI-Prolog). Research code: correct and aligned with classic comes first, readable code is equal to speed. Entry point `moses.metta`. Configuration only in `parameters/`. Contributors push to forks and open PRs to `iCog-Labs-Dev/metta-moses`. The runtime that counts is **PeTTaV1** (`github.com/Yagth/PeTTa`, `main`; ask the lead for the commit). CI uses `indominyus/petta:latest`.
+A port of classic OpenCog MOSES (C++) to MeTTa. It runs on PeTTa (MeTTa to Prolog, on SWI-Prolog). Research code: correct and aligned with classic comes first, readable code is equal to speed. Entry point `moses.metta`. Configuration only in `parameters/`. Contributors push to forks and open PRs to `iCog-Labs-Dev/metta-moses`. The runtime that counts is **PeTTaV2** (`github.com/Yagth/PeTTa`, branch `sync/upstream-ee5cacb`, commit `5cc0a15`). CI checks out that commit.
 
 ## Commands
 
-Run from the repo root. Set `export PETTA=/path/to/PeTTaV1/run.sh` once. Every MeTTa run, also a one-line probe, has a memory cap and a time limit.
+Run from the repo root. Set `export PETTA=/path/to/PeTTaV2/run.sh` once. Every MeTTa run, also a one-line probe, has a memory cap and a time limit.
 
 | Task | Command |
 |---|---|
@@ -32,7 +32,7 @@ Demo problems: `parity3`, `parity4`, `disjunction3`, `majority3`, `majority5`, `
 1. **Never remove a test or change what it means without the lead's approval.** A seed or result-order change needs a reason in the PR. [Edited expectations hid a regression in PR #495.]
 2. **Bound every MeTTa run** with `ulimit -v` and `timeout`. [An unbounded run can kill the session and other agents' work.]
 3. **Classic MOSES is the oracle.** Each expected value, constant and default comes from classic or from a measurement. Say the source.
-4. **PeTTaV1 is the runtime that counts, and CI must stay green.** Do not change the runtime. Solve the problem in MeTTa.
+4. **PeTTaV2 is the runtime that counts, and CI must stay green.** Do not change the runtime. Solve the problem in MeTTa.
 5. **Keep the change minimal.** Replace code. Do not add a second path next to it.
 6. **No outward action without approval for that item:** push (also to your own branch), PR, comment, review, issue, merge.
 7. **Commit as the human author only.** No AI co-author or "Generated with" line. No home paths, local tools, scratch files or debug `println!` in commits.
