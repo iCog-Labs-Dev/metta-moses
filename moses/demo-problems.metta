@@ -201,6 +201,8 @@
          )
      True))
 
+(= (problem-context) (problemContext))
+
 (= (problemContext)
    (case (param problem)
      ((ant
@@ -295,7 +297,6 @@
         ;; the recursion, so we seed it once here before $problemContext
         ;; may invoke any scorer that depends on it.
         ($_  (set-param genCount $maxGen))
-
         (($context $metaPop $bestPossibleScore) ($problemContext))
         ($_ (println! (BestPossibleScore: $bestPossibleScore)))
 

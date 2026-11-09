@@ -25,7 +25,7 @@
        (findCulledCandidates $rest $surviving)
        (cons $cand (findCulledCandidates $rest $surviving))))
 
-; (: resizeMetapop (-> (OS (Exemplar $a)) (OS (Exemplar $a))))
+;; (: resizeMetapop (-> (OS (Exemplar $a)) (OS (Exemplar $a))))
 (= (resizeMetapop (cons $exemplar $rest))
     (let ($size $capSize) ((OS.length (cons $exemplar $rest)) (int (capSize (param capCoef) (param genCount)))) ;; bind two variables with two function calls
         (if (<= $size (param minPoolSize))
@@ -45,9 +45,13 @@
                                $reducedMetapop
                                (cullAtRandom $reducedMetapop (param nToKeep) (- $popSize $capSize))))
                ;; Identify culled candidates and evict their pairwise distance entries
-               ;; from &dstCache to prevent unbounded cache growth across generations.
-               ($culled (findCulledCandidates (cons $exemplar $rest) $surviving))
-               ($_ (eraseCandidateSeqFromDstCache $culled))
+               ;; from &dstCache when caching is enabled to prevent unbounded cache growth.
+               ($culled (if (== (param diversityCache) True)
+                            (findCulledCandidates (cons $exemplar $rest) $surviving)
+                            ()))
+               ($_ (if (== (param diversityCache) True)
+                       (eraseCandidateSeqFromDstCache $culled)
+                       ()))
               )
               $surviving
            ))))
