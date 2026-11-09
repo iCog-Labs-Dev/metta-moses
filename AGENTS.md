@@ -14,7 +14,8 @@ Run from the repo root. Set `export PETTA=/path/to/PeTTaV2/run.sh` once. Every M
 |---|---|
 | One test file | `( ulimit -v 8000000; timeout 600 sh "$PETTA" deme/tests/score-deme-test.metta -s )` |
 | All tests (as CI) | `( ulimit -v 8000000; PATH="$(dirname "$PETTA"):$PATH" timeout 1800 python3 scripts/run-tests.py )` |
-| Asserts in a file | `grep -v '^[[:space:]]*;' <file> \| grep -c '!(assertEqual'` |
+| Checks in a file | `sed 's/;.*$//' <file> \| grep -oP '\((assertEqual(ToResult)?\|assert\|test)(?=[\s()]\|$)' \| wc -l` |
+| Results in an output | `sed -E 's/\x1b\[[0-9;]*m//g' <out> \| grep -cP '\. ✅\s*$'` |
 | Hyperparameters | `( ulimit -v 8000000; timeout 120 sh "$PETTA" moses.metta -s --help )` |
 | Demo problem | `( ulimit -v 12000000; timeout 1200 sh "$PETTA" moses.metta -s --problem=mux6 --nEval=1000 --maxGen=10 )` |
 
@@ -37,7 +38,7 @@ Demo problems: `parity3`, `parity4`, `disjunction3`, `majority3`, `majority5`, `
 6. **No outward action without approval for that item:** push (also to your own branch), PR, comment, review, issue, merge.
 7. **Commit as the human author only.** No AI co-author or "Generated with" line. No home paths, local tools, scratch files or debug `println!` in commits.
 8. **Match the mode.** A question gets an answer. "Find the cause" gets the cause and the evidence, not a fix. Plan first for large or risky work.
-9. **Done means evidence.** Run each touched test file and compare the ✅ count with the assert count. Then run the full suite in a standalone `metta-moses` worktree. Report the commands and the output.
+9. **Done means evidence.** Run each touched test file and compare the result count with the check count. They must be equal. Then run the full suite in a standalone `metta-moses` worktree. Report the commands and the output.
 10. **Review your own work before a PR or "done".** Use `docs/agents/reviewing-prs.md`, section 7. The agent that talks to the human runs it, not a worker. Give all the findings unchanged to the human who will create the PR or mark the work done. Skip it only for a typo or a comment change. [A second look catches what the author missed.]
 
 ## Shared work

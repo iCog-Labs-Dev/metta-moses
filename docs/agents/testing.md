@@ -23,7 +23,7 @@ A failing assert halts the file. So the first stale expectation hides all later 
 6. Ask the lead to approve each changed expectation. Do not touch other test cases. Report new failures that you find; do not fix them on your own.
 7. Delete the scratch copies: `find . -name '*__unmask.metta'`.
 
-Find an assertion by its expected text. Do not map the Nth ✅ to the Nth `!(assertEqual`: some asserts print several ✅.
+Find an assertion by its expected text. Do not map the Nth ✅ to the Nth `!(assertEqual` line: a check inside a `!(let ...)` does not start its line.
 
 ## 3. Writing a good test
 
@@ -37,10 +37,11 @@ Find an assertion by its expected text. Do not map the Nth ✅ to the Nth `!(ass
 
 ## 4. `assertEqual`, `test` and quote
 
-- `run-tests.py` counts every line that contains `!(assertEqual` and is not a `;` comment. A file passes when the ✅ count reaches that number and no ❌ shows. `!(test ...)` lines are not counted. Check them by hand.
+- `run-tests.py` counts every call of `assertEqual`, `assertEqualToResult`, `assert` and `test` outside `;` comments, also inside a `!(let ...)`. It counts one result per line that ends in `. ✅`, so a ✅ in `println!` text does not count. A file passes when the two counts are equal, no ❌ shows and the exit code is 0.
+- Fewer results than checks means that checks vanished. More results means that a check gave more than one result. Both fail the file. Wrap a check that must give several results in `collapse`.
 - `test` collects all solutions. It catches zero solutions and duplicate solutions. `assert` calls once and hides both. For a new probe, use `test`.
 - The expected side of `test` is evaluated. If it is data with a defined head (a written program, a list of operator names), it gives zero solutions and the check vanishes without output. `quote` such an expected side. Inert heads (`mkTree`, numbers, type names, plain symbols) need no quote.
-- An `assertEqual` whose left side gives no result prints nothing. It can pass in silence. Count ✅ against assert lines every time.
+- An `assertEqual` whose left side gives no result prints nothing. `run-tests.py` fails the file, but a hand count must also include it. Use the commands in AGENTS.md.
 
 ## 5. Running tests
 
