@@ -53,8 +53,10 @@
 !(import! &self ../../scoring/cscore)
 !(import! &self ../../scoring/action-score)
 !(import! &self ../../scoring/complexity-based-scorer)
+!(import! &self ../../scoring/cacheSpace)
 
 !(import! &self ../../metapopulation/exemplar-type)
+!(import! &self ../../metapopulation/diversity)
 !(import! &self ../../metapopulation/metapopulation)
 !(import! &self ../../optimization/hillclimbing/hill-climbing-helpers)
 
@@ -64,6 +66,7 @@
 !(import! &self ../create-deme)
 !(import! &self ../score-deme)
 !(import! &self ../merge-demes)
+!(import! &self ../../moses/demo-problems)
 
 (= (tree1)
         (mkTree (mkNode AND)
@@ -548,6 +551,10 @@
 ;;       ttable2 is a truth table which doesn't have a 'D' column.
 ;; ! ("Merge Demes tests")
 
+(= (getCandUniPen (mkExemplar $tree $demeId $cscore $bscore)) (getUniPen $cscore))
+(= (getCandPenScore (mkExemplar $tree $demeId $cscore $bscore)) (getPenScore $cscore))
+(= (getCandidateHelper $inst (mkNullVex (cons $child $rest))) (getCandidateHelper $inst $child))
+
 ;; The original test passed: 5 2 0 1 (ttable2) (metaPop) 3 0.004 1000.
 !(set-param nEval 5)
 !(set-param maxCandPerDeme 2)
@@ -674,3 +681,78 @@
 !(set-param genCount 1000)
 !(assertEqual (mergeDemes (&deme1 &deme2) (mkActionCtx 1) ())
                   (cons (mkExemplar (mkTree (mkNode or_seq) (cons (mkTree (mkNode tttCenter) ()) (cons (mkTree (mkNode tttSide) ()) ()))) (mkDemeId "2") (mkCscore 6.0 2 0.571 0.0 5.429) (mkBScore (cons -1.0 ()))) ()))
+
+;; ============================================================
+;; mergeDemes with Diversity: Boolean Context (2 Demes)
+;; Verifies setDiversity calculation over merged metapopulation:
+;; anchor receives 0.0 uniformity penalty; clone receives 0.5.
+;; ============================================================
+!(set-param minPoolSize 2)
+!(set-param complexityTemperature 2)
+!(set-param diversityPressure 0.5)
+
+!(assertEqual
+   (let* (
+          ($merged (mergeDemes (&deme3 &deme4) (ttable1) (metaPop)))
+          ($anchor (OS.getByIdx 0 $merged))
+          ($clone  (OS.getByIdx 1 $merged))
+         )
+     (
+       (OS.length $merged)                        ;; minPoolSize 2 retains both candidates
+       (getCandUniPen $anchor)                    ;; anchor gets zero diversity penalty
+       (getCandUniPen $clone)                     ;; identical bscore clone penalized by pressure (0.5)
+       (isApproxEq (getCandPenScore $clone) -0.8) ;; penalized score discounted by uniformity penalty (-0.3 - 0.5 = -0.8)
+     ))
+   (2 0.0 0.5 True))
+
+;; ============================================================
+;; mergeDemes with Diversity: Action Context
+;; Verifies diversity penalty on action trees under mkActionCtx.
+;; Anchor receives 0.0 penalty; clone receives 0.5 penalty.
+;; ============================================================
+!(set-param complexityTemperature 1)
+
+!(assertEqual
+   (let* (
+          ($merged (mergeDemes (&deme1 &deme2) (mkActionCtx 1) ()))
+          ($anchor (OS.getByIdx 0 $merged))
+          ($clone  (OS.getByIdx 1 $merged))
+         )
+     (
+       (OS.length $merged)                        ;; minPoolSize 2 keeps both action trees in pool
+       (getCandUniPen $anchor)                    ;; anchor gets zero diversity penalty
+       (getCandUniPen $clone)                     ;; behavioral clone receives diversity penalty (0.5)
+       (isApproxEq (getCandPenScore $clone) 3.929) ;; penalized score discounted (4.429 - 0.5 = 3.929)
+     ))
+   (2 0.0 0.5 True))
+
+;; ============================================================
+;; mergeDemes with Diversity: Autoscale via Problem Context
+;; Verifies autoscale updates diversityPressure from score range
+;; (parity3: best 0.0, worst -8.0 -> range 8.0, 0.3 * 8.0 = 2.4).
+;; ============================================================
+!(set-param problem parity3)
+!(set-param diversityAutoscale True)
+!(set-param diversityPressure 0.3)
+!(set-param complexityTemperature 10)
+
+;; Trigger problemContext to autoscale diversity pressure against parity3 range
+!(let ($_1 $_2 $_3) (problemContext)
+   (assertEqual (param diversityPressure) 2.4))  ;; rescaled: 0.3 * (0.0 - (-8.0)) = 2.4
+
+!(assertEqual
+   (let* (
+          ($merged (mergeDemes (&deme3 &deme4) (ttable1) (metaPop)))
+          ($anchor (OS.getByIdx 0 $merged))
+          ($promoted (OS.getByIdx 1 $merged))
+          ($demotedClone (OS.getByIdx 2 $merged))
+         )
+     (
+       (OS.length $merged)                               ;; retains candidates within score window
+       (getCandUniPen $anchor)                           ;; anchor receives zero diversity penalty
+       (getCandUniPen $promoted)                         ;; intermediate candidate receives distance-scaled penalty (1.2)
+       (isApproxEq (getCandPenScore $promoted) -2.2)     ;; promoted candidate receives discounted score (-1.0 - 1.2 = -2.2)
+       (getCandUniPen $demotedClone)                     ;; identical bscore clone receives full autoscaled penalty (2.4)
+       (isApproxEq (getCandPenScore $demotedClone) -2.7) ;; clone demoted with discounted score (-0.3 - 2.4 = -2.7)
+     ))
+   (3 0.0 1.2 True 2.4 True))

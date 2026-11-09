@@ -17,6 +17,14 @@
 ;; (: usefulScoreRange (-> Number Number))
 (= (usefulScoreRange $compTemp) (/ (* $compTemp 30.0) 100.0))
 
+;; Identifies culled candidates by filtering out surviving individuals
+;; from the pre-resize metapopulation.
+(= (findCulledCandidates () $surviving) ())
+(= (findCulledCandidates (cons $cand $rest) $surviving)
+   (if (once (is-member $cand $surviving))
+       (findCulledCandidates $rest $surviving)
+       (cons $cand (findCulledCandidates $rest $surviving))))
+
 ;; (: resizeMetapop (-> (OS (Exemplar $a)) (OS (Exemplar $a))))
 (= (resizeMetapop (cons $exemplar $rest))
     (let ($size $capSize) ((OS.length (cons $exemplar $rest)) (int (capSize (param capCoef) (param genCount)))) ;; bind two variables with two function calls
@@ -33,10 +41,19 @@
 
                ($reducedMetapop (getBetterCandidates (cons $exemplar $rest) $worstScore))
                ($popSize (OS.length $reducedMetapop))
+               ($surviving (if (<= $popSize $capSize)
+                               $reducedMetapop
+                               (cullAtRandom $reducedMetapop (param nToKeep) (- $popSize $capSize))))
+               ;; Identify culled candidates and evict their pairwise distance entries
+               ;; from &dstCache when caching is enabled to prevent unbounded cache growth.
+               ($culled (if (== (param diversityCache) True)
+                            (findCulledCandidates (cons $exemplar $rest) $surviving)
+                            ()))
+               ($_ (if (== (param diversityCache) True)
+                       (eraseCandidateSeqFromDstCache $culled)
+                       ()))
               )
-              (if (<= $popSize $capSize)
-                  $reducedMetapop
-                  (cullAtRandom $reducedMetapop (param nToKeep) (- $popSize $capSize)))
+              $surviving
            ))))
 ;;TODO: for large minPoolSize if the returned resizedMetapop size is less than minPoolSize we may still need to add random candidates to reach minPoolSize
 

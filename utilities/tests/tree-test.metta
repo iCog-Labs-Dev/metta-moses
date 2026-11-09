@@ -470,6 +470,19 @@
 !(assertEqual (treeComplexity (mkKnob (buildTree (AND (NOT A) (OR A B))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())) 0)) 3)
 !(assertEqual (treeComplexity (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1)) 0)
 
+;; Test case for tree size
+!(println! ("testing: treeSize"))
+;; (AND (NOT A) (OR A B)): AND, NOT, A, OR, A, B -> 6 nodes
+!(assertEqual (treeSize (buildTree (AND (NOT A) (OR A B)))) 6)
+;; Null vertex has 0 size
+!(assertEqual (treeSize (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) ())) ()))) 0)
+;; (OR (AND A)): OR, AND, A -> 3 nodes
+!(assertEqual (treeSize (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) ())) ()))) 3)
+;; Knob-embedded tree unwraps to inner tree size (6)
+!(assertEqual (treeSize (mkKnob (buildTree (AND (NOT A) (OR A B))) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 1) (mkDiscSpec 1) ())) 0)) 6)
+;; Knob-embedded null vertex has 0 size
+!(assertEqual (treeSize (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1)) 0)
+
 ;; Test case for alphabetSize
 !(bind! ttable1 (new-state (mkITable (cons (cons True (cons True ()))
                                      (cons (cons False (cons True ()))
