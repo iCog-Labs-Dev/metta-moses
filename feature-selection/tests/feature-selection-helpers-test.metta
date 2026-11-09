@@ -25,11 +25,12 @@
 !(assertEqual (pairMax (1 x) (9 y)) (9 y))
 
 ;; Test
-!(test (takeN 0 (True False True)) ())
+!(assertEqual (takeN 0 (True False True)) ())
 !(assertEqual (takeN 2 (True False True)) (True False))
 !(assertEqual (takeN 5 (True False)) (True False))
 !(assertEqual (takeN 3 ()) ())
-; ;; Test
+
+;; Test
 !(assertEqual (List.uniqueValuesCount () ()) ()) ;; ?? is this really what I expect? if the list is empty
 !(assertEqual (List.uniqueValuesCount (cons True (cons False (cons True ()))) ()) ((True 2) (False 1)))
 !(assertEqual (List.uniqueValuesCount (cons False (cons False (cons True (cons True (cons True ()))))) ()) ((False 2) (True 3)))
@@ -38,27 +39,37 @@
 ;; Test
 (= (itable) 
     (cons (cons True (cons False (cons True ()))) 
-    (cons (cons False (cons True (cons False ()))) ())))
+    (cons (cons False (cons True (cons False ()))) 
+    (cons (cons False (cons False (cons True ()))) ()))))
 
 !(assertEqual (Table.getColumn 0 ()) ())
-!(assertEqual (Table.getColumn 0 (itable)) (cons True (cons False ())))
-!(assertEqual (Table.getColumn 1 (itable)) (cons False (cons True ())))
-!(assertEqual (Table.getColumn 2 (itable)) (cons True (cons False ())))
+!(assertEqual (Table.getColumn 0 (itable)) (cons True (cons False (cons True ()))))
+!(assertEqual (Table.getColumn 1 (itable)) (cons False (cons True (cons False ()))))
+!(assertEqual (Table.getColumn 2 (itable)) (cons False (cons False (cons True ()))))
 
 ;; Testcase for Table.getOutputColumn
 !(assertEqual
-    (Table.getOutputColumn (mkITable (cons (cons True (cons False (cons False ()))) 
-                                      (cons (cons False (cons True (cons False ()))) 
-                                      (cons (cons True (cons True (cons False ()))) 
+    (Table.getOutputColumn (mkITable (cons (cons True (cons False (cons True ()))) 
+                                      (cons (cons False (cons True (cons True ()))) 
+                                      (cons (cons False (cons False (cons False ()))) 
                                       ())))
                                       (cons A (cons B (cons O ())))))                              
     (cons False (cons False (cons False ()))))
 
 ;; Test
 !(assertEqual (Table.pop 0 ()) ())
-!(assertEqual (Table.pop 0 (itable)) 
-        (cons (cons False (cons True ())) 
-        (cons (cons True (cons False ())) ())))
+!(assertEqual (Table.pop 0 (itable))
+        (cons (cons False (cons True (cons False ())))
+        (cons (cons False (cons False (cons True ()))) ())))
+
+;; Test -- Table.transpose swaps the two axes. The non-square cases are the
+;; regression guard; a Table.getColumn-based transpose is an identity instead.
+!(assertEqual (Table.transpose ()) ())
+!(assertEqual (Table.transpose (itable))
+              ((True False False) (False True False) (True False True)))
+!(assertEqual (Table.transpose ((1 2 3) (4 5 6))) ((1 4) (2 5) (3 6)))
+!(assertEqual (Table.transpose ((1 4) (2 5) (3 6))) ((1 2 3) (4 5 6)))
+!(assertEqual (Table.transpose (Table.transpose (itable))) (itable))
 
 
 ;; Test lexicographic ordering of featureSets
@@ -67,8 +78,6 @@
 !(assertEqual (featureSet< 0 (4 2) (1 0)) false)
 !(assertEqual (featureSet< 10000 (4 2) (1 0)) false)
 
-!(assertEqual (insertPair > (2 1) ((4 0) (1 3))) ((4 0) (2 1) (1 3)))                   ;; fist value is score and second one feature index
-!(assertEqual (insertPair > (2 1) ((4 0) (2 4) (1 3))) ((4 0) (2 1) (2 4) (1 3)))       
 !(assertEqual (insertPair > (featureSet< 0) (2 (1 0)) ((4 (1 0)) (2 (4 1)) (1 (3 1)))) ((4 (1 0)) (2 (1 0)) (2 (4 1)) (1 (3 1))))
 
 !(assertEqual (marginalProbs 10 ((A 4) (B 6))) ((A 0.4) (B 0.6)))
@@ -83,8 +92,6 @@
 !(assertEqual (mutualInformation (cons A (cons A (cons A ()))) (cons X (cons Y (cons Z ())))) 0.0)
 !(assertEqual (mutualInformation (cons A (cons B (cons C ()))) (cons X (cons Y (cons Z ())))) 1.585)
 
-!(assertEqual (insertPair > (2 1) ((4 0) (1 3))) ((4 0) (2 1) (1 3)))                   ;; fist value is score and second one feature index
-!(assertEqual (insertPair > (2 1) ((4 0) (2 4) (1 3))) ((4 0) (2 1) (2 4) (1 3)))       
 
 !(assertEqual (isEqual (A B C) (A B C)) True)
 !(assertEqual (isEqual (A B C) (C A B)) True)
@@ -113,22 +120,24 @@
 !(assertEqual (sortPairs pairMax ((0.7 (M)) (0.4 (N)) (0.9 (O)) (0.1 (P))) 3 ()) ((0.9 (O)) (0.7 (M)) (0.4 (N))))
 
 (= (table2) 
-            (cons (cons True (cons True (cons False (cons True (cons True ())))))
-            (cons (cons True (cons False (cons False (cons True (cons True ())))))
-            (cons (cons False (cons True (cons False (cons True (cons False ())))))
-            (cons (cons False (cons False (cons False (cons True (cons False ()))))) ())))))
+            (cons (cons True (cons True (cons False (cons False ()))))
+            (cons (cons True (cons False (cons True (cons False ()))))
+            (cons (cons False (cons False (cons False (cons False ()))))
+            (cons (cons True (cons True (cons True (cons True ()))))
+             (cons (cons True (cons True (cons False (cons False ())))) ()))))))
 
 !(assertEqual (zipColumn (1 3) (table2)) (cons (True True) (cons (False True) (cons (True True) (cons (False True) ())))))
 !(assertEqual (zipColumn (0 1 4) (table2)) (cons (True True True) (cons (True False True) (cons (False True False) (cons (False False False) ())))))
 !(assertEqual (zipColumn (2) (table2)) (cons (False) (cons (False) (cons (False) (cons (False) ()))))) 
 
-; !(assertEqual (let $r (logMath 2 8) (- $r 3))  0.0)
-; !(assertEqual (let $r (logMath 10 1000) (- $r 3))  0.0)
+!(assertEqual (let $r (logMath 2 8) (- $r 3)) 0.0)
+; !(assertEqual (let $r (logMath 10 1000) (- $r 3)) 0.0)
 
 (= (table1) 
     (mkITable
-        (cons (cons True (cons False (cons True ()))) 
-        (cons (cons False (cons True (cons False ()))) ()))
+        (cons (cons True (cons False ())) 
+        (cons (cons False (cons True  ())) 
+        (cons (cons True (cons False  ())) ())))
         (cons A (cons B (cons O ())))))
 
 !(assertEqual (filterTable (0) (table1)) 
@@ -138,13 +147,12 @@
                             (cons B (cons O ())))) 
 !(assertEqual (filterTable (1) (table1)) 
                     (mkITable 
-                            (cons (cons True (cons True ())) 
-                            (cons (cons False (cons False ())) ())) 
+                            (cons (cons True (cons False ())) 
+                            (cons (cons True (cons False ())) ())) 
                             (cons A (cons O ())))) 
 !(assertEqual (filterTable (0 1) (table1)) 
                     (mkITable 
-                            (cons (cons True ())
-                            (cons (cons False ()) ()))
+                            (cons (cons True (cons False  ())) ())
                             (cons O ())))
 
 ;; test for incremental selection Utility functions
@@ -182,19 +190,12 @@
 !(assertEqual (readjustIndices ((0.4 (1)) (0.5 (1 2))) (cons A (cons C (cons D ()))) (cons A (cons B (cons C (cons D ()))))) ((0.4 (2)) (0.5 (2 3))))
 
 
-; Test of CalculateConfidence
-!(assertEqual 
-   (let* (
-       ($conf1 (calculateConfidence 1 10 0.1))
-       ($conf2 (calculateConfidence 2 10 0.1))
-     )
-     (< $conf1 $conf2)) True)  ;; more features → higher confidence
-
-!(assertEqual
-   (let* (
-       ($conf2 (calculateConfidence 2 10 0.1))
-       ($conf3 (calculateConfidence 2 20 0.1))
-     )
-     (< $conf2 $conf3)) True)  ;; bigger dataset → higher confidence
-
+;; Test of CalculateConfidence
+!(assertEqual (< (calculateConfidence 1 10 0.1) (calculateConfidence 2 10 0.1)) True)  ;; more features → higher confidence
+!(assertEqual (< (calculateConfidence 2 10 0.1) (calculateConfidence 2 20 0.1)) True)  ;; bigger dataset → higher confidence
 !(assertEqual (calculateConfidence 1 0 0.1) 0.0)  ;; No features -> confidence 0
+
+!(assertEqual (indicesToBits () 5) (List.generate 5 0))  ;; no initial features -> every bit off
+!(assertEqual (indicesToBits (0 2 4) 5) (1 0 1 0 1))
+!(assertEqual (indicesToBits (3) 4) (0 0 0 1))
+!(assertEqual (bitsToIndices (indicesToBits (0 2 4) 5) 0 ()) (0 2 4))  ;; inverse of bitsToIndices

@@ -1,4 +1,6 @@
 !(import! &self ../../utilities/general-helpers)
+!(import! &self ../../parameters/registry)
+!(import! &self ../../parameters/defaults)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/ordered-set)
 !(import! &self ../../utilities/lru-cache)
@@ -7,32 +9,32 @@
 
 (= (andTable) 
    (mkITable
-     (cons (cons True (cons True (cons True ())))
-     (cons (cons True (cons False (cons False ())))
-     (cons (cons False (cons True (cons False ())))
-     (cons (cons False (cons False (cons False ()))) ()))))
+     (cons (cons True (cons True (cons False (cons False ()))))
+     (cons (cons True (cons False (cons True (cons False ()))))
+     (cons (cons True  (cons False  (cons False (cons False ())))) ())))
      (cons A (cons B (cons Output ())))))
+
 
 (= (complexTable) 
     (mkITable 
-        (cons (cons False (cons False (cons True (cons True (cons True ())))))
-        (cons (cons True (cons False (cons False (cons True (cons True ())))))
-        (cons (cons False (cons True (cons False (cons True (cons False ())))))
-        (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
+        (cons (cons False (cons True (cons False (cons False ()))))
+        (cons (cons False (cons False (cons True (cons False ()))))
+        (cons (cons True (cons False (cons False (cons False ()))))
+        (cons (cons True (cons True (cons True (cons True ())))) 
+        (cons (cons True (cons True (cons False (cons False ()))))())))))
         (cons A (cons B (cons C (cons D (cons Output ())))))))
 
+
 (= (xorTable) (mkITable
-    (cons (cons True  (cons True  (cons False ())))
-    (cons (cons True  (cons False (cons True  ())))
-    (cons (cons False (cons True  (cons True  ())))
-    (cons (cons False (cons False (cons False ()))) ()))))
+    (cons (cons True (cons True (cons False (cons False ()))))
+    (cons (cons True (cons False (cons True (cons False ()))))
+    (cons (cons False (cons True  (cons True (cons False ())))) ())))
     (cons A (cons B (cons Output ())))))
 
-(= (redundantTable) (mkITable 
-    (cons (cons True  (cons True  (cons True  ())))
-    (cons (cons True  (cons True  (cons True  ())))
-    (cons (cons False (cons False (cons False ())))
-    (cons (cons False (cons False (cons False ()))) ()))))
+(= (redundantTable) (mkITable
+    (cons (cons True  (cons True  (cons False (cons False ()))))
+    (cons (cons True  (cons True  (cons False (cons False ()))))
+    (cons (cons True  (cons True  (cons False (cons False ())))) ())))
     (cons A (cons B (cons Output ())))))
 
 ;; Mutual Information calculations

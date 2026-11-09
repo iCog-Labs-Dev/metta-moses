@@ -1,0 +1,167 @@
+
+;; swapValue -- the crossover value at one position: the reference value where
+;; base and reference differ, else the target value.
+;; (: swapValue (-> $a $a $a $a))
+(= (swapValue $t $b $r) (if (== $b $r) $t $r))
+          
+;; compareAndSwap -- iteratively compares the base and reference instances and applies the crossover to the target at the location where there is difference between the two
+;;              (cons $t $ts) -- the target list
+;;              (cons $b $bs) -- the base list
+;;              (cons $r $rs) -- the reference list
+;;              $acc          -- an accumulator for the new to be formed instance list
+;; (: compareAndSwap (-> (List $a) (List $a) (List $a) (List $a) (List $a)))
+;; Cons then reverse keeps it O(N); List.append on $acc made it O(N^2).
+(= (compareAndSwap (cons $t $ts) (cons $b $bs) (cons $r $rs) $acc)
+    (case $ts
+        ((() (reverse (cons-atom (swapValue $t $b $r) $acc)))
+         ($else (compareAndSwap $ts $bs $rs (cons-atom (swapValue $t $b $r) $acc))))))
+
+
+;; mergeInstance -- handles the crossover of single instance   
+;;               $target -- the instance to be changed with new values from the reference
+;;               $base   -- the instance which is going to be compared to the reference instance     
+;;               $reference -- the reference instance
+;; (: mergeInstance (-> Instance Instance Instance Instance))
+(= (mergeInstance (mkInst $target) (mkInst $base) (mkInst $reference))
+    (let ($tSize $bSize $rSize) ((List.length $target) (List.length $base) (List.length $reference))
+        (if (and (== $tSize $bSize) (== $tSize $rSize))
+            (mkInst (compareAndSwap $target $base $reference ()))
+            (Error ($tSize $bSize $rSize) "Unequal target base and/or reference sizes")))
+)
+
+
+;; merger --          handles the non-deterministic operation of crossing over from the reference instance to the target instances             
+;;                    $targetInstances -- an expression of scored instances
+;;                    $baseInst         -- a based instance without its score
+;;                    $referenceInst    -- a reference (best instance) instance without its score
+;; Returns an expression of scored instances. A new instance gets
+;; $initScore: the worst composite score, or 0 for feature selection.
+;;  (: merger (-> Expression Instance Instance Expression))
+(= (merger $targetInstances $baseInst $referenceInst)
+   (merger $targetInstances $baseInst $referenceInst (worstCscore)))
+
+(= (merger $targetInstances $baseInst $referenceInst $initScore)
+   (map-atom $targetInstances $tI
+      (let* (((mkSInst (mkPair $targetInst $score)) $tI)
+             ($mergedInstance (mergeInstance $targetInst $baseInst $referenceInst)))
+         (mkSInst (mkPair $mergedInstance $initScore)))))
+
+
+;;   -------crossTopTwo Helpers----;;
+
+;; crossPairsForRef
+;; Cross one reference instance with all higher-ranked instances to generate offspring.
+;; $count is the size of $acc: each step appends exactly one offspring.
+(= (crossPairsForRef () $referenceInst $base $acc $count $limit)
+   ($acc $count))
+(= (crossPairsForRef (cons $target $rest) $referenceInst $base $acc $count $limit)
+   (if (>= $count $limit)
+       ($acc $count)
+       (let*
+         (
+           ((mkSInst (mkPair $targetInst $targetScore)) $target)
+           ($offspring
+             (mkSInst
+               (mkPair
+                 (mergeInstance $targetInst $base $referenceInst)
+                 (worstCscore))))
+           ($newAcc (List.append $offspring $acc))
+         )
+         (crossPairsForRef $rest $referenceInst $base $newAcc (+ $count 1) $limit))))
+
+;; crossPairs
+;; Generate all pairwise crossover offspring using simplex ordering.
+;; Uses processed (better) and remaining instances.
+;; $count is the size of $acc. The 5-arity form returns only $acc.
+(= (crossPairs $processed $references $base $acc $limit)
+   (let ($newAcc $_count)
+        (crossPairs $processed $references $base $acc (List.length $acc) $limit)
+     $newAcc))
+
+(= (crossPairs $processed () $base $acc $count $limit)
+   ($acc $count))
+(= (crossPairs $processed (cons $reference $rest) $base $acc $count $limit)
+   (if (>= $count $limit)
+       ($acc $count)
+       (let*
+         (
+           ((mkSInst (mkPair $referenceInst $referenceScore)) $reference)
+           ;; cross reference with all better instances
+           (($updatedAcc $updatedCount)
+             (crossPairsForRef $processed $referenceInst $base $acc $count $limit))
+           ($newProcessed (List.append $reference $processed))
+         )
+         (crossPairs $newProcessed $rest $base $updatedAcc $updatedCount $limit))))
+
+;; makeCrossoverSlots -- Model the C++ resize(num_to_make) destination array.
+;; Every reachable slot is populated before it is returned; the sentinel atoms
+;; make an accidental hole visible in a regression instead of hiding it.
+(= (makeCrossoverSlots $count)
+   (if (<= $count 0)
+       ()
+       (cons UnfilledCrossoverSlot (makeCrossoverSlots (- $count 1)))))
+
+;; crossTripleTargets -- Execute the C++ k-loop for one (i,j) pair.  The
+;; Boolean result tells the enclosing loops to return immediately once the
+;; requested destination index has been reached.
+(= (crossTripleTargets () $k $j $i $jRef $iRef $base $slots $limit)
+   ($slots False))
+(= (crossTripleTargets (cons $target $rest) $k $j $i $jRef $iRef $base $slots $limit)
+   (let*
+     (
+       ($iOffset (/ (* (* $i (- $i 1)) (- $i 2)) 6))
+       ($jOffset (/ (* $j (- $j 1)) 2))
+       ($slot (+ (+ $iOffset $jOffset) $k))
+     )
+     (if (>= $slot $limit)
+         ($slots True)
+         (let*
+           (
+             ((mkSInst (mkPair $targetInst $score)) $target)
+             ($merged
+               (mkSInst
+                 (mkPair
+                   (mergeInstance
+                     (mergeInstance $targetInst $base $iRef)
+                     $base $jRef)
+                   (worstCscore))))
+             ($updatedSlots (List.replaceAt $slots $slot $merged))
+           )
+           (crossTripleTargets $rest (+ $k 1) $j $i
+             $jRef $iRef $base $updatedSlots $limit)))))
+
+;; crossTripleRefs -- Execute j=1..i-1. The target list stays fixed at the i
+;; already-processed instances throughout the k-loop.
+(= (crossTripleRefs () $j $targets $i $iRef $base $slots $limit)
+   ($slots False))
+(= (crossTripleRefs (cons $jScored $jRest) $j $targets $i $iRef $base $slots $limit)
+   (let*
+     (
+       ((mkSInst (mkPair $jInst $jScore)) $jScored)
+       (($updatedSlots $done)
+         (crossTripleTargets $targets 0 $j $i
+           $jInst $iRef $base $slots $limit))
+     )
+     (if $done
+         ($updatedSlots True)
+         (crossTripleRefs $jRest (+ $j 1) $targets $i
+           $iRef $base $updatedSlots $limit))))
+
+;; crossTriples -- Execute i=2..sample_size-1 over the partially sorted sample.
+;; List.append preserves rank order in $processed, matching indexed C++ access.
+(= (crossTriples $processed () $i $base $slots $limit) $slots)
+(= (crossTriples $processed (cons $iScored $iRest) $i $base $slots $limit)
+   (let*
+     (
+       ((mkSInst (mkPair $iInst $iScore)) $iScored)
+       (($updatedSlots $done)
+         (if (< $i 2)
+             ($slots False)
+             (crossTripleRefs (List.drop 1 $processed) 1 $processed $i
+               $iInst $base $slots $limit)))
+       ($newProcessed (List.append $iScored $processed))
+     )
+     (if $done
+         $updatedSlots
+         (crossTriples $newProcessed $iRest (+ $i 1)
+           $base $updatedSlots $limit))))

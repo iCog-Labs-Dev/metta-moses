@@ -21,6 +21,7 @@
 
 !(import! &self ../../utilities/tree) 
 
+!(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
 
@@ -34,6 +35,7 @@
 
 !(import! &self ../../feature-selection/feature-selection-main)
 
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../knob-representation)
 !(import! &self ../lsk)
 !(import! &self ../logical-probe) 
@@ -42,7 +44,6 @@
 !(import! &self ../add-logical-knobs)
 !(import! &self ../build-logical)
 !(import! &self ../build-knobs)
-!(import! &self ../knob-mapper)
 !(import! &self ../representation)
 !(import! &self ../create-representation)
 
@@ -52,10 +53,11 @@
 
 (= (ttable) 
     (mkITable 
-        (cons (cons False (cons False (cons True (cons True (cons True ())))))
-        (cons (cons True (cons False (cons False (cons True (cons True ())))))
-        (cons (cons False (cons True (cons False (cons True (cons False ())))))
-        (cons (cons False (cons False (cons False (cons True (cons False ()))))) ()))))
+        (cons (cons False (cons True (cons False (cons False ()))))
+        (cons (cons False (cons False (cons True (cons False ()))))
+        (cons (cons True (cons False (cons False (cons False ()))))
+        (cons (cons True (cons True (cons True (cons True ()))))
+        (cons (cons True (cons True (cons False (cons False ())))) ())))))
         (cons A (cons B (cons C (cons D (cons Output ())))))))
 
 
@@ -63,9 +65,9 @@
 ;; The test case is the same as the representation test case
 ;;      if create representation supports feature selection and ignore op it will be different
 ;; takes exemplar and generates Representation($kbMapKnobMap $updatedExemplar)
-; !(assertEqual (createRepresentation (mkTree (mkNode OR) (cons (mkTree (mkNode C) ()) ())) (A B))
-; (mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (1 2)) 3) (cons ((mkNodeId (1 3)) 2) (cons ((mkNodeId (1 4)) 1) (cons ((mkNodeId (1 5)) 0) (cons ((mkNodeId (2)) 7) (cons ((mkNodeId (3)) 6) (cons ((mkNodeId (4)) 5) (cons ((mkNodeId (5)) 4) ()))))))))) (mkDscMp (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 5))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (5))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ())))))))))) 
-; (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) ())))))) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) ()))))))))
+;; !(assertEqual (createRepresentation (mkTree (mkNode OR) (cons (mkTree (mkNode C) ()) ())) (A B))
+;; (mkRep (mkKbMap (mkDscKbMp (cons ((mkNodeId (1 2)) 3) (cons ((mkNodeId (1 3)) 2) (cons ((mkNodeId (1 4)) 1) (cons ((mkNodeId (1 5)) 0) (cons ((mkNodeId (2)) 7) (cons ((mkNodeId (3)) 6) (cons ((mkNodeId (4)) 5) (cons ((mkNodeId (5)) 4) ()))))))))) (mkDscMp (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 5))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1 2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (5))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (4))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (3))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (cons ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkKnob (mkNodeId (2))) (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) ())))))))))) 
+;; (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) ())))))) (cons (mkNullVex (cons (mkTree (mkNode A) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode B) ()) ())) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (cons (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) ()))))))))
 ;; New test based on improved representation building
 ;; INFO: The test cases pass individually but hangs even after the successfully passing the test.
 ;; !(assertEqual 
@@ -84,10 +86,9 @@
 
 
 (= (table1) (mkITable
-                         (cons (cons False (cons False (cons False ()))) 
-                         (cons (cons True (cons False (cons False ()))) 
-                         (cons (cons False (cons True (cons False ())))
-                         (cons (cons True (cons True (cons True ()))) ()))))
+                         (cons (cons False (cons True (cons False (cons True ()))))
+                         (cons (cons False (cons False (cons True (cons True ()))))
+                         (cons (cons False (cons False (cons False (cons True ())))) ())))
                          (cons A (cons B (cons O ())))))
 
 ;; INFO: The test cases pass individually but hangs even after the successfully passing the test.

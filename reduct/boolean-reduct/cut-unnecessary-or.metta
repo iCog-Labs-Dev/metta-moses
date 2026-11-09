@@ -7,58 +7,50 @@
 ;;            are not met, it returns the state unchanged.
 ;; Example: input: POA ==> (OR (AND (NOT D))), parent => (AND B (OR (AND (NOT D))))
 ;;          output: ((AND B (NOT D)) () True)
-; (: orCut (-> Expression Expression (Expression Expression Bool)))
+;; Constants are inert as a parent: removeElement and addLiterals below assume an Expression.
 (= (orCut $parent $current)
-   ;; (let*
-   ;;   (
-   ;;    ;; ($log (println! (==== Inside OrCut ====)))
-   ;;    ;; ($log' (println! (Parameters ==> Parent: $parent Current: $current)))
-   ;;   )
+   (if (isConstant $parent)
+       ($parent $current False)
      (case $current
         (
           ((OR (NOT $x)) ((addLiterals (removeElement ($current) $parent) ((NOT $x))) () True))
-          ((OR $x) (if (== (get-metatype $x) Symbol)
+          ((OR $x) (if (isConstant $x)
+                       ;; A single-alternative OR is its alternative, so emit the constant in
+                       ;; place. The Symbol arm below would splice it into a GUARD SET, where
+                       ;; invertLiterals makes (NOT TRUE) and deleteInconsistentHandle reads
+                       ;; the pair as a contradiction -- silently reducing the tree to false.
+                       ((findAndReplace $current $x $parent) $x True)
+                   (if (== (get-metatype $x) Symbol)
                         ((addLiterals (removeElement ($current) $parent) ($x)) () True)
                         ((addChildren (removeElement ($current) $parent) (getSubExpression $x)) () True)
-                    )
+                    ))
           )
           ($else ($parent $current False))
         )
-     )
-   ;; )
+     ))
 )
 
 ;; A function to return the literals and children of any given node.
 ;; It is used for cases where we need all the subExpressions of AND & OR nodes.
-;;    Expressions like (NOT A) doesn't have any subExpression and are treated as a literal.
-; (: getSubExpression (-> Expression Expression))
+;;    An expression like (NOT A) has no subExpression and is a literal.
 (= (getSubExpression $exp)
    (case $exp
      (
         ;; (NOT $a) is considered as a literal hence has no subExpression.
         ((NOT $a) ())
-        ($else
-          (let*
-            (
-              ($literals (getLiterals $exp))
-              ($children (getChildrenExp $exp))
-            )
-            (concatTuple $literals $children)
-          )
-        )
+        ($else (let ($literals $children) (getLiteralChildren $exp)
+                 (concatTuple $literals $children)))
      )
    )
 )
 
 ;; A helper function used to apply orCut function in the until function.
 ;; This function keeps the state of the until function updated for a single function application.
-; (: applyOrCut (-> (Expression Bool (Expression Expression)) (Expression Bool (Expression Expression))))
 (= (applyOrCut ($parent $bool ($child $remainingChildren)))
       (let*
         (
           (($updatedParent $updatedChild $appliedOrCut) (orCut $parent $child))
-          ($nextChild (if (~= $remainingChildren ()) (car-atom $remainingChildren) ()))
-          ($restChildren (if (~= $remainingChildren ()) (cdr-atom $remainingChildren) ()))
+          (($nextChild $restChildren) (if (== $remainingChildren ()) (() ()) (decons-atom $remainingChildren)))
         )
         ($updatedParent (or $appliedOrCut $bool) ($nextChild $restChildren))
       )

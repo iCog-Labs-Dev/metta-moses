@@ -5,6 +5,7 @@
 !(import! &self ../../utilities/ordered-multimap)
 !(import! &self ../../utilities/lazy-random-selector)
 !(import! &self ../../representation/instance)
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../../representation/knob-representation)
 
 !(import! &self ../../scoring/cscore)
@@ -27,30 +28,73 @@
 
 
 ;; Test case to make sure it varyNKnobs generates unique and all available neighbors.
+;; After Fix 1: varyNKnobs now generates instances at EXACTLY the target distance,
+;; matching C++ vary_n_knobs semantics. C(4,2)*2^2 = 24 for multips=(2 1), dist=2.
 !(assertEqual (let*
                 (
                   ($original (varyNKnobs (2 1) (0 0 0 1) 2))
                   ($unique (unique-atom (varyNKnobs (2 1) (0 0 0 1) 2))))
-                (and (== (length $original) (length $unique)) (== (length $original) 32))) true)
+                (and (== (length $original) (length $unique)) (== (length $original) 24))) true)
 
-;; At distance 2 should generate total of 32 neighbors
-;; !(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 2) ((List.length $a) (get-type $a))) (32 (List Instance)))
-!(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 2) (List.length $a)) 32) ;; Since the type system isn't working properly the above has been replaced with this test case. Change when type starts working correctly.
+;; At distance 2 should generate total of 24 neighbors (exactly dist=2)
+;; C(4,2)*2^2 = 24 after Fix 1 (was 32 when cumulative 1..dist)
+;; !(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 2) ((List.length $a) (get-type $a))) (24 (List Instance)))
+!(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 2) (List.length $a)) 24) ;; Since the type system isn't working properly the above has been replaced with this test case. Change when type starts working correctly.
 ;; !(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 1) ((List.length $a) (get-type $a))) (8 (List Instance)))
 !(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 1) (List.length $a)) 8) ;; Since the type system isn't working properly the above has been replaced with this test case. Change when type starts working correctly.
 
-;; At distance 3 should generate total of 64 neighbors
-;; !(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 3) ((List.length $a) (get-type $a))) (64 (List Instance)))
-!(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 3) (List.length $a)) 64) ;; Since the type system isn't working properly the above has been replaced with this test case. Change when type starts working correctly.
+;; At distance 3 should generate total of 32 neighbors (exactly dist=3)
+;; C(4,3)*2^3 = 32 after Fix 1 (was 64 when cumulative 1..dist)
+;; !(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 3) ((List.length $a) (get-type $a))) (32 (List Instance)))
+!(assertEqual (let $a (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 3) (List.length $a)) 32) ;; Since the type system isn't working properly the above has been replaced with this test case. Change when type starts working correctly.
 
-;; Generated neighbors should be 32 in length and center shouldn't be member.
+;; Generated neighbors should be 24 in length and center shouldn't be member.
 ;;    Distance 0 indicates a center node being present.
+;; After Fix 1: exactly dist=2 → C(4,2)*2^2 = 24 (was 32 when cumulative)
 !(assertEqual
    (let $distList
         (List.map ((curry distance) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ())))))) 
                   (generateAllInNeighborhood (mkMultip 3) (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))) 2))
         ((List.length $distList) (List.contains 0 $distList))) 
-   (32 False))
+   (24 False))
+
+;; Verify all generated neighbors are at EXACTLY the target distance
+;; (matching C++ NeighborSamplingUTest.cxxtest assertions).
+;; Uses foldl to check every distance equals the target.
+!(assertEqual
+   (let*
+      (
+        ($center (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))))
+        ($neighbors (generateAllInNeighborhood (mkMultip 3) $center 2))
+        ($dists (List.map ((curry distance') $center) $neighbors))
+        ($allExact (foldl-atom $dists True $acc $d (and $acc (== $d 2))))
+      )
+      ((List.length $dists) $allExact))
+   (24 True))
+
+;; Same check at distance 1
+!(assertEqual
+   (let*
+      (
+        ($center (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))))
+        ($neighbors (generateAllInNeighborhood (mkMultip 3) $center 1))
+        ($dists (List.map ((curry distance') $center) $neighbors))
+        ($allExact (foldl-atom $dists True $acc $d (and $acc (== $d 1))))
+      )
+      ((List.length $dists) $allExact))
+   (8 True))
+
+;; Same check at distance 3
+!(assertEqual
+   (let*
+      (
+        ($center (mkInst (cons 0 (cons 0 (cons 0 (cons 0 ()))))))
+        ($neighbors (generateAllInNeighborhood (mkMultip 3) $center 3))
+        ($dists (List.map ((curry distance') $center) $neighbors))
+        ($allExact (foldl-atom $dists True $acc $d (and $acc (== $d 3))))
+      )
+      ((List.length $dists) $allExact))
+   (32 True))
 
 (= (tree1)
         (mkTree (mkNode AND)
@@ -92,8 +136,9 @@
 
 (= (knobMapObj) (mkKbMap
                       (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))))
-(= (deme) (mkDeme 
-(mkRep (mkKbMap 
+
+!(bind! &deme1 (new-space))
+(= (rep) (mkRep (mkKbMap
     (mkDscMp 
       (cons 
         ((mkDiscSpec 3)
@@ -113,7 +158,13 @@
                (mkDiscKnob 
                  (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
                ))
-            ()))))) (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 2) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 3) ())))))) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 4) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 5) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 6) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 7) ()))))))) (mkSInstSet ()) (mkDemeId "1")))
+            ()))))) (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 2) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 3) ())))))) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 4) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 5) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 6) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 7) ()))))))))
+
+(= (instSet) (mkSInstSet ()))
+(= (demeId) (mkDemeId "1"))
+!(let $x (rep) (add-atom &deme1 $x))
+!(let $y (instSet) (add-atom &deme1 $y))
+!(let $z (demeId) (add-atom &deme1 $z))
 
 ; Test case for sampleFromNeighborhood function
 ; Function should returned two instances at the specified distance
@@ -149,53 +200,86 @@
 
 ; Testcase-1 for sampleNewInstances
 ; totalNeighbors & numNewInstances won't be updated, samples new instances 
+!(bind! &demeTC1 (new-space))
+!(let $x (rep) (add-atom &demeTC1 $x))
+!(let $y (instSet) (add-atom &demeTC1 $y))
+!(let $z (demeId) (add-atom &demeTC1 $z))
+
 !(assertEqual 
-   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num) 
-   (sampleNewInstances 
-   20 
-   3 
-   (mkInst (cons 0 (cons 0 (cons 0 ())))) 
-   (deme) 
-   2)
+   (let* (
+       (($returnedSet $num) (sampleNewInstances
+                                     20
+                                     3
+                                     (mkInst (cons 0 (cons 0 (cons 0 ()))))
+                                     &demeTC1
+                                     2))
+       ((mkSInstSet $updatedInstList) $returnedSet)
+   )
    (List.map (distance' (mkInst (cons 0 (cons 0 (cons 0 ()))))) (List.map removeInstScore $updatedInstList)))
    (cons 2 (cons 2 (cons 2 ()))))
 
 ; Testcase-2 for sampleNewInstances
-; totalNeighbors will be updated, samples new instances 
-!(assertEqual 
-   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num) 
-   (sampleNewInstances 
-   10 
-   7 
-   (mkInst (cons 0 (cons 0 (cons 0 ())))) 
-   (deme) 
-   2)
-   (List.map (distance' (mkInst (cons 0 (cons 0 (cons 0 ()))))) (List.map removeInstScore $updatedInstList)))
-   (cons 2 (cons 2 (cons 2 (cons 2 (cons 2 (cons 2 (cons 2 ()))))))))
+; Duplicate knob vectors are suppressed, so the returned count is the six
+; distinct distance-two neighbors rather than the seven nominal samples.
+!(bind! &demeTC2 (new-space))
+!(let $x (rep) (add-atom &demeTC2 $x))
+!(let $y (instSet) (add-atom &demeTC2 $y))
+!(let $z (demeId) (add-atom &demeTC2 $z))
+
+!(assertEqual
+   (let* (
+       (($returnedSet $num) (sampleNewInstances
+                                     10
+                                     7
+                                     (mkInst (cons 0 (cons 0 (cons 0 ()))))
+                                     &demeTC2
+                                     2))
+       ((mkSInstSet $updatedInstList) $returnedSet)
+   )
+   ($num
+    (List.map (distance' (mkInst (cons 0 (cons 0 (cons 0 ())))))
+              (List.map removeInstScore $updatedInstList))))
+   (6 (2 2 2 2 2 2)))
 
 ; Testcase-3 for sampleNewInstances
-; totalNeighbors will be updated, generates all instances in neighborhood
-!(assertEqual 
-   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num) 
-   (sampleNewInstances 
-   4
-   5 
-   (mkInst (cons 0 (cons 0 (cons 0 ())))) 
-   (deme) 
-   2)
-   (List.map (distance' (mkInst (cons 0 (cons 0 (cons 0 ()))))) (List.map removeInstScore $updatedInstList)))
-   (cons 2 (cons 2 (cons 2 (cons 2 (cons 2 ()))))))
+; The exhaustive branch also removes duplicate vectors before appending them.
+!(bind! &demeTC3 (new-space))
+!(let $x (rep) (add-atom &demeTC3 $x))
+!(let $y (instSet) (add-atom &demeTC3 $y))
+!(let $z (demeId) (add-atom &demeTC3 $z))
+
+!(assertEqual
+   (let* (
+       (($returnedSet $num) (sampleNewInstances
+                                     4
+                                     5
+                                     (mkInst (cons 0 (cons 0 (cons 0 ()))))
+                                     &demeTC3
+                                     2))
+       ((mkSInstSet $updatedInstList) $returnedSet)
+   )
+   ($num
+    (List.map (distance' (mkInst (cons 0 (cons 0 (cons 0 ())))))
+              (List.map removeInstScore $updatedInstList))))
+   (4 (2 2 2 2)))
 
 ; Testcase-4 for sampleNewInstances
 ; totalNeighbors & numNewInstances won't be updated, samples new instances
+!(bind! &demeTC4 (new-space))
+!(let $x (rep) (add-atom &demeTC4 $x))
+!(let $y (instSet) (add-atom &demeTC4 $y))
+!(let $z (demeId) (add-atom &demeTC4 $z))
+
 !(assertEqual 
-   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num) 
-   (sampleNewInstances 
-   20 
-   0 
-   (mkInst (cons 0 (cons 0 (cons 0 ())))) 
-   (deme) 
-   2)
+   (let* (
+       (($returnedSet $num) (sampleNewInstances
+                                     20
+                                     0
+                                     (mkInst (cons 0 (cons 0 (cons 0 ()))))
+                                     &demeTC4
+                                     2))
+       ((mkSInstSet $updatedInstList) $returnedSet)
+   )
    (List.map (distance' (mkInst (cons 0 (cons 0 (cons 0 ()))))) (List.map removeInstScore $updatedInstList)))
 ())
 
@@ -204,10 +288,6 @@
 
 
 
-;;testcase for isPossibleSize function
-;; Formula: n! / ((n - d)! * d!) * (m-1)^d  (n = instance length, d = distance, m = knob multiplicity)
-!(assertEqual (isPossibleSize 13 2 (mkInst (cons 1 (cons 2 (cons 0 ()))))) False)
-!(assertEqual (isPossibleSize 10 2 (mkInst (cons 1 (cons 2 (cons 0 ()))))) True)
 
 ;; Disc-probed knobs use effective multiplicity, so fully pruned knobs do not
 ;; contribute neighbors and partially pruned knobs only expose allowed specs.
@@ -227,3 +307,44 @@
       )
       $neighbors)
    (cons (mkInst (cons 0 (cons 1 ()))) ()))
+
+;; Shared sampling retains the first occurrence of each new knob vector and
+;; drops both repeated samples and vectors already present in the scored deme.
+!(assertEqual
+   (let* (
+          ($old0
+            (mkSInst (mkPair (mkInst (0 0))
+                             (mkCscore -89 0 0 0 -89))))
+          ($new1
+            (mkSInst (mkPair (mkInst (1 0)) (worstCscore))))
+          ($new2
+            (mkSInst (mkPair (mkInst (0 1)) (worstCscore))))
+         )
+     (uniqueUnseenScoredInstances
+       ($new1 $new1
+        (mkSInst (mkPair (mkInst (0 0)) (worstCscore)))
+        $new2)
+       ($old0)))
+   ((mkSInst (mkPair (mkInst (1 0)) (worstCscore)))
+    (mkSInst (mkPair (mkInst (0 1)) (worstCscore)))))
+
+;; Feature-selection sampling uses the same duplicate suppression and returns
+;; the size of the genuinely new suffix, not the nominal request.
+!(bind! &featureSelectionDeme (new-space))
+!(assertEqual
+  (let* (
+         ($retained
+           (mkSInst (mkPair (mkInst (1 0)) 0.5)))
+         ($_ (add-atom &featureSelectionDeme (mkSInstSet ($retained))))
+         (($updated $actualNew)
+           (sampleNewInstancesFs
+             2 2 (mkInst (0 0))
+             (mkITable () (A B O))
+             &featureSelectionDeme
+             1))
+         ((mkSInstSet $rows) $updated)
+        )
+    ($actualNew
+     (map-atom $rows $row (removeInstScore $row))
+     (getSInstScore (List.head $rows))))
+  (1 ((mkInst (1 0)) (mkInst (0 1))) 0.5))

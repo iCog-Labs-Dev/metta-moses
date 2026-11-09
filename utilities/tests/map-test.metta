@@ -1,5 +1,6 @@
 !(import! &self ../general-helpers)
 !(import! &self ../map)
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../../representation/knob-representation)
 
 ;; Testcase Map.insert

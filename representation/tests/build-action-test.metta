@@ -1,0 +1,291 @@
+!(import! &self ../../utilities/general-helpers)
+!(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/ordered-multimap)
+!(import! &self ../../utilities/lazy-random-selector)
+!(import! &self ../../utilities/nodeId)
+!(import! &self ../../utilities/tree)
+
+!(import! &self ../../scoring/boolean-ops)
+!(import! &self ../../scoring/bscore)
+!(import! &self ../../scoring/cacheSpace)
+
+!(import! &self ../../scoring/action-registry)
+!(import! &self ../../reduct/action-reduct/action-vocab)
+!(import! &self ../../reduct/action-reduct/action-helpers)
+!(import! &self ../../reduct/action-reduct/action-properties)
+!(import! &self ../../reduct/action-reduct/reduce-action-if)
+!(import! &self ../../reduct/action-reduct/reduce-action-action-if)
+!(import! &self ../../reduct/action-reduct/reduce-const-action-seq)
+!(import! &self ../../reduct/action-reduct/reduce-action-not)
+!(import! &self ../../reduct/action-reduct/reduce-action-while)
+!(import! &self ../../reduct/action-reduct/reduce-seq-result)
+!(import! &self ../../reduct/action-reduct/reduce-null-vertices)
+!(import! &self ../../reduct/action-reduct/reduce-action-properties)
+!(import! &self ../../reduct/action-reduct/action-reduction)
+!(import! &self ../../representation/knob-representation)
+!(import! &self ../../representation/lsk)
+!(import! &self ../../representation/logical-probe)
+!(import! &self ../../representation/sample-logical-perms)
+!(import! &self ../../representation/add-logical-knobs)
+!(import! &self ../../representation/build-logical)
+!(import! &self ../../representation/logical-canonize)
+!(import! &self ../../representation/build-action)
+!(import! &self ../../representation/build-knobs)
+!(import! &self ../../representation/candidate)
+!(import! &self ../../representation/representation)
+
+!(py-call (random.seed 12))
+
+(= (moveTree) (mkTree (mkNode move_forward) ()))
+(= (turnTree) (mkTree (mkNode turn_left) ()))
+(= (actionPerms) ((moveTree) (turnTree)))
+
+;; Structural action operators are classified separately from domain actions.
+!(assertEqual (isActionOperator and_seq) True)
+!(assertEqual (isActionOperator action_bool_if) True)
+!(assertEqual (isActionOperator seq_exec) True)
+!(assertEqual (isActionOperator exec_seq) True)
+!(assertEqual (isActionOperator move_forward) False)
+
+!(assertEqual (isDomainAction move_forward (move_forward turn_left)) True)
+!(assertEqual (isDomainAction ahead_blocked (move_forward turn_left)) False)
+!(assertEqual (isDomainAction and_seq (move_forward turn_left)) False)
+!(assertEqual (isDomainAction action_bool_if (move_forward turn_left)) False)
+
+;; Action permutation sampling keeps the base action domain.
+!(assertEqual
+  (let $perms (sampleActionPerms (move_forward turn_left) (A B) ())
+    (and (is-member move_forward $perms)
+         (is-member turn_left $perms)))
+  True)
+
+!(assertEqual
+  (sampleActionPerms (move_forward) (A B) ())
+  (move_forward))
+
+!(assertEqual
+  (sampleActionPerms (move_forward turn_left) () ())
+  (move_forward turn_left))
+
+;; Embedded ASK constructors retain their defaults.
+!(assertEqual
+  (let ($controlled $ask) (actionSubtreeKnob (actionPerms))
+    ((getRawKnobMultip $ask) (getKnobDefault $ask)))
+  ((mkMultip 3) (mkDiscSpec 0)))
+
+!(assertEqual
+  (let ($controlled $ask) (simpleActionSubtreeKnob (moveTree))
+    ((getRawKnobMultip $ask) (getKnobDefault $ask)))
+  ((mkMultip 2) (mkDiscSpec 1)))
+
+;; Embedded ASK candidate reconstruction still maps 0 to absent, 1..N to perms.
+!(assertEqual
+  (getCandidateHelper
+    (mkInst (0))
+    (mkTree (mkNode and_seq)
+      ((mkKnob (mkNullVex (actionPerms))
+               (mkASK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) (actionPerms))
+               0))))
+  (mkTree (mkNode and_seq) ()))
+
+!(assertEqual
+  (getCandidateHelper
+    (mkInst (1))
+    (mkTree (mkNode and_seq)
+      ((mkKnob (mkNullVex (actionPerms))
+               (mkASK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) (actionPerms))
+               0))))
+  (mkTree (mkNode and_seq) ((moveTree))))
+
+!(assertEqual
+  (getCandidateHelper
+    (mkInst (2))
+    (mkTree (mkNode and_seq)
+      ((mkKnob (mkNullVex (actionPerms))
+               (mkASK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) (actionPerms))
+               0))))
+  (mkTree (mkNode and_seq) ((turnTree))))
+
+;; Verify subtree-based action knob helpers produce the expected ASK structure.
+!(assertEqual
+  (let*
+    (
+      (($subtree $mmp) (addActionKnobs (mkTree (mkNode and_seq) ()) True () (move_forward turn_left) () ()))
+      ($ask (car-atom (MultiMap.values $mmp)))
+      ((mkASK $discKnob $perms) $ask)
+      ($embedded (getNodeById $subtree (mkNodeId (1))))
+    )
+    (and
+      (> (MultiMap.length $mmp) 0)
+      (and
+        (== $discKnob (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))
+        (== $embedded (mkKnob (mkNullVex $perms) $ask 0)))))
+    True)
+
+!(assertEqual
+  (let*
+    (
+      (($updatedSubtree $mmp) (addSimpleActionKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) True ()))
+      ($ask (car-atom (MultiMap.values $mmp)))
+    )
+    (let*
+      (
+        ((mkASK $discKnob $perms) $ask)
+      )
+      (and 
+           (== $updatedSubtree (mkKnob (mkTree (mkNode and_seq) (cons (moveTree) ())) $ask 0))
+           (and 
+                (== $discKnob (mkDiscKnob (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ()))
+                (and  
+                      (== $perms (cons (mkTree (mkNode and_seq) (cons (moveTree) ())) ()))
+                      (and
+                        (== (getKnobDefault $ask) (mkDiscSpec 1))
+                        (== (MultiMap.length $mmp) 1)))))))
+      True)
+;; Embedded action representation drives candidate reconstruction directly.
+!(assertEqual
+  (let*
+    (
+      (($updatedSubtree $mmp) (addActionKnobs (mkTree (mkNode and_seq) ()) True () (move_forward turn_left) () ()))
+      ($rep (mkRep (mkKbMap (mkDscMp $mmp)) $updatedSubtree))
+      ($absent (getCandidate $rep ActionCandidateAbsent (mkInst (0))))
+      ($move (getCandidate $rep ActionCandidateMove (mkInst (1))))
+      ($turn (getCandidate $rep ActionCandidateTurn (mkInst (2))))
+    )
+    ($absent $move $turn))
+  ((mkTree (mkNode action_success) ())
+   (mkTree (mkNode and_seq) ((moveTree)))
+   (mkTree (mkNode and_seq) ((turnTree)))))
+
+!(assertEqual
+  (getCandidate
+    (mkRep (mkKbMap (mkDscMp ())) (mkTree (mkNode exec_seq) ()))
+    ExecSeqCandidateEmptyStatic
+    (mkInst ()))
+  (mkTree (mkNode action_success) ()))
+
+;; Simple-action ASK present mode recurses into the embedded controlled subtree.
+!(assertEqual
+  (let*
+    (
+      (($actionControlled $actionAsk) (actionSubtreeKnob ((turnTree))))
+      (($simpleControlled $simpleAsk)
+        (simpleActionSubtreeKnob
+          (mkTree (mkNode and_seq)
+            ((mkKnob $actionControlled $actionAsk 1)))))
+      ($tree (mkTree (mkNode action_bool_if)
+               ((mkTree (mkNode A) ())
+                (mkKnob $simpleControlled $simpleAsk 0)
+                (moveTree))))
+    )
+    (getCandidateHelper (mkInst (1 1)) $tree))
+  (mkTree (mkNode action_bool_if)
+    ((mkTree (mkNode A) ())
+     (mkTree (mkNode and_seq) ((turnTree)))
+     (moveTree))))
+
+;; action_bool_if keeps its perception child and wraps action branches.
+!(assertEqual
+  (let* (($origSubtree (mkTree (mkNode action_bool_if)
+                     (cons (mkTree (mkNode A) ())
+                     (cons (moveTree)
+                     (cons (turnTree) ())))))
+         (($updatedSubtree $mmp) (buildAction $origSubtree () (move_forward turn_left) (A B) ()))
+         ($perception (getNodeById $updatedSubtree (mkNodeId (1)))))
+    (and (== $perception (mkTree (mkNode A) ()))
+         (let*
+           (
+             ($askA (List.getByIdx (MultiMap.values $mmp) 0))
+             ($askB (List.getByIdx (MultiMap.values $mmp) 1))
+             ((mkASK $discA $permsA) $askA)
+             ((mkASK $discB $permsB) $askB)
+             ($branchAHead (getNodeById $updatedSubtree (mkNodeId (2 1))))
+             ($branchBHead (getNodeById $updatedSubtree (mkNodeId (3 1))))
+             ($branchAKnob (getNodeById $updatedSubtree (mkNodeId (2 2))))
+             ($branchBKnob (getNodeById $updatedSubtree (mkNodeId (3 2))))
+           )
+           (and (== $branchAHead (moveTree))
+                (and (== $branchBHead (turnTree))
+                     (and (== $branchAKnob (mkKnob (mkNullVex $permsA) $askA 0))
+                          (and (== $branchBKnob (mkKnob (mkNullVex $permsB) $askB 1))
+                               (== (MultiMap.length $mmp) 2))))))))
+  True)
+;; and_seq follows the C++ probabilistic path and produces knobs with this seed.
+!(assertEqual
+  (let* (($origTree (mkTree (mkNode and_seq) (cons (moveTree) ())))
+         (($updatedTree $mmp) (buildAction $origTree () (move_forward turn_left) (A B) ()))
+        )
+    (and (> (MultiMap.length $mmp) 0)
+         (not (== $updatedTree $origTree))))
+  True)
+
+!(assertEqual
+  (let ($updatedTree $mmp) (buildAction (mkTree (mkNode and_seq) ()) () (move_forward turn_left) (A B) ())
+    (> (MultiMap.length $mmp) 0))
+  True)
+  
+
+!(assertEqual
+  (let*
+    (
+      (($tree $mmp) (buildAction (mkTree (mkNode and_seq) (cons (mkTree (mkNode move_forward) ()) ())) () (move_forward turn_left) () ()))
+    )
+    (and
+      (not (== $tree ()))
+      (> (MultiMap.length $mmp) 0)))
+  True)
+;; buildKnobs dispatches action roots (and_seq and other structural roots)
+!(assertEqual
+  (let ($updatedTree $mmp) (buildKnobs (mkTree (mkNode and_seq) (cons (moveTree) ())) () () (move_forward turn_left) (A B) ())
+    (> (MultiMap.length $mmp) 0))
+  True)
+
+;; A non-and_seq structural root (or_seq) is canonized: the root becomes
+;; and_seq and the original or_seq subtree is preserved as child (1). Structural
+;; pin only (the root-knob insertion is probabilistic).
+!(assertEqual
+  (let* (($tree (mkTree (mkNode or_seq)
+                  (cons (mkTree (mkNode playcenter) ())
+                  (cons (mkTree (mkNode playcorner) ())
+                  (cons (mkTree (mkNode playblock) ()) ())))))
+         (($updatedTree $mmp) (buildKnobs $tree () () (playcenter playcorner playblock) () ())))
+    ((getNodeValue (getNodeById $updatedTree (mkNodeId (0))))
+     (getNodeById $updatedTree (mkNodeId (1)))))
+  ((mkNode and_seq)
+   (mkTree (mkNode or_seq)
+     (cons (mkTree (mkNode playcenter) ())
+     (cons (mkTree (mkNode playcorner) ())
+     (cons (mkTree (mkNode playblock) ()) ()))))))
+
+;; Canonize and cleanup mirror the C++ action pre/post passes.
+!(assertEqual
+  (actionCanonize (mkTree (mkNode and_seq) (cons (moveTree) ())))
+  (mkTree (mkNode and_seq) (cons (moveTree) ())))
+
+!(assertEqual
+  (actionCanonize (moveTree))
+  (mkTree (mkNode and_seq) (cons (moveTree) ())))
+
+!(assertEqual
+  (actionCleanup (mkTree (mkNode and_seq) ()))
+  (mkNullVex ()))
+
+!(assertEqual
+  (actionCleanup (mkTree (mkNode or_seq) ()))
+  (mkNullVex ()))
+
+!(assertEqual
+  (actionCleanup (mkTree (mkNode seq_exec) ()))
+  (mkNullVex ()))
+
+!(assertEqual
+  (actionCleanup (mkTree (mkNode exec_seq) ()))
+  (mkNullVex ()))
+
+!(assertEqual
+  (actionCleanup (mkTree (mkNode action_failure) ()))
+  (mkTree (mkNode action_failure) ()))
+
+!(assertEqual
+  (actionCleanup (mkTree (mkNode and_seq) (cons (moveTree) ())))
+  (mkTree (mkNode and_seq) (cons (moveTree) ())))

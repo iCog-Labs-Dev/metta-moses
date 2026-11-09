@@ -1,16 +1,15 @@
-;; A function to identify triviall-tautological subexpressions and
-;;    removes the point of application(POA).
+;; A function to identify trivially tautological subexpressions and
+;;    remove the point of application (POA).
 ;; Definitions: Guard set of a POA is the set of literals in the POA.
 ;; Preconditions: The POA is OR node, has a child which has an empty
 ;;                  guard set and no children.
-;; Action: It will remove the POA from it's parent and return an empty
-;;            expression instead of current if transformtion applied.
+;; Action: It will remove the POA from its parent and return an empty
+;;            expression instead of current if the transformation is applied.
 ;;         It will additionally return a boolean value indicating
 ;;          whether the transformation is applied or not.
 ;;         
 ;; Example: input: POA ==> (OR C), parent ==> (AND A (OR A (NOT B)) (OR C AND))
 ;;        : output: ((AND A (OR A (NOT B))) () True)
-;; (: zeroConstraintSubsume (-> Expression Expression (Expression Expression Bool)))
 (= (zeroConstraintSubsume $parent $current)
   (case ((get-metatype $current) $current)
     (
@@ -24,7 +23,12 @@
             ($updatedChildren (filter-atom $children $child (nodeHasChildOrGuard $child)))
             ($updatedCurrent (cons-atom $head $updatedChildren))
           )
-          (case ($head $children)
+          ;; quote: a bare ($head ...) tuple would be a runtime meta-call into
+          ;; scoring/boolean-ops' eval clauses. CAVEAT: `case` normalizes its
+          ;; scrutinee past the quote (see cut-unnecessary-and.metta); behavior
+          ;; with the clauses registered is validated end-to-end, not by this
+          ;; guard alone.
+          (case (quote ($head $children))
             (
               ((AND $_) ($parent $current False))
               ((OR ()) ($parent $current False))
@@ -44,38 +48,43 @@
 ;;         Otherwise, it will just return the unchanged state.
 ;; Example: input: POA ==> (AND), parent ==> (OR A C (AND) (OR A B))
 ;;          output: ((OR A C (OR A B)) () True)
-;; (: zeroConstraintSubsume' (-> Expression Expression (Expression Expression Bool)))
-(= (zeroConstraintSubsume' $parent $current)
+(= (zeroConstraintSubsumeEmptyNode $parent $current)
   (case ((get-metatype $current) $current)
     (
       ((Expression ()) ($parent $current False))
       ((Expression (NOT $x)) ($parent $current False))
       ((Symbol $current) ($parent $current False))
       ((Expression $current)
-        (if (and (== (car-atom $parent) OR) (== $current (AND)))
+        ;; car-atom on a Symbol yields no solution, and $parent is one whenever an enclosing
+        ;; node reduced to a constant. `and` is not short-circuit: guard with a nested `if`.
+        (let $parentHead (if (== (get-metatype $parent) Expression)
+                             (if (== $parent ()) () (car-atom $parent))
+                             ())
+        (if (and (== $parentHead OR) (== $current (AND)))
             ((findAndReplace $parent (AND) $parent) (AND) True) ;; Removes the entire OR if it has an empty AND as child
             (let*
               (
-                ;  (() (println! (===Inside ZeroConstraintSubsume'===)))
-                ;  (() (println! (Current: $current : Parent: $parent)))
+                ;; (() (println! (===Inside ZeroConstraintSubsume'===)))
+                ;; (() (println! (Current: $current : Parent: $parent)))
                 ($children (getChildrenExp $current))
                 ($literals (getLiterals $current))
               )
               ;; POA is AND & OR and has no children and guardSet
-              (if (and (not (== $current $parent)) (not (== $parent AND)))
-                (if (and (== $literals ()) (== $children ()))
-                    ((removeElement ($current) $parent) () True)
-                    ($parent $current False)
-                )
-                ($parent $current False)
-              )
+              (if (and (and (!= $current $parent) (!= $parent AND))
+                       (and (== $literals ()) (== $children ())))
+                  ((removeElement ($current) $parent) () True)
+                  ($parent $current False))
             )
-        )
+        ))
       )
     )
   )
 )
 
 
-;; a helper function which checks if an expression has a child (subexpression) or a literal or not
-(= (nodeHasChildOrGuard $node) (or (not (== (getLiterals $node) ())) (not (== (getChildrenExp $node) ()))))
+;; A helper function which checks if an expression has a child (subexpression) or a literal.
+;; A constant must survive this filter: TRUE/FALSE have no literals and no children, so
+;; without the isConstant arm they look exactly like the placeholders it exists to delete.
+(= (nodeHasChildOrGuard $node)
+   (or (isConstant $node)
+       (or (!= (getLiterals $node) ()) (!= (getChildrenExp $node) ()))))

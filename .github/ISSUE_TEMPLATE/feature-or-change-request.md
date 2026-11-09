@@ -15,5 +15,8 @@ assignees: ''
 **Context**
 <!--- Why is this change important? -->
 
+**Classic MOSES reference**
+<!--- Not obligatory. If the change ports or follows classic MOSES behaviour, name the classic file or function. If it differs from classic on purpose, say why. -->
+
 **Possible Implementation**
 <!--- Not obligatory, but suggest an idea for implementing addition or change -->

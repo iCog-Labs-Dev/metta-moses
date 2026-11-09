@@ -1,23 +1,6 @@
-(= (fold $f $acc $tuple)
-    (if (== $tuple ()) $acc
-        (fold $f ($f $acc (car-atom $tuple)) (cdr-atom $tuple))
-    )
-)
-
-
-(= (concat-tuple $xs $ys)
-    (if (== $xs ()) $ys
-        (let* (($head (car-atom $xs))  
-               ($tail (cdr-atom $xs)) 
-               ($tail-new (concat-tuple $tail $ys))  
-              )
-          (cons-atom $head $tail-new)  
-        )
-    )
-)
-
-
-; (: addAND (-> Expression Bool Expression))
+;; addAND wraps each literal and OR node that is not under an AND node in an AND node.
+;; The bare (AND ...) builds in this file are data only because
+;; this file loads before scoring/boolean-ops.
 (= (addAND $expr $isFinal)
     (if (and $isFinal (or (== (car-atom $expr) OR) (== (car-atom $expr) NOT)))
         (AND $expr)
@@ -25,18 +8,19 @@
     )
 )
 
-; (: addAND (-> Expression Expression))
 (= (addAND $expr)
   (if (== (get-metatype $expr) Expression)
       (addAND $expr (car-atom $expr) ())
       (addAND $expr () ())
   ))
 
-; (: addAND (-> Expression Symbol Symbol Expression))
 (= (addAND $expr $parent $prev)
     (case (get-metatype $expr)
         (
-            (Symbol (if (or (or (or (== AND $expr) (== OR $expr)) (== NOT $expr))
+            ;; A constant is already a complete node. Wrapping it as (AND TRUE) buries it:
+            ;; the annihilator test looks for a TRUE *child*, so a wrapped one reads as an
+            ;; ordinary AND branch and the alternative gets dropped as the identity.
+            (Symbol (if (or (or (or (or (== AND $expr) (== OR $expr)) (== NOT $expr)) (isConstant $expr))
                             (or (== $parent AND) (== $prev AND)))
                           $expr
                           (AND $expr)
@@ -48,7 +32,12 @@
                     ($parentIsAND (== AND $parent))
 
                   )
-                    (case ($h $parentIsAND)
+                    ;; quote: a bare ($h ...) tuple would be a runtime meta-call into
+                    ;; scoring/boolean-ops' eval clauses. CAVEAT: `case` normalizes its
+                    ;; scrutinee past the quote (see cut-unnecessary-and.metta); behavior
+                    ;; with the clauses registered is validated end-to-end, not by this
+                    ;; guard alone.
+                    (case (quote ($h $parentIsAND))
                         (
                             ((NOT True) $expr)
                             ((NOT False) (AND $expr))
@@ -66,14 +55,17 @@
 )
 
 
-(= (nary-gather-junctors $expr $prev)
+;; gatherJunctors flattens nested junctors with the same operator:
+;; (OR A (OR B C)) -> (OR A B C).
+(= (gatherJunctors $expr $prev)
     (
         if (== (get-metatype $expr) Expression)
                 (
             let* (
                 ($op (car-atom $expr)) 
                 ($tuple (cdr-atom $expr))
-                ($newTuple (fold concat-tuple () (map-atom $tuple $tp (nary-gather-junctors $tp $op))))
+                ($gathered (map-atom $tuple $tp (gatherJunctors $tp $op)))
+                ($newTuple (foldl-atom $gathered () $acc $x (concatTuple $acc $x)))
                 ($tupleWithOp (cons-atom $op $newTuple))
             )
             (
@@ -94,4 +86,4 @@
 
 
  
-(= (gatherJunctors $expr) (nary-gather-junctors $expr ()))
+(= (gatherJunctors $expr) (gatherJunctors $expr ()))

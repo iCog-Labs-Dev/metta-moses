@@ -21,7 +21,7 @@
 ;;        $n: number of elements to select
 ;;        $picked: list of picked numbers
 ;;
-;; Return a list of selected indexs as Expression 
+;; Return a list of selected indexes as Expression
 
 ;; (: lazyRandomSelector (-> Number Number Number Expression ))
 (= (lazyRandomSelector $lower $upper $n) (lazyRandomSelector $lower $upper $n ()))

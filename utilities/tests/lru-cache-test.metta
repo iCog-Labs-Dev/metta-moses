@@ -1,4 +1,6 @@
 !(import! &self ../../utilities/general-helpers)
+!(import! &self ../../parameters/registry)
+!(import! &self ../../parameters/defaults)
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/lru-cache)
 !(import! &self ../../feature-selection/feature-selection-helpers)
@@ -14,7 +16,7 @@
 
 ; (: cachedFactorial (-> Number Number))
 (= (cachedFactorial $n)
-   (lruCache (DEFAULT_CACHE_SIZE) ((factorial) ($n))))
+   (lruCache (param defaultCacheSize) ((factorial) ($n))))
 
 ; (: cachedMultiply (-> Number Number Number Number))
 (= (cachedMultiply $a $b $c)

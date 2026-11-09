@@ -2,6 +2,7 @@
 !(import! &self ../../utilities/list-methods)
 !(import! &self ../../utilities/ordered-multimap) 
 !(import! &self ../../utilities/tree)
+!(import! &self ../../scoring/action-registry)
 !(import! &self ../knob-representation)
 
 !(assertEqual (let $return (mkKnob  (mkNodeId (1))) $return)  
@@ -39,17 +40,28 @@
   (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))
 
 
-; getKnobSpec Tests
+;; getKnobSpec Tests
 !(assertEqual (getKnobSpec (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) (cons (mkDiscSpec 1) ())))) (mkDiscSpec 2))
+
+;; Shared effective-setting validation and mapping.
+!(assertEqual
+  (resolveDiscreteSetting
+    (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ((mkDiscSpec 1))))
+    1)
+  2)
+
+!(assertEqual
+  (resolveDiscreteSetting
+    (mkASK (mkDiscKnob (mkMultip 2) (mkDiscSpec 1) (mkDiscSpec 1) ())
+           ((mkTree (mkNode A) ())))
+    2)
+  (Error 2 "Invalid effective disc specification."))
 
 ;; Testing getmultiplicity function
 !(assertEqual (getKnobMultip (mkDiscKnob (mkKnob (mkTree (mkNode A) ()) (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ())) (mkMultip 2))
 !(assertEqual (getKnobMultip (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (mkMultip 2))
 !(assertEqual (getKnobSpec (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (mkDiscSpec 3))
 
-;; Test for getKnobLoc
-!(assertEqual (getKnobLoc (mkLSK (mkDiscKnob (mkKnob  (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (mkNodeId (1)))
-!(assertEqual (getKnobLoc (mkLSK (mkDiscKnob (mkKnob (mkNodeId (1))) (mkMultip 2) (mkDiscSpec 0) (mkDiscSpec 0) ()))) (mkNodeId (1)))
 
 ;; Test for discSpec<
 !(assertEqual (discSpec< (mkDiscSpec 2) (mkDiscSpec 3)) False)

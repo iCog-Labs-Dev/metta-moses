@@ -31,19 +31,14 @@
 ;; Incremental Feature Selection Algorithm
 
 
-(= (get-column $n ()) ())
-(= (get-column $n (cons $row $rows))
-   (cons (List.getByIdx $row $n) (get-column $n $rows)))
+;; The payload is COLUMN-major, so column $n is its $n-th element.
+(= (get-column $n $columns) (List.getByIdx $columns $n))
 
-(= (extract-features $indices $row)
-   (if (== $indices ())
-       ()
-       (let (cons $idx $restIndices) $indices
-            (cons (List.getByIdx $row $idx) (extract-features $restIndices $row)))))
-
-(= (get-columns $indices ()) ())
-(= (get-columns $indices (cons $row $rows))
-   (cons (extract-features $indices $row) (get-columns $indices $rows)))
+;; Row-wise tuples over the selected columns, one observation per row: that is
+;; Table.transpose, from feature-selection-helpers, which every importer of this
+;; file must load first.
+(= (get-columns $indices $columns)
+   (Table.transpose (map-atom $indices $i (get-column $i $columns))))
 
 (= (unique-list ()) ())
 (= (unique-list (cons $h $t))
@@ -71,17 +66,17 @@
               ($probs (map-prob $uniqueZ $z $n)))
                 (- 0.0 (List.sum (map-entropy-term $probs))))))
 
-(= (get-target-col (mkITable $rows $features))
+(= (get-target-col (mkITable $columns $features))
       (- (List.length $features) 1))
 
-(= (get-rows (mkITable $rows $features)) $rows)
+(= (get-table-columns (mkITable $columns $features)) $columns)
 
 (= (mi-score $table $indices)
    (if (== $indices ()) 0.0
-       (let* (($rows (get-rows $table))
+       (let* (($columns (get-table-columns $table))
               ($targetCol (get-target-col $table))
-              ($y (get-column $targetCol $rows))
-              ($x (get-columns $indices $rows))
+              ($y (get-column $targetCol $columns))
+              ($x (get-columns $indices $columns))
               ($xy (List.zip $x $y)))
              (- (+ (entropy $x) (entropy $y)) (entropy $xy)))))
 
@@ -100,10 +95,10 @@
    (unique-atom (union-atom $head (flatten-unique $tail))))
 
 (= (get-rel $table $tf $i $threshold)
-   (let $fss (collapse (comb $i $tf))
-        (let $relevantSubsets (collapse (let $fs (superpose $fss)
-                                               (if (> (cached-mi-score $table $fs) $threshold) $fs (empty))))
-             (flatten-unique $relevantSubsets))))
+   (let* (($fss (collapse (comb $i $tf)))
+          ($relevantSubsets (collapse (let $fs (superpose $fss)
+                                           (if (> (cached-mi-score $table $fs) $threshold) $fs (empty))))))
+     (flatten-unique $relevantSubsets)))
 
 (= (max-score-subset $table ()) (empty))
 (= (max-score-subset $table (cons $head ())) $head)
@@ -116,20 +111,20 @@
 (= (redundant-features $features $table $redThreshold $k)
    (if (== $k (List.length $features))
        ()
-       (let $sfs (collapse (comb $k $features))
-            (let $mit (max-score-subset $table $sfs)
-                 (if (< (- (mi-score $table $features) (mi-score $table $mit)) $redThreshold)
-                     (subtraction-atom $features $mit)
-                     (redundant-features $features $table $redThreshold (+ $k 1)))))))
+       (let* (($sfs (collapse (comb $k $features)))
+              ($mit (max-score-subset $table $sfs)))
+         (if (< (- (mi-score $table $features) (mi-score $table $mit)) $redThreshold)
+             (subtraction-atom $features $mit)
+             (redundant-features $features $table $redThreshold (+ $k 1))))))
 
 (= (get-redundant-features $features $table $redThreshold)
    (redundant-features $features $table $redThreshold 1))
 
 (= (get-red $table $rel $i $redThreshold)
-   (let $nrfss (collapse (comb (+ $i 1) $rel))
-        (let $redSubsets (collapse (let $fs (superpose $nrfss)
-                                         (get-redundant-features $fs $table $redThreshold)))
-             (flatten-unique $redSubsets))))
+   (let* (($nrfss (collapse (comb (+ $i 1) $rel)))
+          ($redSubsets (collapse (let $fs (superpose $nrfss)
+                                      (get-redundant-features $fs $table $redThreshold)))))
+     (flatten-unique $redSubsets)))
 
 ;; --- LRU Cache for mi-score ---
 ;; State atoms stored in &self:
@@ -149,7 +144,7 @@
 (= (lru-next-tick)
    (let $ticks (collapse (match &self (lru-tick $t) $t))
         (if (== $ticks ())
-            (let $_ (add-atom &self (lru-tick 1)) 1) ; This branch is simple, can stay as let
+            (let $_ (add-atom &self (lru-tick 1)) 1)
             (let* (((cons $t $rest) $ticks)
                    ($nextT (+ $t 1))
                    ($_ (remove-atom &self (lru-tick $t)))
