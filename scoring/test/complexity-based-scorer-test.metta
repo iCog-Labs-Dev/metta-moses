@@ -1,4 +1,8 @@
 !(import! &self ../../utilities/general-helpers) 
+;; scoring/fitness publishes the table through the parameter registry, so bind
+;; &params and import the registry before it.
+!(bind! &params (new-space))
+!(import! &self ../../parameters/registry)
 !(import! &self ../../utilities/list-methods) 
 !(import! &self ../../utilities/map)
 !(import! &self ../../utilities/ordered-set)
@@ -123,8 +127,8 @@
  (mkTree (mkNode AND) ((mkTree (mkNode A) ()) (mkTree (mkNode OR) ((mkTree (mkNode B) ()) (mkTree (mkNode C) ()) (mkTree (mkNode NOT) ((mkTree (mkNode D) ()))))))))
 
 ;; The scorer below evaluates against a DIFFERENT table (ttable2). Every
-;; &subtreeCache entry (subtree/leaf/outputs columns) is valid only for the
-;; table it was computed from, so reset the cache between the two runs.
+;; scoring memo entry is valid only for the table it was computed from, so
+;; reset the memo between the two runs.
 !(resetSubtreeCache)
 
 !(assertEqual

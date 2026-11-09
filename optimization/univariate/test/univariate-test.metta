@@ -1,4 +1,8 @@
 !(import! &self ../../../utilities/general-helpers)
+;; scoring/fitness publishes the table through the parameter registry, so bind
+;; &params and import the registry before it.
+!(bind! &params (new-space))
+!(import! &self ../../../parameters/registry)
 !(import! &self ../../../utilities/list-methods)
 !(import! &self ../../../utilities/map)
 !(import! &self ../../../utilities/ordered-multimap)

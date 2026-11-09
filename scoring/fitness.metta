@@ -41,17 +41,52 @@
 
 
 ;; ---------------------------------------------------------------------------
-;; Columnar subtree evaluation over the wrapped preOrderExp shape:
-;;   node = (AND (c1 .. ck)) / (OR (c1 .. ck)) / (NOT (c));  leaf = label | True/False
-;; Every subtree is evaluated ONCE into a boolean column over all rows and
-;; memoized in &subtreeCache, keyed by its ground wrapped expr (valid for the
-;; run's single fixed table). Operator semantics live solely in the AND/OR/NOT
-;; clauses (scoring/boolean-ops): on a cache miss a one-level template with
-;; fresh shared vars is built once and every row is scored by unification --
-;; sealed freshens the vars, a positional let binds the row's child values,
-;; and one let-bound `reduce` dispatches the clause. A head with no clause
-;; stays unreduced and scores worst (-1), like the old ERROR column.
+;; Columnar scoring engine: compile the candidate once, then one memoized walk.
+;; rewriteTree compiles a candidate Tree into a column term, for example
+;;   (AND x (OR y z)) -> (zipOp AND (col x) (zipOp OR (col y) (col z)))
+;; evalSubtree walks that term. lib_memo caches each sub-term, so a sub-formula
+;; that many candidates share computes its column one time. zipOp, mapOp and
+;; zipWithN apply the op to each row through its WRAPPED clause, (AND (a b)) or
+;; (NOT (a)) in scoring/boolean-ops, so each op has one clause. A head with no
+;; clause stays unreduced in its rows, AND/OR treat it as not False, and the
+;; candidate scores as the old per-row engine scored it.
+;;
+;; The table is in the parameter registry, not in the term, so it is not part
+;; of a memo key. An entry file that scores must bind &params and import
+;; parameters/registry before this file. If not, evalTree gives zero solutions.
+;;
+;; HAZARD: col, mapOp, zipOp, zipWithN and the op symbols are live heads.
+;; Every term that this file emits as data is quoted.
 ;; ---------------------------------------------------------------------------
+
+;; The memoize directives need lib_memo, so this module imports it.
+;; Keys are per sub-term: about 2 to 2.5 times the distinct candidates.
+;; HAZARD: a call site compiled before !(memoize f 1) does not use the memo.
+;; So the directives come first, before every caller of f.
+!(import! &self (library lib_memo))
+!(config-memoize (unique-limit 100000) (strategy wtinylfu) (size-limit 5))
+!(memoize rewriteTreeCached 1)
+!(memoize evalSubtree 1)
+
+;; Score entry: publish the table, then compile and walk the candidate.
+;; (: evalTree (-> (Tree $a) (ITable $a) (List Bool)))
+(= (evalTree $tree $itable)
+   (let $_ (useTable $itable)
+     (evalTerm (rewriteTreeCached $tree))))
+
+;; Publish the table that col reads. lib_memo does not see a table change, so
+;; a new table empties the memo: each cached column belongs to one table.
+(= (useTable $itable)
+   (if (== (param scoringTable) $itable)
+       True
+       (let* (((mkITable $columns $labels) $itable)
+              ($_ (set-param scoringTable $itable))
+              ($_2 (set-param scoringRowCount (ITable.rowCount $columns))))
+         (resetSubtreeCache))))
+
+;; Empty the scoring memo (evalSubtree and rewriteTreeCached). This also
+;; resets the lib_memo counters.
+(= (resetSubtreeCache) (clear-memoize))
 
 ;; Extract a label's column from the column-major table: the payload is the list
 ;; of columns, so the label's column is one index-atom away. Unknown label ->
@@ -63,21 +98,14 @@
             (Error $label "varColumn: label not found in table")
             (index-atom $columns $idx))))
 
-;; Node row-template, built once per cache miss: ($varsTerm $exprTerm) sharing
-;; fresh vars, e.g. (($v1 $v2) (AND ($v1 $v2))). map-atom's per-element
-;; copy_term mints the k distinct vars; `cons` keeps the node inert (a bare
-;; (AND ...) literal would fire the clause at build time).
-(= (mkNodeTemplate $op $cvs)
-   (let* (($vars (map-atom $cvs $c $v))
-          ($e    (cons $op (cons $vars ()))))
-     ($vars $e)))
-
-;; One row through the template: sealed copies vars and expr together (the
-;; template stays unbound for the next row), the let unifies the row's child
-;; values positionally, and `reduce` dispatches the operator clause.
-(= (evalRow $template $row)
-   (let ($vars $e) $template
-        (sealed $vars (let $vars $row (reduce $e)))))
+;; --- The column vocabulary of a compiled term -------------------------------
+;; col reads the published table. zipOp (binary), mapOp (unary) and zipWithN
+;; (n-ary) give the op one row tuple per row, the argument shape of its wrapped
+;; clause. The op is a variable head, so a clause added later is found too.
+(= (col $label) (varColumn (param scoringTable) $label))
+(= (zipOp $op $xs $ys) (map-atom (zip $xs $ys) $row ($op $row)))
+(= (mapOp $op $xs) (map-atom $xs $x ($op ($x))))
+(= (zipWithN $op $columns) (map-atom (transposeCols $columns) $row ($op $row)))
 
 ;; Non-empty equal-length columns -> per-row value tuples (ground data only).
 (= (transposeCols $cols)
@@ -86,33 +114,69 @@
        (cons (map-atom $cols $c (car-atom $c))
              (transposeCols (map-atom $cols $c (cdr-atom $c))))))
 
-;; Child columns -> node column: template once, then each transposed row
-;; through evalRow via the var-safe map (map-atom would copy the template
-;; per row). Childless AND/OR reduce their identity once and repeat it.
-(= (combineNode $op $cvs $n)
-   (if (== $cvs ())
-       (List.repeat $n (let $e (cons $op (cons () ())) (reduce $e)))
-       (let $t (mkNodeTemplate $op $cvs)
-         (map evalRow $t (transposeCols $cvs)))))
+;; --- Monoids ----------------------------------------------------------------
+;; mempty: the identity of a monoid op, or () for any other op. A monoid node
+;; folds into nested binary zipOp terms. Each level is a memo key, and
+;; candidates share these keys. To add a monoid, add one case line here.
+(= (mempty $op) (case $op ((AND True) (OR False) ($_ ()))))
+(= (isMonoid $op) (!= (mempty $op) ()))
 
-;; Wrapped (sub)expression -> boolean column. Nodes AND label leaves are
-;; memoized, so a label's table walk happens once per run. The map-atom over
-;; the destructured children is the engine's only tree recursion.
-;; (: evalSubtree (-> Expression (ITable $a) Number (List Bool)))
-(= (evalSubtree $exp $itable $n)
-   (if (== (get-metatype $exp) Grounded)
-       ;; grounded literal (True/False): constant column, not worth caching
-       (List.repeat $n $exp)
-       ;; operator node or label leaf: one shared memo path
-       (chain (collapse (match &subtreeCache (subtree $exp $v) $v)) $hit
-         (if (== $hit ())
-             (let* (
-                     ($col (if (== (get-metatype $exp) Expression)
-                              ;; every node is uniformly ($op ($c1 .. $ck))
-                              (let* ((($op $children) $exp)
-                                     ($cvs (map-atom $children $child (evalSubtree $child $itable $n))))
-                                (combineNode $op $cvs $n))
-                              (varColumn $itable $exp)))
-                    ($_   (add-atom &subtreeCache (subtree $exp $col))))
-               $col)
-             (car-atom $hit)))))
+;; One binary zipOp term. Quoted: zipOp is a live head.
+(= (zipNode $op $left $right) (quote (zipOp $op $left $right)))
+
+;; --- rewriteTree: candidate Tree -> column term ------------------------------
+;; A compiler, not an evaluator: it never reads the table.
+;; Childless node: a monoid gives its identity, a constant gives its Bool, and
+;; any other symbol is a label. TRUE/FALSE are the reduct constants.
+(= (rewriteTree (mkTree (mkNode $r) ()))
+   (if (isMonoid $r)
+       (mempty $r)
+       (case $r
+         ((TRUE True)
+          (FALSE False)
+          (True True)
+          (False False)
+          ($_ (quote (col $r)))))))
+
+;; A null knob gives nothing (the operator clause drops it). A real knob
+;; compiles its inner tree.
+(= (rewriteTree (mkKnob (mkNullVex $tree) $lsk $i)) ())
+(= (rewriteTree (mkKnob (mkTree $node $children) $lsk $i))
+   (rewriteTree (mkTree $node $children)))
+
+;; Operator node. The count of children that SURVIVE the null-knob filter
+;; selects the form, so 0 is possible. A non-monoid op with 0 children gives
+;; zero solutions, as the old engine did.
+(= (rewriteTree (mkTree (mkNode $r) (cons $x $xs)))
+   (let $cols (filter-atom (map-atom (cons $x $xs) $c (rewriteTree $c)) $y (!= $y ()))
+     (if (isMonoid $r)
+         (if (== $cols ())
+             (mempty $r)
+             (List.foldr1 (zipNode $r) $cols))
+         (case (size-atom $cols)
+           ((0 (empty))
+            (1 (let ($c1) $cols (quote (mapOp $r $c1))))
+            (2 (let ($left $right) $cols (zipNode $r $left $right)))
+            ($_ (quote (zipWithN $r $cols))))))))
+
+;; Memoized compile of the root only. The compile does not read the table.
+(= (rewriteTreeCached $tree) (rewriteTree $tree))
+
+;; --- evalSubtree: one memoized walk over a compiled term --------------------
+;; evalTerm sends only Expressions and Bool constants through the memo. A
+;; symbol (an op, a label, col) passes unchanged, so it takes no memo lookup.
+(= (evalTerm $term)
+   (if (== (get-metatype $term) Symbol)
+       $term
+       (evalSubtree $term)))
+
+;; A Bool constant becomes a full column. An Expression evaluates its children
+;; first (through evalTerm), then reduces the rebuilt node: col, mapOp, zipOp
+;; or zipWithN fires. Any other atom passes.
+(= (evalSubtree $term)
+   (if (or (== $term True) (== $term False))
+       (List.repeat (param scoringRowCount) $term)
+       (if (== (get-metatype $term) Expression)
+           (let $node (map-atom $term $c (evalTerm $c))
+             (reduce $node))
+           $term)))

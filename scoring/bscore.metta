@@ -41,20 +41,16 @@
 ;;
 ;; Returns: Behavioral score for the given tree.
 ;; (: scoreTree (-> (ITable $a) (Tree $a) $cacheSpace BehavioralScore))
-;; The score is derived entirely from the columnar subtree cache: evalSubtree
-;; evaluates the tree once into a per-row boolean vector, memoizing every
-;; subtree — including the root expression — in &subtreeCache. The root entry
-;; therefore serves as the whole-tree memo, so no separate whole-tree cache
-;; read/write is needed. $cacheSpace is kept for signature compatibility with
+;; evalTree (scoring/fitness) compiles the tree into a column term and walks
+;; it. lib_memo caches every sub-term, the root also, so no separate whole-tree
+;; cache is needed. $cacheSpace is kept for signature compatibility with
 ;; existing callers but is no longer used.
 (= (scoreTree (mkITable $columns $labels) $tree $cacheSpace)
    (if (== $tree (mkTree (mkNode AND) ()))
        ;; the empty AND tree scores worst (-1) on every row
        (mkBScore (List.repeat (ITable.rowCount $columns) -1))
        (let* (
-           ($expTree (preOrderExp $tree))
-           ($rowCount (ITable.rowCount $columns))
-           ($scoreList (evalSubtree $expTree (mkITable $columns $labels) $rowCount))
+           ($scoreList (evalTree $tree (mkITable $columns $labels)))
            ($length (List.length $labels))
            ;; the output column is the last element of the column-major payload
            ($outputs (index-atom $columns (- $length 1)))
