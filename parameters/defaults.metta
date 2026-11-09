@@ -17,9 +17,6 @@
 ;;    - Parameters describe algorithm behavior, not problem families.
 ;;      Boolean, strategy, feature-selection, and action problems therefore
 ;;      read the same keys and may override them for a particular run.
-;;    - The older metapopulation/metapopulation-params.metta also writes into
-;;      &params for its isolated compatibility tests, but this registry is the
-;;      source of truth for the production pipeline.
 ;; ============================================================
 
 !(bind! &params (new-space))
@@ -76,7 +73,7 @@
 ;;     the () default) leaves table behavior unchanged.
 ;; actions / perceptions: TUPLES of primitive symbols (the knob
 ;;   vocabulary read by representation building). actions is
-;;   MANDATORY for a run (moses-run-action refuses loudly when it is unset
+;;   MANDATORY for a run ((moses) refuses loudly when it is unset
 ;;   -- without it every deme is knobless and the run silently produces
 ;;   nothing); perceptions may legitimately be () (an experiment
 ;;   with no perceptions builds action-only knobs). Tuples cannot ride the
@@ -101,8 +98,8 @@
 ;;   Recognized values: hc (hill climbing).
 ;;   sa / univariate exist in the tree but are not integration-tested;
 ;;   passing them will halt with a clear error.
-;; fsAlgo: which feature-selection algorithm runMoses pipes into expandDeme.
-;;   Recognized values include: None, smd, sim, inc, rd, mi, hc.
+;; fsAlgo: which feature-selection algorithm the deme expansion uses.
+;;   Recognized values include: None, smd, sim, inc, rd, hc.
 ;; fsScorerType: the score the hc feature selector maximizes: mi or pre.
 ;;   The other selectors score by mutual information directly and ignore it.
 !(add-atom &params (optAlgo hc))
@@ -111,8 +108,7 @@
 
 ;; ---- Representation building ----
 ;; discProbe: prune complexity-reducing knob settings during logical-probe
-;; pass. Default False mirrors the shipped behaviour after the test-suite
-;; adjustment in d4d8529; flip to True to opt in via --discProbe=True.
+;; pass. Default False; set --discProbe=True to turn it on.
 !(add-atom &params (discProbe False))
 
 ;; ---- Metapopulation management ----
@@ -143,18 +139,12 @@
 !(add-atom &params (genCount 1000))
 
 ;; ---- Hill climbing ----
-;; hcMaxDist: maximum Hamming distance from the center instance the
+;; maxDist: maximum Hamming distance from the center instance the
 ;; neighborhood search explores (classic optim_parameters::max_dist).
-;; hcMinXoverNeighbors: neighborhood-size threshold above which the
+;; minXoverNeighbors: neighborhood-size threshold above which the
 ;; crossover path engages (classic hc_params::crossover_min_neighbors,
-;; classic default 400). ONE value each, regardless of problem kind --
-;; the per-domain tiers (Boolean/Fs/Strategy/Action) that used to live
-;; here redefined the same concept four times with untuned copies; tune
-;; per RUN instead via --hcMaxDist=N / --hcMinXoverNeighbors=N or
-;; in-script set-param.
-!(add-atom &params (hcMaxDist 4))
-!(add-atom &params (hcMinXoverNeighbors 400))
-;; These shared geometry controls reach every hill-climbing specialization.
+;; classic default 400). One value each for every problem kind; tune
+;; per run with --maxDist=N / --minXoverNeighbors=N or in-script set-param.
 !(add-atom &params (maxDist 4))
 !(add-atom &params (minXoverNeighbors 400))
 ;; These switches mirror hc_parameters.  Keeping widening off and crossover on
@@ -179,9 +169,6 @@
 ;; nTrials: episodes per candidate evaluation in ACTION domains (the
 ;; per-episode trial count). Override via --nTrials=N.
 !(add-atom &params (nTrials 12))
-;; Evaluator horizon for domains with stateful execution, such as Santa Fe.
-;; Boolean scorers do not consume this setting.
-!(add-atom &params (steps 600))
 
 ;; ---- Caching ----
 !(add-atom &params (defaultCacheSize 60))

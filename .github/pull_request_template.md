@@ -40,3 +40,4 @@
 - [ ] All new and existing tests passed.
 - [ ] I did not remove or weaken any test, or I listed it above with the lead's approval.
 - [ ] The PR contains no scratch files, logs, local tools or machine-specific paths.
+- [ ] If an agent helped with this PR: it reviewed the whole branch with `docs/agents/reviewing-prs.md`, section 7, and I read all the findings. Only a person ticks this box.

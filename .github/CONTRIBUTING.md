@@ -21,7 +21,7 @@ Aim to create small, focused pull requests that fulfill a single purpose. Smalle
 ##### Choose the right base branch
 Open your pull request against `dev` or against the integration branch of your task. Before you open it, update your branch (or your fork) from that base, so that the diff shows only your work.
 ##### Review your own pull request first
-Test your own pull request before submitting it. This will allow you to catch errors or typos that you may have missed, before others start reviewing. Make sure there are no merge conflicts with the branch your are sending the pull request to.
+Test your own pull request before submitting it. This will allow you to catch errors or typos that you may have missed, before others start reviewing. Make sure there are no merge conflicts with the branch your are sending the pull request to. If you use an agent, ask it to review your branch with `docs/agents/reviewing-prs.md`, section 7. Read all the findings yourself.
 ##### Provide context and guidance
 Write clear titles and descriptions for your pull requests so that reviewers can quickly understand what the pull request does. In the pull request body, include:
 - the purpose of the pull request

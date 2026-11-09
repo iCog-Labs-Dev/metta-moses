@@ -1,6 +1,6 @@
 ;; A function to remove an unnecessary AND and its child.
 ;; Definitions: A guard set of a POA is the set of literals in the POA.
-;; Preconditions: The point of application (POA) is and AND node,
+;; Preconditions: The point of application (POA) is an AND node,
 ;;                has an empty guard set, one child and
 ;;                for each child C of the POA, the intersection
 ;;                of the guard sets of the children of C is empty.
@@ -8,12 +8,10 @@
 ;;            grandChildren of the POA to the POA's parent and returns
 ;;            the updated parent, empty atom and a boolean value of
 ;;            true.
-;;         If conditions are not met, the function returns the unchanged state.
-;;            updated POA and also a boolean value corresponding to
-;;            whether the transformation function is applied or not.
+;;         If the conditions are not met, the function returns the parent, the
+;;            POA and a boolean value that tells if the POA changed.
 ;; Example: input: POA ==> (AND (OR (AND B D) (NOT E))), parent ==> (OR C (AND (OR (AND B D) (NOT E))))
 ;;          output: ((OR C (AND B D) (NOT E)) () True)
-; (: andCut (-> Expression Expression (Expression Expression Bool)))
 ;; Constants are inert here: map-atom over a Symbol yields NO SOLUTION, a silent failure
 ;; out through reduce-to. The constant laws are what act on them.
 (= (andCut $parent $current)
@@ -28,16 +26,17 @@
                                    $parentSec
                                    (map-atom $current $c (removeEmptyAND $c))))
                   (($guardSet $child) (getLiteralChildren $currentSec))
-                  (($h $t) (if (and (== (get-metatype $child) Expression) (!= $child ())) (decons-atom $child) (() ())))
                   ;; plain if, NOT if-decons-expr-custom: its (eval $then)
                   ;; deep-normalizes the returned tree data, firing
-                  ;; scoring/boolean-ops' AND/OR/NOT clauses
-                  ($tail (if (or (== $child ()) (!= (get-metatype $child) Expression)) "No child" $t))
+                  ;; scoring/boolean-ops' AND/OR/NOT clauses.
+                  ;; "No child" keeps (== $tail ()) False when there is no child.
+                  (($childFirst $tail) (if (and (== (get-metatype $child) Expression) (!= $child ()))
+                                           (decons-atom $child)
+                                           (() "No child")))
               )
               (if (and (== $tail ()) (== $guardSet ())) ;; Has no guardSet and has single child
                   (let*
                       (
-                          ($childFirst (if (or (== $child ()) (!= (get-metatype $child) Expression)) () $h))
                           (($grandLiterals $grandChildren) (getLiteralChildren $childFirst))
                           ($allLiterals (map-atom $grandChildren $gC (getGuardSet $gC)))
                           ($common (intersections $allLiterals))
@@ -60,36 +59,30 @@
             )))
 )
 
-;; Function to find intersections between all literals in a nested tuple
-; (: intersections (-> Expression Expression))
+;; Like intersectAll, but a single set has nothing in common with other sets: it gives ().
 (= (intersections $nestedTuple)
-   (case $nestedTuple 
+   (case $nestedTuple
      ((() $nestedTuple)
       ($else
         (if (== (cdr-atom $nestedTuple) ())
             ()
-            (let*
-              (
-                ($first (car-atom $nestedTuple))
-                ($tail (cdr-atom $nestedTuple)))
-              (findCommonLiterals $first $tail)))))))
+            (intersectAll $nestedTuple))))))
 
 
 ;; A helper function used to apply andCut in the until function.
 ;; This function keeps the state of the until function updated for a single function application.
-; (: applyAndCut (-> (Expression Bool (Expression Expression)) (Expression Bool (Expression Expression))))
 (= (applyAndCut ($parent $bool ($child $remainingChildren)))
       (let*
         (
-          (($updatedParent $updatedChild $appliedOrCut) (andCut $parent $child))
-          ($nextChild (if (~= $remainingChildren ()) (car-atom $remainingChildren) ()))
-          ($restChildren (if (~= $remainingChildren ()) (cdr-atom $remainingChildren) ()))
+          (($updatedParent $updatedChild $appliedAndCut) (andCut $parent $child))
+          (($nextChild $restChildren) (if (== $remainingChildren ()) (() ()) (decons-atom $remainingChildren)))
         )
-        ($updatedParent (or $appliedOrCut $bool) ($nextChild $restChildren))
+        ($updatedParent (or $appliedAndCut $bool) ($nextChild $restChildren))
       )
 )
 
-(= (removeEmptyAND $expr) ;; the function is removing the expression containing empty AND node, but it should return the parent.
+;; Removes the empty (AND) nodes from an expression.
+(= (removeEmptyAND $expr)
     (case (get-metatype $expr)
         (
             (Symbol $expr)
@@ -104,7 +97,7 @@
                     ;; AND/OR/NOT clauses are registered (reduct-only contexts). In the
                     ;; full pipeline (boolean-ops loaded) this MeTTa clause misdispatches
                     ;; and correctness relies on the native Prolog removeEmptyAND
-                    ;; override (rte-helpers-fast.pl, consulted in moses.metta)
+                    ;; override (rte-helpers-fast.pl, consulted in moses-imports.metta)
                     ;; superseding it — validated end-to-end (CI + mux6 differential).
                     (case (quote ($h $t))
                         (

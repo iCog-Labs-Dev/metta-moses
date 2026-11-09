@@ -13,49 +13,9 @@
            ($b (if (< $j $a) $j (+ $j 1))))
         ($a $b)))
 
-;; genPairs / genTriplet: deterministic full enumerations, kept as utilities
-;; (: genPairs (-> Expression Expression))
-(= (genPairs $list) (genPairsLoop $list $list))
-
-(= (genPairsLoop $xs $full)
-    (if (== $xs ())
-        ()
-        (let* (($x (car-atom $xs))
-               ($rest (cdr-atom $xs)))
-            (pairWith $x $full (genPairsLoop $rest $full)))))
-
-(= (pairWith $x $ys $tail)
-    (if (== $ys ())
-        $tail
-        (let* (($y (car-atom $ys))
-               ($rest (cdr-atom $ys)))
-            (if (== $x $y)
-                (pairWith $x $rest $tail)
-                (cons-atom ($x $y) (pairWith $x $rest $tail))))))
-
-;; (: genTriplet (-> Expression Expression))
-(= (genTriplet $list) (genTripletLoop $list (genPairs $list)))
-
-(= (genTripletLoop $xs $pairs)
-    (if (== $xs ())
-        ()
-        (let* (($x (car-atom $xs))
-               ($rest (cdr-atom $xs)))
-            (tripletWith $x $pairs (genTripletLoop $rest $pairs)))))
-
-(= (tripletWith $x $pairs $tail)
-    (if (== $pairs ())
-        $tail
-        (let* (($p (car-atom $pairs))
-               ($rest (cdr-atom $pairs))
-               (($y $z) $p))
-            (if (and (!= $x $y) (!= $x $z))
-                (cons-atom ($x $y $z) (tripletWith $x $rest $tail))
-                (tripletWith $x $rest $tail)))))
-
 ;; getArgs -> generate logical expressions for the picked permutation indices
 ;; Parameters:
-;;          $swapedOp -> swaped operator
+;;          $op -> the operator (callers pass the swapped operator)
 ;;          $n -> number of argument labels (index space {0 .. $n-1})
 ;;          $picked -> list of picked idxs
 ;; (: getArgs (-> Atom Number Expression Expression Expression))
@@ -88,7 +48,7 @@
 ;;          Union of $perms (the list of logical expressions generated) with args
 ;; (: sampleLogicalPerms (-> Atom Number Expression Expression))
 (= (sampleLogicalPerms $op $arity $argLabels $ignoreOps)
-    (let* (($swapedOp (swapAndOr $op))
+    (let* (($swappedOp (swapAndOr $op))
            ($nPairs $arity)) ;; since perm_ratio is 0.0 the max number of n_pairs = arity
         (if (<= $nPairs 1)
             (let $arg (car-atom $argLabels)
@@ -97,5 +57,5 @@
                          (quote ($arg)))) ;; assuming at worst case, only one argument is returned -- representation building process makes sure that those with empty feature set do not make it to actual knob building stage;; Preserve the argument even when NOT is ignored.
             (let* (($upperbound (- (* $arity (- $arity 1)) 1))
                    ($picked (lazyRandomSelector 0 $upperbound $nPairs))
-                   ($perms (getArgs $swapedOp $arity $picked $argLabels $ignoreOps)))
-               (concatT $argLabels $perms)))))
+                   ($perms (getArgs $swappedOp $arity $picked $argLabels $ignoreOps)))
+               (append $argLabels $perms)))))

@@ -1,19 +1,14 @@
 ;; Partial function used to filter and keep only literals of an expression.
 ;; An expression (NOT A) is also considered as a literal in the case of boolean expression.
 ;; 'AND' and 'OR' are not considered as a literal.
-(= (filterLiterals $exp)
-        (if (== (get-metatype $exp) Symbol)
-            (if (or (or (== $exp AND) (== $exp OR)) (isConstant $exp)) (empty) $exp)
-            (if (== (car-atom $exp) NOT)
-                $exp
-                (empty))))
+(= (filterLiterals $exp) (if (isLiterals $exp) $exp (empty)))
 
 (= (isLiterals $exp)
    (if (== (get-metatype $exp) Symbol)
        (not (or (or (== $exp AND) (== $exp OR)) (isConstant $exp)))
        (== (car-atom $exp) NOT)))
 
-;; A function that takes an expression and returns it's guard sets
+;; A function that takes an expression and returns its guard set.
 ;; Definition: Guard set of a node is the set of literals in the node. 
 ;;                Only AND nodes have guard sets.
 ;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
@@ -40,14 +35,12 @@
 ;; preserved: decons-atom on () still yields no solution, and OR nodes
 ;; yield (empty) — zero ND solutions.
 (= (getGuardSetND $exp)
-   (if (or (and (!= $exp ()) (!= (get-metatype $exp) Symbol)) (== (get-metatype $exp) Expression))
-      (let ($h $t) (decons-atom $exp)
-        (if (== $h OR)
-            (empty)
-            (getLiteralsND $exp)))
-      $exp
-    )
-)  
+   (if (== (get-metatype $exp) Symbol)
+       $exp
+       (let ($h $t) (decons-atom $exp)
+         (if (== $h OR)
+             (empty)
+             (getLiteralsND $exp)))))
 
 (= (addLiterals $exp $elements)
    (let*
@@ -73,10 +66,10 @@
                 (empty)
                 $exp)))
 
-(= (isChildren $exp)
+(= (isChild $exp)
         (if (== (get-metatype $exp) Symbol)
             (isConstant $exp)
-            (not (== (car-atom $exp) NOT))))
+            (!= (car-atom $exp) NOT)))
 
 ;; A function to return children of a given expression.
 ;; A child of a given expression is any subExpression.
@@ -88,7 +81,7 @@
          (() $exp)
          ((NOT $x) ())
          ($else (if (== (get-metatype $exp) Expression)
-                          (filter-atom $exp isChildren)
+                          (filter-atom $exp isChild)
                           ())))))
 
 ;; A function to add a list of children to a given expression.
@@ -103,18 +96,16 @@
         ($updatedSubExpression (concatTuple (getLiterals $exp) $newChildren))
         ($newExp (cons-atom $op $updatedSubExpression))
         
-        ; (() (println! (OldChildren: $oldChildren)))
-        ; (() (println! (ChildrenToAdd: $children)))
-        ; (() (println! (NewChildren: $newChildren)))
-        ; (() (println! (SubExprs: $updatedSubExpression)))
+        ;; (() (println! (OldChildren: $oldChildren)))
+        ;; (() (println! (ChildrenToAdd: $children)))
+        ;; (() (println! (NewChildren: $newChildren)))
+        ;; (() (println! (SubExprs: $updatedSubExpression)))
      )
      $newExp
    )
 )
 
-;; A function to find return the literals of an expression
-;;  the function performs returns the literals if the
-;;  expression is either an AND or an OR.
+;; A function that returns the literals of an AND or an OR expression.
 ;; Example: (AND (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 ;;          (OR (NOT A) (NOT B) A) -> ( (NOT A) (NOT B) A)
 ;;          (NOT A) -> (NOT A)
@@ -145,32 +136,13 @@
 ;;  and the children as a tuple ((...literals...), (...children...))
 (= (getLiteralChildren $expr) ((getLiterals $expr) (getChildrenExp $expr)))
 
-;; Function to find common literals between a tuple and a nested tuple 
-(= (findCommonLiterals $tuple $nestedTuple)
-    (if (or (== $nestedTuple ()) (== $tuple ()))
-        ()
-        (let*
-            (
-                ($first (car-atom $nestedTuple))
-                ($tail (cdr-atom $nestedTuple))
-                ($common (intersection-atom $tuple $first)))
-
-        (if (== $tail ())
-            $common
-            (findCommonLiterals $common $tail)))))
-
-;; Function to find common literals in a nested tuple
-(= (findCommon $nestedTuple)
-   (case $nestedTuple 
-     ((() $nestedTuple)
-      ($else
-        (if (== (cdr-atom $nestedTuple) ())
-            (car-atom $nestedTuple)
-            (let*
-              (
-                ($first (car-atom $nestedTuple))
-                ($tail (cdr-atom $nestedTuple)))
-              (findCommonLiterals $first $tail)))))))
+;; The intersection of a list of sets: a foldl1 of intersection-atom. () gives ().
+;; Example: ((A B C) (B C D) (C B)) -> (B C)
+(= (intersectAll $sets)
+   (if (== $sets ())
+       ()
+       (let ($first $rest) (decons-atom $sets)
+         (foldl-atom $rest $first $acc $set (intersection-atom $acc $set)))))
 
 ;; Name:                        invertLiterals
 ;; Description:                 A helper function that negates all literals in a literal only expression.
@@ -244,11 +216,11 @@
              ;; (NOT x) is a literal; a childless (AND)/(OR) is a placeholder, not a constant.
              (if (or (== $head NOT) (== $rest ()))
                  $expr
-                 (let* (($kids (map-atom $rest $child (applyConstantLaws $child)))
+                 (let* (($children (map-atom $rest $child (applyConstantLaws $child)))
                         ($identity    (if (== $head AND) TRUE FALSE))
                         ($annihilator (if (== $head AND) FALSE TRUE))
-                        ($kept (filter-atom $kids $k (not (== $k $identity)))))
-                   (if (== (filter-atom $kids $k (== $k $annihilator)) ())
+                        ($kept (filter-atom $children $k (!= $k $identity))))
+                   (if (== (filter-atom $children $k (== $k $annihilator)) ())
                        ;; Every child was the identity => the junctor IS the identity.
                        (if (== $kept ()) $identity (cons-atom $head $kept))
                        $annihilator)))))

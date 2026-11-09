@@ -63,8 +63,7 @@ A few common ones:
 Flags can appear in any order; unrecognized ones are ignored.
 The neutral `maxDist`, `minXoverNeighbors`, `revisit`,
 `discardDominated`, and `diagnostics` settings configure the same search
-pipeline for Boolean and action problems. `steps` is an evaluator horizon for
-stateful action domains and is harmlessly unused by Boolean scorers.
+pipeline for Boolean and action problems.
 
 If you run `./PeTTa/run.sh moses.metta -s` with **no** `--problem` (or
 without an in-script `(set-param problem …)`), MOSES prints the help and

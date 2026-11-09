@@ -20,7 +20,7 @@
 
 (= (levelNode $expr)
    (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
-       (let ($op $args) (decons $expr)
+       (let ($op $args) (decons-atom $expr)
          (if (isAssociative $op)
              (cons-atom $op (flattenAssoc $op $args))
              $expr))
@@ -29,7 +29,7 @@
 ;; removeNullVertices: remove null_vertex arguments from sequences (or pairs for cond)
 (= (removeNullVertices $expr)
    (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
-       (let ($op $args) (decons $expr)
+       (let ($op $args) (decons-atom $expr)
          (if (== $op cond)
              (cons-atom cond (removeNullCondPairs $args))
              (cons-atom $op (filter-atom $args $x (not (isNullVertex $x))))))
@@ -38,8 +38,8 @@
 ;; removeNullCondPairs: helper for cond pairs
 (= (removeNullCondPairs ()) ())
 (= (removeNullCondPairs $args)
-   (let* ((($cond $rest1) (decons $args))
-          (($conseq $rest2) (decons $rest1)))
+   (let* ((($cond $rest1) (decons-atom $args))
+          (($conseq $rest2) (decons-atom $rest1)))
      (if (isNullVertex $cond)
          (removeNullCondPairs $rest2)
          (cons-atom $cond (cons-atom $conseq (removeNullCondPairs $rest2))))))

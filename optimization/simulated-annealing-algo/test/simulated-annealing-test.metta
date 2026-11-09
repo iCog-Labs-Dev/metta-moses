@@ -30,7 +30,6 @@
 !(import! &self ../../../../metta-moses/representation/add-logical-knobs)
 !(import! &self ../../../../metta-moses/representation/build-logical)
 !(import! &self ../../../../metta-moses/representation/build-knobs)
-!(import! &self ../../../../metta-moses/representation/knob-mapper)
 !(import! &self ../../../../metta-moses/feature-selection/feature-selection-helpers)
 !(import! &self ../../../../metta-moses/representation/candidate)
 !(import! &self ../../../../metta-moses/representation/representation)
@@ -67,9 +66,15 @@
 
 !(py-call (random.seed 42))
 
+!(bind! &deme1 (new-space))
 
-(= (deme) (mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) (mkSInstSet ()) (mkDemeId "1")))
-(= (demes) (cons (mkDeme (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) ))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))) (mkSInstSet ()) (mkDemeId "1")) ()))
+(= (rep1) (mkRep (mkKbMap (mkDscMp (((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ()) )) ((mkDiscSpec 3) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())))))) (mkTree (mkNode AND) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) ())))))
+(= (instSet1) (mkSInstSet ()))
+(= (demeId1) (mkDemeId "1"))
+
+!(let $x (rep1) (add-atom &deme1 $x))
+!(let $y (instSet1) (add-atom &deme1 $y))
+!(let $z (demeId1) (add-atom &deme1 $z))
 
 (= (table1) (createTruthTableBScore 2 (mkITable
                          (cons (cons False (cons True (cons False (cons True ()))))
@@ -90,18 +95,8 @@
 !(assertEqual 
    (let*
       (
-          (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) (simulated-annealing (deme) (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
-           ($instanceCount (List.length $instSet))
-           ($scoredElems (List.map isScored $instSet))
-      )
-      ((>= $instanceCount 1) (List.any $scoredElems)) 
-   )
-(True True)
-)
-!(assertEqual 
-   (let*
-      (
-           (($instance (mkSInstSet $instSet) $state) (simulated-annealing (mkSInstSet ()) (itable) (mkInst (cons 1 (cons 0 ()))) (mkParams applyMutualInformationBasedScore mi)))
+          (($instance $demespace $state) (simulated-annealing &deme1 (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
+           ($instSet (match $demespace (mkSInstSet $s) $s))
            ($instanceCount (List.length $instSet))
            ($scoredElems (List.map isScored $instSet))
       )
@@ -110,6 +105,28 @@
 (True True)
 )
 
+!(bind! &deme2 (new-space))
+!(let $x (mkRep () ()) (add-atom &deme2 $x))
+!(let $y (mkSInstSet ()) (add-atom &deme2 $y))
+!(let $z (mkDemeId ()) (add-atom &deme2 $z))
+
+!(assertEqual 
+   (let*
+      (
+           (($instance $demespace $state) (simulated-annealing &deme2 (itable) (mkInst (cons 1 (cons 0 ()))) (mkParams applyMutualInformationBasedScore mi)))
+           ($instSet (match $demespace (mkSInstSet $s) $s))
+           ($instanceCount (List.length $instSet))
+           ($scoredElems (List.map isScored $instSet))
+      )
+      ((>= $instanceCount 1) (List.any $scoredElems)) 
+   )
+(True True)
+)
+
+!(bind! &deme3 (new-space))
+!(let $x (rep1) (add-atom &deme3 $x))
+!(let $y (mkSInstSet ()) (add-atom &deme3 $y))
+!(let $z (mkDemeId "3") (add-atom &deme3 $z))
 
 ;; Reproducibility test 
 ;; Pins one random path. The ActionGeneralization merge changed neighborhood sampling, so
@@ -118,8 +135,8 @@
 !(assertEqual 
     (let*
         (
-            (($instance (mkDeme $rep (mkSInstSet $instSet) $id) $state) 
-                (simulated-annealing (deme) (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
+            (($instance $representation $state)
+               (simulated-annealing &deme3 (table1) (mkInst (cons 0 (cons 0 ()))) (mkParams applyComplexityBasedScore ())))
            (($prevCenter $prevStart $prevSize $bestSscore $bestScore $currentNInstances $d $i) $state)
         )
         ((== $bestSscore (mkCscore -3 1 0.5 0.0 -3.5))(== $bestScore -3.5))

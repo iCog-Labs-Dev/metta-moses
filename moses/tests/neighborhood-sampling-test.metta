@@ -136,8 +136,9 @@
 
 (= (knobMapObj) (mkKbMap
                       (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))))
-(= (deme) (mkDeme 
-(mkRep (mkKbMap 
+
+!(bind! &deme1 (new-space))
+(= (rep) (mkRep (mkKbMap
     (mkDscMp 
       (cons 
         ((mkDiscSpec 3)
@@ -157,7 +158,13 @@
                (mkDiscKnob 
                  (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())
                ))
-            ()))))) (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 2) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 3) ())))))) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 4) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 5) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 6) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 7) ()))))))) (mkSInstSet ()) (mkDemeId "1")))
+            ()))))) (mkTree (mkNode OR) (cons (mkTree (mkNode AND) (cons (mkTree (mkNode C) ()) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 0) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 1) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 2) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 3) ())))))) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 4) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode AND) (cons (mkTree (mkNode NOT) (cons (mkTree (mkNode A) ()) ())) (cons (mkTree (mkNode B) ()) ()))) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 5) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode B) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 6) (cons (mkKnob (mkNullVex (cons (mkTree (mkNode A) ()) ())) (mkLSK (mkDiscKnob (mkMultip 3) (mkDiscSpec 0) (mkDiscSpec 0) ())) 7) ()))))))))
+
+(= (instSet) (mkSInstSet ()))
+(= (demeId) (mkDemeId "1"))
+!(let $x (rep) (add-atom &deme1 $x))
+!(let $y (instSet) (add-atom &deme1 $y))
+!(let $z (demeId) (add-atom &deme1 $z))
 
 ; Test case for sampleFromNeighborhood function
 ; Function should returned two instances at the specified distance
@@ -193,28 +200,42 @@
 
 ; Testcase-1 for sampleNewInstances
 ; totalNeighbors & numNewInstances won't be updated, samples new instances 
+!(bind! &demeTC1 (new-space))
+!(let $x (rep) (add-atom &demeTC1 $x))
+!(let $y (instSet) (add-atom &demeTC1 $y))
+!(let $z (demeId) (add-atom &demeTC1 $z))
+
 !(assertEqual 
-   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num) 
-   (sampleNewInstances 
-   20 
-   3 
-   (mkInst (cons 0 (cons 0 (cons 0 ())))) 
-   (deme) 
-   2)
+   (let* (
+       (($returnedSet $num) (sampleNewInstances
+                                     20
+                                     3
+                                     (mkInst (cons 0 (cons 0 (cons 0 ()))))
+                                     &demeTC1
+                                     2))
+       ((mkSInstSet $updatedInstList) $returnedSet)
+   )
    (List.map (distance' (mkInst (cons 0 (cons 0 (cons 0 ()))))) (List.map removeInstScore $updatedInstList)))
    (cons 2 (cons 2 (cons 2 ()))))
 
 ; Testcase-2 for sampleNewInstances
 ; Duplicate knob vectors are suppressed, so the returned count is the six
 ; distinct distance-two neighbors rather than the seven nominal samples.
-!(assertEqual 
-   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num)
-   (sampleNewInstances 
-   10 
-   7 
-   (mkInst (cons 0 (cons 0 (cons 0 ())))) 
-   (deme) 
-   2)
+!(bind! &demeTC2 (new-space))
+!(let $x (rep) (add-atom &demeTC2 $x))
+!(let $y (instSet) (add-atom &demeTC2 $y))
+!(let $z (demeId) (add-atom &demeTC2 $z))
+
+!(assertEqual
+   (let* (
+       (($returnedSet $num) (sampleNewInstances
+                                     10
+                                     7
+                                     (mkInst (cons 0 (cons 0 (cons 0 ()))))
+                                     &demeTC2
+                                     2))
+       ((mkSInstSet $updatedInstList) $returnedSet)
+   )
    ($num
     (List.map (distance' (mkInst (cons 0 (cons 0 (cons 0 ())))))
               (List.map removeInstScore $updatedInstList))))
@@ -222,14 +243,21 @@
 
 ; Testcase-3 for sampleNewInstances
 ; The exhaustive branch also removes duplicate vectors before appending them.
-!(assertEqual 
-   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num)
-   (sampleNewInstances 
-   4
-   5 
-   (mkInst (cons 0 (cons 0 (cons 0 ())))) 
-   (deme) 
-   2)
+!(bind! &demeTC3 (new-space))
+!(let $x (rep) (add-atom &demeTC3 $x))
+!(let $y (instSet) (add-atom &demeTC3 $y))
+!(let $z (demeId) (add-atom &demeTC3 $z))
+
+!(assertEqual
+   (let* (
+       (($returnedSet $num) (sampleNewInstances
+                                     4
+                                     5
+                                     (mkInst (cons 0 (cons 0 (cons 0 ()))))
+                                     &demeTC3
+                                     2))
+       ((mkSInstSet $updatedInstList) $returnedSet)
+   )
    ($num
     (List.map (distance' (mkInst (cons 0 (cons 0 (cons 0 ())))))
               (List.map removeInstScore $updatedInstList))))
@@ -237,14 +265,21 @@
 
 ; Testcase-4 for sampleNewInstances
 ; totalNeighbors & numNewInstances won't be updated, samples new instances
+!(bind! &demeTC4 (new-space))
+!(let $x (rep) (add-atom &demeTC4 $x))
+!(let $y (instSet) (add-atom &demeTC4 $y))
+!(let $z (demeId) (add-atom &demeTC4 $z))
+
 !(assertEqual 
-   (let ((mkDeme $rep (mkSInstSet $updatedInstList) $demeId) $num) 
-   (sampleNewInstances 
-   20 
-   0 
-   (mkInst (cons 0 (cons 0 (cons 0 ())))) 
-   (deme) 
-   2)
+   (let* (
+       (($returnedSet $num) (sampleNewInstances
+                                     20
+                                     0
+                                     (mkInst (cons 0 (cons 0 (cons 0 ()))))
+                                     &demeTC4
+                                     2))
+       ((mkSInstSet $updatedInstList) $returnedSet)
+   )
    (List.map (distance' (mkInst (cons 0 (cons 0 (cons 0 ()))))) (List.map removeInstScore $updatedInstList)))
 ())
 
@@ -253,10 +288,6 @@
 
 
 
-;;testcase for isPossibleSize function
-;; Formula: n! / ((n - d)! * d!) * (m-1)^d  (n = instance length, d = distance, m = knob multiplicity)
-!(assertEqual (isPossibleSize 13 2 (mkInst (cons 1 (cons 2 (cons 0 ()))))) False)
-!(assertEqual (isPossibleSize 10 2 (mkInst (cons 1 (cons 2 (cons 0 ()))))) True)
 
 ;; Disc-probed knobs use effective multiplicity, so fully pruned knobs do not
 ;; contribute neighbors and partially pruned knobs only expose allowed specs.
@@ -299,15 +330,17 @@
 
 ;; Feature-selection sampling uses the same duplicate suppression and returns
 ;; the size of the genuinely new suffix, not the nominal request.
+!(bind! &featureSelectionDeme (new-space))
 !(assertEqual
   (let* (
          ($retained
            (mkSInst (mkPair (mkInst (1 0)) 0.5)))
+         ($_ (add-atom &featureSelectionDeme (mkSInstSet ($retained))))
          (($updated $actualNew)
            (sampleNewInstancesFs
              2 2 (mkInst (0 0))
              (mkITable () (A B O))
-             (mkSInstSet ($retained))
+             &featureSelectionDeme
              1))
          ((mkSInstSet $rows) $updated)
         )

@@ -70,7 +70,7 @@
 ;; - For True Positives: contributes +0.5 per instance
 ;; - For False Positives: contributes -0.5 per instance  
 ;; - Net effect: sum_outputs = 0.5 * (TP - FP)
-; (: sumOutputs (-> Number Number Number))
+;; (: sumOutputs (-> Number Number Number))
 (= (sumOutputs $pos $neg)
    (* 0.5 (- $pos $neg)))
 
@@ -101,7 +101,7 @@
 ;; The MultiMap automatically sorts by precision key (using > for descending order)
 ;; This ordering is crucial for the best possible score implementation which processes highest
 ;; precision patterns first.
-; (: makePrecisionRow (-> Expression Expression (Map Expression (Number Number))))
+;; (: makePrecisionRow (-> Expression Expression (Map Expression (Number Number))))
 (= (makePrecisionRow $item $acc)
    (if (== $item ())
       ()
@@ -116,19 +116,6 @@
          )
       )
 )
-;       (if-decons-expr $item $inputPattern $rest
-;          (let* (
-;             (($pos $neg) $count)  ;; Extract positive and negative counts
-            
-;             ($total (+ $pos $neg)) ;; Calculate totals and precision metrics
-;             ($sumo (sumOutputs $pos $neg))
-;             ($precision (if (== $total 0) 0.0 (/ $sumo $total)))
-;             )
-;          (MultiMap.insert ($precision ($sumo $total)) $acc >) ;; for descending sort
-;          ) 
-;          ()
-;       )
-; )
 
 ;; Convert Map of compressed data to precision-sorted MultiMap
 ;; This prepares data for the greedy best_possible_bscore algorithm
@@ -141,17 +128,13 @@
 ;;
 ;; The sorting by precision (descending) is crucial for the best_possible_bscore
 ;; which processes rows from highest to lowest individual precision
-; (: createPrecisionRows (-> (MultiMap (Number (Number Number))) Expression))
+;; (: createPrecisionRows (-> (MultiMap (Number (Number Number))) Expression))
 (= (createPrecisionRows $groupedData)
    (let* (
             ($items (Map.items $groupedData))
-            ($itemsExpr (List.listToExpr $items))
-            ($precisionRows (foldl-atom $itemsExpr () $acc $item (makePrecisionRow $item $acc)))
-            ($precisionItems (MultiMap.items $precisionRows))
+            ($precisionRows (foldl-atom $items () $acc $item (makePrecisionRow $item $acc)))
          )
-        (List.listToExpr $precisionItems)
-   )
-)
+        (MultiMap.items $precisionRows)))
 
 ;; Calculate activation penalty using logarithmic penalty function
 ;; Mathematical explanation:
@@ -168,17 +151,15 @@
 ;;   $minActivation : Minimum acceptable activation (e.g., 0.5)
 ;;   $maxActivation : Maximum acceptable activation (e.g., 1.0)  
 ;;   $activationPressure : Penalty scaling factor (e.g., 1.0)
-; (: getActivationPenalty (-> Number Number Number Number Number))
+;; (: getActivationPenalty (-> Number Number Number Number Number))
 (= (getActivationPenalty $activation $minActivation $maxActivation $activationPressure)
    (if (<= $activationPressure 0)
        0.0
-       (let* (
-             ($dst (if (< $activation $minActivation) ;; Calculate distance from acceptable range
+       (let $dst (if (< $activation $minActivation) ;; Calculate distance from acceptable range
                        (- 1.0 (/ $activation $minActivation))
                        (if (> $activation $maxActivation)
                            (/ (- $activation $maxActivation) (- 1.0 $maxActivation))
-                           0.0)))
-               )
+                           0.0))
          (if (== $dst 0.0)
              0.0
              (* $activationPressure (log-math 2.718 (- 1.0 $dst))))))) ;; Apply logarithmic penalty
@@ -216,14 +197,11 @@
 ;; The +0.5 offset correction accounts for MOSES behavioral score representation
 ;; where the precision formula 0.5*(TP-FP)/(TP+FP) equals precision - 0.5
 ;;
-; (: bestPossibleBScore (-> Expression Number Number Number Number Number Number Number))
-(= (bestPossibleBScore $rows $sao $active $totalWeight $minAct $maxAct $actPressure $bestScore)
-   (if (== $rows ())
-      $bestScore
+;; (: bestPossibleBScore (-> Expression Number Number Number Number Number Number Number))
+(= (bestPossibleBScore () $sao $active $totalWeight $minAct $maxAct $actPressure $bestScore)
+   $bestScore)
+(= (bestPossibleBScore (cons ($precKey ($sumo $total)) $rest) $sao $active $totalWeight $minAct $maxAct $actPressure $bestScore)
       (let* (
-               (($row $rest) (decons-atom $rows)) ;; Extract current row data
-               (($precKey ($sumo $total)) $row)
-               
                ($newSao (+ $sao $sumo))
                ($newActive (+ $active $total))
                
@@ -245,9 +223,7 @@
                $updatedBest
                (bestPossibleBScore $rest $newSao $newActive $totalWeight $minAct $maxAct $actPressure $updatedBest)
              )
-         )
-   )
-)
+         ))
 
 ;; Main precision scoring orchestration function
 ;;
@@ -277,13 +253,9 @@
             ($groupedData (cTable $columns $labels))
             
             ($precisionRows (createPrecisionRows $groupedData))
-            
-            ($bestPreScore (bestPossibleBScore $precisionRows 0.0 0.0 $totalWeight $minActivation $maxActivation 
-                                         $activationPressure -1.0000000000000001e308))
          )
-     $bestPreScore
-   )
-)
+     (bestPossibleBScore $precisionRows 0.0 0.0 $totalWeight $minActivation $maxActivation
+                         $activationPressure -1.0000000000000001e308)))
 
 ;; Extract selected features plus target column from full dataset
 ;; Input:
@@ -299,15 +271,14 @@
           ;; Target is always last column
           ($targetIndex (- (List.length $labels) 1))
           ;; Combine selected features with target index
-          ($exprIndices (appendAtom $targetIndex $featureIndices))
+          ($exprIndices (List.append $targetIndex $featureIndices))
 
           ;; Extract selected columns while preserving column-major layout
           ($filteredColumns (map-atom $exprIndices $i (index-atom $columns $i)))
           ;; Extract corresponding labels
           ($filteredLabels (map-atom $exprIndices $each (List.at $each $labels)))
-          ($filteredExpr (List.listToExpr $filteredColumns))
           )
-     ($filteredExpr $filteredLabels)
+     ($filteredColumns $filteredLabels)
    )
 )
 
@@ -335,7 +306,7 @@
 ;; The returned score represents how good this feature combination is for
 ;; precision-based classification, accounting for both achievable precision
 ;; and the complexity cost of using multiple features.
-; (: preScorer (-> Expression (ITable $a) Number Number Number Bool Number Number))
+;; (: preScorer (-> Expression (ITable $a) Number Number Number Bool Number Number))
 (= (preScorer $featureIndices (mkITable $columns $labels) $penalty $minAct $maxAct $positive $confi)
    (if (== $featureIndices ())
       0.0
@@ -344,20 +315,15 @@
                ($clampedMinAct (clamp $minAct 0.0 1.0))
                ($clampedMaxAct (clamp $maxAct 0.0 1.0))
                
-               (($filteredColumns $filteredLabels)  (extractTable $featureIndices $columns $labels))
+               (($filteredRows $filteredLabels)  (extractTable $featureIndices $columns $labels))
                
                ($totalWeight (ITable.rowCount $columns))
                
-               ($precision (precisionBScore $filteredColumns $filteredLabels $penalty 
+               ($precision (precisionBScore $filteredRows $filteredLabels $penalty 
                                           $clampedMinAct $clampedMaxAct $totalWeight))
                
                ;; Apply confidence weighting
                ($confidence (calculateConfidence (size-atom $featureIndices) $totalWeight $confi))
-               
-               ;; Final score for hill climbing feature selection
-               ($finalScore (* $precision $confidence))
             )
-      $finalScore
-      )
-   )
-)
+      ;; Final score for hill climbing feature selection
+      (* $precision $confidence))))

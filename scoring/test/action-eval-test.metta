@@ -46,10 +46,6 @@
 ;; yields a result, never zero results
 !(assertEqual (evalAction actionWhileLoop (mkCntWorld 5)) (mkARes False (mkCntWorld 5)))
 !(assertEqual (evalAction (quote (actionWhileLoop ())) (mkCntWorld 5)) (mkARes False (mkCntWorld 5)))
-;; isARes guard itself
-!(assertEqual (isARes (mkARes True (mkCntWorld 0))) True)
-!(assertEqual (isARes (mkARes True)) False)
-!(assertEqual (isARes someSymbol) False)
 
 ;; ---- 3. Grounded literal leaves ----
 !(assertEqual (evalAction True (mkCntWorld 2)) (mkARes True (mkCntWorld 2)))

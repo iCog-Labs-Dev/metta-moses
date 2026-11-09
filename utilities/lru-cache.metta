@@ -4,7 +4,7 @@
 
 ;; Space to store cache entries
 !(bind! &cache (new-space))
-; (: &cache hyperon::space::DynSpace)
+;; (: &cache hyperon::space::DynSpace)
 
 ;; State variables for cache management
 !(bind! &cacheSize (new-state 0))         ;; Current number of cached items
@@ -13,14 +13,14 @@
 
 ;; Function: cacheExists
 ;; Purpose: Check if a function call with given arguments exists in cache
-; (: cacheExists (-> Symbol $a Bool))
-(= (cacheExists $fn-name $args)
-    (let $queryResult (collapse (match &cache (cacheEntry $fn-name $args $result $counter) $result))
-        (not (== $queryResult ()))))
+;; (: cacheExists (-> Symbol $a Bool))
+(= (cacheExists $fnName $args)
+    (let $queryResult (collapse (match &cache (cacheEntry $fnName $args $result $counter) $result))
+        (!= $queryResult ())))
 
 ;; Function: accCounter  
 ;; Purpose: Generate next sequential number for cache ordering
-; (: accCounter (-> Number))
+;; (: accCounter (-> Number))
 (= (accCounter)
    (let* 
        (
@@ -34,7 +34,7 @@
 
 ;; Function: getCached
 ;; Purpose: Retrieve cached result and update its access counter (move to front)
-; (: getCached (-> Symbol $a $a))
+;; (: getCached (-> Symbol $a $a))
 (= (getCached $functionName $argument)
     (let $retrievedCache (collapse (match &cache (cacheEntry $functionName $argument $result $counter) ($result $counter)))       ;; Retrieve cached result and its counter from the single cacheEntry
         (if (= $retrievedCache ())
@@ -51,18 +51,18 @@
 
 ;; Function: ltByLastAtom
 ;; Purpose: Comparison function for sorting cacheEntry atoms by counter (ascending) which is last element of function call cache space entries
-;; it can aslo be used for general purpose less than comparsion using last element (has to be numeric) of two equal length expressions
+;; it can also be used for general purpose less than comparison using last element (has to be numeric) of two equal length expressions
 (: ltByLastAtom (-> Expression Expression Bool))
 (= (ltByLastAtom $x $y) 
     (let* (
-        ($last-index (- (size-atom $x) 1))
-        (($x-end $y-end) (map-atom ($x $y) $a (index-atom $a $last-index))))
+        ($lastIndex (- (size-atom $x) 1))
+        (($xEnd $yEnd) (map-atom ($x $y) $a (index-atom $a $lastIndex))))
         
-        (< $x-end $y-end)))
+        (< $xEnd $yEnd)))
 
 ;; Function: removeLeastRecentlyUsed
 ;; Purpose: Evict the least recently used cache entry to make room for new entry
-; (: removeLeastRecentlyUsed (-> Symbol $a $a $a))
+;; (: removeLeastRecentlyUsed (-> Symbol $a $a $a))
 (= (removeLeastRecentlyUsed $funcs $arguments $results) 
     (let $allCacheEntries (collapse (match &cache (cacheEntry $fn $args $res $counter) (cacheEntry $fn $args $res $counter)))          ;; Get all cacheEntry atoms (each includes its counter at the last position)
         (if (== $allCacheEntries ())
@@ -87,7 +87,7 @@
 
 ;; Function: cachePut
 ;; Purpose: Add a new entry to the cache, handling capacity limits
-; (: cachePut (-> Symbol $a $a $a))
+;; (: cachePut (-> Symbol $a $a $a))
 (= (cachePut $functionName $argument $result)
     (let* 
         (
@@ -103,7 +103,7 @@
                 (
                     ;; Add cache entry (single atom holds result and counter)
                     ($__ (add-atom &cache (cacheEntry $functionName $argument $result $entryCounter)))
-;                     ;; Update cache size
+                    ;; Update cache size
                     ($updatedCache (change-state! &cacheSize (+ $currentSize 1)))
                 )  
                 $result
@@ -115,12 +115,12 @@
 ;; Function: lruCache
 ;; Purpose: Main LRU cache interface - checks cache first, computes if needed
 ;;      $maxSize -- maximum size of the lru cache 
-;;      (($fn-name) $args) -- the function call being cached in; as tuple ((function-name) (arguments)) 
+;;      (($fnName) $args) -- the function call being cached in; as tuple ((function-name) (arguments)) 
 ;;      
 (: lruCache (-> Number Expression $a))
-(= (lruCache $maxSize (($fn-name) $args)) 
+(= (lruCache $maxSize (($fnName) $args)) 
     (let $_ (change-state! &maxCacheSize $maxSize)                         ;; Set cache size for this operation
-        (if (reduce (cacheExists $fn-name $args))                           ;; Check cache first
-            (getCached $fn-name $args)                                    ;; Cache miss - compute and cache result
-            (let $computedResult (reduce (cons-atom $fn-name $args))        ;; Execute the function call
-                (cachePut $fn-name $args (reduce $computedResult))))))      ;; Cache the result
+        (if (reduce (cacheExists $fnName $args))                           ;; Check cache first
+            (getCached $fnName $args)                                    ;; Cache miss - compute and cache result
+            (let $computedResult (reduce (cons-atom $fnName $args))        ;; Execute the function call
+                (cachePut $fnName $args (reduce $computedResult))))))      ;; Cache the result

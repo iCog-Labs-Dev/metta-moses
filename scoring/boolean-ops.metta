@@ -21,7 +21,7 @@
    (if (once (is-member $r (quote (AND OR))))
        (quote ($r ()))
        ;; A TRUE/FALSE leaf is not a column label: emit the Bool, which evalSubtree
-       ;; short-circuits to a constant column (fitness.metta:175) with no &subtreeCache
+       ;; short-circuits to a constant column (evalSubtree in scoring/fitness) with no &subtreeCache
        ;; traffic, and which needs no quote guard. One clause, not three: a separate
        ;; (mkNode TRUE) clause would OVERLAP this one and give two solutions per leaf.
        (if (== $r TRUE)

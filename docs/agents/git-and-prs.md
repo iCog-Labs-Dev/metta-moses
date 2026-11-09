@@ -27,6 +27,7 @@ Read this file when you commit, name a branch, write a PR, or prepare a release.
 
 ## 3. Pull requests
 
+- Before you create a PR, do the self-review (`reviewing-prs.md`, section 7). Give the findings to the human who will create the PR.
 - Use `.github/pull_request_template.md`. Fill every section ("Review order" is optional for a small PR). Do not invent new sections.
 - Keep the description short enough for a person to read in two minutes, without loss of important detail. Put long drafts in an untracked file (`notes/`).
 - Describe the **whole branch** from its base (`git log --format=%B <base>..HEAD`, full bodies, not `--oneline`), not only the last commit.

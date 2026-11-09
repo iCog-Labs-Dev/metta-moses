@@ -46,7 +46,6 @@
 !(assertEqual (param maxEvals) 30000)
 !(assertEqual (param maxDist) 5)
 !(assertEqual (param minXoverNeighbors) 250)
-!(assertEqual (param steps) 700)
 !(assertEqual (param revisit) 2)
 !(assertEqual (param discardDominated) true)
 !(assertEqual (param diagnostics) true)

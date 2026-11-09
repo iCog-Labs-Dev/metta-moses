@@ -1,4 +1,5 @@
 ;; The same modules, in the same order, as moses.metta.
+!(import! &self ../../deme/demeSpaceName.py)
 !(import! &self ../../moses-imports)
 
 ;; When run with nEval of 1000 at this configuration, top result should have a score of 0.

@@ -28,7 +28,7 @@
    (if (== (get-metatype $expr) Expression)
        (if (== $expr ())
            Unknown
-           (let ($op $args) (decons $expr)
+           (let ($op $args) (decons-atom $expr)
              (case $op
                ((action_not
                  (case (getActionResult (car-atom $args))
@@ -63,18 +63,17 @@
 ;; getActionResultOr: or_seq succeeds at the first statically True child.
 ;; If every child is False, the whole sequence is False. If no child is True
 ;; but at least one child is Unknown, the sequence remains Unknown.
-(= (getActionResultOr $args) (getActionResultOrHelper $args False))
-
-;; `$exists_indeterminate` records whether an earlier child was Unknown while
+;; `$sawUnknown` records whether an earlier child was Unknown while
 ;; scanning for a True child. That lets the base case distinguish "all False"
 ;; from "no True, but at least one Unknown".
-(= (getActionResultOrHelper () $exists_indeterminate)
-   (if $exists_indeterminate Unknown False))
-(= (getActionResultOrHelper (cons $h $t) $exists_indeterminate)
+(= (getActionResultOr () $sawUnknown)
+   (if $sawUnknown Unknown False))
+(= (getActionResultOr (cons $h $t) $sawUnknown)
    (let $r (getActionResult $h)
      (if (== $r True)
          True
-         (getActionResultOrHelper $t (or $exists_indeterminate (== $r Unknown))))))
+         (getActionResultOr $t (or $sawUnknown (== $r Unknown))))))
+(= (getActionResultOr $args) (getActionResultOr $args False))
 
 ;; ---------------------------------------------------------------------------
 ;; List/Tuple Simplification Helpers
@@ -93,10 +92,10 @@
 (= (flattenAssoc $op $args)
    (if (== $args ())
        ()
-       (let* ((($h $t) (decons $args))
+       (let* ((($h $t) (decons-atom $args))
               ($flatTail (flattenAssoc $op $t)))
          (if (and (== (get-metatype $h) Expression) (!= $h ()))
-             (let ($childOp $childArgs) (decons $h)
+             (let ($childOp $childArgs) (decons-atom $h)
                (if (== $childOp $op)
                    (concatTuple (flattenAssoc $op $childArgs) $flatTail)
                    (cons-atom $h $flatTail)))
@@ -110,7 +109,7 @@
 (= (pruneAndSeqArgs $args)
    (if (== $args ())
        ()
-       (let ($h $t) (decons $args)
+       (let ($h $t) (decons-atom $args)
          (if (== $h action_failure)
              (cons-atom action_failure ())
              (if (== $h action_success)
@@ -137,12 +136,7 @@
 ;; so both action_success and action_failure are no-op constants here. Other
 ;; actions are preserved in their original order.
 (= (pruneExecSeqArgs $args)
-   (if (== $args ())
-       ()
-       (let ($h $t) (decons-atom $args)
-         (if (or (== $h action_success) (== $h action_failure))
-             (pruneExecSeqArgs $t)
-             (cons-atom $h (pruneExecSeqArgs $t))))))
+   (filter-atom $args $arg (not (or (== $arg action_success) (== $arg action_failure)))))
 
 ;; truncateAtAlwaysFails: keep arguments up to and including the first child
 ;; whose static action result is False. This is useful for reductions where
@@ -170,8 +164,8 @@
 
 ;; ---------------------------------------------------------------------------
 ;; smallestDivisor: returns the smallest divisor greater than 1.
-;; Prime numbers return themselves. The modular-argument reducer uses this for
-;; simple factor-style normalization of numeric action parameters.
+;; Prime numbers return themselves. It mirrors C++ smallest_divisor. No reducer
+;; calls it: reduceRepeatInActionWhile uses findRepeatingPeriod instead.
 ;; ---------------------------------------------------------------------------
 (= (smallestDivisor $n) (smallestDivisorFrom $n 2))
 
@@ -199,14 +193,14 @@
 (= (substituteSeqInit $op $args $cond $sub)
    (if (== $args ())
        (quote ($op)) ;; quoted: ($op) with a defined action head would be a call
-       (let ($h $t) (decons $args)
+       (let ($h $t) (decons-atom $args)
          (cons-atom $op (cons-atom (substituteCondInitInstant $h $cond $sub) $t)))))
 
 (= (substituteCondInitInstant $expr $cond $sub)
    (if (== $expr $cond)
        $sub
        (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
-           (let ($op $args) (decons $expr)
+           (let ($op $args) (decons-atom $expr)
              (case $op
                 ((and_seq (substituteSeqInit and_seq $args $cond $sub))
                  (or_seq (substituteSeqInit or_seq $args $cond $sub))

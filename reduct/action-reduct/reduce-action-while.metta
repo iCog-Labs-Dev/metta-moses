@@ -2,22 +2,8 @@
 ;; Action while and boolean while reduction rules
 ;; ---------------------------------------------------------------------------
 ;;
-;; This file covers four rewrite rules that simplify while-loop and loop-body
+;; This file covers six rewrite rules that simplify while-loop and loop-body
 ;; redundancy in action programs.
-
-;; Helper: take first N elements of a tuple
-; (= (take-n $n $tuple)
-;    (if (or (<= $n 0) (== $tuple ()))
-;        ()
-;        (let ($h $t) (decons-atom $tuple)
-;          (cons-atom $h (take-n (- $n 1) $t)))))
-
-;; Helper: drop first N elements of a tuple
-; (= (drop-n $n $tuple)
-;    (if (or (<= $n 0) (== $tuple ()))
-;        $tuple
-;        (let ($h $t) (decons-atom $tuple)
-;          (drop-n (- $n 1) $t))))
 
 ;; Helper: check if list1 ends with list2
 (= (endsWith $list1 $list2)
@@ -32,18 +18,6 @@
    (let* (($len1 (size-atom $list1))
           ($len2 (size-atom $list2)))
      (take (- $len1 $len2) $list1)))
-
-;; Helper: check if list ends with a single element
-(= (endsWithSingle $list $elem)
-   (let $len (size-atom $list)
-     (if (== $len 0)
-         False
-         (== (index-atom $list (- $len 1)) $elem))))
-
-;; Helper: remove single element from end of list
-(= (removeEndSingle $list)
-   (let $len (size-atom $list)
-     (take (- $len 1) $list)))
 
 
 ;; reduceActionWhileAlwaysFails (C++ reduce_action_while_always_fails):
@@ -72,7 +46,7 @@
 ;;                                      ;   if A always fails, consistent with C++)
 ;;   bool_while(False A) -> action_success  ; condition never holds: body never runs
 ;;
-;; NOTE: ;; The C++ comment describes this in terms of eval(C), but the implementation
+;; NOTE: The C++ comment describes this in terms of eval(C), but the implementation
 ;; only checks literal logical_true/logical_false. This MeTTa port mirrors that
 ;; conservative structural behavior.
 
@@ -150,31 +124,28 @@
 ;; (for and_seq bodies) or with the single body action (for leaf bodies).
 ;; If so, that suffix of the prefix is removed.
 
-(= (reduceRepeatOutWhile () $processed) $processed)
-(= (reduceRepeatOutWhile $args $processed)
-   (let ($h $t) (decons $args)
-     (let $newProcessed
-          (if (= $h (action_while $body))
-            (if (and (== (get-metatype $body) Expression) (!= $body ()))
-                (if (== (car-atom $body) and_seq)
-                    (let $bodyArgs (cdr-atom $body)
-                      (if (endsWith $processed $bodyArgs)
-                          (removeEnd $processed $bodyArgs)
-                          $processed))
-                    (if (endsWithSingle $processed $body)
-                        (removeEndSingle $processed)
-                        $processed))
-                (if (endsWithSingle $processed $body)
-                    (removeEndSingle $processed)
-                    $processed))
-            $processed)
-       (reduceRepeatOutWhile $t (concatTuple $newProcessed (quote ($h)))))))
+(= (dropRepeatedPrefixes () $processed) $processed)
+(= (dropRepeatedPrefixes $args $processed)
+   (let* ((($h $t) (decons-atom $args))
+          ($newProcessed
+            (if (= $h (action_while $body))
+                ;; An and_seq body is matched by its arguments, any other body as one element.
+                ;; quote: ($body) with an action head would be a call.
+                ;; The nested if guards car-atom against a Symbol body.
+                (let $bodyArgs (if (and (== (get-metatype $body) Expression) (!= $body ()))
+                                   (if (== (car-atom $body) and_seq) (cdr-atom $body) (quote ($body)))
+                                   (quote ($body)))
+                  (if (endsWith $processed $bodyArgs)
+                      (removeEnd $processed $bodyArgs)
+                      $processed))
+                $processed)))
+     (dropRepeatedPrefixes $t (concatTuple $newProcessed (quote ($h))))))
 
 (= (reduceRepeatOutActionWhile $expr)
    (if (and (== (get-metatype $expr) Expression) (!= $expr ()))
-       (let ($op $args) (decons $expr)
+       (let ($op $args) (decons-atom $expr)
          (if (== $op and_seq)
-             (let $newArgs (reduceRepeatOutWhile $args ())
+             (let $newArgs (dropRepeatedPrefixes $args ())
                (cons-atom and_seq $newArgs))
              $expr))
        $expr))

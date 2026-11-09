@@ -60,7 +60,7 @@
 (= (cwTree) (mkTree (mkNode canwin) ()))
 (= (tttActs) (playwin playblock playcenter playcorner playside))
 
-; (a) A non-and_seq structural root (or_seq) is canonized: the root becomes
+;; (a) A non-and_seq structural root (or_seq) is canonized: the root becomes
 ;; and_seq and the original or_seq subtree is preserved as child (1). Only the
 ;; structure is pinned -- or_seq children are not recursed and the root-knob
 ;; insertion is probabilistic, so the knob count is left unpinned.
@@ -175,4 +175,4 @@ $hasKnobs
 $hasKnobs
 ) True)
 
-; ;  run-test build-knobs-test.metta -s
+;; ;  run-test build-knobs-test.metta -s

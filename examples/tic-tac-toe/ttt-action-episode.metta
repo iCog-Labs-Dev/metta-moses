@@ -9,17 +9,13 @@
 ;; play either seat. The fitness (ttt-action-registration) alternates the
 ;; agent between X and O across episodes; X still always MOVES FIRST, per the
 ;; engine convention, so an O-seated agent responds to the opponent's opener.
-;; This mirrors the deleted strategy path, whose score-result was likewise
-;; SEAT-RELATIVE ((score-result $result $playerMark)) rather than X-hardcoded.
 ;;
 ;; Loads after ttt-action-world, ttt-action-primitives,
 ;; scoring/action-eval and the tic-tac-toe helpers/players.
 
 ;; Outcome -> raw score, RELATIVE to the agent's seat $agent (X or O):
 ;; the agent's own mark wins (1.0), Draw is 0.0, the opponent's mark loses
-;; (-1.0). get-game-result returns X, O, or Draw. (Was: the X-hardcoded
-;; unary tttOutcomeScore; this restores the strategy path's score-result
-;; perspective-relativity now that the agent alternates seats.)
+;; (-1.0). get-game-result returns X, O, or Draw.
 (= (tttOutcomeScore $result $agent)
    (if (== $result $agent)
        1.0

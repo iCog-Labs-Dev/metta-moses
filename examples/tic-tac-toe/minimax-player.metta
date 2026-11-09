@@ -6,31 +6,31 @@
 ;; Returns the new board with the best move made
 (= (minimax-player $bs $player)
    (let* (($opponent (get-opponent $player))
-        ($_ (println! (opponent $opponent)))
-          ($empty-indices (get-empty-cells $bs () 0))
-          ($_ (println! (emptty indicesss $empty-indices)))
-          ($best-idx (find-best-move-loop $bs $empty-indices -1000 -1 $player $opponent)))
-     (replace-by-index $bs $player $best-idx)))
+          ;; ($_ (println! (opponent $opponent)))
+          ($emptyIndices (get-empty-cells $bs () 0))
+          ;; ($_ (println! (emptty indicesss $emptyIndices)))
+          ($bestIdx (find-best-move-loop $bs $emptyIndices -1000 -1 $player $opponent)))
+     (replace-by-index $bs $player $bestIdx)))
 
 ;; Loop through all empty indices to find the one with the highest Minimax score
-(= (find-best-move-loop $bs $candidates $best-score $best-move $player $opponent)
+(= (find-best-move-loop $bs $candidates $bestScore $bestMove $player $opponent)
    (if (== $candidates ())
-       $best-move
-       (let* ((($curr-idx $rest-candidates) (decons-atom $candidates))
+       $bestMove
+       (let* ((($currIdx $restCandidates) (decons-atom $candidates))
               ;; 1. Make the move temporarily
-              ($new-bs (replace-by-index $bs $player $curr-idx))
+              ($newBs (replace-by-index $bs $player $currIdx))
               ;; 2. Check if this move wins immediately
-              ($immediate-score (evaluate-board $new-bs $player $opponent)))
+              ($immediateScore (evaluate-board $newBs $player $opponent)))
          
          ;; 3. If this move wins immediately, return it right away!
-         (if (== $immediate-score 10)
-             $curr-idx
+         (if (== $immediateScore 10)
+             $currIdx
              ;; Otherwise, evaluate via minimax and continue
-             (let* (($score (minimax $new-bs False $player $opponent)))
+             (let $score (minimax $newBs False $player $opponent)
                ;; 4. Compare score. If better, update best-move.
-               (if (> $score $best-score)
-                   (find-best-move-loop $bs $rest-candidates $score $curr-idx $player $opponent)
-                   (find-best-move-loop $bs $rest-candidates $best-score $best-move $player $opponent)))))))
+               (if (> $score $bestScore)
+                   (find-best-move-loop $bs $restCandidates $score $currIdx $player $opponent)
+                   (find-best-move-loop $bs $restCandidates $bestScore $bestMove $player $opponent)))))))
 
 ;; ---------------------------------------------------------
 ;; THE CORE MINIMAX FUNCTION
@@ -39,33 +39,33 @@
 (= (minimax $bs $isMax $player $opponent)
    (let $score (evaluate-board $bs $player $opponent)
      ;; BASE CASE: If game over (someone won), return score
-     (if (not (== $score 0))
+     (if (!= $score 0)
          $score
          ;; BASE CASE: If board full (draw), return 0
-         (let $empty-cells (get-empty-cells $bs () 0) 
-            (if (== $empty-cells ())
+         (let $emptyCells (get-empty-cells $bs () 0) 
+            (if (== $emptyCells ())
                 0
                 ;; RECURSIVE STEP
                 (if $isMax
                     ;; Maximizer's turn (Player)
-                    (run-minimax-loop $bs $empty-cells -1000 True $player $opponent)
+                    (run-minimax-loop $bs $emptyCells -1000 True $player $opponent)
                     ;; Minimizer's turn (Opponent)
-                    (run-minimax-loop $bs $empty-cells 1000 False $player $opponent)))))))      
+                    (run-minimax-loop $bs $emptyCells 1000 False $player $opponent)))))))      
 
 ;; Helper to loop through moves inside the recursive Minimax
-(= (run-minimax-loop $bs $candidates $best-val $isMax $player $opponent)
+(= (run-minimax-loop $bs $candidates $bestVal $isMax $player $opponent)
    (if (== $candidates ())
-       $best-val
+       $bestVal
        (let* ((($idx $rest) (decons-atom $candidates))
               ($mover (if $isMax $player $opponent))
-              ($new-bs (replace-by-index $bs $mover $idx))
+              ($newBs (replace-by-index $bs $mover $idx))
               ;; Recurse: flip isMax
-              ($val (minimax $new-bs (not $isMax) $player $opponent)))
+              ($val (minimax $newBs (not $isMax) $player $opponent)))
          
          (if $isMax
              ;; If Maximizing, pick the higher value
-             (let $new-best (max $best-val $val)
-                  (run-minimax-loop $bs $rest $new-best $isMax $player $opponent))
+             (let $newBest (max $bestVal $val)
+                  (run-minimax-loop $bs $rest $newBest $isMax $player $opponent))
              ;; If Minimizing, pick the lower value
-             (let $new-best (min $best-val $val)
-                  (run-minimax-loop $bs $rest $new-best $isMax $player $opponent))))))
+             (let $newBest (min $bestVal $val)
+                  (run-minimax-loop $bs $rest $newBest $isMax $player $opponent))))))

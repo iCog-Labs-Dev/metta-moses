@@ -4,9 +4,9 @@
 ;;      $icon -- player symbol X or O
 
 (= (random-player $bs $icon)
-    (let* (($empty-indices (get-empty-cells $bs () 0))
-            ($count (length $empty-indices))
+    (let* (($emptyIndices (get-empty-cells $bs () 0))
+            ($count (length $emptyIndices))
             ($pick (py-call (random.randint 0 (- $count 1))))
-            ($index-to-play (index-atom $empty-indices $pick)))
+            ($indexToPlay (index-atom $emptyIndices $pick)))
 
-            (replace-by-index $bs $icon $index-to-play)))
+            (replace-by-index $bs $icon $indexToPlay)))
