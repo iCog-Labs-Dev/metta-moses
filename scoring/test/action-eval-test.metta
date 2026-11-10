@@ -123,7 +123,7 @@
 ;; grounded leaf stays bare (repeat_n's count rides through like this)
 !(assertEqual (actionExp (mkTree (mkNode 4) ())) 4)
 !(assertEqual (actionExp (mkTree (mkNode True) ())) True)
-;; mkKnob/mkNullVex passthroughs mirror preOrderExp
+;; mkKnob/mkNullVex passthroughs mirror rewriteTree (scoring/fitness)
 !(assertEqual (actionExp (mkKnob (mkNullVex (mkTree (mkNode cntInc) ())) $lsk 0)) ())
 !(let $exp (quote (cntInc ()))
    (assertEqual (actionExp (mkKnob (mkTree (mkNode cntInc) ()) $lsk 0)) $exp))

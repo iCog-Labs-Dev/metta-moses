@@ -22,6 +22,11 @@
 !(import! &self ../../reduct/boolean-reduct/promote-common-constraints)
 !(import! &self ../../reduct/boolean-reduct/reduce-to-elegance)
 
+;; Native helpers, at the moses-imports.metta position. This consult must come
+;; before scoring/fitness: fitness imports lib_memo, which registers consult as
+;; a function with no input, so a later (consult "file") stops the load.
+!(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
+
 !(import! &self ../../utilities/tree)
 
 !(import! &self ../../feature-selection/feature-selection-helpers)
@@ -79,8 +84,6 @@
 !(import! &self ../score-deme)
 !(import! &self ../merge-demes)
 !(import! &self ../expand-deme)
-
-!(callPredicate (Predicate (consult "moses/tests/rte-helpers-fast.pl")))
 
 !(bind! &deme1 (new-space))
 !(bind! &budgetDeme1 (new-space))

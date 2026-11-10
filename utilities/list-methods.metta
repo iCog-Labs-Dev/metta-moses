@@ -14,6 +14,13 @@
 (= (List.foldr $f $i $xs)
    (foldl-atom (reverse $xs) $i $acc $x ($f $x $acc)))
 
+;; Fold a non-empty tuple from right to left, seeded with its last element.
+;; $f can be a partial application.
+;; (: List.foldr1 (-> (-> $a $a $a) (List $a) $a))
+(= (List.foldr1 $f $xs)
+   (let ($init $last) (List.splitAt (- (size-atom $xs) 1) $xs)
+     (List.foldr $f (car-atom $last) $init)))
+
 ;; Generalized foldl and foldr.
 ;; (foldl-atom (1 2 3 4) 0 $acc $x (+ $acc $x))
 (= (toExp $x) ($x))

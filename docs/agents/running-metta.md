@@ -64,9 +64,9 @@ cd ../wt-<task>/metta-moses
 
 | What you see | What it means |
 |---|---|
-| Fewer ✅ than asserts, and a ❌ | The run stopped at the ❌. A failing `test` or `assertEqual` halts the file. Later checks did not run. |
-| Fewer ✅ than asserts, no ❌, exit 0 | Checks vanished. The call or the expected side gave zero solutions (wrong arity, failed destructure, undefined head in a filtered path, missing import). |
-| More ✅ than asserts | Some asserts have more than one solution. `run-tests.py` still passes the file. Check that the right value is among them and that you expect several. |
+| Fewer results than checks, and a ❌ | The run stopped at the ❌. A failing `test` or `assertEqual` halts the file. Later checks did not run. |
+| Fewer results than checks, no ❌, exit 0 | Checks vanished. The call or the expected side gave zero solutions (wrong arity, failed destructure, undefined head in a filtered path, missing import). |
+| More results than checks | A check gave more than one solution. `run-tests.py` fails the file. Wrap the left side in `collapse` and pin the full list. First check the count: a ✅ in `println!` text is not a result. |
 | `(partial f (args))` in output | A call with the wrong number of arguments. It is junk data. Find the call site. |
 | An expression comes back unchanged | The head has no definition in this load context (often an import order problem). |
 | Results doubled | A duplicate import or a duplicate clause. |

@@ -19,6 +19,40 @@ YELLOW = "\033[93m"
 MAGENTA = "\033[95m"
 
 
+# A check is any call of these forms. It can be inside a !(let ...), and a line
+# break or "(" can follow the name.
+CHECK_CALL = re.compile(r"\((?:assertEqual|assertEqualToResult|assert|test)(?=[\s()]|$)")
+# PeTTa prints one result line per check: "is X, should Y. ✅" (or ❌).
+# A ✅ inside println! text is not a result.
+RESULT_LINE = re.compile(r"\. ✅\s*$")
+ANSI = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def strip_comments(source):
+    """Remove ; comments, but keep a ; inside a string."""
+    lines = []
+    for line in source.splitlines():
+        in_string = False
+        for i, ch in enumerate(line):
+            if ch == '"' and (i == 0 or line[i - 1] != "\\"):
+                in_string = not in_string
+            elif ch == ";" and not in_string:
+                line = line[:i]
+                break
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def count_checks(source):
+    return len(CHECK_CALL.findall(strip_comments(source)))
+
+
+def count_passed(output):
+    return sum(
+        1 for line in ANSI.sub("", output).splitlines() if RESULT_LINE.search(line)
+    )
+
+
 def extract_and_print(result, path, idx) -> bool:
     """
     Extracts the output from the test execution result and prints the status.
@@ -28,17 +62,11 @@ def extract_and_print(result, path, idx) -> bool:
     extracted = output.strip()  # Remove any leading/trailing whitespace
 
     with open(path, "r") as test_file:
-        content = test_file.read()
-        total_asserts = sum(
-            1
-            for line in content.splitlines()
-            if "!(assertEqual" in line and not line.lstrip().startswith(";")
-        )
+        total_asserts = count_checks(test_file.read())
 
-    raw_passed = extracted.count("✅")
-    passed_asserts = min(
-        raw_passed, total_asserts
-    )  # Cap passed asserts to total asserts to avoid redundancy
+    # No cap: fewer results than checks means that checks vanished, and more
+    # results means that a check gave more than one result. Both are failures.
+    passed_asserts = count_passed(extracted)
 
     # Check for actual failures in the Petta Report
     has_failure = False  # Assume failure by default
@@ -47,9 +75,12 @@ def extract_and_print(result, path, idx) -> bool:
     if result.returncode == 0:
         if "❌" in extracted or passed_asserts != total_asserts:
             has_failure = True
-            extracted = f"test failed (output: {extracted})"
+            extracted = (
+                f"test failed ({passed_asserts} passed of {total_asserts} checks)"
+                f" (output: {extracted})"
+            )
         else:
-            extracted = "test passed"
+            extracted = f"test passed ({passed_asserts} of {total_asserts} checks)"
     else:
         has_failure = True
         extracted = f"test failed (output: {extracted})"

@@ -9,7 +9,7 @@
 ;; PRIMITIVES receive their parameters in the same slot and name it $params
 ;; -- see scoring/action-eval.metta's contract header.)
 ;; dispatched by the engine's `reduce` (evalActionNode) exactly like the
-;; boolean clauses in evalRow (scoring/fitness) -- no sentinel needed.
+;; boolean clauses that zipWithN calls (scoring/fitness) -- no sentinel needed.
 ;;
 ;; Quote rule (mirrors scoring/boolean-ops): these clause names
 ;; double as data constructors. A hand-written wrapped node (op (children))
