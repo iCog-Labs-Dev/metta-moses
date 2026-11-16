@@ -173,4 +173,19 @@
    (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 0 ())))) 0.5)) (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 1 ())))) 0.33333333333333337)) ())))
    )
 
+;; ====================================================================
+;; Compressed Table Tests: transform evaluation with (mkCTable ...)
+;; ====================================================================
+
+!(assertEqual
+   (transform
+      (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) -1.0000000000000001e308))
+                  (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) -1.0000000000000001e308)) ())))
+      (mkRep (knobMapObj) (tree1))
+      (mkDemeId "1")
+      (cTable (ttable2))
+      2.0)
+   (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 2 ())))) (mkCscore -2 3 1.5 0.0 -3.5)))
+               (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore 0 3 1.5 0.0 -1.5))) ()))))
+
 

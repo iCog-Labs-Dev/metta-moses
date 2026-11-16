@@ -54,7 +54,10 @@
                           ((mkActionCtx $nTrials $complexityRatio $targetScore) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
                           ((mkActionCtx $nTrials) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
                           (($complexityRatio $nTrials) (applyActionBasedScore $rep $id $instList $nTrials $complexityRatio ()))
-                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio)))))
+                          ;; Uncompressed table (ITable) scoring arm
+                          ((mkITable $rows $labels) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio))
+                          ;; Compressed table (CTable) scoring arm with sample weights
+                          ((mkCTable $map $labels $totalWeight) (applyComplexityBasedScore $rep $id $instList $scoringContext $complexityRatio)))))
           )
   (mkSInstSet $scored)))
 
@@ -127,7 +130,7 @@
            ;; Convert bits to feature indices
            ($featureIndices (bitsToIndices $bits 0 ()))
            ;; Score this feature set using precision scorer
-           ($score (preScorer $featureIndices $itable $prePenalty $preMinActivation $preMaxActivation $prePositive $confi))
+           ($score (preScorer $featureIndices $itable $prePenalty $preMinActivation $preMaxActivation $prePositive $confi ()))
            ;; Create scored instance
            ($scoredInst (mkSInst (mkPair (mkInst $bits) $score)))
            ($newAcc (cons $scoredInst $acc))

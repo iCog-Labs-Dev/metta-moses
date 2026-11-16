@@ -34,6 +34,7 @@
 !(import! &self ../../scoring/boolean-ops)
 !(import! &self ../../scoring/bscore)
 !(import! &self ../../scoring/cscore)
+!(import! &self ../../scoring/precision-bscore)
 
 !(import! &self ../../feature-selection/feature-selection-helpers)
 !(import! &self ../../feature-selection/similarity-scorers)

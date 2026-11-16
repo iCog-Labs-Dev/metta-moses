@@ -149,7 +149,10 @@
               (getCandidateHelper $inst (getRepTree $rep)))
              ($other (getCandidate $rep $demeId $inst)))))
         ($bscore (case $scoringContext
-                    (((mkITable $rows $labels) (scoreTree $scoringContext $tree &bscoreCache))
+                    (;; Uncompressed table (ITable) scoring arm
+                     ((mkITable $rows $labels) (scoreTree $scoringContext $tree &bscoreCache))
+                     ;; Compressed table (CTable) scoring arm with sample weights
+                     ((mkCTable $map $labels $totalWeight) (scoreTree $scoringContext $tree &bscoreCache))
                      ;; Action arm: tagged (mkActionCtx ...) context, disjoint from
                      ;; the boolean (mkITable ...) arm above.
                      ((mkActionCtx $nTrials $complexityRatio $targetScore) (scoreActionTree $tree $nTrials &actionScoreCache)))))

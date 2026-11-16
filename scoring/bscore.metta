@@ -30,6 +30,8 @@
 ;;  that has shown to be problematic for certain cases. Best to avoid it whenever we can.
 ;; (: createTruthTableBScore (-> Number (ITable $a) (TruthTableBScore $a)))
 (= (createTruthTableBScore $complexityCoeff (mkITable $itable $labels)) (mkTruthTableBScore $complexityCoeff (ITable.rowCount $itable) (mkITable $itable $labels)))
+(= (createTruthTableBScore $complexityCoeff (mkCTable $map $labels $totalWeight))
+   (mkTruthTableBScore $complexityCoeff (Map.length $map) (mkCTable $map $labels $totalWeight)))
 
 
 ;; Function to give a behavioral score for a given tree.
@@ -62,30 +64,97 @@
        )
        (mkBScore $bScore))))
 
+;; Score tree on compressed table (CTable)
+;; Classic C++ Reference: moses/scoring/bscores.cc#L276-L297 (ctruth_table_bscore::operator())
+;; For each unique pattern in cTable:
+;;   Evaluate candidate tree on pattern.
+;;   If prediction is True, error is negative weight.
+;;   If prediction is False, error is positive weight.
+;;   bscore component is (- error).
+(= (scoreTree (mkCTable $map $labels $totalWeight) $tree $cacheSpace)
+   (if (== $tree (mkTree (mkNode AND) ()))
+       ;; empty AND tree scores worst possible score across patterns, matching mkITable's convention
+       (let $items (Map.items $map)
+         (mkBScore (map-atom $items ($pat ($pos $neg)) (- 0 (abs-math (- $pos $neg))))))
+       (let* (
+              ($expTree (preOrderExp $tree))
+              ($targetIdx (- (List.length $labels) 1))
+              ($featureLabels (List.removeAtIdx $labels $targetIdx))
+              ($patterns (Map.keys $map))
+              ($patternCount (size-atom $patterns))
+              ($featIndices (genList (- (List.length $featureLabels) 1)))
+              ($patternCols (map-atom $featIndices $j (map-atom $patterns $pat (index-atom $pat $j))))
+              ($preds (evalSubtree $expTree (mkITable $patternCols $featureLabels) $patternCount))
+              ($items (Map.items $map))
+              ($bScore (List.zipWith compareAndScoreCTable $preds $items))
+             )
+         (mkBScore $bScore))))
+
 ;; Evaluate an expression on one row: put the row's truth values in place of the labels, then evaluate.
 (= (scoreTreeHelper $labels $expTree $row) (let $a (replaceVarsWithTruth ($labels $expTree) $row) (evaluate $a)))
 ;; Return the best possible BehavioralScore given the size of the table.
 ;;  Although the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.
+;; Classic C++ Reference: moses/scoring/bscores.cc#L350-L375
 ;; (: bestPossibleScore (-> (TruthTableBScore $a) BehavioralScore))
-(= (bestPossibleScore (mkTruthTableBScore $compCoeff $size $table)) (mkBScore (List.repeat $size 0)))
-
+(= (bestPossibleScore (mkTruthTableBScore $compCoeff $size (mkITable $itable $labels)))
+   (mkBScore (List.repeat $size 0)))
+(= (bestPossibleScore (mkTruthTableBScore $compCoeff $size (mkCTable $map $labels $totalWeight)))
+   (let $items (Map.items $map)
+     (mkBScore (map-atom $items ($pat ($pos $neg)) (- 0 (min $pos $neg))))))
 
 ;; Return the worst possible BehavioralScore given the size of the table.
 ;;  Although the whole table is given for consistency and to distinguish 
 ;;  from the same function that works on BehavioralCScore, it uses only the size of the table.
+;; Classic C++ Reference: moses/scoring/bscores.cc#L389-L404
 ;; (: worstPossibleScore (-> (TruthTableBScore $a) BehavioralScore))
-(= (worstPossibleScore (mkTruthTableBScore $compCoeff $size $table)) (mkBScore (List.repeat $size -1)))
+(= (worstPossibleScore (mkTruthTableBScore $compCoeff $size (mkITable $itable $labels)))
+   (mkBScore (List.repeat $size -1)))
+(= (worstPossibleScore (mkTruthTableBScore $compCoeff $size (mkCTable $map $labels $totalWeight)))
+   (let $items (Map.items $map)
+     (mkBScore (map-atom $items ($pat ($pos $neg)) (- 0 (abs-math (- $pos $neg)))))))
 
-;; When we have a compressed tree, the min improvement 
-;;  will be calculated. For now it's fixed.
+;; Helper function to calculate the minimum non-zero weight difference across patterns in a CTable.
+;; Mirrors C++ moses/scoring/bscores.cc#L406-L425 (ctruth_table_bscore::min_improv())
+(= (minPatternWeight () $minW) $minW)
+(= (minPatternWeight (cons ($pat ($pos $neg)) $tail) $minW)
+   (let $w (abs-math (- $pos $neg))
+     (if (> $w 0)
+         (if (== $minW ())
+             (minPatternWeight $tail $w)
+             (if (< $w $minW)
+                 (minPatternWeight $tail $w)
+                 (minPatternWeight $tail $minW)))
+         (minPatternWeight $tail $minW))))
+
+;; Minimum score improvement threshold for a table.
+;; Classic C++ Reference: moses/scoring/bscores.cc#L406-L425 (ctruth_table_bscore::min_improv())
+;; Returns 0.5 * smallest non-zero abs(pos - neg) weight difference across patterns.
 ;; (: minImprove (-> (TruthTableBScore $a) Number))
-(= (minImprove $_) 0.5)
+(= (minImprove (mkBCScore $truthTableBScore))
+   (minImprove $truthTableBScore))
+(= (minImprove (mkTruthTableBScore $compCoeff $size (mkITable $itable $labels)))
+   0.5)
+(= (minImprove (mkTruthTableBScore $compCoeff $size (mkCTable $map $labels $totalWeight)))
+   (let* (
+          ($items (Map.items $map))
+          ($minW (minPatternWeight $items ()))
+         )
+     (if (== $minW ()) 0.5 (* 0.5 $minW))))
 
 ;; Score tree helper function that compares two values and returns a number instead of a bool.
 ;; It returns 0 if the values are equal, -1 they're not equal.
 ;; (: compareAndScore (-> $a $a Number))
 (= (compareAndScore $a $b) (if (== $a $b) 0 -1))
+
+;; Score tree helper function for compressed table (CTable) that compares a prediction
+;; against an item ($pat ($pos $neg)) of a pattern and returns the penalty.
+;; If prediction is True, error is negative weight (false positive penalty: - neg_weight).
+;; If prediction is False, error is positive weight (false negative penalty: - pos_weight).
+;; Classic C++ Reference: moses/scoring/bscores.cc#L276-L297
+;; (: compareAndScoreCTable (-> Bool ($a (Number Number)) Number))
+(= (compareAndScoreCTable $pred ($pat ($pos $neg)))
+   (- 0 (if $pred $neg $pos)))
 
 
 ;; Replace every occurrence of a label inside an expression with a truth value.

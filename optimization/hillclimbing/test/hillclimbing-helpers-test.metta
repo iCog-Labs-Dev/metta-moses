@@ -43,6 +43,7 @@
 !(import! &self ../../../scoring/bscore)
 !(import! &self ../../../scoring/cscore)
 !(import! &self ../../../scoring/complexity-based-scorer)
+!(import! &self ../../../scoring/precision-bscore)
 
 !(import! &self ../../../deme/deme-id-creation)
 !(import! &self ../../../deme/create-deme)
@@ -358,3 +359,40 @@
 ;; assertEqual under PeTTa. End-to-end Boolean hill-climbing behavior is
 ;; covered by demo-problems-benchmark-test; the shared incremental scorer is
 ;; exercised above without crossing that cut boundary.
+
+;; ====================================================================
+;; Compressed Table Tests: scoreMaterializedTree and transformAppendedIncremental with (mkCTable ...)
+;; ====================================================================
+
+(= (ctableTest)
+   (cTable ((False True False True)
+            (False False True True)
+            (False False False True))
+           (A B O)))
+
+;; Test scoreMaterializedTree directly with ((mkCTable ...) $cpx)
+!(let* (
+        ($_ (resetSubtreeCache))
+        ($tree (buildTree (quote (AND A B))))
+       )
+   (assertEqual (scoreMaterializedTree $tree ((ctableTest) 2.0))
+                (mkCscore 0 2 1.0 0.0 -1.0)))
+
+;; Test transformAppendedIncremental with ((mkCTable ...) $cpx) context
+!(assertEqual
+  (let* (
+         ($_reset (resetCandidateScoreCache))
+         ($_resetSub (resetSubtreeCache))
+         ($rep (match &deme1 (mkRep $kbMap $tree) (mkRep $kbMap $tree)))
+         ($id (match &deme1 (mkDemeId $demeId) (mkDemeId $demeId)))
+         ($old (mkSInst (mkPair (mkInst (0 0)) (mkCscore -7 3 1.5 0.0 -8.5))))
+         ($new (mkSInst (mkPair (mkInst (1 1)) (worstCscore))))
+         (($scoredSet $actualEvaluations)
+           (transformAppendedIncremental
+             (mkSInstSet ($old $new)) 1
+             $rep $id ((ctableTest) 2.0)))
+         ((mkSInstSet ($preserved $scoredNew)) $scoredSet)
+        )
+    ($preserved $actualEvaluations (scoreNeedsEvaluation (getSInstScore $scoredNew))))
+  ((mkSInst (mkPair (mkInst (0 0)) (mkCscore -7 3 1.5 0.0 -8.5)))
+   1 False))

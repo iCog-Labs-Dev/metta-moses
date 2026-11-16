@@ -20,49 +20,135 @@
 ;;   Example: (cons ((False False) (2 2)) (cons ((True False) (0 3)) (cons ((False True) (3 0)) ())))
 ; (: countTable (-> Number (List (List $a)) (List $a) (Map $k $v) (Map Expression (Number Number))))
 (= (countTable $rowIndex $inputCols $targetCol $acc)
+   (countTable $rowIndex $inputCols $targetCol () $acc))
+
+(= (countTable $rowIndex $inputCols $targetCol $weights $acc)
    (let* (
          ($inputPattern (map-atom $inputCols $col (index-atom $col $rowIndex)))
          ($targetVal (index-atom $targetCol $rowIndex))
+         ($w (if (== $weights ()) 1 (index-atom $weights $rowIndex)))
 
          (($pos $neg) (if (Map.contains $inputPattern $acc)
                         (Map.getByKey $inputPattern $acc)
                         (0 0)))
 
          ($newCounts (if $targetVal
-                        ((+ $pos 1) $neg)
-                        ($pos (+ $neg 1))))
+                        ((+ $pos $w) $neg)
+                        ($pos (+ $neg $w))))
          )
       (Map.insert ($inputPattern $newCounts) $acc == ==)
    )
 )
 
+;; Delete a column by name from a table, matching classic C++ ITable::delete_column
+;; Reference: moses/comboreduct/table/table.cc#L274-L296 (ITable::delete_column)
+;;            moses/moses/moses/main/table-problems.cc#L125-L130
+;;
+;; Input:
+;;   $colName: Column label to delete
+;;   (xble $columns $labels) OR ($columns $labels)
+;; Output:
+;;   Modified table with the column and its label removed.
+;;   Throws Error if column name is unknown, matching classic C++ IndexErrorException.
+(= (delete_column $colName (mkITable $columns $labels))
+   (let $idx (List.index $labels $colName)
+     (if (< $idx 0)
+         (Error $colName "Can't delete, unknown column name")
+         (let* (
+                ($newCols (List.removeAtIdx $columns $idx))
+                ($newLabels (List.removeAtIdx $labels $idx))
+               )
+           (mkITable $newCols $newLabels)))))
+
+(= (delete_column $colName $columns $labels)
+   (let $idx (List.index $labels $colName)
+     (if (< $idx 0)
+         (Error $colName "Can't delete, unknown column name")
+         (let* (
+                ($newCols (List.removeAtIdx $columns $idx))
+                ($newLabels (List.removeAtIdx $labels $idx))
+               )
+           ($newCols $newLabels)))))
+
+;; Type constructor for compressed table (cTable), matching classic C++ CTable class
+;; Classic C++ Reference: moses/comboreduct/table/table.h#L549-L578
+;;
+;; A CTable encapsulates:
+;;   1. $map: Map from unique input_pattern -> (positive_weight negative_weight)
+;;   2. $labels: Column labels for features and target (weight column removed)
+;;   3. $totalWeight: Total weight of all samples (matching C++ CTable::uncompressed_size)
+;;
+;; (: CTable (-> $a Type))
+;; (: mkCTable (-> (Map Expression (Number Number)) (List Symbol) Number (CTable $a)))
+
+;; Accessors for CTable
+(= (getCTableMap (mkCTable $map $labels $totalWeight)) $map)
+(= (getCTableLabels (mkCTable $map $labels $totalWeight)) $labels)
+(= (getCTableTotalWeight (mkCTable $map $labels $totalWeight)) $totalWeight)
+
+(= (getctablemap $ctable) (getCTableMap $ctable))
+(= (getctablelabels $ctable) (getCTableLabels $ctable))
+(= (getctabletotalweight $ctable) (getCTableTotalWeight $ctable))
+
 ;; Build compressed table (cTable) directly from the column-major ITable
 ; The structure of the CTable is referred from the below test file 
 ; Reference: https://github.com/opencog/moses/blob/master/tests/moses/precision2.ctable
+;; Classic C++ Reference: moses/comboreduct/table/table.cc#L501-L554 (Table::compressed)
 ;;
 ;; Input:
 ;;   $columns: Column-major payload ((col0...) (col1...) ... (targetCol...))
-;;   $labels: Column labels (features + target)
+;;   $labels: Column labels (features + target, and optional weight column)
+;;   $weightCol (optional): Column label of weight feature, or ()/"" for unweighted
 ;; 
 ;; Output:
-;;   Map from input_pattern -> (positive_count negative_count)
+;;   (mkCTable $grouped $labels $totalWeight)
 ;;
 ;; Example:
-;;    (cons ((False False) (2 2)) (cons ((True False) (0 3)) (cons ((False True) (3 0)) ())))
-; (: cTable (-> (List (List $a)) Expression (Map Expression (Number Number))))
+;;    (mkCTable (cons ((False False) (2 2)) (cons ((True False) (0 3)) (cons ((False True) (3 0)) ()))) (v1 v2 target) 10)
+;; (: cTable (-> (ITable $a) (CTable $a)))
+;; (: cTable (-> (List (List $a)) (List Symbol) (CTable $a)))
+;; (: cTable (-> (List (List $a)) (List Symbol) Symbol (CTable $a)))
+(= (cTable (mkITable $columns $labels))
+   (cTable $columns $labels ()))
+
 (= (cTable $columns $labels)
-   (let* (
-          ($targetIndex (- (size-atom $labels) 1))
-          ($inputCols (takeN $targetIndex $columns))
-          ($targetCol (index-atom $columns $targetIndex))
-          ($rowCount (ITable.rowCount $columns))
-          ($rowIndices (List.range 0 $rowCount))
-         
-          ($grouped (foldl-atom $rowIndices () $acc $rowIndex
-                              (countTable $rowIndex $inputCols $targetCol $acc)))
-         )
-     $grouped)
-)
+   (cTable $columns $labels ()))
+
+(= (cTable $columns $labels $weightCol)
+   (if (== $weightCol ())
+       ;; Unweighted compression: Table::compressed("")
+       (let* (
+              ($targetIndex (- (List.length $labels) 1))
+              ($featIndices (genList (- $targetIndex 1)))
+              ($inputCols (map-atom $featIndices $i (index-atom $columns $i)))
+              ($targetCol (index-atom $columns $targetIndex))
+              ($rowCount (ITable.rowCount $columns))
+              ($rowIndices (genList (- $rowCount 1)))
+             
+              ($grouped (foldl-atom $rowIndices () $acc $rowIndex
+                                  (countTable $rowIndex $inputCols $targetCol () $acc)))
+             )
+         (mkCTable $grouped $labels $rowCount))
+       ;; Weighted compression: Table::compressed(weight_col)
+       (let $widx (List.index $labels $weightCol)
+         (if (< $widx 0)
+             (Error $weightCol "Unknown weight column")
+             (let* (
+                    ($extractedWeights (index-atom $columns $widx))
+                    (($trimmedCols $trimmedLabels) (delete_column $weightCol $columns $labels))
+                    ($targetIndex (- (List.length $trimmedLabels) 1))
+                    ($featIndices (genList (- $targetIndex 1)))
+                    ($inputCols (map-atom $featIndices $i (index-atom $trimmedCols $i)))
+                    ($targetCol (index-atom $trimmedCols $targetIndex))
+                    ($rowCount (ITable.rowCount $trimmedCols))
+                    ($rowIndices (genList (- $rowCount 1)))
+                   
+                    ($grouped (foldl-atom $rowIndices () $acc $rowIndex
+                                        (countTable $rowIndex $inputCols $targetCol $extractedWeights $acc)))
+                    ($totalWeight (sum $extractedWeights))
+                   )
+               (mkCTable $grouped $trimmedLabels $totalWeight))))))
+
 
 ;; sum_outputs = 0.5 * (pos - neg)
 ;;
@@ -247,12 +333,12 @@
 ;; could achieve using only the selected features while respecting activation
 ;; constraints. It's used by hill climbing to evaluate feature set quality.
 ; (: precisionBScore (-> Expression Expression Number Number Number Number Number Number Number))
-(= (precisionBScore $columns $labels $activationPressure $minActivation $maxActivation $totalWeight)
+(= (precisionBScore $columns $labels $activationPressure $minActivation $maxActivation $totalWeight $weightCol)
    (let* (
             ;; ($_ (println! (debug Inside Precision scoring)))
-            ($groupedData (cTable $columns $labels))
+            ($groupedData (cTable $columns $labels $weightCol))
             
-            ($precisionRows (createPrecisionRows $groupedData))
+            ($precisionRows (createPrecisionRows (getCTableMap $groupedData)))
          )
      (bestPossibleBScore $precisionRows 0.0 0.0 $totalWeight $minActivation $maxActivation
                          $activationPressure -1.0000000000000001e308)))
@@ -262,22 +348,29 @@
 ;;   $featureIndices:  selected feature column indices
 ;;   $columns: Original column-major table data
 ;;   $labels: Column labels
+;;   $weightCol: Optional column label of weight feature, or () for unweighted
 ;;
 ;; Output:
-;;   Expression like (filtered_columns filtered_labels) containing only selected features + target
+;;   Expression like (filtered_columns filtered_labels) containing only selected features + target (and optional weight col)
 ; (: extractTable (-> Expression (List (List $a)) (List Symbol) (Expression Expression)))
-(= (extractTable $featureIndices $columns $labels)
+(= (extractTable $featureIndices $columns $labels $weightCol)
    (let* (
           ;; Target is always last column
           ($targetIndex (- (List.length $labels) 1))
-          ;; Combine selected features with target index
-          ($exprIndices (List.append $targetIndex $featureIndices))
+          ;; Append weight column index to features if present
+          ($ftsWithWeight (if (== $weightCol ())
+                              $featureIndices
+                              (let $widx (List.index $labels $weightCol)
+                                (if (< $widx 0)
+                                    $featureIndices
+                                    (List.append $widx $featureIndices)))))
+          ;; Combine features and weight with target index at the end
+          ($exprIndices (List.append $targetIndex $ftsWithWeight))
 
           ;; Extract selected columns while preserving column-major layout
           ($filteredColumns (map-atom $exprIndices $i (index-atom $columns $i)))
           ;; Extract corresponding labels
-          ($filteredLabels (map-atom $exprIndices $each (List.at $each $labels)))
-          )
+          ($filteredLabels (map-atom $exprIndices $each (index-atom $labels $each))))
      ($filteredColumns $filteredLabels)
    )
 )
@@ -300,6 +393,7 @@
 ;;   $maxAct (Number): Maximum activation threshold (e.g., 1.0)
 ;;   $positive (Bool): Whether to target positive/negative outcomes
 ;;   $confi (Number): Confidence scaling parameter (e.g., 100.0)
+;;   $weightCol: Optional column name for sample weights, or () for unweighted
 ;;
 ;; Returns: (Number) Final weighted precision score for this feature set
 ;;
@@ -307,7 +401,7 @@
 ;; precision-based classification, accounting for both achievable precision
 ;; and the complexity cost of using multiple features.
 ;; (: preScorer (-> Expression (ITable $a) Number Number Number Bool Number Number))
-(= (preScorer $featureIndices (mkITable $columns $labels) $penalty $minAct $maxAct $positive $confi)
+(= (preScorer $featureIndices (mkITable $columns $labels) $penalty $minAct $maxAct $positive $confi $weightCol)
    (if (== $featureIndices ())
       0.0
       (let* (
@@ -315,15 +409,18 @@
                ($clampedMinAct (clamp $minAct 0.0 1.0))
                ($clampedMaxAct (clamp $maxAct 0.0 1.0))
                
-               (($filteredRows $filteredLabels)  (extractTable $featureIndices $columns $labels))
-               
-               ($totalWeight (ITable.rowCount $columns))
-               
-               ($precision (precisionBScore $filteredRows $filteredLabels $penalty 
-                                          $clampedMinAct $clampedMaxAct $totalWeight))
-               
-               ;; Apply confidence weighting
-               ($confidence (calculateConfidence (size-atom $featureIndices) $totalWeight $confi))
+               ($hasWeight (!= $weightCol ()))
+               ($widx (if $hasWeight (List.index $labels $weightCol) -1))
             )
-      ;; Final score for hill climbing feature selection
-      (* $precision $confidence))))
+        (if (and $hasWeight (< $widx 0))
+            (Error $weightCol "Can't score, unknown weight column")
+            (let* (
+                   ($totalWeight (if $hasWeight
+                                     (sum (index-atom $columns $widx))
+                                     (ITable.rowCount $columns)))
+                   (($filteredRows $filteredLabels) (extractTable $featureIndices $columns $labels $weightCol))
+                   ($precision (precisionBScore $filteredRows $filteredLabels $penalty 
+                                              $clampedMinAct $clampedMaxAct $totalWeight $weightCol))
+                   ($confidence (calculateConfidence (size-atom $featureIndices) $totalWeight $confi))
+                  )
+              (* $precision $confidence))))))
