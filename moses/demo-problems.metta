@@ -238,7 +238,7 @@
                (($itable $scoringTable)
                   (let (mkITable $cols $labs) $rawTable
                     (if $hasWeight
-                        ((delete_column $weightCol $rawTable)
+                        ((deleteColumn $weightCol $rawTable)
                          (cTable $cols $labs $weightCol))
                         ($rawTable
                          (cTable $cols $labs ())))))

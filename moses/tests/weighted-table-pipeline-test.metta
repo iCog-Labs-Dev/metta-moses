@@ -7,7 +7,7 @@
 ;;   1. CLI / Parameter handling: (param score-weight)
 ;;   2. problemContext assembly:
 ;;      - Compresses raw table with sample weights into (mkCTable ...)
-;;      - Strips the weight column from input table via delete_column
+;;      - Strips the weight column from input table via deleteColumn
 ;;        so representation knobs and deme expansion ignore weights
 ;;      - Computes dynamic bestPossibleScore via bestPossibleScore
 ;;      - Computes dynamic hcScoreImprovedThreshold via minImprove

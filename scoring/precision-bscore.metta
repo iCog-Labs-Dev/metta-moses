@@ -46,29 +46,29 @@
 ;;
 ;; Input:
 ;;   $colName: Column label to delete
-;;   (xble $columns $labels) OR ($columns $labels)
+;;   $table:   (mkITable $columns $labels) OR ($columns $labels)
 ;; Output:
 ;;   Modified table with the column and its label removed.
 ;;   Throws Error if column name is unknown, matching classic C++ IndexErrorException.
-(= (delete_column $colName (mkITable $columns $labels))
-   (let $idx (List.index $labels $colName)
+(= (deleteColumn $colName $table)
+   (let* (
+          (($columns $labels $isMkITable)
+           (case $table
+             (
+               ((mkITable $cols $labs) ($cols $labs True))
+               (($cols $labs)          ($cols $labs False))
+             )))
+          ($idx (List.index $labels $colName))
+         )
      (if (< $idx 0)
          (Error $colName "Can't delete, unknown column name")
          (let* (
                 ($newCols (List.removeAtIdx $columns $idx))
                 ($newLabels (List.removeAtIdx $labels $idx))
                )
-           (mkITable $newCols $newLabels)))))
-
-(= (delete_column $colName $columns $labels)
-   (let $idx (List.index $labels $colName)
-     (if (< $idx 0)
-         (Error $colName "Can't delete, unknown column name")
-         (let* (
-                ($newCols (List.removeAtIdx $columns $idx))
-                ($newLabels (List.removeAtIdx $labels $idx))
-               )
-           ($newCols $newLabels)))))
+           (if $isMkITable
+               (mkITable $newCols $newLabels)
+               ($newCols $newLabels))))))
 
 ;; Type constructor for compressed table (cTable), matching classic C++ CTable class
 ;; Classic C++ Reference: moses/comboreduct/table/table.h#L549-L578
@@ -115,39 +115,31 @@
    (cTable $columns $labels ()))
 
 (= (cTable $columns $labels $weightCol)
-   (if (== $weightCol ())
-       ;; Unweighted compression: Table::compressed("")
-       (let* (
-              ($targetIndex (- (List.length $labels) 1))
-              ($featIndices (genList (- $targetIndex 1)))
-              ($inputCols (map-atom $featIndices $i (index-atom $columns $i)))
-              ($targetCol (index-atom $columns $targetIndex))
-              ($rowCount (ITable.rowCount $columns))
-              ($rowIndices (genList (- $rowCount 1)))
-             
-              ($grouped (foldl-atom $rowIndices () $acc $rowIndex
-                                  (countTable $rowIndex $inputCols $targetCol () $acc)))
-             )
-         (mkCTable $grouped $labels $rowCount))
-       ;; Weighted compression: Table::compressed(weight_col)
-       (let $widx (List.index $labels $weightCol)
-         (if (< $widx 0)
-             (Error $weightCol "Unknown weight column")
-             (let* (
-                    ($extractedWeights (index-atom $columns $widx))
-                    (($trimmedCols $trimmedLabels) (delete_column $weightCol $columns $labels))
-                    ($targetIndex (- (List.length $trimmedLabels) 1))
-                    ($featIndices (genList (- $targetIndex 1)))
-                    ($inputCols (map-atom $featIndices $i (index-atom $trimmedCols $i)))
-                    ($targetCol (index-atom $trimmedCols $targetIndex))
-                    ($rowCount (ITable.rowCount $trimmedCols))
-                    ($rowIndices (genList (- $rowCount 1)))
-                   
-                    ($grouped (foldl-atom $rowIndices () $acc $rowIndex
-                                        (countTable $rowIndex $inputCols $targetCol $extractedWeights $acc)))
-                    ($totalWeight (sum $extractedWeights))
-                   )
-               (mkCTable $grouped $trimmedLabels $totalWeight))))))
+   (let* (
+          ($hasWeight (!= $weightCol ()))
+          ($widx (if $hasWeight (List.index $labels $weightCol) -1))
+         )
+     (if (and $hasWeight (< $widx 0))
+         (Error $weightCol "Unknown weight column")
+         (let* (
+                (($tableCols $tableLabels $weights $totalWeight)
+                 (if $hasWeight
+                     (let* (
+                            ($extractedWeights (index-atom $columns $widx))
+                            (($trimmedCols $trimmedLabels) (deleteColumn $weightCol ($columns $labels)))
+                           )
+                       ($trimmedCols $trimmedLabels $extractedWeights (sum $extractedWeights)))
+                     ($columns $labels () (ITable.rowCount $columns))))
+                ($targetIndex (- (List.length $tableLabels) 1))
+                ($featIndices (genList (- $targetIndex 1)))
+                ($inputCols (map-atom $featIndices $i (index-atom $tableCols $i)))
+                ($targetCol (index-atom $tableCols $targetIndex))
+                ($rowCount (ITable.rowCount $tableCols))
+                ($rowIndices (genList (- $rowCount 1)))
+                ($grouped (foldl-atom $rowIndices () $acc $rowIndex
+                                    (countTable $rowIndex $inputCols $targetCol $weights $acc)))
+               )
+           (mkCTable $grouped $tableLabels $totalWeight)))))
 
 
 ;; sum_outputs = 0.5 * (pos - neg)

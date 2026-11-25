@@ -121,26 +121,26 @@
 !(assertEqual (preScorer (0 1) (precisionTable) 1.0 0.5 1.0 True 100.0 ()) 0.7142857142857143)
 
 ;; ====================================================================
-;; Weighted Table Groundwork: delete_column, countTable, and cTable
+;; Weighted Table Groundwork: deleteColumn, countTable, and cTable
 ;; ====================================================================
 
-;; Test delete_column on (mkITable ...)
+;; Test deleteColumn on (mkITable ...)
 !(assertEqual
-    (delete_column Weight (mkITable ((True False) (1.0 2.0) (True True)) (A Weight Output)))
+    (deleteColumn Weight (mkITable ((True False) (1.0 2.0) (True True)) (A Weight Output)))
     (mkITable ((True False) (True True)) (A Output)))
 
-;; Test delete_column throws error on unknown column name
+;; Test deleteColumn throws error on unknown column name
 !(assertEqual
-    (delete_column NonExistent (mkITable ((True False) (True True)) (A Output)))
+    (deleteColumn NonExistent (mkITable ((True False) (True True)) (A Output)))
     (Error NonExistent "Can't delete, unknown column name"))
 
 !(assertEqual
-    (delete_column "" (mkITable ((True False) (True True)) (A Output)))
+    (deleteColumn "" (mkITable ((True False) (True True)) (A Output)))
     (Error "" "Can't delete, unknown column name"))
 
-;; Test delete_column on raw ($columns $labels)
+;; Test deleteColumn on raw ($columns $labels)
 !(assertEqual
-    (delete_column Weight ((True False) (1.0 2.0) (True True)) (A Weight Output))
+    (deleteColumn Weight (((True False) (1.0 2.0) (True True)) (A Weight Output)))
     (((True False) (True True)) (A Output)))
 
 ;; Test countTable with fractional weights
