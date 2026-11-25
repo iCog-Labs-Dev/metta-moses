@@ -44,6 +44,11 @@
 ;; maxGen rather than by hitting the perfect-classifier target.
 !(add-atom &params (inputFile     ""))
 !(add-atom &params (targetFeature ""))
+;; score-weight: name of the weight column (symbol). When non-(), table rows
+;;   accumulate continuous sample weights and the weight column is stripped
+;;   from input features before knob mapping.
+;;   Classic C++ Reference: moses/moses/main/table-problems.cc#L79-L85 (--score-weight)
+!(add-atom &params (score-weight  ()))
 
 ;; ---- Action-run binding (the params-based fitness contract) ----
 ;; An ACTION experiment binds its fitness through these four params instead

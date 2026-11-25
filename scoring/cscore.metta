@@ -28,6 +28,11 @@
 ;; (: getCscore (-> (ITable $a) (Tree $a) Number $space Cscore))
 (= (getCscore (mkITable $rows $labels) $tree $complexityRatio $scoreSpace)
    (getCscore $tree $complexityRatio (scoreTree (mkITable $rows $labels) $tree $scoreSpace)))
+
+;; Compressed table version - uses compressed scoreTree
+;; (: getCscore (-> (CTable $a) (Tree $a) Number $space Cscore))
+(= (getCscore (mkCTable $map $labels $totalWeight) $tree $complexityRatio $scoreSpace)
+   (getCscore $tree $complexityRatio (scoreTree (mkCTable $map $labels $totalWeight) $tree $scoreSpace)))
 ;; getComplexityCoef -- calculates the complexity coefficient of a tree   
 ;; takes complexity ratio as input and returns complexity coefficient
 ;; complexity ratio, unless set by the user, has 3.5 for a default value

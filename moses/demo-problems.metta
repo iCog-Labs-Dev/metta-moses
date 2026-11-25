@@ -11,6 +11,17 @@
                (False True True False True False False True))
               (X1 X2 X3 Out)))
 
+;; 3-Bit Parity with sample weights: carries sample weights (Weight column).
+;; Evaluates identical logic to parity3, but each sample carries a weight.
+;; Classic C++ Reference: moses/main/table-problems.cc#L79-L85 (--score-weight)
+(= (weightedParity3) (mkITable
+                      ((False False False False True True True True)
+                       (False False True True False False True True)
+                       (False True False True False True False True)
+                       (1.0 1.0 1.0 1.0 2.0 2.0 2.0 2.0)
+                       (False True True False True False False True))
+                      (X1 X2 X3 Weight Out)))
+
 ;; Example: (XOR X1 X2 X3 X4) => (OR (AND A (NOT B) (NOT C) (NOT D)) (AND (NOT A) B (NOT C) (NOT D)) (AND (NOT A) (NOT B) C (NOT D)) (AND (NOT A) (NOT B) (NOT C) D) (AND (NOT A) B C D) (AND A (NOT B) C D) (AND A B (NOT C) D) (AND A B C (NOT D)))
 (= (parity4) (mkITable
               ((False False False False False False False False True True True True True True True True)
@@ -219,19 +230,30 @@
       ($other
         (let* (
                ($cpxPen           (param complexityRatio))
-               ($itable           (resolve-itable))
-               ($truthTableBScore (createTruthTableBScore $cpxPen $itable))
+               ($rawTable         (resolve-itable))
+               ($weightCol        (param score-weight))
+               ($hasWeight        (!= $weightCol ()))
+               ;; If weighted, compress with weight column and strip weight from input table
+               ;; Classic C++ Reference: moses/main/table-problems.cc#L125-L130
+               (($itable $scoringTable)
+                  (let (mkITable $cols $labs) $rawTable
+                    (if $hasWeight
+                        ((deleteColumn $weightCol $rawTable)
+                         (cTable $cols $labs $weightCol))
+                        ($rawTable
+                         (cTable $cols $labs ())))))
+               ($truthTableBScore (createTruthTableBScore $cpxPen $scoringTable))
                (($ctor $worstB)   (worstPossibleScore $truthTableBScore))
                ($worstScore       (List.sum $worstB))
-               ;; Termination target: (getBestPossibleScore)'s hardcoded 0 (a
-               ;; clean table classified perfectly) unless (param bestScore)
-               ;; carries an explicit NUMBER override -- the table-run half of
-               ;; the bestScore contract (the action runner treats the same
-               ;; param as a function symbol; see parameters/defaults.metta).
+               ;; Dynamic minimum score improvement threshold
+               ;; Classic C++ Reference: moses/moses/moses_main.cc#L100
+               ($_ (set-param hcScoreImprovedThreshold (minImprove $truthTableBScore)))
+               ;; Termination target: explicit override or dynamic best possible score
+               ;; Classic C++ Reference: moses/moses/moses_main.cc#L79
                ($bsParam            (param bestScore))
                ($bestPossibleScore (if (== (get-type $bsParam) Number)
                                         $bsParam
-                                        (getBestPossibleScore)))
+                                        (bestPossibleScore (mkBCScore $truthTableBScore))))
                ;; Rescale diversity pressure to problem score range if diversityAutoscale is enabled
                ($_ (autoscaleDiversity $bestPossibleScore $worstScore))
                ($metaPop

@@ -38,6 +38,10 @@
 (= (mergeContextFor $context)
    (case $context
      (((mkActionCtx $nTrials $cpxRatio $targetScore) (mkActionCtx $nTrials $cpxRatio $targetScore))
+      ;; Explicitly match when the scoring table is a compressed table (mkCTable)
+      (($prune $fsAlgo (mkTruthTableBScore $cpx $sz (mkCTable $map $labels $totalWeight)) $itable)
+       (mkCTable $map $labels $totalWeight))
+      ;; Fallback for uncompressed table problems: return the canonical input table ($itable)
       (($prune $fsAlgo $truthTableBScore $itable) $itable))))
 
 (= (mergeContextFor (mkActionCtx $nTrials $cpxRatio))

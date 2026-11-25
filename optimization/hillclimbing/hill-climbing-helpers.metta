@@ -245,9 +245,15 @@
 
 ;; Score a materialized program without reconstructing it through the
 ;; representation-specific scorer.
+;; Case 1: Uncompressed table (ITable)
 (= (scoreMaterializedTree $tree
                           ((mkITable $rows $labels) $complexityRatio))
    (getCscore (mkITable $rows $labels) $tree
+              $complexityRatio &bscoreCache))
+;; Case 2: Compressed table (CTable) with sample weights
+(= (scoreMaterializedTree $tree
+                          ((mkCTable $map $labels $totalWeight) $complexityRatio))
+   (getCscore (mkCTable $map $labels $totalWeight) $tree
               $complexityRatio &bscoreCache))
 ;; The action arm receives a tagged packed payload from the optimizer. A
 ;; numeric-headed tuple is interpreted as a partial application by PeTTa.
@@ -633,7 +639,10 @@
         ;; the canonical lifecycle context used by Boolean runs.
         ($incrementalContext
           (case $iTable
-            (((mkITable $rows $labels) ($iTable $rowOCoeff))
+            (;; Uncompressed table (ITable)
+             ((mkITable $rows $labels) ($iTable $rowOCoeff))
+             ;; Compressed table (CTable) with sample weights
+             ((mkCTable $map $labels $totalWeight) ($iTable $rowOCoeff))
              ($other (mkActionScoreContext $iTable $rowOCoeff)))))
         ($scoreBatch
           (if $isFeatureSelection

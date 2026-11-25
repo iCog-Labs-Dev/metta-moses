@@ -1,5 +1,6 @@
 !(import! &self ../../utilities/general-helpers)
 !(import! &self ../../utilities/list-methods)
+!(import! &self ../../utilities/map)
 !(import! &self ../../utilities/tree)
 
 !(import! &self ../../scoring/cacheSpace)
@@ -9,6 +10,7 @@
 !(import! &self ../boolean-ops)
 !(import! &self ../bscore)
 !(import! &self ../cscore)
+!(import! &self ../precision-bscore)
 
 ;; Tests for cScoreToExpr
 !(assertEqual (cScoreToExpr (mkCscore 0.0 0.0 0.0 0.0 0.0)) ((0.0 0.0 0.0 0.0 0.0)))
@@ -144,3 +146,29 @@
                         (mkCscore -3.0 3 0.1 0.0 -3.0) 
                         (buildTree (quote (AND A (OR (NOT B) (NOT C))))) 
                         (buildTree (quote (AND A B C)))) False)
+
+;; ====================================================================
+;; Compressed Table Test: getCscore with (mkCTable ...)
+;; ====================================================================
+
+!(let* (
+        ($_ (resetSubtreeCache))
+        ($ct (mkCTable (cons ((True True) (1 0))
+                       (cons ((True False) (0 1))
+                       (cons ((False True) (0 1))
+                       (cons ((False False) (0 1)) ()))))
+                       (A B Output) 4))
+        ($cand (quote (AND A B)))
+       )
+   (assertEqual (getCscore $ct (buildTree $cand) 2.0 &bscoreCache) (mkCscore 0 2 1.0 0.0 -1.0)))
+
+;; Test weighted cTable getCscore with fractional weights:
+;; Pattern (True) has (pos:0.5, neg:1.5); Pattern (False) has (pos:2.0, neg:2.5)
+;; Candidate (mkTree (mkNode A) ()) predicts True on (True) [penalty -1.5], False on (False) [penalty -2.0]
+;; bscore sum = -3.5, complexity = 1, complexityRatio = 2.0 (coef = 0.5), penalized score = -3.5 - 0.5 = -4.0
+!(let* (
+        ($_ (resetSubtreeCache))
+        ($ct (mkCTable (cons ((True) (0.5 1.5)) (cons ((False) (2.0 2.5)) ())) (A Output) 6.5))
+        ($tree (mkTree (mkNode A) ()))
+       )
+   (assertEqual (getCscore $ct $tree 2.0 &bscoreCache) (mkCscore -3.5 1 0.5 0.0 -4.0)))

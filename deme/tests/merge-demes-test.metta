@@ -54,6 +54,7 @@
 !(import! &self ../../scoring/action-score)
 !(import! &self ../../scoring/complexity-based-scorer)
 !(import! &self ../../scoring/cacheSpace)
+!(import! &self ../../scoring/precision-bscore)
 
 !(import! &self ../../metapopulation/exemplar-type)
 !(import! &self ../../metapopulation/diversity)
@@ -369,6 +370,24 @@
                                       (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore 0 2 0.5 0 0.8))) ())))
                 (mkDemeId "1")
                 (ttable2))
+
+  (cons (mkExemplar (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode C) ()) ()))) ()))) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (cons 0 (cons 0 (cons 0 (cons 0 ())))))) (cons (mkExemplar (mkTree (mkNode FALSE) ()) (mkDemeId "1") (mkCscore 0 2 0.5 0 0.8) (mkBScore (cons -1 (cons 0 (cons 0 (cons 0 ())))))) ())))
+
+;; Testcase for demeToTrees with (mkCTable ...) context
+!(assertEqual
+  (demeToTrees (mkRep (mkKbMap
+                                  (mkDscKbMp (cons ((mkNodeId (2 3)) 0) (cons ((mkNodeId (3)) 1) (cons ((mkNodeId (1)) 2) ())))) 
+                                  (mkDscMp (cons ((mkDiscSpec 1) (lsk1)) (cons ((mkDiscSpec 0) (lsk2)) (cons ((mkDiscSpec 1) (lsk3)) ()))))) 
+                              (mkTree (mkNode AND) (cons (mkKnob (mkTree (mkNode A) ()) (lsk3) 2)
+                                                      (cons (mkTree (mkNode OR) 
+                                                          (cons (mkTree (mkNode B) ()) 
+                                                          (cons (mkTree (mkNode C) ()) 
+                                                      (cons (mkKnob (mkNullVex (cons (mkTree (mkNode D) ()) ())) (lsk1) 0) ()))))
+                                                      (cons (mkKnob (mkNullVex (cons (mkTree (mkNode OR) (cons (mkTree (mkNode A) ()) ())) ())) (lsk2) 1) ())))))
+                (mkSInstSet (cons (mkSInst (mkPair (mkInst (cons 0 (cons 0 (cons 1 ())))) (mkCscore -1 2 1 0 1)))
+                                      (cons (mkSInst (mkPair (mkInst (cons 0 (cons 1 (cons 2 ())))) (mkCscore 0 2 0.5 0 0.8))) ())))
+                (mkDemeId "1")
+                (cTable (ttable2)))
 
   (cons (mkExemplar (mkTree (mkNode AND) (cons (mkTree (mkNode A) ()) (cons (mkTree (mkNode OR) (cons (mkTree (mkNode B) ()) (cons (mkTree (mkNode C) ()) ()))) ()))) (mkDemeId "1") (mkCscore -1 2 1 0 1) (mkBScore (cons 0 (cons 0 (cons 0 (cons 0 ())))))) (cons (mkExemplar (mkTree (mkNode FALSE) ()) (mkDemeId "1") (mkCscore 0 2 0.5 0 0.8) (mkBScore (cons -1 (cons 0 (cons 0 (cons 0 ())))))) ())))
 
